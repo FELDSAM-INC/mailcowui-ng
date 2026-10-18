@@ -42,9 +42,9 @@ width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
   and kind filter. The confirmation states their number and the filters that apply, and lists the
   first 10 names with the number of others. The app then generates the keys one name at a time in
   name order, with progress, a result per name and a retry of the failures. (agent decision: legacy
-  "Select domains with missing keys" picks every missing name; API 010 FR-059 has no batch
-  operation; applying the visible search and filter keeps the action predictable; per-name results
-  follow UI feature 002.)
+  "Select domains with missing keys" picks every missing name; API 010 FR-013 generates one name per
+  request, and creation is never a bulk operation; applying the visible search and filter keeps the
+  action predictable; per-name results follow UI feature 002.)
 - Q: How strong must the confirmation be before DKIM keys are deleted? → A: For one key, a dialog
   with the impact (FR-038) and a Delete button, without typing the name. For a selection, the dialog
   lists every selected key with its kind and selector, marks the domains and alias domains whose
@@ -52,7 +52,8 @@ width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
   acknowledgement. (agent decision: constitution II asks for explicit confirmation that shows what is
   affected; unlike a domain deletion (UI feature 002, typed name), a key deletion removes no mail
   data and is repaired by generating a new key; typing names is impractical on a phone; a bulk
-  deletion can silently stop signing for many domains, hence the acknowledgement.)
+  deletion can silently stop signing for many domains, hence the acknowledgement.) For a selection,
+  the plan alignment below replaces the acknowledgement with typing the number of keys.
 - Q: How is an exported private key shown, and what happens to it afterwards? → A: After the
   confirmation, in a dialog with the key in a read-only field, a copy action and a download action
   that saves it unchanged as a text file named `<selector>.<ASCII name>.pem`. The key exists in the
@@ -60,7 +61,8 @@ width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
   the dialog closes. Seeing it again needs a new confirmed export, which the API records again.
   (agent decision: API 010 FR-026 audits every export; constitution V forbids keeping secrets in
   browser storage; the legacy modal showed text only, and selecting a long key by hand on a phone is
-  error-prone, so a download helps move the key to another server.)
+  error-prone, so a download helps move the key to another server.) The plan alignment below adds a
+  confirmation before the dialog closes uncopied.
 - Q: Is the pasted private key visible in the import form, and how long does the app keep it? → A:
   It is shown as text in a multi-line field, so that the user can check the paste, with spell
   checking, auto-correction and auto-completion off. It is kept after a refused import so that the
@@ -92,7 +94,8 @@ width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
   policy inactive. (agent decision: legacy's bare seconds field makes users type 604800 on a phone
   keypad; RFC 8461 advises starting in testing mode and a maximum age of weeks; API 010 FR-033 and
   legacy create inactive policies unless told otherwise, and activation should be deliberate because
-  it needs DNS records and triggers a certificate request.)
+  it needs DNS records and triggers a certificate request.) The plan alignment below pre-fills the
+  server host name as the MX host.
 - Q: What does the app tell the user after a policy change that renews the policy identifier? → A:
   The success message says that the identifier changed, with the old and new value, and that the
   `_mta-sts.<domain>` TXT record must be updated; the section highlights that record with its copy
@@ -107,6 +110,37 @@ width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
   Activation needs no confirmation and shows the DNS and certificate notice of FR-051. Both send only
   the active state with the version tag. (agent decision: API 010 FR-037 offers no deletion, so
   deactivation is the way to withdraw a policy and is destructive in effect; constitution II.)
+
+### Plan alignment 2026-10-18
+
+The plan pins the merged API 010 contract (mailcow-rest-v2 commit `3207925`). That contract closes
+several gaps this spec listed, and `docs/conventions.md` decides points that the spec settled
+differently. These consistency changes are applied to the requirements below.
+
+- **Bulk deletion**: deleting a selection uses the API's bulk operation (API 010 FR-059). It sends
+  up to 100 keys with their version tags and gets one result per key: done, not found, refused,
+  outdated, failed, or "outcome unknown" after a dropped connection (FR-040, FR-041, FR-092).
+  Generation and copy still send one request per name or target, because creation is never a bulk
+  operation.
+- **Bulk deletion confirmation**: the dialog asks for the number of keys to be typed instead of an
+  acknowledgement checkbox, as `docs/conventions.md` "Confirmations" requires (FR-038, US5 AS-7).
+  It still lists every key and marks the names whose mail stops being signed.
+- **Key replacement**: API 010 FR-013 now lets administrators generate with overwrite, atomically.
+  Administrators get "Replace with a new key" on entries with a key, including incomplete keys
+  (FR-090). Gap 4 is closed.
+- **Diagnostics labels and messages**: every check carries a stable identifier, and every reason,
+  note and guidance item a code with parameters (API 010 FR-044). The app translates them, and it
+  falls back to a generic label only for identifiers or codes added after the pinned contract
+  (FR-059, FR-071). Gap 1 is closed.
+- **Publication failure reason**: a stable code plus optional technical detail (API 010 FR-030).
+  The code is translated, and the detail is shown as plain technical text (FR-044). Gap 3 is
+  closed.
+- **MTA-STS set-up**: the capabilities read returns the server host name (API 010 FR-012). The
+  set-up form pre-fills it as the only MX host (FR-047, US4 AS-2). Gap 5 is closed.
+- **Rate limit**: every diagnostics response carries `RateLimit-*` headers (API 010 FR-049). The
+  page shows the runs left and disables "Run again" while none are left (FR-091). Gap 6 is closed.
+- **Export dialog**: closing without copying or downloading the key asks for confirmation, as
+  `docs/conventions.md` "Secrets" requires (FR-077).
 
 ## Glossary
 
@@ -228,7 +262,7 @@ publication outcome.
 6. **Given** a domain administrator on the page of a domain they manage without a key, **When**
    they generate a key, **Then** the key is created and the DKIM section of the page shows the
    record. **Given** a domain administrator, **When** they look at an entry with a key, **Then** no
-   import, copy, delete, export or publish action is offered.
+   replace, import, copy, delete, export or publish action is offered.
 7. **Given** the DKIM DNS publication enabled, **When** a key is generated and the publication
    fails, **Then** the result says that the key was created and signing works, that the DNS record
    was not published, and offers to publish it again (administrators).
@@ -315,10 +349,10 @@ domain, and check the values sent and every message shown.
 
 1. **Given** a domain without a policy, **When** the user opens its MTA-STS section, **Then** the
    section says that no policy is set up and offers to set one up.
-2. **Given** the set-up form, **When** it opens, **Then** the mode "testing", a maximum age of 1
-   week, no MX hosts and the policy inactive are preset. **When** the user chooses "enforce", adds
-   the MX host `mail.example.org`, enters a maximum age of 1 day, switches the policy on and saves,
-   **Then** the
+2. **Given** the set-up form on a server whose host name is `mail.example.org`, **When** it opens,
+   **Then** the mode "testing", a maximum age of 1 week, the MX host `mail.example.org` and the
+   policy inactive are preset. **When** the user chooses "enforce", adds the MX host
+   `mx2.example.org`, enters a maximum age of 1 day, switches the policy on and saves, **Then** the
    policy is created, the section shows version STSv1, the identifier, the address
    `https://mta-sts.<domain>/.well-known/mta-sts.txt`, and the records `_mta-sts.<domain>` TXT and
    `mta-sts.<domain>` with copy buttons.
@@ -348,15 +382,15 @@ An administrator migrating a domain from another server imports its existing pri
 selector already published in DNS, so that the published record keeps working; when the name
 already has a key, they explicitly choose to overwrite it. An administrator who wants several
 domains to share one key copies it from one entry to other domains or alias domains. An
-administrator cleaning up deletes keys left without a domain, or deletes a domain's key before
-generating a new one.
+administrator cleaning up deletes keys left without a domain, one at a time or as a selection. An
+administrator rotating a key replaces it with a new one in one step, so that mail stays signed.
 
 **Why this priority**: These tasks are less frequent than generating keys and are
 administrator-only.
 
 **Independent Test**: Against a mock API, import valid and invalid keys with and without overwrite,
-copy a key to several targets with and without keys, and delete valid and unused keys, one at a time
-and in a selection, as an administrator. Simulate conflicts, outdated versions and every validation
+copy a key to several targets with and without keys, replace keys with new ones, and delete valid
+and unused keys, one at a time and in a selection, as an administrator. Simulate conflicts, outdated versions and every validation
 rule, and check that a domain administrator is never offered these actions.
 
 **Acceptance Scenarios**:
@@ -380,7 +414,13 @@ rule, and check that a domain administrator is never offered these actions.
 6. **Given** an unused key, **When** it is deleted, **Then** it disappears from the list.
 7. **Given** a selection of 5 keys, 3 of them belonging to domains, **When** the administrator
    chooses Delete, **Then** the dialog lists all 5 with kind and selector, marks the 3 domains whose
-   mail stops being signed, and keeps Delete disabled until the acknowledgement is ticked.
+   mail stops being signed, and keeps Delete disabled until the number 5 is typed. **When**
+   confirmed, **Then** one request deletes the keys, and each key is listed as deleted or with its
+   translated reason; the keys that were not deleted stay selected.
+8. **Given** a domain's key, **When** the administrator chooses "Replace with a new key", keeps the
+   suggested selector and confirms, **Then** the confirmation has named the old selector and key
+   length and said that mail stays signed during the change and that the published DNS record must
+   be updated, and the entry shows the new key and record.
 
 ---
 
@@ -471,8 +511,8 @@ a domain administrator is never offered it.
   listed under its exact stored name with the explanation that it is never used for signing, and it
   can be inspected, copied from and deleted.
 - **Incomplete key**: marked "Incomplete", explained as not used for signing. Administrators can
-  delete it or replace it by an import with overwrite. Generation is not offered for it, because the
-  name counts as having a key.
+  delete it, replace it with a new key (FR-090) or replace it by an import with overwrite. Plain
+  generation is not offered for it, because the name counts as having a key.
 - **Entry changed or removed while it is open**, in this app, the legacy UI or through the API: a
   "not found" answer says the key or name no longer exists and offers the way back to the list; an
   outdated answer shows the latest data and asks for confirmation again.
@@ -499,10 +539,14 @@ a domain administrator is never offered it.
 - **Export dialog closed by mistake**: the key is gone; seeing it again needs a new confirmed export,
   which the API records again.
 - **Bulk deletion that includes valid keys**: the confirmation marks every domain and alias domain
-  whose mail stops being signed, and Delete stays disabled until the acknowledgement is ticked.
-- **Publication outcome "failed"** after a deletion: the deletion responds without an outcome, so the
-  app cannot report it; the confirmation states where the outcome can be found (history,
-  administrators).
+  whose mail stops being signed, and Delete stays disabled until the number of keys is typed.
+- **Publication outcome "failed"** after a single deletion: the deletion responds without an
+  outcome, so the app cannot report it; the confirmation states where the outcome can be found
+  (history, administrators). A bulk deletion reports each key's removal outcome.
+- **Bulk deletion with a key changed in the meantime**: that key's result is "outdated", it stays
+  selected, and the list is reloaded so that a retry uses its new version.
+- **Connection dropped during a bulk deletion**: every key is reported as "outcome unknown", and
+  nothing is sent again automatically.
 - **Clipboard unavailable or denied**: the copy button selects the full value in place and says that
   it could not be copied automatically, so that the user can copy it with the system's own action.
 - **MTA-STS MX entries in another letter case, with a trailing dot, or duplicated**: duplicates that
@@ -561,7 +605,8 @@ a domain administrator is never offered it.
   | List, search, filter, sort and inspect DKIM entries | All names, including unused keys | Own domains and their alias domains |
   | Copy record names and values to the clipboard | Yes | Yes |
   | Generate a key | Any domain or alias domain without a key | Own domains and alias domains without a key |
-  | Import, copy or delete a key | Yes | Not offered |
+  | Import, copy or delete a key, delete a selection of keys | Yes | Not offered |
+  | Replace a key with a new one (FR-090) | Yes | Not offered |
   | Export a private key | Only while export is enabled on the server | Not offered |
   | Publish a DNS record again | Only while the DKIM DNS publication is enabled | Not offered |
   | Read, list, set up and change MTA-STS policies | All domains | Own domains |
@@ -640,8 +685,8 @@ a domain administrator is never offered it.
 - **FR-018**: Record values, public keys and selectors MUST be shown in a fixed-width font, MUST
   wrap at any character on small screens, and MUST NOT need horizontal scrolling.
 - **FR-019**: The entry page MUST offer the actions of FR-002 that apply to it: generate (entry
-  without a key), import with overwrite, copy, delete, export, publish again and history
-  (administrators, entry with a key), and "Check DNS" (domains and alias domains, not unused keys).
+  without a key), replace with a new key, import with overwrite, copy, delete, export, publish again
+  and history (administrators, entry with a key), and "Check DNS" (domains and alias domains, not unused keys).
 - **FR-020**: The entry page MUST define a loading state, the "not found" page of FR-004 and an error
   state with a retry action.
 
@@ -681,8 +726,23 @@ a domain administrator is never offered it.
 - **FR-027**: After a successful generation of one name, the app MUST show its entry with the new
   record and announce the success. When the DKIM DNS publication is enabled, the publication outcome
   of FR-044 MUST be shown with it.
-- **FR-028**: A name that has a key, whether complete or not, MUST NOT be offered for generation. A
-  refusal because the name already has a key MUST be reported as such, and the entry refreshed.
+- **FR-028**: A name that has a key, whether complete or not, MUST NOT be offered for generation;
+  administrators get "Replace with a new key" instead (FR-090). A refusal because the name already
+  has a key MUST be reported as such, and the entry refreshed.
+- **FR-090**: Administrators MUST be able to replace the key of an entry that has a key, whether
+  complete or not, with a newly generated key in one step, from the entry page. The form MUST
+  offer the selector and the key size as in FR-025. It MUST recommend a selector different from
+  the current one, so that the old and new records can be published side by side. Before sending,
+  a confirmation MUST:
+  - name the current selector and key length;
+  - state that the old key, including its private key, is replaced in one step, so that mail stays
+    signed;
+  - state that the published DNS record must be updated with the new value, unless the DKIM DNS
+    publication is enabled.
+
+  The replacement MUST be sent with the entry's version tag. When the API refuses it as outdated,
+  the app MUST show the confirmation again with fresh data. After success, the entry MUST show the
+  new key and record, and the publication outcome when the publication is enabled.
 
 #### Importing a key
 
@@ -741,8 +801,9 @@ a domain administrator is never offered it.
 
   For one key, the confirmation MUST be a dialog with this impact and a Delete button; the user MUST
   NOT have to type the name. For a selection, the dialog MUST list every selected key with its kind
-  and selector, mark the domains and alias domains whose mail stops being signed, and keep Delete
-  disabled until the user ticks an explicit acknowledgement.
+  and selector, mark the domains and alias domains whose mail stops being signed, list the selected
+  entries without a key as skipped, and keep Delete disabled until the user types the number of keys
+  to be deleted (`docs/conventions.md`).
 - **FR-039**: The deletion MUST be sent with the entry's version tag. When the API refuses it as
   outdated, the app MUST show the impact again with fresh data. When the key no longer exists, the app
   MUST say so and refresh the entry. After a successful deletion, the app MUST announce it and show
@@ -756,12 +817,20 @@ a domain administrator is never offered it.
   through a selection mode that shows a checkbox on every card and an action bar that names the
   number of selected entries. Entries the action does not apply to MUST be listed as skipped.
   Generating keys for a selection MUST open the generation form of FR-025 for the selected names;
-  deleting a selection MUST be confirmed as FR-038 requires for a selection. The selection MUST be
-  cleared when the page, search, filters, sort or page size change.
-- **FR-041**: Because the API offers no batch operation, the app MUST send one request per name or
-  target, continue after failures, show progress, and finish with a result for every name: done,
-  failed with a translated reason, or not processed. It MUST offer to retry the failed and
-  unprocessed names only.
+  deleting a selection MUST be confirmed as FR-038 requires for a selection and sent as FR-092
+  describes. The selection MUST be cleared when the page, search, filters, sort or page size change.
+- **FR-041**: Generation and copy create one key per request, because creation is never a bulk
+  operation. For them, the app MUST send one request per name or target, continue after failures,
+  show progress, and finish with a result for every name: done, already has a key, failed with a
+  translated reason, outcome unknown (the connection dropped) or not processed. It MUST offer to
+  retry the failed, unknown and unprocessed names only, and MUST NOT retry anything automatically.
+- **FR-092**: Deleting a selection MUST be sent as one bulk request of the API with every selected
+  key and its version tag as listed (at most 100, which one page never exceeds). The app MUST show
+  one result per key: deleted, not found, refused, outdated or failed, each with its translated
+  reason, and, while the DKIM DNS publication is enabled, the removal outcome of each deleted key's
+  record. Keys that were refused, outdated or failed MUST stay selected, and the list MUST be
+  reloaded so that a retry uses the current version tags. When the connection drops, every key
+  MUST be reported as "outcome unknown", and nothing MUST be sent again automatically.
 - **FR-042**: Leaving the page while a run on several names is in progress MUST warn that the
   remaining names will not be processed.
 
@@ -773,7 +842,10 @@ a domain administrator is never offered it.
 - **FR-044**: While it is enabled, every generation, import and copy result MUST show its publication
   outcome translated: "published to the DNS zone", "no DNS zone found for this name" with the advice
   to publish the record manually, and "failed" with the advice that the key works and the record can
-  be published again. A technical reason that comes with "failed" MUST be shown as plain text.
+  be published again. The reason of "failed" MUST be translated from its code (ISPConfig
+  unreachable, timed out, sign-in refused, remote error, unexpected answer, old selector's record
+  not removed). An unknown code MUST be shown as a generic failure. The technical detail that may
+  come with it MUST be shown as plain text, marked as English.
 - **FR-045**: Administrators MUST be able to publish the record of an entry with a key again, from
   the entry page and from a "failed" outcome. The app MUST show the outcome. When the API refuses it
   because the publication is not enabled, the app MUST say so and remove the action.
@@ -799,8 +871,8 @@ a domain administrator is never offered it.
   - the active state as a switch, with the explanation that an inactive policy is not published and
     no certificate is requested for its `mta-sts.` name.
 
-  The set-up form MUST start with mode "testing", a maximum age of 1 week, no MX hosts and the policy
-  inactive.
+  The set-up form MUST start with mode "testing", a maximum age of 1 week, the server's host name
+  from the capabilities read as the only MX host, and the policy inactive.
 - **FR-048**: Before sending, the app MUST check: at least one MX host; each entry is a host name of
   labels of letters, digits and inner hyphens, optionally starting with `*.`, of at most 253
   characters; duplicates that differ only in letter case are kept once; the entries joined by commas
@@ -855,15 +927,17 @@ a domain administrator is never offered it.
   has arrived after 45 seconds, the app MUST show a timeout error with "Run again".
 - **FR-059**: The result MUST show every record check returned by the API, in the API's order,
   grouped into server-wide records (administrators) and the name's records. Each check MUST show:
-  - its purpose as a translated label, for example "Mail exchanger", "Autodiscover", "SPF",
-    "DMARC", "DKIM", "MTA-STS record" or "IMAPS service" (this depends on API gap 1);
+  - its purpose as a translated label derived from the check's identifier, for example "Mail
+    exchanger", "Autodiscover", "SPF", "DMARC", "DKIM (selector dkim)", "MTA-STS record" or "IMAPS
+    service"; an identifier unknown to the app is labelled by its record type;
   - the record name and type;
   - a status badge with text and icon;
   - an "Optional" marker when the check is optional;
   - the expected value, or the translated guidance for checks without an exact expected value;
   - every value found, or "No record found";
   - the translated reason and note where one applies, for example that a value was derived from
-    address records.
+    address records. A reason, note or guidance code unknown to the app is shown as a translated
+    "further detail" label followed by the API's English text as plain text, marked as English.
 - **FR-060**: The status MUST be shown with these labels, and each check MUST fall into exactly one
   summary group:
 
@@ -896,6 +970,11 @@ a domain administrator is never offered it.
 - **FR-066**: The page MUST offer "Run again". When the API refuses a run as too many requests, the
   app MUST keep the previous result visible, say when the next run is possible from the API's retry
   hint, and keep "Run again" unavailable until then.
+- **FR-091**: After every run and every refusal, the app MUST take the runs left in the current
+  window and the time until it resets from the API's rate-limit headers. When 3 or fewer runs are
+  left, the page MUST say how many. When none are left, "Run again" MUST be unavailable until the
+  window resets, with the time shown, so that the user is not refused. These values MUST be kept
+  only in the app's memory and dropped on sign-out.
 - **FR-067**: The page MUST offer "Download zone file", which saves the zone file of the result
   unchanged as a text file named after the ASCII name with the extension `.txt`, and "Copy zone file".
   The zone file MUST also be viewable on the page in a section that is collapsed by default.
@@ -913,7 +992,8 @@ a domain administrator is never offered it.
   the outcome including refusals with their translated reason, and, for key changes, the old and new
   selector and key length, the source of a copy, whether an overwrite was requested and the
   publication outcome; for policy changes, each changed value with its old and new value and the old
-  and new identifier.
+  and new identifier. Until the contract documents these detail fields (see "API Dependency", gap
+  7), they are shown as the API records them, as text, without translated labels.
 
 #### Errors and feedback
 
@@ -921,9 +1001,10 @@ a domain administrator is never offered it.
   validation rule codes the API returns, never as the API's English text. This feature MUST translate
   at least: DKIM key already exists, MTA-STS policy already exists, private key export disabled, DNS
   publication not enabled, outdated version, too many requests, temporary failure, not found,
-  forbidden, and the validation rules of the selector, key size, import name, private key, copy
-  target and MTA-STS fields with their parameters. Unknown rule codes MUST be shown as a generic
-  invalid value of that field.
+  forbidden, the validation rules of the selector, key size, import name, private key, copy
+  target, bulk targets and MTA-STS fields with their parameters, the bulk outcomes, the DKIM DNS
+  publication statuses and reason codes, and the DNS diagnostics statuses, check identifiers and
+  message codes. Unknown rule codes MUST be shown as a generic invalid value of that field.
 - **FR-072**: Forms MUST show field errors next to their field and in an error summary at the top
   whose entries lead to the fields.
 - **FR-073**: When the API reports a temporary failure, the app MUST say that nothing was changed and
@@ -944,8 +1025,9 @@ a domain administrator is never offered it.
   key MUST be shown in a dialog in a read-only field, exactly as returned, with a copy action and a
   download action that saves it unchanged as a text file named `<selector>.<ASCII name>.pem`. The
   key MUST exist in the app only while that dialog is open: it MUST NOT be kept in the app's data
-  cache and MUST be discarded when the dialog closes. Seeing it again MUST require a new confirmed
-  export. While export is disabled, the entry page MUST state, for administrators, that private key
+  cache and MUST be discarded when the dialog closes. Closing the dialog before the key was copied
+  or downloaded MUST ask for confirmation (`docs/conventions.md` "Secrets"). Seeing it again MUST
+  require a new confirmed export. While export is disabled, the entry page MUST state, for administrators, that private key
   export is turned off on this server, and offer no export action.
 - **FR-078**: Policy texts, zone files, record values and values found MUST be shown as text and MUST
   NEVER be rendered or interpreted as markup. Links to the policy address MUST open in a new tab.
@@ -1019,7 +1101,7 @@ loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.{en-gb,cs-cz,sk-sk}.json`
 | TXT record in a read-only text area or `pre` block | Selected by hand to copy | Improved: record name, host label and value with copy buttons, single and split forms | FR-016 to FR-018 |
 | `SPLIT_DKIM_255` setting | Server-wide choice of one notation | Improved: both forms always available | FR-016, FR-017 |
 | "Private key" link and modal | Every private key embedded in the page when `SHOW_DKIM_PRIV_KEYS` is on; otherwise a "Please set $SHOW_DKIM_PRIV_KEYS" text | Improved: separate confirmed and audited export, administrators only, offered only while enabled, never preloaded, discarded when closed; copy and download | FR-002, FR-015, FR-077 |
-| Checkbox per entry (disabled for missing keys), "Toggle all", "Remove" | One request for all selected, generic "Are you sure" | Improved: selection mode, generation and deletion of a selection, impact confirmation with acknowledgement, per-name results and retry | FR-038, FR-040 to FR-042 |
+| Checkbox per entry (disabled for missing keys), "Toggle all", "Remove" | One request for all selected, generic "Are you sure" | Improved: selection mode, generation and deletion of a selection (deletion in one bulk request with version tags), impact confirmation with the number typed, per-name results and retry | FR-038, FR-040 to FR-042, FR-092 |
 | "Add ARC/DKIM key" form: domains as comma-separated text, "Select domains with missing keys", selector pre-filled with `feldhost` (hard-coded in the fork), key length 1024 to 4096 | One request with several domains | Improved: names from the selection or "all names without a key" across pages, selector from the server default, sizes from the server's allowed sizes, per-name results | FR-024 to FR-028, FR-041 |
 | Free-text domain entry for generation | Accepts any text | Dropped: generation applies to listed domains and alias domains, which the API requires | FR-024 |
 | "Import private key" (collapsed): domain, selector, private key text area "(RSA PKCS#8)", "Overwrite existing DKIM key" | Errors as generic notifications; form input cached in the browser | Improved: file loading, size check, overwrite confirmation, translated rules on the field, key never cached and cleared after success | FR-029 to FR-033, FR-076 |
@@ -1064,8 +1146,9 @@ loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.{en-gb,cs-cz,sk-sk}.json`
 
 This feature depends on **mailcow REST API v2 feature 010, DKIM, MTA-STS and DNS diagnostics**
 (`mailcow-rest-v2/specs/010-dkim-mta-sts-dns/spec.md`), on the identity, error conventions and audit
-log of API feature 001, and on the domain and alias domain screens of UI features 002 and 004. The
-contract version is pinned in the plan, once the API 010 contract has been merged.
+log of API feature 001, on the audit target filters of API feature 002, and on the domain and alias
+domain screens of UI features 002 and 004. The plan pins the merged contract at mailcow-rest-v2
+commit `32079252d55797d3da4e58ae661e9fb91c51c6f9` or later.
 
 | Behaviour relied on | API requirement |
 |---|---|
@@ -1074,40 +1157,42 @@ contract version is pinned in the plan, once the API 010 contract has been merge
 | DKIM entry with kind, state, selector, exact length, record name, value, split value, completeness, version tag; no private key | API 010 FR-007, FR-008 |
 | List with paging, total, search, filters (state, kind, selector, completeness, domain) and sorting | API 010 FR-009, FR-010 |
 | Inspection of one entry | API 010 FR-011 |
-| DKIM configuration: default selector, default and allowed key sizes, publication enabled, export enabled (administrators) | API 010 FR-012 |
-| Generation, one name per request, "created", conflict on an existing key, selector and size rules | API 010 FR-013 to FR-015, FR-059 |
+| Capabilities: server host name; DKIM default selector, default and allowed key sizes, selector and private key limits, import key lengths, publication enabled, export enabled (administrators); MTA-STS modes, limits and default active state; diagnostics limits and server-wide checks | API 010 FR-012 |
+| Generation, one name per request, "created", conflict on an existing key, selector and size rules; overwrite by administrators ("updated") | API 010 FR-013 to FR-015 |
 | Import with overwrite, name syntax, private key rules with rule codes, "created" or "updated" | API 010 FR-017 to FR-021 |
 | Copy to one target per request, overwrite on request, source unchanged | API 010 FR-022, FR-023 |
-| Deletion with no body | API 010 FR-024, FR-025 |
+| Deletion with no body; outcome in the audit record | API 010 FR-024, FR-025 |
+| Bulk deletion of up to 100 keys with version tags, one result per key, removal outcomes | API 010 FR-059 |
 | Private key export, administrators only, while enabled, "export disabled" error | API 010 FR-026, FR-027 |
-| Publication outcomes, publish again, "publication not enabled" error | API 010 FR-028 to FR-031 |
+| Publication outcomes with reason codes, publish again, "publication not enabled" error | API 010 FR-028 to FR-031 |
 | MTA-STS policy: create, read, change, list, rules, identifier, published address, policy text, DNS records, no deletion, alias domains "not found" | API 010 FR-032 to FR-038 |
-| DNS diagnostics: record set, server-wide checks for administrators, statuses, expected values, values found, optional flag, reasons, server facts, zone file, time limits, partial results, rate limit with retry hint | API 010 FR-039 to FR-050 |
+| DNS diagnostics: record set, server-wide checks for administrators, statuses, check identifiers, message codes with parameters, expected values, values found, optional flag, server facts, zone file, time limits, partial results, rate limit with retry hint and rate-limit headers | API 010 FR-039 to FR-050 |
 | Version tags and outdated refusals | API 010 FR-051 |
 | Temporary failure | API 010 FR-052 |
-| Audit records with target filters | API 010 FR-054, FR-055; API 001 FR-046, FR-047 |
+| Audit records with target filters | API 010 FR-054, FR-055; API 002 FR-058; API 001 FR-046, FR-047 |
 | Problem types and validation rule codes with parameters | API 010 FR-056; API 001 FR-049, FR-055 |
 | Role and scope of the signed-in user | API 001 FR-028, FR-029 |
 
 **Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
 wanted; until then the app behaves as stated):
 
-1. API 010 FR-044 does not state that each record check carries a stable check identifier, or that
-   reasons, notes and guidance are machine-readable codes with parameters. Without them the app
-   cannot translate a check's purpose, reason or guidance (constitution IV, API 001 FR-055). Until
-   the contract provides them, the app labels each check by its record type and name and shows only
-   the reasons, notes and guidance it can translate.
-2. A key deletion responds without a body, so the publication outcome of removing the DNS record
-   (API 010 FR-024, FR-030) is not available to the app. The app can only point to the history.
-3. The publication outcome "failed" carries a reason whose form is not specified. The app shows it as
-   plain technical text.
-4. There is no atomic key rotation: generation refuses a name with a key and has no overwrite. A
-   rotation is a deletion followed by a generation, with a gap in which mail is not signed. The app
-   does not chain the two on its own.
-5. The server host name is not exposed outside a diagnostics result, so the MTA-STS form cannot
-   pre-fill the MX hosts with it (legacy does not either).
-6. The diagnostics rate limit is not exposed before it is reached, so the app cannot warn before a
-   refusal.
+1. Closed by API 010 FR-044 (check identifiers; reasons, notes and guidance as codes with
+   parameters).
+2. A single key deletion responds without a body, by design, so the publication outcome of removing
+   the DNS record is available only in the audit record (API 010 FR-024). The app points to the
+   history. A bulk deletion reports the outcomes (API 010 FR-059).
+3. Closed by API 010 FR-030 (publication reason codes).
+4. Closed by API 010 FR-013 and FR-014 (generation with overwrite, atomic).
+5. Closed by API 010 FR-012 (server host name in the capabilities read).
+6. Closed by API 010 FR-049 (rate-limit headers).
+7. The detail fields of the DKIM and MTA-STS audit records are not in the contract. They are the
+   old and new selector, key length and fingerprint, the overwrite flag, the copy source, the
+   publication outcome, the changed policy values and the old and new identifier. API 010
+   research documents them, but `AuditEvent.details` allows any field. The app shows them as
+   recorded, without translated labels (FR-070).
+8. The capabilities read has no bulk limit for DKIM keys, unlike the other features' capabilities.
+   The app uses the contract's documented maximum of 100 targets, which one page of at most 100
+   entries never exceeds.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1174,9 +1259,8 @@ wanted; until then the app behaves as stated):
   announcements, and the audit log screen, which this feature extends with target types (FR-070).
 - UI features 002 and 004 provide the domain and alias domain lists and pages into which this
   feature adds its sections and "Check DNS" actions (FR-021 to FR-023).
-- The API 010 contract is merged before this feature is planned; on 2026-10-18 only the API 010
-  specification exists. Until the API is implemented, the feature is built and tested against a mock
-  generated from the contract.
+- The API 010 contract is merged (mailcow-rest-v2 commit `3207925`). Until the API is implemented,
+  the feature is built and tested against a mock generated from the contract.
 - API 010 FR-012 exposes the server's default DKIM selector, which closes gap 8 of UI feature 002
   (selector shown as "server default") once both contracts are pinned.
 - The legacy UI keeps working for everything outside this feature.
@@ -1197,8 +1281,8 @@ wanted; until then the app behaves as stated):
 - These are defaults of this feature, not API rules: the page sizes, the 90 % length indicator, the
   collapsed zone file view, the 10-minute reuse of a diagnostics result, the 45-second wait for a
   run, and the MTA-STS set-up values (testing, 1 week, inactive).
-- Key rotation works as in legacy: delete the key and generate a new one, or import a new key with
-  overwrite.
+- Key rotation replaces the key in one step (FR-090), or imports a new key with overwrite. Deleting
+  the key and generating a new one stays possible, as in legacy.
 - **Out of scope**: creating, changing and deleting domains and alias domains; the DKIM fields of
   domain and alias domain creation (UI features 002 and 004); changing server settings such as the
   default selector, private key export or the DKIM DNS publication; ARC settings; deleting MTA-STS

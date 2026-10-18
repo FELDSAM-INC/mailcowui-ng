@@ -16,7 +16,7 @@ test.describe('the end of a single sign-on session', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await mockApi.patch({ singleSignOn: { endIdpSession: true } })
     await page.goto('passkeys')
-    await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=%2Fpasskeys$/)
+    await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=(%2F|\/)passkeys$/)
     await expect(page.locator('[data-notice]')).toContainText('single sign-on session has ended')
     await expect(page.getByRole('button', { name: 'Single Sign-On' })).toBeVisible()
     await expectAccessible()

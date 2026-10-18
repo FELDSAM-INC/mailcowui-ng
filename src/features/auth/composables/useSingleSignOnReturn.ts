@@ -64,7 +64,11 @@ export function useSingleSignOnReturn(options: { navigate?: (url: string) => voi
   async function complete(code: string, state: string) {
     try {
       const session = await completeSingleSignOn({ code, state })
-      await acceptSingleSignOnSession(session, kept ?? { name: 'home' })
+      const target = kept ?? { name: 'home' }
+      await acceptSingleSignOnSession(session, target)
+      // Another account was signed in (a second tab): the identity watch re-routes the current
+      // page once, which can cancel the landing. Land again (edge case "another account").
+      if (router.currentRoute.value.name === 'sso-return') await router.replace(target)
     } catch (error) {
       const problem = asProblem(error)
       const notAvailable = problem.is('single-sign-on-not-available')

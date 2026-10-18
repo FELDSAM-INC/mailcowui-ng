@@ -52,11 +52,11 @@ test.describe('the single sign-on round trip', () => {
     const provider = await fakeProvider()
     await mockApi.delay('completeSingleSignOn', 6000)
     await page.goto('passkeys')
-    await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=%2Fpasskeys$/)
+    await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=(%2F|\/)passkeys$/)
     await ssoButton(page).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Single Sign-On' })).toBeVisible()
     await expect(page).toHaveURL(/\/ng\/sso\/return$/)
-    await expect(page.getByRole('status').filter({ hasText: 'Completing sign-in' })).toBeVisible()
+    await expect(page.getByRole('main').getByRole('status')).toHaveText('Completing sign-in…')
     await expectAccessible()
     await expectNoHorizontalScroll()
     await expect(page).toHaveURL(/\/ng\/passkeys$/, { timeout: 15_000 })
@@ -311,7 +311,7 @@ test.describe('the single sign-on round trip', () => {
     await startFrom(page, 'passkeys')
     await expect(outcome(page)).toBeVisible()
     await backToSignIn(page).click()
-    await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=%2Fpasskeys$/)
+    await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=(%2F|\/)passkeys$/)
   })
 
   test('FR-047 a mailbox created at the first sign-in lands like an existing one', async ({

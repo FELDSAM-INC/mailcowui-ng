@@ -41,4 +41,15 @@
   gaps (custom-parameter restriction not exposed to clients, target mailbox editability
   unspecified, exclusion-pattern default differing from the legacy form). None blocks planning;
   the UI does not work around them.
+- Validation run 3 (`/speckit-plan` alignment with API 008's contract and `docs/conventions.md`,
+  2026-10-18): multi-job actions use the bulk operation with per-job versions instead of one request
+  per job (FR-037, US4-AS3, US6-AS3, edge case on dropped connections); the details screen edits
+  one section at a time and marks changed values after an outdated save (FR-016, FR-017, FR-026 to
+  FR-028, US3); deleting several jobs needs their number typed (FR-039); History action (FR-015);
+  page sizes (FR-012); the automatic refresh pauses, is suspended during selection, and stops after
+  15 minutes of inactivity (FR-014); limits, defaults and the custom-parameter permission come from
+  the capabilities read (FR-018, FR-021, FR-055, FR-056); `permission-flag-required` and the
+  existing-job link (FR-023, FR-047); the domain list and audit log join the used operations
+  (FR-053). The three API gaps are closed by the contract. FR-001 to FR-056 contiguous, no
+  contradictions left. All items still pass.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.

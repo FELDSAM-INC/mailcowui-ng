@@ -33,25 +33,30 @@ and of the user page, the add-sync-job modals, the edit sync job page and the lo
   (FR-001, FR-003). (agent decision: API 008 refuses every sync-job operation to them as forbidden
   (FR-001 and FR-005 there); legacy hid the tab from users but showed domain administrators a list
   with disabled buttons.)
-- Q: How are actions on several selected jobs performed when the API has no batch operations? →
-  A: One request per job, with progress and a summary naming each failure; failed jobs stay selected
-  for a retry (FR-037). (agent decision: API 008 FR-023 forbids batch operations; legacy offers the
-  same multi-select, so dropping it would be a regression.)
+- Q: How are actions on several selected jobs performed? → A: With API 008's bulk operation: one
+  request that names every selected job of the current page together with its version tag as
+  listed, up to the bulk limit of the capabilities read. The summary shows one result per job;
+  failed, refused and outdated jobs stay selected for a retry, and a dropped connection is reported
+  as "outcome unknown" and never retried automatically (FR-037). (consistency change, aligned with
+  `docs/conventions.md` (Bulk actions) and API 008 FR-023 and FR-024, which now offer
+  `POST /sync-jobs/bulk-actions` with `targets`; the first draft sent one request per job because
+  the API had no bulk operation then.)
 - Q: How is the remote password shown and kept? → A: Never shown after saving; the edit field
   starts empty and an empty field keeps the stored password; it is masked with a reveal control,
   protected from browser autofill, never stored in the browser and never sent to a third party
   (FR-029 to FR-035). (agent decision: API 008 makes it write-only (FR-018 there) and constitution V
   forbids storing credentials in the browser; legacy caches the user form, password included, in
   browser storage and sends the password to a breach-check service.)
-- Q: Which values does the create form start with? → A: The API's documented defaults (active, SSL,
-  20-minute interval, automap, subscribe all and delete duplicates on the destination on, timeouts
-  600, maximum age and speed limit 0, every other switch off, simulate off for every role), plus two
-  form-only pre-fills: the port follows the encryption (993 for SSL, 143 otherwise) until the user
-  edits it, and the exclusion pattern starts as legacy's `(?i)spam|(?i)junk` (FR-018, FR-019).
-  (agent decision: API 008 FR-017 defines the defaults but requires the port and defaults the
-  pattern to empty; legacy pre-fills port 143 with SSL, which fails against most servers, and
-  pre-fills the spam/junk pattern, which keeps spam out of migrated mailboxes. Legacy's user form
-  turned simulate on, so a user's first job copied nothing.)
+- Q: Which values does the create form start with? → A: The creation defaults of API 008's
+  capabilities read (today: active, SSL, 20-minute interval, automap, subscribe all and delete
+  duplicates on the destination on, timeouts 600, maximum age and speed limit 0, the exclusion
+  pattern `(?i)spam|(?i)junk`, every other switch off, simulate off for every role), plus one
+  form-only pre-fill: the port follows the encryption (993 for SSL, 143 otherwise) until the user
+  edits it (FR-018, FR-019). (agent decision: API 008 FR-017 requires the port without a default;
+  legacy pre-fills port 143 with SSL, which fails against most servers. Legacy's user form turned
+  simulate on, so a user's first job copied nothing. Consistency change: API 008 now defaults the
+  exclusion pattern to the legacy `(?i)spam|(?i)junk` and publishes every default in its
+  capabilities read, so the app takes them from there instead of pre-filling the pattern itself.)
 - Q: Which form sections are collapsed, and on which screens? → A: "Duplicates and deletion",
   "Limits and timeouts" and "Expert options" start collapsed below tablet width and open on wider
   screens; collapsed headers count values that differ from the defaults, and a section with an
@@ -59,9 +64,14 @@ and of the user page, the add-sync-job modals, the edit sync job page and the lo
   long form; the counts keep changed options visible on edit.)
 - Q: How does the list stay current while jobs run in the background? → A: Manual refresh, plus an
   automatic refresh every 30 seconds only while the page is visible and a listed job is running
-  (FR-014). (agent decision: legacy has only a manual button; constitution VII forbids refetching
-  without reason, and a running job is that reason. The API never starts runs (FR-022 there), so
-  there is no "run now" to wait for.)
+  (FR-014). The automatic refresh can be paused, it is suspended while selection mode is on, and it
+  pauses after 15 minutes without user interaction, with a notice and a "Resume" action. (agent
+  decision: legacy has only a manual button; constitution VII forbids refetching without reason,
+  and a running job is that reason. The API never starts runs (FR-022 there), so there is no "run
+  now" to wait for. Consistency change: WCAG 2.2.2 needs a way to pause content that updates on its
+  own; UI 001 FR-033 forbids automatic requests that keep an idle session alive, and UI 011 FR-021
+  pauses its live updates after the same 15 minutes; a bulk action sends the versions as listed, so
+  the list must not change under a selection.)
 - Q: How is the run log presented? → A: Full screen on phones and a large dialog on wider screens,
   verbatim plain text in a fixed-width font, wrapped by default with a toggle, a copy action, no
   download, fetched only when opened (FR-041 to FR-046). (agent decision: API 008 reads the log as a
@@ -71,15 +81,29 @@ and of the user page, the add-sync-job modals, the edit sync job page and the lo
   A: Yes, every role that may manage sync jobs (FR-036). (agent decision: API 008 FR-005 grants
   rescheduling to every role holding the permission; only the legacy button was missing.)
 - Q: Do activate, deactivate, schedule next run and delete send the job's version? → A: Activate,
-  deactivate and delete send the version shown in the list or details screen; when the job changed
-  in the meantime the app says so, refreshes the job and lets the user retry. Schedule next run
-  sends no version. The edit form always sends the version it loaded (FR-026, FR-036, FR-037).
-  (agent decision: API 008 FR-021 recommends that interactive clients always send the version and
-  exempts rescheduling; list entries carry the version (FR-015 there).)
-- Q: Can the target mailbox of an existing job be changed? → A: No; it is shown read-only on edit
-  (FR-020). (agent decision: legacy never changes the target on edit, and moving a migration to
-  another mailbox is clearer as delete and recreate. API 008 FR-017 applies the target rules "on
-  every edit" without saying whether the target may change, so the app does not offer it.)
+  deactivate and delete send the version shown in the list or details screen, for one job and for
+  each job of a bulk action; when the job changed in the meantime the app says so, refreshes the job
+  and lets the user retry. Schedule next run sends no version. A section save always sends the
+  version it loaded (FR-026, FR-036, FR-037). (agent decision: API 008 FR-021 recommends that
+  interactive clients always send the version and exempts rescheduling; list entries carry the
+  version (FR-015 there).)
+- Q: Can the target mailbox of an existing job be changed? → A: No; it is shown read-only on the
+  details screen (FR-020). (agent decision: legacy never changes the target on edit, and moving a
+  migration to another mailbox is clearer as delete and recreate. API 008 FR-016 now refuses a
+  different target with the rule code `immutable`.)
+- Q: Which cross-feature UI conventions change this spec? → A: The details screen is split into the
+  form's sections, each with its own edit and save; an outdated save keeps the input, reloads the
+  job and marks the values that changed (FR-016, FR-026). Deleting several jobs needs their number
+  typed (FR-039). The details screen offers a History action that opens the audit log filtered to
+  the job (FR-015). Lists offer 25, 50 and 100 jobs per page (FR-012). Limits, defaults, the bulk
+  limit and whether the user may set custom parameters come from API 008's capabilities read and are
+  never hard-coded (FR-055, FR-056). (alignment with `docs/conventions.md`; replaces the first
+  draft's single edit form, which predates the conventions.)
+- Q: Is deactivating a sync job confirmed first? → A: No. Activating, deactivating and scheduling
+  the next run, for one job or a selection, take effect at once and are announced (FR-036).
+  (agent decision: `docs/conventions.md` asks one confirmation for destructive or high-risk actions
+  such as deactivating; deactivating a sync job only pauses copying, deletes nothing and is undone
+  with one action, so it is neither. Legacy does not confirm it either.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -187,9 +211,10 @@ error appears on its field.
 
 ### User Story 3 - Edit a sync job without exposing the remote password (Priority: P1)
 
-A user who may manage sync jobs opens a job and changes its settings. The form shows every
-current value except the remote password, which is never shown. Leaving the password field empty
-keeps the stored password; typing a new one replaces it.
+A user who may manage sync jobs opens a job and changes its settings, one section of the details
+screen at a time, each with its own edit and save. Every current value is shown except the remote
+password, which is never shown. Leaving the password field empty keeps the stored password; typing
+a new one replaces it.
 
 **Why this priority**: Remote passwords change and copying options need adjusting after the first
 run. Without editing, users would have to delete and recreate jobs and re-enter the password.
@@ -200,19 +225,22 @@ save a new password and check that it is sent once and never shown again.
 
 **Acceptance Scenarios**:
 
-1. **Given** an existing job, **When** the user opens it for editing, **Then** every setting shows
-   its current value, the password field is empty and says that a password is saved and that
-   leaving the field empty keeps it.
-2. **Given** the edit form, **When** the user changes the interval and saves without touching the
-   password, **Then** only the changed settings are sent and the stored password stays.
-3. **Given** the edit form, **When** the user enters a new password and saves, **Then** the new
-   password is sent once; reopening the job shows the empty password field again.
-4. **Given** the edit form, **Then** the target mailbox is shown but cannot be changed.
-5. **Given** another user changed the same job after it was opened, **When** the user saves,
-   **Then** the save is refused, the user is told that the job changed in the meantime, and they
-   can reload the current settings. Their unsaved input is not silently overwritten.
-6. **Given** unsaved changes, **When** the user tries to leave the form, **Then** they are asked
-   to confirm that the changes will be lost.
+1. **Given** an existing job, **When** the user opens its Source section for editing, **Then** every
+   field shows its current value, the password field is empty and says that a password is saved
+   and that leaving the field empty keeps it.
+2. **Given** the Schedule section in edit mode, **When** the user changes the interval and saves,
+   **Then** only the changed settings are sent and the stored password stays.
+3. **Given** the Source section in edit mode, **When** the user enters a new password and saves,
+   **Then** the new password is sent once; editing the section again shows the empty password
+   field again.
+4. **Given** the details screen, **Then** the target mailbox is shown but cannot be changed.
+5. **Given** another user changed the same job after it was opened, **When** the user saves a
+   section, **Then** the save is refused, the user is told that the job changed in the meantime,
+   their input stays in the section, the current settings are loaded and the values that changed
+   are marked, and the user can save again. Their unsaved input is never silently overwritten and
+   there is no "overwrite anyway".
+6. **Given** unsaved changes in a section, **When** the user tries to leave the screen, **Then**
+   they are asked to confirm that the changes will be lost.
 
 ---
 
@@ -234,9 +262,9 @@ of the three failing, and check the requests, the updated list and the per-job r
    **Then** it shows as inactive and the change is announced.
 2. **Given** a job that has run, **When** the user chooses "Schedule next", **Then** its last run
    and result are cleared and it shows as waiting for its next run.
-3. **Given** three selected jobs, **When** the user activates them, **Then** each job is changed
-   separately, and a summary states how many succeeded and names each job that failed with the
-   reason.
+3. **Given** three selected jobs, **When** the user activates them, **Then** the app sends one bulk
+   request naming the three jobs with their versions, and a summary states how many succeeded and
+   names each job that failed with the reason; failed jobs stay selected.
 4. **Given** a phone, **When** the user wants to act on several jobs, **Then** they can enter a
    selection mode with touch targets of at least 44 × 44 px, and the available actions stay
    reachable without horizontal scrolling.
@@ -289,8 +317,8 @@ and check the confirmation content, the requests and the list afterwards.
 2. **Given** the confirmation, **When** the user cancels, **Then** nothing is deleted and focus
    returns to the control that opened it.
 3. **Given** several selected jobs, **When** the user deletes them, **Then** the confirmation lists
-   every selected job, each job is deleted separately, and a summary reports any job that could
-   not be deleted.
+   every selected job and asks for their number to be typed, the jobs are deleted with one bulk
+   request, and a summary reports any job that could not be deleted.
 
 ---
 
@@ -316,8 +344,9 @@ and check the confirmation content, the requests and the list afterwards.
   are shortened with the full value available, and never force horizontal scrolling.
 - The server rejects the exclusion pattern or a custom parameter: the error is shown on that
   field, naming the rejected option where the server provides it.
-- The connection drops during a multi-job action: jobs already processed keep their new state,
-  and the summary lists the jobs whose outcome is unknown so the user can retry them.
+- The connection drops during a multi-job action: the outcome of every selected job is reported as
+  unknown, the list is refreshed to show what changed, the selection stays, and nothing is retried
+  automatically.
 - The session expires while a form is open: the shell's session handling applies (feature 001);
   the remote password the user typed is not stored to survive the sign-in.
 - Several jobs are running: the list shows their running state and refreshes while any job runs.
@@ -326,7 +355,9 @@ and check the confirmation content, the requests and the list afterwards.
 - The source host is an IPv6 address: the API refuses it, and the field error says that a host
   name or IPv4 address is required.
 - The operator has restricted custom parameters to administrators: a domain administrator or
-  mailbox user who fills them in sees the API's refusal on that field (see API gaps).
+  mailbox user does not get the field on creation, and sees the stored value read-only with the
+  reason on the details screen (FR-056). If the restriction changes while a form is open, the API's
+  refusal is shown on that field.
 - Another user changed a job between loading the list and activating, deactivating or deleting
   it: the action is refused as outdated, the job's current values are shown, and the user can
   retry.
@@ -385,24 +416,36 @@ and check the confirmation content, the requests and the list afterwards.
   administrator table does). On wide screens the user MUST be able to sort by the columns the API
   sorts by: identifier, target mailbox, source host, remote username, interval, active state, last
   run and last result. On phones a sort choice MUST offer the same options.
-- **FR-012**: The list MUST be paginated with the API's pages, show the total number of jobs, and
-  offer page navigation that works with touch at 360 px.
+- **FR-012**: The list MUST be paginated with the API's pages, offer 25 (the default), 50 and 100
+  jobs per page, show the total number of jobs, and offer page navigation that works with touch at
+  360 px.
 - **FR-013**: The list MUST have distinct states for loading, no jobs at all (explaining what a
   sync job is and offering creation when permitted), no jobs matching the search or filters
   (offering to clear them), and a failed load (explaining the problem and offering a retry).
 - **FR-014**: The list MUST offer a manual refresh. While the page is visible and at least one
   listed job is running, it MUST refresh automatically every 30 seconds, and it MUST stop doing so
-  when no listed job is running or the page is hidden. After any change made in this app, the
-  affected jobs MUST be shown with their new values without a manual refresh.
+  when no listed job is running or the page is hidden. The automatic refresh MUST:
+  - be suspended while selection mode is on;
+  - offer a control to pause and resume it (WCAG 2.2.2);
+  - pause after 15 minutes without user interaction (pointer, touch, keyboard or scrolling), with
+    an announced notice and a "Resume" action, so that it never keeps an idle session alive
+    (UI 001 FR-033);
+  - announce nothing on its own.
+
+  After any change made in this app, the affected jobs MUST be shown with their new values without
+  a manual refresh.
 - **FR-015**: Opening a job MUST show a details screen with its identifier, state, last run, last
   result, creation and last change times, every setting grouped like the form (FR-016), and the
   actions the user may perform: edit, activate or deactivate, schedule next run, open the run log
-  and delete. For administrators it MUST link to the audit log screen of feature 001, filtered to
-  this job, to see who changed it.
+  and delete. For administrators it MUST offer a History action that opens the audit log screen of
+  feature 001 filtered to this job (target type sync job, target ID the job's identifier), to see
+  who changed it.
 
 #### Create and edit form
 
-- **FR-016**: The create and edit form MUST group fields into these sections:
+- **FR-016**: The create form and the details screen MUST group fields into the sections below. On
+  the details screen each section except "Target mailbox" MUST have its own edit and save
+  (`docs/conventions.md`, Editing and conflicts):
   - **Target mailbox** (FR-020);
   - **Source**: host, port, encryption (SSL, STARTTLS, plain), remote username, remote password;
   - **Schedule**: interval in minutes, active;
@@ -414,17 +457,17 @@ and check the confirmation content, the requests and the list afterwards.
   - **Limits and timeouts** (advanced): maximum message age in days (0 = no limit), maximum bytes
     per second (0 = unlimited), timeout for the remote host, timeout for the local host;
   - **Expert options** (advanced): custom parameters, simulate synchronisation (dry run).
-- **FR-017**: Below tablet width the advanced sections MUST start collapsed and the others open. On
-  wider screens all sections MUST start open. Each collapsed section header MUST state how many of
+- **FR-017**: In the create form and on the details screen, below tablet width the advanced
+  sections MUST start collapsed and the others open. On wider screens all sections MUST start open. Each collapsed section header MUST state how many of
   its values differ from the defaults. A section containing a field with an error MUST open
   automatically. Sections MUST be operable by keyboard and expose their expanded state to
   assistive technology.
-- **FR-018**: The create form MUST start with the defaults of API 008: encryption SSL, interval 20
-  minutes, active, automap on, subscribe all on, delete duplicates on the destination on, delete
-  from source, delete on destination, skip cross-folder duplicates and simulate off for every
-  role, maximum age 0, maximum bytes per second 0, both timeouts 600 seconds, subfolder and custom
-  parameters empty. The exclusion pattern MUST start as `(?i)spam|(?i)junk`, as in the legacy
-  form; the user can clear it.
+- **FR-018**: The create form MUST start with the creation defaults of API 008's capabilities read
+  (FR-055), for every role. Today these are: encryption SSL, interval 20 minutes, active, automap
+  on, subscribe all on, delete duplicates on the destination on, delete from source, delete on
+  destination, skip cross-folder duplicates and simulate off, maximum age 0, maximum bytes per
+  second 0, both timeouts 600 seconds, subfolder and custom parameters empty, and the exclusion
+  pattern `(?i)spam|(?i)junk`, as in the legacy form; the user can clear it.
 - **FR-019**: The port, which the API requires without a default, MUST start as the standard port
   of the chosen encryption (993 for SSL, 143 for STARTTLS and plain) and follow encryption changes
   until the user edits the port themselves.
@@ -432,14 +475,15 @@ and check the confirmation content, the requests and the list afterwards.
   from a picker that searches the mailboxes in their scope on the server as they type, so that it
   works with thousands of mailboxes. The picker MUST offer only mailboxes, never resources or
   aliases. Mailbox users MUST NOT be offered a choice; their own mailbox is shown as the target. On
-  edit the target mailbox MUST be shown and MUST NOT be changeable.
-- **FR-021**: Each field MUST show its allowed range or format as help text: host name or IPv4
-  address, port 1–65535, interval 1–43800 minutes, maximum age 0–32000 days (0 = no limit),
-  maximum bytes per second 0–125000000 (0 = unlimited), timeouts 1–32000 seconds, exclusion
-  pattern as a regular expression, custom parameters written as `--param=value` and separated by
-  spaces. The app MUST check required fields, maximum lengths (host, remote username, remote
-  password and subfolder 255, exclusion pattern 500, custom parameters 512 characters) and numeric
-  ranges before sending; the API's validation is authoritative.
+  the details screen the target mailbox MUST be shown and MUST NOT be changeable.
+- **FR-021**: Each field MUST show its allowed range or format as help text, with the ranges and
+  lengths taken from the capabilities read (FR-055). Today these are: host name or IPv4 address,
+  port 1–65535, interval 1–43800 minutes, maximum age 0–32000 days (0 = no limit), maximum bytes
+  per second 0–125000000 (0 = unlimited), timeouts 1–32000 seconds, exclusion pattern as a regular
+  expression, custom parameters written as `--param=value` and separated by spaces, with the
+  options allowed on this server. The app MUST check required fields, maximum lengths (today: host,
+  remote username, remote password and subfolder 255, exclusion pattern 500, custom parameters 512
+  characters) and numeric ranges before sending; the API's validation is authoritative.
 - **FR-022**: Validation errors from the API MUST be shown on their fields, translated from the
   error's rule code and parameters (feature 001's convention). An error summary at the top of the
   form MUST be announced and link to each invalid field, and focus MUST move to it on a failed
@@ -447,19 +491,23 @@ and check the confirmation content, the requests and the list afterwards.
   MUST name the refused option, and an invalid exclusion pattern MUST say that the pattern is not a
   valid regular expression.
 - **FR-023**: When the API refuses a creation or an edit because another job with the same target
-  mailbox, remote username and host exists, the form MUST say so and keep the entered values.
+  mailbox, remote username and host exists, the form MUST say so, keep the entered values and offer
+  to open the existing job that the API names.
 - **FR-024**: Switching on "Delete from source when completed" or "Delete messages on destination
   that are not on source" MUST show an inline warning that these options delete mail permanently.
   The simulate option MUST explain that a simulated run copies nothing.
 - **FR-025**: Each copying option in the Folders and advanced sections MUST show the name of the
   underlying imapsync option (for example `--delete2duplicates`) as secondary text, as legacy does.
-- **FR-026**: Saving an edit MUST send only the changed settings, together with the version the
-  form was loaded with. When the API reports that the job changed in the meantime, the app MUST say
-  so, keep the user's input on screen, and offer to reload the current settings, which discards the
-  input only when the user chooses it.
-- **FR-027**: Leaving a form with unsaved changes MUST ask for confirmation.
-- **FR-028**: A successful creation or edit MUST be confirmed with an announced message and lead to
-  the job's details screen showing the saved values.
+- **FR-026**: Saving a section MUST send only the changed settings, together with the version the
+  details screen was loaded with. When the API reports that the job changed in the meantime, the
+  app MUST say so, keep the user's input in the section, reload the job, mark the values that
+  changed, and let the user save again. It MUST NOT merge automatically or offer "overwrite
+  anyway".
+- **FR-027**: Leaving the create form, or a section with unsaved changes, MUST ask for
+  confirmation.
+- **FR-028**: A successful creation MUST be confirmed with an announced message and lead to the
+  job's details screen. A successful section save MUST be announced, close the section's edit mode
+  and show the saved values.
 
 #### Remote password
 
@@ -489,10 +537,15 @@ and check the confirmation content, the requests and the list afterwards.
   retry. Schedule next run sends no version. The result MUST be announced and shown in the list.
 - **FR-037**: Users MUST be able to enter a selection mode, select jobs individually or all jobs on
   the current page, and apply activate, deactivate, schedule next run or delete to the selection.
-  The app MUST send one request per job, each with the job's version as in FR-036, show progress,
-  and end with a summary that counts the successes and names each failed job with its translated
-  reason, including jobs that changed in the meantime. Failed jobs MUST stay selected so that the
-  action can be retried.
+  The selection covers the current page only and MUST clear when the page, search, filters, sort or
+  page size change. The app MUST send API 008's bulk operation once, naming every selected job with
+  its version as listed (FR-036; the version is not checked for schedule next run), and MUST NOT
+  send more jobs than the capabilities read's bulk limit. It MUST show that the action is in
+  progress and end with a summary that counts the successes and names each other job with its
+  translated outcome and reason (not found, refused, changed in the meantime, failed). Failed,
+  refused and outdated jobs MUST stay selected so that the action can be retried. A dropped
+  connection MUST be reported as "outcome unknown" for every selected job and MUST NOT be retried
+  automatically.
 - **FR-038**: When the user deactivates, edits, reschedules or deletes a job that is running, the
   confirmation or result MUST state that the run already in progress is not interrupted and
   finishes on its own.
@@ -500,10 +553,11 @@ and check the confirmation content, the requests and the list afterwards.
 #### Delete
 
 - **FR-039**: Deleting MUST require a confirmation that lists every affected job by source account,
-  host and target mailbox and states that mail already copied stays in the mailbox. The deletion
-  MUST send the job's version as in FR-036. The confirming
-  control MUST be visually marked as destructive, and cancelling MUST return focus to the control
-  that opened the confirmation.
+  host and target mailbox and states that mail already copied stays in the mailbox. Deleting
+  several jobs MUST also require their number to be typed. The deletion MUST send each job's version
+  as in FR-036; when a single deletion is refused as outdated, the app MUST reload the job and ask
+  for confirmation again. The confirming control MUST be visually marked as destructive, and
+  cancelling MUST return focus to the control that opened the confirmation.
 - **FR-040**: After a deletion the list MUST no longer show the job. Deleting from the details
   screen MUST return to the list.
 
@@ -529,9 +583,10 @@ and check the confirmation content, the requests and the list afterwards.
 
 - **FR-047**: Errors MUST be handled from the API's problem details as the shell defines (feature
   001), with a translated message for each error type API 008 documents: sync job not found and
-  forbidden as in FR-003, sync job already exists as in FR-023, invalid custom parameter, invalid
-  exclusion pattern and validation failed as in FR-022, and outdated version as in FR-026 and
-  FR-036. Too many requests and temporary unavailability MUST offer a retry, and any other problem
+  permission flag required (`syncjobs`) as in FR-003, sync job already exists as in FR-023 (with a
+  link to the existing job the problem names), invalid custom parameter, invalid exclusion pattern,
+  immutable target and validation failed as in FR-022, and outdated version as in FR-026 and
+  FR-036. A network failure or an unexpected server error MUST offer a retry, and any other problem
   MUST show a generic translated message. Sign-in expiry is handled by the shell.
 
 #### Mobile, accessibility and translation
@@ -564,12 +619,20 @@ and check the confirmation content, the requests and the list afterwards.
 #### Contract and testing
 
 - **FR-053**: The feature MUST use only operations of the pinned mailcow-rest-v2 contract: feature
-  008 for sync jobs, feature 001 for identity and permission flags, and feature 003's mailbox list
-  for the target mailbox picker. A capability missing from the contract MUST be specified in
+  008 for sync jobs and their capabilities, feature 001 for identity, permission flags and the
+  audit log, feature 003's mailbox list for the target mailbox picker and filter, and feature 002's
+  domain list for the domain filter. A capability missing from the contract MUST be specified in
   mailcow-rest-v2 first and never worked around.
 - **FR-054**: Every user story MUST have end-to-end tests on a 360 px and a desktop viewport against
   a mock API whose responses are validated against the contract, including a test that the remote
   password never appears in the page, the address or browser storage.
+- **FR-055**: The field limits, the creation defaults, the allowed encryption values, the bulk
+  limit, the custom-parameter allow-list and whether the user may set custom parameters MUST come
+  from API 008's capabilities read. The app MUST NOT hard-code them (`docs/conventions.md`, Where
+  features meet). The standard ports of FR-019 are protocol constants, not server limits.
+- **FR-056**: When the capabilities read reports that the user may not set custom parameters, the
+  create form MUST NOT offer the field, and the details screen MUST show the stored value
+  read-only with the reason ("only administrators may set custom parameters on this server").
 
 ### Key Entities *(include if feature involves data)*
 
@@ -584,6 +647,9 @@ and check the confirmation content, the requests and the list afterwards.
 - **Target mailbox**: a mailbox from feature 003 in the user's scope. A job belongs to exactly one
   and cannot be moved to another.
 - **Identity**: the signed-in user's role, scope and sync-jobs permission flag (feature 001).
+- **Sync-job capabilities**: the field limits, creation defaults, allowed encryption values, bulk
+  limit, page sizes, custom-parameter allow-list and whether the user may set custom parameters, as
+  configured on the server for the signed-in user (API 008 FR-030).
 
 ### Legacy Parity
 
@@ -604,7 +670,7 @@ and `draw_sync_job_table` in `js/site/mailbox.js` and `js/site/user.js`.
 | Last run as a raw server timestamp | FR-051 | Improved | Locale formatting |
 | Result icon coloured green or red plus translated exit status, "Check log" for unknown | FR-006, FR-007 | Improved | Same texts, not colour-only, direct link to the log |
 | "Refresh" button | FR-014 | Improved | Plus automatic refresh while a job runs |
-| "Toggle all" and "Actions" menu: Schedule next (administrator tab only), Activate, Deactivate, Remove | FR-036, FR-037 | Improved | Selection mode on phones, per-job summary; "Schedule next" for every permitted role |
+| "Toggle all" and "Actions" menu: Schedule next (administrator tab only), Activate, Deactivate, Remove | FR-036, FR-037 | Improved | Selection mode on phones, one bulk request with per-job versions and a per-job summary; "Schedule next" for every permitted role |
 | "Expand all" / "Collapse all" (DataTables row collapse) | FR-008 | Dropped | Cards and the details screen replace collapsed rows |
 | Per-row Edit and Remove buttons | FR-015, FR-036, FR-039 | Matched | Card/row actions and details screen |
 | Sort and paging remembered in browser storage (`stateSave`) | FR-010 | Improved | Kept in the address instead, so links and back navigation work |
@@ -618,17 +684,19 @@ and `draw_sync_job_table` in `js/site/mailbox.js` and `js/site/user.js`.
 | imapsync option names next to the checkbox labels | FR-025 | Matched | Secondary text |
 | Range hints under numeric fields | FR-021 | Matched | Plus pre-submission checks |
 | Validation failures reported as "Access denied or invalid form data" in a toast | FR-022, FR-023 | Improved | Field-level, translated errors |
-| Edit sync job page: password field empty, target not editable | FR-020, FR-029, FR-030 | Improved | Explicit "saved, leave empty to keep" hint, change detection, unsaved-changes guard |
+| Edit sync job page: password field empty, target not editable | FR-016, FR-020, FR-026, FR-029, FR-030 | Improved | Sections with their own save on the details screen, explicit "saved, leave empty to keep" hint, change detection with marked values, unsaved-changes guard |
 | Log modal: editable textarea, untranslated title "Log", "-" when empty | FR-041–FR-046 | Improved | Read-only, translated, copy, wrap toggle, distinct empty states |
 | Success messages such as "Deleted syncjob ID %s" | FR-028, FR-037, FR-040 | Matched | Announced confirmations and multi-job summaries |
-| Delete without naming the affected jobs | FR-039 | Improved | The confirmation lists the jobs |
+| Delete without naming the affected jobs | FR-039 | Improved | The confirmation lists the jobs; several jobs need their number typed |
 
 ### API Dependency
 
-This feature depends on mailcow-rest-v2 feature 008, "Sync jobs" (`specs/008-sync-jobs/spec.md`,
-commit `2fd396d`), and on its contract once published. It also uses feature 001 (identity, the
-`syncjobs` permission flag, problem details, validation rule codes, the audit log) and feature 003
-(the mailbox list with search, for the target mailbox picker).
+This feature depends on mailcow-rest-v2 feature 008, "Sync jobs" (`specs/008-sync-jobs/spec.md`),
+whose contract (module `api/modules/sync-jobs/`, last changed in commit `0fb4f73`) the plan pins.
+It also uses feature 001 (identity, the `syncjobs` permission flag, problem details, validation
+rule codes, the audit log with its target filters), feature 003 (the mailbox list with search, for
+the target mailbox picker and filter) and feature 002 (the domain list with search, for the domain
+filter).
 
 | UI capability | API 008 requirement |
 |---|---|
@@ -638,24 +706,18 @@ commit `2fd396d`), and on its contract once published. It also uses feature 001 
 | Card and details content, state, last run, last result, result codes | FR-007, FR-008, FR-010 |
 | Run log, fetched separately and shown as plain text | FR-009, FR-015 |
 | Create with documented defaults and field rules | FR-016, FR-017, FR-019 |
-| Edit with partial updates and the write-only password | FR-016, FR-018 |
-| Activate, deactivate, schedule next run, delete, one request per job | FR-016, FR-023 |
+| Edit with partial updates, the write-only password and the immutable target | FR-016, FR-018 |
+| Activate, deactivate, schedule next run and delete one job | FR-016 |
+| Activate, deactivate, schedule next run and delete a selection with one bulk request | FR-023, FR-024 |
 | Change detection with version tags; rescheduling without one | FR-020, FR-021 |
-| Field-level and typed errors | FR-026 and feature 001 FR-049, FR-055 |
-| Audit log link for administrators | FR-024, FR-025 |
+| Field-level and typed errors | FR-027 and feature 001 FR-049, FR-055 |
+| Limits, defaults, bulk limit and the custom-parameter permission | FR-006, FR-030 (capabilities read) |
+| History action for administrators | FR-025, FR-026 |
 
-**API gaps** (to be specified in mailcow-rest-v2 first; the UI does not work around them):
-
-- API 008 FR-006 allows the operator to restrict custom imapsync parameters to administrators, but
-  no operation tells the web app whether that restriction applies to the signed-in user, nor which
-  error a refused request gets. Until the API exposes it, the custom parameters field is shown to
-  every user who may manage sync jobs and a refusal is shown on that field.
-- API 008 FR-017 applies the target mailbox rules "on every edit" but does not say whether the
-  target of an existing job may be changed. The web app does not offer it (see Clarifications);
-  the API spec should state it.
-- API 008 clarification 8 describes its defaults as the legacy add-form defaults, but leaves the
-  exclusion pattern empty, while the legacy form pre-fills `(?i)spam|(?i)junk`. The web app
-  pre-fills the legacy pattern; the API spec should either document the difference or adopt it.
+**API gaps**: none open. The three gaps of the first draft are closed by API 008's contract: the
+capabilities read reports whether the user may set custom parameters (FR-006, FR-030 there), an
+edit that sends a different target mailbox is refused with `immutable` (FR-016 there), and the
+exclusion pattern defaults to `(?i)spam|(?i)junk` (FR-017 there).
 
 ## Success Criteria *(mandatory)*
 
@@ -686,9 +748,8 @@ commit `2fd396d`), and on its contract once published. It also uses feature 001 
   administrators have every flag (feature 001 contract).
 - The mailbox list of API feature 003 supports server-side search, which the target mailbox picker
   uses.
-- API feature 008 (spec commit `2fd396d`) is the behavioural source of truth. Its OpenAPI
-  contract was not yet published when this specification was written; the plan pins it once it
-  is merged, and any difference found then is resolved in the API first.
+- API feature 008 is the behavioural source of truth, through its published contract, which the
+  plan pins; any difference found later is resolved in the API first.
 - Only the most recent run's log is kept, as in legacy; there is no run history.
 - Runs are scheduled by the server's runner, which API 008 never triggers directly; the app
   neither starts runs immediately nor predicts the next run time.

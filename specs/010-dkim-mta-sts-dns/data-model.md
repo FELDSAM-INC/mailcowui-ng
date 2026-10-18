@@ -225,7 +225,8 @@ Rules:
 ### Address parameters of the lists (`useListState` schemas)
 
 Defaults are omitted from the address, invalid values fall back to the default, and changing any
-parameter except `page` resets `page` and the selection (conventions).
+parameter except `page` resets `page` and the selection (conventions). The search is applied 300 ms
+after typing stops.
 
 **DKIM keys** (`/dns/dkim-keys`, FR-005–FR-012):
 

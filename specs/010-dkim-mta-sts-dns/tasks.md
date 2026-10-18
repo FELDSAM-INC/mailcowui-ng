@@ -200,7 +200,9 @@ blocks of research R3, the publication outcome component and the base translatio
   - on refusal, or with no `navigator.clipboard`, the value is selected in place with the "could not
     be copied automatically" message;
   - a 1,000-character value wraps (`overflow-wrap: anywhere` class);
-  - the button has the `min-h-11 min-w-11` classes.
+  - the button has the `min-h-11 min-w-11` classes;
+  - the "Copied" state stays while the button has focus or the pointer, and reverts 2 s after it
+    leaves (FR-074).
 - [ ] T014 [P] Write `tests/unit/shared/platform/download.spec.ts` (research R13):
   - the Blob text equals the input byte for byte (CRLF and a trailing newline kept, no BOM);
   - `download` equals the file name;
@@ -236,7 +238,7 @@ blocks of research R3, the publication outcome component and the base translatio
   `dkimKeys` (`/dns/dkim-keys`) and `mtaStsPolicies` (`/dns/mta-sts-policies`), each admin `true`,
   domainAdmin `true`, mailboxUser `false`, `deliveredBy '010'`, starting as placeholder (research
   R2).
-- [ ] T019 [P] Write `tests/e2e/dns/foundation.spec.ts`:
+- [ ] T019 [P] Write `tests/e2e/dns/foundation.spec.ts` (FR-001):
   - administrator and domain administrator scenarios show "ARC/DKIM keys" and "MTA-STS policies" in
     the navigation, still as placeholders;
   - a mailbox user sees neither, and `/ng/dns/dkim-keys` shows "no access";
@@ -359,7 +361,7 @@ option, press every copy button, and compare the copied text with the mock data.
   - FR-005: page sizes 25, 50 and 100, with first, previous, next, last and the current page, on
     `dns-many`;
   - FR-007: the table on desktop with sortable headers (`aria-sort`);
-  - FR-008: the search updates after a pause and clears with one action;
+  - FR-008: the search updates 300 ms after typing stops and clears with one action;
   - FR-009: kind and completeness filters; selecting a selector adds it as a filter; the active
     filter count; clear all;
   - FR-010: the sort control on mobile;
@@ -374,8 +376,9 @@ option, press every copy button, and compare the copied text with the mock data.
   - Edge: a 253-character name wraps without horizontal scroll;
   - Edge: `Legacy.Example` listed under its stored name as unused.
 - [ ] T032 [P] [US1] Write `tests/e2e/dns/dkim-entry.spec.ts`. It covers:
-  - US1-AS3: record name `dkim._domainkey.example.org`, host label `dkim._domainkey` and value,
-    each copied exactly (`navigator.clipboard.readText()` on Chromium), with "Copied" announced;
+  - US1-AS3, FR-017 and SC-003: record name `dkim._domainkey.example.org`, host label
+    `dkim._domainkey` and value, each copied character for character
+    (`navigator.clipboard.readText()` on Chromium), with "Copied" announced;
   - US1-AS4: the split form shows quoted pieces, and copying copies that form;
   - FR-016: a name without a key says mail is not signed (and offers generation once US2 exists,
     so this test only asserts the text); an incomplete key shows its explanation and the missing
@@ -523,10 +526,14 @@ and a dropped connection.
     the rest "not processed";
   - FR-073: a temporary failure says nothing was changed and keeps the input;
   - the selection clears when the page, filter or sort changes;
+  - FR-089: after generating for `example.net` from the list, its entry page and the UI 002
+    domain page's DKIM section show the new key without a reload, and returning to the list shows
+    `example.net` as "Key valid";
   - SC-011: a 50-name run reports 50 outcomes, and the retry sends only the failed ones.
 - [ ] T045 [P] [US2] Write these unit tests:
   - `tests/unit/features/dns/GenerateKeyDialog.spec.ts`: names read-only; selector pre-filled with
-    `defaultSelector`, "not empty; ≤ `selectorMaxLength`; `^[A-Za-z0-9._-]+$`"; sizes from
+    `defaultSelector`, "not empty; ≤ `selectorMaxLength`; `^[A-Za-z0-9._-]+$`"; the selector field
+    has `autocapitalize="none"`, `autocorrect="off"` and `spellcheck="false"` (FR-081); sizes from
     `allowedKeySizes` with `defaultKeySize` preselected; one submission; focus to the heading on
     open and to the error summary on failure; Escape blocked while sending;
   - `tests/unit/features/dns/generate-run.spec.ts`: collection with `state=missing`, the current
@@ -557,6 +564,9 @@ and a dropped connection.
     with `useProblemForm` field errors;
   - `src/features/dns/components/RunDialog.vue`: progress (`role="progressbar"`), "Stop", no Escape
     while running, `RunResultList` with `PublicationOutcome` per done item.
+
+  On small screens, both dialogs keep their submit, cancel and stop actions in a footer that stays
+  visible while the content scrolls (FR-080).
 - [ ] T049 [US2] Add to `src/features/dns/pages/DkimKeysPage.vue`:
   - selection mode with `useBulkSelection`, reset through `useListState`'s `onReset`;
   - `src/features/dns/components/DkimSelectionBar.vue`;
@@ -612,8 +622,11 @@ summary and the downloaded zone file with the mock.
       `spfSuggestedRecord`;
     - `dmarc` missing (optional) with guidance `dmarcPublishPolicy`;
     - `dkim:dkim` mismatch with `dkimPublicKeyDiffers`;
-    - `mta-sts-record` informational… so that every status occurs;
+    - `mta-sts` and `mta-sts-record` match, and `tls-rpt` informational (optional, found);
     - `tlsa:25` `expectedUnknown` with `certificateUnavailable`;
+    - `srv:imaps` `lookupFailed` with `lookupTimeout`;
+
+    Together they cover every status.
   - `dns-diagnostics-partial`: three `lookupFailed` with `runTimeout`;
   - `dns-diagnostics-no-ipv6`: no AAAA or PTR IPv6 checks, and the note `noPublicIpv6`;
   - `dns-diagnostics-alias`: `example.com` with `aliasDomain: true` and `targetDomain`;
@@ -631,8 +644,10 @@ summary and the downloaded zone file with the mock.
   - US3-AS6: three "Could not be checked" with the translated reason, the "some records could not
     be checked" notice and "Run again";
   - US3-AS8: as a domain administrator, no server-wide group;
-  - US3-AS9: "Download zone file" saves `<ASCII name>.txt` whose content equals the mock's
-    `zoneFile`, and "Copy zone file" copies the same text;
+  - US3-AS9 and SC-009: "Download zone file" saves `<ASCII name>.txt` whose content equals the
+    mock's `zoneFile`, and "Copy zone file" copies the same text;
+  - FR-061: every check's record name and expected value have copy buttons named after the check,
+    and copy exactly; values found have none;
   - FR-057: the readable and ASCII name, and the 24-hour notice;
   - FR-059 and FR-060: every status label, the optional markers and the API order, grouped into
     server-wide and the name's records;
@@ -695,7 +710,7 @@ summary and the downloaded zone file with the mock.
 - [ ] T057 [P] [US3] Write component tests in `tests/unit/features/dns/`:
   - `DnsCheckCard.spec.ts` and `DnsCheckTable.spec.ts`: purpose heading, record name and type,
     status badge text and icon, the optional marker, expected value or guidance, values found as
-    text, notes;
+    text, notes; copy buttons for the record name and the expected value (FR-061);
   - `DiagnosticsSummary.spec.ts`;
   - `ZoneFilePanel.spec.ts`: collapsed by default, copy, download;
   - `RunStatus.spec.ts`: running, timeout, rate-limited with countdown, and error.
@@ -847,7 +862,9 @@ Check the values sent and every message.
     gives none;
   - `mta-sts-list-state.spec.ts`: the address parameters of data-model §5.
 - [ ] T068 [P] [US4] Write component tests in `tests/unit/features/dns/`:
-  - `MxHostListField.spec.ts`: keyboard entry and removal, announcements of a dropped duplicate;
+  - `MxHostListField.spec.ts`: keyboard entry and removal, announcements of a dropped duplicate,
+    and an entry input with `autocapitalize="none"`, `autocorrect="off"` and `spellcheck="false"`
+    (FR-081);
   - `MaxAgeField.spec.ts`: `inputmode="numeric"`, the unit select, errors;
   - `MtaStsForm.spec.ts`:
     - set-up defaults from capabilities: mode testing, 1 week, `[serverHostname]`, `defaultActive`;
@@ -990,8 +1007,11 @@ every validation rule. Check that a domain administrator is never offered these 
     declining removes it from the run;
   - FR-036: one request per target, continuing after a failure, with a result per target;
   - Edge: a target removed before sending gives "no longer exists";
-  - Edge: an incomplete source shows "incomplete and cannot be copied";
-  - Edge: leaving during the copy run asks first (FR-042).
+  - Edge: opening the copy page of `incomplete.example` by its address shows "incomplete and
+    cannot be copied" instead of the form; a source that became incomplete meanwhile gives the same
+    message from the API's `409`;
+  - Edge: leaving during the copy run asks first (FR-042);
+  - a domain administrator opening `/ng/dns/dkim-keys/example.org/copy` sees "no access".
 - [ ] T078 [P] [US5] Write `tests/e2e/dns/dkim-delete.spec.ts`. It covers:
   - US5-AS5:
     - deleting `example.org`'s key shows the impact (the name and ASCII form, kind, selector,
@@ -1038,12 +1058,15 @@ every validation rule. Check that a domain administrator is never offered these 
     - the text is cleared after success, on `pagehide` and after a confirmed leave, and kept after
       a refusal;
     - the name lookup is debounced 400 ms;
+    - the name and selector inputs have `autocapitalize="none"`, `autocorrect="off"` and
+      `spellcheck="false"` (FR-081);
     - the existing-key notice and the `If-Match` version;
   - `CopyTargetPicker.spec.ts`:
     - `useInfiniteQuery` over `listDkimKeys` with `state=valid&state=missing` and `q`, debounced
       300 ms;
     - the source is excluded;
     - "has a key (selector)";
+    - loading, no matches, and error with retry (constitution II);
   - `DeleteKeyDialog.spec.ts`: the impact texts per kind and publication setting;
   - `BulkDeleteDialog.spec.ts`: the list, marked domains, skipped entries, typed count;
   - `ReplaceKeyDialog.spec.ts`: the selector hint when equal to the current selector.
@@ -1078,13 +1101,16 @@ every validation rule. Check that a domain administrator is never offered these 
     - the leave guard;
     - clearing on `pagehide`;
     - `router.replace` to the entry after success;
+    - on small screens, Import and Cancel in a bar that stays visible while the form scrolls
+      (FR-080);
   - the route `dkim-import` in `src/features/dns/routes.ts`, with the administrator check.
 - [ ] T084 [P] [US5] Implement:
   - `src/features/dns/components/CopyTargetPicker.vue`: Reka `Combobox` without
     `ComboboxViewport`, with a plain scrollable list and "load more";
   - `src/features/dns/pages/DkimCopyPage.vue`: the source summary, targets, the overwrite
     confirmation, the run through `useSequentialRun` with `RunResultList` and `PublicationOutcome`,
-    and the leave guard;
+    the leave guard, and on small screens a Copy and Cancel bar that stays visible (FR-080). A
+    source whose key is incomplete shows "incomplete and cannot be copied" instead of the form;
   - the route `dkim-copy`, with the administrator check.
 - [ ] T085 [P] [US5] Implement in `src/features/dns/components/`:
   - `DeleteKeyDialog.vue`, on `useConfirm` with a custom body, with the versioned confirmation
@@ -1288,6 +1314,9 @@ domain administrator is never offered it.
   - has no horizontal scroll at 360 and 320 px, or at the equivalent of 400 % zoom on 1,280 px;
   - works in landscape;
   - never hides the focused element behind the sticky header or the selection bar (WCAG 2.4.11);
+  - at 360 px, the save, cancel and run actions of the generation, replacement, run, import, copy
+    and MTA-STS forms, and the selection action bar, are visible without scrolling to the end
+    (FR-080);
   - has no transitions under `prefers-reduced-motion` (FR-079, FR-080, SC-005).
 - [ ] T106 [P] Write and pass `tests/e2e/dns/keyboard-only.spec.ts`. With the keyboard alone, and
   focus visible at every step (FR-082):

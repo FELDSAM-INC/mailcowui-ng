@@ -155,6 +155,7 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     - `['mta-sts-policies','list',params]` and `['mta-sts-policies','detail',domain]`;
     - `['dns-diagnostics','result',name]`, `['dns-diagnostics','rate-limit']` and
       `['dns-diagnostics','changed',name]`.
+  - **Search** is applied 300 ms after typing stops, through `useListState`'s `replace` (FR-008).
   - **Lists** use UI 001's defaults (`staleTime: 30_000`) plus `placeholderData: keepPreviousData`,
     so paging and filtering never flash a loading state. Returning from an entry shows the cached
     page at once (FR-013). A background refetch happens only when the data is stale, with no
@@ -194,8 +195,9 @@ already made are not repeated; this file covers only what UI 010 adds or changes
   - Copying uses UI 001's `clipboard.ts` (`writeText`), with the exact string that is shown:
     - for the split DKIM form, the quoted, space-separated pieces;
     - for the zone file, the API text byte for byte (SC-003, SC-009).
-  - **Success**: the button shows "Copied" for two seconds, and `useAnnouncer` says politely
-    "{label} copied".
+  - **Success**: the button shows "Copied", and `useAnnouncer` says politely "{label} copied". The
+    "Copied" state stays while the button has focus or the pointer, and reverts two seconds after
+    it leaves (FR-074).
   - **Refusal or no clipboard API** (FR-075): the value element is made selectable, focused and
     fully selected with `Range`/`Selection`, and an inline message says that it could not be
     copied automatically.
@@ -855,6 +857,15 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     text label says "Update this record".
   - **Countdowns** (rate limit, temporary failure) are announced once at the start and once when
     over (FR-084).
+  - **Outcome messages** (save, generation, deletion, import, copy and publication results) are
+    inline alerts (TailAdmin `alert`) next to the affected content. They stay until the user
+    dismisses them or the next outcome replaces them, and they never time out, so none can
+    disappear while it has focus or is hovered (FR-074). Each is also announced through
+    `useAnnouncer`.
+  - **Sticky actions** (FR-080): below `md`, the generation, replacement and run dialogs, the
+    import and copy pages, and UI 002's full-screen section form for MTA-STS keep their primary and
+    cancel actions in a footer that stays visible while the content scrolls. The footer's height is
+    added to `scroll-padding-bottom`.
 - **Rationale**: These are FR-079 to FR-086 made concrete for the new components.
 - **Alternatives considered**: None.
 

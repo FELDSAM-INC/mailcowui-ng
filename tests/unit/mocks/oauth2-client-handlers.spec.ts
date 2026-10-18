@@ -180,3 +180,17 @@ describe('OAuth2 client handlers', () => {
     expect(scenarioClient(4).clientId).toBe(fixedClientId(4))
   })
 })
+
+describe('API 012 audit records', () => {
+  it('are contract-valid and filtered by the OAuth2 client target', async () => {
+    useScenario('audit-identity-provider')
+    const answer = await call('GET', '/audit-events?targetType=oauth2Client&targetId=4')
+    expect(answer.status).toBe(200)
+    expect(answer.body.data.map((event: { eventType: string }) => event.eventType)).toEqual([
+      'oauth2ClientCreation',
+      'oauth2ClientUpdate',
+      'oauth2ClientSecretRegeneration',
+      'oauth2ClientTokenRevocation',
+    ])
+  })
+})

@@ -61,7 +61,10 @@ export function useRunningRefresh(options: RunningRefreshOptions) {
     },
   )
 
+  const visibleNow = ref(visible())
+
   function onVisibility() {
+    visibleNow.value = visible()
     if (!canRefresh()) return
     if (Date.now() - options.dataUpdatedAt() > REFRESH_INTERVAL_MS) void options.refetch()
   }
@@ -80,6 +83,11 @@ export function useRunningRefresh(options: RunningRefreshOptions) {
     ),
     /** For the list query's `refetchInterval`. */
     refetchInterval: (): number | false => (canRefresh() ? REFRESH_INTERVAL_MS : false),
+    /** The same as a reactive value, so that query options follow every condition. */
+    interval: computed((): number | false => {
+      void visibleNow.value
+      return canRefresh() ? REFRESH_INTERVAL_MS : false
+    }),
     pause() {
       paused.value = true
     },

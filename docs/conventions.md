@@ -107,7 +107,11 @@ reads this document next to the constitution. The API side has its own rules in
     use;
   - untrusted multi-line text: `neutralise()` (UI 006);
   - downloads: `src/shared/platform/download.ts` (Blob with a revoked object URL, never `data:`
-    URLs).
+    URLs);
+  - route meta flag for routes that resolve in every session state: `meta.public` (UI 005). It is
+    not `meta.anySessionState` or `meta.anySession`;
+  - mailbox route parameter: `:address` (UI 003 owns the mailbox routes). It is not `:mailbox`;
+  - secrets helper: `useSecretRequest` (see below).
 - **Bulk limit:** `useBulkSelection` takes the API's bulk limit from the feature's capabilities
   read. "Select all" selects the visible items up to the limit (the first N) and states the limit.
   Once the limit is reached, further selection is disabled with the same message. This applies to

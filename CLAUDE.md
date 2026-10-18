@@ -20,3 +20,33 @@ translations and frontend problems. The legacy templates are in
 `../mailhosting/data/web/lang/lang.*.json`.
 
 **Roadmap**: `docs/roadmap.md`.
+
+## Development
+
+The foundation is defined in `specs/001-sign-in-app-shell/plan.md` and `research.md`. The rules
+below apply to every feature.
+
+- **Stack**: Node 24 LTS, npm with exact versions and a committed lockfile, Vite 8 with base
+  `/ng/`, strict TypeScript 5.9 (not 7: tooling peers).
+- **Layout**:
+  - `src/api/`: the client. `generated/` is never edited by hand and may be imported only inside
+    `src/api/`.
+  - `src/app/`: router, navigation catalogue, shell, session, preferences and branding.
+  - `src/features/<name>/`: one area per feature. Other code reaches it only through its
+    `index.ts`.
+  - `src/shared/`: code with at least two uses, including the TailAdmin primitives in `ui/`.
+  - `src/i18n/`: translations.
+  - `contract/`: the vendored, pinned API contract.
+  - `tests/{unit,mocks,e2e,smoke}`.
+- **Commands**:
+  - `npm run dev:mock` runs the mock API with the dev server. `npm run dev` proxies to the API at
+    `API_PROXY_TARGET`.
+  - `npm run lint`, `typecheck`, `test:unit`, `test:e2e`, `test:smoke`, `i18n:check`,
+    `contract:check`, `build`, `budget:check` and `lhci`.
+  - `scripts/contract/bump.sh <ref>` pins a new contract.
+- **Rules**:
+  - No inline `<script>` or `<style>` and no static `style=""`, because of the strict CSP.
+  - Reka's `SelectViewport`, `ComboboxViewport` and `ScrollAreaViewport` are banned.
+  - `v-html` is allowed only in `SanitizedHtml.vue`.
+  - Every mocked request and response is validated against `contract/openapi.json`.
+  - End-to-end tests run on 360 px and desktop with axe in both themes.

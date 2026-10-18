@@ -327,9 +327,9 @@ No automatic repeat in any state.
 
 ```text
 selection ─Deliver/Hold/Release─────────────► sending ─200─► result summary ─► list refreshed, selection cleared
-selection ─Delete─► confirm(count) ─────────► sending ─409─► Postfix not running
+selection ─Delete─► confirm(typed count) ───► sending ─409─► Postfix not running
 Flush ─────────────────────────────────────► sending ─502─► failed (technical detail)
-Delete all ─► dialog (count read) ─tick─► Delete ─► sending ─504/network─► outcome unknown ─► list refreshed
+Delete all ─► dialog (count read) ─type count + tick─► Delete ─► sending ─504/network─► outcome unknown ─► list refreshed
 ```
 
 ### Content viewer (`mail-queue/components/MessageContentViewer.vue`)

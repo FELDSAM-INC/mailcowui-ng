@@ -149,6 +149,11 @@ The API 011 contract closed several gaps this spec had listed. The plan aligned 
   states the exact number of queued messages (FR-050, FR-058); a denylist entry or denylisting that
   covers the administrator's own address gets a warning (FR-064, FR-069); container cards name the
   role, and the restart confirmation warns according to it (FR-008, FR-012).
+- Q: How strong are the queue deletion confirmations, given that `docs/conventions.md` asks for the
+  number of objects to be typed for bulk deletions? → A: The conventions are binding. Deleting
+  selected messages needs the number of messages typed; "Delete all" needs the number of queued
+  messages typed and the acknowledgement checkbox (FR-056, FR-058). (orchestrator decision; this
+  replaces the corresponding part of the confirmation clarification above.)
 - Q: What if the session's idle timeout is shorter than the 15-minute inactivity pause? → A: Live
   updates pause after the shorter of the two, so that an unattended dashboard keeps a session alive
   for at most one idle timeout beyond what the session itself allows (FR-021).
@@ -348,8 +353,9 @@ shown.
    chooses Hold, **Then** one request is sent, and the app reports 3 messages held and 1 no longer in
    the queue, and refreshes the list.
 3. **Given** 2 selected messages, **When** the administrator chooses Delete, **Then** a confirmation
-   names the number of messages and says that deletion cannot be undone. **When** they confirm,
-   **Then** the messages are deleted and the result is announced.
+   names the number of messages and says that deletion cannot be undone, and Delete stays disabled
+   until the administrator types that number. **When** they confirm, **Then** the messages are
+   deleted and the result is announced.
 4. **Given** a queued message, **When** the administrator opens it, **Then** its complete content is
    shown as plain text exactly as returned, never interpreted as markup, with a copy action and a
    notice that the view is recorded in the audit log.
@@ -872,8 +878,8 @@ the history from each entry point and check the filters applied and the presenta
   current sort order, and say that only these are selected and that the action can be repeated for
   the rest. The action bar MUST name the number of selected messages in every case.
 - **FR-056**: Deleting selected messages MUST ask for confirmation naming the number of messages and
-  stating that deletion cannot be undone. Deliver now, hold and release MUST NOT ask for
-  confirmation.
+  stating that deletion cannot be undone, and MUST NOT send until the administrator has typed that
+  number. Deliver now, hold and release MUST NOT ask for confirmation.
 - **FR-057**: After a queue action, the app MUST report the result per message as the API returns
   it: how many were done and which were no longer in the queue, announce the summary, and refresh
   the list. After deliver now or flush, the app MUST say that Postfix accepted the request and that
@@ -882,9 +888,9 @@ the history from each entry point and check the filters applied and the presenta
   flush MUST NOT ask for confirmation and MUST say that held messages stay on hold. Deleting all MUST
   ask for a confirmation that states the number of queued messages read when the dialog opens (the
   API's total count, also when the list is truncated), that held messages and messages arriving in
-  the meantime are included, and that the deletion cannot be undone. Its Delete button MUST stay disabled until
-  the administrator ticks "I understand
-  that all queued messages, including held ones, are deleted permanently".
+  the meantime are included, and that the deletion cannot be undone. Its Delete button MUST stay
+  disabled until the administrator has typed that number and ticked "I understand that all queued
+  messages, including held ones, are deleted permanently".
 - **FR-059**: When a queue action times out with an unknown outcome, the app MUST say so, refresh the
   list and MUST NOT repeat the action on its own. When Postfix reports a failure, the app MUST show
   a translated "queue action failed" message with Postfix's message as technical detail.

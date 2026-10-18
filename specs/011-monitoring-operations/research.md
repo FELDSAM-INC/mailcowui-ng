@@ -527,14 +527,14 @@ Playwright projects, smoke harness) are not repeated.
     no second use) reads the counts when it opens (`listMailQueueMessages?limit=1`) and states
     `meta.queueCounts.total` exactly, including held messages, even when the listing is truncated,
     and that messages arriving meanwhile are deleted too. Its Delete button stays disabled until
-    the acknowledgement is ticked. It is a Reka `AlertDialog` (labelled, focus trapped, Escape
+    the count is typed and the acknowledgement is ticked. It is a Reka `AlertDialog` (labelled, focus trapped, Escape
     closes unless sending, focus returns).
   - **Postfix not running** (FR-060): `409 mail-service-not-running` replaces the list with a
     message naming `problem.container` and a link to `/operations/containers/<container>`.
-  - **Confirmation strength**: `docs/conventions.md` asks for the number to be typed for bulk
-    deletions, but this spec's clarification decides a dialog naming the number for selected
-    messages and an acknowledgement for "Delete all". The conventions say that a feature spec
-    governs its own screens, so the spec applies (plan owner question 1).
+  - **Confirmation strength** (orchestrator decision; `docs/conventions.md` is binding): deleting
+    selected messages uses UI 002's `ConfirmDialog` with `requireTyped` set to the number of
+    messages; "Delete all" requires the typed number of queued messages (as read when the dialog
+    opens) and the acknowledgement checkbox before its Delete button is enabled.
 - **Rationale**: The bulk operation and the 1,000-ID limit are the contract's. Selecting across
   pages reuses the list operation with `limit` up to 1,000, so no new API is needed (gap 3 stays
   open only for more than 1,000).

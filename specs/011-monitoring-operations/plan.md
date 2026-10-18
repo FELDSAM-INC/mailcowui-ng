@@ -125,7 +125,7 @@ for Android; the static image under `/ng/`.
 | VIII. Simplicity | One new dependency (`marked`), justified (R2); no chart library; shared parts promoted only on their second use (`useInactivity.ts` from UI 008, `time-range.ts` from the audit log, `ProportionBarList.vue` from UI 006), single-use parts kept in the feature (`PurgeQueueDialog.vue`, `covers-address.ts`) (R5, R11, R13, R14, R16). | PASS |
 | Technology constraints | Stack unchanged. "Charts are lazy-loaded on their route": the SVG chart is an async component on the dashboard route only, the bars live in the Rspamd route chunk (R7, R13, R22). No TailAdmin chart demo is copied. | PASS |
 | Workflow and gates | The CI gates of UI 001 cover the feature; the budget script and Lighthouse runner are extended. Commits go to `main`. `marked` is MIT. | PASS |
-| `docs/conventions.md` | List state in the address; cards and tables; list states; confirmations; History via target filters; problem types and rule codes translated; controls hidden or read-only by permission; capabilities from the capabilities read. **Shared building blocks and canonical names**: UI 002's `BulkActionBar`, `useBulkSelection` (bulk limit from the capabilities), `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink`, `useLeaveGuard` and coverage manifest; UI 008's `useInactivity`; UI 006's `neutralise()`; no renamed copies. **Polling**: only condition-bound `refetchInterval` with visibility checks, a pause control and the `min(15 min, idle timeout)` inactivity limit (R5). **Contract pin**: forward only, with this feature's 44 operations checked against the baseline `3207925` (R1). Where this spec decides otherwise for its own screens, the spec governs, as the conventions allow: logs load in steps of 50 without page numbers (FR-036), all containers on one screen (FR-008), the queue selection can cover all matching messages up to the API limit (FR-055) and carries no version tags (the contract forbids them), and the bulk queue deletion names the count instead of asking to type it (FR-056; owner question 1). | PASS |
+| `docs/conventions.md` | List state in the address; cards and tables; list states; confirmations; History via target filters; problem types and rule codes translated; controls hidden or read-only by permission; capabilities from the capabilities read. **Shared building blocks and canonical names**: UI 002's `BulkActionBar`, `useBulkSelection` (bulk limit from the capabilities), `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink`, `useLeaveGuard` and coverage manifest; UI 008's `useInactivity`; UI 006's `neutralise()`; no renamed copies. **Polling**: only condition-bound `refetchInterval` with visibility checks, a pause control and the `min(15 min, idle timeout)` inactivity limit (R5). **Contract pin**: forward only, with this feature's 44 operations checked against the baseline `3207925` (R1). Where this spec decides otherwise for its own screens, the spec governs, as the conventions allow: logs load in steps of 50 without page numbers (FR-036), all containers on one screen (FR-008), the queue selection can cover all matching messages up to the API limit (FR-055) and carries no version tags (the contract forbids them). Queue deletions follow the conventions: the typed count for selected messages, the typed count plus the acknowledgement for "Delete all" (FR-056, FR-058; orchestrator decision). | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart
 introduce no violation. Decisions that touched gates:
@@ -236,14 +236,11 @@ features 006 (reset only), 002 (audit target filters) and 001.
    it names the action it sent. **Proposed**: declare `step` in a `MonitoringOutcomeUnknownProblem`
    schema.
 
-## Owner-level questions (defaults applied)
+## Owner-level questions
 
-1. **Strength of the bulk queue deletion confirmation**: `docs/conventions.md` asks bulk deletions
-   to have the number of objects typed; this spec's clarification asks for a dialog that names the
-   number of selected messages, and an acknowledgement checkbox for "Delete all". **Default**: the
-   spec governs its own screens, as the conventions allow: no typing for selected messages, the
-   checkbox for "Delete all". If the owner prefers the typed count for consistency, only
-   `MailQueuePage.vue`'s confirmation call changes (UI 002's `requireTyped`).
+None open. The former question on the queue deletion confirmation was decided by the orchestrator:
+`docs/conventions.md` is binding, so selected messages need the typed count, and "Delete all" needs
+the typed count and the acknowledgement checkbox (spec FR-056, FR-058).
 
 ## Parity notes added by the plan
 

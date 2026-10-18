@@ -1,0 +1,230 @@
+{
+  "a11y": {
+    "appsMenu": "Ponuka {label}",
+    "closeNavigation": "Zavrieť navigáciu",
+    "errorPrefix": "Chyba:",
+    "mainNavigation": "Hlavná navigácia",
+    "openNavigation": "Otvoriť navigáciu",
+    "pagination": "Stránkovanie",
+    "skipToContent": "Preskočiť na hlavný obsah",
+    "userMenu": "Ponuka účtu {username}"
+  },
+  "common": {
+    "close": "Zavrieť",
+    "confirm": "Potvrdiť",
+    "documentTitle": "{page} – {site}",
+    "goHome": "Prejsť na úvodnú obrazovku",
+    "loading": "Načítava sa…",
+    "opensInNewTab": "(otvorí sa na novej karte)",
+    "requestId": "ID požiadavky: {requestId}",
+    "retry": "Skúsiť znova",
+    "signOut": "Odhlásiť sa"
+  },
+  "enums": {
+    "announcementType": {
+      "danger": "Dôležité",
+      "info": "Informácia",
+      "warning": "Upozornenie"
+    },
+    "apiKeyAccessLevel": {
+      "readOnly": "Iba na čítanie",
+      "readWrite": "Čítanie a zápis"
+    },
+    "apiKeyStatus": {
+      "active": "Aktívny",
+      "expired": "Vypršaný",
+      "revoked": "Zneplatnený"
+    },
+    "auditEventType": {
+      "apiKeyCreation": "Vytvorenie API kľúča",
+      "apiKeyRevocation": "Zneplatnenie API kľúča",
+      "passkeyRegistration": "Pridanie prístupového kľúča",
+      "passkeyRemoval": "Odobratie prístupového kľúča",
+      "passkeyRename": "Premenovanie prístupového kľúča",
+      "preferencesUpdate": "Zmena predvolieb",
+      "signIn": "Prihlásenie",
+      "signOut": "Odhlásenie"
+    },
+    "auditFailureReason": {
+      "accountInactive": "Účet je neaktívny",
+      "challengeExpired": "Časový limit prihlásenia vypršal",
+      "externalIdentitySource": "Účet sa prihlasuje cez poskytovateľa identít",
+      "invalidCredentials": "Nesprávne používateľské meno alebo heslo",
+      "passkeyInactive": "Prístupový kľúč je neaktívny",
+      "passkeyVerificationFailed": "Overenie prístupového kľúča zlyhalo",
+      "registrationFailed": "Registrácia zlyhala",
+      "roleMismatch": "Prihlasovacia obrazovka pre iný typ účtu",
+      "secondFactorFailed": "Druhý faktor nebol prijatý",
+      "secondFactorUnavailable": "Druhý faktor nie je k dispozícii",
+      "throttled": "Príliš veľa pokusov",
+      "unknownPasskey": "Neznámy prístupový kľúč",
+      "verificationUnavailable": "Overovacia služba je nedostupná"
+    },
+    "auditOutcome": {
+      "failure": "Neúspech",
+      "success": "Úspech"
+    },
+    "auditTargetType": {
+      "apiKey": "API kľúč",
+      "passkey": "Prístupový kľúč",
+      "preferences": "Predvoľby",
+      "session": "Relácia"
+    },
+    "authMethod": {
+      "apiKey": "API kľúč",
+      "passkey": "Prístupový kľúč",
+      "password": "Heslo",
+      "passwordAndSecondFactor": "Heslo a druhý faktor"
+    },
+    "pendingAction": {
+      "passwordChange": "Zmeňte svoje heslo",
+      "secondFactorSetup": "Nastavte druhý faktor"
+    },
+    "secondFactorType": {
+      "totp": "Overovacia aplikácia (TOTP)",
+      "webauthn": "Bezpečnostný alebo prístupový kľúč",
+      "yubiOtp": "Yubico OTP"
+    }
+  },
+  "forms": {
+    "errorSummary": {
+      "title": "Opravte, prosím, nasledujúce"
+    },
+    "required": "povinné"
+  },
+  "lists": {
+    "pagination": {
+      "current": "Strana {page} z {pages}",
+      "empty": "Žiadne položky",
+      "next": "Ďalšia stránka",
+      "page": "Strana {page}",
+      "pageSize": "Na stránku",
+      "previous": "Predchádzajúca stránka",
+      "summary": "{from}–{to} z {total}"
+    }
+  },
+  "nav": {
+    "account": "Môj účet",
+    "administrators": "Administrátori",
+    "aliases": "Aliasy a zdroje",
+    "apiKeys": "API kľúče",
+    "auditLog": "Protokol auditu",
+    "dns": "DKIM, MTA-STS a DNS",
+    "home": "Úvod",
+    "identityProviders": "Poskytovatelia identít a OAuth2",
+    "operations": "Monitorovanie a prevádzka",
+    "passkeys": "Prístupové kľúče",
+    "routing": "Smerovanie a prepisovanie adries",
+    "spamFilter": "Spamový filter",
+    "system": "Nastavenia systému"
+  },
+  "problem": {
+    "api-key-expired": "Platnosť tohto API kľúča vypršala.",
+    "api-key-invalid": "API kľúč nie je platný.",
+    "api-key-revoked": "API kľúč bol zneplatnený.",
+    "api-key-source-not-allowed": "API kľúč nemožno použiť z tejto sieťovej adresy.",
+    "csrf-token-mismatch": "Reláciu sa nepodarilo overiť. Skúste to, prosím, znova.",
+    "forbidden": "Na túto akciu nemáte oprávnenie.",
+    "generic": "Niečo sa pokazilo. Skúste to, prosím, znova.",
+    "insufficient-key-scope": "API kľúč túto akciu nepovoľuje.",
+    "network": "Server je nedostupný. Skontrolujte pripojenie a skúste to znova.",
+    "passkey-registration-failed": "Prístupový kľúč sa nepodarilo zaregistrovať. Skúste to, prosím, znova.",
+    "pending-action-required": "Vo vašom účte je najprv potrebné dokončiť niektoré kroky.",
+    "second-factor-failed": "Kód nebol prijatý. Začnite, prosím, prihlásenie znova.",
+    "second-factor-required": "Dokončite, prosím, druhý krok prihlásenia.",
+    "second-factor-unavailable": "Vaše druhé faktory tu nemožno použiť. Požiadajte správcu o ich obnovenie.",
+    "service-unavailable": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
+    "session-required": "Táto akcia vyžaduje prihlásenie.",
+    "sign-in-expired": "Časový limit prihlásenia vypršal. Začnite, prosím, znova.",
+    "sign-in-failed": "Prihlásenie zlyhalo. Skontrolujte údaje a skúste to znova.",
+    "status": {
+      "400": "Požiadavku sa nepodarilo spracovať.",
+      "401": "Prihláste sa, prosím, znova.",
+      "403": "Na túto akciu nemáte oprávnenie.",
+      "404": "Položka sa nenašla.",
+      "409": "Akcia je v rozpore s aktuálnym stavom. Načítajte stránku znova a skúste to znova.",
+      "412": "Položka bola medzitým zmenená inde. Bola znova načítaná, skúste to, prosím, znova.",
+      "413": "Požiadavka je príliš veľká.",
+      "422": "Niektoré hodnoty nie sú platné.",
+      "429": "Príliš veľa požiadaviek. Pred ďalším pokusom chvíľu počkajte.",
+      "500": "Na serveri došlo k chybe. Skúste to, prosím, znova.",
+      "502": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
+      "503": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
+      "504": "Server neodpovedal včas. Skúste to, prosím, znova."
+    },
+    "temporary-verification-failure": "Kód sa teraz nepodarilo overiť. Skúste to znova alebo zvoľte inú metódu.",
+    "too-many-requests": "Príliš veľa pokusov. Pred ďalším pokusom chvíľu počkajte.",
+    "unauthenticated": "Vaša relácia skončila. Prihláste sa, prosím, znova.",
+    "validation-failed": "Niektoré polia vyžadujú vašu pozornosť."
+  },
+  "roles": {
+    "admin": "Administrátor",
+    "domainAdmin": "Správca domény",
+    "mailboxUser": "Používateľ schránky"
+  },
+  "shell": {
+    "announcement": {
+      "collapse": "Skryť oznámenie",
+      "expand": "Zobraziť oznámenie",
+      "prefix": "{type}:"
+    },
+    "signOutFailed": "Odhlásenie sa nepodarilo potvrdiť. Skontrolujte pripojenie a skúste to znova.",
+    "signingOut": "Odhlasovanie…",
+    "userMenu": {
+      "signedInAs": "Prihlásený(-á) ako"
+    }
+  },
+  "states": {
+    "list": {
+      "empty": "Nie je čo zobraziť.",
+      "error": "Zoznam sa nepodarilo načítať.",
+      "loading": "Načítava sa…"
+    },
+    "noAccess": {
+      "body": "Váš účet nemôže používať túto sekciu. Ak si myslíte, že ide o chybu, obráťte sa na správcu.",
+      "title": "Bez prístupu"
+    },
+    "notFound": {
+      "body": "Táto adresa v aplikácii neexistuje.",
+      "title": "Stránka sa nenašla"
+    },
+    "placeholder": {
+      "body": "Táto sekcia príde v niektorej z ďalších verzií aplikácie."
+    },
+    "serviceUnavailable": {
+      "body": "Server je momentálne nedostupný. Skúste to, prosím, o chvíľu znova.",
+      "title": "Služba je dočasne nedostupná"
+    }
+  },
+  "themes": {
+    "dark": "Tmavý",
+    "light": "Svetlý",
+    "system": "Podľa zariadenia"
+  },
+  "time": {
+    "absolute": "Presný čas: {time}"
+  },
+  "validation": {
+    "format": {
+      "base64url": "Táto hodnota nie je platný base64url.",
+      "dateTime": "Zadajte platný dátum a čas.",
+      "ipAddress": "Zadajte platnú adresu IPv4 alebo IPv6.",
+      "ipNetwork": "Zadajte adresu alebo sieť IPv4 či IPv6, napríklad 192.0.2.0/24.",
+      "totpCode": "Zadajte šesťmiestny kód.",
+      "webauthnCredential": "Odpoveď bezpečnostného alebo prístupového kľúča nie je platná.",
+      "yubicoOtp": "Zadajte 44 písmen alebo číslic, ktoré napíše váš YubiKey."
+    },
+    "invalid": "Táto hodnota nie je platná.",
+    "invalidFormat": "Táto hodnota má neplatný formát.",
+    "invalidType": "Táto hodnota má nesprávny typ.",
+    "mustBeInFuture": "Zvoľte čas v budúcnosti.",
+    "notEligible": "Túto položku tu nemožno použiť. Povolené: {allowedRoles}.",
+    "notFound": "Táto položka neexistuje.",
+    "notInList": "Zvoľte jednu z možností: {allowed}.",
+    "outOfRange": "Zadajte hodnotu od {min} do {max}.",
+    "required": "Toto pole je povinné.",
+    "tooLong": "Zadajte najviac {max} znakov.",
+    "tooMany": "Zadajte najviac {max} položiek.",
+    "tooShort": "Zadajte aspoň {min} znakov."
+  }
+}

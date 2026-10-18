@@ -1,0 +1,14 @@
+{
+  "apps": {
+    "defaultLabel": "Apps"
+  },
+  "common": {
+    "cancel": "Cancel"
+  },
+  "nav": {
+    "domains": "Domains",
+    "mailboxes": "Mailboxes",
+    "quarantine": "Quarantine",
+    "syncJobs": "Sync jobs"
+  }
+}

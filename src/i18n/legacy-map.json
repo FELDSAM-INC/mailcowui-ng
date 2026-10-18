@@ -1,0 +1,8 @@
+{
+  "apps.defaultLabel": "header.apps",
+  "common.cancel": "footer.cancel",
+  "nav.domains": "mailbox.domains",
+  "nav.mailboxes": "mailbox.mailboxes",
+  "nav.quarantine": "header.quarantine",
+  "nav.syncJobs": "mailbox.sync_jobs"
+}

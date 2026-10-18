@@ -246,7 +246,7 @@ renders in:
   - no client-side timeout applies;
   - `X-API-Key` is never sent (FR-070);
   - a 419 is treated as a generic problem.
-- [ ] T031 [P] Write `tests/unit/i18n/problems.spec.ts` and `tests/unit/i18n/format.spec.ts` (R15). `problems.spec.ts` must check that:
+- [X] T031 [P] Write `tests/unit/i18n/problems.spec.ts` and `tests/unit/i18n/format.spec.ts` (R15). `problems.spec.ts` must check that:
   - every problem type named in `contract/openapi.json` maps to `problem.<name>`;
   - an unknown type falls back to `problem.status.<status>`, then to `problem.generic`;
   - `validation.<code>` gets the parameters `max` and `min` as numbers, `allowed` as an `Intl.ListFormat` list, and `allowedRoles` as translated role names;
@@ -348,7 +348,7 @@ renders in:
 - [X] T052 [P] Implement `src/shared/security/sanitize.ts` (the DOMPurify allowlist and hook of R17) and `src/shared/security/safe-url.ts`, so that T034 passes.
 - [X] T053 [P] Implement `src/shared/validation/ip-network.ts` and `src/shared/validation/limits.ts` (the contract limits of data-model §6, each with a comment naming its schema path), so that T035 passes.
 - [X] T054 [P] Implement `src/shared/platform/webauthn/support.ts`, `base64url.ts`, `options.ts`, `credential.ts`, `errors.ts` and `ceremony.ts`, so that T036 passes.
-- [ ] T055 Implement the i18n core:
+- [X] T055 Implement the i18n core:
   - `src/i18n/index.ts`: `createI18n`, `legacy: false`, `en-gb` bundled, `cs-cz` and `sk-sk` as lazy chunks, `DefineLocaleMessage` typing from `en-gb`;
   - `src/i18n/locales.ts`: the codes and `toBcp47`;
   - `src/i18n/format.ts`;

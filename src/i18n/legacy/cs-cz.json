@@ -1,0 +1,14 @@
+{
+  "apps": {
+    "defaultLabel": "Aplikace"
+  },
+  "common": {
+    "cancel": "Zrušit"
+  },
+  "nav": {
+    "domains": "Domény",
+    "mailboxes": "Mailové schránky",
+    "quarantine": "Karanténa",
+    "syncJobs": "Synchronizační úlohy"
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "a11y": {
+    "appsMenu": "{label} menu",
+    "closeNavigation": "Close navigation",
+    "errorPrefix": "Error:",
+    "mainNavigation": "Main navigation",
+    "openNavigation": "Open navigation",
+    "pagination": "Pagination",
+    "skipToContent": "Skip to main content",
+    "userMenu": "Account menu of {username}"
+  },
+  "common": {
+    "close": "Close",
+    "confirm": "Confirm",
+    "documentTitle": "{page} – {site}",
+    "goHome": "Go to the home screen",
+    "loading": "Loading…",
+    "opensInNewTab": "(opens in a new tab)",
+    "requestId": "Request ID: {requestId}",
+    "retry": "Try again",
+    "signOut": "Sign out"
+  },
+  "enums": {
+    "announcementType": {
+      "danger": "Important",
+      "info": "Information",
+      "warning": "Warning"
+    },
+    "apiKeyAccessLevel": {
+      "readOnly": "Read only",
+      "readWrite": "Read and write"
+    },
+    "apiKeyStatus": {
+      "active": "Active",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "auditEventType": {
+      "apiKeyCreation": "API key created",
+      "apiKeyRevocation": "API key revoked",
+      "passkeyRegistration": "Passkey added",
+      "passkeyRemoval": "Passkey removed",
+      "passkeyRename": "Passkey renamed",
+      "preferencesUpdate": "Preferences changed",
+      "signIn": "Sign-in",
+      "signOut": "Sign-out"
+    },
+    "auditFailureReason": {
+      "accountInactive": "Account inactive",
+      "challengeExpired": "Sign-in timed out",
+      "externalIdentitySource": "Account signs in through an identity provider",
+      "invalidCredentials": "Wrong username or password",
+      "passkeyInactive": "Passkey inactive",
+      "passkeyVerificationFailed": "Passkey verification failed",
+      "registrationFailed": "Registration failed",
+      "roleMismatch": "Sign-in screen for another account type",
+      "secondFactorFailed": "Second factor not accepted",
+      "secondFactorUnavailable": "Second factor unavailable",
+      "throttled": "Too many attempts",
+      "unknownPasskey": "Unknown passkey",
+      "verificationUnavailable": "Verification service unavailable"
+    },
+    "auditOutcome": {
+      "failure": "Failure",
+      "success": "Success"
+    },
+    "auditTargetType": {
+      "apiKey": "API key",
+      "passkey": "Passkey",
+      "preferences": "Preferences",
+      "session": "Session"
+    },
+    "authMethod": {
+      "apiKey": "API key",
+      "passkey": "Passkey",
+      "password": "Password",
+      "passwordAndSecondFactor": "Password and second factor"
+    },
+    "pendingAction": {
+      "passwordChange": "Change your password",
+      "secondFactorSetup": "Set up a second factor"
+    },
+    "secondFactorType": {
+      "totp": "Authenticator app (TOTP)",
+      "webauthn": "Security key or passkey",
+      "yubiOtp": "Yubico OTP"
+    }
+  },
+  "forms": {
+    "errorSummary": {
+      "title": "Please correct the following"
+    },
+    "required": "required"
+  },
+  "lists": {
+    "pagination": {
+      "current": "Page {page} of {pages}",
+      "empty": "No entries",
+      "next": "Next page",
+      "page": "Page {page}",
+      "pageSize": "Per page",
+      "previous": "Previous page",
+      "summary": "{from}–{to} of {total}"
+    }
+  },
+  "nav": {
+    "account": "My account",
+    "administrators": "Administrators",
+    "aliases": "Aliases and resources",
+    "apiKeys": "API keys",
+    "auditLog": "Audit log",
+    "dns": "DKIM, MTA-STS and DNS",
+    "home": "Home",
+    "identityProviders": "Identity providers and OAuth2",
+    "operations": "Monitoring and operations",
+    "passkeys": "Passkeys",
+    "routing": "Routing and rewriting",
+    "spamFilter": "Spam filter",
+    "system": "System settings"
+  },
+  "problem": {
+    "api-key-expired": "This API key has expired.",
+    "api-key-invalid": "The API key is not valid.",
+    "api-key-revoked": "The API key has been revoked.",
+    "api-key-source-not-allowed": "The API key cannot be used from this network address.",
+    "csrf-token-mismatch": "Your session could not be verified. Please try again.",
+    "forbidden": "You do not have permission to do this.",
+    "generic": "Something went wrong. Please try again.",
+    "insufficient-key-scope": "The API key does not allow this action.",
+    "network": "The server could not be reached. Check your connection and try again.",
+    "passkey-registration-failed": "The passkey could not be registered. Please try again.",
+    "pending-action-required": "Your account has actions to complete first.",
+    "second-factor-failed": "The code was not accepted. Please start the sign-in again.",
+    "second-factor-required": "Please complete the second sign-in step.",
+    "second-factor-unavailable": "Your second factors cannot be used here. Ask an administrator to reset them.",
+    "service-unavailable": "The service is temporarily unavailable. Please try again in a moment.",
+    "session-required": "This action needs a signed-in session.",
+    "sign-in-expired": "The sign-in timed out. Please start again.",
+    "sign-in-failed": "Sign-in failed. Check your details and try again.",
+    "status": {
+      "400": "The request could not be processed.",
+      "401": "Please sign in again.",
+      "403": "You do not have permission to do this.",
+      "404": "This item could not be found.",
+      "409": "This conflicts with the current state. Reload and try again.",
+      "412": "This item was changed elsewhere. It has been reloaded; please try again.",
+      "413": "The request is too large.",
+      "422": "Some values are not valid.",
+      "429": "Too many requests. Please wait before trying again.",
+      "500": "Something went wrong on the server. Please try again.",
+      "502": "The service is temporarily unavailable. Please try again in a moment.",
+      "503": "The service is temporarily unavailable. Please try again in a moment.",
+      "504": "The server took too long to answer. Please try again."
+    },
+    "temporary-verification-failure": "The code could not be checked right now. Try again or choose another method.",
+    "too-many-requests": "Too many attempts. Please wait before trying again.",
+    "unauthenticated": "Your session has ended. Please sign in again.",
+    "validation-failed": "Some fields need your attention."
+  },
+  "roles": {
+    "admin": "Administrator",
+    "domainAdmin": "Domain administrator",
+    "mailboxUser": "Mailbox user"
+  },
+  "shell": {
+    "announcement": {
+      "collapse": "Hide announcement",
+      "expand": "Show announcement",
+      "prefix": "{type}:"
+    },
+    "signOutFailed": "Sign-out could not be confirmed. Check your connection and try again.",
+    "signingOut": "Signing out…",
+    "userMenu": {
+      "signedInAs": "Signed in as"
+    }
+  },
+  "states": {
+    "list": {
+      "empty": "Nothing to show.",
+      "error": "The list could not be loaded.",
+      "loading": "Loading…"
+    },
+    "noAccess": {
+      "body": "Your account cannot use this section. If you think this is wrong, ask your administrator.",
+      "title": "No access"
+    },
+    "notFound": {
+      "body": "This address does not exist in the app.",
+      "title": "Page not found"
+    },
+    "placeholder": {
+      "body": "This section comes in a later version of the app."
+    },
+    "serviceUnavailable": {
+      "body": "The server cannot be reached right now. Please try again in a moment.",
+      "title": "Service temporarily unavailable"
+    }
+  },
+  "themes": {
+    "dark": "Dark",
+    "light": "Light",
+    "system": "Device setting"
+  },
+  "time": {
+    "absolute": "Exact time: {time}"
+  },
+  "validation": {
+    "format": {
+      "base64url": "This value is not valid base64url.",
+      "dateTime": "Enter a valid date and time.",
+      "ipAddress": "Enter a valid IPv4 or IPv6 address.",
+      "ipNetwork": "Enter an IPv4 or IPv6 address or network, for example 192.0.2.0/24.",
+      "totpCode": "Enter the six-digit code.",
+      "webauthnCredential": "The response of the security key or passkey is not valid.",
+      "yubicoOtp": "Enter the 44 letters or digits your YubiKey types."
+    },
+    "invalid": "This value is not valid.",
+    "invalidFormat": "This value has an invalid format.",
+    "invalidType": "This value has the wrong type.",
+    "mustBeInFuture": "Choose a time in the future.",
+    "notEligible": "This item cannot be used here. Allowed: {allowedRoles}.",
+    "notFound": "This item does not exist.",
+    "notInList": "Choose one of: {allowed}.",
+    "outOfRange": "Enter a value from {min} to {max}.",
+    "required": "This field is required.",
+    "tooLong": "Enter at most {max} characters.",
+    "tooMany": "Enter at most {max} entries.",
+    "tooShort": "Enter at least {min} characters."
+  }
+}

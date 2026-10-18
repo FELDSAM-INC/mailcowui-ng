@@ -1,5 +1,5 @@
 // Per-test environment for Vitest (research R23): MSW with the contract-validated mock API
-// (T027), and a fresh Pinia and QueryClient per test. The app's i18n instance is added by T055.
+// (T027), and a fresh Pinia, QueryClient and en-gb i18n instance per test (tests/unit/support/mount.ts).
 import { setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeEach } from 'vitest'
 

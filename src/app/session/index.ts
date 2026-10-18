@@ -34,8 +34,16 @@ export function installSession(ctx: SessionContext): () => void {
     secondFactorRequired: () => void refetchAndReroute(ctx, false),
     pendingActionRequired: () => void refetchAndReroute(ctx, true),
     forbidden: () => void ctx.queryClient.invalidateQueries({ queryKey: queryKeys.identity() }),
+    // UI 012 (FR-052): the provider ended the single sign-on session.
+    identityProviderSessionEnded: () => void endSession(ctx, { notice: 'ssoSessionEnded' }),
   })
-  const offEnded = onSessionEnded(() => void endSession(ctx))
+  const offEnded = onSessionEnded(
+    (reason) =>
+      void endSession(
+        ctx,
+        reason === 'identityProviderSessionEnded' ? { notice: 'ssoSessionEnded' } : {},
+      ),
+  )
   const offCrossTab = connectCrossTab(ctx)
   const offIdle = installIdleTimer(ctx)
 

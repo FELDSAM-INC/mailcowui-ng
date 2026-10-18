@@ -6,6 +6,7 @@ import { legacy, type TextRef } from '@/i18n'
 const SignInPage = () => import('./pages/SignInPage.vue')
 const SecondFactorPage = () => import('./pages/SecondFactorPage.vue')
 const PendingActionsPage = () => import('./pages/PendingActionsPage.vue')
+const SingleSignOnReturnPage = () => import('./pages/SingleSignOnReturnPage.vue')
 
 const signIn = (path: string, name: string, role: string | null, titleKey: TextRef) =>
   ({
@@ -42,5 +43,13 @@ export const authRoutes: RouteRecordRaw[] = [
     name: 'pending-actions',
     component: PendingActionsPage,
     meta: { layout: 'auth', access: 'restricted', titleKey: 'auth.pendingActions.title' },
+  },
+  // UI 012 (FR-045): the return from the provider resolves in every session state (`meta.public`);
+  // the page decides what happens.
+  {
+    path: '/sso/return',
+    name: 'sso-return',
+    component: SingleSignOnReturnPage,
+    meta: { layout: 'auth', public: true, titleKey: legacy('admin.iam_sso') },
   },
 ]

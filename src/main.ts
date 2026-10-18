@@ -1,7 +1,8 @@
-// The app's entry (research R11): plugins, the session wiring, the bootstrap before the first
-// navigation resolves, then mount.
+// The app's entry (research R11): the capture of a single sign-on return (UI 012), plugins, the
+// session wiring, the bootstrap before the first navigation resolves, then mount.
 import './styles/main.css'
 
+import { captureSingleSignOnReturn } from '@/features/auth'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
@@ -35,4 +36,7 @@ async function start() {
   app.mount('#app')
 }
 
+// UI 012 (research R5): the single sign-on return's code and state leave the address before the
+// router and the bootstrap send any request.
+captureSingleSignOnReturn()
 void start()

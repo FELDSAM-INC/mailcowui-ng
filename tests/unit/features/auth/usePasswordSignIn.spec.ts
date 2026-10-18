@@ -48,7 +48,7 @@ describe('usePasswordSignIn: identity provider unavailable', () => {
       'carl@example.org',
     )
     expect((wrapper.get('input[name="password"]').element as HTMLInputElement).value).toBe('')
-    expect(wrapper.text()).not.toMatch(/Try again in|wait/i)
+    expect(wrapper.text()).not.toContain('You can try again in')
     expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeUndefined()
     expect(mockState().failedSignIns).toBe(0)
   })

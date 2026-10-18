@@ -9,6 +9,9 @@ export type SessionNotice =
   | 'signInTimedOut'
   | 'secondFactorRejected'
   | 'secondFactorUnavailable'
+  // UI 012: the single sign-on session ended (FR-052); signed out of one (FR-053).
+  | 'ssoSessionEnded'
+  | 'signedOutSso'
 
 export const DEFAULT_IDLE_TIMEOUT = 10_800
 

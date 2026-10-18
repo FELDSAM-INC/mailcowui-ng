@@ -2,6 +2,8 @@
 // into the `session` query. Only an `active` or `restricted` result reads the identity, applies
 // the profile preferences and tells the other tabs (`session-changed`); then the router guard
 // routes on the new state: the second-factor step, the pending actions, or the requested page.
+import type { RouteLocationRaw } from 'vue-router'
+
 import {
   api,
   queryKeys,
@@ -10,6 +12,9 @@ import {
   type PasswordSignInRequest,
   type SecondFactorVerification,
   type Session,
+  type SingleSignOnCompletionRequest,
+  type SingleSignOnProviderErrorRequest,
+  type SingleSignOnStart,
   type WebAuthnChallenge,
   type Writable,
 } from '@/api'
@@ -69,11 +74,35 @@ export async function cancelPendingSignIn(): Promise<void> {
   await api.DELETE('/session/pending-sign-in')
 }
 
-/**
- * Takes a sign-in step's session: writes it, and for a signed-in session reads the identity,
- * applies the profile preferences and tells the other tabs. Then the guard routes.
- */
-export async function acceptSession(session: Session): Promise<void> {
+// UI 012 (research R4 to R6): single sign-on. Every call goes to the generated client directly,
+// never through a query or mutation cache: the start's answer carries the provider's state in its
+// authorization address, and the completion and the error report carry the provider's code and
+// state (docs/conventions.md, "Secrets in requests or responses").
+
+export async function startSingleSignOn(): Promise<SingleSignOnStart> {
+  return requireData(await api.POST('/session/single-sign-on')).data
+}
+
+export async function cancelSingleSignOn(): Promise<void> {
+  await api.DELETE('/session/single-sign-on')
+}
+
+export async function completeSingleSignOn(
+  body: Writable<SingleSignOnCompletionRequest>,
+): Promise<Session> {
+  const result = await api.POST('/session/single-sign-on/completion', { body })
+  recordSessionClock(result.response)
+  return requireData(result).data
+}
+
+export async function reportSingleSignOnProviderError(
+  body: Writable<SingleSignOnProviderErrorRequest>,
+): Promise<void> {
+  await api.POST('/session/single-sign-on/provider-error', { body })
+}
+
+/** The steps every signed-in session takes: identity, profile preferences, the other tabs. */
+async function takeSignedInSession(session: Session): Promise<void> {
   const ctx = sessionContext()
   ctx.queryClient.setQueryData(queryKeys.session(), session)
   if (isSignedIn(session)) {
@@ -86,7 +115,28 @@ export async function acceptSession(session: Session): Promise<void> {
     }
     ctx.channel.post({ v: 1, type: 'session-changed' })
   }
-  await rerouteCurrent(ctx.router)
+}
+
+/**
+ * UI 012 (FR-047): takes the session of a completed single sign-on as any sign-in, then opens the
+ * kept address or the home screen. `replace` keeps the return page out of the history; the guard
+ * routes a session that is not active as usual.
+ */
+export async function acceptSingleSignOnSession(
+  session: Session,
+  target: RouteLocationRaw,
+): Promise<void> {
+  await takeSignedInSession(session)
+  await sessionContext().router.replace(target)
+}
+
+/**
+ * Takes a sign-in step's session: writes it, and for a signed-in session reads the identity,
+ * applies the profile preferences and tells the other tabs. Then the guard routes.
+ */
+export async function acceptSession(session: Session): Promise<void> {
+  await takeSignedInSession(session)
+  await rerouteCurrent(sessionContext().router)
 }
 
 /**

@@ -30,10 +30,12 @@ const emit = defineEmits<{ submitting: []; failed: [] }>()
 const { t } = useI18n()
 const usernameId = useId()
 const passwordId = useId()
+const providerMessageId = useId()
 const { username, password, pending, problem, throttle, form, submit } = usePasswordSignIn({
   role: () => props.role,
   usernameId,
   passwordId,
+  providerMessageId,
   onSubmit: () => emit('submitting'),
   onFailed: () => emit('failed'),
 })
@@ -56,7 +58,17 @@ watch(throttle.active, (active) => {
     @submit.prevent="submit"
   >
     <ErrorSummary :id="form.summaryId" :items="form.summary.value" />
-    <ProblemMessage :problem="problem" />
+    <!-- UI 012 (FR-051): the provider is unreachable; the message takes the focus. -->
+    <div
+      v-if="problem?.is('identity-provider-unavailable')"
+      :id="providerMessageId"
+      data-provider-unavailable
+      tabindex="-1"
+      class="rounded-xl focus:outline-2 focus:outline-offset-2 focus:outline-brand-500"
+    >
+      <ProblemMessage :problem="problem" />
+    </div>
+    <ProblemMessage v-else :problem="problem" />
     <p
       v-if="throttle.active.value"
       class="text-sm font-medium text-gray-800 tabular-nums dark:text-gray-200"

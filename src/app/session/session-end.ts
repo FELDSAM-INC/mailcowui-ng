@@ -8,24 +8,27 @@ import { acceptReturnTo } from '../router/return-to'
 import { isAuthFlowRoute } from '../router/route-kinds'
 import type { SessionContext } from './context'
 import { anonymousSession, cachedSession } from './queries'
-import { useSessionStore } from './store'
+import { useSessionStore, type SessionNotice } from './store'
 
 export type { SessionContext } from './context'
 
 let ending: Promise<void> | null = null
 
+export interface EndSessionOptions {
+  broadcast?: boolean
+  /** UI 012: the notice of the sign-in screen; `sessionEnded` by default. */
+  notice?: SessionNotice
+}
+
 /** Ends the session locally. Concurrent calls share one run. */
-export function endSession(
-  ctx: SessionContext,
-  options: { broadcast?: boolean } = {},
-): Promise<void> {
+export function endSession(ctx: SessionContext, options: EndSessionOptions = {}): Promise<void> {
   ending ??= run(ctx, options).finally(() => {
     ending = null
   })
   return ending
 }
 
-async function run(ctx: SessionContext, options: { broadcast?: boolean }): Promise<void> {
+async function run(ctx: SessionContext, options: EndSessionOptions): Promise<void> {
   const session = cachedSession(ctx.queryClient)
   if (session?.state === 'anonymous') return
 
@@ -40,7 +43,7 @@ async function run(ctx: SessionContext, options: { broadcast?: boolean }): Promi
   )
   store.reset()
   store.returnTo = returnTo
-  store.notice = 'sessionEnded'
+  store.notice = options.notice ?? 'sessionEnded'
   if (options.broadcast) ctx.channel.post({ v: 1, type: 'signed-out' })
 
   await goToSignIn(ctx, returnTo)

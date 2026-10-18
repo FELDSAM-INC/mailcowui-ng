@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // A one-shot message on the sign-in screen (data-model §4 `notice`): signed out, session ended,
-// sign-in timed out, second factor rejected or unavailable. It is taken from the session store
+// sign-in timed out, second factor rejected or unavailable; UI 012: the single sign-on session
+// ended, and signed out of a single sign-on session. It is taken from the session store
 // once, shown, and announced politely.
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -11,7 +12,14 @@ import { CheckIcon, InfoIcon } from '@/shared/icons'
 
 const { t } = useI18n()
 const notice = useSessionStore().consumeNotice()
-const text = computed(() => (notice ? t(`auth.notice.${notice}`) : ''))
+// The end of a single sign-on session says what the API's problem says (one text for both).
+const text = computed(() =>
+  notice === 'ssoSessionEnded'
+    ? t('problem.identity-provider-session-ended')
+    : notice
+      ? t(`auth.notice.${notice}`)
+      : '',
+)
 
 onMounted(() => {
   if (text.value) announce(text.value)
@@ -24,7 +32,10 @@ onMounted(() => {
     data-notice
     class="flex gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
   >
-    <CheckIcon v-if="notice === 'signedOut'" class="mt-0.5 size-5 shrink-0" />
+    <CheckIcon
+      v-if="notice === 'signedOut' || notice === 'signedOutSso'"
+      class="mt-0.5 size-5 shrink-0"
+    />
     <InfoIcon v-else class="mt-0.5 size-5 shrink-0" />
     <p class="min-w-0">{{ text }}</p>
   </div>

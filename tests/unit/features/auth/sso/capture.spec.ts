@@ -22,43 +22,44 @@ afterEach(() => {
 })
 
 describe('captureSingleSignOnReturn', () => {
-  it('is the return path under the app base', () => {
-    expect(SSO_RETURN_PATH).toBe('/ng/sso/return')
+  it('is the return path under the app base (`/ng/sso/return` in the build)', () => {
+    expect(SSO_RETURN_PATH).toBe(`${import.meta.env.BASE_URL}sso/return`)
   })
 
   it('reads the first code, state and error and strips the address with the state kept', () => {
     const win = fakeWindow(
-      '/ng/sso/return',
+      SSO_RETURN_PATH,
       '?code=one&state=s1&code=two&error_description=Denied%20by%20you&session_state=x&iss=y',
       '#frag',
     )
     captureSingleSignOnReturn(win)
-    expect(win.history.replaceState).toHaveBeenCalledWith(win.history.state, '', '/ng/sso/return')
+    expect(win.history.replaceState).toHaveBeenCalledWith(win.history.state, '', SSO_RETURN_PATH)
     expect(takeCapturedSingleSignOnReturn()).toEqual({ code: 'one', state: 's1' })
   })
 
   it('captures the provider error without its description', () => {
     captureSingleSignOnReturn(
-      fakeWindow('/ng/sso/return', '?error=access_denied&error_description=No&state=s'),
+      fakeWindow(SSO_RETURN_PATH, '?error=access_denied&error_description=No&state=s'),
     )
     expect(takeCapturedSingleSignOnReturn()).toEqual({ error: 'access_denied', state: 's' })
   })
 
   it('returns the values once', () => {
-    captureSingleSignOnReturn(fakeWindow('/ng/sso/return', '?code=c&state=s'))
+    captureSingleSignOnReturn(fakeWindow(SSO_RETURN_PATH, '?code=c&state=s'))
     expect(takeCapturedSingleSignOnReturn()).not.toBeNull()
     expect(takeCapturedSingleSignOnReturn()).toBeNull()
   })
 
   it('captures an empty return without touching the address', () => {
-    const win = fakeWindow('/ng/sso/return')
+    const win = fakeWindow(SSO_RETURN_PATH)
     captureSingleSignOnReturn(win)
     expect(win.history.replaceState).not.toHaveBeenCalled()
     expect(takeCapturedSingleSignOnReturn()).toEqual({})
   })
 
   it('does nothing on any other page', () => {
-    for (const path of ['/ng/', '/ng/sign-in', '/ng/sso/returned', '/sso/return']) {
+    const base = import.meta.env.BASE_URL
+    for (const path of [base, `${base}sign-in`, `${SSO_RETURN_PATH}ed`, '/elsewhere/sso/return']) {
       const win = fakeWindow(path, '?code=c&state=s')
       captureSingleSignOnReturn(win)
       expect(win.history.replaceState).not.toHaveBeenCalled()
@@ -67,9 +68,13 @@ describe('captureSingleSignOnReturn', () => {
   })
 
   it('accepts the return path with a trailing slash', () => {
-    const win = fakeWindow('/ng/sso/return/', '?code=c&state=s')
+    const win = fakeWindow(`${SSO_RETURN_PATH}/`, '?code=c&state=s')
     captureSingleSignOnReturn(win)
-    expect(win.history.replaceState).toHaveBeenCalledWith(win.history.state, '', '/ng/sso/return/')
+    expect(win.history.replaceState).toHaveBeenCalledWith(
+      win.history.state,
+      '',
+      `${SSO_RETURN_PATH}/`,
+    )
     expect(takeCapturedSingleSignOnReturn()).toEqual({ code: 'c', state: 's' })
   })
 })

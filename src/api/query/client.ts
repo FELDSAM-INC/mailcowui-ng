@@ -20,6 +20,11 @@ export interface SessionReactions {
    * changed permission flags update the controls.
    */
   forbidden(problem: ApiProblem): void
+  /**
+   * UI 012 (FR-052): `identity-provider-session-ended`: the single sign-on session has ended; end
+   * it with the single sign-on notice. Without this reaction it is handled as `unauthenticated`.
+   */
+  identityProviderSessionEnded?(problem: ApiProblem): void
 }
 
 let reactions: SessionReactions | null = null
@@ -36,7 +41,10 @@ export function setSessionReactions(next: SessionReactions | null): void {
 export function reportSessionProblem(error: unknown): void {
   if (!(error instanceof ApiProblem) || !reactions) return
   if (error.is('unauthenticated')) reactions.unauthenticated(error)
-  else if (error.is('second-factor-required')) reactions.secondFactorRequired(error)
+  else if (error.is('identity-provider-session-ended')) {
+    if (reactions.identityProviderSessionEnded) reactions.identityProviderSessionEnded(error)
+    else reactions.unauthenticated(error)
+  } else if (error.is('second-factor-required')) reactions.secondFactorRequired(error)
   else if (error.is('pending-action-required')) reactions.pendingActionRequired(error)
   else if (
     error.is('forbidden') ||

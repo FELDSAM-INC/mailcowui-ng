@@ -318,7 +318,7 @@ export {
 } from './generated/schema'
 
 export { onActivity, recordActivity } from './activity'
-export { api, onSessionEnded, requireData } from './client'
+export { api, onSessionEnded, requireData, type SessionEndReason } from './client'
 export { clearCsrfToken, currentCsrfToken, ensureCsrfToken, refreshCsrfToken } from './csrf'
 export {
   ApiProblem,

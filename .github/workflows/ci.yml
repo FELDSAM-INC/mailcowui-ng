@@ -125,6 +125,11 @@ jobs:
           curl -fsS http://127.0.0.1:8080/ng/ | grep -q '<div id="app">'
           curl -fsS http://127.0.0.1:8080/ng/api-keys | grep -q '<div id="app">'
           curl -fsSI http://127.0.0.1:8080/ng/ | grep -qi "^content-security-policy: default-src 'none'"
+          # UI 012 (research R27): the single sign-on return page serves the app with its CSP.
+          curl -fsS 'http://127.0.0.1:8080/ng/sso/return?code=x&state=y' | grep -q '<div id="app">'
+          curl -fsSI 'http://127.0.0.1:8080/ng/sso/return?code=x&state=y' \
+            | grep -qi "^content-security-policy: default-src 'none'"
+          ! docker logs ng 2>&1 | grep -q 'sso/return?code='
           asset=$(curl -fsS http://127.0.0.1:8080/ng/ | grep -o '/ng/assets/[^"]*\.js' | head -1)
           curl -fsSI "http://127.0.0.1:8080${asset}" | grep -qi '^cache-control: public, max-age=31536000, immutable'
           docker exec ng sh -c '! find /usr/share/nginx/html -name "*.map" | grep -q .'

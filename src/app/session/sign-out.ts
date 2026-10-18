@@ -1,10 +1,19 @@
 // Sign-out (FR-036, research R11): DELETE /session without confirmation. On success everything of
 // the session is discarded, the other tabs are told and a new anti-forgery token is fetched. When
 // the server cannot be reached, nothing changes and the user can retry: a sign-out that did not
-// happen is never claimed.
+// happen is never claimed. UI 012 (FR-053): after a single sign-on session the sign-in screen's
+// notice adds that the user is still signed in at the provider.
 import { ref, shallowRef } from 'vue'
 
-import { api, ApiProblem, clearCsrfToken, isApiProblem, queryKeys, refreshCsrfToken } from '@/api'
+import {
+  api,
+  ApiProblem,
+  clearCsrfToken,
+  isApiProblem,
+  queryKeys,
+  refreshCsrfToken,
+  type Identity,
+} from '@/api'
 
 import { sessionContext, type SessionContext } from './context'
 import { anonymousSession, cachedSession } from './queries'
@@ -14,6 +23,9 @@ import { useSessionStore } from './store'
 export type SignOutResult = { ok: true } | { ok: false; problem: ApiProblem }
 
 export async function signOut(ctx: SessionContext): Promise<SignOutResult> {
+  // UI 012 (FR-053): read before the cache is cleared whether single sign-on began the session.
+  const identity = ctx.queryClient.getQueryData<Identity>(queryKeys.identity())
+  const viaSingleSignOn = identity?.authentication.method === 'singleSignOn'
   try {
     await api.DELETE('/session')
   } catch (error) {
@@ -29,7 +41,7 @@ export async function signOut(ctx: SessionContext): Promise<SignOutResult> {
   ctx.queryClient.clear()
   ctx.queryClient.setQueryData(queryKeys.session(), anonymousSession(idleTimeout))
   store.reset()
-  store.notice = 'signedOut'
+  store.notice = viaSingleSignOn ? 'signedOutSso' : 'signedOut'
   ctx.channel.post({ v: 1, type: 'signed-out' })
   await goToSignIn(ctx, null)
   clearCsrfToken()

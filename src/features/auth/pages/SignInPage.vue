@@ -1,36 +1,44 @@
 <script setup lang="ts">
 // The sign-in screens (FR-001–FR-009, FR-016–FR-019, data-model §5): one role-neutral screen and
-// one per role, which names the role in its heading and in every sign-in it sends. Force single
-// sign-on hides the password form on the role-neutral and mailbox-user screens; an identity
-// provider adds a hint up front. The operator's help text is sanitised and, as on the classic
-// login page, behind "Show/Hide help panel". Texts with a classic counterpart are mailcow's own
-// (`login.*`, `start.help`; plan "Legacy form map").
-import { computed, useId } from 'vue'
+// one per role, which names the role in its heading and in every sign-in it sends. The operator's
+// help text is sanitised and, as on the classic login page, behind "Show/Hide help panel". Texts
+// with a classic counterpart are mailcow's own (`login.*`, `start.help`; plan "Legacy form map").
+// UI 012 (FR-040 to FR-042, legacy form map): when single sign-on is offered, the role-neutral and
+// mailbox-user screens show its button where the classic `user_index.twig` has it, after the
+// password form and "Forgot password?" below the classic "or login with"; "force single sign-on"
+// then hides the password form and the reset link (the passkey stays). Forcing it while it is not
+// offered changes nothing. The administrator screens never offer it.
+import { computed, onMounted, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 
 import type { Role } from '@/api'
 import { useBranding } from '@/app/branding/public-config'
 import { CLASSIC_PASSWORD_RESET } from '@/app/navigation/classic-links'
 import { legacy, type LegacyRef } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
+import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SanitizedHtml from '@/shared/components/SanitizedHtml.vue'
 import { ChevronDownIcon } from '@/shared/icons'
 import { passkeysSupported } from '@/shared/platform/webauthn'
 
 import AppLinksSection from '../components/AppLinksSection.vue'
-import IdpHint from '../components/IdpHint.vue'
+import OrDivider from '../components/OrDivider.vue'
 import PasskeySignInButton from '../components/PasskeySignInButton.vue'
 import PasswordForm from '../components/PasswordForm.vue'
 import RoleLinks from '../components/RoleLinks.vue'
 import SignInHeader from '../components/SignInHeader.vue'
 import SignInNotice from '../components/SignInNotice.vue'
-import SsoNotice from '../components/SsoNotice.vue'
+import SingleSignOnButton from '../components/SingleSignOnButton.vue'
 import { useConditionalPasskey } from '../composables/useConditionalPasskey'
 import { usePasskeySignIn } from '../composables/usePasskeySignIn'
+import { useSingleSignOnStart } from '../composables/useSingleSignOnStart'
+import { forgetKeptReturnTo } from '../sso/return-to'
 
 const props = defineProps<{ role?: Role | null }>()
 const { t } = useI18n()
-const { branding } = useBranding()
+const { branding, query: publicConfig } = useBranding()
+const route = useRoute()
 const titleId = useId()
 
 const role = computed(() => props.role ?? null)
@@ -42,7 +50,12 @@ const TITLES: Record<Role, LegacyRef> = {
 }
 const title = computed(() => (role.value ? TITLES[role.value] : legacy('login.login')))
 const userScreen = computed(() => role.value === null || role.value === 'mailboxUser')
-const forceSso = computed(() => branding.value.loginPage.forceSingleSignOn && userScreen.value)
+const ssoOffered = computed(
+  () =>
+    userScreen.value &&
+    (publicConfig.data.value?.externalIdentityProvider.singleSignOnAvailable ?? false),
+)
+const forceSso = computed(() => ssoOffered.value && branding.value.loginPage.forceSingleSignOn)
 
 // Passkeys first (FR-010–FR-012): one action, plus the browser's autofill on the username field.
 const passkeys = passkeysSupported()
@@ -51,6 +64,14 @@ const conditional = useConditionalPasskey({
   role: () => role.value,
   onError: (error) => passkey.report(error),
 })
+
+// UI 012: single sign-on keeps the requested page for after the round trip (FR-043).
+const sso = useSingleSignOnStart({
+  returnTo: () => route.query.returnTo,
+  onStart: () => conditional.stop(),
+})
+// An address left behind by an abandoned round trip never steers a later return (research R4).
+onMounted(forgetKeptReturnTo)
 </script>
 
 <template>
@@ -75,15 +96,8 @@ const conditional = useConditionalPasskey({
         :choose-again="conditional.chooseAgain.value"
         @start="passkey.signIn"
       />
-      <SsoNotice v-if="forceSso" />
-      <template v-else>
-        <p
-          v-if="passkeys"
-          class="flex items-center gap-3 text-sm text-gray-700 before:h-px before:flex-1 before:bg-gray-200 after:h-px after:flex-1 after:bg-gray-200 dark:text-gray-300 dark:before:bg-gray-700 dark:after:bg-gray-700"
-        >
-          {{ t('auth.passkey.or') }}
-        </p>
-        <IdpHint v-if="branding.externalIdentityProvider" :role="role" />
+      <template v-if="!forceSso">
+        <OrDivider v-if="passkeys">{{ t('auth.passkey.or') }}</OrDivider>
         <PasswordForm
           :role="role"
           :webauthn-autofill="passkeys"
@@ -99,6 +113,14 @@ const conditional = useConditionalPasskey({
           class="text-link self-start"
         />
       </template>
+      <template v-if="ssoOffered">
+        <OrDivider v-if="!forceSso || passkeys" data-other-logins>
+          <LegacyText k="login.other_logins" />
+        </OrDivider>
+        <ProblemMessage :problem="sso.problem.value" />
+        <SingleSignOnButton :pending="sso.pending.value" @start="sso.start" />
+      </template>
+      <ProblemMessage v-else :problem="sso.problem.value" />
       <RoleLinks :role="role" />
     </section>
     <details v-if="branding.loginHelpHtml" data-help class="surface group">

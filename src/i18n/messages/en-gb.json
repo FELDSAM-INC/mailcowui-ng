@@ -191,7 +191,8 @@
       "secondFactorUnavailable": "Your second factors cannot be used here. Ask an administrator to reset them.",
       "sessionEnded": "Your session has ended. Please sign in again.",
       "signInTimedOut": "The sign-in timed out. Please sign in again.",
-      "signedOut": "You have signed out."
+      "signedOut": "You have signed out.",
+      "signedOutSso": "You have signed out of this app. You are still signed in at your organisation's sign-in service; on a shared device, sign out there too."
     },
     "passkey": {
       "chooseAgain": "Choose your passkey again.",
@@ -236,20 +237,20 @@
     },
     "signIn": {
       "anyRole": "Sign in with any account",
-      "idpHint": {
-        "body": "Accounts that sign in through your organisation's identity provider cannot use their password here yet.",
-        "link": "Sign in in the classic interface"
-      },
       "showPassword": "Toggle password visibility",
-      "sso": {
-        "body": "This server uses single sign-on. For now it is available in the classic interface.",
-        "link": "Sign in with single sign-on in the classic interface"
-      },
       "throttle": {
         "announce": "Too many attempts. You can try again in {time}.",
         "countdown": "You can try again in {time}",
         "ended": "You can try to sign in again."
       }
+    },
+    "sso": {
+      "backToSignIn": "Back to sign-in",
+      "completing": "Completing sign-in…",
+      "outcome": {
+        "cancelled": "The sign-in was cancelled or refused at your organisation's sign-in page."
+      },
+      "starting": "Opening your organisation's sign-in page…"
     }
   },
   "bulk": {

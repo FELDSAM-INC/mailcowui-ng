@@ -12,17 +12,22 @@ import { ApiProblem, peekProblemName, problemFromResponse } from './problem'
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const CSRF_HEADER = 'X-CSRF-Token'
 
-type SessionEndedListener = () => void
+/** UI 012: why the session ended, when it was not a plain `unauthenticated` (FR-052). */
+export type SessionEndReason = 'identityProviderSessionEnded'
+type SessionEndedListener = (reason?: SessionEndReason) => void
 const sessionEndedListeners = new Set<SessionEndedListener>()
 
-/** Subscribes to the session-ended signal: a write refused twice for its token, or refused as unauthenticated after the refresh. */
+/**
+ * Subscribes to the session-ended signal: a write refused twice for its token, or refused as
+ * unauthenticated (or, UI 012, as `identity-provider-session-ended`) after the refresh.
+ */
 export function onSessionEnded(listener: SessionEndedListener): () => void {
   sessionEndedListeners.add(listener)
   return () => sessionEndedListeners.delete(listener)
 }
 
-function emitSessionEnded(): void {
-  for (const listener of [...sessionEndedListeners]) listener()
+function emitSessionEnded(reason?: SessionEndReason): void {
+  for (const listener of [...sessionEndedListeners]) listener(reason)
 }
 
 function apiBaseUrl(): string {
@@ -72,6 +77,8 @@ const csrfMiddleware: Middleware = {
       (replay.status === 401 && name === 'unauthenticated')
     ) {
       emitSessionEnded()
+    } else if (replay.status === 401 && name === 'identity-provider-session-ended') {
+      emitSessionEnded('identityProviderSessionEnded')
     }
     return replay
   },

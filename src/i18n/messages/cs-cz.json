@@ -191,7 +191,8 @@
       "secondFactorUnavailable": "Vaše druhé faktory zde nelze použít. Požádejte správce, aby je obnovil.",
       "sessionEnded": "Vaše relace skončila. Přihlaste se prosím znovu.",
       "signInTimedOut": "Časový limit přihlášení vypršel. Přihlaste se prosím znovu.",
-      "signedOut": "Byli jste odhlášeni."
+      "signedOut": "Byli jste odhlášeni.",
+      "signedOutSso": "Odhlásili jste se z této aplikace. U přihlašovací služby vaší organizace jste stále přihlášeni; na sdíleném zařízení se odhlaste i tam."
     },
     "passkey": {
       "chooseAgain": "Zvolte přístupový klíč znovu.",
@@ -236,20 +237,20 @@
     },
     "signIn": {
       "anyRole": "Přihlásit se libovolným účtem",
-      "idpHint": {
-        "body": "Účty, které se přihlašují přes poskytovatele identity vaší organizace, zde zatím nemohou použít heslo.",
-        "link": "Přihlásit se v klasickém rozhraní"
-      },
       "showPassword": "Přepnout viditelnost hesla",
-      "sso": {
-        "body": "Tento server používá jednotné přihlášení. Zatím je k dispozici v klasickém rozhraní.",
-        "link": "Přihlásit se jednotným přihlášením v klasickém rozhraní"
-      },
       "throttle": {
         "announce": "Příliš mnoho pokusů. Znovu to můžete zkusit za {time}.",
         "countdown": "Znovu to můžete zkusit za {time}",
         "ended": "Nyní se můžete znovu zkusit přihlásit."
       }
+    },
+    "sso": {
+      "backToSignIn": "Zpět na přihlášení",
+      "completing": "Dokončuje se přihlášení…",
+      "outcome": {
+        "cancelled": "Přihlášení bylo na přihlašovací stránce vaší organizace zrušeno nebo odmítnuto."
+      },
+      "starting": "Otevírá se přihlašovací stránka vaší organizace…"
     }
   },
   "bulk": {

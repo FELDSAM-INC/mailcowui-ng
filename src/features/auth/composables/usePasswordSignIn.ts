@@ -1,7 +1,9 @@
 // Password sign-in (FR-016–FR-019, FR-028, FR-091). The username is trimmed, the password is
 // cleared after every attempt and never stored, and a role screen names its role. A failure shows
 // one generic message, keeps the username and moves focus to the password field. A deliberately
-// delayed answer keeps the busy state: requests have no client-side timeout.
+// delayed answer keeps the busy state: requests have no client-side timeout. UI 012 (FR-050,
+// FR-051): LDAP and Keycloak mailboxes use the same form; an unreachable provider is a temporary
+// failure with its own message and focus, never a countdown.
 import { nextTick, ref, shallowRef, type Ref } from 'vue'
 
 import { ApiProblem, isApiProblem, type Role } from '@/api'
@@ -18,6 +20,8 @@ export interface PasswordSignInOptions {
   role: () => Role | null
   usernameId: string
   passwordId: string
+  /** UI 012: the element of the "identity provider unavailable" message, which gets the focus. */
+  providerMessageId?: string
   /** Called once a valid attempt is about to be sent (US2 aborts the conditional passkey request). */
   onSubmit?: () => void
   /** Called after an attempt that did not sign in (US2 restarts the conditional request). */
@@ -85,6 +89,14 @@ export function usePasswordSignIn(options: PasswordSignInOptions) {
       return
     }
     problem.value = failure
+    if (failure.is('identity-provider-unavailable')) {
+      // UI 012 (FR-051): a temporary failure, not a wrong password: no countdown despite
+      // Retry-After, the username kept, and the focus on the message.
+      announce(problemMessage(failure), { assertive: true })
+      const id = options.providerMessageId
+      void nextTick(() => (id ? document.getElementById(id)?.focus() : undefined))
+      return
+    }
     if (failure.is('too-many-requests')) {
       throttle.start(failure.retryAfter)
     } else {

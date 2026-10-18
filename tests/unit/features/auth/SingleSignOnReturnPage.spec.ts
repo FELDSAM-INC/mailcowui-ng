@@ -8,6 +8,7 @@ import { setSessionContext } from '@/app/session/context'
 import SingleSignOnReturnPage from '@/features/auth/pages/SingleSignOnReturnPage.vue'
 import {
   captureSingleSignOnReturn,
+  SSO_RETURN_PATH,
   takeCapturedSingleSignOnReturn,
 } from '@/features/auth/sso/capture'
 import { lt } from '@/i18n'
@@ -25,7 +26,7 @@ afterEach(() => {
 
 function capture(search: string) {
   captureSingleSignOnReturn({
-    location: { pathname: '/ng/sso/return', search, hash: '' },
+    location: { pathname: SSO_RETURN_PATH, search, hash: '' },
     history: { state: null, replaceState: vi.fn() },
   })
 }

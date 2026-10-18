@@ -108,9 +108,11 @@ The order is `rateLimit`, `dkimKey`, `dkimDnsPublication`, `groupwareDirectoryUp
 
 ### BulkSelection (`src/shared/composables/useBulkSelection.ts`)
 
-- **State**: `{ active: boolean; ids: Set<string> }`.
+- **State**: `{ active: boolean; ids: Set<string>; limit: number | null }`, with the derived
+  `atLimit` (the selection has reached `limit`, the bulk limit from the capabilities).
 - **Methods**: `toggle(id)`, `selectPage(ids)`, `clear()`, `keep(ids)` (keeps failed, refused and
-  outdated after a run).
+  outdated after a run). At the limit, `toggle` of an unselected ID and `selectPage` beyond the
+  remaining capacity are refused, and the UI states the limit (`bulk.limitReached`).
 - **Reset**: cleared by `useListState`'s `onReset`.
 
 ### OutdatedDiff (extension of `src/shared/composables/useVersionedSave.ts`)
@@ -309,7 +311,7 @@ never from hand-picked numbers (conventions).
 | Footer exclusions | trimmed, each at most 255 characters, case-only duplicates merged | `validation.tooLong` |
 | Typed confirmation, one domain | equal to `name` or `unicodeName`, ignoring letter case | `domains.delete.typeName` |
 | Typed confirmation, bulk | equal to the number of objects to be deleted | `bulk.confirm.typeCount` |
-| Bulk selection | at most `capabilities.bulkLimit` objects | `bulk.tooMany` |
+| Bulk selection | at most `capabilities.bulkLimit` objects; at the limit, further selection is disabled | `bulk.limitReached` (`max`) |
 | Audit target | at most 255 characters | `validation.tooLong` |
 
 ## 7. State machines

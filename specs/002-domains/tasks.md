@@ -52,8 +52,11 @@ it, and keep every UI 001 gate green (research D1, D2, D27).
   1. Confirm the prerequisites. UI 001's `npm run lint`, `typecheck`, `test:unit` and `test:e2e`
      pass. mailcow-rest-v2 feature 002 is implemented and its quickstart Part A passes at the
      chosen ref: a release tag that ships it, or else the first commit at which this holds.
-  2. Run `scripts/contract/bump.sh <ref>`. This produces `contract/openapi.yaml`,
-     `contract/openapi.json`, `contract/VERSION.json` and `src/api/generated/schema.ts`.
+  2. Pins only move forward (`docs/conventions.md`). If `contract/VERSION.json` already pins a
+     later commit than `<ref>`, keep it, confirm that it implements feature 002, and use it as
+     `<ref>` in step 3. Otherwise run `scripts/contract/bump.sh <ref>`. This produces
+     `contract/openapi.yaml`, `contract/openapi.json`, `contract/VERSION.json` and
+     `src/api/generated/schema.ts`.
   3. Run the domain contract diff of `contracts/README.md` between
      `32079252d55797d3da4e58ae661e9fb91c51c6f9` and `<ref>`. If it is not empty, stop and review
      the difference against plan.md, research.md and data-model.md before continuing.
@@ -157,6 +160,9 @@ the shared enumerations through `src/i18n/coverage.json`.
     bulk targets);
   - a response delay per operation.
 
+  UI 001's identity handler derives a domain administrator's `scope.domains` from these
+  assignments, so the identity and the domain list always agree.
+
   Create `tests/mocks/scenarios/domains-base.ts` with `domains-60` (an administrator with 60
   domains, defined fully in T024) and register it in `tests/mocks/scenarios/index.ts`. Each story
   adds its scenarios in its own module `tests/mocks/scenarios/domains-<story>.ts`, registered in
@@ -246,7 +252,9 @@ the shared enumerations through `src/i18n/coverage.json`.
   - `keep(ids)` after a run keeps only the given IDs;
   - the selection clears through `useListState`'s `onReset` on page, search, filter, sort and size
     changes;
-  - a selection larger than the bulk limit reports `overLimit`.
+  - with a limit, `atLimit` becomes true when the selection reaches it; `toggle` of an unselected
+    ID and `selectPage` beyond the remaining capacity are refused, so selection is disabled at the
+    limit (conventions "Shared building blocks and canonical names").
 - [ ] T014 [P] Write `tests/unit/shared/components/bulk-components.spec.ts` for:
   - `BulkActionBar.vue`: it names the number selected, lists the actions given, and its controls
     are at least 44 × 44 px (class check) and keyboard operable;
@@ -403,7 +411,7 @@ the shared enumerations through `src/i18n/coverage.json`.
   and `src/shared/components/BulkResultSummary.vue` with the `BulkRow` model of data-model §2, so
   that T013 and T014 pass. Add the `bulk.*` keys to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   one label per `BulkItemOutcome`, plus `skipped`, `unknown`, `notProcessed`, the selection bar,
-  `bulk.tooMany` and `bulk.confirm.typeCount`.
+  `bulk.limitReached` and `bulk.confirm.typeCount`.
 - [ ] T026 Implement `src/shared/components/EditableSection.vue` and the `changedSince` extension
   of `src/shared/composables/useVersionedSave.ts`, so that T015 and T016 pass. Add the
   `sections.*` keys (edit, save, cancel, save again, discard, changed elsewhere, "now saved as")
@@ -776,7 +784,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
   the administrator and both domain administrator scenarios, it asserts on the list, the domain
   page, its sections and the create address that exactly the matrix's actions are offered: list
   and inspect, create, description, Global Address List flag and tags, and active state, limits,
-  quotas and relay options. A mailbox user (UI 001's `mailbox-password` scenario, active session)
+  quotas and relay options. A mailbox user (UI 001's `mailbox-no-spam-flags` scenario, an active session)
   has no Domains entry and gets "no access" at `/ng/domains` and `/ng/domains/example.org` (edge
   case). The other rows of the matrix are asserted in their stories' specs: delete (T065), bulk
   actions (T072), templates (T079, T080), footer (T089) and history (T096).
@@ -865,8 +873,8 @@ longer exists.
     exists", and the domain leaves the list;
   - FR-043: the request carries `If-Match` with the preview's `etag`;
   - FR-074: the dialog is labelled, traps focus, closes with Escape and returns focus;
-  - FR-002: a domain administrator (UI 001's `domain-admin-two-domains`) has no Delete action on
-    the domain page or the list entries;
+  - FR-002: a domain administrator (`domain-admin-two-of-ten`) has no Delete action on the domain
+    page or the list entries;
   - Edge: a temporary failure says nothing was deleted and offers a retry.
 - [ ] T066 [P] [US4] Write `tests/unit/features/domains/deletion.spec.ts`:
   - `useDomainDeletion`: availability from usage, the preview fetched fresh each time, the outcome
@@ -932,9 +940,9 @@ domains with mailboxes and resources.
   - FR-047: `things.example` (resources) is also skipped;
   - FR-048: leaving during a delayed request warns that the result will not be shown;
   - FR-073: progress and results are announced;
-  - Edge: on `bulk-limit-small` at size 25, selecting 21 disables the actions and states the limit
-    of 20;
-  - FR-002: a domain administrator has no selection mode;
+  - Edge: on `bulk-limit-small` at size 25, the 21st checkbox and "select all on this page" are
+    disabled once 20 are selected, with a message stating the limit of 20;
+  - FR-002: a domain administrator (`domain-admin-two-of-ten`) has no selection mode;
   - SC-008: `bulk-fifty` reports 50 outcomes.
 - [ ] T073 [P] [US5] Write `tests/unit/features/domains/useDomainBulk.spec.ts` and
   `tests/unit/features/domains/bulk-confirm.spec.ts`:
@@ -958,7 +966,8 @@ domains with mailboxes and resources.
   - checkboxes and select-all;
   - `BulkActionBar` with Activate, Deactivate and Delete;
   - `useBulkSelection` reset through `useListState`;
-  - the bulk limit from the capabilities;
+  - the bulk limit from the capabilities: selection disabled at the limit, with the
+    `bulk.limitReached` message;
   - the progress panel and `BulkResultSummary` with Retry;
   - `useLeaveGuard` while running.
 - [ ] T077 [US5] Add the `domains.bulk.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`,

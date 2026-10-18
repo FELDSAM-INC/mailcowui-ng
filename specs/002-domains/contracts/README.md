@@ -31,7 +31,9 @@ git -C ../mailcow-rest-v2 diff --stat 32079252d55797d3da4e58ae661e9fb91c51c6f9 <
 npm run typecheck && npm run i18n:check && npm run test:unit && npm run test:e2e
 ```
 
-An empty diff confirms that the plan still matches the contract. A non-empty diff is reviewed
+Pins only move forward (`docs/conventions.md`). When `contract/VERSION.json` already pins a later
+commit than the chosen ref, keep it: run the diff against that commit, and confirm that it
+implements feature 002. An empty diff confirms that the plan still matches the contract. A non-empty diff is reviewed
 against this plan before implementation continues. The bump also brings the shared enumeration
 values and operations of mailcow-rest-v2 features 003 to 013. They are not used, and the
 translation coverage manifest keeps them out of the completeness gate (research D2). It also

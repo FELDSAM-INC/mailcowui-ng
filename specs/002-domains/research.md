@@ -35,7 +35,10 @@ considered**.
        Part A passes.
   - **Pin at implementation time**: T001 runs `scripts/contract/bump.sh` against the
     mailcow-rest-v2 release tag that ships the feature 002 implementation, or, without a tag,
-    against the first commit at which the prerequisite above holds. Before accepting the pin it
+    against the first commit at which the prerequisite above holds. Pins only move forward
+    (conventions): when `contract/VERSION.json` already pins a later commit, because another UI
+    feature bumped first, that pin is kept, and T001 only verifies that it implements feature 002.
+    Before accepting the pin it
     diffs the domain contract files listed in [contracts/README.md](./contracts/README.md)
     between the baseline and the new ref. Any difference is a contract change that must be
     reviewed against this plan before implementation continues (constitution I). The commit
@@ -539,7 +542,10 @@ considered**.
       the number selected and the actions (FR-045, US5-AS4).
     - The selection holds names and is cleared through `useListState`'s `onReset` when the page,
       search, filters, sort or page size change.
-    - A selection larger than `capabilities.bulkLimit` disables the actions with the limit stated.
+    - `useBulkSelection` takes `capabilities.bulkLimit`. Once the selection reaches it, further
+      selection is disabled, with a message that states the limit (conventions "Shared building
+      blocks and canonical names"). "Select all on this page" is disabled with the same message
+      when the page holds more entries than the remaining capacity.
   - **Request**: one `applyDomainBulkAction` with `targets` built by `toBulkTargets()` in
     `src/features/domains/bulk.ts`: `{ id: name, version }`, where `version` is the list entry's
     `etag` without its surrounding quotes, as `BulkTarget.version` requires. Domains with mailboxes

@@ -465,8 +465,8 @@ and check that a domain administrator is never offered it.
   remaining templates will not be processed.
 - **Bulk selection that includes domains with mailboxes or resources**: those are listed as skipped
   in the delete confirmation and never sent.
-- **Bulk selection above the bulk limit** that the API reports: the actions are unavailable, and
-  the limit is stated.
+- **Bulk selection reaching the bulk limit** that the API reports: further selection is disabled,
+  and a message states the limit.
 - **Temporary failure** reported by the API: the app says nothing was changed and offers a retry
   that keeps the input.
 - **Session expiry or sign-out in another tab while a form is open**: handled by UI feature 001.

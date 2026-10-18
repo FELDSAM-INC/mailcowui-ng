@@ -123,7 +123,13 @@ Safari and Chrome for Android.
 | VIII. Simplicity | No new dependency. Shared building blocks only where UI 001 R20 reserved them or where this feature has two concrete uses: `BulkActionBar` (domains, templates), `useLeaveGuard` (five uses), `EditableSection` (domain and template pages). Fields shared by domains and templates stay inside the feature (D3). | PASS |
 | Technology constraints | Native `<select>`. Reka `Combobox` without its viewport for tag suggestions, and `Collapsible` and `DropdownMenu` as in UI 001. No inline style: bar widths are dynamic `:style` bindings (CSSOM). TailAdmin primitives already copied by UI 001. | PASS |
 | Workflow and gates | CI unchanged. The new tests join the existing jobs, and Lighthouse gains one URL. Commits go to `main`. | PASS |
-| `docs/conventions.md` | **Lists**: address state, sizes 25, 50 and 100, cards and tables, all four states. **Bulk**: explicit selection mode, current page only, the API's bulk operation with versions, per-item summary, failed, refused and outdated kept selected, "outcome unknown" on a dropped connection. **Editing**: sections, changed fields plus version, outdated handling without merge, deletions confirmed again. **Confirmations**: preview impact, typed domain name, typed bulk count, one confirmation for deactivation. **History**. **Errors and permissions**. **Where features meet**: entry points into UI 001's home and audit log; action areas for later features (data-model §9). **Capabilities**: never hard-coded (D6, D18). | PASS |
+| `docs/conventions.md` | **Lists**: address state, sizes 25, 50 and 100, cards and tables, all four states. **Bulk**: explicit selection mode, current page only, the API's bulk operation with versions, per-item summary, failed, refused and outdated kept selected, "outcome unknown" on a dropped connection. **Editing**: sections, changed fields plus version, outdated handling without merge, deletions confirmed again. **Confirmations**: preview impact, typed domain name, typed bulk count, one confirmation for deactivation. **History**. **Errors and permissions**. **Where features meet**: entry points into UI 001's home and audit log; action areas for later features (data-model §9). **Capabilities**: never hard-coded (D6, D18). **Shared building blocks and canonical names**: this
+feature creates `useLeaveGuard`, `src/i18n/coverage.json`, `BulkActionBar`, `useBulkSelection`
+(selection disabled at the bulk limit, with a message), `BulkResultSummary`, `ConfirmDialog` with
+`requireTyped`, `EditableSection` and `HistoryLink` under these names. **Secrets**: none of this
+feature's requests or responses carry one. **Polling**: none; every request follows a user action
+or a navigation. **Contract pins**: forward only, with the domain operations checked against the
+baseline commit (D1). | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. Decisions that touched gates:
 

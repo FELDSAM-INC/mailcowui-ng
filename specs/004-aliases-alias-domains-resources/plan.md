@@ -212,29 +212,230 @@ value. In particular the English legacy texts "Domain aliases" (`mailbox.domain_
 domain alias" (`mailbox.add_domain_alias`) are shown as they are; the spec's earlier change of
 their English text to "Alias domains" is withdrawn.
 
-**Legacy form map**: written into this section by task T005a before any screen is built.
+### Legacy form map (T005a, 2026-10-19)
 
-**Deviations needing a decision**:
+Written before any screen was built. Implementation uses only these keys plus the new strings named
+here. The orchestrator's decisions of 2026-10-18 apply (docs/conventions.md "Decisions on the
+deviations", "Detail pages", "Outcomes", "No confirmation legacy lacks"): legacy's controls (the
+goto checkboxes, the sender multi-select, the booking select), one section per legacy form, the
+detail title is legacy's edit heading with the object's name, deletion and the expand action only in
+the list, outcomes as legacy's alerts, and no confirmation legacy lacks except the typed and bulk
+confirmations. Legacy keys are read at runtime (`lt()`, `<LegacyText k>` for values with markup,
+`legacy()` in route titles and column tables, `LEGACY_TEXTS` for keys built at runtime). Paths are
+under `../mailhosting/data/web/`. In `js/site/mailbox.js` `lang.<key>` is `mailbox.<key>`.
 
-1. **Send as screen** (FR-048 to FR-051): legacy has one multi-select (`edit.sender_acl`) mixing
-   `edit.dont_check_sender_acl` domain entries, `*`, addresses and aliases marked allowed or
-   blocked, inside the Edit mailbox form. The plan splits it into always-allowed, receive-only and
-   explicit sections, a separate "any address" switch and a searchable picker. Keep the restructured
-   screen with legacy labels wherever one exists, or mirror the single multi-select?
-2. **Alias destination control** (FR-018): legacy shows the target address field plus three
-   mutually exclusive checkboxes (`add.goto_null`, `add.goto_spam`, `add.goto_ham`) that disable the
-   field. The plan uses a radio group with a fourth option "Deliver to addresses", which has no
-   legacy key. Mirroring legacy is the default unless the owner keeps the radio group.
-3. **`mailbox.alias_domain_alias_hint`** (FR-017): the legacy hint names the legacy "Filters" tab
-   and "SOGo -> Forwarder". The plan replaced it with a new key. Under the rule it is shown verbatim
-   on the alias list, unless the owner decides its meaning no longer fits the app.
-4. **Section headings of the creation forms** ("Addresses", "Destination", "Options",
-   "Comments"): legacy's add dialogs have no groups, and the add alias dialog has no comment fields
-   (only `edit/alias.twig` has them). Drop the headings and the comments at creation, or keep them as
-   new strings?
-5. **Separate screens per legacy tab** (spec clarification): kept as the app's layout (each legacy
-   tab becomes its own screen and navigation entry with the legacy title key). Listed for
-   visibility only.
+#### Part 1: fields and elements
+
+**Navigation** (`src/app/navigation/catalogue.ts`): `aliases` → `mailbox.aliases`, `aliasDomains` →
+`mailbox.domain_aliases`, `resources` → `mailbox.resources` (the classic "Aliases" tab dropdown
+entries). The `nav.aliases` new string is removed.
+
+**Alias list** (`/aliases`) ← `templates/mailbox/tab-mbox-aliases.twig`, `draw_alias_table()`.
+
+| Element | Legacy key or new string |
+|---|---|
+| title | `mailbox.aliases` |
+| refresh | `admin.refresh` |
+| hint (FR-017, verbatim with markup) | `mailbox.alias_domain_alias_hint` |
+| add | `mailbox.add_alias` |
+| selection mode, select all on the page | `mailbox.toggle_all` (UI 002's `bulk.*` for the bar, count, clear and results) |
+| mass actions | `mailbox.quick_actions` (menu label), `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, `mailbox.sogo_visible_y`, `mailbox.sogo_visible_n` (only with the groupware), `mailbox.add_alias_expand` |
+| search | `datatables.search` |
+| domain filter, its empty option | `mailbox.domain`, `mailbox.all_domains` |
+| other filters (app improvement, FR-013) | labels by the attribute's legacy key: primary domain `mailbox.target_domain`, destination type `mailbox.target_address` (options `add.goto_null`, `mailbox.goto_spam`*, `mailbox.goto_ham`* and the new `aliases.destination.addresses`), kind (new `aliases.filters.kind`, options `mailbox.catch_all` and new `aliases.kind.regular`), delivers to (new `aliases.filters.destination`), `mailbox.active`, `edit.sender_allowed`, `mailbox.sogo_visible` (only with the groupware), `mailbox.internal`; generic `lists.filters.*` (title, count, all, yes, no, clear; UI 002's `domains.filters.*` generic texts moved there) |
+| sort control (cards; table headers on wide screens) | new `lists.sort.*` (label, order) and `aliases.sort.newest`/`oldest`; the other keys by their column's legacy key (`mailbox.alias`, `mailbox.domain`, `mailbox.active`, `mailbox.sogo_visible`, `mailbox.internal`, `edit.sender_allowed`, `edit.created_on`, `edit.last_modified`) |
+| columns (cards show the same fields with these labels) | "ID" (hard-coded in legacy: new `aliases.fields.id`), `mailbox.alias` (with the `mailbox.catch_all` badge), `mailbox.target_address` (destinations, or the special action as text: `add.goto_null`, `mailbox.goto_spam`*, `mailbox.goto_ham`*), `mailbox.domain` (with "`mailbox.target_domain`: primary domain" as text for an alias in an alias domain, legacy's tooltip), `mailbox.sogo_visible` (only with the groupware), `mailbox.public_comment`, `mailbox.private_comment`, `mailbox.internal`, `mailbox.active`, `mailbox.action` |
+| boolean cells | `mailbox.yes`, `mailbox.no` (legacy's ✓ and ✕) |
+| empty comment | "-" as legacy (no key) |
+| row actions | `mailbox.edit`, `mailbox.remove`, `mailbox.add_alias_expand` (single copy, list only) |
+| loading, empty, no match | `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords`; the clear action is `lists.filters.clear` |
+| count and paging | `datatables.info` (`_START_`, `_END_`, `_TOTAL_`), UI 001's `PaginationBar` |
+| orphaned alias (administrators; the API's `orphaned`, which legacy cannot show) | new `aliases.orphaned.badge`, `aliases.orphaned.warning` |
+| more destinations | new `aliases.list.moreDestinations` ("+{count} more", FR-012) |
+
+**Add alias** (`/aliases/new`) ← `templates/modals/mailbox.twig` `#addAliasModal`,
+`js/site/mailbox.js` (goto checkboxes). One form, no section headings, no comments (legacy has
+none at creation).
+
+| Element | Legacy key |
+|---|---|
+| title | `mailbox.add_alias` |
+| alias addresses (textarea) + help (markup, names the product as the installation's file does) | `add.alias_address` + `add.alias_address_info`* |
+| catch-all mark of an `@domain` entry | `mailbox.catch_all` |
+| goto addresses (textarea) + help | `add.target_address` + `add.target_address_info`* |
+| mutually exclusive checkboxes that disable the textarea | `add.goto_null`, `add.goto_spam`*, `add.goto_ham`* |
+| external destinations notice (FR-020; legacy refuses only after saving) | `danger.external_goto_denied` is the refusal; the advance notice is the new `aliases.form.externalNotice` |
+| visible in SOGo (checked, only with the groupware) + info | `edit.sogo_visible` + `edit.sogo_visible_info` |
+| internal (unchecked) + info | `add.internal` + `edit.internal_info` |
+| allowed to send (checked) + info | `add.sender_allowed` + `edit.sender_allowed_info` |
+| active (checked) | `add.active` |
+| submit | `admin.add` |
+| results of several addresses (app improvement, FR-021) | each line the legacy message of its outcome; new `aliases.create.results.*` for the heading and "not processed" |
+
+**Alias page** (`/aliases/:id`) ← `templates/edit/alias.twig`, `js/site/edit.js`. Title
+`edit.alias` with the address. Display-only (legacy's list columns): "ID" (`aliases.fields.id`),
+`mailbox.domain`, `mailbox.target_domain` (for an alias in an alias domain; linked to the domain page
+when available), the `mailbox.catch_all` badge, the orphaned warning. One section, "`edit.alias`",
+with the form of `edit/alias.twig` in its order:
+
+| Element | Legacy key |
+|---|---|
+| address (legacy labels it with the heading) | `edit.alias` |
+| goto addresses + checkboxes | `edit.target_address`*, `add.goto_null`, `add.goto_spam`*, `add.goto_ham`* |
+| visible in SOGo + info (only with the groupware) | `edit.sogo_visible`, `edit.sogo_visible_info` |
+| internal + info | `edit.internal`, `edit.internal_info` |
+| allowed to send + info | `edit.sender_allowed`, `edit.sender_allowed_info` |
+| private comment, public comment | `edit.private_comment`, `edit.public_comment` |
+| active | `edit.active` |
+| save | `edit.save` |
+| history (administrators) | UI 002's `history.link` |
+
+**Domain aliases list** (`/alias-domains`) ← `templates/mailbox/tab-domain-aliases.twig`,
+`draw_aliasdomain_table()`: title `mailbox.domain_aliases`, `admin.refresh`, `mailbox.toggle_all`,
+`mailbox.quick_actions` with `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, add
+`mailbox.add_domain_alias` (only with `aliasDomains`, hidden otherwise as legacy's `data-acl`),
+search `datatables.search`, target filter `mailbox.target_domain` (`mailbox.all_domains`), active
+filter `mailbox.active`, sort keys by their column's key (`mailbox.alias`, `mailbox.target_domain`,
+`mailbox.active`, `edit.created_on`, `edit.last_modified`), columns `mailbox.alias`,
+`mailbox.target_domain` (linked to the domain page when available, with the
+`mailbox.alias_domain_backupmx` badge), `mailbox.active`, `mailbox.action`; row actions
+`mailbox.edit`, `mailbox.remove` (the DNS action is UI 010's).
+
+**Add domain alias** (`/alias-domains/-/new`) ← `#addAliasDomainModal`: title
+`mailbox.add_domain_alias`; `add.alias_domain` (textarea) + `add.alias_domain_info`*;
+`add.target_domain` (picker, placeholder `add.select`; relay domains disabled with the reason
+`danger.targetd_relay_domain`); `add.active`; rate limit `acl.ratelimit` with the placeholder
+`ratelimit.disabled` and the frames `ratelimit.second/minute/hour/day` (only with `ratelimit`);
+`admin.dkim_domains_selector` (prefilled with `dkimDefaults.selector`; emptied, no key is
+generated, as in legacy) and `admin.dkim_key_length` (the sizes of the capabilities, `dkimDefaults`
+preselected); submit `admin.add`.
+
+**Domain alias page** (`/alias-domains/:aliasDomain`) ← `templates/edit/aliasdomain.twig`: title
+`edit.edit_alias_domain` with the name; one section "`edit.edit_alias_domain`" with
+`edit.target_domain` (picker) and `edit.active`, save `edit.save`; the rate limit read-only in its
+legacy position under `acl.ratelimit` (`ratelimit.disabled` when none; edited in UI 006); history.
+
+**Resource list** (`/resources`) ← `templates/mailbox/tab-resources.twig`, `draw_resource_table()`:
+title `mailbox.resources`, `admin.refresh`, `mailbox.toggle_all`, `mailbox.quick_actions` with
+`mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, add `mailbox.add_resource`; the legend
+`mailbox.booking_0_short` – `mailbox.booking_null`, `mailbox.booking_lt0_short` –
+`mailbox.booking_ltnull`, `mailbox.booking_custom_short` – `mailbox.booking_custom`; search
+`datatables.search`; filters `mailbox.domain` (`mailbox.all_domains`), `mailbox.kind`,
+`mailbox.active`; sort keys by column key; columns `mailbox.description`, `mailbox.alias` (the
+address), `mailbox.kind`, `mailbox.domain`, `mailbox.multiple_bookings` (badges `_short`, " (n)"
+after the hard limit), `mailbox.active`, `mailbox.action`; row actions `mailbox.edit`,
+`mailbox.remove`. Kind values: legacy hard-codes "Location", "Group", "Thing" and the list shows the
+raw value, so they are the new strings `enums.resourceKind.*` with English equal to legacy's.
+
+**Add resource** (`/resources/new`) ← `#addResourceModal`: title `mailbox.add_resource`;
+`add.description`; `add.domain` (picker, domains only, placeholder `add.select`); `add.kind` (select:
+`enums.resourceKind.location`, `group`, `thing`, legacy's order); `add.multiple_bookings` (select:
+`mailbox.booking_null`, `mailbox.booking_ltnull` preselected, `mailbox.booking_custom`, then the
+number field); `add.active`; submit `admin.add`. The derived address preview (FR-045, legacy derives
+it silently) is the new `resources.form.preview` and `resources.form.noAddress`.
+
+**Resource page** (`/resources/:resourceAddress`) ← `templates/edit/resource.twig`: title
+`edit.resource` with the address; display-only `mailbox.alias` (the address) and `mailbox.domain`;
+one section "`edit.resource`" with `add.description`, `edit.kind`, `add.multiple_bookings` (select
+and number), `edit.active`, save `edit.save`; the note that the address does not change is the new
+`resources.form.addressKept`; history.
+
+**Send as** (`/mailboxes/:address/send-as`) ← the "Allow to send as" and "External sender
+addresses" fields of `templates/edit/mailbox.twig` (#medit) and `js/site/edit.js`. Title and the
+mailbox section entry `edit.sender_acl` with the mailbox address. One form, one save.
+
+| Element | Legacy key |
+|---|---|
+| multi-select of the explicit permissions | `edit.sender_acl`; options: a domain or `*` as `edit.dont_check_sender_acl` with the domain (`%s`), an address as itself; subtexts hard-coded in legacy ("Admin" for entries the user cannot change, "Alias", "Alias (allowed)", "Alias (blocked)"): new strings `senderSettings.subtext.*` with English equal to legacy's |
+| the aliases that deliver to the mailbox | selected and locked "Alias (allowed)" when they allow sending; unselected "Alias (blocked)" options when not, selecting one adds the explicit permission (legacy) |
+| searching the server's candidates (5,000 and more; legacy loads all) | the field is searchable as legacy's live search; loading, no match and error states use `datatables.loadingRecords`, `datatables.zeroRecords` and UI 001's error message |
+| sender check disabled (when `*` is selected) | `edit.sender_acl_disabled`* |
+| hint | `edit.sender_acl_info`* |
+| external sender addresses (text field, comma-separated, only with `extendSenderAcl` as legacy's `data-acl`) | `edit.extended_sender_acl`, placeholder "user1@example.com, user2@example.org, @example.com, ..." (hard-coded in legacy: new `senderSettings.externalPlaceholder`, equal to legacy's), `edit.extended_sender_acl_info`* |
+| save | `edit.save` |
+| an entry whose domain or address no longer exists (the API's `stale`) | new `senderSettings.subtext.stale` |
+| an added entry the mailbox already had through an alias (FR-055) | new `senderSettings.notNeeded` |
+| history (administrators) | `history.link` |
+
+**Confirmations** (docs/conventions.md "Confirmations"): single deletions from the lists and
+the typed count of bulk deletions use `footer.confirm_delete`, `footer.delete_these_items`,
+`footer.delete_now`, `footer.cancel`; the impact lines are new strings
+(`aliases.delete.impact*`, `aliasDomains.delete.impact`, `resources.delete.impact`); the bulk
+deactivate and hide confirmations and the expand explanation are new strings
+(`aliases.bulk.confirm.*`, `aliases.copy.explain`, `aliasDomains.bulk.confirm.deactivate`,
+`resources.bulk.confirm.deactivate`). No confirmation for deactivating one object, turning on `*`
+or other saves (legacy has none).
+
+**Audit log**: `enums.auditEventType.*` and `enums.auditTargetType.*` for the 10 event types and 4
+target types (no classic counterpart: new strings; the target `alias` uses `mailbox.alias`,
+`aliasDomain` `add.alias_domain`, `resource` `edit.resource` through `LEGACY_TEXTS`, and
+`mailboxSenderSettings` `edit.sender_acl`).
+
+#### Part 2: messages
+
+Placeholders are filled as legacy's `vsprintf` fills them (`inc/functions.mailbox.inc.php`).
+
+| API outcome | Legacy key (placeholder source) |
+|---|---|
+| `createAlias` 201 | `success.alias_added` (address as typed, ID) |
+| `updateAlias` 200 | `success.alias_modified` (address) |
+| `deleteAlias` 204 | `success.alias_removed` (address) |
+| `copyAliasOverAliasDomains` / bulk copy, per copy | created: `success.alias_added` (copy address, ID); skipped `addressInUse`: `danger.is_alias_or_mailbox` (copy address); `aliasLimitReached`: `danger.max_alias_exceeded`; `destinationNotPermitted`: `danger.external_goto_denied` (copy address); failed: the problem's message; no alias domains: new `aliases.copy.none` |
+| `not-primary-domain-alias` | `warning.is_not_primary_alias` (address) |
+| `createAliasDomain` 201 | in legacy's order: `success.rl_saved` (name) when the rate limit was applied (failed: UI 002's `domains.outcome.rateLimitFailed`); `success.dkim_added` (name), `success.domain_add_dkim_available` or `danger.dkim_domain_or_sel_invalid` (name) for the key; UI 002's `domains.outcome.dkimDnsNoZone`/`dkimDnsFailed` for the DNS publication; new `aliasDomains.outcome.groupwareFailed` for a failed directory update; then `success.aliasd_added` (name) |
+| `updateAliasDomain` 200 / `deleteAliasDomain` 204 | `success.aliasd_modified` (name) / `success.alias_domain_removed` (name) |
+| `createResource` 201 / `updateResource` 200 / `deleteResource` 204 | `success.resource_added` / `success.resource_modified` (legacy's own text) / `success.resource_removed` (address) |
+| `updateMailboxSenderSettings` 200 | `success.mailbox_modified` (mailbox address; legacy saves these fields with the mailbox) |
+| `address-in-use` by `holder` | `alias` → `danger.is_alias`, `temporaryAlias` → `danger.is_spam_alias`, `mailbox`, `resource` → `danger.is_alias_or_mailbox` (address) |
+| `domain-alias-limit-reached` | `danger.max_alias_exceeded` |
+| `alias-domain-already-exists` (both kinds) | `danger.alias_domain_invalid` (name), as legacy answers an existing name |
+| `attribute-not-permitted` on `destinations.N` / `externalSenderAddresses` / `rateLimit` | `danger.external_goto_denied` (entry) / `danger.extended_sender_acl_denied` / `danger.access_denied` |
+| `permission-flag-required` | `danger.access_denied` |
+| alias `address`: `required`, `invalidFormat`, `notFound {resource: domain}` | `danger.alias_empty`, `danger.alias_invalid` (address), `danger.domain_not_found` (domain part) |
+| `destinations`: `required` / `destinations.N`: `invalidFormat`, `notEligible {kind: resource}`, `conflictsWith {field: address}`, `notEligible {kind: externalDestination}` | `danger.goto_empty` / `danger.goto_invalid` (entry), `danger.goto_invalid` (entry), `danger.alias_goto_identical`, `danger.external_goto_denied` (entry) |
+| comments `tooLong` | `danger.comment_too_long` |
+| alias domain `name`: `invalidFormat`, `reserved`, `conflictsWith {field: targetDomain}` | `danger.alias_domain_invalid` (name), `danger.domain_cannot_match_hostname`, `danger.aliasd_targetd_identical` (target) |
+| `targetDomain`: `notFound`, `notEligible {kind: relayDomain}`, `notEligible {kind: aliasDomain}` | `danger.targetd_not_found`, `danger.targetd_relay_domain`, `danger.target_domain_invalid` (target) |
+| `rateLimit.frame` `notInList` | `danger.rl_timeframe` |
+| resource `description`: `required`, `invalidFormat`; `domain`: `notFound`, `notEligible` | `danger.description_invalid` (description), `danger.domain_not_found` (domain), `danger.domain_invalid` |
+| `explicitPermissions.N` (any code) | `danger.sender_acl_invalid` (entry) |
+| `externalSenderAddresses.N`: `invalidFormat` / `notEligible {kind: localDomain}` | `danger.extra_acl_invalid` (entry) / `danger.extra_acl_invalid_domain` (entry) |
+| `temporary-failure` | UI 002's `problem.temporary-failure` |
+| 412, 404, network, unknown types, bulk summaries, "not processed" | UI 001/002 generic strings (`sections.outdated.*`, `problem.*`, `bulk.*`) and this feature's `*.gone` strings |
+
+#### Part 3: deviations
+
+Settled by the orchestrator's decisions and applied (the spec text they replace is noted in its
+task):
+
+1. **Send as** (old item 1): legacy's single multi-select, not the split sections, the "any
+   address" switch or the always-allowed list (own and alias-domain addresses, which legacy does
+   not show). `*` is an option as in legacy, offered to administrators only, with
+   `edit.sender_acl_disabled` while selected and no extra confirmation. External sender addresses
+   are hidden without `extendSenderAcl` (legacy's `data-acl`), not shown read-only.
+2. **Alias destination** (old item 2): legacy's goto textarea and three mutually exclusive
+   checkboxes.
+3. **`mailbox.alias_domain_alias_hint`** (old item 3): shown verbatim.
+4. **Creation form headings and comments** (old item 4): dropped; comments are edited on the alias
+   page, as in legacy.
+5. **Separate screens per legacy tab** (old item 5): kept, for visibility only.
+6. **DKIM switch** (spec FR-036): legacy's prefilled selector field; emptying it creates no key
+   (`dkimSelector: ""`), as in legacy.
+7. **Deactivation confirmations of one object and of "any address"** (plan parity note 5): dropped
+   (no confirmation legacy lacks). Bulk deactivate and hide keep theirs.
+8. **Deletion and expand on the detail pages** (spec FR-016, FR-031): only in the lists, as legacy;
+   the single copy is a list row action.
+
+Not built until the owner decides (spec requirements beyond the legacy forms):
+
+- the receive-only badge and the modification-time column of the alias list (FR-012), and the
+  creation and modification times on the alias, domain alias and resource pages (FR-016, FR-035,
+  FR-046): legacy shows neither;
+- the alias count of a domain alias with its link to the filtered alias list (FR-033);
+- the permission notes where legacy hides a control: no "Add domain alias" note (FR-041), no
+  read-only external sender addresses (FR-052);
+- the count and limit in the alias limit message (US2-AS5, US4-AS7): legacy's
+  `danger.max_alias_exceeded` has none.
 
 ## API dependency and gaps
 

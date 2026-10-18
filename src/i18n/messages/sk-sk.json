@@ -499,11 +499,20 @@
     }
   },
   "enums": {
+    "aliasKind": {
+      "regular": "Bežný"
+    },
     "apiKeyStatus": {
       "expired": "Vypršaný",
       "revoked": "Zneplatnený"
     },
     "auditEventType": {
+      "aliasCreation": "Alias pridaný",
+      "aliasDeletion": "Alias odstránený",
+      "aliasDomainCreation": "Alias doména pridaná",
+      "aliasDomainDeletion": "Alias doména odstránená",
+      "aliasDomainUpdate": "Alias doména zmenená",
+      "aliasUpdate": "Alias zmenený",
       "apiKeyCreation": "Vytvorenie API kľúča",
       "apiKeyRevocation": "Zneplatnenie API kľúča",
       "domainCreation": "Doména pridaná",
@@ -513,10 +522,14 @@
       "domainTemplateDeletion": "Šablóna domény odstránená",
       "domainTemplateUpdate": "Šablóna domény zmenená",
       "domainUpdate": "Doména zmenená",
+      "mailboxSenderSettingsUpdate": "Oprávnenia odosielateľa zmenené",
       "passkeyRegistration": "Pridanie prístupového kľúča",
       "passkeyRemoval": "Odobratie prístupového kľúča",
       "passkeyRename": "Premenovanie prístupového kľúča",
       "preferencesUpdate": "Zmena predvolieb",
+      "resourceCreation": "Zdroj pridaný",
+      "resourceDeletion": "Zdroj odstránený",
+      "resourceUpdate": "Zdroj zmenený",
       "signIn": "Prihlásenie",
       "signOut": "Odhlásenie"
     },
@@ -527,8 +540,10 @@
       "conflict": "Konflikt s existujúcimi údajmi",
       "externalIdentitySource": "Účet sa prihlasuje cez poskytovateľa identít",
       "invalidCredentials": "Nesprávne používateľské meno alebo heslo",
+      "notFound": "Nenájdené",
       "passkeyInactive": "Prístupový kľúč je neaktívny",
       "passkeyVerificationFailed": "Overenie prístupového kľúča zlyhalo",
+      "permissionDenied": "Chýba oprávnenie",
       "registrationFailed": "Registrácia zlyhala",
       "roleMismatch": "Prihlasovacia obrazovka pre iný typ účtu",
       "secondFactorFailed": "Druhý faktor nebol prijatý",
@@ -552,6 +567,11 @@
     "authMethod": {
       "passkey": "Prístupový kľúč",
       "passwordAndSecondFactor": "Heslo a druhý faktor"
+    },
+    "resourceKind": {
+      "group": "Skupina",
+      "location": "Miesto",
+      "thing": "Vec"
     }
   },
   "forms": {
@@ -769,6 +789,7 @@
   },
   "validation": {
     "belowInUse": "Hodnota je nižšia, než je využité: {inUse}.",
+    "conflictsWith": "Táto hodnota je v rozpore s poľom {field}.",
     "format": {
       "base64url": "Táto hodnota nie je platný base64url.",
       "dateTime": "Zadajte platný dátum a čas.",

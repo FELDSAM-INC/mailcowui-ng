@@ -67,6 +67,11 @@ export const ENUM_NAMESPACES = {
   apiKeyAccessLevelValues: 'enums.apiKeyAccessLevel',
   themeValues: 'themes',
   announcementTypeOneOf0Values: 'enums.announcementType',
+  // UI 004 (data-model §8, as the legacy form map narrows it): the values its screens render.
+  aliasKindValues: 'enums.aliasKind',
+  aliasDestinationTypeValues: 'enums.aliasDestinationType',
+  resourceKindValues: 'enums.resourceKind',
+  resourceBookingRuleValues: 'enums.resourceBookingRule',
 }
 
 /** The keys that rule 3 requires, from the enumeration arrays and the problem type names. */

@@ -9,6 +9,7 @@ import type { ApiProblem, FieldViolation } from '@/api'
 
 import { formatBytes, formatList, formatNumber } from './format'
 import { hasMessage, text } from './index'
+import { hasLegacy, lt, type LegacyKey } from './legacy'
 import { isAppLocale, DEFAULT_LOCALE, type AppLocale } from './locales'
 
 export interface MessageTranslator {
@@ -17,11 +18,24 @@ export interface MessageTranslator {
   locale: string
 }
 
-/** `problem.<name>`, then `problem.status.<status>`, then `problem.generic`. */
+/** UI 004: extension members whose value selects a more specific message (research R17). */
+const PROBLEM_DISCRIMINATORS = ['holder', 'existingKind'] as const
+
+/**
+ * `problem.<name>.<member>.<value>` for a discriminating extension member (UI 004), then
+ * `problem.<name>`, then `problem.status.<status>`, then `problem.generic`.
+ */
 export function problemMessageKey(problem: ApiProblem, te: (key: string) => boolean): string {
   if (problem.kind === 'network') return 'problem.network'
   if (problem.kind === 'unavailable') return 'problem.service-unavailable'
   const name = problem.problemName
+  if (name) {
+    for (const member of PROBLEM_DISCRIMINATORS) {
+      const value = problem.extensions[member]
+      const key = `problem.${name}.${member}.${String(value)}`
+      if (typeof value === 'string' && te(key)) return key
+    }
+  }
   if (name && te(`problem.${name}`)) return `problem.${name}`
   if (problem.status !== null && te(`problem.status.${problem.status}`)) {
     return `problem.status.${problem.status}`
@@ -37,21 +51,44 @@ export function problemMessageKey(problem: ApiProblem, te: (key: string) => bool
 export interface MessageContext {
   kind?: 'size' | 'count'
   labelFor?: (name: string) => string
+  /** UI 004 (research R17): the form's own message namespace, for example `aliases.form`. */
+  formKey?: string
+  /** UI 004: the violation's path as the API names it, for example `destinations.2`. */
+  path?: string
+  /** UI 004: the value the form sent at a path, for `{entry}` and legacy placeholders. */
+  valueAt?: (path: string) => string | undefined
+  /** UI 004: values for placeholders that the problem does not carry, such as an `address`. */
+  params?: Record<string, string>
 }
 
-/** Extension members as display strings: numbers formatted, string lists joined with labels. */
-function extensionParams(
+/**
+ * UI 004: the classic interface's label of a permission flag (`aliasExternalGoto` →
+ * `acl.alias_external_goto`), or the flag's name when the installation has none.
+ */
+export function flagLabel(flag: string): string {
+  const key = `acl.${flag.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)}`
+  return hasLegacy(key) ? lt(key as LegacyKey) : flag
+}
+
+/**
+ * Extension members as display strings: numbers formatted, strings as they are, string lists
+ * joined with labels (`requiredFlags` with the classic flag labels); the caller's `params` fill what
+ * the problem does not carry.
+ */
+export function extensionParams(
   problem: ApiProblem,
   tr: MessageTranslator,
-  context: MessageContext,
+  context: MessageContext = {},
 ): Record<string, string> {
   const locale = localeOf(tr)
-  const named: Record<string, string> = {}
+  const named: Record<string, string> = { ...context.params }
   for (const [key, value] of Object.entries(problem.extensions)) {
     if (typeof value === 'number') named[key] = formatNumber(value, locale)
+    else if (typeof value === 'string') named[key] = value
     else if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
-      const items = value.map((item) => context.labelFor?.(item) ?? item)
-      named[key] = formatList(items, locale)
+      const label =
+        key === 'requiredFlags' ? flagLabel : (item: string) => context.labelFor?.(item) ?? item
+      named[key] = formatList(value.map(label), locale)
     }
   }
   return named
@@ -67,12 +104,41 @@ export function problemMessage(
   return Object.keys(named).length > 0 ? tr.t(key, named) : tr.t(key)
 }
 
-/** `validation.<code>`, `validation.format.<format>` for `invalidFormat`, else `validation.invalid`. */
+/** UI 004 (research R17): the parameters whose value selects a more specific message. */
+const DISCRIMINATING_PARAMS = ['kind', 'unit', 'field', 'format', 'resource'] as const
+
+/** The field of a violation path, without entry indices: `destinations.2` → `destinations`. */
+export function fieldOfPath(path: string): string {
+  return path
+    .split('.')
+    .filter((part) => !/^\d+$/.test(part))
+    .join('.')
+}
+
+/**
+ * The message key of a violation (research R17): with a form context,
+ * `<formKey>.errors.<field>.<code>.<param>.<value>`, then `<formKey>.errors.<field>.<code>`; then
+ * `validation.format.<format>` for `invalidFormat`, `validation.byParam.<code>.<param>.<value>`,
+ * `validation.<code>` and `validation.invalid`.
+ */
 export function violationMessageKey(
   violation: FieldViolation,
   te: (key: string) => boolean,
+  context: Pick<MessageContext, 'formKey' | 'path'> = {},
 ): string {
   const code = String(violation.code)
+  const params = (violation.params ?? {}) as Record<string, unknown>
+  const variants = DISCRIMINATING_PARAMS.filter((param) => typeof params[param] === 'string').map(
+    (param) => `${param}.${String(params[param])}`,
+  )
+  if (context.formKey && context.path) {
+    const base = `${context.formKey}.errors.${fieldOfPath(context.path)}.${code}`
+    for (const variant of variants) if (te(`${base}.${variant}`)) return `${base}.${variant}`
+    if (te(base)) return base
+  }
+  for (const variant of variants) {
+    if (te(`validation.byParam.${code}.${variant}`)) return `validation.byParam.${code}.${variant}`
+  }
   if (code === 'invalidFormat') {
     const format = violation.params?.format
     if (typeof format === 'string' && te(`validation.format.${format}`)) {
@@ -120,6 +186,19 @@ export function violationParams(
     named.allowedRoles = formatList(roles, locale)
   }
   if (typeof params.expected === 'string') named.expected = params.expected
+  // UI 004: the entry the violation names, its domain part, and the form's other values.
+  const entry = context.path ? context.valueAt?.(context.path) : undefined
+  if (entry !== undefined) {
+    named.entry = entry
+    named.entryDomain = entry.includes('@') ? entry.slice(entry.lastIndexOf('@') + 1) : entry
+  }
+  for (const [key, value] of Object.entries(context.params ?? {})) named[key] ??= value
+  if (context.valueAt) {
+    for (const key of ['targetDomain', 'address', 'domain'] as const) {
+      const value = context.valueAt(key)
+      if (value !== undefined) named[key] ??= value
+    }
+  }
   return named
 }
 
@@ -128,7 +207,7 @@ export function violationMessage(
   tr: MessageTranslator,
   context: MessageContext = {},
 ): string {
-  const key = violationMessageKey(violation, tr.te)
+  const key = violationMessageKey(violation, tr.te, context)
   if (key === 'validation.invalid') return tr.t(key)
   if (key === 'validation.tooLong' && violation.params?.unit === 'bytes') {
     return tr.t('validation.tooLongBytes', violationParams(violation, tr, context))

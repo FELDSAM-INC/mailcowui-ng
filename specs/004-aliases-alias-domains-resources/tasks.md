@@ -46,7 +46,7 @@ be implemented and tested on its own once the foundation is in place.
 **Purpose**: Pin the contract that ships API 004, expose its types, and check that UI 001's legacy
 translation layer covers this feature (research R1, R20; constitution IV 1.3.0).
 
-- [ ] T001 Bump the contract (research R1):
+- [X] T001 *(done: pinned 33f1eea0 (API main after fc79902, API 004 complete); the feature 004 diff since 3207925 closes G1, G2 and G4; Pin record in contracts/README.md)* Bump the contract (research R1):
   - Run `scripts/contract/bump.sh <ref>`. `<ref>` is the mailcow-rest-v2 release tag that ships the
     feature 004 implementation, or else the commit that merges it. It is never older than the pin
     in `contract/VERSION.json`. Keep the existing pin when it already contains the API 004
@@ -58,7 +58,7 @@ translation layer covers this feature (research R1, R20; constitution IV 1.3.0).
     `src/api/generated/schema.ts`.
   - Confirm that all 23 operations of the contracts README exist. Add a "Pin record" section to that
     README with the ref, the commit, the bundle sha256 and the operation count.
-- [ ] T002 Re-export from `src/api/index.ts`:
+- [X] T002 *(done: the 004 types, value arrays and the four list parameter aliases; typecheck and unit tests green after the bump)* Re-export from `src/api/index.ts`:
   - the root types: `Alias`, `AliasKind`, `AliasDestinationType`, `AliasCreateRequest`, `AliasPatch`,
     `AliasCapabilities`, `AliasCopyReport`, `AliasCopyOutcome`, `AliasBulkActionRequest`,
     `AliasLimitReachedProblem`, `AliasDomain`, `AliasDomainRateLimit`, `AliasDomainCreateRequest`,
@@ -75,7 +75,7 @@ translation layer covers this feature (research R1, R20; constitution IV 1.3.0).
 
   Then run `npm run typecheck`, `npm run test:unit` and `npm run test:e2e`, and fix any type error
   the bump caused in existing code without changing behaviour.
-- [ ] T003 [P] Extend the tests of UI 001's legacy translation layer (research R20, constitution IV
+- [X] T003 *(done: tests/unit/i18n/legacy-004.spec.ts; they pass on UI 001's layer)* [P] Extend the tests of UI 001's legacy translation layer (research R20, constitution IV
   1.3.0) with this feature's cases, skipping what UI 001, UI 002 or UI 003 already cover:
   - `%s` and `%d` are filled in order (`success.alias_added`: "Alias address %s (%d) has been added"
     with the address and the ID);
@@ -84,10 +84,10 @@ translation layer covers this feature (research R1, R20; constitution IV 1.3.0).
   - a key missing in sk-sk upstream (`add.internal`) falls back to `en-gb`.
 
   The new tests must fail.
-- [ ] T004 Fill the gaps T003 reports in UI 001's legacy translation layer, test first, without
+- [X] T004 *(done: no gap: UI 001's layer already fills placeholders, renders markup and falls back to en-gb; the placeholders of legacy texts built at runtime (LEGACY_ARGS) came with T013)* Fill the gaps T003 reports in UI 001's legacy translation layer, test first, without
   changing its behaviour for earlier features. There is no build-time import, `legacy-map.json`
   option or `stripMarkup` step to add.
-- [ ] T005 Extend the translation scope (research R20, data-model §8):
+- [X] T005 *(done: coverage.json gains the 10 events, 4 targets, permissionDenied, notFound, conflictsWith and 5 problem types; ENUM_NAMESPACES gains aliasKind, aliasDestinationType, resourceKind and resourceBookingRule (the values the form map renders; the other enumerations of data-model §8 are shown through legacy messages or not at all); targets and most values through LEGACY_TEXTS)* Extend the translation scope (research R20, data-model §8):
   - Append this feature's values to `src/i18n/coverage.json`: the 10 event types, the 4 target
     types, the failure reasons, the rule codes and the problem types of data-model §8.
   - Add the closed enumerations of data-model §8 to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`.
@@ -119,7 +119,7 @@ accepts the new entry forms.
 
 ### Legacy form map (constitution IV 1.3.0)
 
-- [ ] T005a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+- [X] T005a *(done: plan.md "Legacy form map (T005a)" with parts 1-3; the orchestrator's decisions are applied (goto checkboxes, sender multi-select, booking select, one section per legacy form, deletion and expand only in the lists, legacy alerts, no confirmation legacy lacks) and the remaining spec items beyond legacy are listed as not built)* Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
   Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Dependencies on earlier features (research R2)
@@ -208,7 +208,7 @@ accepts the new entry forms.
   - parameters typed from the generated operations;
   - prefix invalidation, so that `['aliases']` matches the list and the detail keys.
 - [ ] T011 Extend `src/api/query/keys.ts` so that T010 passes.
-- [ ] T012 [P] Write `tests/unit/i18n/problems-004.spec.ts` (research R17, FR-068, SC-005):
+- [X] T012 *(done: tests/unit/i18n/problems-004.spec.ts)* [P] Write `tests/unit/i18n/problems-004.spec.ts` (research R17, FR-068, SC-005):
   - **Form-context lookup order**: `<formKey>.errors.<field>.<code>.<param>.<value>`, then
     `<formKey>.errors.<field>.<code>`, then `validation.<code>.<param>.<value>`, then
     `validation.<code>`, then `validation.invalid`.
@@ -221,7 +221,7 @@ accepts the new entry forms.
     - `holder` and `existingKind` sub-keys.
   - Every code and parameter variant of data-model §6, and every problem type of the contracts
     README, resolves to an existing en-gb key.
-- [ ] T013 Extend `src/i18n/problems.ts` and `src/shared/composables/useProblemForm.ts` (a
+- [X] T013 *(done: problems.ts: form-context keys, problem sub-keys by holder and existingKind, string and flag extension parameters, {entry}/{entryDomain}; validation.byParam.* instead of validation.<code>.<param>.* (a vue-i18n key cannot be a message and a group); useProblemForm gains formKey, valueAt and problemParams; legacy messages with placeholders through LEGACY_TEXTS + LEGACY_ARGS (text()))* Extend `src/i18n/problems.ts` and `src/shared/composables/useProblemForm.ts` (a
   `formKey` option and the `{entry}` parameter) so that T012 passes. Add the en-gb, cs-cz and sk-sk
   messages of data-model §6:
   - `validation.notEligible.kind.{resource,externalDestination,relayDomain,aliasDomain,localDomain}`;

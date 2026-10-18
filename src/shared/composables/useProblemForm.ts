@@ -28,6 +28,12 @@ export interface ProblemFormOptions {
    * message becomes that field's error.
    */
   problemFields?: Record<string, string>
+  /** UI 004 (research R17): the form's own message namespace, for example `aliases.form`. */
+  formKey?: string
+  /** UI 004: the value sent at a path (`destinations.2`), for `{entry}` and legacy placeholders. */
+  valueAt?: (path: string) => string | undefined
+  /** UI 004: placeholders a problem does not carry, for example the alias address. */
+  problemParams?: () => Record<string, string>
 }
 
 let counter = 0
@@ -57,7 +63,13 @@ export function useProblemForm(options: ProblemFormOptions) {
     }
     for (const [path, violations] of problem.value?.fieldErrors ?? []) {
       if (options.fieldId(path) === null) continue
-      const context = { kind: options.fieldKind?.(path), labelFor: options.labelFor }
+      const context = {
+        kind: options.fieldKind?.(path),
+        labelFor: options.labelFor,
+        formKey: options.formKey,
+        path,
+        valueAt: options.valueAt,
+      }
       map.set(path, [
         ...(map.get(path) ?? []),
         ...violations.map((v: FieldViolation) => violationMessageIn(v, context)),
@@ -65,7 +77,10 @@ export function useProblemForm(options: ProblemFormOptions) {
     }
     const mapped = mappedField(problem.value)
     if (mapped && problem.value) {
-      map.set(mapped, [...(map.get(mapped) ?? []), problemMessage(problem.value)])
+      map.set(mapped, [
+        ...(map.get(mapped) ?? []),
+        problemMessage(problem.value, { params: options.problemParams?.() }),
+      ])
     }
     return map
   })

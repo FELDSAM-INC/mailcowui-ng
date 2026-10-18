@@ -6,8 +6,9 @@
 //   are lazy chunks; every other locale falls back to en-gb.
 import { createI18n } from 'vue-i18n'
 
-import { lt } from './legacy'
-import { LEGACY_TEXTS } from './legacy-messages'
+import { legacyRaw, lt } from './legacy'
+import { formatLegacy, type LegacyArg } from './legacy-format'
+import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
 import enGb from './messages/en-gb.json'
 
@@ -65,7 +66,14 @@ export function hasMessage(key: string): boolean {
  */
 export function text(key: string, named?: Record<string, unknown>): string {
   const classic = LEGACY_TEXTS[key]
-  if (classic) return lt(classic)
+  if (classic) {
+    // UI 004: placeholders filled in order from the named parameters; a missing one stays as the
+    // file has it.
+    const names = LEGACY_ARGS[key]
+    if (!names) return lt(classic)
+    const args = names.map((name) => named?.[name]) as LegacyArg[]
+    return formatLegacy(legacyRaw(classic), args)
+  }
   return named ? i18n.global.t(key, named) : i18n.global.t(key)
 }
 

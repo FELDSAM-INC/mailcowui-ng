@@ -15,7 +15,17 @@
       "domainFooterUpdate",
       "domainTemplateCreation",
       "domainTemplateUpdate",
-      "domainTemplateDeletion"
+      "domainTemplateDeletion",
+      "aliasCreation",
+      "aliasUpdate",
+      "aliasDeletion",
+      "aliasDomainCreation",
+      "aliasDomainUpdate",
+      "aliasDomainDeletion",
+      "resourceCreation",
+      "resourceUpdate",
+      "resourceDeletion",
+      "mailboxSenderSettingsUpdate"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -24,7 +34,11 @@
       "session",
       "domain",
       "domainTemplate",
-      "domainFooter"
+      "domainFooter",
+      "alias",
+      "aliasDomain",
+      "resource",
+      "mailboxSenderSettings"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -44,7 +58,9 @@
       "versionOutdated",
       "validationFailed",
       "conflict",
-      "temporaryFailure"
+      "temporaryFailure",
+      "permissionDenied",
+      "notFound"
     ],
     "AuthMethod": ["password", "passwordAndSecondFactor", "passkey", "apiKey"],
     "ValidationRuleCode": [
@@ -63,7 +79,8 @@
       "notMultipleOf",
       "mustNotExceed",
       "belowInUse",
-      "reserved"
+      "reserved",
+      "conflictsWith"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -91,7 +108,12 @@
       "domain-template-name-exists",
       "domain-template-protected",
       "attribute-not-permitted",
-      "temporary-failure"
+      "temporary-failure",
+      "address-in-use",
+      "domain-alias-limit-reached",
+      "alias-domain-already-exists",
+      "not-primary-domain-alias",
+      "permission-flag-required"
     ]
   },
   "complete": {

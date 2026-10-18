@@ -499,11 +499,20 @@
     }
   },
   "enums": {
+    "aliasKind": {
+      "regular": "Regular"
+    },
     "apiKeyStatus": {
       "expired": "Expired",
       "revoked": "Revoked"
     },
     "auditEventType": {
+      "aliasCreation": "Alias added",
+      "aliasDeletion": "Alias removed",
+      "aliasDomainCreation": "Alias domain added",
+      "aliasDomainDeletion": "Alias domain removed",
+      "aliasDomainUpdate": "Alias domain changed",
+      "aliasUpdate": "Alias changed",
       "apiKeyCreation": "API key created",
       "apiKeyRevocation": "API key revoked",
       "domainCreation": "Domain added",
@@ -513,10 +522,14 @@
       "domainTemplateDeletion": "Domain template removed",
       "domainTemplateUpdate": "Domain template changed",
       "domainUpdate": "Domain changed",
+      "mailboxSenderSettingsUpdate": "Sender permissions changed",
       "passkeyRegistration": "Passkey added",
       "passkeyRemoval": "Passkey removed",
       "passkeyRename": "Passkey renamed",
       "preferencesUpdate": "Preferences changed",
+      "resourceCreation": "Resource added",
+      "resourceDeletion": "Resource removed",
+      "resourceUpdate": "Resource changed",
       "signIn": "Sign-in",
       "signOut": "Sign-out"
     },
@@ -527,8 +540,10 @@
       "conflict": "Conflict with existing data",
       "externalIdentitySource": "Account signs in through an identity provider",
       "invalidCredentials": "Wrong username or password",
+      "notFound": "Not found",
       "passkeyInactive": "Passkey inactive",
       "passkeyVerificationFailed": "Passkey verification failed",
+      "permissionDenied": "Permission missing",
       "registrationFailed": "Registration failed",
       "roleMismatch": "Sign-in screen for another account type",
       "secondFactorFailed": "Second factor not accepted",
@@ -552,6 +567,11 @@
     "authMethod": {
       "passkey": "Passkey",
       "passwordAndSecondFactor": "Password and second factor"
+    },
+    "resourceKind": {
+      "group": "Group",
+      "location": "Location",
+      "thing": "Thing"
     }
   },
   "forms": {
@@ -769,6 +789,7 @@
   },
   "validation": {
     "belowInUse": "This is below what is in use: {inUse}.",
+    "conflictsWith": "This conflicts with {field}.",
     "format": {
       "base64url": "This value is not valid base64url.",
       "dateTime": "Enter a valid date and time.",

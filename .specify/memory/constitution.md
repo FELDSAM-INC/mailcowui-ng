@@ -1,50 +1,140 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# mailcowui-ng Constitution
+
+mailcowui-ng is the new mobile-first web app for mailcow-dockerized, used by administrators,
+domain administrators and mailbox users. It is a static Vue single-page application. Its only
+backend is mailcow REST API v2 (separate repository `mailcow-rest-v2`), and it replaces the
+legacy Twig/jQuery UI feature by feature.
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. The API Contract Is the Only Interface (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- The app talks exclusively to mailcow REST API v2 through operations in that API's released
+  OpenAPI contract. It MUST NOT use legacy `/api/v1`, legacy PHP pages or undocumented
+  endpoints.
+- The pinned contract version is recorded in the repository. API types and the HTTP client are
+  generated from it, and hand-written request or response types for API data are forbidden.
+- Bumping the contract version is a deliberate change: regenerate the client, fix type errors,
+  run all tests.
+- When a feature needs something the API does not offer, the gap is specified in mailcow-rest-v2
+  first. The UI never works around it.
+- Errors are handled from RFC 9457 problem details: field errors from `errors` are shown on the
+  matching form fields, and known `type` URIs drive specific UI behaviour.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Mobile-First, Responsive Design
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- Every screen is designed and tested first at a 360 px wide viewport with touch input, then
+  enhanced for tablet and desktop.
+- Primary content never needs horizontal scrolling. Collections render as lists or cards on
+  small screens and may become tables on wide screens.
+- Touch targets are at least 44×44 CSS px. Pinch-zoom is never disabled.
+- Long forms are split into sections or steps, not giant modals. Destructive actions need
+  explicit confirmation and show what will be affected.
+- Every collection view has defined loading, empty and error states.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Accessibility (WCAG 2.2 AA)
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+- WCAG 2.2 level AA is the minimum: full keyboard operation, visible focus, sufficient contrast
+  in both themes, programmatically labelled controls, and status messages announced to screen
+  readers.
+- Light, dark and system themes are supported.
+- Automated accessibility checks run on every screen in end-to-end tests. A new violation fails
+  the build.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Internationalisation & Branding
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- All user-facing text comes from translation files. English, Czech and Slovak are required for
+  every release, and missing keys fail CI.
+- Legacy `lang.*.json` keys are reused where the meaning is unchanged, so existing translations
+  carry over.
+- Dates, numbers and sizes are formatted with the user's locale.
+- Product name, logo, colours, links and login texts come from the API's branding
+  configuration at runtime. Nothing brand-specific is hard-coded.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Security in the Browser
+
+- The app is served from the same origin as the API and authenticates with the API's session
+  cookie and CSRF token. Credentials, session tokens and API keys are never stored in
+  `localStorage`, `sessionStorage` or IndexedDB.
+- A strict Content-Security-Policy without inline scripts or styles is compatible with the
+  build. API data is never rendered as raw HTML (`v-html`) unless it is sanitised first.
+- Hiding a control is a convenience, never access control. The UI follows the role and ACL flags
+  the API reports, and it handles 401, 403 and 404 gracefully.
+- Dependencies are pinned through the lockfile and scanned for known vulnerabilities in CI.
+
+### VI. Test-First (NON-NEGOTIABLE)
+
+- Tests are written first and observed failing before implementation.
+- Required layers:
+  - Unit and component tests for logic and components.
+  - End-to-end browser tests of every user story, on a mobile (360 px) and a desktop viewport,
+    against a mock API generated from the pinned contract.
+  - A smoke suite of end-to-end tests against a real mailcow-rest-v2 instance.
+- Mocked responses are validated against the contract, so tests cannot pass on data the API
+  could never return.
+
+### VII. Performance Budgets
+
+- Lighthouse mobile scores are at least 90 for performance and accessibility.
+- The initial JavaScript payload is at most 200 KB gzipped. Routes are lazy-loaded.
+- Server state is cached and invalidated after mutations. A screen never refetches what it
+  already has without reason.
+
+### VIII. Simplicity
+
+- Prefer Vue's built-in features and a small number of mature libraries. Every new runtime
+  dependency is justified in the plan that introduces it.
+- Build only what a current feature spec needs. Shared components appear after the second
+  concrete use.
+- Deviations from a principle are recorded in the plan's Complexity Tracking table, together
+  with the simpler alternative that was rejected.
+
+## Technology & Architecture Constraints
+
+- **Stack**:
+  - Vue 3 with the Composition API and `<script setup>`, TypeScript in strict mode, Vite.
+  - Vue Router for routing.
+  - A query cache (TanStack Vue Query) for server state. Pinia only for the little client state
+    that remains.
+  - vue-i18n for translations.
+  - A client generated from the OpenAPI contract.
+  - The component library is chosen in the first `/speckit-plan` and recorded here by amendment.
+    It must be accessible, themeable and mobile-friendly.
+- **No server-side rendering and no backend code** in this repository. The build output is
+  static files.
+- **Deployment**: the static build is served next to mailcow-rest-v2 on the same origin. That
+  means either the nginx-mailcow container via an include or a small static image added to
+  mailcow-dockerized via `docker-compose.override.yml`. Upstream mailcow files are never
+  patched.
+- **Supported browsers**: the two latest major versions of evergreen browsers, including mobile
+  Safari and Chrome for Android.
+
+## Development Workflow & Quality Gates
+
+- Work follows Spec Kit: `/speckit-specify` → `/speckit-clarify` → `/speckit-plan` →
+  `/speckit-tasks` → `/speckit-analyze` → `/speckit-implement`, one spec per feature in
+  `specs/NNN-*/`.
+- Each UI feature names the mailcow-rest-v2 feature and contract version it depends on. It can
+  start once that contract is merged and does not need to wait for the API implementation.
+- A merge requires all of these to pass in CI:
+  - lint, type checks, and unit/component tests
+  - end-to-end tests on both viewports, with accessibility checks
+  - performance budgets
+  - translation completeness for en, cs and sk
+  - dependency vulnerability scan
+- A feature is done when its legacy screens are matched or improved, and the parity notes are
+  in the spec.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution supersedes other practices. Each plan has a Constitution Check that reviewers
+  verify.
+- Amendments are made through `/speckit-constitution` and must cite an owner decision or a
+  detected convention. Versioning follows semver: MAJOR for removing or redefining a principle,
+  MINOR for new or materially expanded guidance, PATCH for clarifications.
+- Owner decisions on 2026-10-18:
+  - Vue.js for the UI.
+  - The API (Laravel, repository `mailcow-rest-v2`) and this app live in separate repositories.
+- Agent runtime guidance lives in `CLAUDE.md` and MUST NOT contradict this document.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18

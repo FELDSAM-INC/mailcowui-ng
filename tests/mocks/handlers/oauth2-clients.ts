@@ -247,11 +247,7 @@ export const oauth2ClientHandlers = [
   http.patch('/oauth2-clients/{oauth2ClientId}', async ({ params, request, response }) =>
     response.untyped(
       await guardedWrite(request, params.oauth2ClientId, async (state, client) => {
-        const body = (await request.json()) as {
-          redirectUris?: string[]
-          clientId?: string
-          scope?: string
-        }
+        const body = await request.json()
         const errors: Violations = {}
         if (body.clientId !== undefined && body.clientId !== client.clientId) {
           addViolation(errors, 'clientId', 'immutable')

@@ -9,16 +9,15 @@ import {
   toBulkTargets,
 } from '@/features/identity-providers/oauth2/bulk'
 
-const client = (id: number, clientId: string): Oauth2Client =>
-  ({
-    id,
-    clientId,
-    redirectUris: [],
-    scope: 'profile',
-    activeAccessTokens: 0,
-    activeRefreshTokens: 0,
-    etag: `"e${id}"`,
-  }) as Oauth2Client
+const client = (id: number, clientId: string): Oauth2Client => ({
+  id,
+  clientId,
+  redirectUris: [],
+  scope: 'profile',
+  activeAccessTokens: 0,
+  activeRefreshTokens: 0,
+  etag: `"e${id}"`,
+})
 
 describe('OAuth2 bulk helpers', () => {
   it('sends String(id) with the etag exactly as listed', () => {

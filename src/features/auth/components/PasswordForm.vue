@@ -15,8 +15,14 @@ import { buttonVariants } from '@/shared/ui/button'
 
 import { usePasswordSignIn } from '../composables/usePasswordSignIn'
 
-const props = defineProps<{ role: Role | null; webauthnAutofill?: boolean }>()
-const emit = defineEmits<{ submitting: [] }>()
+const props = defineProps<{
+  role: Role | null
+  /** Passkeys in the username autofill (FR-012). */
+  webauthnAutofill?: boolean
+  /** A passkey action comes first, so this form's action is the secondary one (FR-010). */
+  secondary?: boolean
+}>()
+const emit = defineEmits<{ submitting: []; failed: [] }>()
 
 const { t } = useI18n()
 const usernameId = useId()
@@ -26,6 +32,7 @@ const { username, password, pending, problem, throttle, form, submit } = usePass
   usernameId,
   passwordId,
   onSubmit: () => emit('submitting'),
+  onFailed: () => emit('failed'),
 })
 const visible = ref(false)
 
@@ -101,7 +108,8 @@ watch(throttle.active, (active) => {
     </FormField>
     <button
       type="submit"
-      :class="buttonVariants({ class: 'w-full' })"
+      :data-variant="secondary ? 'secondary' : 'primary'"
+      :class="buttonVariants({ variant: secondary ? 'outline' : 'default', class: 'w-full' })"
       :disabled="pending || throttle.active.value"
       :aria-busy="pending ? 'true' : 'false'"
     >

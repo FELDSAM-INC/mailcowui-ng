@@ -20,6 +20,8 @@ export interface PasswordSignInOptions {
   passwordId: string
   /** Called once a valid attempt is about to be sent (US2 aborts the conditional passkey request). */
   onSubmit?: () => void
+  /** Called after an attempt that did not sign in (US2 restarts the conditional request). */
+  onFailed?: () => void
 }
 
 function asProblem(error: unknown): ApiProblem {
@@ -72,6 +74,7 @@ export function usePasswordSignIn(options: PasswordSignInOptions) {
     } catch (error) {
       password.value = ''
       await fail(asProblem(error))
+      options.onFailed?.()
     } finally {
       pending.value = false
     }

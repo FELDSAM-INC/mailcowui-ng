@@ -20,6 +20,14 @@
       "signInTimedOut": "The sign-in timed out. Please sign in again.",
       "signedOut": "You have signed out."
     },
+    "passkey": {
+      "chooseAgain": "Choose your passkey again.",
+      "expired": "The passkey sign-in timed out. Please try again.",
+      "failed": "Sign-in with this passkey failed. Sign in with your username and password instead.",
+      "or": "or with your username and password",
+      "signIn": "Sign in with a passkey",
+      "waiting": "Waiting for your passkey…"
+    },
     "secondFactor": {
       "intro": "Signing in as {username}. Confirm the sign-in with one of your second factors.",
       "oneMinute": "One minute left to complete the sign-in.",

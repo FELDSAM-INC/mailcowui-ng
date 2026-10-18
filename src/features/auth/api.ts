@@ -6,6 +6,7 @@ import {
   api,
   queryKeys,
   requireData,
+  type PasskeySignInRequest,
   type PasswordSignInRequest,
   type SecondFactorVerification,
   type Session,
@@ -23,6 +24,7 @@ import {
 } from '@/app/session/queries'
 import { rerouteCurrent } from '@/app/session/reroute'
 import { useSessionStore, type SessionNotice } from '@/app/session/store'
+import { computeSkew } from '@/shared/composables/useCountdown'
 
 export async function createSession(body: Writable<PasswordSignInRequest>): Promise<Session> {
   const result = await api.POST('/session', { body })
@@ -34,6 +36,27 @@ export async function verifySecondFactor(
   body: Writable<SecondFactorVerification>,
 ): Promise<Session> {
   const result = await api.POST('/session/pending-sign-in/second-factor', { body })
+  recordSessionClock(result.response)
+  return requireData(result).data
+}
+
+/** A passkey challenge with the server clock skew of its answer (for its expiry, R13). */
+export async function createPasskeyChallenge(): Promise<{
+  challenge: WebAuthnChallenge
+  skew: number
+}> {
+  const result = await api.POST('/session/passkey-challenge')
+  const date = result.response.headers.get('date')
+  return {
+    challenge: requireData(result).data,
+    skew: computeSkew(date ? new Date(date) : null),
+  }
+}
+
+export async function createSessionWithPasskey(
+  body: Writable<PasskeySignInRequest>,
+): Promise<Session> {
+  const result = await api.POST('/session/passkey-assertion', { body })
   recordSessionClock(result.response)
   return requireData(result).data
 }

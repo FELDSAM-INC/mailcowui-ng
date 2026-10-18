@@ -535,11 +535,13 @@ throttling, a device without passkey support and an account with pending actions
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T085 [US2] Extend the handlers and scenarios for passkey sign-in:
+- [X] T085 [US2] Extend the handlers and scenarios for passkey sign-in:
   - `tests/mocks/handlers/auth.ts`: `createPasskeyChallenge` (single use, replaced by the next request, `expiresAt` in 5 minutes) and `createSessionWithPasskey` (a known active credential signs in; unknown, inactive or role-mismatched credentials get the generic `sign-in-failed`; throttling per client address; a restricted outcome for forced accounts);
   - `tests/mocks/scenarios/index.ts`: the scenarios `passkey-user`, `passkey-admin`, `passkey-forced-password-change` and `passkey-throttled`;
   - seeded-credential helpers in `tests/mocks/factories/webauthn.ts`, matching `tests/e2e/fixtures/webauthn.ts` `addCredential`.
-- [ ] T086 [P] [US2] Write `tests/e2e/passkey-sign-in/passkey-sign-in.spec.ts`. It covers:
+
+  *Implementation note*: the seeded credential IDs are `SEEDED_CREDENTIALS` in `tests/mocks/factories/webauthn.ts`. The end-to-end stubs keep conditional requests pending until the test releases them (`stubCredentials(id, { conditional: 'release' })`), record every call (`credentialCalls()`), and `withoutConditionalMediation()` stops Chromium's virtual authenticator from answering the autofill request by itself.
+- [X] T086 [P] [US2] Write `tests/e2e/passkey-sign-in/passkey-sign-in.spec.ts`. It covers:
   - US2-AS1: the passkey action is first and most prominent, with the form below;
   - `@virtual-authenticator` US2-AS2: sign-in without username, password or second factor;
   - US2-AS3: on `withoutPasskeySupport`, no action and no error;
@@ -550,7 +552,7 @@ throttling, a device without passkey support and an account with pending actions
   - `@virtual-authenticator` US2-AS8: the domain-administrator screen with a mailbox user's passkey fails generically;
   - US2-AS9: the username field has `autocomplete="username webauthn"`, `navigator.credentials.get` is called only with `mediation: 'conditional'` on load, and no modal prompt opens;
   - Edge: two pages take each other's challenge, and the losing page restarts silently.
-- [ ] T087 [P] [US2] Write `tests/unit/features/auth/usePasskeySignIn.spec.ts` (abort of the conditional request first, the challenge, `get`, the assertion with `role`, the error mapping of R14) and `tests/unit/features/auth/useConditionalPasskey.spec.ts`. The second covers:
+- [X] T087 [P] [US2] Write `tests/unit/features/auth/usePasskeySignIn.spec.ts` (abort of the conditional request first, the challenge, `get`, the assertion with `role`, the error mapping of R14) and `tests/unit/features/auth/useConditionalPasskey.spec.ts`. The second covers:
   - a start on mount only when conditional mediation is available;
   - a restart 30 s before `expiresAt` while the page is visible, and on `visibilitychange`;
   - an abort on unmount, on a modal ceremony and on a password submit;
@@ -558,14 +560,16 @@ throttling, a device without passkey support and an account with pending actions
 
 ### Implementation for User Story 2
 
-- [ ] T088 [US2] Implement `src/features/auth/composables/usePasskeySignIn.ts`, `src/features/auth/composables/useConditionalPasskey.ts` and `src/features/auth/components/PasskeySignInButton.vue`, which is rendered only when `passkeysSupported` (FR-010–FR-014).
-- [ ] T089 [US2] Integrate passkey-first into `src/features/auth/pages/SignInPage.vue` and `src/features/auth/components/PasswordForm.vue`:
+- [X] T088 [US2] Implement `src/features/auth/composables/usePasskeySignIn.ts`, `src/features/auth/composables/useConditionalPasskey.ts` and `src/features/auth/components/PasskeySignInButton.vue`, which is rendered only when `passkeysSupported` (FR-010–FR-014).
+
+  *Implementation note*: background failures of the autofill request stay silent and never loop; only a passkey the user picked reports a failure, and a taken challenge restarts the request with "Choose your passkey again." The password form's action becomes the secondary style when the passkey action is shown (`data-variant`).
+- [X] T089 [US2] Integrate passkey-first into `src/features/auth/pages/SignInPage.vue` and `src/features/auth/components/PasswordForm.vue`:
   - the passkey action above the form;
   - `autocomplete="username webauthn"`;
   - the conditional request aborted on password submit;
   - passkey sign-in kept under force SSO (FR-007);
   - `role` sent on the role screens (FR-011).
-- [ ] T090 [US2] Add the `auth.passkey.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, using "passkey" wording only (FR-015). Reuse legacy keys through `src/i18n/legacy-map.json` only where the meaning is unchanged and no "FIDO2" or "Touch ID" text is involved, and re-run `npm run i18n:import`.
+- [X] T090 [US2] Add the `auth.passkey.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, using "passkey" wording only (FR-015). Reuse legacy keys through `src/i18n/legacy-map.json` only where the meaning is unchanged and no "FIDO2" or "Touch ID" text is involved, and re-run `npm run i18n:import`.
 
 **Checkpoint**: US1 and US2 both work on their own. The passkey smoke test runs in US4 (T105),
 because it needs registration first.

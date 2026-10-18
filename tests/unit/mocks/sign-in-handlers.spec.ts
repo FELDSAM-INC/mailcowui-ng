@@ -1,7 +1,7 @@
 // The US1 mock handlers (T066): password sign-in, the second-factor step and their refusals.
 import { describe, expect, it } from 'vitest'
 
-import { fakeAssertion } from '../../mocks/factories/webauthn'
+import { fakeAssertion, SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { MOCK_PASSWORD } from '../../mocks/scenarios/accounts'
 import { mockState, useScenario } from '../../mocks/node'
 
@@ -151,5 +151,50 @@ describe('second-factor step', () => {
       code: '123456',
     })
     expect(body?.type).toBe('/api/v2/problems/sign-in-expired')
+  })
+})
+
+describe('passkey sign-in (T085)', () => {
+  const assertion = async (credentialId: string, role?: string) => {
+    const challenge = await send('POST', '/session/passkey-challenge')
+    const credential = fakeAssertion(credentialId, challenge.body?.data.publicKey.challenge)
+    return send('POST', '/session/passkey-assertion', { credential, ...(role ? { role } : {}) })
+  }
+
+  it('signs the owner of a known credential in, without a second factor', async () => {
+    useScenario('passkey-user')
+    const { response, body } = await assertion(SEEDED_CREDENTIALS.alice)
+    expect(response.status).toBe(201)
+    expect(body?.data).toMatchObject({ state: 'active', authMethod: 'passkey' })
+  })
+
+  it('fails generically for unknown credentials and other roles', async () => {
+    useScenario('passkey-user')
+    expect((await assertion(SEEDED_CREDENTIALS.unknown)).body?.type).toBe(
+      '/api/v2/problems/sign-in-failed',
+    )
+    expect((await assertion(SEEDED_CREDENTIALS.alice, 'domainAdmin')).body?.type).toBe(
+      '/api/v2/problems/sign-in-failed',
+    )
+  })
+
+  it('treats a replaced challenge as expired', async () => {
+    useScenario('passkey-user')
+    const first = await send('POST', '/session/passkey-challenge')
+    await send('POST', '/session/passkey-challenge')
+    const credential = fakeAssertion(SEEDED_CREDENTIALS.alice, first.body?.data.publicKey.challenge)
+    const { body } = await send('POST', '/session/passkey-assertion', { credential })
+    expect(body?.type).toBe('/api/v2/problems/sign-in-expired')
+  })
+
+  it('restricts the session of an account forced to change its password', async () => {
+    useScenario('passkey-forced-password-change')
+    const { body } = await assertion(SEEDED_CREDENTIALS.bob)
+    expect(body?.data).toMatchObject({ state: 'restricted', pendingActions: ['passwordChange'] })
+  })
+
+  it('throttles passkey sign-in', async () => {
+    useScenario('passkey-throttled')
+    expect((await assertion(SEEDED_CREDENTIALS.alice)).response.status).toBe(429)
   })
 })

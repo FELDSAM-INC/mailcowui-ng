@@ -1,14 +1,20 @@
 // Authentication handlers (T026, T066): the anti-forgery token, the session, password sign-in, the
-// second-factor step and sign-out. Passkey sign-in arrives with US2 (T085).
+// second-factor step, passkey sign-in (T085) and sign-out.
 //
 // Password sign-in follows the contract: one generic `sign-in-failed` for every refusal, throttling
 // to 429 after the scenario threshold (without checking credentials), a deliberate delay, the
 // second-factor step with the methods in the recommended order, restricted sessions for accounts
 // with pending actions, and `403 second-factor-unavailable` for accounts with only U2F entries.
-import type { PasswordSignInRequest, Role, SecondFactorVerification, Writable } from '@/api'
+import type {
+  PasskeySignInRequest,
+  PasswordSignInRequest,
+  Role,
+  SecondFactorVerification,
+  Writable,
+} from '@/api'
 
 import { token } from '../factories/ids'
-import { CHALLENGE_LIFETIME_MS, requestOptions } from '../factories/webauthn'
+import { challengeOf, CHALLENGE_LIFETIME_MS, requestOptions } from '../factories/webauthn'
 import {
   anonymousSession,
   findAccount,
@@ -43,6 +49,13 @@ function resolveAccount(
   if (!account) return undefined
   if (role && account.role !== role) return undefined
   return ROLE_ORDER.includes(account.role) ? account : undefined
+}
+
+/** The account owning an active passkey with this credential ID, if any. */
+function passkeyOwner(state: ScenarioState, credentialId: string): MockAccount | undefined {
+  return state.accounts.find((account) =>
+    account.passkeys.some((passkey) => passkey.credentialId === credentialId && passkey.active),
+  )
 }
 
 function pendingExpired(state: ScenarioState): boolean {
@@ -108,6 +121,51 @@ export const authHandlers = [
     } else {
       signIn(state, account, 'password')
     }
+    return response(201).json(
+      { data: sessionBody(state) },
+      { headers: { Location: '/api/v2/session' } },
+    )
+  }),
+
+  http.post('/session/passkey-challenge', ({ request, response }) => {
+    const state = scenario()
+    const refused = csrfProblem(state, request)
+    if (refused) return response.untyped(refused)
+    // Single use; a new request replaces the previous challenge (two tabs take each other's).
+    const challenge = {
+      publicKey: requestOptions(),
+      expiresAt: new Date(state.now() + CHALLENGE_LIFETIME_MS).toISOString(),
+    }
+    state.session.passkeyChallenge = {
+      challenge: challenge.publicKey.challenge,
+      expiresAt: challenge.expiresAt,
+    }
+    return response(200).json({ data: challenge })
+  }),
+
+  http.post('/session/passkey-assertion', async ({ request, response }) => {
+    const state = scenario()
+    const refused = csrfProblem(state, request)
+    if (refused) return response.untyped(refused)
+    const body = (await request.json()) as unknown as Writable<PasskeySignInRequest>
+    if (state.failedSignIns >= state.behaviour.throttleThreshold) {
+      return response.untyped(throttled(state))
+    }
+    const challenge = state.session.passkeyChallenge
+    state.session.passkeyChallenge = null
+    if (
+      !challenge ||
+      new Date(challenge.expiresAt).getTime() <= state.now() ||
+      challengeOf(body.credential.response.clientDataJSON) !== challenge.challenge
+    ) {
+      return response.untyped(problem(401, 'sign-in-expired'))
+    }
+    const account = passkeyOwner(state, body.credential.rawId)
+    if (!account || !account.active || (body.role && account.role !== body.role)) {
+      state.failedSignIns += 1
+      return response.untyped(problem(401, 'sign-in-failed'))
+    }
+    signIn(state, account, 'passkey')
     return response(201).json(
       { data: sessionBody(state) },
       { headers: { Location: '/api/v2/session' } },

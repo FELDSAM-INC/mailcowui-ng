@@ -20,6 +20,14 @@
       "signInTimedOut": "Časový limit prihlásenia vypršal. Prihláste sa, prosím, znova.",
       "signedOut": "Boli ste odhlásení."
     },
+    "passkey": {
+      "chooseAgain": "Zvoľte prístupový kľúč znova.",
+      "expired": "Časový limit prihlásenia prístupovým kľúčom vypršal. Skúste to, prosím, znova.",
+      "failed": "Prihlásenie týmto prístupovým kľúčom zlyhalo. Prihláste sa radšej používateľským menom a heslom.",
+      "or": "alebo používateľským menom a heslom",
+      "signIn": "Prihlásiť sa prístupovým kľúčom",
+      "waiting": "Čaká sa na prístupový kľúč…"
+    },
     "secondFactor": {
       "intro": "Prihlasujete sa ako {username}. Potvrďte prihlásenie jedným zo svojich druhých faktorov.",
       "oneMinute": "Na dokončenie prihlásenia zostáva jedna minúta.",

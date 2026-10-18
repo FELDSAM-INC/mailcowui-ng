@@ -398,7 +398,7 @@ describe('ceremonies', () => {
 
   it('treats a null credential as an unknown failure', async () => {
     const { get } = installWebAuthn()
-    get.mockResolvedValueOnce(null as unknown as Record<string, unknown>)
+    get.mockResolvedValueOnce(null)
     await expect(getAssertion(requestJson)).rejects.toMatchObject({ kind: 'unknown' })
   })
 })

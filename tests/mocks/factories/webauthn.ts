@@ -13,6 +13,18 @@ import { base64url, randomBase64url } from './ids'
 export const MOCK_RP_ID = 'localhost'
 export const CHALLENGE_LIFETIME_MS = 5 * 60_000
 
+/**
+ * Credential IDs (base64url `rawId`) of passkeys seeded in scenarios. End-to-end tests give the
+ * same ID to the virtual authenticator (`addCredential({ credentialId })`) or to
+ * `stubCredentials(credentialId)`, so that the mock recognises the assertion.
+ */
+export const SEEDED_CREDENTIALS = {
+  alice: Buffer.from('mailcowui-ng seeded passkey: alice').toString('base64url'),
+  admin: Buffer.from('mailcowui-ng seeded passkey: admin').toString('base64url'),
+  bob: Buffer.from('mailcowui-ng seeded passkey: bob').toString('base64url'),
+  unknown: Buffer.from('mailcowui-ng passkey nobody has').toString('base64url'),
+} as const
+
 export function requestOptions(
   init: { challenge?: string; allowCredentials?: string[]; rpId?: string } = {},
 ): WebAuthnRequestOptions {

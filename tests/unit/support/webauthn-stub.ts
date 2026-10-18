@@ -85,10 +85,10 @@ export function installWebAuthn(options: WebAuthnStubOptions = {}) {
 
   vi.stubGlobal('isSecureContext', secureContext)
 
-  const get = vi.fn((_options?: CredentialRequestOptions) =>
+  const get = vi.fn((_options?: CredentialRequestOptions): Promise<unknown> =>
     Promise.resolve(fakeCredential({ kind: 'assertion', withToJSON: nativeJson })),
   )
-  const create = vi.fn((_options?: CredentialCreationOptions) =>
+  const create = vi.fn((_options?: CredentialCreationOptions): Promise<unknown> =>
     Promise.resolve(fakeCredential({ kind: 'attestation', withToJSON: nativeJson })),
   )
   Object.defineProperty(navigator, 'credentials', {
@@ -119,4 +119,47 @@ export function installWebAuthn(options: WebAuthnStubOptions = {}) {
   }
   vi.stubGlobal('PublicKeyCredential', PublicKeyCredential)
   return { get, create, PublicKeyCredential }
+}
+
+function bufferToBase64Url(value: unknown): string {
+  if (typeof value === 'string') return value
+  const bytes =
+    value instanceof ArrayBuffer
+      ? new Uint8Array(value)
+      : ArrayBuffer.isView(value)
+        ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+        : new Uint8Array(value as ArrayBuffer)
+  let binary = ''
+  for (const byte of bytes) binary += String.fromCharCode(byte)
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+/**
+ * A credential answering a get() call: its JSON carries `credentialId` as `rawId` and a
+ * clientDataJSON for the challenge of the request, so the mock API accepts or refuses it by the
+ * credential alone.
+ */
+export function credentialFor(credentialId: string, options: CredentialRequestOptions): Credential {
+  const challenge = bufferToBase64Url(options.publicKey?.challenge)
+  const clientDataJSON = bufferToBase64Url(
+    new TextEncoder().encode(JSON.stringify({ type: 'webauthn.get', challenge })),
+  )
+  const response = {
+    clientDataJSON,
+    authenticatorData: bufferToBase64Url(bytes('auth-data')),
+    signature: bufferToBase64Url(bytes('signature')),
+    userHandle: bufferToBase64Url(bytes('user-handle')),
+  }
+  return {
+    id: credentialId,
+    type: 'public-key',
+    toJSON: () => ({
+      id: credentialId,
+      rawId: credentialId,
+      type: 'public-key',
+      authenticatorAttachment: 'platform',
+      response,
+      clientExtensionResults: {},
+    }),
+  } as unknown as Credential
 }

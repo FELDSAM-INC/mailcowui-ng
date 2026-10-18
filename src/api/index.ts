@@ -275,6 +275,7 @@ export {
   isApiProblem,
   problemFromResponse,
   problemName,
+  problemOf,
   type ApiProblemParts,
   type ProblemKind,
 } from './problem'
@@ -286,6 +287,7 @@ export {
   shouldRetryQuery,
   type SessionReactions,
 } from './query/client'
+export { runMutation } from './query/mutation'
 export {
   queryKeys,
   type AliasDomainListParams,

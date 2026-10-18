@@ -9,6 +9,7 @@ import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
 import { domainRoutes } from '@/features/domains'
 import { homeRoutes } from '@/features/home'
+import { mailboxRoutes } from '@/features/mailboxes'
 import { passkeysRoutes } from '@/features/passkeys'
 
 import { findEntry, placeholderRouteSpecs } from '../navigation/catalogue'
@@ -26,6 +27,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...apiKeysRoutes,
   ...auditLogRoutes,
   ...domainRoutes,
+  ...mailboxRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

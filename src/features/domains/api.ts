@@ -3,19 +3,14 @@
 // through the query client's mutation cache, so the session reactions (an ended session, a
 // pending action, "forbidden") apply to them too, and they patch the caches they can and
 // invalidate the rest. Every mutation also invalidates the audit log.
-import {
-  queryOptions,
-  useQuery,
-  useQueryClient,
-  type MutationOptions,
-  type QueryClient,
-} from '@tanstack/vue-query'
+import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import {
   ApiProblem,
   api,
   isApiProblem,
+  runMutation,
   queryKeys,
   requireData,
   type BulkResult,
@@ -40,20 +35,8 @@ export interface DomainPage {
 
 const MERGE_PATCH = { 'Content-Type': 'application/merge-patch+json' }
 
-/** A query or mutation error as a problem (the client turns every failure into ApiProblem). */
-export function problemOf(error: unknown): ApiProblem | null {
-  if (!error) return null
-  return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'problem', cause: error })
-}
-
-/** Runs a mutation through the client's mutation cache (its default options and reactions). */
-export function runMutation<TData, TVariables>(
-  client: QueryClient,
-  options: MutationOptions<TData, ApiProblem, TVariables>,
-  variables: TVariables,
-): Promise<TData> {
-  return client.getMutationCache().build(client, options).execute(variables)
-}
+// `problemOf` and `runMutation` were promoted to `@/api` (UI 003); re-exported for UI 002's callers.
+export { problemOf, runMutation } from '@/api'
 
 // Queries
 

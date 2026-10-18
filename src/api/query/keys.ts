@@ -85,7 +85,8 @@ export const queryKeys = {
     capabilities: () => ['mailboxes', 'capabilities'] as const,
     tagLists: () => ['mailboxes', 'tags'] as const,
     tags: (params: MailboxTagParams) => ['mailboxes', 'tags', params] as const,
-    /** The search of `MailboxSearchPicker` (shared, used by UI 004 and UI 008). */
+    /** The searches of `MailboxSearchPicker` (shared, used by UI 004 and UI 008). */
+    searches: () => ['mailboxes', 'search'] as const,
     search: (params: MailboxListParams) => ['mailboxes', 'search', params] as const,
   },
   mailboxTemplates: {

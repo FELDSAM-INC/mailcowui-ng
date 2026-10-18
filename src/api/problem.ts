@@ -172,3 +172,9 @@ export async function peekProblemName(response: Response): Promise<string | null
     return null
   }
 }
+
+/** A query or mutation error as a problem (the client turns every failure into ApiProblem). */
+export function problemOf(error: unknown): ApiProblem | null {
+  if (!error) return null
+  return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'problem', cause: error })
+}

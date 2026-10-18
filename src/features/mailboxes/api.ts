@@ -1,0 +1,218 @@
+// The mailbox data layer (research R5, R16, data-model §3). Queries are keyed under
+// `['mailboxes', …]`, so one prefix invalidates everything that depends on mailboxes. Mutations run
+// through the query client's mutation cache, so the session reactions apply to them too; they
+// patch the caches they can and invalidate the rest, the audit log included. Requests that carry a
+// password never go through TanStack Query (conventions "Secrets in requests or responses"): the
+// caller sends them with `useSecretRequest` and applies the same cache rules with the response.
+import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
+import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+
+import {
+  api,
+  isApiProblem,
+  queryKeys,
+  requireData,
+  runMutation,
+  type ListMeta,
+  type MailboxCapabilities,
+  type MailboxListParams,
+  type MailboxTagParams,
+  type PasswordPolicy,
+} from '@/api'
+
+import type { Patch } from './patch'
+import type { Mailbox } from './types'
+
+export interface MailboxPage {
+  data: Mailbox[]
+  meta: ListMeta
+}
+
+const MERGE_PATCH = { 'Content-Type': 'application/merge-patch+json' }
+
+// Queries
+
+export async function fetchMailboxes(params: MailboxListParams): Promise<MailboxPage> {
+  return requireData(await api.GET('/mailboxes', { params: { query: params } }))
+}
+
+export function mailboxListOptions(params: MailboxListParams) {
+  return queryOptions({
+    queryKey: queryKeys.mailboxes.list(params),
+    queryFn: () => fetchMailboxes(params),
+    staleTime: 30_000,
+  })
+}
+
+export async function fetchMailbox(address: string): Promise<Mailbox> {
+  return requireData(
+    await api.GET('/mailboxes/{mailbox}', { params: { path: { mailbox: address } } }),
+  ).data
+}
+
+/** A mailbox from a cached list page, found by its address in any letter case. */
+export function cachedMailbox(client: QueryClient, address: string): Mailbox | undefined {
+  const wanted = address.toLowerCase()
+  for (const [, page] of client.getQueriesData<MailboxPage>({
+    queryKey: queryKeys.mailboxes.lists(),
+  })) {
+    const mailbox = page?.data.find((item) => item.address === wanted)
+    if (mailbox) return mailbox
+  }
+  return undefined
+}
+
+/**
+ * The mailbox page's query. A mailbox opened from the list shows at once from the list entry and is
+ * refetched right away (`initialDataUpdatedAt: 0`, FR-017).
+ */
+export function mailboxOptions(client: QueryClient, address: string) {
+  return queryOptions({
+    queryKey: queryKeys.mailboxes.detail(address),
+    queryFn: () => fetchMailbox(address),
+    staleTime: 30_000,
+    initialData: () => cachedMailbox(client, address),
+    initialDataUpdatedAt: () => (cachedMailbox(client, address) ? 0 : undefined),
+  })
+}
+
+export function useMailbox(address: MaybeRefOrGetter<string>) {
+  const client = useQueryClient()
+  return useQuery(computed(() => mailboxOptions(client, toValue(address))))
+}
+
+export function capabilitiesOptions() {
+  return queryOptions({
+    queryKey: queryKeys.mailboxes.capabilities(),
+    queryFn: async (): Promise<MailboxCapabilities> =>
+      requireData(await api.GET('/capabilities/mailboxes')).data,
+    staleTime: 300_000,
+  })
+}
+
+export function tagsOptions(params: MailboxTagParams) {
+  return queryOptions({
+    queryKey: queryKeys.mailboxes.tags(params),
+    queryFn: async () => requireData(await api.GET('/mailbox-tags', { params: { query: params } })),
+    staleTime: 30_000,
+  })
+}
+
+/** Read whenever a password form opens (FR-030). */
+export function passwordPolicyOptions() {
+  return queryOptions({
+    queryKey: queryKeys.passwordPolicy(),
+    queryFn: async (): Promise<PasswordPolicy> =>
+      requireData(await api.GET('/password-policy')).data,
+    staleTime: 0,
+    refetchOnMount: 'always' as const,
+  })
+}
+
+// Cache rules shared by the mutations
+
+function invalidateAudit(client: QueryClient) {
+  return client.invalidateQueries({ queryKey: queryKeys.auditEvents.all() })
+}
+
+/** Writes a mailbox to its detail and to every cached list page that holds it. */
+export function writeMailbox(client: QueryClient, mailbox: Mailbox): void {
+  client.setQueryData(queryKeys.mailboxes.detail(mailbox.address), mailbox)
+  client.setQueriesData<MailboxPage>({ queryKey: queryKeys.mailboxes.lists() }, (page) =>
+    page
+      ? {
+          ...page,
+          data: page.data.map((item) => (item.address === mailbox.address ? mailbox : item)),
+        }
+      : page,
+  )
+}
+
+/** A mailbox that no longer exists or left the scope: remove its caches, refresh the lists. */
+export function forgetMailbox(client: QueryClient, address: string): void {
+  client.removeQueries({ queryKey: queryKeys.mailboxes.detail(address) })
+  client.removeQueries({ queryKey: queryKeys.mailboxes.deletionPreview(address) })
+  void client.invalidateQueries({ queryKey: queryKeys.mailboxes.lists() })
+}
+
+/** After a change: lists, tags when sent, the domain when its figures moved, the audit log. */
+export async function afterMailboxChange(
+  client: QueryClient,
+  mailbox: Mailbox,
+  sent: Patch,
+): Promise<void> {
+  writeMailbox(client, mailbox)
+  await Promise.all([
+    client.invalidateQueries({ queryKey: queryKeys.mailboxes.lists() }),
+    client.invalidateQueries({ queryKey: queryKeys.mailboxes.searches() }),
+    'tags' in sent
+      ? client.invalidateQueries({ queryKey: queryKeys.mailboxes.tagLists() })
+      : Promise.resolve(),
+    'quota' in sent || 'status' in sent
+      ? client.invalidateQueries({ queryKey: queryKeys.domains.all() })
+      : Promise.resolve(),
+    invalidateAudit(client),
+  ])
+}
+
+function onMailboxError(client: QueryClient, address: string, error: unknown): void {
+  if (!isApiProblem(error)) return
+  if (error.is('attribute-not-permitted') || error.is('permission-flag-required')) {
+    void client.invalidateQueries({ queryKey: queryKeys.identity() })
+    void client.invalidateQueries({ queryKey: queryKeys.mailboxes.detail(address) })
+  }
+  if (error.status === 404) forgetMailbox(client, address)
+}
+
+/** The PATCH itself, for the mutation and for `useSecretRequest` (a change with a password). */
+export async function sendMailboxPatch(
+  address: string,
+  patch: Patch,
+  ifMatch: string,
+): Promise<Mailbox> {
+  return requireData(
+    await api.PATCH('/mailboxes/{mailbox}', {
+      params: { path: { mailbox: address }, header: { 'If-Match': ifMatch } },
+      body: patch,
+      headers: MERGE_PATCH,
+    }),
+  ).data
+}
+
+/** A change without a password, through the mutation cache. */
+export function updateMailbox(
+  client: QueryClient,
+  address: string,
+  patch: Patch,
+  ifMatch: string,
+): Promise<Mailbox> {
+  return runMutation<Mailbox, Patch>(
+    client,
+    {
+      mutationFn: (body) => sendMailboxPatch(address, body, ifMatch),
+      onSuccess: (mailbox, body) => afterMailboxChange(client, mailbox, body),
+      onError: (error) => onMailboxError(client, address, error),
+    },
+    patch,
+  )
+}
+
+/**
+ * A change that carries a password, sent directly (never cached); the response is then written to
+ * the caches like any other change. Refusals get the same reactions.
+ */
+export async function updateMailboxWithPassword(
+  client: QueryClient,
+  address: string,
+  patch: Patch,
+  ifMatch: string,
+): Promise<Mailbox> {
+  try {
+    const mailbox = await sendMailboxPatch(address, patch, ifMatch)
+    await afterMailboxChange(client, mailbox, patch)
+    return mailbox
+  } catch (error) {
+    onMailboxError(client, address, error)
+    throw error
+  }
+}

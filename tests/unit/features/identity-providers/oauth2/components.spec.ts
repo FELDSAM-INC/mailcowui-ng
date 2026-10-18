@@ -8,6 +8,7 @@ import { defineComponent, h, nextTick } from 'vue'
 
 import type { Oauth2Client } from '@/api'
 import { lt } from '@/i18n'
+import ClientIdList from '@/features/identity-providers/oauth2/components/ClientIdList.vue'
 import Oauth2ClientCard from '@/features/identity-providers/oauth2/components/Oauth2ClientCard.vue'
 import Oauth2ClientTable from '@/features/identity-providers/oauth2/components/Oauth2ClientTable.vue'
 import RedirectUriList from '@/features/identity-providers/oauth2/components/RedirectUriList.vue'
@@ -56,6 +57,11 @@ describe('OAuth2 components', () => {
     expect(marked.findAll('[data-invalid-uri]')).toHaveLength(1)
     const empty = mountWithApp(RedirectUriList, { props: { uris: [] } })
     expect(empty.text()).toBe('—')
+  })
+
+  it('lists the client IDs a confirmation affects', () => {
+    const wrapper = mountWithApp(ClientIdList, { props: { clientIds: ['aaa', 'bbb'] } })
+    expect(wrapper.findAll('li').map((li) => li.text())).toEqual(['aaa', 'bbb'])
   })
 
   it('sorts from the table headers with aria-sort', async () => {

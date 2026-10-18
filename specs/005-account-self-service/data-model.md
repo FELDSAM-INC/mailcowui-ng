@@ -40,7 +40,7 @@ Generated root types, imported from `@/api` at the pin of [contracts/README.md](
 | `PasswordResetTokenCheckRequest`, `PasswordResetTokenInfo` | `checkPasswordResetToken` | reset page | address, expiry, policy, methods |
 | `PasswordResetWebAuthnChallengeRequest`, `WebAuthnChallenge` | `createPasswordResetWebAuthnChallenge` | reset second factor | 001's assertion flow |
 | `PasswordResetCompletionRequest`, `PasswordResetCompleted`, `SecondFactorVerification`, `SecondFactorMethod` | `completePasswordReset` | reset page | `401 second-factor-required` carries `methods` |
-| `AppPassword`, `AppPasswordResult`, `AppPasswordCreateRequest`, `AppPasswordPatch`, `AppPasswordProtocol` | app password operations | app passwords | `generatedPassword` returned only to `useSecretRequest`'s caller |
+| `AppPassword`, `AppPasswordResult`, `AppPasswordCreateRequest`, `AppPasswordPatch`, `AppPasswordProtocol` | app password operations | app passwords | `generatedPassword` returned only to `useSecretMutation`'s caller |
 | `TemporaryAlias`, `TemporaryAliasCreateRequest`, `TemporaryAliasPatch`, `TemporaryAliasDomain` | temporary alias operations | temporary aliases | `TemporaryAliasPatch` is `lifetimeHours` or `permanent: true` |
 | `PushNotificationSettings`, `PushNotificationSettingsReplacement`, `PushNotificationVerification` | push notification operations | Pushover form | `tokenSet`, `userKeySet` |
 | `MailboxMailSettings`, `MailboxMailSettingsPatch`, `MailboxTaggedMailHandling` | `getMailboxMailSettings`, `updateMailboxMailSettings` | mail settings | `etag` covers the three settings only |
@@ -174,7 +174,7 @@ unknown" (never retried). Items not `done` stay selected.
 | `['sieve-filters','mailbox',<m>,params]` | `listMailboxSieveFilters` | 30 s | mailbox context, My account, activation warning | — |
 | `['sieve-filters','detail',<m>,id]` | `getSieveFilter` | 30 s | filter detail | — |
 
-Never cached, because they carry or return secrets and run through `useSecretRequest` outside
+Never cached, because they carry or return secrets and run through `useSecretMutation` outside
 TanStack Query (research R13, `docs/conventions.md`): password changes, recovery-address changes,
 second-factor enrolments, TOTP starts and full removals, the three reset steps that carry the token,
 app password creation and regeneration, Pushover replacement, and Apple profiles. Also never cached:
@@ -187,7 +187,7 @@ WebAuthn options and webmail hand-offs.
 | `changeOwnPassword` | clear the fields; invalidate `['me','mailbox']`; in a restricted session refetch `session` and `identity`, then continue (§7) | — |
 | `enrolOwnSecondFactor`, `deleteOwnSecondFactor`, `removeAllOwnSecondFactors` | invalidate `['me','second-factors']` and `['capabilities','self-service']`; in a restricted session refetch `session` and `identity` | — |
 | `replaceOwnRecoveryEmail` | write `['me','recovery-email']` from the response; invalidate `['me','mailbox']` | keep the address input (not the password); refetch; "changed elsewhere" |
-| `createAppPassword`, `updateAppPassword`, `deleteAppPassword` (creation and regeneration through `useSecretRequest`) | invalidate `…'app-passwords'` and `['me','mailbox']`; write the detail without `generatedPassword` | keep non-secret input; refetch; mark changed values (`EditableSection`); a refused deletion is confirmed again |
+| `createAppPassword`, `updateAppPassword`, `deleteAppPassword` (creation and regeneration through `useSecretMutation`) | invalidate `…'app-passwords'` and `['me','mailbox']`; write the detail without `generatedPassword` | keep non-secret input; refetch; mark changed values (`EditableSection`); a refused deletion is confirmed again |
 | `createOwnAppleProfileWithAppPassword` | invalidate `['self-service',<me>,'app-passwords']` and `['me','mailbox']` | — |
 | `createTemporaryAlias`, `updateTemporaryAlias`, `deleteTemporaryAlias` | invalidate `…'temporary-aliases'`, `['me','mailbox']`, UI 003's `['mailboxes','detail',<m>]` and `['mailboxes','list']` (active alias count) | per-item outcome `outdated`; the item stays selected |
 | `updateMailboxMailSettings` | write `…'mail-settings'`; invalidate UI 003's `['mailboxes','detail',<m>]` and `['mailboxes','list']` | refetch; apply the reloaded value; "changed elsewhere, choose again" |
@@ -405,4 +405,4 @@ stored ─change→ pending (control shows new value, busy) ─200→ stored(new
 ### One-time secret dialog
 
 Unchanged from 001-DM §7, now in `src/shared/components/OneTimeSecretDialog.vue`; the secret enters
-it from `useSecretRequest`'s result, never from a cache.
+it from `useSecretMutation`'s result, never from a cache.

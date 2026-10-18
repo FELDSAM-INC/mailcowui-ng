@@ -34,7 +34,7 @@ The technical approach (details in [research.md](./research.md)):
   002–004 build, under their canonical names (`useBulkSelection`, `BulkActionBar`,
   `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink`, `useLeaveGuard`, UI 003's
   mailbox detail and list action areas). UI 005 creates `usePerItemRunner`, `MailboxSearchPicker`,
-  `useSecretRequest` and `src/shared/platform/download.ts`, which no earlier feature needs. Three areas are touched: `src/features/account/` (new; own and
+  `useSecretMutation` and `src/shared/platform/download.ts`, which no earlier feature needs. Three areas are touched: `src/features/account/` (new; own and
   mailbox context share one implementation), `src/features/filters/` (new) and `src/features/auth/`
   (reset pages, forced actions) (R1, R3).
 - **Contract**: bump to mailcow-rest-v2 commit `32079252…` or later (376 operations, all 51
@@ -43,7 +43,7 @@ The technical approach (details in [research.md](./research.md)):
   whether a section is shown, replaced, read-only or "no access" (R4, R5, R6).
 - **Secrets**: every request that carries or returns a secret (passwords, codes, TOTP data, reset
   tokens, app passwords, Pushover credentials, the Apple profile) calls the client directly through
-  `useSecretRequest` and never touches TanStack Query; generated secrets are shown once in
+  `useSecretMutation` and never touches TanStack Query; generated secrets are shown once in
   `OneTimeSecretDialog` (promoted from UI 001); the reset token leaves the address bar before the page
   renders (R10, R12, R13, R21).
 - **Strict CSP kept**: the API's QR code (an SVG data URI) is parsed into an allowlisted SVG subset
@@ -106,10 +106,10 @@ section reused (SC-007).
 | II. Mobile-first | Every screen is designed at 360 px: sections as their own pages, lists as cards below `md`, long forms split (Pushover "Advanced", filter editor page, TOTP steps), the TOTP open/copy actions before the QR code. Selection modes for multi-item actions. Destructive actions confirmed with their impact; bulk deletions typed; the SOGo reset needs an acknowledgement. Every list has loading, empty and error states. Tested on `mobile-chromium` and `mobile-webkit`. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe on every screen and state in both themes; the QR code has a text alternative pointing to the grouped key; statuses in text; announced copy results, saves and WebAuthn waits; no time limit without "Try again"; confirmation dialogs trap and return focus (FR-112 to FR-116). | PASS |
 | IV. i18n and branding | All text in en-gb, cs-cz and sk-sk; legacy keys mapped, including HTML-bearing ones converted to plain text at import time (R23); missing cs/sk legacy values supplied by the hand-written layer; Czech and Slovak plural rules; locale formatting of sizes, dates, countries. No brand text: the Yubico API key URL is a vendor address, not operator branding. | PASS |
-| V. Security in the browser | Same-origin session and in-memory CSRF token (001). No new storage key; secret-bearing requests outside every cache (`useSecretRequest`), secrets never in the address bar, history or logs; the reset token scrubbed in `beforeEnter`; the profile blob released after hand-over. CSP unchanged: the QR code is rendered from an allowlisted SVG subset, not `data:` or `v-html`. Hiding is a convenience: refusals (`forbidden`, `permission-flag-required`, `404`) are handled and the identity re-read (FR-007). | PASS |
+| V. Security in the browser | Same-origin session and in-memory CSRF token (001). No new storage key; secret-bearing requests outside every cache (`useSecretMutation`), secrets never in the address bar, history or logs; the reset token scrubbed in `beforeEnter`; the profile blob released after hand-over. CSP unchanged: the QR code is rendered from an allowlisted SVG subset, not `data:` or `v-html`. Hiding is a convenience: refusals (`forbidden`, `permission-flag-required`, `404`) are handled and the identity re-read (FR-007). | PASS |
 | VI. Test-first | Every phase of tasks.md writes failing tests first: units and components, end-to-end tests of all 68 acceptance scenarios on both viewports against the contract-validated mock, and smoke tests against the API dev stack. Mocked requests and responses, including the binary profile and the `Set-Cookie` of the hand-off, are validated against the contract (R24). | PASS (smoke gate as UI 001's Complexity Tracking) |
 | VII. Performance budgets | All routes lazy; the account and filters indexes export only light modules; `budget:check` and a Lighthouse collection for `/ng/account`; queries follow 001-R9 with 5-minute freshness for capabilities and the overview and invalidation after every mutation (data-model §3). | PASS |
-| VIII. Simplicity | No new dependency. One section implementation for both contexts. Shared blocks only at a second use (`OneTimeSecretDialog`, `CopyButton`, `GroupedSecret`, UI 003's password field, hints, generator and policy rules, `useSecretRequest`, `usePerItemRunner`), or where `docs/conventions.md` fixes a canonical shared location for later features (`MailboxSearchPicker`, `src/shared/platform/download.ts`); single-use helpers (`qr-svg.ts`, `useWebmailHandOff`) stay in the feature. | PASS |
+| VIII. Simplicity | No new dependency. One section implementation for both contexts. Shared blocks only at a second use (`OneTimeSecretDialog`, `CopyButton`, `GroupedSecret`, UI 003's password field, hints, generator and policy rules, `useSecretMutation`, `usePerItemRunner`), or where `docs/conventions.md` fixes a canonical shared location for later features (`MailboxSearchPicker`, `src/shared/platform/download.ts`); single-use helpers (`qr-svg.ts`, `useWebmailHandOff`) stay in the feature. | PASS |
 | Technology constraints | Stack unchanged; no TailAdmin Pro; the needed TailAdmin primitives are already copied (radio group, switch, checkbox, collapsible, textarea, table, dialog); no CDN; no backend code. | PASS |
 | Workflow and gates | Lint, types, units, end-to-end on both viewports with axe, budgets, translations and the audit run in CI as for UI 001. Commits to `main`. | PASS |
 | `docs/conventions.md` | "The classic interface" wording; passkeys wording. Lists: state in the address, 25/50/100, cards and tables, states. Bulk: explicit selection of the current page, the API bulk operation for TLS (with item versions, AG1), one request per item otherwise, per-item results, failed items stay selected, "outcome unknown" never retried. Editing: per-section saves, only changed fields with the version, outdated handling with kept input and marked values, refused deletions confirmed again. Confirmations: impact named, typed count for bulk deletions. Secrets: shown once with copy, confirm on uncopied close, write-only Pushover credentials. History: labels and History actions. Errors translated, flags hidden or read-only. Entry points into UI 001 and UI 003 through their designated areas; capabilities from `getSelfServiceCapabilities`. | PASS |
@@ -117,7 +117,7 @@ section reused (SC-007).
 **Post-design re-check (after Phase 1)**: PASS. Decisions that touched gates:
 
 - QR code rendered from a parsed SVG allowlist instead of `img-src data:` (V, R10).
-- Secret-bearing requests made outside TanStack Query with `useSecretRequest`, with the session reactions routed through one dispatcher (V, R6, R13).
+- Secret-bearing requests made outside TanStack Query with `useSecretMutation`, with the session reactions routed through one dispatcher (V, R6, R13).
 - Reset routes public in every session state, an exception to UI 001's restricted-session gate that
   FR-042 requires (R12).
 - Bulk TLS blocked on API gap AG1 instead of omitting the version tag (I, conventions, R16).
@@ -269,7 +269,7 @@ src/
 │   │   └── pages/{PasswordResetRequestPage,PasswordResetPage}.vue; PendingActionsPage.vue, SignInPage.vue (changed)
 │   ├── home/pages/HomePage.vue       # + MailboxHomeCard for mailbox users
 │   ├── audit-log/{labels.ts,list-state.ts}   # self-service labels and target types
-│   ├── api-keys/pages/ApiKeyCreatePage.vue   # uses the promoted OneTimeSecretDialog and useSecretRequest
+│   ├── api-keys/pages/ApiKeyCreatePage.vue   # uses the promoted OneTimeSecretDialog and useSecretMutation
 │   ├── api-keys/components/ApiKeySecretDialog.vue   # removed (promoted to shared)
 │   └── mailboxes/{sections.ts,routes.ts,components/display/ManagedSettingsGroup.vue,
 │                  components/list/MailboxBulkActions.vue,bulk.ts}   # UI 003 action areas: entries only
@@ -280,7 +280,7 @@ src/
 │   ├── components/password/NewPasswordFields.vue
 │   ├── password/{generate.ts,policy-rules.ts}                         # moved from UI 003
 │   ├── platform/download.ts          # canonical download helper (conventions)
-│   └── composables/{useSecretRequest,usePerItemRunner}.ts
+│   └── composables/{useSecretMutation,usePerItemRunner}.ts
 └── i18n/
     ├── index.ts                      # + cs-cz and sk-sk plural rules
     ├── problems.ts                   # + parameters of the 005 problem types and rule codes

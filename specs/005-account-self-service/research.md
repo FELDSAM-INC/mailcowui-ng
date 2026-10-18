@@ -93,7 +93,7 @@ point that UI 003's plan has to provide (R5).
     setup guide, scripts), `GroupedSecret.vue` (TOTP key, app password), UI 003's `PasswordField.vue`
     and `PasswordPolicyHints.vue` moved to `src/shared/components/password/` with the new
     `NewPasswordFields.vue` (own, forced and reset forms, and UI 003), UI 003's
-    `password/{generate,policy-rules}.ts` moved to `src/shared/password/`, `useSecretRequest.ts`
+    `password/{generate,policy-rules}.ts` moved to `src/shared/password/`, `useSecretMutation.ts`
     (every secret-bearing request, R13), `usePerItemRunner.ts` (temporary aliases, filters, R15),
     `MailboxSearchPicker.vue` (R19) and `src/shared/platform/download.ts` (R21). Byte lengths use
     UI 004's `src/shared/validation/utf8.ts`.
@@ -215,7 +215,7 @@ point that UI 003's plan has to provide (R5).
   - **One dispatcher for the session reactions**: `src/api/query/client.ts` exports
     `dispatchProblemReactions(problem, { sessionReactions })`, the function its query and mutation
     caches' `onError` call. Requests that bypass TanStack Query because they carry secrets (R13) call
-    it too, through `useSecretRequest`, so `unauthenticated`, `pending-action-required`, `forbidden`
+    it too, through `useSecretMutation`, so `unauthenticated`, `pending-action-required`, `forbidden`
     and `permission-flag-required` behave the same for them. The option `sessionReactions: false`
     skips the session reactions; only the password reset completion uses it: its `401
     second-factor-required` asks for a second factor *for the reset*, not for a pending sign-in, and
@@ -274,7 +274,7 @@ point that UI 003's plan has to provide (R5).
   - **Own password** (`/account/password`, FR-021 to FR-028): current password, new password twice,
     "Sign out my other sessions" ticked by default (`endOtherSessions`). Before the change, mailbox
     users see "Your {n} app passwords keep working" from the overview's `activeAppPasswords`
-    (FR-027). The request runs through `useSecretRequest` (R13). On `200` the app clears the fields
+    (FR-027). The request runs through `useSecretMutation` (R13). On `200` the app clears the fields
     and announces one message built from
     `sessionsEnded`, `activeAppPasswords` (mailbox users) and `mailServerCacheSeconds` ("Mail apps
     may accept the old password for up to 5 minutes"), with plural forms (FR-026, FR-119). The
@@ -371,7 +371,7 @@ point that UI 003's plan has to provide (R5).
     `^[0-9]{6}$` check). On wide screens the QR code sits beside the key; on phones it follows the
     actions, as FR-046 requires.
   - **Confirmation**: `enrolOwnSecondFactor` with `{ type: 'totp', name, code, currentPassword? }`,
-    through `useSecretRequest` like every enrolment and removal request (R13).
+    through `useSecretMutation` like every enrolment and removal request (R13).
     `second-factor-enrolment-failed` keeps the setup open with the same key, puts the error on the
     code field with "{n} attempts left" (`attemptsRemaining`) and the hint to check the phone's time
     (spec edge case). `second-factor-enrolment-expired`, `attemptsRemaining: 0` and the local
@@ -505,7 +505,7 @@ point that UI 003's plan has to provide (R5).
        The proof is sent together with the password again. `second-factor-failed` keeps the step
        and allows another try while the link is valid (FR-040); `temporary-verification-failure`
        keeps it with a retry; `second-factor-unavailable` shows the "ask an administrator" state.
-       These requests carry the token and the password, so they run through `useSecretRequest`
+       These requests carry the token and the password, so they run through `useSecretMutation`
        (R13) with `sessionReactions: false` (R6).
     5. **Done** (FR-041): the app says that all sessions of the account were signed out and offers
        the sign-in screen; it never signs in. It then refetches `session`; when this browser's
@@ -547,8 +547,9 @@ point that UI 003's plan has to provide (R5).
   - **Secret-bearing requests never touch TanStack Query** (`docs/conventions.md`, "Secrets in
     requests or responses"). TanStack keeps a mutation's `variables` and `data` in the mutation
     cache, so a password in a request is as exposed as a secret in a response.
-    `useSecretRequest` (`src/shared/composables/useSecretRequest.ts`) calls the client directly and
-    exposes `pending`, `problem` and `run()` as component state only. On a problem it calls
+    `useSecretMutation` (`src/shared/composables/useSecretMutation.ts`, the shared name reused by UI
+    001, 010 and 012) is a small composable around a direct call of the generated client: it exposes
+    `pending`, `problem`, `result` and `run()` as component state only, with no cache. On a problem it calls
     `dispatchProblemReactions()` (R6), so the session reactions still apply; after success the
     caller invalidates the affected query keys itself (data-model §3). It is used for every request
     that carries or returns a secret:
@@ -569,8 +570,9 @@ point that UI 003's plan has to provide (R5).
 - **Rationale**: Calling the client directly is the only way to keep both the request and the
   response out of every cache; routing problems through the same dispatcher keeps 001's session
   behaviour.
-- **Alternatives considered**: A `useMutation` wrapper with `gcTime: 0` that strips the secret from
-  the result was rejected: the mutation cache still holds the request `variables` (passwords, codes,
+- **Alternatives considered**: Building `useSecretMutation` as a `useMutation` wrapper with
+  `gcTime: 0` that strips the secret from the result was rejected (the name is kept, as the
+  conventions' shared block reused by UI 001, 010 and 012, but it never touches TanStack Query): the mutation cache still holds the request `variables` (passwords, codes,
   tokens) and the data until garbage collection. `mutation.reset()` after reading was rejected for
   the same reason.
 
@@ -584,7 +586,7 @@ point that UI 003's plan has to provide (R5).
   - **Create** (`…/app-passwords/new`, FR-061 to FR-063): name (1–255 after trimming), the six
     protocols as checkboxes (IMAP, POP3, SMTP, Sieve, ActiveSync, CalDAV/CardDAV, all ticked), active
     switch (on). Unticking all protocols shows an inline warning that the app password then works
-    nowhere and still allows saving (spec edge case). `createAppPassword` (through `useSecretRequest`) without `password`; the
+    nowhere and still allows saving (spec edge case). `createAppPassword` (through `useSecretMutation`) without `password`; the
     `generatedPassword` goes to `OneTimeSecretDialog` with the mailbox address as username and
     `grouped` set; closing it replaces the route with the detail page.
   - **Detail** (`…/app-passwords/:appPasswordId`): rename and protocols as editable sections
@@ -655,7 +657,7 @@ point that UI 003's plan has to provide (R5).
     `pushSendersMax` entries of ≤ 255 characters), sound (native select of
     `capabilities.pushoverSounds`, plus the stored value when it is not in that list), active, and
     under "Advanced settings" the sender pattern (≤ `pushSenderPatternMaxLength`), "Escalate high
-    priority mail" and "Only consider high priority mail". `replacePushNotificationSettings` (through `useSecretRequest`) sends
+    priority mail" and "Only consider high priority mail". `replacePushNotificationSettings` (through `useSecretMutation`) sends
     the whole form with `If-Match`; the token and key members are omitted when left empty. The help
     lists the placeholders of the contract and legacy `user.pushover_info` with the mailbox address
     and `edit.pushover_vars` (FR-079). "Verify credentials" announces Pushover's verdict and reason

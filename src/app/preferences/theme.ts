@@ -2,6 +2,8 @@
 // class (Tailwind's dark variant) and `color-scheme` (native controls), and remembered on the
 // device, where public/theme-init.js reads it before the first paint. `system` follows the device
 // setting through a matchMedia listener, without a reload.
+import { readonly, ref } from 'vue'
+
 import type { Theme } from '@/api'
 import { localStore } from '@/shared/platform/storage'
 
@@ -10,6 +12,13 @@ const DARK_QUERY = '(prefers-color-scheme: dark)'
 type MatchMedia = (query: string) => MediaQueryList
 
 let following: { list: MediaQueryList; listener: () => void } | null = null
+
+const dark = ref(
+  typeof document !== 'undefined' && document.documentElement.classList.contains('dark'),
+)
+
+/** Whether the app currently shows dark, for example to choose the logo (FR-059). */
+export const darkMode = readonly(dark)
 
 function deviceMatchMedia(): MatchMedia | undefined {
   return typeof window.matchMedia === 'function' ? window.matchMedia.bind(window) : undefined
@@ -22,11 +31,12 @@ export function resolveDark(theme: Theme, matchMedia: MatchMedia | undefined): b
   return matchMedia?.(DARK_QUERY).matches ?? false
 }
 
-function paint(dark: boolean): void {
+function paint(isDark: boolean): void {
   const root = document.documentElement
-  root.classList.toggle('dark', dark)
+  root.classList.toggle('dark', isDark)
   // CSSOM, which the strict CSP allows.
-  root.style.colorScheme = dark ? 'dark' : 'light'
+  root.style.colorScheme = isDark ? 'dark' : 'light'
+  dark.value = isDark
 }
 
 export function stopFollowingSystem(): void {

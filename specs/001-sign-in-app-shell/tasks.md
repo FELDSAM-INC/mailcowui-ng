@@ -287,7 +287,7 @@ renders in:
   - `returnTo` carried to sign-in and to the second-factor step;
   - a refetch of the identity only when it is older than 5 minutes (FR-050);
   - a route the catalogue denies resolves, but is marked for `NoAccessState` (FR-045).
-- [ ] T040 [P] Write `tests/unit/app/bootstrap.spec.ts`, `tests/unit/app/branding/public-config.spec.ts` and `tests/unit/app/branding/app-links.spec.ts`.
+- [X] T040 [P] Write `tests/unit/app/bootstrap.spec.ts`, `tests/unit/app/branding/public-config.spec.ts` and `tests/unit/app/branding/app-links.spec.ts`.
   - The bootstrap test covers:
     - `GET /csrf-token` first, then `getSession` and `getPublicConfig` in parallel, then `getIdentity` only for active or restricted sessions;
     - a network error or any 5xx, including a non-JSON 502, shows `ServiceUnavailablePage` with a retry;
@@ -356,7 +356,7 @@ renders in:
 
   Seed `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` with the shared namespaces `common`, `problem.*` (every `KnownProblemType`, `status.*`, `generic`), `validation.*` (every `ValidationRuleCode`, `format.*`, `invalid`), `roles.*`, `themes.*`, `states.*`, `nav.*` (every catalogue entry) and `a11y.*`. Create the initial `src/i18n/legacy-map.json`, and run `npm run i18n:import` to generate `src/i18n/legacy/*.json`. T031 must pass, and `npm run i18n:check` must pass.
 - [X] T056 Implement `src/app/preferences/store.ts`, `src/app/preferences/theme.ts` and `src/app/preferences/locale.ts` (R15, R16), so that T032 passes.
-- [ ] T057 Implement `src/app/branding/public-config.ts` (the query, logo per theme, and the plain-text fields), `src/app/branding/defaults.ts` (the FR-003 neutral defaults using `location.hostname`, with no product name in the source) and `src/app/branding/app-links.ts` (the `AppLinkView` of data-model §2: `safeHref`, `%u` replaced with `encodeURIComponent`, the login-page filter, and `appsLabel` falling back to `apps.defaultLabel`). The branding part of T040 must pass.
+- [X] T057 Implement `src/app/branding/public-config.ts` (the query, logo per theme, and the plain-text fields), `src/app/branding/defaults.ts` (the FR-003 neutral defaults using `location.hostname`, with no product name in the source) and `src/app/branding/app-links.ts` (the `AppLinkView` of data-model §2: `safeHref`, `%u` replaced with `encodeURIComponent`, the login-page filter, and `appsLabel` falling back to `apps.defaultLabel`). The branding part of T040 must pass.
 - [X] T058 Implement `src/app/session/store.ts` (the data-model §4 fields), `src/app/session/queries.ts` (the `session` and `identity` queries), `src/app/session/session-end.ts`, `src/app/session/sign-out.ts` and `src/app/session/cross-tab.ts` (BroadcastChannel wiring, and the identity mismatch check), so that T041 passes.
 - [X] T059 Implement `src/app/navigation/catalogue.ts` (the 17 rows of data-model §2, with the per-role `access` and `classic` addresses of research R19), `src/app/navigation/visibility.ts` and `src/app/navigation/classic-links.ts` (the classic sign-in, reset and section addresses), so that T038 passes. Every row starts with `status: 'placeholder'`; the stories flip `home` (T083), `passkeys` (T106), `apiKeys` (T129) and `auditLog` (T139) to `available`, so no entry ever leads to "not found" (SC-007).
 - [X] T060 Implement:

@@ -9,7 +9,7 @@ import { expectHome, signIn, signOut } from './fixtures/flows'
 import { freshTotp } from './fixtures/totp'
 
 const CSP =
-  "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
+  "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://api.pwnedpasswords.com; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"
 
 test('@read-only admin signs in with a password and signs out', async ({ page }) => {
   await signIn(page, admin.username, admin.password)

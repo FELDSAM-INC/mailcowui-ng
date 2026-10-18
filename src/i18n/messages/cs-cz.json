@@ -874,5 +874,8 @@
     "sort": {
       "quotaUsed": "Využité místo"
     }
+  },
+  "hibp": {
+    "error": "Chyba API"
   }
 }

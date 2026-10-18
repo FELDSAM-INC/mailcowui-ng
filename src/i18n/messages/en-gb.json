@@ -874,5 +874,8 @@
     "sort": {
       "quotaUsed": "Storage used"
     }
+  },
+  "hibp": {
+    "error": "API error"
   }
 }

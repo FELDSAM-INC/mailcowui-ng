@@ -47,7 +47,7 @@ describe('auditLabel', () => {
   })
 
   it('shows codes of later features with a generic label and the code', () => {
-    expect(auditLabel('eventType', 'mailboxCreation', tr)).toBe('Unknown (mailboxCreation)')
+    expect(auditLabel('eventType', 'massMailJobCreation', tr)).toBe('Unknown (massMailJobCreation)')
     expect(auditLabel('failureReason', 'quotaExceeded', tr)).toBe('Unknown (quotaExceeded)')
     expect(auditLabel('authMethod', 'oauth2', tr)).toBe('Unknown (oauth2)')
   })
@@ -63,7 +63,7 @@ describe('AuditEventItem with unknown codes', () => {
     const event = {
       id: '01JB3K4M5N6P7Q8R9S0TVWXYZA',
       occurredAt: '2026-10-18T10:00:00Z',
-      eventType: 'mailboxCreation',
+      eventType: 'massMailJobCreation',
       outcome: 'failure',
       actor: { username: 'admin', role: 'admin', apiKeyId: null },
       target: null,
@@ -75,7 +75,7 @@ describe('AuditEventItem with unknown codes', () => {
       details: {},
     } as unknown as AuditEvent
     const wrapper = mountWithApp(AuditEventItem, { props: { event } })
-    expect(wrapper.text()).toContain('Unknown (mailboxCreation)')
+    expect(wrapper.text()).toContain('Unknown (massMailJobCreation)')
     expect(wrapper.text()).toContain('Unknown (oauth2)')
     expect(wrapper.text()).toContain('Unknown (quotaExceeded)')
   })

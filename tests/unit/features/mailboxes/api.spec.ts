@@ -66,11 +66,13 @@ describe('updateMailbox', () => {
     const anna = await fetchMailbox('anna@a.example')
     const saved = await updateMailbox(client, anna.address, { displayName: 'Anna S' }, anna.etag)
     expect(saved.displayName).toBe('Anna S')
-    expect(client.getQueryData<Mailbox>(queryKeys.mailboxes.detail('anna@a.example'))?.displayName).toBe(
+    expect(
+      client.getQueryData<Mailbox>(queryKeys.mailboxes.detail('anna@a.example'))?.displayName,
+    ).toBe('Anna S')
+    const cached = client.getQueryData<{ data: Mailbox[] }>(listKey)
+    expect(cached?.data.find((item) => item.address === 'anna@a.example')?.displayName).toBe(
       'Anna S',
     )
-    const cached = client.getQueryData<{ data: Mailbox[] }>(listKey)
-    expect(cached?.data.find((item) => item.address === 'anna@a.example')?.displayName).toBe('Anna S')
     expect(client.getQueryState(listKey)?.isInvalidated).toBe(true)
   })
 })

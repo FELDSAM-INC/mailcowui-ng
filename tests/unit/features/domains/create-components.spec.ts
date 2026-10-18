@@ -2,7 +2,8 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import CreationReport from '@/features/domains/components/detail/CreationReport.vue'
+import { creationAlerts } from '@/features/domains/creation-report'
+import CreationReport from '@/shared/components/CreationReport.vue'
 import * as announcer from '@/shared/composables/useAnnouncer'
 
 import { mountWithApp } from '../../support/mount'
@@ -12,14 +13,13 @@ describe('CreationReport', () => {
     const announce = vi.spyOn(announcer, 'announce')
     const wrapper = mountWithApp(CreationReport, {
       props: {
-        name: 'mixed.example',
-        report: {
+        alerts: creationAlerts('mixed.example', {
           rateLimit: 'notRequested',
           dkimKey: 'alreadyExisted',
           dkimDnsPublication: 'skipped',
           groupwareRestart: 'failed',
           messages: { groupwareRestart: 'English, never shown' },
-        },
+        }),
       },
     })
     const alerts = wrapper.findAll('[data-alert]')
@@ -38,13 +38,12 @@ describe('CreationReport', () => {
   it('says "Added domain …" with the domain name', () => {
     const wrapper = mountWithApp(CreationReport, {
       props: {
-        name: 'new.example',
-        report: {
+        alerts: creationAlerts('new.example', {
           rateLimit: 'notRequested',
           dkimKey: 'notRequested',
           dkimDnsPublication: 'skipped',
           groupwareRestart: 'notRequested',
-        },
+        }),
       },
     })
     expect(wrapper.text()).toContain('Added domain new.example')

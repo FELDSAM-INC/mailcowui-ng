@@ -324,10 +324,6 @@
       "suggestionsUnavailable": "Návrhy nejsou k dispozici",
       "tooLong": "Štítky mohou mít nejvýše {max} znaků."
     },
-    "rateLimit": {
-      "frameLabel": "Časový úsek",
-      "value": "Zprávy"
-    },
     "values": {
       "no": "Ne",
       "none": "Žádné",
@@ -455,7 +451,11 @@
     "errorSummary": {
       "title": "Opravte prosím následující"
     },
-    "required": "povinné"
+    "required": "povinné",
+    "rateLimit": {
+      "frame": "Časový úsek",
+      "value": "Zprávy"
+    }
   },
   "hibp": {
     "error": "Chyba API"

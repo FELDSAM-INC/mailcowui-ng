@@ -1,29 +1,37 @@
 <script setup lang="ts">
 // The rate limit as the classic forms ask for it (`mailbox/rl-frame.twig`, owner rule 1:1): one
-// number, empty for none (the placeholder says "Disabled"), and the frame. Promoted from UI 002 at
-// its second use (UI 003's mailbox and template forms).
+// whole number, empty for none (the placeholder says "Disabled"), and the frame. Promoted from
+// UI 002 at its second use (UI 003's mailbox and template forms); UI 004 adds `frames`, the frames
+// the caller's capabilities offer.
 import { useI18n } from 'vue-i18n'
 
-import { domainRateLimitFrameValues, type DomainRateLimit } from '@/api'
 import { lt, type LegacyKey } from '@/i18n'
+
+export type RateLimitFrame = 'second' | 'minute' | 'hour' | 'day'
 
 const props = withDefaults(
   defineProps<{
     idPrefix: string
     value: string
-    frame: DomainRateLimit['frame']
-    /** `edit.ratelimit`; the add domain form says `acl.ratelimit`. */
+    frame: RateLimitFrame
+    /** The frames the server offers, in its order. */
+    frames?: readonly RateLimitFrame[]
+    /** `edit.ratelimit`; the add forms say `acl.ratelimit`. */
     labelKey?: LegacyKey
     errors?: readonly string[]
   }>(),
-  { labelKey: 'edit.ratelimit', errors: () => [] },
+  {
+    frames: () => ['second', 'minute', 'hour', 'day'],
+    labelKey: 'edit.ratelimit',
+    errors: () => [],
+  },
 )
 const emit = defineEmits<{
   'update:value': [value: string]
-  'update:frame': [frame: DomainRateLimit['frame']]
+  'update:frame': [frame: RateLimitFrame]
 }>()
 const { t } = useI18n()
-const FRAME_KEYS: Record<DomainRateLimit['frame'], LegacyKey> = {
+const FRAME_KEYS: Record<RateLimitFrame, LegacyKey> = {
   second: 'ratelimit.second',
   minute: 'ratelimit.minute',
   hour: 'ratelimit.hour',
@@ -45,7 +53,7 @@ const FRAME_KEYS: Record<DomainRateLimit['frame'], LegacyKey> = {
         pattern="[0-9]*"
         autocomplete="off"
         :placeholder="lt('ratelimit.disabled')"
-        :aria-label="t('domains.rateLimit.value')"
+        :aria-label="t('forms.rateLimit.value')"
         :aria-invalid="errors.length > 0 ? 'true' : undefined"
         :aria-describedby="errors.length > 0 ? `${idPrefix}-error` : undefined"
         class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none aria-invalid:border-red-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
@@ -54,16 +62,11 @@ const FRAME_KEYS: Record<DomainRateLimit['frame'], LegacyKey> = {
       <select
         :id="`${idPrefix}-frame`"
         :value="frame"
-        :aria-label="t('domains.rateLimit.frameLabel')"
+        :aria-label="t('forms.rateLimit.frame')"
         class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-        @change="
-          emit(
-            'update:frame',
-            ($event.target as HTMLSelectElement).value as DomainRateLimit['frame'],
-          )
-        "
+        @change="emit('update:frame', ($event.target as HTMLSelectElement).value as RateLimitFrame)"
       >
-        <option v-for="option in domainRateLimitFrameValues" :key="option" :value="option">
+        <option v-for="option in frames" :key="option" :value="option">
           {{ lt(FRAME_KEYS[option]) }}
         </option>
       </select>

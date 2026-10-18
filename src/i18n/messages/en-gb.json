@@ -324,10 +324,6 @@
       "suggestionsUnavailable": "Suggestions unavailable",
       "tooLong": "Tags may have at most {max} characters."
     },
-    "rateLimit": {
-      "frameLabel": "Time frame",
-      "value": "Messages"
-    },
     "values": {
       "no": "No",
       "none": "None",
@@ -455,7 +451,11 @@
     "errorSummary": {
       "title": "Please correct the following"
     },
-    "required": "required"
+    "required": "required",
+    "rateLimit": {
+      "frame": "Time frame",
+      "value": "Messages"
+    }
   },
   "hibp": {
     "error": "API error"

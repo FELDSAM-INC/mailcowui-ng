@@ -1,24 +1,27 @@
 <script setup lang="ts">
-// The outcomes of a domain creation as the classic interface's alerts (FR-026, docs/conventions.md
+// The outcomes of a creation as the classic interface's alerts (UI 002 FR-026, docs/conventions.md
 // "Outcomes"): one alert per outcome with legacy's text, by text, colour and icon, announced
 // politely. They stay until closed or the page is left. The API's English messages are never
-// shown.
+// shown. Promoted from UI 002 at its second use (UI 004 research D13): the feature builds the
+// alerts from its report.
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { DomainCreationReport } from '@/api'
 import { resolveText } from '@/i18n'
 import { isLegacyRef } from '@/i18n/text'
-import { announce } from '@/shared/composables/useAnnouncer'
-import { CheckIcon, CloseIcon, DangerIcon, WarningIcon } from '@/shared/icons'
 
-import { creationAlerts, type AlertKind, type CreationAlert } from '../../creation-report'
+import { announce } from '../composables/useAnnouncer'
+import { CheckIcon, CloseIcon, DangerIcon, WarningIcon } from '../icons'
+import type { AlertKind, CreationAlert } from './creation-alert'
 
-const props = defineProps<{ name: string; report: DomainCreationReport }>()
+const props = withDefaults(
+  defineProps<{ alerts: readonly CreationAlert[]; dismissible?: boolean }>(),
+  { dismissible: true },
+)
 const emit = defineEmits<{ dismiss: [] }>()
 const { t } = useI18n()
 
-const alerts = computed(() => creationAlerts(props.name, props.report))
+const alerts = computed(() => props.alerts)
 const ICONS: Record<AlertKind, typeof CheckIcon> = {
   success: CheckIcon,
   warning: WarningIcon,
@@ -55,6 +58,7 @@ onMounted(() => announce(alerts.value.map(text).join(' ')))
       </li>
     </ul>
     <button
+      v-if="dismissible"
       type="button"
       class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
       :aria-label="t('common.close')"

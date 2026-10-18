@@ -180,7 +180,7 @@ accepts the new entry forms.
     `src/shared/components/DomainPicker.vue`. Fetching goes through props, so shared code never
     imports a feature.
   - Update `src/features/mailboxes/index.ts` and UI 003's imports, so that UI 003's tests stay green.
-- [ ] T009 [P] Promote UI 002's display and field components (D12, D13):
+- [X] T009 *(done: DomainNameText and CreationReport moved to src/shared/components; UI 002's LegacyRateLimitField promoted as RateLimitField (frames prop); DkimFields extracted from UI 002's domain value fields as legacy's selector and key length (no switch: legacy form map part 3, item 6); CreationReport takes the feature's legacy alerts (creation-alert.ts); tests/unit/shared/components/promoted-004.spec.ts, UI 002's tests follow the moves)* [P] Promote UI 002's display and field components (D12, D13):
   - Write `tests/unit/shared/components/{DomainNameText,DkimFields,RateLimitField,CreationReport}.spec.ts`:
     - `DomainNameText`: the readable text, and the ASCII text only when it differs.
     - `DkimFields`:
@@ -235,7 +235,7 @@ accepts the new entry forms.
 
 ### Contract-validated mock for the 23 operations (research R21)
 
-- [ ] T014 [P] Write `tests/unit/mocks/feature-004-handlers.spec.ts` against `tests/mocks/node.ts`.
+- [X] T014 *(done: fork-built mock (e2c5473, 50b3536): factories alias/alias-domain/resource/sender-acl, feature-004-rules.ts and the four handler modules on openapi-msw, state and patch members (changeElsewhere, deleteElsewhere, flags, capabilities004, sharedStoreDown), mailboxes from UI 002's domain mailboxAddresses until UI 003's store lands; tests/unit/mocks/feature-004-handlers.spec.ts written first)* [P] Write `tests/unit/mocks/feature-004-handlers.spec.ts` against `tests/mocks/node.ts`.
   Every response passes the validator, and the documented behaviours hold:
   - **Aliases**:
     - `listAliases`: every filter, sort key and `q` field of the contract; newest first by default;
@@ -291,7 +291,7 @@ accepts the new entry forms.
     - candidates: `mailbox`, `q`, `type`, paging and the exclusions.
 
   The test must fail.
-- [ ] T015 Extend `tests/mocks/scenarios/state.ts` with `aliases`, `aliasDomains`, `resources`,
+- [X] T015 *(done: fork-built mock (e2c5473, 50b3536): factories alias/alias-domain/resource/sender-acl, feature-004-rules.ts and the four handler modules on openapi-msw, state and patch members (changeElsewhere, deleteElsewhere, flags, capabilities004, sharedStoreDown), mailboxes from UI 002's domain mailboxAddresses until UI 003's store lands; tests/unit/mocks/feature-004-handlers.spec.ts written first)* Extend `tests/mocks/scenarios/state.ts` with `aliases`, `aliasDomains`, `resources`,
   `senderAcl`, `temporaryAliasAddresses`, `capabilities004`, `aliasDomainCreationOutcomes` and
   `sharedStoreDown`, on top of UI 002's domains and UI 003's mailboxes. Create the factories
   `tests/mocks/factories/alias.ts`, `tests/mocks/factories/alias-domain.ts`,
@@ -302,7 +302,7 @@ accepts the new entry forms.
   - `flags` (a domain administrator's permission flags);
   - `capabilities004`;
   - `sharedStoreDown`.
-- [ ] T016 Implement `tests/mocks/handlers/feature-004-rules.ts` (research R21):
+- [X] T016 *(done: fork-built mock (e2c5473, 50b3536): factories alias/alias-domain/resource/sender-acl, feature-004-rules.ts and the four handler modules on openapi-msw, state and patch members (changeElsewhere, deleteElsewhere, flags, capabilities004, sharedStoreDown), mailboxes from UI 002's domain mailboxAddresses until UI 003's store lands; tests/unit/mocks/feature-004-handlers.spec.ts written first)* Implement `tests/mocks/handlers/feature-004-rules.ts` (research R21):
   - normalisation;
   - holder lookup across mailboxes, resources, aliases and temporary aliases, including addresses
     reached through an alias domain;
@@ -314,12 +314,12 @@ accepts the new entry forms.
   - implicit sender addresses, `changeable`, `stale` and candidate filtering;
   - resource address derivation;
   - validation codes and parameters as in data-model §6.
-- [ ] T017 Implement `tests/mocks/handlers/aliases.ts`, `tests/mocks/handlers/alias-domains.ts`,
+- [X] T017 *(done: fork-built mock (e2c5473, 50b3536): factories alias/alias-domain/resource/sender-acl, feature-004-rules.ts and the four handler modules on openapi-msw, state and patch members (changeElsewhere, deleteElsewhere, flags, capabilities004, sharedStoreDown), mailboxes from UI 002's domain mailboxAddresses until UI 003's store lands; tests/unit/mocks/feature-004-handlers.spec.ts written first)* Implement `tests/mocks/handlers/aliases.ts`, `tests/mocks/handlers/alias-domains.ts`,
   `tests/mocks/handlers/resources.ts` and `tests/mocks/handlers/sender-settings.ts`. Together they
   cover the 23 operations, written with `openapi-msw` on T016's rules and wrapped by the validator.
   Register them in `tests/mocks/handlers/index.ts`. A request that matches no contract operation
   stays a recorded violation (FR-070). T014 must pass.
-- [ ] T018 Create `tests/mocks/scenarios/feature-004-base.ts` and register it in
+- [X] T018 *(done: fork-built mock (e2c5473, 50b3536): factories alias/alias-domain/resource/sender-acl, feature-004-rules.ts and the four handler modules on openapi-msw, state and patch members (changeElsewhere, deleteElsewhere, flags, capabilities004, sharedStoreDown), mailboxes from UI 002's domain mailboxAddresses until UI 003's store lands; tests/unit/mocks/feature-004-handlers.spec.ts written first)* Create `tests/mocks/scenarios/feature-004-base.ts` and register it in
   `tests/mocks/scenarios/index.ts`, with these scenarios:
   - `admin-004`: active admin, ten domains with alias domains, a few aliases, resources and sender
     settings;
@@ -418,7 +418,7 @@ compare the values with the mock data.
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T030 [US1] Create `tests/mocks/scenarios/aliases-list.ts` and register it in
+- [X] T030 *(done: scenario module with exported constants, built with the mock (50b3536))* [US1] Create `tests/mocks/scenarios/aliases-list.ts` and register it in
   `tests/mocks/scenarios/index.ts`, with these scenarios:
   - `aliases-60`: 60 aliases of every kind:
     - regular and catch-all;
@@ -567,7 +567,7 @@ page).
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T041 [US2] Create `tests/mocks/scenarios/aliases-create.ts` and register it, with these
+- [X] T041 *(done: scenario module with exported constants, built with the mock (50b3536))* [US2] Create `tests/mocks/scenarios/aliases-create.ts` and register it, with these
   scenarios:
   - `aliases-create`: holders of each kind, among them `sales@example.org` held by an alias;
   - `aliases-create-limit`: `example.org` at its alias limit;
@@ -668,7 +668,7 @@ with and without confirming.
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T050 [US3] Create `tests/mocks/scenarios/aliases-edit.ts` and register it, with these cases:
+- [X] T050 *(done: scenario module with exported constants, built with the mock (50b3536))* [US3] Create `tests/mocks/scenarios/aliases-edit.ts` and register it, with these cases:
   - `sales@example.org` delivering to Anna;
   - an alias with an external destination that an administrator set, opened by
     `domain-admin-004`;
@@ -760,7 +760,7 @@ failed steps and every documented refusal.
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T059 [US4] Create `tests/mocks/scenarios/alias-domains.ts` and register it, with these
+- [X] T059 *(done: scenario module with exported constants, built with the mock (50b3536))* [US4] Create `tests/mocks/scenarios/alias-domains.ts` and register it, with these
   scenarios:
   - `alias-domains`: the domain administrator with `aliasDomains` manages `example.org`;
     `example.net` is an alias domain with 7 aliases;
@@ -897,7 +897,7 @@ point at US1's detail.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T070 [US5] Create `tests/mocks/scenarios/sender-settings.ts` and register it, with these
+- [X] T070 *(done: scenario module with exported constants, built with the mock (50b3536))* [US5] Create `tests/mocks/scenarios/sender-settings.ts` and register it, with these
   scenarios:
   - `sender-settings`: Anna receives `sales@` (sending allowed) and `info@` (not allowed), has
     `@example.com` explicitly and has alias-domain addresses;
@@ -1020,7 +1020,7 @@ per-object results and the selection afterwards.
 
 ### Tests for User Story 6 (write first; must fail)
 
-- [ ] T079 [US6] Create `tests/mocks/scenarios/bulk-004.ts` and register it, with these scenarios:
+- [X] T079 *(done: scenario module with exported constants, built with the mock (50b3536))* [US6] Create `tests/mocks/scenarios/bulk-004.ts` and register it, with these scenarios:
   - `bulk-004`: 30 active aliases on one page; five aliases, two of them deleted after loading
     (`deleteElsewhere`); one changed after loading (`changeElsewhere`);
   - `sales@example.org` with the alias domains `example.net`, where `sales@example.net` exists, and
@@ -1118,7 +1118,7 @@ shared D2–D5.
 
 ### Tests for User Story 7 (write first; must fail)
 
-- [ ] T090 [US7] Create `tests/mocks/scenarios/resources.ts` and register it, with these cases:
+- [X] T090 *(done: scenario module with exported constants, built with the mock (50b3536))* [US7] Create `tests/mocks/scenarios/resources.ts` and register it, with these cases:
   - resources of each kind and booking rule, among them `MeetingRoom1@example.org`;
   - the domain administrator's scope;
   - five resources for a bulk deletion;
@@ -1218,7 +1218,7 @@ audit log is filtered by that object. As a domain administrator, check that the 
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T102 [US8] Create `tests/mocks/scenarios/history-004.ts` and register it. It seeds audit
+- [X] T102 *(done: scenario module with exported constants, built with the mock (50b3536))* [US8] Create `tests/mocks/scenarios/history-004.ts` and register it. It seeds audit
   records with the 10 feature 004 event types and the 4 target types, using contract values only, so
   that the validator accepts them (UI 001 R22).
 - [ ] T103 [P] [US8] Write `tests/e2e/history/feature-004-history.spec.ts`. It covers:

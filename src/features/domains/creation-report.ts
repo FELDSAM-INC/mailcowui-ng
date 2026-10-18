@@ -7,16 +7,10 @@
 // publication outcomes "no zone" and "failed" (FeldHost). The placeholder is the ASCII domain name,
 // as legacy fills it.
 import type { DomainCreationReport } from '@/api'
-import { legacy, type LegacyKey, type TextRef } from '@/i18n'
+import { legacy, type LegacyKey } from '@/i18n'
+import type { AlertKind, CreationAlert } from '@/shared/components/creation-alert'
 
-export type AlertKind = 'success' | 'warning' | 'danger'
-
-export interface CreationAlert {
-  kind: AlertKind
-  /** mailcow's own text with its argument, or a new string's key (filled with `params`). */
-  text: TextRef
-  params: string[]
-}
+export type { AlertKind, CreationAlert }
 
 export function creationAlerts(name: string, report: DomainCreationReport): CreationAlert[] {
   const alerts: CreationAlert[] = []

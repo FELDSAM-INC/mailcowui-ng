@@ -27,7 +27,8 @@ import { useDomainCapabilities } from '../capabilities'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 
-import CreationReport from '../components/detail/CreationReport.vue'
+import CreationReport from '@/shared/components/CreationReport.vue'
+import { creationAlerts } from '../creation-report'
 import DomainAdminsList from '../components/detail/DomainAdminsList.vue'
 import DomainSection from '../components/detail/sections/DomainSection.vue'
 import FooterSection from '../components/detail/sections/FooterSection.vue'
@@ -215,7 +216,11 @@ watch(
           <HistoryLink :target-id="domain.name" :allowed="historyAllowed" />
         </template>
       </PageHeader>
-      <CreationReport v-if="report" :name="domain.name" :report="report" @dismiss="report = null" />
+      <CreationReport
+        v-if="report"
+        :alerts="creationAlerts(domain.name, report)"
+        @dismiss="report = null"
+      />
       <UsageSummary :domain="domain" />
       <DomainAdminsList v-if="permissions.canSeeDomainAdmins" :admins="domain.domainAdmins ?? []" />
     </template>

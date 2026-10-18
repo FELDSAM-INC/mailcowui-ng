@@ -21,6 +21,7 @@ import {
   type ValueForm,
 } from '../../form-labels'
 import type { DomainValues } from '../../create-form'
+import DkimFields from '@/shared/components/DkimFields.vue'
 import LegacyRateLimitField from '@/shared/components/LegacyRateLimitField.vue'
 import LimitField from './LimitField.vue'
 import RelayOptionsField from './RelayOptionsField.vue'
@@ -164,40 +165,16 @@ const LIMITS = ['maxAliases', 'maxMailboxes', 'maxMailboxQuota', 'domainQuota'] 
     </div>
 
     <div :class="GROUP">
-      <FormField
-        :id="`${idPrefix}-dkimSelector`"
-        :label="label('dkimSelector')"
-        :errors="errorsFor('dkimSelector')"
-      >
-        <template #default="control">
-          <input
-            v-bind="control"
-            :value="modelValue.dkimSelector"
-            type="text"
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
-            :class="INPUT"
-            @input="update('dkimSelector', ($event.target as HTMLInputElement).value)"
-          />
-        </template>
-      </FormField>
-      <FormField
-        :id="`${idPrefix}-dkimKeySize`"
-        :label="label('dkimKeySize')"
-        :errors="errorsFor('dkimKeySize')"
-      >
-        <template #default="control">
-          <select
-            v-bind="control"
-            :value="modelValue.dkimKeySize"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            @change="update('dkimKeySize', Number(($event.target as HTMLSelectElement).value))"
-          >
-            <option v-for="size in keySizes" :key="size" :value="size">{{ size }}</option>
-          </select>
-        </template>
-      </FormField>
+      <DkimFields
+        :id-prefix="idPrefix"
+        :selector="modelValue.dkimSelector"
+        :key-size="modelValue.dkimKeySize"
+        :key-sizes="keySizes"
+        :selector-errors="errorsFor('dkimSelector')"
+        :key-size-errors="errorsFor('dkimKeySize')"
+        @update:selector="update('dkimSelector', $event)"
+        @update:key-size="update('dkimKeySize', $event)"
+      />
     </div>
 
     <div :class="GROUP">

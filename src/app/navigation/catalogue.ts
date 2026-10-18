@@ -162,9 +162,15 @@ export const catalogue: readonly NavigationEntry[] = [
   entry('operations', '/operations', BarChartIcon, ADMIN, '011', {
     admin: ['/admin/dashboard', '/admin/queue'],
   }),
-  entry('identityProviders', '/identity-providers', LockIcon, ADMIN, '012', {
-    admin: ['/admin/system'],
-  }),
+  entry(
+    'identityProviders',
+    '/identity-providers',
+    LockIcon,
+    ADMIN,
+    '012',
+    { admin: ['/admin/system'] },
+    'available',
+  ),
   entry('system', '/system', GearIcon, ADMIN, '013', { admin: ['/admin/system'] }),
   entry('apiKeys', '/api-keys', KeyIcon, ADMIN, '001', {}, 'available'),
   entry('auditLog', '/audit-log', ListIcon, ADMIN, '001', {}, 'available'),

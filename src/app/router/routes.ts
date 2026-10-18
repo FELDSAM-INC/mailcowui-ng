@@ -9,6 +9,7 @@ import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
 import { domainRoutes } from '@/features/domains'
 import { homeRoutes } from '@/features/home'
+import { identityProviderRoutes } from '@/features/identity-providers'
 import { mailboxRoutes } from '@/features/mailboxes'
 import { passkeysRoutes } from '@/features/passkeys'
 import { syncJobRoutes } from '@/features/sync-jobs'
@@ -30,6 +31,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...domainRoutes,
   ...mailboxRoutes,
   ...syncJobRoutes,
+  ...identityProviderRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

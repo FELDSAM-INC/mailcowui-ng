@@ -19,11 +19,12 @@ import {
   type OperationMatch,
 } from '../contract/validator'
 import { applyIdleTimeout, type ScenarioState } from '../scenarios/state'
+import { aliasDomainHandlers } from './alias-domains'
+import { aliasHandlers } from './aliases'
 import { apiKeyHandlers } from './api-keys'
 import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
 import { problem, sessionAccount, withScenario } from './context'
-import { directoryListHandlers } from './directory-lists'
 import { domainTemplateHandlers } from './domain-templates'
 import { domainHandlers } from './domains'
 import { identityHandlers } from './identity'
@@ -37,6 +38,8 @@ import { mailboxReadHandlers } from './mailboxes-read'
 import { passkeyHandlers } from './passkeys'
 import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
+import { resourceHandlers } from './resources'
+import { senderSettingsHandlers } from './sender-settings'
 import { syncJobHandlers } from './sync-jobs'
 
 /** The typed handlers of every area. Stories add their modules here. */
@@ -49,7 +52,6 @@ export const areaHandlers: RequestHandler[] = [
   ...auditHandlers,
   ...domainHandlers,
   ...domainTemplateHandlers,
-  ...directoryListHandlers,
   // UI 003: one module per operation group (research R20).
   ...mailboxReadHandlers,
   ...mailboxUpdateHandlers,
@@ -60,6 +62,11 @@ export const areaHandlers: RequestHandler[] = [
   ...identityProviderHandlers,
   ...singleSignOnHandlers,
   ...oauth2ClientHandlers,
+  // UI 004
+  ...aliasHandlers,
+  ...aliasDomainHandlers,
+  ...resourceHandlers,
+  ...senderSettingsHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

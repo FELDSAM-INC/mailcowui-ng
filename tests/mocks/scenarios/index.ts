@@ -27,6 +27,11 @@ import { domainsHistoryScenarios } from './domains-history'
 import { domainsListScenarios } from './domains-list'
 import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from './mailboxes/base'
 import { mailboxEditScenarios } from './mailboxes/edit'
+import {
+  applyFeature004Overrides,
+  feature004BaseScenarios,
+  initialState004,
+} from './feature-004-base'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
@@ -91,6 +96,8 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...providerPasswordScenarios,
   ...oauth2ClientScenarios,
   ...auditIdentityProviderScenarios,
+  // UI 004
+  ...feature004BaseScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -187,6 +194,7 @@ export function applyOverrides(
   applyMailboxOverrides(state, overrides)
   if (overrides.syncJobs) applySyncJobChanges(state, overrides.syncJobs)
   applyIdentityProviderOverrides(state, overrides)
+  applyFeature004Overrides(state, overrides)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -236,6 +244,7 @@ export function createScenarioState(
     },
     oauth2Clients: [],
     oauth2Capabilities: { ...OAUTH2_CAPABILITIES },
+    ...initialState004(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

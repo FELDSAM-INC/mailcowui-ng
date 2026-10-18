@@ -2,6 +2,10 @@
 // accounts and data, the public configuration, the session (state, CSRF token, last activity,
 // pending sign-in and challenges), behaviour switches and failure injection by operationId.
 import type {
+  AliasCapabilities,
+  AliasDestinationType,
+  AliasDomainCreationReport,
+  AliasDomainRateLimit,
   ApiKey,
   AuditEvent,
   DomainCapabilities,
@@ -30,6 +34,8 @@ import type {
   PermissionFlags,
   Preferences,
   PublicConfig,
+  ResourceBookingRule,
+  ResourceKind,
   Role,
   Scope,
   SecondFactorMethod,
@@ -334,6 +340,41 @@ export interface MockMailboxTemplate {
 }
 
 /**
+ * A stored alias domain (UI 004 research R21). UI 002 stores only the name and the target; the
+ * other members default to active, no rate limit, a fixed creation time and never modified.
+ */
+export interface MockAliasDomain {
+  /** Lower-case ASCII name. */
+  name: string
+  target: string
+  active?: boolean
+  rateLimit?: AliasDomainRateLimit | null
+  createdAt?: string
+  modifiedAt?: string | null
+}
+
+/**
+ * A stored alias (UI 004): the `alias` row. `address` has the local part as given and the domain
+ * part in lower-case ASCII (`@domain` for a catch-all); the domain, kind, primary domain and
+ * orphaned state are derived from it and the stored domains.
+ */
+export interface MockAlias {
+  id: number
+  address: string
+  destinationType: AliasDestinationType
+  /** As stored, for `addresses`; empty for a special action. */
+  destinations: string[]
+  active: boolean
+  senderAllowed: boolean
+  groupwareVisible: boolean
+  internal: boolean
+  publicComment: string
+  privateComment: string
+  createdAt: string
+  modifiedAt: string | null
+}
+
+/**
  * A failure injected for one mailbox (by address) or one template (by `template:<id>`): its
  * writes, or only the listed operations, answer it. `extra` holds the problem's extension members
  * (`dependency`, `step`, `steps`, …).
@@ -362,6 +403,55 @@ export interface MailboxTemplateMutations {
   remove?: number[]
 }
 
+/** A stored groupware resource (UI 004): a `mailbox` row of a resource kind. */
+export interface MockResource {
+  /** Derived local part, its letter case kept, `@` and the ASCII domain. */
+  address: string
+  description: string
+  kind: ResourceKind
+  bookingRule: ResourceBookingRule
+  /** Only with `limited`. */
+  bookingLimit: number | null
+  active: boolean
+  createdAt: string
+  modifiedAt: string | null
+}
+
+/** A `sender_acl` row (UI 004): an explicit permission or, with `external`, an external address. */
+export interface MockSenderAcl {
+  mailbox: string
+  /** An address, `@domain` or `*`. */
+  sendAs: string
+  external: boolean
+}
+
+type ReportStep = keyof Omit<AliasDomainCreationReport, 'messages'>
+
+/** Outcomes of the alias domain creation report that override the computed ones (UI 004). */
+export type AliasDomainCreationOutcomes = Partial<{
+  [K in ReportStep]: AliasDomainCreationReport[K]
+}>
+
+/**
+ * Changes behind the app's back (UI 004 `changeElsewhere`), standing in for another administrator
+ * or the classic interface: stored values change, and with them the version tag and `modifiedAt`.
+ * Aliases are named by ID (as a string) or address, alias domains by name, resources by address and
+ * sender settings by mailbox.
+ */
+export interface ChangesElsewhere {
+  alias?: Record<string, Partial<Omit<MockAlias, 'id'>>>
+  aliasDomain?: Record<string, Partial<Omit<MockAliasDomain, 'name'>>>
+  resource?: Record<string, Partial<Omit<MockResource, 'address'>>>
+  senderSettings?: Record<string, { explicit?: string[]; external?: string[] }>
+}
+
+/** Objects deleted behind the app's back (UI 004 `deleteElsewhere`). */
+export interface DeletionsElsewhere {
+  alias?: (number | string)[]
+  aliasDomain?: string[]
+  resource?: string[]
+}
+
 export interface ScenarioState {
   id: string
   name: string
@@ -370,7 +460,7 @@ export interface ScenarioState {
   auditEvents: AuditEvent[]
   /** Domains, alias domains, templates, footers and DKIM keys (UI 002). */
   domains: MockDomain[]
-  aliasDomains: { name: string; target: string }[]
+  aliasDomains: MockAliasDomain[]
   domainTemplates: MockDomainTemplate[]
   footers: Record<string, MockFooter>
   dkimKeys: string[]
@@ -393,6 +483,18 @@ export interface ScenarioState {
   mailboxCreationReport: Partial<Omit<MailboxCreationReport, 'messages'>>
   /** UI 008: sync jobs, their capabilities and injected bulk failures. */
   syncJobs: SyncJobState
+  /** UI 004: aliases, resources, sender permissions and temporary aliases (research R21). */
+  aliases: MockAlias[]
+  /** The highest alias ID handed out, so that IDs are never reused. */
+  lastAliasId: number
+  resources: MockResource[]
+  senderAcl: MockSenderAcl[]
+  temporaryAliasAddresses: string[]
+  /** The full capabilities of `getAliasesCapabilities`; the handler adjusts them per role. */
+  capabilities004: AliasCapabilities
+  aliasDomainCreationOutcomes: AliasDomainCreationOutcomes
+  /** mailcow's shared store is down: alias domain reads and writes answer 503. */
+  sharedStoreDown: boolean
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -427,7 +529,7 @@ export interface ScenarioOverrides {
   domains?: DomainMutations
   templates?: TemplateMutations
   footers?: FooterMutations
-  aliasDomains?: { name: string; target: string }[]
+  aliasDomains?: MockAliasDomain[]
   dkimKeys?: string[]
   capabilities?: Partial<Omit<DomainCapabilities, 'dkim'>> & {
     dkim?: Partial<DomainDkimCapabilities>
@@ -452,12 +554,26 @@ export interface ScenarioOverrides {
   /** Replaces the OAuth2 clients. */
   oauth2Clients?: MockOauth2Client[]
   oauth2Capabilities?: Partial<Oauth2ClientCapabilities>
+  /** UI 004: data and switches (research R21). */
+  aliases?: MockAlias[]
+  resources?: MockResource[]
+  senderAcl?: MockSenderAcl[]
+  temporaryAliasAddresses?: string[]
+  capabilities004?: Partial<AliasCapabilities>
+  aliasDomainCreationOutcomes?: AliasDomainCreationOutcomes
+  sharedStoreDown?: boolean
+  /** Permission flags of accounts, merged by username. */
+  flags?: Record<string, Partial<PermissionFlags>>
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */
 export interface ScenarioPatch extends Omit<ScenarioOverrides, 'signedInAs'> {
   /** Ends the server session now, as an idle timeout would (page.clock cannot reach the mock). */
   expireSession?: boolean
+  /** UI 004: stored values changed behind the app's back. */
+  changeElsewhere?: ChangesElsewhere
+  /** UI 004: objects deleted behind the app's back. */
+  deleteElsewhere?: DeletionsElsewhere
 }
 
 export const DEFAULT_IDLE_TIMEOUT = 10_800

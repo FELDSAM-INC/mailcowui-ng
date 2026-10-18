@@ -91,18 +91,19 @@ These are not API shapes. Each is derived from API data or from app constants.
 | mailApps | hidden (reason `login.mobileconfig_info`) | hidden (same) | visible |
 
 **Mailbox context** (FR-003, FR-004), administrators and domain administrators on a mailbox in
-scope. Administrators always get `change`; a domain administrator gets `change` when the flag holds,
-else `readOnly` with that flag.
+scope. Administrators always get `change`. A domain administrator gets `change`, except for the
+three sections below that need its own flag, where it gets `readOnly` with that flag when the flag
+is off.
 
 | Section | Flag for domain administrators | Hidden when |
 |---|---|---|
 | appPasswords | `appPasswds` | — |
-| temporaryAliases | `spamAlias` | — |
+| temporaryAliases | none | — |
 | filters | `filters` | — |
 | pushNotifications | `pushover` | — |
-| mailSettings | `delimiterAction` (tagging), `tlsPolicy` (TLS) | — |
-| recentLogins | none (always `change`) | — |
-| groupware (`devices`) | `easReset`, `sogoProfileReset` | `!gw` |
+| mailSettings | none | — |
+| recentLogins | none | — |
+| groupware (`devices`) | none | `!gw` |
 
 ### Validity presets (`src/features/account/validity.ts`, FR-069, FR-071)
 
@@ -276,7 +277,7 @@ The `:mailbox` parameter name follows UI 003's detail route.
 | Name | Path | Component |
 |---|---|---|
 | `password-reset-request` | `/reset-password/request` | `pages/PasswordResetRequestPage.vue` |
-| `password-reset` | `/reset-password` (`?token=` read once in `beforeEnter`, then removed) | `pages/PasswordResetPage.vue` |
+| `password-reset` | `/reset-password` (`?token=` or `#token=` read once in `beforeEnter`, then removed) | `pages/PasswordResetPage.vue` |
 
 ### Address parameters of the lists (`useListState` schemas)
 

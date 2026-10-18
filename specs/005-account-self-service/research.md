@@ -134,6 +134,15 @@ point that UI 003's plan has to provide (R5).
     with "Try again" (spec edge case "capabilities cannot be read"). `NoAccessState` gains an
     optional reason key (Mail app setup for administrators shows legacy `login.mobileconfig_info`,
     FR-106).
+  - **Sections with parts**: "Mail settings" (tagged mail, TLS policy) and "Devices" (ActiveSync
+    reset, SOGo profile reset) are one section each with one address, as US7 and US11 name them.
+    Each part is hidden without its own flag, and the section's address shows "no access" when no
+    part is visible (FR-002, FR-006). In-page anchors (`#tagged-mail`, `#tls-policy`) are
+    conveniences, not section addresses.
+  - **Explanations on phones** (FR-123): long legacy explanations render as a collapsed "About …"
+    disclosure above the form below `md`, expanded from `md` up, so the primary action is reachable
+    without scrolling past them. Warnings that the spec requires to be visible without interaction
+    (TLS bounce warning, FR-075; SOGo deletion, FR-087) are never collapsed.
   - **Wide screens**: from `lg` up, the section navigation stays visible beside the content, as in
     UI 003's mailbox detail (UI 003 FR-016). Below `lg` the hub is the navigation.
   - **Home** (`src/features/home/pages/HomePage.vue`): for mailbox users, `MailboxHomeCard` from
@@ -164,13 +173,12 @@ point that UI 003's plan has to provide (R5).
     (FR-003). Child routes are `/mailboxes/:mailbox/<section>` ([data-model.md](./data-model.md#5-route-map)),
     guarded by the catalogue entry `mailboxes`. Each heading names the mailbox
     ("App passwords of anna@example.org").
-  - **Access** (FR-004): `mailboxAccess` grants `change` to administrators and, for domain
-    administrators, per flag of `identity.permissions`: app passwords `appPasswds`, push
-    notifications `pushover`, filters `filters`, temporary aliases `spamAlias`, mail settings
-    `delimiterAction`/`tlsPolicy`, groupware resets `easReset`/`sogoProfileReset`; recent logins
-    always. A domain administrator holds every `user_acl` flag (API `PermissionFlags`), so in practice
-    only the three `da_acl` flags can make a section read-only. `readOnly` sections render every
-    value and a `ReadOnlyNotice` naming the missing permission; change actions are not rendered.
+  - **Access** (FR-004): `mailboxAccess` grants `change` to administrators always, and to domain
+    administrators always except for app passwords (`appPasswds`), push notifications (`pushover`)
+    and filters (`filters`), which need the domain administrator's own flag in
+    `identity.permissions`. The API grants domain administrators the other flags implicitly
+    (`PermissionFlags`). `readOnly` sections render every value and a `ReadOnlyNotice` naming the
+    missing permission; change actions are not rendered.
   - **Out-of-scope mailbox** (old link): the API answers `404`, shown as UI 001's "not found" state
     (spec edge case).
   - **UI 003 links**: the FR-040 summaries link to the matching sections (temporary aliases count,
@@ -445,10 +453,15 @@ point that UI 003's plan has to provide (R5).
     address, a link valid for 15 minutes is on its way"). `password-reset-unavailable` and an
     unavailable capabilities read show legacy `danger.password_reset_na` (US3-AS7);
     `too-many-requests` shows the countdown.
-  - **Token capture** (FR-038): the `password-reset` route's `beforeEnter` moves `?token=` into an
-    in-memory holder (`src/features/auth/reset-token.ts`, a module variable, never storage) and
-    returns the same route without the query with `replace: true`, so the token leaves the address
-    bar and the history entry before the page renders. The holder is read once by the page and
+  - **Token capture** (FR-038): the `password-reset` route's `beforeEnter` moves the token, from
+    `?token=` (the API's default `RESTV2_PW_RESET_PAGE`) or from `#token=`, into an in-memory holder
+    (`src/features/auth/reset-token.ts`, a module variable, never storage) and returns the same route
+    without query and hash with `replace: true`, so the token leaves the address bar and the session
+    history entry before the page renders. The browser's own list of visited addresses still records
+    the e-mailed link itself, which no page can prevent; the token is single-use and expires after
+    `tokenLifetimeMinutes`. The `ng-mailcow` image logs `$uri` without the query string, so its access
+    log never holds a token (API observation G7 recommends the `#token=` form, which never reaches a
+    server log at all). The holder is read once by the page and
     cleared on completion, on "request a new link" and on unmount. The token is sent only in request
     bodies (`checkPasswordResetToken`, `createPasswordResetWebAuthnChallenge`,
     `completePasswordReset`), never logged, never in a URL. A reload after the capture finds no

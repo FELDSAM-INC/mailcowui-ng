@@ -191,8 +191,9 @@ section registry and visibility, the My account hub and the mailbox-context grou
 - [ ] T037 Add the `account.hub.*`, `account.sections.*`, `account.readOnly.*`, `permissionFlags.*` (`appPasswds`, `spamAlias`, `filters`, `pushover`, `delimiterAction`, `tlsPolicy`, `easReset`, `sogoProfileReset`, `pwReset`), `nav.filters` and `selfService.dependency.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map legacy `mailbox.filters` and `login.mobileconfig_info` in `src/i18n/legacy-map.json`. Run `npm run i18n:import`; `npm run i18n:check` must pass, and T025 must pass.
 
 **Checkpoint**: The foundation is ready. My account opens for every role with an empty hub (no
-section yet), the user menu links to it, Mail setup › Filters is a placeholder, and the mailbox
-detail has an empty self-service group. All Phase 2 tests pass.
+section yet), the user menu links to it, and Mail setup › Filters is a placeholder. The mailbox
+detail shows no self-service group until the first section registers its route (no placeholder,
+conventions "Where features meet"). All Phase 2 tests pass.
 
 ---
 
@@ -218,7 +219,7 @@ address leads back to the screen.
     - `activeAppPasswords`, and `mailServerCacheSeconds: 300`;
     - success clears `passwordChange` and renews the session cookie.
 
-  Create `tests/mocks/scenarios/own-password.ts` (registered in the index) with `password-throttled` and `password-changed-flow`, and extend UI 001's `forced-password-change` and `forced-both` with a policy.
+  Create `tests/mocks/scenarios/own-password.ts` (registered in the index) with `password-throttled`, `password-changed-flow` and `forced-password-change-domain-admin`, and extend UI 001's `forced-password-change` and `forced-both` with a policy.
 - [ ] T039 [P] [US1] Write `tests/e2e/account/password.spec.ts`. It covers:
   - US1-AS1 on `domain-admin-account`: "Password changed, 2 other sessions signed out", fields cleared, still signed in; and with the box unticked, `endOtherSessions: false` asserted through `mockApi.requests()`;
   - US1-AS2: a wrong current password shows the error on its field, and on `password-throttled` the "too many attempts" countdown appears;
@@ -232,7 +233,7 @@ address leads back to the screen.
   - FR-012: `preHashedPassword` on the field;
   - FR-015: leaving with typed input asks for confirmation.
 - [ ] T040 [P] [US1] Write `tests/e2e/pending-actions/forced-password.spec.ts`. It covers:
-  - US1-AS5: the "Set a new password" form without a current-password field, with legacy `user.pw_update_required`; any other address shows the screen again;
+  - US1-AS5: the "Set a new password" form without a current-password field, with legacy `user.pw_update_required`; any other address shows the screen again; the same for a domain administrator (`forced-password-change-domain-admin`);
   - US1-AS6: a valid password lands on home; on `forced-both` the second-factor setup is shown next (FR-031);
   - US1-AS7: "Sign out" ends the session;
   - FR-030: policy rules, show/hide and "Generate";
@@ -240,14 +241,14 @@ address leads back to the screen.
   - Edge: a reload resumes the screen;
   - Edge: the language and theme choices still work on the screen.
 - [ ] T041 [P] [US1] Write `tests/unit/features/account/OwnPasswordForm.spec.ts` (`endOtherSessions` ticked by default; the message built from `sessionsEnded`, `activeAppPasswords` and `mailServerCacheSeconds` with Czech plural forms; fields cleared; problem mapping) and `tests/unit/features/auth/ForcedPasswordChange.spec.ts`. Extend `tests/unit/features/auth/PendingActionsPage.spec.ts` with the linear flow: password first, the second-factor item as "next step", refetch of `session` and `identity` after success, and no classic link or "Check again" for `passwordChange`.
-- [ ] T042 [P] [US1] Update `tests/smoke/pending-actions.smoke.spec.ts`: `bob@example.org` signs in, sets a new password on the pending-actions screen (no classic link, no "Check again") and lands on home. Create `tests/smoke/account-credentials.smoke.spec.ts` as a `test.describe.serial` block, tagged `@005`, whose first case signs in as `alice@example.org` with TOTP, changes her password in My account › Password, signs in with the new one, and changes it back.
+- [ ] T042 [P] [US1] Update `tests/smoke/pending-actions.smoke.spec.ts` (it assumes the freshly reset dev database of `scripts/smoke/stack-up.sh`): `bob@example.org` signs in, sets a new password on the pending-actions screen (no classic link, no "Check again") and lands on home. Create `tests/smoke/account-credentials.smoke.spec.ts` as a `test.describe.serial` block, tagged `@005`, whose first case signs in as `alice@example.org` with TOTP, changes her password in My account › Password, signs in with the new one, and changes it back.
 
 ### Implementation for User Story 1
 
 - [ ] T043 [US1] Implement `src/features/account/api/password.ts` (`useOwnPasswordPolicy`, `useChangeOwnPassword` with the invalidation of data-model §3) and `src/features/account/api/overview.ts` (`useOwnMailboxOverview`, key `['me','mailbox']`, staleTime 5 min). Export the password hooks from `src/features/account/index.ts` for the pending-actions screen.
 - [ ] T044 [US1] Implement `src/features/account/components/password/OwnPasswordForm.vue` and `ExternalPasswordNotice.vue`, and `src/features/account/pages/PasswordPage.vue`. Add the `account-password` route to `src/features/account/routes.ts`.
 - [ ] T045 [US1] Implement `src/features/auth/components/pending/ForcedPasswordChange.vue`, and change `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue` to the linear flow of research R8. Remove the classic link and "Check again" of the password action; continue through `continueAfterSignIn()` once no action is pending.
-- [ ] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` messages, including new plural keys for "{n} other sessions signed out" and "{n} app passwords keep working" (the latter replaces `user.change_password_hint_app_passwords`, starting from its legacy text), to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.pw_update_required`, `login.new_password`, `login.new_password_confirm`, `success.password_changed_success` and `danger.password_mismatch` in `src/i18n/legacy-map.json`. Write the missing values: `user.pw_update_required` in cs-cz and sk-sk; `login.new_password`, `login.new_password_confirm` and `success.password_changed_success` in sk-sk. `npm run i18n:check` must pass.
+- [ ] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` messages, including new plural keys for "{n} other sessions signed out" and "{n} app passwords keep working" (the latter replaces `user.change_password_hint_app_passwords`, starting from its legacy text), to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.pw_update_required`, `login.new_password`, `login.new_password_confirm`, `success.password_changed_success`, `danger.password_mismatch` and `danger.password_complexity` (the summary when the policy refuses a password) in `src/i18n/legacy-map.json`. Write the missing values: `user.pw_update_required` in cs-cz and sk-sk; `login.new_password`, `login.new_password_confirm` and `success.password_changed_success` in sk-sk. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 works on its own: T039–T042 pass. This is the MVP: forced password changes no
 longer need the classic interface.
@@ -295,7 +296,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
   - Edge: an unsupported entry listed as "no longer supported", removable and not counted as the active entry;
   - Edge: a `second-factor-required-by-policy` or `last-second-factor` refusal after a change elsewhere refreshes and explains.
 - [ ] T049 [P] [US2] Write `tests/e2e/account/two-factor-enrolment.spec.ts`. It covers:
-  - US2-AS2: TOTP with the name, a code computed from the key shown on screen and the current password; the entry appears and the key is gone;
+  - US2-AS2: TOTP with the name, a code computed from the key shown on screen and the current password, for `admin-account`, `domain-admin-account` and `two-factor-empty` (a mailbox user); the entry appears and the key is gone;
   - US2-AS3: a wrong code keeps the same key with "attempts left"; an expiry (`mockApi.patch`) or five wrong codes offer "Start again";
   - US2-AS4: at 360 px "Open in authenticator app" and "Copy key" come before the QR code in document order;
   - FR-113: the QR code's text alternative points to the key, and the key is read in groups;
@@ -390,7 +391,7 @@ server.
   - FR-037: `password-reset-throttled` shows the countdown;
   - the address validation.
 - [ ] T063 [P] [US3] Write `tests/e2e/password-reset/reset-page.spec.ts`. It covers:
-  - US3-AS4: the account address, the validity time (relative and absolute) and the rules; `page.url()` has no token right after the load, and going back does not reveal it (FR-038);
+  - US3-AS4: the account address, the validity time (relative and absolute) and the rules; `page.url()` has no token right after the load, and going back does not reveal it (FR-038); the same with the `#token=` form;
   - US3-AS5 with the TOTP token: the password step, then the second-factor step as at sign-in; a wrong code allows another try; a right code confirms and offers sign-in without signing in (FR-041);
   - US3-AS6: expired and used tokens show the invalid state with "Request a new link";
   - Edge (FR-042) on `password-reset-signed-in`: the warning "including this one", then completion ends this session without leaving the page, and a second page of the context shows the signed-out state;
@@ -403,7 +404,7 @@ server.
   - the countdown reaching zero (`page.clock`) shows the invalid state;
   - SC-008: the token is not in storage, `history.state` or the console.
 - [ ] T064 [P] [US3] Write these unit tests:
-  - `tests/unit/features/auth/reset-token.spec.ts`: `beforeEnter` moves the token into the holder and returns the route without the query with `replace: true`; the holder is read once and cleared;
+  - `tests/unit/features/auth/reset-token.spec.ts`: `beforeEnter` moves the token from `?token=` or `#token=` into the holder and returns the route without query and hash with `replace: true`; the holder is read once and cleared;
   - `tests/unit/features/auth/usePasswordReset.spec.ts`: the state machine of data-model §7, `meta.sessionReactions: false` on the completion, and the session-end clean-up without redirect;
   - `tests/unit/features/auth/ForgotPasswordLink.spec.ts`: hidden while loading, on error and when unavailable;
   - `tests/unit/features/account/RecoveryEmailForm.spec.ts`.
@@ -414,9 +415,9 @@ server.
 - [ ] T066 [US3] Implement `src/features/account/api/recovery-email.ts`, `src/features/account/components/recovery/RecoveryEmailForm.vue` and `src/features/account/pages/RecoveryEmailPage.vue`. Add the `account-recovery-email` route to `src/features/account/routes.ts`.
 - [ ] T067 [US3] Implement `src/features/auth/reset-token.ts`, the reset mutations in `src/features/auth/api.ts` (with `meta.sessionReactions: false`) and `src/features/auth/composables/usePasswordReset.ts`.
 - [ ] T068 [US3] Give `src/features/auth/components/TotpForm.vue`, `YubiOtpForm.vue`, `WebAuthnFactor.vue` and `OtherMethods.vue`, and `src/features/auth/composables/useSecondFactor.ts`, a `submit(proof)` callback and a challenge provider, so that the sign-in step and the reset page share them. UI 001's second-factor tests must still pass.
-- [ ] T069 [US3] Implement `src/features/auth/pages/PasswordResetRequestPage.vue`, `src/features/auth/pages/PasswordResetPage.vue` and `src/features/auth/components/ResetSignedInNotice.vue`. Add the `password-reset-request` and `password-reset` routes, with `meta.public` and the token-capturing `beforeEnter`, to `src/features/auth/routes.ts`.
+- [ ] T069 [US3] Implement `src/features/auth/pages/PasswordResetRequestPage.vue`, `src/features/auth/pages/PasswordResetPage.vue` and `src/features/auth/components/ResetSignedInNotice.vue`. Add the `password-reset-request` and `password-reset` routes, with `meta.public` and the token-capturing `beforeEnter` (query or fragment), to `src/features/auth/routes.ts`.
 - [ ] T070 [US3] Implement `src/features/auth/components/ForgotPasswordLink.vue` and use it in `src/features/auth/pages/SignInPage.vue` in place of UI 001's classic `/reset-password` link. Remove the now unused reset constant from `src/app/navigation/classic-links.ts`, and update UI 001's FR-009 tests in `tests/e2e/sign-in/sign-in-screen.spec.ts` and `tests/unit/features/auth/SignInPage.spec.ts`.
-- [ ] T071 [US3] Add the `account.recoveryEmail.*` and `auth.passwordReset.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `login.reset_password`, `login.request_reset_password`, `login.invalid_pass_reset_token` (`html: plain`) and `user.password_reset_info` in `src/i18n/legacy-map.json`, and write their missing sk-sk values. `npm run i18n:check` must pass.
+- [ ] T071 [US3] Add the `account.recoveryEmail.*` and `auth.passwordReset.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (the link text keeps UI 001's mapping of `login.forgot_password`). Map `login.reset_password`, `login.request_reset_password`, `login.invalid_pass_reset_token` (`html: plain`) and `user.password_reset_info` in `src/i18n/legacy-map.json`, and write their missing sk-sk values. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories but app passwords work; a locked-out user recovers without the
 classic interface.
@@ -498,7 +499,7 @@ from a deep link.
   - `groupware-disabled`, `forbidden` for other roles, and `pending-action-required` when restricted;
   - a recent-login entry `SSO` added to the state.
 
-  Create `tests/mocks/scenarios/overview.ts` (registered in the index) with `mailbox-no-imap`, `mailbox-webmail-redirect`, `mailbox-unlimited-quota` and `mailbox-impersonated` (only if the pinned `Identity` schema has `impersonation`).
+  Create `tests/mocks/scenarios/overview.ts` (registered in the index) with `mailbox-no-imap`, `mailbox-webmail-redirect`, `mailbox-unlimited-quota` and `mailbox-impersonated` (an identity with feature 007's `impersonation` member, present at the pin).
 - [ ] T082 [P] [US5] Write `tests/e2e/account/overview-webmail.spec.ts`. It covers:
   - US5-AS1: "256 MiB of 1 GiB used (25 %)" with a bar that has a text equivalent, also in Czech number formatting;
   - US5-AS2: "IMAP: not allowed" in text;
@@ -509,7 +510,7 @@ from a deep link.
   - FR-099: the help text;
   - FR-001: the home card with storage and Webmail;
   - US3-AS2 (overview part): the recovery address set by an administrator is shown without `pwReset`;
-  - FR-098: no Webmail action on `mailbox-impersonated` (when the scenario exists);
+  - FR-098: no Webmail action on `mailbox-impersonated`;
   - Edge: a failed hand-off closes the blank tab and shows the problem.
 - [ ] T083 [P] [US5] Write these unit tests:
   - `tests/unit/features/account/useWebmailHandOff.spec.ts`: `window.open` called synchronously in the click, `opener` cleared, `location.replace`, a blocked tab gives the link, a failure closes the tab;
@@ -523,7 +524,7 @@ from a deep link.
 - [ ] T085 [US5] Implement `src/features/account/api/webmail.ts`, `src/features/account/composables/useWebmailHandOff.ts` and `src/features/account/components/overview/WebmailAction.vue` (research R20).
 - [ ] T086 [P] [US5] Implement `src/features/account/components/overview/MailboxOverview.vue`, `QuotaUsage.vue`, `ProtocolAccessList.vue`, `AddressLists.vue` and `MailboxHomeCard.vue`, and show the overview at the top of `src/features/account/pages/AccountHomePage.vue` for mailbox users. Sizes come from the byte formatter in `src/i18n/format.ts`; add `formatBytes` there if UI 002 or 003 did not.
 - [ ] T087 [US5] Implement `src/features/account/webmail-forwarding.ts`, register it as a landing hook in `src/app/session/landing.ts`, and show `MailboxHomeCard` for mailbox users in `src/features/home/pages/HomePage.vue`.
-- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.open_webmail_sso` and `user.direct_protocol_access` (`html: plain`) in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.open_webmail_sso`, `user.direct_protocol_access` (`html: plain`) and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in) in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -869,12 +870,16 @@ types; use the History action of a mailbox's self-service group and of an app pa
   - landscape on the mobile projects;
   - the focused element never hidden behind the sticky header;
   - no transition under `prefers-reduced-motion`;
-  - the main paths of US1 to US4 completed with the keyboard alone, with visible focus (FR-112, FR-121 to FR-123).
+  - the main paths of US1 to US4 completed with the keyboard alone, with visible focus;
+  - at 360 px, every form's primary action is reachable without scrolling past an expanded explanation, and the TLS and SOGo warnings are visible without interaction (FR-112, FR-121 to FR-123, research R4).
 - [ ] T148 [P] Write and pass `tests/e2e/account/edge-cases.spec.ts`:
   - `pending-action-required` from any self-service screen returns to the pending-actions screen;
   - a session expiry while a form is open clears the secret inputs and keeps the others after re-authentication;
   - offline (`route.abort`) gives every view its error state with "Try again";
-  - a `412` on the recovery address, an app password and the Pushover form keeps the non-secret input and marks the changed values.
+  - a `412` on the recovery address, an app password and the Pushover form keeps the non-secret input and marks the changed values;
+  - FR-010: every view shows its busy state at once (a delayed mock response), with an accessible busy indication;
+  - FR-011: every successful change is announced in the polite region while focus stays on the changed control;
+  - FR-015: leaving the recovery e-mail form, a second-factor setup, the app password and filter forms and the alias generation panel with input asks for confirmation.
 - [ ] T149 Add the `/ng/account` collection (scenario `mailbox-account`) to `scripts/run-lhci.mjs`. Run `npm run build && npm run budget:check && npm run lhci` and fix regressions until the initial JS is at most 204,800 bytes gzipped and `/ng/account` scores at least 0.9 for performance and accessibility (SC-011).
 - [ ] T150 [P] Write and pass `tests/unit/i18n/legacy-reuse-005.spec.ts`: every legacy key listed in the spec's Legacy Parity section is mapped in `src/i18n/legacy-map.json`, apart from the keys the spec names as not reused (SC-007). Add the plan's three parity notes to the Legacy Parity table in `specs/005-account-self-service/spec.md` (SC-010).
 - [ ] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings for the owner's review (UI 001 owner question 4).
@@ -884,6 +889,7 @@ types; use the History action of a mailbox's self-service group and of an app pa
 
   Record SC-001 to SC-004 and SC-011 to SC-013 in a "Validation log" section appended to `specs/005-account-self-service/quickstart.md`. If iOS does not open the profile installer from the blob download, record it and the Downloads fallback there (research R21).
 - [ ] T153 Run quickstart.md Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @005`, `scripts/smoke/stack-down.sh`) once API feature 005 runs in the dev stack. Confirm the status of API gaps G1 and G2 in the pinned contract and note it in the validation log.
+- [ ] T154 [P] In `docker/nginx/default.conf`, define the access log format of the `ng-mailcow` image with `$uri` instead of `$request_uri`, so that reset tokens of `/ng/reset-password?token=…` never reach its log (research R12, plan G7). Extend the CI `image` job's container check in `.github/workflows/ci.yml` to request `/ng/reset-password?token=TEST` and assert that the log line contains no `TEST`.
 
 ---
 

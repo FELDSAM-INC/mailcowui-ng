@@ -158,6 +158,11 @@ Gaps and observations found while planning:
 6. **G6 – Per-object history** (observation): self-service audit records carry the object's ID only
    in `details`, so History on one app password, alias or filter filters by target type and mailbox
    (R22). Acceptable under FR-108 ("that mailbox or object").
+7. **G7 – Reset token in access logs** (observation): the default `RESTV2_PW_RESET_PAGE`
+   (`/ng/reset-password?token={token}`) puts the token in a query string that nginx-mailcow logs, as
+   the classic reset link does. **Proposed**: default to `/ng/reset-password#token={token}`; a
+   fragment never reaches a server. The UI accepts both forms, and the `ng-mailcow` image logs the
+   path without the query (R12).
 
 ## Owner-level questions (defaults applied)
 
@@ -205,10 +210,12 @@ UI 001's layout (`specs/001-sign-in-app-shell/plan.md`). Only files this feature
 ```text
 src/
 ├── api/
+│   ├── generated/schema.ts           # regenerated at the new pin
 │   ├── problem.ts                    # + requiredFlags, requiredFlagsMatch, dependency, attemptsRemaining, methods
 │   └── query/{client.ts,keys.ts}     # + meta.sessionReactions opt-out, permission-flag-required reaction; new key roots
 ├── app/
 │   ├── navigation/catalogue.ts       # account → available; + filters entry
+│   ├── navigation/classic-links.ts   # classic reset link removed (replaced by the in-app reset)
 │   ├── router/{guards.ts,routes.ts}  # public routes in every state; account, filters, mailbox-context, reset routes
 │   ├── session/{store.ts,landing.ts} # landingIntent; continueAfterSignIn() with the webmail forwarding hook
 │   ├── shell/UserMenu.vue            # + "My account"
@@ -252,10 +259,13 @@ src/
 │   │   ├── components/{ForgotPasswordLink,ResetSignedInNotice}.vue
 │   │   ├── components/pending/{ForcedPasswordChange,ForcedSecondFactorSetup}.vue
 │   │   ├── components/{TotpForm,YubiOtpForm,WebAuthnFactor,OtherMethods}.vue   # + submit(proof) prop
+│   │   ├── composables/useSecondFactor.ts   # submission-agnostic (sign-in step and reset page)
+│   │   ├── components/PendingActionItem.vue  # linear flow, no classic link for the password action
 │   │   └── pages/{PasswordResetRequestPage,PasswordResetPage}.vue; PendingActionsPage.vue, SignInPage.vue (changed)
 │   ├── home/pages/HomePage.vue       # + MailboxHomeCard for mailbox users
 │   ├── audit-log/{labels.ts,list-state.ts}   # self-service labels and target types
 │   ├── api-keys/pages/ApiKeyCreatePage.vue   # uses the promoted OneTimeSecretDialog and useSecretMutation
+│   ├── api-keys/components/ApiKeySecretDialog.vue   # removed (promoted to shared)
 │   └── mailboxes/{detail-sections.ts,bulk-actions.ts}   # UI 003 extension points: registrations only
 ├── shared/
 │   ├── components/{OneTimeSecretDialog,CopyButton,GroupedSecret}.vue

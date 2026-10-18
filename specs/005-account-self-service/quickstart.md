@@ -106,7 +106,8 @@ scripts/smoke/stack-down.sh
 4. **Reset**: request a reset, open the e-mailed link on another device, complete it with a TOTP code,
    sign in (SC-004 timing).
 5. **Webmail**: choose Webmail on the home screen; webmail opens without a prompt within 3 seconds
-   (SC-012); in the same browser the classic interface asks for a sign-in.
+   (SC-012); in the same browser the classic interface asks for a sign-in. Sign out of the app:
+   webmail asks for a sign-in at its next request (spec edge case).
 6. **Apple profiles**: download each variant on an iPhone, an iPad and a Mac (Safari), with and
    without an embedded app password; confirm that the profile installer opens (or that the file in
    Downloads installs), that mail, calendars and contacts work, and that the app password is listed

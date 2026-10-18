@@ -258,7 +258,7 @@ existing tests pass.
       limit (the first N) and states the limit; once it is reached, further selection is disabled
       with the same message;
     - a retained-outcomes option keeps exactly the given outcomes after a `BulkResult` (UI 003
-      passes `['refused', 'failed']`);
+      passes `['refused', 'outdated', 'failed']`);
     - after a refetch, retained items take the refreshed `version`, and items no longer on the page
       are dropped;
     - the selection clears on `useListState`'s `onReset` with an announcement;
@@ -1123,9 +1123,9 @@ the confirmation, the summary and the selection afterwards.
     the same message (conventions "Bulk limit");
   - FR-055: each action's confirmation names the action, its effect and the count; deletion also
     lists the addresses and the impact;
-  - FR-056: the summary counts per outcome and per item, announced; refused and failed items stay
-    selected with refreshed versions, while done, not found and outdated items are deselected (the
-    spec's clarification); targets carry `version` without quotes, asserted on the request; a
+  - FR-056: the summary counts per outcome and per item, announced; refused, outdated and failed
+    items stay selected with refreshed versions, so a retry of the outdated one succeeds, while done
+    and not found items are deselected; targets carry `version` without quotes, asserted on the request; a
     whole-request refusal is one message with the selection kept; `route.abort()` gives "outcome
     unknown", the list is refetched, and exactly one bulk request was sent;
   - FR-066: a double tap on the confirmation sends one request;
@@ -1147,7 +1147,7 @@ the confirmation, the summary and the selection afterwards.
   mode, entered with "Select" at every width as in UI 002, to `MailboxesPage.vue`, `MailboxCard.vue`
   and `MailboxTable.vue` (whose selection column appears in this mode). Use UI 002's
   `useBulkSelection` with `bulkLimit` from the capabilities and the retained outcomes
-  `['refused', 'failed']`, UI 002's `BulkActionBar`, and `BulkResultSummary`.
+  `['refused', 'outdated', 'failed']`, UI 002's `BulkActionBar`, and `BulkResultSummary`.
 - [ ] T101 [US6] Add the `mailboxes.bulk.*` messages. Map `mailbox.toggle_all`.
   `npm run i18n:check` must pass.
 

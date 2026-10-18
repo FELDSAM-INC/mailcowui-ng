@@ -94,6 +94,12 @@ Edit mailbox page and the mailbox templates tab and edit page."
   FR-054 and FR-055 set the limit and return one result per mailbox; clearing the selection never
   lets an action reach mailboxes the user no longer sees and matches the domain list; legacy reloads
   the page and shows only toasts; keeping failures selected makes a retry one tap.)
+- Q: Which mailboxes stay selected after a bulk action now that items can be refused as outdated?
+  → A: Failed, refused and outdated mailboxes stay selected so the user can retry; outdated ones
+  are retried with the version of the reloaded list. The others are deselected. This supersedes
+  "mailboxes that failed or were refused stay selected … the others are deselected" in the answer
+  above (FR-056). (orchestrator decision: `docs/conventions.md`, "Bulk actions", is binding over the
+  earlier clarification.)
 - Q: How strong must the delete confirmations be? → A: A single deletion uses a dialog that names
   the mailbox, shows its storage used and message count, explains the garbage area and lists the
   kinds of data removed; its confirm button names the action. A bulk deletion lists every selected
@@ -829,8 +835,8 @@ viewports.
 - **FR-056**: After a bulk action, the UI MUST show a summary with the number of mailboxes per
   outcome (done, not found, refused, outdated, failed) and a list of every mailbox with its
   translated outcome, and MUST announce the summary to assistive technology. Every mailbox is sent
-  with the version tag the list read. Mailboxes that were refused or failed MUST stay selected; the
-  others, including outdated ones, MUST be deselected. A whole-request refusal MUST be shown as
+  with the version tag the list read. Mailboxes that were refused, outdated or failed MUST stay
+  selected, with the version of the reloaded list; the others MUST be deselected. A whole-request refusal MUST be shown as
   one message naming the reason, with the selection kept. When no response arrives, the UI MUST
   report the outcome as unknown, refresh the list and MUST NOT repeat the request automatically.
 - **FR-057**: Selection MUST be started with an explicit "select" control on every viewport

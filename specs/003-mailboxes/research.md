@@ -642,11 +642,9 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - **Result**: `BulkResultSummary` (UI 002) shows the counts of `summary` (done, not found,
     refused, outdated, failed) and one row per `results` item with the translated outcome and,
     for refused, outdated and failed items, the problem type's message. The summary is announced.
-    - Items that were refused or failed stay selected, and the others are deselected, as the
-      spec's recorded clarification decides. That includes `outdated` items: they changed since
-      the list was read, so the user reviews the refreshed entries and selects them again, as for
-      an outdated single save. The conventions would keep them selected; plan owner question 2
-      records this.
+    - Items that were refused, outdated or failed stay selected, and the others are deselected
+      (conventions "Bulk actions", the orchestrator's decision recorded in the spec's
+      clarifications).
     - The list is refetched. The retained items take the new `version` of their refreshed entries,
       and items no longer on the page are dropped from the selection.
   - **Whole-request refusal**: `403 permission-flag-required`, `forbidden` or `422` (for example

@@ -349,8 +349,8 @@ acknowledge ──checked──► form ──valid──► confirm ──yes�
 ```text
 idle ──select──► selecting(n ≤ bulkLimit) ──action──► confirming ──yes──► sending
   ▲  list-state reset ──► idle (announced)              │ no ──► selecting
-  │                                                     sending ──200──► summary (refused and
-  │                                                     │           failed stay selected with
+  │                                                     sending ──200──► summary (refused, outdated
+  │                                                     │           and failed stay selected with
   │                                                     │           refreshed versions; list refetched)
   │                                                     │ 403/422 ──► selecting (one message)
   └────────────── close summary ◄───────────────────────│ network ──► selecting ("outcome unknown";
@@ -358,8 +358,8 @@ idle ──select──► selecting(n ≤ bulkLimit) ──action──► conf
 ```
 
 After the refetch, the retained items take the `version` of their refreshed list entries, and items
-that are no longer on the page are dropped. `outdated` items are deselected, as the spec's
-clarification decides (research R12).
+that are no longer on the page are dropped. Refused, outdated and failed items stay selected
+(conventions "Bulk actions", research R12).
 
 ### 7.5 Create screen
 

@@ -144,8 +144,8 @@ introduce no violation. These decisions touched gates:
   the contract reports them (I).
 - Password requests go through UI 001's `useSecretRequest` and never pass through the query cache
   (V, conventions "Secrets").
-- `outdated` bulk items are deselected, as the spec's recorded clarification decides, while the
-  conventions would keep them selected (owner question 2).
+- Refused, outdated and failed bulk items stay selected (orchestrator decision on owner question 2;
+  conventions "Bulk actions").
 - Deactivating one mailbox, or disallowing its login, asks one confirmation (conventions
   "Confirmations"); the spec is aligned.
 - Shared blocks use UI 002's canonical names; nothing is created under a second name.
@@ -228,14 +228,10 @@ the blocks UI 002 keeps inside its feature (R4).
    - **Default**: the page size lives in the address only, so links, Back and reloads keep it. The
      column choice is still remembered in the browser. The spec text is aligned.
    - If the owner wants a remembered default page size, the conventions must change first.
-2. **Outdated items after a bulk action**: the spec's recorded clarification keeps only refused and
-   failed mailboxes selected and deselects "the others". The conventions and UI 001 R20 would also
-   keep `outdated` ones selected.
-   - **Default**: the clarification governs, so `outdated` mailboxes are deselected. They changed
-     since the list was read, so the user reviews the refreshed entries before selecting them
-     again, as for an outdated single save.
-   - If the owner prefers the conventions' rule, only `retainOutcomes` in `useMailboxBulk` and the
-     spec's clarification change.
+2. **Outdated items after a bulk action**: **decided by the orchestrator**. `docs/conventions.md` is
+   binding over the earlier clarification, so refused, outdated and failed mailboxes stay selected,
+   and outdated ones are retried with the version of the reloaded list. The spec records this as a
+   superseding clarification.
 
 ## Parity notes added by the plan
 

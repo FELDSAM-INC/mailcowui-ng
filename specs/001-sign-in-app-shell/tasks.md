@@ -298,7 +298,7 @@ renders in:
   - a session end clears the query cache, sets `notice: 'sessionEnded'`, sets `returnTo` to the current path, replaces the route with sign-in and fetches a new CSRF token (FR-034);
   - a successful sign-out clears everything, broadcasts `signed-out` and fetches a new token (FR-036), and a failed one keeps the state and exposes a retry;
   - a received `session-changed` clears the cache and refetches, a received `signed-out` ends the session, and an identity refresh with a different username or role clears the cache (FR-037).
-- [ ] T042 [P] Write `tests/unit/shared/composables/useListState.spec.ts` (data-model §5). It covers:
+- [X] T042 [P] Write `tests/unit/shared/composables/useListState.spec.ts` (data-model §5). It covers:
   - parsing and normalisation with `replace`;
   - defaults omitted from the address;
   - `size` limited to 25, 50 or 100;
@@ -306,8 +306,8 @@ renders in:
   - `push` for explicit changes and `replace` for typing;
   - the mapping to `limit` and `offset`;
   - nothing written to storage.
-- [ ] T043 [P] Write `tests/unit/shared/composables/useVersionedSave.spec.ts`. It sends `If-Match` with the read `etag`. On a 412 problem it keeps the input, refetches, sets `outdated` and exposes the latest value. It never retries automatically and never sends `*`. A refused deletion asks for confirmation again (conventions).
-- [ ] T044 [P] Write `tests/unit/shared/composables/useCountdown.spec.ts` (R13). The skew is derived from the `Date` header. The remaining time counts against `Date.now() + skew`. Milestone callbacks fire, and recomputation happens on `visibilitychange`.
+- [X] T043 [P] Write `tests/unit/shared/composables/useVersionedSave.spec.ts`. It sends `If-Match` with the read `etag`. On a 412 problem it keeps the input, refetches, sets `outdated` and exposes the latest value. It never retries automatically and never sends `*`. A refused deletion asks for confirmation again (conventions).
+- [X] T044 [P] Write `tests/unit/shared/composables/useCountdown.spec.ts` (R13). The skew is derived from the `Date` header. The remaining time counts against `Date.now() + skew`. Milestone callbacks fire, and recomputation happens on `visibilitychange`.
 - [ ] T045 [P] Write `tests/unit/shared/components/forms.spec.ts` for `useProblemForm`, `FormField.vue`, `ErrorSummary.vue` and `ProblemMessage.vue` (FR-075–FR-078). It covers:
   - field errors mapped by dot path, including `allowedNetworks.2`;
   - `aria-invalid` and `aria-describedby`;

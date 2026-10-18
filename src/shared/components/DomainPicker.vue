@@ -24,6 +24,8 @@ export interface DomainPickerOption {
   name: string
   /** The readable (Unicode) name. */
   nameUnicode: string
+  /** UI 004: the domain is a relay (backup MX) domain, for `disabledReason`. */
+  relay?: boolean
 }
 
 export interface DomainPickerPage {
@@ -204,6 +206,8 @@ function choose(entry: Entry) {
     }
     text.value = ''
     search.value = ''
+    // The list closes, so that the page does not shift under the pointer; typing opens it again.
+    close()
     return
   }
   emit('update:modelValue', entry.name)

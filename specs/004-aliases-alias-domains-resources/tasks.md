@@ -433,7 +433,7 @@ compare the values with the mock data.
   - `aliases-da-two-of-ten`;
   - `aliases-long-values`: 254-character addresses, internationalised domains, 200 destinations;
   - `aliases-5000-domains`, for the domain picker.
-- [ ] T031 [P] [US1] Write `tests/e2e/aliases/list.spec.ts`. It covers:
+- [X] T031 *(done: tests/e2e/aliases/list.spec.ts and helpers.ts; the badges and columns follow the legacy form map (no receive-only badge or modification-time column, listed as not built))* [P] [US1] Write `tests/e2e/aliases/list.spec.ts`. It covers:
   - US1-AS1: 25 newest as cards at 360 px, the total of 60, and the next page;
   - US1-AS2, US1-AS3 and US1-AS4, list parts: the alias-domain alias states its primary domain,
     "Learn as spam" replaces destinations, and the first two destinations plus "+10 more" are shown;
@@ -462,7 +462,7 @@ compare the values with the mock data.
   - Edge, long values and SC-004: no horizontal scroll at 360 and 320 px on `aliases-long-values`;
   - Edge, internationalised names: the readable form with the ASCII form below;
   - Edge, letter case: local parts are shown as stored.
-- [ ] T032 [P] [US1] Write `tests/e2e/aliases/detail-and-access.spec.ts`. It covers:
+- [X] T032 *(done: tests/e2e/aliases/detail-and-access.spec.ts; the alias page has no times (legacy shows none), FR-069 checks the locale's DataTables count)* [P] [US1] Write `tests/e2e/aliases/detail-and-access.spec.ts`. It covers:
   - FR-016: every detail value, with domain and primary domain linked to `domain-detail`;
   - US1-AS2, US1-AS3 and US1-AS4, detail parts: the primary domain stated, the special action, all
     12 destinations;
@@ -476,7 +476,7 @@ compare the values with the mock data.
   - FR-008: loading and error states of the detail;
   - FR-069: with a cs-cz profile, the creation and modification times and the counts are formatted
     in the user's locale.
-- [ ] T033 [P] [US1] Write these unit tests:
+- [X] T033 *(done: list-state, DestinationSummary, AliasCard (with the badges), AliasTable and AliasFilters specs)* [P] [US1] Write these unit tests:
   - `tests/unit/features/aliases/list-state.spec.ts`: data-model §5. Defaults are omitted. The
     repeatable parameters work. `groupwareVisible` is ignored while the groupware is disabled or
     unknown. "Newest first" is `id desc`.
@@ -493,14 +493,14 @@ compare the values with the mock data.
     - the groupware filter hidden while the groupware is disabled.
   - `tests/unit/features/aliases/DestinationSummary.spec.ts`: two plus "+N more", and special
     actions.
-- [ ] T034 [P] [US1] Write `tests/smoke/aliases-list.smoke.spec.ts` (`@feature-004`):
+- [X] T034 *(done: tests/smoke/aliases-list.smoke.spec.ts with tests/smoke/fixtures/feature-004-api.ts; runs in T115)* [P] [US1] Write `tests/smoke/aliases-list.smoke.spec.ts` (`@feature-004`):
   - `admin` opens Aliases and filters by a domain found through the picker;
   - `reseller` sees only its domains in the picker and the list;
   - one case at 360 × 780 with no horizontal scroll.
 
 ### Implementation for User Story 1
 
-- [ ] T035 [US1] Implement:
+- [X] T035 *(done: api.ts (list, detail with the cached list entry as placeholder, the domain and alias-domain picker sources), list-state.ts, routes.ts; aliases available in the catalogue)* [US1] Implement:
   - `src/features/aliases/api.ts`:
     - `useAliasList(params)` and `useAlias(id)`, with `placeholderData` from a cached list entry;
     - the alias-domain source for the "Domain" filter, through `keys.aliasDomains.options(q)`;
@@ -510,11 +510,11 @@ compare the values with the mock data.
 
   Register them in `src/app/router/routes.ts`, and set the catalogue's `aliases` entry to
   `available` in `src/app/navigation/catalogue.ts`.
-- [ ] T036 [P] [US1] Implement `src/features/aliases/components/AliasBadges.vue`,
+- [X] T036 *(done: AliasBadges (Catch-All, orphaned), DestinationSummary, AddressText, AliasDomainText, YesNoMark, AliasCard, AliasTable, AliasList; legacy's columns, ID and comments as columns from xl; no separate AliasDomainHint component: the page shows mailbox.alias_domain_alias_hint through LegacyText)* [P] [US1] Implement `src/features/aliases/components/AliasBadges.vue`,
   `DestinationSummary.vue`, `AliasCard.vue`, `AliasTable.vue` (on `src/shared/ui/table`),
   `AliasList.vue` (cards below `md`, table from `md`) and `AliasDomainHint.vue` (FR-017), with
   addresses through `DomainNameText`.
-- [ ] T037 [P] [US1] Implement `src/features/aliases/components/AliasFilters.vue`:
+- [X] T037 *(done: AliasFilters with the two DomainPickers, UI 003's MailboxSearchPicker for delivers-to, checkboxes for kind and destination type (legacy texts with markup cannot be native options), selects for the flags; AliasSortControl for cards; chips through ActiveFilterChips (messageKey chips for markup labels))* [P] [US1] Implement `src/features/aliases/components/AliasFilters.vue`:
   - `SearchField`;
   - the two `DomainPicker`s;
   - native selects for kind, destination type, active, sending allowed, groupware (only when
@@ -522,7 +522,7 @@ compare the values with the mock data.
   - the delivers-to field;
   - a native sort select with order for cards;
   - `ActiveFilterChips`.
-- [ ] T038 [US1] Implement `src/features/aliases/pages/AliasesPage.vue`:
+- [X] T038 *(done: AliasesPage with legacy's title, refresh, hint, datatables search, states and count, announced as datatables.info)* [US1] Implement `src/features/aliases/pages/AliasesPage.vue`:
   - `PageHeader`;
   - the hint;
   - `ListState`, which tells "nothing exists yet" from "nothing matches";
@@ -531,7 +531,7 @@ compare the values with the mock data.
   - the result count announcement.
 
   Groupware elements wait for the capabilities, without blocking the list (research R5).
-- [ ] T039 [US1] Implement `src/features/aliases/pages/AliasDetailPage.vue` with read-only sections:
+- [X] T039 *(done: AliasDetailPage with edit.alias and the address, the display-only ID, domain and target domain (linked when their screens are available), the orphaned warning and the Edit alias values (AliasValues); OrphanedAliasWarning.vue)* [US1] Implement `src/features/aliases/pages/AliasDetailPage.vue` with read-only sections:
   - identifier, both address forms and kind;
   - domain and primary domain, linked to `domain-detail` only when `isEntryAvailable('domains')`
     holds and the alias is not orphaned;
@@ -541,7 +541,7 @@ compare the values with the mock data.
   - `NotFoundState` on 404.
 
   Also implement `src/features/aliases/components/OrphanedAliasWarning.vue`.
-- [ ] T040 [US1] (FR-067) Use the legacy keys of T005a's form map for the alias list and detail
+- [X] T040 *(done: new strings: aliases.filters.destinationType, aliases.list.moreDestinations, aliases.orphaned.*, lists.backToList, lists.filters.yes/no, states.detail.error; generic list texts moved from UI 002 to lists.*)* [US1] (FR-067) Use the legacy keys of T005a's form map for the alias list and detail
   verbatim (texts with markup through `SanitizedHtml.vue`, the FR-017 hint
   `mailbox.alias_domain_alias_hint` unless the owner decides otherwise). Add to
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's new strings among

@@ -27,8 +27,8 @@ const suggestions = useTagSuggestions()
 
 const label = computed(() =>
   props.activeCount > 0
-    ? t('domains.filters.withCount', { count: props.activeCount })
-    : t('domains.filters.title'),
+    ? t('lists.filters.withCount', { count: props.activeCount })
+    : t('lists.filters.title'),
 )
 
 function onActive(event: Event) {
@@ -75,7 +75,7 @@ function onRelay(event: Event) {
             class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
             @change="onActive"
           >
-            <option value="">{{ t('domains.filters.all') }}</option>
+            <option value="">{{ t('lists.filters.all') }}</option>
             <option value="active">{{ lt('mailbox.active') }}</option>
             <option value="inactive">{{ lt('mailbox.inactive') }}</option>
           </select>
@@ -93,7 +93,7 @@ function onRelay(event: Event) {
             class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
             @change="onRelay"
           >
-            <option value="">{{ t('domains.filters.all') }}</option>
+            <option value="">{{ t('lists.filters.all') }}</option>
             <option value="relay">{{ t('domains.filters.relayOnly') }}</option>
             <option value="local">{{ t('domains.filters.localOnly') }}</option>
           </select>
@@ -116,7 +116,7 @@ function onRelay(event: Event) {
         :disabled="activeCount === 0"
         @click="emit('clear')"
       >
-        {{ t('domains.filters.clear') }}
+        {{ t('lists.filters.clear') }}
       </button>
     </div>
   </div>

@@ -14,6 +14,16 @@
     "capabilities": {
       "failed": "Nastavenia servera, ktoré tento formulár potrebuje, sa nepodarilo načítať.",
       "loading": "Načítavajú sa nastavenia servera…"
+    },
+    "filters": {
+      "destinationType": "Cieľ"
+    },
+    "list": {
+      "moreDestinations": "+{count} ďalšie"
+    },
+    "orphaned": {
+      "badge": "Osirelý",
+      "warning": "Doména tohto aliasu už neexistuje. Alias možno odstrániť zo zoznamu. Zmenu možno uložiť len spolu s adresou v existujúcej doméne."
     }
   },
   "apiKeys": {
@@ -507,7 +517,26 @@
     },
     "search": {
       "clear": "Vymazať hľadanie"
-    }
+    },
+    "actionsFor": "Akcie pre {name}",
+    "filters": {
+      "all": "Všetky",
+      "clear": "Vymazať všetky filtre",
+      "title": "Filtre",
+      "withCount": "Filtre ({count})",
+      "no": "Nie",
+      "yes": "Áno"
+    },
+    "id": "ID",
+    "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",
+    "sort": {
+      "asc": "Vzostupne",
+      "desc": "Zostupne",
+      "label": "Zoradiť podľa",
+      "order": "Poradie"
+    },
+    "updating": "Aktualizuje sa…",
+    "backToList": "Späť na zoznam"
   },
   "mailboxes": {
     "delete": {
@@ -755,6 +784,9 @@
     "serviceUnavailable": {
       "body": "Server je momentálne nedostupný. Skúste to, prosím, o chvíľu znova.",
       "title": "Služba je dočasne nedostupná"
+    },
+    "detail": {
+      "error": "Túto položku sa nepodarilo načítať."
     }
   },
   "themes": {

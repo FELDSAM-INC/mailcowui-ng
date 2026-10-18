@@ -14,6 +14,16 @@
     "capabilities": {
       "failed": "The server settings this form needs could not be loaded.",
       "loading": "Loading the server settings…"
+    },
+    "filters": {
+      "destinationType": "Destination"
+    },
+    "list": {
+      "moreDestinations": "+{count} more"
+    },
+    "orphaned": {
+      "badge": "Orphaned",
+      "warning": "The domain of this alias no longer exists. The alias can be removed from the list. A change is saved only together with an address in an existing domain."
     }
   },
   "apiKeys": {
@@ -507,7 +517,26 @@
     },
     "search": {
       "clear": "Clear search"
-    }
+    },
+    "actionsFor": "Actions for {name}",
+    "filters": {
+      "all": "All",
+      "clear": "Clear all filters",
+      "title": "Filters",
+      "withCount": "Filters ({count})",
+      "no": "No",
+      "yes": "Yes"
+    },
+    "id": "ID",
+    "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
+    "sort": {
+      "asc": "Ascending",
+      "desc": "Descending",
+      "label": "Sort by",
+      "order": "Order"
+    },
+    "updating": "Updating…",
+    "backToList": "Back to the list"
   },
   "mailboxes": {
     "delete": {
@@ -755,6 +784,9 @@
     "serviceUnavailable": {
       "body": "The server cannot be reached right now. Please try again in a moment.",
       "title": "Service temporarily unavailable"
+    },
+    "detail": {
+      "error": "This item could not be loaded."
     }
   },
   "themes": {

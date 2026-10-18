@@ -123,7 +123,7 @@ export const catalogue: readonly NavigationEntry[] = [
   ),
   entry('mailboxes', '/mailboxes', MailIcon, MANAGERS, '003', MAIL_SETUP),
   entry('mailboxTemplates', '/mailbox-templates', LayoutTemplateIcon, MANAGERS, '003', MAIL_SETUP),
-  entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP),
+  entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   entry('aliasDomains', '/alias-domains', LinkIcon, MANAGERS, '004', MAIL_SETUP),
   entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP),
   entry('account', '/account', UserCircleIcon, ALL, '005', {

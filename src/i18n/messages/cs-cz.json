@@ -14,6 +14,16 @@
     "capabilities": {
       "failed": "Nastavení serveru, která tento formulář potřebuje, se nepodařilo načíst.",
       "loading": "Načítání nastavení serveru…"
+    },
+    "filters": {
+      "destinationType": "Cíl"
+    },
+    "list": {
+      "moreDestinations": "+{count} další"
+    },
+    "orphaned": {
+      "badge": "Osiřelý",
+      "warning": "Doména tohoto aliasu už neexistuje. Alias lze odebrat ze seznamu. Změnu lze uložit jen spolu s adresou v existující doméně."
     }
   },
   "apiKeys": {
@@ -507,7 +517,26 @@
     },
     "search": {
       "clear": "Vymazat hledání"
-    }
+    },
+    "actionsFor": "Akce pro {name}",
+    "filters": {
+      "all": "Vše",
+      "clear": "Vymazat všechny filtry",
+      "title": "Filtry",
+      "withCount": "Filtry ({count})",
+      "no": "Ne",
+      "yes": "Ano"
+    },
+    "id": "ID",
+    "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé.",
+    "sort": {
+      "asc": "Vzestupně",
+      "desc": "Sestupně",
+      "label": "Řadit podle",
+      "order": "Pořadí"
+    },
+    "updating": "Aktualizuje se…",
+    "backToList": "Zpět na seznam"
   },
   "mailboxes": {
     "delete": {
@@ -755,6 +784,9 @@
     "serviceUnavailable": {
       "body": "Server je momentálně nedostupný. Zkuste to prosím za chvíli znovu.",
       "title": "Služba je dočasně nedostupná"
+    },
+    "detail": {
+      "error": "Tuto položku se nepodařilo načíst."
     }
   },
   "themes": {

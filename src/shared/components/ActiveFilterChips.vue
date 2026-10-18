@@ -2,16 +2,17 @@
 // A list's active filters as removable chips (conventions "Lists", UI 001 FR-073, UI 004 FR-010),
 // promoted from the audit log (UI 001 R20). The parent builds the chips from its list state; a chip
 // is removed by its key, or all at once. Each chip's accessible name starts with "Remove filter"
-// and contains its visible text.
+// and contains its visible text. UI 004: a chip may instead name a message key (`messageKey`, an
+// enumeration value whose legacy text has markup), rendered through MessageText.
 import { useI18n } from 'vue-i18n'
 
 import { CloseIcon } from '../icons'
 import { buttonVariants } from '../ui/button'
+import MessageText from './MessageText.vue'
 
-export interface FilterChip {
-  key: string
-  label: string
-}
+import type { FilterChip } from './filter-chip'
+
+export type { FilterChip }
 
 defineProps<{ chips: readonly FilterChip[] }>()
 const emit = defineEmits<{ remove: [key: string]; clear: [] }>()
@@ -28,11 +29,17 @@ const { t } = useI18n()
       <li v-for="chip in chips" :key="chip.key" class="max-w-full min-w-0">
         <button
           type="button"
-          :aria-label="t('lists.chips.remove', { filter: chip.label })"
+          :aria-label="
+            chip.messageKey ? undefined : t('lists.chips.remove', { filter: chip.label })
+          "
           class="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-gray-300 bg-white px-3 text-sm text-gray-800 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
           @click="emit('remove', chip.key)"
         >
-          <span class="min-w-0 wrap-anywhere">{{ chip.label }}</span>
+          <span v-if="chip.messageKey" class="min-w-0 wrap-anywhere">
+            <span class="sr-only">{{ t('lists.chips.remove', { filter: '' }) }}</span>
+            <MessageText :k="chip.messageKey" />
+          </span>
+          <span v-else class="min-w-0 wrap-anywhere">{{ chip.label }}</span>
           <CloseIcon class="size-4 shrink-0" />
         </button>
       </li>

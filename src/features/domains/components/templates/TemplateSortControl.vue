@@ -18,7 +18,7 @@ const { t } = useI18n()
   <div class="flex flex-wrap gap-3">
     <div class="flex flex-col gap-1.5">
       <label for="template-sort" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-        {{ t('domains.sort.label') }}
+        {{ t('lists.sort.label') }}
       </label>
       <select
         id="template-sort"
@@ -35,7 +35,7 @@ const { t } = useI18n()
     </div>
     <div class="flex flex-col gap-1.5">
       <label for="template-order" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-        {{ t('domains.sort.order') }}
+        {{ t('lists.sort.order') }}
       </label>
       <select
         id="template-order"
@@ -45,8 +45,8 @@ const { t } = useI18n()
           emit('change', props.sort, ($event.target as HTMLSelectElement).value as SortOrder)
         "
       >
-        <option value="asc">{{ t('domains.sort.asc') }}</option>
-        <option value="desc">{{ t('domains.sort.desc') }}</option>
+        <option value="asc">{{ t('lists.sort.asc') }}</option>
+        <option value="desc">{{ t('lists.sort.desc') }}</option>
       </select>
     </div>
   </div>

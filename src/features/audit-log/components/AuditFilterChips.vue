@@ -5,7 +5,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useFormat } from '@/i18n/format'
-import ActiveFilterChips, { type FilterChip } from '@/shared/components/ActiveFilterChips.vue'
+import ActiveFilterChips from '@/shared/components/ActiveFilterChips.vue'
+import type { FilterChip } from '@/shared/components/filter-chip'
 
 import { useAuditLabels } from '../labels'
 import type { AuditFilterValues } from '../list-state'

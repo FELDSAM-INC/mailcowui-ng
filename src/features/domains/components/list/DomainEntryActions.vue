@@ -37,7 +37,7 @@ async function onDelete() {
   <span ref="root" class="contents">
     <DropdownMenu>
       <DropdownMenuTrigger
-        :aria-label="t('domains.list.actionsFor', { name: domain.unicodeName })"
+        :aria-label="t('lists.actionsFor', { name: domain.unicodeName })"
         class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
       >
         <HorizontalDotsIcon class="size-5" />

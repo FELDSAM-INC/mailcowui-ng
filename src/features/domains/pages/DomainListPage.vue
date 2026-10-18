@@ -264,7 +264,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
         role="alert"
         class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
       >
-        {{ t('domains.list.refreshFailed') }}
+        {{ t('lists.refreshFailed') }}
       </p>
 
       <div
@@ -309,7 +309,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
         <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
           {{ countText }}
           <span v-if="query.isPlaceholderData.value" class="ms-2 text-gray-600 dark:text-gray-400">
-            {{ t('domains.list.updating') }}
+            {{ t('lists.updating') }}
           </span>
         </p>
         <div v-if="selection.active.value && !wideList" class="flex items-center gap-2">

@@ -46,7 +46,7 @@ const columns = computed(() => templateColumns(format))
       </div>
       <dl class="grid grid-cols-1 gap-x-6 gap-y-1 text-sm">
         <div class="flex gap-1">
-          <dt class="text-gray-600 dark:text-gray-400">{{ t('domainTemplates.fields.id') }}:</dt>
+          <dt class="text-gray-600 dark:text-gray-400">{{ t('lists.id') }}:</dt>
           <dd class="text-gray-900 dark:text-white">{{ template.id }}</dd>
         </div>
         <div

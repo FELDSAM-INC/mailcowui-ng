@@ -4,3 +4,6 @@
 export { aliasesCapabilitiesOptions, useAliasesCapabilities } from './capabilities'
 export { default as CapabilitiesGate } from './components/CapabilitiesGate.vue'
 export { feature004Permissions, type Feature004Permissions } from './permissions'
+export { aliasRoutes } from './routes'
+export { aliasDomainPickerSource, domainPickerSource } from './api'
+export { default as YesNoMark } from './components/YesNoMark.vue'

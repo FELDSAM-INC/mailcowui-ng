@@ -34,6 +34,11 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'enums.auditTargetType.apiKey': 'admin.api_key',
   'enums.authMethod.apiKey': 'admin.api_key',
   'enums.authMethod.password': 'login.password',
+  // UI 012: the identity provider's audit target, its single sign-on method and its connection test
+  // failure, with the classic names.
+  'enums.auditTargetType.identityProvider': 'admin.iam',
+  'enums.authMethod.singleSignOn': 'admin.iam_sso',
+  'enums.auditFailureReason.connectionTestFailed': 'danger.iam_test_connection',
   // UI 002: the audit targets of a domain and its footer.
   'enums.auditTargetType.domain': 'mailbox.domain',
   'enums.auditTargetType.domainFooter': 'edit.domain_footer',

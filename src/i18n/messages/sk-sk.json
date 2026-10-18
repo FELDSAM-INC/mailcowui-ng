@@ -340,7 +340,17 @@
       "domainTemplateDeletion": "Šablóna domény odstránená",
       "domainTemplateUpdate": "Šablóna domény zmenená",
       "domainUpdate": "Doména zmenená",
+      "identityProviderConnectionTest": "Test pripojenia k poskytovateľovi identít",
+      "identityProviderCreation": "Poskytovateľ identít nastavený",
+      "identityProviderDeletion": "Poskytovateľ identít odstránený",
+      "identityProviderSessionEnd": "Relácia jednotného prihlásenia ukončená",
+      "identityProviderUpdate": "Poskytovateľ identít zmenený",
       "mailboxSenderSettingsUpdate": "Oprávnenia odosielateľa zmenené",
+      "oauth2ClientCreation": "OAuth2 klient pridaný",
+      "oauth2ClientDeletion": "OAuth2 klient odstránený",
+      "oauth2ClientSecretRegeneration": "Tajný kľúč OAuth2 klienta obnovený",
+      "oauth2ClientTokenRevocation": "Tokeny OAuth2 klienta zneplatnené",
+      "oauth2ClientUpdate": "OAuth2 klient zmenený",
       "passkeyRegistration": "Pridanie prístupového kľúča",
       "passkeyRemoval": "Odobratie prístupového kľúča",
       "passkeyRename": "Premenovanie prístupového kľúča",
@@ -365,18 +375,29 @@
     "auditFailureReason": {
       "accountInactive": "Účet je neaktívny",
       "attributeNotPermitted": "Zmena nie je povolená",
+      "autoCreationOff": "Automatické vytváranie schránok je vypnuté",
       "challengeExpired": "Časový limit prihlásenia vypršal",
       "conflict": "Konflikt s existujúcimi údajmi",
       "externalIdentitySource": "Účet sa prihlasuje cez poskytovateľa identít",
+      "identityProviderUnavailable": "Poskytovateľ identít nie je dostupný",
       "invalidCredentials": "Nesprávne používateľské meno alebo heslo",
+      "mailboxCreationFailed": "Schránku nebolo možné vytvoriť",
+      "mailboxNotLinked": "Schránka nie je prepojená s poskytovateľom identít",
+      "noEmailAddress": "Poskytovateľ identít nedodal e-mailovú adresu",
+      "noMatchingMapping": "Žiadne zodpovedajúce mapovanie atribútov",
       "notFound": "Nenájdené",
       "passkeyInactive": "Prístupový kľúč je neaktívny",
       "passkeyVerificationFailed": "Overenie prístupového kľúča zlyhalo",
+      "passwordNotVerifiable": "Heslo nebolo možné overiť",
       "permissionDenied": "Chýba oprávnenie",
+      "providerRefused": "Odmietnuté poskytovateľom identít",
+      "providerReturnedError": "Poskytovateľ identít vrátil chybu",
       "registrationFailed": "Registrácia zlyhala",
       "roleMismatch": "Prihlasovacia obrazovka pre iný typ účtu",
       "secondFactorFailed": "Druhý faktor nebol prijatý",
       "secondFactorUnavailable": "Druhý faktor nie je k dispozícii",
+      "signInStateInvalid": "Prihlásenie vypršalo alebo už bolo dokončené",
+      "singleSignOnNotAvailable": "Jednotné prihlásenie nie je k dispozícii",
       "temporaryFailure": "Dočasná chyba",
       "throttled": "Príliš veľa pokusov",
       "unknownPasskey": "Neznámy prístupový kľúč",
@@ -391,6 +412,7 @@
     },
     "auditTargetType": {
       "domainTemplate": "Šablóna domény",
+      "oauth2Client": "OAuth2 klient",
       "passkey": "Prístupový kľúč",
       "preferences": "Predvoľby",
       "session": "Relácia",
@@ -398,8 +420,12 @@
       "syncJob": "Synchronizačná úloha"
     },
     "authMethod": {
+      "directoryPassword": "Heslo z adresára",
+      "directoryPasswordAndSecondFactor": "Heslo z adresára a druhý faktor",
       "passkey": "Prístupový kľúč",
-      "passwordAndSecondFactor": "Heslo a druhý faktor"
+      "passwordAndSecondFactor": "Heslo a druhý faktor",
+      "providerPassword": "Heslo cez poskytovateľa identít",
+      "providerPasswordAndSecondFactor": "Heslo cez poskytovateľa identít a druhý faktor"
     },
     "resourceKind": {
       "group": "Skupina",
@@ -561,6 +587,15 @@
     "passkeys": "Prístupové kľúče",
     "routing": "Smerovanie a prepisovanie adries",
     "system": "Nastavenia systému"
+  },
+  "oauth2": {
+    "added": "Prístup klienta bol pridaný",
+    "backToList": "Späť na OAuth2 aplikácie",
+    "columns": {
+      "id": "ID"
+    },
+    "redirectUriEmpty": "URL na presmerovanie (callback) nesmie byť prázdna",
+    "title": "OAuth2"
   },
   "passkeys": {
     "add": {

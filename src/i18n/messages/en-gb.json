@@ -340,7 +340,17 @@
       "domainTemplateDeletion": "Domain template removed",
       "domainTemplateUpdate": "Domain template changed",
       "domainUpdate": "Domain changed",
+      "identityProviderConnectionTest": "Identity provider connection test",
+      "identityProviderCreation": "Identity provider set up",
+      "identityProviderDeletion": "Identity provider removed",
+      "identityProviderSessionEnd": "Single sign-on session ended",
+      "identityProviderUpdate": "Identity provider changed",
       "mailboxSenderSettingsUpdate": "Sender permissions changed",
+      "oauth2ClientCreation": "OAuth2 client added",
+      "oauth2ClientDeletion": "OAuth2 client removed",
+      "oauth2ClientSecretRegeneration": "OAuth2 client secret renewed",
+      "oauth2ClientTokenRevocation": "OAuth2 client tokens revoked",
+      "oauth2ClientUpdate": "OAuth2 client changed",
       "passkeyRegistration": "Passkey added",
       "passkeyRemoval": "Passkey removed",
       "passkeyRename": "Passkey renamed",
@@ -365,18 +375,29 @@
     "auditFailureReason": {
       "accountInactive": "Account inactive",
       "attributeNotPermitted": "Change not permitted",
+      "autoCreationOff": "Automatic mailbox creation is off",
       "challengeExpired": "Sign-in timed out",
       "conflict": "Conflict with existing data",
       "externalIdentitySource": "Account signs in through an identity provider",
+      "identityProviderUnavailable": "Identity provider unavailable",
       "invalidCredentials": "Wrong username or password",
+      "mailboxCreationFailed": "Mailbox could not be created",
+      "mailboxNotLinked": "Mailbox not linked to the identity provider",
+      "noEmailAddress": "No e-mail address from the identity provider",
+      "noMatchingMapping": "No matching attribute mapping",
       "notFound": "Not found",
       "passkeyInactive": "Passkey inactive",
       "passkeyVerificationFailed": "Passkey verification failed",
+      "passwordNotVerifiable": "Password could not be verified",
       "permissionDenied": "Permission missing",
+      "providerRefused": "Refused by the identity provider",
+      "providerReturnedError": "The identity provider returned an error",
       "registrationFailed": "Registration failed",
       "roleMismatch": "Sign-in screen for another account type",
       "secondFactorFailed": "Second factor not accepted",
       "secondFactorUnavailable": "Second factor unavailable",
+      "signInStateInvalid": "Sign-in expired or already completed",
+      "singleSignOnNotAvailable": "Single sign-on not available",
       "temporaryFailure": "Temporary failure",
       "throttled": "Too many attempts",
       "unknownPasskey": "Unknown passkey",
@@ -391,6 +412,7 @@
     },
     "auditTargetType": {
       "domainTemplate": "Domain template",
+      "oauth2Client": "OAuth2 client",
       "passkey": "Passkey",
       "preferences": "Preferences",
       "session": "Session",
@@ -398,8 +420,12 @@
       "syncJob": "Sync job"
     },
     "authMethod": {
+      "directoryPassword": "Directory password",
+      "directoryPasswordAndSecondFactor": "Directory password and second factor",
       "passkey": "Passkey",
-      "passwordAndSecondFactor": "Password and second factor"
+      "passwordAndSecondFactor": "Password and second factor",
+      "providerPassword": "Password through the identity provider",
+      "providerPasswordAndSecondFactor": "Password through the identity provider and second factor"
     },
     "resourceKind": {
       "group": "Group",
@@ -561,6 +587,15 @@
     "passkeys": "Passkeys",
     "routing": "Routing and rewriting",
     "system": "System settings"
+  },
+  "oauth2": {
+    "added": "Added client access",
+    "backToList": "Back to the OAuth2 apps",
+    "columns": {
+      "id": "ID"
+    },
+    "redirectUriEmpty": "Redirect/Callback URL cannot be empty",
+    "title": "OAuth2"
   },
   "passkeys": {
     "add": {

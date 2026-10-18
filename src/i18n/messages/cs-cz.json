@@ -340,7 +340,17 @@
       "domainTemplateDeletion": "Šablona domény odebrána",
       "domainTemplateUpdate": "Šablona domény změněna",
       "domainUpdate": "Doména změněna",
+      "identityProviderConnectionTest": "Test připojení k poskytovateli identit",
+      "identityProviderCreation": "Poskytovatel identit nastaven",
+      "identityProviderDeletion": "Poskytovatel identit odebrán",
+      "identityProviderSessionEnd": "Relace jednotného přihlášení ukončena",
+      "identityProviderUpdate": "Poskytovatel identit změněn",
       "mailboxSenderSettingsUpdate": "Oprávnění odesílatele změněna",
+      "oauth2ClientCreation": "OAuth2 klient přidán",
+      "oauth2ClientDeletion": "OAuth2 klient odebrán",
+      "oauth2ClientSecretRegeneration": "Tajný klíč OAuth2 klienta obnoven",
+      "oauth2ClientTokenRevocation": "Tokeny OAuth2 klienta zneplatněny",
+      "oauth2ClientUpdate": "OAuth2 klient změněn",
       "passkeyRegistration": "Přidání přístupového klíče",
       "passkeyRemoval": "Odebrání přístupového klíče",
       "passkeyRename": "Přejmenování přístupového klíče",
@@ -365,18 +375,29 @@
     "auditFailureReason": {
       "accountInactive": "Účet je neaktivní",
       "attributeNotPermitted": "Změna není povolena",
+      "autoCreationOff": "Automatické vytváření schránek je vypnuto",
       "challengeExpired": "Časový limit přihlášení vypršel",
       "conflict": "Konflikt s existujícími daty",
       "externalIdentitySource": "Účet se přihlašuje přes poskytovatele identit",
+      "identityProviderUnavailable": "Poskytovatel identit není dostupný",
       "invalidCredentials": "Nesprávné uživatelské jméno nebo heslo",
+      "mailboxCreationFailed": "Schránku nebylo možné vytvořit",
+      "mailboxNotLinked": "Schránka není propojena s poskytovatelem identit",
+      "noEmailAddress": "Poskytovatel identit nedodal e-mailovou adresu",
+      "noMatchingMapping": "Žádné odpovídající mapování atributů",
       "notFound": "Nenalezeno",
       "passkeyInactive": "Přístupový klíč je neaktivní",
       "passkeyVerificationFailed": "Ověření přístupového klíče selhalo",
+      "passwordNotVerifiable": "Heslo nebylo možné ověřit",
       "permissionDenied": "Chybí oprávnění",
+      "providerRefused": "Odmítnuto poskytovatelem identit",
+      "providerReturnedError": "Poskytovatel identit vrátil chybu",
       "registrationFailed": "Registrace selhala",
       "roleMismatch": "Přihlašovací obrazovka pro jiný typ účtu",
       "secondFactorFailed": "Druhý faktor nebyl přijat",
       "secondFactorUnavailable": "Druhý faktor není k dispozici",
+      "signInStateInvalid": "Přihlášení vypršelo nebo už bylo dokončeno",
+      "singleSignOnNotAvailable": "Jednotné přihlášení není k dispozici",
       "temporaryFailure": "Dočasná chyba",
       "throttled": "Příliš mnoho pokusů",
       "unknownPasskey": "Neznámý přístupový klíč",
@@ -391,6 +412,7 @@
     },
     "auditTargetType": {
       "domainTemplate": "Šablona domény",
+      "oauth2Client": "OAuth2 klient",
       "passkey": "Přístupový klíč",
       "preferences": "Předvolby",
       "session": "Relace",
@@ -398,8 +420,12 @@
       "syncJob": "Synchronizační úloha"
     },
     "authMethod": {
+      "directoryPassword": "Heslo z adresáře",
+      "directoryPasswordAndSecondFactor": "Heslo z adresáře a druhý faktor",
       "passkey": "Přístupový klíč",
-      "passwordAndSecondFactor": "Heslo a druhý faktor"
+      "passwordAndSecondFactor": "Heslo a druhý faktor",
+      "providerPassword": "Heslo přes poskytovatele identit",
+      "providerPasswordAndSecondFactor": "Heslo přes poskytovatele identit a druhý faktor"
     },
     "resourceKind": {
       "group": "Skupina",
@@ -561,6 +587,15 @@
     "passkeys": "Přístupové klíče",
     "routing": "Směrování a přepisování adres",
     "system": "Nastavení systému"
+  },
+  "oauth2": {
+    "added": "Přístup klienta byl přidán",
+    "backToList": "Zpět na OAuth2 aplikace",
+    "columns": {
+      "id": "ID"
+    },
+    "redirectUriEmpty": "URL pro přesměrování (callback) nesmí být prázdná",
+    "title": "OAuth2"
   },
   "passkeys": {
     "add": {

@@ -322,7 +322,7 @@ renders in:
   - `LiveAnnouncer.vue`: polite and assertive regions;
   - `SanitizedHtml.vue`: renders sanitised HTML only;
   - `DateTime.vue` and `RelativeTime.vue`: `<time datetime>` with the absolute time available (FR-087).
-- [ ] T047 [P] Write `tests/unit/app/shell/shell.spec.ts` for `ShellLayout.vue` and the shell components. It covers:
+- [X] T047 [P] Write `tests/unit/app/shell/shell.spec.ts` for `ShellLayout.vue` and the shell components. It covers:
   - a skip link to `<main id="main">`;
   - at < 1024 px, one header button opens the navigation drawer, which traps focus, closes with Escape and after a choice, and returns focus to the button (FR-046);
   - `NoAccessState` rendered in place without mounting the route component (FR-045);
@@ -370,8 +370,8 @@ renders in:
   T037 and T039 must pass.
 - [X] T061 [P] Implement `src/shared/composables/useListState.ts`, `useVersionedSave.ts`, `useCountdown.ts`, `useAnnouncer.ts`, `useMediaQuery.ts`, `useConfirm.ts` and `useProblemForm.ts`, so that T042, T043 and T044 pass.
 - [X] T062 Implement `src/shared/components/SanitizedHtml.vue` (the only `v-html`, with a justified ESLint disable), `LiveAnnouncer.vue`, `ListState.vue`, `PaginationBar.vue` (on `src/shared/ui/pagination`), `ConfirmDialog.vue` (Reka `AlertDialog`), `FormField.vue`, `ErrorSummary.vue`, `ProblemMessage.vue`, `DateTime.vue`, `RelativeTime.vue` and `PageHeader.vue`, so that T045 and T046 pass.
-- [ ] T063 Implement `src/app/states/NoAccessState.vue` (explanation and a link home), `src/app/states/NotFoundPage.vue`, `src/app/states/ServiceUnavailablePage.vue` (a retry that re-runs the bootstrap) and a minimal `src/app/states/PlaceholderPage.vue`. The placeholder shows the section name and "comes in a later version", and requests no data. US3 completes it.
-- [ ] T064 Implement `src/app/layouts/AuthLayout.vue` and `src/app/layouts/ShellLayout.vue`, adapted from TailAdmin `AuthLayout` and `AdminLayout`, with `NoAccessState` rendered in place from `canAccess`. Also implement these shell components:
+- [X] T063 Implement `src/app/states/NoAccessState.vue` (explanation and a link home), `src/app/states/NotFoundPage.vue`, `src/app/states/ServiceUnavailablePage.vue` (a retry that re-runs the bootstrap) and a minimal `src/app/states/PlaceholderPage.vue`. The placeholder shows the section name and "comes in a later version", and requests no data. US3 completes it.
+- [X] T064 Implement `src/app/layouts/AuthLayout.vue` and `src/app/layouts/ShellLayout.vue`, adapted from TailAdmin `AuthLayout` and `AdminLayout`, with `NoAccessState` rendered in place from `canAccess`. Also implement these shell components:
   - `src/app/shell/AppHeader.vue`: logo, drawer button, user menu slot;
   - `src/app/shell/NavigationDrawer.vue`: a Reka `Dialog` below `lg`;
   - `src/app/shell/NavigationList.vue`: `visibleEntries`, rendered as a static `<nav>` from `lg` up;

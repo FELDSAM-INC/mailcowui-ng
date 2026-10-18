@@ -84,7 +84,7 @@ test.describe('sync job page', () => {
     }
   })
 
-  test('the mailbox user sees the run status with the user table\'s keys and no owner', async ({
+  test("the mailbox user sees the run status with the user table's keys and no owner", async ({
     page,
     mockApi,
     expectAccessible,

@@ -202,7 +202,7 @@ describe('client checks', () => {
       narrow,
       { mode: 'create', needsMailbox: true },
     )
-    expect(errors.mailbox).toEqual([{ key: { legacy: 'danger.no_user_defined' } }])
+    expect(errors.mailbox).toEqual([{ key: 'syncJobs.form.errors.mailbox.required' }])
     expect(errors.remoteHost).toEqual([{ key: 'validation.required' }])
     expect(errors.remotePassword).toEqual([{ key: 'validation.required' }])
     expect(errors.remotePort).toEqual([{ key: 'validation.required' }])

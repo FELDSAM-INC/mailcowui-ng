@@ -11,6 +11,7 @@ import { domainRoutes } from '@/features/domains'
 import { homeRoutes } from '@/features/home'
 import { mailboxRoutes } from '@/features/mailboxes'
 import { passkeysRoutes } from '@/features/passkeys'
+import { syncJobRoutes } from '@/features/sync-jobs'
 
 import { findEntry, placeholderRouteSpecs } from '../navigation/catalogue'
 
@@ -28,6 +29,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...auditLogRoutes,
   ...domainRoutes,
   ...mailboxRoutes,
+  ...syncJobRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

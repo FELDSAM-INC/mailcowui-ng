@@ -90,7 +90,9 @@ test.describe('sync job automatic refresh', () => {
   }) => {
     await open(page, mockApi)
     await page.clock.runFor(15 * 60_000 + 2_000)
-    const notice = page.getByText('Automatic refresh paused because you have been inactive.')
+    const notice = page
+      .locator('[data-auto-refresh]')
+      .getByText('Automatic refresh paused because you have been inactive.')
     await expect(notice).toBeVisible()
     await expect(page.locator('[data-live="polite"]')).toContainText('paused because you have')
     const paused = await listCalls(mockApi)
@@ -106,7 +108,9 @@ test.describe('sync job automatic refresh', () => {
     await open(page, mockApi, { idleTimeout: 300 })
     await page.clock.runFor(5 * 60_000 + 2_000)
     await expect(
-      page.getByText('Automatic refresh paused because you have been inactive.'),
+      page
+        .locator('[data-auto-refresh]')
+        .getByText('Automatic refresh paused because you have been inactive.'),
     ).toBeVisible()
   })
 

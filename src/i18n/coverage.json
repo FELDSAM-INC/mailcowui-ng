@@ -32,7 +32,11 @@
       "mailboxRename",
       "mailboxTemplateCreation",
       "mailboxTemplateUpdate",
-      "mailboxTemplateDeletion"
+      "mailboxTemplateDeletion",
+      "syncJobCreation",
+      "syncJobUpdate",
+      "syncJobReschedule",
+      "syncJobDeletion"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -47,7 +51,8 @@
       "resource",
       "mailboxSenderSettings",
       "mailbox",
-      "mailboxTemplate"
+      "mailboxTemplate",
+      "syncJob"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -132,7 +137,8 @@
       "outcome-unknown",
       "mailbox-template-name-exists",
       "mailbox-template-protected",
-      "permission-flag-required"
+      "permission-flag-required",
+      "sync-job-exists"
     ]
   },
   "complete": {

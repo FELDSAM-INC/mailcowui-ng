@@ -1,11 +1,13 @@
 // UI 008 US1 scope and access (T024): each role sees its scope, roles without the syncjobs flag
 // see neither the entry nor the screens, "not found" for unknown and foreign jobs, and the changes
 // behind the user's back (flag revoked, job deleted, mailbox renamed).
+import type { Page } from '@playwright/test'
+
 import { permissionFlags } from '../../mocks/scenarios/accounts'
 import { expect, test } from '../fixtures/test'
 import { entries, entry, entryIds, isNarrow, listReady, requestsOf } from './helpers'
 
-async function openNavigation(page: import('@playwright/test').Page) {
+async function openNavigation(page: Page) {
   if ((page.viewportSize()?.width ?? 0) < 1024) {
     await page.getByRole('button', { name: 'Toggle navigation' }).click()
   }
@@ -83,7 +85,7 @@ test.describe('sync job scope and access', () => {
         reseller: { permissions: permissionFlags(true, { syncjobs: false, bccMaps: false }) },
       },
     })
-    await page.getByRole('button', { name: 'Refresh' }).click()
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'No access' })).toBeVisible()
     const nav = await openNavigation(page)
     await expect(nav.getByRole('link', { name: 'Sync jobs' })).toHaveCount(0)
@@ -134,7 +136,7 @@ test.describe('sync job scope and access', () => {
     await mockApi.patch({
       syncJobs: { renameMailbox: { from: 'dora@example.org', to: 'dora.new@example.org' } },
     })
-    await page.getByRole('button', { name: 'Refresh' }).click()
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click()
     await expect(entries(page).first()).toContainText('dora.new@example.org')
   })
 })

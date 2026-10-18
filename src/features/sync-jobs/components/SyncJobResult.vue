@@ -22,14 +22,14 @@ const view = computed(() => resultView(props.run, props.role))
 </script>
 
 <template>
-  <span data-result class="inline-flex items-start gap-1.5">
+  <span data-result class="inline-flex items-center gap-1.5">
     <template v-if="view.kind === 'none'">-</template>
     <template v-else>
       <CheckIcon
         v-if="view.kind === 'succeeded'"
-        class="mt-0.5 size-4 shrink-0 text-green-700 dark:text-green-400"
+        class="size-4 shrink-0 text-green-700 dark:text-green-400"
       />
-      <CloseIcon v-else class="mt-0.5 size-4 shrink-0 text-red-700 dark:text-red-400" />
+      <CloseIcon v-else class="size-4 shrink-0 text-red-700 dark:text-red-400" />
       <span>
         <span class="sr-only">{{
           `${t(view.kind === 'succeeded' ? 'syncJobs.result.succeeded' : 'syncJobs.result.failed')} `
@@ -37,7 +37,7 @@ const view = computed(() => resultView(props.run, props.role))
         <button
           v-if="view.checkLog && logLink"
           type="button"
-          class="min-h-6 text-start font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
+          class="inline-flex min-h-11 items-center text-start font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
           @click="emit('openLog')"
         >
           {{ resolveText(view.text, t) }}

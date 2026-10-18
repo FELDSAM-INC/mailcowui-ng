@@ -64,7 +64,12 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.result) }}</dt>
         <dd class="text-gray-900 dark:text-white">
-          <SyncJobResult :run="job.runStatus" :role="role" log-link @open-log="emit('openLog', job)" />
+          <SyncJobResult
+            :run="job.runStatus"
+            :role="role"
+            log-link
+            @open-log="emit('openLog', job)"
+          />
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">{{ t('syncJobs.columns.log') }}</dt>
         <dd>
@@ -78,7 +83,12 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.active) }}</dt>
         <dd class="text-gray-900 dark:text-white">
-          <SyncJobStateBadges show="active" :active="job.active" :running="job.runStatus.running" :role="role" />
+          <SyncJobStateBadges
+            show="active"
+            :active="job.active"
+            :running="job.runStatus.running"
+            :role="role"
+          />
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.status) }}</dt>
         <dd>
@@ -86,7 +96,9 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
         </dd>
         <template v-if="!manager">
           <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.encryption) }}</dt>
-          <dd class="text-gray-900 dark:text-white">{{ t(`enums.syncJobEncryption.${job.encryption}`) }}</dd>
+          <dd class="text-gray-900 dark:text-white">
+            {{ t(`enums.syncJobEncryption.${job.encryption}`) }}
+          </dd>
         </template>
         <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.excludes) }}</dt>
         <dd class="wrap-anywhere text-gray-900 dark:text-white">
@@ -94,7 +106,8 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
           <template v-else>-</template>
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">
-          {{ label(texts.interval) }}<template v-if="!manager"> {{ t('syncJobs.columns.minutes') }}</template>
+          {{ label(texts.interval)
+          }}<template v-if="!manager"> {{ t('syncJobs.columns.minutes') }}</template>
         </dt>
         <dd class="text-gray-900 dark:text-white">{{ fmt.number(job.intervalMinutes) }}</dd>
       </dl>

@@ -355,7 +355,11 @@
       "mailboxRename": "Schránka přejmenována",
       "mailboxTemplateCreation": "Šablona schránky přidána",
       "mailboxTemplateUpdate": "Šablona schránky změněna",
-      "mailboxTemplateDeletion": "Šablona schránky odebrána"
+      "mailboxTemplateDeletion": "Šablona schránky odebrána",
+      "syncJobCreation": "Synchronizační úloha přidána",
+      "syncJobDeletion": "Synchronizační úloha odstraněna",
+      "syncJobReschedule": "Synchronizační úloha naplánována znovu",
+      "syncJobUpdate": "Synchronizační úloha změněna"
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktivní",
@@ -389,7 +393,8 @@
       "passkey": "Přístupový klíč",
       "preferences": "Předvolby",
       "session": "Relace",
-      "mailboxTemplate": "Šablona schránky"
+      "mailboxTemplate": "Šablona schránky",
+      "syncJob": "Synchronizační úloha"
     },
     "authMethod": {
       "passkey": "Přístupový klíč",
@@ -399,6 +404,15 @@
       "group": "Skupina",
       "location": "Místo",
       "thing": "Věc"
+    },
+    "syncJobEncryption": {
+      "plain": "PLAIN",
+      "ssl": "SSL",
+      "starttls": "STARTTLS"
+    },
+    "syncJobLastResult": {
+      "failed": "Neúspěšné",
+      "unknown": "Bez výsledku"
     }
   },
   "forms": {
@@ -697,6 +711,77 @@
       "title": "Služba je dočasně nedostupná"
     }
   },
+  "syncJobs": {
+    "columns": {
+      "id": "ID",
+      "log": "Záznam",
+      "minutes": "(min)",
+      "server": "Server"
+    },
+    "detail": {
+      "backToList": "Zpět na synchronizační úlohy",
+      "gone": "Tato synchronizační úloha již neexistuje.",
+      "loadFailed": "Synchronizační úlohu se nepodařilo načíst.",
+      "loading": "Načítání synchronizační úlohy…"
+    },
+    "filters": {
+      "any": "Libovolné",
+      "clear": "Vymazat filtry",
+      "title": "Filtry",
+      "withCount": "Filtry ({count})"
+    },
+    "form": {
+      "errors": {
+        "customParameters": {
+          "customParamsNotPermitted": "Vlastní parametry smějí na tomto serveru nastavovat jen administrátoři.",
+          "optionContainsSpace": "Zapište „{token}“ jako --volba=hodnota, bez mezer.",
+          "optionNotAllowed": "Volba --{option} není na tomto serveru povolena."
+        },
+        "exclude": {
+          "invalidRegex": "Toto není platný regulární výraz."
+        },
+        "mailbox": {
+          "notEligible": {
+            "kind": {
+              "alias": "Tato adresa je alias a nemůže přijímat synchronizovanou poštu.",
+              "aliasDomainAddress": "Tato adresa patří k aliasové doméně a nemůže přijímat synchronizovanou poštu.",
+              "resource": "Tato adresa je prostředek a nemůže přijímat synchronizovanou poštu."
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "actionsFor": "Akce pro {name}",
+      "clearAll": "Vymazat hledání a filtry",
+      "clearSearch": "Vymazat hledání",
+      "count": "Nalezené synchronizační úlohy: {count}",
+      "detailsOf": "Podrobnosti o {name}",
+      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené synchronizační úlohy nemusí být aktuální."
+    },
+    "password": {
+      "keep": "Ponecháte-li pole prázdné, heslo zůstane zachováno.",
+      "none": "Žádné heslo není uloženo.",
+      "saved": "Heslo je uloženo."
+    },
+    "refresh": {
+      "inactive": "Automatické obnovování bylo pozastaveno, protože jste byli neaktivní.",
+      "pause": "Pozastavit automatické obnovování",
+      "paused": "Automatické obnovování je pozastaveno.",
+      "resume": "Obnovit automatické obnovování",
+      "running": "Dokud běží synchronizační úloha, tento seznam se obnovuje každých 30 sekund."
+    },
+    "result": {
+      "failed": "Neúspěšné:",
+      "succeeded": "Úspěšné:"
+    },
+    "sort": {
+      "asc": "Vzestupně",
+      "desc": "Sestupně",
+      "label": "Řadit podle",
+      "order": "Pořadí"
+    }
+  },
   "themes": {
     "dark": "Tmavý",
     "light": "Světlý",
@@ -711,6 +796,7 @@
       "dkimSelector": "Použijte jen písmena, číslice, pomlčky, podtržítka a tečky.",
       "domainName": "Zadejte platný název domény, například example.org.",
       "email": "Zadejte platnou e-mailovou adresu.",
+      "hostName": "Zadejte název hostitele nebo adresu IPv4.",
       "ipAddress": "Zadejte platnou adresu IPv4 nebo IPv6.",
       "ipNetwork": "Zadejte adresu nebo síť IPv4 či IPv6, například 192.0.2.0/24.",
       "totpCode": "Zadejte šestimístný kód.",

@@ -186,6 +186,11 @@ export function violationParams(
     named.allowedRoles = formatList(roles, locale)
   }
   if (typeof params.expected === 'string') named.expected = params.expected
+  // UI 008: the refused option and token of a custom parameter (`optionNotAllowed`,
+  // `optionContainsSpace`), shown as the API names them.
+  for (const key of ['option', 'token'] as const) {
+    if (typeof params[key] === 'string') named[key] = params[key]
+  }
   // UI 004: the entry the violation names, its domain part, and the form's other values.
   const entry = context.path ? context.valueAt?.(context.path) : undefined
   if (entry !== undefined) {

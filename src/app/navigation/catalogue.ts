@@ -145,6 +145,7 @@ export const catalogue: readonly NavigationEntry[] = [
     { admin: true, domainAdmin: { anyFlag: ['syncjobs'] }, mailboxUser: { anyFlag: ['syncjobs'] } },
     '008',
     { ...MAIL_SETUP, mailboxUser: ['/user'] },
+    'available',
   ),
   entry(
     'routing',

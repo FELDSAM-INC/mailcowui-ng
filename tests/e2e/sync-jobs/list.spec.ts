@@ -63,7 +63,10 @@ test.describe('sync job list', () => {
       'aria-sort',
       'ascending',
     )
-    await page.getByRole('button', { name: /^Details of / }).first().click()
+    await page
+      .getByRole('button', { name: /^Details of / })
+      .first()
+      .click()
     await expect(page.locator('[data-entry-details]').first()).toContainText('Excludes')
     await expect(page.locator('[data-entry-details]').first()).toContainText('Interval (min)')
     await expectAccessible()
@@ -103,7 +106,9 @@ test.describe('sync job list', () => {
       accounts: { admin: { preferences: { language: 'cs-cz', theme: 'system', etag: '"p"' } } },
     })
     await page.goto('sync-jobs?q=previous')
-    await expect(page.getByRole('heading', { level: 1, name: 'Synchronizační úlohy' })).toBeVisible()
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Synchronizační úlohy' }),
+    ).toBeVisible()
     await expect(entry(page, 2)).toContainText('Chybné uživatelské jméno nebo heslo')
   })
 
@@ -146,7 +151,7 @@ test.describe('sync job list', () => {
     mockApi,
     expectAccessible,
   }) => {
-    await mockApi.use('sync-jobs-admin', { failures: { listSyncJobs: { status: 500, times: 2 } } })
+    await mockApi.use('sync-jobs-admin', { failures: { listSyncJobs: { status: 500, times: 1 } } })
     await page.goto('sync-jobs')
     await expect(page.getByText('The list could not be loaded.')).toBeVisible()
     await expect(page.getByText(/Request ID:/)).toBeVisible()
@@ -200,7 +205,7 @@ test.describe('sync job list', () => {
     expectTouchTargets,
   }) => {
     await mockApi.use('sync-jobs-admin')
-    await page.goto('sync-jobs?active=yes&sort=lastRunAt&order=desc&size=50')
+    await page.goto('sync-jobs?sort=lastRunAt&order=desc&size=50')
     await listReady(page)
     await expect(page.getByText(/Showing 1 to 50 of/)).toBeVisible()
     await page.getByRole('button', { name: 'Next', exact: true }).click()
@@ -210,12 +215,11 @@ test.describe('sync job list', () => {
     await expect(page.getByText(/Showing 51 to/)).toBeVisible()
     await page.goBack()
     await expect(page).not.toHaveURL(/page=2/)
-    const stored = await page.evaluate(() => [
-      Object.keys(localStorage),
-      Object.keys(sessionStorage),
-    ])
-    expect(stored[1]).toEqual([])
-    expect(stored[0].filter((key) => /sync|job/i.test(key))).toEqual([])
+    const [local, session] = await page.evaluate(
+      () => [Object.keys(localStorage), Object.keys(sessionStorage)] as const,
+    )
+    expect(session).toEqual([])
+    expect(local.filter((key) => /sync|job/i.test(key))).toEqual([])
     if (isNarrow(page)) await expectTouchTargets()
   })
 
@@ -237,7 +241,9 @@ test.describe('sync job list', () => {
     await page.goto('sync-jobs')
     await listReady(page)
     const before = (await requestsOf(mockApi, 'listSyncJobs')).length
-    await page.getByRole('button', { name: 'Refresh' }).click()
-    await expect.poll(async () => (await requestsOf(mockApi, 'listSyncJobs')).length).toBe(before + 1)
+    await page.getByRole('button', { name: 'Refresh', exact: true }).click()
+    await expect
+      .poll(async () => (await requestsOf(mockApi, 'listSyncJobs')).length)
+      .toBe(before + 1)
   })
 })

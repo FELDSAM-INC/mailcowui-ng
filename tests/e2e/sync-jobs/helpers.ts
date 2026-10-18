@@ -42,6 +42,8 @@ export async function requestsOf(mockApi: MockApi, operationId: string) {
 
 /** Opens the row menu of a job ("Actions for …") and chooses an item. */
 export async function rowAction(page: Page, id: number, item: string): Promise<void> {
-  await entry(page, id).getByRole('button', { name: /^Actions for / }).click()
+  await entry(page, id)
+    .getByRole('button', { name: /^Actions for / })
+    .click()
   await page.getByRole('menuitem', { name: item }).click()
 }

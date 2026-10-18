@@ -150,6 +150,15 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'mailboxes.sort.modifiedAt': 'mailbox.last_modified',
   // UI 003: rule codes with a classic message of the same meaning and no placeholder.
   'validation.missingCharacterClass': 'danger.password_complexity',
+  // UI 008: the sync-job enumerations with a classic name, the owner left empty, and an existing
+  // job (`danger.object_exists` with "host / user", as legacy fills it).
+  'enums.syncJobLastResult.succeeded': 'mailbox.syncjob_EX_OK',
+  'enums.syncJobBulkAction.activate': 'mailbox.activate',
+  'enums.syncJobBulkAction.deactivate': 'mailbox.deactivate',
+  'enums.syncJobBulkAction.reschedule': 'mailbox.last_run_reset',
+  'enums.syncJobBulkAction.delete': 'mailbox.remove',
+  'syncJobs.form.errors.mailbox.required': 'danger.no_user_defined',
+  'problem.sync-job-exists': 'danger.object_exists',
 }
 
 /**
@@ -187,4 +196,5 @@ export const LEGACY_ARGS: Readonly<Partial<Record<string, readonly string[]>>> =
   'senderSettings.errors.explicitPermissions.notEligible': ['entry'],
   'senderSettings.errors.externalSenderAddresses.invalidFormat': ['entry'],
   'senderSettings.errors.externalSenderAddresses.notEligible.kind.localDomain': ['entryDomain'],
+  'problem.sync-job-exists': ['object'],
 }

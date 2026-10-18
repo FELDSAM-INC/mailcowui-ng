@@ -38,7 +38,8 @@ const expanded = ref(new Set<number>())
 const texts = computed(() => listTexts(props.role))
 const manager = computed(() => props.role !== 'mailboxUser')
 
-type Column = 'id' | 'owner' | 'server' | 'username' | 'lastRun' | 'result' | 'log' | 'active' | 'status'
+type Column =
+  'id' | 'owner' | 'server' | 'username' | 'lastRun' | 'result' | 'log' | 'active' | 'status'
 interface ColumnSpec {
   key: Column
   label: TextRef
@@ -47,7 +48,9 @@ interface ColumnSpec {
 
 const columns = computed<ColumnSpec[]>(() => [
   { key: 'id', label: 'syncJobs.columns.id', sort: 'id' },
-  ...(manager.value ? [{ key: 'owner' as const, label: texts.value.owner, sort: 'mailbox' as const }] : []),
+  ...(manager.value
+    ? [{ key: 'owner' as const, label: texts.value.owner, sort: 'mailbox' as const }]
+    : []),
   { key: 'server', label: 'syncJobs.columns.server', sort: 'remoteHost' },
   ...(manager.value
     ? []
@@ -152,10 +155,19 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
               </button>
             </td>
             <td class="px-2 py-3">
-              <SyncJobStateBadges show="active" :active="job.active" :running="job.runStatus.running" :role="role" />
+              <SyncJobStateBadges
+                show="active"
+                :active="job.active"
+                :running="job.runStatus.running"
+                :role="role"
+              />
             </td>
             <td class="px-2 py-3">
-              <SyncJobStateBadges :active="job.active" :running="job.runStatus.running" :role="role" />
+              <SyncJobStateBadges
+                :active="job.active"
+                :running="job.runStatus.running"
+                :role="role"
+              />
             </td>
             <td class="px-2 py-1">
               <div class="flex items-center justify-end">

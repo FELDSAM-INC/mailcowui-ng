@@ -10,9 +10,10 @@ import type {
   SyncJobEncryption,
   SyncJobRange,
 } from '@/api'
-import { legacy, type TextRef } from '@/i18n'
+import type { TextRef } from '@/i18n'
 
 import type { SyncJobCreateBody, SyncJobPatchBody } from './api'
+import { formErrorKey } from './field-messages'
 
 type Config = Required<Omit<SyncJobCreateRequest, 'mailbox' | 'remotePassword'>>
 
@@ -288,7 +289,7 @@ export function checkValues(
     ;(errors[field] ??= []).push(error)
   }
   if (options.needsMailbox && values.mailbox.trim() === '') {
-    add('mailbox', { key: legacy('danger.no_user_defined') })
+    add('mailbox', { key: formErrorKey('mailbox', 'required') })
   }
   const required: TextField[] = ['remoteHost', 'remoteUser']
   if (options.mode === 'create') required.push('remotePassword')

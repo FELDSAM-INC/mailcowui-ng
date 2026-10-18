@@ -115,7 +115,10 @@ function value(event: Event): string | undefined {
     >
       <slot name="pickers" />
       <div class="flex flex-col gap-1.5">
-        <label for="sync-job-filter-active" class="text-sm font-medium text-gray-800 dark:text-gray-200">
+        <label
+          for="sync-job-filter-active"
+          class="text-sm font-medium text-gray-800 dark:text-gray-200"
+        >
           {{ label(texts.active) }}
         </label>
         <select
@@ -130,7 +133,10 @@ function value(event: Event): string | undefined {
         </select>
       </div>
       <div class="flex flex-col gap-1.5">
-        <label for="sync-job-filter-running" class="text-sm font-medium text-gray-800 dark:text-gray-200">
+        <label
+          for="sync-job-filter-running"
+          class="text-sm font-medium text-gray-800 dark:text-gray-200"
+        >
           {{ label(texts.status) }}
         </label>
         <select
@@ -145,7 +151,10 @@ function value(event: Event): string | undefined {
         </select>
       </div>
       <div class="flex flex-col gap-1.5">
-        <label for="sync-job-filter-result" class="text-sm font-medium text-gray-800 dark:text-gray-200">
+        <label
+          for="sync-job-filter-result"
+          class="text-sm font-medium text-gray-800 dark:text-gray-200"
+        >
           {{ label(texts.result) }}
         </label>
         <select

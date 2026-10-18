@@ -1,0 +1,20 @@
+<!-- Derived from TailAdmin Vue Free 2.5.0 (94ebe1b), MIT. See THIRD_PARTY_NOTICES.md. -->
+<template>
+  <svg
+    aria-hidden="true"
+    focusable="false"
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+  >
+    <path
+      d="M16.25 16.199s.105-5.417-6.25-5.417S3.75 16.2 3.75 16.2m9.302-10.912a2.995 2.995 0 11-5.991 0 2.995 2.995 0 015.99 0z"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+</template>

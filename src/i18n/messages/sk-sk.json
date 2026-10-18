@@ -527,7 +527,14 @@
       "resourceDeletion": "Zdroj odstránený",
       "resourceUpdate": "Zdroj zmenený",
       "signIn": "Prihlásenie",
-      "signOut": "Odhlásenie"
+      "signOut": "Odhlásenie",
+      "mailboxCreation": "Schránka pridaná",
+      "mailboxUpdate": "Schránka zmenená",
+      "mailboxDeletion": "Schránka odstránená",
+      "mailboxRename": "Schránka premenovaná",
+      "mailboxTemplateCreation": "Šablóna schránky pridaná",
+      "mailboxTemplateUpdate": "Šablóna schránky zmenená",
+      "mailboxTemplateDeletion": "Šablóna schránky odstránená"
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktívny",
@@ -549,7 +556,9 @@
       "unknownPasskey": "Neznámy prístupový kľúč",
       "validationFailed": "Neplatné hodnoty",
       "verificationUnavailable": "Overovacia služba je nedostupná",
-      "versionOutdated": "Medzitým zmenené"
+      "versionOutdated": "Medzitým zmenené",
+      "outcomeUnknown": "Výsledok neznámy",
+      "partiallyCompleted": "Dokončené len čiastočne"
     },
     "auditOutcome": {
       "failure": "Neúspech"
@@ -558,7 +567,8 @@
       "domainTemplate": "Šablóna domény",
       "passkey": "Prístupový kľúč",
       "preferences": "Predvoľby",
-      "session": "Relácia"
+      "session": "Relácia",
+      "mailboxTemplate": "Šablóna schránky"
     },
     "authMethod": {
       "passkey": "Prístupový kľúč",
@@ -721,7 +731,13 @@
     "temporary-failure": "Nič sa nezmenilo, pretože časť servera je dočasne nedostupná. Skúste to prosím o chvíľu znova.",
     "too-many-requests": "Príliš veľa pokusov. Pred ďalším pokusom chvíľu počkajte.",
     "unauthenticated": "Vaša relácia skončila. Prihláste sa, prosím, znova.",
-    "validation-failed": "Niektoré polia vyžadujú vašu pozornosť."
+    "validation-failed": "Niektoré polia vyžadujú vašu pozornosť.",
+    "mailbox-limit-reached": "Doména už nemá voľné schránky ({count} z {limit}).",
+    "mailbox-not-renamable": "Premenovať možno len aktívne schránky a schránky so zakázaným prihlásením.",
+    "mailbox-rename-incomplete": "Premenovanie sa nepodarilo dokončiť ani vrátiť späť. Obráťte sa na prevádzkovateľa servera.",
+    "outcome-unknown": "Nie je známe, či bola akcia dokončená. Pred ďalším pokusom skontrolujte výsledok.",
+    "mailbox-template-name-exists": "Šablóna schránky s týmto názvom už existuje.",
+    "mailbox-template-protected": "Predvolenú šablónu nemožno premenovať ani odstrániť."
   },
   "roles": {
     "mailboxUser": "Používateľ schránky"
@@ -826,6 +842,37 @@
     "tooLong": "Zadajte najviac {max} znakov.",
     "tooLongBytes": "Text môže mať najviac {max}.",
     "tooMany": "Zadajte najviac {max} položiek.",
-    "tooShort": "Zadajte aspoň {min} znakov."
+    "tooShort": "Zadajte aspoň {min} znakov.",
+    "unchanged": "Nová hodnota je rovnaká ako súčasná."
+  },
+  "mailboxes": {
+    "delete": {
+      "blocker": {
+        "mailStore": "Úložisko pošty je nedostupné.",
+        "sharedStore": "Zdieľané úložisko údajov je nedostupné."
+      }
+    },
+    "rename": {
+      "step": {
+        "sharedFolderPermissionsRemoval": "Odobratie oprávnení k zdieľaným priečinkom",
+        "sharedStoreMove": "Presun limitu odosielania a spracovania označenej pošty",
+        "database": "Úprava databázy",
+        "mailStoreMove": "Presun pošty",
+        "webmailRename": "Premenovanie údajov webmailu",
+        "sharedFolderPermissionsRecreation": "Obnovenie oprávnení k zdieľaným priečinkom"
+      },
+      "outcome": {
+        "done": "Hotovo",
+        "undone": "Vrátené späť",
+        "notDone": "Nevykonané",
+        "failed": "Zlyhalo",
+        "unknown": "Neznáme",
+        "undoFailed": "Vrátenie späť zlyhalo",
+        "skipped": "Preskočené"
+      }
+    },
+    "sort": {
+      "quotaUsed": "Využité miesto"
+    }
   }
 }

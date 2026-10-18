@@ -112,6 +112,24 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
     'danger.extra_acl_invalid_domain',
   'senderSettings.errors.externalSenderAddresses.attributeNotPermitted':
     'danger.extended_sender_acl_denied',
+  // UI 003: mailbox statuses, sort fields and audit targets with a classic name.
+  'enums.auditTargetType.mailbox': 'mailbox.mailbox',
+  'mailboxes.status.active': 'edit.active',
+  'mailboxes.status.loginDisabled': 'edit.disable_login',
+  'mailboxes.status.inactive': 'edit.inactive',
+  'mailboxes.sort.address': 'mailbox.username',
+  'mailboxes.sort.displayName': 'mailbox.fname',
+  'mailboxes.sort.domain': 'mailbox.domain',
+  'mailboxes.sort.status': 'mailbox.active',
+  'mailboxes.sort.quota': 'mailbox.domain_quota',
+  'mailboxes.sort.percentUsed': 'mailbox.in_use',
+  'mailboxes.sort.messageCount': 'mailbox.msg_num',
+  'mailboxes.sort.lastMailLogin': 'mailbox.last_mail_login',
+  'mailboxes.sort.passwordChangedAt': 'mailbox.last_pw_change',
+  'mailboxes.sort.createdAt': 'mailbox.created_on',
+  'mailboxes.sort.modifiedAt': 'mailbox.last_modified',
+  // UI 003: rule codes with a classic message of the same meaning and no placeholder.
+  'validation.missingCharacterClass': 'danger.password_complexity',
 }
 
 /**

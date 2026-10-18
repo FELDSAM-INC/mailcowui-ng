@@ -527,7 +527,14 @@
       "resourceDeletion": "Resource removed",
       "resourceUpdate": "Resource changed",
       "signIn": "Sign-in",
-      "signOut": "Sign-out"
+      "signOut": "Sign-out",
+      "mailboxCreation": "Mailbox added",
+      "mailboxUpdate": "Mailbox changed",
+      "mailboxDeletion": "Mailbox removed",
+      "mailboxRename": "Mailbox renamed",
+      "mailboxTemplateCreation": "Mailbox template added",
+      "mailboxTemplateUpdate": "Mailbox template changed",
+      "mailboxTemplateDeletion": "Mailbox template removed"
     },
     "auditFailureReason": {
       "accountInactive": "Account inactive",
@@ -549,7 +556,9 @@
       "unknownPasskey": "Unknown passkey",
       "validationFailed": "Invalid values",
       "verificationUnavailable": "Verification service unavailable",
-      "versionOutdated": "Changed in the meantime"
+      "versionOutdated": "Changed in the meantime",
+      "outcomeUnknown": "Outcome unknown",
+      "partiallyCompleted": "Partly completed"
     },
     "auditOutcome": {
       "failure": "Failure"
@@ -558,7 +567,8 @@
       "domainTemplate": "Domain template",
       "passkey": "Passkey",
       "preferences": "Preferences",
-      "session": "Session"
+      "session": "Session",
+      "mailboxTemplate": "Mailbox template"
     },
     "authMethod": {
       "passkey": "Passkey",
@@ -721,7 +731,13 @@
     "temporary-failure": "Nothing was changed, because a server component is temporarily unavailable. Please try again in a moment.",
     "too-many-requests": "Too many attempts. Please wait before trying again.",
     "unauthenticated": "Your session has ended. Please sign in again.",
-    "validation-failed": "Some fields need your attention."
+    "validation-failed": "Some fields need your attention.",
+    "mailbox-limit-reached": "The domain has no mailboxes left ({count} of {limit}).",
+    "mailbox-not-renamable": "Only active mailboxes and mailboxes with login disallowed can be renamed.",
+    "mailbox-rename-incomplete": "The rename could neither be completed nor undone. Contact the server operator.",
+    "outcome-unknown": "It is unknown whether the action was completed. Check the result before you try again.",
+    "mailbox-template-name-exists": "A mailbox template with this name already exists.",
+    "mailbox-template-protected": "The Default template cannot be renamed or deleted."
   },
   "roles": {
     "mailboxUser": "Mailbox user"
@@ -826,6 +842,37 @@
     "tooLong": "Enter at most {max} characters.",
     "tooLongBytes": "This text may be at most {max} long.",
     "tooMany": "Enter at most {max} entries.",
-    "tooShort": "Enter at least {min} characters."
+    "tooShort": "Enter at least {min} characters.",
+    "unchanged": "The new value is the same as the current one."
+  },
+  "mailboxes": {
+    "delete": {
+      "blocker": {
+        "mailStore": "The mail store is unreachable.",
+        "sharedStore": "The shared data store is unreachable."
+      }
+    },
+    "rename": {
+      "step": {
+        "sharedFolderPermissionsRemoval": "Removing the shared folder permissions",
+        "sharedStoreMove": "Moving the rate limit and the tagged mail handling",
+        "database": "Updating the database",
+        "mailStoreMove": "Moving the mail",
+        "webmailRename": "Renaming the webmail data",
+        "sharedFolderPermissionsRecreation": "Restoring the shared folder permissions"
+      },
+      "outcome": {
+        "done": "Done",
+        "undone": "Undone",
+        "notDone": "Not done",
+        "failed": "Failed",
+        "unknown": "Unknown",
+        "undoFailed": "Undo failed",
+        "skipped": "Skipped"
+      }
+    },
+    "sort": {
+      "quotaUsed": "Storage used"
+    }
   }
 }

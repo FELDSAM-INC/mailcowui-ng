@@ -26,6 +26,7 @@ describe('allowlist (data-model §4)', () => {
   it('lists exactly the documented keys', () => {
     expect([...ALLOWED_LOCAL_KEYS].sort()).toEqual([
       'mailcowui-ng.locale',
+      'mailcowui-ng.mailboxes.columns',
       'mailcowui-ng.passkey-suggestion-dismissed',
       'mailcowui-ng.theme',
     ])
@@ -61,6 +62,19 @@ describe('allowlist (data-model §4)', () => {
     expect(localStore.get('other' as LocalStorageKey)).toBeNull()
     localStore.remove('other' as LocalStorageKey)
     expect(localStorage.getItem('other')).toBe('value')
+  })
+
+  it('accepts the mailbox list columns (UI 003 data-model §4) as a JSON array of ids', () => {
+    const columns = JSON.stringify(['fname', 'domain', 'createdAt'])
+    expect(localStore.set('mailcowui-ng.mailboxes.columns', columns)).toBe(true)
+    expect(JSON.parse(localStore.get('mailcowui-ng.mailboxes.columns') ?? '[]')).toEqual([
+      'fname',
+      'domain',
+      'createdAt',
+    ])
+    expect(sessionStore.set('mailcowui-ng.mailboxes.columns' as SessionStorageKey, '[]')).toBe(
+      false,
+    )
   })
 
   it('keeps the two storages apart', () => {

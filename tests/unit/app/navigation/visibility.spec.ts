@@ -46,6 +46,7 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   domains: { admin: true, domainAdmin: true, mailboxUser: false },
   domainTemplates: { admin: true, domainAdmin: false, mailboxUser: false },
   mailboxes: { admin: true, domainAdmin: true, mailboxUser: false },
+  mailboxTemplates: { admin: true, domainAdmin: true, mailboxUser: false },
   aliases: { admin: true, domainAdmin: true, mailboxUser: false },
   account: { admin: true, domainAdmin: true, mailboxUser: true },
   passkeys: { admin: true, domainAdmin: true, mailboxUser: true },
@@ -74,7 +75,7 @@ function shown(rule: boolean | Flag[], granted: Flag[]): boolean {
 }
 
 describe('navigation catalogue', () => {
-  it('has the 18 rows of data-model §2 (UI 002 adds domainTemplates) in navigation order', () => {
+  it('has the rows of data-model §2 (UI 002 adds domainTemplates, UI 003 mailboxTemplates) in navigation order', () => {
     expect(catalogue.map((entry) => entry.id)).toEqual(ORDER)
   })
 
@@ -83,6 +84,7 @@ describe('navigation catalogue', () => {
       domains: 'mailbox.domains',
       domainTemplates: 'mailbox.domain_templates',
       mailboxes: 'mailbox.mailboxes',
+      mailboxTemplates: 'mailbox.mailbox_templates',
       account: 'header.user_settings',
       quarantine: 'header.quarantine',
       spamFilter: 'user.spamfilter',
@@ -105,6 +107,18 @@ describe('navigation catalogue', () => {
     for (const entry of delivered) {
       expect(entry.status, entry.id).toBe(available.has(entry.id) ? 'available' : 'placeholder')
     }
+  })
+
+  it('delivers mailbox templates with UI 003 and links them to the classic mailbox pages', () => {
+    const entry = catalogue.find((item) => item.id === 'mailboxTemplates')
+    expect(entry?.path).toBe('/mailbox-templates')
+    expect(entry?.deliveredBy).toBe('003')
+    expect(entry?.classic).toEqual({
+      admin: ['/admin/mailbox'],
+      domainAdmin: ['/domainadmin/mailbox'],
+    })
+    const ids = catalogue.map((item) => item.id)
+    expect(ids.indexOf('mailboxTemplates')).toBe(ids.indexOf('mailboxes') + 1)
   })
 
   it('links every placeholder to the classic interface for each role that sees it', () => {

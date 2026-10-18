@@ -17,6 +17,7 @@ import {
   HomeIcon,
   KeyIcon,
   LayersIcon,
+  LayoutTemplateIcon,
   ListIcon,
   LockIcon,
   MailIcon,
@@ -31,6 +32,7 @@ export type NavEntryId =
   | 'domains'
   | 'domainTemplates'
   | 'mailboxes'
+  | 'mailboxTemplates'
   | 'aliases'
   | 'account'
   | 'passkeys'
@@ -78,6 +80,7 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   domains: legacy('mailbox.domains'),
   domainTemplates: legacy('mailbox.domain_templates'),
   mailboxes: legacy('mailbox.mailboxes'),
+  mailboxTemplates: legacy('mailbox.mailbox_templates'),
   account: legacy('header.user_settings'),
   quarantine: legacy('header.quarantine'),
   spamFilter: legacy('user.spamfilter'),
@@ -111,6 +114,7 @@ export const catalogue: readonly NavigationEntry[] = [
     'available',
   ),
   entry('mailboxes', '/mailboxes', MailIcon, MANAGERS, '003', MAIL_SETUP),
+  entry('mailboxTemplates', '/mailbox-templates', LayoutTemplateIcon, MANAGERS, '003', MAIL_SETUP),
   entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP),
   entry('account', '/account', UserCircleIcon, ALL, '005', {
     admin: ['/admin/system'],

@@ -25,7 +25,14 @@
       "resourceCreation",
       "resourceUpdate",
       "resourceDeletion",
-      "mailboxSenderSettingsUpdate"
+      "mailboxSenderSettingsUpdate",
+      "mailboxCreation",
+      "mailboxUpdate",
+      "mailboxDeletion",
+      "mailboxRename",
+      "mailboxTemplateCreation",
+      "mailboxTemplateUpdate",
+      "mailboxTemplateDeletion"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -38,7 +45,9 @@
       "alias",
       "aliasDomain",
       "resource",
-      "mailboxSenderSettings"
+      "mailboxSenderSettings",
+      "mailbox",
+      "mailboxTemplate"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -59,6 +68,8 @@
       "validationFailed",
       "conflict",
       "temporaryFailure",
+      "outcomeUnknown",
+      "partiallyCompleted",
       "permissionDenied",
       "notFound"
     ],
@@ -80,7 +91,9 @@
       "mustNotExceed",
       "belowInUse",
       "reserved",
-      "conflictsWith"
+      "conflictsWith",
+      "missingCharacterClass",
+      "unchanged"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -113,6 +126,12 @@
       "domain-alias-limit-reached",
       "alias-domain-already-exists",
       "not-primary-domain-alias",
+      "mailbox-limit-reached",
+      "mailbox-not-renamable",
+      "mailbox-rename-incomplete",
+      "outcome-unknown",
+      "mailbox-template-name-exists",
+      "mailbox-template-protected",
       "permission-flag-required"
     ]
   },
@@ -120,6 +139,11 @@
     "bulk.outcome": "#/components/schemas/BulkItemOutcome",
     "domains.rateLimit.frame": "#/components/schemas/DomainRateLimit/properties/frame",
     "domains.sort": "#/components/parameters/DomainSort/schema",
-    "domainTemplates.sort": "#/components/parameters/DomainTemplateSort/schema"
+    "domainTemplates.sort": "#/components/parameters/DomainTemplateSort/schema",
+    "mailboxes.status": "#/components/schemas/MailboxStatus",
+    "mailboxes.sort": "#/components/parameters/MailboxSort/schema",
+    "mailboxes.rename.step": "#/components/schemas/MailboxRenameStep/properties/step",
+    "mailboxes.rename.outcome": "#/components/schemas/MailboxRenameStep/properties/outcome",
+    "mailboxes.delete.blocker": "#/components/schemas/MailboxDeletionPreview/properties/blockers/items/properties/dependency"
   }
 }

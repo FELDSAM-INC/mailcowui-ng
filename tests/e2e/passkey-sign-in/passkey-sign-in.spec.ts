@@ -182,16 +182,16 @@ test('US2-AS9 FR-012 choosing a passkey from the autofill signs in', async ({
   ).toBeVisible()
 })
 
-test('FR-007 force single sign-on keeps passkey sign-in on the role-neutral screen', async ({
+test('FR-007 UI 012 FR-041 force single sign-on keeps passkey sign-in on the role-neutral screen', async ({
   page,
   mockApi,
   webauthn,
 }) => {
-  await mockApi.use('force-sso')
+  await mockApi.use('sso-force')
   await webauthn.stubCredentials(SEEDED_CREDENTIALS.unknown)
   await page.goto('sign-in')
   await expect(passkeyButton(page)).toBeVisible()
-  await expect(page.getByRole('region', { name: 'Single sign-on' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Single Sign-On' })).toBeVisible()
   await expect(passwordForm(page).username).toHaveCount(0)
 })
 

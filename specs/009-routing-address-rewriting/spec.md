@@ -50,23 +50,25 @@ selectors of the edit-domain and edit-mailbox pages."
   each result; this keeps the legacy convenience without the legacy habit of silently skipping
   invalid destinations.)
 - Q: Should the test form prefill the legacy sender and recipient addresses? → A: No. Both fields start
-  empty and an empty field means the server's configured default address. The legacy hint about the
-  null recipient address is shown next to the recipient field. (agent decision: API FR-041 makes the
-  defaults operator-configurable server settings, so a hard-coded prefill could contradict the
-  server.)
+  empty and an empty field means the server's configured default address, which the fields show as
+  placeholders. The legacy hint about the null recipient address is shown next to the recipient
+  field. (agent decision: API FR-041 makes the defaults operator-configurable server settings, so a
+  hard-coded prefill could contradict the server; the placeholders follow consistency change 5.)
 - Q: How is a test result presented on a phone? → A: A summary first: accepted or not, the step reached
   or failed, the host and port used and whether they came from an MX lookup, whether TLS was used,
   whether the login succeeded, and the last server reply. The full transcript follows as plain text in
   a section collapsed on phones, with a copy action. (agent decision: API FR-043 returns exactly these
   fields; mobile-first reading puts the verdict on the first screen.)
 - Q: Are the legacy mass actions kept, and how are concurrent changes handled? → A: Lists keep
-  multi-select with the legacy mass actions, up to 100 selected entries, applied as one bulk action
-  whose result is reported per entry (done, not found, refused or failed, with the reason). Bulk
-  actions carry no versions. Single edits, deletions and assignment changes always send the version
-  that was read; an outdated version is reported with an offer to reload, and the user's input is kept
-  until they choose to reload. (agent decision: API FR-090 and FR-091 define bulk actions of up to 100
-  entries with per-entry results and no version checks, and FR-008 honours versions when sent;
-  constitution II requires preventing lost updates on single edits; legacy offers these mass actions.)
+  multi-select with the legacy mass actions, up to the server's bulk limit (100 by default) of
+  selected entries, applied as one bulk action whose result is reported per entry (done, not found,
+  refused, outdated or failed, with the reason). Each selected entry is sent with the version that
+  was listed. Single edits, deletions and assignment changes always send the version that was read;
+  an outdated version is reported, the user's input is kept, the entry is reloaded and the values
+  that changed are marked. (agent decision: API FR-090 and FR-091 define bulk actions of up to 100
+  entries with per-entry results and optional per-entry versions, and FR-008 honours versions when
+  sent; constitution II requires preventing lost updates; legacy offers these mass actions. Amended
+  by consistency changes 1, 3 and 4.)
 - Q: What does the confirmation for deleting a relayhost that is in use show? → A: The number of
   domains and mailboxes that use it, up to ten names of each with a link to the full usage list, and
   that their assignments will be cleared to "None / inherit". (agent decision: API FR-021 clears the
@@ -84,6 +86,38 @@ selectors of the edit-domain and edit-mailbox pages."
   each relayhost assignment offers a "History" action to administrators that opens the audit log
   filtered to that entry. Domain administrators do not get it. (agent decision: API user story 9 and
   FR-086 add audit filters by target; the audit log is administrator-only, FR-005 there.)
+
+### Consistency changes (plan, 2026-10-18)
+
+The plan aligned this spec with the API 009 contract and `docs/conventions.md` (see
+[plan.md](./plan.md#consistency-changes-to-the-spec)):
+
+1. **Bulk actions carry version tags**: each selected entry is sent with the version that was
+   listed; the per-entry outcomes include "outdated"; refused, outdated and failed entries stay
+   selected for a retry; a dropped connection is reported as "outcome unknown" and never retried
+   automatically (conventions "Bulk actions", API FR-091). Previously: "bulk actions carry no
+   versions". Affects FR-016 and the edge cases.
+2. **Confirmations**: a bulk deletion needs the number of entries typed; deactivation, single or
+   bulk, and activating a transport for `*` need one explicit confirmation (conventions
+   "Confirmations"). Affects FR-017.
+3. **Outdated saves**: the input is kept, the entry is reloaded, the values that changed are marked,
+   and the user saves again or takes the current values; there is no automatic merge and no
+   "overwrite anyway"; a refused deletion is confirmed again (conventions "Editing and conflicts").
+   Affects FR-014.
+4. **Limits from the routing capabilities**: the selection limit is the server's bulk limit (100 by
+   default), and the test's "no result" state appears after the server's total test timeout plus
+   15 seconds (75 seconds with the default 60) instead of a fixed 75 seconds (conventions "Where
+   features meet", API FR-093). Affects FR-016, FR-045 and the edge cases.
+5. **Both former API gaps are closed by API 009**: the default test addresses are readable and are
+   shown as placeholders of the empty test fields; every BCC map reports whether its domain still
+   exists, so administrators see orphaned maps labelled and can filter on them. Affects FR-044,
+   FR-050, FR-051, the edge cases and the API Dependency section.
+6. **Documented error types**: "too many requests" and "attribute not permitted" are not documented
+   for any API 009 operation; they keep the shared translations of earlier features and are not
+   specific to this feature. Affects FR-066.
+7. **Navigation**: as FR-002 says, every domain administrator sees the Routing section with BCC
+   maps, read-only without the flag. UI 001's navigation catalogue row, which shows the section
+   only with the BCC maps flag, is changed by this feature.
 
 ## Terminology
 
@@ -404,25 +438,30 @@ action.
 - **Transport destination `*`**: warning that it applies to every recipient, including the hosted
   domains.
 - **Test of an inactive relayhost or transport**: allowed, and the screen says the entry is inactive.
-- **Test takes up to 60 seconds** or never answers: the progress state stays; after 75 seconds without
-  a result the app shows that no result was received and offers to run the test again.
+- **Test takes up to 60 seconds** or never answers: the progress state stays; after the server's total
+  test timeout plus 15 seconds (75 seconds with the default) without a result, the app shows that no
+  result was received, that the test may still have sent a message, and offers to run the test again.
 - **Leaving the test screen while a test runs**: no stuck state remains; the result is discarded.
-- **BCC map whose domain no longer exists** (administrators only): listed, editable and deletable like
-  any other map.
+- **BCC map whose domain no longer exists** (administrators only): listed, labelled in text as
+  "domain no longer exists", filterable, and editable and deletable like any other map.
 - **Very many BCC destination choices** (thousands of mailboxes and aliases): the picker searches and
   pages instead of loading everything.
 - **Very many entries in any list**: the list pages and shows the total.
 - **Long values**: hosts, regular expressions, BCC destinations, TLS parameters and transcript lines
   wrap at 360 px; nothing needs horizontal scrolling.
 - **Concurrent change**: an edit, deletion or assignment saved with an outdated version is refused; the
-  user is told, keeps their input, and can reload the entry.
+  user is told and keeps their input, the entry is reloaded with the changed values marked, and the
+  user saves again or takes the current values. A refused deletion is confirmed again.
 - **Entry removed elsewhere**: opening or saving it shows "no longer exists" and offers the list.
 - **Permission lost mid-session** (flag removed, role changed): the next action shows "not permitted"
   naming the missing permission; navigation follows the refreshed identity.
 - **Bulk action with partial failure**: each entry's outcome is reported, for example an entry removed
-  meanwhile ("not found") or a BCC map whose type switch would duplicate another map ("refused").
-- **Selection above 100 entries** (for example with a page size of 250): the app stops at 100 and says
-  that 100 is the limit of one action.
+  meanwhile ("not found"), an entry changed since it was listed ("outdated") or a BCC map whose type
+  switch would duplicate another map ("refused"). Refused, outdated and failed entries stay selected.
+- **Bulk action whose connection drops**: the outcome is reported as unknown and the action is not
+  retried automatically.
+- **Selection above the bulk limit** (page sizes are 25, 50 and 100; the server's limit is 100 by
+  default but may be lower): the app stops at the limit and says that it is the limit of one action.
 - **Test started from an edit screen with unsaved changes**: the app says that the test uses the saved
   values, because the API tests only saved entries.
 - **Forwarding host input in non-canonical form** (for example `192.0.2.5/24`): the result shows the
@@ -486,8 +525,10 @@ action.
   summary.
 - **FR-014**: Edits, deletions and assignment changes MUST send the version of the entry that the user
   saw. When the API reports the version as outdated, the app MUST say that the entry changed meanwhile,
-  keep the user's input, and offer to reload the current values, replacing the input only when the
-  user chooses to.
+  keep the user's input, reload the entry and mark the values that changed, and let the user save
+  again or take the current values, replacing the input only when the user chooses to. There MUST be
+  no automatic merge and no "overwrite anyway". A deletion refused as outdated MUST be confirmed
+  again.
 
 #### Selection and bulk actions
 
@@ -495,17 +536,23 @@ action.
   and apply the legacy mass actions: activate and deactivate (relayhosts, transports, BCC maps, recipient
   maps, TLS policy maps), switch to sender type and switch to recipient type (BCC maps), enable and
   disable the spam filter (forwarding hosts), and delete (all lists).
-- **FR-016**: A selection MUST hold at most 100 entries; when the user tries to select more, the app
-  MUST say that 100 is the limit. A bulk action MUST report every selected entry's outcome: done, not
-  found, refused or failed, the last two with a translated reason. Done entries MUST stay changed when
-  others fail. When the whole action is refused (for example a missing permission), the app MUST say so
-  once, naming the permission. The summary MUST be announced to screen readers.
+- **FR-016**: A selection MUST cover the current page only and hold at most the server's bulk limit
+  (100 by default); when the user tries to select more, the app MUST say that this is the limit. Each
+  selected entry MUST be sent with the version that was listed. A bulk action MUST report every
+  selected entry's outcome: done, not found, refused, outdated or failed, the last three with a
+  translated reason. Done entries MUST stay changed when others fail, and refused, outdated and failed
+  entries MUST stay selected. When the whole action is refused (for example a missing permission), the
+  app MUST say so once, naming the permission. When the connection drops, the app MUST report the
+  outcome as unknown and MUST NOT retry automatically. The summary MUST be announced to screen
+  readers.
 
 #### Destructive actions
 
 - **FR-017**: Every deletion, single or bulk, MUST require an explicit confirmation that names what will
-  be deleted (for a bulk deletion, the number and the list of entries) and its consequences. The safe
-  choice MUST be the default, and nothing MAY be deleted before the user confirms.
+  be deleted (for a bulk deletion, the number and the list of entries) and its consequences. A bulk
+  deletion MUST require the number of entries to be typed. Deactivation, single or bulk, and
+  activating a transport whose destination is `*` MUST require one explicit confirmation. The safe
+  choice MUST be the default, and nothing MAY be changed before the user confirms.
 - **FR-018**: The confirmation for deleting a relayhost MUST show the numbers of domains and mailboxes
   that use it, up to ten names of each with a link to the full usage view, and state that their
   assignments will be cleared to "None / inherit".
@@ -601,11 +648,13 @@ action.
   connection test from its card and from its edit screen. A test started from an edit screen with
   unsaved changes MUST state that it uses the saved values.
 - **FR-044**: The test MUST offer an optional sender and an optional recipient address, both empty at
-  first, explained as "empty uses the server's default address", with the legacy hint about the null
-  recipient address. Invalid addresses MUST be reported at their field and no test MUST run.
+  first, explained as "empty uses the server's default address" and showing the server's configured
+  default addresses as placeholders, with the legacy hint about the null recipient address. Invalid
+  addresses MUST be reported at their field and no test MUST run.
 - **FR-045**: While a test runs, the app MUST show and announce a progress state and MUST prevent
-  starting it again. If no result arrives within 75 seconds, the app MUST say that no result was
-  received and offer to run the test again.
+  starting it again. If no result arrives within the server's total test timeout plus 15 seconds (75
+  seconds with the default), the app MUST say that no result was received and that the test may still
+  have sent a message, and offer to run the test again.
 - **FR-046**: The result MUST start with a summary: whether the message was accepted; the step reached
   or failed (name resolution, connection, greeting, TLS, login, sender, recipient or message); the host
   and port used and whether they came from an MX lookup; whether TLS was used; whether the login
@@ -621,11 +670,13 @@ action.
 #### BCC maps
 
 - **FR-050**: The BCC map list MUST show, per map: type in text (sender or recipient), local destination
-  (domain-wide maps labelled as such), BCC destination, domain and active state; the map's screen MUST
+  (domain-wide maps labelled as such), BCC destination, domain and active state, and for
+  administrators a "domain no longer exists" label in text on orphaned maps; the map's screen MUST
   also show its creation and modification times.
 - **FR-051**: The BCC map list MUST offer a search on local and BCC destination, filters on type, active
-  state and domain (several domains allowed), and sorting by identifier (default), type, local
-  destination, BCC destination, domain, active state, creation time and modification time.
+  state and domain (several domains allowed), for administrators also on orphaned maps, and sorting by
+  identifier (default), type, local destination, BCC destination, domain, active state, creation time
+  and modification time.
 - **FR-052**: Permitted users MUST be able to add a BCC map by choosing the local destination from a
   searchable, paged list of the choices in their scope, filterable by kind and domain, where each choice
   shows its value, kind and domain and, for aliases and alias-domain addresses, the mailboxes it
@@ -692,9 +743,10 @@ action.
   policies or the maximum length).
 - **FR-066**: The app MUST show a specific translated message for each documented error type of this
   feature: entry already exists, next hop has different credentials, next hop interferes (naming the
-  next hop), outdated version (FR-014), attribute not permitted, missing permission flag (naming the
-  permission), host not resolvable, temporary failure (with retry), not found (with a way back to the
-  list) and too many requests.
+  next hop), outdated version (FR-014), missing permission flag (naming the permission), host not
+  resolvable, temporary failure (with retry) and not found (with a way back to the list). Error types
+  that API 009 does not document for its operations, such as too many requests and attribute not
+  permitted, keep the shared translations of earlier features.
 - **FR-067**: Any other error MUST show a generic translated message that includes the request
   identifier when the API provides one.
 
@@ -797,9 +849,9 @@ note, usage counts, bulk outcomes and History.
 ### API Dependency
 
 This feature depends on mailcow REST API v2 feature 009 (`specs/009-routing-address-rewriting/spec.md`
-in mailcow-rest-v2) and uses only operations of its released contract; it pins the first contract
-release that contains feature 009 and can be built against a mock generated from that contract before
-the API is implemented. It also uses feature 001 (identity with role, scope and permission flags;
+in mailcow-rest-v2) and uses only operations of its released contract; it pins a contract commit that
+contains feature 009 (the plan records the commit) and can be built against a mock generated from that
+contract before the API is implemented. It also uses feature 001 (identity with role, scope and permission flags;
 error conventions with stable codes; the audit log), feature 002 (domain screens) and feature 003
 (mailbox screens).
 
@@ -808,7 +860,8 @@ error conventions with stable codes; the audit log), feature 002 (domain screens
 | Access by role and flag (FR-001 to FR-003) | Permission matrix and flag-naming refusals (API FR-005, FR-006) |
 | Lists with paging, search, filters, sorting (FR-007, FR-020, FR-038, FR-051, FR-055, FR-057, FR-059) | Common list rules and per-list search, filters and sorting (API FR-007, FR-016, FR-032, FR-047, FR-059, FR-065, FR-074) |
 | Versions and outdated changes (FR-014) | Version tags on every entry and assignment (API FR-008); partial changes (API FR-009) |
-| Selection and bulk actions (FR-015, FR-016) | Bulk actions of up to 100 entries, refused as a whole when not permitted, one result per entry, no version checks (API FR-090, FR-091) |
+| Selection and bulk actions (FR-015, FR-016) | Bulk actions of up to 100 entries, refused as a whole when not permitted, one result per entry, optional per-entry version tags with an "outdated" outcome (API FR-090, FR-091) |
+| Limits and server settings (FR-016, FR-044, FR-045, FR-058) | Routing capabilities: bulk limit, page sizes, field limits, default test addresses and timeouts, allowed TLS policies (API FR-093) |
 | Relayhosts and usage view (FR-019 to FR-024) | Relayhost list, inspect, create, edit, delete, usage list (API FR-015 to FR-022) |
 | Password redaction, keep, replace, remove (FR-025 to FR-028) | Write-only passwords, password status, omit keeps and empty removes (API FR-012 to FR-014) |
 | Relayhost sections and choice (FR-029 to FR-036) | Relayhost choices, read and replace domain and mailbox assignments, effective relayhost, dangling assignments (API FR-023 to FR-030) |
@@ -821,13 +874,14 @@ error conventions with stable codes; the audit log), feature 002 (domain screens
 | History (FR-064) | Audit records with target types and identifiers, and the target filter (API FR-085, FR-086) |
 | Errors (FR-065 to FR-067) | Documented error types and validation rule codes with parameters (API FR-087; feature 001 FR-049, FR-055) |
 
-**Known API gaps** (not blocking; the app does not work around them, and each would be an additive
-contract change in mailcow-rest-v2):
+**Former API gaps, closed by API 009** (consistency change 5):
 
-- The configured default test sender and recipient are not readable, so the test form can only say
-  "empty uses the server's default address" instead of showing the addresses (FR-044).
-- A BCC map's representation does not say that its domain no longer exists, so administrators cannot
-  see which maps are orphaned (Edge Cases).
+- The configured default test sender and recipient are readable through the routing capabilities,
+  and the test form shows them as placeholders (FR-044).
+- Every BCC map reports whether its domain still exists, so administrators see orphaned maps labelled
+  and can filter on them (FR-050, FR-051).
+
+The plan lists the remaining minor gaps, none of which blocks this feature.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -882,14 +936,14 @@ contract change in mailcow-rest-v2):
 - Features 002 and 003 provide the domain and mailbox screens and the place for the Relayhost section;
   their own forms keep the assignment out of their save, as the API requires.
 - Domain administrator flags are managed in feature 007; this feature only reads them.
-- The test's default sender and recipient addresses are server settings that the app does not need to
-  know.
+- The test's default sender and recipient addresses are server settings; the app reads them from the
+  routing capabilities only to show them as placeholders.
 - Server output in test transcripts is technical English text and is not translated.
 - Legacy hint texts that contain markup (bold, line breaks, code, links) are reused with their meaning
   and links preserved; the app renders them with its own safe formatting and never interprets
   translation text or API data as raw markup.
-- A bulk action covers at most 100 entries, the API's limit; larger selections are not split into
-  several actions.
+- A bulk action covers at most the server's bulk limit (100 by default); larger selections are not
+  split into several actions.
 - Testing a next hop or credentials that are not saved is out of scope, as in the API and in legacy.
 - **Out of scope**: the global relayhost and custom transport files of the mail server, mailbox TLS
   settings (005), the quota warning BCC (013), the mail queue (011), sender permissions (004), editing

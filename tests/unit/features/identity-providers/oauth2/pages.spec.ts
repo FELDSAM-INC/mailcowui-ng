@@ -69,7 +69,7 @@ describe('Oauth2ClientsPage', () => {
     vi.useFakeTimers()
     const search = wrapper.get('input[type="search"]')
     await search.setValue('wiki')
-    vi.advanceTimersByTime(400)
+    vi.advanceTimersByTime(600)
     vi.useRealTimers()
     await vi.waitFor(() => expect(router.currentRoute.value.query.q).toBe('wiki'))
     await vi.waitFor(() => expect(wrapper.findAll('tbody tr')).toHaveLength(2))

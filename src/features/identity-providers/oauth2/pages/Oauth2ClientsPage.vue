@@ -7,7 +7,7 @@
 // client; and the classic quick actions of selected clients in selection mode, with the API's bulk
 // operation, a result per client and a retry. New secrets of a renewal are shown once each.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, onBeforeUnmount, ref, useTemplateRef, watch } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, RouterLink } from 'vue-router'
 
@@ -21,14 +21,14 @@ import OneTimeSecretDialog from '@/shared/components/OneTimeSecretDialog.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SearchField from '@/shared/components/SearchField.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { CloseIcon, PlusIcon, SyncIcon } from '@/shared/icons'
+import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
-import { SEARCH_MAX_LENGTH } from '@/shared/validation/limits'
 
 import SectionNav from '../../components/SectionNav.vue'
 import { oauth2ListOptions, problemOf, useOauth2Capabilities } from '../api'
@@ -38,8 +38,6 @@ import Oauth2ClientSortControl from '../components/Oauth2ClientSortControl.vue'
 import { BULK_LABELS, useOauth2Bulk, type Oauth2BulkAction } from '../composables/useOauth2Bulk'
 import { useOauth2Deletion } from '../composables/useOauth2Deletion'
 import { useOauth2ListState } from '../list-state'
-
-const SEARCH_DEBOUNCE_MS = 300
 
 const { t, locale } = useI18n()
 const wideList = useMediaQuery('(min-width: 768px)')
@@ -55,28 +53,13 @@ const query = useQuery(
 const clients = computed(() => query.data.value?.data ?? [])
 const total = computed(() => query.data.value?.meta.total ?? 0)
 
-// Search: typing is debounced and written with router.replace (UI 001 R20).
-const search = ref(state.value.filters.q ?? '')
-let timer: ReturnType<typeof setTimeout> | undefined
-watch(
-  () => state.value.filters.q,
-  (q) => {
-    if ((q ?? '') !== search.value.trim()) search.value = q ?? ''
-  },
-)
-function onSearch(event: Event) {
-  search.value = (event.target as HTMLInputElement).value
-  clearTimeout(timer)
-  timer = setTimeout(() => {
-    void list.setFilter('q', search.value.trim() || undefined, { typing: true })
-  }, SEARCH_DEBOUNCE_MS)
+// Search (UI 004's SearchField): written with router.replace, so typing adds no history entries.
+function onSearch(value: string) {
+  void list.setFilter('q', value || undefined, { typing: true })
 }
 function clearSearch() {
-  clearTimeout(timer)
-  search.value = ''
   void list.setFilter('q', undefined)
 }
-onBeforeUnmount(() => clearTimeout(timer))
 
 // The classic DataTables summary of the entries shown, announced after a search.
 const number = (value: number) => formatNumber(value, locale.value as AppLocale)
@@ -182,32 +165,13 @@ onBeforeRouteLeave(async () => {
     />
 
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <div class="flex flex-col gap-1.5 md:max-w-md md:flex-1">
-        <label for="oauth2-search" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ lt('datatables.search') }}
-        </label>
-        <div class="flex gap-2">
-          <input
-            id="oauth2-search"
-            type="search"
-            :value="search"
-            :maxlength="SEARCH_MAX_LENGTH"
-            autocomplete="off"
-            spellcheck="false"
-            class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            @input="onSearch"
-          />
-          <button
-            v-if="search !== ''"
-            type="button"
-            :class="buttonVariants({ variant: 'outline', size: 'icon' })"
-            :aria-label="t('domains.list.clearSearch')"
-            @click="clearSearch"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-      </div>
+      <SearchField
+        id="oauth2-search"
+        class="md:max-w-md md:flex-1"
+        :label="lt('datatables.search')"
+        :model-value="state.filters.q ?? ''"
+        @search="onSearch"
+      />
       <Oauth2ClientSortControl
         :sort="state.sort ?? 'id'"
         :order="state.order ?? 'asc'"
@@ -261,6 +225,7 @@ onBeforeRouteLeave(async () => {
         v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
         :rows="bulk.rows.value"
         @retry="bulk.retry"
+        @refresh="query.refetch()"
         @close="bulk.close"
       />
       <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
@@ -268,7 +233,7 @@ onBeforeRouteLeave(async () => {
       <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearSearch">
-          {{ t('domains.list.clearSearch') }}
+          {{ t('lists.search.clear') }}
         </button>
       </div>
 

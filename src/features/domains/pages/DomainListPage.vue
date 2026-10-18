@@ -136,7 +136,7 @@ const allSelected = computed(
 const BULK_ACTIONS = computed(() => [
   { id: 'activate', label: lt('mailbox.activate') },
   { id: 'deactivate', label: lt('mailbox.deactivate') },
-  { id: 'delete', label: t('domains.bulk.delete'), destructive: true },
+  { id: 'delete', label: lt('mailbox.remove'), destructive: true },
 ])
 function toggleAll(checked: boolean) {
   if (checked) selection.selectPage(pageIds.value)
@@ -183,7 +183,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
         </button>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ t('domains.list.refresh') }}
+          {{ lt('admin.refresh') }}
         </button>
       </template>
     </PageHeader>
@@ -191,7 +191,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1.5">
         <label for="domain-search" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ t('domains.list.search') }}
+          {{ lt('datatables.search') }}
         </label>
         <div class="flex gap-2">
           <input
@@ -203,7 +203,6 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
             autocapitalize="none"
             autocorrect="off"
             spellcheck="false"
-            aria-describedby="domain-search-hint"
             class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
             @input="onSearch"
           />
@@ -217,9 +216,6 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
             <CloseIcon />
           </button>
         </div>
-        <p id="domain-search-hint" class="text-sm text-gray-600 dark:text-gray-400">
-          {{ t('domains.list.searchHint') }}
-        </p>
       </div>
       <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <DomainFilters
@@ -246,7 +242,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
       aria-busy="true"
       class="flex flex-col gap-3"
     >
-      <span class="sr-only">{{ t('domains.list.loading') }}</span>
+      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
       <div
         v-for="index in 3"
         :key="index"
@@ -289,7 +285,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
       <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
 
       <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ t('domains.empty.noMatch') }}</p>
+        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearAll">
           {{ t('domains.empty.clearAll') }}
         </button>
@@ -297,7 +293,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
 
       <div v-else-if="empty" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">
-          {{ permissions.canCreate ? t('domains.empty.admin') : t('domains.empty.domainAdmin') }}
+          {{ lt('datatables.emptyTable') }}
         </p>
         <RouterLink
           v-if="permissions.canCreate"

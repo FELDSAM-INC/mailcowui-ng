@@ -13,7 +13,7 @@ async function openList(page: Page) {
 
 async function startDelete(page: Page, name: string) {
   await page.getByRole('button', { name: `Actions for ${name}` }).click()
-  await page.getByRole('menuitem', { name: 'Delete' }).click()
+  await page.getByRole('menuitem', { name: 'Remove' }).click()
 }
 
 const dialog = (page: Page) => page.getByRole('alertdialog')
@@ -64,7 +64,7 @@ test.describe('delete a domain', () => {
     await mockApi.use('domain-delete')
     await openList(page)
     await page.getByRole('button', { name: 'Actions for busy.example' }).click()
-    await expect(page.getByRole('menuitem', { name: /Delete/ })).toHaveAttribute(
+    await expect(page.getByRole('menuitem', { name: /Remove/ })).toHaveAttribute(
       'aria-disabled',
       'true',
     )
@@ -130,7 +130,7 @@ test.describe('delete a domain', () => {
     await page.goto('domains')
     await listReady(page)
     await page.getByRole('button', { name: 'Actions for gone.example' }).click()
-    await page.getByRole('menuitem', { name: 'Delete' }).click()
+    await page.getByRole('menuitem', { name: 'Remove' }).click()
     await typed(page).fill('gone.example')
     await confirmButton(page).click()
     await expect(page.locator('[data-live="polite"]')).toContainText(
@@ -138,7 +138,7 @@ test.describe('delete a domain', () => {
     )
     await expect(entry(page, 'gone.example')).toHaveCount(0)
     await page.getByRole('button', { name: 'Actions for busy.example' }).click()
-    await expect(page.getByRole('menuitem', { name: /Delete/ })).toHaveAttribute(
+    await expect(page.getByRole('menuitem', { name: /Remove/ })).toHaveAttribute(
       'aria-disabled',
       'true',
     )

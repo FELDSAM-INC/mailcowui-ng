@@ -5,6 +5,7 @@ import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Domain } from '@/api'
+import { lt } from '@/i18n'
 import { HorizontalDotsIcon, TrashIcon } from '@/shared/icons'
 import {
   DropdownMenu,
@@ -45,7 +46,7 @@ async function onDelete() {
         <DropdownMenuItem class="min-h-11" :disabled="!availability().available" @select="onDelete">
           <TrashIcon />
           <span class="flex flex-col">
-            <span>{{ t('domains.delete.action') }}</span>
+            <span>{{ lt('mailbox.remove') }}</span>
             <span v-if="!availability().available" class="text-xs text-gray-600 dark:text-gray-400">
               {{
                 t(

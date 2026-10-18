@@ -329,10 +329,7 @@
       "detailsOf": "Podrobnosti {name}"
     },
     "sort": {
-      "createdAt": "Vytvořeno",
-      "id": "ID",
-      "modifiedAt": "Naposledy změněno",
-      "name": "Název"
+      "id": "ID"
     }
   },
   "domains": {
@@ -341,7 +338,6 @@
       "dataRule": "Patičky, štítky a uložená pošta se odstraní. Klíče DKIM zůstanou zachovány.",
       "deactivateEffect": "Týká se to všech schránek těchto domén: jejich uživatelé se už nepřihlásí a domény nebudou přijímat poštu.",
       "deactivateTitle": "Deaktivovat vybrané domény ({count})?",
-      "delete": "Smazat",
       "deleteConfirm": "Smazat domény",
       "deleteIntro": "Tyto domény se smažou. Nelze to vrátit zpět.",
       "deleteTitle": "Smazat vybrané domény ({count})?",
@@ -356,7 +352,6 @@
       "loadFailed": "Šablony domén nebo nastavení serveru se nepodařilo načíst."
     },
     "delete": {
-      "action": "Smazat",
       "admins": "Administrátoři domény: {list}",
       "adminsKept": "Žádný účet administrátora domény se nesmaže.",
       "adminsToDelete": "Tyto účty administrátorů domény se smažou, protože jim nezůstane žádná doména: {list}",
@@ -391,14 +386,10 @@
       "notSaved": "Nic nebylo uloženo."
     },
     "empty": {
-      "admin": "Zatím neexistují žádné domény. Začněte přidáním první domény.",
-      "clearAll": "Vymazat hledání a filtry",
-      "domainAdmin": "Zatím vám není přiřazena žádná doména. Obraťte se na administrátora.",
-      "noMatch": "Hledání a filtrům neodpovídá žádná doména."
+      "clearAll": "Vymazat hledání a filtry"
     },
     "fields": {
-      "inUseCount": "Využito: {count}.",
-      "maxMailboxQuota": "Max. kvóta na schránku"
+      "inUseCount": "Využito: {count}."
     },
     "filters": {
       "active": "Stav aktivace",
@@ -423,14 +414,10 @@
       "count": "Nalezené domény: {count}",
       "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
-      "loading": "Načítají se domény…",
       "messagesCount": "Zprávy: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "a další štítky ({count})",
-      "refresh": "Obnovit",
       "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé.",
-      "search": "Hledat domény",
-      "searchHint": "Hledá v názvu, popisu a štítcích.",
       "updating": "Aktualizuje se…"
     },
     "outcome": {
@@ -450,23 +437,11 @@
       }
     },
     "sort": {
-      "active": "Stav aktivace",
-      "aliases": "Využité aliasy",
       "asc": "Vzestupně",
-      "backupMx": "Předávání domény",
-      "createdAt": "Vytvořeno",
       "desc": "Sestupně",
-      "description": "Popis",
       "domainQuota": "Kvóta domény",
       "label": "Řadit podle",
-      "mailboxes": "Využité schránky",
-      "maxAliases": "Max. počet aliasů",
-      "maxMailboxQuota": "Max. kvóta na schránku",
-      "maxMailboxes": "Max. počet schránek",
-      "modifiedAt": "Poslední změna",
-      "name": "Název",
       "order": "Pořadí",
-      "quotaAllocated": "Přidělená kvóta",
       "storageUsed": "Využité úložiště"
     },
     "tags": {
@@ -479,12 +454,9 @@
     },
     "usage": {
       "left": "Zbývá: {count}",
-      "messages": "Zprávy",
       "nearlyFull": "Téměř plné",
       "of": "{used} z {limit}",
-      "over": "Nad limitem",
-      "quota": "Přidělená kvóta",
-      "storage": "Využité úložiště"
+      "over": "Nad limitem"
     },
     "values": {
       "never": "Nikdy",

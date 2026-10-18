@@ -135,7 +135,7 @@ describe('DomainTable', () => {
     })
     const headers = wrapper.findAll('th')
     expect(headers.length).toBeGreaterThan(5)
-    const storage = headers.find((th) => th.text().includes('Storage used'))!
+    const storage = headers.find((th) => th.text().includes('Statistics'))!
     expect(storage.attributes('aria-sort')).toBe('descending')
     const mailboxes = headers.find((th) => th.text().includes('Mailboxes'))!
     expect(mailboxes.attributes('aria-sort')).toBe('none')
@@ -166,7 +166,8 @@ describe('DomainEntryDetails', () => {
       },
     })
     const text = plain(wrapper.text())
-    expect(text).toContain('Relay this domain')
+    expect(text).toContain('Relay domain')
+    expect(text).toContain('Max. size of a mailbox')
     expect(text).toContain('Yes')
     expect(text).toContain('helper, reseller')
     expect(text).toContain('Never')

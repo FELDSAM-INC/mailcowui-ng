@@ -89,7 +89,7 @@ test.describe('bulk actions', () => {
       'busy.example',
       'things.example',
     ])
-    await bar(page).getByRole('button', { name: 'Delete' }).click()
+    await bar(page).getByRole('button', { name: 'Remove' }).click()
     const impact = dialog(page)
     await expect(impact).toContainText('Delete the selected domains (3)?')
     await expect(impact.locator('[data-bulk-impact="bulk-26.example"]')).toContainText(
@@ -146,7 +146,7 @@ test.describe('bulk actions', () => {
     await expect(bar(page)).toContainText('25 selected')
     for (const change of [
       () => page.getByRole('button', { name: 'Next', exact: true }).click(),
-      () => page.getByRole('searchbox', { name: 'Search domains' }).fill('bulk'),
+      () => page.getByRole('searchbox', { name: 'Search:' }).fill('bulk'),
       () => page.getByLabel('Sort by').selectOption('createdAt'),
       () => page.locator('[data-page-size] select').selectOption('50'),
     ]) {

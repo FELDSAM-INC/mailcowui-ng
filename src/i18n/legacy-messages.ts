@@ -48,11 +48,28 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'domains.fields.rateLimit': 'edit.ratelimit',
   'domains.fields.dkimSelector': 'admin.dkim_domains_selector',
   'domains.fields.dkimKeySize': 'admin.dkim_key_length',
+  'domains.fields.maxMailboxQuota': 'mailbox.max_quota',
   // UI 002: the rate limit frames, by the frame's value.
   'domains.rateLimit.frame.second': 'ratelimit.second',
   'domains.rateLimit.frame.minute': 'ratelimit.minute',
   'domains.rateLimit.frame.hour': 'ratelimit.hour',
   'domains.rateLimit.frame.day': 'ratelimit.day',
+  // UI 002: the sort keys of the domain and template lists by the classic list's column titles.
+  'domains.sort.name': 'mailbox.domain',
+  'domains.sort.description': 'mailbox.description',
+  'domains.sort.active': 'mailbox.active',
+  'domains.sort.backupMx': 'mailbox.backup_mx',
+  'domains.sort.mailboxes': 'mailbox.mailboxes',
+  'domains.sort.aliases': 'mailbox.aliases',
+  'domains.sort.quotaAllocated': 'mailbox.domain_quota',
+  'domains.sort.maxAliases': 'mailbox.max_aliases',
+  'domains.sort.maxMailboxes': 'mailbox.max_mailboxes',
+  'domains.sort.maxMailboxQuota': 'mailbox.mailbox_quota',
+  'domains.sort.createdAt': 'mailbox.created_on',
+  'domains.sort.modifiedAt': 'mailbox.last_modified',
+  'domainTemplates.sort.name': 'mailbox.template',
+  'domainTemplates.sort.createdAt': 'mailbox.created_on',
+  'domainTemplates.sort.modifiedAt': 'mailbox.last_modified',
   // UI 004 (legacy form map): the audit targets, the enumeration values its screens render, and
   // the legacy messages of its problem types and form fields (research R17). Placeholders are
   // filled through LEGACY_ARGS below.

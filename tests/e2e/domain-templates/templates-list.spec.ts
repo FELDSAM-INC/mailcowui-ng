@@ -51,7 +51,7 @@ test.describe('template list', () => {
       ['id', 'ID'],
       ['createdAt', 'Created on'],
       ['modifiedAt', 'Last modified'],
-      ['name', 'Name'],
+      ['name', 'Template'],
     ]) {
       await page.getByLabel('Sort by').selectOption({ label })
       await expect(page).toHaveURL(value === 'name' ? /^(?!.*sort=)/ : new RegExp(`sort=${value}`))

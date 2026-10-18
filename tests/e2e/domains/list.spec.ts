@@ -66,7 +66,7 @@ test.describe('domain list', () => {
     const item = entry(page, 'relayhost.example')
     if (!isNarrow(page)) {
       const table = page.getByRole('table')
-      for (const header of ['Domain', 'Mailboxes', 'Aliases', 'Quota allocated', 'Storage used']) {
+      for (const header of ['Domain', 'Mailboxes', 'Aliases', 'Quota', 'Statistics']) {
         await expect(table.getByRole('columnheader', { name: new RegExp(header) })).toBeVisible()
       }
       await expect(table.getByRole('columnheader', { name: /Rate limit/ })).toBeVisible()
@@ -77,7 +77,7 @@ test.describe('domain list', () => {
     await toggle.click()
     await expect(toggle).toHaveAttribute('aria-expanded', 'true')
     const details = page.locator('[data-entry-details="relayhost.example"]')
-    await expect(details).toContainText('Relay this domain')
+    await expect(details).toContainText('Relay domain')
     await expect(details).toContainText('Created on')
     await expect(details).toContainText('Last modified')
     await expect(details).toContainText('Never')
@@ -95,7 +95,7 @@ test.describe('domain list', () => {
     await mockApi.use('domains-60')
     await page.goto('domains')
     await listReady(page)
-    await page.getByRole('searchbox', { name: 'Search domains' }).fill('customer')
+    await page.getByRole('searchbox', { name: 'Search:' }).fill('customer')
     await expect.poll(() => entryNames(page)).toEqual(['customer-a.example', 'customer-b.example'])
     await page.getByRole('button', { name: 'Clear search' }).click()
     await expect.poll(async () => (await entryNames(page)).length).toBe(25)
@@ -139,7 +139,7 @@ test.describe('domain list', () => {
     await mockApi.use('domains-60')
     await page.goto('domains')
     await listReady(page)
-    const search = page.getByRole('searchbox', { name: 'Search domains' })
+    const search = page.getByRole('searchbox', { name: 'Search:' })
     await search.fill('münchen')
     await expect.poll(() => entryNames(page)).toEqual(['xn--mnchen-3ya.de'])
     const item = entry(page, 'xn--mnchen-3ya.de')
@@ -209,7 +209,7 @@ test.describe('domain list', () => {
   }) => {
     await mockApi.use('domains-60')
     await page.goto('domains?q=nothing-matches&active=inactive')
-    await expect(page.getByText('No domains match the search and filters.')).toBeVisible()
+    await expect(page.getByText('No matching records found')).toBeVisible()
     await expect(page.getByRole('table')).toHaveCount(0)
     await expectAccessible()
     await page.getByRole('button', { name: 'Clear search and filters' }).click()
@@ -265,7 +265,7 @@ test.describe('domain list', () => {
     await page.goto('domains')
     await listReady(page)
     await page
-      .getByRole('searchbox', { name: 'Search domains' })
+      .getByRole('searchbox', { name: 'Search:' })
       .pressSequentially('customer', { delay: 40 })
     await expect.poll(() => entryNames(page)).toEqual(['customer-a.example', 'customer-b.example'])
     const searches = (await mockApi.requests()).filter(
@@ -291,7 +291,7 @@ test.describe('domain list', () => {
     await page.getByLabel('Order').selectOption('desc')
     await expect(page).toHaveURL(/sort=storageUsed&order=desc|order=desc&sort=storageUsed/)
     if (!isNarrow(page)) {
-      const header = page.getByRole('columnheader', { name: /Storage used/ })
+      const header = page.getByRole('columnheader', { name: /Statistics/ })
       await expect(header).toHaveAttribute('aria-sort', 'descending')
       await page
         .getByRole('columnheader', { name: /Mailboxes/ })
@@ -315,7 +315,7 @@ test.describe('domain list', () => {
     await page.getByLabel('Sort by').selectOption('description')
     await expect(page).not.toHaveURL(/page=2/)
     await page.goto('domains?page=2')
-    await page.getByRole('searchbox', { name: 'Search domains' }).fill('domain')
+    await page.getByRole('searchbox', { name: 'Search:' }).fill('domain')
     await expect(page).not.toHaveURL(/page=2/)
     const stored = await page.evaluate(() => ({
       local: Object.keys(localStorage).filter((key) => /domain|list/i.test(key)),
@@ -346,7 +346,7 @@ test.describe('domain list', () => {
 
     await mockApi.use('domains-empty')
     await page.goto('domains')
-    await expect(page.getByText('There are no domains yet.')).toBeVisible()
+    await expect(page.getByText('No data available in table')).toBeVisible()
     await expectAccessible()
 
     await mockApi.use('admin-active', {
@@ -354,7 +354,7 @@ test.describe('domain list', () => {
       domainAssignments: { reseller: [] },
     })
     await page.goto('domains')
-    await expect(page.getByText('No domain is assigned to you yet.')).toBeVisible()
+    await expect(page.getByText('No data available in table')).toBeVisible()
 
     await mockApi.use('domains-list-error')
     await page.goto('domains')
@@ -384,7 +384,7 @@ test.describe('domain list', () => {
     } else {
       await expect(page.getByRole('table').getByRole('columnheader').first()).toBeVisible()
     }
-    await page.getByRole('searchbox', { name: 'Search domains' }).fill('customer')
+    await page.getByRole('searchbox', { name: 'Search:' }).fill('customer')
     await expect(page.locator('[data-live="polite"]')).toHaveText('Domains found: 2')
   })
 

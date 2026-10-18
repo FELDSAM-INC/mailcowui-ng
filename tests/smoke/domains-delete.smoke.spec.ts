@@ -10,7 +10,7 @@ test.describe('@domains delete', () => {
     await signIn(page, 'admin')
     await page.goto('domains?q=example.org')
     await page.getByRole('button', { name: 'Actions for example.org' }).click()
-    await expect(page.getByRole('menuitem', { name: /Delete/ })).toHaveAttribute(
+    await expect(page.getByRole('menuitem', { name: /Remove/ })).toHaveAttribute(
       'aria-disabled',
       'true',
     )
@@ -26,7 +26,7 @@ test.describe('@domains delete', () => {
     try {
       await page.goto(`domains?q=${name}`)
       await page.getByRole('button', { name: `Actions for ${name}` }).click()
-      await page.getByRole('menuitem', { name: 'Delete' }).click()
+      await page.getByRole('menuitem', { name: 'Remove' }).click()
       await page.getByRole('alertdialog').getByRole('textbox').fill(name)
       await page.getByRole('alertdialog').getByRole('button', { name: 'Delete domain' }).click()
       await expect(page.locator('[data-live="polite"]')).toContainText(

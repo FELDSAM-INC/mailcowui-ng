@@ -2,6 +2,7 @@
 // The sort control (FR-011): every sort key of the contract and the order, on every width.
 import { useI18n } from 'vue-i18n'
 
+import { text } from '@/i18n'
 import { componentsParametersDomainSortValues } from '@/api'
 import type { SortOrder } from '@/shared/composables/useListState'
 
@@ -28,7 +29,7 @@ const { t } = useI18n()
         "
       >
         <option v-for="key in KEYS" :key="key" :value="key">
-          {{ t(`domains.sort.${key}`) }}
+          {{ text(`domains.sort.${key}`) }}
         </option>
       </select>
     </div>

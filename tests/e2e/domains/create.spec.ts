@@ -223,7 +223,7 @@ test.describe('add a domain', () => {
   }) => {
     await mockApi.use('domains-empty')
     await page.goto('domains')
-    await expect(page.getByText('There are no domains yet.')).toBeVisible()
+    await expect(page.getByText('No data available in table')).toBeVisible()
     await page.getByRole('main').getByRole('link', { name: 'Add domain' }).last().click()
     await expect(page.getByRole('heading', { level: 1, name: 'Add domain' })).toBeVisible()
   })

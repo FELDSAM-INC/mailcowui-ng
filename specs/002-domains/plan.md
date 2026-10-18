@@ -309,13 +309,17 @@ become sections in legacy order.
 | tabs of other features | Spam filter (UI 006), Quota warning BCC, MTA-STS (UI 010) |
 
 **Domain list** (`/domains`) ← `templates/mailbox/tab-domains.twig`, `js/site/mailbox.js`
-`draw_domain_table`. Built before the rule; its texts are re-mapped with the runtime legacy layer:
-column titles `mailbox.domain`, `mailbox.aliases`, `mailbox.mailboxes`, `mailbox.domain_quota`,
-`mailbox.stats`, `mailbox.mailbox_quota`, `mailbox.backup_mx`,
-`mailbox.domain_admins`, `mailbox.created_on`, `mailbox.last_modified`, `mailbox.active`,
-`mailbox.action`; actions `mailbox.add_domain`, `mailbox.toggle_all`, `mailbox.quick_actions`,
-`mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, `admin.refresh`. Deletion is offered
-only here, as in legacy; its typed confirmation and bulk mode are app improvements.
+`draw_domain_table`. Built before the rule and re-mapped with the runtime legacy texts: column
+titles `mailbox.domain`, `mailbox.aliases`, `mailbox.mailboxes`, `mailbox.domain_quota` (allocated
+of the domain quota), `mailbox.stats` (messages / storage), `mailbox.mailbox_quota`, the rate limit
+(`edit.ratelimit`; legacy's hard-coded "RL" is not used as a header), and in the details
+`mailbox.backup_mx`, `mailbox.domain_admins`, `mailbox.created_on`, `mailbox.last_modified`;
+`mailbox.active`/`mailbox.inactive`; actions `mailbox.add_domain`, `mailbox.domain_templates`,
+`mailbox.activate`, `mailbox.deactivate`, `mailbox.remove` (row and bulk), `admin.refresh`;
+`datatables.search`, `datatables.loadingRecords`, `datatables.emptyTable`,
+`datatables.zeroRecords`; the sort keys by the same column titles (`LEGACY_TEXTS`). Deletion is
+offered only here, as in legacy; its impact preview, typed confirmation, filters, sort control and
+bulk mode are app improvements with new strings.
 
 **Domain templates** (`/domain-templates`) ← `templates/mailbox/tab-templates-domains.twig`,
 `js/site/mailbox.js` `draw_templates_domain_table`.
@@ -373,10 +377,9 @@ rate limit read-only in their legacy positions; template multiple deletion waits
 (T087a). Relay options are independent checkboxes as in legacy (the API normalises them on save),
 so the automatic switching and its notice of the first build are gone.
 
-Still open, for the runtime legacy layer after UI 001's i18n change: the domain list, the
-deletion dialogs and the bulk texts built before the rule keep their current strings until they are
-re-mapped to the keys listed above; legacy HTML values (`*_info`, `add.post_domain_add`) show
-without markup until `SanitizedHtml.vue` renders them.
+Closed with the runtime legacy texts (UI main d128215): the domain list and the bulk actions use the
+keys listed above, and legacy's HTML values (`*_info`, `add.post_domain_add`,
+`edit.domain_footer_info`) are rendered with their markup through `<LegacyText>`.
 
 ## Project Structure
 

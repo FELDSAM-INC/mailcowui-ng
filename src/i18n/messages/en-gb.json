@@ -329,10 +329,7 @@
       "detailsOf": "Details of {name}"
     },
     "sort": {
-      "createdAt": "Created on",
-      "id": "ID",
-      "modifiedAt": "Last modified",
-      "name": "Name"
+      "id": "ID"
     }
   },
   "domains": {
@@ -341,7 +338,6 @@
       "dataRule": "Footers, tags and stored mail are removed. DKIM keys are kept.",
       "deactivateEffect": "Every mailbox of these domains is affected: its users can no longer sign in, and the domains receive no mail.",
       "deactivateTitle": "Deactivate the selected domains ({count})?",
-      "delete": "Delete",
       "deleteConfirm": "Delete domains",
       "deleteIntro": "These domains are deleted. This cannot be undone.",
       "deleteTitle": "Delete the selected domains ({count})?",
@@ -356,7 +352,6 @@
       "loadFailed": "The domain templates or the server settings could not be loaded."
     },
     "delete": {
-      "action": "Delete",
       "admins": "Domain administrators: {list}",
       "adminsKept": "No domain administrator account is deleted.",
       "adminsToDelete": "These domain administrator accounts are deleted, because they are left without a domain: {list}",
@@ -391,14 +386,10 @@
       "notSaved": "Nothing was saved."
     },
     "empty": {
-      "admin": "There are no domains yet. Add the first domain to get started.",
-      "clearAll": "Clear search and filters",
-      "domainAdmin": "No domain is assigned to you yet. Ask your administrator.",
-      "noMatch": "No domains match the search and filters."
+      "clearAll": "Clear search and filters"
     },
     "fields": {
-      "inUseCount": "{count} in use.",
-      "maxMailboxQuota": "Max. quota per mailbox"
+      "inUseCount": "{count} in use."
     },
     "filters": {
       "active": "Active state",
@@ -423,14 +414,10 @@
       "count": "Domains found: {count}",
       "details": "Details",
       "detailsOf": "Details of {name}",
-      "loading": "Loading domains…",
       "messagesCount": "Messages: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "and {count} more tags",
-      "refresh": "Refresh",
       "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
-      "search": "Search domains",
-      "searchHint": "Searches the name, the description and the tags.",
       "updating": "Updating…"
     },
     "outcome": {
@@ -450,23 +437,11 @@
       }
     },
     "sort": {
-      "active": "Active state",
-      "aliases": "Aliases in use",
       "asc": "Ascending",
-      "backupMx": "Relay this domain",
-      "createdAt": "Created on",
       "desc": "Descending",
-      "description": "Description",
       "domainQuota": "Domain quota",
       "label": "Sort by",
-      "mailboxes": "Mailboxes in use",
-      "maxAliases": "Max. aliases",
-      "maxMailboxQuota": "Max. quota per mailbox",
-      "maxMailboxes": "Max. mailboxes",
-      "modifiedAt": "Last modified",
-      "name": "Name",
       "order": "Order",
-      "quotaAllocated": "Quota allocated",
       "storageUsed": "Storage used"
     },
     "tags": {
@@ -479,12 +454,9 @@
     },
     "usage": {
       "left": "{count} left",
-      "messages": "Messages",
       "nearlyFull": "Nearly full",
       "of": "{used} of {limit}",
-      "over": "Over the limit",
-      "quota": "Quota allocated",
-      "storage": "Storage used"
+      "over": "Over the limit"
     },
     "values": {
       "never": "Never",

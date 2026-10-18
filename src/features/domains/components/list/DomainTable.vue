@@ -47,11 +47,11 @@ interface Column {
 const COLUMNS: Column[] = [
   { key: 'mailboxes', labelKey: legacy('mailbox.mailboxes'), sort: 'mailboxes' },
   { key: 'aliases', labelKey: legacy('mailbox.aliases'), sort: 'aliases' },
-  { key: 'quota', labelKey: 'domains.usage.quota', sort: 'quotaAllocated' },
-  { key: 'storage', labelKey: 'domains.usage.storage', sort: 'storageUsed' },
+  { key: 'quota', labelKey: legacy('mailbox.domain_quota'), sort: 'quotaAllocated' },
+  { key: 'storage', labelKey: legacy('mailbox.stats'), sort: 'storageUsed' },
   {
     key: 'maxQuota',
-    labelKey: 'domains.fields.maxMailboxQuota',
+    labelKey: legacy('mailbox.mailbox_quota'),
     sort: 'maxMailboxQuota',
     wide: true,
   },
@@ -173,7 +173,7 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
             </td>
             <td class="px-3 py-3">
               <UsageMeter
-                :label="t('domains.usage.quota')"
+                :label="lt('mailbox.domain_quota')"
                 :used="domain.usage.quotaAllocated"
                 :limit="domain.domainQuota"
                 kind="size"

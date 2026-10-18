@@ -3,6 +3,7 @@
 // the order, on every width.
 import { useI18n } from 'vue-i18n'
 
+import { text } from '@/i18n'
 import { componentsParametersDomainTemplateSortValues } from '@/api'
 import type { SortOrder } from '@/shared/composables/useListState'
 
@@ -28,7 +29,7 @@ const { t } = useI18n()
         "
       >
         <option v-for="key in componentsParametersDomainTemplateSortValues" :key="key" :value="key">
-          {{ t(`domainTemplates.sort.${key}`) }}
+          {{ text(`domainTemplates.sort.${key}`) }}
         </option>
       </select>
     </div>

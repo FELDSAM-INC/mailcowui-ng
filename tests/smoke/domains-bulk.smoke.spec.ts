@@ -29,7 +29,7 @@ test.describe('@domains bulk', () => {
       await expect(results.locator('li', { hasText: 'Done' })).toHaveCount(2)
       await results.getByRole('button', { name: 'Close' }).click()
       await selectBoth()
-      await bar.getByRole('button', { name: 'Delete' }).click()
+      await bar.getByRole('button', { name: 'Remove' }).click()
       await page.getByRole('alertdialog').getByRole('textbox').fill('2')
       await page.getByRole('alertdialog').getByRole('button', { name: 'Delete domains' }).click()
       await expect(results.locator('li', { hasText: 'Done' })).toHaveCount(2)

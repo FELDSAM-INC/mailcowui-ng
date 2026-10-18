@@ -68,7 +68,7 @@ const id = computed(() => `domain-card-${props.domain.name.replace(/[^a-z0-9-]/g
           usage-id="aliases"
         />
         <UsageMeter
-          :label="t('domains.usage.quota')"
+          :label="lt('mailbox.domain_quota')"
           :used="domain.usage.quotaAllocated"
           :limit="domain.domainQuota"
           kind="size"
@@ -77,12 +77,11 @@ const id = computed(() => `domain-card-${props.domain.name.replace(/[^a-z0-9-]/g
       </div>
       <dl class="flex flex-wrap gap-x-6 gap-y-1 text-sm">
         <div class="flex gap-1">
-          <dt class="text-gray-600 dark:text-gray-400">{{ t('domains.usage.storage') }}:</dt>
-          <dd class="text-gray-900 dark:text-white">{{ format.size(domain.usage.storageUsed) }}</dd>
-        </div>
-        <div class="flex gap-1">
-          <dt class="text-gray-600 dark:text-gray-400">{{ t('domains.usage.messages') }}:</dt>
-          <dd class="text-gray-900 dark:text-white">{{ format.count(domain.usage.messages) }}</dd>
+          <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.stats') }}:</dt>
+          <dd class="text-gray-900 dark:text-white">
+            {{ t('domains.list.messagesCount', { count: format.count(domain.usage.messages) }) }}
+            / {{ format.size(domain.usage.storageUsed) }}
+          </dd>
         </div>
       </dl>
       <TagChips :tags="domain.tags" @filter="emit('filterTag', $event)" />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// The values of a list entry that are not columns (FR-007): "relay this domain", the domain
-// administrators (administrators only), the creation and modification times, the mailbox quotas
-// and the rate limit.
+// The values of a list entry that are not columns (FR-007), with the classic list's column titles
+// (`js/site/mailbox.js` `draw_domain_table`): relay domain, max. size of a mailbox, the rate limit,
+// the domain administrators (administrators only), created on and last modified.
 import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
@@ -17,11 +17,11 @@ const format = useDomainFormat()
 <template>
   <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
     <div>
-      <dt class="text-gray-600 dark:text-gray-400">{{ lt('edit.relay_domain') }}</dt>
+      <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.backup_mx') }}</dt>
       <dd class="text-gray-900 dark:text-white">{{ format.yesNo(domain.backupMx) }}</dd>
     </div>
     <div>
-      <dt class="text-gray-600 dark:text-gray-400">{{ t('domains.fields.maxMailboxQuota') }}</dt>
+      <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.mailbox_quota') }}</dt>
       <dd class="text-gray-900 dark:text-white">{{ format.quota(domain.maxMailboxQuota) }}</dd>
     </div>
     <div>
@@ -37,11 +37,11 @@ const format = useDomainFormat()
       </dd>
     </div>
     <div>
-      <dt class="text-gray-600 dark:text-gray-400">{{ lt('edit.created_on') }}</dt>
+      <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.created_on') }}</dt>
       <dd class="text-gray-900 dark:text-white">{{ format.time(domain.createdAt) }}</dd>
     </div>
     <div>
-      <dt class="text-gray-600 dark:text-gray-400">{{ lt('edit.last_modified') }}</dt>
+      <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.last_modified') }}</dt>
       <dd class="text-gray-900 dark:text-white">{{ format.time(domain.modifiedAt) }}</dd>
     </div>
   </dl>

@@ -26,11 +26,10 @@ const emit = defineEmits<{
 }>()
 
 async function add() {
+  const index = props.additionalReturnUrls.length
   emit('update:additionalReturnUrls', [...props.additionalReturnUrls, ''])
   await nextTick()
-  document
-    .getElementById(`${props.idPrefix}-additionalReturnUrls-${props.additionalReturnUrls.length}`)
-    ?.focus()
+  document.getElementById(`${props.idPrefix}-additionalReturnUrls-${index}`)?.focus()
 }
 
 function update(index: number, value: string) {

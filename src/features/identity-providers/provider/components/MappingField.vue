@@ -42,11 +42,10 @@ function choices(current: string): string[] {
 
 async function add() {
   if (props.rows.length >= props.max) return
+  const index = props.rows.length
   emit('update:rows', [...props.rows, { attributeValue: '', template: '' }])
   await nextTick()
-  document
-    .getElementById(`${props.idPrefix}-attributeMapping-${props.rows.length}-attributeValue`)
-    ?.focus()
+  document.getElementById(`${props.idPrefix}-attributeMapping-${index}-attributeValue`)?.focus()
 }
 
 function update(index: number, change: Partial<MappingRow>) {

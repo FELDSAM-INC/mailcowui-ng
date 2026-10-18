@@ -22,6 +22,8 @@ import {
   type IdentityProviderType,
 } from '@/api'
 import { lt, type LegacyKey } from '@/i18n'
+import { formatNumber } from '@/i18n/format'
+import { DEFAULT_LOCALE, isAppLocale } from '@/i18n/locales'
 import { useProblemMessages } from '@/i18n/problems'
 import type { SectionChange, SectionStatus } from '@/shared/components/editable-section'
 import { announce } from '@/shared/composables/useAnnouncer'
@@ -183,7 +185,7 @@ export interface ProviderEditorOptions {
 }
 
 export function useProviderEditor(options: ProviderEditorOptions) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { problemMessage } = useProblemMessages()
   const queryClient = useQueryClient()
   const form = ref<ProviderForm | null>(null) as Ref<ProviderForm | null>
@@ -246,12 +248,23 @@ export function useProviderEditor(options: ProviderEditorOptions) {
     form.value.bindPassword = ''
   }
 
+  /** Rule parameters as the server's messages show them: numbers in the user's locale. */
+  function named(params: Record<string, unknown>): Record<string, unknown> {
+    const current = isAppLocale(locale.value) ? locale.value : DEFAULT_LOCALE
+    return Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [
+        key,
+        typeof value === 'number' ? formatNumber(value, current) : value,
+      ]),
+    )
+  }
+
   function translate(errors: RuleErrors): Record<string, string[]> {
     return Object.fromEntries(
       Object.entries(errors).map(([path, messages]) => [
         /^hosts\.\d+$/.test(path) ? 'hosts' : path,
         messages.map((message) =>
-          message.params ? t(message.key, message.params) : t(message.key),
+          message.params ? t(message.key, named(message.params)) : t(message.key),
         ),
       ]),
     )

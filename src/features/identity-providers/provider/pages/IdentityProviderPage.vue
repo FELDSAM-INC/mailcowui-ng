@@ -6,7 +6,7 @@
 // its own save, the outdated handling and `?edit=provider` in the address), plus legacy's Test
 // Connection on the stored values and Remove. History opens the audit log of the configuration.
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 
@@ -154,11 +154,20 @@ onBeforeRouteUpdate(async (to, from) => {
   })
 })
 
+/** After the page's content changed under the user: back to the top, focus on the title. */
+async function focusTitle() {
+  await nextTick()
+  window.scrollTo({ top: 0 })
+  document.querySelector<HTMLElement>('main h1')?.focus({ preventScroll: true })
+}
+
 async function save() {
   const outcome = await editor.save()
   if (outcome === 'created') {
     pageStatus.value = editor.status.value?.message ?? null
+    editor.status.value = null
     editor.close()
+    await focusTitle()
   } else if (outcome === 'saved' || outcome === 'unchanged') {
     editor.close()
     closeSection()
@@ -174,9 +183,12 @@ function cancel() {
 
 function showRemoved(message: string) {
   editor.close()
+  // Nothing is stored any more: legacy's empty form again.
+  if (config.value === null) editor.open(null)
   pageStatus.value = message
   announce(message)
   if (route.query.edit) closeSection()
+  void focusTitle()
 }
 
 // Legacy's Test Connection on the stored values: the API completes them with the stored secret.

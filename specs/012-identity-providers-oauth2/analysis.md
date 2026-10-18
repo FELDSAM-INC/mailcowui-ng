@@ -44,5 +44,5 @@ Tracked in mailcow-rest-v2 `docs/api-gaps.md`:
 1. The owner arranges a native review of the new cs-cz and sk-sk strings, about 45 `admin.iam_*`
    keys new in Slovak.
 2. The SSO smoke test is opt-in now and becomes a gate once G21 is done.
-3. Cross-feature: UI 005's `useSecretMutation`, and UI 001's API key creation, must not pass
+3. Cross-feature: UI 005's `useSecretRequest`, and UI 001's API key creation, must not pass
    secrets through TanStack mutation caches (secrets rule). Alignment has been requested.

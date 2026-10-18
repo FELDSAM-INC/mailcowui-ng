@@ -368,7 +368,7 @@ already made are not repeated; this file covers only what UI 010 adds or changes
   - **Where the key lives**: only in `DkimImportPage`'s local `ref`.
     - It is never put in Pinia, a query, a TanStack mutation (`useMutation` keeps `variables` in
       the mutation cache until `gcTime`), the route, history state or storage.
-    - UI 005's `useSecretMutation` strips secrets from *responses*. It does not cover a secret in
+    - UI 005's `useSecretRequest` strips secrets from *responses*. It does not cover a secret in
       the request, so the import does not use it.
     - UI 004's `useFormDraft` is not used on the import page, so a session end never saves the key
       into the draft registry.

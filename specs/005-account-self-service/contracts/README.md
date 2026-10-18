@@ -113,7 +113,7 @@ handled by UI 001 keep 001's behaviour unless noted.
 | `groupware-disabled` | 403 | Explain; hide webmail, resets and the full profile; refetch capabilities (FR-088) |
 | `temporary-failure` | 503 | Name the `dependency` in plain words with "Try again" and the `Retry-After` countdown (FR-020) |
 | `temporary-verification-failure` | 503 | "The Yubico verification service is unavailable", retry (enrolment and reset) |
-| `second-factor-required` | 401 | Reset completion only: show the second-factor step with `methods` (a `useSecretMutation` call with `sessionReactions: false`); elsewhere 001's behaviour |
+| `second-factor-required` | 401 | Reset completion only: show the second-factor step with `methods` (a `useSecretRequest` call with `sessionReactions: false`); elsewhere 001's behaviour |
 | `second-factor-failed` | 401 | Reset completion: stay on the factor step, retry while the link is valid |
 | `second-factor-unavailable` | 403 | Reset: "ask an administrator to reset your second factors" |
 | `too-many-requests` | 429 | Countdown from `retryAfter`, action disabled (wrong current passwords, reset requests, checks, completions) |

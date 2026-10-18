@@ -1,7 +1,12 @@
 // RFC 6238 TOTP codes for the smoke suite (research R25), with node:crypto. The API refuses a code
-// that was already accepted in its validity window, so `freshTotp` waits for a time step this
-// process has not used yet, and for one with enough time left to type and submit it.
-import { createHmac } from 'node:crypto'
+// whose time step is not later than the last one it accepted for the authenticator, so
+// `freshTotp` waits for a step later than any this suite has used, and for one with enough time
+// left to type and submit it. The last step is kept in `.smoke/totp-steps.json` rather than in
+// memory: Playwright starts a new worker process after a failed test and for a retry, and a rerun
+// within the same 30 s would otherwise reuse a step.
+import { createHash, createHmac } from 'node:crypto'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 
 const STEP_SECONDS = 30
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
@@ -35,16 +40,39 @@ export function totpAt(secret: string, step: number): string {
   return String(binary % 1_000_000).padStart(6, '0')
 }
 
-const used = new Set<number>()
+const STATE_FILE = join(process.cwd(), '.smoke', 'totp-steps.json')
 
-/** A code of a step not used before, with at least `minSecondsLeft` of its window remaining. */
+type StepState = Record<string, number>
+
+function readState(): StepState {
+  try {
+    return JSON.parse(readFileSync(STATE_FILE, 'utf8')) as StepState
+  } catch {
+    return {}
+  }
+}
+
+/** The state key of a secret: a hash, so that a real account's secret is never written down. */
+function stateKey(secret: string): string {
+  return createHash('sha256').update(secret).digest('hex').slice(0, 16)
+}
+
+function markUsed(secret: string, step: number) {
+  const state = readState()
+  state[stateKey(secret)] = step
+  mkdirSync(dirname(STATE_FILE), { recursive: true })
+  writeFileSync(STATE_FILE, JSON.stringify(state))
+}
+
+/** A code of a step later than any used before, with at least `minSecondsLeft` of its window left. */
 export async function freshTotp(secret: string, minSecondsLeft = 8): Promise<string> {
   for (;;) {
     const now = Date.now() / 1000
     const step = Math.floor(now / STEP_SECONDS)
     const left = (step + 1) * STEP_SECONDS - now
-    if (!used.has(step) && left >= minSecondsLeft) {
-      used.add(step)
+    const last = readState()[stateKey(secret)] ?? -1
+    if (step > last && left >= minSecondsLeft) {
+      markUsed(secret, step)
       return totpAt(secret, step)
     }
     await new Promise((resolve) => setTimeout(resolve, Math.ceil(left * 1000) + 50))

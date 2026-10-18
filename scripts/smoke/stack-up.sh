@@ -6,7 +6,8 @@
 #
 # The API is checked out at contract/VERSION.json's `commit`, or at SMOKE_API_REF, in a separate
 # git worktree under .smoke/api, so the developer's own checkout and dev stack are never touched.
-# It runs as its own Compose project (SMOKE_PROJECT) on its own port (SMOKE_WEB_PORT).
+# It runs as its own Compose project (SMOKE_PROJECT) on its own ports (SMOKE_WEB_PORT, and
+# SMOKE_WEB_TLS_PORT for the API's HTTPS listener, which would otherwise take the developer's 18443).
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -14,6 +15,7 @@ api_dir="${MAILCOW_REST_V2_DIR:-$root/../mailcow-rest-v2}"
 work="${SMOKE_WORKDIR:-$root/.smoke/api}"
 project="${SMOKE_PROJECT:-mailcowui-ng-smoke}"
 port="${SMOKE_WEB_PORT:-18480}"
+tls_port="${SMOKE_WEB_TLS_PORT:-18483}"
 image="mailcowui-ng:smoke"
 container="${project}-ng"
 ref="${SMOKE_API_REF:-$(node -p "require('$root/contract/VERSION.json').commit")}"
@@ -33,8 +35,8 @@ else
 fi
 
 compose() {
-  (cd "$work" && RESTV2_WEB_PORT="$port" RESTV2_UID="$(id -u)" RESTV2_GID="$(id -g)" \
-    docker compose -p "$project" "$@")
+  (cd "$work" && RESTV2_WEB_PORT="$port" RESTV2_WEB_TLS_PORT="$tls_port" \
+    RESTV2_UID="$(id -u)" RESTV2_GID="$(id -g)" docker compose -p "$project" "$@")
 }
 
 # 1. The API dev stack and the setup commands of the API quickstart (Part A, steps 1-2), then the

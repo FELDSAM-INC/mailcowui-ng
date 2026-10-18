@@ -22,7 +22,10 @@ const mobile = {
 export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // The smoke tests share the real seeded accounts, so they run one at a time: the API refuses a
+  // second TOTP code for alice in the same 30 s step, and the preferences test switches admin to
+  // Czech while it runs.
+  workers: smokeOnly ? 1 : process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   use: {
     trace: 'retain-on-failure',

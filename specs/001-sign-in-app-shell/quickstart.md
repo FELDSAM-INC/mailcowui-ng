@@ -96,13 +96,15 @@ browser's device toolbar) and on a desktop, in both themes.
 ```bash
 export MAILCOW_REST_V2_DIR=../mailcow-rest-v2
 scripts/smoke/stack-up.sh      # API dev stack at the pinned commit + this image as ng-mailcow
-npm run test:smoke             # Playwright project "smoke" against http://localhost:8080/ng/
+npm run test:smoke             # Playwright project "smoke" against http://localhost:18480/ng/
 scripts/smoke/stack-down.sh
 ```
 
 **Expected**:
 
-- `stack-up.sh` ends with `ready: http://localhost:8080/ng/`.
+- `stack-up.sh` ends with `ready: http://localhost:18480/ng/`. The stack publishes only 127.0.0.1
+  ports `SMOKE_WEB_PORT` (18480) and `SMOKE_WEB_TLS_PORT` (18483), under the Compose project
+  `SMOKE_PROJECT` (`mailcowui-ng-smoke`).
 - `test:smoke` passes for: each role's sign-in and sign-out; the TOTP second factor (`alice`); the
   forced password change (`bob`); passkey registration and sign-in through the virtual
   authenticator; preferences persisting across sign-ins; API key creation and revocation; the

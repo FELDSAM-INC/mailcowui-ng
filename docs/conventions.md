@@ -123,6 +123,12 @@ it.
   - quotas in MiB with "0 = ∞", as legacy enters them, replacing UI 002's unit select and
     "Unlimited" switch;
   - durations in legacy's units;
+  - **except the domain's "Default mailbox quota"** (`add.mailbox_quota_def`,
+    `edit.mailbox_quota_def`, list column `mailbox_defquota`; API `defaultMailboxQuota`). The owner
+    calls it an upstream leftover since templates carry the mailbox quota (2026-10-18). It is left
+    off the domain create and edit forms, the domain template forms and the domain list. The new
+    mailbox form takes its quota from the mailbox template, never from the domain. The API lowers
+    an unsent default to the maximum, so a hidden field never blocks a save;
   - the password repeat field wherever legacy has one;
   - legacy's tabs, groups and field order: a legacy tab becomes one section, never several, and
     settings keep legacy's tab structure;

@@ -26,9 +26,7 @@ const SYNC_JOB_KEYS = [
 
 describe('sync-job enumerations in the translation check', () => {
   it('requires every value of the three closed enumerations', () => {
-    expect(requiredKeys({ enums, problemNames: [] })).toEqual(
-      expect.arrayContaining(SYNC_JOB_KEYS),
-    )
+    expect(requiredKeys({ enums, problemNames: [] })).toEqual(expect.arrayContaining(SYNC_JOB_KEYS))
   })
 
   it('keeps them fully required with the coverage manifest', () => {

@@ -92,6 +92,25 @@ describe('session reactions', () => {
     expect(handlers[handler]).toHaveBeenCalledWith(error)
   })
 
+  // UI 008 T005 (research R2): a missing permission flag refreshes the identity, as `forbidden`
+  // does, so the navigation and the screen follow the flag.
+  it('dispatches permission-flag-required from a query and a mutation as forbidden', async () => {
+    const handlers = reactions()
+    setSessionReactions(handlers)
+    const client = createQueryClient()
+    const error = problem(403, 'permission-flag-required')
+    await client
+      .fetchQuery({ queryKey: ['flag'], queryFn: () => Promise.reject(error) })
+      .catch(() => undefined)
+    await client
+      .getMutationCache()
+      .build(client, { mutationFn: () => Promise.reject(error) })
+      .execute(undefined)
+      .catch(() => undefined)
+    expect(handlers.forbidden).toHaveBeenCalledTimes(2)
+    expect(handlers.forbidden).toHaveBeenCalledWith(error)
+  })
+
   it('dispatches from a failed mutation', async () => {
     const handlers = reactions()
     setSessionReactions(handlers)

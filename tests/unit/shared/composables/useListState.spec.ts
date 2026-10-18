@@ -7,6 +7,7 @@ import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
 
 import {
+  custom,
   manyOf,
   oneOf,
   text,
@@ -157,5 +158,78 @@ describe('useListState', () => {
     await list.setFilter('owner', 'someone')
     await list.setPage(2)
     expect(local).not.toHaveBeenCalled()
+  })
+})
+
+// UI 008 (T009, data-model §5): a "view" parameter, for example the open log `log=<id>`, lives in
+// the address with the list state but is not part of it: it is parsed and validated, kept by every
+// change, and never resets the page or the selection.
+describe('useListState view parameters', () => {
+  const logSpec = custom<number | undefined>({
+    parse(raw) {
+      const value = Array.isArray(raw) ? raw[0] : raw
+      return typeof value === 'string' && /^[1-9][0-9]{0,8}$/.test(value)
+        ? Number(value)
+        : undefined
+    },
+    serialize: (value) => (value === undefined ? undefined : String(value)),
+    isSet: (value) => value !== undefined,
+  })
+  const withViews: ListSchema<Filters, Sort, { log: number | undefined }> = {
+    ...schema,
+    views: { log: logSpec },
+  }
+
+  async function setupViews(path: string, onReset = vi.fn()) {
+    const router = createRouter({
+      history: createMemoryHistory('/ng/'),
+      routes: [{ path: '/keys', name: 'keys', component: { render: () => null } }],
+    })
+    await router.push(path)
+    await router.isReady()
+    let list!: ReturnType<typeof useListState<Filters, Sort, { log: number | undefined }>>
+    const Host = defineComponent({
+      setup() {
+        list = useListState(withViews, { onReset })
+        return () => h('div')
+      },
+    })
+    mount(Host, { global: { plugins: [router] } })
+    await flushPromises()
+    return { router, list, onReset }
+  }
+
+  it('parses a view parameter and keeps it in the address', async () => {
+    const { list, router } = await setupViews('/keys?status=active&page=2&log=7')
+    expect(list.views.value).toEqual({ log: 7 })
+    expect(list.state.value.page).toBe(2)
+    expect(query(router)).toEqual({ status: 'active', page: '2', log: '7' })
+  })
+
+  it('removes an invalid view value with replace', async () => {
+    const { list, router } = await setupViews('/keys?log=abc')
+    expect(list.views.value).toEqual({ log: undefined })
+    expect(query(router)).toEqual({})
+  })
+
+  it('sets a view with push, without resetting the page or calling onReset', async () => {
+    const { list, router, onReset } = await setupViews('/keys?page=3')
+    onReset.mockClear()
+    const push = vi.spyOn(router, 'push')
+    await list.setView('log', 12)
+    expect(push).toHaveBeenCalledTimes(1)
+    expect(query(router)).toEqual({ page: '3', log: '12' })
+    expect(onReset).not.toHaveBeenCalled()
+    const replace = vi.spyOn(router, 'replace')
+    await list.setView('log', undefined, { replace: true })
+    expect(replace).toHaveBeenCalledTimes(1)
+    expect(query(router)).toEqual({ page: '3' })
+    expect(onReset).not.toHaveBeenCalled()
+  })
+
+  it('keeps the view when a filter changes', async () => {
+    const { list, router } = await setupViews('/keys?log=4')
+    await list.setFilter('status', 'expired')
+    expect(query(router)).toEqual({ status: 'expired', log: '4' })
   })
 })

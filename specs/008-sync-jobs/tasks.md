@@ -74,12 +74,12 @@ every story uses: presentation, form model and field messages.
 
 ### Shared parts (T005/T006 and T009/T010 only when T004 found the part missing)
 
-- [ ] T005 [P] Only if missing: add to `tests/unit/api/query-client.spec.ts` that a `403` problem of type `/api/v2/problems/permission-flag-required` invalidates the identity query, exactly as `forbidden` does (UI 001 research R8). The test must fail.
-- [ ] T006 Only if missing: implement that reaction in the `QueryCache` and `MutationCache` `onError` hooks of `src/api/query/client.ts`, so that T005 passes.
+- [X] T005 [P] Only if missing: add to `tests/unit/api/query-client.spec.ts` that a `403` problem of type `/api/v2/problems/permission-flag-required` invalidates the identity query, exactly as `forbidden` does (UI 001 research R8). The test must fail.
+- [X] T006 Only if missing: implement that reaction in the `QueryCache` and `MutationCache` `onError` hooks of `src/api/query/client.ts`, so that T005 passes.
 - [ ] T007 [P] Write `tests/unit/shared/components/MailboxSearchPicker.spec.ts` (research R9): a Reka `Combobox` without `ComboboxViewport` over `listMailboxes` (`q`, `sort=address`, 25 per page), a 300 ms debounce, `useInfiniteQuery` "load more", empty, error and retry states, options with the address and, when set, the display name, a free-text mode that accepts a typed address, and an empty-result slot. Keep UI 006's existing tests of the picker as they are. The new cases must fail.
 - [ ] T008 Promote UI 006's `MailboxSearchPicker.vue` (from its rate-limits feature, the path T004 found) to `src/shared/components/MailboxSearchPicker.vue`, its second use (constitution VIII), add the free-text mode and the empty-result slot, and update UI 006's imports so that its tests stay green; if it does not exist, create it there. T007 must pass.
-- [ ] T009 [P] Only if missing: add to `tests/unit/shared/composables/useListState.spec.ts` a parameter kind "view" that is parsed, validated and kept in the address but never resets `page` and never calls `onReset` when it changes (needed for `log`, data-model §5). The test must fail.
-- [ ] T010 Only if missing: implement the "view" parameter kind in `src/shared/composables/useListState.ts`, so that T009 passes.
+- [X] T009 [P] Only if missing: add to `tests/unit/shared/composables/useListState.spec.ts` a parameter kind "view" that is parsed, validated and kept in the address but never resets `page` and never calls `onReset` when it changes (needed for `log`, data-model §5). The test must fail.
+- [X] T010 *(done: `ListSchema.views` with `useListState().views` and `setView(key, value, { replace })`)* Only if missing: implement the "view" parameter kind in `src/shared/composables/useListState.ts`, so that T009 passes.
 
 ### Mock API (test infrastructure)
 

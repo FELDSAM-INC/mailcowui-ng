@@ -3,6 +3,8 @@
 // normalised with `router.replace`, defaults omitted. Explicit changes use `router.push`, so Back
 // restores the previous view; typing uses `router.replace`. Changing filters, sort or page size
 // returns to the first page and calls `onReset` (for bulk selection). Nothing goes to storage.
+// UI 008 adds view parameters (`views`): values such as the open log (`log=<id>`) that live in the
+// address next to the list state but never reset the page or the selection.
 import { computed, watch, type ComputedRef } from 'vue'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 
@@ -103,9 +105,15 @@ export interface SortSpec<S extends string> {
   defaultOrder: (sort: S) => SortOrder
 }
 
-export interface ListSchema<F extends Record<string, unknown>, S extends string = never> {
+export interface ListSchema<
+  F extends Record<string, unknown>,
+  S extends string = never,
+  V extends Record<string, unknown> = Record<never, never>,
+> {
   filters: { [K in keyof F]: ParamSpec<F[K]> }
   sort?: SortSpec<S>
+  /** UI 008: view parameters, kept by every change and never resetting the page or selection. */
+  views?: { [K in keyof V]: ParamSpec<V[K]> }
 }
 
 export interface ListState<F, S extends string> {
@@ -116,10 +124,22 @@ export interface ListState<F, S extends string> {
   size: PageSize
 }
 
-function parseState<F extends Record<string, unknown>, S extends string>(
-  schema: ListSchema<F, S>,
+function parseViews<V extends Record<string, unknown>>(
+  specs: { [K in keyof V]: ParamSpec<V[K]> } | undefined,
   query: LocationQuery,
-): ListState<F, S> {
+): V {
+  const views = {} as V
+  for (const key of Object.keys(specs ?? {}) as (keyof V & string)[]) {
+    views[key] = specs![key].parse(query[key])
+  }
+  return views
+}
+
+function parseState<
+  F extends Record<string, unknown>,
+  S extends string,
+  V extends Record<string, unknown>,
+>(schema: ListSchema<F, S, V>, query: LocationQuery): ListState<F, S> {
   const filters = {} as F
   for (const key of Object.keys(schema.filters) as (keyof F & string)[]) {
     filters[key] = schema.filters[key].parse(query[key])
@@ -141,10 +161,11 @@ function parseState<F extends Record<string, unknown>, S extends string>(
   return { filters, sort, order, page, size }
 }
 
-function toQuery<F extends Record<string, unknown>, S extends string>(
-  schema: ListSchema<F, S>,
-  state: ListState<F, S>,
-): LocationQueryRaw {
+function toQuery<
+  F extends Record<string, unknown>,
+  S extends string,
+  V extends Record<string, unknown>,
+>(schema: ListSchema<F, S, V>, state: ListState<F, S>, views: V): LocationQueryRaw {
   const query: LocationQueryRaw = {}
   for (const key of Object.keys(schema.filters) as (keyof F & string)[]) {
     const value = schema.filters[key].serialize(state.filters[key])
@@ -158,6 +179,10 @@ function toQuery<F extends Record<string, unknown>, S extends string>(
   }
   if (state.page > 1) query.page = String(state.page)
   if (state.size !== 25) query.size = String(state.size)
+  for (const key of Object.keys(schema.views ?? {}) as (keyof V & string)[]) {
+    const value = schema.views![key].serialize(views[key])
+    if (value !== undefined) query[key] = value
+  }
   return query
 }
 
@@ -176,8 +201,10 @@ export interface ListStateOptions {
   onReset?: () => void
 }
 
-export interface UseListState<F, S extends string> {
+export interface UseListState<F, S extends string, V = Record<never, never>> {
   state: ComputedRef<ListState<F, S>>
+  /** UI 008: the view parameters of the address. */
+  views: ComputedRef<V>
   /** `limit`, `offset` and, with a sort schema, `sort` and `order` for the API request. */
   paging: ComputedRef<{ limit: number; offset: number; sort?: S; order?: SortOrder }>
   activeFilters: ComputedRef<(keyof F & string)[]>
@@ -191,22 +218,30 @@ export interface UseListState<F, S extends string> {
   setSort(sort: S, order?: SortOrder): Promise<void>
   setPage(page: number): Promise<void>
   setSize(size: PageSize): Promise<void>
+  /** UI 008: sets a view parameter with push (or replace), keeping the page and the selection. */
+  setView<K extends keyof V & string>(
+    key: K,
+    value: V[K],
+    options?: { replace?: boolean },
+  ): Promise<void>
 }
 
-export function useListState<F extends Record<string, unknown>, S extends string = never>(
-  schema: ListSchema<F, S>,
-  options: ListStateOptions = {},
-): UseListState<F, S> {
+export function useListState<
+  F extends Record<string, unknown>,
+  S extends string = never,
+  V extends Record<string, unknown> = Record<never, never>,
+>(schema: ListSchema<F, S, V>, options: ListStateOptions = {}): UseListState<F, S, V> {
   const route = useRoute()
   const router = useRouter()
 
   const state = computed(() => parseState(schema, route.query))
+  const views = computed(() => parseViews<V>(schema.views, route.query))
 
   // Normalise the address: invalid values and defaults are removed without a history entry.
   watch(
     () => route.query,
     (query) => {
-      const normal = toQuery(schema, parseState(schema, query))
+      const normal = toQuery(schema, parseState(schema, query), parseViews<V>(schema.views, query))
       if (!sameQuery(query, normal)) void router.replace({ query: normal, hash: route.hash })
     },
     { immediate: true },
@@ -214,7 +249,7 @@ export function useListState<F extends Record<string, unknown>, S extends string
 
   async function navigate(next: ListState<F, S>, mode: 'push' | 'replace', reset: boolean) {
     if (reset) options.onReset?.()
-    const location = { query: toQuery(schema, next), hash: route.hash }
+    const location = { query: toQuery(schema, next, views.value), hash: route.hash }
     await (mode === 'push' ? router.push(location) : router.replace(location))
   }
 
@@ -222,6 +257,7 @@ export function useListState<F extends Record<string, unknown>, S extends string
 
   return {
     state,
+    views,
     paging: computed(() => {
       const { page, size, sort, order } = state.value
       return {
@@ -265,6 +301,13 @@ export function useListState<F extends Record<string, unknown>, S extends string
       next.size = (PAGE_SIZES as readonly number[]).includes(size) ? size : 25
       next.page = 1
       return navigate(next, 'push', true)
+    },
+    async setView(key, value, opts = {}) {
+      const location = {
+        query: toQuery(schema, current(), { ...views.value, [key]: value }),
+        hash: route.hash,
+      }
+      await (opts.replace ? router.replace(location) : router.push(location))
     },
   }
 }

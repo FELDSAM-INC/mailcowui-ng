@@ -14,7 +14,8 @@ which operations the feature calls, and how each problem type is handled.
 | Contract version (`info.version`) | `0.1.0`, which does not identify a contract (UI 001 R6) |
 | Planning baseline | commit `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
 | Bundle at the baseline | `@redocly/cli@2.64.1 bundle api/openapi.yaml`, sha256 `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6`, 376 operations |
-| Implementation pin | set by T001: API 003's release tag if one exists, otherwise the mailcow-rest-v2 commit that merges the API 003 implementation (research R1). It is recorded in `contract/VERSION.json`, which is authoritative from then on. |
+| Implementation pin | `33f1eea0fd0278ba61d9adae9398797d89df6857` (mailcow-rest-v2 `main`, 2026-10-19), set by T001. It contains the merged API 003 implementation and the later features 004, 008, 011 and 012; `contract/VERSION.json` is authoritative from then on. |
+| Changes since the baseline (T001 review) | Additive, and used: `MailboxCapabilities.preHashedPasswordSchemes` (G31, the pre-hashed notice uses this exact list) and `MailboxCapabilities.templateDefaults` (G32, a new template's form starts from them instead of hand-written defaults); `applyMailboxTemplateBulkAction` (G39, the classic mass removal of templates). Changed: `DomainUsage.defaultNewMailboxQuota` is gone and `MailboxCreateRequest.quota` no longer falls back to the domain's default (owner decision: the create form always sends a quota, prefilled from the template and capped at `usage.maxNewMailboxQuota`); `BulkTarget.version` accepts the `etag` with its quotes (G33). No other member of the 21 operations changed. |
 
 **Bump procedure** (T001):
 

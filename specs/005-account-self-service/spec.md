@@ -14,7 +14,8 @@ and removes its own TOTP, WebAuthn security key and Yubico OTP second factors. M
 recovery e-mail and reset a forgotten password through it before signing in, see an overview of
 their mailbox, open webmail without signing in again, and manage app passwords (shown once),
 temporary aliases, tagged-mail handling, TLS enforcement, Pushover notifications, recent logins,
-ActiveSync and SOGo resets, and read their filters and active sieve script. Administrators and
+ActiveSync and SOGo resets, set up mail apps with a setup guide and Apple connection profiles, and
+read their filters and active sieve script. Administrators and
 domain administrators do the same for the mailboxes in their scope where the API allows it,
 including the mailbox sieve filters only they manage and bulk TLS enforcement. Every section follows
 the permission flags (hidden or read-only when disallowed, still enforced by the API), shows secrets
@@ -72,7 +73,7 @@ mass action and Mail setup › Filters."
   app address, which the app then opens. (agent decision: API 005 user story 5 says the app does it,
   legacy `index.php` forwards, and the UI 001 orchestrator decision deferred this landing to 005;
   the deep-link exception keeps My account reachable, because SOGo's own settings button still
-  leads to the classic interface. Also raised as an owner-level question.)
+  leads to the classic interface. Confirmed by orchestrator decision below.)
 - Q: How are actions on several selected temporary aliases or filters carried out when the API has
   no batch operation for them? → A: The app keeps multi-selection, sends one request per item,
   reports the result per item and keeps failed items selected. App passwords get per-item actions
@@ -87,6 +88,28 @@ mass action and Mail setup › Filters."
   self-service capabilities say that password reset is available. (agent decision: API 005 FR-080
   exists for exactly this; legacy always shows the link and then fails with "password recovery
   unavailable".)
+- Q: Should the app forward mailbox users to webmail after sign-in, and is webmail single sign-on
+  built? → A: Yes to both: forwarding as decided above, except after sign-ins that started from a
+  deep link, and the webmail hand-off is built as API feature 005 decided. (orchestrator decision:
+  the agent's defaults for owner questions 1 and 2 are accepted.)
+- Q: Are the Apple connection profiles and the client configuration guide kept, although the API
+  first assigned them to its optional feature 014? → A: Yes. API feature 005 adds an operation that
+  generates a connection profile for the signed-in mailbox user (full or e-mail only, optionally with
+  a newly generated app password, respecting the app-password flag) and one that reads the client
+  configuration data (host names, ports, encryption and authentication per protocol). My account
+  gets a "Mail app setup" section with the profile downloads and a setup guide with copy buttons.
+  (orchestrator decision: reverses the agent's default for owner question 3.)
+- Q: How does the app learn that an account must keep a second factor, and which domains an
+  administrator may use for a mailbox's temporary aliases? → A: From API feature 005, which now
+  reports both: the "must keep a second factor" state with the second factors, and the
+  temporary-alias domains in the mailbox context. The app hides removal up front and offers the
+  domains in both contexts. (orchestrator decision: closes the API gaps 1 and 2 of the first
+  report.)
+- Q: When does the app use the API's bulk operations, and when one request per item? → A: The API's
+  bulk operation wherever the API offers one (TLS enforcement from the mailbox list), and one request
+  per item for the per-item actions on temporary aliases and filters, each request carrying the
+  item's version tag. (orchestrator decision: aligns with `docs/conventions.md` and API 005
+  FR-079.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -188,9 +211,9 @@ account for forced setup, sign in, and resolve the restriction with each method 
 7. **Given** one active entry, **When** the user removes it, **Then** the confirmation says that
    two-factor authentication will be turned off and all entries removed (passkeys stay), asks for the
    current password, and afterwards the empty state is shown.
-8. **Given** an account whose administrator requires a second factor, **When** the user tries to
-   remove an entry, **Then** the app explains that the administrator requires two-factor
-   authentication and stops offering removal.
+8. **Given** an account whose administrator requires a second factor, **When** the user opens the
+   section, **Then** no removal or turn-off action is offered, and a note explains that the
+   administrator requires two-factor authentication.
 9. **Given** an account forced to set up a second factor, **When** it signs in, **Then** the setup
    screen is shown, every other address leads back to it, and completing any one method lifts the
    restriction and leads to the home screen.
@@ -408,7 +431,47 @@ service; clear the list.
 
 ---
 
-### User Story 9 - Manage mailbox sieve filters and read my filters (Priority: P3)
+### User Story 9 - Set up mail apps on my devices (Priority: P2)
+
+A mailbox user who wants mail on a new phone opens **My account › Mail app setup**. The setup guide
+lists, for each protocol (IMAP, POP3, SMTP, CalDAV/CardDAV, ActiveSync), the server name, port,
+encryption and authentication method, and the username, each with a copy button, and says when an
+app password is needed. On an iPhone, iPad or Mac they download a connection profile instead: e-mail
+only, or e-mail, calendars and contacts. With the app-password flag they can have a new app password
+put into the profile, so the device needs no password at all; that app password then appears in
+their App passwords.
+
+**Why this priority**: Configuring mail apps is one of the most frequent support requests, and
+users who turned on two-factor authentication need the right settings together with an app
+password. Legacy offers both, so dropping them would be a regression at cutover.
+
+**Independent Test**: As a mailbox user with and without the app-password flag, open the setup
+guide and compare every value with the server configuration; copy each value. Download each profile
+variant, install it on an Apple test device, and confirm that mail (and calendars and contacts for
+the full profile) work; for the variant with an app password, confirm the new app password is listed
+and works. Disable groupware and confirm the full profile is no longer offered.
+
+**Acceptance Scenarios**:
+
+1. **Given** a mailbox user, **When** they open Mail app setup, **Then** each protocol shows its
+   server name, port, encryption and authentication method and the username, each with a copy
+   button whose success is announced.
+2. **Given** a mailbox without direct POP3 access, **When** the guide is shown, **Then** POP3 carries a
+   note that only an app password allowing POP3 works for it.
+3. **Given** groupware enabled, **When** the user downloads "E-mail, calendars and contacts", **Then**
+   the browser receives the profile, and the app explains that it is for iPhone, iPad and Mac.
+4. **Given** the app-password flag, **When** the user downloads the e-mail-only profile with "Include
+   a new app password", **Then** the profile is downloaded, the app says that it contains a password
+   and should be deleted after installation, and the new app password appears in App passwords.
+5. **Given** a mailbox user without the app-password flag, **When** they open Mail app setup,
+   **Then** the "Include a new app password" option is not shown.
+6. **Given** a domain administrator, **When** they open the Mail app setup address, **Then** the "no
+   access" state explains that connection profiles are for mailbox users (legacy
+   `login.mobileconfig_info`).
+
+---
+
+### User Story 10 - Manage mailbox sieve filters and read my filters (Priority: P3)
 
 An administrator, or a domain administrator with the filters flag, opens **Mail setup › Filters**
 (or a mailbox's Filters in the mailbox context) and manages the sieve filters of the mailboxes in
@@ -440,7 +503,7 @@ the flag. As a mailbox user, open Filters with and without filters and an active
 
 ---
 
-### User Story 10 - Reset the ActiveSync device cache and the SOGo profile (Priority: P3)
+### User Story 11 - Reset the ActiveSync device cache and the SOGo profile (Priority: P3)
 
 A mailbox user whose phone stopped syncing resets the ActiveSync device cache from **My account ›
 Devices**. A user with a broken webmail profile, whose administrator allows it, resets their SOGo
@@ -464,7 +527,7 @@ effect; turn a flag off, or disable webmail, and confirm the control is absent.
 
 ---
 
-### User Story 11 - Trace self-service changes (Priority: P3)
+### User Story 12 - Trace self-service changes (Priority: P3)
 
 An administrator investigating a complaint opens the audit log of UI feature 001, filters it by a
 mailbox and by self-service event types (password changes, failed current-password checks, second
@@ -548,9 +611,15 @@ type and confirm the entries and that no secret is shown.
 - **App session ends while webmail is open in another tab**: webmail asks for a sign-in at its next
   request.
 - **Pushover settings saved for the first time without token or key**: both fields are required.
-- **Groupware disabled on the server**: webmail and both resets are hidden in both contexts.
+- **Groupware disabled on the server**: webmail, both resets and the full connection profile are
+  hidden in both contexts; the e-mail profile and the setup guide still work.
 - **Password managed by an external identity provider**: password, recovery e-mail and second factors
   are replaced by an explanation; all other sections work.
+- **App-password flag removed between opening Mail app setup and downloading**: the API refuses the
+  variant with an app password; the app explains that the permission was withdrawn and hides the
+  option.
+- **Profile download interrupted after the API created the app password**: the app password is listed
+  in App passwords, where the user can delete it, and the download can be repeated.
 - **Self-service capabilities cannot be read**: sections that depend on them show their error state
   with "Try again" instead of guessing.
 - **Offline or server unreachable**: every view shows its error state with "Try again".
@@ -585,6 +654,7 @@ type and confirm the entries and that no secret is shown.
   | Mail | Filters (read-only) | Mailbox users |
   | Devices | ActiveSync device cache reset | Mailbox users with the `easReset` flag, webmail enabled |
   | Devices | SOGo profile reset | Mailbox users with the `sogoProfileReset` flag, webmail enabled |
+  | Devices | Mail app setup (setup guide and connection profiles) | Mailbox users |
 
   For a mailbox user with an externally managed password, the Password section MUST be replaced by a
   short explanation that their organisation manages the password and second factors.
@@ -608,7 +678,8 @@ type and confirm the entries and that no secret is shown.
 - **FR-008**: Section and action labels MUST name what the user controls ("Temporary aliases", "App
   passwords"), not legacy table names.
 - **FR-009**: The app MUST take server-dependent choices from the self-service capabilities and
-  never hard-code them: whether webmail and the groupware resets are offered; whether password reset
+  never hard-code them: whether webmail, the groupware resets and the full connection profile are
+  offered; whether password reset
   is offered and the reset link lifetime; the temporary-alias validity range and default; the
   recent-login period range and default; the bulk limit; the field size limits; and the Pushover
   sounds.
@@ -649,8 +720,9 @@ type and confirm the entries and that no secret is shown.
 - **FR-018**: Lists (app passwords, temporary aliases, filters, recent logins) MUST offer the search,
   filters and sort orders that the API supports for them, and page through results with page sizes of
   25 (default), 50 or 100. The list state MUST be kept in the page address, never in browser storage.
-- **FR-019**: Actions on several selected items (temporary aliases and filters, one request per item;
-  TLS in the mailbox list, one bulk request with each mailbox's version tag) MUST work on an explicit
+- **FR-019**: Actions on several selected items MUST use the API's bulk operation where it offers one
+  (TLS in the mailbox list) and otherwise one request per item (temporary aliases and filters), each
+  item carrying the version tag from the list. They MUST work on an explicit
   selection of the current page, which clears when the page, search, filters, sort or page size
   change. They MUST show progress, report the result per item (done, not found, refused, outdated, or
   failed with the reason), and keep the items that did not succeed selected. A dropped connection
@@ -737,7 +809,8 @@ type and confirm the entries and that no secret is shown.
 - **FR-043**: Administrators, domain administrators and mailbox users with a mailcow-managed password
   MUST be able to list their own second-factor entries with type (authenticator app, security key,
   Yubico OTP, or no longer supported), name, state (active or inactive), the key identifier for
-  Yubico OTP, and a mark on the entry used for the current sign-in.
+  Yubico OTP, and a mark on the entry used for the current sign-in, together with whether the account
+  must keep a second factor.
 - **FR-044**: The section MUST offer "Add authenticator app" and "Add security key" directly and
   "Yubico OTP" under "Other methods", and MUST point to passkeys (UI feature 001) as the recommended
   way to sign in without a password.
@@ -766,9 +839,11 @@ type and confirm the entries and that no secret is shown.
   passkeys stay, and MUST ask for the current password.
 - **FR-053**: The section MUST also offer "Turn off two-factor authentication", which removes all
   entries after confirmation with the current password.
-- **FR-054**: When the API refuses a removal with "second factor required by policy", the app MUST
-  explain that the administrator requires two-factor authentication and stop offering removal in that
-  section until the user leaves it.
+- **FR-054**: When the API reports that the account must keep a second factor, the section MUST NOT
+  offer removing entries or turning two-factor authentication off, and MUST explain that the
+  administrator requires it (legacy `danger.tfa_removal_blocked`). If a removal is still refused with
+  "second factor required by policy" (the requirement changed meanwhile), the app MUST show the same
+  explanation and refresh the section.
 - **FR-055**: For mailbox users, the section MUST explain that mail clients need app passwords once
   two-factor authentication is on (legacy `user.tfa_info`), linking to App passwords when the user has
   that flag.
@@ -814,8 +889,9 @@ type and confirm the entries and that no secret is shown.
 - **FR-068**: Users with access MUST be able to list temporary aliases with address, description,
   validity (expiry time or "Never expires") and creation time, newest first by default, sortable by
   expiry, filterable by permanence and searchable by address and description.
-- **FR-069**: Generating an alias MUST let the user choose the domain from the domains available for
-  temporary aliases (no choice when there is only one), enter an optional description within the size
+- **FR-069**: Generating an alias MUST let the user choose the domain from the domains the API reports
+  as available for temporary aliases of that mailbox, in both contexts (no choice when there is only
+  one), enter an optional description within the size
   limit, and choose a validity from 1 hour, 1 day, 1 week, 1 month, 1 year, 10 years and never
   expires, limited to the server's range, with the server's default preselected (1 year by default).
 - **FR-070**: After generation the app MUST show the new address with a copy button. Each address in
@@ -925,59 +1001,86 @@ type and confirm the entries and that no secret is shown.
   mailbox's direct forwarding to webmail and webmail is enabled. It MUST NOT do so when the sign-in
   started from a bookmarked or linked app address, which the app then opens.
 
+#### Mail app setup
+
+- **FR-101**: The Mail app setup section MUST show the client configuration the API reports for the
+  signed-in mailbox: for each protocol (such as IMAP, POP3, SMTP, CalDAV/CardDAV and ActiveSync) the
+  server name, port, encryption and authentication method, plus the username (the mailbox address),
+  each value with a copy button (FR-111). A protocol to which the mailbox has no direct access MUST
+  carry a note that only an app password allowing it works.
+- **FR-102**: The guide MUST explain when the mailbox password works and when an app password is
+  needed (two-factor authentication on, or direct access off), linking to App passwords when the user
+  has that flag.
+- **FR-103**: The section MUST offer two Apple connection profile downloads, each explained (legacy
+  `user.apple_connection_profile_mailonly`, `user.apple_connection_profile_complete`): "E-mail"
+  (IMAP, SMTP) always, and "E-mail, calendars and contacts" only when groupware is enabled. Both MUST
+  be offered on every device, with the note that they are for iPhone, iPad and Mac.
+- **FR-104**: For users with the `appPasswds` flag, each download MUST offer "Include a new app
+  password" (legacy `user.apple_connection_profile_with_app_password`). After such a download the app
+  MUST say that the profile contains a new app password, that the file should be deleted after
+  installation, and that the app password can be managed in App passwords, whose list then shows
+  it. Without the flag the option MUST NOT be shown.
+- **FR-105**: A profile MUST be handed to the browser as a download as soon as the API returns it, and
+  the app MUST NOT keep it in memory, browser storage or any cache afterwards.
+- **FR-106**: Opening the Mail app setup address as an administrator or domain administrator MUST show
+  the "no access" state with the explanation that connection profiles are for mailbox users (legacy
+  `login.mobileconfig_info`). After a mailbox user signs in from such a link, UI feature 001's
+  deep-link landing MUST open the section.
+
 #### Self-service history
 
-- **FR-101**: The audit log viewer of UI feature 001 MUST let administrators filter by the self-service
+- **FR-107**: The audit log viewer of UI feature 001 MUST let administrators filter by the self-service
   target types and by mailbox, and MUST show translated labels for the self-service event types and
   outcomes. Changed secrets MUST appear only as "set" or "changed".
-- **FR-102**: Administrators MUST get a **History** action on the self-service part of the mailbox
+- **FR-108**: Administrators MUST get a **History** action on the self-service part of the mailbox
   detail screen and on each app password, temporary alias and filter, opening the UI feature 001
   audit log filtered by that mailbox or object.
 
 #### Secrets and security
 
-- **FR-103**: Passwords, one-time codes, TOTP keys and provisioning addresses, app passwords, Yubico API
-  keys, Pushover tokens and keys, and reset tokens MUST NOT be written to browser storage, to the
+- **FR-109**: Passwords, one-time codes, TOTP keys and provisioning addresses, app passwords, Yubico API
+  keys, Pushover tokens and keys, connection profiles and reset tokens MUST NOT be written to browser
+  storage, to the
   address bar or history (apart from the reset link's arrival, FR-038), or to any log.
-- **FR-104**: Shown-once secrets (generated app passwords, TOTP keys) MUST be removed from the screen
+- **FR-110**: Shown-once secrets (generated app passwords, TOTP keys) MUST be removed from the screen
   and from memory when their view closes, and MUST NOT be kept in any cached server state.
-- **FR-105**: Copy actions MUST announce success or failure. When copying fails, the secret MUST stay
+- **FR-111**: Copy actions MUST announce success or failure. When copying fails, the secret MUST stay
   visible and selectable. The app MUST NOT send any password or its hash to a third party.
 
 #### Accessibility
 
-- **FR-106**: Every screen MUST meet WCAG 2.2 AA in light, dark and system themes, be fully operable by
+- **FR-112**: Every screen MUST meet WCAG 2.2 AA in light, dark and system themes, be fully operable by
   keyboard with visible focus, and pass the automated accessibility checks of the constitution.
-- **FR-107**: The QR code MUST have a text alternative that points to the key shown as text, and the
+- **FR-113**: The QR code MUST have a text alternative that points to the key shown as text, and the
   key MUST be read by screen readers in its groups.
-- **FR-108**: Confirmation dialogs MUST move focus into the dialog, keep it there, name the action on
+- **FR-114**: Confirmation dialogs MUST move focus into the dialog, keep it there, name the action on
   its confirming button and return focus to the triggering control on close.
-- **FR-109**: Security key ceremonies and other waits MUST announce their state ("Touch your security
+- **FR-115**: Security key ceremonies and other waits MUST announce their state ("Touch your security
   key now", "Waiting for the server") and MUST NOT impose a time limit without "Try again".
-- **FR-110**: Status (active, inactive, permanent, protocol allowed, used for this sign-in) MUST be
+- **FR-116**: Status (active, inactive, permanent, protocol allowed, used for this sign-in) MUST be
   conveyed by text, not by colour alone.
 
 #### Internationalisation
 
-- **FR-111**: All text MUST come from the translation files in English, Czech and Slovak.
-- **FR-112**: Legacy keys MUST be reused where the meaning is unchanged, at least those listed in the
+- **FR-117**: All text MUST come from the translation files in English, Czech and Slovak.
+- **FR-118**: Legacy keys MUST be reused where the meaning is unchanged, at least those listed in the
   Legacy Parity section. Legacy strings with HTML markup MUST be carried over as plain text with safe
   formatting, never rendered as raw HTML.
-- **FR-113**: Counts and durations ("3 app passwords", "expires in 2 days", "2 sessions signed out")
+- **FR-119**: Counts and durations ("3 app passwords", "expires in 2 days", "2 sessions signed out")
   MUST use the plural rules of each language, including the Czech and Slovak forms for 1, 2 to 4 and
   5 or more.
-- **FR-114**: Dates, times, sizes and numbers MUST be formatted with the user's locale, and expiry
+- **FR-120**: Dates, times, sizes and numbers MUST be formatted with the user's locale, and expiry
   times MUST show the relative duration and the absolute date.
 
 #### Mobile
 
-- **FR-115**: Every screen MUST be usable at 360 px wide without horizontal page scrolling. Lists MUST
+- **FR-121**: Every screen MUST be usable at 360 px wide without horizontal page scrolling. Lists MUST
   render as cards on narrow screens and MAY become tables on wide screens.
-- **FR-116**: Touch targets MUST be at least 44 by 44 CSS pixels.
-- **FR-117**: Forms MUST use one column on narrow screens, open the matching keyboard (numeric for
+- **FR-122**: Touch targets MUST be at least 44 by 44 CSS pixels.
+- **FR-123**: Forms MUST use one column on narrow screens, open the matching keyboard (numeric for
   codes, e-mail for addresses) and keep the primary action reachable without scrolling past
   explanations.
-- **FR-118**: Multi-selection MUST work by touch through an explicit selection mode, with the actions
+- **FR-124**: Multi-selection MUST work by touch through an explicit selection mode, with the actions
   shown together with the number of selected items.
 
 ### Legacy Parity
@@ -997,13 +1100,14 @@ from upstream only in the recent-login service label (`WEBUI`). "Matched" keeps 
 | Forced-password alert on the General tab (`user.force_pw_update`) | FR-029, FR-030 | Improved | The blocking pending-actions screen replaces an alert on a page that still worked |
 | Webmail button (`user.open_webmail_sso`), disabled during forced change or dual login | FR-098, FR-099 | Matched | New tab with fallback link; dual login belongs to UI feature 007 |
 | Overview: messages, quota bar | FR-097 | Matched | Text equivalent added |
-| Protocol badges with tooltip (`user.direct_protocol_access`) | FR-097, FR-110 | Improved | State in text, not colour; no hover-only tooltip |
+| Protocol badges with tooltip (`user.direct_protocol_access`) | FR-097, FR-116 | Improved | State in text, not colour; no hover-only tooltip |
 | Details tab: direct and shared aliases, "also allowed to send as", "send as all", catch-all | FR-097 | Matched | In the overview |
-| Apple connection profiles (four `mobileconfig.php` links) | — | Dropped | No API operation; the API assigns them to its optional internal-endpoint feature 014, and the UI must not use legacy pages (API gap) |
-| Client configuration guide link (`user.client_configuration`, server-built anchor) | — | Dropped | Same as Apple profiles (API gap) |
+| Apple connection profiles (four `mobileconfig.php` links: e-mail or e-mail with calendars and contacts, each with or without a new app password) | FR-103 to FR-105 | Matched | Same four variants; the app-password variant follows the flag; the user is told that the file holds a password |
+| Client configuration guide link (`user.client_configuration`, external documentation with a server-built anchor) | FR-101, FR-102 | Improved | In-app setup guide with the server's own values and copy buttons |
+| Login page notice for profile links (`login.mobileconfig_info`) | FR-106 | Matched | Deep link to Mail app setup survives sign-in |
 | "Show active user sieve filter" modal | FR-089 | Improved | Own section with the administrator filters, copy and empty state |
 | Change password modal (`pwChangeModal`: new, repeat, generate, current, app-password hint) | FR-021 to FR-028 | Improved | Live policy rules, show and hide, password-manager hints, other sessions signed out; generator kept |
-| HaveIBeenPwned check on password fields | FR-105 | Dropped | Sends password hash prefixes to a third party (privacy, CSP, offline installations) |
+| HaveIBeenPwned check on password fields | FR-111 | Dropped | Sends password hash prefixes to a third party (privacy, CSP, offline installations) |
 | Recovery e-mail modal (`pwRecoveryEmailModal`, `acl.pw_reset`) | FR-032, FR-033 | Matched | Clearing made explicit |
 | "Forgot password?" link always shown on the login page | FR-034 | Improved | Shown only when password reset works |
 | 2FA badges with "[remove]" (`tfa_keys.twig`) | FR-043, FR-051 | Improved | List with type, name, state and the entry used for this sign-in |
@@ -1044,7 +1148,10 @@ filter and webmail; `edit.pushover_*`; `tfa.tfa`, `tfa.totp`, `tfa.webauthn`, `t
 `add.app_password`, `add.app_name`, `add.app_passwd_protocols`, `add.sieve_desc`, `add.sieve_type`,
 `add.validate`, `add.activate_filter_warn`, `mailbox.filters`, `mailbox.add_filter`,
 `mailbox.sieve_info`, `mailbox.set_prefilter`, `mailbox.set_postfilter`, `edit.sogo_access`,
-`edit.validate_save`; and the messages `danger.last_key`, `danger.tfa_removal_blocked`,
+`edit.validate_save`, `user.apple_connection_profile`, `user.apple_connection_profile_mailonly`,
+`user.apple_connection_profile_complete`, `user.apple_connection_profile_with_app_password`,
+`user.email`, `user.email_and_dav`, `user.with_app_password`, `user.client_configuration`,
+`login.mobileconfig_info`; and the messages `danger.last_key`, `danger.tfa_removal_blocked`,
 `danger.totp_verification_failed`, `danger.yotp_verification_failed`,
 `danger.webauthn_verification_failed`, `danger.password_mismatch`, `danger.password_complexity`,
 `danger.password_reset_na`, `danger.reset_token_limit_exceeded`, `danger.invalid_reset_token`,
@@ -1059,7 +1166,8 @@ legacy text as the starting translation.
 ### API Dependency
 
 This feature depends on **mailcow-rest-v2 feature 005** (account self-service, specified in commit
-`feeb443` and aligned in `c3cfa14`) and on the released contracts of **feature 001** (identity,
+`feeb443`, aligned in `c3cfa14`, and amended by the orchestrator decisions recorded in
+Clarifications) and on the released contracts of **feature 001** (identity,
 permission flags, pending actions, passkeys, second-factor step, audit log, problem types) and
 **feature 003** (mailbox list and detail that host the mailbox context). It can start once the
 feature 005 contract is merged. Requirement numbers in the middle column refer to the API feature 005
@@ -1077,29 +1185,27 @@ specification unless stated.
 | Recovery address read and change with the current password | FR-018 | FR-032, FR-033 |
 | Reset request, token check (address, expiry, rules), completion with optional second factor, reset page address | FR-019 to FR-026 | FR-034 to FR-042 |
 | Second-factor list, TOTP enrolment (secret, provisioning address, QR code), WebAuthn enrolment, Yubico OTP enrolment, removing one, removing all | FR-027 to FR-036 | FR-043 to FR-059 |
+| "Must keep a second factor" state with the second factors | Amendment (orchestrator decision) | FR-043, FR-054 |
 | App passwords list, create with a server-generated password returned once, change (including a new generated password), delete | FR-037 to FR-041 | FR-060 to FR-067 |
 | Temporary aliases list, create, change validity, delete | FR-042 to FR-046 | FR-068 to FR-073 |
+| Temporary-alias domains of a mailbox, also in the mailbox context | FR-069; amendment (orchestrator decision) | FR-069 |
 | Filters list, create, change, delete, validate; active sieve script | FR-047 to FR-053 | FR-089 to FR-095 |
 | Push notification settings read (credentials only as "stored"), replace, remove, verify | FR-054 to FR-057 | FR-077 to FR-081 |
 | Tagging and TLS read and change; bulk TLS with per-mailbox outcomes | FR-058 to FR-060 | FR-074 to FR-076 |
 | Recent logins with period, filters, sorting; clear | FR-061 to FR-063 | FR-082 to FR-085 |
 | ActiveSync and groupware profile resets | FR-064 to FR-066 | FR-086 to FR-088 |
 | Webmail hand-off; mailbox overview (including direct forwarding, temporary-alias domains, counts) | FR-067 to FR-069 | FR-069, FR-097 to FR-100 |
-| Version tags and outdated refusal | FR-070, FR-071 | FR-016 |
-| Audit records with self-service target types and filters | FR-073, FR-074 | FR-101, FR-102 |
+| Client configuration data per protocol for the signed-in mailbox user | Amendment (orchestrator decision) | FR-101, FR-102 |
+| Connection profile for the signed-in mailbox user: full or e-mail only, optionally with a new app password, respecting the app-password flag | Amendment (orchestrator decision) | FR-103 to FR-106 |
+| Version tags and outdated refusal | FR-070, FR-071 | FR-016, FR-019 |
+| Audit records with self-service target types and filters | FR-073, FR-074 | FR-107, FR-108 |
 | Problem types and validation rule codes | FR-075; 001 FR-049, FR-055 | FR-012, FR-013 |
 
-**API gaps** (to be specified in mailcow-rest-v2 before the UI relies on them; the UI never works
-around them):
-
-1. **Forced-2FA indicator**: neither the second-factor list nor the identity says whether the account
-   must keep a second factor (`force_tfa`). The UI learns it only from a refused removal (FR-054)
-   instead of hiding removal up front.
-2. **Temporary-alias domains in the mailbox context**: the domains available for temporary aliases
-   are only in the mailbox user's overview, which administrators and domain administrators may not
-   read. The mailbox context needs them for FR-069.
-3. **Apple connection profiles and the client configuration guide**: no operation; the API assigns
-   them to its optional internal-endpoint feature 014. Without it they disappear for users at cutover.
+**API gaps**: none open. The three gaps found while specifying (the "must keep a second factor"
+state, the temporary-alias domains in the mailbox context, and the connection profiles with the
+client configuration) are being added to API feature 005 by orchestrator decision. The plan replaces
+"Amendment" in the table with their requirement numbers once that change is committed; until then
+the UI does not rely on them.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1123,6 +1229,10 @@ around them):
   plus the read-only active script from webmail.
 - **Mailbox overview**: quota, usage, protocols, addresses, send-as permissions, recovery address and
   counts of the user's mailbox.
+- **Client configuration**: server name, port, encryption and authentication per protocol for the
+  user's mailbox.
+- **Connection profile**: a downloadable Apple configuration file for the user's mailbox, e-mail only
+  or with calendars and contacts, optionally holding a newly created app password.
 
 ## Success Criteria *(mandatory)*
 
@@ -1155,6 +1265,8 @@ around them):
   of loads on a mid-range phone over a 4G-class connection.
 - **SC-012**: A mailbox user reaches webmail from the app within 3 seconds and without a credential
   prompt in 95% of attempts.
+- **SC-013**: In moderated tests, at least 9 of 10 mailbox users get mail working in a phone mail app
+  within 5 minutes without help, using either the setup guide or a connection profile.
 
 ## Assumptions
 
@@ -1178,8 +1290,9 @@ around them):
 - Quarantine notification settings, spam filter, sync jobs, sender permission editing, login-as and
   webmail on behalf of a user, global filters and sieve presets are out of scope (UI features 006,
   008, 004, 007, 013).
-- The webmail is SOGo on the same host name. The webmail hand-off depends on the API owner accepting
-  the link between the two implementations' sessions (an owner-level question in API feature 005). If
-  it is rejected, the Webmail action opens webmail's own sign-in page and FR-100 does not apply.
+- The webmail is SOGo on the same host name. The webmail hand-off is built as API feature 005
+  decided (orchestrator decision).
+- Connection profiles and client configuration data are produced by the API; the app only displays
+  the data and hands the profile to the browser as a download.
 - SOGo's own "back to settings" button keeps pointing to the legacy user page (API feature 005
   assumption).

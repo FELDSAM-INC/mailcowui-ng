@@ -280,9 +280,9 @@ renders in:
   - credential serialisation through `toJSON` and through the fallback, matching the generated request types;
   - the single abort controller: a new ceremony aborts the previous one;
   - the error mapping table of R14.
-- [ ] T037 [P] Write `tests/unit/app/router/return-to.spec.ts` (FR-092). Accepted: `/api-keys?status=active`. Rejected: `//evil.example`, `/\evil`, `https://x`, `javascript:…`, control characters, more than 2,048 characters, sign-in routes, and non-strings.
+- [X] T037 [P] Write `tests/unit/app/router/return-to.spec.ts` (FR-092). Accepted: `/api-keys?status=active`. Rejected: `//evil.example`, `/\evil`, `https://x`, `javascript:…`, control characters, more than 2,048 characters, sign-in routes, and non-strings.
 - [X] T038 [P] Write `tests/unit/app/navigation/visibility.spec.ts`. It is table-driven over every catalogue row of data-model §2 × the roles admin, domainAdmin and mailboxUser × the flags `syncjobs`, `bccMaps`, `spamScore` and `spamPolicy` (on and off). It asserts `visibleEntries` and `canAccess` (FR-043, SC-007), and that every non-available entry produces a placeholder route.
-- [ ] T039 [P] Write `tests/unit/app/router/guards.spec.ts`. It covers:
+- [X] T039 [P] Write `tests/unit/app/router/guards.spec.ts`. It covers:
   - the state-to-route table of research R11 (anonymous, pendingSecondFactor, restricted, active), on start and after every sign-in (FR-030);
   - `returnTo` carried to sign-in and to the second-factor step;
   - a refetch of the identity only when it is older than 5 minutes (FR-050);
@@ -294,7 +294,7 @@ renders in:
     - a public-config failure alone uses the FR-003 defaults with `location.hostname` as the product name.
   - `public-config.spec.ts`: the logo for the active theme, re-chosen when the theme changes; plain-text fields are never interpreted as HTML.
   - `app-links.spec.ts`: the login-page filter (`showOnLoginPage`), `%u` replaced with `encodeURIComponent(username)` in `signedInUrl`, `safeHref` dropping `javascript:` addresses, the configured order kept, and `appsLabel` falling back to `apps.defaultLabel` (FR-001a).
-- [ ] T041 [P] Write `tests/unit/app/session/session-end.spec.ts`. It covers:
+- [X] T041 [P] Write `tests/unit/app/session/session-end.spec.ts`. It covers:
   - a session end clears the query cache, sets `notice: 'sessionEnded'`, sets `returnTo` to the current path, replaces the route with sign-in and fetches a new CSRF token (FR-034);
   - a successful sign-out clears everything, broadcasts `signed-out` and fetches a new token (FR-036), and a failed one keeps the state and exposes a retry;
   - a received `session-changed` clears the cache and refetches, a received `signed-out` ends the session, and an identity refresh with a different username or role clears the cache (FR-037).
@@ -357,9 +357,9 @@ renders in:
   Seed `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` with the shared namespaces `common`, `problem.*` (every `KnownProblemType`, `status.*`, `generic`), `validation.*` (every `ValidationRuleCode`, `format.*`, `invalid`), `roles.*`, `themes.*`, `states.*`, `nav.*` (every catalogue entry) and `a11y.*`. Create the initial `src/i18n/legacy-map.json`, and run `npm run i18n:import` to generate `src/i18n/legacy/*.json`. T031 must pass, and `npm run i18n:check` must pass.
 - [X] T056 Implement `src/app/preferences/store.ts`, `src/app/preferences/theme.ts` and `src/app/preferences/locale.ts` (R15, R16), so that T032 passes.
 - [ ] T057 Implement `src/app/branding/public-config.ts` (the query, logo per theme, and the plain-text fields), `src/app/branding/defaults.ts` (the FR-003 neutral defaults using `location.hostname`, with no product name in the source) and `src/app/branding/app-links.ts` (the `AppLinkView` of data-model §2: `safeHref`, `%u` replaced with `encodeURIComponent`, the login-page filter, and `appsLabel` falling back to `apps.defaultLabel`). The branding part of T040 must pass.
-- [ ] T058 Implement `src/app/session/store.ts` (the data-model §4 fields), `src/app/session/queries.ts` (the `session` and `identity` queries), `src/app/session/session-end.ts`, `src/app/session/sign-out.ts` and `src/app/session/cross-tab.ts` (BroadcastChannel wiring, and the identity mismatch check), so that T041 passes.
+- [X] T058 Implement `src/app/session/store.ts` (the data-model §4 fields), `src/app/session/queries.ts` (the `session` and `identity` queries), `src/app/session/session-end.ts`, `src/app/session/sign-out.ts` and `src/app/session/cross-tab.ts` (BroadcastChannel wiring, and the identity mismatch check), so that T041 passes.
 - [X] T059 Implement `src/app/navigation/catalogue.ts` (the 17 rows of data-model §2, with the per-role `access` and `classic` addresses of research R19), `src/app/navigation/visibility.ts` and `src/app/navigation/classic-links.ts` (the classic sign-in, reset and section addresses), so that T038 passes. Every row starts with `status: 'placeholder'`; the stories flip `home` (T083), `passkeys` (T106), `apiKeys` (T129) and `auditLog` (T139) to `available`, so no entry ever leads to "not found" (SC-007).
-- [ ] T060 Implement:
+- [X] T060 Implement:
   - `src/app/router/index.ts`: `createWebHistory(import.meta.env.BASE_URL)`;
   - `src/app/router/routes.ts`: the route map of data-model §5, the generated `placeholder-<id>` routes and the catch-all, each feature registered through its `routes.ts`;
   - `src/app/router/guards.ts`: the state machine of R11 and identity freshness;

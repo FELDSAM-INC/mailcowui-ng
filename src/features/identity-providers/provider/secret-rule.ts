@@ -4,9 +4,8 @@
 // LDAP hosts in order), because the stored secret would otherwise be sent to a new address.
 // Otherwise an empty secret keeps the stored one. The reasons are the API's `secretRequired`
 // reasons, so the client and the server explain it with the same message.
-import type { IdentityProvider } from '@/api'
-
 import { splitHosts, type ProviderForm } from './form-model'
+import type { IdentityProviderConfig } from './types'
 
 export type SecretRequirement = 'noStoredSecret' | 'typeChanged' | 'addressChanged' | null
 
@@ -14,7 +13,7 @@ const url = (value: string | null | undefined) => (value ?? '').trim().replace(/
 
 export function secretRequirement(
   form: ProviderForm,
-  config: IdentityProvider | null | undefined,
+  config: IdentityProviderConfig | null | undefined,
 ): SecretRequirement {
   if (!config) return 'noStoredSecret'
   if (config.type !== form.type) return 'typeChanged'

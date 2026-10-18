@@ -32,6 +32,15 @@ describe('HistoryLink', () => {
     expect(link.text()).toBe('History')
   })
 
+  it('UI 012: links to a target type alone, for an object without an ID', async () => {
+    const wrapper = mountWithApp(HistoryLink, {
+      props: { targetType: 'identityProvider' },
+      global: { plugins: [router()] },
+    })
+    await flushPromises()
+    expect(wrapper.get('a').attributes('href')).toBe('/ng/audit-log?targetType=identityProvider')
+  })
+
   it('omits targetType when not given', async () => {
     const wrapper = mountWithApp(HistoryLink, {
       props: { targetId: 'example.org' },

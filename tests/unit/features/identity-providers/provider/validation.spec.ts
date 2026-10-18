@@ -3,7 +3,6 @@
 // FR-025). The API stays authoritative; these catch slips before anything is sent.
 import { describe, expect, it } from 'vitest'
 
-import type { IdentityProvider } from '@/api'
 import { formFromConfig, formFromDefaults } from '@/features/identity-providers/provider/form-model'
 import { secretRequirement } from '@/features/identity-providers/provider/secret-rule'
 import {
@@ -14,20 +13,16 @@ import {
 
 import {
   identityProviderCapabilities,
-  identityProviderView,
   initialIdentityProvider,
   storedGenericOidc,
   storedKeycloak,
   storedLdap,
   type StoredIdentityProvider,
 } from '../../../../mocks/factories/identity-provider'
+import { configOf } from './fixtures'
 
 const capabilities = identityProviderCapabilities(initialIdentityProvider())
-const stored = (value: StoredIdentityProvider): IdentityProvider =>
-  identityProviderView(
-    { ...initialIdentityProvider(), stored: value, clientSecret: 's', bindPassword: 'p' },
-    ['Staff'],
-  )
+const stored = (value: StoredIdentityProvider) => configOf(value)
 
 const keys = (errors: Record<string, RuleMessage[]>, path: string) =>
   (errors[path] ?? []).map((message) => message.key)
@@ -222,10 +217,7 @@ describe('secretRequirement', () => {
   })
 
   it('requires it when the stored configuration has none', () => {
-    const config = identityProviderView(
-      { ...initialIdentityProvider(), stored: storedKeycloak(), clientSecret: null },
-      [],
-    )
+    const config = configOf(storedKeycloak(), [], { clientSecret: null })
     expect(secretRequirement(formFromConfig(config, capabilities), config)).toBe('noStoredSecret')
   })
 })

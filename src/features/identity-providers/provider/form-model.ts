@@ -4,7 +4,6 @@
 // (text, switches, entries); `toInput` builds the generated save and test body, and `toPatch` the
 // merge patch of a change. Secrets are never prefilled: an empty secret keeps the stored one.
 import type {
-  IdentityProvider,
   IdentityProviderCapabilities,
   IdentityProviderGenericOidcInput,
   IdentityProviderInput,
@@ -15,9 +14,12 @@ import type {
   Writable,
 } from '@/api'
 
+import type { IdentityProviderConfig } from './types'
+
 /** The request bodies, with the write-only secrets as plain values. */
 export type ProviderInput = Writable<IdentityProviderInput>
 export type ProviderPatch = Writable<IdentityProviderPatch>
+export type { IdentityProviderConfig }
 
 export interface MappingRow {
   attributeValue: string
@@ -119,7 +121,7 @@ const text = (value: string | null | undefined) => value ?? ''
 
 /** The form of a stored configuration; the other types' fields keep their defaults. */
 export function formFromConfig(
-  config: IdentityProvider,
+  config: IdentityProviderConfig,
   capabilities: IdentityProviderCapabilities,
 ): ProviderForm {
   const form: ProviderForm = {
@@ -274,7 +276,7 @@ export function toInput(form: ProviderForm, defaults: Defaults): ProviderInput {
  */
 export function toPatch(
   form: ProviderForm,
-  config: IdentityProvider,
+  config: IdentityProviderConfig,
   defaults: Defaults,
   capabilities?: IdentityProviderCapabilities,
 ): ProviderPatch | null {
@@ -291,5 +293,5 @@ export function toPatch(
     }
     if (JSON.stringify(value) !== JSON.stringify(before[key])) patch[key] = value
   }
-  return Object.keys(patch).length > 0 ? (patch) : null
+  return Object.keys(patch).length > 0 ? patch : null
 }

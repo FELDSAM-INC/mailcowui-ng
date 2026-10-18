@@ -3,7 +3,7 @@
 // of a save or test, and the merge patch of a change. Request bodies pass the contract.
 import { describe, expect, it } from 'vitest'
 
-import type { IdentityProvider, IdentityProviderCapabilities } from '@/api'
+import type { IdentityProviderCapabilities } from '@/api'
 import {
   formFromConfig,
   formFromDefaults,
@@ -15,25 +15,20 @@ import {
 import { contractValidator } from '../../../../mocks/contract/validator'
 import {
   identityProviderCapabilities,
-  identityProviderView,
   initialIdentityProvider,
   storedGenericOidc,
   storedKeycloak,
   storedLdap,
   type StoredIdentityProvider,
 } from '../../../../mocks/factories/identity-provider'
+import { configOf } from './fixtures'
 
 const validator = contractValidator()
 const capabilities: IdentityProviderCapabilities =
   identityProviderCapabilities(initialIdentityProvider())
 const defaults = capabilities.defaults
 
-function stored(value: StoredIdentityProvider, templates = ['Staff']): IdentityProvider {
-  return identityProviderView(
-    { ...initialIdentityProvider(), stored: value, clientSecret: 's', bindPassword: 'p' },
-    templates,
-  )
-}
+const stored = (value: StoredIdentityProvider, templates = ['Staff']) => configOf(value, templates)
 
 /** The contract violations of a request body (the mock validator, as every mocked request). */
 function requestErrors(method: 'put' | 'patch' | 'post', path: string, body: unknown) {

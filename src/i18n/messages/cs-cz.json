@@ -440,6 +440,11 @@
     "title": "Domů"
   },
   "identityProvider": {
+    "appReturnUrls": "Návratové adresy této aplikace pro jednotné přihlášení: povolte je u poskytovatele také",
+    "changedElsewhere": "nový tajný údaj",
+    "copyRefused": "Prohlížeč nepovolil kopírování. Adresa je označena: zkopírujte ji sami.",
+    "secretStored": "Tajný údaj je uložen. Ponechte pole prázdné, aby zůstal zachován.",
+    "stored": "Uloženo",
     "test": {
       "failure": {
         "credentialsRejected": "Poskytovatel odmítl přihlašovací údaje.",
@@ -447,7 +452,10 @@
         "tlsCertificateRejected": "TLS certifikát poskytovatele nebyl přijat.",
         "unexpectedResponse": "Poskytovatel odpověděl neočekávaně.",
         "unreachable": "Poskytovatel není dosažitelný. Zkontrolujte adresu a port."
-      }
+      },
+      "noResult": "Do {seconds} sekund nepřišel žádný výsledek.",
+      "providerStatus": "Stav: {status}",
+      "running": "Testuji spojení…"
     },
     "type": {
       "genericOidc": "Generic-OIDC",

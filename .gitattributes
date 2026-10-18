@@ -1,0 +1,4 @@
+* text=auto eol=lf
+src/api/generated/** linguist-generated
+contract/** linguist-generated
+src/i18n/legacy/** linguist-generated

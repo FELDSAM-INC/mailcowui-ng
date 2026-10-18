@@ -10,3 +10,13 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Test and audit outputs
+playwright-report/
+test-results/
+blob-report/
+.lighthouseci/
+*.tsbuildinfo
+
+# Smoke suite working copy of mailcow-rest-v2 (scripts/smoke)
+.smoke/

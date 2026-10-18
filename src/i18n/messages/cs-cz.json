@@ -4,8 +4,11 @@
     "closeNavigation": "Zavřít navigaci",
     "errorPrefix": "Chyba:",
     "mainNavigation": "Hlavní navigace",
+    "morePages": "Další stránky",
+    "nextPage": "Další stránka",
     "openNavigation": "Otevřít navigaci",
     "pagination": "Stránkování",
+    "previousPage": "Předchozí stránka",
     "skipToContent": "Přeskočit na hlavní obsah",
     "userMenu": "Nabídka účtu {username}"
   },
@@ -15,7 +18,9 @@
     "documentTitle": "{page} – {site}",
     "goHome": "Přejít na úvodní obrazovku",
     "loading": "Načítání…",
+    "next": "Další",
     "opensInNewTab": "(otevře se na nové kartě)",
+    "previous": "Předchozí",
     "requestId": "ID požadavku: {requestId}",
     "retry": "Zkusit znovu",
     "signOut": "Odhlásit se"
@@ -96,10 +101,7 @@
     "pagination": {
       "current": "Stránka {page} z {pages}",
       "empty": "Žádné položky",
-      "next": "Další stránka",
-      "page": "Stránka {page}",
       "pageSize": "Na stránku",
-      "previous": "Předchozí stránka",
       "summary": "{from}–{to} z {total}"
     }
   },
@@ -200,9 +202,6 @@
     "dark": "Tmavý",
     "light": "Světlý",
     "system": "Podle zařízení"
-  },
-  "time": {
-    "absolute": "Přesný čas: {time}"
   },
   "validation": {
     "format": {

@@ -1,0 +1,115 @@
+// Form errors from API problems and client checks (FR-075–FR-078, research R15, R20). Field
+// errors are mapped to fields by their dot path (`allowedNetworks.2` is the third network). With
+// more than one error a summary links to each field and receives focus; with one, the field gets
+// focus. Problems without field errors become the form's message. Everything is announced.
+import { computed, nextTick, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+import type { ApiProblem, FieldViolation } from '@/api'
+import { useProblemMessages } from '@/i18n/problems'
+
+import { announce } from './useAnnouncer'
+
+export interface SummaryItem {
+  path: string
+  fieldId: string
+  messages: string[]
+}
+
+export interface ProblemFormOptions {
+  /** The element ID of the control for a field path, or null when the form has no such field. */
+  fieldId: (path: string) => string | null
+}
+
+let counter = 0
+
+export function useProblemForm(options: ProblemFormOptions) {
+  const { t } = useI18n()
+  const { problemMessage, violationMessage } = useProblemMessages()
+  const summaryId = `error-summary-${++counter}`
+
+  const problem = shallowRef<ApiProblem | null>(null)
+  /** Client-side errors: field path to message keys. */
+  const clientErrors = shallowRef<Record<string, string[]>>({})
+
+  const errors = computed(() => {
+    const map = new Map<string, string[]>()
+    for (const [path, keys] of Object.entries(clientErrors.value)) {
+      if (keys.length > 0)
+        map.set(
+          path,
+          keys.map((key) => t(key)),
+        )
+    }
+    for (const [path, violations] of problem.value?.fieldErrors ?? []) {
+      if (options.fieldId(path) === null) continue
+      map.set(path, [
+        ...(map.get(path) ?? []),
+        ...violations.map((v: FieldViolation) => violationMessage(v)),
+      ])
+    }
+    return map
+  })
+
+  const summary = computed<SummaryItem[]>(() =>
+    [...errors.value].flatMap(([path, messages]) => {
+      const fieldId = options.fieldId(path)
+      return fieldId ? [{ path, fieldId, messages }] : []
+    }),
+  )
+
+  /** A problem that is not about a field of this form (shown with ProblemMessage). */
+  const formProblem = computed<ApiProblem | null>(() => {
+    const current = problem.value
+    if (!current) return null
+    const mapped = [...current.fieldErrors.keys()].some((path) => options.fieldId(path) !== null)
+    return mapped ? null : current
+  })
+
+  function errorsFor(path: string): string[] {
+    return errors.value.get(path) ?? []
+  }
+
+  async function focusAndAnnounce() {
+    await nextTick()
+    const items = summary.value
+    if (items.length > 1) {
+      document.getElementById(summaryId)?.focus()
+      announce(t('forms.errorSummary.title'), { assertive: true })
+    } else if (items.length === 1) {
+      const item = items[0]!
+      document.getElementById(item.fieldId)?.focus()
+      announce(item.messages.join(' '), { assertive: true })
+    } else if (formProblem.value) {
+      announce(problemMessage(formProblem.value), { assertive: true })
+    }
+  }
+
+  function setProblem(next: ApiProblem | null): Promise<void> {
+    problem.value = next
+    return focusAndAnnounce()
+  }
+
+  function setClientErrors(next: Record<string, string[]>): Promise<void> {
+    clientErrors.value = next
+    problem.value = null
+    return focusAndAnnounce()
+  }
+
+  function clear() {
+    problem.value = null
+    clientErrors.value = {}
+  }
+
+  return {
+    summaryId,
+    problem,
+    summary,
+    formProblem,
+    hasErrors: computed(() => summary.value.length > 0 || formProblem.value !== null),
+    errorsFor,
+    setProblem,
+    setClientErrors,
+    clear,
+  }
+}

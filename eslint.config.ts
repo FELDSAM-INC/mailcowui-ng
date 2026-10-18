@@ -91,6 +91,16 @@ export default withVueTs(
       'vue/block-lang': ['error', { script: { lang: 'ts' } }],
       'vue/component-api-style': ['error', ['script-setup']],
       'vue/require-default-prop': 'off',
+      // A label needs a programmatic association (WCAG 1.3.1): `for` or nesting, not both.
+      'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
+    },
+  },
+  {
+    name: 'mailcowui-ng/tests',
+    files: ['tests/**/*.ts'],
+    rules: {
+      // Tests define small host components inline.
+      'vue/one-component-per-file': 'off',
     },
   },
   {

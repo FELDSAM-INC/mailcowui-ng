@@ -308,14 +308,14 @@ renders in:
   - nothing written to storage.
 - [X] T043 [P] Write `tests/unit/shared/composables/useVersionedSave.spec.ts`. It sends `If-Match` with the read `etag`. On a 412 problem it keeps the input, refetches, sets `outdated` and exposes the latest value. It never retries automatically and never sends `*`. A refused deletion asks for confirmation again (conventions).
 - [X] T044 [P] Write `tests/unit/shared/composables/useCountdown.spec.ts` (R13). The skew is derived from the `Date` header. The remaining time counts against `Date.now() + skew`. Milestone callbacks fire, and recomputation happens on `visibilitychange`.
-- [ ] T045 [P] Write `tests/unit/shared/components/forms.spec.ts` for `useProblemForm`, `FormField.vue`, `ErrorSummary.vue` and `ProblemMessage.vue` (FR-075–FR-078). It covers:
+- [X] T045 [P] Write `tests/unit/shared/components/forms.spec.ts` for `useProblemForm`, `FormField.vue`, `ErrorSummary.vue` and `ProblemMessage.vue` (FR-075–FR-078). It covers:
   - field errors mapped by dot path, including `allowedNetworks.2`;
   - `aria-invalid` and `aria-describedby`;
   - a summary with in-page links when there is more than one error;
   - focus moved to the summary or the field;
   - the generic message with the request ID for unknown problems;
   - announcements made.
-- [ ] T046 [P] Write `tests/unit/shared/components/dialogs-and-lists.spec.ts` for:
+- [X] T046 [P] Write `tests/unit/shared/components/dialogs-and-lists.spec.ts` for:
   - `ConfirmDialog.vue` and `useConfirm`: promise-based, alertdialog role, Escape cancels, focus returns;
   - `ListState.vue`: loading, empty and error states with retry (FR-089);
   - `PaginationBar.vue`: total, page sizes 25/50/100, keyboard;
@@ -368,8 +368,8 @@ renders in:
   - `src/app/router/title.ts`.
 
   T037 and T039 must pass.
-- [ ] T061 [P] Implement `src/shared/composables/useListState.ts`, `useVersionedSave.ts`, `useCountdown.ts`, `useAnnouncer.ts`, `useMediaQuery.ts`, `useConfirm.ts` and `useProblemForm.ts`, so that T042, T043 and T044 pass.
-- [ ] T062 Implement `src/shared/components/SanitizedHtml.vue` (the only `v-html`, with a justified ESLint disable), `LiveAnnouncer.vue`, `ListState.vue`, `PaginationBar.vue` (on `src/shared/ui/pagination`), `ConfirmDialog.vue` (Reka `AlertDialog`), `FormField.vue`, `ErrorSummary.vue`, `ProblemMessage.vue`, `DateTime.vue`, `RelativeTime.vue` and `PageHeader.vue`, so that T045 and T046 pass.
+- [X] T061 [P] Implement `src/shared/composables/useListState.ts`, `useVersionedSave.ts`, `useCountdown.ts`, `useAnnouncer.ts`, `useMediaQuery.ts`, `useConfirm.ts` and `useProblemForm.ts`, so that T042, T043 and T044 pass.
+- [X] T062 Implement `src/shared/components/SanitizedHtml.vue` (the only `v-html`, with a justified ESLint disable), `LiveAnnouncer.vue`, `ListState.vue`, `PaginationBar.vue` (on `src/shared/ui/pagination`), `ConfirmDialog.vue` (Reka `AlertDialog`), `FormField.vue`, `ErrorSummary.vue`, `ProblemMessage.vue`, `DateTime.vue`, `RelativeTime.vue` and `PageHeader.vue`, so that T045 and T046 pass.
 - [ ] T063 Implement `src/app/states/NoAccessState.vue` (explanation and a link home), `src/app/states/NotFoundPage.vue`, `src/app/states/ServiceUnavailablePage.vue` (a retry that re-runs the bootstrap) and a minimal `src/app/states/PlaceholderPage.vue`. The placeholder shows the section name and "comes in a later version", and requests no data. US3 completes it.
 - [ ] T064 Implement `src/app/layouts/AuthLayout.vue` and `src/app/layouts/ShellLayout.vue`, adapted from TailAdmin `AuthLayout` and `AdminLayout`, with `NoAccessState` rendered in place from `canAccess`. Also implement these shell components:
   - `src/app/shell/AppHeader.vue`: logo, drawer button, user menu slot;

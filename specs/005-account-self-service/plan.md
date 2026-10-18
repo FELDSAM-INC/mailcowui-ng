@@ -167,7 +167,7 @@ Gaps and observations found while planning:
    as a deep link and is opened instead. Changing this is one condition in
    `src/app/session/landing.ts`.
 2. **Releasing UI 005 without bulk TLS if API gap G1 is still open at implementation time**:
-   **Default**: hold only the bulk TLS task (T-numbers in tasks.md, US7) and release the rest; the
+   **Default**: hold only the bulk TLS task (T107 in tasks.md, US7) and release the rest; the
    mailbox list then offers no TLS bulk action (no placeholder), as the conventions prescribe for
    missing entry points.
 
@@ -280,7 +280,9 @@ tests/
 │   │                          recent-logins,groupware,sieve-filters}.ts
 │   ├── factories/{second-factor,app-password,temporary-alias,recent-login,sieve-filter,mailbox-overview,
 │   │              client-configuration,push-settings,qr-svg,apple-profile}.ts
-│   └── scenarios/{account,password-reset,mailbox-self-service,filters}.ts
+│   └── scenarios/{account,own-password,two-factor,password-reset,app-passwords,overview,
+│                  temporary-aliases,mail-settings,recent-logins,mail-apps,filters,groupware,
+│                  audit-self-service}.ts   # one module per story, registered in scenarios/index.ts
 ├── unit/features/{account,filters,auth}/…, unit/shared/…, unit/scripts/…
 ├── e2e/{account,pending-actions,password-reset,mailbox-self-service,filters,audit-log}/
 └── smoke/{account,account-credentials,mailbox-self-service}.smoke.spec.ts

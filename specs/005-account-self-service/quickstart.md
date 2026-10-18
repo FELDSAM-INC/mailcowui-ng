@@ -45,8 +45,8 @@ npm run lhci                            # adds /ng/account (scenario mailbox-acc
 ## Part B: Manual checks per user story (mock API)
 
 Start `npm run preview:mock`, open `http://localhost:4173/ng/` and choose a scenario with
-`npm run mock:scenario -- <name>` (scenario names in `tests/mocks/scenarios/{account,password-reset,
-mailbox-self-service,filters}.ts`). Check each screen at 360 px and on a desktop, in both themes.
+`npm run mock:scenario -- <name>` (scenario names in this feature's modules under
+`tests/mocks/scenarios/`, one per story). Check each screen at 360 px and on a desktop, in both themes.
 
 | Story | Scenario | Steps | Expected (spec reference) |
 |---|---|---|---|

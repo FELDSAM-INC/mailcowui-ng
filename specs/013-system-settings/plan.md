@@ -1,0 +1,330 @@
+# Implementation Plan: System Settings
+
+**Branch**: `main` (no feature branches, constitution 1.1.0) | **Date**: 2026-10-18 |
+**Spec**: [spec.md](./spec.md)
+
+**Input**: Feature specification from `specs/013-system-settings/spec.md`
+
+## Summary
+
+UI feature 013 gives administrators one grouped, searchable System settings area with seventeen
+pages in seven groups, and adds its entry points to earlier screens. It delivers:
+
+- **the settings area**: an overview with a search over the app's own catalogue (diacritics and case
+  ignored, legacy screen names included), a page list beside the open page on wide screens, a page
+  switcher on phones, and an address per page;
+- **branding**: light and dark logos with previews in both themes before upload, brand colours per
+  theme with live WCAG contrast feedback and an accessible adjustment, the UI texts and the
+  announcement with a preview through UI 001's sanitiser, the sign-in page options and the app
+  links; **the brand colours applied in the whole app** (primary buttons, links, selected navigation
+  entry, checked controls);
+- **passwords and notifications**: the password policy with its rules as users see them, the
+  password reset e-mail and the quota notification e-mail with isolated HTML previews, and the quota
+  notification copies on UI 002's domain page;
+- **filtering**: Rspamd settings rules with presets, a server Check and the effective settings map;
+  the global filter maps with live line marks, a server Check and a review of added and removed
+  lines; the global Sieve filters with a Check and an explicit restart choice; the Sieve presets in
+  UI 005's create-filter form;
+- **mass mail**: compose with a recipient preview and one explicit confirmation naming the count,
+  then follow (refreshed every 5 s while watched) and cancel the job, and inspect every recipient;
+- **the remaining settings**: Rspamd web interface password, CORS of the classic API, IP check, and
+  License where verification is enabled;
+- **history**: a History action on every page and entity, with labels and detail formatting for the
+  feature's audit events in UI 001's audit log.
+
+The technical approach (details in [research.md](./research.md)):
+
+- **No new runtime dependency** (R3). One feature folder, `src/features/system-settings/`, driven by
+  a typed catalogue that feeds the overview, the switcher, the search and History (R4, R5).
+- **Editing** follows the conventions: sections with their own Save on UI 002's `EditableSection`,
+  merge patches of changed fields only, `If-Match`, and outdated refusals that keep the input and
+  mark what changed (R9).
+- **Brand colours** become CSS custom properties set through CSSOM on `<html>`, read by semantic
+  accent tokens; no inline style is created, and the strict CSP stays as it is (R12). The contrast
+  maths is identical to the API's (R13).
+- **Editors** are a shared, accessible `<textarea>` editor with a line-number gutter, line marks and
+  "go to line" (R17).
+- **E-mail HTML previews** run in a sandboxed `iframe` without scripts, with styles applied through
+  CSSOM and every remote resource removed (R21).
+- **Logo previews** before upload need `img-src 'self' blob:` (R14), the one change to UI 001's CSP.
+- **Mass mail progress** is refreshed every 5 s while the job runs, the page is visible, the user
+  has not paused it and has interacted within the shared inactivity limit (`min(15 min, idle
+  timeout)`, `useInactivity`), so an unattended tab never keeps the session alive (R23, polling rule
+  of `docs/conventions.md`).
+- **Canonical shared names** of `docs/conventions.md` are used: UI 002's `useLeaveGuard`,
+  `ConfirmDialog`, `EditableSection` and `HistoryLink`, UI 006's `PlainText`/`neutralise()`,
+  UI 008's `useInactivity` and `MailboxSearchPicker`. The Rspamd password never enters a TanStack
+  Query cache (secrets rule, R25).
+- **Tests**: unit and component tests first; end-to-end tests of every acceptance scenario on 360 px
+  and desktop with axe in both themes, now also with brand colours at the 4.5:1 limit; smoke tests
+  against the API dev stack that restore what they change (R30, R31).
+
+## Technical Context
+
+**Language/Version**: TypeScript 5.9.3 (strict) and Vue 3.5 SFCs; Node.js 24 LTS (UI 001).
+
+**Primary Dependencies**: UI 001's ten runtime dependencies (001-R1); none added. DOMPurify (already
+present) also serves the e-mail preview. Tooling unchanged.
+
+**Storage**: none on a server. In the browser: the query cache and component state. No new device
+storage key (data-model §4); the Rspamd password and mass mail content are never stored.
+
+**Testing**: Vitest and Vue Test Utils (units, components); Playwright `mobile-chromium` (360 ×
+780), `desktop-chromium` (1366 × 900) and `mobile-webkit` against the production build with the
+production CSP and the contract-validated mock; axe in both themes plus two limit-palette passes;
+CSP, horizontal-scroll and touch-target checks; a smoke project against the mailcow-rest-v2 dev
+stack (001-R22 to 001-R25).
+
+**Target Platform**: the two latest major versions of evergreen browsers including iOS Safari and
+Chrome for Android, served by UI 001's `ng-mailcow` image under `/ng/`.
+
+**Project Type**: web application (static single-page frontend; the backend is mailcow-rest-v2).
+
+**Performance Goals**: SC-014: every settings page usable within 2 s of opening on a mid-range phone
+when the API answers within 1 s; search results within 300 ms of a keystroke. SC-009: job progress
+at most 10 s behind while watched. Constitution VII budgets unchanged (initial JS ≤ 200 KB gzipped;
+Lighthouse ≥ 90).
+
+**Constraints**:
+
+- Strict CSP of 001-R18 with the single amendment `img-src 'self' blob:` (R14); no inline script or
+  style, no `v-html` outside `SanitizedHtml.vue`.
+- WCAG 2.2 AA in both themes, with the default palette and with any brand colour the API accepts.
+- 360 px and 400 % zoom without page scroll; only an editor with wrapping off scrolls sideways.
+- Only contract operations; limits from the capabilities or the contract, never hard-coded.
+- No automatic requests while the user is idle (UI 001 FR-033); the job refresh pauses (R23).
+
+**Scale/Scope**:
+
+- 12 user stories (3 at P1, 6 at P2, 3 at P3).
+- 23 routes in one feature folder, plus sections added to UI 002's domain page and UI 005's filter
+  form.
+- 44 of API 013's 45 operations, plus 7 operations of API 001–003.
+- About 450 translation keys per locale, part of them reused from legacy.
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-checked after Phase 1 design (below).*
+
+| Principle | Gate | Status |
+|---|---|---|
+| I. The API contract is the only interface | Only the operations of [contracts/README.md](./contracts/README.md), through the generated client; the pin is bumped with `bump.sh` to a ref containing the baseline commit (R2), and a presence test guards the operations. No hand-written API types (view models only, data-model §2). Problems drive behaviour by `type` and rule `code` (R10). The one gap found (stable mass mail failure codes) is reported to mailcow-rest-v2, and the UI shows only what the contract offers (API gap G1). | PASS |
+| II. Mobile-first | Every screen designed and tested at 360 px first; overview as its own screen, page switcher, steps for mass mail below `lg`, sticky Save/Cancel, cards below `md`, 44 px targets including reorder and entry removal, dialogs that scroll inside (R7, R9, R22, R29). Loading, empty and error states for every collection (FR-015). Destructive and high-risk actions confirmed with their impact. | PASS |
+| III. Accessibility | axe on every screen and state in both themes, plus limit-palette passes that make every later end-to-end test check brand colours at 4.5:1 (R12). Text equivalents for contrast verdicts, line marks, statuses and progress; throttled announcements; focus to headings and section headings; keyboard-only editors with a documented Tab behaviour (R17, R29). | PASS |
+| IV. i18n and branding | All text from en-gb, cs-cz and sk-sk; legacy keys reused through `legacy-map.json`, with the importer extended for `%d` and HTML stripping (R28). Product name, logos, colours, links and texts come from the API at runtime; the brand colours are now applied (closing 001's Complexity Tracking row). Two English server diagnostics are quoted inside translated messages (Complexity Tracking). | PASS (deviation recorded) |
+| V. Security in the browser | The CSP stays strict: brand colours through CSSOM, e-mail previews in a script-less sandboxed frame with CSSOM styles and no remote resources, `v-html` only in `SanitizedHtml.vue` (R12, R15, R21). `img-src` gains `blob:` for pre-upload logo previews, which adds no inline script or style (R14). The Rspamd password is write-only, sent by a direct client call that bypasses every TanStack Query cache, kept only in component state and cleared after every attempt (R25, secrets rule of the conventions); mass mail content stays in memory (FR-108). Hiding is a convenience: the API enforces roles; 401, 403 and 404 are handled. | PASS |
+| VI. Test-first | `tasks.md` puts mocks and tests before implementation in every phase; end-to-end tests of every acceptance scenario on both viewports against a contract-validated mock; smoke tests against the real API (R30, R31). | PASS |
+| VII. Performance budgets | Lazy chunks for every page, the editor and the preview; the entry chunk grows by about 2 KB (R32). Queries follow 001-R9; the single periodic refresh (running job) is the condition-bound exception the conventions allow: it pauses when hidden, on request, and after the shared inactivity limit (R23, Complexity Tracking). | PASS (deviation recorded) |
+| VIII. Simplicity | No new dependency; textarea editor instead of CodeMirror; multiset diff; one feature folder; shared blocks only with two uses (code editor, e-mail preview, contrast maths, entry lists), each justified (R3, R17, R18, R26). | PASS |
+| Technology constraints | Stack unchanged; Reka parts without viewports (pickers, dialogs); no CDN, no SSR, no backend code. | PASS |
+| Workflow and gates | Every CI gate of 001-R28 applies; Lighthouse gains a settings URL (R32). Commits to `main`. GPL-3.0 compatibility unchanged (no new dependency). | PASS |
+| `docs/conventions.md` | Wording ("the classic interface"); lists in the address with 25/50/100 and cards/tables (one documented exception, Complexity Tracking); sections with own Save and outdated handling; confirmations (one explicit confirmation for mass mail); write-only secret (Rspamd password); History by target type and ID with this feature's labels; problems and rule codes translated; capabilities and limits from the API; entry points added through earlier screens' section areas. | PASS (deviation recorded) |
+
+**Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart add
+no violation. Decisions that touched gates:
+
+- `img-src 'self' blob:` for logo previews instead of a canvas-only preview that cannot show SVG or
+  animation: V (R14).
+- Sandboxed `iframe` without `src`, CSSOM-applied styles and no remote resources, instead of a
+  second document with `style-src 'unsafe-inline'`: V (R21).
+- Attended job refresh: VII and UI 001 FR-033 (R23).
+- Textarea editor instead of CodeMirror 6: VIII (R17).
+
+## API dependency and gaps
+
+This feature depends on **mailcow-rest-v2 feature 013** (its contract, merged), on the identity,
+public configuration, errors and audit log of API 001, on the domain list and audit target filters
+of API 002, and on the password policy read and mailbox list of API 003. The planning baseline is
+commit `32079252d55797d3da4e58ae661e9fb91c51c6f9` (see [contracts/README.md](./contracts/README.md)).
+Every behaviour of the spec's "API Dependency" table is in the contract: the settings capabilities
+read (logo limits, license switch, demo mode, host name, Rspamd address, colour references, field
+limits), the preview search, the validate-only option and the brand colours in the public
+configuration.
+
+**Gap**:
+
+- **G1. Mass mail recipient failure reasons are free text.** US10-AS6 and FR-088 ask for "the
+  translated reason" of each failed recipient. `MassMailRecipient.failureReason` carries Dovecot's
+  English reply, the token `interrupted`, or a connection error, with no stable code.
+  - **Proposed to mailcow-rest-v2**: add `failureCode` (for example `overQuota`,
+    `mailboxUnavailable`, `rejected`, `temporaryFailurePersisted`, `interrupted`,
+    `connectionFailed`) next to `failureReason`, and list it in `docs/problems.md`.
+  - **Until then**: `interrupted` gets its own translated text; any other failure shows the
+    translated "Delivery failed" with the mail server's reply quoted verbatim (R10, R24). This shows
+    what the contract offers and does not guess codes, so it is not a workaround. The spec records
+    it as a plan-level clarification (FR-088, US10 AS-6). T040 specifies the gap in mailcow-rest-v2
+    before US10 starts. Not blocking.
+
+**Observations** (no change needed for 013):
+
+- **O1. Large list payloads**: `listRspamdRegexMaps` returns every map's content (up to 13 × 1 MiB),
+  and `listMassMailJobs` every job's bodies (up to 2 MiB each). A list without content would keep
+  the list pages light on phones. 013 seeds the map pages from the list to avoid a second download.
+- **O2. Free-text diagnostics**: `sieveSyntax.message` and `DovecotRestartOutcome.detail` are English
+  by design. 013 quotes the parser message (FR-069 requires it) and does not show the detail.
+- **O3. Component naming**: the bundler hoists `AuditTarget.type` into a component named `type`, so
+  the generated root type is `Type`. Naming the enumeration `AuditTargetType` in `api/components`
+  would give clients a clear name. 013 aliases it in `src/api/index.ts`.
+
+## Foundation amendments
+
+013 changes these artefacts of earlier features, each through a task:
+
+| Artefact | Change | Reason |
+|---|---|---|
+| `docker/nginx/security-headers.conf` (001-R18) | `img-src 'self' blob:` | pre-upload logo previews (R14) |
+| `src/styles/main.css` (001-R16) | semantic accent tokens with runtime overrides; link style on the tokens | FR-030 (R12) |
+| `src/shared/ui/button`, `switch`, `checkbox`, `radio-group`; `src/app/shell/NavigationList.vue` | accent tokens; solid selected navigation pill | FR-030 (R12) |
+| `src/app/branding/` | `brand-colors.ts` (new), `logo-sizes.ts` (new); `BrandLogo.vue` gains `size` and `src` | FR-019, FR-030, FR-031 |
+| `src/app/router/focus.ts` (001-R19) | focus the hash target heading | FR-007 (R6) |
+| `src/shared/security/sanitize.ts` (001-R17) | `sanitizeHtmlWithReport()` beside `sanitizeHtml()` | FR-036 (R15) |
+| `src/api/query/keys.ts`, `src/api/index.ts` | 013 key roots; `AuditTargetType` alias | data-model §3 |
+| 001-R9 query policy | one condition-bound `refetchInterval` (running mass mail job) with the shared `useInactivity` limit, as `docs/conventions.md` allows | FR-088 (R23) |
+| `tests/e2e/fixtures/a11y.ts` (001-R24) | two limit-palette passes | SC-003, SC-004 (R12) |
+| `tests/mocks/contract/validator.ts` (001-R22) | binary request bodies | `replaceLogo` (R30) |
+| `scripts/i18n/import-legacy.mjs`, `lib.mjs` (001-R15) | `%d` placeholders; `stripHtml` map entries | FR-103 (R28) |
+| `scripts/run-lhci.mjs` (001-R26) | a `/ng/system/ui-texts` collection | VII (R32) |
+| `src/features/audit-log/` (UI 001) | labels and detail formatters for 013's events and targets | FR-091 (R27) |
+| UI 002's tag editor | `validateEntry`, `normalise`, `max`, `splitPattern` | FR-052, FR-075 (R26) |
+| `MailboxSearchPicker` (UI 006, promoted by UI 008) | multi-select chips; `status` and `domain` filters | FR-081 (R22) |
+| UI 002's domain page | `QuotaCopiesSection` in its section area | FR-051 (R27) |
+| UI 005's create-filter form; its script editor | "Insert example" (`PresetPicker`); the script field moves onto the shared `CodeEditor` | FR-062 (R17, R19) |
+
+## Owner-level questions (defaults applied)
+
+1. **CSP for logo previews.** **Default**: `img-src 'self' blob:` (R14). The alternative, a canvas
+   preview, cannot show SVG logos before upload and loses GIF animation, so FR-020's preview would
+   apply to raster files only.
+2. **Link to the Rspamd documentation.** FR-055 requires a link to the Rspamd documentation of the
+   settings structure, while the spec drops the licence vendor links and the HTML-to-text converter
+   as third-party links. **Default**: keep the documentation link (FR-055 is explicit; it is a link,
+   not a request).
+3. **Native review of new Czech and Slovak strings** (as in UI 001, owner question 4). **Default**:
+   the owner reviews the new cs-cz and sk-sk strings of this feature before release; `i18n:check`
+   guarantees completeness, not wording.
+
+## Parity notes added by the plan
+
+1. A filter map that the API lists with `available: false` shows a notice and a read-only editor
+   before any save is attempted (improves on FR-067, which reports it after saving).
+2. The force-single-sign-on note uses `externalIdentityProvider.singleSignOnAvailable`: the option
+   has no effect while single sign-on is unavailable, also when an LDAP provider is configured.
+3. The e-mail HTML preview replaces every image, including inline `data:` images, by a labelled
+   placeholder.
+4. The editors do not capture Tab, as the legacy text areas do not; indentation uses spaces.
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/013-system-settings/
+├── spec.md              # Feature specification (with clarifications and parity)
+├── plan.md              # This file
+├── research.md          # Phase 0: decisions R1–R32
+├── data-model.md        # Phase 1: consumed API data, view models, cache, state machines, routes, catalogue
+├── quickstart.md        # Phase 1: validation guide
+├── contracts/README.md  # Phase 1: pinned contract, operations, problems and rule codes
+├── checklists/requirements.md
+└── tasks.md             # Phase 2 (/speckit-tasks)
+```
+
+### Source Code (repository root)
+
+New files of this feature, inside UI 001's layout; files of earlier features that 013 extends are
+marked *(extends)*.
+
+```text
+docker/nginx/security-headers.conf                     # (extends 001) img-src 'self' blob:
+scripts/i18n/{import-legacy.mjs,lib.mjs}               # (extends 001) %d, stripHtml
+scripts/run-lhci.mjs                                   # (extends 001) settings collection
+src/
+├── api/
+│   ├── index.ts                                       # (extends) AuditTargetType alias
+│   └── query/keys.ts                                  # (extends) 013 roots
+├── app/
+│   ├── branding/{brand-colors.ts,logo-sizes.ts}       # new
+│   ├── shell/{BrandLogo.vue,NavigationList.vue}       # (extends 001)
+│   ├── navigation/catalogue.ts                        # (extends 001) system → available
+│   └── router/{routes.ts,focus.ts}                    # (extends 001)
+├── features/
+│   ├── system-settings/
+│   │   ├── index.ts  routes.ts  catalogue.ts  search.ts
+│   │   ├── api/{capabilities,branding,passwords,notifications,rspamd,global-filters,presets,
+│   │   │        cors,license,mass-mail}.ts
+│   │   ├── composables/{useSettingsSection,useLogoCandidate,useMassMailCompose,
+│   │   │                useJobRefresh}.ts   # leave guard: UI 002's useLeaveGuard
+│   │   ├── lib/{logo-file,regex-lines,line-diff,origin,app-link-url,email-samples,selection,
+│   │   │        preset-key}.ts
+│   │   ├── layouts/{SettingsLayout,SettingsNav,PageSwitcher}.vue
+│   │   ├── components/
+│   │   │   ├── common/{SettingsPageHeader,SettingsSection,ReadOnlyNotice,DefaultBadge,
+│   │   │   │           SettingsNotFoundState,StatusMessage}.vue
+│   │   │   ├── branding/{LogoCard,LogoPreview,LogoUploadPanel,ColourField,ContrastReport,
+│   │   │   │             BrandPreview,HtmlFieldPreview,AppLinkList,AppLinkEntryForm,
+│   │   │   │             BuiltInAppLinks}.vue
+│   │   │   ├── passwords/{PolicyRulesPreview,PlaceholderReference,TemplateField}.vue
+│   │   │   ├── notifications/QuotaCopiesSection.vue
+│   │   │   ├── spam/{RuleList,RuleCard,RuleTable,RuleFilters,RuleForm,PresetPicker,
+│   │   │   │         CheckResult,MapList,MapChangeReview,RegexFormatHelp}.vue
+│   │   │   ├── mail-filtering/{GlobalSieveFilterForm,RestartChoiceDialog}.vue
+│   │   │   ├── integrations/{MethodCheckboxes,LicenseResult}.vue
+│   │   │   └── mass-mail/{ComposeSteps,RecipientSelection,DomainPicker,
+│   │   │                  RecipientPreview,SendConfirmDialog,JobList,JobCard,JobTable,
+│   │   │                  RunningJobBanner,JobProgress,JobRecipients,JobBodies}.vue
+│   │   └── pages/
+│   │       ├── SettingsOverviewPage.vue
+│   │       ├── branding/{LogosPage,ColoursPage,UiTextsPage,SignInPageSettingsPage,AppLinksPage}.vue
+│   │       ├── passwords/{PasswordPolicyPage,PasswordResetEmailPage}.vue
+│   │       ├── notifications/QuotaNotificationsPage.vue
+│   │       ├── spam/{RspamdRulesPage,RspamdRuleCreatePage,RspamdRuleDetailPage,
+│   │       │         EffectiveSettingsMapPage,FilterMapsPage,FilterMapPage,RspamdWebInterfacePage}.vue
+│   │       ├── mail-filtering/GlobalSieveFiltersPage.vue
+│   │       ├── integrations/{CorsPage,IpCheckPage,LicensePage}.vue
+│   │       └── mass-mail/{MassMailSendPage,MassMailJobsPage,MassMailJobPage}.vue
+│   ├── audit-log/{labels.ts,details/system-settings.ts,components/AuditEventDetails.vue}  # (extends 001)
+│   ├── domains/pages/DomainDetailPage.vue             # (extends UI 002; path as delivered)
+│   └── sieve-filters/components/SieveFilterForm.vue   # (extends UI 005; path as delivered)
+├── shared/
+│   ├── color/contrast.ts                              # new (app branding + Colours page)
+│   ├── components/code-editor/{CodeEditor.vue,line-layout.ts,byte-length.ts}   # new
+│   ├── components/{EmailHtmlPreview,EmailPreviewDialog}.vue                     # new
+│   ├── components/TagEditor.vue                       # (extends UI 002/003)
+│   ├── components/MailboxSearchPicker.vue             # (extends UI 006/008) multi-select, filters
+│   ├── security/{sanitize.ts,email-html.ts}           # (extends 001) + new
+│   ├── ui/{button,switch,checkbox,radio-group}/       # (extends 001) accent tokens
+│   └── validation/{email.ts,entry-list.ts,limits.ts}  # new / (extends 001)
+├── i18n/{messages/*.json,legacy-map.json}             # (extends)
+└── styles/main.css                                    # (extends 001) accent tokens
+tests/
+├── unit/                                              # mirrors src/ for the files above
+├── mocks/
+│   ├── contract/validator.ts                          # (extends 001) binary bodies
+│   ├── handlers/{settings-server,settings-branding,settings-password,
+│   │             settings-quota-notifications,settings-rspamd,settings-global-filters,presets,
+│   │             mass-mail,license}.ts  + (extends) public-config.ts, password-policy.ts, index.ts
+│   ├── scenarios/system-settings.ts  + (extends) state.ts, index.ts
+│   └── factories/{settings,rspamd-rule,regex-map,mass-mail,preset}.ts
+├── fixtures/{logos/,email/hostile.html}
+├── e2e/
+│   ├── fixtures/a11y.ts                               # (extends 001) limit-palette passes
+│   └── system-settings/{navigation,branding,colours,sign-in-and-app-links,passwords,quota,
+│                        rspamd-rules,filter-maps,global-sieve,mass-mail,server,history,
+│                        security,polish}/*.spec.ts
+└── smoke/system-settings/*.smoke.spec.ts
+```
+
+**Structure Decision**: The single static frontend of UI 001, with one new feature folder
+(`src/features/system-settings/`) behind the `system` navigation entry, organised by group inside.
+Building blocks with uses outside the feature or with two or more uses go to `src/shared/` (code
+editor, e-mail preview, contrast maths, entry-list helpers) or to `src/app/branding/` (shell
+colours). Entry points into UI 002's domain page and UI 005's filter form import only from
+`@/features/system-settings`.
+
+## Complexity Tracking
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|---|---|---|
+| A periodic request (constitution VII "never refetches without reason"; 001-R9 "no `refetchInterval` anywhere"): the running mass mail job is refreshed every 5 s. | FR-088 and SC-009 require progress at most 10 s behind while the page is visible, and the API offers no push channel. The refresh runs only while the job runs, the page is visible, the user has not paused it and has interacted within the shared inactivity limit (`min(15 min, idle timeout)`), and stops at the end (R23); this is the condition-bound polling that `docs/conventions.md` allows. | Manual refresh only: fails SC-009. Refreshing whenever visible: keeps an unattended administrator session alive, against UI 001 FR-033. |
+| The recipient preview's search and page are not kept in the page address (conventions "Lists"). | The preview belongs to an unsent draft that FR-108 keeps in memory only; putting its paging in the address would let Back and history navigate a transient draft and write selection-derived state into history. | Address-based paging: conflicts with FR-108 and loses the draft on Back. |
+| Two English server diagnostics appear inside translated messages (constitution IV "all user-facing text from translation files"): the Sieve parser message and Dovecot's delivery reply. | FR-069 requires the parser's reason; the contract carries it only as English text (`sieveSyntax.message`), and Dovecot replies have no code yet (API gap G1). They are quoted and marked as the server's message, never shown as the whole message (R10). | Hiding them: violates FR-069 and leaves administrators without the cause. Translating by pattern matching: unreliable and unmaintainable. |

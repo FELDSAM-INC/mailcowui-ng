@@ -29,6 +29,7 @@ export type MailboxTagParams = NonNullable<operations['listMailboxTags']['parame
 export type MailboxTemplateListParams = NonNullable<
   operations['listMailboxTemplates']['parameters']['query']
 >
+export type SyncJobListParams = NonNullable<operations['listSyncJobs']['parameters']['query']>
 
 export const queryKeys = {
   publicConfig: () => ['public-config'] as const,
@@ -65,6 +66,16 @@ export const queryKeys = {
     creationReport: (name: string) => ['domains', 'creation-report', name] as const,
     exclusionCandidates: (name: string, q: string) =>
       ['domains', 'exclusion-candidates', name, q] as const,
+  },
+  // UI 008 (data-model §3).
+  syncJobs: {
+    all: () => ['sync-jobs'] as const,
+    lists: () => ['sync-jobs', 'list'] as const,
+    list: (params: SyncJobListParams) => ['sync-jobs', 'list', params] as const,
+    details: () => ['sync-jobs', 'detail'] as const,
+    detail: (id: number) => ['sync-jobs', 'detail', id] as const,
+    log: (id: number) => ['sync-jobs', 'log', id] as const,
+    capabilities: () => ['sync-jobs', 'capabilities'] as const,
   },
   domainTemplates: {
     all: () => ['domain-templates'] as const,

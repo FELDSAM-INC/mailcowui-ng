@@ -320,5 +320,6 @@ export {
   type PasskeyListParams,
   type ResourceListParams,
   type SenderPermissionCandidateParams,
+  type SyncJobListParams,
   type TemplateListParams,
 } from './query/keys'

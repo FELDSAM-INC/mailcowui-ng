@@ -109,8 +109,9 @@ reads this document next to the constitution. The API side has its own rules in
   - downloads: `src/shared/platform/download.ts` (Blob with a revoked object URL, never `data:`
     URLs).
 - **Bulk limit:** `useBulkSelection` takes the API's bulk limit from the feature's capabilities
-  read. Once the limit is reached, further selection is disabled, with a message that states the
-  limit.
+  read. "Select all" selects the visible items up to the limit (the first N) and states the limit.
+  Once the limit is reached, further selection is disabled with the same message. This applies to
+  every list.
 - **Action areas in earlier screens:** a later feature adds its entry point to an earlier screen's
   designated action area when it is implemented. Earlier plans' tables of action areas don't need
   to list every later entry.

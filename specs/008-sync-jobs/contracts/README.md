@@ -15,6 +15,8 @@ contract version UI 008 needs and the operations it uses.
 | Planning baseline (authoritative minimum) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
 | Last change of the sync-jobs contract | `0fb4f73` ("Use requiredFlags in feature 008 permission refusals") |
 | Bundle at the baseline | `@redocly/cli@2.64.1 bundle api/openapi.yaml`, 376 operations, sha256 `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` (computed while planning) |
+| Pin at implementation (T001) | `33f1eea0fd0278ba61d9adae9398797d89df6857`, pinned on `main` by UI 004 (bundle sha256 `c4dfc9f94acf3310c7802d51f38a8f508589a2a6f6dc267c97bdea9572e7c43f`); it contains API 008's implementation. UI 008 had pinned `fc79902` first and moved to the later pin when it rebased; the sync-job operations are identical in both |
+| Differences from the baseline in the sync-job operations | Two, both compatible, so the plan stands: `SyncJobPermissionFlagProblem` now extends the shared `PermissionFlagRequiredProblem` (adds the optional `requiredFlagsMatch`); the bulk action's `done` results carry `version` with its quotes, as `etag` shows it (the UI does not read it: it refetches the list after a bulk action). Parameters, request bodies, the other schemas and the documented statuses are unchanged. |
 | `knownProblemTypeValues` generated | yes: `KnownProblemType` is listed under `components.schemas` at the baseline (UI 001 plan, API gap 5, closed) |
 
 **Pin rule** (research R1, task T001): pins only move forward. If `contract/VERSION.json` already

@@ -1,13 +1,19 @@
-// The routes of UI 002 (data-model §5). Every component is lazy-loaded (research D30).
+// The routes of UI 002 (data-model §5). Every component is lazy-loaded (research D30), together with
+// the feature's own strings (`loadFeatureMessages`), which the shell does not bundle.
 import type { RouteRecordRaw } from 'vue-router'
 
-import { legacy } from '@/i18n'
+import { legacy, loadFeatureMessages } from '@/i18n'
+
+/** A page and the domain strings, loaded together. */
+function page<T>(load: () => Promise<T>): () => Promise<T> {
+  return () => Promise.all([load(), loadFeatureMessages('domains')]).then(([module]) => module)
+}
 
 export const domainRoutes: RouteRecordRaw[] = [
   {
     path: '/domains',
     name: 'domains',
-    component: () => import('./pages/DomainListPage.vue'),
+    component: page(() => import('./pages/DomainListPage.vue')),
     meta: {
       layout: 'shell',
       access: 'session',
@@ -18,7 +24,7 @@ export const domainRoutes: RouteRecordRaw[] = [
   {
     path: '/domains/-/new',
     name: 'domain-create',
-    component: () => import('./pages/DomainCreatePage.vue'),
+    component: page(() => import('./pages/DomainCreatePage.vue')),
     meta: {
       layout: 'shell',
       access: 'session',
@@ -30,7 +36,7 @@ export const domainRoutes: RouteRecordRaw[] = [
   {
     path: '/domains/:domain',
     name: 'domain-detail',
-    component: () => import('./pages/DomainDetailPage.vue'),
+    component: page(() => import('./pages/DomainDetailPage.vue')),
     meta: {
       layout: 'shell',
       access: 'session',
@@ -41,7 +47,7 @@ export const domainRoutes: RouteRecordRaw[] = [
   {
     path: '/domain-templates',
     name: 'domain-templates',
-    component: () => import('./pages/TemplateListPage.vue'),
+    component: page(() => import('./pages/TemplateListPage.vue')),
     meta: {
       layout: 'shell',
       access: 'session',
@@ -52,7 +58,7 @@ export const domainRoutes: RouteRecordRaw[] = [
   {
     path: '/domain-templates/new',
     name: 'domain-template-create',
-    component: () => import('./pages/TemplateCreatePage.vue'),
+    component: page(() => import('./pages/TemplateCreatePage.vue')),
     meta: {
       layout: 'shell',
       access: 'session',
@@ -63,7 +69,7 @@ export const domainRoutes: RouteRecordRaw[] = [
   {
     path: '/domain-templates/:templateId(\\d+)',
     name: 'domain-template-detail',
-    component: () => import('./pages/TemplateDetailPage.vue'),
+    component: page(() => import('./pages/TemplateDetailPage.vue')),
     meta: {
       layout: 'shell',
       access: 'session',

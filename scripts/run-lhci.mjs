@@ -16,6 +16,8 @@ const config = join(root, 'lighthouserc.cjs')
 const collections = [
   { url: `http://127.0.0.1:${previewPort}/ng/sign-in`, scenario: 'anonymous-default' },
   { url: `http://127.0.0.1:${previewPort}/ng/`, scenario: 'admin-active' },
+  // UI 002 (T104): the domain list as an administrator, 25 of 60 domains.
+  { url: `http://127.0.0.1:${previewPort}/ng/domains`, scenario: 'domains-60' },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

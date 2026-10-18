@@ -49,6 +49,20 @@ export default defineConfig({
     assetsInlineLimit: 0,
     modulePreload: { polyfill: false },
     sourcemap: 'hidden',
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'framework',
+              test: /[\\/]node_modules[\\/](@vue|vue|vue-router|vue-i18n|@intlify|pinia|@tanstack)[\\/]/,
+              priority: 20,
+            },
+            { name: 'icons', test: /[\\/]src[\\/]shared[\\/]icons[\\/]/, priority: 10 },
+          ],
+        },
+      },
+    },
   },
   // mailcow serves its language files on the same origin as the API (`/lang/`, constitution IV).
   server: {

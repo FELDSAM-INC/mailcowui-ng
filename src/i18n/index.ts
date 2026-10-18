@@ -3,16 +3,19 @@
 //   `<LegacyText>`), never compiled by vue-i18n;
 // - the app's new strings, in vue-i18n (Composition API mode, runtime-only, messages precompiled
 //   by @intlify/unplugin-vue-i18n: no runtime compilation, CSP). en-gb is bundled; cs-cz and sk-sk
-//   are lazy chunks; every other locale falls back to en-gb.
+//   are lazy chunks; every other locale falls back to en-gb. A feature's own strings
+//   (`messages/<feature>/<locale>.json`) are lazy chunks loaded with its routes
+//   (`loadFeatureMessages`), so that the shell does not carry them (constitution VII).
 import { createI18n } from 'vue-i18n'
 
 import { legacyRaw, lt } from './legacy'
 import { formatLegacy, type LegacyArg } from './legacy-format'
 import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
+import type enGbDomains from './messages/domains/en-gb.json'
 import enGb from './messages/en-gb.json'
 
-export type MessageSchema = typeof enGb
+export type MessageSchema = typeof enGb & typeof enGbDomains
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -27,25 +30,86 @@ export function createAppI18n() {
     fallbackLocale: DEFAULT_LOCALE,
     missingWarn: false,
     fallbackWarn: false,
-    messages: { [DEFAULT_LOCALE]: enGb },
+    // The features' strings are merged in when their routes load (`loadFeatureMessages`).
+    messages: { [DEFAULT_LOCALE]: enGb as MessageSchema },
   })
 }
 
 export type AppI18n = ReturnType<typeof createAppI18n>
 
-const loaders: Partial<Record<AppLocale, () => Promise<MessageSchema>>> = {
+type Messages = Record<string, unknown>
+type Loader = () => Promise<Messages>
+
+const loaders: Partial<Record<AppLocale, Loader>> = {
   'cs-cz': () => import('./messages/cs-cz.json').then((m) => m.default),
   'sk-sk': () => import('./messages/sk-sk.json').then((m) => m.default),
 }
 
+/** The strings of features, loaded with their routes; en-gb is their fallback. */
+const featureLoaders = {
+  domains: {
+    'en-gb': () => import('./messages/domains/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/domains/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/domains/sk-sk.json').then((m) => m.default),
+  },
+} satisfies Record<string, Partial<Record<AppLocale, Loader>>>
+
+export type MessageFeature = keyof typeof featureLoaders
+
+/** What each i18n instance holds: the locales of the app's strings, and of each feature's. */
+const loaded = new WeakMap<object, { app: Set<string>; features: Map<string, Set<string>> }>()
+
+function holdings(target: AppI18n) {
+  let entry = loaded.get(target)
+  if (!entry) {
+    entry = { app: new Set([DEFAULT_LOCALE]), features: new Map() }
+    loaded.set(target, entry)
+  }
+  return entry
+}
+
+async function mergeOnce(target: AppI18n, done: Set<string>, locale: string, loader?: Loader) {
+  if (!loader || done.has(locale)) return
+  const messages = await loader()
+  if (done.has(locale)) return
+  target.global.mergeLocaleMessage(locale, messages)
+  done.add(locale)
+}
+
 /**
- * Loads a locale's new strings into an i18n instance (once), if it has its own; the others use
- * en-gb. Does not switch to it.
+ * Loads a feature's strings into an i18n instance (once per locale): en-gb, and the locale in use
+ * when the feature has it. Later language changes load it with the app's strings (`loadLocale`).
+ */
+export async function loadFeatureMessages(
+  feature: MessageFeature,
+  target: AppI18n = i18n,
+  locale: string = target.global.locale.value,
+): Promise<void> {
+  const { features } = holdings(target)
+  let done = features.get(feature)
+  if (!done) {
+    done = new Set()
+    features.set(feature, done)
+  }
+  const sets: Partial<Record<string, Loader>> = featureLoaders[feature]
+  await Promise.all([
+    mergeOnce(target, done, DEFAULT_LOCALE, sets[DEFAULT_LOCALE]),
+    locale === DEFAULT_LOCALE ? undefined : mergeOnce(target, done, locale, sets[locale]),
+  ])
+}
+
+/**
+ * Loads a locale's new strings into an i18n instance (once), if it has its own, with those of the
+ * features already loaded; the others use en-gb. Does not switch to it.
  */
 export async function loadLocale(target: AppI18n, locale: AppLocale): Promise<void> {
-  const loader = loaders[locale]
-  if (!loader || target.global.availableLocales.includes(locale)) return
-  target.global.setLocaleMessage(locale, await loader())
+  const { app, features } = holdings(target)
+  await Promise.all([
+    mergeOnce(target, app, locale, loaders[locale]),
+    ...[...features.keys()].map((feature) =>
+      loadFeatureMessages(feature as MessageFeature, target, locale),
+    ),
+  ])
 }
 
 /** The app's single i18n instance. */

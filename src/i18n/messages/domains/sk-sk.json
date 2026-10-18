@@ -1,0 +1,159 @@
+{
+  "domains": {
+    "bulk": {
+      "adminRule": "Účty administrátorov domén, ktorým nezostane žiadna doména, sa odstránia.",
+      "dataRule": "Pätičky, štítky a uložená pošta sa odstránia. Kľúče DKIM zostanú zachované.",
+      "deactivateEffect": "Týka sa to všetkých schránok týchto domén: ich používatelia sa už neprihlásia a domény nebudú prijímať poštu.",
+      "deactivateTitle": "Deaktivovať vybrané domény ({count})?",
+      "deleteConfirm": "Odstrániť domény",
+      "deleteIntro": "Tieto domény sa odstránia. Nemožno to vrátiť späť.",
+      "deleteTitle": "Odstrániť vybrané domény ({count})?",
+      "impactItem": "aliasy: {aliases}, aliasy domény: {aliasDomains}, administrátori domény: {admins}",
+      "leaveRunning": "Akcia na serveri ďalej beží, ale jej výsledok sa nezobrazí.",
+      "leaveTitle": "Odísť, kým akcia beží?",
+      "progress": "Spracúva sa domén: {count}…",
+      "skippedIntro": "Preskočené, pretože stále obsahujú schránky alebo prostriedky:",
+      "skippedItem": "{name}: schránky ({mailboxes}), prostriedky ({resources})"
+    },
+    "create": {
+      "loadFailed": "Šablóny domén alebo nastavenia servera sa nepodarilo načítať."
+    },
+    "delete": {
+      "admins": "Administrátori domény: {list}",
+      "adminsKept": "Žiadny účet administrátora domény sa neodstráni.",
+      "adminsToDelete": "Tieto účty administrátorov domény sa odstránia, pretože im nezostane žiadna doména: {list}",
+      "aliasDomains": "Odstránia sa aliasy domény: {list}",
+      "aliases": "Odstránia sa aliasy: {count}",
+      "blockedTitle": "Doménu {name} nemožno odstrániť",
+      "blockerMailboxes": "schránky ({count})",
+      "blockerResources": "prostriedky ({count})",
+      "blockersIntro": "Najprv odstráňte:",
+      "changed": "Doména sa medzitým zmenila. Skontrolujte dopad znova.",
+      "confirm": "Odstrániť doménu",
+      "data": "Štítky a uložená pošta domény sa odstránia.",
+      "dkimKept": "Kľúč DKIM zostane zachovaný.",
+      "footer": "Pätička sa odstráni.",
+      "gone": "Táto doména už neexistuje.",
+      "intro": "Odstránenie domény nemožno vrátiť späť.",
+      "noAdmins": "Doména nemá priradeného administrátora.",
+      "notDeleted": "Nič sa neodstránilo.",
+      "notDeletedTitle": "Doména {name} nebola odstránená",
+      "showAliases": "Zobraziť aliasy",
+      "title": "Odstrániť doménu {name}?",
+      "typeName": "Na potvrdenie zadajte názov domény {name}",
+      "unavailable": "Na odstránenie domény najprv odstráňte jej schránky ({mailboxes}) a prostriedky ({resources})."
+    },
+    "detail": {
+      "backToList": "Späť na domény",
+      "loadFailed": "Doménu sa nepodarilo načítať.",
+      "loading": "Načítava sa doména…"
+    },
+    "edit": {
+      "gone": "Táto doména už neexistuje alebo vám už nie je dostupná.",
+      "notSaved": "Nič sa neuložilo."
+    },
+    "empty": {
+      "clearAll": "Vymazať hľadanie a filtre"
+    },
+    "fields": {
+      "inUseCount": "Využité: {count}."
+    },
+    "filters": {
+      "active": "Stav aktivácie",
+      "all": "Všetky",
+      "clear": "Vymazať všetky filtre",
+      "filterByTag": "Filtrovať podľa štítku {tag}",
+      "localOnly": "Ostatné domény",
+      "relay": "Preposielanie",
+      "relayOnly": "Preposielané domény",
+      "tagsHint": "Zobrazí domény s ktorýmkoľvek z týchto štítkov.",
+      "title": "Filtre",
+      "withCount": "Filtre ({count})"
+    },
+    "footer": {
+      "aliasDomainSubtext": "Alias-Domain",
+      "aliasSubtext": "Alias"
+    },
+    "list": {
+      "actionsFor": "Akcie pre {name}",
+      "count": "Nájdené domény: {count}",
+      "details": "Podrobnosti",
+      "detailsOf": "Podrobnosti domény {name}",
+      "messagesCount": "Správy: {count}",
+      "moreTags": "+{count}",
+      "moreTagsLabel": "a ďalšie štítky ({count})",
+      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",
+      "updating": "Aktualizuje sa…"
+    },
+    "outcome": {
+      "dkimDnsFailed": "Záznam DKIM pre {0} sa nepodarilo zverejniť v DNS.",
+      "dkimDnsNoZone": "Pre {0} sa nenašla zóna DNS: zverejnite záznam DKIM u poskytovateľa DNS domény.",
+      "rateLimitFailed": "Limit odosielania pre {0} sa nepodarilo uložiť."
+    },
+    "rateLimit": {
+      "frameLabel": "Časový úsek",
+      "value": "Správy"
+    },
+    "relay": {
+      "short": {
+        "relayUnknownOnly": "Preposielať len neexistujúce schránky"
+      }
+    },
+    "sort": {
+      "asc": "Vzostupne",
+      "desc": "Zostupne",
+      "label": "Zoradiť podľa",
+      "order": "Poradie",
+      "storageUsed": "Využité úložisko"
+    },
+    "tags": {
+      "remove": "Odobrať štítok {tag}",
+      "suggestions": "Navrhované štítky",
+      "suggestionsLoading": "Načítavajú sa návrhy…",
+      "suggestionsUnavailable": "Návrhy nie sú k dispozícii",
+      "tooLong": "Štítky môžu mať najviac {max} znakov."
+    },
+    "usage": {
+      "left": "Zostáva: {count}",
+      "nearlyFull": "Takmer plné",
+      "of": "{used} z {limit}",
+      "over": "Nad limitom"
+    },
+    "values": {
+      "no": "Nie",
+      "none": "Žiadne",
+      "rateLimit": "{value} {frame}",
+      "yes": "Áno"
+    }
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "Formulár sa nepodarilo načítať."
+    },
+    "default": "Predvolená",
+    "delete": {
+      "changed": "Šablóna sa medzitým zmenila. Skontrolujte ju a potvrďte znova.",
+      "keepValues": "Domény vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú.",
+      "notDeletedTitle": "{name} nebola odstránená"
+    },
+    "detail": {
+      "backToList": "Späť na šablóny domén",
+      "loadFailed": "Šablónu sa nepodarilo načítať.",
+      "loading": "Načítava sa šablóna…"
+    },
+    "edit": {
+      "defaultName": "Predvolenú šablónu nemožno premenovať.",
+      "gone": "Táto šablóna už neexistuje."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Nájdené šablóny: {count}",
+      "detailsOf": "Podrobnosti {name}"
+    },
+    "sort": {
+      "id": "ID"
+    }
+  }
+}

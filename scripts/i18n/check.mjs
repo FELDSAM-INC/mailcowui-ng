@@ -22,8 +22,21 @@ import {
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const readJson = (path) => (existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : {})
 
+// The app's strings and each feature's own (`messages/<feature>/<locale>.json`, loaded with its
+// routes), checked as one set per locale.
+const messagesDir = join(root, 'src/i18n/messages')
+const featureDirs = readdirSync(messagesDir).filter((name) =>
+  statSync(join(messagesDir, name)).isDirectory(),
+)
 const app = Object.fromEntries(
-  LOCALES.map((locale) => [locale, readJson(join(root, 'src/i18n/messages', `${locale}.json`))]),
+  LOCALES.map((locale) => [
+    locale,
+    Object.assign(
+      {},
+      readJson(join(messagesDir, `${locale}.json`)),
+      ...featureDirs.map((dir) => readJson(join(messagesDir, dir, `${locale}.json`))),
+    ),
+  ]),
 )
 const snapshot = readJson(join(root, 'src/i18n/snapshot/lang.en-gb.json'))
 

@@ -11,12 +11,28 @@ module.exports = {
         chromeFlags: '--no-sandbox --headless=new',
       },
     },
+    // Constitution VII: scores of at least 0.9 everywhere, and an initial payload of at most 200 KB.
+    // On the shell's own pages every script is initial, so their total is held to the budget; a
+    // feature page adds its lazily loaded route on top (UI 002 T104), and `npm run budget:check`
+    // holds the initial payload of the build.
     assert: {
-      assertions: {
-        'categories:performance': ['error', { minScore: 0.9 }],
-        'categories:accessibility': ['error', { minScore: 0.9 }],
-        'resource-summary:script:size': ['error', { maxNumericValue: 204800 }],
-      },
+      assertMatrix: [
+        {
+          matchingUrlPattern: '/ng/(sign-in)?$',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.9 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
+            'resource-summary:script:size': ['error', { maxNumericValue: 204800 }],
+          },
+        },
+        {
+          matchingUrlPattern: '/ng/domains',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.9 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
+          },
+        },
+      ],
     },
     upload: {
       target: 'filesystem',

@@ -48,5 +48,11 @@
   and "classic interface" wording are used, and lists, bulk actions, conflicts, confirmations,
   write-only secrets and History actions follow the UI conventions. All items pass.
 - Clarify session 2026-10-18: 10 decisions recorded and integrated. Re-validation: 16/16 → 16/16
-  items passing, no regressions. Remaining open points are listed in the spec as API gaps (3) and
-  in the report as owner-level questions; none blocks `/speckit-plan`.
+  items passing, no regressions.
+- Validation, iteration 4 (orchestrator decisions): Apple connection profiles and the client setup
+  guide kept (user story 9, FR-101 to FR-106), the "must keep a second factor" state and the
+  mailbox-context temporary-alias domains used (FR-043, FR-054, FR-069), bulk operations aligned
+  with `docs/conventions.md` (FR-019), owner questions closed, and no API gap left open. FRs
+  renumbered (FR-001 to FR-124) and every cross-reference checked. 4 orchestrator decisions added to
+  the clarifications. Re-validation: 16/16 → 16/16 items passing, no regressions; nothing blocks
+  `/speckit-plan`.

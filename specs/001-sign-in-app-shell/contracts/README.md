@@ -31,6 +31,15 @@ does not block feature 001. All 20 problem types occur by name in the bundle's r
 descriptions, and the translation check derives them from there. The list is never written by
 hand.
 
+**Pin record (T008, 2026-10-18)**: `scripts/contract/bump.sh 293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa`
+vendored the bundle with sha256 `8fb1d4b4c150390fce8fd1c07687badbe7177943ce686b5e68b14b71f4c4b7b7`
+(identical to the baseline) and 31 operations. mailcow-rest-v2 has no release tag, so the commit
+is the pin. `knownProblemTypeValues` is **not** generated at this pin, so API gap 5 is still open
+for this contract version. The API repository has since registered `KnownProblemType` under
+`components.schemas` in a later commit, so the constants arrive with the first contract bump past
+that commit. Nothing waits for it: `npm run i18n:check` derives the problem type names from the
+bundle text (21 at this pin, `service-unavailable` included; research R27).
+
 ## Files in the repository
 
 | Path | Content | Edited by hand? |

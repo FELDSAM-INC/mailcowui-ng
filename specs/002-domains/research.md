@@ -720,19 +720,23 @@ considered**.
 
 - **Decision**: These run against the API 002 dev stack (UI 001 R25), whose `DevelopmentSeeder`
   creates `example.org` and `example.net` (managed by `reseller`), the Default template and
-  `alice@example.org`.
-  - `tests/smoke/domains.smoke.spec.ts`, as `admin`:
-    - create `smoke-<timestamp>.example` with only its name and read the report;
-    - edit its limits and tags, and save its footer;
-    - bulk-deactivate and bulk-activate it together with `example.net`;
-    - try to delete `example.org`, which is blocked by alice's mailbox;
-    - delete the smoke domain with its name typed;
-    - open its History.
-  - As `reseller`: exactly `example.org` and `example.net`, no create action, the Global Address
-    List flag editable.
-  - `tests/smoke/domain-templates.smoke.spec.ts`: create, edit and delete `Smoke-<timestamp>`. The
-    Default template has a read-only name and no delete action.
-  - Created objects use unique names and are removed by the tests themselves.
+  `alice@example.org`. There is one smoke spec per user story, tagged `@domains`, or
+  `@domain-templates` for templates, so each story's smoke test can be written and run on its own:
+  - `domains-browse`: the list and domain page as `admin` and as `reseller`;
+  - `domains-create`: create `smoke-<timestamp>.example` with only its name and read the report;
+  - `domains-edit`: limits, tags and relay options as `admin`; the Global Address List flag as
+    `reseller`, with Limits read-only;
+  - `domains-delete`: `example.org` blocked by alice's mailbox; a smoke domain deleted with its
+    name typed;
+  - `domains-bulk`: two smoke domains deactivated, activated and deleted in bulk;
+  - `domains-footer`: a footer saved on `example.org` and restored;
+  - `domains-history`: a smoke domain's history lists its creation and edit;
+  - `domain-templates`: create, edit and delete `Smoke-<timestamp>`; the Default template has a
+    read-only name and no delete action.
+
+  `tests/smoke/fixtures/domains-api.ts` creates and removes the objects a smoke test needs
+  through the real API, with the test's session and CSRF token. That is test code, never app code.
+  Created objects use unique names and are always removed.
 - **Rationale**: Constitution VI's smoke layer against a real API.
 
 ### D30. Performance

@@ -44,9 +44,9 @@ npm run lhci                # now also /ng/domains
 ## Part B: Manual checks per user story (mock API)
 
 Start `npm run preview:mock`, open `http://localhost:4173/ng/`, and pick a scenario with
-`npm run mock:scenario -- <name>`. The scenarios are defined in `tests/mocks/scenarios/domains.ts`
-and `tests/mocks/scenarios/domain-templates.ts`. Check each screen at 360 px and on a desktop, in
-both themes.
+`npm run mock:scenario -- <name>`. The scenarios are defined in
+`tests/mocks/scenarios/domains-*.ts` and `tests/mocks/scenarios/domain-templates.ts`. Check each
+screen at 360 px and on a desktop, in both themes.
 
 | Story | Scenario | Steps | Expected (spec reference) |
 |---|---|---|---|
@@ -71,7 +71,8 @@ npm run test:smoke -- --grep "@domains|@domain-templates"
 scripts/smoke/stack-down.sh
 ```
 
-**Expected**: `domains.smoke.spec.ts` and `domain-templates.smoke.spec.ts` pass (research D29):
+**Expected**: the seven smoke specs `tests/smoke/domains-*.smoke.spec.ts` and
+`tests/smoke/domain-templates.smoke.spec.ts` pass (research D29):
 
 - creation of a smoke domain with its report;
 - section edits and the footer;

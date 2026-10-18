@@ -305,13 +305,19 @@ scripts/i18n/{lib.mjs,import-legacy.mjs,check.mjs}     # stripMarkup; coverage m
 scripts/run-lhci.mjs                                  # + /ng/domains collection
 tests/
 ├── unit/features/domains/…  unit/shared/…  unit/scripts/i18n-tools.spec.ts  unit/i18n/…
+├── unit/mocks/domain-handlers.spec.ts
 ├── mocks/handlers/{domains,domain-templates}.ts  mocks/handlers/{audit,index}.ts
 ├── mocks/factories/{domain,domain-template,domain-footer}.ts  mocks/factories/audit-event.ts
-├── mocks/scenarios/{domains,domain-templates}.ts  mocks/scenarios/{state,index}.ts  mocks/server.ts
-├── e2e/domains/{list,detail,create,edit,permissions,delete,bulk,footer,history}.spec.ts
+├── mocks/scenarios/domains-{base,list,create,edit,delete,bulk,footer,history}.ts
+├── mocks/scenarios/domain-templates.ts  mocks/scenarios/{state,index}.ts  mocks/server.ts
+├── e2e/fixtures/mock-api.ts                          # + domain, template and footer mutations
+├── e2e/domains/{list,detail,create,edit,permissions,delete,bulk,footer,history,
+│                reflow-and-keyboard}.spec.ts
 ├── e2e/domain-templates/{templates-list,templates-edit}.spec.ts
 ├── e2e/audit-log/target-filters.spec.ts
-└── smoke/{domains,domain-templates}.smoke.spec.ts
+├── smoke/fixtures/domains-api.ts                     # set-up and clean-up through the real API
+└── smoke/{domains-browse,domains-create,domains-edit,domains-delete,domains-bulk,
+           domains-footer,domains-history,domain-templates}.smoke.spec.ts
 ```
 
 **Structure Decision**: UI 001's single static frontend. This feature adds one feature folder

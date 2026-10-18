@@ -11,8 +11,8 @@ mailcow-dockerized, built only on mailcow REST API v2 feature 013 (System settin
 find every server-wide setting in one grouped, searchable settings area that is easy to move
 through on a phone. They brand the app: light and dark logos with a preview in both themes, a brand
 colour per theme with a live preview and contrast feedback that keeps WCAG 2.2 AA, the UI texts and
-the announcement, whose HTML fields get a safe preview, the login page options and the app links,
-which the app then shows on the sign-in screen and in an Apps menu. They opt in to the IP check, set
+the announcement, whose HTML fields get a safe preview, the login page options and the app links.
+They opt in to the IP check, set
 the password policy and the password reset e-mail, and configure the quota notifications;
 administrators and domain administrators set a domain's quota notification copies. They manage the
 Rspamd settings rules with the shipped presets and the effective settings map, the global filter
@@ -33,8 +33,9 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
 ### Session 2026-10-18
 
 - Q: How is the settings area organised, and how does a phone user find a setting and move between
-  groups? → A: One System settings area with seven groups and seventeen pages (FR-004). Wide screens
-  keep the list of groups and pages next to the open page. Phones show the overview as its own
+  groups? → A: One System settings area with seven groups and seventeen pages (FR-004; License only
+  where license verification is enabled). Wide screens keep the list of groups and pages next to the
+  open page. Phones show the overview as its own
   screen, and every page offers a page switcher that lists all pages by group. A search on the
   overview covers page names, descriptions, section headings, field labels and the legacy screen
   names, in the language in use, ignoring case and diacritics. It searches only the app's own
@@ -57,15 +58,14 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
   measured ratio. (agent decision: API 013 FR-030 publishes the references and the formula, so
   checking locally is input validation, not a workaround; offering an accessible variant lets
   operators keep their brand while meeting constitution III.)
-- Q: Which parts of the app carry the brand colour, and does this feature also bring the colours and
-  the app links into the shell? → A: Yes. The effective colour and its foreground replace the default
-  accent on primary buttons, links, the selected navigation entry and selected switches, checkboxes
-  and radio buttons, only on surfaces at least as contrasting as the reference surface. Status
-  colours and the focus indicator keep the app's own style. The sign-in screen shows the login page
-  app links, and every signed-in user gets an Apps menu with the effective app links. (agent
-  decision: UI 001 FR-004 and its parity table defer colours and app links to this feature until the
-  API offers them, which API 013 FR-028, FR-031 and FR-033 now do; limiting the colour to accent
-  elements keeps every accepted colour within AA and leaves status meaning intact.)
+- Q: Which parts of the app carry the brand colour, and does this feature apply the colours in the
+  shell? → A: Yes, this feature applies them. The effective colour and its foreground replace the
+  default accent on primary buttons, links, the selected navigation entry and selected switches,
+  checkboxes and radio buttons, only on surfaces at least as contrasting as the reference surface.
+  Status colours and the focus indicator keep the app's own style. (agent decision, confirmed by the
+  orchestrator: UI 001 FR-004 defers the colours to this feature, and they arrive with API 013
+  FR-029 to FR-033; limiting the colour to accent elements keeps every accepted colour within AA and
+  leaves status meaning intact. The display of the app links was later moved to UI 001, see below.)
 - Q: How are the HTML fields previewed without breaking the app's security rules? → A: The help text
   and the footer are previewed through exactly the sanitiser of UI feature 001, so the preview equals
   what users will see, with a note listing the kinds of content removed. The HTML of the reset and
@@ -84,13 +84,14 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
   API 013 FR-093 offers validation without side effects, and FR-065 restarts by default as legacy
   does; a one-time checkbox remembered in the browser protects nothing after the first click,
   whereas reviewing each change catches accidental deletions.)
-- Q: How strong must the confirmation be before mass mail is sent? → A: The confirmation shows the
-  sender, the subject, the selection and the recipient count from the preview, and states that the
-  copies go straight into the inboxes without spam filtering and cannot be recalled. The Send button
-  stays disabled until the user types the recipient count shown. When the API reports a changed
-  count, the app shows a fresh preview and asks again. (agent decision: mass mail is irreversible
-  and can reach every user; API 013 FR-074 already requires the expected count; typing it mirrors
-  UI 002's typed confirmation for irreversible deletions and is quick on a numeric keypad.)
+- Q: How strong must the confirmation be before mass mail is sent? → A: One explicit confirmation.
+  The dialog shows the sender, the subject, the selection and the recipient count from the preview,
+  states that the copies go straight into the inboxes without spam filtering and cannot be
+  recalled, and its send action names the count, for example "Send to 120 mailboxes". When the API
+  reports a changed count, the app shows a fresh preview and asks again. (agent decision, aligned
+  with `docs/conventions.md` (Confirmations), which asks one explicit confirmation for mass mail and
+  keeps typed numbers for bulk deletions; the first draft required typing the count. API 013 FR-074
+  makes the confirmed count binding, so a changed selection never sends unexpectedly.)
 - Q: How does a running mass mail job stay up to date on screen? → A: Its page refreshes the job
   every 5 seconds while the job runs and the page is visible. It pauses while the page is hidden,
   refreshes once when the page becomes visible again, and stops when the job ends. The time of the
@@ -113,13 +114,38 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
   these two places, and UI 005 moved the Sieve presets to this feature; the Sieve presets are
   written for one mailbox, for example a vacation reply, and would act on every mailbox in a global
   filter.)
-- Q: What does the License page show on a server where license verification is disabled, such as
-  the FeldHost deployment? → A: The page stays listed. When the API answers "feature disabled", the
-  page states that license verification is not available on this server and offers no action.
-  Verification runs only when the administrator chooses "Verify now", after the page has explained
-  that only the GUID is sent. (agent decision: API 013 FR-085 exposes the disabled state only as an
-  error, and the app must not guess; hiding the entry would need a capability flag, which is
-  reported as an API gap.)
+- Q: What happens to the License page on a server where license verification is disabled, such as
+  the FeldHost deployment? → A: It is hidden. The settings capabilities read of API 013 reports
+  whether verification is enabled; when it is not, License appears nowhere (overview, page switcher,
+  search) and its address shows the "not found" state. Where it is enabled, verification runs only
+  when the administrator chooses "Verify now", after the page has explained that only the GUID is
+  sent. (orchestrator decision: API 013 adds a settings capabilities read with this flag; replaces
+  the earlier agent decision to show a "not available on this server" state.)
+- Q: Does this feature show the app links on the sign-in screen and in an Apps menu? → A: No. UI
+  feature 001 shows them, from the app links of API 001's public configuration. This feature only
+  edits the custom app links and the apps heading, and after a save refreshes what the shell shows.
+  (orchestrator decision: API 001 adds the app links to its public configuration; see the
+  clarifications of UI 001.)
+- Q: How does the app learn the server-specific limits and switches that the first draft listed as
+  API gaps? → A: From the settings capabilities read of API 013: the logo size and dimension limits,
+  whether license verification is enabled, whether demo mode is on, the server's host name and the
+  address of the Rspamd web interface. The mass mail recipient preview also gains a search by
+  address. The app checks logo files before uploading, shows the branding pages read-only in demo
+  mode, hides License when verification is disabled, prefills the mass mail sender with `noreply@`
+  and the server's host name, and links to the Rspamd web interface at the reported address.
+  (orchestrator decision: API 013 adds the capabilities read and the preview search, which closes
+  all six API gaps of the first draft.)
+- Q: Are the default brand colour elements and the dropped vendor links accepted? → A: Yes. The brand
+  colour applies to primary buttons, links, the selected navigation entry and selected controls,
+  never to status colours or the focus indicator; the license vendor links and the external
+  HTML-to-text converter link are not reproduced. (orchestrator decision: confirms the agent
+  defaults.)
+- Q: Which cross-feature UI conventions change this spec? → A: User-facing text calls the legacy UI
+  "the classic interface"; every list shows cards below the tablet breakpoint and a table on wide
+  screens and keeps its state in the page address; mass mail needs one explicit confirmation; each
+  History action filters by target type and target ID, and this feature adds labels and
+  translations for its audit event types; limits and enabled features come from the capabilities
+  read or the contract and are never hard-coded. (alignment with `docs/conventions.md`.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -190,8 +216,9 @@ message, and the header, page title, sign-in screen and announcement after each 
 2. **Given** an SVG that contains a script element, **When** it is uploaded and the API refuses it,
    **Then** a translated message says that the file contains unsafe content and names the
    construct, and the stored logo is unchanged.
-3. **Given** a file larger than the server's limit, **When** it is uploaded, **Then** the message
-   states the limit from the API's error, formatted as a file size.
+3. **Given** a file larger than the server's logo size limit, **When** it is chosen, **Then** the app
+   says before uploading that it exceeds the limit, states the limit as a file size, and offers no
+   Upload action.
 4. **Given** a stored dark logo, **When** the administrator deletes it and confirms, **Then** the dark
    preview shows what the app shows without a dark logo, and the header in the dark theme changes
    accordingly.
@@ -254,15 +281,15 @@ afterwards in both themes, with automated contrast checks.
 An administrator hides the sign-in links of roles their customers never use and decides whether
 single sign-on is forced. They maintain the app links, for example the webmail and a helpdesk:
 a name, the link for signed-out visitors, a personal link for signed-in users that can contain the
-username, and whether it appears on the sign-in screen. Signed-out visitors then find the links on
-the sign-in screen, and every signed-in user finds them in an Apps menu.
+username, and whether it appears on the sign-in screen. UI feature 001 shows the links on the
+sign-in screen and in its Apps menu.
 
 **Why this priority**: Operators rely on the app links to guide users to webmail and support, but
 the sign-in page works without them.
 
 **Independent Test**: Against a mock API, change each sign-in option, add, edit, reorder and remove
 app links on a phone and a desktop, including invalid links and the 50-entry limit, and check the
-sign-in screen and the Apps menu for each role afterwards.
+values sent and every message.
 
 **Acceptance Scenarios**:
 
@@ -271,10 +298,10 @@ sign-in screen and the Apps menu for each role afterwards.
 2. **Given** no identity provider configured, **When** the administrator looks at "force single
    sign-on", **Then** the app explains that the option has no effect until an identity provider is
    configured.
-3. **Given** an app link "Helpdesk" with the link `https://help.example.org` and the user link
-   `https://help.example.org/?u=%u`, not hidden, **When** it is saved, **Then** the sign-in screen
-   offers "Helpdesk" with `https://help.example.org`, and the mailbox user `alice@example.org` finds
-   "Helpdesk" in the Apps menu leading to `https://help.example.org/?u=alice@example.org`.
+3. **Given** a new app link "Helpdesk" with the link `https://help.example.org` and the user link
+   `https://help.example.org/?u=%u`, **When** the administrator `admin` enters it, **Then** the form
+   shows the user link as `https://help.example.org/?u=admin`. **When** they save, **Then** the
+   success is announced and the Apps menu of UI feature 001 shows the new link without a reload.
 4. **Given** a link `javascript:alert(1)`, **When** the administrator tries to save, **Then** the
    entry is marked as invalid before anything is sent.
 5. **Given** three app links, **When** the administrator moves the third one to the top with its
@@ -282,9 +309,10 @@ sign-in screen and the Apps menu for each role afterwards.
 6. **Given** built-in app links from the operator's configuration, **When** the page is shown,
    **Then** they appear read-only next to the custom links, with an explanation, and cannot be
    edited or removed.
-7. **Given** an apps heading "Services", **When** a signed-in user opens the Apps menu, **Then** it
-   is titled "Services". With an empty heading it is titled with the translated default "Apps".
-8. **Given** no app links at all, **When** a user is signed in, **Then** no Apps menu is shown.
+7. **Given** 50 custom app links, **When** the page is shown, **Then** the add action is unavailable
+   and the limit of 50 is stated.
+8. **Given** a removed app link that is not saved yet, **When** the administrator tries to leave the
+   page, **Then** the app asks for confirmation before discarding the change.
 
 ---
 
@@ -492,11 +520,12 @@ and inspect completed and cancelled jobs with every outcome, at 360 px and at de
 **Acceptance Scenarios**:
 
 1. **Given** 120 receiving mailboxes, **When** the administrator previews "all mailboxes", **Then**
-   the app states 120 recipients and lists them page by page, sorted by address.
+   the app states 120 recipients and lists them page by page, sorted by address, with a search by
+   address.
 2. **Given** that preview and a complete message, **When** the administrator chooses Send, **Then** a
    confirmation shows the sender, the subject, the selection, the 120 recipients and that the message
-   goes straight into the inboxes without spam filtering and cannot be recalled. The Send button
-   stays disabled until the administrator types "120".
+   goes straight into the inboxes without spam filtering and cannot be recalled. The send action
+   reads "Send to 120 mailboxes", and nothing is sent until it is chosen.
 3. **Given** a mailbox created after the preview, **When** the job is sent, **Then** the app says
    that the number of recipients changed, shows the new preview, asks for confirmation again, and
    nothing is sent.
@@ -548,8 +577,9 @@ IP check, and read and verify the license with the service valid, unreachable an
    "Verify now", **Then** the new result, with customer ID, service ID and support level, is shown.
 7. **Given** the license service unreachable, **When** the GUID is verified, **Then** the result
    "unreachable" is shown as a result, not as an error.
-8. **Given** license verification disabled on the server, **When** the administrator opens License,
-   **Then** the page states that license verification is not available on this server.
+8. **Given** license verification disabled on the server, **When** the administrator opens System
+   settings, **Then** License appears neither in the overview, nor in the page switcher, nor in the
+   search, and opening its address shows the "not found" state.
 
 ---
 
@@ -590,10 +620,11 @@ that domain administrators are never offered it.
 - **Animated GIF logo**: accepted and previewed as the app shows it.
 - **Only one logo variant set**: each preview shows what the app shows in that theme (UI feature 001).
 - **Logo that fails to load**: the preview shows the product name in its place, as the app does.
-- **Very long product names and app link names (255 characters)**: they wrap in previews, lists and
-  menus without horizontal scrolling.
+- **Very long product names and app link names (255 characters)**: they wrap in previews and lists
+  without horizontal scrolling.
 - **Help text or footer containing content the sanitiser removes**: the preview shows the result and
-  lists what kind of content was removed. The legacy UI still shows the HTML as written.
+  lists what kind of content was removed, and notes that the classic interface still shows the HTML
+  as written.
 - **Announcement active without a type**: allowed; it is shown in the neutral style.
 - **Plain-text field containing `<b>`**: shown literally everywhere.
 - **Force single sign-on without an identity provider**: stored; the app says it has no effect.
@@ -602,10 +633,11 @@ that domain administrators are never offered it.
 - **Colour typed with three digits, without `#` or in upper case**: the app accepts `#RRGGBB` in either
   case and normalises a value without `#`; other forms are invalid with a format hint.
 - **App links that point to the webmail while the groupware is disabled**: the API leaves them out of
-  the sign-in screen and the Apps menu; the settings page still lists them.
-- **User link that contains `%u` on the sign-in screen**: the sign-in screen uses the link, not the
-  user link, so no placeholder is ever shown to signed-out visitors.
-- **App link to a relative path**: opened on the same host.
+  what UI feature 001 shows; the settings page still lists them.
+- **User link that contains `%u`**: the form explains that signed-out visitors get the link, not the
+  user link, so they never see the placeholder.
+- **App link to a relative path**: accepted; the form explains that it leads to a page on this
+  server.
 - **Password policy changed while passwords exist**: the page explains that existing passwords keep
   working and only the next password set is checked.
 - **Only one reset template empty**: the app warns that the e-mail will be sent without that part,
@@ -639,8 +671,13 @@ that domain administrators are never offered it.
 - **Cancelling a job that has just completed**: the API refuses; the app says the job already
   completed and shows its final state. Cancelling an already cancelled job changes nothing.
 - **GUID marked invalid by mailcow**: shown as invalid; verification is still offered.
-- **Demo mode enabled by the operator**: branding changes are refused; the app explains that changes
-  are disabled on this demonstration server and keeps the input.
+- **Demo mode enabled by the operator**: the branding pages and the IP check are read-only with the
+  reason (FR-033). When demo mode is switched on while a form is open, the API's refusal is
+  explained, the input is kept and the capabilities are read again (FR-017).
+- **Logo limits lowered by the operator after the capabilities were read**: the API's refusal states
+  the current limit (FR-021).
+- **Settings capabilities unavailable**: the settings area shows its error state with a retry action,
+  because the offered pages and limits depend on them (FR-032).
 - **Temporary failure** reported by the API: the app says that nothing was changed and offers a retry
   that keeps the input.
 - **Session expiry or sign-out in another tab while a form is open**: handled by UI feature 001.
@@ -665,7 +702,6 @@ that domain administrators are never offered it.
   | System settings area (every page of FR-004) | Yes | Not offered | Not offered |
   | Quota notification copies of a domain (domain page) | All domains | Own domains, no permission flag needed | Not offered |
   | Sieve examples in the mailbox filter editor | Yes | Where UI feature 005 offers the editor | Not offered |
-  | Apps menu with the effective app links | Yes | Yes | Yes |
   | Settings history | Yes | Not offered | Not offered |
 
 - **FR-003**: When the API refuses an action as forbidden, the app MUST show the translated reason,
@@ -689,9 +725,9 @@ that domain administrators are never offered it.
   | | Global filter maps | Map list, map pages |
   | | Rspamd web interface | Password |
   | Mail filtering | Global Sieve filters | Pre-filter and post-filter |
-  | Integrations and privacy | CORS of the legacy API | Allowed origins and methods |
+  | Integrations and privacy | CORS of the classic API | Allowed origins and methods of `/api/v1` |
   | | IP check | Opt-in to third-party address lookup |
-  | | License | GUID and license verification |
+  | | License | GUID and license verification; only where verification is enabled (FR-033) |
   | Mass mail | Send mass mail | Compose, recipients, preview, send |
   | | Mass mail jobs | Job list, job pages with recipients |
 
@@ -738,12 +774,16 @@ that domain administrators are never offered it.
   error state with a translated message and a retry action. Pages with collections (app links,
   settings rules, global filter maps, mass mail jobs and recipients, copy recipients, CORS origins)
   MUST also define an empty state that explains the collection and offers its add action where one
-  exists.
+  exists. Lists MUST be shown as cards below the tablet breakpoint and as tables on wide screens, and
+  their search, filters, sort, page and page size (25, the default, 50 or 100) MUST be kept in the
+  page address, never in browser storage.
 - **FR-016**: Where a value falls back to a default when it is left empty, the field MUST say what
   the empty value means (for example "Empty: the server's default product name"), and values the API
   marks as defaults MUST be labelled as defaults.
-- **FR-017**: When the API refuses a branding change because the operator's demo mode is on, the app
-  MUST say that changes are disabled on this demonstration server and keep the input.
+- **FR-017**: When the settings capabilities report demo mode, the pages listed in FR-033 MUST be
+  read-only. When the API nevertheless refuses a change because demo mode is on, the app MUST say
+  that changes are disabled on this demonstration server, keep the input and read the capabilities
+  again.
 
 #### Logos
 
@@ -756,15 +796,17 @@ that domain administrators are never offered it.
   images, never inserted into the page as markup.
 - **FR-020**: The administrator MUST be able to choose a new file for each logo from the device. The
   chooser MUST accept PNG, JPEG, GIF and SVG images. Before uploading, the app MUST show the chosen
-  file with the previews of FR-019 and its name, type and size, and MUST offer Upload and Cancel.
-  Uploading MUST replace the stored logo of that variant.
+  file with the previews of FR-019 and its name, type and size, and MUST offer Upload and Cancel. A
+  file larger than the logo size limit of the settings capabilities, or a raster image larger than
+  their pixel dimensions, MUST be refused before uploading with the limit stated. Uploading MUST
+  replace the stored logo of that variant.
 - **FR-021**: When the API refuses a logo, the app MUST show the translated reason with its
   parameters: unsupported image type; unsafe SVG content with the construct it names; file size or
   pixel dimensions above the limit, with the limit. The stored logo MUST stay shown.
 - **FR-022**: The administrator MUST be able to delete each logo on its own after a confirmation that
   names the variant and shows what the app shows instead.
-- **FR-023**: The page MUST explain that a scalable graphic (SVG) is recommended and which sizes the
-  app uses.
+- **FR-023**: The page MUST explain that a scalable graphic (SVG) is recommended, which sizes the app
+  uses, and the server's file size and pixel limits from the settings capabilities.
 
 #### Brand colours
 
@@ -788,7 +830,7 @@ that domain administrators are never offered it.
 - **FR-028**: When the API refuses a colour, the field MUST show the measured ratio, the minimum and
   the reference surface from the error.
 - **FR-029**: The page MUST explain that brand colours are used only by this app and not by the
-  legacy UI, and that clearing them returns the app to its default palette.
+  classic interface, and that clearing them returns the app to its default palette.
 
 #### Branding in the app shell
 
@@ -799,16 +841,26 @@ that domain administrators are never offered it.
   least that of the reference surface; as a background it MUST carry its foreground colour. Without
   an effective colour, the theme MUST use the default palette. Colours of success, warning, error and
   information states and the focus indicator MUST keep the app's own style.
-- **FR-031**: After a successful change of any branding setting, the administrator's app MUST show
-  the new logos, texts, colours and app links at once, without a reload. Other users MUST see them
-  after their next page load.
-- **FR-032**: The sign-in screen MUST show the login page app links from the public configuration
-  under the apps heading, each as a link with its name, in the order received. Without such links no
-  apps section MUST be shown.
-- **FR-033**: Every signed-in user MUST find an Apps menu in the shell, titled with the apps heading
-  or, when it is empty, the translated default "Apps", listing the effective app links the API
-  returns for that user in the order received. App links MUST open in a new browser tab, and each
-  MUST say so to assistive technologies. Without app links no Apps menu MUST be shown.
+- **FR-031**: After a successful change of any branding setting, the administrator's app MUST read
+  the public configuration again, so that the logos, texts, colours and app links that the shell of
+  UI feature 001 shows change at once, without a reload. Other users MUST see them after their next
+  page load. Showing the app links on the sign-in screen and in the Apps menu belongs to UI feature
+  001.
+
+#### Settings capabilities
+
+- **FR-032**: The app MUST read the settings capabilities of API feature 013 before it shows the
+  settings area, and MUST take from them the logo file size and pixel dimension limits, whether
+  license verification is enabled, whether demo mode is on, the server's host name and the address
+  of the Rspamd web interface. Limits and enabled features MUST come from the capabilities or the
+  pinned contract and MUST NOT be hard-coded; the numbers named in this spec are those of API 013 at
+  the time of writing. When the capabilities cannot be read, the settings area MUST show its error
+  state with a retry action.
+- **FR-033**: When license verification is disabled, the License page MUST appear neither in the
+  overview, nor in the page switcher, nor in the search, and its address MUST show the "not found"
+  state of FR-006. When demo mode is on, the Logos, Colours, UI texts, Sign-in page, App links and IP
+  check pages MUST show their values read-only, with the reason that changes are disabled on this
+  demonstration server.
 
 #### UI texts and announcement
 
@@ -816,13 +868,15 @@ that domain administrators are never offered it.
   single-line plain-text fields of at most 255 characters; the login help text and the footer as
   multi-line HTML fields of at most 65,535 characters; and the announcement with its text (plain
   text, at most 65,535 characters), its type (information, warning, very important or none) and
-  whether it is active. Line breaks MUST be refused in the single-line fields.
+  whether it is active. Line breaks MUST be refused in the single-line fields. The apps heading MUST
+  explain that it titles the Apps menu of UI feature 001 and that an empty value means the
+  translated default "Apps".
 - **FR-035**: Plain-text values MUST be shown as text everywhere and never interpreted as markup.
 - **FR-036**: The help text and the footer MUST each offer a preview that renders the HTML through
   exactly the sanitiser of UI feature 001 (FR-002 there), so that it shows what the sign-in screen
   and the shell will show. When the sanitiser removes content, the preview MUST say which kinds of
   content were removed (for example scripts, styles, images from other sites, forms or unsupported
-  links).
+  links), and that the classic interface shows the HTML as written.
 - **FR-037**: The announcement MUST offer a preview in the style of its type, with the type conveyed
   in text or by an icon with a text alternative. The page MUST explain that an active announcement
   is shown to every signed-in user and on the sign-in screen.
@@ -839,15 +893,16 @@ that domain administrators are never offered it.
 - **FR-039**: The App links page MUST list the custom app links in their stored order, each with its
   name, its link, its user link or "same as link", and whether it is hidden on the sign-in screen, and
   below them the built-in app links of the operator's configuration, marked read-only with an
-  explanation. Wide screens MAY show a table; small screens MUST show cards.
+  explanation. Below the tablet breakpoint the links MUST be cards, on wide screens a table.
 - **FR-040**: The administrator MUST be able to add a link, edit and remove each custom link, and
   move each one up or down with labelled actions that work by touch and keyboard. The list MUST be
   saved as a whole. With 50 custom links the add action MUST be unavailable with the limit stated.
 - **FR-041**: Each entry MUST be checked before sending: the name is 1 to 255 characters without line
   breaks; the link is an absolute `http` or `https` address or a path that starts with a single `/`;
   the user link, when given, has the same form and may contain the placeholder `%u`. The form MUST
-  explain that `%u` is replaced by the signed-in user's username and MUST show the user link as it
-  would read for the administrator.
+  explain that signed-out visitors get the link and signed-in users the user link, that `%u` is
+  replaced by the signed-in user's username, and MUST show the user link as it would read for the
+  administrator.
 
 #### IP check
 
@@ -998,18 +1053,19 @@ that domain administrators are never offered it.
 
 - **FR-073**: The Rspamd web interface page MUST offer one password field with a show and hide
   control, accepting 6 to 256 characters without control characters, checked before sending, and
-  MUST work with password managers as a new password. The page MUST link to the Rspamd web interface
-  on the same host.
+  MUST work with password managers as a new password. The field MUST always start empty, because
+  the password is write-only. The page MUST link to the Rspamd web interface at the address the
+  settings capabilities report.
 - **FR-074**: After a successful change the app MUST say that the password is set and Rspamd
   restarted, and MUST clear the field. When the API reports a container service failure, the app
   MUST say that the change could not be confirmed and that the new password may take effect only at
   Rspamd's next start, and MUST offer to try again.
 
-#### CORS of the legacy API
+#### CORS of the classic API
 
-- **FR-075**: The CORS page MUST explain that these settings apply only to the legacy API
-  (`/api/v1`) and not to this app's API. It MUST offer the allowed origins as a set of entries, with
-  the behaviour of FR-052 for adding, pasting and removing, at most 100, each `*` or
+- **FR-075**: The CORS page MUST explain that these settings apply only to the API of the classic
+  interface (`/api/v1`) and not to this app's API. It MUST offer the allowed origins as a set of
+  entries, with the behaviour of FR-052 for adding, pasting and removing, at most 100, each `*` or
   `scheme://host[:port]` with the scheme `http` or `https` and no path, query or fragment, checked
   before sending and normalised to lower case; and the allowed methods as checkboxes for GET, POST,
   PUT and DELETE, of which at least one MUST be chosen.
@@ -1024,8 +1080,9 @@ that domain administrators are never offered it.
 - **FR-078**: A "Verify now" action MUST explain that only the GUID is sent to the mailcow license
   service, MUST show progress while waiting, and MUST show the new result. An unreachable service
   MUST be shown as the result "unreachable", not as an error.
-- **FR-079**: When the API reports that license verification is disabled on this server, the page
-  MUST state that it is not available on this server and offer no action.
+- **FR-079**: When the API answers "feature disabled" although the capabilities reported license
+  verification as enabled, the app MUST read the capabilities again and show the "not found" state
+  of FR-006.
 
 #### Mass mail: compose and recipients
 
@@ -1039,22 +1096,22 @@ that domain administrators are never offered it.
   with a searchable picker of the server's mailboxes, both page by page from the API; addresses
   pasted at once MUST become separate entries as in FR-052. The form MUST explain that inactive
   mailboxes that may not receive mail and resources are never included.
-- **FR-082**: The sender MUST be prefilled with `noreply@` followed by the host name the app is served
-  from, and MUST be a valid e-mail address. The subject MUST be 1 to 255 characters on one line. The
-  plain-text body MUST be required and the HTML body optional, each at most 1 MiB. The HTML body MUST
-  offer the preview of FR-090.
-- **FR-083**: The app MUST request a recipient preview whenever the user reaches the preview step, or
-  asks for it on wide screens, and MUST show the number of recipients and the recipient addresses
-  page by page, sorted by address. A preview with no recipients MUST say so and make sending
-  unavailable. Changing the selection MUST discard the preview.
+- **FR-082**: The sender MUST be prefilled with `noreply@` followed by the server's host name from
+  the settings capabilities, and MUST be a valid e-mail address. The subject MUST be 1 to 255
+  characters on one line. The plain-text body MUST be required and the HTML body optional, each at
+  most 1 MiB. The HTML body MUST offer the preview of FR-090.
+- **FR-083**: The app MUST request a recipient preview whenever the user reaches the preview step,
+  or asks for it on wide screens, and MUST show the number of recipients and the recipient addresses
+  page by page, sorted by address, with a search by address. A preview with no recipients MUST say
+  so and make sending unavailable. Changing the selection MUST discard the preview.
 
 #### Mass mail: sending
 
 - **FR-084**: Sending MUST require a confirmation that shows the sender, the subject, a summary of the
   selection and the number of recipients from the preview, and that states that every recipient
   receives one copy directly in their inbox, without spam filtering, and that a sent message cannot
-  be recalled. The send action in the confirmation MUST stay disabled until the user types the
-  recipient count shown, in a field that brings up a numeric keypad.
+  be recalled. The confirmation's send action MUST name the recipient count, for example "Send to
+  120 mailboxes", and nothing MUST be sent until it is chosen.
 - **FR-085**: When the API reports that the number of recipients changed, the app MUST show a fresh
   preview with the new number and ask for confirmation again. When it reports that a mass mail is
   already running, the app MUST say so and link to the running job. When it refuses selection
@@ -1093,7 +1150,8 @@ that domain administrators are never offered it.
 
 - **FR-091**: Every settings page, rule, map and job page MUST offer a History action that opens the
   audit log screen of UI feature 001, filtered to that page's target type and, where there is one,
-  its target. That screen MUST gain filters by the target types of this feature (logo, UI texts,
+  its target ID. This feature MUST add labels and translations for its audit event types to that
+  screen. That screen MUST gain filters by the target types of this feature (logo, UI texts,
   login page options, app links, brand colours, IP check, password policy, reset e-mail, quota
   notification, quota notification copies, settings rule, filter map, global Sieve filter, Rspamd
   password, CORS, mass mail job, license) and by target. Entries MUST show the changed values with
@@ -1165,7 +1223,8 @@ that domain administrators are never offered it.
   English, Czech and Slovak. Legacy translation keys MUST be reused where the meaning is unchanged.
   Legacy texts that name the product or the operator (for example `admin.main_name`,
   `admin.title_name`, `admin.force_sso`) MUST NOT be reused as they are, and legacy texts with HTML
-  markup MUST be carried over without it.
+  markup MUST be carried over without it. User-facing text MUST call the legacy UI "the classic
+  interface" ("klasické rozhraní" in Czech, "klasické rozhranie" in Slovak), never "legacy".
 - **FR-104**: Operator texts, logos, app link names, rule descriptions, map contents, scripts,
   templates, mass mail content and addresses MUST be shown as stored and never translated. Filter
   map names MUST be shown as the API supplies them, because the operator's configuration defines
@@ -1213,7 +1272,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Change logo: Normal and "Inverted for dark mode" file inputs, one Upload button | Uploads one or both, declared type trusted | Improved: each variant on its own with a preview before upload; content checked by the API | FR-018 to FR-021 |
+| Change logo: Normal and "Inverted for dark mode" file inputs, one Upload button | Uploads one or both, declared type trusted | Improved: each variant on its own with a preview before upload; limits checked before upload, content checked by the API | FR-018 to FR-021 |
 | Logo thumbnail with dimensions, type and size badges | Light logo on white, dark logo on black | Improved: both themes, header and sign-in sizes, text details | FR-018, FR-019 |
 | Reset to default | Deletes both logos at once, no confirmation | Improved: each logo on its own, with a confirmation | FR-022 |
 | Logo size hint (`admin.logo_info`) | 40 px header height, 250 px start page | Matched, with the sizes this app uses | FR-023 |
@@ -1224,15 +1283,15 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 | UI texts: website title, product name, "Apps" name, help text | Inputs with branded placeholders | Matched; empty meaning explained, branded placeholders dropped (constitution IV) | FR-016, FR-034 |
 | Announcement: type select, text "(HTML allowed)", active checkbox | The text is in fact shown escaped | Improved: preview; labelled as plain text | FR-034, FR-037 |
 | Footer "(HTML allowed)" | Rendered raw by legacy | Improved: preview through the app's sanitiser | FR-036 |
-| Demo mode refusal | Error message | Matched | FR-017 |
+| Demo mode refusal | Error message after submitting | Improved: branding pages read-only with the reason in demo mode | FR-017, FR-033 |
 | No brand colours | — | Improved: new colours with live preview and contrast checks | FR-024 to FR-030 |
 
 #### Header and login page app links
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| App links under the login form | Links not hidden for login | Matched (UI feature 001 dropped them until the API offered them) | FR-032 |
-| "Apps" drop-down in the header with `%u` replaced | For signed-in users | Matched, for every role | FR-033 |
+| App links under the login form | Links not hidden for login | Moved to UI feature 001, which shows them from API 001's public configuration | — |
+| "Apps" drop-down in the header with `%u` replaced | For signed-in users | Moved to UI feature 001; this feature edits the links and the heading | FR-034, FR-039 to FR-041 |
 
 #### Options › Password settings
 
@@ -1288,7 +1347,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Link to the Rspamd UI, Rspamd logo | — | Link matched; logo dropped (decoration) | FR-073 |
+| Link to the Rspamd UI, Rspamd logo | Fixed path `/rspamd/` | Link matched, at the address the capabilities report; logo dropped (decoration) | FR-073 |
 | Password and repeat fields, Save | Minimum 6 characters | Improved: one field with show and hide, password-manager support, outcome including restart | FR-073, FR-074 |
 
 #### Access › Administrators › API › CORS Settings
@@ -1311,7 +1370,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| GUID field, heart icon for a valid license, customer ID, service ID, "Moo level" | Icon only for validity | Improved: result in text, copy action, "not available" state when disabled | FR-077, FR-079 |
+| GUID field, heart icon for a valid license, customer ID, service ID, "Moo level" | Icon only for validity | Improved: result in text, copy action; page hidden where verification is disabled | FR-033, FR-077 |
 | "Validate GUID against license server" button | — | Matched with progress and an explanation of what is sent | FR-078 |
 | License info text with links to the vendor's order pages | — | Text kept, vendor links dropped (no third-party links built into the app) | FR-077 |
 
@@ -1331,9 +1390,10 @@ contract version is pinned in the plan once the API 013 contract has been merged
 | Logo upload, content-based type check, limits, SVG safety, deletion, details | API 013 FR-013 to FR-018 |
 | UI texts, plain-text and HTML fields, lengths, empty meanings | API 013 FR-019 to FR-023 |
 | Login page options and the force single sign-on rule | API 013 FR-024 |
-| Custom and built-in app links, rules, limit; effective app links per user | API 013 FR-025 to FR-028 |
+| Custom and built-in app links, rules, limit | API 013 FR-025 to FR-027 |
 | Brand colours, reference surfaces, effective colours and foregrounds | API 013 FR-029 to FR-032 |
-| Public configuration with colours, apps heading and login page app links | API 013 FR-033, FR-034; API 001 FR-042 to FR-044 |
+| Public configuration with the effective brand colours, read again after branding changes | API 013 FR-033, FR-034; API 001 FR-042 to FR-044 |
+| Settings capabilities: logo limits, license verification enabled, demo mode, server host name, Rspamd web interface address | API 013 settings capabilities read (being added) |
 | IP check opt-in | API 013 FR-035 |
 | Password policy change, version tag shared with the read | API 013 FR-036 to FR-038; API 003 FR-063 |
 | Reset e-mail, availability, defaults, placeholders | API 013 FR-039 to FR-042 |
@@ -1346,7 +1406,7 @@ contract version is pinned in the plan once the API 013 contract has been merged
 | Global Sieve filters, validation, restart outcome, filter file unavailable | API 013 FR-062 to FR-065 |
 | Rspamd web interface password | API 013 FR-066, FR-067 |
 | CORS settings of the legacy API | API 013 FR-068 to FR-071 |
-| Mass mail preview, selection rules, send with expected count, single job, jobs, recipients, cancel | API 013 FR-072 to FR-081 |
+| Mass mail preview with search by address (search being added), selection rules, send with expected count, single job, jobs, recipients, cancel | API 013 FR-072 to FR-081 |
 | License status, verification, disable setting | API 013 FR-082 to FR-085 |
 | Audit records with target types, changed values and side effects; target filters | API 013 FR-086 to FR-088; API 001 FR-046, FR-047 |
 | Problem types and validation rule codes with parameters | API 013 FR-089; API 001 FR-049, FR-055 |
@@ -1354,26 +1414,18 @@ contract version is pinned in the plan once the API 013 contract has been merged
 | Domain list for pickers and the domain page | API 002 |
 | Mailbox list for the mass mail picker | API 003 |
 
-**Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
-wanted; until then the app behaves as stated):
-
-1. The operator's logo limits (file size and pixel dimensions) are not readable. The app cannot
-   check them before uploading and learns them from a refused upload (FR-021).
-2. Whether license verification is enabled is not readable before calling it. The License page is
-   always listed and shows "not available on this server" after the API refuses (FR-079).
-3. Whether the operator's demo mode is on is not readable. Branding forms are offered and the
-   refusal explains the situation (FR-017).
-4. The mass mail recipient preview has no search. Finding one address in a large preview means paging
-   (FR-083).
-5. The server's configured host name is not exposed. The mass mail sender suggestion uses the host
-   name the app is served from, which matches it in a standard deployment (FR-082).
-6. The address of the Rspamd web interface is not exposed. The app links to its standard path on the
-   same host, as legacy does (FR-073).
+**API gaps**: none. The six gaps found against the first API draft are being closed in API 013. Its
+settings capabilities read reports the logo limits, whether license verification is enabled, whether
+demo mode is on, the server's host name and the address of the Rspamd web interface (FR-032), and the
+recipient preview gains a search by address (FR-083). If the merged contract lacks any of them, the
+gap is specified in mailcow-rest-v2 first and the UI does not work around it.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Settings page** (app-defined): group, name, description, sections, field labels and legacy names
   used by the search.
+- **Settings capabilities**: logo file size and pixel limits, whether license verification is
+  enabled, whether demo mode is on, the server's host name and the Rspamd web interface address.
 - **Logo**: light or dark image with type, file size, pixel dimensions and a version tag.
 - **Brand colours**: optional light and dark colour, the derived effective colour and foreground per
   theme, and a version tag.
@@ -1425,8 +1477,8 @@ wanted; until then the app behaves as stated):
   action.
 - **SC-007**: 100 % of saves based on outdated data are stopped, and the user's unsaved input is
   still present afterwards.
-- **SC-008**: In 100 % of mass mail tests, nothing is sent before the recipient count has been
-  confirmed, and a changed count always leads to a new confirmation.
+- **SC-008**: In 100 % of mass mail tests, nothing is sent before the confirmation naming the
+  recipient count has been accepted, and a changed count always leads to a new confirmation.
 - **SC-009**: The progress shown on a running mass mail job's page is never more than 10 seconds
   behind the API's state while the page is visible.
 - **SC-010**: The preview of the help text and the footer matches what the sign-in screen shows for
@@ -1445,18 +1497,17 @@ wanted; until then the app behaves as stated):
 
 - UI feature 001 provides the shell, navigation, sign-in, identity, language and theme, session
   handling, generic error handling (including 401 and 403), status announcements, the sanitiser for
-  operator HTML and the audit log screen. This feature extends the shell with brand colours, the
-  sign-in app links and the Apps menu (FR-030 to FR-033), and the audit log screen with its target
-  filters (FR-091).
+  operator HTML, the audit log screen, and the app links on the sign-in screen and in the Apps menu.
+  This feature extends the shell with the brand colours (FR-030, FR-031), and the audit log screen
+  with its target filters and event labels (FR-091).
 - UI feature 002 provides the domain page that gains the quota notification copies section
   (FR-051), and UI feature 005 the mailbox filter form that gains the Sieve examples (FR-062).
 - UI feature 011 provides the dashboard's public address lookup and restarting containers, for
   example to apply a deferred global Sieve filter.
 - The API 013 contract is merged before this feature is planned. Until the API is implemented, the
   feature is built and tested against a mock generated from the contract.
-- The app is served from the same host name as the legacy UI and the API (UI feature 001), so the
-  Rspamd web interface is reachable on the same host and the host name is a sensible sender
-  suggestion.
+- The settings capabilities read and the search in the recipient preview are being added to API 013
+  and are part of the contract this feature pins.
 - The reference surfaces of the brand colours are white and `#1D2939`, as agreed with the API; the
   app's light surfaces that carry brand-coloured text are white and its dark ones at most as light
   as `#1D2939`.
@@ -1486,7 +1537,8 @@ wanted; until then the app behaves as stated):
 - Defaults of this feature: page sizes 25 (default), 50 and 100; the 90 % size indicator of the
   editors.
 - **Out of scope**: per-domain branding, favicons, custom style sheets and more than one brand colour
-  per theme; the quota thresholds; adding or removing filter maps; Rspamd actions, scores and
+  per theme; displaying the app links (UI feature 001); the quota thresholds; adding or removing
+  filter maps; Rspamd actions, scores and
   quarantine settings (UI feature 006); fail2ban, the dashboard and restarting containers outside
   the global filter save (UI feature 011); password reset itself and mailbox Sieve filters apart from
   the examples (UI feature 005); identity-provider configuration (UI feature 012); scheduled mass

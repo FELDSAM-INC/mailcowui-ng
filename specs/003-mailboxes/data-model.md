@@ -189,9 +189,9 @@ above. A new form starts from `built-in-defaults.ts`. The create request sends e
 | `403 attribute-not-permitted` or `permission-flag-required` | — | invalidate `['identity']` and the affected mailbox |
 
 Requests that carry a password (`createMailbox`, and `updateMailbox` with `password`) never go
-through TanStack Query (`docs/conventions.md`, "Secrets in requests or responses"). The page calls
-the generated client directly, and only the non-secret response is then written to the cache with
-the invalidation above (research R8).
+through TanStack Query (`docs/conventions.md`, "Secrets in requests or responses"). They go
+through UI 001's `useSecretRequest`, and only the non-secret response is then written to the cache
+with the invalidation above (research R8).
 
 No query of this feature polls: there is no `refetchInterval` (UI 001 R9, conventions "Polling").
 
@@ -304,7 +304,7 @@ API decides (research R16).
 | Custom attribute count | at most capability `customAttributeLimit` (100) after the change | `validation.tooMany` |
 | Rate limit | none, or an integer 1–2,147,483,647 with a frame of `second`, `minute`, `hour` or `day` | `validation.outOfRange` |
 | Template name | trimmed, 1–255 characters; uniqueness without regard to letter case is checked by the API | `validation.required`, `validation.tooLong` |
-| Bulk selection | 1 to capability `bulkLimit` items, from the current page; once the limit is reached, further selection is disabled with the limit stated, and "Select all" is unavailable when the page holds more mailboxes than the limit | `mailboxes.bulk.limit` |
+| Bulk selection | 1 to capability `bulkLimit` items, from the current page; once the limit is reached, further selection is disabled with the limit stated; "Select all" selects the visible mailboxes up to the limit (the first N) and states the limit | `mailboxes.bulk.limit` |
 | Bulk deletion | the typed number equals the selection size | handled by `ConfirmDialog` `requireTyped` |
 
 ## 7. State machines

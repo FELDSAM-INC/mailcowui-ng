@@ -270,8 +270,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - `password` is sent only when non-empty;
     - an empty patch disables Save.
   - **Save**: `PATCH /mailboxes/{address}` with `Content-Type: application/merge-patch+json` and
-    `If-Match: base.etag`. A save that carries a password calls the generated client directly,
-    never through `useMutation` (R8); the other saves use a TanStack mutation. On `200`:
+    `If-Match: base.etag`. A save that carries a password goes through UI 001's
+    `useSecretRequest`, never through `useMutation` (R8); the other saves use a TanStack mutation. On `200`:
     1. the response is written to the detail cache and patched into the cached list pages;
     2. lists are invalidated;
     3. `base` and `draft` are reset from the response, and the password is cleared;
@@ -439,18 +439,22 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - **Memory hygiene** (FR-074, SC-009):
     - The password exists only in the form's local `ref`, never in a query, route, store or log.
     - Requests that carry a password (`createMailbox`, and `updateMailbox` with `password`) never
-      go through TanStack Query: the page calls the generated client directly
-      (`docs/conventions.md`, "Secrets in requests or responses"). Only the non-secret response
+      go through TanStack Query. They go through UI 001's `useSecretRequest`, a direct client call
+      with loading, error and result state (`docs/conventions.md`, "Secrets in requests or
+      responses"). Only the non-secret response
       is written to the query cache afterwards. No draft of these forms is ever saved.
     - The field is cleared after a successful submit and on unmount.
+    - The generated password is created in the browser and typed into the field like any other
+      password, so it is shown in the field as the clarification decides. `OneTimeSecretDialog` is
+      for secrets the server generates and returns once (conventions "Secrets").
     - The problem mapping never echoes request values.
     - The page title never contains form values.
 - **Rationale**:
   - The clarifications define the rules.
   - Rejection sampling is the standard way to get uniform indexes from CSPRNG bytes.
   - Evaluating with the API's documented definitions keeps the hints honest.
-  - TanStack keeps mutation variables in its mutation cache, so a direct client call is the only
-    way to keep the password out of every cache (FR-074, conventions).
+  - TanStack keeps mutation variables in its mutation cache, so `useSecretRequest`'s direct client
+    call is what keeps the password out of every cache (FR-074, conventions).
 - **Alternatives considered**:
   - A pronounceable generator, as legacy has: rejected. It ignores the required classes
     (clarification).
@@ -517,8 +521,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
     Every template-driven field is sent only when it differs from the template's value. Protocol
     and permission objects carry only the members that differ, and they are left out when empty.
-  - **Sending**: the request carries the password, so the page calls the generated client
-    directly, never through `useMutation` (R8).
+  - **Sending**: the request carries the password, so it goes through UI 001's `useSecretRequest`,
+    never through `useMutation` (R8).
   - **After success**: the response (without `creationReport`) is written to the detail cache, and
     lists, tags and domains are invalidated. Then:
     - the route is replaced with the new detail screen;
@@ -614,11 +618,11 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     `etag` unchanged.
     - The selection holds the current page only. It clears with an announcement on every list-state
       reset.
-    - `useBulkSelection` takes the limit from `MailboxCapabilities.bulkLimit` (at most 100). Once
-      the limit is reached, further selection is disabled with a message that states it
-      (`docs/conventions.md`). With the default limit and the largest page size, both 100, "Select
-      all" always fits. When an operator lowered the limit below the page size, "Select all" is
-      unavailable with the same message.
+    - `useBulkSelection` takes the limit from `MailboxCapabilities.bulkLimit` (at most 100).
+      "Select all" selects the visible mailboxes up to the limit (the first N) and states the
+      limit; once the limit is reached, further selection is disabled with the same message
+      (`docs/conventions.md`, "Bulk limit", which applies to every list). With the default limit and
+      the largest page size, both 100, "Select all" always covers the whole page.
   - **Selection mode** (FR-057, conventions "Bulk actions"): as in UI 002, a "Select" button enters
     an explicit selection mode at every width. Cards get a checkbox of at least 44 × 44 px, the
     table gets its checkbox column and the "Select all on this page" header, and UI 002's

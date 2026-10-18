@@ -820,9 +820,9 @@ viewports.
   announcement, when the page, page size, search, filters or sort change. "Select all" MUST select
   every mailbox of the current page. The UI MUST show the number selected, and a selection MUST
   NOT exceed the server's bulk limit from the mailbox capabilities (100 by default, which equals
-  the largest page size). Once the limit is reached, further selection MUST be disabled with a
-  message that states the limit; when an operator lowered the limit below the page size, "Select
-  all" MUST be unavailable with that message.
+  the largest page size). When an operator lowered the limit below the page size, "Select all"
+  MUST select the first mailboxes of the page up to the limit and state the limit; once the limit
+  is reached, further selection MUST be disabled with the same message.
 - **FR-055**: Every bulk action MUST be confirmed in a dialog that names the action, its effect and
   the number of mailboxes. A bulk deletion MUST also list the selected addresses and the impact of
   FR-045, and MUST require typing the number of selected mailboxes before it can be confirmed.

@@ -254,8 +254,9 @@ existing tests pass.
   (`docs/conventions.md`), and adds cases only where UI 002's tests do not cover them yet:
   - `useBulkSelection`:
     - items carry `BulkTarget { id, version }`, with `version` the `etag` without its quotes;
-    - the limit comes from the capabilities, and once it is reached further selection is disabled
-      with a message that states it; "Select all" is unavailable when the page holds more items;
+    - the limit comes from the capabilities; "Select all" selects the visible items up to the
+      limit (the first N) and states the limit; once it is reached, further selection is disabled
+      with the same message;
     - a retained-outcomes option keeps exactly the given outcomes after a `BulkResult` (UI 003
       passes `['refused', 'failed']`);
     - after a refetch, retained items take the refreshed `version`, and items no longer on the page
@@ -525,8 +526,8 @@ existing tests pass.
   - `422` gives field errors;
   - `404` gives the not-found state;
   - `useLeaveGuard` is armed while the draft is dirty;
-  - a save that carries a password calls the generated client directly: no TanStack mutation or
-    query cache ever holds the password (conventions "Secrets in requests or responses").
+  - a save that carries a password goes through UI 001's `useSecretRequest`: no TanStack mutation
+    or query cache ever holds the password (conventions "Secrets in requests or responses").
 
   The tests must fail.
 - [ ] T042 [P] Implement `M/components/password/PasswordField.vue` and
@@ -549,8 +550,8 @@ existing tests pass.
   - invalidate the lists;
   - invalidate the tags if `tags` was sent;
   - invalidate the domain if `quota` or `status` was sent;
-  - a save with `password` calls the generated client directly instead of the mutation, and then
-    applies the same cache writes with the response.
+  - a save with `password` goes through UI 001's `useSecretRequest` instead of the mutation, and
+    then applies the same cache writes with the response.
 - [ ] T048 Add the foundation messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   - `mailboxes.common.*`;
   - the field labels and help;
@@ -833,8 +834,8 @@ Check each request, each error, and the screen after success.
     - the essentials first and five collapsed groups with summaries;
     - submit disabled when creation is impossible;
     - the password cleared after success and on unmount;
-    - `createMailbox` is called through the generated client directly, never through a TanStack
-      mutation, so no cache holds the password.
+    - `createMailbox` goes through UI 001's `useSecretRequest`, never through a TanStack mutation,
+      so no cache holds the password.
 - [ ] T064 [P] [US2] Write `tests/smoke/mailbox-create.smoke.spec.ts`:
   - `admin` creates `smoke-<random>@example.org` with a generated password that the real policy
     accepts, and the detail opens;
@@ -845,8 +846,8 @@ Check each request, each error, and the screen after success.
 ### Implementation for User Story 2
 
 - [ ] T065 [US2] Implement `M/create-request.ts` and `createMailbox` in `M/api.ts`:
-  - a direct call of the generated client, not a TanStack mutation (conventions "Secrets in
-    requests or responses");
+  - through UI 001's `useSecretRequest`, not a TanStack mutation (conventions "Secrets in requests
+    or responses");
   - write the detail without `creationReport`;
   - invalidate the lists, tags and domains;
   - set the `CreationNotice` one-shot of data-model §2.
@@ -1118,7 +1119,7 @@ the confirmation, the summary and the selection afterwards.
   - FR-053: activate, disallow login, deactivate, remove, and allow and disallow each of the six
     protocols;
   - FR-054: "Select all" covers the current page; with `capabilities-bulk-limit-20` and size 25,
-    selection stops at 20 with a message stating the limit, and "Select all" is unavailable with
+    "Select all" selects the first 20 and states the limit, and further selection is disabled with
     the same message (conventions "Bulk limit");
   - FR-055: each action's confirmation names the action, its effect and the count; deletion also
     lists the addresses and the impact;

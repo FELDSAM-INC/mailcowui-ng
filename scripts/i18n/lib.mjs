@@ -72,7 +72,17 @@ export const ENUM_NAMESPACES = {
   aliasDestinationTypeValues: 'enums.aliasDestinationType',
   resourceKindValues: 'enums.resourceKind',
   resourceBookingRuleValues: 'enums.resourceBookingRule',
+  // UI 008: the sync-job values the screens show (research R19).
+  syncJobEncryptionValues: 'enums.syncJobEncryption',
+  syncJobLastResultValues: 'enums.syncJobLastResult',
+  syncJobBulkActionValues: 'enums.syncJobBulkAction',
 }
+
+/**
+ * Formats of the `invalidFormat` rule whose message (`validation.format.<format>`) is required. The
+ * contract names them in prose only, so features list the ones their forms can receive.
+ */
+export const REQUIRED_FORMATS = ['hostName']
 
 /** The keys that rule 3 requires, from the enumeration arrays and the problem type names. */
 export function requiredKeys({ enums, problemNames }) {
@@ -86,6 +96,7 @@ export function requiredKeys({ enums, problemNames }) {
     if (name) problems.add(name)
   }
   for (const name of problems) keys.add(`problem.${name}`)
+  for (const format of REQUIRED_FORMATS) keys.add(`validation.format.${format}`)
   return [...keys].sort()
 }
 
@@ -342,6 +353,8 @@ export function checkCoverage({ coverage, enums, problemNames, contract }) {
   } else {
     for (const name of problems) required.add(`problem.${name}`)
   }
+
+  for (const format of REQUIRED_FORMATS) required.add(`validation.format.${format}`)
 
   for (const [prefix, pointer] of Object.entries(coverage?.complete ?? {})) {
     const target = resolvePointer(contract, pointer)

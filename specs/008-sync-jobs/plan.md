@@ -165,7 +165,7 @@ loaded at runtime from the installation and shown verbatim, values with HTML (`e
 `edit.maxage`, `edit.maxbytespersecond`) through `SanitizedHtml.vue`, and a missing key falls back
 to `en-gb`, never to a hand-written value.
 
-**Legacy form map**: written into this section by task T004a before any screen is built.
+**Legacy form map**: below (T004a).
 
 **Deviations needing a decision** (found at planning time; not built until decided):
 
@@ -178,6 +178,137 @@ to `en-gb`, never to a hand-written value.
 3. **Success messages**: legacy confirms a created or changed job with `success.mailbox_modified`
    ("Changes to mailbox %s have been saved") and has no "job created" text. Mirroring it is the
    default; a new string would need approval.
+
+### Legacy form map, part 1: fields and elements (T004a)
+
+Written before any screen was built. The owner rule 1:1 and the orchestrator's decisions in
+`docs/conventions.md` ("Decisions on the deviations") settle the structure: one form per legacy
+form and one section per legacy tab, legacy's field order, legacy's controls (checkboxes, a
+select), no help text or section heading that legacy lacks, actions that legacy offers only in the
+list stay in the list, and outcomes as legacy's alerts. They replace the seven collapsible form
+sections, the inline deletion warnings, the "Simulate" explanation and the details-page actions
+that the spec (FR-015 to FR-017, FR-024, FR-036) planned before the rule (see part 3). Paths are
+under `../mailhosting/data/web/`.
+
+**Sync jobs list** (`/sync-jobs`) ← `templates/mailbox/tab-syncjobs.twig` (administrators and
+domain administrators), `templates/user/Syncjobs.twig` (mailbox users), `draw_sync_job_table` in
+`js/site/mailbox.js` and `js/site/user.js`.
+
+| Element | Legacy key |
+|---|---|
+| page title (navigation: `mailbox.sync_jobs`) | `mailbox.sync_jobs` (administrators, domain administrators) / `user.sync_jobs` (mailbox users) |
+| create action (header and empty state) | `user.create_syncjob` (both tabs) |
+| refresh | `admin.refresh` (the user tab lacks it; offered to every role because the automatic refresh needs a manual counterpart, conventions "Polling") |
+| search label, loading, empty, no match | `datatables.search`, `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords` |
+| paging and page size | `datatables.info`, `datatables.infoEmpty`, `datatables.lengthMenu`, `datatables.paginate.*` (`PaginationBar`) |
+| columns, administrators and domain administrators | "ID" and "Server" (hard-coded: new strings `syncJobs.columns.id`, `syncJobs.columns.server`), `mailbox.owner`, `mailbox.last_run`, `mailbox.syncjob_last_run_result`, "Log" (hard-coded: `syncJobs.columns.log`), `mailbox.active`, `mailbox.status`, `mailbox.action`; in the expandable details (legacy's collapsed child row): `mailbox.excludes`, `mailbox.mins_interval` |
+| columns, mailbox users | "ID", "Server", `user.username`, `user.last_run`, `user.syncjob_last_run_result`, "Log", `user.active`, `user.status`, `user.action`; details: `user.encryption`, `user.excludes`, `user.interval` with the hard-coded "(min)" (`syncJobs.columns.minutes`) |
+| server value | `user@host:port` (the job label, also the card heading and the accessible name of its checkbox and menu) |
+| last run | the time in the user's locale; none: `mailbox.waiting` / `user.waiting` (plan deviation 1 open) |
+| last run result | check or cross glyph with the hidden prefix "Succeeded:"/"Failed:" (`syncJobs.result.*`, not colour alone) + `mailbox.syncjob_<exitStatus>` / `user.syncjob_<exitStatus>` for the seven known codes, otherwise `mailbox.syncjob_check_log` / `user.syncjob_check_log` as a link to the log (FR-007); no result: nothing ("-" in legacy; plan deviation 2 open) |
+| log | `mailbox.open_logs` / `user.open_logs` |
+| active | `mailbox.yes` / `mailbox.no` (legacy's check and cross glyphs, rendered through `SanitizedHtml.vue`) |
+| status | `mailbox.running` / `mailbox.waiting` (`user.running` / `user.waiting`) |
+| excludes | the pattern in `<code>`; empty: "-" (legacy's hard-coded dash) |
+| encryption values | SSL, STARTTLS, PLAIN (hard-coded: `enums.syncJobEncryption.*`) |
+| row actions | `mailbox.edit` / `user.edit` (opens the job), `mailbox.remove` / `user.remove`; the menu's name is the new string `syncJobs.list.actionsFor` |
+| selection mode | UI 002's `bulk.*` bar and summary; select all: `mailbox.toggle_all` |
+| selection actions | administrators and domain administrators: `mailbox.last_run_reset`, `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`; mailbox users: `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove` (the user tab has no "Schedule next", plan deviation 4) |
+| filters, sort and automatic refresh (no legacy counterpart) | labels reuse the columns' keys: owner `mailbox.owner`, domain `mailbox.domain`, active `mailbox.active` with `mailbox.active`/`mailbox.inactive`, status `mailbox.status` with `mailbox.running`/`mailbox.waiting`, result `mailbox.syncjob_last_run_result` with `enums.syncJobLastResult.*` (`succeeded` is `mailbox.syncjob_EX_OK`); sort options are the column keys plus `add.hostname`, `add.username` and `mailbox.mins_interval`; new strings for "Filters", "Any", "Clear filters", "Sort by", the order, the match count, "Pause/Resume automatic refresh" and the inactivity notice |
+
+**Add sync job** (`/sync-jobs/new`) ← `templates/modals/mailbox.twig` `#addSyncJobModalAdmin`
+(administrators, domain administrators) and `templates/modals/user.twig` `#addSyncJobModal`
+(mailbox users). One form in legacy order; nothing is cached in the browser (the user modal's
+`data-cached-form` is dropped, FR-033).
+
+| Element | Legacy key |
+|---|---|
+| page title | `add.syncjob` |
+| notice above the form | `add.syncjob_hint` |
+| owner (administrators and domain administrators only), placeholder | `add.username`, `add.select` (`MailboxSearchPicker`; no mailbox in scope: new string `syncJobs.form.noMailboxes`) |
+| host / port with its range | `add.hostname` / `add.port` and "min-max" from the capabilities (legacy's hard-coded ranges, numbers only) |
+| remote username / password | `add.username` / `add.password`; reveal toggle `auth.signIn.showPassword` (UI 001) |
+| encryption | `add.enc_method`, options `enums.syncJobEncryption.*`, the capabilities' `encryptions` |
+| interval with its range | `add.mins_interval` |
+| subfolder / maximum age / bytes per second (HTML values) | `edit.subfolder2` / `edit.maxage` / `edit.maxbytespersecond`, verbatim through `SanitizedHtml.vue`; ranges for the numbers |
+| timeouts with their ranges | `edit.timeout1`, `edit.timeout2` |
+| exclude | `add.exclude` |
+| custom parameters, placeholder, hint | `add.custom_params`; placeholder `--some-param=xy --other-param=yx` (administrators) or `--delete2folders --otheroption` (mailbox users), literal option syntax; hint `add.custom_params_hint` (administrator modal only); hidden when the capabilities read refuses custom parameters (FR-056) |
+| checkboxes, with the imapsync option in `<code>` as legacy appends it | `add.delete2duplicates` (`--delete2duplicates`), `add.delete1` (`--delete1`), `add.delete2` (`--delete2`), `add.automap` (`--automap`), `add.skipcrossduplicates` (`--skipcrossduplicates`), `add.subscribeall` (`--subscribeall`), `add.dry` (`--dry`), `add.active` |
+| submit | `admin.add` |
+| values | the capabilities' `defaults` (FR-018: the user modal's checked "Simulate" is the server's choice now); the port starts at the encryption's standard port and follows it until typed into (FR-019; legacy pre-fills 143) |
+
+**Sync job page** (`/sync-jobs/:syncJobId`) ← `templates/edit/syncjob.twig`, one section with
+its own edit and save (conventions "Detail pages").
+
+| Element | Legacy key |
+|---|---|
+| page title, with the job label as subtitle | `edit.syncjob` |
+| display-only run status (the list's data and keys) | `mailbox.owner` (not for mailbox users), `mailbox.last_run`, `mailbox.syncjob_last_run_result`, `mailbox.status` (mailbox users: the `user.*` keys), values as in the list, "Check log" as text (the log stays in the list) |
+| section heading | `edit.syncjob` |
+| fields in legacy order, read mode as a value list and edit mode as the form | `edit.hostname`, `add.port` (the page hard-codes "Port"; `add.port` is the same text), `edit.username`, `edit.password`, `edit.encryption`, `edit.mins_interval` + range, `edit.subfolder2`, `edit.maxage` + range, `edit.maxbytespersecond` + range, `add.timeout1` + range, `add.timeout2` + range, `edit.exclude`, `add.custom_params` + placeholder `--some-param=xy --other-param=yx` + `add.custom_params_hint`, `edit.delete2duplicates`, `edit.delete1`, `edit.delete2`, `edit.automap`, `edit.skipcrossduplicates`, `add.subscribeall`, `add.dry`, `edit.active` (with the option names) |
+| booleans in read mode | `mailbox.yes` / `mailbox.no`; an empty text value reads "-" |
+| write-only password (conventions "Secrets"; legacy pre-fills the stored password) | new strings `syncJobs.password.saved` ("A password is saved. Leave empty to keep it.") and `syncJobs.password.none` |
+| custom parameters the caller may not change (FR-056) | read-only with the new string `syncJobs.form.customParamsRestricted` |
+| save | `edit.save`; outdated handling is UI 002's `EditableSection` |
+| History (administrators) | `history.link` |
+
+**Confirmations** ← `#ConfirmDeleteModal` (`templates/modals/footer.twig`).
+
+| Element | Legacy key |
+|---|---|
+| delete one job or a selection | `footer.confirm_delete`, `footer.delete_these_items` before the list of jobs (ID, label, owner), `footer.delete_now`, `footer.cancel`; new strings: "Mail that was already copied stays in the mailbox." and the running note; typed count `bulk.confirm.typeCount` for a selection |
+| deactivate a selection (conventions "Confirmations") | new title `syncJobs.bulk.deactivateTitle`, the jobs listed, the note "They do not run until they are activated again." (new), confirm `mailbox.deactivate`, cancel `footer.cancel` |
+
+**Run log** ← `#syncjobLogModal` in `templates/modals/{mailbox,user}.twig`, `inc/ajax/syncjob_logs.php`.
+
+| Element | Legacy key |
+|---|---|
+| title | "Log" (hard-coded: `syncJobs.log.title`) |
+| header (display-only, the list's keys) | the job label, `mailbox.owner`, `mailbox.last_run`, `mailbox.syncjob_last_run_result` (mailbox users: `user.*`) |
+| text | verbatim, read-only, fixed-width; control and bidi characters as visible markers (`neutralise()`) |
+| empty log | legacy shows "-"; new strings "No log yet" and "The run produced no output" (FR-045) |
+| actions | new strings "Copy", "Copied", "Copying is not available", "Wrap lines"; `admin.refresh`; `common.close` |
+| running notice | new string (FR-045) |
+
+### Legacy form map, part 2: messages
+
+| API outcome | Legacy key (placeholder) |
+|---|---|
+| `createSyncJob` 201 | `success.mailbox_modified` (the target mailbox), as legacy confirms an added job (plan deviation 3: mirrored) |
+| `updateSyncJob` 200 (section save) | `success.mailbox_modified` (the target mailbox) |
+| `deleteSyncJob` 204 | `success.deleted_syncjob` (the ID) |
+| bulk action | `BulkResultSummary` per job; the summary line is UI 002's new string |
+| `409 sync-job-exists` | `danger.object_exists` ("host / user" as typed, as legacy fills it); "Open the existing job" (`syncJobs.form.openExisting`) links to `syncJobId` (FR-023) |
+| owner left empty (client) | `danger.no_user_defined` |
+| `403 permission-flag-required` | `danger.access_denied` (legacy's answer without the `syncjobs` ACL), through `LEGACY_TEXTS`; the identity is refreshed and "not permitted" replaces the screen |
+| rule codes legacy reports without a translation ("bad option", "bad character SPACE") or as the generic `danger.access_denied` | new strings `validation.invalidRegex`, `validation.optionNotAllowed` ({option}), `validation.optionContainsSpace` ({token}), `validation.customParamsNotPermitted`, `validation.format.hostName`, `syncJobs.errors.notEligible` ({kind}, `syncJobs.errors.kind.*`) |
+| `required`, `tooLong`, `outOfRange` and the other common rules | UI 001's `validation.*` |
+| outdated (412), gone (404), network | UI 001's and UI 002's generic texts, plus "This sync job no longer exists." (`syncJobs.detail.gone`) |
+
+### Legacy form map, part 3: deviations needing a decision
+
+Not built until the owner or the orchestrator decides (conventions "Deviation-free rule"):
+
+1. **Last run without a time** (planning deviation 1): legacy's `mailbox.waiting` is shown.
+2. **Unrecognised success code** (planning deviation 2): legacy's "Check log" is shown.
+3. **Success messages** (planning deviation 3): legacy's `success.mailbox_modified` is mirrored.
+4. **"Schedule next" for mailbox users** (spec FR-036): the user tab's mass actions lack it, so
+   mailbox users are not offered it; administrators and domain administrators are.
+5. **Single-job activate, deactivate and schedule next** in the row menu and on the job page
+   (spec FR-036): legacy offers them only as mass actions on a selection, which the list's
+   selection mode provides (one job may be selected). The row menu has Edit and Remove, as legacy's
+   row buttons.
+6. **Actions and data on the job page** (spec FR-015): delete, schedule next, activate,
+   deactivate, open the log, refresh, and the created and changed times. Legacy's edit page has
+   only the form and Save; deletion and the log stay in the list (conventions "Detail pages").
+7. **Collapsible form sections with non-default counts** (spec FR-016, FR-017): one form in
+   legacy order instead.
+8. **Inline warnings** for the deleting options and the "Simulate" explanation (FR-024), the
+   field-length hints and the list of allowed custom options (FR-021): legacy has no such texts.
+9. **haveibeenpwned on the remote password**: the user modal marks the field `data-hibp`, but the
+   spec (FR-035) and the conventions' list of checked forms leave sync jobs out; the check is not
+   offered.
 
 ## API dependency and gaps
 

@@ -134,7 +134,10 @@ legacy Twig/jQuery UI feature by feature.
   - dependency vulnerability scan
 - A feature is done when its legacy screens are matched or improved, and the parity notes are
   in the spec.
-- **Git**: commit directly to `main`, with no feature branches and no pull requests. The Spec Kit
+- **Git**: commit directly to `main`, with no feature branches and no pull requests. Parallel implementation
+  may use short-lived local git worktrees on temporary local branches (`wt/NNN`), each rebased onto
+  `main` and fast-forwarded when its gates are green, then deleted. Such branches are never pushed,
+  and there are still no pull requests. The Spec Kit
   `before_specify` branch hook is disabled, but spec directories keep the `specs/NNN-feature-name`
   numbering. Commit subjects are short and imperative.
 - **License**: GPL-3.0, the same as mailcow and mailcow-rest-v2. Every dependency, including
@@ -151,7 +154,9 @@ legacy Twig/jQuery UI feature by feature.
   - Vue.js for the UI.
   - The API (Laravel, repository `mailcow-rest-v2`) and this app live in separate repositories.
   - GPL-3.0 for both repositories, and commits go directly to `main` (added in 1.1.0).
+  - Short-lived local worktree branches for parallel implementation, never pushed (added in
+    1.2.1).
   - TailAdmin Vue Free as the visual base (added in 1.2.0).
 - Agent runtime guidance lives in `CLAUDE.md` and MUST NOT contradict this document.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18
+**Version**: 1.2.1 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18

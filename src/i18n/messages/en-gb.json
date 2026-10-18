@@ -218,6 +218,23 @@
       "signIn": "Sign in with a passkey",
       "waiting": "Waiting for your passkey…"
     },
+    "pendingActions": {
+      "intro": "Your account has actions to complete before you can continue.",
+      "password": {
+        "body": "Your password must be changed. This app cannot change passwords yet: change it in the classic interface, then check again here.",
+        "checkAgain": "Check again",
+        "link": "Change your password in the classic interface",
+        "stillPending": "The password change is still pending."
+      },
+      "secondFactor": {
+        "afterPassword": "You can register a passkey here once your password has been changed.",
+        "classicLink": "Set up a second factor in the classic interface",
+        "register": "Register a passkey",
+        "required": "Your account must have a second factor. A passkey counts as one.",
+        "unsupported": "This device cannot create passkeys. You can set up a second factor in the classic interface."
+      },
+      "title": "Actions required"
+    },
     "secondFactor": {
       "intro": "Signing in as {username}. Confirm the sign-in with one of your second factors.",
       "oneMinute": "One minute left to complete the sign-in.",

@@ -254,3 +254,32 @@ describe('own passkeys (T101)', () => {
     expect(removed.status).toBe(204)
   })
 })
+
+describe('restricted sessions (T110)', () => {
+  it('refuses other operations with the pending actions', async () => {
+    useScenario('forced-password-change')
+    const response = await fetch(api('/me/passkeys'))
+    expect(response.status).toBe(403)
+    expect(await response.json()).toMatchObject({
+      type: '/api/v2/problems/pending-action-required',
+      pendingActions: ['passwordChange'],
+    })
+    expect((await fetch(api('/me'))).status).toBe(200)
+  })
+
+  it('allows passkey registration only while second-factor setup is all that is pending', async () => {
+    useScenario('forced-both')
+    expect((await send('POST', '/me/passkeys/registration-options')).response.status).toBe(403)
+    useScenario('forced-second-factor')
+    expect((await send('POST', '/me/passkeys/registration-options')).response.status).toBe(200)
+  })
+
+  it('reads the pending actions on every request', async () => {
+    useScenario('forced-password-change')
+    const before = (await (await fetch(api('/session'))).json()) as { data: { state: string } }
+    expect(before.data.state).toBe('restricted')
+    mockState().accounts.find((a) => a.username === 'bob@example.org')!.pendingActions = []
+    const after = (await (await fetch(api('/session'))).json()) as { data: { state: string } }
+    expect(after.data.state).toBe('active')
+  })
+})

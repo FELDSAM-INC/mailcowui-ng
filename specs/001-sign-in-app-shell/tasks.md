@@ -712,13 +712,15 @@ each resolution path, including a device without passkey support.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T110 [US5] Extend the handlers for restricted sessions in `tests/mocks/handlers/auth.ts`, `identity.ts` and `passkeys.ts`:
+- [X] T110 [US5] Extend the handlers for restricted sessions in `tests/mocks/handlers/auth.ts`, `identity.ts` and `passkeys.ts`:
   - every non-allowed operation, including `updatePreferences`, gets `403 pending-action-required` with `pendingActions`;
   - registration is allowed only when `secondFactorSetup` is the sole action;
   - flags are re-evaluated per request and can be cleared through `PATCH /__mock/scenarios/:id`.
 
   Add the scenarios `forced-password-change`, `forced-second-factor` and `forced-both`.
-- [ ] T111 [P] [US5] Write `tests/e2e/pending-actions/pending-actions.spec.ts`. It covers:
+
+  *Implementation note*: no handler change was needed beyond US4's registration rule: `requireAccount` already refuses restricted sessions, and `sessionAccount` reads the pending actions on every request. `updatePreferences` arrives with US6 on the same rule.
+- [X] T111 [P] [US5] Write `tests/e2e/pending-actions/pending-actions.spec.ts`. It covers:
   - `@virtual-authenticator` US5-AS1: register a passkey and continue to home (or `returnTo`) without a new sign-in;
   - US5-AS2: the classic link for the role (`/`, `/admin` or `/domainadmin`); "Check again" stays and says so while the action is pending, then continues once it is cleared through `mockApi.patch`;
   - US5-AS3: both actions, password first, with registration explained as available later;
@@ -729,16 +731,16 @@ each resolution path, including a device without passkey support.
   - Edge: a reload resumes the screen.
 
   The language and theme choice on this screen, and its device-only effect, are tested in US6 (T117).
-- [ ] T112 [P] [US5] Write `tests/unit/features/auth/PendingActionsPage.spec.ts`: the order of actions, the classic sign-in link per role, the "Check again" states (refetching `session` and `identity`), and registration gated by the sole `secondFactorSetup` (FR-038–FR-041).
-- [ ] T113 [P] [US5] Write `tests/smoke/pending-actions.smoke.spec.ts`: `bob@example.org` signs in, sees the password-change action with the link to `/`, "Check again" reports it is still pending, and sign-out works.
+- [X] T112 [P] [US5] Write `tests/unit/features/auth/PendingActionsPage.spec.ts`: the order of actions, the classic sign-in link per role, the "Check again" states (refetching `session` and `identity`), and registration gated by the sole `secondFactorSetup` (FR-038–FR-041).
+- [X] T113 [P] [US5] Write `tests/smoke/pending-actions.smoke.spec.ts`: `bob@example.org` signs in, sees the password-change action with the link to `/`, "Check again" reports it is still pending, and sign-out works.
 
 ### Implementation for User Story 5
 
-- [ ] T114 [US5] Implement `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue`, and add the `pending-actions` route to `src/features/auth/routes.ts`. The page:
+- [X] T114 [US5] Implement `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue`, and add the `pending-actions` route to `src/features/auth/routes.ts`. The page:
   - registers a passkey with `usePasskeyRegistration` from `@/features/passkeys`;
   - after success, refetches `session` and `identity`, broadcasts `session-changed` and continues as after sign-in (FR-031, FR-039);
   - "Check again" refetches `session` and `identity` (the guard routes on `Session.state`), then continues once no action is pending, or announces that the action is still pending (FR-040).
-- [ ] T115 [US5] Add the `auth.pendingActions.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with legacy-map entries for the forced-change explanations whose meaning is unchanged. `npm run i18n:check` must pass.
+- [X] T115 [US5] Add the `auth.pendingActions.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with legacy-map entries for the forced-change explanations whose meaning is unchanged. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories (US1 to US5) work.
 
@@ -756,6 +758,8 @@ language.
 
 ### Tests for User Story 6 (write first; must fail)
 
+
+  *Implementation note*: no legacy key was reused. The forced-2FA strings of the FeldHost fork (`tfa.setup_required`, `tfa.setup_title`) are missing from the upstream cs-cz and sk-sk files, and their wording is about TOTP enrolment, not passkeys.
 - [ ] T116 [US6] Extend `tests/mocks/handlers/identity.ts` with `updatePreferences`: JSON Merge Patch, `If-Match` and `412`, `422 notInList` with `allowed`, refusal in restricted sessions, a stored language that is no longer enabled reading as the default, and failure injection. Add the scenarios `languages-none-translated` (only `de-de`), `languages-single` (only `en-gb`), `default-language-sk`, `profile-cs-dark`, `profile-language-disabled` and `preferences-save-fails`.
 - [ ] T117 [P] [US6] Write `tests/e2e/preferences/preferences.spec.ts`. It covers:
   - US6-AS1: Czech switches the text, dates and numbers at once, `<html lang="cs-CZ">` is set (FR-088), the choice is saved, and a new context signs in in Czech;

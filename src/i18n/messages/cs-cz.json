@@ -218,6 +218,23 @@
       "signIn": "Přihlásit se přístupovým klíčem",
       "waiting": "Čekání na přístupový klíč…"
     },
+    "pendingActions": {
+      "intro": "Než budete moci pokračovat, musíte na svém účtu dokončit tyto kroky.",
+      "password": {
+        "body": "Musíte si změnit heslo. Tato aplikace zatím hesla měnit neumí: změňte jej v klasickém rozhraní a poté to zde zkontrolujte znovu.",
+        "checkAgain": "Zkontrolovat znovu",
+        "link": "Změnit heslo v klasickém rozhraní",
+        "stillPending": "Změna hesla stále čeká na dokončení."
+      },
+      "secondFactor": {
+        "afterPassword": "Přístupový klíč zde budete moci zaregistrovat, jakmile si změníte heslo.",
+        "classicLink": "Nastavit druhý faktor v klasickém rozhraní",
+        "register": "Zaregistrovat přístupový klíč",
+        "required": "Váš účet musí mít druhý faktor. Přístupový klíč se počítá jako druhý faktor.",
+        "unsupported": "Toto zařízení nemůže vytvářet přístupové klíče. Druhý faktor si můžete nastavit v klasickém rozhraní."
+      },
+      "title": "Je potřeba dokončit kroky"
+    },
     "secondFactor": {
       "intro": "Přihlašujete se jako {username}. Potvrďte přihlášení jedním ze svých druhých faktorů.",
       "oneMinute": "Na dokončení přihlášení zbývá jedna minuta.",

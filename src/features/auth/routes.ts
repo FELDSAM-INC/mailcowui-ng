@@ -1,9 +1,9 @@
 // Routes of the sign-in flow (data-model §5). Every component is lazy-loaded (constitution VII).
-// The pending-actions screen arrives with US5.
 import type { RouteRecordRaw } from 'vue-router'
 
 const SignInPage = () => import('./pages/SignInPage.vue')
 const SecondFactorPage = () => import('./pages/SecondFactorPage.vue')
+const PendingActionsPage = () => import('./pages/PendingActionsPage.vue')
 
 const signIn = (path: string, name: string, role: string | null, titleKey: string) =>
   ({
@@ -34,5 +34,11 @@ export const authRoutes: RouteRecordRaw[] = [
     name: 'sign-in-second-factor',
     component: SecondFactorPage,
     meta: { layout: 'auth', access: 'pendingSecondFactor', titleKey: 'auth.secondFactor.title' },
+  },
+  {
+    path: '/pending-actions',
+    name: 'pending-actions',
+    component: PendingActionsPage,
+    meta: { layout: 'auth', access: 'restricted', titleKey: 'auth.pendingActions.title' },
   },
 ]

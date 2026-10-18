@@ -277,6 +277,7 @@ test('FR-021 @virtual-authenticator the WebAuthn second factor signs in', async 
   webauthn,
 }) => {
   await mockApi.use('mailbox-all-factors')
+  await webauthn.withoutConditionalMediation()
   const authenticator = await webauthn.virtualAuthenticator()
   await authenticator.addCredential()
   await openStep(page)

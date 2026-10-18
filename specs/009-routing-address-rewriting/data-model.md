@@ -154,8 +154,9 @@ label keys, whether they need confirmation (`delete`: typed count; `deactivate`:
 confirmation; `activate` on a selection that contains a `*` transport: one explicit confirmation),
 and `targetOf(entry) → { id, version }`, where `version` is `entry.etag` without its surrounding
 quotes (`BulkTarget.version`, as UI 002 D22) and `id` is the numeric ID as a string, or the stored
-address, unencoded, for forwarding hosts. `selectionLimit(capabilities, pageSize) =
-min(bulkLimit, pageSize)`.
+address, unencoded, for forwarding hosts. `useBulkSelection` receives `capabilities.bulkLimit`; at the
+limit, further selection is disabled with a message that states it (conventions), and the selection
+never exceeds the current page.
 
 ### ForwardingHostResults (`composables/useForwardingHostResults.ts`)
 
@@ -213,14 +214,20 @@ setup task confirms the implemented names.
 
 Writes that return the entry write it into its detail key with `setQueryData` before the lists are
 invalidated. No password is ever in a response, so nothing has to be stripped before caching.
+`createRelayhost`, `updateRelayhost`, `createTransport` and `updateTransport` are direct client calls,
+not `useMutation`, because their bodies can carry a password and the mutation cache would keep it
+(conventions "Secrets", research R7); their callers apply the cache updates of this table by hand.
 
 ## 4. Client state
 
 - **Pinia**: nothing new.
 - **Device storage**: nothing new. UI 001 data-model §4's allowlist still holds, and its unit test
   still passes (FR-075, constitution V).
-- **Memory only**: typed passwords (form state), the test result (component state), the batch
-  results (composable state) and the forwarding host results (one-shot feature value).
+- **Memory only**: typed passwords (form state only, never a query or mutation cache), the test
+  result (component state), the batch results (composable state) and the forwarding host results
+  (one-shot feature value).
+- **No polling**: nothing in this feature refetches on an interval; the connection test's watchdog
+  is a single timer for one request, not polling (conventions "Polling").
 
 ## 5. Route map
 

@@ -94,7 +94,11 @@ and the sections load as async components (research R25). Lighthouse mobile scor
   viewport parts.
 - WCAG 2.2 AA in both themes; 360 px first; 44 × 44 px targets; no horizontal scrolling, also at
   320 px.
-- Passwords never displayed, never stored in the browser (FR-025, FR-075).
+- Passwords never displayed, never stored in the browser, never in a TanStack Query cache: the
+  four writes that can carry one call the client directly (FR-025, FR-075, conventions "Secrets",
+  research R7).
+- No automatic polling (conventions "Polling"); the contract pin only moves forward and the 46
+  operations are checked against the baseline commit (conventions "Contract pins").
 - Limits from the capabilities read (conventions).
 - Every user-facing text in en-gb, cs-cz and sk-sk, reusing the listed legacy keys.
 
@@ -177,7 +181,7 @@ in the spec's "Consistency changes (plan)" clarification:
   | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary}.vue` (UI 002) | _to be recorded_ |
   | `ConfirmDialog` with `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue` (UI 002) | _to be recorded_ |
   | `useVersionedSave` with `changedSince`, `EditableSection` | `src/shared/composables/useVersionedSave.ts`, `src/shared/components/EditableSection.vue` (UI 002) | _to be recorded_ |
-  | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` (UI 002; UI 003 calls it `useUnsavedChangesGuard.ts`) | _to be recorded_ |
+  | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` (UI 002, canonical name) | _to be recorded_ |
   | `HistoryLink` and the audit target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` (UI 002) | _to be recorded_ |
   | `ActiveFilterChips`, not-found state with a back link | `src/shared/components/ActiveFilterChips.vue` (UI 003), `NotFoundState` or `NotFoundPage` `backTo` (UI 002, UI 003) | _to be recorded_ |
   | Route roles inside an entry | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` (UI 002) | _to be recorded_ |
@@ -187,7 +191,7 @@ in the spec's "Consistency changes (plan)" clarification:
   | `PasswordInput`, `CopyButton` | `src/shared/components/password/PasswordInput.vue`, `src/shared/components/CopyButton.vue` (UI 005) | _to be recorded_ |
   | `AclReadOnlyNote` | `src/shared/components/AclReadOnlyNote.vue` (UI 003, promoted by UI 006) | _to be recorded_ |
   | Flag labels | `permissionFlags.<flag>` (UI 005, UI 007) | _to be recorded_ |
-  | Coverage manifest, `ENUM_NAMESPACES`, legacy map object entries | `src/i18n/coverage.json` or `enum-scope.json`, `scripts/i18n/lib.mjs`, `{ "from", "stripMarkup" }` (UI 002, UI 003) | _to be recorded_ |
+  | Coverage registry, `ENUM_NAMESPACES`, legacy map object entries | `src/i18n/coverage.json` (canonical), `scripts/i18n/lib.mjs`, `{ "from", "stripMarkup" }` (UI 002, UI 003) | _to be recorded_ |
 
 ## API dependency and gaps
 
@@ -320,7 +324,7 @@ src/
     ├── messages/{en-gb,cs-cz,sk-sk}.json                 # changed: routing.*, validation.*, problem.*, auditLog.*
     ├── legacy/{en-gb,cs-cz,sk-sk}.json                   # regenerated
     ├── legacy-map.json                                   # changed: reused keys, rich entries
-    ├── coverage.json                                     # changed: API 009 values (or enum-scope.json)
+    ├── coverage.json                                     # changed: API 009 values
     └── problems.ts                                       # changed: `because` parameter
 tests/
 ├── mocks/

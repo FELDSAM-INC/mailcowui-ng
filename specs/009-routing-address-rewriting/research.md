@@ -50,7 +50,7 @@ on that bundle.
     | `PasswordInput.vue` (show/hide toggle) and `CopyButton.vue` | `src/shared/components/password/`, `src/shared/components/` | UI 005 R7 | relay passwords (R7), the transcript copy action (R13) |
     | `AclReadOnlyNote.vue` ("Prohibited by ACL" with the permission's label) | `src/shared/components/` (promoted by UI 006) | UI 003, UI 006 | read-only BCC maps and Relayhost sections (R9, R14) |
     | Flag labels `permissionFlags.<flag>` | `src/i18n/messages/*.json` | UI 005, UI 007 | permission messages (R19) |
-    | Enumeration coverage manifest and `ENUM_NAMESPACES` | `src/i18n/coverage.json` (UI 002 D2; `enum-scope.json` in UI 003 R2), `scripts/i18n/lib.mjs` | UI 002, UI 003 | translation completeness (R21) |
+    | Translation coverage registry and `ENUM_NAMESPACES` | `src/i18n/coverage.json` (UI 002 D2, the canonical name in `docs/conventions.md`), `scripts/i18n/lib.mjs` | UI 002, UI 003 R2 | translation completeness (R21) |
     | Legacy map object entries `{ "from", "stripMarkup" }` | `src/i18n/legacy-map.json`, `scripts/i18n/import-legacy.mjs` | UI 002 D27 | the base of the rich hints (R20) |
 
     The first setup task verifies each item against the implemented code and records the actual
@@ -176,10 +176,12 @@ on that bundle.
   - **Selection mode** is explicit (conventions). It uses UI 002's `useBulkSelection` and
     `BulkActionBar` (the count and the actions in a bar fixed at the bottom on phones), so it covers
     the current page only and clears when the page, search, filters, sort or size change.
-  - **Limit**: at most `min(bulkLimit, current page size)` entries. "Select all on this page"
-    selects up to that limit and says so; trying to select more shows "{limit} is the limit of one
-    action" (FR-016). With the page sizes 25, 50 and 100 and the default `bulkLimit` of 100, the
-    message appears only if the server's limit is smaller than the page size.
+  - **Limit** (conventions "Shared building blocks"): `useBulkSelection` receives
+    `capabilities.bulkLimit` from the routing capabilities read. Once the limit is reached, further
+    selection is disabled with a message that states the limit ("{limit} is the limit of one
+    action", FR-016); "Select all on this page" selects up to the limit and says so. The selection
+    never exceeds the page either, so with the page sizes 25, 50 and 100 and the default limit of
+    100 the message appears only if the server's limit is smaller than the page size.
   - **Actions per list**, from the generated enumeration arrays: relayhosts, transports, recipient
     maps and TLS policy maps `activate`, `deactivate`, `delete`; BCC maps also `switchToSender` and
     `switchToRecipient`; forwarding hosts `enableSpamFilter`, `disableSpamFilter`, `delete`.
@@ -214,7 +216,9 @@ on that bundle.
     per field, the legacy hints next to their fields, and a sticky action bar at the bottom of the
     viewport, so that Save is reachable without scrolling up.
   - **`useEntryForm`** (`composables/`) holds the entry as read, the form values, and the dirty
-    state, on UI 001's `useProblemForm` and UI 002's `useVersionedSave` and `useLeaveGuard`. A save sends only the changed members (conventions), computed by `logic/changed-fields.ts`
+    state, on UI 001's `useProblemForm` and UI 002's `useVersionedSave` and `useLeaveGuard`. The save
+    is passed in as a function: for the relayhost and transport forms it is the direct client call
+    of R7, so that no password enters a mutation cache. A save sends only the changed members (conventions), computed by `logic/changed-fields.ts`
     after trimming, with `If-Match` set to the `etag` that was read. Creation sends every filled
     member. Merge-patch bodies use `application/merge-patch+json`, which the generated client
     types require.
@@ -278,9 +282,20 @@ on that bundle.
     `username` (`relay-username`), because browsers fill fields named `username` next to a password
     field.
   - **Lifetime**: the typed password lives only in the form's local state. It is cleared after a
-    successful save, after a refused save and when the page unmounts. It is never in the query
-    cache, the address, history state or storage (FR-075, constitution V). Responses never carry a
-    password, because the contract marks it `writeOnly`.
+    successful save, after a refused save and when the page unmounts. It is never in a TanStack
+    Query cache, the address, history state or storage (FR-075, constitution V), and no draft of
+    these forms is kept.
+  - **No mutation cache for password writes** (conventions "Secrets in requests or responses"):
+    TanStack's mutation cache keeps a mutation's variables until its `gcTime` ends, so
+    `createRelayhost`, `updateRelayhost`, `createTransport` and `updateTransport`, whose bodies can
+    carry a password, are **not** `useMutation` calls. `routing/api/relayhosts.ts` and
+    `routing/api/transports.ts` export plain async functions that call the generated client
+    directly. The caller writes the response (which never carries a password, because the contract
+    marks it `writeOnly`) into the query cache with `setQueryData` and runs the invalidations of
+    data-model §3 itself, and passes a problem to the same session reaction of `src/app/session/`
+    that UI 001's cache `onError` hooks delegate to (UI 001 R8), so that `401` and `403` behave as
+    for any other request. Writes without a password field (activation from a list, deletions, bulk
+    actions, every other collection) stay ordinary mutations.
 - **Rationale**: This is the conventions' "stored secrets are write-only" rule and API FR-012 to
   FR-014, with the spec's keep, replace and remove made explicit.
 - **Alternatives considered**: A placeholder of dots for a stored password: rejected, because it
@@ -750,7 +765,7 @@ on that bundle.
     become `{0}` and `{1}` in order, as UI 001's import does, and the UI passes list parameters.
   - **Enumerations** follow UI 002 D2 and UI 003 R2:
     - the **open** shared enumerations get API 009's values appended to the coverage manifest
-      (`src/i18n/coverage.json`, or `enum-scope.json` if UI 003's name won): the 21 event types
+      (`src/i18n/coverage.json`, the canonical registry): the 21 event types
       `relayhostCreation` … `forwardingHostDeletion` of `AuditEventType`, the 8 `AuditTarget.type`
       values `relayhost`, `domainRelayhostAssignment`, `mailboxRelayhostAssignment`, `transport`,
       `bccMap`, `recipientMap`, `tlsPolicyMap`, `forwardingHost`, the `ValidationRuleCode` values

@@ -9,7 +9,7 @@ import type { Domain } from '@/api'
 import EditableSection from '@/shared/components/EditableSection.vue'
 
 import { useDomainFormat } from '../../../format'
-import ValueList from '../ValueList.vue'
+import ValueList from '@/shared/components/ValueList.vue'
 
 const props = defineProps<{ domain: Domain }>()
 const format = useDomainFormat()

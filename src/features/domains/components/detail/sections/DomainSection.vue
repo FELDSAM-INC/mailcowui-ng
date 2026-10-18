@@ -37,7 +37,7 @@ import LimitField from '../../fields/LimitField.vue'
 import RelayOptionsField from '../../fields/RelayOptionsField.vue'
 import TagSetInput from '@/shared/components/TagSetInput.vue'
 import SectionProblem from '../SectionProblem.vue'
-import ValueList from '../ValueList.vue'
+import ValueList from '@/shared/components/ValueList.vue'
 
 const props = withDefaults(defineProps<SectionProps & { identity?: Identity | null }>(), {
   editing: false,

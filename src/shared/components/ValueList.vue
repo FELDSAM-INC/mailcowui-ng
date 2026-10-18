@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Read-only values of a section as a description list (FR-029: shown as text, never as disabled
-// inputs).
+// inputs). Promoted from UI 002 at its second use (UI 003's mailbox sections).
 defineProps<{ items: readonly { label: string; value: string; key?: string }[] }>()
 </script>
 

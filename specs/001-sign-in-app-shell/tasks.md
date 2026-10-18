@@ -998,6 +998,8 @@ reload.
   *Status (2026-10-18): open, blocked.* The mailcow-rest-v2 dev stack (`restv2`, port 18080) serves API 001 (`GET /api/v2/public-config` answers), but `GET /api/v2/health/ready` answers 503, which `scripts/smoke/stack-up.sh` waits for, and the harness builds its own stack at `SMOKE_API_REF` rather than touching the developer's. The smoke specs are written (`tests/smoke/*.smoke.spec.ts`: sign-in, navigation, passkeys, pending actions, preferences, API keys, audit log). Run `SMOKE_API_REF=<API commit> scripts/smoke/stack-up.sh && npm run test:smoke` once readiness reports 200, then enable the CI job.
 - [X] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings for the owner's review (plan, owner question 4).
 
+  *Implementation note*: `common.confirm` and `common.loading` were unused and are removed; every other reported key is built dynamically (`apiKeys.columns.*`, `auditLog.filters.ranges.*`, `auth.notice.*`, `preferences.languages.*`, …). The 416 hand-written cs-cz and sk-sk strings are listed for the owner in `specs/001-sign-in-app-shell/translation-review.md`.
+
 ---
 
 ## Dependencies & Execution Order
@@ -1140,8 +1142,6 @@ Edits to the shared files listed under "Files edited by several stories" run one
 
 ## Notes
 
-
-  *Implementation note*: `common.confirm` and `common.loading` were unused and are removed; every other reported key is built dynamically (`apiKeys.columns.*`, `auditLog.filters.ranges.*`, `auth.notice.*`, `preferences.languages.*`, …). The 416 hand-written cs-cz and sk-sk strings are listed for the owner in `specs/001-sign-in-app-shell/translation-review.md`.
 - [P] tasks touch different files and have no dependency on an incomplete task.
 - [USn] labels map tasks to the spec's user stories, and test titles carry the spec IDs for
   traceability.

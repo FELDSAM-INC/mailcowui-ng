@@ -209,9 +209,12 @@ legacy form applies):
    lifetimes from the capabilities read needs new strings next to it, or is dropped.
 6. **OAuth2 client secret**: legacy lists the stored secret as a column (`admin.oauth2_client_secret`)
    and shows it on the edit page (`edit.client_secret`). The app never shows a stored secret
-   (conventions "Secrets"). The column and field are dropped or shown as "set".
-7. **OAuth2 bulk "Generate new client secret"** (`admin.oauth2_renew_secret` quick action): dropped
-   by the spec, replaced by a per-client action with a one-time dialog (FR-062).
+   (conventions "Secrets"). **Decided by the owner (2026-10-18): shown only once**, at creation or
+   renewal, in `OneTimeSecretDialog`. The column and the field are dropped.
+7. **OAuth2 bulk "Generate new client secret"** (`admin.oauth2_renew_secret` quick action):
+   **kept, as in legacy** (orchestrator, 2026-10-18). The API adds the bulk action `renewSecret`
+   (gap G42). The new secrets are shown once, one per client, in `OneTimeSecretDialog`, together
+   with the per-client action (FR-062).
 8. **Redirect URIs** (FR-058, FR-060): legacy has one text field (`admin.oauth2_redirect_uri` in the
    modal, `edit.redirect_uri` on the edit page); the plan has a list of entries with a length meter.
 

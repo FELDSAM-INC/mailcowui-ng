@@ -248,8 +248,8 @@ legacy template → field or element → legacy key, with the messages and place
    text, translated in every language) or the new string "Sign in as". **Until decided**: the new
    string, with the target username as its accessible description.
 4. **Have I Been Pwned check** (`data-hibp`, `footer.hibp_check`, `footer.hibp_ok`,
-   `footer.hibp_nok`) stays dropped: it calls a third-party service from the browser (constitution
-   V and the no-third-party-requests rule). Confirm.
+   `footer.hibp_nok`): **decided by the owner (2026-10-18): kept as in legacy**, reusing UI 003's
+   shared `HibpCheck` on the administrator and domain administrator password fields.
 5. **Creation form extras**: legacy's add modals have no sign-in requirements and no permissions;
    FR-011 adds both (labelled with legacy keys, see above). Confirm as an API-added improvement.
 6. **Field order on the detail screen**: legacy orders username, domains, password, active, then

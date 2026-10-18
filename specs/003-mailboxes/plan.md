@@ -220,9 +220,10 @@ screen of this feature and overrides earlier text in this plan, the spec, resear
      plan uses UI 002's `QuotaField` with a MiB, GiB or TiB select and an "Unlimited" switch (UI 002
      research D12, spec clarification on quotas). This is shared with UI 002 and needs one decision
      for both.
-  4. **haveibeenpwned check** (`footer.hibp_check`, a third-party request from the browser): dropped
-     for privacy and CSP (constitution "no third-party requests"). Keeping it dropped is a
-     deviation from the legacy form.
+  4. **haveibeenpwned check** (`footer.hibp_check`): **decided by the owner (2026-10-18): kept as
+     in legacy** (constitution 1.4.0). This feature creates the shared `HibpCheck` component that
+     `docs/conventions.md` describes, with the CSP `connect-src` entry for
+     `https://api.pwnedpasswords.com`, on the mailbox add and edit password fields.
   5. **Rename alias choice**: legacy offers "Create alias automatically" (`edit.mailbox_rename_alias`,
      checked by default). FR-049 requires an explicit yes or no answer. Mirroring legacy means the
      preselected checkbox.

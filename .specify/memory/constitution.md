@@ -1,5 +1,12 @@
 <!--
-Sync Impact Report
+Sync Impact Report (1.4.0)
+- Version change: 1.3.0 → 1.4.0 (MINOR: a new, owner-approved exception)
+- Modified: I (one request to another origin) and Technology & Architecture Constraints (the
+  haveibeenpwned range query, its CSP `connect-src` entry and its k-anonymity limits).
+- Governance: the owner decisions on haveibeenpwned and on OAuth2 secrets are recorded.
+- Templates: no change. `docs/conventions.md` describes the check and the secret rule.
+
+Sync Impact Report (1.3.0)
 - Version change: 1.2.1 → 1.3.0 (MINOR: materially expanded guidance in principle IV)
 - Modified principles:
   - IV. Internationalisation & Branding (title unchanged): English, Czech and Slovak as the only
@@ -41,7 +48,8 @@ legacy Twig/jQuery UI feature by feature.
   OpenAPI contract. It MUST NOT use legacy `/api/v1`, legacy PHP pages or undocumented
   endpoints. The one exception is mailcow's static language files, `/lang/lang.<code>.json`,
   which the app reads as plain files from the same origin (principle IV). They carry only
-  translations, never data or actions.
+  translations, never data or actions. The haveibeenpwned range query is the only request to
+  another origin (principle V, owner decision of 2026-10-18).
 - The pinned contract version is recorded in the repository. API types and the HTTP client are
   generated from it, and hand-written request or response types for API data are forbidden.
 - Bumping the contract version is a deliberate change: regenerate the client, fix type errors,
@@ -174,7 +182,11 @@ follows are in `docs/conventions.md`, "Translations and forms".
   - Demo-only parts are not copied unless a feature spec needs them: sample pages, brand logos,
     calendar, maps, carousel, date picker and charts. Charts are lazy-loaded on their route.
 - Fonts and icons are self-hosted. The app makes no requests to third-party CDNs, for CSP,
-  privacy (GDPR) and offline installations.
+  privacy (GDPR) and offline installations. The single third-party request is the haveibeenpwned
+  password check that the classic interface also makes. It runs only when the user clicks the
+  check, and it sends only the first five hex characters of the password's SHA-1
+  (`https://api.pwnedpasswords.com/range/<prefix>`). The CSP allows `connect-src` to that origin
+  and to no other.
 - **No server-side rendering and no backend code** in this repository. The build output is
   static files.
 - **Deployment**: the static build is served next to mailcow-rest-v2 on the same origin. That
@@ -226,6 +238,8 @@ follows are in `docs/conventions.md`, "Translations and forms".
   - mailcow's translations one to one, in every language mailcow ships, and forms one to one
     with the classic interface; new strings only where the classic interface has no equivalent,
     in en, cs and sk, never machine-translated (added in 1.3.0).
+  - The classic interface's haveibeenpwned password check is kept. Stored OAuth2 client secrets
+    are shown only once, at creation or renewal (added in 1.4.0).
 - Agent runtime guidance lives in `CLAUDE.md` and MUST NOT contradict this document.
 
-**Version**: 1.3.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18
+**Version**: 1.4.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18

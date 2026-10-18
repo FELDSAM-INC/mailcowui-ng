@@ -154,9 +154,21 @@ it.
   publication).
 - **No confirmation legacy lacks**, except the typed and bulk confirmations above. For example,
   choosing a template overwrites the form's fields without asking, as in legacy.
-- **Two security deviations** wait for the owner: the haveibeenpwned check (a third-party request
-  from the browser) and showing stored OAuth2 client secrets in lists. Until the owner decides,
-  neither is built.
+- **The haveibeenpwned check is kept**, as legacy has it (owner, 2026-10-18), on every password
+  field that has `data-hibp` in legacy. Those are the mailbox, administrator, domain administrator,
+  app password, password change, relayhost and transport forms.
+  - It runs only when the user clicks `footer.hibp_check`.
+  - The browser computes the password's SHA-1 with Web Crypto and sends only its first five hex
+    characters to `https://api.pwnedpasswords.com/range/<prefix>`. It compares the rest locally
+    and shows `footer.hibp_ok` or `footer.hibp_nok`.
+  - The password never leaves the browser.
+  - It is the app's only third-party request. The CSP allows `connect-src
+    https://api.pwnedpasswords.com` for it, and nothing else.
+  - The first feature that needs it (UI 003) creates the shared `HibpCheck` component under
+    `src/shared/components/`, and later features reuse it.
+- **Stored OAuth2 client secrets are never shown again** (owner, 2026-10-18). A secret appears
+  once, in `OneTimeSecretDialog`, when a client is created or its secret is renewed, singly or in
+  bulk. Lists and forms show no secret column or prefilled secret. This deviates from legacy.
 
 ### New strings
 

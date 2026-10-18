@@ -204,7 +204,7 @@ outcome of every follow-up step, at 360 px and at desktop width.
 1. **Given** the Default template, **When** an administrator types `example.org` and goes straight
    to the review, **Then** the review shows the Default template's values. **When** they create the
    domain, **Then** the app opens `example.org` and shows a creation report in which every step
-   succeeded or was not requested.
+   succeeded or is neutral information, such as "not requested" or "not configured".
 2. **Given** a template "Reseller" with 50 mailboxes and a 50 GiB domain quota, **When** the
    administrator selects it and lowers the mailbox limit to 20, **Then** the review shows 20
    mailboxes, 50 GiB and every other value from "Reseller", and the domain is created with exactly
@@ -465,8 +465,9 @@ and check that a domain administrator is never offered it.
   remaining templates will not be processed.
 - **Bulk selection that includes domains with mailboxes or resources**: those are listed as skipped
   in the delete confirmation and never sent.
-- **Bulk selection reaching the bulk limit** that the API reports: further selection is disabled,
-  and a message states the limit.
+- **Bulk selection reaching the bulk limit** that the API reports: "select all" selects the first
+  entries up to the limit and states it; once the limit is reached, further selection is disabled
+  with the same message.
 - **Temporary failure** reported by the API: the app says nothing was changed and offers a retry
   that keeps the input.
 - **Session expiry or sign-out in another tab while a form is open**: handled by UI feature 001.
@@ -621,9 +622,9 @@ and check that a domain administrator is never offered it.
 - **FR-026**: After a successful creation, the app MUST open the new domain's page and show the
   creation report: one line per follow-up step (rate limit, DKIM key, DKIM DNS publication,
   groupware directory update, groupware restart) with its translated outcome. Successful outcomes
-  MUST be marked as done, "not requested", "not configured", "already existed" and "groupware
-  disabled" as neutral information, and failures as warnings that say what the failure means for the
-  domain. The report MUST be announced to screen reader users and stay visible until dismissed or
+  MUST be marked as done, "not requested", "not configured", "already existed", "skipped", "no DNS
+  zone found" and "groupware disabled" as neutral information, and failures as warnings that say what
+  the failure means for the domain. The report MUST be announced to screen reader users and stay visible until dismissed or
   until the user leaves the page.
 - **FR-027**: When the API refuses a creation, the app MUST keep every entered value, show each field
   error next to its field and in an error summary, and show the section that contains the first

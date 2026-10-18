@@ -14,7 +14,7 @@ pin this feature needs, the operations it uses, and how it reacts to their probl
 | Contract version (`info.version`) | `0.1.0` (does not identify a contract, UI 001 R6) |
 | Planning baseline (commit) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
 | Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
-| Operations in the bundle | 376 (this feature uses 16 new ones plus `listAuditEvents`) |
+| Operations in the bundle | 376 (this feature uses 16 new ones, plus UI 001's `listAuditEvents` and `getIdentity`) |
 | API 002 contract unchanged since | `651cef0` ("Move domain capabilities to /capabilities/domains") |
 | Pin at implementation | the release tag, or else the first commit, at which mailcow-rest-v2 feature 002 is implemented and its quickstart Part A passes (research D1) |
 
@@ -33,7 +33,10 @@ npm run typecheck && npm run i18n:check && npm run test:unit && npm run test:e2e
 
 Pins only move forward (`docs/conventions.md`). When `contract/VERSION.json` already pins a later
 commit than the chosen ref, keep it: run the diff against that commit, and confirm that it
-implements feature 002. An empty diff confirms that the plan still matches the contract. A non-empty diff is reviewed
+implements feature 002. The `Domain*` globs also match `DomainAdmin*` and
+`DomainRelayhostAssignment*` (features 007 and 009). Changes to those files are ignored unless
+`Domain.yaml` or another file of this feature starts referencing them. An empty diff confirms that
+the plan still matches the contract. A non-empty diff is reviewed
 against this plan before implementation continues. The bump also brings the shared enumeration
 values and operations of mailcow-rest-v2 features 003 to 013. They are not used, and the
 translation coverage manifest keeps them out of the completeness gate (research D2). It also

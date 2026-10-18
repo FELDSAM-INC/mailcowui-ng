@@ -68,12 +68,17 @@ considered**.
 
   ```json
   {
-    "AuditEventType": ["signIn", "…", "domainCreation", "…"],
-    "AuditTarget.type": ["apiKey", "…", "domain", "domainTemplate", "domainFooter"],
-    "AuditFailureReason": ["…"],
-    "AuthMethod": ["…"],
-    "ValidationRuleCode": ["…"],
-    "problemTypes": ["…"]
+    "partial": {
+      "AuditEventType": ["signIn", "…", "domainCreation", "…"],
+      "AuditTarget.type": ["apiKey", "…", "domain", "domainTemplate", "domainFooter"],
+      "AuditFailureReason": ["…"],
+      "AuthMethod": ["…"],
+      "ValidationRuleCode": ["…"],
+      "problemTypes": ["…"]
+    },
+    "complete": {
+      "bulk.outcome": "#/components/schemas/BulkItemOutcome"
+    }
   }
   ```
 
@@ -82,9 +87,12 @@ considered**.
   - It prints every contract value that is not listed as a warning. At runtime such a value falls
     back to the generic label: `auditLog.unknown`, `problem.status.<status>` then
     `problem.generic`, or `validation.invalid`.
-  - Every other enumeration of R27 rule 3, and every enumeration this feature introduces into the
-    UI (`BulkItemOutcome`, the five `DomainCreationReport` step enumerations, `DomainRateLimit.frame`,
-    `DomainSort`, `DomainTemplateSort`), stays fully required: every value needs a key.
+  - Every other enumeration of R27 rule 3 stays fully required, as in UI 001.
+  - Every enumeration this feature introduces into the UI (`BulkItemOutcome`, the five
+    `DomainCreationReport` step enumerations, `DomainRateLimit.frame`, `DomainSort`,
+    `DomainTemplateSort`) is fully required too. It is registered in `complete` as a key prefix and
+    a JSON pointer into `contract/openapi.json`, by the task that adds its labels, so the gate
+    passes at every checkpoint. This needs no generated array names (data-model §8).
   - The manifest is seeded with the values that existed at UI 001's pin (`293b7c2`), so UI 001's
     coverage is unchanged, plus the values of [data-model.md §8](./data-model.md#8-translations).
     Each later UI feature appends the values it translates.
@@ -241,7 +249,7 @@ considered**.
     From `md` up, the visible sortable columns also sort from their headers, with `aria-sort`.
   - **Result count**: announced politely after a search or filter change (FR-073).
   - **Pagination**: UI 001's `PaginationBar`. If it lacks first and last page actions or the
-    "page n of m" text that FR-005 requires, US1 extends it.
+    "page n of m" text that FR-005 requires, Phase 2 (T029) extends it.
 - **Rationale**: FR-005 to FR-014, with every filter and sort key mapped one to one to the
   contract's `listDomains` parameters.
 
@@ -362,7 +370,7 @@ considered**.
 
   It also exports `relayBadge(domain)`, which returns `relayUnknownOnly`, `relayAllRecipients`,
   `relay` or `null` for the list badge (FR-006). `RelayOptionsField.vue` announces each automatic
-  change politely and shows the legacy explanations (D20).
+  change politely and shows the legacy explanations (D27).
 - **Rationale**: FR-033 and API 002 FR-021. The API normalises the same way, so the saved values
   always equal what the form showed.
 
@@ -526,7 +534,9 @@ considered**.
   `onBeforeRouteLeave`, `onBeforeRouteUpdate` (only when the path changes, so `edit` and `step`
   changes are handled by the page) and a `beforeunload` listener while `shouldGuard` is true. It
   asks through `useConfirm`. It is used by the create pages, open sections, the footer editor and
-  running bulk actions (FR-028, FR-038, FR-048, FR-062).
+  running bulk actions (FR-028, FR-038, FR-048, FR-062). Closing a section by removing `edit` is a
+  query-only change, so the domain and template pages ask before it themselves when the section has
+  unsaved changes.
 - **Rationale**: Five uses in this feature (constitution VIII). UI 001's `ApiKeyCreatePage` keeps
   its own single-use guard.
 
@@ -544,8 +554,8 @@ considered**.
       search, filters, sort or page size change.
     - `useBulkSelection` takes `capabilities.bulkLimit`. Once the selection reaches it, further
       selection is disabled, with a message that states the limit (conventions "Shared building
-      blocks and canonical names"). "Select all on this page" is disabled with the same message
-      when the page holds more entries than the remaining capacity.
+      blocks and canonical names"). "Select all" selects the visible entries up to the limit (the
+      first N) and states the limit.
   - **Request**: one `applyDomainBulkAction` with `targets` built by `toBulkTargets()` in
     `src/features/domains/bulk.ts`: `{ id: name, version }`, where `version` is the list entry's
     `etag` without its surrounding quotes, as `BulkTarget.version` requires. Domains with mailboxes

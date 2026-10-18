@@ -111,8 +111,10 @@ The order is `rateLimit`, `dkimKey`, `dkimDnsPublication`, `groupwareDirectoryUp
 - **State**: `{ active: boolean; ids: Set<string>; limit: number | null }`, with the derived
   `atLimit` (the selection has reached `limit`, the bulk limit from the capabilities).
 - **Methods**: `toggle(id)`, `selectPage(ids)`, `clear()`, `keep(ids)` (keeps failed, refused and
-  outdated after a run). At the limit, `toggle` of an unselected ID and `selectPage` beyond the
-  remaining capacity are refused, and the UI states the limit (`bulk.limitReached`).
+  outdated after a run). `selectPage(ids)` selects the visible IDs in order up to the limit (the
+  first N) and states the limit when it cut the selection short. At the limit, `toggle` of an
+  unselected ID is refused, further selection is disabled, and the UI states the limit with the same
+  message (`bulk.limitReached`).
 - **Reset**: cleared by `useListState`'s `onReset`.
 
 ### OutdatedDiff (extension of `src/shared/composables/useVersionedSave.ts`)
@@ -248,6 +250,13 @@ Rules:
 - `step=<1–5>` on `domain-create` is used below `md`. A value above 1 without entered values is
   normalised to 1.
 - The catalogue gains the row `domainTemplates` after `domains` (D5).
+- Removing `edit` from the address while the open section has unsaved changes asks first (FR-038),
+  in the page's own `onBeforeRouteUpdate`, because `useLeaveGuard` ignores query-only changes.
+- The create page shows a loading state until the templates and capabilities are loaded, and an
+  error state with retry when either fails. The template page has the loading, not-found and error
+  states of the domain page. Tag suggestions show "loading" and "suggestions unavailable" in their
+  list, and typing a tag keeps working.
+- A relayhost whose `hostname` is `null` is shown as "relayhost #<id> (no longer exists)".
 
 ### Address parameters of the lists
 
@@ -340,7 +349,7 @@ view ─Edit─► editing ─Save (client rules pass)─► saving ─200─►
                                                             ├─422─► editing (field errors, summary focused)
                                                             ├─403 attribute-not-permitted─► editing (fields read-only, identity refetched)
                                                             ├─404─► "no longer available", link to the list
-                                                            └─503/network─► editing ("nothing was changed", retry)
+                                                            └─500/network─► editing ("nothing was saved", retry)
 ```
 
 ### Delete one domain (`useDomainDeletion`)
@@ -420,12 +429,17 @@ The new namespaces, all in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with le
 | `domains.footer.html`, `domains.footer.plain` | `edit.domain_footer_html`, `edit.domain_footer_plain` |
 | `domains.footer.skipReplies`, `domains.footer.exclude` | `edit.domain_footer_skip_replies`, `edit.footer_exclude` |
 | `domains.bulk.activate`, `domains.bulk.deactivate`, `domains.bulk.delete` | `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove` |
-| `domains.report.dkimAlreadyExisted` | `success.domain_add_dkim_available` |
+| `domains.report.dkimKey.alreadyExisted` | `success.domain_add_dkim_available` |
+| `domains.create.exists` (on the name field, `{0}` = the entered name) | `danger.domain_exists` |
+| `domains.create.success` (`{0}` = the readable name) | `success.domain_added` |
+| `domains.report.groupwareRestart.failed` | `warning.domain_added_sogo_failed` |
+| `domains.delete.notEmpty` (`{0}` = the readable name, followed by the counts) | `danger.domain_not_empty` |
 
 `sk-sk` lacks `mailbox.relay_unknown`, `edit.domain_footer_skip_replies` and `edit.footer_exclude`,
 so those Slovak values are written in `src/i18n/messages/sk-sk.json`. The MiB-only labels
 `edit.max_quota`, `add.mailbox_quota_m` and `add.domain_quota_m` are not reused, because the unit
-is now chosen (new keys `domains.fields.maxMailboxQuota`, `domains.fields.domainQuota`).
+is now chosen (new key `domains.fields.maxMailboxQuota`). `domains.fields.domainQuota` reuses
+`edit.domain_quota`, whose label has no unit.
 
 **Coverage manifest additions** (`src/i18n/coverage.json`, D2):
 
@@ -446,12 +460,19 @@ The manifest also holds UI 001's values as of its pin `293b7c2`:
 - the 4 target types `apiKey`, `passkey`, `preferences` and `session`;
 - the 20 problem types of API 001.
 
-**Fully required enumerations** (every value needs a key):
+**Fully required enumerations**: every value needs a key. They are registered in the `complete`
+object of `src/i18n/coverage.json`, a key prefix mapped to a JSON pointer into
+`contract/openapi.json`, by the task that adds their labels:
 
-- `BulkItemOutcome`;
-- the five step enumerations of `DomainCreationReport`;
-- `DomainRateLimit.frame`;
-- `DomainSort` and `DomainTemplateSort`, as sort labels.
+| Key prefix | JSON pointer |
+|---|---|
+| `bulk.outcome` | `#/components/schemas/BulkItemOutcome` |
+| `domains.rateLimit.frame` | `#/components/schemas/DomainRateLimit/properties/frame` |
+| `domains.sort` | `#/components/parameters/DomainSort/schema` |
+| `domainTemplates.sort` | `#/components/parameters/DomainTemplateSort/schema` |
+| `domains.report.<step>`, for the five steps | `#/components/schemas/DomainCreationReport/properties/<step>` |
+
+The growing shared enumerations are listed in the `partial` object.
 
 **Validation formats added**: `validation.format.domainName`, `validation.format.dkimSelector`
 and `validation.format.email`.

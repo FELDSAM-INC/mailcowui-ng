@@ -75,8 +75,8 @@ address (conventions). The creation report goes through the query cache (D7).
   additions to `tests/e2e/audit-log/`, against the production build with the production CSP.
 - Every test runs `expectAccessible` in both themes and asserts zero CSP and mock contract
   violations (UI 001 R24).
-- The smoke project gains `tests/smoke/domains.smoke.spec.ts` and
-  `tests/smoke/domain-templates.smoke.spec.ts`.
+- The smoke project gains one spec per story: `tests/smoke/domains-*.smoke.spec.ts` (seven) and
+  `tests/smoke/domain-templates.smoke.spec.ts` (research D29).
 
 **Target Platform**: as UI 001: the two latest major versions of evergreen browsers, including iOS
 Safari and Chrome for Android.

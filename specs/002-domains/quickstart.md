@@ -80,7 +80,8 @@ scripts/smoke/stack-down.sh
 - the blocked deletion of `example.org`;
 - the typed-name deletion of the smoke domain;
 - the domain administrator's two domains and editable Global Address List flag;
-- template create, edit and delete, with Default protected.
+- template create, edit and delete, with Default protected;
+- a smoke domain's history listing its creation and edit.
 
 No smoke domain or template is left behind.
 

@@ -12,17 +12,19 @@ client generation are unchanged from [UI 001](../../001-sign-in-app-shell/contra
 | API repository | `FELDSAM-INC/mailcow-rest-v2` |
 | API feature | 004: aliases, alias domains, resources and sender permissions |
 | Contract version (`info.version`) | `0.1.0` (does not identify a contract, see UI 001 research R6) |
-| Pinned commit (authoritative) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
-| Why this commit | It is the first commit with both the complete, analysed feature 004 contract (`df21611`, `18431ab`) and `KnownProblemType` under `components.schemas`, which closes UI 001's API gap 5. It contains the API 002 and API 003 contracts that UI 002 and UI 003 use. |
+| Planning baseline | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components"), the baseline UI 002 and UI 003 also plan against |
+| Why this commit | It has the complete, analysed feature 004 contract (`df21611`, `18431ab`), the API 002 and API 003 contracts, and `KnownProblemType` under `components.schemas` |
+| Implementation pin (authoritative once set) | the mailcow-rest-v2 release tag, or merge commit, that ships the API 004 implementation, written to `contract/VERSION.json` by T001 (research R1) |
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` (single file, not dereferenced) |
 | Bundle sha256 | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` (computed while planning) |
 | Operations in the bundle | 376 |
 | Problem types named in the bundle | 86 |
 
-The bump task (T001 in [tasks.md](../tasks.md)) runs `scripts/contract/bump.sh` against exactly this
-commit. If `contract/VERSION.json` already pins a later commit (set by UI 002 or UI 003), the newer
-pin is kept. That requires the feature 004 files below to be unchanged between `3207925` and the
-pinned commit (research R1). The pin never goes backwards.
+The bump task (T001 in [tasks.md](../tasks.md)) runs `scripts/contract/bump.sh` against the release
+tag or merge commit of the API 004 implementation. Before accepting it, T001 reads
+`git diff 3207925..<ref>` for the feature 004 files below. Any change is reviewed against this plan
+before implementation continues (constitution I). If the pin left by UI 002 or UI 003 already
+contains the API 004 implementation, it is kept. The pin never goes backwards.
 
 ### Feature 004 contract files
 

@@ -15,8 +15,9 @@ This guide proves the feature works. It relies on UI 001's setup and gates
 
 - UI 001, UI 002 and UI 003 are implemented. The dependency test
   `tests/unit/dependencies/feature-004-dependencies.spec.ts` passes (research R2).
-- `contract/VERSION.json` pins `32079252d55797d3da4e58ae661e9fb91c51c6f9`, or a later commit with
-  unchanged feature 004 files (research R1).
+- mailcow-rest-v2 feature 004 is implemented. `contract/VERSION.json` pins the commit or tag that
+  ships it, and its feature 004 contract files match the planning baseline `3207925` or were
+  reviewed (research R1).
 - To refresh the reused legacy translations: a mailcow-dockerized checkout with the upstream tags at
   `$MAILCOW_REPO` (default `../mailhosting`).
 
@@ -25,8 +26,8 @@ This guide proves the feature works. It relies on UI 001's setup and gates
 The commands are UI 001's (Part A there). What this feature adds:
 
 ```bash
-npm run contract:check   # pin 3207925 (or later); knownProblemTypeValues generated
-npm run i18n:check       # en-gb, cs-cz, sk-sk complete, including every enum value new at the pin
+npm run contract:check   # pin = API 004 implementation commit or tag (R1)
+npm run i18n:check       # en-gb, cs-cz, sk-sk complete; 004 values in the scope manifest; closed enums
 npm run test:unit        # + dependencies, mock handlers, entry lists, sequential creation, drafts,
                          #   patch builders, address preview, send-as model, permission matrix
 npm run build && npm run budget:check   # initial JS still ≤ 200 KB gzipped; 10 new lazy chunks
@@ -52,12 +53,13 @@ MAILCOW_REPO=../mailhosting node scripts/i18n/import-legacy.mjs --ref 2026-09a
 npm run i18n:check
 ```
 
-The `legacy-map.json` entries of this feature use three object forms (research R20):
+The `legacy-map.json` entries of this feature use these forms (research R20):
 
-- `{ "from": "edit.sender_acl_disabled", "markup": "plain" }`: markup is converted to plain text.
-- `{ "from": "mailbox.domain_aliases", "locales": ["cs-cz", "sk-sk"] }`: the English text comes
-  from the app layer.
-- A plain string, as before.
+- `{ "from": "edit.sender_acl_disabled", "stripMarkup": true }`: UI 002's option, which converts
+  markup to plain text.
+- `{ "from": "mailbox.domain_aliases", "locales": ["cs-cz", "sk-sk"] }`: added here. The English
+  text comes from the app layer.
+- A plain string, as before. `%s` and `%d` become `{0}`, `{1}` and so on, in order.
 
 ## Part B: Manual checks per user story (mock API)
 

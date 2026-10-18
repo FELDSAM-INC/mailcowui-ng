@@ -19,85 +19,100 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
 
 ### R1. Contract pin
 
-- **Decision**: Pin mailcow-rest-v2 commit **`32079252d55797d3da4e58ae661e9fb91c51c6f9`** ("Register
-  KnownProblemType in contract components").
-  - It is the first commit that contains both:
-    - the complete feature 004 contract, authored in `df21611` ("Plan feature 004") and analysed in
-      `18431ab`;
-    - `KnownProblemType` under `components.schemas`.
-  - Its `api/` tree equals HEAD at planning time (`78093bd` changed no contract file).
-  - Bundled with `@redocly/cli@2.64.1`:
-    - sha256 `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6`;
-    - 376 operations, including all 23 of feature 004;
-    - 86 named problem types;
-    - `KnownProblemType` present.
-  - The contracts of API 002 and 003, which UI 002 and UI 003 need, are in it.
-  - **Rule for the bump task**: `contract/VERSION.json` may already pin a later commit, from UI 002
-    or UI 003. Then the newer pin stays, after `git diff 3207925 <pinned> -- api/modules/aliases
-    api/modules/alias-domains api/modules/resources api/modules/sender-settings` and the 004
-    components of [contracts/README.md](./contracts/README.md) show no change. If they changed, this
-    plan is revisited before Phase 3. The pin never goes backwards.
-  - **Consequences of the bump**, all handled in Phase 1:
-    - `knownProblemTypeValues` is now generated. UI 001's translation check (R27, rule 3) already
-      uses it "once a pin contains it", so UI 001's API gap 5 is closed.
-    - Every enumeration value new at this pin needs a translation key, because `i18n:check` requires
-      one per value. That includes values of later API features, such as event types of features
-      005–013. The same task that bumps adds them, with real labels, in all three locales.
-    - Type errors in existing code are fixed in the bump task, without behaviour changes
-      (constitution I: "regenerate the client, fix type errors, run all tests").
+- **Decision**:
+  - **Planning baseline**: mailcow-rest-v2 commit **`32079252d55797d3da4e58ae661e9fb91c51c6f9`**
+    ("Register KnownProblemType in contract components"). UI 002 and UI 003 plan against the same
+    baseline (UI 002 D1, UI 003 R1).
+    - It contains the complete feature 004 contract, authored in `df21611` ("Plan feature 004") and
+      analysed in `18431ab`.
+    - Its `api/` tree equals HEAD at planning time.
+    - Bundled with `@redocly/cli@2.64.1`, it has:
+      - sha256 `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6`;
+      - 376 operations, including all 23 of feature 004;
+      - 86 named problem types;
+      - `KnownProblemType` under `components.schemas`.
+  - **Implementation prerequisites**:
+    - UI 001, UI 002 and UI 003 are implemented and their gates pass.
+    - mailcow-rest-v2 feature 004 is implemented: its `tasks.md` is complete and its quickstart
+      Part A passes.
+  - **Implementation pin**, set by T001 with `scripts/contract/bump.sh <ref>`, in this order:
+    1. the mailcow-rest-v2 release tag that ships the feature 004 implementation, if one exists;
+    2. otherwise the commit that merges the API 004 implementation, so that the smoke suite, which
+       checks out the pinned commit (001 R25), runs an API that implements feature 004;
+    3. never "the latest commit" without that check, and never a commit older than the pin UI 002
+       or UI 003 left. The pin never goes backwards.
+  - **Review step of the bump**: `git diff 3207925..<ref>` in mailcow-rest-v2 is read for the
+    feature 004 files listed in [contracts/README.md](./contracts/README.md). Any change is a plan
+    change, reviewed before Phase 3, never a silent fix (constitution I).
+  - **What earlier bumps already settled**: UI 002 and UI 003 bump to pins past the baseline.
+    - `knownProblemTypeValues` is generated, which closes UI 001's API gap 5.
+    - `i18n:check` rule 3 is scoped to the values each feature translates, through a committed
+      manifest (UI 002 D2: `src/i18n/coverage.json`; UI 003 R2 calls it `enum-scope.json`).
+    - This feature appends its own values (data-model §8) and does not translate the values of
+      later features.
+  - Type errors in existing code after the bump are fixed in the bump task, without behaviour
+    changes (constitution I: "regenerate the client, fix type errors, run all tests").
 - **Rationale**: The commit SHA is the only reliable identifier, because `info.version` stays
   `0.1.0` while later features merge into the same tree (001 R6). No commit holds features 001–004
-  without later ones, because the API planned its features interleaved. Taking the commit that
-  closes UI 001's gap 5 removes the last hand-maintained problem-type list risk.
+  without later ones, because the API planned its features interleaved. Pinning the implementation
+  commit gives the smoke suite a server that matches the contract, as UI 002 and UI 003 decided.
 - **Alternatives considered**:
-  - `18431ab` ("Record 004 analysis"): the same 004 contract, but `KnownProblemType` still missing
-    from the bundle.
-  - Waiting for a release tag: mailcow-rest-v2 publishes none yet. A tag can replace the SHA in a
-    later bump without changing this plan.
+  - Pinning the baseline itself: rejected. Its API repository has no feature 004 implementation, so
+    the smoke suite could not run.
+  - Waiting for a release tag: mailcow-rest-v2 publishes none yet. A tag replaces the SHA without
+    changing this plan.
 
 ### R2. Building blocks expected from UI 001, UI 002 and UI 003
 
-- **Decision**: UI 004 is implemented after UI 001–003 and after the API 004 contract. It relies on
-  these blocks. "Reserved" means that 001 R20 fixed the location and behaviour. The others are the
-  locations this plan reserves, because UI 002 and UI 003 are specified but not yet planned.
+- **Decision**: UI 004 is implemented after UI 001–003 and after API 004. The names below come from
+  the UI 002 and UI 003 plans (UI 002 research D2–D30, UI 003 research R2–R20), which were written
+  in parallel with this one. "Reserved" means that 001 R20 fixed the location.
 
-  | ID | Block | Expected location | From | What UI 004 relies on |
+  | ID | Block | Location | From | What UI 004 relies on, and what T008 adds if it is missing |
   |---|---|---|---|---|
-  | D1 | `useListState` (repeatable parameters, `onReset`) | `src/shared/composables/useListState.ts` | 001 | address-backed list state (001 R20) |
-  | D2 | `useBulkSelection` | `src/shared/composables/useBulkSelection.ts` | 002, reserved | current page only; a `limit` option; cleared with an announcement through `onReset`; `targets()` returns `{ id, version }`; `retain(results, keep)` with a caller-supplied predicate |
-  | D3 | `BulkActionBar.vue` | `src/shared/components/BulkActionBar.vue` | 002 (FR-045) | explicit "Select" and "Done" controls, "Select all" for the page, a count, and actions in a bar that stays visible |
-  | D4 | `BulkResultSummary.vue` with an item slot | `src/shared/components/BulkResultSummary.vue` | 002, reserved | counts per `BulkItemOutcome`; one row per item with the translated reason; a `#item` slot for extra content (the copies of R12); a refresh offer when an item is `outdated`; the "outcome unknown" state |
-  | D5 | `ConfirmDialog` with `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue`, `useConfirm.ts` | 001 + 002, reserved | typed confirmation of a count, a list of objects, focus starting on Cancel |
-  | D6 | `EditableSection.vue` and the field diff of `useVersionedSave` | `src/shared/components/EditableSection.vue`, `src/shared/composables/useVersionedSave.ts` | 002, reserved | per-section edit and save; full screen below 768 px, in place above; changed values marked after a 412; the unsaved-changes guard |
-  | D7 | `HistoryLink.vue` and the audit log target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | 002, reserved | `/audit-log?targetType=…&targetId=…` |
-  | D8 | `ActiveFilterChips.vue` in shared | `src/shared/components/ActiveFilterChips.vue` | 002, or promoted here from `features/audit-log` | removable chips and "Clear all" |
-  | D9 | `SearchField.vue` | `src/shared/components/SearchField.vue` | 002 | submit or a 500 ms pause; the result count announced |
-  | D10 | `IdnText.vue` | `src/shared/components/IdnText.vue` | 002 (readable name with ASCII below) | primary readable text, and the secondary ASCII text only when it differs |
-  | D11 | `utf8ByteLength()` | `src/shared/validation/utf8.ts` | 002 (footer size) | comment byte limits |
-  | D12 | Problem extension members | `src/api/problem.ts` (`ApiProblem.extensions`) | 002/003 (`domain-not-empty`, `address-in-use`) | `holder`, `count`, `limit`, `requested`, `existingKind`, `attributes`, `requiredFlags` |
-  | D13 | Identity refresh on `permission-flag-required` and `attribute-not-permitted` | `src/api/query/client.ts` | 002/003 | FR-004 |
-  | D14 | `isEntryAvailable(id)` | `src/app/navigation/visibility.ts` | 003 (FR-040 links) | links into other features' screens only once they exist |
-  | D15 | Domain detail route `domain-detail`, `/domains/:domain` | `src/features/domains/routes.ts` | 002 | links from aliases and alias domains |
-  | D16 | Mailbox detail route `mailbox-detail`, `/mailboxes/:mailbox`, with a designated action area | `src/features/mailboxes/pages/MailboxDetailPage.vue` | 003 (FR-016 section list) | the "Send as" entry (R4) |
-  | D17 | `DomainPicker.vue` with sources and a disabled reason | `src/shared/components/DomainPicker.vue` | 003 (FR-020) | server-searched domains (and, for one filter, alias domains), relay domains shown but disabled with a reason, load more |
-  | D18 | Mock state, handlers and factories for domains and mailboxes | `tests/mocks/handlers/{domains,mailboxes}.ts`, `tests/mocks/factories/{domain,mailbox}.ts` | 002, 003 | the 004 mock rules read domains (alias limits, relay state) and mailboxes (holders, sender settings) |
+  | D1 | `useListState` (repeatable parameters, `onReset`) | `src/shared/composables/useListState.ts` | 001 | address-backed list state |
+  | D2 | `useBulkSelection` | `src/shared/composables/useBulkSelection.ts` | 002 D22, reserved | `{ active, ids }`, `toggle`, `selectPage`, `clear`, `keep(ids)`, cleared through `onReset`. **Adds if missing**: a `limit` option where `selectPage` selects the first `limit` ids and reports that it capped, and `toggle` refuses beyond `limit` (FR-060). UI 003 R12 disables "Select all" instead, and UI 004's spec asks for a capped selection. |
+  | D3 | `BulkActionBar.vue` | `src/shared/components/` | 002 D22 | "Select", count, actions and Cancel in a bar fixed at the bottom on phones |
+  | D4 | `BulkResultSummary.vue` | `src/shared/components/` | 002 D22, reserved | rows `{ id, label, outcome, problem }`, counts announced, the `unknown` outcome. **Adds if missing**: a scoped `#item` slot for per-item extra content (the copies of R12) and a "Refresh the list" action when a row is `outdated` (FR-059). |
+  | D5 | `ConfirmDialog` with `requireTyped` and content | `src/shared/components/ConfirmDialog.vue`, `useConfirm.ts` | 001 + 002, reserved | the typed count, a list of objects, focus starting on Cancel |
+  | D6 | `EditableSection.vue` and `changedSince()` of `useVersionedSave` | `src/shared/components/`, `src/shared/composables/` | 002 D11, reserved | per-section editing driven by the `edit` query parameter, one section at a time, full screen below `md`; "Save again" and "Discard my changes" after a 412 |
+  | D7 | `HistoryLink.vue` and the audit log target filters | `src/shared/components/`, `src/features/audit-log/list-state.ts` | 002 D26, reserved | `/audit-log?targetType=…&targetId=…` |
+  | D8 | `ActiveFilterChips.vue` | `src/shared/components/` | promoted by 003 (its T011) | removable chips and "Clear all" |
+  | D9 | Leave guard | `src/shared/composables/useLeaveGuard.ts` (UI 003 R4 names it `useUnsavedChangesGuard.ts`) | 002 D21 | asks through `useConfirm` before route changes and on `beforeunload` while dirty (FR-025) |
+  | D10 | `NotFoundState.vue` | `src/shared/components/` | 003 R4 | the in-place "not found" state with a link back (FR-003) |
+  | D11 | `DomainPicker.vue` | `@/features/mailboxes` (UI 003 R4: "UI 004 promotes it") | 003 | **Promoted here** to `src/shared/components/DomainPicker.vue`, with props for the sources (domains, alias domains) and a `disabledReason(item)` callback for relay domains. UI 003's imports are updated. |
+  | D12 | `DomainNameText.vue` | `src/features/domains/components/list/` | 002 | **Promoted here** to `src/shared/components/DomainNameText.vue`, for alias domain names and addresses: the readable text, plus the ASCII text when it differs |
+  | D13 | `DkimFields.vue`, `RateLimitField.vue`, `CreationReport.vue` | `src/features/domains/components/{fields,detail}/` | 002 D16, D19 | **Promoted here** to `src/shared/components/`, prop-driven: key sizes, the default selector and the frames as props, and report lines as a prop with a per-line `#repeat` slot. The parent owns the values, so UI 004 can pre-fill the selector (R13). UI 002's imports are updated, and its tests stay green. |
+  | D14 | Problem extension members | `src/api/problem.ts` | 002 D25, 003 R17 | `holder`, `count`, `limit`, `requested`, `existingKind`, `attributes`, `requiredFlags` are readable on `ApiProblem` |
+  | D15 | Identity refresh on `attribute-not-permitted` and `permission-flag-required` | `src/api/query/client.ts` | 002 D11 and 003 R6 refresh in their features | **Adds if missing**: the global reaction for both types, next to UI 001's `forbidden` (FR-004) |
+  | D16 | `isEntryAvailable(id)` | `src/app/navigation/visibility.ts` | 003 R19 (FR-040 links) | **Adds if missing**: `true` when the catalogue entry is `available` and accessible |
+  | D17 | Domain detail route `domain-detail`, `/domains/:domain` (ASCII name) | `src/features/domains/routes.ts` | 002 D4 | links from aliases and alias domains |
+  | D18 | Mailbox detail layout `mailbox-detail`, `/mailboxes/:address([^/]+@[^/]+)`, with child routes, and the designated action area `MailboxSectionNav.vue` | `src/features/mailboxes/` | 003 R5, R19 | "Send as" becomes a child route and a `MailboxSectionNav` entry (R4) |
+  | D19 | Enumeration scope manifest and `stripMarkup` | `src/i18n/coverage.json` (`enum-scope.json` in UI 003), `scripts/i18n/` | 002 D2, D27; 003 R2 | this feature appends its values and uses `{ "from": …, "stripMarkup": true }` (R20) |
+  | D20 | Mock state, handlers and factories for domains and mailboxes | `tests/mocks/handlers/{domains,mailboxes}.ts`, `tests/mocks/factories/{domain,mailbox}.ts`, `tests/mocks/scenarios/state.ts` | 002 D28, 003 R20 | the 004 rules read domains (alias limits, relay state) and mailboxes (holders, sender settings) |
 
+  New shared blocks of this feature, each with at least two uses here (R3):
+  - `SearchField.vue`, unless UI 002 or UI 003 created one;
+  - `utf8ByteLength()` in `src/shared/validation/utf8.ts`, unless UI 002's footer created one;
+  - `parseEntryList()`, `EntryListField.vue`, `useSequentialCreate()` and `useFormDraft()`.
 - **Verification**: Phase 2 starts with `tests/unit/dependencies/feature-004-dependencies.spec.ts`,
   which imports each block and checks the behaviour above. This is the UI counterpart of the API's
   `Feature004DependenciesTest`. The task after it fills every gap:
-  - a missing block is built at the location above, where it then has its second use (VIII);
+  - a missing block is built at the location above;
   - a block kept in its first feature folder is promoted to `src/shared/`, and the first feature's
     imports are updated;
   - a block lacking a capability above is extended without changing its existing behaviour.
 
-  If UI 002 or UI 003 delivered a block under another name or path, the references in this plan,
+  If UI 002 or UI 003 changed a name or path before implementation, the references in this plan,
   research and tasks are updated instead of creating a second copy.
-- **Rationale**: UI 001 reserved locations so that each feature adds rather than reinvents. A test
-  makes the reliance explicit and keeps the stories independent of how 002 and 003 were staffed.
+- **Rationale**: UI 001 reserved locations, and UI 002 and UI 003 named the rest, so that each feature
+  adds rather than reinvents. A test makes the reliance explicit. Promoting at the second use follows
+  constitution VIII and the pattern UI 002 D3 set ("UI 003 promotes QuotaField and TagSetInput").
 - **Alternatives considered**:
-  - Building 004's own copies of the blocks: rejected by VIII and the conventions.
-  - Waiting for the UI 002 and UI 003 plans: rejected, because the order of planning is the
-    owner's choice and the reservations already fix the contract between features.
+  - Building 004's own copies of the DKIM, rate limit, report and domain picker components:
+    rejected by VIII and the conventions.
+  - Leaving UI 002's DKIM fields unchanged and adding a pre-fill mode inside them: rejected. A
+    prop-driven field whose parent owns the value serves both features with less code.
 
 ### R3. Feature areas and module boundaries
 
@@ -123,7 +138,11 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       external sender addresses;
     - `src/shared/components/EntryListField.vue`: the same four fields;
     - `src/shared/composables/useSequentialCreate.ts`: aliases and alias domains;
-    - `src/shared/composables/useFormDraft.ts`: every form of this feature.
+    - `src/shared/composables/useFormDraft.ts`: every form of this feature;
+    - `src/shared/components/SearchField.vue` and `src/shared/validation/utf8.ts`, unless UI 002 or
+      UI 003 already created them (R2).
+  - Promoted from earlier features at their second use (R2): `DomainPicker`, `DomainNameText`,
+    `DkimFields`, `RateLimitField` and `CreationReport`.
 - **Rationale**:
   - One area per screen family matches UI 001's "one directory per user-facing area" and the three
     navigation entries.
@@ -144,7 +163,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
 
 - **Decision**:
   - **Catalogue**: UI 001's single row `aliases` ("Aliases, alias domains and resources", deliveredBy
-    004) becomes three consecutive rows after `mailboxes`:
+    004) becomes three consecutive rows in its place. After UI 003, that is after `mailboxTemplates`
+    (UI 003 data-model §5):
 
     | id | path | admin | domainAdmin | mailboxUser | by |
     |---|---|---|---|---|---|
@@ -163,25 +183,32 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **Routes** (full map in data-model §5): `aliases`, `alias-create`, `alias-detail`,
     `alias-domains`, `alias-domain-create`, `alias-domain-detail`, `resources`, `resource-create`,
     `resource-detail` and `mailbox-send-as`.
-    - Creation routes use the static segment `new`.
     - An alias is addressed by its numeric `id`, and a resource by its address (`@` required in the
-      parameter pattern), so neither can collide with `new`.
-    - An alias domain literally named `new` is a legal single-label name. In-app links open it by
-      route name, but a reload of its address opens the creation form. This is accepted as
-      implausible, and UI 002's `/domains/new` has the same property.
-  - **"Send as"** is `/mailboxes/:mailbox/send-as` (`mailbox-send-as`). It has `meta.navEntry:
-    'mailboxes'`, so the mailbox catalogue row decides access. The static segment ranks above any
-    `/mailboxes/:mailbox/:section` route of UI 003.
-  - **Entry point into UI 003**: `sender-settings` exports `SendAsEntry.vue`. UI 003's mailbox
-    detail renders it in its designated action area (D16), for administrators and for domain
-    administrators, who only ever reach mailboxes in their scope. Resources are not mailboxes in the
-    app, so FR-048's "not for resources" holds by construction and is asserted in a test.
+      parameter pattern), so `/aliases/new` and `/resources/new` cannot collide.
+    - Alias domains are domain names, and single-label names such as `new` are legal. Their creation
+      route is therefore `/alias-domains/-/new`, following UI 002 D4's `/-/` separator: a domain label
+      cannot start with `-`.
+    - Every link uses the ASCII name. A typed Unicode or upper-case address is replaced by the
+      canonical ASCII address once the alias domain is loaded (UI 002 D4).
+    - Section editing uses the `edit=<section>` query parameter, as UI 002 D4 does (R10).
+  - **"Send as"** is a child route `send-as` of UI 003's `mailbox-detail` layout
+    (`/mailboxes/:address/send-as`, name `mailbox-send-as`, D18).
+    - The `mailboxes` catalogue row decides access.
+    - On wide screens, UI 003's section navigation stays visible next to it.
+    - The route record is exported by `src/features/sender-settings/index.ts` and listed among the
+      layout's children in `src/features/mailboxes/routes.ts`.
+    - `sender-settings` never imports `mailboxes`, so there is no cycle.
+  - **Entry point into UI 003**: `MailboxSectionNav.vue`, UI 003's designated action area for UI 004
+    (UI 003 R19), gains a "Send as" entry that links to `mailbox-send-as`. It is shown to
+    administrators and domain administrators, who only ever reach mailboxes in their scope.
+    Resources are not mailboxes in the app, so FR-048's "not for resources" holds by construction,
+    and a test asserts it.
   - **Links into other features**:
     - to UI 002 domain screens, from aliases and alias domains;
     - to the rate limit screen of UI 006, from the alias domain detail;
     - to the DKIM keys screen of UI 010, from the creation report.
 
-    Each link is rendered only when `isEntryAvailable(id)` holds (D14), otherwise the text is shown
+    Each link is rendered only when `isEntryAvailable(id)` holds (D16), otherwise the text is shown
     without a link (conventions "Where features meet"). An orphaned alias's domain is never linked.
 - **Rationale**: Separate addresses make filtered views restorable and shareable (spec
   clarification). Route names decouple the areas. The catalogue keeps its single-source role.
@@ -258,7 +285,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     FR-052).
   - **Reaction to refusals** (FR-004):
     - `forbidden`: UI 001 already refreshes the identity.
-    - `permission-flag-required` and `attribute-not-permitted`: they also refresh it (D13), so the
+    - `permission-flag-required` and `attribute-not-permitted`: they also refresh it (D15), so the
       controls update.
     - The message names the flag from `requiredFlags`, translated with the same legacy labels.
 - **Rationale**: One pure module makes SC-007 testable as a table and keeps templates free of role
@@ -281,7 +308,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     - Booleans are `true` or `false`, or absent.
     - Defaults are omitted from the address.
     - The parameter types alias the generated `operations[…]['parameters']['query']`.
-  - **Search** (FR-010): `SearchField` (D9) runs on submit or after a 500 ms pause and announces
+  - **Search** (FR-010): `SearchField` (R2) runs on submit or after a 500 ms pause (the spec's
+    "about half a second"; UI 002's domain search uses 300 ms) and announces
     "{n} results". Filters are in a collapsible panel on phones and inline above the table on wide
     screens. Active filters appear as `ActiveFilterChips` with "Clear all".
   - **Sort**: on cards, a native `<select>` with the sort key and the order. In the table, header
@@ -290,7 +318,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       `sort=id&order=asc`. The other keys default to ascending.
     - Only the contract's keys are offered: `AliasSort`, `AliasDomainSort` and `ResourceSort`. The
       groupware key is offered only when the groupware is enabled.
-  - **Domain pickers** (FR-011) use `DomainPicker` (D17): a Reka `Combobox` without a viewport, a
+  - **Domain pickers** (FR-011) use `DomainPicker` (D11, promoted here): a Reka `Combobox` without a viewport, a
     debounced server search, "load more" pages of 25, and the readable and ASCII names.
 
     | Picker | Sources | Rules |
@@ -304,7 +332,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **Chip labels** for picked domains use the readable name remembered from the picker. After a
     reload, a chip shows the ASCII value from the address, which is also what the server matches.
   - **Display**:
-    - Addresses and domains are shown through `IdnText` (D10): the readable form first, and the
+    - Addresses and domains are shown through `DomainNameText` (D12): the readable form first, and the
       ASCII form as secondary text only when it differs.
     - The local part is shown exactly as stored.
     - Destinations and external sender addresses are shown as stored (plan API gap G2).
@@ -440,8 +468,13 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     | Alias domain | General (target and active) | name, alias count, relay warning, rate limit, times |
     | Resource | one section (description, kind, booking rule, active) | address and domain, with the note that the address does not change (FR-046), times |
 
-    Each section opens full screen below 768 px and in place above (FR-064, D6). The list action
-    "Edit" opens the detail screen, as UI 003 FR-013 does (plan parity note 4).
+    - The section IDs are `address`, `destination`, `options` and `comments` for aliases,
+      `general` for alias domains and `resource` for resources.
+    - Sections open through the `edit=<section>` query parameter, one at a time (D6, UI 002 D4), so
+      Back closes an open section. An unknown or non-editable section is removed with
+      `router.replace`.
+    - A section opens full screen below `md` and in place above (FR-064).
+    - The list action "Edit" opens the detail screen, as UI 003 FR-013 does (plan parity note 4).
   - **"Send as"** is the exception the spec makes: one save for the whole screen (FR-054, R15).
   - **Patch building** (`buildAliasPatch`, and its counterparts for alias domains and resources):
     - The patch holds only the members whose value differs from the version read (FR-022). Read-only
@@ -454,23 +487,24 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       (edge case).
     - The resource `bookingLimit` is sent only with `bookingRule: 'limited'`.
     - The groupware option is never sent while the groupware is disabled.
-  - **Outdated** (412, FR-027), through D6's field diff on `useVersionedSave`:
+  - **Outdated** (412, FR-027), through D6's `changedSince()`:
     - the user's input stays;
     - the object is refetched;
-    - every field whose stored value changed shows "Changed elsewhere: {new value}", and the
-      announcement asks the user to review and save again or discard;
+    - every field whose stored value changed shows "Changed elsewhere: {new value}";
+    - the section offers "Save again" (with the reloaded version tag) and "Discard my changes",
+      and the announcement says so;
     - nothing is retried, and no "overwrite anyway" exists (conventions).
   - **Refused deletion as outdated**: the confirmation opens again with the reloaded object.
   - **Vanished** (404 on refresh or save, FR-028; a domain administrator who lost the domain): the
     app says "This {object} no longer exists or is no longer available to you", announces it, and
-    returns to the list with the list invalidated. A 404 on the first load shows UI 001's "not found"
-    state with a link back (FR-003).
+    returns to the list with the list invalidated. A 404 on the first load shows `NotFoundState`
+    (D10) in place, with a link back to the list (FR-003).
   - **Orphaned alias** (US3-AS7): administrators see a warning that explains the missing domain and
     offers deletion. The Address section may still be edited, and the server's `notFound
     {resource: domain}` on `address` is shown there, saying that a change needs an address in an
     existing domain.
-  - **Unsaved changes** (FR-025): every form and open section guards route leaves and closing with
-    a `useConfirm` "Discard changes?".
+  - **Unsaved changes** (FR-025): every creation form, open section and the "Send as" screen uses
+    the leave guard (D9) while dirty.
   - **Drafts** (spec edge case "Session expires while a form is open"): `useFormDraft(formId)`
     (`src/shared/composables/useFormDraft.ts`).
     - It keeps a form's unsaved input in a module-level `Map` keyed by the route's full path and the
@@ -551,7 +585,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     - **Names**: `EntryListField`.
     - **Target**: the `DomainPicker`, with relay domains disabled and their reason.
     - **Active**: on by default.
-    - **DKIM key** (`DkimKeyFields`):
+    - **DKIM key**: the shared `DkimFields` promoted from UI 002 (D13), fed with the aliases
+      capabilities:
       - a "Generate a DKIM key" switch, on by default;
       - a selector pre-filled with `dkimDefaults.selector` (for example `feldhost`), editable;
       - a native `<select>` of `dkimKeySizes`, pre-selected with `dkimDefaults.keySize`.
@@ -559,14 +594,18 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       With the switch on, the selector is required (an input aid that keeps the switch honest), and
       the request carries `dkimSelector` and `dkimKeySize`. With the switch off, the request carries
       `dkimSelector: ""` and no key size (US4-AS10).
-    - **Initial rate limit** (`InitialRateLimitFields`), only when `canSetInitialRateLimit`:
+    - **Initial rate limit**: the shared `RateLimitField` promoted from UI 002 (D13), only when
+      `canSetInitialRateLimit`:
       - a whole number of at least 1 (`inputmode="numeric"`), and a `<select>` of `rateLimitFrames`
         labelled with the legacy `ratelimit.*` keys;
       - an empty value means none, and `rateLimit` is then omitted;
       - the field is never sent by a user who may not set it (US4-AS4).
   - **Several names** run through `useSequentialCreate` (R9).
-  - **Creation report** (`CreationReport.vue`, FR-038): one line per step with a status icon and the
-    text.
+  - **Creation report** (FR-038): `src/features/alias-domains/creation-report.ts` builds the lines
+    from `AliasDomainCreationReport`, and the shared `CreationReport.vue` (D13) renders them. Each
+    line has a status icon and text, with the kinds of UI 002 (data-model `CreationReportLine`):
+    `done`, `info` (not requested, already existed, not configured, skipped, no zone, groupware
+    disabled) and `warning` (failed).
 
     | Step | Outcomes | Failure warning says where to repeat it |
     |---|---|---|
@@ -587,14 +626,18 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **Edit** (FR-039): target (the same picker) and active. The name is read-only.
   - **No add permission** (FR-041, US4-AS3): without `aliasDomains`, the list shows no add control and
     a note that an administrator grants "Add alias domains". Activate, deactivate and delete stay
-    (US6-AS7).
+    (US6-AS7). Opening `/alias-domains/-/new` directly renders UI 001's `NoAccessState` in place,
+    with the same note. This is the flag counterpart of UI 002 D4's `meta.roles` check, kept in the
+    page.
   - **`503 temporary-failure`** on the list, detail, create, edit or delete: "The mail server's
     shared store is temporarily unavailable. Nothing was changed. Try again shortly." Forms keep
     their input, and lists and details show their error state with a retry action (spec edge case).
 - **Rationale**: These are the contract's fields and outcomes. The switch makes "no DKIM key" an
   explicit choice (spec clarification), and gating by flag avoids requests that the API refuses.
-- **Alternatives considered**: Omitting `dkimSelector` when it equals the default: this is equivalent
-  for the server. Sending what is shown is simpler and testable.
+- **Alternatives considered**:
+  - Omitting `dkimSelector` when it equals the default: this is equivalent for the server. Sending
+    what is shown is simpler and testable.
+  - Feature-local copies of the DKIM, rate limit and report components: rejected (R2, D13).
 
 ### R14. Resources
 
@@ -714,19 +757,25 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     | Delete | lists every selected object by name, states the consequences of R11, and needs the typed count (D5) |
 
   - **Request**: the per-list `applyAliasBulkAction`, `applyAliasDomainBulkAction` or
-    `applyResourceBulkAction` with `targets: [{ id, version }]`. The version is the list entry's
-    `etag`, and the `id` is `String(alias.id)`, the alias domain name or the resource address.
+    `applyResourceBulkAction` with `targets: [{ id, version }]`.
+    - The `id` is `String(alias.id)`, the alias domain name or the resource address.
+    - The `version` is the current list entry's `etag` without surrounding quotes, as
+      `BulkTarget.version` requires (UI 002 D22).
+    - Targets are built from the list entries at send time, so after a refresh they carry the new
+      version tags.
   - **Results** (FR-059, D4):
     - the summary per outcome and one row per object, announced;
     - `retain` keeps every result that is not `done` selected. This includes `notFound` (US6-AS2),
       which the spec asks to keep, more than the conventions' minimum (failed, refused, outdated);
-    - when an item is `outdated`, the summary offers "Refresh the list". Refreshing clears the
-      selection, as every list change does, and says so;
+    - when an item is `outdated`, the summary offers "Refresh the list" (US6-AS8). The refresh
+      refetches the page and keeps the selection, so a retry uses the refreshed version tags;
     - the list and the affected details are invalidated;
     - copies render their per-alias-domain outcomes in the item slot (R12);
     - `failed` items with `temporary-failure` say "try again shortly".
-  - **Connection drop**: "The outcome is unknown". The list is refreshed and the request is never
-    repeated (FR-059).
+  - **Connection drop**: "The outcome is unknown". The list is refreshed, the selection is kept so
+    the user can check it, and the request is never repeated (FR-059). This is UI 003 R12's
+    behaviour. UI 002 D22 clears the selection instead, and this feature follows the mailbox
+    list.
 - **Rationale**: This is the conventions' bulk model plus the spec's explicit choices. The version
   per target is what makes US6-AS8 safe.
 - **Alternatives considered**: Cross-page selection: rejected by the conventions and the spec.
@@ -750,7 +799,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
      one of the discriminating parameters `kind`, `unit`, `field`, `format` and `resource`. Messages
      get every parameter, plus `{entry}`: the value of the entry the index points at.
   2. **Problem extension members as parameters**: `problem.<name>` messages receive the extension
-     members (D12). They are formatted: numbers with `Intl.NumberFormat`, flags with the legacy
+     members (D14). They are formatted: numbers with `Intl.NumberFormat`, flags with the legacy
      `acl.*` labels, `holder` and `existingKind` with sub-keys (`problem.address-in-use.holder.alias`).
 
   The feature 004 mapping (the full table is in data-model §6):
@@ -848,24 +897,26 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     - **Already mapped**: keys that UI 002 or UI 003 already mapped to an app key are reused through
       that app key, for example `ratelimit.*`, `acl.ratelimit`, `admin.dkim_*`, `mailbox.activate`
       and `mailbox.deactivate`. No second app key is added for the same legacy key and meaning.
-  - **Import extensions** (`scripts/i18n/`), unless UI 002 or UI 003 already added equivalents:
-    1. A `legacy-map.json` value may be an object `{ "from": "<legacy key>", "markup": "plain",
-       "locales": ["cs-cz", "sk-sk"] }`. A plain string stays the short form.
-    2. `markup: "plain"` converts a closed set of inline tags to text:
-       - `b`, `strong`, `i`, `em`, `code`, `small` and `span` (any attributes) are removed and their
-         text kept;
-       - `<br>` becomes a line break;
-       - HTML entities are decoded and runs of whitespace collapsed.
-
-       Any other tag (`a`, `img`, `script`, `style` and so on) or any event-handler attribute is
-       still refused. Without the opt-in, HTML is refused as before.
-    3. `locales` limits the entry to those locales. For the others, the app layer must supply the key,
-       and the check enforces that.
-    4. Positional placeholders: `%s` and `%d`, in order, become `{0}`, `{1}` and so on. For example
+  - **Import mechanism**: UI 002 D27's object form `{ "from": "<legacy key>", "stripMarkup": true }`
+    converts the five markup texts. Tags are removed, `<br>` becomes a space, the basic entities are
+    decoded, whitespace is collapsed, and no `<` or `>` may remain. UI 004 adds two options to the
+    same object form, test first, unless UI 002 or UI 003 already did:
+    1. `"locales": ["cs-cz", "sk-sk"]` limits the entry to those locales. For the other locales, the
+       app layer must supply the key, and the check enforces that.
+    2. **Positional placeholders**: `%s` and `%d`, in order, become `{0}`, `{1}` and so on. For example
        `success.alias_added` becomes "Alias address {0} ({1}) has been added".
 
-    Components render multi-line texts as text in a `whitespace-pre-line` element, never as HTML
-    (constitution V).
+    The converted texts are rendered as plain text, never as HTML (constitution V).
+  - **Enumeration scope** (D19): this feature appends to the scope manifest:
+    - the ten 004 audit event types and the four target types;
+    - the rule codes its forms show;
+    - the problem types of contracts README.
+
+    The closed enumerations it renders are added to `ENUM_NAMESPACES` (`enums.<name>.<value>`) and
+    stay fully required: `AliasKind`, `AliasDestinationType`, `ResourceKind`,
+    `ResourceBookingRule`, `MailboxSenderPermission.type`, `MailboxImplicitSenderAddress.source`,
+    `AliasCopyOutcome.outcome`, `AliasCopyOutcome.reason` and the four `AliasDomainCreationReport`
+    steps. The full lists are in data-model §8.
   - **New keys**, per area: `aliases.*`, `aliasDomains.*`, `resources.*`, `senderSettings.*`,
     `bulk.*` (if UI 002's shared bulk strings lack an action), plus the problem and validation
     sub-keys of R17, and the audit labels of R19. All three locales are complete (`i18n:check`).
@@ -877,8 +928,10 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
 - **Alternatives considered**:
   - Rendering legacy HTML through `SanitizedHtml`: rejected. That path is for operator content, and
     FR-067 asks for plain text.
-  - Retyping the eleven affected texts as new keys: rejected, because it loses the reviewed cs-cz and
+  - Retyping the affected texts as new keys: rejected, because it loses the reviewed cs-cz and
     sk-sk translations.
+  - Translating every enumeration value of the pin: rejected by UI 002 D2 and UI 003 R2. Unknown
+    values show a translated generic label.
 
 ---
 
@@ -895,7 +948,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     - `aliasDomainCreationOutcomes`, to inject report outcomes;
     - `sharedStoreDown`, to inject `503`s.
 
-    Domains and mailboxes are D18's existing state, so scope, alias limits, relay state and holders
+    Domains and mailboxes are D20's existing state, so scope, alias limits, relay state and holders
     are consistent across features.
   - **Rules** (`tests/mocks/handlers/feature-004-rules.ts`) implement the contract's documented
     behaviour on that state:
@@ -939,7 +992,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **Parity coverage** (SC-008): parity rows reference FR IDs, and end-to-end titles carry FR IDs. A
     polish task checks that every Matched or Improved row has at least one test.
 - **Rationale**: A complete mock in Phase 2 keeps the stories independent and avoids serialising edits
-  to shared handler files. Building on D18's state avoids two divergent mailbox models.
+  to shared handler files. Building on D20's state avoids two divergent mailbox models.
 - **Alternatives considered**: Per-story handler growth as in UI 001: workable, but five stories
   would edit the same four handler files.
 

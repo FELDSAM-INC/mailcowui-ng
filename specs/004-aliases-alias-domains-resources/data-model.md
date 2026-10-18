@@ -11,7 +11,8 @@ This app owns no persistent data. This document defines:
 - the route map and the list address parameters;
 - the client-side checks and the error mapping;
 - the state machines of multi-entry creation, section editing, the "Send as" save, bulk runs and
-  copies.
+  copies;
+- the translations: scope manifest additions, closed enumerations and reused legacy keys.
 
 Contract shapes are not restated. Types come from `src/api/generated/schema.ts` through `@/api`
 (001 R7). Decisions are justified in [research.md](./research.md).
@@ -132,15 +133,18 @@ with `bookingRule: 'limited'`.
 
 ### CreationReportView (`src/features/alias-domains/creation-report.ts`)
 
-One row per step: `rateLimit`, `dkimKey`, `dkimDnsPublication`, `groupwareDirectoryUpdate`. Each row
-has a `status`:
+One line per step, in the order `rateLimit`, `dkimKey`, `dkimDnsPublication`,
+`groupwareDirectoryUpdate`. The kinds are those of UI 002's `CreationReportLine`, rendered by the
+shared `CreationReport.vue` (research D13), so this feature does not use its own status names:
 
-- `ok`: `applied`, `created`, `alreadyExisted`, `published`, `done`;
-- `neutral`: `notRequested`, `notConfigured`, `skipped`, `groupwareDisabled`;
-- `warning`: `failed`, `noZone`.
+| Kind | Outcomes |
+|---|---|
+| `done` | `applied`, `created`, `published`, `done` |
+| `info` | `notRequested`, `alreadyExisted`, `notConfigured`, `skipped`, `noZone`, `groupwareDisabled` |
+| `warning` | `failed` |
 
 Each row also has a text key `aliasDomains.report.<step>.<outcome>`. A `warning` row carries a
-`repeatAt` catalogue entry: `rateLimit` → UI 006's entry; DKIM steps → `dns`; groupware → none. The
+`repeatAt` catalogue entry: `rateLimit` → UI 006's entry, DKIM steps → `dns`, groupware → none. The
 entry is linked only when `isEntryAvailable`.
 
 ### SendAsView and SendAsWorkingCopy (`src/features/sender-settings/send-as-model.ts`)
@@ -178,7 +182,9 @@ the view. Functions:
 | `confirm` | `'none' \| 'simple' \| 'explain' \| 'typedCount'` (research R16) |
 | `visible(identity, caps)` | permission and groupware gating |
 
-`toTargets(entries) = entries.map(e => ({ id: idOf(e), version: e.etag }))`, where `idOf` is:
+`toTargets(entries) = entries.map(e => ({ id: idOf(e), version: unquote(e.etag) }))`. The version is
+the `etag` without surrounding quotes, as `BulkTarget.version` requires, built from the list entries
+at send time. `idOf` is:
 
 - `String(alias.id)` for aliases;
 - `aliasDomain.name` for alias domains;
@@ -265,17 +271,25 @@ The base is `/ng/`. Every route is lazy-loaded. "nav" is the catalogue entry tha
 | `alias-create` | `/aliases/new` | `aliases` | `aliases.create.title` | `features/aliases/pages/AliasCreatePage.vue` | US2 |
 | `alias-detail` | `/aliases/:aliasId(\\d+)` | `aliases` | `aliases.detail.title` | `features/aliases/pages/AliasDetailPage.vue` | US1, US3 |
 | `alias-domains` | `/alias-domains` | `aliasDomains` | `aliasDomains.title` | `features/alias-domains/pages/AliasDomainsPage.vue` | US4 |
-| `alias-domain-create` | `/alias-domains/new` | `aliasDomains` | `aliasDomains.create.title` | `features/alias-domains/pages/AliasDomainCreatePage.vue` | US4 |
+| `alias-domain-create` | `/alias-domains/-/new` | `aliasDomains` | `aliasDomains.create.title` | `features/alias-domains/pages/AliasDomainCreatePage.vue` (renders `NoAccessState` without `canAddAliasDomain`) | US4 |
 | `alias-domain-detail` | `/alias-domains/:aliasDomain` | `aliasDomains` | `aliasDomains.detail.title` | `features/alias-domains/pages/AliasDomainDetailPage.vue` | US4 |
 | `resources` | `/resources` | `resources` | `resources.title` | `features/resources/pages/ResourcesPage.vue` | US7 |
 | `resource-create` | `/resources/new` | `resources` | `resources.create.title` | `features/resources/pages/ResourceCreatePage.vue` | US7 |
 | `resource-detail` | `/resources/:resourceAddress([^/]+@[^/]+)` | `resources` | `resources.detail.title` | `features/resources/pages/ResourceDetailPage.vue` | US7 |
-| `mailbox-send-as` | `/mailboxes/:mailbox/send-as` | `mailboxes` | `senderSettings.title` | `features/sender-settings/pages/SendAsPage.vue` | US5 |
+| `mailbox-send-as` | `send-as`, a child of UI 003's `mailbox-detail` layout (`/mailboxes/:address([^/]+@[^/]+)/send-as`) | `mailboxes` | `senderSettings.title` | `features/sender-settings/pages/SendAsPage.vue` | US5 |
 
 Rules:
 
 - Mailbox users get UI 001's "no access" state on every route above, rendered in place with no data
   request (FR-001, US1-AS10).
+- `edit=<section>` on the detail routes opens one section (research R10): `address`, `destination`,
+  `options` or `comments` on `alias-detail`, `general` on `alias-domain-detail`, `resource` on
+  `resource-detail`. An unknown or non-editable section is removed with `router.replace`.
+- `:aliasDomain` is the ASCII name in every link the app builds. Other spellings are replaced by the
+  canonical address once loaded (UI 002 D4).
+- The `mailbox-send-as` record is exported by `src/features/sender-settings/index.ts` and listed among
+  the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`. `MailboxSectionNav.vue`
+  gains its "Send as" entry (research R4).
 - An object outside the scope answers 404, which shows the "not found" state with a link back to the
   list, exactly like a missing object (FR-003).
 - The catalogue rows `aliases`, `aliasDomains` and `resources` (research R4) are flipped to
@@ -430,3 +444,73 @@ detail ─Copy→ explain dialog ─confirm→ sending (If-Match) ─200→ copy
                                                         ├ 409 not-primary-domain-alias → message
                                                         └ 404 → vanished → list
 ```
+
+## 8. Translations
+
+### Enumeration scope manifest additions (`src/i18n/coverage.json`, research D19)
+
+Each listed value needs keys in en-gb, cs-cz and sk-sk. Values already listed by UI 001–003 are not
+repeated.
+
+| Enumeration | Values this feature appends |
+|---|---|
+| `AuditEventType` | `aliasCreation`, `aliasUpdate`, `aliasDeletion`, `aliasDomainCreation`, `aliasDomainUpdate`, `aliasDomainDeletion`, `resourceCreation`, `resourceUpdate`, `resourceDeletion`, `mailboxSenderSettingsUpdate` |
+| `AuditTarget.type` | `alias`, `aliasDomain`, `resource`, `mailboxSenderSettings` |
+| `AuditFailureReason` | `permissionDenied` and `notFound`, if not yet listed. 004 refusals use the shared values (API 004 research R20), and UI 002 lists the others. |
+| `ValidationRuleCode` | `conflictsWith`, `reserved`, `immutable`, if not yet listed. The other codes of §6 are UI 001's. |
+| problem types | `domain-alias-limit-reached`, `alias-domain-already-exists`, `not-primary-domain-alias`, and `address-in-use`, `attribute-not-permitted`, `permission-flag-required`, `temporary-failure` if not yet listed |
+
+### Closed enumerations added to `ENUM_NAMESPACES` (fully required, `enums.<name>.<value>`)
+
+| Enumeration | Values |
+|---|---|
+| `AliasKind` | `regular`, `catchAll` |
+| `AliasDestinationType` | `addresses`, `discard`, `learnSpam`, `learnHam` |
+| `ResourceKind` | `location`, `thing`, `group` |
+| `ResourceBookingRule` | `alwaysFree`, `unlimited`, `limited` |
+| `MailboxSenderPermission.type` | `address`, `domain`, `anyAddress` |
+| `MailboxImplicitSenderAddress.source` | `ownAddress`, `aliasDomainAddress`, `alias` |
+| `AliasCopyOutcome.outcome` | `created`, `skipped`, `failed` |
+| `AliasCopyOutcome.reason` | `addressInUse`, `aliasLimitReached`, `destinationNotPermitted` |
+| `AliasDomainCreationReport.rateLimit` | `applied`, `notRequested`, `failed` |
+| `AliasDomainCreationReport.dkimKey` | `created`, `alreadyExisted`, `notRequested`, `failed` |
+| `AliasDomainCreationReport.dkimDnsPublication` | `published`, `noZone`, `failed`, `notConfigured`, `skipped` |
+| `AliasDomainCreationReport.groupwareDirectoryUpdate` | `done`, `failed`, `groupwareDisabled` |
+
+`BulkItemOutcome` and the rate limit frames are already fully required by UI 002.
+
+### Legacy keys reused (`src/i18n/legacy-map.json`, research R20)
+
+`*` marks `stripMarkup: true`. `†` marks `locales: ["cs-cz", "sk-sk"]`, where en-gb comes from the app
+layer. `‡` marks a value missing upstream in sk-sk (and in cs-cz where noted), which that locale's app
+layer supplies. Keys that UI 002 or UI 003 already mapped are reused through their existing app key.
+
+| Area | Legacy keys |
+|---|---|
+| Navigation and titles | `mailbox.aliases`, `mailbox.domain_aliases`†, `mailbox.resources`, `mailbox.add_alias`, `mailbox.add_domain_alias`†, `mailbox.add_resource`, `edit.edit_alias_domain` |
+| Alias list and detail | `mailbox.catch_all`, `mailbox.alias`, `mailbox.target_address`, `mailbox.target_domain`, `mailbox.sogo_visible_y`, `mailbox.sogo_visible_n`, `mailbox.toggle_all`, `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, `mailbox.add_alias_expand` |
+| Alias form | `add.alias_address`, `add.target_address`, `add.goto_null`, `add.goto_spam`*, `add.goto_ham`*, `add.internal`‡, `edit.internal_info`‡, `edit.sender_allowed`‡, `edit.sender_allowed_info`‡, `edit.sogo_visible`, `edit.sogo_visible_info`, `edit.public_comment`, `edit.private_comment` |
+| Alias domains | `add.alias_domain`, `add.target_domain`, `mailbox.alias_domain_backupmx`, `admin.dkim_domains_selector`, `admin.dkim_key_length`, `ratelimit.second`, `ratelimit.minute`, `ratelimit.hour`, `ratelimit.day` |
+| Resources | `mailbox.booking_null`, `mailbox.booking_ltnull`, `mailbox.booking_custom`, `mailbox.booking_0_short`, `mailbox.booking_lt0_short`, `mailbox.booking_custom_short`, `add.kind`, `add.multiple_bookings`, `add.description` |
+| Send as | `edit.sender_acl`, `edit.sender_acl_info`*, `edit.sender_acl_disabled`*, `edit.extended_sender_acl`, `edit.extended_sender_acl_info`* |
+| Permission labels | `acl.alias_domains`, `acl.alias_external_goto`‡ (cs-cz too), `acl.extend_sender_acl`, `acl.ratelimit` |
+| Messages | `danger.alias_empty`, `danger.goto_empty`, `danger.goto_invalid`, `danger.alias_invalid`, `danger.is_alias_or_mailbox` (fallback when `holder` is unknown), `danger.max_alias_exceeded`, `danger.external_goto_denied`‡ (cs-cz too), `danger.aliasd_targetd_identical`, `danger.alias_domain_invalid`, `danger.target_domain_invalid`, `danger.extra_acl_invalid`, `danger.extra_acl_invalid_domain`, `danger.resource_invalid`, `danger.description_invalid`, `success.alias_added` (`{0}` address, `{1}` ID), `success.alias_modified`, `success.alias_removed`, `success.aliasd_added`, `success.aliasd_modified`, `success.alias_domain_removed`, `success.resource_added`, `success.resource_removed`, `warning.is_not_primary_alias` |
+
+**Not reused**, with new keys instead (research R20):
+
+- `mailbox.alias_domain_alias_hint`: its meaning changes, because it names the legacy "Filters" tab;
+- `add.alias_address_info`: it names the product, and the new key takes `{productName}`;
+- `success.resource_modified`: it says "mailbox".
+
+### New key namespaces
+
+- `aliases.*`, `aliasDomains.*`, `resources.*`, `senderSettings.*`: titles, field labels and
+  explanations, states, confirmations, results and notes;
+- `aliases.form.errors.*`, `aliasDomains.form.errors.*`, `resources.form.errors.*`,
+  `senderSettings.errors.*`: the form-context overrides of research R17;
+- `validation.<code>.<param>.<value>` sub-keys: for example `validation.notEligible.kind.resource`
+  and `validation.tooLong.unit.bytes`;
+- `problem.address-in-use.holder.<holder>` and
+  `problem.alias-domain-already-exists.existingKind.<kind>`;
+- `auditLog.eventTypes.<value>` and `auditLog.targets.<value>`, under UI 001's naming in
+  `src/features/audit-log/labels.ts`, for the values above.

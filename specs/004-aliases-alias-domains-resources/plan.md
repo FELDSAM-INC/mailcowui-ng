@@ -26,9 +26,10 @@ legacy Edit mailbox page. It delivers, for administrators and domain administrat
 The technical approach (details in [research.md](./research.md)) reuses everything UI 001 decided
 and UI 002 and UI 003 deliver, and adds:
 
-- **Contract**: a bump to mailcow-rest-v2 commit `32079252d55797d3da4e58ae661e9fb91c51c6f9`, the
-  first commit with the complete, analysed feature 004 contract. It also bundles `KnownProblemType`,
-  which closes UI 001's API gap 5 (R1).
+- **Contract**: planned against mailcow-rest-v2 commit `32079252d55797d3da4e58ae661e9fb91c51c6f9`,
+  the baseline UI 002 and UI 003 also use. It has the complete, analysed feature 004 contract. At
+  implementation time, the pin moves to the commit, or release tag, that ships the API 004
+  implementation, after a review of the feature 004 contract files (R1).
 - **Four feature areas**: `src/features/aliases`, `alias-domains`, `resources` and
   `sender-settings`. `aliases` owns the feature's capabilities read and the permission matrix of
   FR-002, and the other three import them through `@/features/aliases`. Imports never go the
@@ -37,18 +38,21 @@ and UI 002 and UI 003 deliver, and adds:
   - `parseEntryList()` and `EntryListField.vue` for multi-entry inputs;
   - `useSequentialCreate()` for "one request per entry";
   - `useFormDraft()`, which keeps form input in memory across a session expiry.
-- **Reuse of the building blocks reserved by UI 001 R20** and delivered by UI 002 and UI 003: bulk
-  selection, bulk results, typed confirmation, editable sections with conflict marking, History
-  links, filter chips, the domain picker. Phase 2 pins each of them with a dependency test before any
-  story starts (R2).
+- **Reuse of the building blocks reserved by UI 001 R20** and named by the UI 002 and UI 003 plans:
+  bulk selection, bulk bar and results, typed confirmation, editable sections with conflict marking,
+  History links, filter chips, the leave guard and the in-place "not found" state.
+  - This feature promotes five blocks at their second use: UI 003's `DomainPicker`, and UI 002's
+    `DomainNameText`, `DkimFields`, `RateLimitField` and `CreationReport`.
+  - Phase 2 pins every block with a dependency test before any story starts (R2).
 - **Capabilities** (`GET /capabilities/aliases`): read once and cached for 5 minutes. They gate the
   forms and the mass actions with an error state and a retry. Lists and detail views never wait for
   them (R5).
 - **The contract-validated mock** gains handlers for the 23 operations, on one scenario state that
   shares mailboxes and domains with UI 002 and UI 003 (R21).
-- **i18n**: the legacy import gains three opt-ins: markup converted to plain text, per-locale
-  restriction, and positional placeholders. With them, the spec's legacy keys can be reused,
-  including the seven that contain markup and the eight cs-cz or sk-sk gaps (R20).
+- **i18n**: the spec's legacy keys are reused through UI 002's `stripMarkup` import option, plus two
+  options added here: per-locale restriction and positional placeholders. They cover the texts with
+  markup and the eight cs-cz or sk-sk gaps. The feature's values are appended to the enumeration
+  scope manifest of UI 002 and UI 003 (R20).
 
 ## Technical Context
 
@@ -117,7 +121,7 @@ tests to the existing project.
 | I. The API contract is the only interface | The pin is a reviewed bump (`contract/VERSION.json`, regenerated types, typecheck and all tests; R1). The 23 operations of [contracts/README.md](./contracts/README.md) are called through `@/api`, with types re-exported from the generated schema. No hand-written API type. The mock validates every request and response. Four gaps are reported to mailcow-rest-v2 and not worked around (see "API dependency and gaps"). Problem `type` and `errors` drive every message (R17). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first. Lists are cards below 768 px and tables above. The creation forms are full-screen pages, and section editors open full screen on phones (FR-064). Selection mode has 44 px checkboxes and a sticky action bar (FR-056). Destructive actions are confirmed with their impact, and a mass deletion needs the typed count (FR-029, FR-058). Every list and detail view has loading, empty and error states (FR-008). Pinch-zoom is untouched. | PASS |
 | III. Accessibility | axe in both themes on every screen, dialog and state. Single-choice controls are Reka radio groups. Errors are linked to their fields and summarised. Saves, deletions, result counts and bulk summaries are announced. Every state shown by colour also has text (FR-063). A keyboard-only end-to-end pass covers every story (R21). | PASS |
-| IV. i18n and branding | en-gb, cs-cz and sk-sk complete, checked by `i18n:check`, which also covers the enumerations and problem types new at the pin (R1). Legacy keys are reused where the meaning is unchanged, and markup is converted to plain text at import (R20). The product name in the address help comes from `GET /public-config`. Dates and numbers use `Intl`. | PASS |
+| IV. i18n and branding | en-gb, cs-cz and sk-sk complete, checked by `i18n:check`. It covers the feature's values in the enumeration scope manifest and every closed enumeration the feature renders (R20). Legacy keys are reused where the meaning is unchanged, and markup is converted to plain text at import (R20). The product name in the address help comes from `GET /public-config`. Dates and numbers use `Intl`. | PASS |
 | V. Security in the browser | No new storage key. Form drafts are kept in memory only (R10), and the storage audit end-to-end test is extended. No `v-html`. Hidden controls are a convenience: `forbidden`, `permission-flag-required` and `attribute-not-permitted` refresh the identity (FR-004). 404 for objects outside the scope is shown as "not found" (FR-003). | PASS |
 | VI. Test-first | `tasks.md` puts the tests before the implementation in every phase. End-to-end tests cover every acceptance scenario on both viewports against the contract-validated mock. Unit tests cover the logic: entry parsing, sequential creation, patch building, the address preview, the send-as model and the permission matrix. Smoke tests run against the real API. | PASS (smoke gate as UI 001, Complexity Tracking there) |
 | VII. Performance budgets | Ten lazy route chunks and no new dependency, checked by `budget:check`. Lighthouse adds `/ng/aliases` (R22). The query policy refetches only after invalidation, and the invalidation table is in data-model §3. | PASS |
@@ -137,10 +141,11 @@ violation. Decisions that touched gates:
 
 ## API dependency and gaps
 
-This feature depends on **mailcow-rest-v2 feature 004**. Its contract is pinned at commit
+This feature depends on **mailcow-rest-v2 feature 004**. It is planned against commit
 `32079252d55797d3da4e58ae661e9fb91c51c6f9` (bundle sha256
 `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6`, 376 operations; see
-[contracts/README.md](./contracts/README.md)). It also uses API 001 (identity, public configuration,
+[contracts/README.md](./contracts/README.md)). At implementation time, it is pinned to the commit or
+tag that ships the API 004 implementation (R1). It also uses API 001 (identity, public configuration,
 audit log with the `targetType` and `targetId` filters that API 002 added) and API 002
 (`listDomains` for the pickers). The spec's API dependency list is covered, with the gaps below.
 
@@ -176,9 +181,9 @@ audit log with the `targetType` and `targetId` filters that API 002 added) and A
    API data-model and API research say `kind: localDomain`.
    - **Proposed**: align the schema description to `kind`.
    - **Until then**: the UI keys the message by `kind`, the authoritative enumeration text.
-5. **Closed by this pin**: UI 001's API gap 5. `KnownProblemType` is now listed under
-   `components.schemas` (commit `3207925`), so `knownProblemTypeValues` is generated, and the
-   translation check uses it next to the bundle text.
+5. **Already closed**: UI 001's API gap 5. `KnownProblemType` is listed under `components.schemas`
+   from commit `3207925` on, so the pins of UI 002 and UI 003 already generate
+   `knownProblemTypeValues`.
 
 ## Owner-level questions (defaults applied)
 
@@ -232,7 +237,7 @@ Only the files this feature adds or changes are listed. The rest is the layout o
 UI 002 and UI 003 add. The building blocks this feature expects from them are listed in research R2.
 
 ```text
-contract/{openapi.yaml,openapi.json,VERSION.json}     # bumped to 3207925 (R1)
+contract/{openapi.yaml,openapi.json,VERSION.json}     # bumped to the API 004 implementation commit (R1)
 src/api/
 ├── generated/schema.ts                               # regenerated
 ├── index.ts                                          # + 004 root types and enum arrays
@@ -259,8 +264,7 @@ src/features/
 │   ├── alias-domain-bulk.ts
 │   ├── pages/{AliasDomainsPage,AliasDomainCreatePage,AliasDomainDetailPage}.vue
 │   └── components/{AliasDomainCard,AliasDomainTable,AliasDomainList,AliasDomainFilters,RelayWarning,
-│                   TargetDomainField,DkimKeyFields,InitialRateLimitFields,CreationReport,
-│                   AliasDomainCreateResults,AliasDomainGeneralSection}.vue
+│                   TargetDomainField,AliasDomainCreateResults,AliasDomainGeneralSection}.vue
 ├── resources/
 │   ├── index.ts  routes.ts  api.ts  list-state.ts  address-preview.ts  booking.ts  resource-form.ts
 │   ├── resource-bulk.ts
@@ -268,22 +272,26 @@ src/features/
 │   └── components/{ResourceCard,ResourceTable,ResourceList,ResourceFilters,BookingRuleBadge,
 │                   BookingLegend,BookingRuleField,AddressPreview,ResourceSection}.vue
 ├── sender-settings/
-│   ├── index.ts                                      # routes; SendAsEntry for UI 003's mailbox detail
+│   ├── index.ts                                      # sendAsRoute (child of UI 003's mailbox-detail)
 │   ├── routes.ts  api.ts  send-as-model.ts
 │   ├── pages/SendAsPage.vue
-│   └── components/{SendAsEntry,AlwaysAllowedSection,ReceiveOnlySection,ExplicitPermissionsSection,
+│   └── components/{AlwaysAllowedSection,ReceiveOnlySection,ExplicitPermissionsSection,
 │                   PermissionCandidatePicker,AnyAddressSwitch,SenderCheckStatus,
 │                   ExternalSenderAddressesSection,SendAsHints}.vue
-├── mailboxes/…                                       # UI 003: "Send as" added to the designated action area (R4)
+├── mailboxes/{routes.ts,components/MailboxSectionNav.vue}   # UI 003: "Send as" child route and entry (R4)
+├── domains/…                                         # UI 002: imports of the promoted components updated
 └── audit-log/labels.ts                               # + 004 event and target labels and target links (R19)
 src/shared/
-├── validation/entry-list.ts                          # parseEntryList (R8)
+├── validation/{entry-list.ts,utf8.ts}                # parseEntryList (R8); utf8ByteLength unless present
 ├── composables/{useSequentialCreate,useFormDraft}.ts # R9, R10
-└── components/EntryListField.vue                     # R8
+└── components/
+    ├── {EntryListField,SearchField}.vue              # R8, R7 (SearchField unless present)
+    └── {DomainPicker,DomainNameText,DkimFields,RateLimitField,CreationReport}.vue   # promoted (R2)
 src/i18n/
 ├── problems.ts                                       # + param-discriminated and form-context keys (R17)
+├── coverage.json                                     # enumeration scope manifest (UI 002 D2): + 004 values
 ├── messages/{en-gb,cs-cz,sk-sk}.json  legacy-map.json  legacy/*.json
-scripts/i18n/{lib.mjs,import-legacy.mjs,check.mjs}    # + markup "plain", locales, positional placeholders (R20)
+scripts/i18n/{lib.mjs,import-legacy.mjs,check.mjs}    # + locales, positional placeholders; ENUM_NAMESPACES (R20)
 scripts/run-lhci.mjs                                  # + /ng/aliases collection (R22)
 tests/
 ├── unit/
@@ -311,8 +319,8 @@ tests/
 single static frontend of UI 001. `aliases` owns what the whole API feature shares: the
 capabilities read, `CapabilitiesGate` and the FR-002 permission matrix. The other areas depend on
 it, never the reverse, so there is no import cycle. Generic building blocks with two or more uses go
-to `src/shared/`. The entry point into UI 003's mailbox detail is a component exported by
-`sender-settings` and placed in UI 003's designated action area.
+to `src/shared/`. "Send as" is a route record exported by `sender-settings` and mounted as a child
+of UI 003's mailbox detail layout, with its entry in UI 003's designated `MailboxSectionNav`.
 
 ## Complexity Tracking
 

@@ -92,13 +92,17 @@ Terms used in this specification:
   classic administrator sign-in and dashboard, which are redirected.)
 - Q: Which classic sign-in flows stay in the classic interface? → A: The root and the role sign-in
   addresses are not redirected when they carry a classic sign-in flow parameter: `oauth` (sign-in
-  for an application that uses mailcow as its OAuth2 provider), `mobileconfig` (sign-in before the
-  Apple connection profile download), `iam_sso` or an identity-provider callback with `code` and
-  `state` (classic single sign-on through its registered return URL), and `cancel_tfa_login` or
-  `cancel_tfa_setup`. (agent decision: the OAuth2 endpoints and consent page stay in the legacy
-  container and need a classic session (API feature 012, FR-049); API 012 keeps the legacy return
-  URL registered; UI feature 005 dropped Apple profiles for lack of an API capability, so the
-  classic download remains the only one.)
+  for an application that uses mailcow as its OAuth2 provider), `iam_sso` or an identity-provider
+  callback with `code` and `state` (classic single sign-on through its registered return URL), and
+  `cancel_tfa_login` or `cancel_tfa_setup`. The root carrying `mobileconfig` (the sign-in step
+  before the Apple connection profile download, alone or with `only_email` and `app_password`) is
+  instead redirected to the Apple connection profile screen in My account (UI feature 005) once
+  mailbox users are switched on, with the profile options preselected. The download address
+  `/mobileconfig.php` itself stays excluded. (agent decision: the OAuth2 endpoints and consent page
+  stay in the legacy container and need a classic session (API feature 012, FR-049), and API 012
+  keeps the legacy return URL registered. orchestrator decision: Apple connection profiles and the
+  client setup guide are in scope of API and UI feature 005, so the app replaces the classic profile
+  sign-in; `/mobileconfig.php` stays because the classic flow and external links still use it.)
 - Q: How are links in e-mails already sent, and links held by external systems, handled? → A:
   Quarantine quick release and delete links (`/qhandler/…`) are never redirected and keep working in
   the classic interface. Password reset links (`/reset-password?token=…`) and domain-administrator
@@ -221,9 +225,12 @@ application.
    `/oauth/authorize?…` and the user is not signed in to the classic interface, **Then** the classic
    sign-in page opens (via `/?oauth`), the user signs in, including a second factor, and returns to
    the application with an authorization code.
-5. **Given** cutover is on for mailbox users, **When** a user signed in to the classic interface opens
-   `/mobileconfig.php`, or a signed-out user opens it and signs in on the classic page it leads to,
-   **Then** the Apple connection profile downloads as before.
+5. **Given** cutover is on for mailbox users, **When** a browser signed in to the classic interface
+   opens `/mobileconfig.php`, **Then** the Apple connection profile downloads as before. **When** a
+   signed-out user opens `/mobileconfig.php?only_email`, for example from the operator's
+   documentation, **Then** the classic page forwards to its sign-in step, which leads to the app's
+   Apple connection profile screen with "mail only" preselected, and after signing in the user
+   downloads the profile there.
 6. **Given** cutover is on for all roles, **When** the webmail, ActiveSync or a CalDAV/CardDAV client
    signs in, **Then** it works as before, including the web server's internal sign-in verification.
 7. **Given** cutover is on for all roles, **When** a remote server fetches `/.well-known/mta-sts.txt`
@@ -477,14 +484,18 @@ smoke test and the report show them.
 - **FR-014**: The app MUST be able to tell an arrival through a redirect, and a fallback arrival,
   from a direct visit. The web server's access record MUST show which mapping row or fallback
   produced a redirect. The app MUST remove the arrival marker from the address bar.
+- **FR-050**: The profile options carried by row M33 (`only_email`, `app_password`) MUST only
+  preselect choices on the Apple connection profile screen. The app MUST NOT download a profile or
+  create an app password until the user starts the download on that screen.
 
 #### Exclusions
 
 - **FR-015**: The addresses of the exclusion list MUST never be redirected, whatever the switch
   state, and MUST answer exactly as before cutover.
 - **FR-016**: The root and the classic sign-in addresses (rows M01, M05 and M10) MUST NOT be
-  redirected when the request carries a classic sign-in flow parameter: `oauth`, `mobileconfig`,
-  `iam_sso`, `code` together with `state`, `cancel_tfa_login` or `cancel_tfa_setup`.
+  redirected when the request carries a classic sign-in flow parameter: `oauth`, `iam_sso`, `code`
+  together with `state`, `cancel_tfa_login` or `cancel_tfa_setup`. The root carrying `mobileconfig`
+  follows row M33 instead.
 - **FR-017**: The root `/` on host names that start with `autodiscover.` or `autoconfig.` MUST NOT be
   redirected.
 - **FR-018**: The cutover MUST NOT change the internal web servers that other containers use (the
@@ -544,7 +555,8 @@ smoke test and the report show them.
   requiring its own sign-in and permissions.
 - **FR-035**: The app's API keys screen (UI feature 001) MUST tell administrators that keys for the
   classic API (`/api/v1`) are managed in the classic interface, which has its own sign-in, and MUST
-  link to them through the classic interface entry. Other register entries kept in the classic
+  link to them through the classic interface entry, placed in that screen's designated action area
+  (`docs/conventions.md`, "Where features meet"). Other register entries kept in the classic
   interface that are reached through a classic page MUST be linked the same way from the matching
   app screen. These links MUST be shown only to the roles the entry concerns.
 
@@ -560,8 +572,9 @@ smoke test and the report show them.
   `/api/v1` documentation) may remain.
 - **FR-038**: The app MUST NOT depend on the switch state. Its links and screens MUST work the same
   with cutover off, partly on or fully on.
-- **FR-039**: User-facing text MUST call the legacy UI "the classic interface" and MUST NOT use the
-  word "legacy" (UI feature 001, FR-090).
+- **FR-039**: User-facing text MUST call the legacy UI "the classic interface" ("klasické rozhraní"
+  in Czech, "klasické rozhranie" in Slovak) and MUST NOT use the word "legacy" (UI feature 001,
+  FR-090; `docs/conventions.md`).
 
 #### Communication
 
@@ -625,7 +638,7 @@ plan collects them into the authoritative mapping (FR-029).
 
 | Row | Classic address | Used by | Target in the app | Carried over |
 |---|---|---|---|---|
-| M01 | `/`, `/index.php` without a sign-in flow parameter (FR-016) | Mailbox users | Start, role-neutral sign-in (001) | — |
+| M01 | `/`, `/index.php` without a sign-in flow parameter (FR-016) or `mobileconfig` | Mailbox users | Start, role-neutral sign-in (001) | — |
 | M02 | `/user` | Mailbox users | My account (005) | — |
 | M03 | `/reset-password` with `token` | Mailbox users | Password reset screen (005) | `token` |
 | M04 | `/reset-password` without `token` | Mailbox users | Password reset request screen (005) | — |
@@ -657,6 +670,7 @@ plan collects them into the authoritative mapping (FR-029).
 | M30 | `/edit/syncjob/{id}` | Administrators, domain administrators, mailbox users | Sync job detail (008) | ID |
 | M31 | `/edit/filter/{id}` | Administrators, domain administrators | Sieve filter detail (005) | ID |
 | M32 | `/edit/app-passwd/{id}` | Mailbox users | App password detail (005) | ID |
+| M33 | `/`, `/index.php` with `mobileconfig`, alone or with `only_email` and `app_password` (the classic sign-in step that `/mobileconfig.php` forwards to) | Mailbox users | Apple connection profile screen in My account (005), after sign-in if needed | `only_email` and `app_password` as preselected profile options (FR-050) |
 | F1 | Any other address under `/admin/` | Administrators | Start, administrator sign-in, with the fallback notice | — |
 | F2 | Any other address under `/domainadmin/` | Domain administrators | Start, domain-administrator sign-in, with the fallback notice | — |
 | F3 | `/edit/…` with an unknown type or an empty value | Administrators, domain administrators, mailbox users | Start, role-neutral sign-in, with the fallback notice | — |
@@ -678,7 +692,7 @@ These addresses are never redirected (FR-015). Prefixes include everything below
 | X05 | `/.well-known/mta-sts.txt`, `/mta-sts.php`, `/.well-known/acme-challenge/…` | Remote mail servers and certificate renewal |
 | X06 | `/qhandler/…`, `/qhandler.php` | Quarantine quick release and delete links in notifications (API feature 006) |
 | X07 | `/oauth/authorize`, `/oauth/token`, `/oauth/profile` and their `.php` forms | OAuth2 provider endpoints and consent page (API feature 012, FR-049) |
-| X08 | M01, M05 and M10 with a classic sign-in flow parameter (FR-016) | OAuth2 sign-in, Apple profile sign-in, classic single sign-on, cancelling a classic second-factor step |
+| X08 | M01, M05 and M10 with a classic sign-in flow parameter (FR-016) | OAuth2 sign-in, classic single sign-on, cancelling a classic second-factor step |
 | X09 | `/f2b-banlist…`, `/cache/…`, `/resource.php`, `/_rspamderror.php`, `/rspamd/…` | Ban list for external firewalls, served resources, Rspamd's own interface |
 | X10 | `/css/…`, `/js/…`, `/img/…`, `/fonts/…`, icon and manifest files at the root, `/robots.txt`, `/_status.502.html` | Static files the classic interface, the webmail and error pages use |
 | X11 | `/inc/ajax/…`, `/inc/lib/…` (stays refused) | Calls from classic pages still open or opened with a classic pass |
@@ -712,7 +726,9 @@ Reference: the FeldHost fork at `../mailhosting/data/` (upstream baseline `2026-
 | Domain-administrator single sign-on `?sso_token=…` | Leads to the app's one-time sign-in landing | Replaced | M13 |
 | OAuth2 provider sign-in (`/?oauth`) and consent page | Unchanged, in the classic interface | Kept in the classic interface | X07, X08 |
 | Classic single sign-on (`?iam_sso`, callback at the legacy return URL) | Unchanged | Kept in the classic interface | X08 |
-| Apple connection profile download and its sign-in (`?mobileconfig`) | Unchanged | Kept in the classic interface | X04, X08 |
+| Apple connection profile download (`/mobileconfig.php`, four variants) | Unchanged at its address | Matched | X04 |
+| Sign-in step before the profile download (`/?mobileconfig`, with `only_email` and `app_password`) and the profile links on the user page | The app's Apple connection profile screen in My account, with the options preselected | Replaced (005) | M33, FR-050 |
+| Client configuration guide link on the user page (external mailcow documentation with a server-built anchor) | The setup guide screen of My account (UI feature 005). It is not a classic address, so nothing is redirected | Replaced (005) | — |
 | `/api/v1` key management on the configuration page | Reached through the classic interface entry | Kept in the classic interface | FR-031 to FR-035 |
 | Login-as through `?duallogin=` | Works only with a classic pass; the app has its own login-as (007) | Replaced | — |
 | Language switch through `?lang=` | Parameter dropped; the app's language choice applies | Changed | FR-006 |
@@ -730,7 +746,8 @@ The roadmap lists no mailcow-rest-v2 feature for UI feature 014. The feature:
 - relies on these API decisions: reset tokens shared with the classic interface (API feature 005,
   FR-021, FR-022), quick release pages kept in the legacy container (API feature 006), single sign-on
   tokens accepted by both interfaces (API feature 007), OAuth2 endpoints kept in the legacy
-  container and the legacy return URL kept (API feature 012, FR-006, FR-049).
+  container and the legacy return URL kept (API feature 012, FR-006, FR-049), and Apple connection
+  profiles and the client setup guide offered by API feature 005 (orchestrator decision, 2026-10-18).
 
 Taking over any legacy internal endpoint is mailcow-rest-v2 roadmap item 014 (optional) and is out
 of scope.
@@ -784,8 +801,10 @@ of scope.
 
 - UI features 001–013 provide addressable target screens for every row of the mapping table (UI
   features 002 and 007 require shareable addresses for their screens; UI feature 005 provides the
-  reset address; UI feature 007 provides the one-time sign-in landing with a documented address).
-  Features whose specifications are not finished yet (010 to 013) are expected to do the same.
+  reset address and, by the orchestrator decision of 2026-10-18, the Apple connection profile
+  screen and the setup guide screen in My account; UI feature 007 provides the one-time sign-in
+  landing with a documented address). Features whose specifications are not finished yet, and UI
+  005's update for profiles and the setup guide, are expected to do the same.
 - The app keeps the base address `/ng/` decided in mailcow-rest-v2 feature 001's plan. If that plan
   changes it, the targets follow.
 - The operator can reload the web server configuration of the installation, as the certificate
@@ -804,8 +823,8 @@ of scope.
   are not changed (constitution: upstream files are never patched).
 - **Out of scope**:
   - retiring the classic interface, the legacy PHP container or `/api/v1` and its keys;
-  - taking over internal endpoints, the OAuth2 provider, the quick release pages or the Apple
-    connection profiles in the API or the app;
+  - taking over internal endpoints, the OAuth2 provider, the quick release pages or the classic
+    profile download address `/mobileconfig.php` in the API or the app;
   - single sign-on between the classic interface and the app;
   - changing the webmail's links, the quarantine notification template or any upstream file;
   - moving the app to another base address;

@@ -53,3 +53,16 @@
   used so that the smoke test can verify "unchanged" without credentials.
 - Clarify session 2026-10-18 recorded 11 decisions (Clarifications section), including the
   orchestrator input on `/api/v1` keys. All items were re-validated after clarify and still pass.
+- Validation iteration 2 (orchestrator decisions of 2026-10-18):
+  - Owner questions 1, 2, 3 and 5 were accepted as defaulted.
+  - Apple connection profiles and the client setup guide moved into UI and API feature 005. The
+    root carrying `mobileconfig` (with `only_email` and `app_password`) now maps to the app's profile
+    screen as row M33, with the options only preselected (FR-050). `/mobileconfig.php` stays
+    excluded (X04). Clarification 6, FR-016, X08, the parity rows, the API dependency, the
+    assumptions and the out-of-scope list were updated.
+  - The legacy client configuration guide is an external documentation link, not a classic address,
+    so it has no mapping row. Its replacement is recorded in the parity table.
+  - Aligned with `docs/conventions.md`: the Czech and Slovak names of the classic interface
+    (FR-039), and the API keys note placed in the screen's designated action area (FR-035).
+
+  All items pass.

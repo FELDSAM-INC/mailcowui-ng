@@ -121,7 +121,9 @@ differently. These consistency changes are applied to the requirements below.
   up to 100 keys with their version tags and gets one result per key: done, not found, refused,
   outdated, failed, or "outcome unknown" after a dropped connection (FR-040, FR-041, FR-092).
   Generation and copy still send one request per name or target, because creation is never a bulk
-  operation.
+  operation. They use the same run rules as the other features' "one request per entry" (UI 004):
+  a failure that concerns one name is recorded and the run continues, and a failure that would
+  affect every remaining name stops it (FR-041).
 - **Bulk deletion confirmation**: the dialog asks for the number of keys to be typed instead of an
   acknowledgement checkbox, as `docs/conventions.md` "Confirmations" requires (FR-038, US5 AS-7).
   It still lists every key and marks the names whose mail stops being signed.
@@ -820,10 +822,14 @@ a domain administrator is never offered it.
   deleting a selection MUST be confirmed as FR-038 requires for a selection and sent as FR-092
   describes. The selection MUST be cleared when the page, search, filters, sort or page size change.
 - **FR-041**: Generation and copy create one key per request, because creation is never a bulk
-  operation. For them, the app MUST send one request per name or target, continue after failures,
-  show progress, and finish with a result for every name: done, already has a key, failed with a
-  translated reason, outcome unknown (the connection dropped) or not processed. It MUST offer to
-  retry the failed, unknown and unprocessed names only, and MUST NOT retry anything automatically.
+  operation. For them, the app MUST send one request per name or target, show progress, and finish
+  with a result for every name: done, already has a key, failed with a translated reason, outcome
+  unknown (the connection dropped while it was sent) or not processed. It MUST continue after a
+  failure that concerns only that name (it already has a key, it no longer exists, its name is
+  refused). It MUST stop at a failure that would affect every remaining name (no permission,
+  temporary failure, invalid selector or key size, dropped connection), and leave the remaining
+  names not processed. It MUST offer to retry the failed, unknown and unprocessed names only, and
+  MUST NOT retry anything automatically.
 - **FR-092**: Deleting a selection MUST be sent as one bulk request of the API with every selected
   key and its version tag as listed (at most 100, which one page never exceeds). The app MUST show
   one result per key: deleted, not found, refused, outdated or failed, each with its translated

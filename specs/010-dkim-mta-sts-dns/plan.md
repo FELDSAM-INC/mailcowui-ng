@@ -60,9 +60,9 @@ The technical approach (details in [research.md](./research.md)):
     that carry a private key use direct client calls.
   - The key lives only in a component `ref`. It is cleared on success, on close and on `pagehide`.
   - It is never put in storage, the address or history.
-- **Runs on several names**: generation and copy send one request per name or target through
-  `useSequentialRun`. Bulk deletion uses the API's `POST /dkim-keys/bulk-actions` with version
-  tags, as `docs/conventions.md` requires (R8, R9).
+- **Runs on several names**: generation and copy send one request per name or target through UI
+  004's `useSequentialCreate`, with a DKIM refusal classifier. Bulk deletion uses the API's
+  `POST /dkim-keys/bulk-actions` with version tags, as `docs/conventions.md` requires (R8, R9).
 - **Tests**: Vitest units and components; Playwright end-to-end tests of every acceptance scenario
   on 360 px and desktop with axe in both themes, against the contract-validated mock; smoke tests
   against the API dev stack (R25).
@@ -128,7 +128,7 @@ runtime or development dependency is added (research R26).
 | V. Security in the browser | Private keys:<br>• kept in component state only;<br>• never in a TanStack mutation (`variables` would be cached) or query;<br>• cleared on success, close, leave and `pagehide`;<br>• never in storage, the address, history or error reports (R11, R12).<br>The export dialog asks before closing an uncopied key (conventions "Secrets"). DNS content is plain text, and guidance links pass `safeHref` (R27). Downloads use `blob:` object URLs revoked at once, which the CSP allows (R13). Hiding actions is a convenience: 403 and 404 are handled (FR-003, FR-004). | PASS |
 | VI. Test-first | `tasks.md` puts tests before implementation in every phase. Every acceptance scenario has an end-to-end test on both viewports against the contract-validated mock. Unknown-code fallbacks of closed enumerations are unit-tested with plain values, so the mock never contradicts the contract (UI 001 R22). Smoke tests run against the API dev stack (R25). | PASS (UI 001's smoke-gate entry still applies) |
 | VII. Performance budgets | Routes are lazy (`dns` chunks). There is no new dependency. The query policy reuses cached lists and diagnostics: no refetch without reason, no polling. A Lighthouse collection is added for `/ng/dns/dkim-keys` (R26). | PASS |
-| VIII. Simplicity | No new dependency. New shared blocks exist only where UI 010 has two or more uses: `CopyableValue` (records, policies, diagnostics), `download.ts` (zone file, private key) and `useSequentialRun` with `RunResultList` (generation, copy). Each is created only if an earlier feature has not created it (R3). Single-use parts stay in the feature. | PASS |
+| VIII. Simplicity | No new dependency. UI 010 reuses the shared blocks of UI 002, 004 and 005 (`EditableSection`, `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `useLeaveGuard`, `HistoryLink`, `useSequentialCreate`, `DomainNameText`, `SearchField`, `CopyButton`, `OneTimeSecretDialog`, `utf8ByteLength`). It promotes two feature-local helpers at their second use: UI 002's `domain-name.ts` and UI 005's `download.ts` (R3). Blocks used several times inside this feature only (`RecordValue`, `RunResultList`) stay in the feature. | PASS |
 | Technology constraints | Stack unchanged. No new TailAdmin primitive beyond those UI 001–009 copied, apart from `tabs` if not yet copied (R3). No CDN. No SSR. | PASS |
 | Workflow and gates | CI gates as in UI 001. Commits go to `main`. The feature names API 010 and the pinned commit. | PASS |
 | `docs/conventions.md` | **Wording**: "the classic interface". **Lists**: state in the address; sizes 25, 50 and 100; cards and tables; four states. **Bulk actions**: selection mode on the current page only; the API bulk operation with version tags; per-item summary; failed, refused and outdated items stay selected; a dropped connection is "outcome unknown". **Editing**: MTA-STS section editing sends changed fields with the version tag, and an outdated save marks the changed values. **Confirmations**: single deletion shows the impact, bulk deletion needs the number typed (spec aligned), other risky actions get one confirmation. **Secrets**: the export is shown once and closing uncopied asks. **History** and **errors** as the conventions describe. **Entry points**: added to UI 002 and 004 screens through their designated action areas. **Capabilities**: from `/capabilities/dns`, never hard-coded. | PASS (spec aligned, see below) |
@@ -152,47 +152,51 @@ API implementation is needed only for the smoke tests (T110). The prerequisites:
 | Prerequisite | From | What UI 010 uses |
 |---|---|---|
 | Foundation | UI 001 | Shell, catalogue, router guards, session, `@/api` client and query keys, i18n and problem mapping, `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `useAnnouncer`, `useCountdown`, `useMediaQuery`, `clipboard.ts`, `safeHref`, `limits.ts`, the mock server and fixtures, the audit log screen |
-| Domain list and domain page with section editing | UI 002 | Designated action areas; `EditableSection.vue` and the field diff of `useVersionedSave`; `useBulkSelection`; `BulkResultSummary`; `ConfirmDialog` `requireTyped`; `HistoryLink.vue` and the audit `targetType` and `targetId` filters |
-| Alias domain list and alias domain detail view | UI 004 | Designated action areas |
-| `OneTimeSecretDialog.vue` | UI 005 (promoted from UI 001's `ApiKeySecretDialog`) | The export dialog, extended with a download action |
+| Domain list and domain page with section editing | UI 002 | The action areas of UI 002 data-model §9; `EditableSection.vue` and the field diff of `useVersionedSave`; `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`; `ConfirmDialog` `requireTyped`; `useLeaveGuard`; `HistoryLink.vue` and the audit `targetType` and `targetId` filters; router scroll restoration (UI 002 D9); the `src/i18n/coverage.json` manifest (UI 002 D2); `stripMarkup` in `legacy-map.json` (UI 002 D27) |
+| Alias domain list and alias domain detail view | UI 004 | Their card, table and detail page; `useSequentialCreate`, `DomainNameText`, `SearchField` and `utf8ByteLength` (promoted to `src/shared/`); `isEntryAvailable` |
+| `OneTimeSecretDialog.vue`, `CopyButton.vue`; `download.ts` | UI 005 | The export dialog, extended with a download action; copy buttons; the download helper, promoted by UI 010 |
 | Contract pins of UI 002–009 | UI 002–009 | The pin T002 starts from |
 | API feature 010 contract (merged) and implementation (dev stack) | mailcow-rest-v2 | Types, mock validation, smoke tests |
 
-T001 checks these against the repository before any other task. Where an earlier plan named a
-building block or file differently from the tables below, T001 records the actual path in this
-plan, and the tasks use the recorded path.
+The paths below are those that the plans of UI 002, 004 and 005 name. T001 checks them against the
+repository before any other task. Where the implementation differs, T001 records the actual path
+in this plan, and the tasks use the recorded path.
 
-### Building blocks from earlier features (assumed paths)
+### Building blocks from earlier features
 
-| Block | Assumed path | Created by | Fallback if absent (created by UI 010) |
+| Block | Path (as planned) | Planned by | If absent at T001 |
 |---|---|---|---|
-| Section editing with changed-value marking | `src/shared/components/EditableSection.vue`, `src/shared/composables/useVersionedSave.ts` | UI 002 (UI 001 R20) | None: a hard prerequisite |
-| Bulk selection and per-item summary | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkResultSummary.vue` | UI 002 (UI 001 R20) | None: a hard prerequisite |
-| Typed confirmation | `ConfirmDialog.vue` `requireTyped` | UI 002 (UI 001 R20) | None: a hard prerequisite |
-| History link and audit target filters | `src/shared/components/HistoryLink.vue` | UI 002 (UI 001 R20) | None: a hard prerequisite |
-| One-time secret dialog | `src/shared/components/OneTimeSecretDialog.vue` | UI 005 (UI 001 R20) | None: a hard prerequisite |
-| Domain name syntax check (readable or ASCII, 253/63) | `src/shared/validation/domain-name.ts` | UI 002 (domain names), UI 004 | T024 creates it |
-| Readable name with ASCII form below | `src/shared/components/DomainName.vue` | UI 002, UI 004 | T024 creates it |
-| Sequential per-name run and its result list | `src/shared/composables/useSequentialRun.ts`, `src/shared/components/RunResultList.vue` | UI 002 (FR-046), UI 004 (FR-037) | T025 creates them |
-| Copyable value with clipboard fallback | `src/shared/components/CopyableValue.vue` | possibly UI 005 | T022 creates it |
-| Text download | `src/shared/platform/download.ts` | possibly UI 005 | T023 creates it |
-| Router scroll restoration on Back, and focus without scrolling | `src/app/router/index.ts` (`scrollBehavior`), `src/app/router/focus.ts` (`preventScroll`) | UI 002 lists | T027 adds it |
+| Section editing with changed-value marking | `src/shared/components/EditableSection.vue`, `src/shared/composables/useVersionedSave.ts` | UI 002 | Hard prerequisite: stop |
+| Bulk selection, action bar and per-item summary (with the `#item` slot) | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkActionBar.vue`, `src/shared/components/BulkResultSummary.vue` | UI 002; slot added by UI 004 (D4) | Hard prerequisite: stop |
+| Typed confirmation | `src/shared/components/ConfirmDialog.vue` `requireTyped` | UI 002 | Hard prerequisite: stop |
+| Leave guard | `src/shared/composables/useLeaveGuard.ts` | UI 002 (D21) | Hard prerequisite: stop |
+| History link and audit target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | UI 002 | Hard prerequisite: stop |
+| One-time secret dialog | `src/shared/components/OneTimeSecretDialog.vue` | UI 005 | Hard prerequisite: stop |
+| One request per entry | `src/shared/composables/useSequentialCreate.ts` | UI 004 (R9) | Hard prerequisite: stop. T025 adds the `unknown` outcome if it lacks one |
+| Readable name with the ASCII form below | `src/shared/components/DomainNameText.vue` | UI 002, promoted by UI 004 | Hard prerequisite: stop |
+| Search field | `src/shared/components/SearchField.vue` | UI 004 (R7) | Hard prerequisite: stop |
+| UTF-8 byte length | `src/shared/validation/utf8.ts` (`utf8ByteLength`) or UI 005's `src/shared/validation/byte-length.ts` | UI 004, UI 005 | Use whichever exists |
+| Copy button | `src/shared/components/CopyButton.vue` | UI 005 | T022 creates it. If it lacks the select-in-place fallback (FR-075), T022 adds it |
+| Domain name syntax check (readable or ASCII, 253/63) | `src/features/domains/domain-name.ts`, feature-local | UI 002 | T024 promotes it to `src/shared/validation/domain-name.ts` (second use) and adds the `*.` wildcard option |
+| Text download through a revoked object URL | `src/features/account/download.ts`, feature-local in UI 005 | UI 005 | T023 promotes it to `src/shared/platform/download.ts` (second use), or creates it |
+| Router scroll restoration on Back, and focus without scrolling | `src/app/router/index.ts`, `src/app/router/focus.ts` | UI 002 (D9) | T027 adds it |
+| Enumeration coverage manifest; legacy `stripMarkup` | `src/i18n/coverage.json`, `scripts/i18n/{check,import-legacy}.mjs` | UI 002 (D2, D27), UI 004 (R20) | Hard prerequisite: stop |
 
-### Entry points into earlier screens (assumed paths)
+### Entry points into earlier screens
 
-Each earlier screen keeps a designated action or section area. UI 010 places its components there:
-`DomainDkimSection`, `DomainMtaStsSection`, `AliasDomainMtaStsSection` and `CheckDnsAction`, all
-exported from `src/features/dns/index.ts`. If UI 002 defines a registry for these areas instead,
-UI 010 registers its components there. T001 records the actual mechanism and file names.
+UI 002 data-model §9 names the action areas that UI 010 fills. UI 004 offers its card, table and
+detail page. UI 010 places these components there, all exported from `src/features/dns/index.ts`:
+`DomainDkimSection`, `DomainMtaStsSection`, `AliasDomainMtaStsSection` and `CheckDnsAction`. The
+earlier pages import them from `@/features/dns`, as UI 001 R3 allows.
 
-| Screen | Assumed file | Area | UI 010 adds | Story |
+| Screen | File (as planned) | Area | UI 010 adds | Story |
 |---|---|---|---|---|
-| Domain list (UI 002) | `src/features/domains/components/DomainRowActions.vue` | row and card actions | "Check DNS" (FR-023) | US3 |
-| Domain page (UI 002) | `src/features/domains/pages/DomainPage.vue` | sections and page actions | DKIM section (FR-021), MTA-STS section `#mta-sts` (FR-022, FR-046), "Check DNS" (FR-023), "DKIM keys of this domain and its alias domains" (FR-012) | US1, US2, US3, US4 |
-| Alias domain list (UI 004) | `src/features/aliases/components/AliasDomainRowActions.vue` | row and card actions | "Check DNS" | US3 |
-| Alias domain detail (UI 004) | `src/features/aliases/pages/AliasDomainPage.vue` | sections and page actions | DKIM section, MTA-STS section naming the target, "Check DNS" | US1, US2, US3, US4 |
-| Audit log (UI 001, filters by UI 002) | `src/features/audit-log/labels.ts` | event and target labels | 8 event types, 2 target types (FR-070) | US8 |
-| Domain page route (UI 002) | route name `domain`, param `domain`, from `@/features/domains` | link target | links from the MTA-STS list and alias sections | US4 |
+| Domain list (UI 002) | `src/features/domains/components/list/DomainCard.vue`, `DomainTable.vue` | entry actions menu (Reka `DropdownMenu`) | "Check DNS" (FR-023) | US3 |
+| Domain page (UI 002) | `src/features/domains/pages/DomainDetailPage.vue` (route `domain-detail`, `/domains/:domain`) | section list after Groupware; header actions (a menu below `md`) | DKIM section (FR-021), MTA-STS section `id="mta-sts"` (FR-022, FR-046), "Check DNS" (FR-023), "DKIM keys of this domain and its alias domains" (FR-012) | US1, US2, US3, US4 |
+| Alias domain list (UI 004) | `src/features/alias-domains/components/AliasDomainCard.vue`, `AliasDomainTable.vue` | entry actions | "Check DNS" | US3 |
+| Alias domain detail (UI 004) | `src/features/alias-domains/pages/AliasDomainDetailPage.vue` (route `alias-domain-detail`) | sections after General; page actions | DKIM section, MTA-STS section naming the target, "Check DNS" | US1, US2, US3, US4 |
+| Creation reports (UI 002, UI 004) | `src/shared/components/CreationReport.vue` and its callers | DKIM key and DKIM DNS publication lines | Live link to the DKIM keys screen: `isEntryAvailable('dkimKeys')` replaces `'dns'` (T021) | US1 |
+| Audit log (UI 001, filters by UI 002) | `src/features/audit-log/labels.ts`, `src/i18n/coverage.json` | event and target labels | 8 event types, 2 target types (FR-070) | US8 |
 
 ## API dependency and gaps
 
@@ -325,14 +329,15 @@ src/
 │   ├── aliases/…                        # UI 004: mounts DKIM, MTA-STS (target), Check DNS
 │   └── audit-log/labels.ts              # + DKIM and MTA-STS event and target labels
 ├── shared/
-│   ├── components/{CopyableValue,DomainName,RunResultList,OneTimeSecretDialog}.vue  # created or extended
-│   ├── composables/useSequentialRun.ts  # created if absent
-│   ├── platform/download.ts             # created if absent
-│   └── validation/{limits,domain-name}.ts
+│   ├── components/{CopyButton,OneTimeSecretDialog}.vue  # extended (select fallback; download)
+│   ├── composables/useSequentialCreate.ts  # + `unknown` outcome if missing
+│   ├── platform/download.ts             # promoted from UI 005's feature
+│   └── validation/{limits,domain-name}.ts  # + 010 limits; domain-name promoted from UI 002
 └── i18n/
     ├── messages/{en-gb,cs-cz,sk-sk}.json   # + dns.*, problem.*, validation.*, auditLog.*
-    └── legacy-map.json                     # + 30 legacy keys (research R22)
-scripts/i18n/check.mjs                      # + 010 enumerations and formats
+    ├── coverage.json                       # + 010 values of the shared enumerations (UI 002 D2)
+    └── legacy-map.json                     # + about 30 legacy keys (research R22)
+scripts/i18n/check.mjs                      # + 010 enumerations (fully required) and formats
 tests/
 ├── mocks/
 │   ├── handlers/{dkim,mta-sts,dns-diagnostics}.ts

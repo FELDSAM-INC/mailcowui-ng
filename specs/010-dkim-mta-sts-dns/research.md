@@ -74,9 +74,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     | `mta-sts-policies` | `/dns/mta-sts-policies` | `mtaStsPolicies` |
     | `dns-diagnostics` | `/dns/diagnostics/:diagnosticsName` | `dkimKeys` (same access) |
 
-    Administrator-only pages (import, copy) render UI 001's `NoAccessState` for domain
-    administrators. The page checks `role === 'admin'`, because the catalogue access is per entry,
-    not per route. The API refuses them anyway.
+    Administrator-only pages (import, copy) carry `meta.roles: ['admin']`, so `ShellLayout` renders
+    UI 001's `NoAccessState` for domain administrators (UI 002 D4). The API refuses them anyway.
   - **Names in addresses**: the entry's `name`, which is the ASCII form or, for an unused key, the
     exact stored spelling (API `DkimKey.name`). Vue Router percent-encodes it. `names.ts` builds
     every location, so a stored name with upper case, Unicode or `/` round-trips.
@@ -94,27 +93,37 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     dialog (constitution II allows short dialogs), while import and copy are pages because they
     are long or multi-step.
 
-### R3. Building blocks: reuse first, create only on a second use
+### R3. Building blocks: reuse first, promote at the second use
 
-- **Decision**: UI 010 reuses the blocks of UI 001, 002, 004 and 005 listed in
-  [plan.md](./plan.md#building-blocks-from-earlier-features-assumed-paths). T001 confirms their
-  paths. Blocks that UI 010 uses at least twice are created in `src/shared/` only if no earlier
-  feature created them:
-  - `CopyableValue.vue`: DKIM records, MTA-STS records and policy text, diagnostics values, the
-    zone file and SPF guidance (R6);
-  - `download.ts`: zone file, private key (R13);
-  - `useSequentialRun.ts` with `RunResultList.vue`: generation runs, copy runs (R8);
-  - `DomainName.vue` (readable name with the ASCII form below) and `domain-name.ts` (syntax check):
-    the DKIM list and entry, the policy list, diagnostics, the import name and MX hosts.
-
-  Single-use parts stay in the feature: `MaxAgeField`, `MxHostListField`, `PrivateKeyField`,
-  `CopyTargetPicker` and every DNS-specific card. `OneTimeSecretDialog` (UI 005) gains an optional
-  `download` prop (`{ fileName, mediaType }`), with its unit test extended, because the
-  conventions make the export a shown-once secret.
-- **Rationale**: Constitution VIII. The plan cannot know every earlier file name, because UI
-  002–009 are planned in parallel, so T001 is the single reconciliation point.
-- **Alternatives considered**: Creating UI 010's own copies unconditionally: rejected, because it
-  would duplicate blocks of 002 and 004.
+- **Decision**: UI 010 reuses the blocks that the plans of UI 001, 002, 004 and 005 create, listed
+  in [plan.md](./plan.md#building-blocks-from-earlier-features). T001 confirms their paths in the
+  repository.
+  - **Reused as they are**:
+    - UI 002: `EditableSection`, `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` (with UI
+      004's `#item` slot), `ConfirmDialog` `requireTyped`, `useLeaveGuard` and `HistoryLink`;
+    - UI 004: `useSequentialCreate`, `DomainNameText`, `SearchField` and `utf8ByteLength`;
+    - UI 005: `OneTimeSecretDialog` and `CopyButton`.
+  - **Extended**:
+    - `OneTimeSecretDialog` gains an optional `download` prop (`{ fileName, mediaType }`), because
+      the conventions make the export a shown-once secret;
+    - `CopyButton` gains the select-in-place fallback of FR-075 if it lacks one (R6);
+    - `useSequentialCreate` gains an `unknown` outcome for the entry in flight when the connection
+      drops, if it lacks one (R8, conventions "Bulk actions").
+  - **Promoted at their second use** (constitution VIII, UI 001 R3 forbids deep imports):
+    - UI 002's feature-local `src/features/domains/domain-name.ts` moves to
+      `src/shared/validation/domain-name.ts` and gains a `wildcard` option for MX hosts. UI 002's
+      imports are updated, and its tests move with it.
+    - UI 005's feature-local `src/features/account/download.ts` moves to
+      `src/shared/platform/download.ts` (R13). UI 005's imports are updated.
+  - **Kept in the feature**, because only UI 010 uses them, even when it uses them several times:
+    - `RecordValue.vue` (a labelled monospace value with a `CopyButton`, R6);
+    - `RunResultList.vue` (per-name results of generation and copy runs, R8);
+    - `PublicationOutcome.vue`, `MaxAgeField`, `MxHostListField`, `PrivateKeyField`,
+      `CopyTargetPicker` and every DNS-specific card.
+- **Rationale**: Constitution VIII. The earlier plans were written in parallel with this one, so
+  T001 stays the single point where planned names are checked against the code.
+- **Alternatives considered**: UI 010's own copy, results list and sequential runner in
+  `src/shared/`: rejected, because they would duplicate UI 004 and 005.
 
 ---
 
@@ -155,7 +164,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     - `['mta-sts-policies','list',params]` and `['mta-sts-policies','detail',domain]`;
     - `['dns-diagnostics','result',name]`, `['dns-diagnostics','rate-limit']` and
       `['dns-diagnostics','changed',name]`.
-  - **Search** is applied 300 ms after typing stops, through `useListState`'s `replace` (FR-008).
+  - **Search** uses UI 004's `SearchField`: it runs after a 500 ms pause or on submit, through
+    `useListState`'s `replace` (FR-008).
   - **Lists** use UI 001's defaults (`staleTime: 30_000`) plus `placeholderData: keepPreviousData`,
     so paging and filtering never flash a loading state. Returning from an entry shows the cached
     page at once (FR-013). A background refetch happens only when the data is stale, with no
@@ -184,10 +194,10 @@ already made are not repeated; this file covers only what UI 010 adds or changes
 
 ## 3. DKIM
 
-### R6. Copying values to the clipboard (`CopyableValue`)
+### R6. Copying values to the clipboard (`RecordValue` and `CopyButton`)
 
 - **Decision**:
-  - `CopyableValue.vue` renders a labelled value and a copy button.
+  - `RecordValue.vue` (feature) renders a labelled value with UI 005's shared `CopyButton`.
     - Props: `label`, `value`, `copyLabel` (the accessible name, for example "Copy record value of
       example.org"), `monospace` and `multiline`.
     - The value is rendered as text in a `<code>` or `<pre>` with `break-all` (`overflow-wrap:
@@ -200,11 +210,12 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     it leaves (FR-074).
   - **Refusal or no clipboard API** (FR-075): the value element is made selectable, focused and
     fully selected with `Range`/`Selection`, and an inline message says that it could not be
-    copied automatically.
+    copied automatically. `CopyButton` gets a `selectTarget` prop (an element ref) for this, if it
+    lacks such a fallback (T022).
   - The button is at least 44 × 44 px with a visible text label on wide screens and an icon with
     an accessible name on phones.
-- **Rationale**: One component makes all copy behaviour of SC-003 and FR-075 testable in one
-  place.
+- **Rationale**: One shared button and one feature wrapper make all copy behaviour of SC-003 and
+  FR-075 testable in one place.
 - **Alternatives considered**: `document.execCommand('copy')` as a fallback: rejected as
   deprecated. Selecting the text for the user is the reliable fallback.
 
@@ -234,23 +245,26 @@ already made are not repeated; this file covers only what UI 010 adds or changes
 ### R8. Runs on several names: generation and copy
 
 - **Decision**:
-  - `useSequentialRun<T>(items, perform)` (shared, R3) sends one request at a time in the given
-    order.
-    - It exposes `progress` (done count / total), `results` (one per item) and `running`.
-    - Actions: `stop()` (after the current item), `retry(filter)` (failed, unknown and not
-      processed only) and `reset()`.
-    - Item states:
+  - Runs use UI 004's `useSequentialCreate(entries, send, classify)`: one request at a time, in the
+    given order. Each entry ends `created`, `refused` or `notProcessed`. UI 010 adds `unknown` for
+    the entry in flight when the connection drops, if the composable lacks it (R3). The feature's
+    `dkimRunClassifier` decides which refusals concern only one name and which stop the run:
 
-      | State | Meaning |
-      |---|---|
-      | `pending` | Not started yet |
-      | `running` | Being sent |
-      | `done` | Succeeded; keeps the publication outcome |
-      | `exists` | `409 dkim-key-exists` (generation) |
-      | `failed` | Any other problem; keeps the `ApiProblem` for its translated reason |
-      | `unknown` | Network failure or a non-problem 5xx: "outcome unknown", never retried on its own (conventions) |
-      | `notProcessed` | Stopped, or the page was left |
+    | Refusal | Scope | Result shown |
+    |---|---|---|
+    | `409 dkim-key-exists` | entry, continue | "Already has a key" (generation); "Has a key now" (copy target) |
+    | `404` | entry, continue | "No longer exists" |
+    | `422` whose `errors` keys are all `name` or `target` | entry, continue | the translated rule |
+    | `409 about:blank` (copy source incomplete) | form, stop | "The source key is incomplete and cannot be copied" |
+    | `422` on `selector` or `keySize`, `403` of any type, `503 temporary-failure`, any other or unknown problem | form, stop | the problem at its field or in the summary; the remaining names become `notProcessed` |
+    | network failure, or a non-problem 5xx | form, stop | the entry in flight is `unknown` ("outcome unknown", never retried on its own); the remaining names become `notProcessed` |
 
+    A failure that would affect every remaining name stops the run instead of repeating it. The
+    spec's FR-041 was aligned with this.
+  - **Results**: `RunResultList.vue` (feature) lists every name with its outcome, a translated
+    reason, and, for created keys, `PublicationOutcome` and a link to the entry. It offers "Retry"
+    for the refused, unknown and not-processed names only. An `unknown` generation that did succeed
+    answers `409` on retry, which is reported as "already has a key".
   - **Generation for a selection** opens `GenerateKeyDialog` with the selected names. Entries that
     already have a key are listed as skipped (FR-040). A single name opens its entry afterwards
     (US2).
@@ -265,21 +279,23 @@ already made are not repeated; this file covers only what UI 010 adds or changes
   - **Progress announcements**: politely at the start, at each 10 % step (at most 10
     announcements), and at the end with the counts. The visible progress bar has
     `role="progressbar"` with `aria-valuenow`.
-  - **Leaving during a run** (FR-042): `onBeforeRouteLeave` asks through `useConfirm` ("the
-    remaining N names will not be processed"), and `beforeunload` is registered only while
-    running. Confirming stops the run, and the remaining items become `notProcessed`.
-  - The run is shown in `RunDialog` (full-screen sheet below `md`). The dialog does not close with
-    Escape while running (FR-085), and it offers "Stop". The results use `RunResultList`, which
-    shows a translated reason per item and one "Retry failed" action.
+  - **Leaving during a run** (FR-042): UI 002's `useLeaveGuard` is armed while the run is pending
+    ("the remaining N names will not be processed"). Confirming stops the run, and the remaining
+    names become `notProcessed`.
+  - The generation run is shown in `RunDialog` (full-screen sheet below `md`). It does not close
+    with Escape while running (FR-085), and it offers "Stop", which lets the current request finish.
   - **Copy runs**: the same composable on the copy page, one `copyDkimKey` per target.
     - A target with a key is sent with `overwrite: true` and `If-Match: <target etag>`, and only
       after explicit agreement (R10).
-    - A `404` target is `failed` with "no longer exists".
-- **Rationale**: Creation is one object per request (API conventions). A shared composable keeps
-  SC-011 ("50 names, retry only the failed") testable in one unit.
-- **Alternatives considered**: Parallel requests: rejected. Order and readable progress matter
-  more than speed, and parallel generations would compete for the API's per-name serialisation
-  (API FR-053).
+- **Rationale**: Creation is one object per request (API conventions), and UI 004 already built
+  the runner. Stopping at run-wide failures follows UI 004 R9 and avoids sending a doomed request
+  for each of up to hundreds of names. SC-011 ("50 names, retry only the failed") is unit-tested on
+  the classifier and the runner.
+- **Alternatives considered**:
+  - A separate runner that always continues: rejected. It would duplicate UI 004 and repeat
+    failures that affect every name.
+  - Parallel requests: rejected. Order and readable progress matter more than speed, and parallel
+    generations would compete for the API's per-name serialisation (API FR-053).
 
 ### R9. Deleting keys: single and bulk
 
@@ -296,7 +312,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
       refreshes.
     - On success, a domain or alias domain entry shows "Key missing". An unused key returns to the
       list.
-  - **Bulk** (FR-040, FR-092): selection mode with `useBulkSelection` (UI 002) on the current page.
+  - **Bulk** (FR-040, FR-092): selection mode with `useBulkSelection` and `BulkActionBar` (UI 002)
+    on the current page.
     - `BulkDeleteDialog` lists every selected entry with a key (kind, selector), marks the domains
       and alias domains whose mail stops being signed, lists entries without a key as skipped, and
       requires the number of keys to be typed (`requireTyped`, conventions).
@@ -305,7 +322,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
       (plan gap 2).
     - The results go to `BulkResultSummary`:
       - `done`, `notFound`, `refused`, `outdated` and `failed` are translated;
-      - with publication enabled, each done row shows its `meta.dnsPublication[id]` outcome;
+      - with publication enabled, each done row shows its `meta.dnsPublication[id]` outcome in the
+        `#item` slot;
       - failed, refused and outdated rows stay selected;
       - the list is refetched, so a retry carries fresh version tags;
       - a dropped connection shows "outcome unknown" for every target and is never resent on its
@@ -350,6 +368,10 @@ already made are not repeated; this file covers only what UI 010 adds or changes
   - **Where the key lives**: only in `DkimImportPage`'s local `ref`.
     - It is never put in Pinia, a query, a TanStack mutation (`useMutation` keeps `variables` in
       the mutation cache until `gcTime`), the route, history state or storage.
+    - UI 005's `useSecretMutation` strips secrets from *responses*. It does not cover a secret in
+      the request, so the import does not use it.
+    - UI 004's `useFormDraft` is not used on the import page, so a session end never saves the key
+      into the draft registry.
     - The request is a direct call, `api.POST('/dkim-keys/{dkimName}/import', …)`, wrapped by the
       feature's `api/dkim-secrets.ts` (`importKey`), which has its own `pending` ref. After
       success it writes only the non-secret `DkimKeyChangeResult` into the cache.
@@ -358,13 +380,14 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     - a "Choose file" button: `<input type="file" accept=".pem,.key,.txt,text/plain">`. The size
       is checked against `privateKeyMaxBytes` before `FileReader.readAsText`, and the file input is
       reset after reading.
-  - **Size check**: `new TextEncoder().encode(text).byteLength ≤ privateKeyMaxBytes`. An empty
+  - **Size check**: the shared `utf8ByteLength(text) ≤ privateKeyMaxBytes` (UI 004 or UI 005). An empty
     text is refused before sending (FR-029). Windows line endings and blank lines are sent
     unchanged (the API normalises them).
   - **Lifecycle**:
     - after success, the text is cleared and the page is replaced by the entry;
     - after a refusal, the text is kept (FR-033);
-    - when leaving with entered values, `useConfirm` asks, and on confirmation the text is cleared;
+    - when leaving with entered values, `useLeaveGuard` asks, and on confirmation the text is
+      cleared;
     - on `pagehide`, the text is cleared, so a back-forward cache restore shows an empty field.
 
     A reload loses everything, because nothing is stored.
@@ -419,7 +442,9 @@ already made are not repeated; this file covers only what UI 010 adds or changes
 
 ### R13. Text downloads under the strict CSP
 
-- **Decision**: `download.ts` exports `downloadText(text, fileName, mediaType)`:
+- **Decision**: UI 005's `download.ts` (Apple profiles, through a revoked object URL) is promoted
+  to `src/shared/platform/download.ts` at this second use. It exports `downloadText(text, fileName,
+  mediaType)`, which T023 adds if the promoted module has only a Blob variant:
   1. It creates `new Blob([text], { type: `${mediaType};charset=utf-8` })` and
      `URL.createObjectURL(blob)`.
   2. It clicks a detached `<a download="…" href="blob:…">`.
@@ -551,8 +576,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
 
     SPF guidance gives FR-063:
     - `spfAuthorizeAddresses` shows the IPv4 and, if present, the IPv6 address, each in a
-      `CopyableValue`;
-    - `spfSuggestedRecord` shows the record in a `CopyableValue`;
+      `RecordValue`;
+    - `spfSuggestedRecord` shows the record in a `RecordValue`;
     - `spfSyntaxReference` becomes a link.
 
     Result-level notes appear in the facts area: `noPublicIpv6`, `serverChecksOmitted`, and
@@ -607,7 +632,7 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     page already resolved. It shows:
     - the active badge, version, mode, MX hosts, maximum age (R18), policy identifier and policy
       address (link, new tab, FR-078);
-    - the policy text in a `<pre>` `CopyableValue`;
+    - the policy text in a `<pre>` `RecordValue`;
     - the two records from `dnsRecords`, each with name and value copy buttons.
 
     The page's History link is for administrators.
@@ -642,7 +667,9 @@ already made are not repeated; this file covers only what UI 010 adds or changes
   - **Alias domain section** (`AliasDomainMtaStsSection.vue`): names the target domain, links to
     its domain page at `#mta-sts`, and says that the alias domain publishes the target's policy. It
     offers no editing (FR-022). It reads nothing: the alias domain page already knows its target.
-  - **Leaving** the form with unsaved changes asks through `useConfirm` (FR-053).
+  - **Leaving** the form with unsaved changes asks through `useLeaveGuard` (FR-053).
+  - Links to the section use UI 002's route `domain-detail` with the hash `#mta-sts`. Opening the
+    form directly uses UI 002's `edit=<section>` address parameter, with the section key `mta-sts`.
   - **Policy list** (`MtaStsPoliciesPage.vue`):
     - `useListState` with `q`, `active`, `mode`, `sort` (`domain`, `mode`, `maxAge`, `policyId`),
       `order`, `page` and `size`;
@@ -677,7 +704,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     - An entry is added with Enter, comma or the "Add" button, and removed with its own labelled
       button ("Remove mail.example.org"). Pasting a comma-separated list adds each item.
     - Each entry is trimmed. One trailing dot is removed (spec edge case). The entry is checked
-      with `domain-name.ts` with the wildcard option (`*.` prefix).
+      with the promoted `src/shared/validation/domain-name.ts` with the wildcard option (`*.`
+      prefix, R3).
     - The ASCII form for length checks comes from `new URL('http://' + host).hostname`, the
       browser's UTS #46 conversion.
     - A case-insensitive duplicate is dropped, keeping the first spelling, with a polite
@@ -707,9 +735,21 @@ already made are not repeated; this file covers only what UI 010 adds or changes
   - `CheckDnsAction` (prop `name`; variants `menuItem` and `button`), which links to
     `/dns/diagnostics/<name>` (FR-023).
 
-  UI 002's domain page and domain list, and UI 004's alias domain detail view and alias domain
-  list, place these in their designated areas (plan table). The DKIM section loads its entry
-  lazily (`defineAsyncComponent`), so the domain page chunk does not grow with DNS code.
+  They are placed in the action areas of UI 002 data-model §9 and in UI 004's alias domain card,
+  table and detail page (plan table):
+  - the domain page's section list after Groupware: DKIM, then MTA-STS;
+  - the domain page's header actions and the domain list's entry actions menu: "Check DNS";
+  - the alias domain detail page: DKIM and the MTA-STS (target) section, plus "Check DNS" in its
+    page actions;
+  - the alias domain card and table: "Check DNS".
+
+  The sections are exported as async components (`defineAsyncComponent`), so the domain page chunk
+  does not grow with DNS code.
+
+  UI 002's and UI 004's creation reports already link to "the DKIM keys screen of UI 010" when
+  `isEntryAvailable(...)` holds. UI 001 named the catalogue row `dns`, so T021 replaces every
+  `'dns'` catalogue reference with `'dkimKeys'`. The id union of `NavigationEntry` makes the
+  compiler find each one, and those links go live with US1.
 
   Domain administrators see the same sections, with only the actions that FR-002 grants. Before
   UI 010, those screens show nothing for DNS (conventions), and UI 010 changes only their
@@ -771,7 +811,7 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     and `dns.capabilities`, plus `nav.dkimKeys` and `nav.mtaStsPolicies`, `auditLog.events.*` and
     `auditLog.targets.*` for 010 values, `problem.<name>` for the four 010 types, and
     `validation.<code>` and `validation.format.<format>` for `dkimSelector`, `domainName` and
-    `mxHost`. The `common.copy.*` keys of `CopyableValue` are added if UI 010 creates it.
+    `mxHost`. The `common.copy.*` keys of `CopyButton` are added only if UI 010 creates it.
   - **Legacy reuse** through `src/i18n/legacy-map.json`, checked against the upstream baseline
     `2026-09a`:
 
@@ -794,7 +834,7 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     | `dns.dkim.results.removed` | `success.dkim_removed` (`{0}`) |
     | `dns.dkim.results.copied` | `success.dkim_duplicated` (`{0}`, `{1}`) |
     | `dns.dkim.results.exists` | `danger.dkim_domain_or_sel_exists` (`{0}`) |
-    | `common.copy.done` | `admin.copy_to_clipboard` |
+    | `common.copy.done` (only if T022 creates `CopyButton`) | `admin.copy_to_clipboard` |
     | `nav.mtaStsPolicies` (prefix) and `dns.mtaSts.title` | `edit.mta_sts` |
     | `dns.mtaSts.fields.version` | `edit.mta_sts_version` |
     | `dns.mtaSts.fields.mode` | `edit.mta_sts_mode` |
@@ -814,20 +854,33 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     - `cs-cz` lacks `edit.mta_sts_active_info`.
 
     The app layer of that locale supplies them (UI 001 R15).
+  - **Reused with markup stripped** (UI 002 D27's `{ "from": …, "stripMarkup": true }` form):
+    `dns.mtaSts.explanation` from `edit.mta_sts_info`, and `dns.mtaSts.fields.versionHelp` from
+    `edit.mta_sts_version_info`. `sk-sk` lacks both, so its app layer supplies them.
   - **Not reusable**:
-    - `edit.mta_sts_info`, `edit.mta_sts_mode_info` and `edit.mta_sts_version_info` contain HTML.
-      The import script refuses HTML, so new keys carry their text without markup, with the mode
-      explanation split per mode.
+    - `edit.mta_sts_mode_info` contains one HTML list for all three modes, while FR-047 shows each
+      mode's explanation next to it. New keys `dns.mtaSts.modes.<mode>.description` carry the
+      legacy wording, split per mode.
     - `edit.mta_sts_max_age_info` says "in seconds", which units make wrong.
     - `diagnostics.dns_records_data` ("Correct Data") and `diagnostics.dns_records_status`
       ("Current State") change meaning (spec Assumptions).
     - `diagnostics.allow` exists only in the FeldHost fork, not upstream, so it is a new key.
-  - **Enumerations** that `scripts/i18n/check.mjs` must cover (T004): `DkimKeyState`,
-    `DkimKeyKind`, `DkimKeyDetails.missingParts`, `DkimDnsPublicationStatus`,
-    `DkimDnsPublicationReasonCode`, `DnsCheckStatus`, `DnsCheckMessageCode`, `DnsCheck.scope`,
-    `MtaStsMode` and `BulkItemOutcome`, if UI 002 did not add it. `AuditEventType`,
-    `AuditTarget.type` and `KnownProblemType` are covered by UI 001's rules. The formats
-    `dkimSelector`, `domainName` and `mxHost` are added to the required `validation.format.*` set.
+  - **Enumerations** (T004):
+    - **Fully required** (every value needs a key, UI 002 D2), added to `scripts/i18n/check.mjs`:
+      `DkimKeyState`, `DkimKeyKind`, `DkimKeyDetails.missingParts`, `DkimDnsPublicationStatus`,
+      `DkimDnsPublicationReasonCode`, `DnsCheckStatus`, `DnsCheckMessageCode`, `DnsCheck.scope`
+      and `MtaStsMode`. `BulkItemOutcome` is already fully required by UI 002.
+    - **Growing shared enumerations**: this feature appends its values to `src/i18n/coverage.json`
+      (UI 002 D2):
+      - `AuditEventType`: the eight `dkim*` and `mtaSts*` values;
+      - `AuditTarget.type`: `dkimKey` and `mtaStsPolicy`;
+      - `ValidationRuleCode`: `invalidPrivateKey`, `encryptedPrivateKey`, `unsupportedKeyType`,
+        `keyLengthOutOfRange` and `sameAsSource`;
+      - `problemTypes`: `dkim-key-exists`, `dkim-private-key-export-disabled`,
+        `dkim-dns-publication-disabled` and `mta-sts-policy-exists`, plus `temporary-failure` if
+        UI 002 did not add it.
+    - **Formats**: `dkimSelector`, `domainName` and `mxHost` are added to the required
+      `validation.format.*` set, unless UI 002 or UI 004 already added them.
 - **Rationale**: Constitution IV. Every mapped legacy value is plain text with unchanged meaning.
   The verification against the baseline files was done during planning.
 - **Alternatives considered**: Mapping the HTML keys after stripping markup in the import script:

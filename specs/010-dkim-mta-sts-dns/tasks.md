@@ -15,10 +15,11 @@ description: "Task list for UI feature 010: DKIM, MTA-STS and DNS"
 **Prerequisites**:
 - **UI features 001–009 are implemented and merged.** In particular:
   - UI 001: foundation, audit log;
-  - UI 002: domain list and page, `EditableSection`, `useBulkSelection`, `BulkResultSummary`,
-    `ConfirmDialog` `requireTyped`, `HistoryLink`, audit target filters;
-  - UI 004: alias domain list and detail;
-  - UI 005: `OneTimeSecretDialog`.
+  - UI 002: domain list and page, `EditableSection`, `useBulkSelection`, `BulkActionBar`,
+    `BulkResultSummary`, `ConfirmDialog` `requireTyped`, `useLeaveGuard`, `HistoryLink`, audit
+    target filters, `src/i18n/coverage.json`;
+  - UI 004: alias domain list and detail, `useSequentialCreate`, `DomainNameText`, `SearchField`;
+  - UI 005: `OneTimeSecretDialog`, `CopyButton`.
 - **mailcow-rest-v2 feature 010**: its contract is merged (commit `3207925` or later). It is
   implemented in the API dev stack for the smoke tasks (T110).
 
@@ -39,8 +40,8 @@ be implemented and tested on its own once the foundation is in place.
 
 - **[P]**: Can run in parallel (different files, no dependency on an incomplete task)
 - **[Story]**: The user story the task belongs to (US1 to US8)
-- Paths are relative to the repository root `mailcowui-ng/`. Paths of UI 002 and UI 004 files are
-  the assumed paths of plan.md, as T001 confirmed or corrected them.
+- Paths are relative to the repository root `mailcowui-ng/`. Paths of UI 002, 004 and 005 files
+  are those their plans name, as listed in plan.md and confirmed or corrected by T001.
 
 ---
 
@@ -53,13 +54,18 @@ translation check (research R1, R3, R22).
   - Confirm that UI 001–009 are merged and that their tests pass on `main`.
   - For every row of plan.md "Building blocks from earlier features" and "Entry points into earlier
     screens", locate the file, export or route name in the repository.
-  - Update both tables in `specs/010-dkim-mta-sts-dns/plan.md` with the actual paths and mechanism.
-    For example, if UI 002 defined a registry for designated action areas, record its name.
-  - Mark each fallback block (`domain-name.ts`, `DomainName.vue`, `useSequentialRun.ts`,
-    `RunResultList.vue`, `CopyableValue.vue`, `download.ts`, router scroll restoration) as "exists"
-    or "to create". T016, T022–T025 and T027 then extend or create it accordingly.
-  - Stop and report if a hard prerequisite is missing: `EditableSection`, `useBulkSelection`,
-    `BulkResultSummary`, `requireTyped`, `HistoryLink` or `OneTimeSecretDialog`.
+  - Where the code differs from the paths that the UI 002, 004 and 005 plans named, update both
+    tables in `specs/010-dkim-mta-sts-dns/plan.md` with the actual paths.
+  - Record for T022–T025 and T027:
+    - whether `CopyButton` already has a select-in-place fallback;
+    - whether `useSequentialCreate` already has an `unknown` outcome;
+    - where UI 002's `domain-name.ts` and UI 005's `download.ts` live (promoted already or still
+      feature-local);
+    - whether the router already restores the scroll position.
+  - Stop and report if a hard prerequisite of the plan's table is missing. They are
+    `EditableSection`, `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `requireTyped`,
+    `useLeaveGuard`, `HistoryLink`, `OneTimeSecretDialog`, `useSequentialCreate`, `DomainNameText`,
+    `SearchField` and `src/i18n/coverage.json`.
 - [ ] T002 Pin the contract (research R1):
   - If `contract/VERSION.json` `commit` is neither `32079252d55797d3da4e58ae661e9fb91c51c6f9` nor a
     descendant of it (`git -C ../mailcow-rest-v2 merge-base --is-ancestor 3207925 <commit>`), run
@@ -68,9 +74,8 @@ translation check (research R1, R3, R22).
     `3207925` and the pinned commit.
   - Regenerate (`npm run contract:generate`) and run `npm run typecheck`, `npm run test:unit` and
     `npm run test:e2e`.
-  - Add, in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, only the keys that `npm run i18n:check`
-    reports missing for features other than 010, with wording from `docs/problems.md` of the API.
-    The 010 keys come in T029.
+  - `npm run i18n:check` reports unlisted values of the shared enumerations only as warnings
+    (UI 002 D2), so the bump adds no translations. The 010 keys come in T029 and the story tasks.
   - Record the vendored commit and sha256 in the "Pin as implemented" line of
     `specs/010-dkim-mta-sts-dns/contracts/README.md`.
 - [ ] T003 [P] Re-export from `src/api/index.ts` the root types listed in data-model §1 that are not
@@ -86,15 +91,26 @@ translation check (research R1, R3, R22).
     `dnsCheckScopeValues`, `mtaStsModeValues` and `bulkItemOutcomeValues`.
 
   No hand-written type may restate any of them (constitution I).
-- [ ] T004 [P] Extend `scripts/i18n/check.mjs` (research R22):
-  - required keys for every value of `DkimKeyState` (`dns.dkim.states.*`), `DkimKeyKind`
+- [ ] T004 [P] Extend the translation check (research R22, UI 002 D2):
+  - in `scripts/i18n/check.mjs`, add these enumerations to the fully required set, so that every
+    value needs a key: `DkimKeyState` (`dns.dkim.states.*`), `DkimKeyKind`
     (`dns.dkim.kinds.*`), `DkimKeyDetails.missingParts` (`dns.dkim.missingParts.*`),
     `DkimDnsPublicationStatus` (`dns.publication.status.*`), `DkimDnsPublicationReasonCode`
     (`dns.publication.reasons.*`), `DnsCheckStatus` (`dns.diagnostics.status.*`),
     `DnsCheckMessageCode` (`dns.diagnostics.messages.*`), `DnsCheck.scope`
     (`dns.diagnostics.scopes.*`) and `MtaStsMode` (`dns.mtaSts.modes.*.label` and `.description`);
-  - `BulkItemOutcome`, if UI 002 did not add it;
-  - the formats `dkimSelector`, `domainName` and `mxHost` in the required `validation.format.*` set.
+  - in `src/i18n/coverage.json`, append:
+    - `AuditEventType`: `dkimKeyGeneration`, `dkimKeyImport`, `dkimKeyCopy`, `dkimKeyDeletion`,
+      `dkimPrivateKeyExport`, `dkimDnsPublication`, `mtaStsPolicyCreation` and
+      `mtaStsPolicyUpdate`;
+    - `AuditTarget.type`: `dkimKey` and `mtaStsPolicy`;
+    - `ValidationRuleCode`: `invalidPrivateKey`, `encryptedPrivateKey`, `unsupportedKeyType`,
+      `keyLengthOutOfRange` and `sameAsSource`;
+    - `problemTypes`: `dkim-key-exists`, `dkim-private-key-export-disabled`,
+      `dkim-dns-publication-disabled`, `mta-sts-policy-exists`, and `temporary-failure` if not
+      listed yet;
+  - add the formats `dkimSelector`, `domainName` and `mxHost` to the required `validation.format.*`
+    set, unless an earlier feature added them.
 
   Run `npm run i18n:check`. It must now fail on the missing 010 keys, which T029 and the story
   tasks add.
@@ -192,40 +208,45 @@ blocks of research R3, the publication outcome component and the base translatio
   - `safeFileName()` replaces every character outside `[A-Za-z0-9._-]` with `_`;
   - `zoneFileName(name)` gives `<name>.txt`;
   - `privateKeyFileName(selector, name)` gives `<selector>.<name>.pem`.
-- [ ] T013 [P] Write `tests/unit/shared/components/CopyableValue.spec.ts`, or extend it if T001 found
-  the component (research R6):
-  - it copies exactly the `value` prop;
+- [ ] T013 [P] Extend `tests/unit/shared/components/CopyButton.spec.ts` (UI 005), or write it if
+  T001 found no `CopyButton` (research R6):
+  - it copies exactly the given text;
   - it announces "{label} copied";
-  - the button's accessible name is the `copyLabel` prop;
-  - on refusal, or with no `navigator.clipboard`, the value is selected in place with the "could not
-    be copied automatically" message;
-  - a 1,000-character value wraps (`overflow-wrap: anywhere` class);
+  - its accessible name is the given label;
+  - on refusal, or with no `navigator.clipboard`, the `selectTarget` element is selected in place
+    with the "could not be copied automatically" message (FR-075);
   - the button has the `min-h-11 min-w-11` classes;
   - the "Copied" state stays while the button has focus or the pointer, and reverts 2 s after it
     leaves (FR-074).
+
+  Write `tests/unit/features/dns/RecordValue.spec.ts`: a labelled monospace value, a
+  1,000-character value that wraps (`overflow-wrap: anywhere` class), and the `copyLabel` passed to
+  `CopyButton` with the value element as `selectTarget`.
 - [ ] T014 [P] Write `tests/unit/shared/platform/download.spec.ts` (research R13):
   - the Blob text equals the input byte for byte (CRLF and a trailing newline kept, no BOM);
   - `download` equals the file name;
   - the object URL is revoked after the click;
   - nothing is written to storage.
-- [ ] T015 [P] Write `tests/unit/shared/composables/useSequentialRun.spec.ts` and
-  `tests/unit/shared/components/RunResultList.spec.ts`, or extend them if T001 found them
-  (data-model §7):
-  - one request at a time, in order;
-  - `progress` updates;
-  - states `done`, `exists` (409), `failed` (other problems), `unknown` (network error or
-    non-problem 5xx) and `notProcessed` after `stop()`;
-  - `retry()` sends only failed, unknown and not-processed items;
-  - nothing is retried on its own;
-  - a 50-item run reports 50 results, and the retry sends only the failures (SC-011);
-  - `RunResultList` shows the translated reason per item, the counts, and "Retry failed".
-- [ ] T016 [P] Write `tests/unit/shared/validation/domain-name.spec.ts` and
-  `tests/unit/shared/components/DomainName.spec.ts`, or extend them if T001 found them:
+- [ ] T015 [P] Extend `tests/unit/shared/composables/useSequentialCreate.spec.ts` (UI 004) with
+  the `unknown` outcome, unless T001 found it already tested:
+  - a network failure, or a non-problem 5xx, marks the entry in flight `unknown`, stops the run,
+    and leaves the remaining entries `notProcessed`;
+  - nothing is retried on its own.
+
+  Write `tests/unit/features/dns/RunResultList.spec.ts` (data-model §7):
+  - one row per entry with its outcome and translated reason, and the counts;
+  - for created keys, the `PublicationOutcome` and a link to the entry;
+  - "Retry" offered for refused, unknown and not-processed entries only;
+  - the progress bar (`role="progressbar"`, `aria-valuenow`);
+  - announcements at the start, each 10 % step and the end.
+- [ ] T016 [P] Move UI 002's test of `src/features/domains/domain-name.ts` to
+  `tests/unit/shared/validation/domain-name.spec.ts`, unless T001 found it promoted already, and
+  extend it:
   - readable or ASCII names; labels of letters, digits and inner hyphens; at most 253 characters
     as ASCII (via `new URL('http://' + name).hostname`) and at most 63 per label;
-  - the wildcard option accepts a leading `*.`;
+  - the `wildcard` option accepts a leading `*.`;
   - one trailing dot is removed;
-  - `DomainName` shows the readable form, and the ASCII form below it only when they differ.
+  - UI 002's existing cases still pass.
 - [ ] T017 [P] Write `tests/unit/features/dns/PublicationOutcome.spec.ts` (research R16):
   - nothing renders while `dnsPublicationEnabled` is false;
   - every status has its translated label and advice;
@@ -257,23 +278,30 @@ blocks of research R3, the publication outcome component and the base translatio
   - Create `src/features/dns/routes.ts` with the redirect `/dns` → `/dns/dkim-keys`, and
     `src/features/dns/index.ts`.
   - Register the routes in `src/app/router/routes.ts`.
+  - Replace every reference to the catalogue id `'dns'` with `'dkimKeys'`, for example the
+    `isEntryAvailable('dns')` links of UI 002's and UI 004's creation reports. The
+    `NavigationEntry` id union makes `npm run typecheck` find them.
   - Replace `nav.dns` by `nav.dkimKeys` and `nav.mtaStsPolicies` in
     `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `nav.dkimKeys` to `admin.dkim_keys` in
     `src/i18n/legacy-map.json` and run `npm run i18n:import`.
 
   T018 and T019 must pass.
-- [ ] T022 [P] Create `src/shared/components/CopyableValue.vue`, or extend it if T001 found it, on
-  UI 001's `src/shared/platform/clipboard.ts` and `useAnnouncer`. Add the `common.copy.*` messages
-  in three locales, mapping `common.copy.done` to `admin.copy_to_clipboard`; `sk-sk` is supplied
-  in its app layer. T013 must pass.
-- [ ] T023 [P] Create `src/shared/platform/download.ts` with `downloadText(text, fileName,
-  mediaType)`, or reuse it if T001 found it. T014 must pass.
-- [ ] T024 [P] Create `src/shared/validation/domain-name.ts` (with the `wildcard` option) and
-  `src/shared/components/DomainName.vue`, or extend them if T001 found them. T016 must pass.
-- [ ] T025 [P] Create `src/shared/composables/useSequentialRun.ts` and
-  `src/shared/components/RunResultList.vue`, or extend them if T001 found them, with the states of
-  data-model §7 and the progress announcements of research R8: start, each 10 % step, end. T015
-  must pass.
+- [ ] T022 [P] Give `src/shared/components/CopyButton.vue` (UI 005) the `selectTarget` fallback, if
+  T001 found it missing. If T001 found no `CopyButton`, create it on UI 001's
+  `src/shared/platform/clipboard.ts` and `useAnnouncer`, with `common.copy.*` messages in three
+  locales (`common.copy.done` mapped to `admin.copy_to_clipboard`; `sk-sk` supplied in its app
+  layer). Implement `src/features/dns/components/RecordValue.vue`. T013 must pass.
+- [ ] T023 [P] Promote UI 005's `src/features/account/download.ts` to
+  `src/shared/platform/download.ts` with `downloadText(text, fileName, mediaType)`, and update UI
+  005's imports. If T001 found it promoted already, add `downloadText` if missing; if absent,
+  create it. T014 must pass, and UI 005's profile download tests stay green.
+- [ ] T024 [P] Promote UI 002's `src/features/domains/domain-name.ts` to
+  `src/shared/validation/domain-name.ts`, add the `wildcard` option, and update UI 002's imports.
+  Skip the move if T001 found it promoted already. T016 must pass, and UI 002's tests stay green.
+- [ ] T025 [P] Add the `unknown` outcome to `src/shared/composables/useSequentialCreate.ts` if T001
+  found it missing. Implement `src/features/dns/components/RunResultList.vue` with the progress
+  announcements of research R8: start, each 10 % step, end. T015 must pass, and UI 004's tests stay
+  green.
 - [ ] T026 Implement:
   - `src/features/dns/api/capabilities.ts`: the query, and the invalidation hook registered in the
     query cache's `onError` for the three problem types;
@@ -361,7 +389,8 @@ option, press every copy button, and compare the copied text with the mock data.
   - FR-005: page sizes 25, 50 and 100, with first, previous, next, last and the current page, on
     `dns-many`;
   - FR-007: the table on desktop with sortable headers (`aria-sort`);
-  - FR-008: the search updates 300 ms after typing stops and clears with one action;
+  - FR-008: the search (UI 004's `SearchField`) runs after a 500 ms pause or on submit, and clears
+    with one action;
   - FR-009: kind and completeness filters; selecting a selector adds it as a filter; the active
     filter count; clear all;
   - FR-010: the sort control on mobile;
@@ -432,17 +461,19 @@ option, press every copy button, and compare the copied text with the mock data.
   T034 must pass.
 - [ ] T038 [P] [US1] Implement these list components in `src/features/dns/components/`:
   - `DkimStateBadge.vue` and `DkimKindLabel.vue`;
-  - `DkimEntryCard.vue` (below `md`, an `<li>` with the name as `<h3>`);
+  - `DkimEntryCard.vue` (below `md`, an `<li>` with the name as `<h3>` through the shared
+    `DomainNameText`);
   - `DkimEntryTable.vue` (from `md` up, on `src/shared/ui/table`, with sortable headers and
     `aria-sort`);
   - `DkimEntryList.vue`;
-  - `DkimFilters.vue`: a collapsible filter section on mobile, with state checkboxes (FR-009), a
+  - `DkimFilters.vue`: UI 004's `SearchField`, and a collapsible filter section on mobile with state
+    checkboxes (FR-009), a
     kind select, a completeness select, the selector and domain chips, the active count and clear
     all;
   - `DkimSortControl.vue`;
   - `DkimSettingsSummary.vue`.
 - [ ] T039 [P] [US1] Implement these entry components in `src/features/dns/components/`:
-  - `DkimRecord.vue`: the record name, host label and value in `CopyableValue`, with a Reka
+  - `DkimRecord.vue`: the record name, host label and value in `RecordValue`, with a Reka
     `RadioGroup` for "One text" or "Split into 255-character pieces";
   - `DkimKeyFacts.vue`: kind, state, selector, length and completeness;
   - `IncompleteKeyNotice.vue`: the missing parts and the repair advice per role.
@@ -456,10 +487,11 @@ option, press every copy button, and compare the copied text with the mock data.
   This depends on T037–T039. T031 and T032 must pass.
 - [ ] T041 [US1] Implement `src/features/dns/components/DomainDkimSection.vue` (props `name`,
   `kind`; research R19) and export it from `src/features/dns/index.ts` as an async component.
-  Place it in the designated area of the UI 002 domain page and the UI 004 alias domain detail,
-  using the files and mechanism recorded by T001 (assumed
-  `src/features/domains/pages/DomainPage.vue` and `src/features/aliases/pages/AliasDomainPage.vue`).
-  On the domain page, add the link "DKIM keys of this domain and its alias domains". T033 and T035
+  Place it in the section list after Groupware of `src/features/domains/pages/DomainDetailPage.vue`
+  (UI 002 data-model §9), and after the General section of
+  `src/features/alias-domains/pages/AliasDomainDetailPage.vue` (UI 004). Use the paths recorded by
+  T001 if they differ. On the domain page, add the link "DKIM keys of this domain and its alias
+  domains". T033 and T035
   must pass.
 - [ ] T042 [US1] Add the `dns.dkim.*` messages for the list, filters, sort, empty states, entry,
   record, incomplete notice and settings summary to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
@@ -539,8 +571,12 @@ and a dropped connection.
   - `tests/unit/features/dns/generate-run.spec.ts`: collection with `state=missing`, the current
     `q` and `kind`, `sort=name`, `order=asc` and `limit=1000` until `offset ≥ total`; the first 10
     names and the remainder count; no caching of collection pages;
-  - `tests/unit/features/dns/DkimSelectionBar.spec.ts`: the count, the actions per role, sticky
-    placement classes and `scroll-padding-bottom`.
+  - `tests/unit/features/dns/dkim-run-classifier.spec.ts`: every row of research R8's table
+    (`409 dkim-key-exists`, `404` and `422` on `name` or `target` continue; `422` on `selector` or
+    `keySize`, `403`, `503`, unknown problems and `409 about:blank` stop);
+  - `tests/unit/features/dns/dkim-bulk.spec.ts`: the `BulkActionBar` configuration of
+    `src/features/dns/dkim/bulk.ts`, with the actions per role (generate for both roles, delete for
+    administrators) and the entries each action skips.
 - [ ] T046 [P] [US2] Write `tests/smoke/dns-dkim-generate.smoke.spec.ts` (`@dns`):
   - as `admin`, generate a key for `example.net` with the default selector, and see "Key valid" and
     the record;
@@ -557,8 +593,9 @@ and a dropped connection.
   - set `['dns-diagnostics','changed',name]`;
   - on `409`, invalidate `detail(name)`.
 
-  Implement `src/features/dns/dkim/generate-run.ts`: the collection of all missing names, and
-  per-name runs through `useSequentialRun`. T045's `generate-run.spec.ts` must pass.
+  Implement `src/features/dns/dkim/generate-run.ts`: the collection of all missing names,
+  `dkimRunClassifier`, and per-name runs through `useSequentialCreate`. T045's
+  `generate-run.spec.ts` and `dkim-run-classifier.spec.ts` must pass.
 - [ ] T048 [P] [US2] Implement:
   - `src/features/dns/components/GenerateKeyDialog.vue`: Reka `Dialog`, full-screen below `md`,
     with `useProblemForm` field errors;
@@ -569,10 +606,9 @@ and a dropped connection.
   visible while the content scrolls (FR-080).
 - [ ] T049 [US2] Add to `src/features/dns/pages/DkimKeysPage.vue`:
   - selection mode with `useBulkSelection`, reset through `useListState`'s `onReset`;
-  - `src/features/dns/components/DkimSelectionBar.vue`;
+  - UI 002's `BulkActionBar`, configured by `src/features/dns/dkim/bulk.ts` (generate);
   - "Generate keys for all names without a key", with its `useConfirm` confirmation of FR-024;
-  - the leave guard (`onBeforeRouteLeave` with `useConfirm`, and `beforeunload` only while
-    running).
+  - the leave guard (`useLeaveGuard`, armed only while a run is pending).
 
   For a single generated name, the page then opens its entry.
 - [ ] T050 [US2] Add "Generate a key" to `src/features/dns/pages/DkimKeyPage.vue` (missing state)
@@ -734,11 +770,11 @@ summary and the downloaded zone file with the mock.
   T056 must pass.
 - [ ] T060 [P] [US3] Implement in `src/features/dns/components/`:
   - `DnsCheckStatusBadge.vue`, `DnsCheckMessages.vue` (reasons, notes, guidance with
-    `CopyableValue` for addresses and suggested records, and links through `safeHref`);
+    `RecordValue` for addresses and suggested records, and links through `safeHref`);
   - `DnsCheckCard.vue` (an `<li>` with the purpose as `<h3>`) and `DnsCheckTable.vue` (name, type,
     expected value, values found, status);
   - `DiagnosticsSummary.vue` (counts per group and the attention filter switch);
-  - `ServerFacts.vue`, `ZoneFilePanel.vue` (Reka `Collapsible`, `CopyableValue` multiline,
+  - `ServerFacts.vue`, `ZoneFilePanel.vue` (Reka `Collapsible`, `RecordValue` multiline,
     `downloadText`) and `RunStatus.vue`.
 - [ ] T061 [US3] Implement `src/features/dns/pages/DnsDiagnosticsPage.vue`:
   - the name, its ASCII form, the alias target and the 24-hour notice;
@@ -751,12 +787,14 @@ summary and the downloaded zone file with the mock.
 
   T053 and T054 must pass.
 - [ ] T062 [US3] Implement `src/features/dns/components/CheckDnsAction.vue` (variants `menuItem` and
-  `button`) and export it from `src/features/dns/index.ts`. Place it, in the areas recorded by T001,
+  `button`) and export it from `src/features/dns/index.ts`. Place it (paths as recorded by T001)
   in:
-  - the UI 002 domain list row and card actions (assumed
-    `src/features/domains/components/DomainRowActions.vue`) and the domain page;
-  - the UI 004 alias domain list row and card actions (assumed
-    `src/features/aliases/components/AliasDomainRowActions.vue`) and the alias domain page;
+  - the entry actions menu of `src/features/domains/components/list/DomainCard.vue` and
+    `DomainTable.vue`, and the header actions of `src/features/domains/pages/DomainDetailPage.vue`
+    (UI 002 data-model §9);
+  - the entry actions of `src/features/alias-domains/components/AliasDomainCard.vue` and
+    `AliasDomainTable.vue`, and the page actions of
+    `src/features/alias-domains/pages/AliasDomainDetailPage.vue` (UI 004);
   - `src/features/dns/pages/DkimKeyPage.vue` for domains and alias domains.
 
   T055 must pass.
@@ -900,9 +938,11 @@ Check the values sent and every message.
     highlight;
   - `src/features/dns/components/AliasDomainMtaStsSection.vue`.
 
-  Export both from `src/features/dns/index.ts` as async components. Place them in the UI 002
-  domain page and the UI 004 alias domain detail, in the areas recorded by T001. T065 and T068
-  must pass.
+  Export both from `src/features/dns/index.ts` as async components. Place `DomainMtaStsSection`
+  after `DomainDkimSection` in the section list of `src/features/domains/pages/DomainDetailPage.vue`,
+  with the section key `mta-sts` for UI 002's `edit=` address parameter. Place
+  `AliasDomainMtaStsSection` after the DKIM section of
+  `src/features/alias-domains/pages/AliasDomainDetailPage.vue`. T065 and T068 must pass.
 - [ ] T073 [P] [US4] Implement:
   - `src/features/dns/pages/MtaStsPoliciesPage.vue`: `useListState`, `ListState`, `PaginationBar`,
     links to the domain page with hash `#mta-sts`;
@@ -911,16 +951,19 @@ Check the values sent and every message.
 
   T066 must pass.
 - [ ] T074 [US4] Add the `dns.mtaSts.*` messages in three locales:
-  - the modes with descriptions (from the legacy `edit.mta_sts_mode_info` text, without markup);
-  - the MTA-STS explanation (from `edit.mta_sts_info`, without markup);
-  - the version note;
+  - `dns.mtaSts.modes.<mode>.label` and `.description`, with the legacy `edit.mta_sts_mode_info`
+    wording split per mode;
   - the units, the identifier notice, the deactivation confirmation, the certificate notice, and
     the list texts.
 
-  Map `edit.mta_sts`, `edit.mta_sts_version`, `edit.mta_sts_mode`, `edit.mta_sts_max_age`,
-  `edit.mta_sts_mx`, `edit.mta_sts_mx_info` and `edit.mta_sts_active_info` in
-  `src/i18n/legacy-map.json`. `sk-sk` supplies all of them in its app layer, and `cs-cz` supplies
-  `edit.mta_sts_active_info`. Run `npm run i18n:import` and `npm run i18n:check`.
+  Map in `src/i18n/legacy-map.json` (research R22):
+  - `edit.mta_sts`, `edit.mta_sts_version`, `edit.mta_sts_mode`, `edit.mta_sts_max_age`,
+    `edit.mta_sts_mx`, `edit.mta_sts_mx_info` and `edit.mta_sts_active_info`;
+  - with `stripMarkup: true` (UI 002 D27): `dns.mtaSts.explanation` from `edit.mta_sts_info`, and
+    `dns.mtaSts.fields.versionHelp` from `edit.mta_sts_version_info`.
+
+  `sk-sk` supplies all of them in its app layer, and `cs-cz` supplies `edit.mta_sts_active_info`.
+  Run `npm run i18n:import` and `npm run i18n:check`.
 
 **Checkpoint**: US1 to US4 work on their own.
 
@@ -1051,7 +1094,7 @@ every validation rule. Check that a domain administrator is never offered these 
     - only the `DkimKeyChangeResult` is written to `detail(name)`;
   - `PrivateKeyField.spec.ts`:
     - the attributes;
-    - the byte count through `TextEncoder` against `privateKeyMaxBytes`;
+    - the byte count through the shared `utf8ByteLength` against `privateKeyMaxBytes`;
     - the file size is checked before `FileReader`;
     - the file input is reset after reading;
   - `DkimImportPage.spec.ts`:
@@ -1103,20 +1146,23 @@ every validation rule. Check that a domain administrator is never offered these 
     - `router.replace` to the entry after success;
     - on small screens, Import and Cancel in a bar that stays visible while the form scrolls
       (FR-080);
-  - the route `dkim-import` in `src/features/dns/routes.ts`, with the administrator check.
+  - the route `dkim-import` in `src/features/dns/routes.ts`, with `meta.roles: ['admin']` (UI 002
+    D4).
+
+  The page uses `useLeaveGuard` and never `useFormDraft` (research R11).
 - [ ] T084 [P] [US5] Implement:
   - `src/features/dns/components/CopyTargetPicker.vue`: Reka `Combobox` without
     `ComboboxViewport`, with a plain scrollable list and "load more";
   - `src/features/dns/pages/DkimCopyPage.vue`: the source summary, targets, the overwrite
-    confirmation, the run through `useSequentialRun` with `RunResultList` and `PublicationOutcome`,
+    confirmation, the run through `useSequentialCreate` with `RunResultList` and `PublicationOutcome`,
     the leave guard, and on small screens a Copy and Cancel bar that stays visible (FR-080). A
     source whose key is incomplete shows "incomplete and cannot be copied" instead of the form;
-  - the route `dkim-copy`, with the administrator check.
+  - the route `dkim-copy`, with `meta.roles: ['admin']`.
 - [ ] T085 [P] [US5] Implement in `src/features/dns/components/`:
   - `DeleteKeyDialog.vue`, on `useConfirm` with a custom body, with the versioned confirmation
     loop;
-  - `BulkDeleteDialog.vue`, with `requireTyped` and `BulkResultSummary`, showing
-    `PublicationOutcome` per done target from `meta.dnsPublication`.
+  - `BulkDeleteDialog.vue`, with `requireTyped`. Its results go to `BulkResultSummary`, whose
+    `#item` slot (UI 004) shows `PublicationOutcome` per done target from `meta.dnsPublication`.
 - [ ] T086 [P] [US5] Implement `src/features/dns/components/ReplaceKeyDialog.vue`. It reuses the
   fields of `GenerateKeyDialog.vue`, adds the selector hint, and has the confirmation and versioned
   loop of research R10.
@@ -1124,7 +1170,7 @@ every validation rule. Check that a domain administrator is never offered these 
   - `src/features/dns/pages/DkimKeyPage.vue` (administrators, from `dkimActions`): "Replace with a
     new key", "Import with overwrite" (to `dkim-import?name=…`), "Copy key", "Delete";
   - `src/features/dns/pages/DkimKeysPage.vue`: "Import private key" (to `dkim-import`);
-  - `src/features/dns/components/DkimSelectionBar.vue`: "Delete" for administrators.
+  - `src/features/dns/dkim/bulk.ts`: "Delete" for administrators, opening `BulkDeleteDialog`.
 
   T076–T079 must pass.
 - [ ] T088 [US5] Add the `dns.dkim.import.*`, `dns.dkim.copy.*`, `dns.dkim.delete.*` (including
@@ -1386,7 +1432,7 @@ domain administrator is never offered it.
 | US2 | P1 | US1 | Adds generation to `DkimKeysPage`, `DkimKeyPage` and `DomainDkimSection` |
 | US3 | P1 | Foundational; US1 for the "Check DNS" placement on the entry page (part of T062) | Diagnostics have their own page and handler |
 | US4 | P2 | Foundational | Own handler, sections and list |
-| US5 | P2 | US1, US2 | Actions on the entry and list pages; `ReplaceKeyDialog` reuses `GenerateKeyDialog`; deletion extends `DkimSelectionBar` |
+| US5 | P2 | US1, US2 | Actions on the entry and list pages; `ReplaceKeyDialog` reuses `GenerateKeyDialog`; deletion extends `src/features/dns/dkim/bulk.ts` |
 | US6 | P3 | US1 | Action on the entry page |
 | US7 | P3 | US1; US2 and US5 for outcomes inside runs | `PublishAgainAction` on the entry and in outcomes |
 | US8 | P3 | US1, US4 | History on the entry page and the MTA-STS section |
@@ -1399,7 +1445,7 @@ Edits to these files must be serialised, even when stories run in parallel:
 - `src/features/dns/index.ts`: US1, US3, US4;
 - `src/features/dns/api/dkim.ts`: US1, US2, US5, US7;
 - `src/features/dns/pages/DkimKeyPage.vue`: US1, US2, US3, US5, US6, US7, US8;
-- `src/features/dns/pages/DkimKeysPage.vue` and `src/features/dns/components/DkimSelectionBar.vue`:
+- `src/features/dns/pages/DkimKeysPage.vue` and `src/features/dns/dkim/bulk.ts`:
   US1, US2, US5;
 - `src/features/dns/components/DomainDkimSection.vue`: US1, US2;
 - `src/features/dns/components/DomainMtaStsSection.vue`: US4, US8;

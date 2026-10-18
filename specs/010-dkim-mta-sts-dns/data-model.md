@@ -85,7 +85,7 @@ List-level actions:
 | `split` | `` key.record.valueParts.map(p => `"${p}"`).join(' ') `` |
 | `missingParts` | `key.missingParts`, translated with `dns.dkim.missingParts.<part>` |
 
-### Display name (`src/shared/components/DomainName.vue`)
+### Display name (UI 004's shared `src/shared/components/DomainNameText.vue`)
 
 The readable form first, then the ASCII form below it when the two differ (`displayName !== name`
 or `displayDomain !== domain`). Both are rendered as text with `overflow-wrap: anywhere`.
@@ -135,11 +135,13 @@ Each entry is `{ input: string; ascii: string | null; error: RuleKey | null }`. 
 `joinedLength(entries)` is the length of the ASCII forms joined by commas.
 `dedupe(entries)` compares the entries case-insensitively and keeps the first spelling.
 
-### Run item (`src/shared/composables/useSequentialRun.ts`)
+### Run entry (UI 004's `src/shared/composables/useSequentialCreate.ts`)
 
-Each item is `{ id: string; label: string; state: 'pending' | 'running' | 'done' | 'exists' |
-'failed' | 'unknown' | 'notProcessed'; problem?: ApiProblem; publication?:
-DkimDnsPublicationOutcome }`. The state machine is in §7.
+Each entry is a name (generation) or a target (copy). It ends `created` (with the
+`DkimKeyChangeResult`, whose `dnsPublication` the results show), `refused` (with the `ApiProblem`),
+`unknown` (connection dropped while it was in flight; added by T025 if missing) or `notProcessed`.
+`dkimRunClassifier(problem)` in `src/features/dns/dkim/generate-run.ts` decides between "entry,
+continue" and "form, stop", following research R8. The state machine is in §7.
 
 ## 3. Server-state cache
 
@@ -198,20 +200,20 @@ The "all names without a key" collection (R8) and the private key export are not
   - the diagnostics filter ("only attention");
   - the zone file panel expanded;
   - the selection mode and selection (`useBulkSelection`, cleared by `useListState` `onReset`);
-  - the run state (`useSequentialRun`);
+  - the run state (`useSequentialCreate`);
   - the highlighted `_mta-sts` record (until the route changes).
 
 ## 5. Route map
 
 The base is `/ng/`. All routes are lazy, in the shell layout, and require an `active` session.
 
-| Name | Path | Access (catalogue entry; page check) | Title key | Component |
+| Name | Path | Access (catalogue entry; route roles) | Title key | Component |
 |---|---|---|---|---|
 | `dns` | `/dns` | redirect to `dkim-keys` | — | — |
 | `dkim-keys` | `/dns/dkim-keys` | `dkimKeys` | `dns.dkim.title` | `features/dns/pages/DkimKeysPage.vue` |
-| `dkim-import` | `/dns/dkim-import` | `dkimKeys`; administrators (else `NoAccessState`) | `dns.dkim.import.title` | `features/dns/pages/DkimImportPage.vue` |
+| `dkim-import` | `/dns/dkim-import` | `dkimKeys`, `meta.roles: ['admin']` (UI 002 D4) | `dns.dkim.import.title` | `features/dns/pages/DkimImportPage.vue` |
 | `dkim-key` | `/dns/dkim-keys/:dkimName` | `dkimKeys` | `dns.dkim.entry.title` | `features/dns/pages/DkimKeyPage.vue` |
-| `dkim-copy` | `/dns/dkim-keys/:dkimName/copy` | `dkimKeys`; administrators | `dns.dkim.copy.title` | `features/dns/pages/DkimCopyPage.vue` |
+| `dkim-copy` | `/dns/dkim-keys/:dkimName/copy` | `dkimKeys`, `meta.roles: ['admin']` | `dns.dkim.copy.title` | `features/dns/pages/DkimCopyPage.vue` |
 | `mta-sts-policies` | `/dns/mta-sts-policies` | `mtaStsPolicies` | `dns.mtaSts.list.title` | `features/dns/pages/MtaStsPoliciesPage.vue` |
 | `dns-diagnostics` | `/dns/diagnostics/:diagnosticsName` | `dkimKeys` | `dns.diagnostics.title` | `features/dns/pages/DnsDiagnosticsPage.vue` |
 
@@ -225,8 +227,8 @@ Rules:
 ### Address parameters of the lists (`useListState` schemas)
 
 Defaults are omitted from the address, invalid values fall back to the default, and changing any
-parameter except `page` resets `page` and the selection (conventions). The search is applied 300 ms
-after typing stops.
+parameter except `page` resets `page` and the selection (conventions). The search runs after a
+500 ms pause or on submit (UI 004's `SearchField`).
 
 **DKIM keys** (`/dns/dkim-keys`, FR-005–FR-012):
 
@@ -279,17 +281,19 @@ Capability-backed limits are read at runtime. Contract constants live in
 
 ## 7. State machines
 
-### Generation and copy runs (`useSequentialRun`)
+### Generation and copy runs (`useSequentialCreate`)
 
 ```text
-idle ─start(items)→ running ─(each item: pending → running → done | exists | failed | unknown)→ finished
-            │            │ stop() → current item finishes; remaining → notProcessed → finished
-            │            │ route leave → confirm ─yes→ stop() ; ─no→ stays running
-            └ finished ─retry(failed|unknown|notProcessed)→ running (only those items)
+idle ─start(entries)→ running ─(each entry: sending → created | refused(entry) | …)→ finished
+          │      refused(form: 403, 503, 422 selector/keySize, other) → stop; remaining → notProcessed
+          │      network failure → entry in flight → unknown; remaining → notProcessed → finished
+          │      Stop → current request finishes; remaining → notProcessed → finished
+          │      route leave (useLeaveGuard) → confirm ─yes→ Stop ; ─no→ stays running
+          └ finished ─Retry→ running (only refused, unknown and notProcessed entries)
 ```
 
-`unknown` (a network failure, or a non-problem 5xx) is never retried on its own. A manual retry of
-a generation that did succeed returns `409`, which is reported as `exists`.
+`unknown` is never retried on its own. A manual retry of a generation that did succeed returns
+`409`, which is reported as "already has a key".
 
 ### Bulk deletion
 

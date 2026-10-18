@@ -1185,27 +1185,28 @@ specification unless stated.
 | Recovery address read and change with the current password | FR-018 | FR-032, FR-033 |
 | Reset request, token check (address, expiry, rules), completion with optional second factor, reset page address | FR-019 to FR-026 | FR-034 to FR-042 |
 | Second-factor list, TOTP enrolment (secret, provisioning address, QR code), WebAuthn enrolment, Yubico OTP enrolment, removing one, removing all | FR-027 to FR-036 | FR-043 to FR-059 |
-| "Must keep a second factor" state with the second factors | Amendment (orchestrator decision) | FR-043, FR-054 |
+| "Must keep a second factor" state with the second factors | FR-080 (capabilities `account`) | FR-043, FR-054 |
 | App passwords list, create with a server-generated password returned once, change (including a new generated password), delete | FR-037 to FR-041 | FR-060 to FR-067 |
 | Temporary aliases list, create, change validity, delete | FR-042 to FR-046 | FR-068 to FR-073 |
-| Temporary-alias domains of a mailbox, also in the mailbox context | FR-069; amendment (orchestrator decision) | FR-069 |
+| Temporary-alias domains of a mailbox, also in the mailbox context | FR-069, FR-081 | FR-069 |
 | Filters list, create, change, delete, validate; active sieve script | FR-047 to FR-053 | FR-089 to FR-095 |
 | Push notification settings read (credentials only as "stored"), replace, remove, verify | FR-054 to FR-057 | FR-077 to FR-081 |
 | Tagging and TLS read and change; bulk TLS with per-mailbox outcomes | FR-058 to FR-060 | FR-074 to FR-076 |
 | Recent logins with period, filters, sorting; clear | FR-061 to FR-063 | FR-082 to FR-085 |
 | ActiveSync and groupware profile resets | FR-064 to FR-066 | FR-086 to FR-088 |
 | Webmail hand-off; mailbox overview (including direct forwarding, temporary-alias domains, counts) | FR-067 to FR-069 | FR-069, FR-097 to FR-100 |
-| Client configuration data per protocol for the signed-in mailbox user | Amendment (orchestrator decision) | FR-101, FR-102 |
-| Connection profile for the signed-in mailbox user: full or e-mail only, optionally with a new app password, respecting the app-password flag | Amendment (orchestrator decision) | FR-103 to FR-106 |
+| Client configuration data per protocol for the signed-in mailbox user | FR-083 | FR-101, FR-102 |
+| Connection profile for the signed-in mailbox user: full or e-mail only, optionally with a new app password, respecting the app-password flag | FR-082 | FR-103 to FR-106 |
 | Version tags and outdated refusal | FR-070, FR-071 | FR-016, FR-019 |
 | Audit records with self-service target types and filters | FR-073, FR-074 | FR-107, FR-108 |
 | Problem types and validation rule codes | FR-075; 001 FR-049, FR-055 | FR-012, FR-013 |
 
-**API gaps**: none open. The three gaps found while specifying (the "must keep a second factor"
-state, the temporary-alias domains in the mailbox context, and the connection profiles with the
-client configuration) are being added to API feature 005 by orchestrator decision. The plan replaces
-"Amendment" in the table with their requirement numbers once that change is committed; until then
-the UI does not rely on them.
+**API gaps**: the three gaps found while specifying (the "must keep a second factor" state, the
+temporary-alias domains in the mailbox context, and the connection profiles with the client
+configuration) were added to API feature 005 by orchestrator decision and are now API FR-080 to
+FR-083 (contract commit `3207925`). Gaps found while planning are listed in
+[plan.md](./plan.md#api-dependency-and-gaps): the bulk TLS version tag (G1) blocks only the bulk
+TLS action; the others do not block this feature.
 
 ### Key Entities *(include if feature involves data)*
 

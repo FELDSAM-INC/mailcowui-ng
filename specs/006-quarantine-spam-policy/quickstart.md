@@ -123,7 +123,7 @@ scripts/smoke/stack-down.sh
 
 ## Validation log
 
-Task T195 appends here:
+Task T139 appends here:
 
 - SC-001 timings on a mid-range Android phone and an iPhone;
 - SC-010 timings;

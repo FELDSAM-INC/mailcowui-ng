@@ -53,17 +53,27 @@ This feature adds **no runtime dependency** (constitution VIII).
 ### R2. Translation coverage after the bump
 
 - **Decision**: The bundle always contains every feature's contract, because mailcow-rest-v2 keeps
-  them in one tree. 001-R27 requires a key for every value of the checked enumerations. As a
-  result, the 006 values (problem types, audit event and target types, rule codes) entered the
-  required set with the **first** bump after UI 001, and generic keys for them may already exist.
-  This feature:
-  1. adds keys for any enumeration value that its own bump newly introduces (the delta to UI
-     005's pin);
-  2. reviews and refines the wording of the existing 006 keys, and adds the parameterised,
-     contextual messages FR-067 asks for;
-  3. extends the required set of `scripts/i18n/check.mjs` with the 006 enumerations that 001-R27
-     does not list. The script reads them from `contract/openapi.json` by JSON pointer, so that
-     inline enumerations without a generated root type are covered too:
+  them in one tree. UI 002 (its research D2) therefore scopes 001-R27's rule 3 for the growing
+  shared enumerations with the committed manifest `src/i18n/coverage.json`. Each UI feature appends
+  the values it translates, and the check fails on a listed value without keys or a listed value
+  the contract no longer has. Every other enumeration the UI renders stays fully required. UI 003
+  calls the same manifest `enum-scope.json`, and T001 settles the name. This feature:
+  1. **appends its open-enumeration values to the manifest**:
+     - `AuditEventType`: the 12 values of 006;
+     - `AuditTarget.type`: the 7 values of 006;
+     - `ValidationRuleCode`: `invalidTemplate`, `notMultipleOf` and `mustNotExceed`, unless
+       already listed;
+     - problem types: `quarantine-item-busy`, `quarantine-delivery-refused`,
+       `quarantine-message-too-large` and `spam-policy-entry-exists`, plus
+       `permission-flag-required`, `attribute-not-permitted` and `temporary-failure` unless already
+       listed;
+     - any `AuditFailureReason` the 006 records use that is not yet listed;
+  2. reviews and refines the wording of the 006 keys that earlier features may have added, and adds
+     the parameterised, contextual messages FR-067 asks for;
+  3. makes the **closed** 006 enumerations fully required, through the mechanism UI 002 uses for
+     its inline step enumerations. Where no such mechanism exists, the check reads the values from
+     `contract/openapi.json` by JSON pointer, so that inline enumerations without a generated root
+     type are covered too:
      - `QuarantineItemAction`, `QuarantineNotificationFrequency`,
        `QuarantineNotificationCategory`, `QuarantineReleaseFormat`, `SpamPolicyList`,
        `RateLimitObjectKind`, `SpamPolicyOwner.kind`;
@@ -74,10 +84,12 @@ This feature adds **no runtime dependency** (constitution VIII).
      - the `reason` values of `invalidTemplate` (`syntax`, `security`, `render`, `timeout`). Those
        are listed only in prose, so they are checked as a fixed list next to the `format` values,
        as 001-R27 does.
-- **Rationale**: Constitution IV ("missing keys fail CI") and SC-009. Reading enumerations from
-  the contract file keeps the list out of hand-written code (constitution I).
-- **Alternatives considered**: Hand-listing the values in the check script was rejected, because it
-  drifts with every bump.
+- **Rationale**: Constitution IV ("missing keys fail CI"), SC-009, and UI 002's manifest, which
+  makes the gate mechanical for delivered values. Reading closed enumerations from the contract
+  file keeps them out of hand-written code (constitution I).
+- **Alternatives considered**: Hand-listing the closed values in the check script was rejected,
+  because it drifts with every bump. Translating every open value of every feature was rejected
+  with UI 002 D2.
 
 ### R3. Operations used and not used
 
@@ -146,11 +158,10 @@ This feature adds **no runtime dependency** (constitution VIII).
 ### R6. Access by role inside a section
 
 - **Decision**: Routes carry `meta.navEntry` (001-R19) and, where a page is narrower than its
-  entry, `meta.roles: Role[]`. `ShellLayout` renders `NoAccessState` when the role is not listed,
-  exactly as for `canAccess` (001-R19). Notifications is `['mailboxUser']`; Rate limits is
-  `['admin', 'domainAdmin']`; Settings and Statistics are `['admin']`. If UI 002–005 already
-  introduced an equivalent route-level check, that check is reused (see the prerequisite table in
-  the plan).
+  entry, `meta.roles: Role[]`, the route-level check that UI 002 adds to `ShellLayout` (its D4).
+  `ShellLayout` renders `NoAccessState` when the role is not listed, exactly as for `canAccess`.
+  Notifications is `['mailboxUser']`; Rate limits is `['admin', 'domainAdmin']`; Settings and
+  Statistics are `['admin']`.
 
   The Quarantine section navigation (`QuarantineSectionNav.vue`) is built from the registered
   routes that carry `meta.sectionNav`, filtered by role. A page that is not implemented yet
@@ -179,15 +190,19 @@ This feature adds **no runtime dependency** (constitution VIII).
   - Read-only presentation uses the legacy note `acl.prohibited` ("Prohibited by ACL") with the
     flag's legacy label (`acl.quarantine`, `acl.quarantine_attachments`,
     `acl.quarantine_notification`, `acl.quarantine_category`, `acl.spam_score`, `acl.spam_policy`,
-    `acl.ratelimit`), through the shared note component that UI 003 uses for FR-041 there.
+    `acl.ratelimit`). The component is UI 003's `AclReadOnlyNote.vue`, which UI 003 keeps in
+    `src/features/mailboxes/components/fields/`. This feature is its second user, so it promotes the
+    component to `src/shared/components/AclReadOnlyNote.vue` and updates UI 003's imports
+    (constitution VIII).
 - **Refusals** (FR-004):
   - `403 permission-flag-required` carries `requiredFlags` and `requiredFlagsMatch`. The message
     names each listed flag by its legacy label, joined with "and" for `all` (the default) or "or"
     for `any`.
   - `403 attribute-not-permitted` (notification settings) carries `attributes` and
     `requiredFlags`. Each named attribute is marked read-only on its field.
-  - Both refresh the identity, as `forbidden` does (001-R8), and the affected query. Unsaved input
-    elsewhere on the screen is kept.
+  - Both refresh the identity, through the session reaction that UI 002 and UI 003 add for these
+    types, and the affected query is refetched. Unsaved input elsewhere on the screen is kept. The
+    members are read through `ApiProblem.extensions` (UI 002 and UI 003).
 - **Rationale**: One function per capability makes SC-005 testable without a browser, and the
   components never read flags directly.
 - **Alternatives considered**: Reading flags inline in templates was rejected: it scatters the
@@ -348,7 +363,8 @@ This feature adds **no runtime dependency** (constitution VIII).
 
 - **Decision**: `useListState` (001-R20) with the schema of
   [data-model §6](./data-model.md#6-address-parameters).
-  - **Search**: debounced by 300 ms, then `router.replace` (SC-010).
+  - **Search**: UI 002's `SearchField.vue`, which submits on Enter or after a 500 ms pause and
+    announces the result count. Within SC-010's 1 second.
   - **Filters**: action (multiple), virus state, notification state, arrival days, score range,
     and for administrators and domain administrators the recipient and the domain.
   - **Day range** (FR-013): two native `<input type="date">` fields. `from` is the start of the
@@ -358,8 +374,8 @@ This feature adds **no runtime dependency** (constitution VIII).
   - **Score range**: `LocaleNumberField` (R18), kept in the address with `.` as the decimal
     separator.
   - **Domain filter**: a domain administrator chooses from the domains in `identity.scope.domains`,
-    so no request is needed. An administrator uses the shared search combobox over `listDomains`
-    with `q`.
+    so no request is needed. An administrator uses the shared `DomainPicker.vue` (UI 003, promoted
+    by UI 004) over `listDomains` with `q`.
   - **Recipient filter**: an e-mail field (exact address, at most 255 characters).
   - **Sort**: column headers with `aria-sort` on wide screens, and a native `<select>` plus an
     order toggle on small screens. The default order is `desc` for `arrivedAt`, `id` and `score`,
@@ -374,8 +390,8 @@ This feature adds **no runtime dependency** (constitution VIII).
     collapsible help text is the legacy `quarantine.qinfo` without markup (R27).
   - **States**: `ListState` gives loading, "no items", "nothing matches" with "clear filters", and
     error. Count changes are announced politely (FR-016), and Refresh calls `refetch()`.
-  - **Filter panel**: full screen on small screens, with removable chips and "clear all",
-    reusing the filter panel and chips of UI 002 and UI 003.
+  - **Filter panel**: full screen on small screens, as UI 002 and UI 003 build theirs, with the
+    shared removable chips and "clear all" (`ActiveFilterChips.vue`).
 - **Rationale**: FR-009 to FR-017, conventions "Lists", and the API's documented semantics
   (`to` exclusive, `minScore`/`maxScore` leave unscored items out).
 - **Alternatives considered**: A date-time range was rejected: the spec asks for days. A recipient
@@ -387,7 +403,8 @@ This feature adds **no runtime dependency** (constitution VIII).
 - **Decision**: The item opens as its own page at every width (FR-018 allows the side-by-side
   option but does not require it). "Back to the list" uses `router.back()` when the previous entry
   is the quarantine list, so the list returns with its address and scroll position. Otherwise it
-  pushes `/quarantine`. Focus goes to the `<h1>` with `preventScroll`.
+  pushes `/quarantine`. The scroll restoration and the focus without scrolling are UI 002's (its
+  D9).
   - **Sections** (FR-019): Summary, Filter result, Fuzzy hashes, Content, and Attachments (only
     when `content.attachments` is present).
   - **Symbols** (FR-022): sorted by `symbols.ts` as legacy sorts them: positive scores from highest
@@ -457,10 +474,11 @@ This feature adds **no runtime dependency** (constitution VIII).
     clarification ("persists across pages") contradicts both, and the conventions say that in that
     case "this document applies, and the next change to that spec aligns it". The spec is aligned
     (plan, "Spec alignment").
-  - **Limit**: the selection cannot exceed `bulkLimit` from the capabilities. The largest page
-    size is 100, which equals the default limit, so the limit only bites when an operator lowers
-    it. The counter shows "n selected", and a selection beyond the limit is refused with a message
-    that states it.
+  - **Limit**: `useBulkSelection` with its `limit` option set to `bulkLimit` from the capabilities.
+    The largest page size is 100, which equals the default limit, so the limit only bites when an
+    operator lowers it. Then "Select all" is disabled with "You can select up to N items at once",
+    as in UI 003, and a selection beyond the limit is refused with a message that states it. UI
+    002's `BulkActionBar` shows the count and the actions.
   - **Request**: `applyQuarantineBulkAction` with `action` (`release`, `releaseWithoutLearning`,
     `learnAsSpam` or `delete`) and `targets: [{ id: String(item.id), version: item.etag }]`.
   - **Confirmation** (FR-034): the action, its effect, the count and the list of subjects and
@@ -469,16 +487,17 @@ This feature adds **no runtime dependency** (constitution VIII).
     applies: `ConfirmDialog` with `requireTyped` set to the count (UI 002). A bulk delivery keeps
     a single explicit confirmation. For a delivery that includes virus-flagged items, it states
     their number and requires the acknowledgement.
-  - **Result** (FR-035): `QuarantineBulkResult` goes to UI 002's `BulkResultSummary`, which
-    gains an optional per-row slot so that a `done` row can show its `report` warnings. The counts
-    per outcome come from `summary`. Rows that are `refused`, `failed` or `outdated` stay selected,
-    and the others are deselected. The list is invalidated and the summary announced.
+  - **Result** (FR-035): `QuarantineBulkResult` goes to UI 002's `BulkResultSummary`. Its `#item`
+    slot (UI 004 relies on the same slot) shows a `done` row's `report` warnings. The counts per
+    outcome come from `summary`. `useBulkSelection.retain(results, keep)` keeps the rows that are
+    `refused`, `failed` or `outdated` selected and deselects the others. The list is invalidated
+    and the summary announced.
   - **Whole-request refusal** (`403`, `422 tooMany`): one message naming the reason, with the
     selection kept.
   - **No response**: "outcome unknown", the list is refreshed, and the request is never repeated.
-  - **Phones** (FR-033): an explicit "Select" control starts selection mode. Each card gets a
-    44 × 44 px checkbox. The count and the actions stay in a bottom bar. In selection mode, a tap
-    on a card toggles it instead of opening it.
+  - **Phones** (FR-033): the explicit "Select" control of `BulkActionBar` starts selection mode.
+    Each card gets a 44 × 44 px checkbox. The count and the actions stay in the bar at the bottom.
+    In selection mode, a tap on a card toggles it instead of opening it.
 - **Rationale**: One selection model across the app (conventions, UI 003), and the API's per-item
   results and version tags (API FR-027).
 - **Alternatives considered**: Keeping the spec's cross-page selection was rejected: it would
@@ -503,8 +522,12 @@ This feature adds **no runtime dependency** (constitution VIII).
   - **Effect note**: the change applies at the next notifier run, every 20 minutes, and notified
     items are not notified again.
   - **Mailbox list bulk actions** (FR-041): `NotificationBulkAction.vue`, exported from the
-    quarantine `index.ts`, plugs into UI 003's bulk action area. It offers "Set quarantine
-    notifications" (frequency) and "Set quarantine notification category" (category).
+    quarantine `index.ts`, renders two items in UI 003's bulk action menu
+    (`src/features/mailboxes/components/list/MailboxBulkActions.vue`, the area UI 003's data model
+    §8 designates for this). It offers "Set quarantine notifications" (frequency) and "Set
+    quarantine notification category" (category), for administrators and domain administrators. It
+    reads the selection of the list's `useBulkSelection`, and hands the result back to it with
+    `retain`, so the selection rules stay UI 003's.
     - Choosing a value is followed by a confirmation that names the action, the value and the
       count.
     - The request is `applyQuarantineNotificationBulkAction` with `frequency` or `category` and
@@ -634,9 +657,14 @@ This feature adds **no runtime dependency** (constitution VIII).
   - **Overview** (`RateLimitsPage`, FR-056): `listRateLimits` with the kind filter, `q`, sort
     `object` or `kind`, and paging. Cards on phones, a table on wide screens. Each entry links to
     its object's page, and administrators get History.
-  - **"Set a rate limit"** (FR-057): a dialog to choose the kind, then the shared search combobox
-    over `listDomains`, `listAliasDomains` or `listMailboxes` with `q` (all scoped by the API), and
-    then navigation to the object's page with the rate limit panel focused (`#rate-limit`).
+  - **"Set a rate limit"** (FR-057): a dialog to choose the kind, then the object:
+    - domains and alias domains through the shared `DomainPicker.vue` with the matching source
+      (`listDomains` or `listAliasDomains`, `q`);
+    - mailboxes through `MailboxSearchPicker.vue`, a Reka `Combobox` without its viewport over
+      `listMailboxes` with `q`, kept in this feature because it is its only use.
+
+    The API scopes all three lists. The dialog then navigates to the object's page with the rate
+    limit panel focused (`#rate-limit`).
   - **Bucket reset** (FR-058): `ResetBucketDialog` checks the identifier against the contract
     pattern (R8), explains with the legacy first sentence of `admin.hash_remove_info` (R27), and
     sends `resetRateLimitBucket`. `204` says "reset"; `404` says "there was nothing to reset"
@@ -659,10 +687,11 @@ This feature adds **no runtime dependency** (constitution VIII).
       "0 does not mean unlimited" and "messages above <pipelineMaxMessageSize> never reach the
       quarantine" use the size from the capabilities.
     - `maxAgeDays`: from `settings.maxAgeDays.min` up.
-    - `excludedDomains`: chosen in the shared search combobox over `listDomains` and
-      `listAliasDomains`, showing `unicodeName` or `nameUnicode`, with the ASCII name when it
-      differs. Entries listed in `missingExcludedDomains` are flagged "no longer exists". They can
-      be kept or removed, and the picker never offers them.
+    - `excludedDomains`: chosen in the shared `DomainPicker.vue` in multiple mode, with both
+      sources (domains and alias domains, as UI 004 uses it for one filter). Each entry shows
+      `IdnText.vue` (UI 002): the readable name, with the ASCII name when it differs. Entries listed
+      in `missingExcludedDomains` are flagged "no longer exists". They can be kept or removed, and
+      the picker never offers them.
   - **Release**: `releaseFormat`, as radios over `capabilities.settings.releaseFormats`, with the
     legacy labels.
   - **Notification e-mail**:
@@ -676,8 +705,8 @@ This feature adds **no runtime dependency** (constitution VIII).
   - **Template**: a monospace `<textarea>` with `spellcheck="false"`, `autocapitalize="none"` and
     `autocorrect="off"`. It is never rendered or previewed (FR-063). It shows:
     - "Default template in use" from `notificationTemplateIsDefault`;
-    - a size indicator: UTF-8 bytes from `TextEncoder` against `notificationTemplateMaxBytes`,
-      which blocks saving above the limit;
+    - a size indicator: UTF-8 bytes from UI 002's `utf8ByteLength()` against
+      `notificationTemplateMaxBytes`, which blocks saving above the limit;
     - the placeholder reference (`meta` with `qhash`, `id`, `subject`, `score`, `sender`,
       `created`, `action`; `username`, `counter`, `hostname`, `quarantine_acl`), each with a copy
       button;
@@ -740,24 +769,32 @@ This feature adds **no runtime dependency** (constitution VIII).
     `rateLimitBucketReset`) and the 7 target types (`quarantineItem`, `quarantineSettings`,
     `quarantineNotificationSettings`, `spamScore`, `spamPolicyEntry`, `rateLimit`,
     `rateLimitBucket`). The target filter of UI 002 offers them.
-  - **Details**: `src/features/audit-log/details/spam-filter.ts` formats the documented `details`
-    members:
-    - `queueId`, `recipient`, `sender`, `action`, and `steps` translated as in R14;
-    - `changes` with old and new values in the user's units (sizes in binary units, scores and
-      numbers in the locale, enumerations translated);
-    - for the template, "changed" with the old and new size;
-    - `owner`, `ownerKind`, `list` and `pattern`;
-    - `kind`, `old` and `new` rate limits;
-    - `countersExisted` and `logEntriesRemoved`;
-    - `bulkRequestId`, shown as "part of bulk action <first 8 characters>", so that the records of
-      one bulk action are recognisable (the audit filters offer no bulk filter, and none is needed
-      by the spec).
-
-    Recipient, sender and pattern render through `PlainText`. Unknown members fall back to UI 001's
-    generic key–value presentation (API gap 2).
-- **Rationale**: FR-066, conventions "History and audit", and API 006 data-model "Audit records".
-- **Alternatives considered**: Filtering list-entry records in the browser by `details.owner` was
-  rejected: it would page incorrectly and work around a missing filter.
+  - **Details (API gap 2)**: `AuditEvent.details` is an open object in the contract. The members
+    that API 006 writes (`queueId`, `recipient`, `sender`, `action`, `steps`, `changes`, `owner`,
+    `ownerKind`, `list`, `pattern`, `kind`, `old`, `new`, `countersExisted`, `logEntriesRemoved`,
+    `bulkRequestId`) are described only in the API's `data-model.md`. UI 002 decided the same case
+    for domain records (its D26): until the contract describes the members, the history shows them
+    through UI 001's generic details view, as stored, without unit formatting or translated step
+    outcomes. Building a typed presentation from the API's data model would be a hand-written type
+    for API data, which constitution I forbids. So this feature:
+    - adds the labels above, which already make every record readable: who, when, from where,
+      which action on which target, and the outcome with its translated failure reason;
+    - routes every value of the generic details view through `PlainText`. A record's `recipient`
+      and `sender` come from a message, so they could carry bidi overrides (R9). This is the second
+      feature that uses `PlainText`;
+    - relies on the generic view to show `bulkRequestId` as a key and value, so that the records of
+      one bulk action are recognisable (FR-066);
+    - defers the typed presentation of FR-066 (step outcomes translated, old and new values in the
+      user's units, the template as "changed" with its sizes, list entries with owner, list and
+      pattern) to the contract bump that documents `details`. The template text and subjects are
+      never in a record anyway (API FR-063).
+- **Rationale**: FR-066, conventions "History and audit", constitution I, and consistency with UI
+  002.
+- **Alternatives considered**:
+  - Formatting the members documented in the API's data model: rejected under constitution I, as UI
+    002 rejected it.
+  - Filtering list-entry records in the browser by `details.owner`: rejected, because it would page
+    incorrectly and work around a missing filter.
 
 ### R24. Problems and validation messages
 
@@ -816,15 +853,25 @@ This feature adds **no runtime dependency** (constitution VIII).
 ### R26. Entry points into earlier screens
 
 - **Decision**: These are added in a dedicated phase, once every panel exists (conventions "Where
-  features meet"; FR-006: "Links MUST appear only once the target page exists"):
-  - **UI 002 domain detail**: a "Spam filter and limits" link in the page's action area, and the
-    read-only rate limit value linking to `…/spam-filter#rate-limit`.
-  - **UI 003 mailbox detail**: the same link. The read-only notification frequency and category
-    link to `#notifications`, and the effective rate limit to `#rate-limit` (UI 003 FR-040).
-  - **UI 003 mailbox list**: the notification bulk actions (R16). These come with US3, because
-    US3-AS4 tests them.
-  - **UI 004 alias domain detail**: the link, and the read-only rate limit note linking to
-    `#rate-limit` (UI 004 FR-035).
+  features meet"; FR-006: "Links MUST appear only once the target page exists"). Each goes into the
+  area the host feature's data model designates:
+  - **UI 002 domain page** (`src/features/domains/pages/DomainDetailPage.vue`): a "Spam filter and
+    limits" entry in the section list after Groupware, which UI 002's data model §9 reserves for
+    "UI 006 rate limit and spam filter". It shows the current limit and links to
+    `/domains/<name>/spam-filter`. The read-only rate limit of the Delivery section links to
+    `…/spam-filter#rate-limit`.
+  - **UI 003 mailbox detail**:
+    - a "Spam filter and limits" entry in `MailboxSectionNav.vue` (UI 003 data model §8, the section
+      list);
+    - the `to` of the FR-040 entries in `ManagedSettingsGroup.vue`: notification frequency and
+      category link to `#notifications`, and the effective rate limit to `#rate-limit`.
+  - **UI 003 mailbox list**: the notification bulk actions in `MailboxBulkActions.vue` (R16). These
+    come with US3, because US3-AS4 tests them.
+  - **UI 004 alias domain detail** (`src/features/alias-domains/pages/AliasDomainDetailPage.vue`):
+    the link. UI 004 renders its rate limit note and its creation report's "repeat the rate limit
+    step" hint as links only while `isEntryAvailable` holds (its D14). This feature points both at
+    `spam-filter-alias-domain` with `#rate-limit`. Where UI 002's or UI 003's creation reports name
+    the rate limit step in the same way, the hint points at that object's `#rate-limit` panel.
   - **UI 004 resource detail**: nothing. A test asserts that no link exists.
   - **UI 011**: it adds "Reset rate limit" to its own log using the exported dialog (R20). It ships
     later, so this feature only exports the dialog.
@@ -863,11 +910,12 @@ This feature adds **no runtime dependency** (constitution VIII).
     `quarantine_notification_subject`, `quarantine_exclude_domains`, `reset_limit`;
   - `danger.rl_timeframe`, `success.hash_deleted` and `warning.hash_not_found`.
 
-  **Legacy texts with markup** (FR-080) are carried over without it. `legacy-map.json` accepts an
-  object form `{ "key": "<legacy key>", "stripMarkup": true, "segment": <n> }`. The import script
-  turns `<br>` into a segment boundary, removes the inline tags `b`, `strong`, `em`, `small` and
-  `i`, collapses whitespace, and takes segment `n`. It refuses any other tag, including links.
-  This reuses the Czech and Slovak texts of:
+  **Legacy texts with markup** (FR-080) are carried over without it, through UI 002's object form
+  of a `legacy-map.json` entry, `{ "from": "<legacy key>", "stripMarkup": true }` (its D27): tags
+  removed, `<br>` becoming a space, entities decoded, whitespace collapsed, and no `<` or `>`
+  left. This feature adds one optional member, `"segment": <n>`. The value is first split at its
+  `<br>` tags, and only segment `n` is converted, so that a legacy label and its help text, which
+  legacy keeps in one string, become two app keys. This reuses the Czech and Slovak texts of:
   - `quarantine.qinfo`;
   - `user.spamfilter_wl_desc` and `user.spamfilter_bl_desc`;
   - `admin.quarantine_retention_size`, `quarantine_max_size`, `quarantine_max_score`,
@@ -875,7 +923,7 @@ This feature adds **no runtime dependency** (constitution VIII).
     `quarantine_notification_html` (label segment and help segment);
   - `admin.hash_remove_info`, segment 0 only, because segment 1 describes legacy colour stripes.
 
-  If UI 002–005 already extended the import for markup, their mechanism is used instead.
+  If UI 002–005 already added an equivalent of `segment`, that is used instead.
 
   **Not reused, because the meaning changed**: `quarantine.settings_info` (a fixed "MiB" unit and
   markup), `user.spamfilter_table_domain_policy` (replaced by owner groups),

@@ -124,6 +124,11 @@ legacy Twig/jQuery UI feature by feature.
   - dependency vulnerability scan
 - A feature is done when its legacy screens are matched or improved, and the parity notes are
   in the spec.
+- **Git**: commit directly to `main`, with no feature branches and no pull requests. The Spec Kit
+  `before_specify` branch hook is disabled, but spec directories keep the `specs/NNN-feature-name`
+  numbering. Commit subjects are short and imperative.
+- **License**: GPL-3.0, the same as mailcow and mailcow-rest-v2. Every dependency, including
+  bundled fonts and icons, must be GPL-3.0-compatible.
 
 ## Governance
 
@@ -135,6 +140,7 @@ legacy Twig/jQuery UI feature by feature.
 - Owner decisions on 2026-10-18:
   - Vue.js for the UI.
   - The API (Laravel, repository `mailcow-rest-v2`) and this app live in separate repositories.
+  - GPL-3.0 for both repositories, and commits go directly to `main` (added in 1.1.0).
 - Agent runtime guidance lives in `CLAUDE.md` and MUST NOT contradict this document.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18
+**Version**: 1.1.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18

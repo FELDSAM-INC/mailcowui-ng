@@ -32,6 +32,14 @@ import {
   feature004BaseScenarios,
   initialState004,
 } from './feature-004-base'
+import { aliasesListScenarios } from './aliases-list'
+import { aliasesCreateScenarios } from './aliases-create'
+import { aliasesEditScenarios } from './aliases-edit'
+import { aliasDomainScenarios } from './alias-domains'
+import { senderSettingsScenarios } from './sender-settings'
+import { bulk004Scenarios } from './bulk-004'
+import { resourceScenarios } from './resources'
+import { history004Scenarios } from './history-004'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
@@ -98,6 +106,14 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...auditIdentityProviderScenarios,
   // UI 004
   ...feature004BaseScenarios,
+  ...aliasesListScenarios,
+  ...aliasesCreateScenarios,
+  ...aliasesEditScenarios,
+  ...aliasDomainScenarios,
+  ...senderSettingsScenarios,
+  ...bulk004Scenarios,
+  ...resourceScenarios,
+  ...history004Scenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

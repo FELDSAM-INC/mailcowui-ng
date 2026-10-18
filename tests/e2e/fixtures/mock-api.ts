@@ -5,11 +5,14 @@ import type { BrowserContext } from '@playwright/test'
 import type { Violation } from '../../mocks/contract/validator'
 import type { RecordedRequest, ScenarioOverrides, ScenarioPatch } from '../../mocks/scenarios'
 import type {
+  ChangesElsewhere,
+  DeletionsElsewhere,
   DomainFailure,
   MockDomain,
   MockDomainTemplate,
   MockFooter,
 } from '../../mocks/scenarios/state'
+import type { AliasCapabilities, PermissionFlags } from '@/api'
 
 export const MOCK_URL = `http://127.0.0.1:${process.env.MOCK_PORT ?? 4010}`
 
@@ -42,6 +45,20 @@ export interface MockApi {
   ): Promise<void>
   /** Delays every answer of an operation (0 removes the delay). */
   delay(operationId: string, ms: number): Promise<void>
+  /**
+   * UI 004 (research R21): stored values changed behind the app's back, for example
+   * `{ alias: { 'sales@example.org': { destinations: ['bob@example.org'] } } }`. Aliases are named by
+   * ID or address, alias domains by name, resources by address and sender settings by mailbox.
+   */
+  changeElsewhere(changes: ChangesElsewhere): Promise<void>
+  /** UI 004: objects deleted behind the app's back. */
+  deleteElsewhere(deletions: DeletionsElsewhere): Promise<void>
+  /** UI 004: an account's permission flags change (by username). */
+  setFlags(username: string, flags: Partial<PermissionFlags>): Promise<void>
+  /** UI 004: the capabilities of `getAliasesCapabilities` change. */
+  setCapabilities004(changes: Partial<AliasCapabilities>): Promise<void>
+  /** UI 004: mailcow's shared store goes down (alias domain operations answer 503) or comes back. */
+  setSharedStoreDown(down: boolean): Promise<void>
 }
 
 async function control<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -118,6 +135,21 @@ export function createMockApi(context: BrowserContext, appUrl: string): MockApi 
     },
     delay(operationId, ms) {
       return this.patch({ delays: { [operationId]: ms } })
+    },
+    changeElsewhere(changes) {
+      return this.patch({ changeElsewhere: changes })
+    },
+    deleteElsewhere(deletions) {
+      return this.patch({ deleteElsewhere: deletions })
+    },
+    setFlags(username, flags) {
+      return this.patch({ flags: { [username]: flags } })
+    },
+    setCapabilities004(changes) {
+      return this.patch({ capabilities004: changes })
+    },
+    setSharedStoreDown(down) {
+      return this.patch({ sharedStoreDown: down })
     },
     async violations() {
       const all: Violation[] = []

@@ -4,7 +4,19 @@
 import { describe, expect, it } from 'vitest'
 
 import { mockState, useScenario } from '../../mocks/node'
+import { ALIAS_DOMAINS_SCENARIO } from '../../mocks/scenarios/alias-domains'
+import {
+  ALIASES_60,
+  DELIVERS_TO_ANNA,
+  INVOICE_ALIASES,
+  LONG_ADDRESS_004,
+  LONG_VALUES_004,
+} from '../../mocks/scenarios/aliases-list'
+import { BULK_004, BULK_ALIAS_DOMAINS_004 } from '../../mocks/scenarios/bulk-004'
 import { ALIAS_004, MAILBOX_004, RESOURCE_004 } from '../../mocks/scenarios/feature-004-base'
+import { HISTORY_004 } from '../../mocks/scenarios/history-004'
+import { RESOURCES_004 } from '../../mocks/scenarios/resources'
+import { SENDER_004 } from '../../mocks/scenarios/sender-settings'
 import type { ScenarioOverrides, ScenarioState } from '../../mocks/scenarios/state'
 
 const api = (path: string) => `${location.origin}/api/v2${path}`
@@ -916,5 +928,168 @@ describe('scenario patches', () => {
       state.accounts.find((account) => account.username === 'reseller')!.permissions
         .aliasExternalGoto,
     ).toBe(true)
+  })
+})
+
+describe('UI 004 scenarios', () => {
+  const NAMES = [
+    'admin-004',
+    'domain-admin-004',
+    'domain-admin-004-all-flags',
+    'groupware-disabled',
+    'external-destinations-disabled',
+    'aliases-60',
+    'aliases-empty',
+    'aliases-da-two-of-ten',
+    'aliases-long-values',
+    'aliases-create',
+    'aliases-create-limit',
+    'aliases-create-da-no-external',
+    'aliases-create-network',
+    'aliases-edit',
+    'aliases-edit-da',
+    'alias-domains',
+    'alias-domains-admin',
+    'alias-domains-dkim-failed',
+    'alias-domains-feldhost',
+    'alias-domains-da-no-flags',
+    'alias-domains-da-no-ratelimit',
+    'sender-settings',
+    'sender-settings-da',
+    'sender-settings-da-extend',
+    'sender-settings-any',
+    'sender-settings-any-da',
+    'bulk-004',
+    'bulk-limit-50',
+    'bulk-100',
+    'bulk-alias-domains-da',
+    'bulk-alias-domains-failures',
+    'resources',
+    'resources-da',
+    'resources-limits',
+    'history-004',
+    'history-004-da',
+  ]
+
+  it.each(NAMES)('%s answers its reads within the contract', async (name) => {
+    useScenario(name)
+    expect((await call('GET', '/aliases?limit=100')).status).toBe(200)
+    expect((await call('GET', '/alias-domains?limit=100')).status).toBe(200)
+    expect((await call('GET', '/resources?limit=100')).status).toBe(200)
+    expect((await call('GET', '/capabilities/aliases')).status).toBe(200)
+    const anna = await call('GET', `/mailboxes/${MAILBOX_004.anna}/sender-settings`)
+    expect([200, 404]).toContain(anna.status)
+  })
+
+  it('fails the capabilities, the shared store or gives 5,000 domains where the scenario says', async () => {
+    useScenario('capabilities-unavailable')
+    expect((await call('GET', '/capabilities/aliases')).status).toBe(500)
+    expect((await call('GET', '/aliases')).status).toBe(200)
+    useScenario('alias-domains-store-down')
+    expect((await call('GET', '/alias-domains')).status).toBe(503)
+    expect((await call('GET', '/aliases')).status).toBe(200)
+    useScenario('aliases-5000-domains')
+    expect((await call('GET', '/domains?q=domain4990')).body.meta.total).toBe(1)
+    expect((await call('GET', '/domains')).body.meta.total).toBe(5000)
+  })
+
+  it('aliases-60 lists the named aliases on the newest page', async () => {
+    useScenario('aliases-60')
+    const first = await call('GET', '/aliases')
+    expect(first.body.meta.total).toBe(ALIASES_60.total)
+    const ids = (first.body.data as { id: number }[]).map((item) => item.id)
+    expect(ids[0]).toBe(60)
+    expect(ids).toHaveLength(25)
+    const invoice = await call('GET', '/aliases?q=INVOICE')
+    expect((invoice.body.data as { id: number }[]).map((item) => item.id).sort()).toEqual(
+      [...INVOICE_ALIASES].sort(),
+    )
+    const anna = await call('GET', '/aliases?destination=anna@example.org')
+    expect((anna.body.data as { id: number }[]).map((item) => item.id).sort()).toEqual(
+      [...DELIVERS_TO_ANNA].sort(),
+    )
+    const twelve = await call('GET', `/aliases/${ALIASES_60.twelve}`)
+    expect(twelve.body.data.destinations).toHaveLength(12)
+    useScenario('aliases-da-two-of-ten')
+    expect((await call('GET', `/aliases/${ALIASES_60.otherDomain}`)).status).toBe(404)
+  })
+
+  it('aliases-long-values holds a 254-character address and 200 destinations', async () => {
+    useScenario('aliases-long-values')
+    const long = await call('GET', `/aliases/${LONG_VALUES_004.long}`)
+    expect(long.body.data.address).toBe(LONG_ADDRESS_004)
+    expect(LONG_ADDRESS_004).toHaveLength(254)
+    expect(
+      (await call('GET', `/aliases/${LONG_VALUES_004.many}`)).body.data.destinations,
+    ).toHaveLength(200)
+    expect((await call('GET', `/aliases/${LONG_VALUES_004.idn}`)).body.data.addressUnicode).toBe(
+      'info@bücher.example',
+    )
+  })
+
+  it('alias-domains gives example.net its 7 aliases and example.com a tight limit', async () => {
+    useScenario('alias-domains')
+    const net = await call('GET', `/alias-domains/${ALIAS_DOMAINS_SCENARIO.withAliases}`)
+    expect(net.body.data.aliasCount).toBe(ALIAS_DOMAINS_SCENARIO.aliasCount)
+    const moved = await call('PATCH', `/alias-domains/${ALIAS_DOMAINS_SCENARIO.withAliases}`, {
+      body: { targetDomain: ALIAS_DOMAINS_SCENARIO.limitedTarget },
+    })
+    expect(moved.body).toMatchObject({
+      count: ALIAS_DOMAINS_SCENARIO.limitedCount,
+      limit: ALIAS_DOMAINS_SCENARIO.limitedLimit,
+      requested: 7,
+    })
+    useScenario('alias-domains-admin')
+    const relay = await call('GET', `/alias-domains/${ALIAS_DOMAINS_SCENARIO.relayTargeted}`)
+    expect(relay.body.data.targetIsRelayDomain).toBe(true)
+  })
+
+  it('bulk-004 copies sales@example.org to example.com and skips example.net', async () => {
+    useScenario('bulk-004')
+    expect((await call('GET', '/aliases?limit=50')).body.meta.total).toBe(30)
+    const copy = await call('POST', `/aliases/${BULK_004.sales}/alias-domain-copies`)
+    expect(copy.body.data.copies).toEqual([
+      expect.objectContaining({
+        aliasDomain: 'example.com',
+        outcome: 'created',
+        address: BULK_004.copyCreated,
+      }),
+      expect.objectContaining({ aliasDomain: BULK_004.copySkippedAliasDomain, outcome: 'skipped' }),
+    ])
+    useScenario('bulk-alias-domains-failures')
+    const bulk = await call('POST', '/alias-domains/bulk-actions', {
+      body: { action: 'deactivate', targets: BULK_ALIAS_DOMAINS_004.map((id) => ({ id })) },
+    })
+    expect(bulk.body.data.results.map((item: { outcome: string }) => item.outcome)).toEqual([
+      'done',
+      'failed',
+      'done',
+      'failed',
+      'done',
+    ])
+  })
+
+  it('sender-settings-5000 pages the 60 candidates that match "sales"', async () => {
+    useScenario('sender-settings-5000')
+    const answer = await call(
+      'GET',
+      `/sender-permission-candidates?mailbox=${SENDER_004.mailbox}&q=sales&type=address&type=domain`,
+    )
+    expect(answer.body.meta.total).toBe(SENDER_004.salesCandidates)
+    expect(answer.body.data).toHaveLength(25)
+  })
+
+  it('resources and history carry the named objects', async () => {
+    useScenario('resources')
+    const calendar = await call('GET', `/resources/${RESOURCES_004.teamCalendar}`)
+    expect(calendar.body.data).toMatchObject({ bookingRule: 'limited', bookingLimit: 2 })
+    expect((await call('GET', '/resources?limit=100')).body.meta.total).toBe(10)
+    useScenario('history-004')
+    const records = await call(
+      'GET',
+      `/audit-events?targetType=alias&targetId=${HISTORY_004.alias.id}`,
+    )
+    expect(records.status).toBe(200)
+    expect(records.body.data.length).toBeGreaterThanOrEqual(2)
   })
 })

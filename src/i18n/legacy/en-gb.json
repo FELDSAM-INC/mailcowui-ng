@@ -2,6 +2,28 @@
   "apps": {
     "defaultLabel": "Apps"
   },
+  "auth": {
+    "secondFactor": {
+      "title": "Two-factor authentication",
+      "totp": {
+        "authenticators": "Authenticators"
+      }
+    },
+    "signIn": {
+      "forgotPassword": "Forgot Password?",
+      "otherLogins": "Not the correct login?",
+      "password": "Password",
+      "roleLinks": {
+        "admin": "Log in as admin",
+        "domainAdmin": "Log in as domain admin",
+        "mailboxUser": "Log in as user"
+      },
+      "titleAdmin": "Administrator Login",
+      "titleDomainAdmin": "Domain-Administrator Login",
+      "titleMailboxUser": "User Login",
+      "username": "Username"
+    }
+  },
   "common": {
     "cancel": "Cancel"
   },

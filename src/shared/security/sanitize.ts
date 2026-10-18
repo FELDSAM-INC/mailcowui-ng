@@ -33,8 +33,28 @@ purify.addHook('afterSanitizeAttributes', (node) => {
   }
 })
 
+const STYLE_ELEMENT = /<style\b[\s\S]*?(?:<\/style\s*>|$)/gi
+const INLINE_ATTRIBUTE = /(<[a-z][^>]*?[\s/])(on[a-z]+|style)(\s*=)/gi
+
+/**
+ * Chromium reports CSP violations for inline event handlers and styles even in documents that are
+ * only parsed (DOMParser, `<template>`), although it blocks them. Hostile operator HTML would raise
+ * such reports while DOMPurify parses it, so these parts are defanged as text first: style
+ * elements are dropped and handler and style attributes renamed to `data-removed-*`, which
+ * DOMPurify then removes. This is noise reduction, not the security boundary: DOMPurify is.
+ */
+export function defangForParsing(html: string): string {
+  let result = html.replace(STYLE_ELEMENT, '')
+  for (let pass = 0; pass < 20; pass += 1) {
+    const next = result.replace(INLINE_ATTRIBUTE, '$1data-removed-$2$3')
+    if (next === result) break
+    result = next
+  }
+  return result
+}
+
 export function sanitizeHtml(html: string): string {
-  return purify.sanitize(html, {
+  return purify.sanitize(defangForParsing(html), {
     ALLOWED_TAGS,
     ALLOWED_ATTR: ['href'],
     // Only absolute http(s) and mailto links: relative links and every other scheme are dropped.

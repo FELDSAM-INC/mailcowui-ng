@@ -3,6 +3,8 @@
 // It also exports the client, the query client, the query keys and the problem helpers.
 
 export type { components, operations, paths } from './generated/schema'
+/** A request body type without the read-only markers: `writeOnly` fields become plain values. */
+export type { Writable } from './generated/schema'
 export type {
   AccountRef,
   AllDomainsScope,

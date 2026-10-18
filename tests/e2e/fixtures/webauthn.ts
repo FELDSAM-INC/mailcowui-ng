@@ -71,6 +71,15 @@ export function createWebAuthnTools(page: Page, context: BrowserContext): WebAut
 
     async stubCredentialsRejection(name) {
       await context.addInitScript((errorName: string) => {
+        // A device that supports WebAuthn (WebKit's test build may lack PublicKeyCredential).
+        if (typeof window.PublicKeyCredential !== 'function') {
+          Object.defineProperty(window, 'PublicKeyCredential', {
+            configurable: true,
+            value: Object.assign(function PublicKeyCredential() {}, {
+              isConditionalMediationAvailable: () => Promise.resolve(false),
+            }),
+          })
+        }
         const reject = () => Promise.reject(new DOMException('Stubbed rejection', errorName))
         Object.defineProperty(navigator, 'credentials', {
           configurable: true,

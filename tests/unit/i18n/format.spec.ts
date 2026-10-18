@@ -73,3 +73,21 @@ describe('lists', () => {
     expect(formatList(['a', 'b'], 'en-gb', 'disjunction')).toBe('a or b')
   })
 })
+
+describe('countdowns (research R13, FR-082)', () => {
+  it('formats a visible countdown as minutes and seconds', async () => {
+    const { formatClock } = await import('@/i18n/format')
+    expect(formatClock(90)).toBe('1:30')
+    expect(formatClock(5)).toBe('0:05')
+    expect(formatClock(-3)).toBe('0:00')
+  })
+
+  it('spells a duration out for announcements in each language', async () => {
+    const { formatDuration } = await import('@/i18n/format')
+    expect(formatDuration(90, 'en-gb')).toBe('1 minute and 30 seconds')
+    expect(formatDuration(120, 'en-gb')).toBe('2 minutes')
+    expect(formatDuration(30, 'en-gb')).toBe('30 seconds')
+    expect(formatDuration(0, 'en-gb')).toBe('0 seconds')
+    expect(formatDuration(61, 'cs-cz').replace(/\s/g, ' ')).toBe('1 minuta a 1 sekunda')
+  })
+})

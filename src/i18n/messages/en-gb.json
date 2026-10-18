@@ -12,6 +12,56 @@
     "skipToContent": "Skip to main content",
     "userMenu": "Account menu of {username}"
   },
+  "auth": {
+    "notice": {
+      "secondFactorRejected": "The code was not accepted. Please start the sign-in again.",
+      "secondFactorUnavailable": "Your second factors cannot be used here. Ask an administrator to reset them.",
+      "sessionEnded": "Your session has ended. Please sign in again.",
+      "signInTimedOut": "The sign-in timed out. Please sign in again.",
+      "signedOut": "You have signed out."
+    },
+    "secondFactor": {
+      "intro": "Signing in as {username}. Confirm the sign-in with one of your second factors.",
+      "oneMinute": "One minute left to complete the sign-in.",
+      "otherMethods": "Other methods",
+      "timeLeft": "Time left: {time}",
+      "totp": {
+        "code": "Six-digit code"
+      },
+      "verify": "Verify",
+      "webauthn": {
+        "start": "Use your security key or passkey",
+        "unsupported": "This device cannot use a security key or passkey. Choose another method.",
+        "waiting": "Waiting for your security key or passkey…"
+      },
+      "yubiOtp": {
+        "field": "Yubico OTP",
+        "help": "Touch your YubiKey to type the code into this field."
+      }
+    },
+    "signIn": {
+      "anyRole": "Sign in with any account",
+      "help": "Help",
+      "idpHint": {
+        "body": "Accounts that sign in through your organisation's identity provider cannot use their password here yet.",
+        "link": "Sign in in the classic interface"
+      },
+      "showPassword": "Show password",
+      "sso": {
+        "body": "This server uses single sign-on. For now it is available in the classic interface.",
+        "link": "Sign in with single sign-on in the classic interface",
+        "title": "Single sign-on"
+      },
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "throttle": {
+        "announce": "Too many attempts. You can try again in {time}.",
+        "countdown": "You can try again in {time}",
+        "ended": "You can try to sign in again."
+      },
+      "title": "Sign in"
+    }
+  },
   "common": {
     "close": "Close",
     "confirm": "Confirm",
@@ -97,6 +147,11 @@
     },
     "required": "required"
   },
+  "home": {
+    "greeting": "Hello, {username}",
+    "role": "You are signed in as {role}.",
+    "title": "Home"
+  },
   "lists": {
     "pagination": {
       "current": "Page {page} of {pages}",
@@ -119,6 +174,14 @@
     "routing": "Routing and rewriting",
     "spamFilter": "Spam filter",
     "system": "System settings"
+  },
+  "passkeys": {
+    "errors": {
+      "alreadyRegistered": "This device already has a passkey for your account.",
+      "generic": "Something went wrong with the passkey. Please try again.",
+      "insecure": "Passkeys cannot be used at this address.",
+      "unsupported": "This device cannot create or use a passkey of the required kind."
+    }
   },
   "problem": {
     "api-key-expired": "This API key has expired.",
@@ -163,6 +226,14 @@
     "admin": "Administrator",
     "domainAdmin": "Domain administrator",
     "mailboxUser": "Mailbox user"
+  },
+  "session": {
+    "idle": {
+      "body": "For your security, you will be signed out in {time} because of inactivity.",
+      "remaining": "{time} left before you are signed out.",
+      "stay": "Stay signed in",
+      "title": "Your session is about to end"
+    }
   },
   "shell": {
     "announcement": {

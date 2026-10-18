@@ -2,6 +2,28 @@
   "apps": {
     "defaultLabel": "Aplikace"
   },
+  "auth": {
+    "secondFactor": {
+      "title": "Dvoufaktorové ověření (TFA)",
+      "totp": {
+        "authenticators": "Autentifikátory"
+      }
+    },
+    "signIn": {
+      "forgotPassword": "Zapomněli jste heslo?",
+      "otherLogins": "Hledáte jinou přihlašovací stránku?",
+      "password": "Heslo",
+      "roleLinks": {
+        "admin": "Přihlášení správce",
+        "domainAdmin": "Přihlášení správce domény",
+        "mailboxUser": "Přihlášení uživatele"
+      },
+      "titleAdmin": "Přihlášení správce",
+      "titleDomainAdmin": "Přihlášení správce domény",
+      "titleMailboxUser": "Přihlášení uživatele",
+      "username": "Uživatelské jméno"
+    }
+  },
   "common": {
     "cancel": "Zrušit"
   },

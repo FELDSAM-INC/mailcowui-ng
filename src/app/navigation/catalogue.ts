@@ -73,21 +73,13 @@ function entry(
   access: Record<Role, EntryAccess>,
   deliveredBy: string,
   classic: NavigationEntry['classic'] = {},
+  status: NavigationEntry['status'] = 'placeholder',
 ): NavigationEntry {
-  return {
-    id,
-    labelKey: `nav.${id}`,
-    icon,
-    path,
-    access,
-    deliveredBy,
-    status: 'placeholder',
-    classic,
-  }
+  return { id, labelKey: `nav.${id}`, icon, path, access, deliveredBy, status, classic }
 }
 
 export const catalogue: readonly NavigationEntry[] = [
-  entry('home', '/', HomeIcon, ALL, '001'),
+  entry('home', '/', HomeIcon, ALL, '001', {}, 'available'),
   entry('domains', '/domains', GlobeIcon, MANAGERS, '002', MAIL_SETUP),
   entry('mailboxes', '/mailboxes', MailIcon, MANAGERS, '003', MAIL_SETUP),
   entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP),

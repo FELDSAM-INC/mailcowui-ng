@@ -96,6 +96,25 @@ export function formatList(
   ).format(values)
 }
 
+/** A visible countdown: `1:05` for 65 seconds. */
+export function formatClock(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds))
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}
+
+/** A duration in words for announcements: "1 minute and 30 seconds" (FR-082). */
+export function formatDuration(seconds: number, locale: AppLocale): string {
+  const total = Math.max(0, Math.round(seconds))
+  const minutes = Math.floor(total / 60)
+  const rest = total % 60
+  const unit = (value: number, name: 'minute' | 'second') =>
+    formatNumber(value, locale, { style: 'unit', unit: name, unitDisplay: 'long' })
+  const parts: string[] = []
+  if (minutes > 0) parts.push(unit(minutes, 'minute'))
+  if (rest > 0 || minutes === 0) parts.push(unit(rest, 'second'))
+  return formatList(parts, locale)
+}
+
 /** The formatters bound to the language in use. */
 export function useFormat() {
   const composer = useI18n({ useScope: 'global' })
@@ -108,5 +127,7 @@ export function useFormat() {
     relative: (value: DateValue, now?: number) => formatRelativeTime(value, current.value, now),
     list: (values: readonly string[], type?: Intl.ListFormatType) =>
       formatList(values, current.value, type),
+    duration: (seconds: number) => formatDuration(seconds, current.value),
+    clock: formatClock,
   }
 }

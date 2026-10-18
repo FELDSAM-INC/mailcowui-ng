@@ -94,6 +94,9 @@ export function requireAccount(
   return account
 }
 
+/** The recommended presentation order of second factors (`PendingSignIn.methods`). */
+const SECOND_FACTOR_ORDER = { webauthn: 0, totp: 1, yubiOtp: 2 } as const
+
 /** The contract `Session` of the scenario's session. */
 export function sessionBody(state: ScenarioState): Session {
   const { session } = state
@@ -107,7 +110,9 @@ export function sessionBody(state: ScenarioState): Session {
         username: account.username,
         role: account.role,
         pendingSignIn: {
-          methods: account.secondFactors.map(({ secret: _secret, ...method }) => method),
+          methods: [...account.secondFactors]
+            .sort((a, b) => SECOND_FACTOR_ORDER[a.type] - SECOND_FACTOR_ORDER[b.type])
+            .map(({ secret: _secret, ...method }) => method),
           expiresAt: session.pendingSignIn.expiresAt,
         },
       }

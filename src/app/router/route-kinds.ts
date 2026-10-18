@@ -9,9 +9,14 @@ declare module 'vue-router' {
     layout?: 'auth' | 'shell'
     /**
      * Who may open the route: `anonymous` (sign-in screens), `pendingSecondFactor`, `restricted`
-     * (pending actions), `session` (an active session) or `public` (not found).
+     * (pending actions) or `session` (an active session).
      */
-    access?: 'anonymous' | 'pendingSecondFactor' | 'restricted' | 'session' | 'public'
+    access?: 'anonymous' | 'pendingSecondFactor' | 'restricted' | 'session'
+    /**
+     * The route resolves in every session state (docs/conventions.md: `meta.public`), for example
+     * the password reset pages of UI 005.
+     */
+    public?: boolean
     /** The catalogue entry whose access rule applies (FR-045). */
     navEntry?: NavEntryId
     /** Translation key of the page name in the document title (FR-049). */

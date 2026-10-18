@@ -12,6 +12,67 @@
     "skipToContent": "Preskočiť na hlavný obsah",
     "userMenu": "Ponuka účtu {username}"
   },
+  "auth": {
+    "notice": {
+      "secondFactorRejected": "Kód nebol prijatý. Začnite, prosím, prihlásenie znova.",
+      "secondFactorUnavailable": "Vaše druhé faktory tu nemožno použiť. Požiadajte správcu, aby ich obnovil.",
+      "sessionEnded": "Vaša relácia sa skončila. Prihláste sa, prosím, znova.",
+      "signInTimedOut": "Časový limit prihlásenia vypršal. Prihláste sa, prosím, znova.",
+      "signedOut": "Boli ste odhlásení."
+    },
+    "secondFactor": {
+      "intro": "Prihlasujete sa ako {username}. Potvrďte prihlásenie jedným zo svojich druhých faktorov.",
+      "oneMinute": "Na dokončenie prihlásenia zostáva jedna minúta.",
+      "otherMethods": "Ďalšie metódy",
+      "timeLeft": "Zostávajúci čas: {time}",
+      "totp": {
+        "authenticators": "Autentifikátory",
+        "code": "Šesťmiestny kód"
+      },
+      "verify": "Overiť",
+      "webauthn": {
+        "start": "Použiť bezpečnostný kľúč alebo prístupový kľúč",
+        "unsupported": "Toto zariadenie nemôže použiť bezpečnostný kľúč ani prístupový kľúč. Zvoľte inú metódu.",
+        "waiting": "Čaká sa na bezpečnostný kľúč alebo prístupový kľúč…"
+      },
+      "yubiOtp": {
+        "field": "Yubico OTP",
+        "help": "Dotknite sa kľúča YubiKey, aby do tohto poľa napísal kód."
+      }
+    },
+    "signIn": {
+      "anyRole": "Prihlásiť sa ľubovoľným účtom",
+      "forgotPassword": "Zabudli ste heslo?",
+      "help": "Pomocník",
+      "idpHint": {
+        "body": "Účty, ktoré sa prihlasujú cez poskytovateľa identity vašej organizácie, tu zatiaľ nemôžu použiť heslo.",
+        "link": "Prihlásiť sa v klasickom rozhraní"
+      },
+      "otherLogins": "Hľadáte inú prihlasovaciu stránku?",
+      "roleLinks": {
+        "admin": "Prihlásiť sa ako správca",
+        "domainAdmin": "Prihlásiť sa ako správca domény",
+        "mailboxUser": "Prihlásiť sa ako používateľ"
+      },
+      "showPassword": "Zobraziť heslo",
+      "sso": {
+        "body": "Tento server používa jednotné prihlásenie. Zatiaľ je k dispozícii v klasickom rozhraní.",
+        "link": "Prihlásiť sa jednotným prihlásením v klasickom rozhraní",
+        "title": "Jednotné prihlásenie"
+      },
+      "submit": "Prihlásiť sa",
+      "submitting": "Prihlasovanie…",
+      "throttle": {
+        "announce": "Príliš veľa pokusov. Znova to môžete skúsiť o {time}.",
+        "countdown": "Znova to môžete skúsiť o {time}",
+        "ended": "Teraz sa môžete znova skúsiť prihlásiť."
+      },
+      "title": "Prihlásenie",
+      "titleAdmin": "Prihlásenie správcu",
+      "titleDomainAdmin": "Prihlásenie správcu domény",
+      "titleMailboxUser": "Prihlásenie používateľa"
+    }
+  },
   "common": {
     "close": "Zavrieť",
     "confirm": "Potvrdiť",
@@ -97,6 +158,11 @@
     },
     "required": "povinné"
   },
+  "home": {
+    "greeting": "Dobrý deň, {username}",
+    "role": "Ste prihlásení ako {role}.",
+    "title": "Domov"
+  },
   "lists": {
     "pagination": {
       "current": "Strana {page} z {pages}",
@@ -119,6 +185,14 @@
     "routing": "Smerovanie a prepisovanie adries",
     "spamFilter": "Spamový filter",
     "system": "Nastavenia systému"
+  },
+  "passkeys": {
+    "errors": {
+      "alreadyRegistered": "Toto zariadenie už má prístupový kľúč pre váš účet.",
+      "generic": "S prístupovým kľúčom sa niečo pokazilo. Skúste to, prosím, znova.",
+      "insecure": "Prístupové kľúče nemožno na tejto adrese použiť.",
+      "unsupported": "Toto zariadenie nemôže vytvoriť ani použiť prístupový kľúč požadovaného typu."
+    }
   },
   "problem": {
     "api-key-expired": "Platnosť tohto API kľúča vypršala.",
@@ -163,6 +237,14 @@
     "admin": "Administrátor",
     "domainAdmin": "Správca domény",
     "mailboxUser": "Používateľ schránky"
+  },
+  "session": {
+    "idle": {
+      "body": "Z bezpečnostných dôvodov budete pre nečinnosť odhlásení o {time}.",
+      "remaining": "Do odhlásenia zostáva {time}.",
+      "stay": "Zostať prihlásený",
+      "title": "Vaša relácia sa čoskoro skončí"
+    }
   },
   "shell": {
     "announcement": {

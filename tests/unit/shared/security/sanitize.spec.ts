@@ -137,3 +137,17 @@ describe('sanitizeHtml: allowed formatting', () => {
     expect(sanitizeHtml('')).toBe('')
   })
 })
+
+describe('defangForParsing (CSP reports while parsing)', () => {
+  it('drops style elements and renames handler and style attributes before DOMPurify parses', async () => {
+    const { defangForParsing } = await import('@/shared/security/sanitize')
+    expect(
+      defangForParsing(
+        '<p onclick="a()" style="color:red" onmouseover=b()>x</p><style>body{}</style><svg/onload=c()>',
+      ),
+    ).toBe(
+      '<p data-removed-onclick="a()" data-removed-style="color:red" data-removed-onmouseover=b()>x</p><svg/data-removed-onload=c()>',
+    )
+    expect(defangForParsing('Turn on= the light <b>now</b>')).toBe('Turn on= the light <b>now</b>')
+  })
+})

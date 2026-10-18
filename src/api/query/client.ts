@@ -5,6 +5,7 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/vue-query'
 
 import { ApiProblem } from '../problem'
+import { queryKeys } from './keys'
 
 export interface SessionReactions {
   /** `unauthenticated`: the session has ended (FR-034). */
@@ -39,7 +40,7 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
 }
 
 export function createQueryClient(options: { retryDelay?: number } = {}): QueryClient {
-  return new QueryClient({
+  const client = new QueryClient({
     queryCache: new QueryCache({ onError: dispatch }),
     mutationCache: new MutationCache({ onError: dispatch }),
     defaultOptions: {
@@ -56,6 +57,10 @@ export function createQueryClient(options: { retryDelay?: number } = {}): QueryC
       },
     },
   })
+  // The session changes only through answers the app handles itself, and it is never garbage
+  // collected: the idle timer and the guard read it even while no component observes it.
+  client.setQueryDefaults(queryKeys.session(), { staleTime: Infinity, gcTime: Infinity })
+  return client
 }
 
 /** The app's single QueryClient. */

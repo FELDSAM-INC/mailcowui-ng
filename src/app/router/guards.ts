@@ -39,9 +39,11 @@ export function routeForState(
   to: RouteLocationNormalizedGeneric,
   router: Router,
 ): Target {
+  if (to.meta.public) return true
   switch (state) {
     case 'anonymous':
-      if (to.meta.access === 'anonymous' || to.meta.access === 'public') return true
+      // "Not found" shows signed out too; during a pending step or a restriction it does not.
+      if (to.meta.access === 'anonymous' || to.name === 'not-found') return true
       return sendTo(router, 'sign-in', carriedReturnTo(to, router))
     case 'pendingSecondFactor':
       if (to.name === 'sign-in-second-factor') return true

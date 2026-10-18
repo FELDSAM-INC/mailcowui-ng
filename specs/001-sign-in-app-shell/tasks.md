@@ -412,7 +412,7 @@ repeat every failure scenario of US1.
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T066 [US1] Extend the mock handlers for US1:
+- [X] T066 [US1] Extend the mock handlers for US1:
   - `tests/mocks/handlers/auth.ts`: `createSession`, `verifySecondFactor`, `createSecondFactorWebAuthnChallenge`, `cancelPendingSignIn`, `csrf-token-mismatch` injection, and the server idle expiry. Expiry can also be triggered through `PATCH /__mock/scenarios/:id` (`{ expireSession: true }`), because `page.clock` moves only the browser's clock, not the mock server's. `createSession` covers:
     - a generic `sign-in-failed`, and a 422 for an invalid body;
     - throttling to `429` with `retryAfter` after the scenario threshold;
@@ -422,7 +422,9 @@ repeat every failure scenario of US1.
 
     `verifySecondFactor` covers TOTP, Yubico OTP and WebAuthn success, `second-factor-failed` cancelling the pending sign-in, a method that vanished, and `503 temporary-verification-failure` with `Retry-After`.
   - `tests/mocks/scenarios/index.ts`: register the scenarios `admin-password`, `domain-admin-password`, `mailbox-password`, `mailbox-all-factors`, `totp-two-methods`, `yubi-only`, `u2f-only`, `throttled`, `slow-sign-in`, `yubico-outage`, `short-idle` (idleTimeout 150 s), `force-sso`, `hidden-admin-link`, `idp-configured`, `logo-broken`, `help-html-malicious` and `csrf-expired`, in `tests/mocks/scenarios/sign-in.ts`. `config-unavailable` comes from T025.
-- [ ] T067 [P] [US1] Write `tests/e2e/sign-in/sign-in-screen.spec.ts`. It covers:
+
+  *Implementation note*: the mock returns `PendingSignIn.methods` in the recommended order whatever the account's order (`sessionBody`), and the Yubico OTP of `accounts.ts` is now 44 characters, as the contract requires. Handler checks are in `tests/unit/mocks/sign-in-handlers.spec.ts`.
+- [X] T067 [P] [US1] Write `tests/e2e/sign-in/sign-in-screen.spec.ts`. It covers:
   - US1-AS1 and FR-001: logo for the theme, product name, announcement, help text, and app links under the "Apps" text, without horizontal scroll;
   - FR-003: the `config-unavailable` defaults;
   - Edge: a broken logo shows the product name;
@@ -435,14 +437,14 @@ repeat every failure scenario of US1.
   - US1-AS16: the identity-provider hint up front;
   - Edge: a 255-character product name wraps;
   - every state above has no horizontal scroll at 360 and 320 px.
-- [ ] T068 [P] [US1] Write `tests/e2e/sign-in/password-sign-in.spec.ts`. It covers:
+- [X] T068 [P] [US1] Write `tests/e2e/sign-in/password-sign-in.spec.ts`. It covers:
   - US1-AS2: an admin without second factors lands on home with the admin navigation, and home greets them with the username and the translated role (FR-047, first bullet);
   - US1-AS5: the generic message, username kept, password cleared, message announced, focus moved (FR-018);
   - US1-AS6: on `throttled` with `page.clock`, a retry countdown, the button disabled, and re-enabling announced;
   - FR-016 and FR-081: autocomplete attributes, paste and password managers allowed with no cognitive test, a labelled show/hide toggle operable by keyboard;
   - FR-017 and `slow-sign-in`: a busy state with no double submit and no timeout, with the progress announced in the polite live region;
   - FR-005 and FR-019: a role screen sends `role`, asserted through `mockApi.requests()`.
-- [ ] T069 [P] [US1] Write `tests/e2e/sign-in/second-factor.spec.ts`. It covers:
+- [X] T069 [P] [US1] Write `tests/e2e/sign-in/second-factor.spec.ts`. It covers:
   - US1-AS3: method order, Yubico OTP under "Other methods", and TOTP to home;
   - US1-AS4: two authenticators choose by name; one is preselected with focus on the code;
   - US1-AS7: a wrong code returns to the password step with the username kept;
@@ -456,7 +458,7 @@ repeat every failure scenario of US1.
   - FR-022: the code format check (exactly six digits after stripping spaces) and FR-023 (44 letters or digits);
   - `@virtual-authenticator`: the WebAuthn second factor succeeds;
   - FR-021: a cancelled WebAuthn prompt (`stubCredentialsRejection('NotAllowedError')`) keeps the step open, sends no verification request, and allows a retry or another method.
-- [ ] T070 [P] [US1] Write `tests/e2e/sign-in/session-lifecycle.spec.ts`. It covers:
+- [X] T070 [P] [US1] Write `tests/e2e/sign-in/session-lifecycle.spec.ts`. It covers:
   - US1-AS12: after sign-out a confirmation, and Back reveals no content (SC-009);
   - FR-036: a sign-out network failure reports "could not be confirmed" with a retry;
   - US1-AS17: on `short-idle` with `page.clock`, the warning 2 minutes before expiry is announced; "Stay signed in" sends `GET /session` and continues; ignoring it shows sign-in with an explanation and returns to the same page after sign-in; no request is sent while idle (SC-014);
@@ -468,15 +470,15 @@ repeat every failure scenario of US1.
   - FR-037: sign-out in another page discards data on the next request, and a sign-in as another account in a second page makes the first page discard the previous account's data and show the new session's state;
   - Edge: an account deactivated while signed in;
   - Edge: network loss gives a translated message with a retry and nothing reported as saved.
-- [ ] T071 [P] [US1] Write `tests/unit/features/auth/SignInPage.spec.ts`. It covers the role headings and "Not the correct login?" links per `loginPage` options (FR-005, FR-006), the force-SSO rules (FR-007), the identity-provider hint (FR-008), the forgot-password link (FR-009), the notices from the session store, and the app links section hidden when none is shown on the login page (FR-001a).
-- [ ] T072 [P] [US1] Write `tests/unit/features/auth/PasswordForm.spec.ts` (labels, autocomplete, show/hide toggle, password cleared and username kept after failure, focus) and `tests/unit/features/auth/useThrottle.spec.ts` (countdown from `retryAfter`, announcements only at the start and on re-enabling).
-- [ ] T073 [P] [US1] Write `tests/unit/features/auth/useSecondFactor.spec.ts` and `tests/unit/features/auth/SecondFactorPage.spec.ts`. They cover:
+- [X] T071 [P] [US1] Write `tests/unit/features/auth/SignInPage.spec.ts`. It covers the role headings and "Not the correct login?" links per `loginPage` options (FR-005, FR-006), the force-SSO rules (FR-007), the identity-provider hint (FR-008), the forgot-password link (FR-009), the notices from the session store, and the app links section hidden when none is shown on the login page (FR-001a).
+- [X] T072 [P] [US1] Write `tests/unit/features/auth/PasswordForm.spec.ts` (labels, autocomplete, show/hide toggle, password cleared and username kept after failure, focus) and `tests/unit/features/auth/useThrottle.spec.ts` (countdown from `retryAfter`, announcements only at the start and on re-enabling).
+- [X] T073 [P] [US1] Write `tests/unit/features/auth/useSecondFactor.spec.ts` and `tests/unit/features/auth/SecondFactorPage.spec.ts`. They cover:
   - `tier` grouping, with advanced methods shown directly when no primary method exists (FR-020);
   - TOTP preselection and choice (FR-022);
   - client validation `^[0-9]{6}$` after stripping whitespace and `^[A-Za-z0-9]{44}$`;
   - the outcome-to-transition table of data-model §7;
   - the countdown warning at 60 s (FR-025).
-- [ ] T074 [P] [US1] Write `tests/unit/app/session/idle-timer.spec.ts` and `tests/unit/app/session/IdleWarningDialog.spec.ts`. They cover:
+- [X] T074 [P] [US1] Write `tests/unit/app/session/idle-timer.spec.ts` and `tests/unit/app/session/IdleWarningDialog.spec.ts`. They cover:
   - deadline = `lastActivityAt + idleTimeout`, with the warning at −120 s;
   - activity broadcasts reset the timer;
   - recomputation on `visibilitychange`;
@@ -484,7 +486,7 @@ repeat every failure scenario of US1.
   - "Stay signed in" calls `getSession` once;
   - announcements at 120, 60 and 30 s (FR-082);
   - an alertdialog that traps focus.
-- [ ] T075 [P] [US1] Write `tests/smoke/fixtures/accounts.ts` (the seeded accounts and `Passw0rd!dev`, overridable through `SMOKE_ADMIN_USERNAME`, `SMOKE_ADMIN_PASSWORD` and the matching variables for the other roles, for quickstart Part D), `tests/smoke/fixtures/totp.ts` (RFC 6238 with `node:crypto`, waiting for a fresh 30 s step) and `tests/smoke/sign-in.smoke.spec.ts`. The smoke spec covers:
+- [X] T075 [P] [US1] Write `tests/smoke/fixtures/accounts.ts` (the seeded accounts and `Passw0rd!dev`, overridable through `SMOKE_ADMIN_USERNAME`, `SMOKE_ADMIN_PASSWORD` and the matching variables for the other roles, for quickstart Part D), `tests/smoke/fixtures/totp.ts` (RFC 6238 with `node:crypto`, waiting for a fresh 30 s step) and `tests/smoke/sign-in.smoke.spec.ts`. The smoke spec covers:
   - `admin`, `reseller` and `alice@example.org` (with TOTP) sign in and sign out, tagged `@read-only` for the password-only case;
   - a random unknown username gets the generic failure;
   - `/ng/` responds with the CSP header of R18; only the CSP is asserted, because nginx-mailcow adds the other headers;
@@ -492,25 +494,31 @@ repeat every failure scenario of US1.
 
 ### Implementation for User Story 1
 
-- [ ] T076 [US1] Implement `src/features/auth/api.ts`. It holds the `createSession`, `verifySecondFactor`, `createSecondFactorWebAuthnChallenge` and `cancelPendingSignIn` mutations, with the cache writes and broadcasts of data-model §3.
-- [ ] T077 [P] [US1] Implement these components in `src/features/auth/components/`:
+
+  *Implementation note*: shared steps are in `tests/smoke/fixtures/flows.ts`. The suite runs in T150.
+- [X] T076 [US1] Implement `src/features/auth/api.ts`. It holds the `createSession`, `verifySecondFactor`, `createSecondFactorWebAuthnChallenge` and `cancelPendingSignIn` mutations, with the cache writes and broadcasts of data-model §3.
+- [X] T077 [P] [US1] Implement these components in `src/features/auth/components/`:
   - `SignInHeader.vue`: logo and product name;
   - `RoleLinks.vue`: FR-006;
   - `SsoNotice.vue`: FR-007, linking to `/`;
   - `IdpHint.vue`: FR-008;
   - `AppLinksSection.vue`: FR-001a;
   - `SignInNotice.vue`: one-shot notices, announced.
-- [ ] T078 [P] [US1] Implement `src/features/auth/composables/usePasswordSignIn.ts`, `src/features/auth/composables/useThrottle.ts` and `src/features/auth/components/PasswordForm.vue`. The form has `autocomplete="username"` and `current-password`, `autocapitalize="none"`, `autocorrect="off"`, `spellcheck="false"`, a show/hide toggle, a busy state, a cleared password and focus handling (FR-016–FR-019).
-- [ ] T079 [US1] Implement `src/features/auth/pages/SignInPage.vue` (a `role` prop, a help text through `SanitizedHtml`, notices), `src/features/auth/routes.ts` (`sign-in`, `sign-in-admin`, `sign-in-domain-admin`, `sign-in-mailbox-user`) and `src/features/auth/index.ts`. Register the routes in `src/app/router/routes.ts`.
-- [ ] T080 [P] [US1] Implement `src/features/auth/composables/useSecondFactor.ts`, `src/features/auth/composables/usePendingSignInTimer.ts` (on `useCountdown`) and these components:
+- [X] T078 [P] [US1] Implement `src/features/auth/composables/usePasswordSignIn.ts`, `src/features/auth/composables/useThrottle.ts` and `src/features/auth/components/PasswordForm.vue`. The form has `autocomplete="username"` and `current-password`, `autocapitalize="none"`, `autocorrect="off"`, `spellcheck="false"`, a show/hide toggle, a busy state, a cleared password and focus handling (FR-016–FR-019).
+- [X] T079 [US1] Implement `src/features/auth/pages/SignInPage.vue` (a `role` prop, a help text through `SanitizedHtml`, notices), `src/features/auth/routes.ts` (`sign-in`, `sign-in-admin`, `sign-in-domain-admin`, `sign-in-mailbox-user`) and `src/features/auth/index.ts`. Register the routes in `src/app/router/routes.ts`.
+
+  *Implementation note*: `RouteMeta.public` (docs/conventions.md) replaces the foundation's `access: 'public'`; a route with `meta.public` resolves in every session state. "Not found" is not public: it shows signed out, while a pending step or a restriction still routes to its screen (FR-038).
+- [X] T080 [P] [US1] Implement `src/features/auth/composables/useSecondFactor.ts`, `src/features/auth/composables/usePendingSignInTimer.ts` (on `useCountdown`) and these components:
   - `src/features/auth/components/TotpForm.vue`: `inputmode="numeric"`, `autocomplete="one-time-code"`, and an authenticator radio group when there is more than one;
   - `src/features/auth/components/YubiOtpForm.vue`;
   - `src/features/auth/components/WebAuthnFactor.vue`: uses `src/shared/platform/webauthn`;
   - `src/features/auth/components/OtherMethods.vue`: a Reka `Collapsible`.
-- [ ] T081 [US1] Implement `src/features/auth/pages/SecondFactorPage.vue` and its `sign-in-second-factor` route. It handles the limit, the one-minute warning, Cancel and every outcome of data-model §7, and resumes after a reload from `getSession` (FR-020–FR-029).
-- [ ] T082 [P] [US1] Implement `src/app/session/idle-timer.ts` and `src/app/session/IdleWarningDialog.vue` (Reka `AlertDialog`), and mount them in `src/App.vue` (R12, FR-032, FR-033).
-- [ ] T083 [US1] Implement `src/features/home/index.ts`, `src/features/home/routes.ts` and `src/features/home/pages/HomePage.vue`, showing a greeting with the username and the translated role (FR-047, first bullet). Register the routes in `src/app/router/routes.ts`, and set the catalogue's `home` entry to `available` in `src/app/navigation/catalogue.ts`.
-- [ ] T084 [US1] Add the `auth.signIn.*`, `auth.secondFactor.*`, `session.*` and `home.greeting` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Add `src/i18n/legacy-map.json` entries for reused legacy keys whose meaning is unchanged (for example `login.username`, `login.password`, `login.login_user`, `login.login_admin`, `login.login_dadmin`, `login.forgot_password` and the TOTP and Yubico OTP labels). The upstream `sk-sk` file lacks `login.login_user`, `login.login_admin`, `login.login_dadmin` and `login.forgot_password`, so write their Slovak values in `src/i18n/messages/sk-sk.json` (research R15). Run `npm run i18n:import`. `npm run i18n:check` must pass.
+- [X] T081 [US1] Implement `src/features/auth/pages/SecondFactorPage.vue` and its `sign-in-second-factor` route. It handles the limit, the one-minute warning, Cancel and every outcome of data-model §7, and resumes after a reload from `getSession` (FR-020–FR-029).
+- [X] T082 [P] [US1] Implement `src/app/session/idle-timer.ts` and `src/app/session/IdleWarningDialog.vue` (Reka `AlertDialog`), and mount them in `src/App.vue` (R12, FR-032, FR-033).
+
+  *Implementation note*: `installSession` installs the idle timer. The `session` query is never garbage-collected (`setQueryDefaults` in `src/api/query/client.ts`), because the timer and the guard read it while no component observes it. The step deadline counts against `useSessionStore().clockSkew`, recorded from the `Date` header of every session answer (`recordSessionClock`).
+- [X] T083 [US1] Implement `src/features/home/index.ts`, `src/features/home/routes.ts` and `src/features/home/pages/HomePage.vue`, showing a greeting with the username and the translated role (FR-047, first bullet). Register the routes in `src/app/router/routes.ts`, and set the catalogue's `home` entry to `available` in `src/app/navigation/catalogue.ts`.
+- [X] T084 [US1] Add the `auth.signIn.*`, `auth.secondFactor.*`, `session.*` and `home.greeting` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Add `src/i18n/legacy-map.json` entries for reused legacy keys whose meaning is unchanged (for example `login.username`, `login.password`, `login.login_user`, `login.login_admin`, `login.login_dadmin`, `login.forgot_password` and the TOTP and Yubico OTP labels). The upstream `sk-sk` file lacks `login.login_user`, `login.login_admin`, `login.login_dadmin` and `login.forgot_password`, so write their Slovak values in `src/i18n/messages/sk-sk.json` (research R15). Run `npm run i18n:import`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 works on its own: all T066–T075 tests pass. This is the MVP.
 

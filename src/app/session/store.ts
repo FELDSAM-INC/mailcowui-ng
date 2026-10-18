@@ -24,6 +24,11 @@ export const useSessionStore = defineStore('session', () => {
   /** Seconds, from `Session.idleTimeout`. */
   const idleTimeout = ref(DEFAULT_IDLE_TIMEOUT)
   const idleWarningOpen = ref(false)
+  /**
+   * Server clock minus device clock in ms, from the `Date` header of the last session response
+   * (research R13). Deadlines such as `PendingSignIn.expiresAt` count down against it.
+   */
+  const clockSkew = ref(0)
 
   function recordActivity(at: number) {
     if (at > lastActivityAt.value) lastActivityAt.value = at
@@ -50,6 +55,7 @@ export const useSessionStore = defineStore('session', () => {
     lastActivityAt,
     idleTimeout,
     idleWarningOpen,
+    clockSkew,
     recordActivity,
     consumeNotice,
     reset,

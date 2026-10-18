@@ -130,9 +130,17 @@ export default withVueTs(
   },
   {
     name: 'mailcowui-ng/boundaries',
-    files: ['src/**/*.ts', 'src/**/*.vue', 'tests/**/*.ts'],
+    files: ['src/**/*.ts', 'src/**/*.vue'],
     rules: {
       'no-restricted-imports': restrictedImports([generatedApi, featureDeepImport]),
+    },
+  },
+  {
+    // Unit tests mirror src/ and test a feature's parts directly.
+    name: 'mailcowui-ng/boundaries-tests',
+    files: ['tests/**/*.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports([generatedApi]),
     },
   },
   {

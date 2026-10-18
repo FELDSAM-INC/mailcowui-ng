@@ -2,6 +2,15 @@
   "apps": {
     "defaultLabel": "Aplikácie"
   },
+  "auth": {
+    "secondFactor": {
+      "title": "Dvojúrovňová autentifikácia (TFA)"
+    },
+    "signIn": {
+      "password": "Heslo",
+      "username": "Používateľské meno alebo email"
+    }
+  },
   "common": {
     "cancel": "Zrušiť"
   },

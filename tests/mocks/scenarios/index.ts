@@ -9,6 +9,7 @@ import { ViolationRecorder } from '../contract/validator'
 import { standardAccounts, adminAccount, domainAdminAccount, mailboxAccount } from './accounts'
 import { baseScenarios } from './base'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
+import { signInScenarios } from './sign-in'
 import {
   anonymousSession,
   DEFAULT_IDLE_TIMEOUT,
@@ -29,6 +30,7 @@ export interface ScenarioDefinition {
 
 export const scenarios: Record<string, ScenarioDefinition> = {
   ...baseScenarios,
+  ...signInScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

@@ -6,6 +6,7 @@ import { onSessionEnded, queryKeys, setSessionReactions, type Session } from '@/
 import { usePreferencesStore } from '../preferences/store'
 import { setSessionContext, type SessionContext } from './context'
 import { connectCrossTab } from './cross-tab'
+import { installIdleTimer } from './idle-timer'
 import { identityQuery, sessionQuery } from './queries'
 import { rerouteCurrent } from './reroute'
 import { endSession } from './session-end'
@@ -36,6 +37,7 @@ export function installSession(ctx: SessionContext): () => void {
   })
   const offEnded = onSessionEnded(() => void endSession(ctx))
   const offCrossTab = connectCrossTab(ctx)
+  const offIdle = installIdleTimer(ctx)
 
   const mirror = (session: Session | undefined) => {
     if (!session) return
@@ -55,6 +57,7 @@ export function installSession(ctx: SessionContext): () => void {
     setSessionContext(null)
     offEnded()
     offCrossTab()
+    offIdle()
     offMirror()
   }
 }

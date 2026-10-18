@@ -7,6 +7,7 @@ import { installGuards, routeAccess } from '@/app/router/guards'
 import { useSessionStore } from '@/app/session/store'
 
 import { mockState, useScenario } from '../../../mocks/node'
+import type { ScenarioOverrides } from '../../../mocks/scenarios'
 import { createTestRouter } from '../../support/router'
 
 function setup() {
@@ -168,4 +169,23 @@ describe('after a sign-in (FR-030)', () => {
     await router.push('/sign-in/admin?returnTo=%2Fdomains')
     expect(router.currentRoute.value.name).toBe('placeholder-domains')
   })
+})
+
+describe('meta.public (docs/conventions.md)', () => {
+  const restricted = { accounts: { admin: { pendingActions: ['passwordChange'] } } }
+  it.each([
+    ['anonymous', 'anonymous-default', {}],
+    ['pendingSecondFactor', 'anonymous-default', pending],
+    ['restricted', 'admin-active', restricted],
+    ['active', 'admin-active', {}],
+  ] as [string, string, ScenarioOverrides][])(
+    'resolves a public route in the %s state',
+    async (_state, name, overrides) => {
+      useScenario(name, overrides)
+      const { router } = setup()
+      router.addRoute({ path: '/open', name: 'open', component: {}, meta: { public: true } })
+      await router.push('/open')
+      expect(router.currentRoute.value.name).toBe('open')
+    },
+  )
 })

@@ -102,7 +102,7 @@ export function yubiOtp(id: number, name: string): MockSecondFactor {
     type: 'yubiOtp',
     name,
     tier: 'advanced',
-    secret: 'cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugded',
+    secret: 'cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf',
   }
 }
 

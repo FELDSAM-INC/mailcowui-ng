@@ -4,6 +4,9 @@
 // component is lazy-loaded (constitution VII).
 import type { RouteRecordRaw } from 'vue-router'
 
+import { authRoutes } from '@/features/auth'
+import { homeRoutes } from '@/features/home'
+
 import { placeholderRouteSpecs } from '../navigation/catalogue'
 
 import './route-kinds'
@@ -12,7 +15,7 @@ const PlaceholderPage = () => import('../states/PlaceholderPage.vue')
 const NotFoundPage = () => import('../states/NotFoundPage.vue')
 
 /** Routes of the features, from their `routes.ts` (US1 adds auth and home, and so on). */
-export const featureRoutes: RouteRecordRaw[] = []
+export const featureRoutes: RouteRecordRaw[] = [...authRoutes, ...homeRoutes]
 
 export function buildRoutes(): RouteRecordRaw[] {
   return [
@@ -33,7 +36,7 @@ export function buildRoutes(): RouteRecordRaw[] {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: NotFoundPage,
-      meta: { access: 'public', titleKey: 'states.notFound.title' },
+      meta: { titleKey: 'states.notFound.title' },
     },
   ]
 }

@@ -3,12 +3,28 @@ import { queryOptions, useQuery, type QueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import { api, queryKeys, requireData, type Identity, type Session } from '@/api'
+import { computeSkew } from '@/shared/composables/useCountdown'
+
+import { useSessionStore } from './store'
 
 /** FR-050: the identity is refreshed when a section opens and it is older than this. */
 export const IDENTITY_MAX_AGE = 300_000
 
+/** Records the server clock skew from the `Date` header of a response that carries a session. */
+export function recordSessionClock(response: Response): void {
+  const header = response.headers.get('date')
+  const skew = computeSkew(header ? new Date(header) : null)
+  try {
+    useSessionStore().clockSkew = skew
+  } catch {
+    // No active Pinia (a script outside the app): nothing counts down.
+  }
+}
+
 export async function fetchSession(): Promise<Session> {
-  return requireData(await api.GET('/session')).data
+  const result = await api.GET('/session')
+  recordSessionClock(result.response)
+  return requireData(result).data
 }
 
 export async function fetchIdentity(): Promise<Identity> {

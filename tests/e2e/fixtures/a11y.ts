@@ -11,6 +11,32 @@ export interface AccessibleOptions {
   exclude?: string[]
 }
 
+/**
+ * WebKit sometimes keeps the previous theme's text colour on elements that inherit it (operator
+ * HTML, the announcement, problem messages) after the theme class changes: the parent's colour is
+ * updated, the children's computed colour is not, and axe reads that as a contrast failure
+ * (measured with getComputedStyle; an inline custom property or a longer wait does not help).
+ * Taking the app out of the render tree for one layout and putting it back makes WebKit compute
+ * every style afresh. Focus and scroll positions are restored afterwards. Dialogs and menus are
+ * portalled outside `#app` and stay untouched.
+ */
+async function refreshWebKitStyles(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    const app = document.getElementById('app')
+    if (!app) return
+    const focused = document.activeElement
+    const { scrollX, scrollY } = window
+    app.style.display = 'none'
+    void app.offsetHeight
+    app.style.removeProperty('display')
+    void app.offsetHeight
+    window.scrollTo(scrollX, scrollY)
+    if (focused instanceof HTMLElement && document.activeElement !== focused) {
+      focused.focus({ preventScroll: true })
+    }
+  })
+}
+
 export async function expectAccessible(page: Page, options: AccessibleOptions = {}): Promise<void> {
   const before = await page.evaluate(() => ({
     dark: document.documentElement.classList.contains('dark'),
@@ -35,7 +61,10 @@ export async function expectAccessible(page: Page, options: AccessibleOptions = 
           requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
         ),
     )
-    if (page.context().browser()?.browserType().name() === 'webkit') await page.waitForTimeout(150)
+    if (page.context().browser()?.browserType().name() === 'webkit') {
+      await page.waitForTimeout(150)
+      await refreshWebKitStyles(page)
+    }
     let builder = new AxeBuilder({ page }).withTags(AXE_TAGS)
     for (const selector of options.exclude ?? []) builder = builder.exclude(selector)
     const results = await builder.analyze()
@@ -44,7 +73,13 @@ export async function expectAccessible(page: Page, options: AccessibleOptions = 
       id: violation.id,
       impact: violation.impact,
       help: violation.help,
-      targets: violation.nodes.map((node) => node.target.join(' ')).slice(0, 5),
+      targets: violation.nodes
+        .map((node) => {
+          const data = node.any[0]?.data as { fgColor?: string; bgColor?: string } | undefined
+          const colours = data?.fgColor ? ` (${data.fgColor} on ${data.bgColor})` : ''
+          return `${node.target.join(' ')}${colours}`
+        })
+        .slice(0, 5),
     }))
     expect(summary, `axe violations in the ${theme} theme`).toEqual([])
   }

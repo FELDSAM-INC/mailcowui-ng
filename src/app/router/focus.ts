@@ -1,9 +1,16 @@
 // Focus after navigation (FR-080, research R19): after every navigation except the first, focus
-// moves to the page's `<h1 tabindex="-1">`, or to `<main>` when a page has no heading yet.
+// moves to the page's `<h1 tabindex="-1">` (or a field marked `data-autofocus`), or to `<main>`
+// when a page has no heading yet.
 import { nextTick } from 'vue'
 import type { Router } from 'vue-router'
 
 export function focusPageHeading(): void {
+  // A page may name its first field instead (for example the single code field of US1-AS4).
+  const first = document.querySelector<HTMLElement>('main [data-autofocus]')
+  if (first) {
+    first.focus()
+    return
+  }
   const heading = document.querySelector<HTMLElement>('main h1, h1')
   if (heading) {
     if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1')

@@ -2,7 +2,7 @@
 // The root component (research R11, R19): the "service unavailable" page while the bootstrap has
 // failed, otherwise the layout of the current route (the shell for signed-in pages, the auth
 // layout for the sign-in flow; "not found" follows the session), plus the app's single live
-// announcer and confirmation host. The idle warning arrives with US1 (T082).
+// announcer, confirmation host and idle warning.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -14,6 +14,7 @@ import { bootstrapStatus } from './app/bootstrap'
 import { useBranding } from './app/branding/public-config'
 import AuthLayout from './app/layouts/AuthLayout.vue'
 import ShellLayout from './app/layouts/ShellLayout.vue'
+import IdleWarningDialog from './app/session/IdleWarningDialog.vue'
 import { installTitle } from './app/router/title'
 import { isSignedIn, useSessionQuery } from './app/session/queries'
 import ServiceUnavailablePage from './app/states/ServiceUnavailablePage.vue'
@@ -44,4 +45,5 @@ installTitle(router, {
   </template>
   <LiveAnnouncer />
   <ConfirmDialog />
+  <IdleWarningDialog v-if="bootstrapStatus === 'ready'" />
 </template>

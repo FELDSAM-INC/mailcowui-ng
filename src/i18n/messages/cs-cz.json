@@ -12,6 +12,56 @@
     "skipToContent": "Přeskočit na hlavní obsah",
     "userMenu": "Nabídka účtu {username}"
   },
+  "auth": {
+    "notice": {
+      "secondFactorRejected": "Kód nebyl přijat. Začněte prosím přihlášení znovu.",
+      "secondFactorUnavailable": "Vaše druhé faktory zde nelze použít. Požádejte správce, aby je obnovil.",
+      "sessionEnded": "Vaše relace skončila. Přihlaste se prosím znovu.",
+      "signInTimedOut": "Časový limit přihlášení vypršel. Přihlaste se prosím znovu.",
+      "signedOut": "Byli jste odhlášeni."
+    },
+    "secondFactor": {
+      "intro": "Přihlašujete se jako {username}. Potvrďte přihlášení jedním ze svých druhých faktorů.",
+      "oneMinute": "Na dokončení přihlášení zbývá jedna minuta.",
+      "otherMethods": "Další metody",
+      "timeLeft": "Zbývající čas: {time}",
+      "totp": {
+        "code": "Šestimístný kód"
+      },
+      "verify": "Ověřit",
+      "webauthn": {
+        "start": "Použít bezpečnostní klíč nebo přístupový klíč",
+        "unsupported": "Toto zařízení nemůže použít bezpečnostní klíč ani přístupový klíč. Zvolte jinou metodu.",
+        "waiting": "Čekání na bezpečnostní klíč nebo přístupový klíč…"
+      },
+      "yubiOtp": {
+        "field": "Yubico OTP",
+        "help": "Dotkněte se klíče YubiKey, aby do tohoto pole napsal kód."
+      }
+    },
+    "signIn": {
+      "anyRole": "Přihlásit se libovolným účtem",
+      "help": "Nápověda",
+      "idpHint": {
+        "body": "Účty, které se přihlašují přes poskytovatele identity vaší organizace, zde zatím nemohou použít heslo.",
+        "link": "Přihlásit se v klasickém rozhraní"
+      },
+      "showPassword": "Zobrazit heslo",
+      "sso": {
+        "body": "Tento server používá jednotné přihlášení. Zatím je k dispozici v klasickém rozhraní.",
+        "link": "Přihlásit se jednotným přihlášením v klasickém rozhraní",
+        "title": "Jednotné přihlášení"
+      },
+      "submit": "Přihlásit se",
+      "submitting": "Přihlašování…",
+      "throttle": {
+        "announce": "Příliš mnoho pokusů. Znovu to můžete zkusit za {time}.",
+        "countdown": "Znovu to můžete zkusit za {time}",
+        "ended": "Nyní se můžete znovu zkusit přihlásit."
+      },
+      "title": "Přihlášení"
+    }
+  },
   "common": {
     "close": "Zavřít",
     "confirm": "Potvrdit",
@@ -97,6 +147,11 @@
     },
     "required": "povinné"
   },
+  "home": {
+    "greeting": "Dobrý den, {username}",
+    "role": "Jste přihlášeni jako {role}.",
+    "title": "Domů"
+  },
   "lists": {
     "pagination": {
       "current": "Stránka {page} z {pages}",
@@ -119,6 +174,14 @@
     "routing": "Směrování a přepisování adres",
     "spamFilter": "Spamový filtr",
     "system": "Nastavení systému"
+  },
+  "passkeys": {
+    "errors": {
+      "alreadyRegistered": "Toto zařízení už má přístupový klíč pro váš účet.",
+      "generic": "S přístupovým klíčem se něco pokazilo. Zkuste to prosím znovu.",
+      "insecure": "Přístupové klíče nelze na této adrese použít.",
+      "unsupported": "Toto zařízení nemůže vytvořit ani použít přístupový klíč požadovaného typu."
+    }
   },
   "problem": {
     "api-key-expired": "Platnost tohoto API klíče vypršela.",
@@ -163,6 +226,14 @@
     "admin": "Administrátor",
     "domainAdmin": "Správce domény",
     "mailboxUser": "Uživatel schránky"
+  },
+  "session": {
+    "idle": {
+      "body": "Z bezpečnostních důvodů budete kvůli nečinnosti odhlášeni za {time}.",
+      "remaining": "Do odhlášení zbývá {time}.",
+      "stay": "Zůstat přihlášen",
+      "title": "Vaše relace brzy skončí"
+    }
   },
   "shell": {
     "announcement": {

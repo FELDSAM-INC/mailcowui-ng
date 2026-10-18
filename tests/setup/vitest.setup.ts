@@ -3,6 +3,8 @@
 import { setActivePinia } from 'pinia'
 import { afterAll, afterEach, beforeEach } from 'vitest'
 
+import { clearCsrfToken } from '@/api'
+
 import { mockState, resetMockState, server } from '../mocks/node'
 import { resetTestPlugins } from '../unit/support/mount'
 
@@ -18,6 +20,8 @@ afterEach(() => {
   const violations = [...mockState().violations.list()]
   server.resetHandlers()
   resetMockState()
+  // Each test's scenario starts a new anonymous session with its own token.
+  clearCsrfToken()
   document.body.innerHTML = ''
   document.documentElement.className = ''
   document.documentElement.removeAttribute('style')

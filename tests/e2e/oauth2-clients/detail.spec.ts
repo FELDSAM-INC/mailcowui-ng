@@ -48,7 +48,10 @@ test.describe('OAuth2 client page', () => {
     await field.fill('https://app1.example.org/oauth/callback https://app1.example.org/cb2')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
-      page.getByRole('status').filter({ hasText: 'Changes to object 1 have been saved' }),
+      page
+        .locator('#section-oauth2-client')
+        .getByRole('status')
+        .filter({ hasText: 'Changes to object 1 have been saved' }),
     ).toBeVisible()
     await expect(page.locator('#section-oauth2-client')).toContainText(
       'https://app1.example.org/cb2',
@@ -87,7 +90,10 @@ test.describe('OAuth2 client page', () => {
       .fill('https://legacy.example.org/cb')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
-      page.getByRole('status').filter({ hasText: 'Changes to object 2 have been saved' }),
+      page
+        .locator('#section-oauth2-client')
+        .getByRole('status')
+        .filter({ hasText: 'Changes to object 2 have been saved' }),
     ).toBeVisible()
 
     await page.goto('identity-providers/oauth2-apps/1')
@@ -125,7 +131,10 @@ test.describe('OAuth2 client page', () => {
     expect((await patches()).map((r) => r.status)).toEqual([412])
     await page.getByRole('button', { name: 'Save again' }).click()
     await expect(
-      page.getByRole('status').filter({ hasText: 'Changes to object 1 have been saved' }),
+      page
+        .locator('#section-oauth2-client')
+        .getByRole('status')
+        .filter({ hasText: 'Changes to object 1 have been saved' }),
     ).toBeVisible()
     const sent = await patches()
     expect(sent.map((r) => r.status)).toEqual([412, 200])

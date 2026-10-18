@@ -7,7 +7,9 @@ backend is mailcow REST API v2 (`../mailcow-rest-v2`, base path `/api/v2`, same 
 - Use only operations of the pinned mailcow-rest-v2 contract, through the generated client.
 - Design for a 360 px viewport first.
 - Meet WCAG 2.2 AA.
-- Keep en/cs/sk translations complete.
+- Use mailcow's translations one to one, in all its languages, and mirror the legacy forms
+  (constitution IV, `docs/conventions.md` "Translations and forms"). New strings only where legacy
+  has none, complete in en/cs/sk and never machine-translated.
 - Do not store credentials in browser storage.
 - Write tests first.
 

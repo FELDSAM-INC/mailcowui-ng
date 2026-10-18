@@ -44,6 +44,10 @@ contract.
 
 Run this after mailcow-rest-v2 feature 001 has its contract (after its `/speckit-plan`).
 
+This is the historical input. Its language list (English, Czech, Slovak) is superseded by
+constitution IV 1.3.0: the app offers every language mailcow ships and uses mailcow's translations
+verbatim (`docs/conventions.md`, "Translations and forms").
+
 ```
 /speckit-specify Sign-in, application shell and API key management for mailcowui-ng, the new
 mobile-first web app for an existing mailcow-dockerized server. Its only backend is mailcow

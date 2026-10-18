@@ -52,6 +52,12 @@ documented in `mailcow-rest-v2/docs/legacy-inventory.md`.
 
 - `web/lang/lang.<locale>.json`: nested JSON with 23 sections and 1,382 keys in en-gb, in 33
   languages. cs and sk are complete. Backend messages are i18n keys.
+- The files are served publicly on the same origin as `/lang/lang.<code>.json` (verified on the
+  staging host: 200, `application/json`). mailcowui-ng loads them at runtime and uses them
+  verbatim, in all 33 languages (constitution IV 1.3.0, `docs/conventions.md` "Translations and
+  forms"). The fork's `en-gb`, `cs-cz` and `sk-sk` have 1,391 keys each; its texts say
+  "FeldHost™ Mailhosting" where upstream says "mailcow". Upstream `2026-09a` `sk-sk` lacks 187
+  of 1,390 keys, which fall back to `en-gb` as in the classic interface.
 
 ## Frontend today
 

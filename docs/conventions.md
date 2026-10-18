@@ -8,11 +8,202 @@ reads this document next to the constitution. The API side has its own rules in
 
 ## Wording
 
-- User-facing text calls the legacy UI **"the classic interface"**: "klasické rozhraní" in Czech,
-  "klasické rozhranie" in Slovak. It is never called "legacy".
-- FIDO2 credentials are called **passkeys**.
-- The legacy name of a screen is kept where that lets existing translations carry over, for
+These rules apply to the app's new strings. Text with a classic-interface equivalent always comes
+verbatim from mailcow's language files (see "Translations and forms").
+
+- New strings call the legacy UI **"the classic interface"**: "klasické rozhraní" in Czech,
+  "klasické rozhranie" in Slovak. They never call it "legacy".
+- FIDO2 credentials are called **passkeys** (owner decision). Texts about passkeys are therefore
+  new strings, even where a legacy `fido2.*` or `tfa.*` key covers the same element.
+- Screen names, section names and menu entries are the legacy ones, through their legacy keys, for
   example "Sender-dependent transports" (UI 009).
+
+## Translations and forms (owner rule, 2026-10-18)
+
+The owner: "Regarding translations: we have to include all mailcow has, 1:1. These were
+contributed by real people, not machine-created. So we have to use them 1:1, and basically the
+whole UI forms have to be 1:1." Constitution IV (1.3.0) makes this binding. Every UI feature
+follows the rules below, and they override any earlier spec, plan, research or task text that
+says otherwise. UI 001 owns the mechanism (the loader, the bundled snapshot, the formatter and
+the key checks). Features only use legacy keys and add the few new strings they need.
+
+### Languages
+
+- The app supports every language mailcow ships, the 33 `data/web/lang/lang.<code>.json` files:
+  az-az, bg-bg, ca-es, cs-cz, da-dk, de-de, en-gb, es-es, fi-fi, fr-fr, gr-gr, hu-hu, it-it,
+  ja-jp, ko-kr, lt-lt, lv-lv, nb-no, nl-nl, pl-pl, pt-br, pt-pt, ro-ro, ru-ru, si-si, sk-sk,
+  sv-se, tr-tr, uk-ua, uz-uz, vi-vn, zh-cn, zh-tw.
+- Locale identifiers are mailcow's codes. They are converted to BCP 47 only for `Intl` and
+  `<html lang>`.
+- The languages offered are the server's `languages` (from `GET /public-config`) intersected with
+  these 33.
+
+### Where legacy text comes from
+
+- **At runtime, from the installation.** mailcow serves its language files publicly on the same
+  origin as `/lang/lang.<code>.json` (verified on the staging host: 200, `application/json`).
+  Reading them is the one non-API request constitution I allows, so the cutover (UI 014) must keep
+  `/lang/` served. The app loads the installation's own files, so it shows exactly the text that
+  installation's classic interface shows:
+  - the FeldHost fork's human-made Czech and Slovak additions, and its wording, which names
+    "FeldHost™ Mailhosting" where upstream says "mailcow";
+  - any customisation by the operator;
+  - the texts of the installed mailcow version, without an app release.
+- **Bundled snapshot.** A snapshot of upstream `en-gb` at baseline `2026-09a` is bundled. It is
+  used to type-check the legacy keys the app uses, and as the fallback when `/lang/` cannot be
+  loaded.
+- **Missing keys.** A key missing in the selected language falls back to `en-gb`, as the classic
+  interface does (`data/web/inc/prerequisites.inc.php` merges the selected file over `en-gb`).
+  Features never fill a gap with their own value: no hand-written value for a legacy key, in any
+  language.
+
+### No text change of any kind
+
+- A legacy value is shown exactly as the file has it: no rewording, no shortening, no stripped
+  glyphs (`> Forgot Password?` keeps its `>`), no trimming, no case change, no removed unit (the
+  `(MiB)` in `add.quota_mb` stays).
+- A legacy string is shown whole. It is never cut into parts or joined with other text to make a
+  different sentence.
+- **Placeholders**: `%s` and `%d` are converted mechanically and filled in order with what the
+  classic interface fills them with. For example, `edit.force_pw_update_info` gets the product name
+  (`ui_texts.main_name` in legacy, the branding configuration in the app), and
+  `success.mailbox_added` gets the mailbox address. The legacy form map names each placeholder's
+  source.
+  - The `datatables.*` texts use DataTables' own placeholders (`_START_`, `_END_`, `_TOTAL_`,
+    `_MAX_`, `_MENU_`), which are substituted the same way.
+  - Braces in legacy values (`{username}`, `{link}`, `{date}` and so on, the variables of e-mail
+    templates) are literal text and are never interpreted.
+- **HTML**: about a hundred legacy values contain HTML (`<b>`, `<br>`, `<code>`, `<a>`, lists).
+  They are rendered through `SanitizedHtml.vue` with a small allowlist that UI 001 defines, and
+  never altered. They are not refused, rewritten or replaced by a new string.
+- **Formatting**: legacy strings go through a small CSP-safe formatter (plain placeholder
+  substitution). vue-i18n never compiles them, so characters such as `{`, `}`, `@`, `$` and `|`
+  need no escaping.
+- **How a feature uses one**: by its legacy key, written as in the file, `<section>.<key>`, for
+  example `edit.max_quota` or `success.mailbox_added` (a few sections nest deeper, such as
+  `datatables.paginate.next`). A legacy value is never copied into `src/i18n/messages/`. The exact
+  accessor is UI 001's. Plans written before 1.3.0 that say "map through
+  `src/i18n/legacy-map.json`" or "the legacy layer `src/i18n/legacy/`" mean this rule.
+- **Text the classic interface hard-codes**: some labels are written into the templates or
+  `js/site/*.js` without a key (for example "Keycloak", "IP", "Location", "Pushover API"). They are
+  new strings whose English text equals the legacy text. A product name hard-coded there (the fork's
+  "FeldHost™ Mailhosting" authentication source option) comes from the branding configuration.
+- **Keys only a fork has**: a key missing from the upstream `en-gb` snapshot (for example the
+  fork's `diagnostics.allow`) cannot pass `i18n:check` as a legacy key, so it is a new string until
+  the orchestrator decides otherwise.
+
+### Forms are one to one
+
+Every screen that has a classic-interface counterpart mirrors that form:
+
+- the same fields, with the same labels, help texts, info texts (the `*_info` keys), placeholders,
+  option labels and units;
+- the same order and grouping. Legacy tabs, cards and modal groups become sections in the same
+  order;
+- the same success, warning and danger messages ("Messages" below);
+- table column headers, filter labels, empty texts and action labels (edit, remove, activate,
+  deactivate, add) from the legacy keys the templates and `data/web/js/site/*.js` use.
+
+The app's design system and layout stay. So do its improvements: sections with their own save,
+typed confirmations, bulk mode and outdated-version handling. They use legacy strings wherever an
+equivalent exists, for example `mailbox.toggle_all`, `mailbox.remove` or `admin.add`.
+
+**Deviation-free rule.** A screen with a classic-interface counterpart adds, drops, renames,
+rewords or reorders nothing relative to that form, except for the improvements above. A field the
+API adds is labelled with a legacy key where any legacy form has one. Any other difference (a
+legacy field the API does not offer, a legacy field the plan leaves out, a legacy text whose
+meaning no longer fits) is listed in the plan under "Deviations needing a decision". It is not
+built until the owner or orchestrator decides. It is never silently dropped or reworded.
+
+### New strings
+
+- New strings exist only for UI elements the classic interface does not have, for example bulk
+  result summaries, outdated-version handling, the passkey-first sign-in, one-time secret dialogs,
+  the audit log, and "Deviations needing a decision" once they are approved.
+- Keep them minimal. Before adding one, search all legacy sections for an equivalent: a key from
+  another legacy screen with the same meaning is used as it is.
+- They live in `src/i18n/messages/` and are written in English, Czech and Slovak for the owner to
+  review. All other languages fall back to English.
+- **Never machine-translate**, in any language.
+- `i18n:check` fails when a new string is missing in en-gb, cs-cz or sk-sk, or when a legacy key
+  the app uses is missing from the bundled `en-gb` snapshot.
+
+### Finding the legacy form
+
+The FeldHost fork checkout is at `../mailhosting` (branch `feldhost-202609a`, upstream tag
+`2026-09a`). Paths below are relative to its `data/web/`.
+
+- **Templates** (Twig) in `templates/`:
+  - pages: `admin.twig`, `mailbox.twig`, `user.twig`, `dashboard.twig`, `quarantine.twig`,
+    `queue.twig`, `domainadmin.twig`, `fido2.twig`, `tfa_keys.twig`, `reset-password.twig`,
+    `user_index.twig`, `admin_index.twig`, `domainadmin_index.twig`, `qhandler.twig`;
+  - tabs of those pages: `admin/tab-*.twig`, `mailbox/tab-*.twig`, `user/*.twig`;
+  - edit pages: `edit/<object>.twig`, reached through `edit.php`;
+  - add dialogs and other modals: `modals/{mailbox,admin,user,quarantine,queue,footer}.twig`.
+
+  Texts appear as `{{ lang.<section>.<key> }}`, help texts usually in `<small>` next to the field,
+  and `|format(…)` shows what fills a placeholder.
+- **Page entry points**: `admin/{dashboard,index,mailbox,queue,system}.php`,
+  `domainadmin/{index,mailbox,user}.php`, `user.php`, `edit.php`, `quarantine.php`,
+  `reset-password.php`, `qhandler.php`. They choose the template and the data it gets.
+- **JavaScript** in `js/site/*.js` (`mailbox.js`, `admin.js`, `user.js`, `dashboard.js`,
+  `quarantine.js`, `queue.js`, `edit.js`, `qhandler.js`, `index.js`): DataTables column titles,
+  row actions, dynamic labels and alerts. There, `lang.<key>` is the page's own section, bound by
+  the page template: `lang_mailbox` on `mailbox.twig`, `lang_admin` on `admin.twig` and
+  `dashboard.twig`, `lang_user` on the user and domain administrator pages, `lang_quarantine`,
+  `lang_queue`. `lang_footer`, `lang_acl`, `lang_tfa`, `lang_fido2`, `lang_success` and
+  `lang_danger` are bound in `inc/footer.inc.php`.
+- **PHP** in `inc/`:
+  - `functions.*.inc.php` return each outcome as `'type' => 'success' | 'danger' | 'warning'` and
+    `'msg' => array('<key>', <arguments>…)`. That names the `success.*`, `danger.*` or `warning.*`
+    key and its placeholder arguments. `alertbox_log_parser()` in `functions.inc.php` formats them
+    with `vsprintf`;
+  - `inc/ajax/*.php` produce dynamic content, for example DNS diagnostics, the transport check and
+    sync job logs;
+  - `vars.inc.php`, `prerequisites.inc.php` and the `presets/` hold option lists and defaults.
+- `docs/legacy-inventory.md` summarises the screens per role.
+
+### The legacy form map
+
+Every plan records a **legacy form map** for its screens, and implementation uses only the keys in
+it plus the minimal new strings. The map has three parts:
+
+1. **Fields and elements**: screen (route) → legacy template (and tab or modal) → field or element
+   (section heading, label, help or info text, placeholder, option, unit, column header, action,
+   empty text) → legacy key. Elements without a legacy key are listed with their new string key and
+   the reason.
+2. **Messages**: API outcome → legacy key → placeholder sources (next section).
+3. **Deviations needing a decision**, if any.
+
+A plan's "Translations and forms (constitution IV 1.3.0)" subsection names the legacy templates
+its screens mirror. The full map is written by the feature's first Foundational task, before any
+screen is built.
+
+### Messages
+
+The API never localises, so the UI maps each outcome to the legacy message of the same meaning,
+from a table in the feature, keyed by operation, problem type and rule code (never by the problem's
+`title` or `detail`):
+
+- **Success**: the operation's result maps to the `success.*` key that the matching legacy
+  function returns, for example a `201` from creating a mailbox → `success.mailbox_added` with the
+  address, a `200` from changing it → `success.mailbox_modified`, a `204` from deleting it →
+  `success.mailbox_removed`.
+- **Problem types**: `/api/v2/problems/<name>` maps to the `danger.*` key the legacy function
+  returns for the same condition, for example a refused duplicate domain → `danger.domain_exists`
+  with the domain name. Placeholder arguments come from the request (what the user typed), the
+  response, or the problem's extension members (`limit`, `count`, `holder` and so on).
+- **Rule codes**: a field error's rule code, read together with its field, maps to the legacy
+  `danger.*` key for that field and condition, for example an invalid mailbox local part →
+  `danger.mailbox_invalid`, or a quota above the domain's limit → the legacy quota message with the
+  limit. The message is shown on the field and in the error summary.
+- **Warnings**: partial outcomes (a follow-up step that failed, a value adjusted by the server) map
+  to `warning.*` keys where one matches.
+- **Bulk results**: each item's line uses the same legacy message as the single action. Only the
+  summary line is a new string.
+- **No legacy equivalent**: UI 001's generic `problem.*` and `validation.*` new strings apply. A
+  feature adds a new string only for an outcome legacy cannot produce, for example an outdated
+  version.
 
 ## Lists
 
@@ -50,6 +241,11 @@ reads this document next to the constitution. The API side has its own rules in
 - A bulk deletion needs the number of objects typed.
 - Other destructive or high-risk actions (deactivating, stopping a container, mass mail and so
   on) need one explicit confirmation.
+- Confirmation dialogs use the texts of legacy's `#ConfirmDeleteModal` (`templates/modals/footer.twig`):
+  `footer.confirm_delete` as the title, `footer.delete_these_items` before the affected objects,
+  `footer.delete_now` and `footer.cancel` as the buttons, and `footer.restart_container`,
+  `footer.restart_container_info` and `footer.restart_now` for container restarts. Only what legacy
+  lacks (the impact lines of a delete preview, the typed-confirmation instruction) is a new string.
 
 ## Secrets
 
@@ -66,13 +262,15 @@ reads this document next to the constitution. The API side has its own rules in
 
 - Objects get a **History** action that opens UI 001's audit log screen, filtered to that object
   by target type and target ID. That screen offers these filters.
-- Each feature adds labels and translations for its own audit event types to the audit log
-  screen. Unknown event types show a generic label.
+- Each feature adds labels for its own audit event types to the audit log screen. The audit log
+  has no classic-interface counterpart, so these are new strings in en, cs and sk. Unknown event
+  types show a generic label.
 
 ## Errors and permissions
 
 - API problem types and per-field rule codes are translated in the UI, because the API never
-  localises them.
+  localises them. Each one is shown with the legacy `danger.*` (or `warning.*`) message of the
+  same meaning, and only otherwise with a new string ("Translations and forms", "Messages").
 - Field errors are shown on their fields.
 - Controls the caller may not use are hidden or shown read-only with the reason. This is a
   convenience only: the API enforces permissions.

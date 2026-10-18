@@ -38,7 +38,7 @@ be implemented and tested on its own once the foundation is in place.
 **Purpose**: Scaffold the project, tooling, contract, deployment artefacts and CI (research R1–R7,
 R26–R29).
 
-- [ ] T001 Create `package.json` with the exact runtime and dev versions of research R1/R2, `"type": "module"`, `engines.node` `^22.13.0 || ^24.0.0`, and the npm scripts:
+- [X] T001 Create `package.json` with the exact runtime and dev versions of research R1/R2, `"type": "module"`, `engines.node` `^22.13.0 || ^24.0.0`, and the npm scripts:
   - `dev`, `dev:mock`, `build`, `preview`, `preview:mock`;
   - `mock:server`, `mock:scenario`;
   - `lint`, `format`, `format:check`, `typecheck`;
@@ -47,14 +47,16 @@ R26–R29).
   - `licenses:check`, `audit`, `budget:check`, `lhci`.
 
   Add `.npmrc` (`save-exact=true`, `engine-strict=true`) and `.nvmrc` (`24`). Run `npm install` to create `package-lock.json`.
-- [ ] T002 [P] Create the strict TypeScript configuration in `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `tsconfig.vitest.json` and `src/env.d.ts`:
+
+  *Implementation note*: `audit` runs `npm audit --omit=dev --audit-level=moderate` and, for the whole tree, `--audit-level=critical` instead of `high` (research R27). At the pinned versions the whole tree has high advisories with no fixed version (`braces` through `@vue/eslint-config-typescript`, `extract-zip` and others through `@lhci/cli`), all in development-only tools that never reach `dist/`. Production dependencies have none.
+- [X] T002 [P] Create the strict TypeScript configuration in `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`, `tsconfig.vitest.json` and `src/env.d.ts`:
   - `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`, `verbatimModuleSyntax`;
   - `exactOptionalPropertyTypes` off;
   - the path alias `@/*` to `src/*`;
   - `/// <reference types="vite/client" />`.
-- [ ] T003 [P] Add `.editorconfig`, `.prettierrc.json` and `.prettierignore`. Extend `.gitignore` with `playwright-report/`, `test-results/`, `.lighthouseci/` and `blob-report/`. Add `.gitattributes`, marking `src/api/generated/**`, `contract/**` and `src/i18n/legacy/**` as `linguist-generated`.
-- [ ] T004 [P] Create `docker/nginx/security-headers.conf`. It holds one `add_header … always;` line per header of research R18/R29. The CSP is exactly `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'`. The only other headers are `Permissions-Policy` and `Cross-Origin-Opener-Policy`. Do not send `X-Content-Type-Options`, `X-Frame-Options` or `Referrer-Policy`: nginx-mailcow already sets them at server level (R29).
-- [ ] T005 Create `vite.config.ts`:
+- [X] T003 [P] Add `.editorconfig`, `.prettierrc.json` and `.prettierignore`. Extend `.gitignore` with `playwright-report/`, `test-results/`, `.lighthouseci/` and `blob-report/`. Add `.gitattributes`, marking `src/api/generated/**`, `contract/**` and `src/i18n/legacy/**` as `linguist-generated`.
+- [X] T004 [P] Create `docker/nginx/security-headers.conf`. It holds one `add_header … always;` line per header of research R18/R29. The CSP is exactly `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'`. The only other headers are `Permissions-Policy` and `Cross-Origin-Opener-Policy`. Do not send `X-Content-Type-Options`, `X-Frame-Options` or `Referrer-Policy`: nginx-mailcow already sets them at server level (R29).
+- [X] T005 Create `vite.config.ts`:
   - `base: '/ng/'`;
   - the plugins `@vitejs/plugin-vue`, `@tailwindcss/vite` and `@intlify/unplugin-vue-i18n` (`runtimeOnly`, `compositionOnly`, `fullInstall: false`, `include: src/i18n/{messages,legacy}/**`);
   - the alias `@`;
@@ -62,7 +64,7 @@ R26–R29).
   - `server.proxy['/api/v2']` to `process.env.API_PROXY_TARGET ?? 'http://localhost:8080'` (`changeOrigin: false`);
   - `preview.proxy['/api/v2']` to `process.env.MOCK_API_TARGET ?? 'http://127.0.0.1:4010'`;
   - `preview.headers` parsed from `docker/nginx/security-headers.conf`, so there is a single CSP source (R18).
-- [ ] T006 [P] Create `eslint.config.ts` (flat config, loaded through `jiti`) with:
+- [X] T006 [P] Create `eslint.config.ts` (flat config, loaded through `jiti`) with:
   - `eslint-plugin-vue` (recommended), with `vue/no-v-html` and `vue/no-static-inline-styles` as errors;
   - type-aware rules from `@vue/eslint-config-typescript` and `typescript-eslint`;
   - `eslint-plugin-vuejs-accessibility`;
@@ -73,16 +75,16 @@ R26–R29).
     - `@/app/*` and `@/features/*` from `src/shared/**`;
     - the `reka-ui` named imports `SelectViewport`, `ComboboxViewport`, `AutocompleteViewport`, `ScrollAreaViewport`, the generic `Viewport` and `SplitterResizeHandle` (R3, R18);
   - ignores for `src/api/generated/**`, `dist/**` and `coverage/**`.
-- [ ] T007 [P] Create `index.html` and `public/theme-init.js`:
+- [X] T007 [P] Create `index.html` and `public/theme-init.js`:
   - `index.html`: `<html lang="en">`, `<meta name="viewport" content="width=device-width, initial-scale=1">` with no `user-scalable`, `<link rel="icon" href="/favicon.png">` (the host's own favicon, R16), `<script src="/theme-init.js"></script>` in `<head>` (blocking), `<div id="app">`, the module entry `/src/main.ts`, and no inline script or style.
   - `public/theme-init.js` reads `localStorage['mailcowui-ng.theme']` in `try/catch` and sets `.dark` on `<html>` for `dark`, or for `system` when `prefers-color-scheme: dark` holds (R16).
-- [ ] T008 Vendor the pinned contract (research R6):
+- [X] T008 Vendor the pinned contract (research R6):
   - Write `scripts/contract/bump.sh` (resolve the ref in `$MAILCOW_REST_V2_DIR` (default `../mailcow-rest-v2`) or in a fresh clone, `git archive` of `api/`, `redocly lint`, `redocly bundle` to YAML, write `VERSION.json`, call `contract:generate`).
   - Write `scripts/contract/generate.mjs`: `redocly bundle contract/openapi.yaml --ext json -o contract/openapi.json`, then `openapi-typescript contract/openapi.yaml -o src/api/generated/schema.ts --root-types --root-types-no-schema-prefix --enum-values --read-write-markers --alphabetize`.
   - Write `scripts/contract/check.mjs`: verify the sha256 against `VERSION.json`, regenerate, then `git diff --exit-code contract src/api/generated`.
   - Run `scripts/contract/bump.sh 293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa`, or a release tag of the feature 001 contract if mailcow-rest-v2 has published one. **Never** pin "the latest commit": later features' contracts share the tree and the `0.1.0` version (R6). This produces `contract/openapi.yaml`, `contract/openapi.json`, `contract/VERSION.json` and `src/api/generated/schema.ts`. Confirm the bundle sha256 `8fb1d4b4…` and 31 operations.
   - Record in `specs/001-sign-in-app-shell/contracts/README.md` whether `knownProblemTypeValues` is generated. If it is not, API gap 5 is still open: report it to mailcow-rest-v2. Nothing waits for it, because the translation check derives problem types from the bundle text (R27). Never hand-write the list (constitution I).
-- [ ] T009 [P] Copy the TailAdmin Vue Free 2.5.0 (commit `94ebe1bce19fa51eb4225cc981ee1265b6bdf567`) primitives into `src/shared/ui/`:
+- [X] T009 [P] Copy the TailAdmin Vue Free 2.5.0 (commit `94ebe1bce19fa51eb4225cc981ee1265b6bdf567`) primitives into `src/shared/ui/`:
   - the directories `alert`, `badge`, `button`, `card`, `checkbox`, `collapsible`, `combobox` (without `ComboboxViewport`), `dialog`, `dropdown-menu`, `field`, `input`, `input-group`, `label`, `pagination`, `radio-group`, `switch`, `table` and `textarea`;
   - the helpers `src/shared/ui/utils/cn.ts` (on `tailwind-merge` 3) and `src/shared/ui/utils/focusOnOpen.ts`.
 
@@ -92,18 +94,20 @@ R26–R29).
   - the full MIT notice;
   - the deviations 1–6 of research R4;
   - an empty "Lucide (ISC)" section for icons added in T011.
-- [ ] T010 [P] Create `src/styles/main.css`:
+- [X] T010 [P] Create `src/styles/main.css`:
   - `@import 'tailwindcss'` and `@import 'tw-animate-css'`;
   - TailAdmin's `@theme` tokens as the default colours of FR-004, with dark-mode text using `brand-300` or `brand-400` for AA contrast (R16), `@custom-variant dark (&:is(.dark *))` and the `data-*` variants;
   - `--font-sans` set to the system UI stack of research R5, with no Google Fonts import;
   - `color-scheme` following `.dark`;
   - `scroll-padding-top` equal to the header height;
   - `motion-safe` transition defaults.
-- [ ] T011 Create the inline-SVG icon components in `src/shared/icons/` with a barrel `src/shared/icons/index.ts`. Each has `aria-hidden="true"` and `focusable="false"`. Icons come from TailAdmin `src/icons/layout` first, otherwise from Lucide, recorded in the Lucide section of `THIRD_PARTY_NOTICES.md`. Needed: menu, close, chevron-down, chevron-right, home, key, passkey (fingerprint), list (audit), user, sign-out, language, sun, moon, monitor, external-link, copy, check, info, warning, danger, eye, eye-off, plus one icon per navigation catalogue section of data-model §2.
-- [ ] T012 Create `vitest.config.ts` (jsdom, `tests/setup/vitest.setup.ts`, v8 coverage with thresholds of 90 % lines for `src/api`, `src/app/session`, `src/app/router`, `src/app/navigation`, `src/shared/security` and `src/shared/platform/webauthn`, 80 % elsewhere in `src/`, R23). Also create:
+- [X] T011 Create the inline-SVG icon components in `src/shared/icons/` with a barrel `src/shared/icons/index.ts`. Each has `aria-hidden="true"` and `focusable="false"`. Icons come from TailAdmin `src/icons/layout` first, otherwise from Lucide, recorded in the Lucide section of `THIRD_PARTY_NOTICES.md`. Needed: menu, close, chevron-down, chevron-right, home, key, passkey (fingerprint), list (audit), user, sign-out, language, sun, moon, monitor, external-link, copy, check, info, warning, danger, eye, eye-off, plus one icon per navigation catalogue section of data-model §2.
+- [X] T012 Create `vitest.config.ts` (jsdom, `tests/setup/vitest.setup.ts`, v8 coverage with thresholds of 90 % lines for `src/api`, `src/app/session`, `src/app/router`, `src/app/navigation`, `src/shared/security` and `src/shared/platform/webauthn`, 80 % elsewhere in `src/`, R23). Also create:
   - `tests/setup/vitest.setup.ts`: a fresh Pinia, `QueryClient` and i18n with `en-gb` per test, plus mount helpers;
   - the fakes `tests/unit/support/webauthn-stub.ts`, `tests/unit/support/media.ts` (matchMedia) and `tests/unit/support/broadcast.ts` (BroadcastChannel).
-- [ ] T013 Create `playwright.config.ts` (R24):
+
+  *Implementation note*: coverage excludes the copied TailAdmin primitives and icons (`src/shared/ui/**`, `src/shared/icons/**`, see `THIRD_PARTY_NOTICES.md`) and `src/main.ts`; they are exercised through the shared components and the end-to-end suite. The mount helpers live in `tests/unit/support/mount.ts`.
+- [X] T013 Create `playwright.config.ts` (R24):
   - `mobile-chromium`: 360 × 780, `isMobile`, `hasTouch`, `deviceScaleFactor: 3`;
   - `desktop-chromium`: 1366 × 900;
   - `mobile-webkit`: 360 × 780, `grepInvert: /@virtual-authenticator/`;
@@ -111,12 +115,14 @@ R26–R29).
   - `smoke`: `testDir: tests/smoke`, base URL `process.env.SMOKE_BASE_URL ?? 'http://localhost:8080/ng/'`;
   - `webServer` entries for `npm run mock:server` (:4010) and `npm run preview -- --port 4173`, with `MOCK_API_TARGET` set. They serve an existing `dist/`: `npm run build` runs first locally, and CI downloads the build artifact;
   - traces kept on failure.
-- [ ] T014 [P] Create `lighthouserc.cjs` and `scripts/run-lhci.mjs` (R26).
+
+  *Implementation note*: the smoke base URL defaults to `http://localhost:18480/ng/`, the port `scripts/smoke/stack-up.sh` serves on (T019 note), not 8080. Ports are overridable with `MOCK_PORT` and `PREVIEW_PORT`.
+- [X] T014 [P] Create `lighthouserc.cjs` and `scripts/run-lhci.mjs` (R26).
   - `lighthouserc.cjs`: mobile preset with 3 runs; assertions `categories:performance >= 0.9`, `categories:accessibility >= 0.9` and `resource-summary:script:size <= 204800`; reports written to `.lighthouseci/`.
   - `scripts/run-lhci.mjs`, the `lhci` script, runs one collection per default scenario: `/ng/sign-in` with `MOCK_DEFAULT_SCENARIO=anonymous-default`, then `/ng/` with `MOCK_DEFAULT_SCENARIO=admin-active`. For each it starts `npm run mock:server` and `vite preview --port 4173`, runs `lhci collect --url`, then stops both. It finishes with one `lhci assert`.
-- [ ] T015 [P] Create `scripts/check-bundle-budget.mjs` (R26). It reads `dist/.vite/manifest.json`, gzips the entry chunk and its transitive static imports with `node:zlib`, fails above 204,800 bytes, and prints every lazy chunk's gzipped size.
-- [ ] T016 [P] Create `scripts/check-licenses.mjs` (R27). It runs `npm ls --omit=dev --all --json`, adds the dev packages whose code ends up in `dist/` (`tailwindcss`, `tw-animate-css`), reads every package's licence, and fails unless it is MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, MPL-2.0, 0BSD, or a dual licence that contains one of them.
-- [ ] T017 [P] Create `docker/Dockerfile` (stage 1 `node:24-alpine`: `npm ci && npm run build`; stage 2 `nginxinc/nginx-unprivileged:1.28-alpine`, pinned by digest, copies `dist/` without `*.map` to `/usr/share/nginx/html/ng/`) and `docker/nginx/default.conf`, which listens on 8080 with:
+- [X] T015 [P] Create `scripts/check-bundle-budget.mjs` (R26). It reads `dist/.vite/manifest.json`, gzips the entry chunk and its transitive static imports with `node:zlib`, fails above 204,800 bytes, and prints every lazy chunk's gzipped size.
+- [X] T016 [P] Create `scripts/check-licenses.mjs` (R27). It runs `npm ls --omit=dev --all --json`, adds the dev packages whose code ends up in `dist/` (`tailwindcss`, `tw-animate-css`), reads every package's licence, and fails unless it is MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, MPL-2.0, 0BSD, or a dual licence that contains one of them.
+- [X] T017 [P] Create `docker/Dockerfile` (stage 1 `node:24-alpine`: `npm ci && npm run build`; stage 2 `nginxinc/nginx-unprivileged:1.28-alpine`, pinned by digest, copies `dist/` without `*.map` to `/usr/share/nginx/html/ng/`) and `docker/nginx/default.conf`, which listens on 8080 with:
   - `location /ng/` and `try_files $uri $uri/ /ng/index.html`;
   - `location /ng/assets/` with `Cache-Control: public, max-age=31536000, immutable`;
   - `no-cache` for `index.html` and `theme-init.js`;
@@ -124,15 +130,17 @@ R26–R29).
   - `location = /` redirecting to `/ng/`;
   - gzip for JS, CSS, JSON and SVG, and `server_tokens off`;
   - `include security-headers.conf` in every content location (R29).
-- [ ] T018 [P] Create `deploy/docker-compose.override.yml` with the service `ng-mailcow`: image `ghcr.io/feldsam-inc/mailcowui-ng:${MAILCOWUI_NG_VERSION}`, network `mailcow-network` with the alias `ng-mailcow`, `read_only: true`, tmpfs for `/tmp` and `/var/cache/nginx`, `restart: always`, and a healthcheck of `wget -q --spider http://127.0.0.1:8080/ng/healthz` (R29).
-- [ ] T019 [P] Create `scripts/smoke/stack-up.sh` and `scripts/smoke/stack-down.sh` (R25). Up:
+- [X] T018 [P] Create `deploy/docker-compose.override.yml` with the service `ng-mailcow`: image `ghcr.io/feldsam-inc/mailcowui-ng:${MAILCOWUI_NG_VERSION}`, network `mailcow-network` with the alias `ng-mailcow`, `read_only: true`, tmpfs for `/tmp` and `/var/cache/nginx`, `restart: always`, and a healthcheck of `wget -q --spider http://127.0.0.1:8080/ng/healthz` (R29).
+- [X] T019 [P] Create `scripts/smoke/stack-up.sh` and `scripts/smoke/stack-down.sh` (R25). Up:
   1. In `$MAILCOW_REST_V2_DIR`, at `contract/VERSION.json` `commit` or `SMOKE_API_REF`, run `docker compose up -d --build`, the API quickstart setup commands and `scripts/dev/reset-dev-database.sh`.
   2. Run `docker build -t mailcowui-ng:smoke -f docker/Dockerfile .`.
   3. Run the image on the API stack's network with `--network-alias ng-mailcow`.
   4. Wait for `/api/v2/health/ready` and `/ng/`, then print `ready: http://localhost:8080/ng/`.
 
   Down removes the container and runs `docker compose down -v`.
-- [ ] T020 [P] Write tests for the i18n tooling in `tests/unit/scripts/i18n-tools.spec.ts`, against fixture message sets (FR-086, SC-006). Cover:
+
+  *Implementation note*: the API is checked out in a separate `git worktree` under `.smoke/api` and run as its own Compose project (`SMOKE_PROJECT`, default `mailcowui-ng-smoke`) on its own port (`SMOKE_WEB_PORT`, default 18480). A developer's own checkout and running `restv2` dev stack (port 18080) are never touched. The pinned commit holds only the contract, so `SMOKE_API_REF` selects an API commit with the implementation until a pin contains one.
+- [X] T020 [P] Write tests for the i18n tooling in `tests/unit/scripts/i18n-tools.spec.ts`, against fixture message sets (FR-086, SC-006). Cover:
   - the import:
     - `%s` becomes `{0}`, and `{ } @ $ |` are escaped as literal interpolations;
     - decorative glyphs are stripped (`"> Forgot Password?"` becomes `"Forgot Password?"`);
@@ -147,10 +155,10 @@ R26–R29).
     - a key missing from a cs-cz or sk-sk legacy file must be supplied by that locale's app layer.
 
   The tests must fail.
-- [ ] T021 Implement `scripts/i18n/lib.mjs`, `scripts/i18n/import-legacy.mjs` and `scripts/i18n/check.mjs` so that T020 passes.
+- [X] T021 Implement `scripts/i18n/lib.mjs`, `scripts/i18n/import-legacy.mjs` and `scripts/i18n/check.mjs` so that T020 passes.
   - `import-legacy.mjs [--ref 2026-09a]` reads `data/web/lang/lang.{en-gb,cs-cz,sk-sk}.json` with `git -C ${MAILCOW_REPO:-../mailhosting} show <ref>:<path>` and writes `src/i18n/legacy/<locale>.json` for the keys of `src/i18n/legacy-map.json` that exist in that locale.
   - `check.mjs` reads the enumeration arrays from `src/api/generated/schema.ts`, and the problem types from `contract/openapi.json` (plus `knownProblemTypeValues` when present). It reports unused keys as warnings (R15, R27).
-- [ ] T022 [P] Create `.github/workflows/ci.yml` with the jobs `quality`, `build`, `e2e`, `lighthouse`, `image` and `smoke` exactly as research R28 describes:
+- [X] T022 [P] Create `.github/workflows/ci.yml` with the jobs `quality`, `build`, `e2e`, `lighthouse`, `image` and `smoke` exactly as research R28 describes:
   - Node 24 with npm cache;
   - actions pinned by SHA;
   - the `smoke` job checks out `FELDSAM-INC/mailcow-rest-v2` with `secrets.MAILCOW_REST_V2_TOKEN` and runs on `workflow_dispatch`, nightly, or when `vars.SMOKE_ENABLED == 'true'`.

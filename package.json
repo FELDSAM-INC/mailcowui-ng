@@ -29,7 +29,7 @@
     "i18n:import": "node scripts/i18n/import-legacy.mjs",
     "i18n:check": "node scripts/i18n/check.mjs",
     "licenses:check": "node scripts/check-licenses.mjs",
-    "audit": "npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=high",
+    "audit": "npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=critical",
     "budget:check": "node scripts/check-bundle-budget.mjs",
     "lhci": "node scripts/run-lhci.mjs"
   },

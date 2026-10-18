@@ -203,7 +203,10 @@ screen of this feature and overrides earlier text in this plan, the spec, resear
 - **Messages**: R17's problem and rule-code table maps each outcome to the legacy key of the same
   meaning first, and to a `mailboxes.problem.*` new string only where legacy has none (for example
   `outcome-unknown`, the rename steps, `temporary-failure` per dependency).
-- **Legacy form map**: written into this section by T008a before any screen is built.
+- **Legacy form map**: below (T008a, 2026-10-19). The orchestrator's decisions of 2026-10-18
+  (`docs/conventions.md` "Decisions on the deviations", "Detail pages", "Outcomes", "No
+  confirmation legacy lacks", the haveibeenpwned check, "The domain's Default mailbox quota") settle
+  deviations 1–6 and 9 below, and the API settles 7 and 8 (part 3).
 - **Deviations needing a decision** (the spec's parity table marks them "Improved" or "Dropped";
   under the rule they wait for the owner or orchestrator):
   1. **Detail grouping**: the plan splits the legacy "Mailbox" tab into General, Sign-in and
@@ -238,6 +241,173 @@ screen of this feature and overrides earlier text in this plan, the spec, resear
   9. **Added explanations**: the plan adds help texts the legacy form lacks (the status effect, the
      domain figures on the create screen, the external-source reasons). They are new strings and
      need approval as improvements, or are left out.
+
+### Legacy form map, part 1: fields and elements
+
+Legacy keys are read at runtime from the installation's `/lang/` files: `lt()` and
+`<LegacyText k>` in the screens (values with markup, `user.tag_help_explain` and
+`user.tag_help_example`, through `<LegacyText>` and its sanitiser), `legacy()` in route titles and
+column tables, and `LEGACY_TEXTS` for keys built at runtime (statuses, sort fields, field labels by
+field name, frames, audit targets). Texts the classic templates hard-code are new strings whose
+English text equals legacy's (marked "hard-coded").
+
+**Mailbox list** (`/mailboxes`) ← `templates/mailbox/tab-mailboxes.twig`, `js/site/mailbox.js`
+`draw_mailbox_table()` (`lang` = `lang_mailbox`).
+
+| Element | Legacy key |
+|---|---|
+| title, navigation entry | `mailbox.mailboxes` |
+| actions | `mailbox.add_mailbox`, `admin.refresh`, `mailbox.toggle_all` (select all on the page in selection mode), `mailbox.quick_actions` |
+| search label, loading, empty, no match | `datatables.search`, `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords` |
+| columns shown by default (legacy's visible columns, in legacy order) | `mailbox.username`, `mailbox.domain_quota` (used / total, "∞" for unlimited, sorted by the storage used as legacy sorts it), `mailbox.last_mail_login` (one line per allowed protocol, "IMAP @ …", "POP3 @ …", "SMTP @ …", and "SSO @ …", labels hard-coded; empty value `user.no_record`; the column is left out when the server does not report last logins), `mailbox.last_pw_change` ("-" when never set, as legacy), `mailbox.in_use` (bar with the percentage; legacy's 75 % and 90 % classes), `mailbox.msg_num`, `mailbox.active` (✓, ✗, "—" with the status text for assistive technology), `mailbox.action` |
+| further columns (legacy's row details, offered by the column chooser) | `mailbox.fname`, `mailbox.domain`, `mailbox.iam` (the built-in source is the product name from branding, as the fork hard-codes it; others "Keycloak", "Generic-OIDC", "LDAP" hard-coded), `mailbox.tls_enforce_in`, `mailbox.tls_enforce_out`, "SMTP", "IMAP", "POP3", "SIEVE", "EAS", "DAV" (hard-coded), `mailbox.quarantine_notification` (`user.never`/`hourly`/`daily`/`weekly`), `mailbox.quarantine_category` (`user.q_reject`, `user.q_add_header`, `user.q_all`), `mailbox.created_on`, `mailbox.last_modified`, `add.tags` (legacy hard-codes "Tags"; `add.tags` has the same meaning) |
+| row actions | `mailbox.edit`, `mailbox.remove` |
+| mass actions, group "Mailbox" | `mailbox.mailbox`: `mailbox.activate`, `mailbox.disable_login`, `mailbox.deactivate`, `mailbox.remove` |
+| mass actions, group "Allowed protocols" | `mailbox.allowed_protocols`: per protocol "IMAP", "POP3", "SMTP", "Sieve", "ActiveSync (EAS)", "CalDAV/CardDAV (DAV)" (hard-coded) with `mailbox.activate` / `mailbox.deactivate`; left out for a domain administrator without `protocolAccess` |
+| mass actions of later features | TLS (UI 005), quarantine notification and category (UI 006) |
+| deletion and mass-deletion confirmation | `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel` |
+| new strings (no legacy element) | `mailboxes.list.count`, the filters panel and chips (`mailboxes.filters.*`), the column chooser (`mailboxes.columns.*`), the sort control on phones (`mailboxes.sort.quotaUsed`; the other sort labels are the column keys through `LEGACY_TEXTS`), the empty scope (`mailboxes.empty.*`), the deletion preview's impact lines (`mailboxes.delete.*`), the bulk confirmation texts and outcome summary (`mailboxes.bulk.*`, UI 002's `bulk.*`) |
+
+**Add mailbox** (`/mailboxes/new`) ← `templates/modals/mailbox.twig` #addMailboxModal, behaviour
+`js/site/mailbox.js` (`auto_fill_quota`, `#addMailboxModal` show, `setMailboxTemplateData`),
+`js/build/013-mailcow.js` (generate, haveibeenpwned, password policy). One form, in legacy order.
+
+| Element | Legacy key |
+|---|---|
+| page title | `mailbox.add_mailbox` |
+| Username (left part) / Full name | `add.mailbox_username` (with the `@domain` suffix and the normalised address) / `add.full_name` |
+| Domain (searchable select of the primary domains in scope) | `add.domain` |
+| Template (Default first and applied; another template replaces the values without asking) | `mailbox.template` |
+| Password, "generate" | `add.password`, `add.generate` (fills both fields and shows them, as legacy) |
+| haveibeenpwned check under the password | `footer.hibp_check`, `footer.loading`, `footer.hibp_ok`, `footer.hibp_nok` (shared `HibpCheck`) |
+| password policy under the check | `admin.password_policy_length` (minimum), `admin.password_policy_chars`, `admin.password_policy_numbers`, `admin.password_policy_special_chars`, `admin.password_policy_lowerupper`, each as legacy lists them (`- rule`) |
+| Confirmation password | `add.password_repeat` |
+| Tags | `add.tags` |
+| Quota (MiB), the "max." badge, "0 = ∞" | `add.quota_mb`; "max. {n} MiB" and "0 = ∞" are hard-coded (`mailboxes.quota.max`, `mailboxes.quota.unlimitedHint`); `add.select_domain` before a domain is chosen; `warning.quota_exceeded_scope` when the domain has no quota left (the quota is then fixed at 0, as legacy disables it) |
+| tagged mail | `user.tag_handling`: `user.tag_in_subfolder`, `user.tag_in_subject`, `user.tag_in_none`; help `user.tag_help_explain`, `user.tag_help_example` |
+| quarantine notification | `user.quarantine_notification`: `user.never`, `user.hourly`, `user.daily`, `user.weekly`; help `user.quarantine_notification_info` |
+| quarantine category | `user.quarantine_category`: `user.q_reject`, `user.q_add_header`, `user.q_all`; help `user.quarantine_category_info` |
+| encryption policy (two toggles) | `user.tls_policy`: `user.tls_enforce_in`, `user.tls_enforce_out` |
+| allowed protocols (multi-select) | `edit.allowed_protocols`; options "IMAP", "POP3", "SMTP", "Sieve", "ActiveSync", "CalDAV/CardDAV" (hard-coded) |
+| ACL (multi-select, legacy order) | label "ACL" (hard-coded); options `acl.spam_alias`, `acl.tls_policy`, `acl.spam_score`, `acl.spam_policy`, `acl.delimiter_action`, `acl.syncjobs`, `acl.eas_reset`, `acl.sogo_profile_reset`, `acl.pushover`, `acl.quarantine`, `acl.quarantine_attachments`, `acl.quarantine_notification`, `acl.quarantine_category`, `acl.app_passwds`, `acl.pw_reset` (verbatim, the installation's product name included); only the permissions the API returns for the caller |
+| rate limit | `acl.ratelimit`, placeholder `ratelimit.disabled`, frames `ratelimit.second`/`minute`/`hour`/`day`, help `edit.mbox_rl_info` |
+| status (select) | `add.active`, `add.disable_login`, `add.inactive` |
+| Force password update + help | `edit.force_pw_update` + `edit.force_pw_update_info` (`%s` = product name from branding) |
+| Force 2FA + help | `tfa.force_tfa` + `tfa.force_tfa_info` |
+| SOGo access + help (only when the groupware is enabled) | `edit.sogo_access` + `edit.sogo_access_info` |
+| action | `admin.add` |
+| controls a domain administrator's flags do not allow | shown read-only with `acl.prohibited` and the flag's label (`acl.protocol_access`, `acl.sogo_access`, `acl.ratelimit`), as legacy's `data-acl="0"` controls |
+| authentication source | not on the classic add form (hidden `authsource=mailcow`): the app adds no field and creates `mailcow` mailboxes, as legacy |
+| new strings | `mailboxes.create.loadFailed` (load step), `mailboxes.creationReport.*` (failed follow-up steps legacy reports only in its log) |
+
+**Mailbox page** (`/mailboxes/:address`) ← `templates/edit/mailbox.twig` through `edit.php`; the
+tabs become sections in legacy order. Deletion stays in the list, as in legacy.
+
+| Element | Legacy key |
+|---|---|
+| page title, with the address as subtitle (and its readable form when the domain is an IDN) | `edit.mailbox` |
+| usage figures (display-only, the list's keys) | `mailbox.domain_quota`, `mailbox.in_use`, `mailbox.msg_num`, `mailbox.last_mail_login` (as the list), `mailbox.last_pw_change` |
+| History (administrators) | UI 002's `history.link` |
+| section "Mailbox" (tab #medit) | `edit.mailbox` |
+| Identity provider (select) | `admin.iam`; options: the product name (built-in), "Keycloak", "Generic-OIDC", "LDAP" (hard-coded), from `MailboxCapabilities.authSources` plus the mailbox's own source |
+| Full name / Tags | `edit.full_name` / `add.tags` |
+| Quota (MiB), "max." badge, "0 = ∞" | `edit.quota_mb`, `mailboxes.quota.max` from `largestAllowedQuota`, `mailboxes.quota.unlimitedHint` |
+| Allow to send as, external sender addresses | UI 004 adds them in their legacy positions |
+| Sender-dependent transports (read-only until UI 009; only with `mailboxRelayhost` or for administrators) | `edit.relayhost`; none: `edit.none_inherit`; value "ID n"; help `edit.mailbox_relayhost_info` |
+| tagged mail, quarantine notification, quarantine category, encryption policy (read-only until UI 005 and UI 006) | the keys of the add form above, value as the selected option |
+| Password, "generate", check, policy, Confirmation password (only for the built-in source) | `edit.password` (placeholder `edit.unchanged_if_empty`), `edit.generate`, `HibpCheck`, the policy keys, `edit.password_repeat` |
+| Password recovery email + help (only for the built-in source) | `edit.password_recovery_email` + `admin.password_reset_info` |
+| allowed protocols | `edit.allowed_protocols` with the options above; read-only with `acl.prohibited` + `acl.protocol_access` |
+| Allowed hosts for SMTP | hidden in legacy (`<div hidden>`): not shown |
+| status (select) | `edit.active`, `edit.disable_login`, `edit.inactive` |
+| Force password update / Force 2FA / SOGo access, with help | as the add form, with `edit.*`; SOGo access read-only with `acl.prohibited` + `acl.sogo_access`, left out without the groupware |
+| save, times | `edit.save`; `edit.created_on`, `edit.last_modified` (`user.never` when never) |
+| section "Custom attributes" (tab #mattr) | `edit.custom_attributes`; columns `user.attribute`, `user.value`; `admin.remove_row`, `admin.add_row`, `admin.save` |
+| section "Pushover" (tab #mpushover, read-only until UI 005) | `edit.pushover`; `edit.active` with yes or no |
+| section "ACL" (tab #macl) | `edit.acl`; the multi-select of the `acl.*` options above, the permissions the API returns; `edit.save` |
+| section "Rate limit" (tab #mrl, read-only until UI 006) | `edit.ratelimit`; `acl.ratelimit`, value and frame (`ratelimit.*`), `ratelimit.disabled` when the mailbox has none of its own; help `edit.mbox_rl_info` |
+| section "Rename mailbox" (tab #mrename, "⚠️" as legacy's tab) | `edit.mailbox_rename`; `edit.mailbox_rename_warning`, checkbox `edit.mailbox_rename_agree`, then `edit.mailbox_rename_title` (prefilled with the local part, `@domain` suffix), checkbox `edit.mailbox_rename_alias` (checked), `edit.save` |
+| new strings | `mailboxes.detail.*` (page states), `mailboxes.rename.report.*` (the incomplete-rename report legacy cannot produce) |
+
+**Mailbox templates** (`/mailbox-templates`) ← `templates/mailbox/tab-templates-mbox.twig`,
+`js/site/mailbox.js` `draw_templates_mbox_table()`.
+
+| Element | Legacy key |
+|---|---|
+| title, navigation entry | `mailbox.mailbox_templates` |
+| add (administrators) / refresh | `mailbox.add_template` / `admin.refresh` |
+| search label, loading, empty, no match | `datatables.search`, `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords` |
+| columns | "ID" (hard-coded, UI 002's `domainTemplates.fields.id`), `mailbox.template`, `mailbox.domain_quota`, `mailbox.tls_enforce_in`, `mailbox.tls_enforce_out`, "SMTP", "IMAP", "POP3", "SIEVE", "EAS", "DAV", "SOGO" (hard-coded), `mailbox.force_tfa`, `mailbox.active`, `mailbox.action`; details `mailbox.quarantine_notification`, `mailbox.quarantine_category`, `mailbox.force_pw_update`, `edit.ratelimit` ("∞" without one), `add.tags` |
+| row actions (no Remove for Default) | `mailbox.edit`, `mailbox.remove` |
+| mass removal (administrators) and its confirmation | `mailbox.toggle_all`, `mailbox.remove`; `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel` |
+| new strings | `mailboxTemplates.list.count`, the sort control (UI 002's `domainTemplates.sort.*`), `mailboxTemplates.delete.keepValues` (US7-AS6), page states |
+
+**Add template** (`/mailbox-templates/new`, administrators) ← `templates/modals/mailbox.twig`
+#addMailboxTemplateModal: `mailbox.add_template` (title), `mailbox.template` (name), `add.tags`,
+`edit.quota_mb` + "0 = ∞", the tagged mail, quarantine, encryption policy, allowed protocols, ACL
+and rate limit groups of the add mailbox form, then `edit.active` / `edit.disable_login` /
+`edit.inactive`, `edit.force_pw_update` + info, `tfa.force_tfa` + info, `edit.sogo_access` + info
+(with the groupware), action `admin.add`. The form starts with `MailboxCapabilities.templateDefaults`
+(G32) and sends every value it shows.
+
+**Edit template** (`/mailbox-templates/:id`) ← `templates/edit/mailbox-templates.twig`: title
+`edit.title` with the template name, back link `edit.previous`, the same fields as the add form
+(name read-only for Default), save `edit.save`. Domain administrators read the values without a
+form.
+
+### Legacy form map, part 2: messages
+
+| API outcome | Legacy key (placeholder source) |
+|---|---|
+| `createMailbox` 201 | `success.mailbox_added` (the new address) |
+| creation report steps legacy cannot report | new strings `mailboxes.creationReport.rateLimit`, `.taggedMailHandling`, `.groupwareDirectoryUpdate` |
+| `updateMailbox` 200 | `success.mailbox_modified` (address) |
+| `deleteMailbox` 204 | `success.mailbox_removed` (address) |
+| `renameMailbox` 200 | `success.mailbox_renamed` (previous address, new address) |
+| `createMailboxTemplate` 201 / `updateMailboxTemplate` 200 | `success.template_added` / `success.template_modified` (template name) |
+| `deleteMailboxTemplate` 204 | `success.template_removed` (template ID, as legacy passes it) |
+| `address-in-use`, holder `mailbox` or `resource` / `alias` / `temporaryAlias` | `danger.is_alias_or_mailbox` / `danger.is_alias` / `danger.is_spam_alias` (the address) |
+| `mailbox-limit-reached` | `danger.max_mailbox_exceeded` (`count`, `limit`) |
+| quota `outOfRange` with `limit: maxMailboxQuota` / `domainQuotaLeft` / `largestAllowedQuota` | `danger.mailbox_quota_exceeded` / `danger.mailbox_quota_left_exceeded` / `danger.mailbox_quota_exceeded` (`max` in MiB) |
+| quota above the maximum, before sending | `danger.mailbox_quota_exceeded` (the maximum in MiB) |
+| unlimited quota without the flag (`attribute-not-permitted` on `quota`, or 0 typed) | `danger.unlimited_quota_acl` |
+| `localPart` / `newLocalPart` `invalidFormat` (client or API) | `danger.mailbox_invalid` |
+| `password` `tooShort` or `missingCharacterClass` | `danger.password_complexity` |
+| the two password fields differ (client) | `danger.password_mismatch` |
+| `tags` `tooMany` | `mailboxes.problem.tagLimit` (new: legacy's `tag_limit_exceeded` is missing from the language files) |
+| `mailbox-template-name-exists` | `danger.template_exists` (the name as typed) |
+| empty template name (client) | `danger.template_name_invalid` |
+| `attribute-not-permitted` on other fields | `acl.prohibited` with the flag's `acl.*` label, on the field |
+| `mailbox-not-renamable` | new string (legacy answers `danger.access_denied`, whose meaning does not fit) |
+| `domain-alias-limit-reached`, `mailbox-rename-incomplete`, `outcome-unknown`, `temporary-failure` per dependency, `mailbox-template-protected`, outdated (412), gone (404) | new strings (no legacy equivalent) |
+
+### Legacy form map, part 3: deviations
+
+Settled by the orchestrator's decisions (2026-10-18) and applied:
+
+1. **Detail grouping**: one section per legacy tab, in legacy order (Mailbox, Custom attributes,
+   Pushover, ACL, Rate limit, Rename). The spec's General, Sign-in, Protocol access and Tags
+   sections, their routes and summaries, and the separate Delete section are not built. Sections
+   open for editing with UI 002's `?edit=<section>` parameter, so each has its own link.
+2. **Password repeat**: restored on the add and edit forms (`danger.password_mismatch` before
+   sending). The spec's show/hide and copy controls replaced it and are not built.
+3. **Quota units**: MiB with "0 = ∞" everywhere; no unit select and no "Unlimited" switch. The
+   create form always sends a quota, prefilled from the chosen template and capped at the domain's
+   `usage.maxNewMailboxQuota` (owner decision on the domain's default quota).
+4. **haveibeenpwned**: kept, as the shared `HibpCheck`.
+5. **Rename alias choice**: legacy's checkbox, checked by default; no extra confirmation.
+6. **ACL**: legacy's multi-select in legacy order, without headings.
+9. **Added explanations**: not built (status effects, domain figures, inactive and backup-MX
+   notes, external-source reasons, the hidden-permissions note, the pre-hashed notice, "rules
+   unavailable", live policy marks, "Add another mailbox", collapsed groups and their summaries,
+   the template-overwrite confirmation, the deactivation confirmation of the single form).
+
+Settled by the API:
+
+7. **Allowed hosts for SMTP**: always hidden in legacy (`<div hidden>`), so it is not shown.
+8. **Mass removal of templates**: `applyMailboxTemplateBulkAction` (G39) makes it possible; built.
+
+Still open (listed for the owner, nothing built): none.
 
 ## Dependencies
 

@@ -19,6 +19,14 @@ afterEach(() => {
   server.resetHandlers()
   resetMockState()
   document.body.innerHTML = ''
+  document.documentElement.className = ''
+  document.documentElement.removeAttribute('style')
+  try {
+    localStorage.clear()
+    sessionStorage.clear()
+  } catch {
+    // A test replaced the storage with a throwing stub.
+  }
   if (violations.length > 0) {
     throw new Error(
       `Mock contract violations:\n${violations

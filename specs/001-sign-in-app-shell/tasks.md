@@ -254,7 +254,7 @@ renders in:
   - an unknown code becomes `validation.invalid`, tested with plain values (FR-076).
 
   `format.spec.ts` must check that dates, numbers and relative times are formatted per locale in the device time zone (FR-087).
-- [ ] T032 [P] Write `tests/unit/app/preferences/locale.spec.ts` and `tests/unit/app/preferences/theme.spec.ts`.
+- [X] T032 [P] Write `tests/unit/app/preferences/locale.spec.ts` and `tests/unit/app/preferences/theme.spec.ts`.
   - `locale.spec.ts` covers the FR-060 and FR-061 matrix:
     - available = server ∩ {en-gb, cs-cz, sk-sk};
     - none available means en-gb, no choice and no language saved, while the theme can still be saved (`canSave` per field);
@@ -355,7 +355,7 @@ renders in:
   - `src/i18n/problems.ts`.
 
   Seed `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` with the shared namespaces `common`, `problem.*` (every `KnownProblemType`, `status.*`, `generic`), `validation.*` (every `ValidationRuleCode`, `format.*`, `invalid`), `roles.*`, `themes.*`, `states.*`, `nav.*` (every catalogue entry) and `a11y.*`. Create the initial `src/i18n/legacy-map.json`, and run `npm run i18n:import` to generate `src/i18n/legacy/*.json`. T031 must pass, and `npm run i18n:check` must pass.
-- [ ] T056 Implement `src/app/preferences/store.ts`, `src/app/preferences/theme.ts` and `src/app/preferences/locale.ts` (R15, R16), so that T032 passes.
+- [X] T056 Implement `src/app/preferences/store.ts`, `src/app/preferences/theme.ts` and `src/app/preferences/locale.ts` (R15, R16), so that T032 passes.
 - [ ] T057 Implement `src/app/branding/public-config.ts` (the query, logo per theme, and the plain-text fields), `src/app/branding/defaults.ts` (the FR-003 neutral defaults using `location.hostname`, with no product name in the source) and `src/app/branding/app-links.ts` (the `AppLinkView` of data-model §2: `safeHref`, `%u` replaced with `encodeURIComponent`, the login-page filter, and `appsLabel` falling back to `apps.defaultLabel`). The branding part of T040 must pass.
 - [ ] T058 Implement `src/app/session/store.ts` (the data-model §4 fields), `src/app/session/queries.ts` (the `session` and `identity` queries), `src/app/session/session-end.ts`, `src/app/session/sign-out.ts` and `src/app/session/cross-tab.ts` (BroadcastChannel wiring, and the identity mismatch check), so that T041 passes.
 - [ ] T059 Implement `src/app/navigation/catalogue.ts` (the 17 rows of data-model §2, with the per-role `access` and `classic` addresses of research R19), `src/app/navigation/visibility.ts` and `src/app/navigation/classic-links.ts` (the classic sign-in, reset and section addresses), so that T038 passes. Every row starts with `status: 'placeholder'`; the stories flip `home` (T083), `passkeys` (T106), `apiKeys` (T129) and `auditLog` (T139) to `available`, so no entry ever leads to "not found" (SC-007).

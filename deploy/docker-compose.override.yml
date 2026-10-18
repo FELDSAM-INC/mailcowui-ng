@@ -1,0 +1,23 @@
+# mailcowui-ng for mailcow-dockerized (research R29).
+#
+# Append the `ng-mailcow` service to the docker-compose.override.yml in the mailcow directory and
+# run `docker compose up -d ng-mailcow`. The routing of /ng/ on the mailcow origin comes from
+# mailcow-rest-v2's data/conf/nginx/site.restv2.custom; no upstream mailcow file is patched.
+services:
+  ng-mailcow:
+    image: ghcr.io/feldsam-inc/mailcowui-ng:${MAILCOWUI_NG_VERSION}
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+    restart: always
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:8080/ng/healthz']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      mailcow-network:
+        aliases:
+          - ng-mailcow

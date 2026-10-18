@@ -698,9 +698,9 @@ the filters and the presentation of each kind of record from the mock.
   the number of items per outcome (done, not found, refused, outdated, failed) and every item with
   its translated outcome, including the step warnings of FR-029, and MUST announce the summary.
   Failed, refused and outdated items MUST stay selected; the others MUST be deselected. A
-  whole-request refusal MUST be shown as one message
-  naming the reason, with the selection kept. When no response arrives, the app MUST report the
-  outcome as unknown, refresh the list and MUST NOT repeat the request automatically.
+  whole-request refusal MUST be shown as one message naming the reason, with the selection kept.
+  When no response arrives, the app MUST report the outcome as unknown, refresh the list and MUST
+  NOT repeat the request automatically.
 
 #### Downloads
 
@@ -768,9 +768,8 @@ the filters and the presentation of each kind of record from the mock.
   confirmation naming the pattern and the list, and to select several own entries of the current
   page and remove them after one confirmation that requires typing their number
   (`docs/conventions.md`, "Confirmations"). The app MUST send one request per entry, continue after
-  failures, and
-  report each result with a "retry failed" action. An entry already gone MUST be reported as already
-  removed.
+  failures, and report each result with a "retry failed" action. An entry already gone MUST be
+  reported as already removed.
 - **FR-051**: The panel MUST state that changes apply within 1 minute, that mail from a
   blocked sender is rejected and not quarantined, that mail from an allowed sender is never treated
   as spam, and, on mailbox pages, that the mailbox's entries take precedence over the domain's.

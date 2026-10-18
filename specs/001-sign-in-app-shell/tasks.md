@@ -102,8 +102,6 @@ R26–R29).
   - `scroll-padding-top` equal to the header height;
   - `motion-safe` transition defaults.
 
-  *Implementation note*: the dark variant is `@custom-variant dark (&:where(.dark, .dark *))`, Tailwind's documented class strategy, instead of TailAdmin's `&:is(.dark *)`. With `:is(.dark *)`, WebKit does not recompute inherited text colours when the class on `<html>` changes, which left light-theme text on dark backgrounds. The T048 axe checks found it on `mobile-webkit`.
-
 - [X] T011 Create the inline-SVG icon components in `src/shared/icons/` with a barrel `src/shared/icons/index.ts`. Each has `aria-hidden="true"` and `focusable="false"`. Icons come from TailAdmin `src/icons/layout` first, otherwise from Lucide, recorded in the Lucide section of `THIRD_PARTY_NOTICES.md`. Needed: menu, close, chevron-down, chevron-right, home, key, passkey (fingerprint), list (audit), user, sign-out, language, sun, moon, monitor, external-link, copy, check, info, warning, danger, eye, eye-off, plus one icon per navigation catalogue section of data-model §2.
 - [X] T012 Create `vitest.config.ts` (jsdom, `tests/setup/vitest.setup.ts`, v8 coverage with thresholds of 90 % lines for `src/api`, `src/app/session`, `src/app/router`, `src/app/navigation`, `src/shared/security` and `src/shared/platform/webauthn`, 80 % elsewhere in `src/`, R23). Also create:
   - `tests/setup/vitest.setup.ts`: a fresh Pinia, `QueryClient` and i18n with `en-gb` per test, plus mount helpers;
@@ -237,7 +235,7 @@ renders in:
   - `tests/e2e/fixtures/layout.ts`: `expectNoHorizontalScroll(page, { widths: [360, 320] })`, and `expectTouchTargets(page)` (≥ 44 × 44 px for visible buttons, inputs, selects and standalone links; links in running text exempt);
   - `tests/e2e/fixtures/webauthn.ts`: CDP virtual authenticator (ctap2, internal, resident key, user verification), `addCredential`, `withoutPasskeySupport()` (an init script deleting `PublicKeyCredential`), `stubCredentialsRejection(name)`, and `stubCredentials(credential)`. The last replaces `navigator.credentials.get` and `create` with a stub that resolves with a contract-valid fake credential from `tests/mocks/factories/webauthn.ts`, so tests that only need a submitted credential also run on WebKit (R24).
 
-  *Implementation note*: two fixes made while running the T048 checkpoint. `mockApi.use` sets the `mock-scenario` cookie with `path: /`: a cookie set from the app URL got the path `/ng/` and never reached `/api/v2`. `expectNoHorizontalScroll` waits two animation frames after each resize, so that media-query listeners (the navigation drawer) re-render before it measures.
+  *Implementation note*: three fixes made while running the T048 checkpoint. `mockApi.use` sets the `mock-scenario` cookie with `path: /`: a cookie set from the app URL got the path `/ng/` and never reached `/api/v2`. `expectNoHorizontalScroll` waits two animation frames after each resize, so that media-query listeners (the navigation drawer) re-render before it measures. `expectAccessible` switches the theme as the app does (the class and the inline `color-scheme`), then waits two animation frames and, on WebKit, 150 ms more: behind a modal dialog WebKit briefly reports the previous theme's inherited text colours, which axe read as contrast failures.
 
 ### Tests for the core (write first; must fail)
 

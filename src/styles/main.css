@@ -7,12 +7,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-/*
-  Deviation: Tailwind's documented class strategy `:where(.dark, .dark *)` instead of TailAdmin's
-  `:is(.dark *)`. WebKit does not recompute inherited text colours with `:is(.dark *)` when the
-  class on <html> changes, which left light-theme text on dark backgrounds.
-*/
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:is(.dark *));
 
 /* Base UI state attributes -> Reka UI `data-state` equivalents, used by the copied primitives. */
 @custom-variant data-open (&:is([data-state='open'], [data-open]));

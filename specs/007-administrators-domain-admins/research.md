@@ -28,7 +28,7 @@ to it.
     `a13c370`'s API 007 files and the API 004 and 005 contracts, UI 007 keeps that pin. Otherwise
     T001 runs `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9` (never "the latest
     commit", UI 001 R6).
-  - **Consequences of the bump** (handled in T001–T003):
+  - **Consequences of the bump** (handled in T001–T004):
     - the generated `schema.ts` gains the root types and the enumeration arrays this feature uses
       (`domainAdminPermissionNameValues`, `accountSecondFactorStatusValues`,
       `knownProblemTypeValues`);
@@ -70,7 +70,7 @@ to it.
     `useSsoTokenSignIn()`.
   - **Entry chunk**: only `ActingBanner.vue`, `ShellNotice.vue` and the session modules join it
     (about 3 KB gzipped). Every page of `administrators`, the landing and the acting actions are in
-    lazy chunks. `budget:check` verifies it (T125).
+    lazy chunks. `budget:check` verifies it (T105).
 - **Rationale**: One directory per catalogue section keeps the shared account components without
   cross-feature imports. Acting is used by five features, so its entry actions need a public
   surface; its core must sit where the shell and the query client can reach it.
@@ -83,7 +83,7 @@ to it.
 
 - **Decision**:
   - The catalogue keeps its single entry `administrators` (path `/administrators`, administrators
-    only), and T049 sets its `status` to `available`. The section has two lists, linked by a tab bar
+    only), and T041 sets its `status` to `available`. The section has two lists, linked by a tab bar
     (`AdministratorsSectionTabs.vue`, a `<nav>` with two links and `aria-current="page"`) shown on
     both list pages.
   - Routes (all lazy, `meta.navEntry: 'administrators'`):
@@ -743,7 +743,7 @@ to it.
   | `HistoryLink`, audit `targetType`/`targetId` | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | UI 002 | — |
   | Domain detail route name | `domain-detail` from `@/features/domains` | UI 002 | use the name UI 002 exports |
   | Mailbox entry action menu and detail action area | `src/features/mailboxes/components/MailboxActionsMenu.vue`, `src/features/mailboxes/pages/MailboxDetailPage.vue` | UI 003 | use the components UI 003's tasks name |
-  | Password field with generator and policy | `src/shared/components/PasswordField.vue` | UI 003, promoted at its second use (UI 005) | T040 promotes it without behaviour change |
+  | Password field with generator and policy | `src/shared/components/PasswordField.vue` | UI 003, promoted at its second use (UI 005) | T037 promotes it without behaviour change |
   | Password policy and mailbox capabilities queries | exported by `@/features/mailboxes` | UI 003 | — |
   | Section tab bar | `src/shared/components/SectionTabs.vue` | UI 004 | `AdministratorsSectionTabs.vue` stays in the feature |
   | Detail section index | `src/shared/components/SectionIndex.vue` | UI 002 | `DetailSectionIndex.vue` stays in the feature |

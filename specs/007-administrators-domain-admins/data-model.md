@@ -150,7 +150,7 @@ Issued links live in the dialog's local state; passwords in the form's local sta
 
 ### Device storage
 
-Nothing is added. UI 001 data-model §4 stays the complete list (constitution V); T121 asserts it
+Nothing is added. UI 001 data-model §4 stays the complete list (constitution V); T104 asserts it
 after the flows of this feature.
 
 ### Cross-tab messages

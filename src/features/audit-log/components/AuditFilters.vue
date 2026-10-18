@@ -4,10 +4,11 @@
 // address and the range are checked before they are applied; server field errors of the list
 // request appear on the matching filter. The section is collapsible, and starts collapsed below
 // the md breakpoint.
-import { reactive, ref, useId, watch } from 'vue'
+import { computed, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { ApiProblem, auditEventTypeValues, auditOutcomeValues } from '@/api'
+import { ApiProblem, auditEventTypeValues, auditOutcomeValues, auditTargetTypeValues } from '@/api'
+import { hasMessage } from '@/i18n'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
@@ -16,9 +17,13 @@ import { ChevronDownIcon, FilterIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 import { isIpNetwork } from '@/shared/validation/ip-network'
-import { AUDIT_ACTOR_MAX_LENGTH, AUDIT_ADDRESS_MAX_LENGTH } from '@/shared/validation/limits'
+import {
+  AUDIT_ACTOR_MAX_LENGTH,
+  AUDIT_TARGET_ID_MAX_LENGTH,
+  AUDIT_ADDRESS_MAX_LENGTH,
+} from '@/shared/validation/limits'
 
-import { useAuditLabels } from '../labels'
+import { auditLabelKey, useAuditLabels } from '../labels'
 import type { AuditFilterValues } from '../list-state'
 import {
   AUDIT_RANGES,
@@ -51,6 +56,8 @@ const ids = {
   outcome: useId(),
   actor: useId(),
   address: useId(),
+  targetType: useId(),
+  targetId: useId(),
 }
 
 interface Draft {
@@ -61,6 +68,8 @@ interface Draft {
   outcome: string
   actor: string
   address: string
+  targetType: string
+  targetId: string
 }
 
 const draft = reactive<Draft>({
@@ -71,7 +80,23 @@ const draft = reactive<Draft>({
   outcome: '',
   actor: '',
   address: '',
+  targetType: '',
+  targetId: '',
 })
+// The target types offered are those this version labels, plus a selected one (UI 002 US8).
+const targetTypes = computed(() =>
+  auditTargetTypeValues.filter(
+    (type) => hasMessage(auditLabelKey('targetType', type)) || draft.targetType === type,
+  ),
+)
+// The event types offered as filters are those this version labels, plus any selected in the
+// address. The contract lists the event types of every API feature (161 at UI 002's pin), and the
+// ones without a label would all read "unknown event" (UI 002 research D2).
+const eventTypes = computed(() =>
+  auditEventTypeValues.filter(
+    (type) => hasMessage(auditLabelKey('eventType', type)) || draft.event.includes(type),
+  ),
+)
 
 watch(
   () => props.filters,
@@ -83,6 +108,8 @@ watch(
     draft.outcome = filters.outcome ?? ''
     draft.actor = filters.actor ?? ''
     draft.address = filters.address ?? ''
+    draft.targetType = filters.targetType ?? ''
+    draft.targetId = filters.targetId ?? ''
   },
   { immediate: true, deep: true },
 )
@@ -94,6 +121,8 @@ const FIELDS: Record<string, string> = {
   actor: ids.actor,
   address: ids.address,
   clientAddress: ids.address,
+  targetType: ids.targetType,
+  targetId: ids.targetId,
 }
 const form = useProblemForm({ fieldId: (path) => FIELDS[path] ?? null })
 /** The address field shows client errors (`address`) and server errors (`clientAddress`). */
@@ -133,11 +162,16 @@ async function submit() {
   if (address && (address.length > AUDIT_ADDRESS_MAX_LENGTH || !isIpNetwork(address))) {
     errors.address = ['validation.format.ipNetwork']
   }
+  const targetId = draft.targetId.trim()
   const actorTooLong = actor.length > AUDIT_ACTOR_MAX_LENGTH
-  if (Object.keys(errors).length > 0 || actorTooLong) {
+  const targetTooLong = targetId.length > AUDIT_TARGET_ID_MAX_LENGTH
+  if (Object.keys(errors).length > 0 || actorTooLong || targetTooLong) {
     await form.setClientErrors(errors)
     if (actorTooLong) {
       await form.setProblem(violation('actor', 'tooLong', { max: AUDIT_ACTOR_MAX_LENGTH }))
+    }
+    if (targetTooLong) {
+      await form.setProblem(violation('targetId', 'tooLong', { max: AUDIT_TARGET_ID_MAX_LENGTH }))
     }
     return
   }
@@ -150,6 +184,8 @@ async function submit() {
     outcome: auditOutcomeValues.find((value) => value === draft.outcome),
     actor: actor || undefined,
     address: address || undefined,
+    targetType: auditTargetTypeValues.find((value) => value === draft.targetType),
+    targetId: targetId || undefined,
   })
 }
 
@@ -272,6 +308,36 @@ function clear() {
                 class="form-control"
               />
             </FormField>
+            <FormField
+              :id="ids.targetType"
+              v-slot="field"
+              :label="t('auditLog.filters.targetType')"
+            >
+              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+              <select v-bind="field" v-model="draft.targetType" class="form-control">
+                <option value="">{{ t('auditLog.filters.anyTargetType') }}</option>
+                <option v-for="type in targetTypes" :key="type" :value="type">
+                  {{ label('targetType', type) }}
+                </option>
+              </select>
+            </FormField>
+            <FormField
+              :id="ids.targetId"
+              v-slot="field"
+              :label="t('auditLog.filters.targetId')"
+              :errors="form.errorsFor('targetId')"
+            >
+              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+              <input
+                v-bind="field"
+                v-model="draft.targetId"
+                type="text"
+                :maxlength="AUDIT_TARGET_ID_MAX_LENGTH"
+                autocapitalize="none"
+                spellcheck="false"
+                class="form-control"
+              />
+            </FormField>
           </div>
           <fieldset>
             <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -279,7 +345,7 @@ function clear() {
             </legend>
             <div class="grid sm:grid-cols-2 lg:grid-cols-4">
               <label
-                v-for="type in auditEventTypeValues"
+                v-for="type in eventTypes"
                 :key="type"
                 class="flex min-h-11 items-center gap-3 text-gray-800 dark:text-gray-200"
               >

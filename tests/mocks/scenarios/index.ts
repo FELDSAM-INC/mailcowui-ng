@@ -9,6 +9,22 @@ import { ViolationRecorder } from '../contract/validator'
 import { standardAccounts, adminAccount, domainAdminAccount, mailboxAccount } from './accounts'
 import { auditLogScenarios } from './audit-log'
 import { baseScenarios } from './base'
+import {
+  applyDomainMutations,
+  applyFooterMutations,
+  applyTemplateMutations,
+  assignDomains,
+  domainsBaseScenarios,
+  initialDomainState,
+} from './domains-base'
+import { domainTemplateScenarios } from './domain-templates'
+import { domainsBulkScenarios } from './domains-bulk'
+import { domainsCreateScenarios } from './domains-create'
+import { domainsDeleteScenarios } from './domains-delete'
+import { domainsEditScenarios } from './domains-edit'
+import { domainsFooterScenarios } from './domains-footer'
+import { domainsHistoryScenarios } from './domains-history'
+import { domainsListScenarios } from './domains-list'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
@@ -33,6 +49,8 @@ import {
 export interface ScenarioDefinition {
   description: string
   overrides?: ScenarioOverrides
+  /** Builds data in code when the scenario is created (UI 002: domains), before the overrides. */
+  setup?: (state: ScenarioState) => void
 }
 
 export const scenarios: Record<string, ScenarioDefinition> = {
@@ -45,6 +63,15 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...preferenceScenarios,
   ...apiKeyScenarios,
   ...auditLogScenarios,
+  ...domainsBaseScenarios,
+  ...domainsListScenarios,
+  ...domainsCreateScenarios,
+  ...domainsEditScenarios,
+  ...domainsDeleteScenarios,
+  ...domainsBulkScenarios,
+  ...domainTemplateScenarios,
+  ...domainsFooterScenarios,
+  ...domainsHistoryScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -75,6 +102,33 @@ function applyAccounts(state: ScenarioState, changes: Record<string, Partial<Moc
   }
 }
 
+/** UI 002: domain data, capabilities, failures and delays (research D28). */
+function applyDomainOverrides(state: ScenarioState, overrides: ScenarioPatch): void {
+  if (overrides.capabilities) {
+    const { dkim, ...rest } = overrides.capabilities
+    state.domainCapabilities = {
+      ...state.domainCapabilities,
+      ...rest,
+      ...(dkim ? { dkim: { ...state.domainCapabilities.dkim!, ...dkim } } : {}),
+    }
+  }
+  if (overrides.creationReport) {
+    state.creationReport = { ...state.creationReport, ...overrides.creationReport }
+  }
+  if (overrides.domainFailures) {
+    state.domainFailures = { ...state.domainFailures, ...overrides.domainFailures }
+  }
+  if (overrides.delays) state.delays = { ...state.delays, ...overrides.delays }
+  if (overrides.aliasDomains) state.aliasDomains = structuredClone(overrides.aliasDomains)
+  if (overrides.dkimKeys) state.dkimKeys = [...overrides.dkimKeys]
+  for (const [username, names] of Object.entries(overrides.domainAssignments ?? {})) {
+    assignDomains(state, username, names)
+  }
+  if (overrides.domains) applyDomainMutations(state, overrides.domains)
+  if (overrides.templates) applyTemplateMutations(state, overrides.templates)
+  if (overrides.footers) applyFooterMutations(state, overrides.footers)
+}
+
 /** Applies JSON overrides or runtime patches to a state. */
 export function applyOverrides(
   state: ScenarioState,
@@ -89,6 +143,7 @@ export function applyOverrides(
   if (overrides.apiKeys) state.apiKeys = structuredClone<ApiKey[]>(overrides.apiKeys)
   if (overrides.auditEvents)
     state.auditEvents = structuredClone<AuditEvent[]>(overrides.auditEvents)
+  applyDomainOverrides(state, overrides)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -122,7 +177,9 @@ export function createScenarioState(
     requests: [],
     violations: new ViolationRecorder(),
     now,
+    ...initialDomainState(),
   }
+  definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))
   applyOverrides(state, structuredClone(overrides))
   return state

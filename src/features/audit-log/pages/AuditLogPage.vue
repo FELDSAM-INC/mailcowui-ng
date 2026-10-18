@@ -12,7 +12,6 @@ import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { PAGE_SIZES, useListState, type PageSize } from '@/shared/composables/useListState'
-import { InfoIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useAuditEvents } from '../api'
@@ -29,14 +28,21 @@ const events = computed(() => query.data.value?.data ?? [])
 const total = computed(() => query.data.value?.meta.total ?? 0)
 const filtered = computed(() => {
   const value = filters.value
-  return !!(value.range || value.event.length || value.outcome || value.actor || value.address)
+  return !!(
+    value.range ||
+    value.event.length ||
+    value.outcome ||
+    value.actor ||
+    value.address ||
+    value.targetType ||
+    value.targetId
+  )
 })
 const problem = computed(() => {
   const error = query.error.value
   if (!error) return null
   return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'network', cause: error })
 })
-const reserved = computed(() => !!(filters.value.targetType || filters.value.targetId))
 
 const NO_FILTERS: Partial<AuditFilterValues> = {
   range: undefined,
@@ -81,14 +87,6 @@ watch(
       @apply="change"
       @clear="change(NO_FILTERS)"
     />
-    <p
-      v-if="reserved"
-      role="note"
-      class="flex gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-    >
-      <InfoIcon class="mt-0.5 size-5 shrink-0" />
-      <span>{{ t('auditLog.targetFilterUnavailable') }}</span>
-    </p>
     <ActiveFilterChips :filters="filters" @remove="change" @clear="change(NO_FILTERS)" />
     <div class="flex flex-col gap-4">
       <h2 class="sr-only">{{ t('auditLog.records') }}</h2>

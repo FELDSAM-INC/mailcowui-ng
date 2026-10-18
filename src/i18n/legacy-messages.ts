@@ -32,4 +32,25 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'enums.auditTargetType.apiKey': 'admin.api_key',
   'enums.authMethod.apiKey': 'admin.api_key',
   'enums.authMethod.password': 'login.password',
+  // UI 002: the audit targets of a domain and its footer.
+  'enums.auditTargetType.domain': 'mailbox.domain',
+  'enums.auditTargetType.domainFooter': 'edit.domain_footer',
+  // UI 002: field labels looked up by field name (problems, outdated notices, error parameters).
+  'domains.fields.domain': 'mailbox.domain',
+  'domains.fields.description': 'mailbox.description',
+  'domains.fields.template': 'mailbox.template',
+  'domains.fields.active': 'edit.active',
+  'domains.fields.maxMailboxes': 'edit.max_mailboxes',
+  'domains.fields.maxAliases': 'edit.max_aliases',
+  'domains.fields.domainQuota': 'edit.domain_quota',
+  'domains.fields.globalAddressList': 'edit.gal',
+  'domains.fields.tags': 'add.tags',
+  'domains.fields.rateLimit': 'edit.ratelimit',
+  'domains.fields.dkimSelector': 'admin.dkim_domains_selector',
+  'domains.fields.dkimKeySize': 'admin.dkim_key_length',
+  // UI 002: the rate limit frames, by the frame's value.
+  'domains.rateLimit.frame.second': 'ratelimit.second',
+  'domains.rateLimit.frame.minute': 'ratelimit.minute',
+  'domains.rateLimit.frame.hour': 'ratelimit.hour',
+  'domains.rateLimit.frame.day': 'ratelimit.day',
 }

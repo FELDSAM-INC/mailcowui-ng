@@ -7,6 +7,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import { apiKeysRoutes } from '@/features/api-keys'
 import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
+import { domainRoutes } from '@/features/domains'
 import { homeRoutes } from '@/features/home'
 import { passkeysRoutes } from '@/features/passkeys'
 
@@ -24,6 +25,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...passkeysRoutes,
   ...apiKeysRoutes,
   ...auditLogRoutes,
+  ...domainRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

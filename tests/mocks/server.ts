@@ -11,6 +11,8 @@
 //   GET    /__mock/health
 //   POST   /__mock/scenarios                  { name, overrides }  -> 201 { id }
 //   PATCH  /__mock/scenarios/:id              ScenarioPatch        -> 200 { id }
+//          (UI 002 adds `domains`, `templates` and `footers` mutations, `capabilities`,
+//          `domainFailures`, `delays`, `creationReport` and `domainAssignments`)
 //   GET    /__mock/scenarios/:id/violations                        -> { violations }
 //   GET    /__mock/scenarios/:id/requests                          -> { requests }
 //   DELETE /__mock/scenarios/:id

@@ -4,6 +4,11 @@
 import type {
   ApiKey,
   AuditEvent,
+  DomainCapabilities,
+  DomainCreationReport,
+  DomainDkimCapabilities,
+  DomainRateLimit,
+  DomainRelayhost,
   Passkey,
   PendingAction,
   PermissionFlags,
@@ -109,12 +114,125 @@ export interface RecordedRequest {
   headers: Record<string, string>
 }
 
+/** Usage inputs of a mock domain; the derived figures (left, new mailbox quotas) are computed. */
+export interface MockDomainUsage {
+  mailboxes: number
+  resources: number
+  aliases: number
+  largestMailboxQuota: number
+  quotaAllocated: number
+  storageUsed: number
+  messages: number
+}
+
+/** A stored domain of the mock (UI 002 research D28). Quotas are bytes in whole MiB. */
+export interface MockDomain {
+  /** Lower-case ASCII name. */
+  name: string
+  description: string
+  active: boolean
+  maxMailboxes: number
+  maxAliases: number
+  maxMailboxQuota: number
+  domainQuota: number
+  backupMx: boolean
+  relayAllRecipients: boolean
+  relayUnknownOnly: boolean
+  globalAddressList: boolean
+  tags: string[]
+  relayhost: DomainRelayhost | null
+  rateLimit: DomainRateLimit | null
+  createdAt: string
+  modifiedAt: string | null
+  usage: MockDomainUsage
+  /** Addresses for previews and footer checks; generated from the usage counts when absent. */
+  mailboxAddresses?: string[]
+  resourceAddresses?: string[]
+  aliasAddresses?: string[]
+}
+
+/** A stored domain template of the mock. */
+export interface MockDomainTemplate {
+  id: number
+  name: string
+  tags: string[]
+  maxMailboxes: number
+  maxAliases: number
+  maxMailboxQuota: number
+  domainQuota: number
+  rateLimit: DomainRateLimit | null
+  active: boolean
+  globalAddressList: boolean
+  backupMx: boolean
+  relayAllRecipients: boolean
+  relayUnknownOnly: boolean
+  dkimSelector: string
+  dkimKeySize: number
+  createdAt: string
+  modifiedAt: string | null
+}
+
+/** A stored domain footer of the mock. */
+export interface MockFooter {
+  html: string
+  plain: string
+  skipReplies: boolean
+  excludedAddresses: string[]
+  excludedAliasDomains: string[]
+}
+
+/** A failure injected for one domain: its writes, or only the listed operations, answer it. */
+export interface DomainFailure {
+  status: number
+  /** Problem type name; `about:blank` when omitted. */
+  type?: string
+  operations?: string[]
+  retryAfter?: number
+  times?: number
+}
+
+/** Runtime changes to the domain data, standing in for another administrator (research D28). */
+export interface DomainMutations {
+  /** Changes stored values by ASCII name; `usage` is merged. */
+  set?: Record<string, Partial<MockDomain>>
+  add?: (Partial<MockDomain> & { name: string })[]
+  remove?: string[]
+  /** Adds one mailbox to each named domain. */
+  addMailbox?: string[]
+}
+
+export interface TemplateMutations {
+  set?: Record<string, Partial<MockDomainTemplate>>
+  add?: (Partial<MockDomainTemplate> & { name: string })[]
+  remove?: number[]
+}
+
+export interface FooterMutations {
+  set?: Record<string, Partial<MockFooter>>
+  remove?: string[]
+}
+
 export interface ScenarioState {
   id: string
   name: string
   accounts: MockAccount[]
   apiKeys: ApiKey[]
   auditEvents: AuditEvent[]
+  /** Domains, alias domains, templates, footers and DKIM keys (UI 002). */
+  domains: MockDomain[]
+  aliasDomains: { name: string; target: string }[]
+  domainTemplates: MockDomainTemplate[]
+  footers: Record<string, MockFooter>
+  dkimKeys: string[]
+  /** The full capabilities; `dkim` is sent to administrators only. */
+  domainCapabilities: DomainCapabilities
+  /** The server's own host name, which no domain may take (`reserved`). */
+  serverHostname: string
+  /** Outcomes of the creation report steps that override the computed ones. */
+  creationReport: Partial<Omit<DomainCreationReport, 'messages'>>
+  domainFailures: Record<string, DomainFailure>
+  /** Milliseconds an operation's answer is delayed, by operationId. */
+  delays: Record<string, number>
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -140,6 +258,20 @@ export interface ScenarioOverrides {
   accounts?: Record<string, Partial<MockAccount>>
   apiKeys?: ApiKey[]
   auditEvents?: AuditEvent[]
+  /** UI 002: domain data and switches (research D28). */
+  domains?: DomainMutations
+  templates?: TemplateMutations
+  footers?: FooterMutations
+  aliasDomains?: { name: string; target: string }[]
+  dkimKeys?: string[]
+  capabilities?: Partial<Omit<DomainCapabilities, 'dkim'>> & {
+    dkim?: Partial<DomainDkimCapabilities>
+  }
+  creationReport?: Partial<Omit<DomainCreationReport, 'messages'>>
+  domainFailures?: Record<string, DomainFailure>
+  delays?: Record<string, number>
+  /** Domain administrator assignments by username (`assignDomains`). */
+  domainAssignments?: Record<string, string[]>
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

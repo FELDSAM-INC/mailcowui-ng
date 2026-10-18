@@ -23,6 +23,9 @@ import { apiKeyHandlers } from './api-keys'
 import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
 import { problem, sessionAccount, withScenario } from './context'
+import { directoryListHandlers } from './directory-lists'
+import { domainTemplateHandlers } from './domain-templates'
+import { domainHandlers } from './domains'
 import { identityHandlers } from './identity'
 import { langHandlers } from './lang'
 import { passkeyHandlers } from './passkeys'
@@ -36,6 +39,9 @@ export const areaHandlers: RequestHandler[] = [
   ...passkeyHandlers,
   ...apiKeyHandlers,
   ...auditHandlers,
+  ...domainHandlers,
+  ...domainTemplateHandlers,
+  ...directoryListHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null
@@ -67,6 +73,9 @@ function injectedFailure(state: ScenarioState, match: OperationMatch): Response 
   if (failure.status === 429) {
     extra.retryAfter = failure.retryAfter ?? state.behaviour.retryAfter
     headers['Retry-After'] = String(extra.retryAfter)
+  } else if (failure.status === 503) {
+    // UI 002: `temporary-failure` answers carry Retry-After (DomainTemporaryFailure).
+    headers['Retry-After'] = String(failure.retryAfter ?? 30)
   }
   if (failure.pendingActions) extra.pendingActions = failure.pendingActions
   if (failure.errors) extra.errors = failure.errors
@@ -108,6 +117,9 @@ export function createHandlers(stateResolver: StateResolver): RequestHandler[] {
       if (!match || violations.length > 0) return fail(match?.operationId ?? null, violations)
 
       applyIdleTimeout(state)
+      // UI 002: a deliberate delay per operation (research D28), for progress and leave checks.
+      const delay = state.delays[match.operationId]
+      if (delay) await new Promise((resolve) => setTimeout(resolve, delay))
       const response =
         injectedFailure(state, match) ??
         (await withScenario(state, () => getResponse(areaHandlers, request.clone())))

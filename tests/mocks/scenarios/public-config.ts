@@ -48,7 +48,7 @@ function defaults(): PublicConfig {
     },
     languages: ALL_LANGUAGES,
     defaultLanguage: 'en-gb',
-    externalIdentityProvider: { configured: false },
+    externalIdentityProvider: { configured: false, singleSignOnAvailable: false },
     appsLabel: null,
     appLinks: [
       {
@@ -100,7 +100,10 @@ export function publicConfig(variant: PublicConfigVariant = 'default'): PublicCo
         loginPage: { ...config.loginPage, hideAdminLogin: true, hideDomainAdminLogin: true },
       }
     case 'identity-provider':
-      return { ...config, externalIdentityProvider: { configured: true } }
+      return {
+        ...config,
+        externalIdentityProvider: { configured: true, singleSignOnAvailable: false },
+      }
     case 'no-app-links':
       return { ...config, appLinks: [] }
     case 'malicious-html':

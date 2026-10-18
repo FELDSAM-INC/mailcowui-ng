@@ -31,3 +31,41 @@ export const AUDIT_ACTOR_MAX_LENGTH = 255
 
 /** listAuditEvents query parameter `clientAddress` maxLength */
 export const AUDIT_ADDRESS_MAX_LENGTH = 49
+
+// UI 002 (T021): domains, templates, footers and the audit target.
+
+/** listDomains query parameter `tag` maxItems */
+export const DOMAIN_TAG_FILTER_MAX_ITEMS = 100
+
+/** listDomains query parameter `tag` items maxLength, and DomainTagList.items.maxLength */
+export const DOMAIN_TAG_MAX_LENGTH = 255
+
+/** DomainCreateRequest.properties.maxMailboxes.minimum (and maxAliases) */
+export const DOMAIN_LIMIT_MIN = 0
+
+/** DomainCreateRequest.properties.maxMailboxes.maximum (and maxAliases) */
+export const DOMAIN_LIMIT_MAX = 2_147_483_647
+
+/** DomainRateLimit.properties.value.minimum */
+export const RATE_LIMIT_MIN = 1
+
+/** DomainRateLimit.properties.value.maximum */
+export const RATE_LIMIT_MAX = 2_147_483_647
+
+/** DomainCreateRequest.properties.domainQuota.maximum (bytes; the same for every quota) */
+export const QUOTA_MAX_BYTES = 9_007_199_254_740_992
+
+/** DomainTemplateCreateRequest.properties.name.maxLength */
+export const TEMPLATE_NAME_MAX_LENGTH = 255
+
+/** DomainCreateRequest.properties.dkimSelector.maxLength */
+export const DKIM_SELECTOR_MAX_LENGTH = 255
+
+/** DomainFooterReplace.properties.excludedAddresses.items.maxLength (and excludedAliasDomains) */
+export const FOOTER_EXCLUSION_MAX_LENGTH = 255
+
+/** The `q` search parameter (`Search`) maxLength */
+export const SEARCH_MAX_LENGTH = 255
+
+/** listAuditEvents query parameter `targetId` maxLength */
+export const AUDIT_TARGET_ID_MAX_LENGTH = 255

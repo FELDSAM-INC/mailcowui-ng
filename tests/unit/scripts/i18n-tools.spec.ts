@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  checkCoverage,
   checkMessages,
   duplicateLegacyMeanings,
   enumValuesFromSchema,
@@ -216,5 +217,131 @@ describe('new-string keys named in the source', () => {
     const errors = checkMessages(input).errors.join('\n')
     expect(errors).toMatch(/common\.cancel.*not a new string/)
     expect(errors).not.toMatch(/problem\.generic/)
+  })
+})
+
+// UI 002 (research D2): the coverage manifest of growing shared enumerations.
+describe('coverage manifest (UI 002 research D2)', () => {
+  const contract = {
+    components: {
+      schemas: {
+        BulkItemOutcome: { type: 'string', enum: ['done', 'failed'] },
+        NotAnEnum: { type: 'string' },
+      },
+      parameters: { DomainSort: { schema: { type: 'string', enum: ['name', 'storageUsed'] } } },
+    },
+  }
+  const enums = {
+    auditEventTypeValues: ['signIn', 'signOut', 'domainCreation', 'mailboxCreation'],
+    auditTargetTypeValues: ['session', 'domain'],
+    auditFailureReasonValues: ['invalidCredentials', 'conflict'],
+    authMethodValues: ['password', 'ssoToken'],
+    validationRuleCodeValues: ['required', 'belowInUse'],
+    roleValues: ['admin', 'domainAdmin'],
+    themeValues: ['light'],
+    knownProblemTypeValues: ['/api/v2/problems/forbidden', '/api/v2/problems/domain-exists'],
+  }
+  const problemNames = ['forbidden', 'domain-exists', 'mailbox-exists']
+  const coverage = {
+    partial: {
+      AuditEventType: ['signIn', 'domainCreation'],
+      'AuditTarget.type': ['domain'],
+      AuditFailureReason: ['conflict'],
+      AuthMethod: ['password'],
+      ValidationRuleCode: ['required', 'belowInUse'],
+      problemTypes: ['forbidden', 'domain-exists'],
+    },
+    complete: {
+      'bulk.outcome': '#/components/schemas/BulkItemOutcome',
+      'domains.sort': '#/components/parameters/DomainSort/schema',
+    },
+  }
+
+  it('requires a key for every listed value of the growing enumerations and no other', () => {
+    const { required, errors } = checkCoverage({ coverage, enums, problemNames, contract })
+    expect(errors).toEqual([])
+    expect(required).toEqual(
+      expect.arrayContaining([
+        'enums.auditEventType.signIn',
+        'enums.auditEventType.domainCreation',
+        'enums.auditTargetType.domain',
+        'enums.auditFailureReason.conflict',
+        'enums.authMethod.password',
+        'validation.required',
+        'validation.belowInUse',
+        'problem.forbidden',
+        'problem.domain-exists',
+      ]),
+    )
+    expect(required).not.toContain('enums.auditEventType.mailboxCreation')
+    expect(required).not.toContain('enums.authMethod.ssoToken')
+    expect(required).not.toContain('problem.mailbox-exists')
+  })
+
+  it('reports every contract value that is not listed as a warning only', () => {
+    const { warnings, errors } = checkCoverage({ coverage, enums, problemNames, contract })
+    expect(errors).toEqual([])
+    const text = warnings.join('\n')
+    expect(text).toMatch(/AuditEventType.*signOut/)
+    expect(text).toMatch(/AuditEventType.*mailboxCreation/)
+    expect(text).toMatch(/AuthMethod.*ssoToken/)
+    expect(text).toMatch(/problemTypes.*mailbox-exists/)
+  })
+
+  it('fails on a listed value missing from the pinned enumeration array', () => {
+    const stale = structuredClone(coverage)
+    stale.partial.AuditEventType.push('domainRename')
+    stale.partial.ValidationRuleCode.push('notAThing')
+    const text = checkCoverage({ coverage: stale, enums, problemNames, contract }).errors.join('\n')
+    expect(text).toMatch(/AuditEventType.*domainRename/)
+    expect(text).toMatch(/ValidationRuleCode.*notAThing/)
+  })
+
+  it('fails on a listed problem type that neither the bundle nor knownProblemTypeValues names', () => {
+    const stale = structuredClone(coverage)
+    stale.partial.problemTypes.push('invented-problem')
+    const text = checkCoverage({ coverage: stale, enums, problemNames, contract }).errors.join('\n')
+    expect(text).toMatch(/problemTypes.*invented-problem/)
+  })
+
+  it("keeps UI 001's fully required enumerations complete", () => {
+    const { required } = checkCoverage({ coverage, enums, problemNames, contract })
+    expect(required).toEqual(
+      expect.arrayContaining(['roles.admin', 'roles.domainAdmin', 'themes.light']),
+    )
+  })
+
+  it('requires <prefix>.<value> for every value of each `complete` registry entry', () => {
+    const { required } = checkCoverage({ coverage, enums, problemNames, contract })
+    expect(required).toEqual(
+      expect.arrayContaining([
+        'bulk.outcome.done',
+        'bulk.outcome.failed',
+        'domains.sort.name',
+        'domains.sort.storageUsed',
+      ]),
+    )
+  })
+
+  it('fails on a `complete` pointer that does not resolve to an object with an enum', () => {
+    const broken = structuredClone(coverage) as typeof coverage & {
+      complete: Record<string, string>
+    }
+    broken.complete['x.missing'] = '#/components/schemas/Nope'
+    broken.complete['x.plain'] = '#/components/schemas/NotAnEnum'
+    const text = checkCoverage({ coverage: broken, enums, problemNames, contract }).errors.join(
+      '\n',
+    )
+    expect(text).toMatch(/x\.missing/)
+    expect(text).toMatch(/x\.plain/)
+  })
+
+  it('makes the completeness check fail when a listed value has no key in one locale', () => {
+    const { required } = checkCoverage({ coverage, enums, problemNames, contract })
+    const input = baseInput()
+    input.required = required.filter((key) => key === 'validation.belowInUse')
+    input.app['en-gb'] = { ...input.app['en-gb'], validation: { belowInUse: 'In use: {inUse}' } }
+    input.app['cs-cz'] = { ...input.app['cs-cz'], validation: { belowInUse: 'Použito: {inUse}' } }
+    expect(checkMessages(input).errors.join('\n')).toMatch(/sk-sk.*validation\.belowInUse/)
   })
 })

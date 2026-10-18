@@ -80,6 +80,37 @@ describe('contract limits (data-model §6)', () => {
     ['AUDIT_EVENT_TYPES_MAX_ITEMS', queryParameter('/audit-events', 'get', 'eventType').maxItems],
     ['AUDIT_ACTOR_MAX_LENGTH', queryParameter('/audit-events', 'get', 'actor').maxLength],
     ['AUDIT_ADDRESS_MAX_LENGTH', queryParameter('/audit-events', 'get', 'clientAddress').maxLength],
+    // UI 002 (T021): the domain, template, footer and audit target limits.
+    ['DOMAIN_TAG_FILTER_MAX_ITEMS', queryParameter('/domains', 'get', 'tag').maxItems],
+    ['DOMAIN_TAG_MAX_LENGTH', (queryParameter('/domains', 'get', 'tag').items as Json).maxLength],
+    ['DOMAIN_TAG_MAX_LENGTH', schemaValue('DomainTagList', 'items', 'maxLength')],
+    [
+      'DOMAIN_LIMIT_MIN',
+      schemaValue('DomainCreateRequest', 'properties', 'maxMailboxes', 'minimum'),
+    ],
+    [
+      'DOMAIN_LIMIT_MAX',
+      schemaValue('DomainCreateRequest', 'properties', 'maxMailboxes', 'maximum'),
+    ],
+    ['DOMAIN_LIMIT_MAX', schemaValue('DomainCreateRequest', 'properties', 'maxAliases', 'maximum')],
+    ['RATE_LIMIT_MIN', schemaValue('DomainRateLimit', 'properties', 'value', 'minimum')],
+    ['RATE_LIMIT_MAX', schemaValue('DomainRateLimit', 'properties', 'value', 'maximum')],
+    ['QUOTA_MAX_BYTES', schemaValue('DomainCreateRequest', 'properties', 'domainQuota', 'maximum')],
+    [
+      'TEMPLATE_NAME_MAX_LENGTH',
+      schemaValue('DomainTemplateCreateRequest', 'properties', 'name', 'maxLength'),
+    ],
+    [
+      'DKIM_SELECTOR_MAX_LENGTH',
+      schemaValue('DomainCreateRequest', 'properties', 'dkimSelector', 'maxLength'),
+    ],
+    [
+      'FOOTER_EXCLUSION_MAX_LENGTH',
+      schemaValue('DomainFooterReplace', 'properties', 'excludedAddresses', 'items', 'maxLength'),
+    ],
+    ['SEARCH_MAX_LENGTH', queryParameter('/domains', 'get', 'q').maxLength],
+    ['SEARCH_MAX_LENGTH', queryParameter('/domain-templates', 'get', 'q').maxLength],
+    ['AUDIT_TARGET_ID_MAX_LENGTH', queryParameter('/audit-events', 'get', 'targetId').maxLength],
   ]
 
   it.each(cases)('%s equals the contract value', (name, expected) => {
@@ -93,6 +124,11 @@ describe('contract limits (data-model §6)', () => {
     expect(limits.NETWORK_MAX_LENGTH).toBe(49)
     expect(limits.AUDIT_EVENT_TYPES_MAX_ITEMS).toBe(20)
     expect(limits.PASSWORD_MAX_LENGTH).toBe(4096)
+    expect(limits.DOMAIN_TAG_FILTER_MAX_ITEMS).toBe(100)
+    expect(limits.DOMAIN_LIMIT_MAX).toBe(2_147_483_647)
+    expect(limits.RATE_LIMIT_MIN).toBe(1)
+    expect(limits.QUOTA_MAX_BYTES).toBe(9_007_199_254_740_992)
+    expect(limits.TEMPLATE_NAME_MAX_LENGTH).toBe(255)
   })
 
   it('tests every exported limit', () => {

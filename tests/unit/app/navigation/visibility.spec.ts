@@ -44,6 +44,7 @@ function identity(role: Role, granted: Flag[]): Identity {
 const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   home: { admin: true, domainAdmin: true, mailboxUser: true },
   domains: { admin: true, domainAdmin: true, mailboxUser: false },
+  domainTemplates: { admin: true, domainAdmin: false, mailboxUser: false },
   mailboxes: { admin: true, domainAdmin: true, mailboxUser: false },
   aliases: { admin: true, domainAdmin: true, mailboxUser: false },
   account: { admin: true, domainAdmin: true, mailboxUser: true },
@@ -73,13 +74,14 @@ function shown(rule: boolean | Flag[], granted: Flag[]): boolean {
 }
 
 describe('navigation catalogue', () => {
-  it('has the 17 rows of data-model §2 in navigation order', () => {
+  it('has the 18 rows of data-model §2 (UI 002 adds domainTemplates) in navigation order', () => {
     expect(catalogue.map((entry) => entry.id)).toEqual(ORDER)
   })
 
   it('names every entry by its classic name or nav.<id>, with an icon and a section root', () => {
     const classic: Record<string, string> = {
       domains: 'mailbox.domains',
+      domainTemplates: 'mailbox.domain_templates',
       mailboxes: 'mailbox.mailboxes',
       account: 'header.user_settings',
       quarantine: 'header.quarantine',
@@ -97,8 +99,12 @@ describe('navigation catalogue', () => {
   })
 
   it('starts every row as a placeholder until its story makes it available', () => {
+    // Rows that later features have delivered so far (UI 002 US1: domains; US6: templates).
+    const available = new Set<NavEntryId>(['domains', 'domainTemplates'])
     const delivered = catalogue.filter((entry) => entry.deliveredBy !== '001')
-    expect(delivered.every((entry) => entry.status === 'placeholder')).toBe(true)
+    for (const entry of delivered) {
+      expect(entry.status, entry.id).toBe(available.has(entry.id) ? 'available' : 'placeholder')
+    }
   })
 
   it('links every placeholder to the classic interface for each role that sees it', () => {

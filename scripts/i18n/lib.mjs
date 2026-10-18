@@ -259,3 +259,93 @@ export function duplicateLegacyMeanings(appEn, snapshot) {
   }
   return result.sort((a, b) => a.key.localeCompare(b.key))
 }
+
+/**
+ * The growing shared enumerations that `src/i18n/coverage.json` scopes (UI 002 research D2): the
+ * manifest name, the generated array and the message namespace. `problemTypes` is handled apart.
+ */
+export const PARTIAL_ENUMS = {
+  AuditEventType: 'auditEventTypeValues',
+  'AuditTarget.type': 'auditTargetTypeValues',
+  AuditFailureReason: 'auditFailureReasonValues',
+  AuthMethod: 'authMethodValues',
+  ValidationRuleCode: 'validationRuleCodeValues',
+}
+
+/** Resolves a local JSON pointer (`#/components/schemas/X`) in a parsed contract. */
+export function resolvePointer(document, pointer) {
+  if (typeof pointer !== 'string' || !pointer.startsWith('#/')) return undefined
+  let node = document
+  for (const raw of pointer.slice(2).split('/')) {
+    const part = raw.replace(/~1/g, '/').replace(/~0/g, '~')
+    if (node === null || typeof node !== 'object' || !(part in node)) return undefined
+    node = node[part]
+  }
+  return node
+}
+
+/**
+ * Rule 3 with the coverage manifest (UI 002 research D2). The enumerations listed in `partial`
+ * require keys only for their listed values; a listed value the contract no longer has is an
+ * error, and a contract value that is not listed is a warning (it falls back to a generic label at
+ * runtime). Every other enumeration of rule 3 stays fully required. Each `complete` entry maps a
+ * key prefix to a JSON pointer into the contract whose `enum` values all need `<prefix>.<value>`.
+ */
+export function checkCoverage({ coverage, enums, problemNames, contract }) {
+  const errors = []
+  const warnings = []
+  const required = new Set()
+  const partial = coverage?.partial ?? {}
+  const scoped = new Set(Object.keys(PARTIAL_ENUMS).filter((name) => name in partial))
+
+  for (const [constName, namespace] of Object.entries(ENUM_NAMESPACES)) {
+    const manifestName = Object.keys(PARTIAL_ENUMS).find(
+      (name) => PARTIAL_ENUMS[name] === constName,
+    )
+    const values = enums[constName] ?? []
+    if (!manifestName || !scoped.has(manifestName)) {
+      for (const value of values) required.add(`${namespace}.${value}`)
+      continue
+    }
+    const listed = partial[manifestName]
+    for (const value of listed) {
+      if (!values.includes(value)) {
+        errors.push(`coverage.json: ${manifestName} lists "${value}", which the contract lacks`)
+      } else required.add(`${namespace}.${value}`)
+    }
+    for (const value of values) {
+      if (!listed.includes(value)) warnings.push(`${manifestName}: "${value}" is not translated`)
+    }
+  }
+
+  const problems = new Set(problemNames)
+  for (const type of enums.knownProblemTypeValues ?? []) {
+    const name = String(type).split('/').at(-1)
+    if (name) problems.add(name)
+  }
+  if (Array.isArray(partial.problemTypes)) {
+    for (const name of partial.problemTypes) {
+      if (!problems.has(name)) {
+        errors.push(`coverage.json: problemTypes lists "${name}", which the contract lacks`)
+      } else required.add(`problem.${name}`)
+    }
+    for (const name of [...problems].sort()) {
+      if (!partial.problemTypes.includes(name)) {
+        warnings.push(`problemTypes: "${name}" is not translated`)
+      }
+    }
+  } else {
+    for (const name of problems) required.add(`problem.${name}`)
+  }
+
+  for (const [prefix, pointer] of Object.entries(coverage?.complete ?? {})) {
+    const target = resolvePointer(contract, pointer)
+    if (!target || typeof target !== 'object' || !Array.isArray(target.enum)) {
+      errors.push(`coverage.json: complete "${prefix}" points to ${pointer}, which has no enum`)
+      continue
+    }
+    for (const value of target.enum) required.add(`${prefix}.${value}`)
+  }
+
+  return { required: [...required].sort(), errors, warnings }
+}

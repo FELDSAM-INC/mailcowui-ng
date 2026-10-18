@@ -14,9 +14,13 @@ pin this feature needs, the operations it uses, and how it reacts to their probl
 | Contract version (`info.version`) | `0.1.0` (does not identify a contract, UI 001 R6) |
 | Planning baseline (commit) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
 | Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
-| Operations in the bundle | 376 (this feature uses 16 new ones, plus UI 001's `listAuditEvents` and `getIdentity`) |
+| Operations in the bundle | 376 at the baseline, 377 at the pin (this feature uses 16 new ones, plus UI 001's `listAuditEvents` and `getIdentity`) |
 | API 002 contract unchanged since | `651cef0` ("Move domain capabilities to /capabilities/domains") |
 | Pin at implementation | the release tag, or else the first commit, at which mailcow-rest-v2 feature 002 is implemented and its quickstart Part A passes (research D1) |
+| Pinned (T001, 2026-10-18) | `97aa81f3dec5c797ec6d162bcc8fbc50a5d1c814` ("Implement the audit log list and retention purge (001 US6, G18, G19)"), the latest mailcow-rest-v2 `main` commit that touches `api/` when UI 002 started. Bundle sha256 `66461886e27f3b378da80d48dd1284881eb186b6de1826e60bafb0464eb4d7b2`, 376 operations. API 002 was still being implemented (its worktree had not changed `api/`), so no commit yet implements feature 002 and passes its quickstart Part A; the pin moves forward when it lands. |
+| Pin moved (2026-10-18, during US5) | `c1677d577ba66ef3ff360421e0478d6eb3ae5144` ("Do not rebuild the groupware directory when a domain is created, like legacy"), on the coordinator's request. API feature 002 is implemented at this commit (US1 to US8 and its polish, with staging release checks). Bundle sha256 `c7e7fd56b6dd95cd36f2a442bd6afa55691fd9296a0d49c67bc2e624c3735f89`, 377 operations (the new one is `getApiRoot`). |
+| Pin moved (2026-10-18, during US7) | `80d0c4b` (API `main`), on the coordinator's request, for the footer exclusion list: `listMailboxes`, `listAliases` and `listAliasDomains` filtered by domain (features 003 and 004), and `applyDomainTemplateBulkAction` (gap G40). |
+| Pin moved (2026-10-18, during US8) | `4c257673352c16d12c842e043bef90584381ea32` ("Remove the default mailbox quota from the API (owner decision)"), with features 003, 004, 008 and 011. `defaultMailboxQuota` is gone from domains, templates, their requests, sorts and bulk results; the UI never sends, reads or sorts it. Bundle sha256 `9dddcdb6f7e2355c6a9f56d4ef2c23ed69514151843237e97a51e9ea401b90a9`, 379 operations. |
 
 **Bump procedure** (tasks.md T001):
 
@@ -42,6 +46,45 @@ values and operations of mailcow-rest-v2 features 003 to 013. They are not used,
 translation coverage manifest keeps them out of the completeness gate (research D2). It also
 generates `knownProblemTypeValues`, closing UI 001's API gap 5.
 
+**Domain contract diff at the pin** (T001 step 3): between `3207925` and `97aa81f`, only
+`api/modules/audit/audit-events.yaml` changed. It gained the `authMethod` and `requestId` filters
+of `GET /audit-events` (API gaps G18 and G19, for UI 012) and a note that an unknown event type
+matches no records. The `targetType` and `targetId` filters that this plan uses are unchanged, so
+the plan still matches the contract. `AuditEvent.details` now points to mailcow-rest-v2
+`docs/audit-events.md`, which does not document the domain, template or footer records yet (gap G1
+below). The bump also generates `knownProblemTypeValues`, closing UI 001's API gap 5.
+
+**Domain contract diff at the move to `c1677d5`** (97aa81f..c1677d5): the range holds API 002's
+domains, the `GET /api/v2/` redirect (`getApiRoot`, not used) and the creation report fix. Every
+operation this feature uses was reviewed; the changes and how the app follows them:
+
+- `DomainCreationReport` lost `groupwareDirectoryUpdate`: like legacy, a creation does not rebuild
+  the groupware directory. The report has four steps (`rateLimit`, `dkimKey`,
+  `dkimDnsPublication`, `groupwareRestart`); the step, its messages and its coverage entry are
+  gone. The alias domain and mailbox reports keep their own step.
+- `Domain.footer` (`DomainFooterSummary`, gap G28, required): the domain page's footer summary
+  reads it and no longer fetches the footer. `DomainPatch` lists `footer` as read-only (the app
+  never sends it). A footer save invalidates the domain and the lists, because the summary is not
+  covered by the domain's version tag.
+- `DomainCapabilities.templateDefaults` (gap G29, administrators only) and the `default` keywords
+  of `DomainTemplateCreateRequest`: the create form without a template, and the new template form,
+  start from `templateDefaults`; `defaults.ts` stays as the fallback for its absence and is tested
+  against the `default` keywords. openapi-typescript makes the members with a `default` keyword
+  required in the generated `DomainTemplateCreateRequest`; the app always sends a whole template,
+  so that is kept. openapi-fetch's `Readable` drops `templateDefaults.rateLimit` (type `null`)
+  from the response type, so the capabilities read is typed as `DomainCapabilities`.
+- `BulkTarget.version` (gap G33): documented as the exact `etag`, quotes included, also accepted
+  without them. The app now sends the `etag` exactly as read.
+- `PermissionFlagRequiredProblem` (G34): shared base of the permission-flag problems; none of this
+  feature's operations returns it.
+- `createDomain`'s description no longer lists the groupware directory step. Nothing else of the
+  sixteen operations, their parameters or their problem types changed.
+
+**Generator note**: openapi-typescript 7.13 emits a few value-array annotations that do not compile
+for schemas of features 003 and 005 (read-only enums and `oneOf` members rendered as `unknown`).
+`scripts/contract/generate.mjs` therefore marks the generated file `@ts-nocheck`; the declarations
+stay fully typed for the code that imports them.
+
 ## Operations used by this feature
 
 | operationId | Method and path | Used by | Requirements |
@@ -53,7 +96,7 @@ generates `knownProblemTypeValues`, closing UI 001's API gap 5.
 | `updateDomain` | PATCH `/domains/{domain}` | section saves | FR-029 to FR-040 |
 | `deleteDomain` | DELETE `/domains/{domain}` | deletion | FR-041 to FR-044 |
 | `previewDomainDeletion` | GET `/domains/{domain}/deletion-preview` | deletion impact | FR-041 to FR-043 |
-| `getDomainFooter` | GET `/domains/{domain}/footer` | footer summary, footer editor | FR-015, FR-057 |
+| `getDomainFooter` | GET `/domains/{domain}/footer` | footer editor (the summary reads `Domain.footer`) | FR-057 |
 | `replaceDomainFooter` | PUT `/domains/{domain}/footer` | footer editor | FR-057 to FR-062 |
 | `getDomainsCapabilities` | GET `/capabilities/domains` | limits and server settings of every form and the list | FR-021, FR-024, FR-039, FR-040, FR-045, FR-060 |
 | `listDomainTags` | GET `/domain-tags` | tag filter and tag suggestions | FR-010, FR-039 |

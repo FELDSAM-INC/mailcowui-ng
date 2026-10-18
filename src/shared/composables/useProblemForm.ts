@@ -19,21 +19,35 @@ export interface SummaryItem {
 export interface ProblemFormOptions {
   /** The element ID of the control for a field path, or null when the form has no such field. */
   fieldId: (path: string) => string | null
+  /** UI 002: the kind of a field, so that sizes in rule parameters are shown as sizes. */
+  fieldKind?: (path: string) => 'size' | 'count' | undefined
+  /** UI 002: the translated label of a field, for `mustNotExceed` and named attributes. */
+  labelFor?: (field: string) => string
+  /**
+   * UI 002: problem types shown on a field, for example `domain-exists` on `name`: the problem's
+   * message becomes that field's error.
+   */
+  problemFields?: Record<string, string>
 }
 
 let counter = 0
 
 export function useProblemForm(options: ProblemFormOptions) {
   const { t } = useI18n()
-  const { problemMessage, violationMessage } = useProblemMessages()
+  const { problemMessage, violationMessageIn } = useProblemMessages()
   const summaryId = `error-summary-${++counter}`
 
   const problem = shallowRef<ApiProblem | null>(null)
   /** Client-side errors: field path to message keys. */
   const clientErrors = shallowRef<Record<string, string[]>>({})
+  /** UI 002: client errors as already translated messages (with their parameters filled in). */
+  const clientMessages = shallowRef<Record<string, string[]>>({})
 
   const errors = computed(() => {
     const map = new Map<string, string[]>()
+    for (const [path, messages] of Object.entries(clientMessages.value)) {
+      if (messages.length > 0) map.set(path, [...messages])
+    }
     for (const [path, keys] of Object.entries(clientErrors.value)) {
       if (keys.length > 0)
         map.set(
@@ -43,13 +57,25 @@ export function useProblemForm(options: ProblemFormOptions) {
     }
     for (const [path, violations] of problem.value?.fieldErrors ?? []) {
       if (options.fieldId(path) === null) continue
+      const context = { kind: options.fieldKind?.(path), labelFor: options.labelFor }
       map.set(path, [
         ...(map.get(path) ?? []),
-        ...violations.map((v: FieldViolation) => violationMessage(v)),
+        ...violations.map((v: FieldViolation) => violationMessageIn(v, context)),
       ])
+    }
+    const mapped = mappedField(problem.value)
+    if (mapped && problem.value) {
+      map.set(mapped, [...(map.get(mapped) ?? []), problemMessage(problem.value)])
     }
     return map
   })
+
+  /** The field a problem type is shown on, when the form has it. */
+  function mappedField(current: ApiProblem | null): string | null {
+    const name = current?.problemName
+    const path = name ? options.problemFields?.[name] : undefined
+    return path && options.fieldId(path) !== null ? path : null
+  }
 
   const summary = computed<SummaryItem[]>(() =>
     [...errors.value].flatMap(([path, messages]) => {
@@ -62,6 +88,7 @@ export function useProblemForm(options: ProblemFormOptions) {
   const formProblem = computed<ApiProblem | null>(() => {
     const current = problem.value
     if (!current) return null
+    if (mappedField(current)) return null
     const mapped = [...current.fieldErrors.keys()].some((path) => options.fieldId(path) !== null)
     return mapped ? null : current
   })
@@ -96,9 +123,17 @@ export function useProblemForm(options: ProblemFormOptions) {
     return focusAndAnnounce()
   }
 
+  function setClientMessages(next: Record<string, string[]>): Promise<void> {
+    clientMessages.value = next
+    clientErrors.value = {}
+    problem.value = null
+    return focusAndAnnounce()
+  }
+
   function clear() {
     problem.value = null
     clientErrors.value = {}
+    clientMessages.value = {}
   }
 
   return {
@@ -110,6 +145,7 @@ export function useProblemForm(options: ProblemFormOptions) {
     errorsFor,
     setProblem,
     setClientErrors,
+    setClientMessages,
     clear,
   }
 }

@@ -246,6 +246,12 @@ comment naming the Lucide icon.
 | `src/shared/icons/MonitorIcon.vue` | Lucide `icons/monitor.svg` |
 | `src/shared/icons/ExternalLinkIcon.vue` | Lucide `icons/external-link.svg` |
 | `src/shared/icons/AtSignIcon.vue` | Lucide `icons/at-sign.svg` |
+| `src/shared/icons/ChevronDoubleLeftIcon.vue` | Lucide `icons/chevrons-left.svg` (UI 002) |
+| `src/shared/icons/ChevronDoubleRightIcon.vue` | Lucide `icons/chevrons-right.svg` (UI 002) |
+| `src/shared/icons/LayersIcon.vue` | Lucide `icons/layers.svg` (UI 002, domain templates) |
+| `src/shared/icons/TagIcon.vue` | Lucide `icons/tag.svg` (UI 002) |
+| `src/shared/icons/PlusIcon.vue` | Lucide `icons/plus.svg` (UI 002) |
+| `src/shared/icons/TrashIcon.vue` | Lucide `icons/trash-2.svg` (UI 002) |
 
 ### ISC licence
 

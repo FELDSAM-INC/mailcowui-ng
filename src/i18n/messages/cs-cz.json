@@ -135,7 +135,8 @@
       "clearAll": "Zrušit všechny filtry",
       "custom": "{from} až {to}",
       "label": "Aktivní filtry",
-      "remove": "Odebrat filtr: {filter}"
+      "remove": "Odebrat filtr: {filter}",
+      "targetId": "Cíl: {id}"
     },
     "columns": {
       "actor": "Aktér",
@@ -162,6 +163,7 @@
       "address": "Adresa klienta",
       "addressHelp": "Adresa IPv4 nebo IPv6 nebo síť, například 192.0.2.0/24.",
       "anyOutcome": "Libovolný výsledek",
+      "anyTargetType": "Jakýkoli typ cíle",
       "apply": "Použít filtry",
       "clear": "Zrušit filtry",
       "eventTypes": "Typy událostí",
@@ -176,13 +178,14 @@
         "any": "Kdykoli",
         "custom": "Vlastní období"
       },
+      "targetId": "Cíl",
+      "targetType": "Typ cíle",
       "title": "Filtry",
       "to": "Do"
     },
     "notRecorded": "Nezaznamenáno",
     "records": "Záznamy auditu",
     "resultCount": "Nalezené záznamy: {total}",
-    "targetFilterUnavailable": "Filtrování podle jednoho objektu přijde v pozdější verzi aplikace. Zobrazují se všechny záznamy.",
     "title": "Protokol auditu",
     "unknown": "Neznámé ({code})"
   },
@@ -253,7 +256,47 @@
       }
     }
   },
+  "bulk": {
+    "actions": "Hromadné akce",
+    "clear": "Zrušit výběr",
+    "confirm": {
+      "typeCount": "Pro potvrzení zadejte {count}"
+    },
+    "count": {
+      "done": "hotovo: {count}",
+      "failed": "selhalo: {count}",
+      "notFound": "nenalezeno: {count}",
+      "notProcessed": "nezpracováno: {count}",
+      "outdated": "mezitím změněno: {count}",
+      "refused": "odmítnuto: {count}",
+      "skipped": "přeskočeno: {count}",
+      "unknown": "s neznámým výsledkem: {count}"
+    },
+    "exitSelection": "Ukončit výběr",
+    "limitReached": "Pro jednu akci můžete vybrat nejvýše {max} položek.",
+    "outcome": {
+      "done": "Hotovo",
+      "failed": "Selhalo",
+      "notFound": "Nenalezeno",
+      "notProcessed": "Nezpracováno",
+      "outdated": "Mezitím změněno",
+      "refused": "Odmítnuto",
+      "skipped": "Přeskočeno",
+      "unknown": "Výsledek neznámý"
+    },
+    "progress": "Zpracovává se {count} položek…",
+    "retry": "Zopakovat neúspěšné",
+    "select": "Vybrat",
+    "selectAll": "Vybrat vše na této stránce",
+    "selectItem": "Vybrat {name}",
+    "selected": "Vybráno: {count}",
+    "summary": {
+      "announce": "Výsledky: {counts}.",
+      "title": "Výsledky"
+    }
+  },
   "common": {
+    "back": "Zpět",
     "close": "Zavřít",
     "documentTitle": "{page} – {site}",
     "goHome": "Přejít na úvodní obrazovku",
@@ -261,6 +304,199 @@
     "requestId": "ID požadavku: {requestId}",
     "retry": "Zkusit znovu",
     "signOut": "Odhlásit se"
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "Formulář se nepodařilo načíst."
+    },
+    "default": "Výchozí",
+    "delete": {
+      "changed": "Šablona se mezitím změnila. Zkontrolujte ji a potvrďte znovu.",
+      "keepValues": "Domény vytvořené z této šablony si své hodnoty ponechají. | Domény vytvořené z těchto šablon si své hodnoty ponechají.",
+      "notDeletedTitle": "{name} nebyla smazána"
+    },
+    "detail": {
+      "backToList": "Zpět na šablony domén",
+      "loadFailed": "Šablonu se nepodařilo načíst.",
+      "loading": "Načítání šablony…"
+    },
+    "edit": {
+      "defaultName": "Výchozí šablonu nelze přejmenovat.",
+      "gone": "Tato šablona už neexistuje."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Nalezené šablony: {count}",
+      "detailsOf": "Podrobnosti {name}"
+    },
+    "sort": {
+      "createdAt": "Vytvořeno",
+      "id": "ID",
+      "modifiedAt": "Naposledy změněno",
+      "name": "Název"
+    }
+  },
+  "domains": {
+    "bulk": {
+      "adminRule": "Účty administrátorů domén, kterým nezůstane žádná doména, se smažou.",
+      "dataRule": "Patičky, štítky a uložená pošta se odstraní. Klíče DKIM zůstanou zachovány.",
+      "deactivateEffect": "Týká se to všech schránek těchto domén: jejich uživatelé se už nepřihlásí a domény nebudou přijímat poštu.",
+      "deactivateTitle": "Deaktivovat vybrané domény ({count})?",
+      "delete": "Smazat",
+      "deleteConfirm": "Smazat domény",
+      "deleteIntro": "Tyto domény se smažou. Nelze to vrátit zpět.",
+      "deleteTitle": "Smazat vybrané domény ({count})?",
+      "impactItem": "aliasy: {aliases}, aliasy domény: {aliasDomains}, administrátoři domény: {admins}",
+      "leaveRunning": "Akce na serveru dál běží, ale její výsledek se nezobrazí.",
+      "leaveTitle": "Odejít, dokud akce běží?",
+      "progress": "Zpracovává se domén: {count}…",
+      "skippedIntro": "Přeskočeno, protože stále obsahují schránky nebo prostředky:",
+      "skippedItem": "{name}: schránky ({mailboxes}), prostředky ({resources})"
+    },
+    "create": {
+      "loadFailed": "Šablony domén nebo nastavení serveru se nepodařilo načíst."
+    },
+    "delete": {
+      "action": "Smazat",
+      "admins": "Administrátoři domény: {list}",
+      "adminsKept": "Žádný účet administrátora domény se nesmaže.",
+      "adminsToDelete": "Tyto účty administrátorů domény se smažou, protože jim nezůstane žádná doména: {list}",
+      "aliasDomains": "Odstraní se aliasy domény: {list}",
+      "aliases": "Odstraní se aliasy: {count}",
+      "blockedTitle": "Doménu {name} nelze smazat",
+      "blockerMailboxes": "schránky ({count})",
+      "blockerResources": "prostředky ({count})",
+      "blockersIntro": "Nejprve odstraňte:",
+      "changed": "Doména se mezitím změnila. Zkontrolujte dopad znovu.",
+      "confirm": "Smazat doménu",
+      "data": "Štítky a uložená pošta domény se odstraní.",
+      "dkimKept": "Klíč DKIM zůstane zachován.",
+      "footer": "Patička se odstraní.",
+      "gone": "Tato doména již neexistuje.",
+      "intro": "Smazání domény nelze vrátit zpět.",
+      "noAdmins": "Doména nemá přiřazeného administrátora.",
+      "notDeleted": "Nic nebylo smazáno.",
+      "notDeletedTitle": "Doména {name} nebyla smazána",
+      "showAliases": "Zobrazit aliasy",
+      "title": "Smazat doménu {name}?",
+      "typeName": "Pro potvrzení zadejte název domény {name}",
+      "unavailable": "Ke smazání domény nejprve odstraňte její schránky ({mailboxes}) a prostředky ({resources})."
+    },
+    "detail": {
+      "backToList": "Zpět na domény",
+      "loadFailed": "Doménu se nepodařilo načíst.",
+      "loading": "Načítá se doména…"
+    },
+    "edit": {
+      "gone": "Tato doména již neexistuje nebo vám již není dostupná.",
+      "notSaved": "Nic nebylo uloženo."
+    },
+    "empty": {
+      "admin": "Zatím neexistují žádné domény. Začněte přidáním první domény.",
+      "clearAll": "Vymazat hledání a filtry",
+      "domainAdmin": "Zatím vám není přiřazena žádná doména. Obraťte se na administrátora.",
+      "noMatch": "Hledání a filtrům neodpovídá žádná doména."
+    },
+    "fields": {
+      "inUseCount": "Využito: {count}.",
+      "maxMailboxQuota": "Max. kvóta na schránku"
+    },
+    "filters": {
+      "active": "Stav aktivace",
+      "activeOnly": "Aktivní",
+      "all": "Vše",
+      "clear": "Vymazat všechny filtry",
+      "filterByTag": "Filtrovat podle štítku {tag}",
+      "inactiveOnly": "Neaktivní",
+      "localOnly": "Ostatní domény",
+      "relay": "Předávání",
+      "relayOnly": "Předávané domény",
+      "tagsHint": "Zobrazí domény s kterýmkoli z těchto štítků.",
+      "title": "Filtry",
+      "withCount": "Filtry ({count})"
+    },
+    "footer": {
+      "aliasDomainSubtext": "Alias-Domain",
+      "aliasSubtext": "Alias"
+    },
+    "list": {
+      "actionsFor": "Akce pro {name}",
+      "clearSearch": "Vymazat hledání",
+      "count": "Nalezené domény: {count}",
+      "details": "Podrobnosti",
+      "detailsOf": "Podrobnosti domény {name}",
+      "loading": "Načítají se domény…",
+      "messagesCount": "Zprávy: {count}",
+      "moreTags": "+{count}",
+      "moreTagsLabel": "a další štítky ({count})",
+      "refresh": "Obnovit",
+      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé.",
+      "search": "Hledat domény",
+      "searchHint": "Hledá v názvu, popisu a štítcích.",
+      "updating": "Aktualizuje se…"
+    },
+    "outcome": {
+      "dkimDnsFailed": "Záznam DKIM pro {0} se nepodařilo zveřejnit v DNS.",
+      "dkimDnsNoZone": "Pro {0} nebyla nalezena zóna DNS: zveřejněte záznam DKIM u poskytovatele DNS domény.",
+      "rateLimitFailed": "Limit odesílání pro {0} se nepodařilo uložit."
+    },
+    "rateLimit": {
+      "frameLabel": "Časový úsek",
+      "value": "Zprávy"
+    },
+    "relay": {
+      "short": {
+        "backupMx": "Předávání domény",
+        "relayAllRecipients": "Předávání všech příjemců",
+        "relayUnknownOnly": "Předávat jen neexistující schránky"
+      }
+    },
+    "sort": {
+      "active": "Stav aktivace",
+      "aliases": "Využité aliasy",
+      "asc": "Vzestupně",
+      "backupMx": "Předávání domény",
+      "createdAt": "Vytvořeno",
+      "desc": "Sestupně",
+      "description": "Popis",
+      "domainQuota": "Kvóta domény",
+      "label": "Řadit podle",
+      "mailboxes": "Využité schránky",
+      "maxAliases": "Max. počet aliasů",
+      "maxMailboxQuota": "Max. kvóta na schránku",
+      "maxMailboxes": "Max. počet schránek",
+      "modifiedAt": "Poslední změna",
+      "name": "Název",
+      "order": "Pořadí",
+      "quotaAllocated": "Přidělená kvóta",
+      "storageUsed": "Využité úložiště"
+    },
+    "tags": {
+      "add": "Přidat",
+      "remove": "Odebrat štítek {tag}",
+      "suggestions": "Navrhované štítky",
+      "suggestionsLoading": "Načítají se návrhy…",
+      "suggestionsUnavailable": "Návrhy nejsou k dispozici",
+      "tooLong": "Štítky mohou mít nejvýše {max} znaků."
+    },
+    "usage": {
+      "left": "Zbývá: {count}",
+      "messages": "Zprávy",
+      "nearlyFull": "Téměř plné",
+      "of": "{used} z {limit}",
+      "over": "Nad limitem",
+      "quota": "Přidělená kvóta",
+      "storage": "Využité úložiště"
+    },
+    "values": {
+      "never": "Nikdy",
+      "no": "Ne",
+      "none": "Žádné",
+      "rateLimit": "{value} {frame}",
+      "yes": "Ano"
+    }
   },
   "enums": {
     "apiKeyStatus": {
@@ -270,6 +506,13 @@
     "auditEventType": {
       "apiKeyCreation": "Vytvoření API klíče",
       "apiKeyRevocation": "Zneplatnění API klíče",
+      "domainCreation": "Doména přidána",
+      "domainDeletion": "Doména odebrána",
+      "domainFooterUpdate": "Patička domény změněna",
+      "domainTemplateCreation": "Šablona domény přidána",
+      "domainTemplateDeletion": "Šablona domény odebrána",
+      "domainTemplateUpdate": "Šablona domény změněna",
+      "domainUpdate": "Doména změněna",
       "passkeyRegistration": "Přidání přístupového klíče",
       "passkeyRemoval": "Odebrání přístupového klíče",
       "passkeyRename": "Přejmenování přístupového klíče",
@@ -279,7 +522,9 @@
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktivní",
+      "attributeNotPermitted": "Změna není povolena",
       "challengeExpired": "Časový limit přihlášení vypršel",
+      "conflict": "Konflikt s existujícími daty",
       "externalIdentitySource": "Účet se přihlašuje přes poskytovatele identit",
       "invalidCredentials": "Nesprávné uživatelské jméno nebo heslo",
       "passkeyInactive": "Přístupový klíč je neaktivní",
@@ -288,14 +533,18 @@
       "roleMismatch": "Přihlašovací obrazovka pro jiný typ účtu",
       "secondFactorFailed": "Druhý faktor nebyl přijat",
       "secondFactorUnavailable": "Druhý faktor není k dispozici",
+      "temporaryFailure": "Dočasná chyba",
       "throttled": "Příliš mnoho pokusů",
       "unknownPasskey": "Neznámý přístupový klíč",
-      "verificationUnavailable": "Ověřovací služba je nedostupná"
+      "validationFailed": "Neplatné hodnoty",
+      "verificationUnavailable": "Ověřovací služba je nedostupná",
+      "versionOutdated": "Mezitím změněno"
     },
     "auditOutcome": {
       "failure": "Neúspěch"
     },
     "auditTargetType": {
+      "domainTemplate": "Šablona domény",
       "passkey": "Přístupový klíč",
       "preferences": "Předvolby",
       "session": "Relace"
@@ -310,6 +559,9 @@
       "title": "Opravte prosím následující"
     },
     "required": "povinné"
+  },
+  "history": {
+    "link": "Historie"
   },
   "home": {
     "greeting": "Dobrý den, {username}",
@@ -331,6 +583,12 @@
       "heading": "Sekce"
     },
     "title": "Domů"
+  },
+  "leaveGuard": {
+    "body": "Vaše změny budou ztraceny.",
+    "leave": "Odejít",
+    "stay": "Zůstat",
+    "title": "Odejít bez uložení?"
   },
   "lists": {
     "pagination": {
@@ -405,6 +663,11 @@
     "api-key-invalid": "API klíč není platný.",
     "api-key-revoked": "API klíč byl zneplatněn.",
     "api-key-source-not-allowed": "API klíč nelze použít z této síťové adresy.",
+    "attribute-not-permitted": "Nemůžete měnit: {attributes}. Vaše ostatní zadání zůstalo zachováno.",
+    "domain-exists": "Doména nebo alias domény s tímto názvem již existuje.",
+    "domain-not-empty": "Doména stále obsahuje schránky ({mailboxes}) a prostředky ({resources}). Nejprve je odstraňte.",
+    "domain-template-name-exists": "Šablona domény s tímto názvem již existuje.",
+    "domain-template-protected": "Výchozí šablonu nelze přejmenovat ani smazat.",
     "insufficient-key-scope": "API klíč tuto akci nepovoluje.",
     "network": "Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.",
     "passkey-registration-failed": "Přístupový klíč se nepodařilo zaregistrovat. Zkuste to prosím znovu.",
@@ -427,6 +690,7 @@
       "503": "Služba je dočasně nedostupná. Zkuste to prosím za chvíli znovu.",
       "504": "Server neodpověděl včas. Zkuste to prosím znovu."
     },
+    "temporary-failure": "Nic nebylo změněno, protože část serveru je dočasně nedostupná. Zkuste to prosím za chvíli znovu.",
     "too-many-requests": "Příliš mnoho pokusů. Před dalším pokusem chvíli počkejte.",
     "unauthenticated": "Vaše relace skončila. Přihlaste se prosím znovu.",
     "validation-failed": "Některá pole vyžadují vaši pozornost."
@@ -447,6 +711,20 @@
     "copyRefused": "Prohlížeč kopírování nepovolil. Tajný údaj je označen: zkopírujte jej sami.",
     "label": "Tajný údaj",
     "warning": "Tento tajný údaj se zobrazí jen jednou. Znovu jej zobrazit nelze."
+  },
+  "sections": {
+    "discard": "Zahodit mé změny",
+    "edit": "Upravit",
+    "editDisabled": "Nejprve dokončete úpravy sekce {section}.",
+    "editNamed": "Upravit: {section}",
+    "outdated": {
+      "body": "Někdo tuto sekci změnil, zatímco jste ji upravovali. Vaše zadání zůstalo zachováno. Změnily se tyto hodnoty:",
+      "savedAs": "{field}: nyní uloženo jako {value}",
+      "title": "Změněno jinde"
+    },
+    "save": "Uložit",
+    "saveAgain": "Uložit znovu",
+    "saving": "Ukládá se…"
   },
   "session": {
     "idle": {
@@ -490,25 +768,34 @@
     "system": "Podle zařízení"
   },
   "validation": {
+    "belowInUse": "Hodnota je nižší, než je využito: {inUse}.",
     "format": {
       "base64url": "Tato hodnota není platný base64url.",
       "dateTime": "Zadejte platné datum a čas.",
+      "dkimSelector": "Použijte jen písmena, číslice, pomlčky, podtržítka a tečky.",
+      "domainName": "Zadejte platný název domény, například example.org.",
+      "email": "Zadejte platnou e-mailovou adresu.",
       "ipAddress": "Zadejte platnou adresu IPv4 nebo IPv6.",
       "ipNetwork": "Zadejte adresu nebo síť IPv4 či IPv6, například 192.0.2.0/24.",
       "totpCode": "Zadejte šestimístný kód.",
       "webauthnCredential": "Odpověď bezpečnostního nebo přístupového klíče není platná.",
       "yubicoOtp": "Zadejte 44 písmen nebo číslic, které napíše váš YubiKey."
     },
+    "immutable": "Tuto hodnotu nelze změnit.",
     "invalid": "Tato hodnota není platná.",
     "invalidFormat": "Tato hodnota má neplatný formát.",
     "invalidType": "Tato hodnota má nesprávný typ.",
     "mustBeInFuture": "Zvolte čas v budoucnosti.",
+    "mustNotExceed": "Hodnota nesmí být vyšší než {field} ({value}).",
     "notEligible": "Tuto položku zde nelze použít. Povoleno: {allowedRoles}.",
     "notFound": "Tato položka neexistuje.",
     "notInList": "Zvolte jednu z možností: {allowed}.",
+    "notMultipleOf": "Zadejte celý násobek {factor}.",
     "outOfRange": "Zadejte hodnotu od {min} do {max}.",
     "required": "Toto pole je povinné.",
+    "reserved": "Tento název je vyhrazen serveru.",
     "tooLong": "Zadejte nejvýše {max} znaků.",
+    "tooLongBytes": "Text smí mít nejvýše {max}.",
     "tooMany": "Zadejte nejvýše {max} položek.",
     "tooShort": "Zadejte alespoň {min} znaků."
   }

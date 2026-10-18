@@ -40,6 +40,12 @@ for this contract version. The API repository has since registered `KnownProblem
 that commit. Nothing waits for it: `npm run i18n:check` derives the problem type names from the
 bundle text (21 at this pin, `service-unavailable` included; research R27).
 
+**API gap 5 closed (UI 002 T001, 2026-10-18)**: UI 002 bumped the pin to
+`97aa81f3dec5c797ec6d162bcc8fbc50a5d1c814`, which registers `KnownProblemType` under
+`components.schemas`. `knownProblemTypeValues` is now generated, and the translation check reads it
+together with the problem names of the bundle text. The growing shared enumerations are scoped by
+UI 002's coverage manifest `src/i18n/coverage.json` (UI 002 research D2).
+
 ## Files in the repository
 
 | Path | Content | Edited by hand? |

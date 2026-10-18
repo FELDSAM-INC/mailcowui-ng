@@ -29,6 +29,11 @@ export interface ApiProblemParts {
   fieldErrors?: Map<string, FieldViolation[]>
   pendingActions?: PendingAction[]
   serverDate?: Date | null
+  /**
+   * The members a problem type adds (UI 002), for example `attributes` of
+   * `attribute-not-permitted` or `mailboxes` and `resources` of `domain-not-empty`.
+   */
+  extensions?: Record<string, unknown>
   /** English title and detail, kept for logs only and never shown (FR-075). */
   title?: string
   detail?: string
@@ -44,6 +49,7 @@ export class ApiProblem extends Error {
   readonly fieldErrors: Map<string, FieldViolation[]>
   readonly pendingActions: PendingAction[]
   readonly serverDate: Date | null
+  readonly extensions: Readonly<Record<string, unknown>>
   readonly title: string | undefined
   readonly detail: string | undefined
 
@@ -59,6 +65,7 @@ export class ApiProblem extends Error {
     this.fieldErrors = parts.fieldErrors ?? new Map<string, FieldViolation[]>()
     this.pendingActions = parts.pendingActions ?? []
     this.serverDate = parts.serverDate ?? null
+    this.extensions = parts.extensions ?? {}
     this.title = parts.title
     this.detail = parts.detail
   }
@@ -100,6 +107,19 @@ function retryAfterOf(body: Record<string, unknown>, response: Response): number
   return Number.isFinite(header) && header > 0 ? header : null
 }
 
+/** The members every problem may carry; anything else is an extension member. */
+const STANDARD_MEMBERS = new Set([
+  'type',
+  'title',
+  'status',
+  'detail',
+  'instance',
+  'requestId',
+  'errors',
+  'retryAfter',
+  'pendingActions',
+])
+
 /** Reads an error response (status 400 or more) into an ApiProblem. */
 export async function problemFromResponse(response: Response): Promise<ApiProblem> {
   const serverDate = serverDateOf(response)
@@ -122,8 +142,12 @@ export async function problemFromResponse(response: Response): Promise<ApiProble
       if (Array.isArray(violations)) fieldErrors.set(path, violations as FieldViolation[])
     }
   }
+  const extensions = Object.fromEntries(
+    Object.entries(body).filter(([key]) => !STANDARD_MEMBERS.has(key)),
+  )
   return ApiProblem.fromParts({
     kind: 'problem',
+    extensions,
     type: typeof body.type === 'string' ? body.type : null,
     status: typeof body.status === 'number' ? body.status : response.status,
     requestId: typeof body.requestId === 'string' ? body.requestId : null,

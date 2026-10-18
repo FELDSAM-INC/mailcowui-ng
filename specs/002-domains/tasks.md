@@ -35,6 +35,19 @@ Smoke specs are tagged `@domains`, or `@domain-templates` for the template spec.
 **Organization**: Tasks are grouped by user story (spec priorities P1 to P3), so that each story can
 be implemented and tested on its own once the foundation is in place.
 
+**Rework under the translations and forms rule (constitution IV 1.3.0, 2026-10-18)**: the owner
+ruled that mailcow's translations are used 1:1 and that every form mirrors its legacy form. US2,
+US3 and US6 were built or rebuilt that way after their first build: the add domain page is one form
+as `#addDomainModal` (no steps, review or template confirmation); the domain page is legacy's edit
+heading, the usage and domain administrators (display-only), and the tabs "Edit domain" and "Rate
+limit" (read-only) as sections; quotas are entered in MiB; creation outcomes are legacy's alerts;
+deletion is offered only in the list; the template list, add and edit forms mirror their legacy
+counterparts, including multiple deletion through gap G40 (T087a). Tasks below that describe the
+earlier design (steps, a review, five sections, a unit select, a footer summary) are done in this
+form; the legacy form map is in plan.md, "Translations and forms". Since UI main d128215 the legacy
+texts are read at runtime (`lt()`, `<LegacyText>`, `legacy()`, `LEGACY_TEXTS`); tasks that name
+`legacy-map.json` entries or `stripMarkup` (T002, T004 and the message tasks) are done that way.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependency on an incomplete task)
@@ -48,7 +61,7 @@ be implemented and tested on its own once the foundation is in place.
 **Purpose**: Pin the contract to the API 002 implementation, adapt UI 001's translation tooling to
 it, and keep every UI 001 gate green (research D1, D2, D27).
 
-- [ ] T001 Pin the contract (research D1, [contracts/README.md](./contracts/README.md)):
+- [X] T001 Pin the contract (research D1, [contracts/README.md](./contracts/README.md)):
   1. Confirm the prerequisites. UI 001's `npm run lint`, `typecheck`, `test:unit` and `test:e2e`
      pass. mailcow-rest-v2 feature 002 is implemented and its quickstart Part A passes at the
      chosen ref: a release tag that ships it, or else the first commit at which this holds.
@@ -77,7 +90,12 @@ it, and keep every UI 001 gate green (research D1, D2, D27).
        mailcow-rest-v2 through the owner. Record the reference in the "API dependency and gaps"
        section of `specs/002-domains/plan.md`. The UI keeps showing these details generically and
        never works around the gap.
-- [ ] T002 Write the tests for the tooling changes in `tests/unit/scripts/i18n-tools.spec.ts`
+  - **Pin record**: first pinned at `97aa81f` (API 002 not yet implemented). Moved forward during
+    US5, on the coordinator's request, to `c1677d577ba66ef3ff360421e0478d6eb3ae5144` (API 002
+    implemented; the domain creation report lost `groupwareDirectoryUpdate`). The diff
+    97aa81f..c1677d5 and the adaptations (G28 footer summary, G29 template defaults, G33 quoted
+    bulk versions, the four-step creation report) are in contracts/README.md and plan.md.
+- [X] T002 Write the tests for the tooling changes in `tests/unit/scripts/i18n-tools.spec.ts`
   (research D2, D27). They run against fixture message sets, a fixture `coverage.json` and fixture
   enumeration arrays, and must fail. Cover:
   - **Coverage manifest**:
@@ -99,7 +117,7 @@ it, and keep every UI 001 gate green (research D1, D2, D27).
       collapses whitespace;
     - a result that still contains `<` or `>` is refused;
     - a plain string entry whose legacy value contains HTML is still refused.
-- [ ] T003 Implement the coverage manifest in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`,
+- [X] T003 Implement the coverage manifest in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`,
   so that the manifest part of T002 passes. Create `src/i18n/coverage.json` with a `partial` object
   holding the six lists of data-model §8 and an empty `complete` registry. The `partial` lists are
   seeded with UI 001's values only:
@@ -118,9 +136,9 @@ it, and keep every UI 001 gate green (research D1, D2, D27).
   The tasks that add the domain labels append their values to `partial` and their enumerations to
   `complete` (T025, T029, T032, T045, T054, T087, T102). This keeps `npm run i18n:check` passing at
   every checkpoint. It must pass now, with the other features' values reported as warnings.
-- [ ] T004 Implement `stripMarkup` in `scripts/i18n/lib.mjs` and `scripts/i18n/import-legacy.mjs`,
+- [X] T004 Implement `stripMarkup` in `scripts/i18n/lib.mjs` and `scripts/i18n/import-legacy.mjs`,
   accepting the object form of a `src/i18n/legacy-map.json` entry, so that the rest of T002 passes.
-- [ ] T005 Bring UI 001 in line with the new pin:
+- [X] T005 Bring UI 001 in line with the new pin:
   1. Fix every `npm run typecheck` error the regenerated types cause, for example an exhaustive
      `switch` over `Session.authMethod`, which gained the values `ssoToken`, `singleSignOn`,
      `directoryPassword`, `directoryPasswordAndSecondFactor`, `providerPassword` and
@@ -148,7 +166,7 @@ the shared enumerations through `src/i18n/coverage.json`.
 
 ### Mock API and test infrastructure
 
-- [ ] T006 [P] Create the factories (research D28):
+- [X] T006 [P] Create the factories (research D28):
   - `tests/mocks/factories/domain.ts`:
     - stored settings plus `usage`;
     - `name` and `unicodeName` through `node:url` `domainToASCII` and `domainToUnicode`;
@@ -165,7 +183,7 @@ the shared enumerations through `src/i18n/coverage.json`.
     `domainTemplateUpdate` and `domainTemplateDeletion`, including failures with each of
     `attributeNotPermitted`, `versionOutdated`, `validationFailed`, `conflict` and
     `temporaryFailure`.
-- [ ] T007 Extend `tests/mocks/scenarios/state.ts` with:
+- [X] T007 Extend `tests/mocks/scenarios/state.ts` with:
   - domains, alias domain names, templates and footers;
   - domain administrator assignments, mailboxes and resources per domain (for usage and previews);
   - the capabilities: `groupwareEnabled`, `taggingLimit`, `maxTagLength`, `maxDescriptionLength`,
@@ -184,7 +202,7 @@ the shared enumerations through `src/i18n/coverage.json`.
   domains, defined fully in T033) and register it in `tests/mocks/scenarios/index.ts`. Each story
   adds its scenarios in its own module `tests/mocks/scenarios/domains-<story>.ts`, registered in
   `index.ts`.
-- [ ] T008 Write `tests/unit/mocks/domain-handlers.spec.ts` against the handlers of T009 and T010,
+- [X] T008 Write `tests/unit/mocks/domain-handlers.spec.ts` against the handlers of T009 and T010,
   through `msw/node`. Every response must pass the validator, and each documented behaviour must
   hold:
   - **List**:
@@ -237,14 +255,14 @@ the shared enumerations through `src/i18n/coverage.json`.
     or deleting Default; `If-Match`.
 
   The test must fail.
-- [ ] T009 Implement `tests/mocks/handlers/domains.ts` with `openapi-msw`, wrapped by UI 001's
+- [X] T009 Implement `tests/mocks/handlers/domains.ts` with `openapi-msw`, wrapped by UI 001's
   validator: `listDomains`, `createDomain`, `applyDomainBulkAction`, `getDomain`, `updateDomain`,
   `deleteDomain`, `previewDomainDeletion`, `getDomainFooter`, `replaceDomainFooter`,
   `getDomainsCapabilities` and `listDomainTags`, as T008 specifies.
-- [ ] T010 Implement `tests/mocks/handlers/domain-templates.ts`: `listDomainTemplates`,
+- [X] T010 Implement `tests/mocks/handlers/domain-templates.ts`: `listDomainTemplates`,
   `createDomainTemplate`, `getDomainTemplate`, `updateDomainTemplate` and `deleteDomainTemplate`.
   Register both handler files in `tests/mocks/handlers/index.ts`. T008 must pass.
-- [ ] T011 Extend `tests/mocks/server.ts` and `tests/e2e/fixtures/mock-api.ts` (research D28).
+- [X] T011 Extend `tests/mocks/server.ts` and `tests/e2e/fixtures/mock-api.ts` (research D28).
   - `PATCH /__mock/scenarios/:id` gains:
     - `domains`, `templates` and `footers` mutations (`set`, `add`, `remove`), which change stored
       values and so their version tags;
@@ -255,14 +273,14 @@ the shared enumerations through `src/i18n/coverage.json`.
     `mockApi.addMailbox(domain)`, `mockApi.mutateTemplate(id, changes)`,
     `mockApi.mutateFooter(name, changes)`, `mockApi.setCapabilities(changes)`,
     `mockApi.failNext(operationId, problem, { domain })` and `mockApi.delay(operationId, ms)`.
-- [ ] T012 [P] Create `tests/smoke/fixtures/domains-api.ts`, used only by smoke tests to prepare and
+- [X] T012 [P] Create `tests/smoke/fixtures/domains-api.ts`, used only by smoke tests to prepare and
   clean up through the real API with the page's session and a fresh `X-CSRF-Token`:
   `createDomain(page, name, body)`, `deleteDomain(page, name)`, `createTemplate(page, name)`,
   `deleteTemplate(page, id)` and `uniqueName(prefix)`. The app under test never uses it.
 
 ### Tests for the shared extensions (write first; must fail)
 
-- [ ] T013 [P] Write `tests/unit/shared/composables/useBulkSelection.spec.ts` (research D22, data
+- [X] T013 [P] Write `tests/unit/shared/composables/useBulkSelection.spec.ts` (research D22, data
   model §2). It covers:
   - entering and leaving selection mode;
   - `toggle`, `selectPage` and `clear`;
@@ -273,7 +291,7 @@ the shared enumerations through `src/i18n/coverage.json`.
     ID is refused, so selection is disabled at the limit, and `selectPage` selects the visible IDs
     in order up to the limit (the first N) and reports that it stopped there, so the limit message
     shows (conventions "Shared building blocks and canonical names").
-- [ ] T014 [P] Write `tests/unit/shared/components/bulk-components.spec.ts` for:
+- [X] T014 [P] Write `tests/unit/shared/components/bulk-components.spec.ts` for:
   - `BulkActionBar.vue`: it names the number selected, lists the actions given, and its controls
     are at least 44 × 44 px (class check) and keyboard operable;
   - `BulkResultSummary.vue`: one row per `BulkRow` with a translated label for each of `done`,
@@ -281,7 +299,7 @@ the shared enumerations through `src/i18n/coverage.json`.
     problem message through `ProblemMessage`; counts per outcome announced politely; outcome shown
     by text and icon, not colour alone (FR-076); a retry action emitted only when retryable rows
     exist.
-- [ ] T015 [P] Write `tests/unit/shared/components/EditableSection.spec.ts` (research D11). It
+- [X] T015 [P] Write `tests/unit/shared/components/EditableSection.spec.ts` (research D11). It
   covers:
   - an Edit button only when `editable`;
   - read-only values rendered as text, never as disabled inputs (FR-029);
@@ -293,29 +311,29 @@ the shared enumerations through `src/i18n/coverage.json`.
   - inline status messages that stay until the next action (FR-067);
   - the outdated notice listing each changed field with its new saved value, plus the
     "Save again" and "Discard my changes" actions (FR-037).
-- [ ] T016 [P] Extend `tests/unit/shared/composables/useVersionedSave.spec.ts`:
+- [X] T016 [P] Extend `tests/unit/shared/composables/useVersionedSave.spec.ts`:
   - `changedSince(base, latest, fields)` returns the fields that differ between base and latest
     with their saved values, comparing tags as sets that ignore letter case and quotas as numbers;
   - "Save again" uses the latest `etag`;
   - "Discard" returns the latest values;
   - nothing is sent automatically after a `412`.
-- [ ] T017 [P] Write `tests/unit/shared/components/confirm-extended.spec.ts` for the `useConfirm`
+- [X] T017 [P] Write `tests/unit/shared/components/confirm-extended.spec.ts` for the `useConfirm`
   and `ConfirmDialog.vue` extensions (UI 001 R20):
   - `requireTyped: { accepted: string[], ignoreCase: true, labelKey }` keeps the confirm button
     disabled until the typed value matches one accepted value;
   - `content: { component, props }` renders inside the dialog;
   - the dialog is labelled, traps focus, closes with Escape and returns focus (FR-074);
   - the typed field has `autocapitalize="none"` and `autocomplete="off"`.
-- [ ] T018 [P] Write `tests/unit/shared/composables/useLeaveGuard.spec.ts` (research D21):
+- [X] T018 [P] Write `tests/unit/shared/composables/useLeaveGuard.spec.ts` (research D21):
   - while `shouldGuard` is true, a route leave and a path change ask through `useConfirm`, and a
     `beforeunload` listener is registered;
   - query-only changes on the same path are not intercepted;
   - nothing is asked when `shouldGuard` is false;
   - the listener is removed on unmount.
-- [ ] T019 [P] Write `tests/unit/shared/components/HistoryLink.spec.ts`: it renders a link to the
+- [X] T019 [P] Write `tests/unit/shared/components/HistoryLink.spec.ts`: it renders a link to the
   `audit-log` route with `targetType` and `targetId` in the query, omits `targetType` when not
   given, and has a translated label.
-- [ ] T020 [P] Write the tests for the core extensions:
+- [X] T020 [P] Write the tests for the core extensions:
   - `tests/unit/i18n/format-bytes.spec.ts`:
     - `formatBytes(10737418240, { exact: true })` gives "10 GiB";
     - `formatBytes(3145728000, { exact: true })` gives "3,000 MiB" in en-gb and "3 000 MiB" in
@@ -345,7 +363,7 @@ the shared enumerations through `src/i18n/coverage.json`.
       link (FR-004);
     - `PaginationBar.vue` offers first, previous, next and last page actions and "page n of m"
       (FR-005).
-- [ ] T021 [P] Write `tests/unit/shared/validation/limits.spec.ts` additions. Each new constant
+- [X] T021 [P] Write `tests/unit/shared/validation/limits.spec.ts` additions. Each new constant
   equals its contract value in `contract/openapi.json`:
   - the domain list's `tag` filter: at most 100 items of 1–255 characters (`listDomains`);
   - the limit range 0–2,147,483,647 (`DomainCreateRequest.maxMailboxes`) and the rate limit range
@@ -356,7 +374,7 @@ the shared enumerations through `src/i18n/coverage.json`.
 
 ### Tests for the feature core (write first; must fail)
 
-- [ ] T022 [P] Write the unit tests of the pure modules in `tests/unit/features/domains/`:
+- [X] T022 [P] Write the unit tests of the pure modules in `tests/unit/features/domains/`:
   - `domain-name.spec.ts` (research D15):
     - `toAsciiDomain(' MÜNCHEN.de ')` is `xn--mnchen-3ya.de`;
     - a single label is valid;
@@ -381,8 +399,8 @@ the shared enumerations through `src/i18n/coverage.json`.
     the order or letter case differs; quotas compared in bytes; read-only members never included
     (FR-030).
   - `bulk.spec.ts`:
-    - `toBulkTargets` maps each entry to `{ id: name, version }` with the `etag`'s surrounding
-      quotes removed;
+    - `toBulkTargets` maps each entry to `{ id: name, version }` with the `etag` exactly as read
+      (G33 at the pin `c1677d5`; first planned with the quotes removed);
     - `partitionDeletable` sets aside domains with `usage.mailboxes` or `usage.resources` above 0
       as `skipped`;
     - `rowsFromBulkResult` keeps request order and labels by readable name;
@@ -393,7 +411,7 @@ the shared enumerations through `src/i18n/coverage.json`.
     10,240 MiB, 10,240 MiB, active, Global Address List on, no relay options, no tags, no rate
     limit) occurs in the descriptions of `DomainTemplateCreateRequest` and `DomainCreateRequest` in
     `contract/openapi.json` (research D18).
-- [ ] T023 [P] Write `tests/unit/features/domains/api.spec.ts`, using `msw/node` and a fresh
+- [X] T023 [P] Write `tests/unit/features/domains/api.spec.ts`, using `msw/node` and a fresh
   `QueryClient`. It checks the query keys and the invalidation table of data-model §3:
   - `getDomain` takes `initialData` from a cached list entry;
   - `updateDomain` writes the detail, replaces the entry in every cached list and invalidates the
@@ -405,7 +423,7 @@ the shared enumerations through `src/i18n/coverage.json`.
   - `previewDomainDeletion` is never served from the cache;
   - `getDomainsCapabilities` has a `staleTime` of 5 minutes;
   - a `403 attribute-not-permitted` invalidates `['identity']`.
-- [ ] T024 [P] Write `tests/unit/features/domains/fields.spec.ts` for the shared form fields
+- [X] T024 [P] Write `tests/unit/features/domains/fields.spec.ts` for the shared form fields
   (research D12 to D16, D19):
   - **`QuotaField`**: number and unit, `inputmode="decimal"`, shows a stored value in the largest
     exact unit, emits bytes, and shows usage and an error.
@@ -431,23 +449,23 @@ the shared enumerations through `src/i18n/coverage.json`.
 
 ### Implementation of the shared extensions and the core
 
-- [ ] T025 Implement `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkActionBar.vue`
+- [X] T025 Implement `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkActionBar.vue`
   and `src/shared/components/BulkResultSummary.vue` with the `BulkRow` model of data-model §2, so
   that T013 and T014 pass. Add the `bulk.*` keys to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   one label per `BulkItemOutcome`, plus `skipped`, `unknown`, `notProcessed`, the selection bar,
   `bulk.limitReached` and `bulk.confirm.typeCount`. Register
   `"bulk.outcome": "#/components/schemas/BulkItemOutcome"` in `complete` in
   `src/i18n/coverage.json`.
-- [ ] T026 Implement `src/shared/components/EditableSection.vue` and the `changedSince` extension
+- [X] T026 Implement `src/shared/components/EditableSection.vue` and the `changedSince` extension
   of `src/shared/composables/useVersionedSave.ts`, so that T015 and T016 pass. Add the
   `sections.*` keys (edit, save, cancel, save again, discard, changed elsewhere, "now saved as")
   in all three locales.
-- [ ] T027 Extend `src/shared/composables/useConfirm.ts` and `src/shared/components/ConfirmDialog.vue`
+- [X] T027 Extend `src/shared/composables/useConfirm.ts` and `src/shared/components/ConfirmDialog.vue`
   with `requireTyped` and `content`, so that T017 passes.
-- [ ] T028 Implement `src/shared/composables/useLeaveGuard.ts` and
+- [X] T028 Implement `src/shared/composables/useLeaveGuard.ts` and
   `src/shared/components/HistoryLink.vue`, so that T018 and T019 pass. Add the `history.link` and
   `leaveGuard.*` messages in all three locales.
-- [ ] T029 Implement the core extensions, so that T020 and T021 pass:
+- [X] T029 Implement the core extensions, so that T020 and T021 pass:
   - `formatBytes` in `src/i18n/format.ts`;
   - the field-kind parameter formatting, the new rule codes and formats, and the
     problem-to-field mapping in `src/i18n/problems.ts` and `src/shared/composables/useProblemForm.ts`
@@ -462,11 +480,11 @@ the shared enumerations through `src/i18n/coverage.json`.
 
   Add the new `validation.*` and `problem.*` messages of data-model §8 in all three locales.
   Append the five rule codes and six problem types of data-model §8 to `src/i18n/coverage.json`.
-- [ ] T030 Implement the pure modules, so that T022 passes:
+- [X] T030 Implement the pure modules, so that T022 passes:
   - `src/features/domains/domain-name.ts`, `quota.ts`, `relay.ts`, `tag-set.ts`, `usage.ts`,
     `permissions.ts`, `patch.ts`, `bulk.ts` and `creation-report.ts`;
   - `defaults.ts`, each value with a comment naming the contract description it comes from.
-- [ ] T031 Implement the data layer, so that T023 passes:
+- [X] T031 Implement the data layer, so that T023 passes:
   - the `domains` and `domain-templates` key trees in `src/api/query/keys.ts`;
   - `src/features/domains/api.ts`: the list, detail, footer, preview, tags, create, update,
     delete, bulk and footer replace queries and mutations, with the cache rules of data-model §3;
@@ -477,7 +495,7 @@ the shared enumerations through `src/i18n/coverage.json`.
 
   Create `src/features/domains/index.ts` and an empty `src/features/domains/routes.ts`, registered
   in `src/app/router/routes.ts`.
-- [ ] T032 Implement the form fields in `src/features/domains/components/fields/`, so that T024
+- [X] T032 Implement the form fields in `src/features/domains/components/fields/`, so that T024
   passes: `QuotaField.vue`, `LimitField.vue`, `RelayOptionsField.vue`, `TagSetInput.vue` (Reka
   `Combobox` without `ComboboxViewport`), `RateLimitField.vue`, `DkimFields.vue`,
   `DomainNameField.vue` and `TemplateSelect.vue`. Add their `domains.fields.*` and `domains.help.*`
@@ -503,7 +521,7 @@ shown with the mock data.
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T033 [US1] Add the US1 scenarios in `tests/mocks/scenarios/domains-list.ts`, registered in
+- [X] T033 [US1] Add the US1 scenarios in `tests/mocks/scenarios/domains-list.ts`, registered in
   `tests/mocks/scenarios/index.ts`, and complete `domains-60` in
   `tests/mocks/scenarios/domains-base.ts`.
   - **`domains-60`**: 60 domains covering:
@@ -525,7 +543,7 @@ shown with the mock data.
   - **`domains-5000`**: 5,000 domains, generated by the factory when the scenario is created.
 
   UI 001's `domain-admin-no-domains` is reused.
-- [ ] T034 [P] [US1] Write `tests/e2e/domains/list.spec.ts`. It covers:
+- [X] T034 [P] [US1] Write `tests/e2e/domains/list.spec.ts`. It covers:
   - US1-AS1: 25 of 60 by name, the total of 60, and a way to the other pages;
   - US1-AS2: cards at 360 px with every FR-006 value and no horizontal scroll;
   - FR-007: the table on desktop with the extra columns, and every remaining legacy value
@@ -556,7 +574,7 @@ shown with the mock data.
   - the edge cases: the 253-character name wraps; many tags show "+n"; 12 of 10 is "over the
     limit"; zero limits show 0; a 5,000-domain scenario requests one page only (asserted through
     `mockApi.requests()`).
-- [ ] T035 [P] [US1] Write `tests/e2e/domains/detail.spec.ts`. It covers:
+- [X] T035 [P] [US1] Write `tests/e2e/domains/detail.spec.ts`. It covers:
   - FR-015: every value compared with the mock:
     - the header with the readable and ASCII names, state and relay badge;
     - usage (in use, limit and left; alias domains; resources; quota allocated; storage;
@@ -575,7 +593,7 @@ shown with the mock data.
   - research D4: opening `/ng/domains/MÜNCHEN.de` shows the domain and replaces the address with
     `/ng/domains/xn--mnchen-3ya.de`;
   - FR-078: names, tags and descriptions shown as stored.
-- [ ] T036 [P] [US1] Write the US1 unit tests in `tests/unit/features/domains/`:
+- [X] T036 [P] [US1] Write the US1 unit tests in `tests/unit/features/domains/`:
   - `list-state.spec.ts`: the address parameters of data-model §5, mapped to `listDomains` query
     parameters (`active`, `backupMx`, exploded `tag`, the 15 sort keys);
   - `list-components.spec.ts`:
@@ -589,7 +607,7 @@ shown with the mock data.
   - `detail-components.spec.ts`: `DomainHeader`, `UsageSummary`, `FooterSummary` (set or not,
     exclusion count, replies skipped; its link to the editor arrives with the footer route in US7)
     and `DomainAdminsList` (absent for domain administrators).
-- [ ] T037 [P] [US1] Write `tests/smoke/domains-browse.smoke.spec.ts` (`@domains`):
+- [X] T037 [P] [US1] *(written; running it is blocked until the API 002 dev stack is ready, see T108)* Write `tests/smoke/domains-browse.smoke.spec.ts` (`@domains`):
   - as `admin`, the list shows `example.org` and `example.net`, and the domain page of
     `example.org` shows its usage with alice's mailbox;
   - as `reseller`, exactly those two, without a domain administrator list;
@@ -597,21 +615,21 @@ shown with the mock data.
 
 ### Implementation for User Story 1
 
-- [ ] T038 [US1] Implement `src/features/domains/list-state.ts`, the `useListState` schema of data
+- [X] T038 [US1] Implement `src/features/domains/list-state.ts`, the `useListState` schema of data
   model §5 with `onReset` exposed for the bulk selection, so that the list-state test of T036
   passes.
-- [ ] T039 [P] [US1] Implement the list components in `src/features/domains/components/list/`:
+- [X] T039 [P] [US1] Implement the list components in `src/features/domains/components/list/`:
   `DomainList.vue`, `DomainCard.vue` (below `md`), `DomainTable.vue` (from `md` up, on
   `src/shared/ui/table`), `DomainEntryDetails.vue` (Reka `Collapsible`), `DomainFilters.vue`
   (native selects, `TagSetInput` in filter mode with `useTagSuggestions`), `DomainSortControl.vue`,
   `DomainNameText.vue`, `RelayBadge.vue`, `ActiveBadge.vue`, `UsageMeter.vue` and `TagChips.vue`,
   so that `list-components.spec.ts` passes.
-- [ ] T040 [P] [US1] Implement the detail components in `src/features/domains/components/detail/`:
+- [X] T040 [P] [US1] Implement the detail components in `src/features/domains/components/detail/`:
   `DomainHeader.vue`, `UsageSummary.vue`, `FooterSummary.vue` and `DomainAdminsList.vue`, and the
   read-only sections `sections/GeneralSection.vue`, `TagsSection.vue`, `LimitsSection.vue`,
   `RelaySection.vue`, `GroupwareSection.vue` and `DeliverySection.vue`. Each is built on
   `EditableSection` with `editable` false for now. `detail-components.spec.ts` must pass.
-- [ ] T041 [US1] Implement `src/features/domains/pages/DomainListPage.vue`:
+- [X] T041 [US1] Implement `src/features/domains/pages/DomainListPage.vue`:
   - `useListState`, `ListState` with all four states, `PaginationBar`;
   - the refresh action;
   - the debounced search;
@@ -621,22 +639,22 @@ shown with the mock data.
   No action links to a route that does not exist yet: "Add domain" arrives with US2 (T053), Delete
   with US4 (T069), "Domain templates" with US6 (T086), the footer link with US7 (T093) and History
   with US8 (T101).
-- [ ] T042 [US1] Implement `src/features/domains/pages/DomainDetailPage.vue`:
+- [X] T042 [US1] Implement `src/features/domains/pages/DomainDetailPage.vue`:
   - `getDomain` with `initialData` from the list cache, and the canonical address replace of
     research D4;
   - `getDomainFooter` for the summary;
   - the `NotFoundPage` with `backTo` the list on `404`;
   - loading and error with retry;
   - the header actions area of data-model §9.
-- [ ] T043 [US1] Register the `domains` and `domain-detail` routes in
+- [X] T043 [US1] Register the `domains` and `domain-detail` routes in
   `src/features/domains/routes.ts`, with lazy components and the title keys of data-model §5. Set
   the catalogue's `domains` entry to `available` in `src/app/navigation/catalogue.ts`, and update
   `tests/unit/app/navigation/visibility.spec.ts`.
-- [ ] T044 [US1] Add the home entry point in `src/features/home/components/ScopeSummary.vue`. For a
+- [ ] T044 [US1] *(awaits UI 001 US3 merge: `ScopeSummary.vue` does not exist on `main` yet)* Add the home entry point in `src/features/home/components/ScopeSummary.vue`. For a
   domain administrator, each domain of `scope.domains` links to `domain-detail`. For an
   administrator, "all domains" links to `domains`. Update
   `tests/unit/features/home/HomePage.spec.ts`.
-- [ ] T045 [US1] Add the `domains.title`, `domains.list.*`, `domains.filters.*`, `domains.sort.*`
+- [X] T045 [US1] Add the `domains.title`, `domains.list.*`, `domains.filters.*`, `domains.sort.*`
   (one label per `DomainSort` value), `domains.state.*`, `domains.badge.*`, `domains.usage.*`,
   `domains.detail.*` and `domains.empty.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`,
   with the legacy-map entries of data-model §8 (`mailbox.domains`, `mailbox.domain_admins`,
@@ -664,7 +682,7 @@ desktop.
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T046 [US2] Add the US2 scenarios in `tests/mocks/scenarios/domains-create.ts`:
+- [X] T046 [US2] Add the US2 scenarios in `tests/mocks/scenarios/domains-create.ts`:
   - **`domain-create`**: the templates Default and "Reseller" (50 mailboxes, 50 GiB domain quota),
     the existing domain `taken.example` and the alias domain `alias.example`;
   - **`creation-report-mixed`**: `groupwareRestart: failed`, `dkimKey: alreadyExisted`;
@@ -673,7 +691,7 @@ desktop.
   - **`templates-none`**: no template at all;
   - **`create-temporary-failure`**: a `503 temporary-failure` on `createDomain`;
   - **`dkim-feldhost`**: `dkim.defaultSelector: feldhost`.
-- [ ] T047 [P] [US2] Write `tests/e2e/domains/create.spec.ts`. It covers:
+- [X] T047 [P] [US2] Write `tests/e2e/domains/create.spec.ts`. It covers:
   - US2-AS1: `example.org`, straight to the review, shows the Default values; after creation, the
     domain page and a report in which every step is done or not requested;
   - US2-AS2: "Reseller" with the mailbox limit lowered to 20; the review shows 20 and 50 GiB; the
@@ -709,7 +727,7 @@ desktop.
   - Edge: a template removed with `mockApi.mutateTemplate` before submitting shows the error on the
     template field, with the other values kept;
   - Edge: `create-temporary-failure` says nothing was changed and retries with the input kept.
-- [ ] T048 [P] [US2] Write the US2 unit tests in `tests/unit/features/domains/`:
+- [X] T048 [P] [US2] Write the US2 unit tests in `tests/unit/features/domains/`:
   - `create-form.spec.ts`: values from a template, from `defaults.ts` and from capabilities;
     `toCreateRequest` (exact payload, DKIM rules, `rateLimit: null`, the groupware members omitted
     when disabled); `fieldStep` for every field path;
@@ -718,21 +736,21 @@ desktop.
   - `create-components.spec.ts`: `CreateStepper`, `CreateSectionIndex`, `CreateReview` (every value
     with units and the restart switch) and `CreationReport` (one line per step in order, kinds by
     text and icon, polite summary announcement, dismiss).
-- [ ] T049 [P] [US2] Write `tests/smoke/domains-create.smoke.spec.ts` (`@domains`). As `admin`,
+- [X] T049 [P] [US2] *(written; running it is blocked until the API 002 dev stack is ready, see T108)* Write `tests/smoke/domains-create.smoke.spec.ts` (`@domains`). As `admin`,
   create `smoke-<timestamp>.example` with only its name, and see the domain page and a report
   without warnings (the dev stack fakes outbound services). Clean up with
   `tests/smoke/fixtures/domains-api.ts`.
 
 ### Implementation for User Story 2
 
-- [ ] T050 [US2] Implement `src/features/domains/create-form.ts` and
+- [X] T050 [US2] Implement `src/features/domains/create-form.ts` and
   `src/features/domains/composables/useStepper.ts`, so that `create-form.spec.ts` and
   `useStepper.spec.ts` pass.
-- [ ] T051 [US2] Implement `src/features/domains/components/create/CreateStepper.vue`,
+- [X] T051 [US2] Implement `src/features/domains/components/create/CreateStepper.vue`,
   `CreateSectionIndex.vue` and `CreateReview.vue`, and
   `src/features/domains/components/detail/CreationReport.vue`, so that `create-components.spec.ts`
   passes.
-- [ ] T052 [US2] Implement `src/features/domains/composables/useCreateDomain.ts` (the mutation,
+- [X] T052 [US2] Implement `src/features/domains/composables/useCreateDomain.ts` (the mutation,
   error-to-step mapping and report handoff of research D7) and
   `src/features/domains/pages/DomainCreatePage.vue`:
   - the steps below `md` with `step` in the address, and one page with a section index from `md`
@@ -740,12 +758,12 @@ desktop.
   - the template confirmation through `useConfirm`;
   - `useLeaveGuard` while values are entered, disarmed after success;
   - `router.replace` to the new domain.
-- [ ] T053 [US2] Register the `domain-create` route (`/domains/-/new`, `meta.roles: ['admin']`) in
+- [X] T053 [US2] Register the `domain-create` route (`/domains/-/new`, `meta.roles: ['admin']`) in
   `src/features/domains/routes.ts`. Show `CreationReport` from
   `['domains','creation-report',name]` on `src/features/domains/pages/DomainDetailPage.vue`. Add
   the "Add domain" action for administrators to `DomainListPage.vue`, in its header and in the
   administrator's empty state (FR-014, FR-018).
-- [ ] T054 [US2] Add the `domains.create.*`, `domains.review.*` and `domains.report.*` messages (one
+- [X] T054 [US2] Add the `domains.create.*`, `domains.review.*` and `domains.report.*` messages (one
   per outcome of every step enumeration, plus the meaning of each failure) to
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, as `domains.report.<step>.<outcome>`. Add the
   legacy-map entries `mailbox.add_domain`, `mailbox.template`, `admin.dkim_domains_selector`,
@@ -769,7 +787,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T055 [US3] Add the US3 scenarios in `tests/mocks/scenarios/domains-edit.ts`:
+- [X] T055 [US3] Add the US3 scenarios in `tests/mocks/scenarios/domains-edit.ts`:
   - **`domain-edit`**: `edit.example`, with 8 mailboxes, 30 GiB allocated, a largest mailbox of
     5 GiB and the tags "a" and "b"; and `stale.example`, with 15 GiB allocated, for the refusal of
     stale usage;
@@ -777,7 +795,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
     administrator with and without `domainDesc`;
   - **`domain-tags-over-limit`**: 27 tags with `taggingLimit` 25;
   - **`domain-usage-over-limit`**: 12 mailboxes with a limit of 10.
-- [ ] T056 [P] [US3] Write `tests/e2e/domains/edit.spec.ts`. It covers:
+- [X] T056 [P] [US3] Write `tests/e2e/domains/edit.spec.ts`. It covers:
   - US3-AS1: a mailbox limit of 5 shows "8 in use", and saving is impossible below 8;
   - US3-AS2: on `edit.example`, a domain quota of 20 GiB is refused before sending with "30 GiB in
     use". On `stale.example`, `mockApi.mutateDomain` raises the allocation from 15 to 30 GiB after
@@ -817,7 +835,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
     say that nothing was saved and offer a retry with the input kept. `updateDomain` documents no
     `503`, so none is mocked;
   - Edge: usage changes alone never make a save outdated.
-- [ ] T057 [P] [US3] Write `tests/e2e/domains/permissions.spec.ts` (SC-005, FR-001, FR-002). For
+- [X] T057 [P] [US3] Write `tests/e2e/domains/permissions.spec.ts` (SC-005, FR-001, FR-002). For
   the administrator and both domain administrator scenarios, it asserts on the list, the domain
   page, its sections and the create address that exactly the matrix's actions are offered: list
   and inspect, create, description, Global Address List flag and tags, and active state, limits,
@@ -825,7 +843,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
   has no Domains entry and gets "no access" at `/ng/domains` and `/ng/domains/example.org` (edge
   case). The other rows of the matrix are asserted in their stories' specs: delete (T065), bulk
   actions (T072), templates (T079, T080), footer (T089) and history (T096).
-- [ ] T058 [P] [US3] Write `tests/unit/features/domains/edit-sections.spec.ts` and
+- [X] T058 [P] [US3] Write `tests/unit/features/domains/edit-sections.spec.ts` and
   `tests/unit/features/domains/useDomainSectionSave.spec.ts`:
   - each section's form, editable fields per permission, and client rules (usage checks only for
     changed limits; the tag limit);
@@ -833,7 +851,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
   - the Groupware restart notice;
   - `useDomainSectionSave` outcomes for `200`, `412`, `422`, `403 attribute-not-permitted`, `404`,
     `500` and network.
-- [ ] T059 [P] [US3] Write `tests/smoke/domains-edit.smoke.spec.ts` (`@domains`):
+- [X] T059 [P] [US3] *(written; running it is blocked until the API 002 dev stack is ready, see T108)* Write `tests/smoke/domains-edit.smoke.spec.ts` (`@domains`):
   - as `admin`, on a domain created with `domains-api.ts`: raise the mailbox limit, add a tag and
     switch a relay option, each section saved and the new values shown;
   - as `reseller`, on `example.org`: change the Global Address List flag and back, with Limits
@@ -843,7 +861,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
 
 ### Implementation for User Story 3
 
-- [ ] T060 [US3] Implement `src/features/domains/composables/useDomainSectionSave.ts`:
+- [X] T060 [US3] Implement `src/features/domains/composables/useDomainSectionSave.ts`:
   - the patch from `patch.ts`, sent with `If-Match`;
   - `412` through `useVersionedSave` with `changedSince`;
   - `403 attribute-not-permitted`: refetch the identity and the domain, and narrow the editable
@@ -852,7 +870,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
   - `404`, `500` and network.
 
   `useDomainSectionSave.spec.ts` must pass.
-- [ ] T061 [US3] Turn the read-only sections of T040 into editable sections, using the fields of
+- [X] T061 [US3] Turn the read-only sections of T040 into editable sections, using the fields of
   T032:
   - `GeneralSection.vue`: description, and active with the deactivation confirmation;
   - `TagsSection.vue`;
@@ -861,7 +879,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
   - `GroupwareSection.vue`: the restart notice.
 
   `edit-sections.spec.ts` must pass.
-- [ ] T062 [US3] Integrate editing into `src/features/domains/pages/DomainDetailPage.vue`:
+- [X] T062 [US3] Integrate editing into `src/features/domains/pages/DomainDetailPage.vue`:
   - `edit` in the address, with unknown or non-editable values removed;
   - `domainPermissions` for each section's `editable`;
   - `useLeaveGuard` while a section has changes, for leaving the page;
@@ -869,7 +887,7 @@ saves, an exceeded tag limit and an attribute refusal, and check the values sent
     first through `useConfirm`, in the page's own `onBeforeRouteUpdate` (FR-038; `useLeaveGuard`
     ignores query-only changes);
   - focus on the section heading when it opens.
-- [ ] T063 [US3] Add the `domains.sections.*`, `domains.edit.*`, `domains.deactivate.*` and
+- [X] T063 [US3] Add the `domains.sections.*`, `domains.edit.*`, `domains.deactivate.*` and
   attribute label messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use the legacy-map
   entries `edit.gal_info` (`stripMarkup`), `edit.relay_all_info` (`stripMarkup`), `edit.description`
   and `success.domain_modified` where the meaning is unchanged. `npm run i18n:check` must pass.
@@ -890,13 +908,13 @@ longer exists.
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T064 [US4] Add the scenario `domain-delete` in `tests/mocks/scenarios/domains-delete.ts`. It
+- [X] T064 [US4] Add the scenario `domain-delete` in `tests/mocks/scenarios/domains-delete.ts`. It
   contains:
   - `gone.example`, with 2 aliases, 1 alias domain, a footer, a DKIM key, and a domain
     administrator who manages only it plus one who manages another domain too;
   - `busy.example`, with 3 mailboxes;
   - `things.example`, with 1 resource and no mailboxes.
-- [ ] T065 [P] [US4] Write `tests/e2e/domains/delete.spec.ts`. It covers:
+- [X] T065 [P] [US4] Write `tests/e2e/domains/delete.spec.ts`. It covers:
   - US4-AS1: the confirmation shows the 2 aliases, the alias domain by name, both assigned domain
     administrators and, by name, the one whose account will be deleted, the footer, the tags and
     stored data removed and the DKIM key kept; Delete stays disabled until `GONE.example` or
@@ -916,27 +934,27 @@ longer exists.
   - FR-002: a domain administrator (`domain-admin-two-of-ten`) has no Delete action on the domain
     page or the list entries;
   - Edge: a temporary failure says nothing was deleted and offers a retry.
-- [ ] T066 [P] [US4] Write `tests/unit/features/domains/deletion.spec.ts`:
+- [X] T066 [P] [US4] Write `tests/unit/features/domains/deletion.spec.ts`:
   - `useDomainDeletion`: availability from usage, the preview fetched fresh each time, the outcome
     transitions of data-model §7;
   - `DeleteImpact.vue`: every item of FR-042, and the alias addresses behind a disclosure;
   - `DeleteBlockers.vue`: counts and up to 100 addresses.
-- [ ] T067 [P] [US4] Write `tests/smoke/domains-delete.smoke.spec.ts` (`@domains`). As `admin`:
+- [X] T067 [P] [US4] *(written; running it is blocked until the API 002 dev stack is ready, see T108)* Write `tests/smoke/domains-delete.smoke.spec.ts` (`@domains`). As `admin`:
   - `example.org`'s Delete is unavailable because of alice's mailbox;
   - a domain created with `domains-api.ts` is deleted with its name typed, and it leaves the list.
 
 ### Implementation for User Story 4
 
-- [ ] T068 [US4] Implement `src/features/domains/composables/useDomainDeletion.ts` and
+- [X] T068 [US4] Implement `src/features/domains/composables/useDomainDeletion.ts` and
   `src/features/domains/components/delete/DeleteImpact.vue` and `DeleteBlockers.vue`, so that T066
   passes.
-- [ ] T069 [US4] Add the Delete action:
+- [X] T069 [US4] Add the Delete action:
   - to the header actions of `src/features/domains/pages/DomainDetailPage.vue`;
   - to the entry actions menu (Reka `DropdownMenu`) of `src/features/domains/components/list/DomainCard.vue`
     and `DomainTable.vue`, for administrators.
 
   Show the unavailable reason when the domain has mailboxes or resources.
-- [ ] T070 [US4] Add the `domains.delete.*` messages (impact lines, typed-name label, blockers,
+- [X] T070 [US4] Add the `domains.delete.*` messages (impact lines, typed-name label, blockers,
   refusals, success) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with the legacy-map entries
   `mailbox.remove`, `success.domain_removed` and `danger.domain_not_empty` where the meaning is
   unchanged.
@@ -957,12 +975,12 @@ domains with mailboxes and resources.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T071 [US5] Add the US5 scenarios in `tests/mocks/scenarios/domains-bulk.ts`:
+- [X] T071 [US5] Add the US5 scenarios in `tests/mocks/scenarios/domains-bulk.ts`:
   - **`bulk-mixed`**: 30 domains, two of them with injected `temporary-failure` for bulk actions,
     `busy.example` with 3 mailboxes and `things.example` with 1 resource;
   - **`bulk-limit-small`**: `bulkLimit: 20`;
   - **`bulk-fifty`**: 50 domains for SC-008.
-- [ ] T072 [P] [US5] Write `tests/e2e/domains/bulk.spec.ts`. It covers:
+- [X] T072 [P] [US5] Write `tests/e2e/domains/bulk.spec.ts`. It covers:
   - US5-AS1: deactivating 10 after the confirmation shows progress, then one row per domain, done
     or failed with a translated reason;
   - US5-AS2: "Retry" sends only the 2 failed domains (`mockApi.requests()`);
@@ -973,7 +991,7 @@ domains with mailboxes and resources.
     changes; the deactivation confirmation lists the domains and the effect; activation has no
     confirmation;
   - FR-046:
-    - every target carries `version` equal to its list `etag` without quotes;
+    - every target carries `version` equal to its list `etag`, quotes included (G33);
     - an item changed with `mockApi.mutateDomain` comes back `outdated`, stays selected, and its
       retry carries the refreshed version;
     - a dropped connection (`route.abort` on `/api/v2/domains/bulk-actions`) reports every domain
@@ -985,23 +1003,23 @@ domains with mailboxes and resources.
     the limit of 20; the other checkboxes are then disabled with the same message;
   - FR-002: a domain administrator (`domain-admin-two-of-ten`) has no selection mode;
   - SC-008: `bulk-fifty` reports 50 outcomes.
-- [ ] T073 [P] [US5] Write `tests/unit/features/domains/useDomainBulk.spec.ts` and
+- [X] T073 [P] [US5] Write `tests/unit/features/domains/useDomainBulk.spec.ts` and
   `tests/unit/features/domains/bulk-confirm.spec.ts`:
   - the state machine of data-model §7;
   - targets, skipped partition, the kept rows and network handling;
   - `BulkDeleteImpact.vue`: per-domain impact from list data, skipped list, the typed count;
   - `BulkDeactivateList.vue`.
-- [ ] T074 [P] [US5] Write `tests/smoke/domains-bulk.smoke.spec.ts` (`@domains`). As `admin`, with
+- [X] T074 [P] [US5] *(written; running it is blocked until the API 002 dev stack is ready, see T108)* Write `tests/smoke/domains-bulk.smoke.spec.ts` (`@domains`). As `admin`, with
   two domains created by `domains-api.ts`:
   - bulk-deactivate them and see both done, then bulk-activate them;
   - bulk-delete them with "2" typed.
 
 ### Implementation for User Story 5
 
-- [ ] T075 [US5] Implement `src/features/domains/composables/useDomainBulk.ts` and
+- [X] T075 [US5] Implement `src/features/domains/composables/useDomainBulk.ts` and
   `src/features/domains/components/delete/BulkDeleteImpact.vue` and `BulkDeactivateList.vue`, so
   that T073 passes.
-- [ ] T076 [US5] Integrate selection into `src/features/domains/pages/DomainListPage.vue`,
+- [X] T076 [US5] Integrate selection into `src/features/domains/pages/DomainListPage.vue`,
   `src/features/domains/components/list/DomainCard.vue` and `DomainTable.vue`, for administrators:
   - a "Select" toggle;
   - checkboxes and select-all;
@@ -1011,7 +1029,7 @@ domains with mailboxes and resources.
     `bulk.limitReached` message;
   - the progress panel and `BulkResultSummary` with Retry;
   - `useLeaveGuard` while running.
-- [ ] T077 [US5] Add the `domains.bulk.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`,
+- [X] T077 [US5] Add the `domains.bulk.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`,
   with the legacy-map entries `mailbox.activate`, `mailbox.deactivate` and `mailbox.toggle_all`
   where the meaning is unchanged. `npm run i18n:check` must pass.
 
@@ -1030,13 +1048,13 @@ desktop, including a duplicate name and attempts to rename or delete Default.
 
 ### Tests for User Story 6 (write first; must fail)
 
-- [ ] T078 [US6] Add the US6 scenarios in `tests/mocks/scenarios/domain-templates.ts`:
+- [X] T078 [US6] *(done under the 1:1 rule: `templates`, `templates-empty` and `templates-list-error` in `tests/mocks/scenarios/domain-templates.ts`; `templates-delete-mixed` moves to T087a)* Add the US6 scenarios in `tests/mocks/scenarios/domain-templates.ts`:
   - **`templates`**: Default, "Small" and "Reseller", plus 30 more for paging;
   - **`templates-empty`**: no templates;
   - **`templates-list-error`**;
   - **`templates-delete-mixed`**: one template removed and one changed during a multiple deletion,
     through the mutations.
-- [ ] T079 [P] [US6] Write `tests/e2e/domain-templates/templates-list.spec.ts`. It covers:
+- [X] T079 [P] [US6] *(done for everything but multiple deletion, which moves to T087a; texts and columns follow the classic list)* Write `tests/e2e/domain-templates/templates-list.spec.ts`. It covers:
   - FR-049: reachable from the navigation entry and from the domain list; pages; total; name
     search; sort by name, ID, creation and modification time; Default marked;
   - FR-050: cards at 360 px and a table on desktop, with the listed values and the expandable rate
@@ -1054,7 +1072,7 @@ desktop, including a duplicate name and attempts to rename or delete Default.
     - retry sends only the failed, refused and outdated ones;
   - US6-AS5: the reseller has no Domain templates entry, and `/ng/domain-templates` shows "no
     access".
-- [ ] T080 [P] [US6] Write `tests/e2e/domain-templates/templates-edit.spec.ts`. It covers:
+- [X] T080 [P] [US6] *(done with the classic add and edit forms: one form each, owner rule 1:1)* Write `tests/e2e/domain-templates/templates-edit.spec.ts`. It covers:
   - US6-AS1: "Small" with 5 mailboxes and the offered values, then listed;
   - US6-AS2: naming another template "small" shows "template name already exists" on the name;
   - US6-AS3: Default has a read-only name and no delete action, and its values save;
@@ -1071,7 +1089,7 @@ desktop, including a duplicate name and attempts to rename or delete Default.
   - a single deletion refused as outdated after `mockApi.mutateTemplate` reloads the template and
     asks for confirmation again (conventions);
   - FR-004: an unknown template ID shows the "not found" page with a link to the template list.
-- [ ] T081 [P] [US6] Write the US6 unit tests in `tests/unit/features/domains/`:
+- [X] T081 [P] [US6] *(done: `templates-list-state`, `template-form` and `template-components` specs; `useTemplateBulkDelete` moves to T087a)* Write the US6 unit tests in `tests/unit/features/domains/`:
   - `templates-list-state.spec.ts`;
   - `template-form.spec.ts`: defaults; payload; DKIM empty omitted at creation and sent as the
     capabilities' default on edit; switch off sends `""`;
@@ -1080,23 +1098,23 @@ desktop, including a duplicate name and attempts to rename or delete Default.
   - `template-components.spec.ts`: `TemplateCard`, `TemplateTable` (Default marker,
     `aria-sort`), `TemplateEntryDetails`, and the four template sections with Default's read-only
     name.
-- [ ] T082 [P] [US6] Write `tests/smoke/domain-templates.smoke.spec.ts` (`@domain-templates`). As
+- [X] T082 [P] [US6] *(written; running it needs the smoke stack, see T108)* Write `tests/smoke/domain-templates.smoke.spec.ts` (`@domain-templates`). As
   `admin`:
   - create `Smoke-<timestamp>` with 5 mailboxes, change its alias limit, and delete it;
   - Default shows a read-only name and no delete action.
 
 ### Implementation for User Story 6
 
-- [ ] T083 [US6] Implement `src/features/domains/templates-list-state.ts`,
+- [X] T083 [US6] *(done: `templates-list-state.ts`, `template-form.ts`; multiple deletion moves to T087a)* Implement `src/features/domains/templates-list-state.ts`,
   `src/features/domains/template-form.ts` and
   `src/features/domains/composables/useTemplateBulkDelete.ts`, so that the corresponding tests of
   T081 pass.
-- [ ] T084 [US6] Implement the template components in `src/features/domains/components/templates/`:
+- [X] T084 [US6] *(done under the 1:1 rule: `TemplateList`, `TemplateCard`, `TemplateTable` with `template-columns.ts`, `TemplateEntryDetails`, `TemplateEntryActions`, `DefaultBadge` and one `TemplateFormFields` in the classic order instead of four sections)* Implement the template components in `src/features/domains/components/templates/`:
   `TemplateList.vue`, `TemplateCard.vue`, `TemplateTable.vue`, `TemplateEntryDetails.vue`,
   `TemplateNameSection.vue`, `TemplateLimitsSection.vue`, `TemplateOptionsSection.vue` and
   `TemplateDkimSection.vue`, on `EditableSection` and the fields of T032.
   `template-components.spec.ts` must pass.
-- [ ] T085 [US6] Implement the template pages in `src/features/domains/pages/`:
+- [X] T085 [US6] *(done under the 1:1 rule: the list with single deletion, `TemplateCreatePage` as the classic add form, `TemplateDetailPage` as the classic edit form with outdated handling; deletion stays in the list, as in legacy)* Implement the template pages in `src/features/domains/pages/`:
   - `TemplateListPage.vue`: `useListState`, `ListState`, `PaginationBar`, selection with
     `BulkActionBar`, `useTemplateBulkDelete`, `BulkResultSummary` and `useLeaveGuard`;
   - `TemplateCreatePage.vue`: a sectioned form with a sticky Save, `useProblemForm`, the
@@ -1105,19 +1123,25 @@ desktop, including a duplicate name and attempts to rename or delete Default.
     `changedSince`, `useLeaveGuard` while a section has changes, the same confirmation before
     removing `edit` with unsaved changes as T062, and single deletion through `useConfirm` (not
     offered for Default, confirmed again after a `412`).
-- [ ] T086 [US6] Register the `domain-templates`, `domain-template-create` and
+- [X] T086 [US6] Register the `domain-templates`, `domain-template-create` and
   `domain-template-detail` routes in `src/features/domains/routes.ts`. Add the catalogue entry
   `domainTemplates` of research D5 to `src/app/navigation/catalogue.ts`, with a new icon in
   `src/shared/icons/` (TailAdmin first, otherwise Lucide, noted in `THIRD_PARTY_NOTICES.md`). Add
   its row to `tests/unit/app/navigation/visibility.spec.ts`. Add a "Domain templates" link to
   `src/features/domains/pages/DomainListPage.vue` for administrators.
-- [ ] T087 [US6] Add the `nav.domainTemplates`, `domainTemplates.*` and `domainTemplates.sort.*`
+- [X] T087 [US6] *(done with legacy keys through `lang.<section>.<key>` entries of `legacy-map.json`; the remaining new strings are listed in the legacy form map of plan.md)* Add the `nav.domainTemplates`, `domainTemplates.*` and `domainTemplates.sort.*`
   (one label per `DomainTemplateSort` value) messages to
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with the legacy-map entries
   `mailbox.domain_templates`, `mailbox.add_template`, `success.template_added`,
   `success.template_modified` and `danger.template_exists` where the meaning is unchanged. Register
   `"domainTemplates.sort": "#/components/parameters/DomainTemplateSort/schema"` in `complete`.
   `npm run i18n:check` must pass.
+
+- [X] T087a [US6] *(done: G40 landed; "Remove" in the selection bar of the template list, `useTemplateBulkDelete`, `BulkResultSummary` and the template bulk handler)* Add the
+  classic "delete selected" to the template list: selection mode with the Default template not
+  selectable, `BulkActionBar` with `mailbox.remove`, the bulk operation with each template's version
+  tag, `BulkResultSummary` with retry, and the `templates-delete-mixed` scenario, e2e and unit
+  tests. Until then the list offers single deletion only (orchestrator decision, docs/conventions.md).
 
 **Checkpoint**: US1 to US6 work on their own.
 
@@ -1135,7 +1159,7 @@ an outdated version.
 
 ### Tests for User Story 7 (write first; must fail)
 
-- [ ] T088 [US7] Add the US7 scenarios in `tests/mocks/scenarios/domains-footer.ts`:
+- [X] T088 [US7] *(done under the 1:1 rule: `footer` and `footer-domain-admin`, with the domain's mailboxes, aliases and alias domains for the exclusion list)* Add the US7 scenarios in `tests/mocks/scenarios/domains-footer.ts`:
   - **`footer`**:
     - `plain.example`, without a footer;
     - `footed.example`, with HTML containing `<script>alert(1)</script>`, plain text, skip replies,
@@ -1143,7 +1167,7 @@ an outdated version.
     - the alias domain `alias.footed.example`;
     - a mailbox and an alias of the domain;
   - **`footer-domain-admin`**: the same data for a domain administrator without any flag.
-- [ ] T089 [P] [US7] Write `tests/e2e/domains/footer.spec.ts`. It covers:
+- [X] T089 [P] [US7] *(done: the footer is the classic "Domain wide footer" tab as a section of the domain page, not a page of its own; legacy's explanation, variables and multi-select; no copy buttons, size indicator or empty-footer explanation, which legacy lacks)* Write `tests/e2e/domains/footer.spec.ts`. It covers:
   - US7-AS1: `plain.example` opens with empty texts, replies not skipped and no exclusions;
   - US7-AS2: the domain administrator saves HTML, plain text and one excluded address, and the
     success is announced;
@@ -1163,21 +1187,21 @@ an outdated version.
   - FR-069: at 360 px, Save and Cancel stay reachable in a sticky bar while the long texts scroll;
   - Edge: the stale exclusion is shown as stored; the API refuses the save and marks it; after
     removing it, the save succeeds.
-- [ ] T090 [P] [US7] Write `tests/unit/features/domains/footer.spec.ts`: the UTF-8 size of
+- [X] T090 [P] [US7] *(done: `footer.spec.ts` with the UTF-8 size, the merge of "Save again" and the exclusion mapping)* Write `tests/unit/features/domains/footer.spec.ts`: the UTF-8 size of
   multi-byte text; the payload mapping; `ExclusionFields.vue` (two sets, errors by index);
   `PlaceholderReference.vue` (six entries, copy through `clipboard.ts`, the refusal message);
   `TextSizeIndicator.vue` (hidden below 90 %, size text, over-limit state).
-- [ ] T091 [P] [US7] Write `tests/smoke/domains-footer.smoke.spec.ts` (`@domains`). As `admin`, on
+- [X] T091 [P] [US7] *(written; running it needs the smoke stack, see T108)* Write `tests/smoke/domains-footer.smoke.spec.ts` (`@domains`). As `admin`, on
   `example.org`:
   - save a footer with `{= from_name =}` and `alice@example.org` excluded, and read it back;
   - restore the previous footer.
 
 ### Implementation for User Story 7
 
-- [ ] T092 [US7] Implement `src/features/domains/footer.ts` and
+- [X] T092 [US7] *(done: `footer.ts`, `useFooterSection.ts` and `ExclusionSelect.vue`; no size indicator, which legacy lacks)* Implement `src/features/domains/footer.ts` and
   `src/features/domains/components/footer/ExclusionFields.vue`, `PlaceholderReference.vue` and
   `TextSizeIndicator.vue`, so that T090 passes.
-- [ ] T093 [US7] Implement `src/features/domains/pages/DomainFooterPage.vue`:
+- [X] T093 [US7] *(done as `FooterSection.vue` on the domain page, the classic tab's position)* Implement `src/features/domains/pages/DomainFooterPage.vue`:
   - `getDomain` for the header, and `getDomainFooter`;
   - the form, with `<textarea>` source fields that are never rendered;
   - `replaceDomainFooter` with `If-Match`, `useVersionedSave` with `changedSince`, and
@@ -1187,7 +1211,7 @@ an outdated version.
 
   Register the `domain-footer` route in `src/features/domains/routes.ts`, and link to it from
   `FooterSummary.vue` and the header actions of `DomainDetailPage.vue`.
-- [ ] T094 [US7] Add the `domains.footer.*` messages (placeholder descriptions, size, empty-footer
+- [X] T094 [US7] *(done: legacy's texts by their keys; new strings only for the exclusion subtexts and the size limit)* Add the `domains.footer.*` messages (placeholder descriptions, size, empty-footer
   explanation, outdated) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with the legacy-map
   entries `edit.domain_footer`, `edit.domain_footer_info` (`stripMarkup`), `edit.domain_footer_html`,
   `edit.domain_footer_plain`, `edit.domain_footer_skip_replies`, `edit.footer_exclude` and
@@ -1209,7 +1233,7 @@ is never offered history.
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T095 [US8] Extend `tests/mocks/handlers/audit.ts` with the `targetType` and `targetId` filters.
+- [X] T095 [US8] *(done: target filters in `handlers/audit.ts` with ASCII or Unicode domain names in any case; `audit-domain-records` and `audit-domain-records-domain-admin` in `scenarios/domains-history.ts`)* Extend `tests/mocks/handlers/audit.ts` with the `targetType` and `targetId` filters.
   `targetId` for `domain` and `domainFooter` targets matches the ASCII or Unicode name in any
   letter case. Without `targetType`, a domain name matches the records of the domain and of its
   footer.
@@ -1224,7 +1248,7 @@ is never offered history.
   - API key records.
 
   Every record must pass the validator.
-- [ ] T096 [P] [US8] Write `tests/e2e/domains/history.spec.ts`. It covers:
+- [X] T096 [P] [US8] *(done: `tests/e2e/domains/history.spec.ts` on `audit-domain-records`; details in UI 001's generic view)* Write `tests/e2e/domains/history.spec.ts`. It covers:
   - US8-AS1, partly, because of API gap G1: History on `example.org` opens the audit log filtered
     by `targetId=example.org`; the quota entry shows the actor, the time, the client address, the
     translated event label and target, and its details in UI 001's generic view;
@@ -1233,13 +1257,13 @@ is never offered history.
   - FR-063: the template page's History opens `targetType=domainTemplate&targetId=<id>`, showing
     the template records;
   - the footer update appears in the domain's history.
-- [ ] T097 [P] [US8] Write `tests/e2e/audit-log/target-filters.spec.ts`. It covers:
+- [X] T097 [P] [US8] *(done: `tests/e2e/audit-log/target-filters.spec.ts`)* Write `tests/e2e/audit-log/target-filters.spec.ts`. It covers:
   - FR-063: the target type select lists the translated target types; a target filter by type and
     identifier narrows the list; both show as removable chips; a reload keeps them;
   - research D26: the API key detail page has a History link opening
     `targetType=apiKey&targetId=<id>`;
   - unknown event types still show the generic label (unit-tested in T098).
-- [ ] T098 [P] [US8] Extend the audit log unit tests:
+- [X] T098 [P] [US8] *(done: list-state, labels, AuditFilters and `history-links.spec.ts`)* Extend the audit log unit tests:
   - `tests/unit/features/audit-log/list-state.spec.ts`: `targetType` (only `AuditTarget.type`
     values) and `targetId` (≤ 255 characters) parsed and mapped;
   - `tests/unit/features/audit-log/labels.spec.ts`: the 7 domain event types, the 3 target types
@@ -1247,17 +1271,17 @@ is never offered history.
   - `tests/unit/features/audit-log/AuditFilters.spec.ts`: the target fields and the ≤ 255 check;
   - `tests/unit/features/domains/history-links.spec.ts`: the domain page offers `HistoryLink` only
     when `canAccess('auditLog')`.
-- [ ] T099 [P] [US8] Write `tests/smoke/domains-history.smoke.spec.ts` (`@domains`). As `admin`,
+- [X] T099 [P] [US8] *(written; running it needs the smoke stack, see T108)* Write `tests/smoke/domains-history.smoke.spec.ts` (`@domains`). As `admin`,
   after editing a domain created with `domains-api.ts`, its History lists the creation and the
   edit. Clean up afterwards.
 
 ### Implementation for User Story 8
 
-- [ ] T100 [US8] Extend `src/features/audit-log/list-state.ts`,
+- [X] T100 [US8] *(done: the "Any target type" select of the labelled types and a target field, with chips; the note that target filters come later is gone)* Extend `src/features/audit-log/list-state.ts`,
   `src/features/audit-log/components/AuditFilters.vue` (a target type `<select>` of the translated
   types, and a target field) and `src/features/audit-log/components/ActiveFilterChips.vue`, so that
   the audit-log parts of T098 pass.
-- [ ] T101 [US8] Add `HistoryLink`:
+- [X] T101 [US8] *(done: `HistoryLink` gains `allowed`; the domain page passes `canAccess('auditLog')`)* Add `HistoryLink`:
   - to the header actions of `src/features/domains/pages/DomainDetailPage.vue`
     (`targetId=<ASCII name>`, administrators only);
   - to `src/features/domains/pages/TemplateDetailPage.vue`
@@ -1265,7 +1289,7 @@ is never offered history.
   - to `src/features/api-keys/pages/ApiKeyDetailPage.vue` (`targetType=apiKey&targetId=<id>`).
 
   `history-links.spec.ts` must pass.
-- [ ] T102 [US8] Add the `auditLog.event.*` labels of the 7 domain event types, the
+- [X] T102 [US8] *(done: the domain and footer targets use the classic names through `LEGACY_TEXTS`; the other labels are new strings)* Add the `auditLog.event.*` labels of the 7 domain event types, the
   `auditLog.target.*` labels of `domain`, `domainTemplate` and `domainFooter`, the
   `auditLog.failureReason.*` labels of `attributeNotPermitted`, `versionOutdated`,
   `validationFailed`, `conflict` and `temporaryFailure`, and the `auditLog.filters.target*` and

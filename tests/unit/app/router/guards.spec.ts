@@ -99,7 +99,7 @@ describe('active', () => {
   it('opens shell routes', async () => {
     const { router } = setup()
     await router.push('/domains')
-    expect(router.currentRoute.value.name).toBe('placeholder-domains')
+    expect(router.currentRoute.value.name).toBe('domains')
   })
 
   it('sends sign-in routes to returnTo, or home (FR-031)', async () => {
@@ -167,7 +167,7 @@ describe('after a sign-in (FR-030)', () => {
     })
     useScenario('admin-active')
     await router.push('/sign-in/admin?returnTo=%2Fdomains')
-    expect(router.currentRoute.value.name).toBe('placeholder-domains')
+    expect(router.currentRoute.value.name).toBe('domains')
   })
 })
 

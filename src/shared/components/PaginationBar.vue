@@ -2,7 +2,7 @@
 // Pages, total count and page size of a list (conventions "Lists", research R20), on TailAdmin's
 // pagination, with the texts of the classic interface's DataTables (`datatables.*`): the entries
 // shown, "Show _MENU_ entries" with the page size as a native <select> (research R18) in the place
-// of `_MENU_`, and Previous and Next.
+// of `_MENU_`, and First, Previous, Next and Last (UI 002, FR-005).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -10,7 +10,12 @@ import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 
-import { ChevronLeftIcon, ChevronRightIcon } from '../icons'
+import {
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '../icons'
 import { buttonVariants } from '../ui/button'
 import { Pagination } from '../ui/pagination'
 import LegacyText from './LegacyText.vue'
@@ -69,6 +74,15 @@ function onSize(event: Event) {
           <button
             type="button"
             :class="buttonVariants({ variant: 'outline', size: 'icon' })"
+            :aria-label="lt('datatables.paginate.first')"
+            :disabled="page <= 1"
+            @click="emit('update:page', 1)"
+          >
+            <ChevronDoubleLeftIcon />
+          </button>
+          <button
+            type="button"
+            :class="buttonVariants({ variant: 'outline', size: 'icon' })"
             :aria-label="lt('datatables.paginate.previous')"
             :disabled="page <= 1"
             @click="emit('update:page', page - 1)"
@@ -86,6 +100,15 @@ function onSize(event: Event) {
             @click="emit('update:page', page + 1)"
           >
             <ChevronRightIcon />
+          </button>
+          <button
+            type="button"
+            :class="buttonVariants({ variant: 'outline', size: 'icon' })"
+            :aria-label="lt('datatables.paginate.last')"
+            :disabled="page >= pages"
+            @click="emit('update:page', pages)"
+          >
+            <ChevronDoubleRightIcon />
           </button>
         </div>
       </Pagination>

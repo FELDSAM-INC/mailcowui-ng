@@ -6,7 +6,6 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import {
   auditListSchema,
-  RESERVED_TARGET_PARAMS,
   toAuditParams,
   type AuditFilterValues,
 } from '@/features/audit-log/list-state'
@@ -86,11 +85,13 @@ describe('auditListSchema', () => {
     expect(router.currentRoute.value.fullPath).toBe('/audit-log?event=signOut')
   })
 
-  it('keeps the reserved target parameters in the address', async () => {
-    expect(RESERVED_TARGET_PARAMS).toEqual(['targetType', 'targetId'])
+  it('parses the target filters: a target type of the contract and an ID of at most 255 characters', async () => {
     const { list, router } = await parse('?targetType=apiKey&targetId=01JB3K4M5N6P7Q8R9S0TVWXYZA')
     expect(list.state.value.filters.targetType).toBe('apiKey')
     expect(router.currentRoute.value.query.targetId).toBe('01JB3K4M5N6P7Q8R9S0TVWXYZA')
+    const invalid = await parse(`?targetType=nope&targetId=${'x'.repeat(256)}`)
+    expect(invalid.list.state.value.filters.targetType).toBeUndefined()
+    expect(invalid.list.state.value.filters.targetId).toBeUndefined()
   })
 })
 
@@ -143,9 +144,8 @@ describe('toAuditParams', () => {
     expect(toAuditParams(state({ from, to }), NOW).from).toBeUndefined()
   })
 
-  it('never sends the reserved target parameters', () => {
-    const params = toAuditParams(state({ targetType: 'apiKey', targetId: 'x' }), NOW)
-    expect(params).not.toHaveProperty('targetType')
-    expect(params).not.toHaveProperty('targetId')
+  it('sends the target filters (UI 002 US8)', () => {
+    const params = toAuditParams(state({ targetType: 'domain', targetId: 'example.org' }), NOW)
+    expect(params).toMatchObject({ targetType: 'domain', targetId: 'example.org' })
   })
 })

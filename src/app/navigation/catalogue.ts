@@ -16,6 +16,7 @@ import {
   GlobeIcon,
   HomeIcon,
   KeyIcon,
+  LayersIcon,
   ListIcon,
   LockIcon,
   MailIcon,
@@ -28,6 +29,7 @@ import {
 export type NavEntryId =
   | 'home'
   | 'domains'
+  | 'domainTemplates'
   | 'mailboxes'
   | 'aliases'
   | 'account'
@@ -74,6 +76,7 @@ const MAIL_SETUP = { admin: ['/admin/mailbox'], domainAdmin: ['/domainadmin/mail
  */
 const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   domains: legacy('mailbox.domains'),
+  domainTemplates: legacy('mailbox.domain_templates'),
   mailboxes: legacy('mailbox.mailboxes'),
   account: legacy('header.user_settings'),
   quarantine: legacy('header.quarantine'),
@@ -97,7 +100,16 @@ function entry(
 
 export const catalogue: readonly NavigationEntry[] = [
   entry('home', '/', HomeIcon, ALL, '001', {}, 'available'),
-  entry('domains', '/domains', GlobeIcon, MANAGERS, '002', MAIL_SETUP),
+  entry('domains', '/domains', GlobeIcon, MANAGERS, '002', MAIL_SETUP, 'available'),
+  entry(
+    'domainTemplates',
+    '/domain-templates',
+    LayersIcon,
+    ADMIN,
+    '002',
+    { admin: ['/admin/mailbox'] },
+    'available',
+  ),
   entry('mailboxes', '/mailboxes', MailIcon, MANAGERS, '003', MAIL_SETUP),
   entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP),
   entry('account', '/account', UserCircleIcon, ALL, '005', {

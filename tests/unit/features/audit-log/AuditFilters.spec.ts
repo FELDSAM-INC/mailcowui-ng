@@ -36,6 +36,14 @@ const field = (wrapper: ReturnType<typeof mountFilters>, label: string) => {
   return wrapper.get<HTMLInputElement>(`#${id}`)
 }
 
+const exactField = (wrapper: ReturnType<typeof mountFilters>, label: string) => {
+  const id = wrapper
+    .findAll('label')
+    .find((l) => l.text().trim() === label)
+    ?.attributes('for')
+  return wrapper.get<HTMLInputElement>(`#${id}`)
+}
+
 describe('AuditFilters', () => {
   it('limits the actor and the address to the contract lengths', () => {
     const wrapper = mountFilters()
@@ -121,5 +129,35 @@ describe('AuditFilters', () => {
     const clear = wrapper.findAll('button').find((b) => b.text() === 'Clear filters')
     await clear!.trigger('click')
     expect(wrapper.emitted('clear')).toHaveLength(1)
+  })
+
+  it('UI 002 T098 offers the labelled target types, classic names included, and a target ID', async () => {
+    const wrapper = mountFilters()
+    const type = field(wrapper, 'Target type')
+    const options = type.findAll('option').map((option) => option.text())
+    expect(options).toEqual(
+      expect.arrayContaining(['API key', 'Domain', 'Domain wide footer', 'Domain template']),
+    )
+    expect(options).not.toContain('Unknown (mailbox)')
+    expect(exactField(wrapper, 'Target').attributes('maxlength')).toBe('255')
+    await type.setValue('domain')
+    await exactField(wrapper, 'Target').setValue(' example.org ')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('apply')?.[0]?.[0]).toMatchObject({
+      targetType: 'domain',
+      targetId: 'example.org',
+    })
+  })
+
+  it('UI 002 T098 refuses a target ID longer than 255 characters', async () => {
+    const wrapper = mountFilters()
+    const target = exactField(wrapper, 'Target')
+    target.element.value = 'x'.repeat(256)
+    await target.trigger('input')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+    expect(wrapper.text()).toContain('Enter at most 255 characters.')
+    expect(target.attributes('aria-invalid')).toBe('true')
+    expect(wrapper.emitted('apply')).toBeUndefined()
   })
 })

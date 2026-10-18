@@ -93,6 +93,8 @@ export default withVueTs(
       'vue/require-default-prop': 'off',
       // A label needs a programmatic association (WCAG 1.3.1): `for` or nesting, not both.
       'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
+      // FormField renders the `<label for>` of the control in its slot (UI 002).
+      'vuejs-accessibility/form-control-has-label': ['error', { labelComponents: ['FormField'] }],
     },
   },
   {

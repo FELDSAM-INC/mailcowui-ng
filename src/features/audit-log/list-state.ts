@@ -2,13 +2,12 @@
 // (repeatable), outcome, actor and client address, plus page and size. The sort is always
 // `occurredAt` newest first, so it is not in the address.
 //
-// `targetType` and `targetId` are reserved (research R20, plan API gap 1): the History action of
-// later features opens `/audit-log?targetType=<type>&targetId=<id>`. The pinned contract has no
-// target filters on GET /audit-events, so the parameters stay in the address but are never sent;
-// the contract bump that adds them maps them in `toAuditParams` below.
+// The target filters (UI 002 US8, FR-063): the History action of an object opens
+// `/audit-log?targetType=<type>&targetId=<id>`; both are sent as `targetType` and `targetId`.
 import {
   auditEventTypeValues,
   auditOutcomeValues,
+  auditTargetTypeValues,
   type AuditEventType,
   type AuditListParams,
   type AuditOutcome,
@@ -27,11 +26,10 @@ import {
   AUDIT_ACTOR_MAX_LENGTH,
   AUDIT_ADDRESS_MAX_LENGTH,
   AUDIT_EVENT_TYPES_MAX_ITEMS,
+  AUDIT_TARGET_ID_MAX_LENGTH,
 } from '@/shared/validation/limits'
 
 import { AUDIT_RANGES, resolveRange, type AuditRange } from './time-range'
-
-export const RESERVED_TARGET_PARAMS = ['targetType', 'targetId'] as const
 
 export type AuditFilterValues = {
   range: AuditRange | undefined
@@ -42,13 +40,19 @@ export type AuditFilterValues = {
   outcome: AuditOutcome | undefined
   actor: string | undefined
   address: string | undefined
-  /** Reserved: kept in the address, not sent (see above). */
-  targetType: string | undefined
+  targetType: (typeof auditTargetTypeValues)[number] | undefined
   targetId: string | undefined
 }
 
-/** The user-facing filters, without the reserved target parameters. */
-export const AUDIT_FILTER_KEYS = ['range', 'event', 'outcome', 'actor', 'address'] as const
+export const AUDIT_FILTER_KEYS = [
+  'range',
+  'event',
+  'outcome',
+  'actor',
+  'address',
+  'targetType',
+  'targetId',
+] as const
 
 const first = (raw: unknown): string | undefined => {
   const value = Array.isArray(raw) ? raw[0] : raw
@@ -88,8 +92,8 @@ export const auditListSchema: ListSchema<AuditFilterValues> = {
     outcome: oneOf(auditOutcomeValues),
     actor: text({ maxLength: AUDIT_ACTOR_MAX_LENGTH }),
     address: custom(network),
-    targetType: text({ maxLength: 64 }),
-    targetId: text({ maxLength: 255 }),
+    targetType: oneOf(auditTargetTypeValues),
+    targetId: text({ maxLength: AUDIT_TARGET_ID_MAX_LENGTH }),
   },
 }
 
@@ -110,6 +114,7 @@ export function toAuditParams(
   if (filters.outcome) params.outcome = filters.outcome
   if (filters.actor) params.actor = filters.actor
   if (filters.address) params.clientAddress = filters.address
-  // filters.targetType and filters.targetId: not in the pinned contract (see above).
+  if (filters.targetType) params.targetType = filters.targetType
+  if (filters.targetId) params.targetId = filters.targetId
   return params
 }

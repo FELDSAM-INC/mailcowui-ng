@@ -72,10 +72,15 @@ describe('AuditLogPage', () => {
     expect(router.currentRoute.value.query).toEqual({})
   })
 
-  it('notes that filtering by one object is not available yet', async () => {
+  it('UI 002 FR-063 filters by target type and identifier from the address, shown as chips', async () => {
     const { wrapper } = await mountPage('/audit-log?targetType=apiKey&targetId=K1')
-    expect(wrapper.get('[role="note"]').text()).toContain('comes with a later version')
-    const request = mockState().requests.find((r) => r.operationId === 'listAuditEvents')
-    expect(request?.path).not.toContain('target')
+    expect(wrapper.find('[role="note"]').exists()).toBe(false)
+    const request = mockState()
+      .requests.filter((r) => r.operationId === 'listAuditEvents')
+      .at(-1)
+    expect(request?.path).toContain('targetType=apiKey')
+    expect(request?.path).toContain('targetId=K1')
+    expect(button(wrapper, 'Remove filter: API key')).toBeDefined()
+    expect(button(wrapper, 'Remove filter: Target: K1')).toBeDefined()
   })
 })

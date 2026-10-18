@@ -115,6 +115,33 @@ export function formatDuration(seconds: number, locale: AppLocale): string {
   return formatList(parts, locale)
 }
 
+const BINARY_UNITS = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'] as const
+
+/**
+ * A size in binary units for the user's language (FR-016, UI 002 research D12). With `exact`, the
+ * largest of MiB, GiB and TiB that represents the value exactly is used (quotas and limits:
+ * 10,240 MiB is "10 GiB", 3,000 MiB stays "3,000 MiB"). Otherwise the largest unit in which the
+ * value is at least 1, rounded to one decimal (storage).
+ */
+export function formatBytes(
+  bytes: number,
+  locale: AppLocale,
+  options: { exact?: boolean } = {},
+): string {
+  if (options.exact && bytes > 0) {
+    for (let power = 4; power >= 2; power -= 1) {
+      const size = 1024 ** power
+      if (bytes % size === 0) {
+        return `${formatNumber(bytes / size, locale, { maximumFractionDigits: 0 })} ${BINARY_UNITS[power]}`
+      }
+    }
+  }
+  let power = 0
+  while (power < BINARY_UNITS.length - 1 && Math.abs(bytes) >= 1024 ** (power + 1)) power += 1
+  const value = bytes / 1024 ** power
+  return `${formatNumber(value, locale, { maximumFractionDigits: power === 0 ? 0 : 1 })} ${BINARY_UNITS[power]}`
+}
+
 /** The formatters bound to the language in use. */
 export function useFormat() {
   const composer = useI18n({ useScope: 'global' })
@@ -129,5 +156,7 @@ export function useFormat() {
       formatList(values, current.value, type),
     duration: (seconds: number) => formatDuration(seconds, current.value),
     clock: formatClock,
+    bytes: (value: number, options?: { exact?: boolean }) =>
+      formatBytes(value, current.value, options),
   }
 }

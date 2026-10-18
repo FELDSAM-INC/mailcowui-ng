@@ -4,6 +4,12 @@ import type { BrowserContext } from '@playwright/test'
 
 import type { Violation } from '../../mocks/contract/validator'
 import type { RecordedRequest, ScenarioOverrides, ScenarioPatch } from '../../mocks/scenarios'
+import type {
+  DomainFailure,
+  MockDomain,
+  MockDomainTemplate,
+  MockFooter,
+} from '../../mocks/scenarios/state'
 
 export const MOCK_URL = `http://127.0.0.1:${process.env.MOCK_PORT ?? 4010}`
 
@@ -17,6 +23,25 @@ export interface MockApi {
   /** Contract violations of every scenario this test used. */
   violations(): Promise<Violation[]>
   readonly id: string | null
+  /**
+   * UI 002 (research D28): changes behind the app's back, standing in for another administrator
+   * or the classic interface. Every stored change also changes the object's version tag.
+   */
+  mutateDomain(name: string, changes: Partial<MockDomain>): Promise<void>
+  removeDomain(name: string): Promise<void>
+  addMailbox(domain: string): Promise<void>
+  mutateTemplate(id: number, changes: Partial<MockDomainTemplate>): Promise<void>
+  removeTemplate(id: number): Promise<void>
+  mutateFooter(name: string, changes: Partial<MockFooter>): Promise<void>
+  setCapabilities(changes: ScenarioPatch['capabilities']): Promise<void>
+  /** The next call of an operation (for one domain, when given) answers with this problem. */
+  failNext(
+    operationId: string,
+    failure: Omit<DomainFailure, 'operations' | 'times'>,
+    options?: { domain?: string; times?: number },
+  ): Promise<void>
+  /** Delays every answer of an operation (0 removes the delay). */
+  delay(operationId: string, ms: number): Promise<void>
 }
 
 async function control<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -60,6 +85,39 @@ export function createMockApi(context: BrowserContext, appUrl: string): MockApi 
         `/__mock/scenarios/${current}/requests`,
       )
       return requests
+    },
+    mutateDomain(name, changes) {
+      return this.patch({ domains: { set: { [name]: changes } } })
+    },
+    removeDomain(name) {
+      return this.patch({ domains: { remove: [name] } })
+    },
+    addMailbox(domain) {
+      return this.patch({ domains: { addMailbox: [domain] } })
+    },
+    mutateTemplate(id, changes) {
+      return this.patch({ templates: { set: { [String(id)]: changes } } })
+    },
+    removeTemplate(id) {
+      return this.patch({ templates: { remove: [id] } })
+    },
+    mutateFooter(name, changes) {
+      return this.patch({ footers: { set: { [name]: changes } } })
+    },
+    setCapabilities(changes) {
+      return this.patch({ capabilities: changes })
+    },
+    failNext(operationId, failure, options = {}) {
+      const times = options.times ?? 1
+      if (options.domain) {
+        return this.patch({
+          domainFailures: { [options.domain]: { ...failure, operations: [operationId], times } },
+        })
+      }
+      return this.patch({ failures: { [operationId]: { ...failure, times } } })
+    },
+    delay(operationId, ms) {
+      return this.patch({ delays: { [operationId]: ms } })
     },
     async violations() {
       const all: Violation[] = []

@@ -2,7 +2,9 @@
 // sends `If-Match` with the version tag that was read. A 412 keeps the user's input (the caller
 // owns it), reloads the resource, sets `outdated` and exposes the latest value; the user decides
 // to save again. Nothing is retried automatically and `*` is never sent. A refused deletion asks
-// for confirmation again with the reloaded value.
+// for confirmation again with the reloaded value. UI 002 adds the field diff of section editing:
+// `changedSince` lists the fields that changed in the meantime with their new saved values, and
+// `discard` takes the reloaded values (research D11).
 import { ref, shallowRef } from 'vue'
 
 import { ApiProblem, isApiProblem } from '@/api'
@@ -24,6 +26,46 @@ const isPreconditionFailed = (error: unknown) => isApiProblem(error) && error.st
 
 function asProblem(error: unknown): ApiProblem {
   return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'problem', cause: error })
+}
+
+/** How a field's saved values are compared: `set` (string sets ignoring case), `number` or `value`. */
+export type FieldComparison = 'set' | 'number' | 'value'
+
+function comparisonFor(a: unknown, b: unknown): FieldComparison {
+  if (Array.isArray(a) && Array.isArray(b)) return 'set'
+  if (typeof a === 'number' && typeof b === 'number') return 'number'
+  return 'value'
+}
+
+/** Whether two saved values of a field are equal under its comparison. */
+export function sameFieldValue(a: unknown, b: unknown, comparison?: FieldComparison): boolean {
+  switch (comparison ?? comparisonFor(a, b)) {
+    case 'set': {
+      const left = new Set((a as unknown[]).map((item) => String(item).trim().toLowerCase()))
+      const right = new Set((b as unknown[]).map((item) => String(item).trim().toLowerCase()))
+      return left.size === right.size && [...left].every((item) => right.has(item))
+    }
+    case 'number':
+      return Number(a) === Number(b)
+    case 'value':
+      return a === b || JSON.stringify(a) === JSON.stringify(b)
+  }
+}
+
+/**
+ * The fields whose saved value changed between the version a form was opened with (`base`) and
+ * the reloaded one (`latest`), with their new saved values. Tags compare as sets ignoring letter
+ * case, numbers (quotas in bytes) as numbers, everything else by value.
+ */
+export function changedSince<T extends object, K extends keyof T>(
+  base: T,
+  latest: T,
+  fields: readonly K[],
+  comparisons: Partial<Record<K, FieldComparison>> = {},
+): { field: K; savedValue: T[K] }[] {
+  return fields
+    .filter((field) => !sameFieldValue(base[field], latest[field], comparisons[field]))
+    .map((field) => ({ field, savedValue: latest[field] }))
 }
 
 export function useVersionedSave<T extends { etag: string }>(options: VersionedSaveOptions<T>) {
@@ -94,5 +136,13 @@ export function useVersionedSave<T extends { etag: string }>(options: VersionedS
     }
   }
 
-  return { outdated, latest, pending, problem, save, remove }
+  /** "Discard my changes": returns the reloaded value and leaves the outdated state. */
+  function discard(): T | undefined {
+    const value = latest.value
+    outdated.value = false
+    latest.value = undefined
+    return value
+  }
+
+  return { outdated, latest, pending, problem, save, remove, discard }
 }

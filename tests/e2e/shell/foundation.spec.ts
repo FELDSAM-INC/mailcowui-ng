@@ -1,15 +1,15 @@
 // The Phase 2 checkpoint (T048): the app boots against the mock with the strict CSP, renders the
 // shell with the catalogue navigation for an active session, and handles "API not ready" and
 // unknown addresses. Only routes that exist after Phase 2 are used: the generated placeholders and
-// the catch-all.
+// the catch-all. (UI 002 made Domains available, so the placeholder used here is Mailboxes.)
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
 
 const isNarrow = (page: Page) => (page.viewportSize()?.width ?? 0) < 1024
 
-async function expectDomainsPlaceholder(page: Page) {
-  await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
+async function expectMailboxesPlaceholder(page: Page) {
+  await expect(page.getByRole('heading', { level: 1, name: 'Mailboxes' })).toBeVisible()
   await expect(page.getByText('This section comes in a later version of the app.')).toBeVisible()
 }
 
@@ -21,14 +21,14 @@ test.describe('Edge: API not ready', () => {
   }) => {
     await mockApi.use('admin-active')
     await page.route('**/api/v2/**', (route) => route.abort())
-    await page.goto('domains')
+    await page.goto('mailboxes')
     await expect(
       page.getByRole('heading', { level: 1, name: 'Service temporarily unavailable' }),
     ).toBeVisible()
     await expectAccessible()
     await page.unroute('**/api/v2/**')
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectDomainsPlaceholder(page)
+    await expectMailboxesPlaceholder(page)
   })
 
   test('Edge: API not ready – an HTML 502 from nginx shows the full-page message, and its retry recovers', async ({
@@ -43,13 +43,13 @@ test.describe('Edge: API not ready', () => {
         body: '<html><body><h1>502 Bad Gateway</h1></body></html>',
       }),
     )
-    await page.goto('domains')
+    await page.goto('mailboxes')
     await expect(
       page.getByRole('heading', { level: 1, name: 'Service temporarily unavailable' }),
     ).toBeVisible()
     await page.unroute('**/api/v2/**')
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectDomainsPlaceholder(page)
+    await expectMailboxesPlaceholder(page)
   })
 
   test('Edge: API not ready – the documented 500 of the session shows the full-page message, and its retry recovers', async ({
@@ -57,18 +57,18 @@ test.describe('Edge: API not ready', () => {
     mockApi,
   }) => {
     await mockApi.use('bootstrap-500', { signedInAs: 'admin' })
-    await page.goto('domains')
+    await page.goto('mailboxes')
     await expect(
       page.getByRole('heading', { level: 1, name: 'Service temporarily unavailable' }),
     ).toBeVisible()
     await mockApi.patch({ failures: { getSession: { status: 500, times: 0 } } })
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectDomainsPlaceholder(page)
+    await expectMailboxesPlaceholder(page)
   })
 })
 
 test.describe('the shell', () => {
-  test('FR-042 FR-043 FR-046 an active administrator opening /ng/domains sees the shell, the navigation and the placeholder', async ({
+  test('FR-042 FR-043 FR-046 an active administrator opening /ng/mailboxes sees the shell, the navigation and the placeholder', async ({
     page,
     mockApi,
     expectAccessible,
@@ -76,9 +76,9 @@ test.describe('the shell', () => {
     expectTouchTargets,
   }) => {
     await mockApi.use('admin-active')
-    await page.goto('domains')
-    await expectDomainsPlaceholder(page)
-    await expect(page).toHaveTitle('Domains – Example Mail')
+    await page.goto('mailboxes')
+    await expectMailboxesPlaceholder(page)
+    await expect(page).toHaveTitle('Mailboxes – Example Mail')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeAttached()
     await expect(page.getByText('Maintenance on Sunday 02:00–04:00 UTC.')).toBeVisible()
     await expect(page.getByRole('contentinfo')).toContainText('Operated by Example Hosting.')
@@ -102,19 +102,21 @@ test.describe('the shell', () => {
       await expect(drawer).toHaveCount(0)
       await expect(menuButton).toBeFocused()
       await menuButton.click()
-      await page.getByRole('dialog').getByRole('link', { name: 'Mailboxes' }).click()
+      await page.getByRole('dialog').getByRole('link', { name: 'Aliases and resources' }).click()
       await expect(page.getByRole('dialog')).toHaveCount(0)
     } else {
       await expect(navigation).toBeVisible()
-      await expect(navigation.getByRole('link', { name: 'Domains' })).toHaveAttribute(
+      await expect(navigation.getByRole('link', { name: 'Mailboxes' })).toHaveAttribute(
         'aria-current',
         'page',
       )
       await expect(navigation.getByRole('link', { name: 'Spam filter' })).toHaveCount(0)
-      await navigation.getByRole('link', { name: 'Mailboxes' }).click()
+      await navigation.getByRole('link', { name: 'Aliases and resources' }).click()
     }
-    await expect(page.getByRole('heading', { level: 1, name: 'Mailboxes' })).toBeFocused()
-    await expect(page).toHaveTitle('Mailboxes – Example Mail')
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Aliases and resources' }),
+    ).toBeFocused()
+    await expect(page).toHaveTitle('Aliases and resources – Example Mail')
 
     const userMenu = page.getByRole('button', { name: 'Account menu of admin' })
     await userMenu.click()
@@ -134,8 +136,8 @@ test.describe('the shell', () => {
     await mockApi.use('admin-active', {
       accounts: { admin: { preferences: { language: 'en-gb', theme: 'dark', etag: '"p2"' } } },
     })
-    await page.goto('domains')
-    await expectDomainsPlaceholder(page)
+    await page.goto('mailboxes')
+    await expectMailboxesPlaceholder(page)
     await expect(page.locator('html')).toHaveClass(/dark/)
     await expectNoHorizontalScroll()
   })

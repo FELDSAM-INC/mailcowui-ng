@@ -200,7 +200,9 @@ considered**.
     started, because it must show the current state.
   - **Footer** on the domain page: the footer summary of FR-015 needs `getDomainFooter`, because
     the domain representation has no footer summary (plan, API observation O1). The same cache
-    entry opens the footer editor at once.
+    entry opens the footer editor at once. *Superseded at the pin `c1677d5`*: `Domain.footer`
+    (G28) carries the summary, so the domain page reads no footer, and a footer save invalidates
+    the domain and the lists.
   - **Mutations** patch the caches they can and invalidate the rest (data-model §3). Lists are
     invalidated with TanStack's default `refetchType: 'active'`, so an inactive list refetches on
     return while it shows its cached data. That keeps FR-013's "previous results at once" and
@@ -477,6 +479,10 @@ considered**.
   `limits.ts` pattern.
 - **Rationale**: The spec requires these starting values, but the contract states them only in
   prose. Reported as API observation O2.
+- **Update at the pin `c1677d5`**: the contract now gives them in
+  `DomainCapabilities.templateDefaults` (G29, administrators only) and as `default` keywords of
+  `DomainTemplateCreateRequest`. The forms start from `templateDefaults`; `defaults.ts` remains
+  the fallback for its absence, and its test compares it with the `default` keywords.
 
 ### D19. DKIM fields
 
@@ -558,7 +564,8 @@ considered**.
       first N) and states the limit.
   - **Request**: one `applyDomainBulkAction` with `targets` built by `toBulkTargets()` in
     `src/features/domains/bulk.ts`: `{ id: name, version }`, where `version` is the list entry's
-    `etag` without its surrounding quotes, as `BulkTarget.version` requires. Domains with mailboxes
+    `etag` exactly as read, quotes included, as `BulkTarget.version` documents since the pin
+    `c1677d5` (G33; first planned without the quotes, which it also accepts). Domains with mailboxes
     or resources are left out of a deletion and listed as skipped (FR-047).
   - **Confirmation**:
     - Activation: none.

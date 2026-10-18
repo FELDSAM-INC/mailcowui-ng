@@ -1,9 +1,11 @@
 // Audit log handler (T135): `listAuditEvents` for administrators, with the contract's filters —
 // `from` inclusive, `to` exclusive, repeated `eventType`, `outcome`, `actor` (username, attempted
-// username or API key ID), `clientAddress` (an address or a prefix), `q`, paging and the order of
-// `occurredAt` (newest first by default). A malformed address and a range whose start is not
-// before its end answer 422, as the API's semantic checks would.
+// username or API key ID), `clientAddress` (an address or a prefix), `q`, `targetType`, `targetId`
+// (UI 002 T095), paging and the order of `occurredAt` (newest first by default). A malformed
+// address and a range whose start is not before its end answer 422, as the API's semantic checks
+// would.
 import { BlockList, isIP } from 'node:net'
+import { domainToASCII } from 'node:url'
 
 import type { AuditEvent } from '@/api'
 
@@ -49,6 +51,31 @@ function searchMatches(event: AuditEvent, q: string): boolean {
   ].some((value) => value?.toLowerCase().includes(needle))
 }
 
+/** The targets whose identifier is a domain name, matched in ASCII or Unicode form, any case. */
+const DOMAIN_TARGETS = new Set(['domain', 'domainFooter'])
+
+function asciiDomain(name: string): string {
+  return (domainToASCII(name.toLowerCase()) || name).toLowerCase()
+}
+
+/**
+ * The contract's `targetId`: the target identifier equals the value; domain names (targets `domain`
+ * and `domainFooter`) in either form and any letter case. Without `targetType`, a domain name
+ * therefore matches the records of the domain and of its footer.
+ */
+export function targetMatches(
+  event: AuditEvent,
+  targetType: string | null,
+  targetId: string | null,
+): boolean {
+  const target = event.target
+  if (targetType && target?.type !== targetType) return false
+  if (!targetId) return true
+  if (!target?.id) return false
+  if (DOMAIN_TARGETS.has(target.type)) return asciiDomain(target.id) === asciiDomain(targetId)
+  return target.id === targetId
+}
+
 const violation = (path: string, code: string, params: Record<string, unknown>, message: string) =>
   problem(422, 'validation-failed', { errors: { [path]: [{ code, params, message }] } })
 
@@ -82,6 +109,8 @@ export const auditHandlers = [
     const outcome = query.get('outcome')
     const actor = query.get('actor')
     const q = query.get('q')?.trim()
+    const targetType = query.get('targetType')
+    const targetId = query.get('targetId')
     const order = query.get('order') === 'asc' ? 1 : -1
     const limit = Number(query.get('limit') ?? 25)
     const offset = Number(query.get('offset') ?? 0)
@@ -96,6 +125,7 @@ export const auditHandlers = [
         if (actor && !actorMatches(event, actor)) return false
         if (clientAddress && !addressMatches(event.clientAddress, clientAddress)) return false
         if (q && !searchMatches(event, q)) return false
+        if (!targetMatches(event, targetType, targetId)) return false
         return true
       })
       .sort((a, b) => order * (new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()))

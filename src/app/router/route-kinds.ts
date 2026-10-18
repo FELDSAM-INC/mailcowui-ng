@@ -1,6 +1,7 @@
 // Route metadata (data-model §5) and the route groups the guard and the session lifecycle use.
 import type { RouteLocationNormalizedGeneric, RouteRecordNameGeneric } from 'vue-router'
 
+import type { Role } from '@/api'
 import type { TextRef } from '@/i18n'
 
 import type { NavEntryId } from '../navigation/catalogue'
@@ -26,6 +27,11 @@ declare module 'vue-router' {
      * strings (`legacy('tfa.tfa')`).
      */
     titleKey?: TextRef
+    /**
+     * UI 002 (research D4): the roles that may open the route, narrower than its catalogue entry,
+     * for example creating a domain. Other roles get "no access" in place.
+     */
+    roles?: Role[]
   }
 }
 

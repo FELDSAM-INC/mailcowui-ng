@@ -1,12 +1,20 @@
 // The US8 mock handler (T135): the filters of listAuditEvents, paging, access and 422 answers.
 import { describe, expect, it } from 'vitest'
 
+import { domainAuditEvent } from '../../mocks/factories/audit-event'
 import { addressMatches, isNetworkFilter } from '../../mocks/handlers/audit'
 import { useScenario } from '../../mocks/node'
 import { AUDIT_ACTING_KEY_ID } from '../../mocks/scenarios/audit-log'
+import { HISTORY_KEY } from '../../mocks/scenarios/domains-history'
 
 interface ListBody {
-  data: { eventType: string; outcome: string; clientAddress: string; occurredAt: string }[]
+  data: {
+    eventType: string
+    outcome: string
+    clientAddress: string
+    occurredAt: string
+    target: { type: string; id: string | null } | null
+  }[]
   meta: { total: number; limit: number; offset: number }
 }
 
@@ -55,6 +63,50 @@ describe('listAuditEvents mock', () => {
       `?from=${encodeURIComponent('2026-10-10T00:00:00Z')}&to=${encodeURIComponent('2026-10-01T00:00:00Z')}`,
     )
     expect(range.response.status).toBe(422)
+  })
+
+  it('UI 002 T095 filters by target type and identifier, domain names in either form and any case', async () => {
+    useScenario('audit-domain-records')
+    const domain = await list('?targetId=example.org')
+    expect(domain.body.data.map((event) => event.eventType)).toEqual([
+      'domainFooterUpdate',
+      'domainUpdate',
+      'domainUpdate',
+      'domainCreation',
+    ])
+    expect((await list('?targetId=EXAMPLE.ORG')).body.meta.total).toBe(4)
+    const typed = await list('?targetType=domain&targetId=Example.Org')
+    expect(typed.body.data.map((event) => event.target?.type)).toEqual([
+      'domain',
+      'domain',
+      'domain',
+    ])
+    const footer = await list('?targetType=domainFooter&targetId=example.org')
+    expect(footer.body.meta.total).toBe(1)
+    const template = await list('?targetType=domainTemplate&targetId=2')
+    expect(template.body.data.map((event) => event.eventType)).toEqual([
+      'domainTemplateUpdate',
+      'domainTemplateCreation',
+    ])
+    const templates = await list('?targetType=domainTemplate')
+    expect(templates.body.meta.total).toBe(3)
+    const key = await list(`?targetType=apiKey&targetId=${HISTORY_KEY.id}`)
+    expect(key.body.meta.total).toBe(1)
+    expect((await list('?targetId=nothing.example')).body.meta.total).toBe(0)
+  })
+
+  it('UI 002 T095 matches the Unicode form of an IDN target', async () => {
+    useScenario('audit-domain-records', {
+      auditEvents: [
+        domainAuditEvent(
+          'domainUpdate',
+          { id: 'xn--mnchen-3ya.de', name: 'münchen.de' },
+          { details: { changes: {} } },
+        ),
+      ],
+    })
+    expect((await list(`?targetId=${encodeURIComponent('MÜNCHEN.de')}`)).body.meta.total).toBe(1)
+    expect((await list('?targetId=xn--mnchen-3ya.de')).body.meta.total).toBe(1)
   })
 
   it('is for administrators only', async () => {

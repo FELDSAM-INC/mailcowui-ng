@@ -135,7 +135,8 @@
       "clearAll": "Clear all filters",
       "custom": "{from} to {to}",
       "label": "Active filters",
-      "remove": "Remove filter: {filter}"
+      "remove": "Remove filter: {filter}",
+      "targetId": "Target: {id}"
     },
     "columns": {
       "actor": "Actor",
@@ -162,6 +163,7 @@
       "address": "Client address",
       "addressHelp": "An IPv4 or IPv6 address or a network, for example 192.0.2.0/24.",
       "anyOutcome": "Any outcome",
+      "anyTargetType": "Any target type",
       "apply": "Apply filters",
       "clear": "Clear filters",
       "eventTypes": "Event types",
@@ -176,13 +178,14 @@
         "any": "Any time",
         "custom": "Custom range"
       },
+      "targetId": "Target",
+      "targetType": "Target type",
       "title": "Filters",
       "to": "To"
     },
     "notRecorded": "Not recorded",
     "records": "Audit records",
     "resultCount": "Records found: {total}",
-    "targetFilterUnavailable": "Filtering by a single object comes with a later version of the app. All records are shown.",
     "title": "Audit log",
     "unknown": "Unknown ({code})"
   },
@@ -253,7 +256,47 @@
       }
     }
   },
+  "bulk": {
+    "actions": "Bulk actions",
+    "clear": "Clear selection",
+    "confirm": {
+      "typeCount": "Type {count} to confirm"
+    },
+    "count": {
+      "done": "{count} done",
+      "failed": "{count} failed",
+      "notFound": "{count} not found",
+      "notProcessed": "{count} not processed",
+      "outdated": "{count} changed in the meantime",
+      "refused": "{count} refused",
+      "skipped": "{count} skipped",
+      "unknown": "{count} with unknown outcome"
+    },
+    "exitSelection": "Done selecting",
+    "limitReached": "You can select at most {max} items for one action.",
+    "outcome": {
+      "done": "Done",
+      "failed": "Failed",
+      "notFound": "Not found",
+      "notProcessed": "Not processed",
+      "outdated": "Changed in the meantime",
+      "refused": "Refused",
+      "skipped": "Skipped",
+      "unknown": "Outcome unknown"
+    },
+    "progress": "Processing {count} items…",
+    "retry": "Retry the failed ones",
+    "select": "Select",
+    "selectAll": "Select all on this page",
+    "selectItem": "Select {name}",
+    "selected": "{count} selected",
+    "summary": {
+      "announce": "Results: {counts}.",
+      "title": "Results"
+    }
+  },
   "common": {
+    "back": "Back",
     "close": "Close",
     "documentTitle": "{page} – {site}",
     "goHome": "Go to the home screen",
@@ -261,6 +304,199 @@
     "requestId": "Request ID: {requestId}",
     "retry": "Try again",
     "signOut": "Sign out"
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "The form could not be loaded."
+    },
+    "default": "Default",
+    "delete": {
+      "changed": "The template changed in the meantime. Check it and confirm again.",
+      "keepValues": "Domains created from this template keep their values. | Domains created from these templates keep their values.",
+      "notDeletedTitle": "{name} was not deleted"
+    },
+    "detail": {
+      "backToList": "Back to the domain templates",
+      "loadFailed": "The template could not be loaded.",
+      "loading": "Loading the template…"
+    },
+    "edit": {
+      "defaultName": "The Default template cannot be renamed.",
+      "gone": "This template no longer exists."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Templates found: {count}",
+      "detailsOf": "Details of {name}"
+    },
+    "sort": {
+      "createdAt": "Created on",
+      "id": "ID",
+      "modifiedAt": "Last modified",
+      "name": "Name"
+    }
+  },
+  "domains": {
+    "bulk": {
+      "adminRule": "Domain administrator accounts left without any domain are deleted.",
+      "dataRule": "Footers, tags and stored mail are removed. DKIM keys are kept.",
+      "deactivateEffect": "Every mailbox of these domains is affected: its users can no longer sign in, and the domains receive no mail.",
+      "deactivateTitle": "Deactivate the selected domains ({count})?",
+      "delete": "Delete",
+      "deleteConfirm": "Delete domains",
+      "deleteIntro": "These domains are deleted. This cannot be undone.",
+      "deleteTitle": "Delete the selected domains ({count})?",
+      "impactItem": "aliases: {aliases}, alias domains: {aliasDomains}, domain administrators: {admins}",
+      "leaveRunning": "The action keeps running on the server, but its result will not be shown.",
+      "leaveTitle": "Leave while the action runs?",
+      "progress": "Processing {count} domains…",
+      "skippedIntro": "Skipped, because they still have mailboxes or resources:",
+      "skippedItem": "{name}: mailboxes ({mailboxes}), resources ({resources})"
+    },
+    "create": {
+      "loadFailed": "The domain templates or the server settings could not be loaded."
+    },
+    "delete": {
+      "action": "Delete",
+      "admins": "Domain administrators: {list}",
+      "adminsKept": "No domain administrator account is deleted.",
+      "adminsToDelete": "These domain administrator accounts are deleted, because they are left without a domain: {list}",
+      "aliasDomains": "Alias domains removed: {list}",
+      "aliases": "Aliases removed: {count}",
+      "blockedTitle": "{name} cannot be deleted",
+      "blockerMailboxes": "mailboxes ({count})",
+      "blockerResources": "resources ({count})",
+      "blockersIntro": "Remove these first:",
+      "changed": "The domain was changed in the meantime. Check the impact again.",
+      "confirm": "Delete domain",
+      "data": "The tags and the stored mail of the domain are removed.",
+      "dkimKept": "The DKIM key is kept.",
+      "footer": "The footer is removed.",
+      "gone": "This domain no longer exists.",
+      "intro": "Deleting the domain cannot be undone.",
+      "noAdmins": "No domain administrator is assigned.",
+      "notDeleted": "Nothing was deleted.",
+      "notDeletedTitle": "{name} was not deleted",
+      "showAliases": "Show the aliases",
+      "title": "Delete {name}?",
+      "typeName": "Type the domain name {name} to confirm",
+      "unavailable": "To delete this domain, first remove its mailboxes ({mailboxes}) and resources ({resources})."
+    },
+    "detail": {
+      "backToList": "Back to the domains",
+      "loadFailed": "The domain could not be loaded.",
+      "loading": "Loading the domain…"
+    },
+    "edit": {
+      "gone": "This domain no longer exists or is no longer available to you.",
+      "notSaved": "Nothing was saved."
+    },
+    "empty": {
+      "admin": "There are no domains yet. Add the first domain to get started.",
+      "clearAll": "Clear search and filters",
+      "domainAdmin": "No domain is assigned to you yet. Ask your administrator.",
+      "noMatch": "No domains match the search and filters."
+    },
+    "fields": {
+      "inUseCount": "{count} in use.",
+      "maxMailboxQuota": "Max. quota per mailbox"
+    },
+    "filters": {
+      "active": "Active state",
+      "activeOnly": "Active",
+      "all": "All",
+      "clear": "Clear all filters",
+      "filterByTag": "Filter by tag {tag}",
+      "inactiveOnly": "Inactive",
+      "localOnly": "Other domains",
+      "relay": "Relay",
+      "relayOnly": "Relay domains",
+      "tagsHint": "Shows domains with any of these tags.",
+      "title": "Filters",
+      "withCount": "Filters ({count})"
+    },
+    "footer": {
+      "aliasDomainSubtext": "Alias-Domain",
+      "aliasSubtext": "Alias"
+    },
+    "list": {
+      "actionsFor": "Actions for {name}",
+      "clearSearch": "Clear search",
+      "count": "Domains found: {count}",
+      "details": "Details",
+      "detailsOf": "Details of {name}",
+      "loading": "Loading domains…",
+      "messagesCount": "Messages: {count}",
+      "moreTags": "+{count}",
+      "moreTagsLabel": "and {count} more tags",
+      "refresh": "Refresh",
+      "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
+      "search": "Search domains",
+      "searchHint": "Searches the name, the description and the tags.",
+      "updating": "Updating…"
+    },
+    "outcome": {
+      "dkimDnsFailed": "The DKIM record of {0} could not be published in DNS.",
+      "dkimDnsNoZone": "No DNS zone found for {0}: publish the DKIM record at the domain's DNS provider.",
+      "rateLimitFailed": "The rate limit of {0} could not be saved."
+    },
+    "rateLimit": {
+      "frameLabel": "Time frame",
+      "value": "Messages"
+    },
+    "relay": {
+      "short": {
+        "backupMx": "Relay this domain",
+        "relayAllRecipients": "Relay all recipients",
+        "relayUnknownOnly": "Relay non-existing mailboxes only"
+      }
+    },
+    "sort": {
+      "active": "Active state",
+      "aliases": "Aliases in use",
+      "asc": "Ascending",
+      "backupMx": "Relay this domain",
+      "createdAt": "Created on",
+      "desc": "Descending",
+      "description": "Description",
+      "domainQuota": "Domain quota",
+      "label": "Sort by",
+      "mailboxes": "Mailboxes in use",
+      "maxAliases": "Max. aliases",
+      "maxMailboxQuota": "Max. quota per mailbox",
+      "maxMailboxes": "Max. mailboxes",
+      "modifiedAt": "Last modified",
+      "name": "Name",
+      "order": "Order",
+      "quotaAllocated": "Quota allocated",
+      "storageUsed": "Storage used"
+    },
+    "tags": {
+      "add": "Add",
+      "remove": "Remove tag {tag}",
+      "suggestions": "Suggested tags",
+      "suggestionsLoading": "Loading suggestions…",
+      "suggestionsUnavailable": "Suggestions unavailable",
+      "tooLong": "Tags may have at most {max} characters."
+    },
+    "usage": {
+      "left": "{count} left",
+      "messages": "Messages",
+      "nearlyFull": "Nearly full",
+      "of": "{used} of {limit}",
+      "over": "Over the limit",
+      "quota": "Quota allocated",
+      "storage": "Storage used"
+    },
+    "values": {
+      "never": "Never",
+      "no": "No",
+      "none": "None",
+      "rateLimit": "{value} {frame}",
+      "yes": "Yes"
+    }
   },
   "enums": {
     "apiKeyStatus": {
@@ -270,6 +506,13 @@
     "auditEventType": {
       "apiKeyCreation": "API key created",
       "apiKeyRevocation": "API key revoked",
+      "domainCreation": "Domain added",
+      "domainDeletion": "Domain removed",
+      "domainFooterUpdate": "Domain footer changed",
+      "domainTemplateCreation": "Domain template added",
+      "domainTemplateDeletion": "Domain template removed",
+      "domainTemplateUpdate": "Domain template changed",
+      "domainUpdate": "Domain changed",
       "passkeyRegistration": "Passkey added",
       "passkeyRemoval": "Passkey removed",
       "passkeyRename": "Passkey renamed",
@@ -279,7 +522,9 @@
     },
     "auditFailureReason": {
       "accountInactive": "Account inactive",
+      "attributeNotPermitted": "Change not permitted",
       "challengeExpired": "Sign-in timed out",
+      "conflict": "Conflict with existing data",
       "externalIdentitySource": "Account signs in through an identity provider",
       "invalidCredentials": "Wrong username or password",
       "passkeyInactive": "Passkey inactive",
@@ -288,14 +533,18 @@
       "roleMismatch": "Sign-in screen for another account type",
       "secondFactorFailed": "Second factor not accepted",
       "secondFactorUnavailable": "Second factor unavailable",
+      "temporaryFailure": "Temporary failure",
       "throttled": "Too many attempts",
       "unknownPasskey": "Unknown passkey",
-      "verificationUnavailable": "Verification service unavailable"
+      "validationFailed": "Invalid values",
+      "verificationUnavailable": "Verification service unavailable",
+      "versionOutdated": "Changed in the meantime"
     },
     "auditOutcome": {
       "failure": "Failure"
     },
     "auditTargetType": {
+      "domainTemplate": "Domain template",
       "passkey": "Passkey",
       "preferences": "Preferences",
       "session": "Session"
@@ -310,6 +559,9 @@
       "title": "Please correct the following"
     },
     "required": "required"
+  },
+  "history": {
+    "link": "History"
   },
   "home": {
     "greeting": "Hello, {username}",
@@ -331,6 +583,12 @@
       "heading": "Sections"
     },
     "title": "Home"
+  },
+  "leaveGuard": {
+    "body": "Your changes will be lost.",
+    "leave": "Leave",
+    "stay": "Stay",
+    "title": "Leave without saving?"
   },
   "lists": {
     "pagination": {
@@ -405,6 +663,11 @@
     "api-key-invalid": "The API key is not valid.",
     "api-key-revoked": "The API key has been revoked.",
     "api-key-source-not-allowed": "The API key cannot be used from this network address.",
+    "attribute-not-permitted": "You may not change: {attributes}. Your other input is kept.",
+    "domain-exists": "A domain or alias domain with this name already exists.",
+    "domain-not-empty": "The domain still has {mailboxes} mailboxes and {resources} resources. Remove them first.",
+    "domain-template-name-exists": "A domain template with this name already exists.",
+    "domain-template-protected": "The Default template cannot be renamed or deleted.",
     "insufficient-key-scope": "The API key does not allow this action.",
     "network": "The server could not be reached. Check your connection and try again.",
     "passkey-registration-failed": "The passkey could not be registered. Please try again.",
@@ -427,6 +690,7 @@
       "503": "The service is temporarily unavailable. Please try again in a moment.",
       "504": "The server took too long to answer. Please try again."
     },
+    "temporary-failure": "Nothing was changed, because a server component is temporarily unavailable. Please try again in a moment.",
     "too-many-requests": "Too many attempts. Please wait before trying again.",
     "unauthenticated": "Your session has ended. Please sign in again.",
     "validation-failed": "Some fields need your attention."
@@ -447,6 +711,20 @@
     "copyRefused": "The browser did not allow copying. The secret is selected: copy it yourself.",
     "label": "Secret",
     "warning": "This secret is shown only once. It cannot be shown again."
+  },
+  "sections": {
+    "discard": "Discard my changes",
+    "edit": "Edit",
+    "editDisabled": "Finish editing {section} first.",
+    "editNamed": "Edit {section}",
+    "outdated": {
+      "body": "Someone changed this section while you were editing. Your input is kept. These values changed:",
+      "savedAs": "{field}: now saved as {value}",
+      "title": "Changed elsewhere"
+    },
+    "save": "Save",
+    "saveAgain": "Save again",
+    "saving": "Saving…"
   },
   "session": {
     "idle": {
@@ -490,25 +768,34 @@
     "system": "Device setting"
   },
   "validation": {
+    "belowInUse": "This is below what is in use: {inUse}.",
     "format": {
       "base64url": "This value is not valid base64url.",
       "dateTime": "Enter a valid date and time.",
+      "dkimSelector": "Use only letters, digits, hyphens, underscores and dots.",
+      "domainName": "Enter a valid domain name, for example example.org.",
+      "email": "Enter a valid email address.",
       "ipAddress": "Enter a valid IPv4 or IPv6 address.",
       "ipNetwork": "Enter an IPv4 or IPv6 address or network, for example 192.0.2.0/24.",
       "totpCode": "Enter the six-digit code.",
       "webauthnCredential": "The response of the security key or passkey is not valid.",
       "yubicoOtp": "Enter the 44 letters or digits your YubiKey types."
     },
+    "immutable": "This value cannot be changed.",
     "invalid": "This value is not valid.",
     "invalidFormat": "This value has an invalid format.",
     "invalidType": "This value has the wrong type.",
     "mustBeInFuture": "Choose a time in the future.",
+    "mustNotExceed": "This may not be higher than {field} ({value}).",
     "notEligible": "This item cannot be used here. Allowed: {allowedRoles}.",
     "notFound": "This item does not exist.",
     "notInList": "Choose one of: {allowed}.",
+    "notMultipleOf": "Enter a whole multiple of {factor}.",
     "outOfRange": "Enter a value from {min} to {max}.",
     "required": "This field is required.",
+    "reserved": "This name is reserved by the server.",
     "tooLong": "Enter at most {max} characters.",
+    "tooLongBytes": "This text may be at most {max} long.",
     "tooMany": "Enter at most {max} entries.",
     "tooShort": "Enter at least {min} characters."
   }

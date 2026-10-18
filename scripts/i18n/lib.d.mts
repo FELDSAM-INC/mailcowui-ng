@@ -15,6 +15,18 @@ export function requiredKeys(input: {
   enums: Record<string, readonly string[]>
   problemNames: readonly string[]
 }): string[]
+export const PARTIAL_ENUMS: Record<string, string>
+export interface Coverage {
+  partial?: Record<string, string[]>
+  complete?: Record<string, string>
+}
+export function resolvePointer(document: unknown, pointer: string): unknown
+export function checkCoverage(input: {
+  coverage: Coverage
+  enums: Record<string, readonly string[]>
+  problemNames: readonly string[]
+  contract: unknown
+}): { required: string[]; errors: string[]; warnings: string[] }
 export function legacyKeysInSource(text: string): string[]
 export function legacyTextsFromSource(text: string): Record<string, string>
 export function appKeysInSource(text: string, namespaces: readonly string[]): string[]

@@ -101,7 +101,7 @@ describe('sign-out (FR-036)', () => {
     await signOutState.signOut()
     expect(signOutState.failed.value).toMatchObject({ kind: 'network' })
     expect(ctx.queryClient.getQueryData(queryKeys.identity())).toBeDefined()
-    expect(ctx.router.currentRoute.value.name).toBe('placeholder-domains')
+    expect(ctx.router.currentRoute.value.name).toBe('domains')
     expect(useSessionStore().notice).toBeNull()
     server.resetHandlers()
     await signOutState.retry()

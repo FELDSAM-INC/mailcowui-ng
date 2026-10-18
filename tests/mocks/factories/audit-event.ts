@@ -24,3 +24,54 @@ export function auditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
     ...overrides,
   }
 }
+
+/** The records API 002 writes for a domain, its footer and a template (UI 002 research D28). */
+export type DomainAuditKind =
+  | 'domainCreation'
+  | 'domainUpdate'
+  | 'domainDeletion'
+  | 'domainFooterUpdate'
+  | 'domainTemplateCreation'
+  | 'domainTemplateUpdate'
+  | 'domainTemplateDeletion'
+
+const TARGET_TYPE: Record<DomainAuditKind, 'domain' | 'domainFooter' | 'domainTemplate'> = {
+  domainCreation: 'domain',
+  domainUpdate: 'domain',
+  domainDeletion: 'domain',
+  domainFooterUpdate: 'domainFooter',
+  domainTemplateCreation: 'domainTemplate',
+  domainTemplateUpdate: 'domainTemplate',
+  domainTemplateDeletion: 'domainTemplate',
+}
+
+/**
+ * A domain, footer or template record. `target` is the ASCII domain name (`name` its readable
+ * form) or the template ID and name. A failure carries one of the failure reasons of API 002.
+ */
+export function domainAuditEvent(
+  kind: DomainAuditKind,
+  target: { id: string; name: string },
+  overrides: Partial<AuditEvent> = {},
+): AuditEvent {
+  return auditEvent({
+    eventType: kind,
+    target: { type: TARGET_TYPE[kind], id: target.id, name: target.name },
+    ...overrides,
+  })
+}
+
+/** A refused domain, footer or template change with one of API 002's failure reasons. */
+export function refusedDomainAuditEvent(
+  kind: DomainAuditKind,
+  target: { id: string; name: string },
+  failureReason:
+    | 'attributeNotPermitted'
+    | 'versionOutdated'
+    | 'validationFailed'
+    | 'conflict'
+    | 'temporaryFailure',
+  overrides: Partial<AuditEvent> = {},
+): AuditEvent {
+  return domainAuditEvent(kind, target, { outcome: 'failure', failureReason, ...overrides })
+}

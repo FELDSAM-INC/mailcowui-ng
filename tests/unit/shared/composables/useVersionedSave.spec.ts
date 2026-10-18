@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 import { ApiProblem } from '@/api'
-import { useVersionedSave } from '@/shared/composables/useVersionedSave'
+import { changedSince, useVersionedSave } from '@/shared/composables/useVersionedSave'
 
 interface Item {
   name: string
@@ -112,5 +112,51 @@ describe('useVersionedSave', () => {
     const result = await save.remove(send, () => Promise.resolve(false))
     expect(result.status).toBe('cancelled')
     expect(send).toHaveBeenCalledTimes(1)
+  })
+})
+
+// UI 002 (T016, research D11): the field diff after an outdated save.
+describe('changedSince', () => {
+  interface Values {
+    description: string
+    tags: string[]
+    domainQuota: number
+    rateLimit: { value: number; frame: string } | null
+    active: boolean
+  }
+  const base: Values = {
+    description: 'Old',
+    tags: ['a', 'B'],
+    domainQuota: 10_737_418_240,
+    rateLimit: null,
+    active: true,
+  }
+
+  it('returns the fields whose saved value changed, with the new saved values', () => {
+    const latest: Values = { ...base, description: 'New', domainQuota: 21_474_836_480 }
+    expect(changedSince(base, latest, ['description', 'tags', 'domainQuota', 'active'])).toEqual([
+      { field: 'description', savedValue: 'New' },
+      { field: 'domainQuota', savedValue: 21_474_836_480 },
+    ])
+  })
+
+  it('compares tags as sets ignoring letter case and order, objects by value', () => {
+    expect(changedSince(base, { ...base, tags: ['b', 'A'] }, ['tags'])).toEqual([])
+    expect(changedSince(base, { ...base, tags: ['a', 'c'] }, ['tags'])).toEqual([
+      { field: 'tags', savedValue: ['a', 'c'] },
+    ])
+    expect(
+      changedSince(base, { ...base, rateLimit: { value: 5, frame: 'hour' } }, ['rateLimit']),
+    ).toHaveLength(1)
+  })
+
+  it('lets "Discard" take the latest values and clears the outdated state', async () => {
+    const { current, refetch, latest } = setup()
+    const save = useVersionedSave({ current: () => current.value, refetch })
+    await save.save({ name: 'mine' }, () => Promise.reject(precondition()))
+    expect(save.outdated.value).toBe(true)
+    expect(save.discard()).toEqual(latest)
+    expect(save.outdated.value).toBe(false)
+    expect(save.latest.value).toBeUndefined()
   })
 })

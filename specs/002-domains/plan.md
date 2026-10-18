@@ -178,6 +178,19 @@ observations:
   preview request per domain.
 - The spec's former gap 9 (footer exclusion candidates) is not a gap: API 002 points to the mailbox
   and alias lists of features 003 and 004, and UI 003 and UI 004 add the picker (data-model §9).
+- **Where they are tracked** (T001 step 6, checked at the pin `97aa81f`): mailcow-rest-v2
+  `docs/api-gaps.md` records G1 as **G3** (audit details documented per feature in
+  `docs/audit-events.md`, still open for feature 002), O1 as **G28**, O2 as **G29** and O3 as
+  **G30** (optional), plus **G33** (quotes in `etag` and `BulkTarget.version`; the UI first stripped the
+  quotes, which every reading allows, and sends the exact `etag` since the pin `c1677d5`). The pinned contract does not describe the `details` members
+  of the domain records, so the history keeps showing them generically (D26).
+- **At the pin `c1677d5`** (moved during US5, contracts/README.md): G28 is done (`Domain.footer`,
+  read by the footer summary), G29 is done (`DomainCapabilities.templateDefaults`, read by the
+  create and template forms), G33 is done (`BulkTarget.version` is the exact `etag`, which the app
+  now sends unchanged) and G30 stays open (optional). G3 is done for feature 002 in mailcow-rest-v2
+  `docs/audit-events.md`, outside the contract: `AuditEvent.details` is still an untyped object,
+  so the history keeps the generic details view (D26). The domain creation report lost
+  `groupwareDirectoryUpdate`.
 
 ## Spec alignment
 
@@ -240,6 +253,130 @@ The spec's parity tables are complete. This plan adds:
    effect on its mailboxes. Legacy saves without asking.
 3. **Bulk results**: per-domain outcomes come from one bulk request. Legacy posts one request with
    all items and reloads without per-item results.
+
+## Translations and forms (constitution IV 1.3.0)
+
+The screens mirror these classic templates (`../mailhosting/data/web/`, branch `feldhost-202609a`).
+Legacy keys are read at runtime from the installation's `/lang/` files (UI main d128215,
+docs/conventions.md "Wording"): `lt()` and `<LegacyText k>` in the screens (the help texts with
+markup, such as `edit.gal_info`, `edit.relay_all_info`, `add.relay_transport_info`,
+`add.post_domain_add` and `edit.domain_footer_info`, through `<LegacyText>` and its sanitiser),
+`legacy()` in route titles and column tables, and `LEGACY_TEXTS` for the keys built at runtime
+(field labels by field name, rate limit frames, the `domain` and `domainFooter` audit targets).
+The interim `legacy-map.json` entries and `stripMarkup` of the first build are gone. The orchestrator's decisions of
+2026-10-18 (docs/conventions.md "Decisions on the deviations", "Detail pages", "Outcomes", "No
+confirmation legacy lacks") are applied.
+
+### Legacy form map, part 1: fields and elements
+
+**Add domain** (`/domains/-/new`) ← `templates/modals/mailbox.twig` #addDomainModal, behaviour
+`js/site/mailbox.js` (`#addDomainModal` show, `setDomainTemplateData`). One form, groups as the
+`<hr>`s divide them.
+
+| Element | Legacy key |
+|---|---|
+| page title | `mailbox.add_domain` |
+| Domain (required) / Description / Template | `add.domain` / `add.description` / `mailbox.template` (Default first and applied; another template replaces the values without asking) |
+| Tags | `add.tags` |
+| Max. aliases / Max. mailboxes | `add.max_aliases` / `add.max_mailboxes` |
+| Max. quota per mailbox / domain quota (MiB numbers) | `add.mailbox_quota_m` / `add.domain_quota_m` (the default mailbox quota, `add.mailbox_quota_def`, is left out: owner decision) |
+| Global Address List + help (only with the groupware) | `edit.gal` + `edit.gal_info` |
+| Active | `add.active` |
+| Rate limit, placeholder, frames | `acl.ratelimit`, `ratelimit.disabled`, `ratelimit.second/minute/hour/day` |
+| Selector (prefilled with the server's default) / DKIM key length | `admin.dkim_domains_selector` / `admin.dkim_key_length` |
+| Relay options, three checkboxes and notes | `add.backup_mx_options`, `add.relay_domain`, `add.relay_all`, `add.relay_all_info`, `add.relay_unknown_only`, `add.relay_transport_info` |
+| actions | `add.add_domain_only`, `add.add_domain_restart`; `add.add` without the groupware |
+| note after the actions (with the groupware) | `add.post_domain_add` |
+| new strings | `domains.create.loadFailed` (the form's load error; legacy has no load step) |
+
+**Domain page** (`/domains/:domain`) ← `templates/edit/domain.twig`; the tabs UI 002 delivers
+become sections in legacy order.
+
+| Element | Legacy key |
+|---|---|
+| page title, with the domain name as subtitle | `edit.domain` |
+| usage figures (display-only, the domain list's columns) | `mailbox.stats`, `mailbox.mailboxes`, `mailbox.aliases`, `mailbox.domain_quota`, `mailbox.msg_num`, `mailbox.mailbox_quota` (not `mailbox.mailbox_defquota`: owner decision); the "n of m" and "n left" texts are new strings (`domains.usage.*`) |
+| domain administrators (display-only) | `mailbox.domain_admins`; empty: `mailbox.no_record_single` |
+| section "Edit domain" (tab #dedit) | `edit.domain` |
+| Domain / Description (read-only without `domain_desc`) / Tags | `mailbox.domain` / `edit.description` / `add.tags` |
+| relayhost (read-only until UI 009; shown with `domain_relayhost`) | `edit.relayhost`; none: `edit.none_inherit`; value `ID n: host` as legacy's option text (G41 adds the username) |
+| administrators only: limits, quotas (MiB), relay options | `edit.max_aliases`, `edit.max_mailboxes`, `edit.max_quota`, `edit.domain_quota`, `edit.backup_mx_options`, `edit.relay_domain`, `edit.relay_all`, `edit.relay_all_info`, `edit.relay_unknown_only`, `edit.relay_transport_info` |
+| Global Address List + help / Active (disabled for domain administrators) | `edit.gal` + `edit.gal_info` / `edit.active` |
+| save | `admin.save` |
+| times | `edit.created_on`, `edit.last_modified`, `user.never` |
+| section "Rate limit" (tab #dratelimit, read-only until its feature lands) | `edit.ratelimit`, `ratelimit.*`, empty: `ratelimit.disabled` |
+| section "Domain wide footer" (tab #dfooter, US7) | `edit.domain_footer` and the keys of that tab |
+| tabs of other features | Spam filter (UI 006), Quota warning BCC, MTA-STS (UI 010) |
+
+**Domain list** (`/domains`) ← `templates/mailbox/tab-domains.twig`, `js/site/mailbox.js`
+`draw_domain_table`. Built before the rule; its texts are re-mapped with the runtime legacy layer:
+column titles `mailbox.domain`, `mailbox.aliases`, `mailbox.mailboxes`, `mailbox.domain_quota`,
+`mailbox.stats`, `mailbox.mailbox_quota`, `mailbox.backup_mx`,
+`mailbox.domain_admins`, `mailbox.created_on`, `mailbox.last_modified`, `mailbox.active`,
+`mailbox.action`; actions `mailbox.add_domain`, `mailbox.toggle_all`, `mailbox.quick_actions`,
+`mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, `admin.refresh`. Deletion is offered
+only here, as in legacy; its typed confirmation and bulk mode are app improvements.
+
+**Domain templates** (`/domain-templates`) ← `templates/mailbox/tab-templates-domains.twig`,
+`js/site/mailbox.js` `draw_templates_domain_table`.
+
+| Element | Legacy key |
+|---|---|
+| title, navigation entry | `mailbox.domain_templates` |
+| add action / refresh | `mailbox.add_template` / `admin.refresh` |
+| search label, loading, empty, no match | `datatables.search`, `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords` |
+| columns | "ID" (hard-coded), `mailbox.template`, `mailbox.max_aliases`, `mailbox.max_mailboxes`, `mailbox.max_quota`, `mailbox.domain_quota_total`, `mailbox.gal`, `mailbox.backup_mx`, `mailbox.relay_all`, `mailbox.relay_unknown`, `mailbox.active`, `mailbox.action`; details `edit.ratelimit` ("∞" without one), `mailbox.dkim_domains_selector`, `mailbox.dkim_key_length`, `add.tags` |
+| row actions (no Remove for Default) | `mailbox.edit`, `mailbox.remove` |
+| removal confirmation | `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel` |
+| new strings | `domainTemplates.list.count`, `domainTemplates.list.detailsOf`, `domainTemplates.default` (the Default mark), `domainTemplates.fields.id`, `domainTemplates.sort.*` (the sort control, FR-049), `domainTemplates.delete.keepValues` (US6-AS4), `domainTemplates.delete.changed` and `notDeletedTitle` (outdated and refused removals), `domainTemplates.detail.*` and `domainTemplates.create.loadFailed` (page states), `domainTemplates.edit.gone`, `domainTemplates.edit.defaultName` (FR-053) |
+
+**Add template** (`/domain-templates/new`) ← `templates/modals/mailbox.twig`
+#addDomainTemplateModal: `mailbox.template`, `add.tags`, `add.max_aliases`, `add.max_mailboxes`,
+`add.mailbox_quota_m`, `add.domain_quota_m`, `add.gal` + `add.gal_info`,
+`add.active`, `edit.ratelimit` + `ratelimit.*`, `admin.dkim_domains_selector`,
+`admin.dkim_key_length`, the `edit.*` relay keys as that form has them, action `admin.add`.
+
+**Edit template** (`/domain-templates/:id`) ← `templates/edit/domain-templates.twig`, title
+`edit.title` with the template name: `mailbox.template` (read-only for Default), `add.tags`,
+`edit.max_aliases`, `edit.max_mailboxes`, `edit.max_quota`,
+`edit.domain_quota`, `edit.gal` + `edit.gal_info`, `edit.active`, `edit.ratelimit` + `ratelimit.*`,
+`admin.dkim_domains_selector`, `admin.dkim_key_length`, the `edit.*` relay keys, save
+`admin.save`, back link `edit.previous`.
+
+### Legacy form map, part 2: messages
+
+| API outcome | Legacy key (placeholder) |
+|---|---|
+| `createDomain` 201 | `success.domain_added` (ASCII name); before it, per report step: `success.rl_saved` (name), `success.dkim_added` (name) or `success.domain_add_dkim_available`, `danger.dkim_domain_or_sel_invalid` (name) for a failed key; a failed restart replaces "added" with `warning.domain_added_sogo_failed` |
+| report steps legacy cannot report | new strings `domains.outcome.rateLimitFailed`, `domains.outcome.dkimDnsNoZone`, `domains.outcome.dkimDnsFailed` (name) |
+| `domain-exists` | `danger.domain_exists` (the name as typed) |
+| `name` with `reserved` / invalid name (client or API) | `danger.domain_cannot_match_hostname` / `danger.domain_invalid` |
+| `updateDomain` 200 | `success.domain_modified` (ASCII name) |
+| `deleteDomain` 204 | `success.domain_removed` (name, through `domains.delete.success`) |
+| `createDomainTemplate` 201 / `updateDomainTemplate` 200 | `success.template_added` / `success.template_modified` (template name) |
+| `deleteDomainTemplate` 204 | `success.template_removed` (template ID) |
+| `domain-template-name-exists` | `danger.template_exists` (the name as typed) |
+| empty template name (client) | `danger.template_name_invalid` |
+| outdated (412), gone (404), refused attributes, temporary failures | UI 001's generic and the feature's new strings (no legacy equivalent) |
+
+### Legacy form map, part 3: deviations
+
+Owner decision (2026-10-18), the one exception to "follow the legacy form": the domain's default
+mailbox quota is dropped from every domain and domain template form, the domain list, the usage
+figures and the sort keys, and is never sent or read; the API removes it (wt/002q).
+
+Decided by the orchestrator (2026-10-18) and applied: one form per legacy form and one section per
+legacy tab; quotas in MiB; no stepper, review or template-overwrite confirmation; legacy's edit
+heading with the name and no badges; deletion only in the list; usage figures and domain
+administrators kept display-only with the list's keys; outcomes as legacy's alerts; relayhost and
+rate limit read-only in their legacy positions; template multiple deletion waits for gap G40
+(T087a). Relay options are independent checkboxes as in legacy (the API normalises them on save),
+so the automatic switching and its notice of the first build are gone.
+
+Still open, for the runtime legacy layer after UI 001's i18n change: the domain list, the
+deletion dialogs and the bulk texts built before the rule keep their current strings until they are
+re-mapped to the keys listed above; legacy HTML values (`*_info`, `add.post_domain_add`) show
+without markup until `SanitizedHtml.vue` renders them.
 
 ## Project Structure
 
@@ -306,8 +443,8 @@ src/shared/
 src/i18n/
 ├── format.ts  problems.ts                            # formatBytes; parameter formatting
 ├── coverage.json                                     # new (D2)
-├── messages/{en-gb,cs-cz,sk-sk}.json  legacy-map.json  legacy/*.json
-scripts/i18n/{lib.mjs,import-legacy.mjs,check.mjs}     # stripMarkup; coverage manifest
+├── messages/{en-gb,cs-cz,sk-sk}.json  legacy-messages.ts   # new strings; runtime-built legacy keys
+scripts/i18n/{lib.mjs,check.mjs}                      # coverage manifest folded into the check
 scripts/run-lhci.mjs                                  # + /ng/domains collection
 tests/
 ├── unit/features/domains/…  unit/shared/…  unit/scripts/i18n-tools.spec.ts  unit/i18n/…

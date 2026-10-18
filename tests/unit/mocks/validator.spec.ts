@@ -128,7 +128,7 @@ describe('request validation', () => {
       ).violations,
     ).toEqual([])
     expect(
-      validator.validateRequest(request('GET', '/audit-events?eventType=mailboxCreation'))
+      validator.validateRequest(request('GET', '/audit-events?eventType=noSuchEventType'))
         .violations,
     ).not.toEqual([])
   })
@@ -232,7 +232,7 @@ describe('response validation', () => {
     const event = {
       id: '01J9ZQ4X2V8R6T3M5N7P9Q1S2T',
       occurredAt: '2026-10-18T10:00:00Z',
-      eventType: 'mailboxCreation',
+      eventType: 'noSuchEventType',
       outcome: 'success',
       actor: { username: 'admin', role: 'admin', apiKeyId: null },
       target: null,

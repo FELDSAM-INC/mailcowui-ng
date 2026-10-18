@@ -11,6 +11,7 @@ import { RouterLink } from 'vue-router'
 import { ApiProblem } from '@/api'
 import { lt, text } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -87,8 +88,10 @@ const definition = 'mb-3 wrap-anywhere text-gray-900 sm:mb-0 dark:text-white'
     >
       <template v-if="key">
         <PageHeader :title="key.name">
-          <template v-if="key.status !== 'revoked'" #actions>
+          <template #actions>
+            <HistoryLink target-type="apiKey" :target-id="key.id" />
             <button
+              v-if="key.status !== 'revoked'"
               type="button"
               :class="buttonVariants({ variant: 'destructive' })"
               :disabled="versioned.pending.value"

@@ -7,6 +7,7 @@ import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
+  checkCoverage,
   checkMessages,
   duplicateLegacyMeanings,
   enumValuesFromSchema,
@@ -16,7 +17,6 @@ import {
   appKeysInSource,
   LOCALES,
   problemNamesFromContract,
-  requiredKeys,
 } from './lib.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -28,10 +28,13 @@ const app = Object.fromEntries(
 const snapshot = readJson(join(root, 'src/i18n/snapshot/lang.en-gb.json'))
 
 const enums = enumValuesFromSchema(readFileSync(join(root, 'src/api/generated/schema.ts'), 'utf8'))
-const problemNames = problemNamesFromContract(
-  readFileSync(join(root, 'contract/openapi.json'), 'utf8'),
-)
-const required = requiredKeys({ enums, problemNames })
+const contractText = readFileSync(join(root, 'contract/openapi.json'), 'utf8')
+const problemNames = problemNamesFromContract(contractText)
+// The coverage manifest scopes the growing shared enumerations (UI 002 research D2): their listed
+// values need a text, the others fall back to a generic label.
+const coverage = readJson(join(root, 'src/i18n/coverage.json'))
+const covered = checkCoverage({ coverage, enums, problemNames, contract: JSON.parse(contractText) })
+const required = covered.required
 
 function sourceFiles(dir) {
   const files = []
@@ -64,7 +67,7 @@ const legacyTexts = legacyTextsFromSource(
   readFileSync(join(root, 'src/i18n/legacy-messages.ts'), 'utf8'),
 )
 const appKeysUsed = appKeysInSource(source, Object.keys(app['en-gb']))
-const { errors, warnings } = checkMessages({
+const checked = checkMessages({
   app,
   required,
   snapshot,
@@ -73,6 +76,8 @@ const { errors, warnings } = checkMessages({
   appKeysUsed,
   usedKeys,
 })
+const errors = [...covered.errors, ...checked.errors]
+const warnings = [...covered.warnings, ...checked.warnings]
 
 const duplicates = duplicateLegacyMeanings(app['en-gb'], snapshot)
 if (duplicates.length > 0) {
@@ -94,5 +99,6 @@ console.log(
     `${legacyKeysUsed.length} legacy keys used and ${Object.keys(legacyTexts).length} in ` +
     'LEGACY_TEXTS, all in the en-gb snapshot ' +
     `(${relative(root, join(root, 'src/i18n/snapshot/lang.en-gb.json'))}); ` +
-    `${required.length} contract keys (${problemNames.length} problem types) covered.`,
+    `${required.length} contract keys covered (${covered.warnings.length} contract values not ` +
+    'in src/i18n/coverage.json fall back to generic labels).',
 )

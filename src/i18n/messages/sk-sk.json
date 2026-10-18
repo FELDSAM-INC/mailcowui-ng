@@ -135,7 +135,8 @@
       "clearAll": "Zrušiť všetky filtre",
       "custom": "{from} až {to}",
       "label": "Aktívne filtre",
-      "remove": "Odobrať filter: {filter}"
+      "remove": "Odobrať filter: {filter}",
+      "targetId": "Cieľ: {id}"
     },
     "columns": {
       "actor": "Aktér",
@@ -162,6 +163,7 @@
       "address": "Adresa klienta",
       "addressHelp": "Adresa IPv4 alebo IPv6 alebo sieť, napríklad 192.0.2.0/24.",
       "anyOutcome": "Ľubovoľný výsledok",
+      "anyTargetType": "Akýkoľvek typ cieľa",
       "apply": "Použiť filtre",
       "clear": "Zrušiť filtre",
       "eventTypes": "Typy udalostí",
@@ -176,13 +178,14 @@
         "any": "Kedykoľvek",
         "custom": "Vlastné obdobie"
       },
+      "targetId": "Cieľ",
+      "targetType": "Typ cieľa",
       "title": "Filtre",
       "to": "Do"
     },
     "notRecorded": "Nezaznamenané",
     "records": "Záznamy auditu",
     "resultCount": "Nájdené záznamy: {total}",
-    "targetFilterUnavailable": "Filtrovanie podľa jedného objektu príde v neskoršej verzii aplikácie. Zobrazujú sa všetky záznamy.",
     "title": "Protokol auditu",
     "unknown": "Neznáme ({code})"
   },
@@ -253,7 +256,47 @@
       }
     }
   },
+  "bulk": {
+    "actions": "Hromadné akcie",
+    "clear": "Zrušiť výber",
+    "confirm": {
+      "typeCount": "Na potvrdenie zadajte {count}"
+    },
+    "count": {
+      "done": "hotovo: {count}",
+      "failed": "zlyhalo: {count}",
+      "notFound": "nenájdené: {count}",
+      "notProcessed": "nespracované: {count}",
+      "outdated": "medzitým zmenené: {count}",
+      "refused": "odmietnuté: {count}",
+      "skipped": "preskočené: {count}",
+      "unknown": "s neznámym výsledkom: {count}"
+    },
+    "exitSelection": "Ukončiť výber",
+    "limitReached": "Pre jednu akciu môžete vybrať najviac {max} položiek.",
+    "outcome": {
+      "done": "Hotovo",
+      "failed": "Zlyhalo",
+      "notFound": "Nenájdené",
+      "notProcessed": "Nespracované",
+      "outdated": "Medzitým zmenené",
+      "refused": "Odmietnuté",
+      "skipped": "Preskočené",
+      "unknown": "Výsledok neznámy"
+    },
+    "progress": "Spracúva sa {count} položiek…",
+    "retry": "Zopakovať neúspešné",
+    "select": "Vybrať",
+    "selectAll": "Vybrať všetko na tejto stránke",
+    "selectItem": "Vybrať {name}",
+    "selected": "Vybrané: {count}",
+    "summary": {
+      "announce": "Výsledky: {counts}.",
+      "title": "Výsledky"
+    }
+  },
   "common": {
+    "back": "Späť",
     "close": "Zavrieť",
     "documentTitle": "{page} – {site}",
     "goHome": "Prejsť na úvodnú obrazovku",
@@ -261,6 +304,199 @@
     "requestId": "ID požiadavky: {requestId}",
     "retry": "Skúsiť znova",
     "signOut": "Odhlásiť sa"
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "Formulár sa nepodarilo načítať."
+    },
+    "default": "Predvolená",
+    "delete": {
+      "changed": "Šablóna sa medzitým zmenila. Skontrolujte ju a potvrďte znova.",
+      "keepValues": "Domény vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú.",
+      "notDeletedTitle": "{name} nebola odstránená"
+    },
+    "detail": {
+      "backToList": "Späť na šablóny domén",
+      "loadFailed": "Šablónu sa nepodarilo načítať.",
+      "loading": "Načítava sa šablóna…"
+    },
+    "edit": {
+      "defaultName": "Predvolenú šablónu nemožno premenovať.",
+      "gone": "Táto šablóna už neexistuje."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Nájdené šablóny: {count}",
+      "detailsOf": "Podrobnosti {name}"
+    },
+    "sort": {
+      "createdAt": "Vytvorené",
+      "id": "ID",
+      "modifiedAt": "Naposledy zmenené",
+      "name": "Názov"
+    }
+  },
+  "domains": {
+    "bulk": {
+      "adminRule": "Účty administrátorov domén, ktorým nezostane žiadna doména, sa odstránia.",
+      "dataRule": "Pätičky, štítky a uložená pošta sa odstránia. Kľúče DKIM zostanú zachované.",
+      "deactivateEffect": "Týka sa to všetkých schránok týchto domén: ich používatelia sa už neprihlásia a domény nebudú prijímať poštu.",
+      "deactivateTitle": "Deaktivovať vybrané domény ({count})?",
+      "delete": "Odstrániť",
+      "deleteConfirm": "Odstrániť domény",
+      "deleteIntro": "Tieto domény sa odstránia. Nemožno to vrátiť späť.",
+      "deleteTitle": "Odstrániť vybrané domény ({count})?",
+      "impactItem": "aliasy: {aliases}, aliasy domény: {aliasDomains}, administrátori domény: {admins}",
+      "leaveRunning": "Akcia na serveri ďalej beží, ale jej výsledok sa nezobrazí.",
+      "leaveTitle": "Odísť, kým akcia beží?",
+      "progress": "Spracúva sa domén: {count}…",
+      "skippedIntro": "Preskočené, pretože stále obsahujú schránky alebo prostriedky:",
+      "skippedItem": "{name}: schránky ({mailboxes}), prostriedky ({resources})"
+    },
+    "create": {
+      "loadFailed": "Šablóny domén alebo nastavenia servera sa nepodarilo načítať."
+    },
+    "delete": {
+      "action": "Odstrániť",
+      "admins": "Administrátori domény: {list}",
+      "adminsKept": "Žiadny účet administrátora domény sa neodstráni.",
+      "adminsToDelete": "Tieto účty administrátorov domény sa odstránia, pretože im nezostane žiadna doména: {list}",
+      "aliasDomains": "Odstránia sa aliasy domény: {list}",
+      "aliases": "Odstránia sa aliasy: {count}",
+      "blockedTitle": "Doménu {name} nemožno odstrániť",
+      "blockerMailboxes": "schránky ({count})",
+      "blockerResources": "prostriedky ({count})",
+      "blockersIntro": "Najprv odstráňte:",
+      "changed": "Doména sa medzitým zmenila. Skontrolujte dopad znova.",
+      "confirm": "Odstrániť doménu",
+      "data": "Štítky a uložená pošta domény sa odstránia.",
+      "dkimKept": "Kľúč DKIM zostane zachovaný.",
+      "footer": "Pätička sa odstráni.",
+      "gone": "Táto doména už neexistuje.",
+      "intro": "Odstránenie domény nemožno vrátiť späť.",
+      "noAdmins": "Doména nemá priradeného administrátora.",
+      "notDeleted": "Nič sa neodstránilo.",
+      "notDeletedTitle": "Doména {name} nebola odstránená",
+      "showAliases": "Zobraziť aliasy",
+      "title": "Odstrániť doménu {name}?",
+      "typeName": "Na potvrdenie zadajte názov domény {name}",
+      "unavailable": "Na odstránenie domény najprv odstráňte jej schránky ({mailboxes}) a prostriedky ({resources})."
+    },
+    "detail": {
+      "backToList": "Späť na domény",
+      "loadFailed": "Doménu sa nepodarilo načítať.",
+      "loading": "Načítava sa doména…"
+    },
+    "edit": {
+      "gone": "Táto doména už neexistuje alebo vám už nie je dostupná.",
+      "notSaved": "Nič sa neuložilo."
+    },
+    "empty": {
+      "admin": "Zatiaľ neexistujú žiadne domény. Začnite pridaním prvej domény.",
+      "clearAll": "Vymazať hľadanie a filtre",
+      "domainAdmin": "Zatiaľ vám nie je priradená žiadna doména. Obráťte sa na administrátora.",
+      "noMatch": "Hľadaniu a filtrom nezodpovedá žiadna doména."
+    },
+    "fields": {
+      "inUseCount": "Využité: {count}.",
+      "maxMailboxQuota": "Max. kvóta na schránku"
+    },
+    "filters": {
+      "active": "Stav aktivácie",
+      "activeOnly": "Aktívne",
+      "all": "Všetky",
+      "clear": "Vymazať všetky filtre",
+      "filterByTag": "Filtrovať podľa štítku {tag}",
+      "inactiveOnly": "Neaktívne",
+      "localOnly": "Ostatné domény",
+      "relay": "Preposielanie",
+      "relayOnly": "Preposielané domény",
+      "tagsHint": "Zobrazí domény s ktorýmkoľvek z týchto štítkov.",
+      "title": "Filtre",
+      "withCount": "Filtre ({count})"
+    },
+    "footer": {
+      "aliasDomainSubtext": "Alias-Domain",
+      "aliasSubtext": "Alias"
+    },
+    "list": {
+      "actionsFor": "Akcie pre {name}",
+      "clearSearch": "Vymazať hľadanie",
+      "count": "Nájdené domény: {count}",
+      "details": "Podrobnosti",
+      "detailsOf": "Podrobnosti domény {name}",
+      "loading": "Načítavajú sa domény…",
+      "messagesCount": "Správy: {count}",
+      "moreTags": "+{count}",
+      "moreTagsLabel": "a ďalšie štítky ({count})",
+      "refresh": "Obnoviť",
+      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",
+      "search": "Hľadať domény",
+      "searchHint": "Hľadá v názve, popise a štítkoch.",
+      "updating": "Aktualizuje sa…"
+    },
+    "outcome": {
+      "dkimDnsFailed": "Záznam DKIM pre {0} sa nepodarilo zverejniť v DNS.",
+      "dkimDnsNoZone": "Pre {0} sa nenašla zóna DNS: zverejnite záznam DKIM u poskytovateľa DNS domény.",
+      "rateLimitFailed": "Limit odosielania pre {0} sa nepodarilo uložiť."
+    },
+    "rateLimit": {
+      "frameLabel": "Časový úsek",
+      "value": "Správy"
+    },
+    "relay": {
+      "short": {
+        "backupMx": "Preposielať túto doménu",
+        "relayAllRecipients": "Preposielať všetkých príjemcov",
+        "relayUnknownOnly": "Preposielať len neexistujúce schránky"
+      }
+    },
+    "sort": {
+      "active": "Stav aktivácie",
+      "aliases": "Využité aliasy",
+      "asc": "Vzostupne",
+      "backupMx": "Preposielať túto doménu",
+      "createdAt": "Vytvorené",
+      "desc": "Zostupne",
+      "description": "Popis",
+      "domainQuota": "Kvóta domény",
+      "label": "Zoradiť podľa",
+      "mailboxes": "Využité schránky",
+      "maxAliases": "Max. počet aliasov",
+      "maxMailboxQuota": "Max. kvóta na schránku",
+      "maxMailboxes": "Max. počet schránok",
+      "modifiedAt": "Posledná zmena",
+      "name": "Názov",
+      "order": "Poradie",
+      "quotaAllocated": "Pridelená kvóta",
+      "storageUsed": "Využité úložisko"
+    },
+    "tags": {
+      "add": "Pridať",
+      "remove": "Odobrať štítok {tag}",
+      "suggestions": "Navrhované štítky",
+      "suggestionsLoading": "Načítavajú sa návrhy…",
+      "suggestionsUnavailable": "Návrhy nie sú k dispozícii",
+      "tooLong": "Štítky môžu mať najviac {max} znakov."
+    },
+    "usage": {
+      "left": "Zostáva: {count}",
+      "messages": "Správy",
+      "nearlyFull": "Takmer plné",
+      "of": "{used} z {limit}",
+      "over": "Nad limitom",
+      "quota": "Pridelená kvóta",
+      "storage": "Využité úložisko"
+    },
+    "values": {
+      "never": "Nikdy",
+      "no": "Nie",
+      "none": "Žiadne",
+      "rateLimit": "{value} {frame}",
+      "yes": "Áno"
+    }
   },
   "enums": {
     "apiKeyStatus": {
@@ -270,6 +506,13 @@
     "auditEventType": {
       "apiKeyCreation": "Vytvorenie API kľúča",
       "apiKeyRevocation": "Zneplatnenie API kľúča",
+      "domainCreation": "Doména pridaná",
+      "domainDeletion": "Doména odstránená",
+      "domainFooterUpdate": "Pätička domény zmenená",
+      "domainTemplateCreation": "Šablóna domény pridaná",
+      "domainTemplateDeletion": "Šablóna domény odstránená",
+      "domainTemplateUpdate": "Šablóna domény zmenená",
+      "domainUpdate": "Doména zmenená",
       "passkeyRegistration": "Pridanie prístupového kľúča",
       "passkeyRemoval": "Odobratie prístupového kľúča",
       "passkeyRename": "Premenovanie prístupového kľúča",
@@ -279,7 +522,9 @@
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktívny",
+      "attributeNotPermitted": "Zmena nie je povolená",
       "challengeExpired": "Časový limit prihlásenia vypršal",
+      "conflict": "Konflikt s existujúcimi údajmi",
       "externalIdentitySource": "Účet sa prihlasuje cez poskytovateľa identít",
       "invalidCredentials": "Nesprávne používateľské meno alebo heslo",
       "passkeyInactive": "Prístupový kľúč je neaktívny",
@@ -288,14 +533,18 @@
       "roleMismatch": "Prihlasovacia obrazovka pre iný typ účtu",
       "secondFactorFailed": "Druhý faktor nebol prijatý",
       "secondFactorUnavailable": "Druhý faktor nie je k dispozícii",
+      "temporaryFailure": "Dočasná chyba",
       "throttled": "Príliš veľa pokusov",
       "unknownPasskey": "Neznámy prístupový kľúč",
-      "verificationUnavailable": "Overovacia služba je nedostupná"
+      "validationFailed": "Neplatné hodnoty",
+      "verificationUnavailable": "Overovacia služba je nedostupná",
+      "versionOutdated": "Medzitým zmenené"
     },
     "auditOutcome": {
       "failure": "Neúspech"
     },
     "auditTargetType": {
+      "domainTemplate": "Šablóna domény",
       "passkey": "Prístupový kľúč",
       "preferences": "Predvoľby",
       "session": "Relácia"
@@ -310,6 +559,9 @@
       "title": "Opravte, prosím, nasledujúce"
     },
     "required": "povinné"
+  },
+  "history": {
+    "link": "História"
   },
   "home": {
     "greeting": "Dobrý deň, {username}",
@@ -331,6 +583,12 @@
       "heading": "Sekcie"
     },
     "title": "Domov"
+  },
+  "leaveGuard": {
+    "body": "Vaše zmeny sa stratia.",
+    "leave": "Odísť",
+    "stay": "Zostať",
+    "title": "Odísť bez uloženia?"
   },
   "lists": {
     "pagination": {
@@ -405,6 +663,11 @@
     "api-key-invalid": "API kľúč nie je platný.",
     "api-key-revoked": "API kľúč bol zneplatnený.",
     "api-key-source-not-allowed": "API kľúč nemožno použiť z tejto sieťovej adresy.",
+    "attribute-not-permitted": "Nemôžete meniť: {attributes}. Vaše ostatné zadanie zostalo zachované.",
+    "domain-exists": "Doména alebo alias domény s týmto názvom už existuje.",
+    "domain-not-empty": "Doména stále obsahuje schránky ({mailboxes}) a prostriedky ({resources}). Najprv ich odstráňte.",
+    "domain-template-name-exists": "Šablóna domény s týmto názvom už existuje.",
+    "domain-template-protected": "Predvolenú šablónu nemožno premenovať ani odstrániť.",
     "insufficient-key-scope": "API kľúč túto akciu nepovoľuje.",
     "network": "Server je nedostupný. Skontrolujte pripojenie a skúste to znova.",
     "passkey-registration-failed": "Prístupový kľúč sa nepodarilo zaregistrovať. Skúste to, prosím, znova.",
@@ -427,6 +690,7 @@
       "503": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
       "504": "Server neodpovedal včas. Skúste to, prosím, znova."
     },
+    "temporary-failure": "Nič sa nezmenilo, pretože časť servera je dočasne nedostupná. Skúste to prosím o chvíľu znova.",
     "too-many-requests": "Príliš veľa pokusov. Pred ďalším pokusom chvíľu počkajte.",
     "unauthenticated": "Vaša relácia skončila. Prihláste sa, prosím, znova.",
     "validation-failed": "Niektoré polia vyžadujú vašu pozornosť."
@@ -447,6 +711,20 @@
     "copyRefused": "Prehliadač kopírovanie nepovolil. Tajný údaj je označený: skopírujte ho sami.",
     "label": "Tajný údaj",
     "warning": "Tento tajný údaj sa zobrazí len raz. Znova ho zobraziť nemožno."
+  },
+  "sections": {
+    "discard": "Zahodiť moje zmeny",
+    "edit": "Upraviť",
+    "editDisabled": "Najprv dokončite úpravy sekcie {section}.",
+    "editNamed": "Upraviť: {section}",
+    "outdated": {
+      "body": "Niekto túto sekciu zmenil, kým ste ju upravovali. Vaše zadanie zostalo zachované. Zmenili sa tieto hodnoty:",
+      "savedAs": "{field}: teraz uložené ako {value}",
+      "title": "Zmenené inde"
+    },
+    "save": "Uložiť",
+    "saveAgain": "Uložiť znova",
+    "saving": "Ukladá sa…"
   },
   "session": {
     "idle": {
@@ -490,25 +768,34 @@
     "system": "Podľa zariadenia"
   },
   "validation": {
+    "belowInUse": "Hodnota je nižšia, než je využité: {inUse}.",
     "format": {
       "base64url": "Táto hodnota nie je platný base64url.",
       "dateTime": "Zadajte platný dátum a čas.",
+      "dkimSelector": "Použite iba písmená, číslice, pomlčky, podčiarkovníky a bodky.",
+      "domainName": "Zadajte platný názov domény, napríklad example.org.",
+      "email": "Zadajte platnú e-mailovú adresu.",
       "ipAddress": "Zadajte platnú adresu IPv4 alebo IPv6.",
       "ipNetwork": "Zadajte adresu alebo sieť IPv4 či IPv6, napríklad 192.0.2.0/24.",
       "totpCode": "Zadajte šesťmiestny kód.",
       "webauthnCredential": "Odpoveď bezpečnostného alebo prístupového kľúča nie je platná.",
       "yubicoOtp": "Zadajte 44 písmen alebo číslic, ktoré napíše váš YubiKey."
     },
+    "immutable": "Túto hodnotu nemožno zmeniť.",
     "invalid": "Táto hodnota nie je platná.",
     "invalidFormat": "Táto hodnota má neplatný formát.",
     "invalidType": "Táto hodnota má nesprávny typ.",
     "mustBeInFuture": "Zvoľte čas v budúcnosti.",
+    "mustNotExceed": "Hodnota nesmie byť vyššia ako {field} ({value}).",
     "notEligible": "Túto položku tu nemožno použiť. Povolené: {allowedRoles}.",
     "notFound": "Táto položka neexistuje.",
     "notInList": "Zvoľte jednu z možností: {allowed}.",
+    "notMultipleOf": "Zadajte celý násobok {factor}.",
     "outOfRange": "Zadajte hodnotu od {min} do {max}.",
     "required": "Toto pole je povinné.",
+    "reserved": "Tento názov je vyhradený pre server.",
     "tooLong": "Zadajte najviac {max} znakov.",
+    "tooLongBytes": "Text môže mať najviac {max}.",
     "tooMany": "Zadajte najviac {max} položiek.",
     "tooShort": "Zadajte aspoň {min} znakov."
   }

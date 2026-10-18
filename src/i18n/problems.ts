@@ -7,7 +7,7 @@ import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, FieldViolation } from '@/api'
 
-import { formatList, formatNumber } from './format'
+import { formatBytes, formatList, formatNumber } from './format'
 import { hasMessage, text } from './index'
 import { isAppLocale, DEFAULT_LOCALE, type AppLocale } from './locales'
 
@@ -29,8 +29,42 @@ export function problemMessageKey(problem: ApiProblem, te: (key: string) => bool
   return 'problem.generic'
 }
 
-export function problemMessage(problem: ApiProblem, tr: MessageTranslator): string {
-  return tr.t(problemMessageKey(problem, tr.te))
+/**
+ * How a form presents a problem or violation (UI 002 research D25): the kind of the field (`size`
+ * formats `inUse`, `value`, `min`, `max` and `factor` as sizes) and its labels (for the `field` of
+ * `mustNotExceed` and the `attributes` of `attribute-not-permitted`).
+ */
+export interface MessageContext {
+  kind?: 'size' | 'count'
+  labelFor?: (name: string) => string
+}
+
+/** Extension members as display strings: numbers formatted, string lists joined with labels. */
+function extensionParams(
+  problem: ApiProblem,
+  tr: MessageTranslator,
+  context: MessageContext,
+): Record<string, string> {
+  const locale = localeOf(tr)
+  const named: Record<string, string> = {}
+  for (const [key, value] of Object.entries(problem.extensions)) {
+    if (typeof value === 'number') named[key] = formatNumber(value, locale)
+    else if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
+      const items = value.map((item) => context.labelFor?.(item) ?? item)
+      named[key] = formatList(items, locale)
+    }
+  }
+  return named
+}
+
+export function problemMessage(
+  problem: ApiProblem,
+  tr: MessageTranslator,
+  context: MessageContext = {},
+): string {
+  const key = problemMessageKey(problem, tr.te)
+  const named = extensionParams(problem, tr, context)
+  return Object.keys(named).length > 0 ? tr.t(key, named) : tr.t(key)
 }
 
 /** `validation.<code>`, `validation.format.<format>` for `invalidFormat`, else `validation.invalid`. */
@@ -57,13 +91,23 @@ function localeOf(tr: MessageTranslator): AppLocale {
 export function violationParams(
   violation: FieldViolation,
   tr: MessageTranslator,
+  context: MessageContext = {},
 ): Record<string, string> {
   const locale = localeOf(tr)
   const params = (violation.params ?? {}) as Record<string, unknown>
   const named: Record<string, string> = {}
-  for (const key of ['min', 'max'] as const) {
+  const size = (value: number, exact: boolean) => formatBytes(value, locale, { exact })
+  const bytesMax = params.unit === 'bytes'
+  for (const key of ['min', 'max', 'value', 'inUse'] as const) {
     const value = params[key]
-    if (typeof value === 'number') named[key] = formatNumber(value, locale)
+    if (typeof value !== 'number') continue
+    if (context.kind === 'size') named[key] = size(value, key !== 'inUse')
+    else if (key === 'max' && bytesMax) named[key] = size(value, true)
+    else named[key] = formatNumber(value, locale)
+  }
+  if (typeof params.factor === 'number') named.factor = size(params.factor, true)
+  if (typeof params.field === 'string') {
+    named.field = context.labelFor?.(params.field) ?? params.field
   }
   if (Array.isArray(params.allowed)) {
     named.allowed = formatList(params.allowed.map(String), locale)
@@ -79,10 +123,17 @@ export function violationParams(
   return named
 }
 
-export function violationMessage(violation: FieldViolation, tr: MessageTranslator): string {
+export function violationMessage(
+  violation: FieldViolation,
+  tr: MessageTranslator,
+  context: MessageContext = {},
+): string {
   const key = violationMessageKey(violation, tr.te)
   if (key === 'validation.invalid') return tr.t(key)
-  return tr.t(key, violationParams(violation, tr))
+  if (key === 'validation.tooLong' && violation.params?.unit === 'bytes') {
+    return tr.t('validation.tooLongBytes', violationParams(violation, tr, context))
+  }
+  return tr.t(key, violationParams(violation, tr, context))
 }
 
 /** Problem and violation messages in the language in use. */
@@ -94,7 +145,12 @@ export function useProblemMessages() {
     locale: composer.locale.value,
   })
   return {
-    problemMessage: (problem: ApiProblem) => problemMessage(problem, tr()),
+    problemMessage: (problem: ApiProblem, context?: MessageContext) =>
+      problemMessage(problem, tr(), context),
+    /** One argument, so that it can be passed to `Array.map` (UI 001 call sites). */
     violationMessage: (violation: FieldViolation) => violationMessage(violation, tr()),
+    /** With the field's context: sizes and field labels (UI 002). */
+    violationMessageIn: (violation: FieldViolation, context: MessageContext) =>
+      violationMessage(violation, tr(), context),
   }
 }

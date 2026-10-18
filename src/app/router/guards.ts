@@ -62,14 +62,16 @@ export function routeForState(
   }
 }
 
-/** Whether the identity may use the route's section (FR-045). */
+/** Whether the identity may use the route's section (FR-045) and the route's roles (UI 002 D4). */
 export function routeAccess(
   route: Pick<RouteLocationNormalizedGeneric, 'meta'>,
   identity: Identity | null | undefined,
 ): 'allowed' | 'denied' {
   const entry = route.meta.navEntry
-  if (!entry) return 'allowed'
-  return canAccess(entry, identity) ? 'allowed' : 'denied'
+  if (entry && !canAccess(entry, identity)) return 'denied'
+  const roles = route.meta.roles
+  if (roles && (!identity || !roles.includes(identity.role))) return 'denied'
+  return 'allowed'
 }
 
 export function installGuards(router: Router, ctx: GuardContext): void {

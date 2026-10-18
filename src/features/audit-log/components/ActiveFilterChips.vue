@@ -55,6 +55,20 @@ const chips = computed<Chip[]>(() => {
       change: { outcome: undefined },
     })
   }
+  if (filters.targetType) {
+    result.push({
+      key: 'targetType',
+      label: label('targetType', filters.targetType),
+      change: { targetType: undefined },
+    })
+  }
+  if (filters.targetId) {
+    result.push({
+      key: 'targetId',
+      label: t('auditLog.chips.targetId', { id: filters.targetId }),
+      change: { targetId: undefined },
+    })
+  }
   if (filters.actor) {
     result.push({
       key: 'actor',

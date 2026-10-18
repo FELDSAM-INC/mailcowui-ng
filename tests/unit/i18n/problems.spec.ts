@@ -19,6 +19,12 @@ import {
 import { problemNamesFromContract } from '../../../scripts/i18n/lib.mjs'
 
 const contractText = readFileSync('contract/openapi.json', 'utf8')
+// The problem types translated so far (UI 002 research D2: the coverage manifest scopes the
+// growing list; the others fall back to the status or generic message).
+const coverage = JSON.parse(readFileSync('src/i18n/coverage.json', 'utf8')) as {
+  partial: { problemTypes: string[] }
+}
+const translated = coverage.partial.problemTypes
 
 /** A translator as `useText()` builds it: new strings, or mailcow's text through LEGACY_TEXTS. */
 function translatorOf(i18n: ReturnType<typeof createAppI18n>, locale: string): MessageTranslator {
@@ -61,7 +67,23 @@ describe('problem messages', () => {
     expect(names.length).toBeGreaterThanOrEqual(20)
   })
 
-  it.each(names)('maps %s to problem.<name> with a message in every locale', async (name) => {
+  it('lists only problem types of the contract as translated', () => {
+    expect(names).toEqual(expect.arrayContaining(translated))
+  })
+
+  it('falls back to the status or generic message for a contract type not translated yet', () => {
+    const untranslated = names.find((name) => !translated.includes(name))
+    expect(untranslated).toBeDefined()
+    const en = translator()
+    expect(problemMessageKey(problemOf(`/api/v2/problems/${untranslated!}`, 409), en.te)).toBe(
+      'problem.status.409',
+    )
+    expect(problemMessageKey(problemOf(`/api/v2/problems/${untranslated!}`, 418), en.te)).toBe(
+      'problem.generic',
+    )
+  })
+
+  it.each(translated)('maps %s to problem.<name> with a message in every locale', async (name) => {
     const en = translator()
     const problem = problemOf(`/api/v2/problems/${name}`)
     expect(problemMessageKey(problem, en.te)).toBe(`problem.${name}`)

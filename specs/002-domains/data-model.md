@@ -24,14 +24,14 @@ These are generated root types, imported from `@/api`.
 
 | Type | Operation(s) | Used by | Notes |
 |---|---|---|---|
-| `Domain`, `DomainUsage`, `DomainRateLimit`, `DomainRelayhost`, `DomainTagList`, `ListMeta` | `listDomains`, `getDomain`, `updateDomain` | list, domain page, sections | `domainAdmins` only for administrators; `etag` on every entry and read |
+| `Domain`, `DomainUsage`, `DomainRateLimit`, `DomainRelayhost`, `DomainTagList`, `DomainFooterSummary`, `ListMeta` | `listDomains`, `getDomain`, `updateDomain` | list, domain page, sections, footer summary | `domainAdmins` only for administrators; `etag` on every entry and read; `footer` is the footer summary (G28), not covered by `etag` |
 | `DomainPatch` | `updateDomain` | section saves | JSON Merge Patch (`application/merge-patch+json`), changed members only (D11) |
 | `DomainCreateRequest`, `DomainCreated`, `DomainCreationReport` | `createDomain` | create page, report | `creationReport` stripped before the detail cache (D7) |
 | `DomainDeletionPreview`, `DomainAddressSample` | `previewDomainDeletion` | deletion | `etag` sent with the deletion (D20) |
-| `DomainFooter`, `DomainFooterReplace` | `getDomainFooter`, `replaceDomainFooter` | footer editor, footer summary | `html` is never rendered (FR-059) |
-| `DomainCapabilities`, `DomainDkimCapabilities` | `getDomainsCapabilities` | every form and the list | `dkim` only for administrators |
+| `DomainFooter`, `DomainFooterReplace` | `getDomainFooter`, `replaceDomainFooter` | footer editor | `html` is never rendered (FR-059) |
+| `DomainCapabilities`, `DomainDkimCapabilities`, `DomainTemplateDefaults` | `getDomainsCapabilities` | every form and the list | `dkim` and `templateDefaults` (G29) only for administrators |
 | `DomainTagSummary` | `listDomainTags` | tag filter, tag suggestions | — |
-| `DomainBulkActionRequest`, `BulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `applyDomainBulkAction` | bulk actions | `BulkTarget.version` is the `etag` without quotes (D22) |
+| `DomainBulkActionRequest`, `BulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `applyDomainBulkAction` | bulk actions | `BulkTarget.version` is the `etag` exactly as read, quotes included (D22, G33) |
 | `DomainTemplate`, `DomainTemplateCreateRequest`, `DomainTemplatePatch` | `listDomainTemplates`, `createDomainTemplate`, `getDomainTemplate`, `updateDomainTemplate`, `deleteDomainTemplate` | template screens, create form | `isDefault` marks the protected template |
 | `DomainAttributeNotPermittedProblem`, `DomainNotEmptyProblem` | `updateDomain`, `deleteDomain` | errors | read through `ApiProblem` (UI 001) |
 | `AuditTarget`, `AuditEventType`, `AuditFailureReason` | `listAuditEvents` with `targetType`, `targetId` | History | `details` stays an open object (plan API gap G1) |
@@ -94,8 +94,9 @@ form until the identity is refetched (D11).
 | `info` | `notRequested`, `alreadyExisted`, `notConfigured`, `skipped`, `noZone`, `groupwareDisabled` |
 | `warning` | `failed` |
 
-The order is `rateLimit`, `dkimKey`, `dkimDnsPublication`, `groupwareDirectoryUpdate`,
-`groupwareRestart`.
+The order is `rateLimit`, `dkimKey`, `dkimDnsPublication`, `groupwareRestart`. Since the pin
+`c1677d5` the domain creation report has no `groupwareDirectoryUpdate` step: like legacy, a
+creation does not rebuild the groupware directory.
 
 ### BulkRow (`src/shared/components/BulkResultSummary.vue`)
 
@@ -132,7 +133,7 @@ These are added to `src/api/query/keys.ts`.
 |---|---|---|---|---|
 | `['domains','list',DomainListParams]` | `listDomains` | 30 s | the list page; the home summary link target | params from the address (§5) |
 | `['domains','detail',name]` | `getDomain` | 30 s | the domain page; the footer page (header) | `initialData` from a cached list entry (D6) |
-| `['domains','footer',name]` | `getDomainFooter` | 30 s | the domain page (summary); the footer editor | — |
+| `['domains','footer',name]` | `getDomainFooter` | 30 s | the footer editor | the domain page's summary reads `Domain.footer` (G28) |
 | `['domains','deletion-preview',name]` | `previewDomainDeletion` | 0 (`gcTime` 0) | when Delete is chosen; after a `412` on deletion | — |
 | `['domains','capabilities']` | `getDomainsCapabilities` | 5 min | the list (bulk limit), create, domain, footer and template pages | — |
 | `['domains','tags',{q,limit:25,sort:'name'}]` | `listDomainTags` | 30 s | when the tag filter or a tag editor opens; on typing (300 ms debounce) | — |
@@ -171,10 +172,10 @@ These are local component state, never stored (constitution V).
 | `name` | string | `name` | empty |
 | `description` | string | `description` | empty ("the domain name" when empty, FR-035) |
 | `templateId` | number \| null | `templateId` (omitted when null) | the template with `isDefault`; `null` when no template exists |
-| `maxMailboxes`, `maxAliases` | string (digits) | integer | template, or `defaults.ts` |
-| `defaultMailboxQuota`, `maxMailboxQuota`, `domainQuota` | `QuotaInputValue` | bytes | template, or `defaults.ts` |
-| `active`, `globalAddressList` | boolean | same | template, or `defaults.ts`; `globalAddressList` hidden and omitted when `groupwareEnabled` is false |
-| `backupMx`, `relayAllRecipients`, `relayUnknownOnly` | boolean | same | template, or `defaults.ts` (all false) |
+| `maxMailboxes`, `maxAliases` | string (digits) | integer | template, or `templateDefaults` (else `defaults.ts`) |
+| `defaultMailboxQuota`, `maxMailboxQuota`, `domainQuota` | `QuotaInputValue` | bytes | template, or `templateDefaults` (else `defaults.ts`) |
+| `active`, `globalAddressList` | boolean | same | template, or `templateDefaults` (else `defaults.ts`); `globalAddressList` hidden and omitted when `groupwareEnabled` is false |
+| `backupMx`, `relayAllRecipients`, `relayUnknownOnly` | boolean | same | template, or `templateDefaults` (else `defaults.ts`) (all false) |
 | `tags` | string[] | `tags` | template, or `[]` |
 | `rateLimit` | `{ enabled: boolean; value: string; frame: 'second' \| 'minute' \| 'hour' \| 'day' }` | `DomainRateLimit` or `null` | template, or `null` |
 | `dkim` | `{ generate: boolean; selector: string; keySize: number }` | `dkimSelector`, `dkimKeySize` | template; without one, `generate: true`, `selector: ''`, `keySize: capabilities.dkim.defaultKeySize` |
@@ -214,8 +215,9 @@ plus `name` (string). The sections on the template page are:
 | Options | `active`, `globalAddressList`, `backupMx`, `relayAllRecipients`, `relayUnknownOnly` | — |
 | Rate limit and DKIM | `rateLimit`, `dkimSelector`, `dkimKeySize` | — |
 
-A new template starts from `defaults.ts`, with the DKIM switch on, an empty selector and
-`capabilities.dkim.defaultKeySize` (FR-052, D18, D19).
+A new template starts from `capabilities.templateDefaults` (G29), or from `defaults.ts` when the
+capabilities lack it, with the DKIM switch on, an empty selector and the default key size
+(FR-052, D18, D19).
 
 ### Footer (`src/features/domains/footer.ts`)
 
@@ -232,7 +234,6 @@ The base is `/ng/`. These routes replace `placeholder-domains`. Every component 
 | `domains` | `/domains` | nav `domains` | `domains.title` | `features/domains/pages/DomainListPage.vue` |
 | `domain-create` | `/domains/-/new` | nav `domains`, `meta.roles: ['admin']` | `domains.create.title` | `features/domains/pages/DomainCreatePage.vue` |
 | `domain-detail` | `/domains/:domain` | nav `domains` | `domains.detail.title` | `features/domains/pages/DomainDetailPage.vue` |
-| `domain-footer` | `/domains/:domain/footer` | nav `domains` | `domains.footer.title` | `features/domains/pages/DomainFooterPage.vue` |
 | `domain-templates` | `/domain-templates` | nav `domainTemplates` | `domainTemplates.title` | `features/domains/pages/TemplateListPage.vue` |
 | `domain-template-create` | `/domain-templates/new` | nav `domainTemplates` | `domainTemplates.create.title` | `features/domains/pages/TemplateCreatePage.vue` |
 | `domain-template-detail` | `/domain-templates/:templateId(\d+)` | nav `domainTemplates` | `domainTemplates.detail.title` | `features/domains/pages/TemplateDetailPage.vue` |
@@ -243,12 +244,12 @@ Rules:
   canonical address once the domain is loaded (D4).
 - A `404` from `getDomain`, `getDomainFooter` or `getDomainTemplate` renders UI 001's
   `NotFoundPage` with a back link to the list (`backTo` prop added in this feature, FR-004).
-- `edit=<section>` on `domain-detail` and `domain-template-detail` opens a section. The section
-  IDs are `general`, `tags`, `limits`, `relay` and `groupware` for domains, and `name`, `limits`,
-  `options` and `dkim` for templates. An unknown or non-editable section is removed with
+- `edit=<section>` on `domain-detail` opens a section. Under the translations and forms rule
+  (plan.md, "Translations and forms") the sections are the legacy tabs: `domain` ("Edit domain")
+  and, with US7, `footer` ("Domain wide footer"); "Rate limit" is read-only. The template page is
+  one form, as the classic edit page. An unknown or non-editable section is removed with
   `router.replace`.
-- `step=<1–5>` on `domain-create` is used below `md`. A value above 1 without entered values is
-  normalised to 1.
+- The add domain page is one form, as the classic `#addDomainModal`; it has no steps.
 - The catalogue gains the row `domainTemplates` after `domains` (D5).
 - Removing `edit` from the address while the open section has unsaved changes asks first (FR-038),
   in the page's own `onBeforeRouteUpdate`, because `useLeaveGuard` ignores query-only changes.
@@ -374,6 +375,9 @@ selecting ─action─► (delete: partition skipped) ─► confirming (deactiv
    │                                                                   └─network─► results (all "outcome unknown"; selection cleared)
    └──────────────────────── retry (kept rows, refreshed etags) / close ◄┘
 ```
+
+A retry repeats the confirmed action for the kept rows without asking again; it first waits for
+the list refetch that the action started, so the targets carry the refreshed version tags.
 
 ### Delete several templates (`useTemplateBulkDelete`)
 

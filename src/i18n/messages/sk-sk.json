@@ -290,10 +290,8 @@
   },
   "common": {
     "close": "Zavrieť",
-    "confirm": "Potvrdiť",
     "documentTitle": "{page} – {site}",
     "goHome": "Prejsť na úvodnú obrazovku",
-    "loading": "Načítava sa…",
     "next": "Ďalej",
     "opensInNewTab": "(otvorí sa na novej karte)",
     "previous": "Predchádzajúce",

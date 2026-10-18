@@ -279,10 +279,8 @@
   },
   "common": {
     "close": "Close",
-    "confirm": "Confirm",
     "documentTitle": "{page} – {site}",
     "goHome": "Go to the home screen",
-    "loading": "Loading…",
     "next": "Next",
     "opensInNewTab": "(opens in a new tab)",
     "previous": "Previous",

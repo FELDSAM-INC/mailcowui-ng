@@ -26,9 +26,10 @@ const description = computed(() =>
   <section class="mx-auto flex w-full max-w-5xl flex-col gap-6">
     <PageHeader :title="title" :description="description" />
     <template v-if="identity">
-      <PasskeySuggestion />
       <ScopeSummary :identity="identity" />
       <SectionShortcuts :identity="identity" />
+      <!-- Last: it appears after a request, so it must not move the content above (CLS). -->
+      <PasskeySuggestion />
     </template>
   </section>
 </template>

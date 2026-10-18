@@ -279,10 +279,8 @@
   },
   "common": {
     "close": "Zavřít",
-    "confirm": "Potvrdit",
     "documentTitle": "{page} – {site}",
     "goHome": "Přejít na úvodní obrazovku",
-    "loading": "Načítání…",
     "next": "Další",
     "opensInNewTab": "(otevře se na nové kartě)",
     "previous": "Předchozí",

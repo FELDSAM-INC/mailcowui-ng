@@ -14,8 +14,8 @@ const previewPort = Number(process.env.PREVIEW_PORT ?? 4173)
 const config = join(root, 'lighthouserc.cjs')
 
 const collections = [
-  { url: `http://localhost:${previewPort}/ng/sign-in`, scenario: 'anonymous-default' },
-  { url: `http://localhost:${previewPort}/ng/`, scenario: 'admin-active' },
+  { url: `http://127.0.0.1:${previewPort}/ng/sign-in`, scenario: 'anonymous-default' },
+  { url: `http://127.0.0.1:${previewPort}/ng/`, scenario: 'admin-active' },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {
@@ -69,12 +69,15 @@ for (const { url, scenario } of collections) {
     MOCK_PORT: String(mockPort),
     MOCK_DEFAULT_SCENARIO: scenario,
   })
-  const preview = start(bin('vite'), ['preview', '--port', String(previewPort), '--strictPort'], {
-    MOCK_API_TARGET: `http://127.0.0.1:${mockPort}`,
-  })
+  // Bound to IPv4: `localhost` alone may listen on ::1 only, which Node's fetch does not try.
+  const preview = start(
+    bin('vite'),
+    ['preview', '--host', '127.0.0.1', '--port', String(previewPort), '--strictPort'],
+    { MOCK_API_TARGET: `http://127.0.0.1:${mockPort}` },
+  )
   try {
     await waitFor(`http://127.0.0.1:${mockPort}/__mock/health`)
-    await waitFor(`http://localhost:${previewPort}/ng/`)
+    await waitFor(`http://127.0.0.1:${previewPort}/ng/`)
     const args = ['collect', `--config=${config}`, `--url=${url}`]
     if (process.env.CHROME_PATH) args.push(`--chromePath=${process.env.CHROME_PATH}`)
     if (!first) args.push('--additive')

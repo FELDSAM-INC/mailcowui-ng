@@ -983,12 +983,20 @@ reload.
   - no value contains a password, code, token, secret or username;
   - `history.state` holds no secret (constitution V, FR-066, FR-091);
   - with storage throwing (an init script), the app still signs in and works (edge "storage disabled").
-- [ ] T146 Run `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JS is at most 204,800 bytes gzipped and performance and accessibility are at least 0.9 on `/ng/sign-in` and `/ng/`. Typical fixes: split lazy routes, trim Reka imports, lazy-load the locales.
-- [ ] T147 [P] Reconcile `THIRD_PARTY_NOTICES.md` with the files actually copied from TailAdmin and Lucide, and confirm that `npm run licenses:check` passes.
-- [ ] T148 [P] Add the plan's two parity notes to the "Legacy Parity" table in `specs/001-sign-in-app-shell/spec.md`: classic links point to pages, not tabs; app links with non-http(s) addresses are not rendered.
+- [X] T146 Run `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JS is at most 204,800 bytes gzipped and performance and accessibility are at least 0.9 on `/ng/sign-in` and `/ng/`. Typical fixes: split lazy routes, trim Reka imports, lazy-load the locales.
+
+  *Implementation note*: initial JavaScript 169.2 KB gzipped (budget 200 KB). Lighthouse (mobile, 3 runs, run inside the pinned Playwright image with `CHROME_PATH=/ms-playwright/chromium-1248/chrome-linux64/chrome`): `/ng/sign-in` performance 0.90–0.91, accessibility 1.00, all scripts 204,435 bytes (limit 204,800); `/ng/` performance 0.90–0.92, accessibility 1.00, 193,869 bytes, CLS 0. Fixes made: the home screen's passkey suggestion moved below the content (it caused a layout shift of 0.17), and an idle prefetch of the other locales was dropped (20 KB). `scripts/run-lhci.mjs` now binds `vite preview` to 127.0.0.1, because `localhost` listened on IPv6 only in the container. The sign-in screen has only 365 bytes of headroom under the script assertion: later features that add to its chunks or to the always-bundled en-gb messages must make room (for example lazy per-feature messages).
+- [X] T147 [P] Reconcile `THIRD_PARTY_NOTICES.md` with the files actually copied from TailAdmin and Lucide, and confirm that `npm run licenses:check` passes.
+
+  *Implementation note*: every copied primitive and icon is listed; the only change since Phase 1 is US7's destructive button colour (red-700 for contrast), recorded as a deviation. `npm run licenses:check`: 92 packages, all GPL-3.0-compatible.
+- [X] T148 [P] Add the plan's two parity notes to the "Legacy Parity" table in `specs/001-sign-in-app-shell/spec.md`: classic links point to pages, not tabs; app links with non-http(s) addresses are not rendered.
 - [ ] T149 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the production build served by `npm run preview:mock` on the local network. Record the SC-001, SC-002, SC-003, SC-008, SC-010 and SC-011 timings. Also record a screen-reader pass of every user story with VoiceOver on iOS and TalkBack on Android (SC-004). Both go in the "Validation log" section appended to `specs/001-sign-in-app-shell/quickstart.md`.
+
+  *Status (2026-10-18): open.* It needs a physical Android phone, an iPhone and screen-reader passes, which the implementing agent cannot do. Left open so that it does not hold the merge; the automated stand-ins are the 360 px WebKit and Chromium projects, axe in both themes and the keyboard-only spec (T144).
 - [ ] T150 Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke`, `scripts/smoke/stack-down.sh`) against the mailcow-rest-v2 dev stack once its implementation runs. Trigger the CI `smoke` job through `workflow_dispatch`, and set `vars.SMOKE_ENABLED=true` when it passes (plan, Complexity Tracking).
-- [ ] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings for the owner's review (plan, owner question 4).
+
+  *Status (2026-10-18): open, blocked.* The mailcow-rest-v2 dev stack (`restv2`, port 18080) serves API 001 (`GET /api/v2/public-config` answers), but `GET /api/v2/health/ready` answers 503, which `scripts/smoke/stack-up.sh` waits for, and the harness builds its own stack at `SMOKE_API_REF` rather than touching the developer's. The smoke specs are written (`tests/smoke/*.smoke.spec.ts`: sign-in, navigation, passkeys, pending actions, preferences, API keys, audit log). Run `SMOKE_API_REF=<API commit> scripts/smoke/stack-up.sh && npm run test:smoke` once readiness reports 200, then enable the CI job.
+- [X] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings for the owner's review (plan, owner question 4).
 
 ---
 
@@ -1132,6 +1140,8 @@ Edits to the shared files listed under "Files edited by several stories" run one
 
 ## Notes
 
+
+  *Implementation note*: `common.confirm` and `common.loading` were unused and are removed; every other reported key is built dynamically (`apiKeys.columns.*`, `auditLog.filters.ranges.*`, `auth.notice.*`, `preferences.languages.*`, …). The 416 hand-written cs-cz and sk-sk strings are listed for the owner in `specs/001-sign-in-app-shell/translation-review.md`.
 - [P] tasks touch different files and have no dependency on an incomplete task.
 - [USn] labels map tasks to the spec's user stories, and test titles carry the spec IDs for
   traceability.

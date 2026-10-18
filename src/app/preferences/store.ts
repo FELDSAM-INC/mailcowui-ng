@@ -4,7 +4,6 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
 import type { Language, Preferences, SessionState, Theme } from '@/api'
-import { i18n, loadLocale } from '@/i18n'
 import { DEFAULT_LOCALE, type AppLocale } from '@/i18n/locales'
 
 import {
@@ -71,21 +70,6 @@ export const usePreferencesStore = defineStore('preferences', () => {
       }),
     )
     setTheme(rememberedTheme() ?? 'system')
-    prefetchLocales()
-  }
-
-  /**
-   * Loads the other offered languages once the app is idle, so that a later switch is only a
-   * re-render (SC-012: under one second). The chunks stay lazy for the first load.
-   */
-  function prefetchLocales() {
-    const others = availableLocales.value.filter((code) => code !== locale.value)
-    if (others.length === 0) return
-    const load = () => others.forEach((code) => void loadLocale(i18n, code).catch(() => undefined))
-    const idle = (globalThis as { requestIdleCallback?: (callback: () => void) => number })
-      .requestIdleCallback
-    if (typeof idle === 'function') idle(load)
-    else setTimeout(load, 2000)
   }
 
   /**

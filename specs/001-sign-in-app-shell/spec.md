@@ -1051,6 +1051,8 @@ Reference: the FeldHost fork at `../mailhosting/data/web/` (upstream baseline `2
 | CORS settings in the same section | Not shown | Deferred to 013 | — |
 | API information text linking to the API documentation | Link to the documentation of this API | Matched | FR-069 |
 | `user-scalable=0` | Pinch-zoom allowed | Improved | FR-083 |
+| Links to legacy sections (menu entries that open a tab of a page) | Placeholders link to the classic interface pages, not tabs, because the classic interface has no hash-to-tab handling (research R19) | Changed | FR-044 |
+| App links with any address, including `javascript:` | Only http(s) and same-origin addresses are rendered; other app links are left out | Improved (security fix, research R17) | FR-001a |
 
 ### API Dependency
 

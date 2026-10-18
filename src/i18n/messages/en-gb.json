@@ -738,6 +738,20 @@
   },
   "validation": {
     "belowInUse": "This is below what is in use: {inUse}.",
+    "byParam": {
+      "notFound": {
+        "resource": {
+          "mailboxTemplate": "This mailbox template does not exist."
+        }
+      },
+      "secretRequired": {
+        "reason": {
+          "addressChanged": "Enter it again: it would be sent to a new address.",
+          "noStoredSecret": "Required: no secret is stored for this provider type yet.",
+          "typeChanged": "Required: the provider type changes."
+        }
+      }
+    },
     "conflictsWith": "This conflicts with {field}.",
     "duplicate": "This value is entered more than once.",
     "format": {
@@ -770,20 +784,12 @@
     "mustNotExceed": "This may not be higher than {field} ({value}).",
     "notEligible": "This item cannot be used here. Allowed: {allowedRoles}.",
     "notFound": "This item does not exist.",
-    "notFoundResource": {
-      "mailboxTemplate": "This mailbox template does not exist."
-    },
     "notInList": "Choose one of: {allowed}.",
     "notMultipleOf": "Enter a whole multiple of {factor}.",
     "outOfRange": "Enter a value from {min} to {max}.",
     "required": "This field is required.",
     "reserved": "This name is reserved by the server.",
     "secretRequired": "Enter the secret again.",
-    "secretRequiredReason": {
-      "addressChanged": "Enter it again: it would be sent to a new address.",
-      "noStoredSecret": "Required: no secret is stored for this provider type yet.",
-      "typeChanged": "Required: the provider type changes."
-    },
     "tooLong": "Enter at most {max} characters.",
     "tooLongBytes": "This text may be at most {max} long.",
     "tooMany": "Enter at most {max} entries.",

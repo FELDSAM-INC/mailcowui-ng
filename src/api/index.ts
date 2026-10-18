@@ -150,6 +150,7 @@ export type {
   MailboxSenderPermissionKind,
   MailboxSenderSettings,
   MailboxSenderSettingsPatch,
+  MailboxTemplate,
   Oauth2Client,
   Oauth2ClientBulkActionRequest,
   Oauth2ClientBulkItemResult,

@@ -182,7 +182,8 @@ export function validateForm(form: ProviderForm, ctx: ValidationContext): RuleEr
   // The secret: required for the reasons of the secret rule, at most the API's length.
   const secretField = SECRET_OF[form.type]
   const secret = form[secretField]
-  if (secret === '' && ctx.secret) add(secretField, `validation.secretRequiredReason.${ctx.secret}`)
+  if (secret === '' && ctx.secret)
+    add(secretField, `validation.byParam.secretRequired.reason.${ctx.secret}`)
   else if (secret.length > limits.secretMaxLength) {
     add(secretField, 'validation.tooLong', { max: limits.secretMaxLength })
   }

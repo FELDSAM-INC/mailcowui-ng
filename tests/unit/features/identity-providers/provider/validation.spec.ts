@@ -140,7 +140,7 @@ describe('validateForm', () => {
     form.bindPassword = ''
     form.syncInterval = '15'
     expect(validateForm(form, { limits, secret: 'addressChanged' }).bindPassword).toEqual([
-      { key: 'validation.secretRequiredReason.addressChanged' },
+      { key: 'validation.byParam.secretRequired.reason.addressChanged' },
     ])
   })
 

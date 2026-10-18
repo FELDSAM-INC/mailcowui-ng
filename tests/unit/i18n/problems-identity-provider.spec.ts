@@ -82,7 +82,7 @@ describe('rule codes with parameters (research R26)', () => {
     const tr = await translator()
     for (const reason of ['noStoredSecret', 'typeChanged', 'addressChanged']) {
       expect(violationMessageKey(violation('secretRequired', { reason }), tr.te)).toBe(
-        `validation.secretRequiredReason.${reason}`,
+        `validation.byParam.secretRequired.reason.${reason}`,
       )
     }
     expect(violationMessageKey(violation('secretRequired', { reason: 'later' }), tr.te)).toBe(
@@ -96,7 +96,7 @@ describe('rule codes with parameters (research R26)', () => {
   it('names a missing mailbox template', async () => {
     const tr = await translator()
     expect(violationMessageKey(violation('notFound', { resource: 'mailboxTemplate' }), tr.te)).toBe(
-      'validation.notFoundResource.mailboxTemplate',
+      'validation.byParam.notFound.resource.mailboxTemplate',
     )
     expect(violationMessageKey(violation('notFound', { resource: 'other' }), tr.te)).toBe(
       'validation.notFound',

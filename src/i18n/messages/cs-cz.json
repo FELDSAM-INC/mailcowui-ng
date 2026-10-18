@@ -738,6 +738,20 @@
   },
   "validation": {
     "belowInUse": "Hodnota je nižší, než je využito: {inUse}.",
+    "byParam": {
+      "notFound": {
+        "resource": {
+          "mailboxTemplate": "Tato šablona schránky neexistuje."
+        }
+      },
+      "secretRequired": {
+        "reason": {
+          "addressChanged": "Zadejte jej znovu: byl by odeslán na novou adresu.",
+          "noStoredSecret": "Povinné: pro tento typ poskytovatele zatím není uložen žádný tajný údaj.",
+          "typeChanged": "Povinné: mění se typ poskytovatele."
+        }
+      }
+    },
     "conflictsWith": "Tato hodnota je v rozporu s polem {field}.",
     "duplicate": "Tato hodnota je zadána vícekrát.",
     "format": {
@@ -770,20 +784,12 @@
     "mustNotExceed": "Hodnota nesmí být vyšší než {field} ({value}).",
     "notEligible": "Tuto položku zde nelze použít. Povoleno: {allowedRoles}.",
     "notFound": "Tato položka neexistuje.",
-    "notFoundResource": {
-      "mailboxTemplate": "Tato šablona schránky neexistuje."
-    },
     "notInList": "Zvolte jednu z možností: {allowed}.",
     "notMultipleOf": "Zadejte celý násobek {factor}.",
     "outOfRange": "Zadejte hodnotu od {min} do {max}.",
     "required": "Toto pole je povinné.",
     "reserved": "Tento název je vyhrazen serveru.",
     "secretRequired": "Zadejte tajný údaj znovu.",
-    "secretRequiredReason": {
-      "addressChanged": "Zadejte jej znovu: byl by odeslán na novou adresu.",
-      "noStoredSecret": "Povinné: pro tento typ poskytovatele zatím není uložen žádný tajný údaj.",
-      "typeChanged": "Povinné: mění se typ poskytovatele."
-    },
     "tooLong": "Zadejte nejvýše {max} znaků.",
     "tooLongBytes": "Text smí mít nejvýše {max}.",
     "tooMany": "Zadejte nejvýše {max} položek.",

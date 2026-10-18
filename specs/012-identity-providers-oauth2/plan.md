@@ -279,7 +279,7 @@ Messages:
 | No test result within 90 s | new `identityProvider.test.noResult` |
 | `identity-provider-not-configured` on a section save or removal | new `problem.identity-provider-not-configured`; the page then shows the empty form |
 | Outdated (412) | `EditableSection`'s outdated notice (UI 002) with field labels from the legacy keys above |
-| Rule codes | `validation.<code>`; API 012 formats `validation.format.<format>`; `secretRequired` with `reason` → new `validation.secretRequiredReason.<reason>`; `notFound` with `resource: mailboxTemplate` → new `validation.notFoundResource.mailboxTemplate`; `duplicate` → new `validation.duplicate`; `conflictsWith` → new `validation.conflictsWith` |
+| Rule codes | `validation.<code>`; API 012 formats `validation.format.<format>`; `secretRequired` with `reason` → new `validation.byParam.secretRequired.reason.<reason>` and `notFound` with `resource: mailboxTemplate` → new `validation.byParam.notFound.resource.mailboxTemplate` (UI 004's parameter lookup, with `reason` added to its discriminating parameters); `duplicate` → new `validation.duplicate`; `conflictsWith` → UI 004's `validation.conflictsWith` |
 
 #### Single sign-on (`/sign-in`, `/sign-in/mailbox-user`) → `templates/user_index.twig`; return page `/ng/sso/return` (no legacy page)
 

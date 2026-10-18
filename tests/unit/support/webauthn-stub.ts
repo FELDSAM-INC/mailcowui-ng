@@ -59,7 +59,10 @@ export function fakeCredential({ id = 'cred-1', kind, withToJSON }: FakeCredenti
     credential.toJSON = () => {
       const json: Record<string, unknown> = {}
       for (const [key, value] of Object.entries(response)) {
-        if (value instanceof ArrayBuffer) json[key] = toBase64Url(value)
+        // TextEncoder buffers come from another realm under jsdom, so no `instanceof` check.
+        if (Object.prototype.toString.call(value) === '[object ArrayBuffer]') {
+          json[key] = toBase64Url(value as ArrayBuffer)
+        }
       }
       if (kind === 'attestation') json.transports = ['internal', 'hybrid']
       return {
@@ -76,7 +79,9 @@ export function fakeCredential({ id = 'cred-1', kind, withToJSON }: FakeCredenti
 }
 
 export function installWebAuthn(options: WebAuthnStubOptions = {}) {
-  const { secureContext = true, supported = true, nativeJson = true, conditional = true } = options
+  const { secureContext = true, supported = true, nativeJson = true } = options
+  // An explicit `conditional: undefined` removes the method, so no destructuring default here.
+  const conditional = 'conditional' in options ? options.conditional : true
 
   vi.stubGlobal('isSecureContext', secureContext)
 

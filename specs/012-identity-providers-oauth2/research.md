@@ -15,39 +15,48 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 
 ### R1. Contract pin and dependencies on earlier UI features
 
-- **Decision**:
-  - **Pin**: UI 012 needs a pin that contains the complete API 012 contract: 19 operations in the
-    modules `identity-provider`, `oauth2-clients` and `single-sign-on`, plus API 012's additive
-    changes to API 001 (`PublicConfig.externalIdentityProvider.singleSignOnAvailable`, the
-    `AuthMethod` values, `IdentityAuthentication.identityProvider`, the `503` of `createSession`,
-    the `identity-provider-session-ended` type of `Unauthorized`) and the audit target filters of
-    API 002. The earliest such commit at planning time is mailcow-rest-v2
-    **`a563357c9d1037bec3cdb548bfe33fe859abe138`** ("Record 011 analysis", 2026-10-18). Its
-    Redocly 2.64.1 bundle has 376 operations and sha256
-    `75ee9d1fcdbec547c8115d845a62aa6375530c502d40574f671cfd14b721fd82` (computed during planning).
-    - UI 001 to UI 011 are implemented first and bump the pin for their own operations. Because
-      mailcow-rest-v2 merges every feature's contract into one tree, their pin probably contains
-      API 012 already. Task T001 therefore checks the pin first and bumps only when the pinned
-      commit predates `a563357` or lacks one of the 19 operations. It never moves the pin backwards.
-    - A later pin is fine when the 19 operations keep the shapes that
-      [contracts/README.md](./contracts/README.md) lists; a changed shape is a deliberate bump with
-      type fixes (constitution I).
-    - UI 001's plan API gap 5 (`KnownProblemType` missing from the bundle) is still open at
-      `a563357`: the fix sits uncommitted in the API working tree. The translation check keeps
-      deriving problem types from the bundle text (001 R27).
-  - **Building blocks from earlier UI features**. UI 012 reuses the patterns that UI 001 reserved
-    (001 R20) and that later features build. The plan lists each with its expected path, the
-    feature that builds it and the behaviour UI 012 relies on (plan, "Dependencies on earlier UI
-    features"). Task T002 confirms each one. When one exists under another name or path, the tasks
-    use it there. When one is missing, T002 builds it test-first at the listed path with the listed
-    behaviour before any story starts, because a shared block may not be duplicated in a feature.
+- **Decision**: The pin follows the policy of UI 002 D1.
+  - **Planning baseline**: mailcow-rest-v2 commit **`32079252d55797d3da4e58ae661e9fb91c51c6f9`**
+    ("Register KnownProblemType in contract components"). Its Redocly 2.64.1 bundle has 376
+    operations, `info.version` `0.1.0` and sha256
+    `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` (recomputed during this
+    planning; UI 002 records the same value). It contains:
+    - the complete API 012 contract: 19 operations in the modules `identity-provider`,
+      `oauth2-clients` and `single-sign-on`, unchanged since commit `5c6f4e9` ("Align feature 012
+      with capabilities, history and refusal conventions");
+    - API 012's additive changes to API 001: `PublicConfig.externalIdentityProvider.singleSignOnAvailable`,
+      the `AuthMethod` values, `IdentityAuthentication.identityProvider`, the `503` of
+      `createSession` and the `identity-provider-session-ended` type of `Unauthorized`;
+    - the audit target filters of API 002;
+    - `KnownProblemType` under `components.schemas`, which closes UI 001's API gap 5.
+  - **Implementation prerequisite**: mailcow-rest-v2 feature 012 is implemented, its `tasks.md` is
+    complete and its quickstart Part A passes. UI 012 is implemented after UI 001 to UI 011.
+  - **Pin at implementation time**: T001 bumps to the mailcow-rest-v2 release tag that ships the
+    API 012 implementation (`contract-012`, once the API repository tags contract releases as its
+    `docs/api-gaps.md` G5 plans) or, without a tag, to the first commit at which the prerequisite
+    holds.
+    Before accepting it, T001 diffs the API 012 contract files listed in
+    [contracts/README.md](./contracts/README.md) between the baseline and the new ref. Any
+    difference is a contract change that is reviewed against this plan before implementation goes
+    on (constitution I). The pin never moves to a commit older than the one UI 011 left in
+    `contract/VERSION.json`. Because the pin then identifies a runnable API, the smoke tasks run
+    in the normal flow.
+  - **Building blocks from earlier UI features**: UI 012 reuses the patterns that UI 001 reserved
+    (001 R20) and that UI 002, 003, 005, 010 and 011 build, under the names their plans give them.
+    The plan lists each block with its path, the feature that builds it and the behaviour UI 012
+    relies on (plan, "Dependencies on earlier UI features"). T002 confirms each one. When a block was
+    built under another name or path, the tasks use it there. When one is missing, T002 builds it
+    test-first at the listed path before any story starts, because a shared block may not be
+    duplicated inside a feature.
 - **Rationale**: The constitution makes the pin a deliberate, recorded change. `info.version` stays
-  `0.1.0` across features, so only the commit identifies the contract (001 R6). Naming each
-  borrowed block with its contract makes the dependency testable instead of implicit.
+  `0.1.0` across features, so only the commit identifies the contract (001 R6). Following UI 002's
+  policy keeps every UI feature on the same rule. Naming each borrowed block makes the dependency
+  testable instead of implicit.
 - **Alternatives considered**: Pinning "the latest commit" at implementation time was rejected, as
-  in 001 R6. Re-implementing the bulk, section-editing and secret-dialog patterns inside this feature
-  was rejected by constitution VIII ("shared components appear after the second concrete use") and
-  by `docs/conventions.md`, which wants one behaviour across features.
+  in 001 R6. Pinning the baseline itself was rejected: it has no API 012 implementation, so the
+  smoke suite could not run (UI 002 D1). Re-implementing the bulk, section-editing and
+  secret-dialog patterns inside this feature was rejected by constitution VIII and by
+  `docs/conventions.md`, which wants one behaviour across features.
 
 ### R2. Code layout
 
@@ -58,8 +67,8 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     `pages/` and `components/`, plus a shared `routes.ts`, `index.ts` and the section
     sub-navigation.
   - **Single sign-on lives in the existing `src/features/auth/`**, next to password and passkey
-    sign-in: `auth/sso/` holds the return-parameter capture, the kept return address and the
-    authorization address check; `auth/composables/` the start and return composables;
+    sign-in: `auth/sso/` holds the return-parameter capture (`capture.ts`), the kept return address
+    (`return-to.ts`) and the return classification (`return-classify.ts`); `auth/composables/` the start and return composables;
     `auth/components/SingleSignOnButton.vue`; `auth/pages/SingleSignOnReturnPage.vue`.
   - The session reactions (session end by the provider, the sign-out note) extend
     `src/app/session/` and `src/api/query/client.ts`, which own them since UI 001.
@@ -90,6 +99,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
   - Every admin route carries `meta.navEntry: 'identityProviders'`, so `ShellLayout` renders
     `NoAccessState` for domain administrators and mailbox users without mounting the page and
     therefore without requests (001 R19, FR-002, SC-010).
+  - The catalogue row also gets UI 011's optional field `group: 'system'`. It follows UI 011's four
+    system rows in the catalogue order, so the navigation shows it under the "System" heading, as
+    the classic interface places the identity provider under System › Configuration.
   - A **section sub-navigation** (`SectionNav.vue`) at the top of both admin screens offers
     "Identity provider" and "OAuth2 apps" as two links with `aria-current="page"`. Two short links
     fit at 320 px without scrolling. A link is rendered only when its route is registered
@@ -191,7 +203,7 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 
   | Captured | Request | Next |
   |---|---|---|
-  | `code` (1–4,096 characters) and `state` (1–512), no `error` | `completeSingleSignOn` once | outcome table below |
+  | `code` (1–4,096 characters) and `state` (1–512), no `error` | `completeSingleSignOn` once, called on the generated client directly so that the code and state never enter a query cache | outcome table below |
   | `error` and `state`, the error matching the contract pattern `^[\x20-\x21\x23-\x5B\x5D-\x7E]{1,64}$` | `reportSingleSignOnProviderError` with `{ error, state }` | "cancelled or refused" message, whatever the report's outcome |
   | `error` without a usable `state`, or an error code outside the pattern | `cancelSingleSignOn` | "cancelled or refused" message |
   | `code` without `state`, `state` without `code`, or a value over its length limit | `cancelSingleSignOn` | "sign-in state invalid" message |
@@ -312,11 +324,13 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     state with retry.
   - The overview requests both in parallel. The setup flow needs only the capabilities, plus the
     configuration in type-change mode (for its version tag and counts).
-  - **Mailbox templates** for the mapping and the default template come from `listMailboxTemplates`
-    (API 003) under UI 003's query key root, fetched only when a mapping field or the default
-    template choice mounts. All templates are loaded, in pages of 1,000 (the API maximum) until
-    `meta.total` is reached, normally one request. A failure shows an error with retry next to the
-    mapping and keeps the entered entries (edge case).
+  - **Mailbox templates** for the mapping and the default template come from UI 003's "all
+    templates" query (`src/features/mailboxes/templates-api.ts`, key `['mailbox-templates','all']`,
+    `listMailboxTemplates` with `limit=1000&sort=name`), the same list UI 003's create screen uses.
+    UI 012 reaches it through `@/features/mailboxes`, adding a non-behavioural export to that
+    feature's `index.ts` if it is not exported yet (UI 003 did the same for `@/features/domains`).
+    It is fetched only when a mapping field or the default template choice mounts. A failure shows
+    an error with retry next to the mapping and keeps the entered entries (edge case).
   - No polling. The synchronisation status refreshes when the overview is opened again after the
     stale time, or after a save (constitution VII, 001 FR-033).
 - **Rationale**: The capabilities read exists so that a client can render the setup before anything
@@ -378,9 +392,10 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     and the polite region announces "Step 3 of 5: Return addresses" (FR-073).
   - Progress is text ("Step 2 of 5") plus an `<ol>` of step names with `aria-current="step"`; on
     320 px only the text and the current name show.
-  - Leaving the page with any entry or a chosen type asks for confirmation through
-    `useUnsavedChangesGuard` (route leave and `beforeunload`, FR-016). Unmounting discards the state,
-    secret included (FR-026).
+  - Leaving the page with any entry or a chosen type asks for confirmation through UI 002's
+    `useLeaveGuard(shouldGuard, messageKey)` (route leave and `beforeunload`, FR-016). Step changes
+    only change the query, which `useLeaveGuard` leaves to the page (UI 002 D21). Unmounting discards
+    the state, secret included (FR-026).
   - **Type change** (`?mode=change`): the overview confirmed first (FR-013). The page reads the
     configuration for its version tag and counts; in the type step the current type and every
     blocked type (R17) are disabled with their reason. Save sends `If-Match`.
@@ -389,7 +404,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - first setup answered `200`: announce that an existing configuration was replaced (API gap 3);
     - type change → `200`: announce "Provider type changed".
     In every success case the app writes `['identity-provider','configuration']`, invalidates the
-    capabilities and `['public-config']` (FR-012) and replaces the route with the overview.
+    capabilities and `['public-config']` (FR-012) and replaces the route with the overview. The
+    announcement survives the navigation through UI 011's `useStatusMessage()`, whose messages stay
+    until dismissed (FR-070).
     Failures:
     - `409 identity-provider-in-use`: the in-use message of R17, nothing changed (FR-014);
     - `412`: the configuration was changed elsewhere; the entries are kept, the configuration and its
@@ -410,10 +427,12 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 - **Decision**:
   - Each section of FR-006 (connection and credentials, directory search, return addresses, sign-in
     and mailbox creation, synchronisation; per type as the table in data-model §2 lists) is an
-    `EditableSection` (UI 002): read-only values, an Edit action, full-screen below `md` and in place
-    above (FR-015). **One section is in edit at a time**; opening another while one has changes asks
-    to save or discard first, so a section never saves against a version tag that the app's own
-    other save just made outdated.
+    `EditableSection` (UI 002 D11): read-only values and an Edit action; below `md` the open section
+    replaces the page content with a sticky Save and Cancel bar, from `md` up it opens in place
+    (FR-015). The page drives editing through the `edit` query parameter (UI 002 D4), so a reload
+    reopens the section with the stored values, never with a typed secret. **One section is in edit
+    at a time**: while one is open, the other Edit buttons are disabled with a reason, so a section
+    never saves against a version tag that the app's own other save just made outdated.
   - Save builds `toPatch(section, config, form)`. It contains only that section's members whose
     normalised value differs from the stored one, arrays as whole lists (`hosts`, `attributeMapping`,
     `additionalReturnUrls`), and the secret only when typed. `null` means nothing changed: the edit
@@ -421,9 +440,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     `application/merge-patch+json`, `If-Match: config.etag`).
   - `200`: write the response into the cache. The section shows the stored, possibly normalised,
     values (FR-015), the secret field is emptied and "Section saved" is announced.
-  - `412` (`useVersionedSave` with the field diff of UI 002): the entries are kept, the configuration
-    is refetched, and every setting of the section whose stored value changed is marked with its new
-    value (FR-017). Secrets: only a change of `clientSecretSet` or `bindPasswordSet` is visible. When
+  - `412` (`useVersionedSave` with UI 002's `changedSince(base, latest, fields)`): the entries are
+    kept, the configuration is refetched, and every setting of the section whose stored value changed
+    is marked with its new value (FR-017). Secrets: only a change of `clientSecretSet` or `bindPasswordSet` is visible. When
     the tag changed but no visible setting of the section differs, the message says that the
     configuration changed elsewhere, possibly a secret, and the administrator saves again with the
     new tag or discards. Never merged or re-sent automatically.
@@ -440,14 +459,18 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 
 ### R14. Write-only secrets
 
-- **Decision**: The client secret and the bind password use `WriteOnlySecretField` (R1) in a mode
-  without "remove" (FR-024: there is no removal action):
+- **Decision**: The client secret and the bind password use a feature-local
+  `ProviderSecretField.vue`, built on UI 005's shared `PasswordInput.vue`
+  (`src/shared/components/password/`, show/hide toggle with `aria-pressed`). UI 008 and UI 009 keep
+  their write-only password behaviour inside their features too. The field has no "remove" action
+  (FR-024):
   - The field starts empty. The status reads "Set" or "Not set" from `clientSecretSet` or
     `bindPasswordSet`; in the setup flow it reads "Required".
   - The field is masked, with a labelled reveal toggle (`aria-pressed`), and carries
     `autocomplete="new-password"`, `autocapitalize="none"`, `spellcheck="false"` and the
-    password-manager opt-outs `data-1p-ignore`, `data-lpignore="true"` and `data-bwignore`, so that
-    browsers do not fill in the administrator's own saved sign-in (FR-026).
+    password-manager opt-outs `data-1p-ignore`, `data-lpignore="true"`, `data-bwignore` and
+    `data-form-type="other"`, as UI 008 R12 does, so that browsers do not fill in the
+    administrator's own saved sign-in (FR-026).
   - `secret-rule.ts` decides when it is required, with a visible reason:
     - in the setup flow: always (`noStoredSecret`);
     - in an edit or a test: when the type differs from the stored type (`typeChanged`), or when the
@@ -457,15 +480,18 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     The reasons match the API's `secretRequired` reasons, whose translations are reused (FR-025,
     FR-034).
   - The value is emptied after a successful save, a refused save, a cancelled edit and when the
-    form unmounts (FR-026). It exists in component state and in the request body only. The secret
-    mutations use `gcTime: 0`, so TanStack Query drops their variables as soon as they settle. The
-    value is never written to the query cache, the address, history state or storage (SC-003).
+    form unmounts (FR-026). It exists in component state and in the request body only. Following
+    `docs/conventions.md` ("Secrets in requests or responses"), every request that can carry a
+    typed secret (the save, the section change and the connection test) **calls the generated
+    client directly** instead of going through `useMutation`, so the secret never enters a TanStack
+    Query cache; only the secret-free response is then written to the query cache. The value is never
+    written to the address, history state or storage, and the forms keep no drafts (SC-003).
 - **Rationale**: This is the conventions' write-only pattern, minus removal, which the API does not
   offer. Comparing the hosts in order is at least as strict as the API's check, so the app never
   sends a request that the API would refuse for a missing secret.
 - **Alternatives considered**: `autocomplete="off"`: rejected; browsers ignore it for password
-  fields. Keeping mutations at the default `gcTime`: rejected, because the variables would keep the
-  secret in memory for five minutes.
+  fields. `useMutation` with `gcTime: 0`: rejected by `docs/conventions.md`; the variables would
+  still pass through the mutation cache.
 
 ### R15. Client-side rules and limits
 
@@ -485,7 +511,11 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - `keycloakVersion`: `^[0-9]+(\.[0-9]+){0,3}$`;
     - `scopeList`: 1 to `scopesMaxEntries` names separated by single spaces, each of printable
       characters other than space, `"` and `\`;
-    - `hostName`: through the shared `isHostName()`, which also accepts IPv4 and IPv6;
+    - `hostName`: `isLdapHost()` in `provider/validation.ts` accepts a host name of letters, digits
+      and hyphens in labels of 1–63 characters (single labels such as `openldap` included, at most
+      253 characters) or an IPv4 or IPv6 address through UI 001's `isIpNetwork()` without a prefix.
+      No earlier feature checks host names in the browser (UI 008 leaves `hostName` to the API), so
+      the check stays in this feature;
     - `ldapAttribute`: `^[A-Za-z][A-Za-z0-9-]*$`;
     - `ldapFilter`: empty, or it starts with `(`, ends with `)` and has balanced parentheses (LDAP
       escapes literal parentheses as `\28` and `\29`, so raw parentheses can be counted);
@@ -554,8 +584,8 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     authenticate against <source>".
   - **Display** (FR-005): the configured type's count first ("No mailbox uses it yet" for 0), then
     each other source with a non-zero count, explained as left by the classic interface and blocking
-    removal. Each count links to UI 003's mailbox list filtered by that source
-    (`/mailboxes?authSource=<type>`; the parameter name follows UI 003's list state).
+    removal. Each count links to UI 003's mailbox list filtered by that source: route `mailboxes`
+    with the list parameter `source=<type>` (UI 003 data-model §5), which maps to `authSource`.
   - **`409 identity-provider-in-use`** on a save or removal (FR-014): `InUseMessage.vue` reads
     `blockingMailboxes` and `mailboxCounts` from the problem through the typed extension-member guard
     of R1, says that nothing changed and shows the same links. The cached configuration is refetched,
@@ -582,10 +612,12 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
   - The interval reads as a duration: whole days when the minutes divide by 1,440, otherwise whole
     hours when they divide by 60, otherwise minutes. Units are formatted with `Intl.NumberFormat`
     (`style: 'unit'`, `unitDisplay: 'long'`) inside "every {duration}".
-  - **Job-log link**: UI 011 ships before UI 012, so the section links to UI 011's Cron log filtered
-    by the task `Keycloak Sync` or `LDAP Sync` (the `task` values the legacy jobs write, API 012
-    data model). The link is resolved through UI 011's route name and rendered only when that route
-    exists and `canAccess('operations')` holds, so it can never be broken.
+  - **Job-log link**: UI 011 ships before UI 012, so the section links to UI 011's Cron log: route
+    `operations-log` with `logType: 'cron'` and the query `task=Keycloak Sync` or `task=LDAP Sync`
+    (the `task` values the legacy jobs write, API 012 data model; UI 011 data-model §5). The link is
+    rendered only when that route exists and `canAccess('logs')` holds (UI 011 replaced the
+    `operations` catalogue row with `dashboard`, `logs`, `mailQueue` and `fail2ban`), so it can never
+    be broken.
 - **Rationale**: The API derives the status and documents its limits (API 012 FR-062). Saying them
   avoids false confidence in "waiting" and false alarm at "unknown".
 - **Alternatives considered**: Polling the status: rejected (001 FR-033, constitution VII). Showing
@@ -596,8 +628,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 - **Decision**:
   - The app's return addresses come from `config.appReturnUrls` on the overview and from
     `capabilities.appReturnUrls` in the setup flow (FR-027). Each is shown as wrapping text in a
-    `<code>` element, never as a link (FR-082), with a `CopyValue` action that announces success and
-    selects the text with an explanation when the clipboard is refused (FR-076).
+    `<code>` element, never as a link (FR-082), through UI 010's `CopyableValue.vue` (label, value
+    and copy button, with the polite "copied" announcement). When the clipboard is refused, the value
+    is selected for manual copying with an explanation (FR-076).
   - `return-addresses.ts` compares each address's `pathname` with
     `import.meta.env.BASE_URL + 'sso/return'` (`/ng/sso/return`). On a mismatch the section warns:
     "These return addresses do not lead to this app's sign-in return page. Single sign-on in this
@@ -650,17 +683,21 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     Defaults are omitted from the address (FR-054, conventions "Lists").
   - Cards below `md`, a table from `md` up (FR-055), sharing `TokenCounts.vue` ("No active tokens",
     or both counts as text). No secret field exists in the list types.
-  - **Bulk** (FR-065), through UI 002's `useBulkSelection` and `BulkResultSummary`:
+  - **Bulk** (FR-065), through UI 002's `useBulkSelection`, `BulkActionBar` and
+    `BulkResultSummary` (UI 002 D22):
     - an explicit "Select" mode; the selection covers the current page and resets through
       `useListState`'s `onReset`;
-    - the maximum selection is `capabilities.bulkLimit`, which is normally at least the page size;
+    - `useBulkSelection` takes `capabilities.bulkLimit`; once the selection reaches it, further
+      selection is disabled with a message that states the limit (`docs/conventions.md`, "Bulk
+      limit"), which cannot happen with page sizes up to 100 and the documented limit of 100;
     - the actions are "Revoke all tokens" and "Delete", never secret regeneration;
     - the confirmation lists each selected client ID with its token counts and the consequences of
       FR-063 or FR-064, and a deletion requires typing the number of clients (`requireTyped`);
-    - the request is `bulkOauth2ClientAction` with
-      `targets: [{ id: String(client.id), version: client.etag }]`;
+    - the request is `bulkOauth2ClientAction` with targets built by `toBulkTargets()` in
+      `oauth2/bulk.ts`: `{ id: String(client.id), version }`, where `version` is the list entry's
+      `etag` without its surrounding quotes, as `BulkTarget.version` requires;
     - the summary shows one row per `BulkItemResult`, and `failed`, `refused` and `outdated` items
-      stay selected;
+      stay selected; "Retry" sends exactly those, with the version tags of the refreshed list;
     - a network failure reports "outcome unknown" and is never retried;
     - afterwards `['oauth2-clients', 'list']` is invalidated.
   - The **information panel** (`Oauth2InfoPanel.vue`, FR-057) is a Reka `Collapsible`, collapsed
@@ -688,14 +725,16 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - duplicates are marked;
     - a counter shows how many characters remain of `capabilities.redirectUrisMaxLength` for the
       entries joined by single spaces.
-  - **Create** is its own page (constitution II). On `201` the `clientSecret` is removed from the
-    response before anything is written to the cache. Client ID and secret go only to the
-    credentials dialog. When the dialog closes, `router.replace` opens the detail page.
+  - **Create** is its own page (constitution II). Creation and secret regeneration **call the
+    generated client directly** (`docs/conventions.md`, "Secrets in requests or responses"): the
+    response's `clientSecret` goes straight into the credentials dialog's component state, and only
+    the representation without it is written to `['oauth2-clients','detail',id]`, so no TanStack
+    Query cache ever holds the secret. When the dialog closes, `router.replace` opens the detail
+    page.
   - **Credentials dialog** (`ClientCredentialsDialog.vue`) wraps UI 005's `OneTimeSecretDialog`. It
-    adds the client ID as a second copyable value, while the uncopied-close confirmation keys on the
-    secret only. Escape, Back and links while the dialog is open ask the same confirmation (FR-059).
-    The secret lives in the dialog's local state, and the create and regenerate mutations use
-    `gcTime: 0`.
+    adds the client ID as a second copyable value (`CopyableValue`), while the uncopied-close
+    confirmation keys on the secret only. Escape, Back and links while the dialog is open ask the
+    same confirmation (FR-059). The secret lives in the dialog's local state.
   - **Detail** (FR-060): the identifier, the client ID with copy, the scope, the token counts, and a
     "Redirect URIs" `EditableSection` that saves through `updateOauth2Client` (merge patch with
     `redirectUris` only, `If-Match`). Stored entries that break a rule are shown and marked with the
@@ -707,7 +746,8 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - **Revoke all tokens**: the `200` representation is written, so the counts show zero, and the
       outcome is announced.
     - **Delete**: `204`, the detail is removed from the cache, the list is invalidated, and
-      `router.replace` opens the list with an announcement.
+      `router.replace` opens the list; the announcement survives the navigation through
+      `useStatusMessage()` (UI 011).
   - **Outdated** (`412`, FR-066): redirect URI saves follow R13. For regeneration, revocation and
     deletion, the client is refetched and the confirmation opens again with the fresh values.
   - **`404`**: the not-found state with a link back to the list (edge case "deleted by another
@@ -736,11 +776,14 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
       `providerReturnedError`, `identityProviderUnavailable`, `noEmailAddress`, `mailboxNotLinked`,
       `autoCreationOff`, `noMatchingMapping`, `mailboxCreationFailed`, `passwordNotVerifiable` and
       `connectionTestFailed`.
-    The first contract bump past API 012 may already have added placeholders, because the
-    translation check requires every enumeration value (001 R27). This feature gives them their
-    final wording.
-  - **Detail renderers** (`src/features/audit-log/components/details/`) for the whitelisted
-    `details` keys of API 012's data model:
+    Until now these values fall back to the generic labels (UI 002 D2). This feature adds their
+    labels and appends the values to `src/i18n/coverage.json`.
+  - **Detail renderers** (`src/features/audit-log/components/details/`) for the `details` keys of
+    API 012's event types. At planning time they come from the whitelist in API 012's data model.
+    mailcow-rest-v2 documents detail keys per event type in `docs/audit-events.md` (API conventions
+    "Audit record details", its `docs/api-gaps.md` G3), and API 012's section appears there when
+    the feature is implemented. The renderers follow that section, and unknown keys are shown
+    verbatim. The keys:
     - `changes` with old and new values, and secrets as "changed" (`{ changed: true }`);
     - for tests: `type`, `testedAddress`, `outcome`, `failureCategory` and `providerStatus`;
     - for refused removals: `mailboxCounts`;
@@ -880,7 +923,7 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - `validation.secretRequiredReason.{noStoredSecret,typeChanged,addressChanged}`,
       `validation.notFoundResource.mailboxTemplate` and the `duplicate` and `conflictsWith`
       wording with a position or a field label.
-    `problem.*` gets entries for the six API 012 problem types if a bump has not added them yet.
+    `problem.*` gets entries for the six API 012 problem types.
   - **Parameter-driven messages**: `src/i18n/problems.ts` (001 R15) selects
     `validation.secretRequiredReason.<reason>` for `secretRequired` and
     `validation.notFoundResource.<resource>` for `notFound`, each falling back to the plain
@@ -898,8 +941,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     `success.iam_test_connection`, `danger.iam_test_connection`, `danger.authsource_in_use`,
     `admin.iam_sso`, six `admin.oauth2_*` labels, `edit.scope`, `user.attribute` and
     `mailbox.template`.
-  - **Not reused**: `admin.iam_description`, `admin.oauth2_info` and `admin.iam_auth_flow_info`
-    contain markup; `admin.iam_extra_permission` names the product and contains markup;
+  - **Not reused**: `admin.iam_description` and `admin.oauth2_info` contain markup and say something
+    else than the new texts (UI 002's `stripMarkup` option, D27, would only remove the markup);
+    `admin.iam_auth_flow_info` and `admin.iam_extra_permission` name the product;
     `admin.iam_host_info` described comma-separated hosts; `admin.iam_redirect_url` is now the
     classic interface's return URL; `admin.force_sso*` are not shown by this feature. Each is
     rewritten under a new key (FR-077).
@@ -909,15 +953,26 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     in `src/i18n/messages/sk-sk.json` under the same app keys. That is about 45 mapped keys, plus every
     new string. The `admin.oauth2_*`, `edit.*` and `mailbox.template` keys exist in Slovak and are
     imported.
-  - **Translation check** (`scripts/i18n/check.mjs`): its required enumerations gain
-    `IdentityProviderType`, `IdentityProviderSynchronisation.state`,
-    `IdentityProviderConnectionTestResult.outcome` and `.failureCategory`, and
-    `Oauth2ClientCapabilities.grantTypes`. They are read from the generated enumeration arrays where
-    `--enum-values` emits them, and otherwise from their schema paths in `contract/openapi.json`, so
-    that the lists are never written by hand.
+  - **Translation check** (UI 002 D2):
+    - The growing shared enumerations are covered through the manifest `src/i18n/coverage.json`.
+      Each story's message task appends the API 012 values it translates, where not listed yet:
+      - `problemTypes`: the six API 012 types;
+      - `ValidationRuleCode`: `secretRequired`, `duplicate`, `conflictsWith`, `immutable`;
+      - `AuditEventType`: the ten `identityProvider*` and `oauth2Client*` types;
+      - `AuditTarget.type`: `identityProvider`, `oauth2Client`;
+      - `AuditFailureReason`: the twelve reasons of R23;
+      - `AuthMethod`: `singleSignOn`, `directoryPassword`, `directoryPasswordAndSecondFactor`,
+        `providerPassword`, `providerPasswordAndSecondFactor`.
+    - The enumerations that this feature introduces into the UI are **fully required**, as UI 002
+      does for its own: `IdentityProviderType`, `IdentityProviderSynchronisation.state`,
+      `IdentityProviderConnectionTestResult.outcome` and `.failureCategory`, and the items of
+      `Oauth2ClientCapabilities.grantTypes`. Their values are read from the generated enumeration
+      arrays where `--enum-values` emits them, and otherwise from their schema paths in
+      `contract/openapi.json`, never from a hand-written list.
   - Provider names (Keycloak, LDAP, OpenID Connect) and technical values are never translated
     (FR-078). User-facing text says "the classic interface" (FR-079).
-- **Rationale**: These are 001 R15 and R27, applied to this feature's strings and enumerations.
+- **Rationale**: These are 001 R15 and R27, with UI 002's coverage manifest, applied to this
+  feature's strings and enumerations.
 - **Alternatives considered**: Leaving Slovak to fall back to English: forbidden by constitution IV.
 
 ### R27. Security, storage and performance
@@ -935,7 +990,10 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
   - **Provider contact**: the app never requests the provider. `connect-src 'self'` would block it
     anyway; navigation to `authorizationUrl` is a top-level `location.assign`, which the CSP does not
     restrict (FR-080).
-  - **Secret-bearing mutations** use `gcTime: 0` (R14, R22).
+  - **Secret-bearing requests** never go through TanStack Query: the identity provider save, change
+    and test (a typed secret in the body, R14), the OAuth2 creation and regeneration (a secret in the
+    response, R22), and the single sign-on completion and provider-error report (the provider's code
+    and state, R6) call the generated client directly; only secret-free results reach the cache.
   - **Image**: a `location = /ng/sso/return` block with `access_log off` serves `index.html` with the
     security headers. The CI image check requests `/ng/sso/return?code=x&state=y` and expects
     `index.html` (R5).

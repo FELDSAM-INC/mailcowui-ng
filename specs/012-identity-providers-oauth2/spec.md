@@ -110,7 +110,8 @@ English, Czech and Slovak."
   app shows one result per client; failed, refused and outdated clients stay selected for a retry,
   and a dropped connection is reported as "outcome unknown" and never retried automatically.
   Generating new secrets in bulk is not offered. The selection is cleared when the page, search,
-  filter, sort or page size changes, and it never exceeds the bulk limit that the API reports.
+  filter, sort or page size changes; once it reaches the bulk limit that the API reports, further
+  selection is disabled with a message that states the limit.
   (agent decision, aligned with `docs/conventions.md`: legacy offers the quick actions, and API 012
   FR-060 and FR-061 provide bulk deletion and bulk token revocation for up to 100 clients with one
   result per client; each new secret must be shown and copied individually, which a bulk run cannot
@@ -869,8 +870,9 @@ client page, apply the target, event type and outcome filters, and confirm the e
   operation:
   - one confirmation MUST list the selected clients with their token counts and the consequences of
     FR-063 or FR-064, and a bulk deletion MUST require the number of selected clients to be typed;
-  - the app MUST send the API's bulk operation with each client's version tag as listed, and the
-    selection MUST NOT exceed the bulk limit that the OAuth2 capabilities report;
+  - the app MUST send the API's bulk operation with each client's version tag as listed. Once the
+    selection reaches the bulk limit that the OAuth2 capabilities report, further selection MUST be
+    disabled with a message that states the limit (`docs/conventions.md`);
   - the app MUST show a summary with one result per client (done, not found, refused, outdated or
     failed), and failed, refused and outdated clients MUST stay selected so that they can be
     retried;

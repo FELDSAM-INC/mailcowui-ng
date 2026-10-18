@@ -70,7 +70,7 @@ that host automatically.
 | US2 | `sso-available` | Open `/ng/mailboxes` signed out, tap single sign-on, complete with the return address | Busy state, then the provider address; on return, "Completing sign-in", then `/ng/mailboxes` with no `code` or `state` in the address bar (US2-AS2, AS3, SC-011) |
 | US2 | `sso-available` | Return with `?error=access_denied&state=<state>` | "Cancelled or refused" without provider text; Try again starts a new sign-in (US2-AS5) |
 | US2 | `sso-refused`, `sso-provider-down`, `sso-disabled-after-start` | Complete a return | The generic failure, "service not reachable" and "not offered" (with the action gone) respectively (US2-AS6, AS7, FR-048) |
-| US2 | `sso-session-ends` | Signed in, apply `mockApi.patch({ endIdpSession: true })`, navigate | Sign-in screen explains that the single sign-on session ended; after signing in again, the same page (US2-AS8) |
+| US2 | `sso-session-ends` | Signed in, apply `mockApi.patch({ singleSignOn: { endIdpSession: true } })`, navigate | Sign-in screen explains that the single sign-on session ended; after signing in again, the same page (US2-AS8) |
 | US2 | `sso-signed-in` | Sign out | The confirmation adds the provider note (US2-AS9) |
 | US2 | `sso-force`, `sso-force-ldap` | Open `/ng/sign-in` | Passkey and single sign-on only; with LDAP, the normal screen (US2-AS10) |
 | US3 | `ldap-password`, `ldap-provider-down`, `keycloak-password-forced-2fa` | Sign in as `carl@example.org` | Home; "service not reachable" with the username kept and no countdown; the pending-actions screen (US3-AS1, AS2, AS4) |

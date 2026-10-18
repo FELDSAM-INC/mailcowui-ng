@@ -12,24 +12,33 @@ generation are unchanged from [UI 001](../../001-sign-in-app-shell/contracts/REA
 | API repository | `FELDSAM-INC/mailcow-rest-v2` |
 | API feature | 012: identity providers, single sign-on, OAuth2 clients; plus its additive changes to API 001 |
 | Contract version (`info.version`) | `0.1.0` (does not identify the contract, 001 R6) |
-| Minimum pinned commit | `a563357c9d1037bec3cdb548bfe33fe859abe138` (2026-10-18, "Record 011 analysis") |
+| Planning baseline (commit) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` |
-| Bundle sha256 at the minimum commit | `75ee9d1fcdbec547c8115d845a62aa6375530c502d40574f671cfd14b721fd82` |
-| Operations at the minimum commit | 376, of which 19 belong to API 012 |
+| Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
+| Operations at the baseline | 376, of which 19 belong to API 012; `KnownProblemType` is registered (UI 001 API gap 5 closed) |
+| Last change to the API 012 contract files | `5c6f4e9` ("Align feature 012 with capabilities, history and refusal conventions") |
+| Pin at implementation | the release tag (`contract-012` once mailcow-rest-v2 tags contract releases, its `docs/api-gaps.md` G5), or else the first commit, at which mailcow-rest-v2 feature 012 is implemented and its quickstart Part A passes (research R1) |
 
-**Rule for T001**: when work on UI 012 starts, `contract/VERSION.json` holds the pin of the last
-earlier UI feature.
+**Rule for T001** (UI 002 D1 policy):
 
-- If that commit is `a563357` or later and its bundle contains the 19 operations below with the
-  members this feature uses, **no bump is needed**.
-- Otherwise run `scripts/contract/bump.sh a563357c9d1037bec3cdb548bfe33fe859abe138`, or a later
-  commit, followed by `npm run typecheck`, `npm run test:unit` and `npm run test:e2e`.
-- Never pin a commit older than the current one.
-- Record the commit and sha256 actually used in this table.
+1. Confirm the prerequisite: API 012's `tasks.md` is complete and its quickstart Part A passes.
+2. Diff the API 012 contract files between the baseline and the new ref:
 
-At the minimum commit, `KnownProblemType` is still missing from the bundle (UI 001 plan, API
-gap 5). The fix exists only uncommitted in the API working tree. The translation check derives the
-problem types from the bundle text, as in UI 001.
+   ```bash
+   git -C ../mailcow-rest-v2 diff --stat 32079252d55797d3da4e58ae661e9fb91c51c6f9 <tag-or-commit> -- \
+     api/modules/identity-provider api/modules/oauth2-clients api/modules/single-sign-on \
+     'api/components/schemas/IdentityProvider*' 'api/components/schemas/SingleSignOn*' \
+     'api/components/schemas/Oauth2*' 'api/components/responses/IdentityProvider*' \
+     'api/components/responses/SingleSignOn*' 'api/components/responses/Oauth2*' \
+     api/components/schemas/PublicConfig.yaml api/components/schemas/LoginPageOptions.yaml \
+     api/components/schemas/AuthMethod.yaml api/components/schemas/IdentityAuthentication.yaml \
+     api/components/responses/Unauthorized.yaml
+   ```
+
+   Any difference is reviewed against this plan before implementation continues.
+3. Run `scripts/contract/bump.sh <tag-or-commit>`, then `npm run typecheck`, `npm run test:unit`
+   and `npm run test:e2e`. Never pin a commit older than the one in `contract/VERSION.json`.
+4. Record the ref, commit and bundle sha256 in the "Pin at implementation" row.
 
 ## Operations used by this feature
 
@@ -69,10 +78,10 @@ problem types from the bundle text, as in UI 001.
 | `listAuditEvents` | 001, 002 | `targetType` `identityProvider` and `oauth2Client`, `targetId`, `actor` and `eventType` for History and the sign-in link | FR-067 |
 | `listMailboxTemplates` | 003 | template choices for the mapping and the default template | FR-029, FR-031 |
 
-`listMailboxes` (003) is not called. The app only links to UI 003's mailbox list filtered by
-`authSource`.
+`listMailboxes` (003) is not called. The app only links to UI 003's mailbox list, whose list
+parameter `source` maps to `authSource`.
 
-### Members this feature relies on (checked by T001 when the pin moves)
+### Members this feature relies on (checked by T001's diff when the pin moves)
 
 - `IdentityProviderCommon`: `complete`, `missingSettings`, `mailboxCounts`
   (`keycloak`, `genericOidc`, `ldap`), `defaultTemplateExists`, `modifiedAt` and `etag`.
@@ -121,3 +130,11 @@ Messages come from `problem.<name>` and `validation.<code>`, never from `title` 
 
 `BulkResult` items with `refused`, `outdated` or `failed` carry a `problem`. The summary shows its
 translated message per client.
+
+## Audit record details
+
+The audit log renders the `details` keys of API 012's event types (research R23). At planning time
+they come from the whitelist in API 012's data model. mailcow-rest-v2 now documents detail keys per
+event type in `docs/audit-events.md` (its `docs/api-gaps.md` G3), and API 012's section is added
+there when the feature is implemented. T092 renders exactly the keys documented there and shows
+unknown keys verbatim (API conventions, "Audit record details").

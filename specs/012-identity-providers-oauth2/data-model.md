@@ -37,10 +37,10 @@ These are generated root types, re-exported from `src/api/index.ts`.
 | `PublicConfig` (`externalIdentityProvider.singleSignOnAvailable`, `loginPage.forceSingleSignOn`) | `getPublicConfig` | sign-in composition | R7 |
 | `Oauth2ClientCapabilities` | `getOauth2ClientsCapabilities` | info panel, bulk limit, redirect URI limit | — |
 | `Oauth2Client`, `ListMeta` | `listOauth2Clients`, `getOauth2Client`, `updateOauth2Client`, `revokeOauth2ClientTokens` | list, detail | `etag` per client; never a secret |
-| `Oauth2ClientWithSecret` | `createOauth2Client`, `regenerateOauth2ClientSecret` | credentials dialog only | `clientSecret` stripped before any cache write |
+| `Oauth2ClientWithSecret` | `createOauth2Client`, `regenerateOauth2ClientSecret` | credentials dialog only | called on the client directly; `clientSecret` goes to the dialog's state and is never cached |
 | `Oauth2ClientCreateRequest`, `Oauth2ClientPatch` | create, update | forms | — |
-| `Oauth2ClientBulkActionRequest`, `Oauth2ClientBulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `bulkOauth2ClientAction` | bulk | `targets[].version` = list `etag` |
-| `MailboxTemplate` (API 003) | `listMailboxTemplates` | template choice | loaded in full (R10) |
+| `Oauth2ClientBulkActionRequest`, `Oauth2ClientBulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `bulkOauth2ClientAction` | bulk | `targets[].version` = the list entry's `etag` without its quotes (`toBulkTargets()`) |
+| `MailboxTemplate` (API 003) | `listMailboxTemplates` through UI 003's "all templates" query | template choice | `limit=1000&sort=name` (R10) |
 | `AuditEvent`, `AuditEventType`, `AuditTarget`, `AuditFailureReason`, `AuthMethod` | `listAuditEvents` (UI 001/002) | audit labels and details | API 012 values (R23) |
 
 `cancelSingleSignOn` has no body or response data. `deleteIdentityProvider` and
@@ -126,7 +126,8 @@ From `mailboxCounts` (`keycloak`, `genericOidc`, `ldap`):
 - `blocked(T)` = the counts of the sources other than `T` add up to more than 0.
 - `changeableTypes` = the types other than the configured type that are not blocked.
 - `canChangeType` = `changeableTypes` is not empty.
-- `links` = one per source with a count above 0: `{ source, count, to: { name: 'mailboxes', query: { authSource: source } } }`.
+- `links` = one per source with a count above 0: `{ source, count, to: { name: 'mailboxes', query: { source } } }`.
+  UI 003's mailbox list parameter `source` maps to the API's `authSource` filter.
 
 ### Synchronisation view (`provider/sync-status.ts`, FR-020)
 
@@ -146,7 +147,8 @@ Interval wording `formatInterval(minutes, locale)`:
 Each unit is formatted with `Intl.NumberFormat` (`style: 'unit'`, `unitDisplay: 'long'`).
 
 Job-log task per type: `keycloak` → `Keycloak Sync`, `ldap` → `LDAP Sync` (the API 012 data model's
-`CRON_LOG` task values).
+`CRON_LOG` task values). The link is `{ name: 'operations-log', params: { logType: 'cron' }, query:
+{ task } }` (UI 011), shown only when that route exists and `canAccess('logs')` holds.
 
 ### Return-path check (`provider/return-addresses.ts`, FR-027)
 
@@ -199,25 +201,30 @@ returns `remaining` for the counter.
 |---|---|---|---|---|
 | `['identity-provider','capabilities']` | `getIdentityProviderCapabilities` | 5 min | overview, setup | — |
 | `['identity-provider','configuration']` | `getIdentityProvider` | 30 s | overview; setup in type-change mode | `null` for `identity-provider-not-configured` |
-| `['mailbox-templates','list',{ limit: 1000, offset, sort: 'name' }]` (UI 003's root) | `listMailboxTemplates` | 30 s | when a mapping field or the default template choice mounts | all pages until `meta.total` |
+| `['mailbox-templates','all']` (UI 003) | `listMailboxTemplates` (`limit=1000&sort=name`) | 30 s | when a mapping field or the default template choice mounts | UI 003's query, reached through `@/features/mailboxes` |
 | `['oauth2-clients','capabilities']` | `getOauth2ClientsCapabilities` | 5 min | OAuth2 list, create, detail | — |
 | `['oauth2-clients','list',Oauth2ClientListParams]` | `listOauth2Clients` | 30 s | OAuth2 list | params from the address (§5); `Oauth2ClientListParams` aliases the generated query type |
 | `['oauth2-clients','detail',oauth2ClientId]` | `getOauth2Client` | 30 s | client page | — |
 
 ### Invalidation after mutations
 
+Requests marked "direct" carry a secret, a provider code or a provider state in the body or the
+response. Following `docs/conventions.md` ("Secrets in requests or responses"), they call the
+generated client directly instead of `useMutation`, and only their secret-free result is written to
+the cache.
+
 | Mutation | On success | On 412 | Other |
 |---|---|---|---|
-| `saveIdentityProvider` (PUT) | write `configuration`; invalidate `capabilities` and `['public-config']` | type-change mode: refetch `configuration`, keep the entries, ask to save again | `409`: refetch `configuration`; `gcTime: 0` |
-| `updateIdentityProvider` (PATCH) | write `configuration`; invalidate `['public-config']` when `complete` changed | refetch, field diff (R13) | `404`: set `configuration` to `null`; `gcTime: 0` |
+| `saveIdentityProvider` (PUT), direct | write `configuration`; invalidate `capabilities` and `['public-config']` | type-change mode: refetch `configuration`, keep the entries, ask to save again | `409`: refetch `configuration` |
+| `updateIdentityProvider` (PATCH), direct | write `configuration`; invalidate `['public-config']` when `complete` changed | refetch, field diff (R13) | `404`: set `configuration` to `null` |
 | `deleteIdentityProvider` | set `configuration` to `null`; invalidate `capabilities` and `['public-config']` | refetch; confirm again | `409`: refetch `configuration` |
-| `testIdentityProviderConnection` | none (result in component state) | — | `gcTime: 0` |
+| `testIdentityProviderConnection`, direct | none (result in component state) | — | — |
 | `startSingleSignOn` | none (navigates away) | — | `409`: invalidate `['public-config']` |
-| `completeSingleSignOn` | write `['session']`, fetch `['identity']`, broadcast `session-changed` (as 001 sign-ins) | — | `409`: invalidate `['public-config']` |
-| `reportSingleSignOnProviderError`, `cancelSingleSignOn` | none | — | — |
-| `createOauth2Client` | write `detail` without `clientSecret`; invalidate `['oauth2-clients','list']` | — | `gcTime: 0` |
+| `completeSingleSignOn`, direct | write `['session']`, fetch `['identity']`, broadcast `session-changed` (as 001 sign-ins) | — | `409`: invalidate `['public-config']` |
+| `reportSingleSignOnProviderError` (direct), `cancelSingleSignOn` | none | — | — |
+| `createOauth2Client`, direct | write `detail` without `clientSecret`; invalidate `['oauth2-clients','list']` | — | the secret goes to the dialog's state only |
 | `updateOauth2Client` | write `detail`; invalidate the list | keep the input, refetch, field diff | `404`: not-found state |
-| `regenerateOauth2ClientSecret` | write `detail` without `clientSecret` | refetch; confirm again | `gcTime: 0` |
+| `regenerateOauth2ClientSecret`, direct | write `detail` without `clientSecret` | refetch; confirm again | the secret goes to the dialog's state only |
 | `revokeOauth2ClientTokens` | write `detail`; invalidate the list | refetch; confirm again | — |
 | `deleteOauth2Client` | remove `detail`; invalidate the list | refetch; confirm again | — |
 | `bulkOauth2ClientAction` | invalidate the list; remove `detail` of `done` deletions | per-item `outdated` | network failure: "outcome unknown", no retry |
@@ -258,16 +265,16 @@ The base is `/ng/`. These routes are added to UI 001's map.
 | `oauth2-client-create` | `/identity-providers/oauth2-apps/new` | shell | `active`, nav `identityProviders` | `oauth2.create.title` | `features/identity-providers/oauth2/pages/Oauth2ClientCreatePage.vue` |
 | `oauth2-client-detail` | `/identity-providers/oauth2-apps/:oauth2ClientId(\d{1,10})` | shell | `active`, nav `identityProviders` | `oauth2.detail.title` | `features/identity-providers/oauth2/pages/Oauth2ClientDetailPage.vue` |
 
-- The catalogue entry `identityProviders` changes from `placeholder` to `available` in the story that
-  registers `identity-provider` (US1). The OAuth2 routes arrive in US5, and the sub-navigation shows
-  their link only once they are registered (R3).
+- The catalogue entry `identityProviders` changes from `placeholder` to `available`, and gains UI
+  011's `group: 'system'`, in the story that registers `identity-provider` (US1). The OAuth2 routes
+  arrive in US5, and the sub-navigation shows their link only once they are registered (R3).
 - UI 014's mapping M24 (`/edit/oauth2client/{id}`) targets `oauth2-client-detail`.
 - Outgoing links to other features' routes, each resolved by route name and rendered only when that
   route exists:
-  - `mailboxes` with `?authSource=<type>` (UI 003);
-  - the mailbox templates list (UI 003);
-  - the mailbox detail (UI 003);
-  - the Cron log with `task` (UI 011);
+  - `mailboxes` with `?source=<type>` (UI 003);
+  - `mailbox-templates` (UI 003);
+  - `mailbox-detail` with the address (UI 003);
+  - `operations-log` with `logType: 'cron'` and `?task=<name>` (UI 011);
   - `audit-log` with `targetType`, `targetId`, `actor` and `event` (UI 001/002).
 
 ### Address parameters
@@ -307,7 +314,7 @@ against `contract/openapi.json`.
 | `version` | required; `^[0-9]+(\.[0-9]+){0,3}$`; ≤ 64 | Contract | `validation.format.keycloakVersion` |
 | OIDC endpoints (3) | required; absolute `http(s)` URL; ≤ `urlMaxLength` | Cap. | as `serverUrl` |
 | `scopes` | 1 to `scopesMaxEntries` names separated by single spaces; no `"`, `\` or other whitespace | Cap. | `validation.format.scopeList` |
-| LDAP `hosts` | 1 to `ldapHostsMaxEntries` entries; each `isHostName()` and ≤ 253 | Cap., Contract | `validation.tooMany`, `validation.format.hostName` |
+| LDAP `hosts` | 1 to `ldapHostsMaxEntries` entries; each `isLdapHost()` and ≤ 253 | Cap., Contract | `validation.tooMany`, `validation.format.hostName` |
 | `port` | integer 1–65,535 | Contract | `validation.outOfRange` |
 | `baseDn`, `bindDn` | 1 to `distinguishedNameMaxLength` characters | Cap. | `validation.required`, `validation.tooLong` |
 | `usernameField` | `^[A-Za-z][A-Za-z0-9-]*$`; ≤ 255 | Contract | `validation.format.ldapAttribute` |
@@ -355,7 +362,7 @@ type ──Next (valid)──► connection ──Next──► return-addresses
   │                                                                                   ▼
   │                                    201/200 → overview (announce) ; 409 → in-use message
   │                                    412 (change mode) → reload tag, keep entries ; 422 → errors per step
-  └── leave with entries → confirm (useUnsavedChangesGuard) ; unmount → state and secret discarded
+  └── leave with entries → confirm (useLeaveGuard) ; unmount → state and secret discarded
   * Keycloak and generic OIDC only
 ```
 
@@ -400,10 +407,11 @@ the close confirmation.
 ### OAuth2 bulk action
 
 ```text
-list ──Select──► selecting (current page, ≤ bulkLimit) ──page/filter/sort/size change──► selection cleared
+list ──Select──► selecting (current page; at bulkLimit further selection is disabled, limit stated) ──page/filter/sort/size change──► cleared
 selecting ──Revoke/Delete──► confirm (list + counts; delete: type the number)
-   ──confirm──► POST bulk-actions { action, targets[{ id, version }] }
-        ──200──► summary per item; failed/refused/outdated stay selected; list invalidated
+   ──confirm──► POST bulk-actions { action, targets[{ id, version (etag without quotes) }] }
+        ──200──► summary per item; failed/refused/outdated stay selected; list invalidated; Retry sends exactly
+                 those with the refreshed list's version tags
         ──network──► "outcome unknown"; nothing retried; list invalidated
 ```
 

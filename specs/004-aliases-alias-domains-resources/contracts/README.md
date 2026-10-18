@@ -133,3 +133,27 @@ The plan's "API dependency and gaps" section has the details and the interim beh
 - **G3**: the members of 004 audit `details` are not documented. mailcow-rest-v2 already tracks this
   as `docs/api-gaps.md` G3, fixed per feature in `docs/audit-events.md`.
 - **G4**: `reason` versus `kind` for `localDomain`.
+
+## Pin record
+
+Set by T001 (2026-10-19) with `scripts/contract/bump.sh 33f1eea0fd0278ba61d9adae9398797d89df6857`.
+
+| Field | Value |
+|---|---|
+| Ref | `33f1eea0fd0278ba61d9adae9398797d89df6857` (mailcow-rest-v2 `main`, after `fc79902` "Record the final gates of feature 012", which contains the complete API 004 implementation) |
+| Commit | `33f1eea0fd0278ba61d9adae9398797d89df6857` |
+| Bundle sha256 | `c4dfc9f94acf3310c7802d51f38a8f508589a2a6f6dc267c97bdea9572e7c43f` |
+| Operations in the bundle | 379, including all 23 of feature 004 |
+
+**Review of the feature 004 files** (`git diff 3207925..33f1eea`): every change closes a gap this
+plan reported, so the plan needs no other change.
+
+- **G1 closed**: `MailboxSenderPermission.kind` (nullable for stale entries) and
+  `MailboxSenderPermissionCandidate.kind`, values of the new `MailboxSenderPermissionKind`
+  (`domain`, `aliasDomain`, `alias`, `mailbox`, `anyAddress`). Entries are labelled by `kind`.
+- **G2 closed**: `Alias.destinationsUnicode`, `AliasCopyOutcome.addressUnicode` and
+  `MailboxSenderSettings.externalSenderAddressesUnicode`. The readable forms are shown.
+- **G4 closed**: `MailboxSenderSettingsPatch` now says `kind: localDomain`.
+- `BulkTarget.version` accepts the `etag` with or without its quotes; the app keeps sending it
+  without them (research R16).
+- `BulkResultResponse` documents an optional `Audit-Recorded` header (feature 011); not used here.

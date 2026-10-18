@@ -6197,7 +6197,7 @@
           "Identity provider"
         ],
         "summary": "Save the whole identity provider configuration",
-        "description": "Creates the configuration (`201`) or replaces the stored one (`200`) with a whole configuration\nof the given type. Settings not sent take their defaults. The configuration is stored with\nlegacy's setting names and encodings, so the legacy UI, the mail clients' sign-in check and the\nnext synchronisation run use it at once, without a restart. After the save, only the settings\nof the saved type are stored: settings of a previous type are removed. The cached Keycloak\nservice token is cleared. No mailbox changes.\n\n- **Secrets** are write-only. The client secret or bind password must be sent when no\n  configuration of the type is stored. Otherwise an omitted secret keeps the stored one, unless\n  the address that receives it changes (Keycloak `serverUrl`, generic OIDC `tokenEndpoint`,\n  LDAP `hosts`): then it must be sent again (rule code `secretRequired`) and nothing changes.\n- **Type change**: refused with `identity-provider-in-use` while any mailbox authenticates\n  against an external source other than the new type.\n- **Mapping**: every mapped template and the default template must exist (rule code\n  `notFound`); attribute values must be unique (rule code `duplicate`).\n- Send the version tag you read in `If-Match`; the legacy UI edits the same settings.\n\nAdministrators only, with a session or a read-write key. Audited, with every changed setting\nand secrets only as \"changed\".\n",
+        "description": "Creates the configuration (`201`) or replaces the stored one (`200`) with a whole configuration\nof the given type. Settings not sent take their defaults. The configuration is stored with\nlegacy's setting names and encodings, so the legacy UI, the mail clients' sign-in check and the\nnext synchronisation run use it at once, without a restart. After the save, only the settings\nof the saved type are stored: settings of a previous type are removed. The cached Keycloak\nservice token is cleared. No mailbox changes.\n\n- **Secrets** are write-only. The client secret or bind password must be sent when no\n  configuration of the type is stored. Otherwise an omitted secret keeps the stored one, unless\n  the address that receives it changes (Keycloak `serverUrl`, generic OIDC `tokenEndpoint`,\n  LDAP `hosts`): then it must be sent again (rule code `secretRequired`) and nothing changes.\n- **Type change**: refused with `identity-provider-in-use` while any mailbox authenticates\n  against an external source other than the new type.\n- **Mapping**: every mapped template and the default template must exist (rule code\n  `notFound`); attribute values must be unique (rule code `duplicate`).\n- Send the version tag you read in `If-Match`; the legacy UI edits the same settings. For a\n  first setup, send `If-None-Match: *` so that the save only creates.\n\nAdministrators only, with a session or a read-write key. Audited, with every changed setting\nand secrets only as \"changed\".\n",
         "security": [
           {
             "sessionCookie": [],
@@ -6210,6 +6210,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/IfMatch"
+          },
+          {
+            "$ref": "#/components/parameters/IdentityProviderIfNoneMatch"
           }
         ],
         "requestBody": {
@@ -6678,8 +6681,8 @@
         "tags": [
           "OAuth2 clients"
         ],
-        "summary": "Delete or revoke the tokens of several OAuth2 clients",
-        "description": "Applies `delete` or `revokeTokens` to up to 100 clients, as the legacy mass actions of the\n\"OAuth2 Apps\" table do. The whole request is refused only when the caller may never use the\naction (role or key scope). Otherwise each distinct client is processed, checked and audited on\nits own, as the single request for it would be, and gets one result: `done`, `notFound`,\n`refused`, `outdated` (its `version` no longer matches) or `failed`. One failure does not stop\nthe others. A client named twice is processed once. Every audit record carries the bulk\nrequest's identifier. Secret regeneration has no bulk form, because each new secret must be\nshown and copied individually.\n\nAdministrators only, with a session or a read-write key.\n",
+        "summary": "Delete, revoke the tokens of or renew the secrets of several OAuth2 clients",
+        "description": "Applies `delete`, `revokeTokens` or `renewSecret` to up to 100 clients, as the legacy mass\nactions of the \"OAuth2 Apps\" table do. The whole request is refused only when the caller may never use the\naction (role or key scope). Otherwise each distinct client is processed, checked and audited on\nits own, as the single request for it would be, and gets one result: `done`, `notFound`,\n`refused`, `outdated` (its `version` no longer matches) or `failed`. One failure does not stop\nthe others. A client named twice is processed once. Every audit record carries the bulk\nrequest's identifier. `renewSecret` returns each new secret once, in the item's result\n(`clientSecret`); it is never shown again, so copy it from this response (API gap G42).\n\nAdministrators only, with a session or a read-write key.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -6701,7 +6704,7 @@
         },
         "responses": {
           "200": {
-            "$ref": "#/components/responses/BulkResultResponse"
+            "$ref": "#/components/responses/Oauth2ClientBulkResultResponse"
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
@@ -6873,7 +6876,7 @@
           "OAuth2 clients"
         ],
         "summary": "Generate a new client secret",
-        "description": "Replaces the secret with a new one of 24 lowercase hexadecimal characters, returned only in this\nresponse. Existing access tokens, refresh tokens and authorization codes are kept, but renewing\na token or exchanging a code with the old secret fails, as legacy documents. Administrators\nonly, with a session or a read-write key. Audited without the secret. No bulk form exists.\n",
+        "description": "Replaces the secret with a new one of 24 lowercase hexadecimal characters, returned only in this\nresponse. Existing access tokens, refresh tokens and authorization codes are kept, but renewing\na token or exchanging a code with the old secret fails, as legacy documents. Administrators\nonly, with a session or a read-write key. Audited without the secret. The bulk action\n`renewSecret` regenerates the secrets of several clients (API gap G42).\n",
         "security": [
           {
             "sessionCookie": [],
@@ -10805,7 +10808,7 @@
           "Relayhosts"
         ],
         "summary": "List relayhost choices",
-        "description": "Lists every relayhost with only its identifier, host and active state, for the relayhost\nselectors of the domain and mailbox screens. Administrators, and domain administrators who hold\nthe `domainRelayhost` or the `mailboxRelayhost` permission flag (otherwise\n`403 permission-flag-required`). Read-only keys may use it. `q` searches the host.\n",
+        "description": "Lists every relayhost with only its identifier, host, username and active state, for the\nrelayhost selectors of the domain and mailbox screens, which legacy labels\n`ID n: host (username)`. Administrators, and domain administrators who hold the\n`domainRelayhost` or the `mailboxRelayhost` permission flag (otherwise\n`403 permission-flag-required`). Passwords, password states and usage are never included.\nRead-only keys may use it. `q` searches the host.\n",
         "security": [
           {
             "sessionCookie": []
@@ -11417,7 +11420,7 @@
             "name": "nextHop",
             "in": "query",
             "required": false,
-            "description": "Only transports with exactly this next hop, compared without regard to letter case: the\ntransports that share one set of credentials.\n",
+            "description": "Only transports with exactly this next hop, compared without regard to letter case: the\ntransports that share one set of credentials. The value is normalised like a stored next\nhop (a bare IP address is put in brackets, a Unicode host name converted to ASCII).\n",
             "schema": {
               "type": "string",
               "maxLength": 255
@@ -31801,7 +31804,7 @@
       },
       "Oauth2ClientBulkActionRequest": {
         "type": "object",
-        "description": "A bulk action on up to 100 OAuth2 clients (rule code `tooMany` beyond). Each client is processed\nas a single request for it would be: `delete` as `DELETE /oauth2-clients/{oauth2ClientId}`,\n`revokeTokens` as `POST /oauth2-clients/{oauth2ClientId}/token-revocation`. Secret regeneration\nhas no bulk form.\n",
+        "description": "A bulk action on up to 100 OAuth2 clients (rule code `tooMany` beyond). Each client is processed\nas a single request for it would be: `delete` as `DELETE /oauth2-clients/{oauth2ClientId}`,\n`revokeTokens` as `POST /oauth2-clients/{oauth2ClientId}/token-revocation`, `renewSecret` as\n`POST /oauth2-clients/{oauth2ClientId}/secret-regeneration`, whose new secret is returned once in\nthe item's result (API gap G42, legacy's \"renew secret\" of the selected clients).\n",
         "required": [
           "action",
           "targets"
@@ -31811,7 +31814,8 @@
             "type": "string",
             "enum": [
               "delete",
-              "revokeTokens"
+              "revokeTokens",
+              "renewSecret"
             ]
           },
           "targets": {
@@ -31821,6 +31825,100 @@
             "items": {
               "$ref": "#/components/schemas/Oauth2ClientBulkTarget"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Oauth2ClientBulkItemResult": {
+        "type": "object",
+        "description": "Outcome of one client of an OAuth2 client bulk action. It has the members of `BulkItemResult`\nplus `clientSecret`, the new secret of a `done` `renewSecret` item: shown only in this response,\nnever again.\n",
+        "required": [
+          "id",
+          "outcome"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier of the target, as sent."
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/BulkItemOutcome"
+          },
+          "version": {
+            "type": "string",
+            "description": "The client's new version tag after a `done` outcome, if the client still exists."
+          },
+          "clientSecret": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{24}$",
+            "description": "The new secret (24 lowercase hexadecimal characters) of a `done` `renewSecret` item."
+          },
+          "problem": {
+            "$ref": "#/components/schemas/Problem",
+            "description": "Present for `refused`, `outdated` and `failed`. Explains the item's outcome."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Oauth2ClientBulkResult": {
+        "type": "object",
+        "description": "Result of an OAuth2 client bulk action: the shape of `BulkResult`, whose `done` `renewSecret`\nresults also carry the new secret. Every audit record of the request carries `bulkRequestId`.\n",
+        "required": [
+          "bulkRequestId",
+          "results",
+          "summary"
+        ],
+        "properties": {
+          "bulkRequestId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "description": "Identifier of the bulk request (its request ID)."
+          },
+          "results": {
+            "type": "array",
+            "description": "One result per distinct client, in request order.",
+            "items": {
+              "$ref": "#/components/schemas/Oauth2ClientBulkItemResult"
+            }
+          },
+          "summary": {
+            "type": "object",
+            "description": "Number of targets per outcome.",
+            "required": [
+              "total",
+              "done",
+              "notFound",
+              "refused",
+              "outdated",
+              "failed"
+            ],
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "done": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "notFound": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "refused": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "outdated": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -35272,10 +35370,11 @@
       },
       "RelayhostChoice": {
         "type": "object",
-        "description": "A relayhost reduced to what a selector needs. Domain administrators see no usernames, password\nstates or usage.\n",
+        "description": "A relayhost reduced to what a selector needs: its identifier, host, username and active state, as\nthe relayhost selectors of the legacy domain and mailbox edit pages show them\n(`ID n: host (username)`). Never the password, whether one is set, or the usage.\n",
         "required": [
           "id",
           "host",
+          "username",
           "active"
         ],
         "properties": {
@@ -35285,6 +35384,17 @@
           },
           "host": {
             "type": "string"
+          },
+          "username": {
+            "description": "SMTP username, or `null` when the relayhost sends without logging in.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "active": {
             "type": "boolean"
@@ -35348,7 +35458,7 @@
       },
       "RelayhostPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a relayhost. Omitted members stay unchanged. An omitted `password` is kept;\n`\"\"` removes it. Setting `username` to `\"\"` without a password also removes the password. A\npassword together with an empty resulting username is refused. `id` and `usage` are read-only:\nthey are accepted with their current value and refused (`readOnly`) otherwise, so that a client\ncan send back the representation it read.\n",
+        "description": "JSON Merge Patch of a relayhost. Omitted members stay unchanged. An omitted `password` is kept;\n`\"\"` removes it. Setting `username` to `\"\"` without a password also removes the password. A\npassword together with an empty resulting username is refused. `id`, `usage`, `passwordSet` and\n`etag` are read-only: they are accepted with their current value and refused (`immutable`)\notherwise, so that a client can send back the representation it read. Any other member is\nrefused (`immutable`).\n",
         "minProperties": 1,
         "properties": {
           "host": {
@@ -35376,6 +35486,14 @@
           },
           "usage": {
             "type": "object",
+            "description": "Read-only."
+          },
+          "passwordSet": {
+            "type": "boolean",
+            "description": "Read-only."
+          },
+          "etag": {
+            "type": "string",
             "description": "Read-only."
           }
         }
@@ -36036,7 +36154,7 @@
       },
       "TransportPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a transport, validated as at creation with the transport itself excluded from\nthe uniqueness and interference checks. Credentials belong to the next hop:\n- sending `username` or `password` applies the resulting credentials to every transport with the\n  resulting next hop;\n- moving the transport to a next hop used by other transports without sending credentials makes\n  it adopt their credentials; moved to an unused next hop, it keeps its own.\n\nAn omitted `password` is kept, `\"\"` removes it, and an empty `username` without a password also\nremoves the password. `id` and `nextHopSharedWith` are read-only (accepted with their current\nvalue only). The response's `meta.affectedTransports` names the other transports whose\ncredentials changed.\n",
+        "description": "JSON Merge Patch of a transport, validated as at creation with the transport itself excluded from\nthe uniqueness and interference checks. Credentials belong to the next hop:\n- sending `username` or `password` applies the resulting credentials to every transport with the\n  resulting next hop;\n- moving the transport to a next hop used by other transports without sending credentials makes\n  it adopt their credentials; moved to an unused next hop, it keeps its own.\n\nAn omitted `password` is kept, `\"\"` removes it, and an empty `username` without a password also\nremoves the password. `id`, `nextHopSharedWith`, `passwordSet` and `etag` are read-only\n(accepted with their current value only, refused with `immutable` otherwise); any other member is\nrefused (`immutable`). The response's `meta.affectedTransports` names the other transports whose\ncredentials changed.\n",
         "minProperties": 1,
         "properties": {
           "destination": {
@@ -36071,6 +36189,14 @@
           },
           "nextHopSharedWith": {
             "type": "integer",
+            "description": "Read-only."
+          },
+          "passwordSet": {
+            "type": "boolean",
+            "description": "Read-only."
+          },
+          "etag": {
+            "type": "string",
             "description": "Read-only."
           }
         }
@@ -36256,7 +36382,7 @@
       },
       "BccMapPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a BCC map. `type`, `bccDestination` and `active` can change; a type change\nthat would duplicate another map of the same local destination is refused. `id`,\n`localDestination` and `domain` are read-only: accepted with their current value, refused\n(`immutable`) otherwise.\n",
+        "description": "JSON Merge Patch of a BCC map. `type`, `bccDestination` and `active` can change; a type change\nthat would duplicate another map of the same local destination is refused. `id`,\n`localDestination`, `domain`, `orphaned`, `createdAt`, `modifiedAt` and `etag` are read-only:\naccepted with their current value, refused (`immutable`) otherwise, so that a client can send\nback the representation it read. Any other member is refused (`immutable`).\n",
         "minProperties": 1,
         "properties": {
           "type": {
@@ -36279,6 +36405,29 @@
             "description": "Read-only."
           },
           "domain": {
+            "type": "string",
+            "description": "Read-only."
+          },
+          "orphaned": {
+            "type": "boolean",
+            "description": "Read-only."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Read-only."
+          },
+          "modifiedAt": {
+            "description": "Read-only.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "etag": {
             "type": "string",
             "description": "Read-only."
           }
@@ -36391,7 +36540,7 @@
       },
       "RecipientMapPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a recipient map, with the rules of creation (also normalised on edit, unlike\nlegacy). `id` is read-only.\n",
+        "description": "JSON Merge Patch of a recipient map, with the rules of creation (also normalised on edit, unlike\nlegacy). `id`, `createdAt`, `modifiedAt` and `etag` are read-only: accepted with their current\nvalue, refused (`immutable`) otherwise. Any other member is refused (`immutable`).\n",
         "minProperties": 1,
         "properties": {
           "originalDestination": {
@@ -36409,6 +36558,25 @@
           },
           "id": {
             "type": "integer",
+            "description": "Read-only."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Read-only."
+          },
+          "modifiedAt": {
+            "description": "Read-only.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "etag": {
+            "type": "string",
             "description": "Read-only."
           }
         }
@@ -36543,7 +36711,7 @@
       },
       "TlsPolicyMapPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a TLS policy map, with the rules of creation. `id` is read-only.",
+        "description": "JSON Merge Patch of a TLS policy map, with the rules of creation. `id`, `createdAt`, `modifiedAt`\nand `etag` are read-only: accepted with their current value, refused (`immutable`) otherwise. Any\nother member is refused (`immutable`).\n",
         "minProperties": 1,
         "properties": {
           "destination": {
@@ -36563,6 +36731,25 @@
           },
           "id": {
             "type": "integer",
+            "description": "Read-only."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Read-only."
+          },
+          "modifiedAt": {
+            "description": "Read-only.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "etag": {
+            "type": "string",
             "description": "Read-only."
           }
         }
@@ -36689,7 +36876,7 @@
       },
       "ForwardingHostPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a forwarding host. Only `spamFilter` can change. `address` and `source` are\nread-only: accepted with their current value, refused (`immutable`) otherwise.\n",
+        "description": "JSON Merge Patch of a forwarding host. Only `spamFilter` can change. `address`, `source` and\n`etag` are read-only: accepted with their current value, refused (`immutable`) otherwise. Any\nother member is refused (`immutable`).\n",
         "minProperties": 1,
         "properties": {
           "spamFilter": {
@@ -36700,6 +36887,10 @@
             "description": "Read-only."
           },
           "source": {
+            "type": "string",
+            "description": "Read-only."
+          },
+          "etag": {
             "type": "string",
             "description": "Read-only."
           }
@@ -36830,7 +37021,10 @@
                       "transportDestination",
                       "recipientMapDestination",
                       "tlsPolicyDestination",
-                      "tlsPolicyParameters"
+                      "tlsPolicyParameters",
+                      "forwardingHost",
+                      "testSender",
+                      "testRecipient"
                     ],
                     "properties": {
                       "host": {
@@ -36864,6 +37058,21 @@
                       "tlsPolicyParameters": {
                         "type": "integer",
                         "minimum": 1
+                      },
+                      "forwardingHost": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "The host of a forwarding host creation (an address, a prefix or a name)."
+                      },
+                      "testSender": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "The sender address of a connection test."
+                      },
+                      "testRecipient": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "The recipient address of a connection test."
                       }
                     }
                   },
@@ -46280,6 +46489,24 @@
           }
         }
       },
+      "Oauth2ClientBulkResultResponse": {
+        "description": "The bulk action was processed. The status is `200` even when some or all clients did not\nsucceed: check each result's `outcome`. The whole request is refused (`403`) only when the\ncaller's role or key scope never allow the action. The new secrets of a `renewSecret` action\nappear only in this response.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Oauth2ClientBulkResult"
+                }
+              }
+            }
+          }
+        }
+      },
       "Oauth2ClientResponse": {
         "description": "One OAuth2 client, without its secret.",
         "headers": {
@@ -48019,7 +48246,7 @@
         }
       },
       "RoutingTemporaryFailure": {
-        "description": "A dependency is temporarily unavailable (type `/api/v2/problems/temporary-failure`): mailcow's\nRedis (forwarding hosts), DNS (resolving a forwarding host name), or a write lock held too long by\na concurrent request. `detail` names it. Nothing was changed. Retry after `Retry-After`.\n",
+        "description": "A dependency is temporarily unavailable (type `/api/v2/problems/temporary-failure`): mailcow's\nRedis (forwarding hosts, `dependency: sharedStore`), DNS (resolving a forwarding host name,\n`dependency: dns`), or a write lock held too long by a concurrent request\n(`dependency: database`). `detail` names it. Nothing was changed. Retry after `Retry-After`.\n",
         "headers": {
           "Retry-After": {
             "description": "Seconds after which the request may be retried.",
@@ -51468,6 +51695,18 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 255
+        }
+      },
+      "IdentityProviderIfNoneMatch": {
+        "name": "If-None-Match",
+        "in": "header",
+        "required": false,
+        "description": "`*` makes the save create-only: it fails with `412` when a configuration is stored, so that two\nadministrators setting up the provider at the same time cannot overwrite each other. A listed\nversion tag fails with `412` when it is the stored configuration's tag. Nothing changes on `412`.\n",
+        "schema": {
+          "type": "string",
+          "examples": [
+            "*"
+          ]
         }
       },
       "Oauth2ClientSort": {

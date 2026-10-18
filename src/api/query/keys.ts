@@ -14,6 +14,15 @@ export type DomainTagParams = NonNullable<operations['listDomainTags']['paramete
 export type TemplateListParams = NonNullable<
   operations['listDomainTemplates']['parameters']['query']
 >
+// UI 004 (data-model §1).
+export type AliasListParams = NonNullable<operations['listAliases']['parameters']['query']>
+export type AliasDomainListParams = NonNullable<
+  operations['listAliasDomains']['parameters']['query']
+>
+export type ResourceListParams = NonNullable<operations['listResources']['parameters']['query']>
+export type SenderPermissionCandidateParams = NonNullable<
+  operations['listSenderPermissionCandidates']['parameters']['query']
+>
 
 export const queryKeys = {
   publicConfig: () => ['public-config'] as const,

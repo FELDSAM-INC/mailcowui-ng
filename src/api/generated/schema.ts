@@ -2948,7 +2948,8 @@ export interface paths {
          *       against an external source other than the new type.
          *     - **Mapping**: every mapped template and the default template must exist (rule code
          *       `notFound`); attribute values must be unique (rule code `duplicate`).
-         *     - Send the version tag you read in `If-Match`; the legacy UI edits the same settings.
+         *     - Send the version tag you read in `If-Match`; the legacy UI edits the same settings. For a
+         *       first setup, send `If-None-Match: *` so that the save only creates.
          *
          *     Administrators only, with a session or a read-write key. Audited, with every changed setting
          *     and secrets only as "changed".
@@ -5583,7 +5584,8 @@ export interface paths {
          * @description Replaces the secret with a new one of 24 lowercase hexadecimal characters, returned only in this
          *     response. Existing access tokens, refresh tokens and authorization codes are kept, but renewing
          *     a token or exchanging a code with the old secret fails, as legacy documents. Administrators
-         *     only, with a session or a read-write key. Audited without the secret. No bulk form exists.
+         *     only, with a session or a read-write key. Audited without the secret. The bulk action
+         *     `renewSecret` regenerates the secrets of several clients (API gap G42).
          */
         post: operations["regenerateOauth2ClientSecret"];
         delete?: never;
@@ -5628,15 +5630,15 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Delete or revoke the tokens of several OAuth2 clients
-         * @description Applies `delete` or `revokeTokens` to up to 100 clients, as the legacy mass actions of the
-         *     "OAuth2 Apps" table do. The whole request is refused only when the caller may never use the
+         * Delete, revoke the tokens of or renew the secrets of several OAuth2 clients
+         * @description Applies `delete`, `revokeTokens` or `renewSecret` to up to 100 clients, as the legacy mass
+         *     actions of the "OAuth2 Apps" table do. The whole request is refused only when the caller may never use the
          *     action (role or key scope). Otherwise each distinct client is processed, checked and audited on
          *     its own, as the single request for it would be, and gets one result: `done`, `notFound`,
          *     `refused`, `outdated` (its `version` no longer matches) or `failed`. One failure does not stop
          *     the others. A client named twice is processed once. Every audit record carries the bulk
-         *     request's identifier. Secret regeneration has no bulk form, because each new secret must be
-         *     shown and copied individually.
+         *     request's identifier. `renewSecret` returns each new secret once, in the item's result
+         *     (`clientSecret`); it is never shown again, so copy it from this response (API gap G42).
          *
          *     Administrators only, with a session or a read-write key.
          */
@@ -6421,10 +6423,12 @@ export interface paths {
         };
         /**
          * List relayhost choices
-         * @description Lists every relayhost with only its identifier, host and active state, for the relayhost
-         *     selectors of the domain and mailbox screens. Administrators, and domain administrators who hold
-         *     the `domainRelayhost` or the `mailboxRelayhost` permission flag (otherwise
-         *     `403 permission-flag-required`). Read-only keys may use it. `q` searches the host.
+         * @description Lists every relayhost with only its identifier, host, username and active state, for the
+         *     relayhost selectors of the domain and mailbox screens, which legacy labels
+         *     `ID n: host (username)`. Administrators, and domain administrators who hold the
+         *     `domainRelayhost` or the `mailboxRelayhost` permission flag (otherwise
+         *     `403 permission-flag-required`). Passwords, password states and usage are never included.
+         *     Read-only keys may use it. `q` searches the host.
          */
         get: operations["listRelayhostChoices"];
         put?: never;
@@ -9454,18 +9458,27 @@ export interface components {
         /**
          * @description JSON Merge Patch of a BCC map. `type`, `bccDestination` and `active` can change; a type change
          *     that would duplicate another map of the same local destination is refused. `id`,
-         *     `localDestination` and `domain` are read-only: accepted with their current value, refused
-         *     (`immutable`) otherwise.
+         *     `localDestination`, `domain`, `orphaned`, `createdAt`, `modifiedAt` and `etag` are read-only:
+         *     accepted with their current value, refused (`immutable`) otherwise, so that a client can send
+         *     back the representation it read. Any other member is refused (`immutable`).
          */
         BccMapPatch: {
             active?: boolean;
             bccDestination?: string;
             /** @description Read-only. */
+            createdAt?: string;
+            /** @description Read-only. */
             domain?: string;
+            /** @description Read-only. */
+            etag?: string;
             /** @description Read-only. */
             id?: number;
             /** @description Read-only. */
             localDestination?: string;
+            /** @description Read-only. */
+            modifiedAt?: string | null;
+            /** @description Read-only. */
+            orphaned?: boolean;
             type?: components["schemas"]["BccMapType"];
         };
         /**
@@ -11487,12 +11500,15 @@ export interface components {
             source: string;
         };
         /**
-         * @description JSON Merge Patch of a forwarding host. Only `spamFilter` can change. `address` and `source` are
-         *     read-only: accepted with their current value, refused (`immutable`) otherwise.
+         * @description JSON Merge Patch of a forwarding host. Only `spamFilter` can change. `address`, `source` and
+         *     `etag` are read-only: accepted with their current value, refused (`immutable`) otherwise. Any
+         *     other member is refused (`immutable`).
          */
         ForwardingHostPatch: {
             /** @description Read-only. */
             address?: string;
+            /** @description Read-only. */
+            etag?: string;
             /** @description Read-only. */
             source?: string;
             spamFilter?: boolean;
@@ -14411,13 +14427,49 @@ export interface components {
         /**
          * @description A bulk action on up to 100 OAuth2 clients (rule code `tooMany` beyond). Each client is processed
          *     as a single request for it would be: `delete` as `DELETE /oauth2-clients/{oauth2ClientId}`,
-         *     `revokeTokens` as `POST /oauth2-clients/{oauth2ClientId}/token-revocation`. Secret regeneration
-         *     has no bulk form.
+         *     `revokeTokens` as `POST /oauth2-clients/{oauth2ClientId}/token-revocation`, `renewSecret` as
+         *     `POST /oauth2-clients/{oauth2ClientId}/secret-regeneration`, whose new secret is returned once in
+         *     the item's result (API gap G42, legacy's "renew secret" of the selected clients).
          */
         Oauth2ClientBulkActionRequest: {
             /** @enum {string} */
-            action: "delete" | "revokeTokens";
+            action: "delete" | "revokeTokens" | "renewSecret";
             targets: components["schemas"]["Oauth2ClientBulkTarget"][];
+        };
+        /**
+         * @description Outcome of one client of an OAuth2 client bulk action. It has the members of `BulkItemResult`
+         *     plus `clientSecret`, the new secret of a `done` `renewSecret` item: shown only in this response,
+         *     never again.
+         */
+        Oauth2ClientBulkItemResult: {
+            /** @description The new secret (24 lowercase hexadecimal characters) of a `done` `renewSecret` item. */
+            clientSecret?: string;
+            /** @description Identifier of the target, as sent. */
+            id: string;
+            outcome: components["schemas"]["BulkItemOutcome"];
+            /** @description Present for `refused`, `outdated` and `failed`. Explains the item's outcome. */
+            problem?: components["schemas"]["Problem"];
+            /** @description The client's new version tag after a `done` outcome, if the client still exists. */
+            version?: string;
+        };
+        /**
+         * @description Result of an OAuth2 client bulk action: the shape of `BulkResult`, whose `done` `renewSecret`
+         *     results also carry the new secret. Every audit record of the request carries `bulkRequestId`.
+         */
+        Oauth2ClientBulkResult: {
+            /** @description Identifier of the bulk request (its request ID). */
+            bulkRequestId: string;
+            /** @description One result per distinct client, in request order. */
+            results: components["schemas"]["Oauth2ClientBulkItemResult"][];
+            /** @description Number of targets per outcome. */
+            summary: {
+                done: number;
+                failed: number;
+                notFound: number;
+                outdated: number;
+                refused: number;
+                total: number;
+            };
         };
         /** @description One OAuth2 client of a bulk action, by its numeric identifier, with an optional version tag. */
         Oauth2ClientBulkTarget: components["schemas"]["BulkTarget"] & {
@@ -16126,12 +16178,19 @@ export interface components {
         };
         /**
          * @description JSON Merge Patch of a recipient map, with the rules of creation (also normalised on edit, unlike
-         *     legacy). `id` is read-only.
+         *     legacy). `id`, `createdAt`, `modifiedAt` and `etag` are read-only: accepted with their current
+         *     value, refused (`immutable`) otherwise. Any other member is refused (`immutable`).
          */
         RecipientMapPatch: {
             active?: boolean;
             /** @description Read-only. */
+            createdAt?: string;
+            /** @description Read-only. */
+            etag?: string;
+            /** @description Read-only. */
             id?: number;
+            /** @description Read-only. */
+            modifiedAt?: string | null;
             newDestination?: string;
             originalDestination?: string;
         };
@@ -16193,13 +16252,16 @@ export interface components {
             targets: components["schemas"]["BulkTarget"][];
         };
         /**
-         * @description A relayhost reduced to what a selector needs. Domain administrators see no usernames, password
-         *     states or usage.
+         * @description A relayhost reduced to what a selector needs: its identifier, host, username and active state, as
+         *     the relayhost selectors of the legacy domain and mailbox edit pages show them
+         *     (`ID n: host (username)`). Never the password, whether one is set, or the usage.
          */
         RelayhostChoice: {
             active: boolean;
             host: string;
             id: number;
+            /** @description SMTP username, or `null` when the relayhost sends without logging in. */
+            username: string | null;
         };
         /**
          * @description A new relayhost. Leading and trailing whitespace is removed from every string. Several relayhosts
@@ -16229,18 +16291,23 @@ export interface components {
         /**
          * @description JSON Merge Patch of a relayhost. Omitted members stay unchanged. An omitted `password` is kept;
          *     `""` removes it. Setting `username` to `""` without a password also removes the password. A
-         *     password together with an empty resulting username is refused. `id` and `usage` are read-only:
-         *     they are accepted with their current value and refused (`readOnly`) otherwise, so that a client
-         *     can send back the representation it read.
+         *     password together with an empty resulting username is refused. `id`, `usage`, `passwordSet` and
+         *     `etag` are read-only: they are accepted with their current value and refused (`immutable`)
+         *     otherwise, so that a client can send back the representation it read. Any other member is
+         *     refused (`immutable`).
          */
         RelayhostPatch: {
             active?: boolean;
+            /** @description Read-only. */
+            etag?: string;
             /** @description Same rules as at creation. */
             host?: string;
             /** @description Read-only. */
             id?: number;
             /** Format: password */
             password?: $Write<string>;
+            /** @description Read-only. */
+            passwordSet?: boolean;
             /** @description Read-only. */
             usage?: Record<string, never>;
             username?: string;
@@ -16413,10 +16480,16 @@ export interface components {
                 forwardingHostDnsLookupLimit: number;
                 /** @description Maximum lengths, in characters, after trimming and normalisation. */
                 maxLengths: {
+                    /** @description The host of a forwarding host creation (an address, a prefix or a name). */
+                    forwardingHost: number;
                     host: number;
                     nextHop: number;
                     password: number;
                     recipientMapDestination: number;
+                    /** @description The recipient address of a connection test. */
+                    testRecipient: number;
+                    /** @description The sender address of a connection test. */
+                    testSender: number;
                     tlsPolicyDestination: number;
                     tlsPolicyParameters: number;
                     transportDestination: number;
@@ -17983,12 +18056,22 @@ export interface components {
              */
             policy: string;
         };
-        /** @description JSON Merge Patch of a TLS policy map, with the rules of creation. `id` is read-only. */
+        /**
+         * @description JSON Merge Patch of a TLS policy map, with the rules of creation. `id`, `createdAt`, `modifiedAt`
+         *     and `etag` are read-only: accepted with their current value, refused (`immutable`) otherwise. Any
+         *     other member is refused (`immutable`).
+         */
         TlsPolicyMapPatch: {
             active?: boolean;
+            /** @description Read-only. */
+            createdAt?: string;
             destination?: string;
             /** @description Read-only. */
+            etag?: string;
+            /** @description Read-only. */
             id?: number;
+            /** @description Read-only. */
+            modifiedAt?: string | null;
             parameters?: string;
             policy?: string;
         };
@@ -18116,13 +18199,16 @@ export interface components {
          *       it adopt their credentials; moved to an unused next hop, it keeps its own.
          *
          *     An omitted `password` is kept, `""` removes it, and an empty `username` without a password also
-         *     removes the password. `id` and `nextHopSharedWith` are read-only (accepted with their current
-         *     value only). The response's `meta.affectedTransports` names the other transports whose
+         *     removes the password. `id`, `nextHopSharedWith`, `passwordSet` and `etag` are read-only
+         *     (accepted with their current value only, refused with `immutable` otherwise); any other member is
+         *     refused (`immutable`). The response's `meta.affectedTransports` names the other transports whose
          *     credentials changed.
          */
         TransportPatch: {
             active?: boolean;
             destination?: string;
+            /** @description Read-only. */
+            etag?: string;
             /** @description Read-only. */
             id?: number;
             mxBased?: boolean;
@@ -18131,6 +18217,8 @@ export interface components {
             nextHopSharedWith?: number;
             /** Format: password */
             password?: $Write<string>;
+            /** @description Read-only. */
+            passwordSet?: boolean;
             username?: string;
         };
         /** @description Another transport whose stored credentials the request changed. */
@@ -21016,6 +21104,22 @@ export interface components {
             };
             content?: never;
         };
+        /**
+         * @description The bulk action was processed. The status is `200` even when some or all clients did not
+         *     succeed: check each result's `outcome`. The whole request is refused (`403`) only when the
+         *     caller's role or key scope never allow the action. The new secrets of a `renewSecret` action
+         *     appear only in this response.
+         */
+        Oauth2ClientBulkResultResponse: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    data: components["schemas"]["Oauth2ClientBulkResult"];
+                };
+            };
+        };
         /** @description The capabilities. */
         Oauth2ClientCapabilitiesResponse: {
             headers: {
@@ -21906,8 +22010,9 @@ export interface components {
         };
         /**
          * @description A dependency is temporarily unavailable (type `/api/v2/problems/temporary-failure`): mailcow's
-         *     Redis (forwarding hosts), DNS (resolving a forwarding host name), or a write lock held too long by
-         *     a concurrent request. `detail` names it. Nothing was changed. Retry after `Retry-After`.
+         *     Redis (forwarding hosts, `dependency: sharedStore`), DNS (resolving a forwarding host name,
+         *     `dependency: dns`), or a write lock held too long by a concurrent request
+         *     (`dependency: database`). `detail` names it. Nothing was changed. Retry after `Retry-After`.
          */
         RoutingTemporaryFailure: {
             headers: {
@@ -22987,6 +23092,12 @@ export interface components {
         /** @description `prefilter` (runs before the mailboxes' own filters) or `postfilter` (runs after them). */
         GlobalSieveFilterId: "prefilter" | "postfilter";
         /**
+         * @description `*` makes the save create-only: it fails with `412` when a configuration is stored, so that two
+         *     administrators setting up the provider at the same time cannot overwrite each other. A listed
+         *     version tag fails with `412` when it is the stored configuration's tag. Nothing changes on `412`.
+         */
+        IdentityProviderIfNoneMatch: string;
+        /**
          * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
          *     request fails with `412` and nothing changes.
          */
@@ -23535,6 +23646,8 @@ export type MtaStsPolicyPatch = components['schemas']['MtaStsPolicyPatch'];
 export type NetfilterLogEntry = components['schemas']['NetfilterLogEntry'];
 export type Oauth2Client = components['schemas']['Oauth2Client'];
 export type Oauth2ClientBulkActionRequest = components['schemas']['Oauth2ClientBulkActionRequest'];
+export type Oauth2ClientBulkItemResult = components['schemas']['Oauth2ClientBulkItemResult'];
+export type Oauth2ClientBulkResult = components['schemas']['Oauth2ClientBulkResult'];
 export type Oauth2ClientBulkTarget = components['schemas']['Oauth2ClientBulkTarget'];
 export type Oauth2ClientCapabilities = components['schemas']['Oauth2ClientCapabilities'];
 export type Oauth2ClientCreateRequest = components['schemas']['Oauth2ClientCreateRequest'];
@@ -23917,6 +24030,7 @@ export type ResponseNetfilterLogEntryListResponse = components['responses']['Net
 export type ResponseNoContent = components['responses']['NoContent'];
 export type ResponseNotFound = components['responses']['NotFound'];
 export type ResponseNotModified = components['responses']['NotModified'];
+export type ResponseOauth2ClientBulkResultResponse = components['responses']['Oauth2ClientBulkResultResponse'];
 export type ResponseOauth2ClientCapabilitiesResponse = components['responses']['Oauth2ClientCapabilitiesResponse'];
 export type ResponseOauth2ClientCreatedResponse = components['responses']['Oauth2ClientCreatedResponse'];
 export type ResponseOauth2ClientListResponse = components['responses']['Oauth2ClientListResponse'];
@@ -24085,6 +24199,7 @@ export type ParameterFail2BanPermanentBanSort = components['parameters']['Fail2B
 export type ParameterForwardingHostAddress = components['parameters']['ForwardingHostAddress'];
 export type ParameterForwardingHostSort = components['parameters']['ForwardingHostSort'];
 export type ParameterGlobalSieveFilterId = components['parameters']['GlobalSieveFilterId'];
+export type ParameterIdentityProviderIfNoneMatch = components['parameters']['IdentityProviderIfNoneMatch'];
 export type ParameterIfMatch = components['parameters']['IfMatch'];
 export type ParameterLimit = components['parameters']['Limit'];
 export type ParameterLogBefore = components['parameters']['LogBefore'];
@@ -27646,6 +27761,12 @@ export interface operations {
                  *     request fails with `412` and nothing changes.
                  */
                 "If-Match"?: components["parameters"]["IfMatch"];
+                /**
+                 * @description `*` makes the save create-only: it fails with `412` when a configuration is stored, so that two
+                 *     administrators setting up the provider at the same time cannot overwrite each other. A listed
+                 *     version tag fails with `412` when it is the stored configuration's tag. Nothing changes on `412`.
+                 */
+                "If-None-Match"?: components["parameters"]["IdentityProviderIfNoneMatch"];
             };
             path?: never;
             cookie?: never;
@@ -31412,7 +31533,7 @@ export interface operations {
             };
         };
         responses: {
-            200: components["responses"]["BulkResultResponse"];
+            200: components["responses"]["Oauth2ClientBulkResultResponse"];
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
@@ -34360,7 +34481,8 @@ export interface operations {
                 mxBased?: boolean;
                 /**
                  * @description Only transports with exactly this next hop, compared without regard to letter case: the
-                 *     transports that share one set of credentials.
+                 *     transports that share one set of credentials. The value is normalised like a stored next
+                 *     hop (a bare IP address is put in brackets, a Unicode host name converted to ASCII).
                  */
                 nextHop?: string;
                 /** @description Number of items to skip. */
@@ -34687,7 +34809,7 @@ export const monitoringLogRetentionPolicyValues: ReadonlyArray<FlattenedDeepRequ
 export const monitoringOutcomeUnknownProblemStepValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MonitoringOutcomeUnknownProblem"]["step"]> = ["start", "stop", "restart", "deliver", "hold", "release", "delete", "flush", "purge", "rulesReset"];
 export const mtaStsDnsRecordTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MtaStsDnsRecord"]["type"]> = ["TXT", "CNAME"];
 export const mtaStsModeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MtaStsMode"]> = ["enforce", "testing", "none"];
-export const oauth2ClientBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Oauth2ClientBulkActionRequest"]["action"]> = ["delete", "revokeTokens"];
+export const oauth2ClientBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Oauth2ClientBulkActionRequest"]["action"]> = ["delete", "revokeTokens", "renewSecret"];
 export const oauth2ClientCapabilitiesGrantTypesValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Oauth2ClientCapabilities"]["grantTypes"]> = ["authorization_code", "refresh_token", "password"];
 export const ownSecondFactorTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["OwnSecondFactorType"]> = ["totp", "webauthn", "yubiOtp", "u2f", "hotp"];
 export const ownSecondFactorWebAuthnCreationOptionsAttestationValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["OwnSecondFactorWebAuthnCreationOptions"]["attestation"]> = ["none", "indirect", "direct", "enterprise"];

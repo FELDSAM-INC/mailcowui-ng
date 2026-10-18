@@ -187,7 +187,7 @@ every displayed value with the mock data and run the automated accessibility che
 10. **Given** the list cannot be loaded, **When** the user opens "Mailboxes", **Then** an error
     state explains the problem in the user's language and offers to try again.
 11. **Given** a signed-in mailbox user, **When** they open the mailbox screen's link, **Then** the
-    navigation has no "Mailboxes" entry and they see the app's "forbidden" screen.
+    navigation has no "Mailboxes" entry and they see the app's "no access" screen.
 
 ---
 
@@ -296,7 +296,7 @@ are kept and nothing is overwritten.
 
 An administrator or a domain administrator deletes a mailbox from its row in the list or from its
 detail screen. A confirmation shows what will happen before anything is deleted: the mail moves to
-mailcow's garbage area and is purged after the server's retention period, and everything that
+the server's garbage area and is purged after the server's retention period, and everything that
 belongs to the mailbox is removed. When the mail store cannot confirm the move, nothing is deleted
 and the user is told so.
 
@@ -476,8 +476,8 @@ viewports.
 1. **Given** an administrator who changed a mailbox's quota and set its password, **When** another
    administrator opens its history, **Then** both records appear newest first, the quota change
    with its old and new value and the password change as "Password set" without any value.
-2. **Given** a refused attempt, **When** the history is shown, **Then** the record shows the outcome
-   "refused" and the translated reason.
+2. **Given** a refused attempt, **When** the history is shown, **Then** the record shows that the
+   attempt failed, with the translated reason.
 3. **Given** a domain administrator, **When** they open a mailbox, **Then** there is no history
    section.
 
@@ -545,7 +545,7 @@ viewports.
 
 - **FR-001**: The app MUST offer "Mailboxes" and "Mailbox templates" in the navigation to
   administrators and domain administrators, and to nobody else. Mailbox users who open one of
-  these screens' links MUST see the app's "forbidden" screen (feature 001).
+  these screens' links MUST see the app's "no access" screen (feature 001).
 - **FR-002**: Every screen of this feature MUST have its own link that can be bookmarked, shared
   and reopened: the list with its search, filters, sort, page and page size; a mailbox; each of a
   mailbox's sections; the create screen with an optional preselected domain; the template list; a
@@ -566,17 +566,18 @@ viewports.
 - **FR-007**: On viewports narrower than a tablet the list MUST render each mailbox as a card
   showing the address, display name, status, quota usage (FR-011) and message count, with the
   card opening the mailbox. It MUST NOT require horizontal scrolling.
-- **FR-008**: On wide viewports the list MUST render a table with these default columns: selection,
-  address with display name, domain, quota usage, message count, last mail login, status, tags and
+- **FR-008**: On wide viewports the list MUST render a table with these default columns: selection
+  (in selection mode, FR-057), address with display name, domain, quota usage, message count, last mail login, status, tags and
   row actions. The user MUST be able to show or hide the further columns the legacy list offered:
   authentication source, last password change, protocol access (one column per protocol),
   inbound and outbound TLS enforcement, quarantine notification frequency and category, creation
-  time and modification time. The choice of columns and the page size MUST be remembered in the
-  browser.
+  time and modification time. The choice of columns MUST be remembered in the browser. The page
+  size is kept in the page address with the other list state (`docs/conventions.md`, "Lists").
 - **FR-009**: The list MUST offer a free-text search that matches a fragment of the address,
   display name or tags, and filters for domain, status (active, login disallowed, inactive), tag
   and authentication source. Each filter MUST accept several values. The domain filter MUST offer
-  the domains in the caller's scope with a search. Active filters MUST be shown as removable chips
+  the domains in the caller's scope with a search, and the tag filter MUST suggest the tags in use
+  in the caller's scope. Active filters MUST be shown as removable chips
   with one action that clears them all. The search MUST be applied 0.5 seconds after the last
   keystroke, without a separate submit.
 - **FR-010**: The list MUST be sortable, ascending and descending, by every field the API sorts by:
@@ -607,7 +608,8 @@ viewports.
   - sign-in and security: forced password change, forced two-factor setup, last password change,
     recovery e-mail (built-in authentication only);
   - last logins per service: IMAP, POP3, SMTP and webmail single sign-on; a missing value MUST be
-    shown as "No login recorded", never as "never" (API gap 3);
+    shown as "No login recorded", never as "never". When the mailbox capabilities say that the
+    server does not report last logins, the UI MUST say that instead of showing values;
   - tags, custom attributes and user permissions;
   - managed by other features (read-only, FR-040);
   - creation and modification times.
@@ -648,16 +650,18 @@ viewports.
   left empty.
 - **FR-024**: The authentication source MUST default to the built-in authentication, labelled with
   the product name from the branding configuration. The UI MUST offer an external source only when
-  the API reports it as allowed: for an existing mailbox, its current external source; any other
-  external source, including at creation, only once the contract reports the configured provider
-  type (API gap 1). For an external source the password field MUST be absent and forced password
+  the API reports it as allowed: the authentication sources of the mailbox capabilities (the
+  configured provider type), at creation and for an existing mailbox, plus an existing mailbox's
+  current external source. For an external source the password field MUST be absent and forced password
   change unavailable; for the generic OIDC source forced two-factor setup MUST also be unavailable.
   Each unavailable control MUST state the reason.
 - **FR-025**: The request MUST contain the local part, the domain, the chosen template, the
   password (unless the source is external) and the quota shown, and otherwise only the values that
   differ from the chosen template's values.
 - **FR-026**: After a successful creation, the UI MUST open the new mailbox's detail screen,
-  announce the success, and offer to add another mailbox with the same domain and template.
+  announce the success, and offer to add another mailbox with the same domain and template. When
+  the API reports that a follow-up step of the creation failed (the initial rate limit, the
+  tagged-mail handling or the webmail address book), the UI MUST list it with what it means.
 - **FR-027**: When the creation is refused, the UI MUST keep every entry, show field errors on
   their fields and every other error in a message, and translate them (FR-068). The "address in
   use" error MUST name the kind of object that uses the address, and "domain mailbox limit
@@ -697,6 +701,9 @@ viewports.
   - **Permissions**: the user permission flags (FR-037);
   - **Tags** (FR-038);
   - **Custom attributes** (FR-039).
+
+  The webmail redirect MUST be hidden wherever it appears when the mailbox capabilities report the
+  groupware disabled, because it then has no effect.
 - **FR-032**: Saving a section MUST send only the values changed in it, together with the version
   of the mailbox the screen read. After a successful save, every section MUST show the returned
   mailbox and use its new version.
@@ -709,7 +716,9 @@ viewports.
   saving, and a quota below the storage used MUST be accepted with a warning.
 - **FR-035**: The status control MUST explain the effect of each value before saving: an active
   mailbox receives mail and signs in; a mailbox with login disallowed receives mail but cannot sign
-  in and disappears from the webmail address book; an inactive mailbox receives no mail.
+  in and disappears from the webmail address book; an inactive mailbox receives no mail. Saving a
+  change to "Inactive" or "Disallow login" MUST ask for one explicit confirmation
+  (`docs/conventions.md`, "Confirmations").
 - **FR-036**: The sign-in section MUST apply FR-024 to the authentication source. When the user
   switches to the built-in authentication, a password field MUST appear with a hint that it is
   required when the mailbox has no password stored. The recovery e-mail MUST accept a valid e-mail
@@ -720,11 +729,13 @@ viewports.
 - **FR-038**: The tags section MUST let the user add tags by typing and remove them one by one.
   Tags MUST be trimmed, not empty, at most 255 characters long, and a tag that differs from an
   existing one only in letter case MUST be treated as the same tag. The UI MUST prevent more tags
-  than the limit (25 by default) and show the limit. Saving MUST send the whole set.
+  than the server's tagging limit from the mailbox capabilities (25 by default) and show the limit,
+  and MUST suggest the tags in use. Saving MUST send the whole set.
 - **FR-039**: The custom attributes section MUST show the attributes as name and value rows, and
   let the user add, change and remove rows. Names MUST be 1 to 255 characters without whitespace and
   unique within the mailbox; values MUST be at most 4,096 characters; a mailbox MUST NOT have more
-  than 100 attributes. Saving MUST send the added and changed attributes with their values and the
+  attributes than the server's limit (100 by default). The limits come from the mailbox
+  capabilities. Saving MUST send the added and changed attributes with their values and the
   removed ones as removals.
 - **FR-040**: The overview MUST show read-only, with the name of the feature that manages them: the
   tagged-mail handling and inbound and outbound TLS enforcement (mailbox self-service), the
@@ -761,20 +772,23 @@ viewports.
 
 #### Deleting a mailbox
 
-- **FR-045**: Deleting a mailbox MUST require confirmation in a dialog that names the mailbox,
-  shows its current storage used and message count, loaded when the dialog opens, says that its
-  mail moves to mailcow's garbage area and is purged after the server's retention period (API gap
-  4), and lists the kinds of data removed with it: aliases whose only recipient it is, sender
-  permissions, sync jobs, temporary aliases, app passwords, filters, spam settings and allow and
-  block lists, second factors and passkeys, quarantine items, push notification settings and
-  webmail data. It MUST say that aliases with
-  other recipients keep them. The confirm button MUST name the action and the mailbox, and the
-  cancel choice MUST have the initial focus.
+- **FR-045**: Deleting a mailbox MUST require confirmation in a dialog that names the mailbox and
+  shows the API's deletion preview, loaded when the dialog opens: its current storage used and
+  message count; that its mail moves to the server's garbage area and is purged after the server's
+  retention period, which the preview states; and the kinds of data removed with it, with their
+  numbers: aliases whose only recipient it is, sender permissions, sync jobs, temporary aliases,
+  app passwords, filters, spam settings and allow and block lists, second factors and passkeys,
+  quarantine items, push notification settings and webmail data. It MUST say that aliases with
+  other recipients keep them. When the preview says that the deletion cannot proceed now, the
+  dialog MUST name the unavailable service and MUST NOT offer the deletion. The confirm button
+  MUST name the action and the mailbox, and the cancel choice MUST have the initial focus.
 - **FR-046**: After a successful deletion, the UI MUST announce it, remove the mailbox from the
   list and return a detail screen to the list.
 - **FR-047**: When the API refuses the deletion with a temporary failure, the UI MUST say that the
   mailbox was not deleted, that nothing was removed and that it can be tried again later, and MUST
-  keep the mailbox listed.
+  keep the mailbox listed. When the API reports that the outcome is unknown because the mail store
+  did not answer in time, the UI MUST say so, say that no records were removed and that the
+  deletion can be retried later, and refresh the list.
 
 #### Renaming a mailbox
 
@@ -792,7 +806,9 @@ viewports.
   "mailbox cannot be renamed", the alias limit, and a temporary failure (the mailbox keeps its old
   address). For "rename incomplete", it MUST show a persistent report that lists the steps done
   and not done in the user's language with both addresses, advise contacting the server operator,
-  refresh the list, and stay on the screen until the user dismisses the report.
+  refresh the list, and stay on the screen until the user dismisses the report. When the API
+  reports that the outcome of a step is unknown, the same report MUST name that step and advise
+  checking the mailbox under both addresses.
 
 #### Bulk actions
 
@@ -803,19 +819,24 @@ viewports.
 - **FR-054**: A selection MUST hold only mailboxes of the current page and MUST be cleared, with an
   announcement, when the page, page size, search, filters or sort change. "Select all" MUST select
   every mailbox of the current page. The UI MUST show the number selected, and a selection MUST
-  NOT exceed the bulk limit of 100, which equals the largest page size.
+  NOT exceed the server's bulk limit from the mailbox capabilities (100 by default, which equals
+  the largest page size). Once the limit is reached, further selection MUST be disabled with a
+  message that states the limit; when an operator lowered the limit below the page size, "Select
+  all" MUST be unavailable with that message.
 - **FR-055**: Every bulk action MUST be confirmed in a dialog that names the action, its effect and
   the number of mailboxes. A bulk deletion MUST also list the selected addresses and the impact of
   FR-045, and MUST require typing the number of selected mailboxes before it can be confirmed.
 - **FR-056**: After a bulk action, the UI MUST show a summary with the number of mailboxes per
-  outcome (done, not found, refused, failed) and a list of every mailbox with its translated
-  outcome, and MUST announce the summary to assistive technology. Mailboxes that were refused or
-  failed MUST stay selected; the others MUST be deselected. A whole-request refusal MUST be shown as
+  outcome (done, not found, refused, outdated, failed) and a list of every mailbox with its
+  translated outcome, and MUST announce the summary to assistive technology. Every mailbox is sent
+  with the version tag the list read. Mailboxes that were refused or failed MUST stay selected; the
+  others, including outdated ones, MUST be deselected. A whole-request refusal MUST be shown as
   one message naming the reason, with the selection kept. When no response arrives, the UI MUST
   report the outcome as unknown, refresh the list and MUST NOT repeat the request automatically.
-- **FR-057**: On phones, selection MUST be started with an explicit "select" control, each card MUST
-  get a selection control of at least 44×44 px, and the number selected and the actions MUST stay
-  visible at the bottom of the screen.
+- **FR-057**: Selection MUST be started with an explicit "select" control on every viewport
+  (`docs/conventions.md`, "Bulk actions"). On phones, each card MUST get a selection control of at
+  least 44×44 px, and the number selected and the actions MUST stay visible at the bottom of the
+  screen.
 
 #### Mailbox templates
 
@@ -842,7 +863,8 @@ viewports.
 #### Change history
 
 - **FR-064**: For administrators, the mailbox detail MUST offer a history of the mailbox's audit
-  records, newest first and paginated, each with its time, actor, action, outcome (with the
+  records, through feature 001's audit log screen filtered to the mailbox (`docs/conventions.md`,
+  "History and audit"), newest first and paginated, each with its time, actor, action, outcome (with the
   translated reason for refusals and failures) and changed values with old and new value. A
   password change MUST be shown only as "Password set", with whether it was pre-hashed. A rename
   record MUST show both addresses, and records of one bulk action MUST be recognisable as such.
@@ -863,8 +885,9 @@ viewports.
   documents, with its parameters, into the user's language, including: not found, address in use
   (with the kind of holder), domain mailbox limit reached (count and limit), attribute not
   permitted for the role (field and permission), outdated version, mailbox cannot be renamed,
-  rename incomplete (steps), template name already exists, protected template, temporary failure
-  (mail store, webmail service or shared store), the quota rules with the bytes allowed, each
+  rename incomplete (steps), outcome unknown (with the step), the domain's alias limit, template
+  name already exists, protected template, temporary failure (mail store, webmail service or shared
+  store), the quota rules with the bytes allowed, each
   password policy rule with its parameter, the tag limit and the read-only field rule. The English
   detail text of the API MUST NOT be shown to users as the message.
 - **FR-069**: Field errors from the API MUST be shown on the matching fields, with a summary at the
@@ -893,7 +916,7 @@ viewports.
 
 - **FR-074**: Passwords MUST NOT be written to browser storage, links, the page title or any log,
   and MUST be removed from memory after a successful submit or when the form is left. Only the
-  column and page-size preferences of FR-008 MAY be stored in the browser.
+  column preference of FR-008 MAY be stored in the browser.
 - **FR-075**: Text that comes from the API (display names, tags, custom attributes, template names)
   MUST be displayed as text, never interpreted as markup.
 
@@ -929,7 +952,7 @@ removes it, and **Blocked by an API gap** waits for a capability listed under AP
 | Search box (server-side search) | FR-009 | Improved: matches tags, debounced, part of the link |
 | No domain, status, tag or source filter | FR-009 | Improved: new filters offered by the API |
 | Sorting by clicking headers | FR-010 | Improved: also on phones |
-| Page length selector | FR-006, FR-008 | Matched (25, 50, 100), remembered |
+| Page length selector | FR-006, FR-008 | Improved: 25, 50, 100, kept in the page address with the other list state instead of browser storage |
 | "Refresh" button | FR-014 | Matched, plus automatic refresh after own changes |
 | Count badge in the card header | FR-006 | Matched (total) |
 | "Toggle all" | FR-054 | Matched: selects the current page (at most 100) |
@@ -952,7 +975,7 @@ removes it, and **Blocked by an API gap** waits for a capability listed under AP
 | Confirmation password (repeat) | FR-028 | Dropped: show/hide control instead (API takes the password once) |
 | "Check against haveibeenpwned.com" | — | Dropped: the app makes no third-party requests (constitution, privacy and CSP) |
 | Password policy as server-rendered HTML list | FR-030 | Improved: structured rules, live met/unmet marks |
-| Tags | FR-038 | Improved: case-insensitive duplicates, limit shown |
+| Tags | FR-038 | Improved: case-insensitive duplicates, limit shown, suggestions from the tags in use |
 | Quota (MiB) with "max." badge, "0 = ∞" | FR-022, FR-034 | Improved: explicit unlimited option and units |
 | "Domain quota exceeded" warning | FR-022, Edge Cases | Matched (`warning.quota_exceeded_scope`) |
 | Tagged-mail handling, quarantine notification and category, TLS policy | FR-018 | Matched as initial settings, collapsed by default |
@@ -961,16 +984,17 @@ removes it, and **Blocked by an API gap** waits for a capability listed under AP
 | Rate limit (value and frame) | FR-018, FR-041 | Matched; read-only without the "rate limit" flag |
 | Status select | FR-018, FR-035 | Improved: effect explained |
 | Force password update, force 2FA, SOGo access checkboxes | FR-018, FR-024 | Matched; unavailable with the reason for external sources |
-| Hidden authentication source (`mailcow` only) | FR-024 | Matched: built-in authentication at creation until the API reports the configured provider type (API gap 1) |
+| Hidden authentication source (`mailcow` only) | FR-024 | Improved: the built-in authentication by default, and the configured provider type when the capabilities report one |
 | Form cache in browser storage | FR-074 | Dropped: passwords are never stored in the browser |
 | Errors as toasts after reload | FR-027, FR-069 | Improved: field errors on fields, entries kept |
+| Failed follow-up steps (rate limit, webmail address book) reported only in the server log | FR-026 | Improved: failed steps listed after creation |
 
 #### Edit mailbox page
 
 | Legacy element | Requirements | Status and reason |
 |---|---|---|
 | Tabs collapsing into cards on phones, remembered in browser storage | FR-016, FR-031 | Improved: sections with their own links |
-| Identity provider select | FR-024, FR-036 | Matched for keeping the current source and switching to the built-in one; switching to another external source is blocked by API gap 1 |
+| Identity provider select | FR-024, FR-036 | Matched: the built-in source, the configured provider type from the capabilities and the mailbox's current source |
 | Full name, quota with "max." badge, status | FR-031, FR-034, FR-035 | Matched in the general section |
 | Tags with click-to-delete badges | FR-038 | Matched in the tags section |
 | Allow to send as (sender ACL) | — | Deferred to feature 004 |
@@ -982,7 +1006,7 @@ removes it, and **Blocked by an API gap** waits for a capability listed under AP
 | Allowed protocols | FR-031, FR-041 | Matched in the protocol access section |
 | Allowed hosts for SMTP (hidden in legacy) | — | Dropped: not shown in legacy and not offered by the API |
 | Force password update, force 2FA, SOGo access | FR-031, FR-036 | Matched |
-| SOGo access hidden when webmail is disabled on the server | FR-031 | Blocked by API gap 2: the setting is always shown |
+| SOGo access hidden when webmail is disabled on the server | FR-031 | Matched: hidden when the capabilities report the groupware disabled |
 | Created on, last modified | FR-015 | Matched |
 | Controls disabled with "Prohibited by ACL" | FR-041, FR-042 | Matched; omitted permissions not shown |
 | Custom attributes tab (rows, add row, remove row) | FR-039 | Improved: per-attribute changes, validation |
@@ -1010,7 +1034,7 @@ removes it, and **Blocked by an API gap** waits for a capability listed under AP
 
 | Legacy element | Requirements | Status and reason |
 |---|---|---|
-| Delete confirmation modal listing the object ids | FR-045, FR-055 | Improved: impact shown, bulk deletion lists addresses |
+| Delete confirmation modal listing the object ids | FR-045, FR-055 | Improved: the deletion preview's numbers and retention period, blockers named; bulk deletion lists addresses |
 | Pinch-zoom disabled, row collapse, modals as forms | FR-071 | Improved: mobile-first screens with zoom allowed (constitution II) |
 | Success and error toasts (`success.*`, `danger.*`) | FR-067, FR-068 | Matched texts, announced to assistive technology |
 
@@ -1044,35 +1068,38 @@ in mailcow-rest-v2, through the operations of its released contract. It also use
 | Error types and validation rule codes with parameters | FR-058, FR-059 | FR-027, FR-068, FR-069 |
 | Domain list and detail: mailboxes left, default and largest quota for a new mailbox, readable names | API 002 FR-007, FR-008, FR-011 | FR-009, FR-020, FR-022 |
 | Identity with role, scope and permission flags; branding product name | API 001 FR-028, FR-042 | FR-001, FR-003, FR-072 |
+| Mailbox capabilities: provider type and allowed sources, groupware, last logins, limits, retention | FR-064 | FR-015, FR-024, FR-031, FR-038, FR-039, FR-054 |
+| Deletion preview: counts, alias samples, blockers, retention and version tag | FR-065 | FR-045 |
+| Tags in use in the caller's scope | FR-066 | FR-009, FR-038 |
+| Version tags on bulk targets and the `outdated` outcome | FR-067 | FR-056 |
 
 #### API gaps
 
-Capabilities this feature needs that the API contract does not offer. Each is to be specified in
-mailcow-rest-v2 first (constitution I); the UI does not work around them.
+The six gaps this specification first recorded are closed by API 003's contract (planning baseline
+`3207925`, see the plan), and the requirements above use the new capabilities:
 
-1. **Allowed authentication sources**: the API reports each mailbox's source, but not which
-   external identity provider type is configured (API 001's public configuration only says whether
-   one is). API 012's draft spec already assumes that domain administrators learn the configured
-   type through feature 003, which API 003 does not yet offer. Until it does, the UI cannot offer
-   creating a mailbox with an external source or switching a mailbox to an external source it does
-   not already use (FR-024).
-2. **Webmail disabled on the server**: the API does not report whether webmail is disabled (legacy
-   `SKIP_SOGO`). Legacy then hides the webmail redirect setting; this UI shows it in every case
-   (FR-031, FR-059).
-3. **Last logins turned off**: when the operator turns off last logins, the API omits them, which
-   looks the same as a mailbox that never logged in. The UI shows "No login recorded" in both cases
-   (FR-015).
-4. **Deletion impact and retention period**: the API reports neither the number of dependent
-   objects a deletion removes or changes (aliases removed and aliases that only lose this
-   recipient, sender permissions, sync jobs, app passwords, second factors and passkeys) nor the
-   garbage-area retention period. The confirmation therefore lists kinds of data and names "the
-   server's retention period" without numbers (FR-045).
-5. **Operator-configured limits**: the bulk limit, the tag limit and the custom-attribute limits
-   can be changed by the operator but are not reported. The UI states the documented defaults, and
-   when an operator lowered a limit the API's validation error shows the real one (FR-038, FR-039,
-   FR-054).
-6. **Tags in use** (optional): there is no list of the mailbox tags in use, so the tag filter and
-   the tag input cannot suggest existing tags (FR-009, FR-038).
+1. **Allowed authentication sources**: the mailbox capabilities report the configured provider type
+   and the allowed sources (API FR-064; FR-024).
+2. **Webmail disabled on the server**: the capabilities report whether the groupware is enabled
+   (FR-031).
+3. **Last logins turned off**: the capabilities report whether last logins are reported (FR-015).
+4. **Deletion impact and retention period**: the deletion preview reports the numbers, the blockers
+   and the retention (API FR-065; FR-045).
+5. **Operator-configured limits**: the capabilities report the bulk, tag and custom-attribute limits
+   (FR-038, FR-039, FR-054).
+6. **Tags in use**: the tags list feeds the tag filter and the tag input (API FR-066; FR-009,
+   FR-038).
+
+Gaps that remain, recorded in the plan. Each is to be specified in mailcow-rest-v2 first
+(constitution I); the UI does not work around them:
+
+7. **Audit record details are untyped**: the contract describes `details` only as an open object.
+   The history shows the changed values as the API returns them, for example a quota in bytes,
+   until the contract describes them (FR-064).
+8. **Recognised hash-scheme prefixes**: the contract names them only by example. The pre-hashed
+   notice appears for any `{SCHEME}` prefix, and the API decides (FR-030).
+9. **Built-in template defaults**: they are server settings that cannot be read. A new template's
+   form starts with the documented upstream values and sends them all (FR-059).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1086,8 +1113,13 @@ mailcow-rest-v2 first (constitution I); the UI does not work around them.
 - **Domain summary** (API 002): readable and ASCII name, active and backup MX state, mailboxes left,
   default and largest quota for a new mailbox.
 - **Bulk action result** (API 003): the action and one outcome per mailbox.
+- **Mailbox capabilities** (API 003): the configured provider type and allowed sources, whether the
+  groupware is enabled and last logins are reported, the limits and the garbage-area retention.
+- **Deletion preview** (API 003): what a deletion would remove and move now, whether it can proceed,
+  and the current version tag.
 - **Audit record** (API 001/003): time, actor, action, outcome, target and changed values.
-- **Selection** (in the browser only): up to 100 mailbox addresses chosen for a bulk action.
+- **Selection** (in the browser only): up to the server's bulk limit (100 by default) of mailbox
+  addresses chosen for a bulk action, each with the version tag the list read.
 - **Section draft** (in the browser memory only): the unsaved entries of one section or form.
 
 ## Success Criteria *(mandatory)*
@@ -1122,15 +1154,16 @@ mailcow-rest-v2 first (constitution I); the UI does not work around them.
 - Feature 001 of this app provides sign-in, the app shell and navigation, the identity with role,
   scope and permission flags, branding, languages and themes, the handling of 401, 403 and the
   restricted session, and the placeholder rule for screens of later features. Feature 002 provides
-  the domain screens and links to this feature's list and create screen.
-- API feature 003's contract is not yet published in mailcow-rest-v2's `api/` directory. This
-  feature can be planned now and starts implementation once that contract is merged and pinned; it
-  is built and tested against a mock generated from it until the API is implemented.
+  the domain screens; this feature adds its links to them, to the filtered list and to the create
+  screen (`docs/conventions.md`, "Where features meet").
+- API feature 003's contract is merged in mailcow-rest-v2 (planning baseline `3207925`). This
+  feature is implemented after features 001 and 002 of this app and the API 003 implementation, and
+  it is built and tested against a mock generated from the pinned contract.
 - Data volume follows API 003: up to 10,000 mailboxes in 500 domains per server, and tens of
   templates.
-- The API's defaults apply until the contract states otherwise: page size 25, bulk limit 100, tag
-  limit 25, custom attributes limited to 100 per mailbox, 255-character names and 4,096-character
-  values. When an operator configures other limits, the API's validation errors carry them.
+- The server's limits come from the mailbox capabilities. Their defaults are a page size of 25, a
+  bulk limit of 100, a tag limit of 25, 100 custom attributes per mailbox, 255-character names and
+  4,096-character values.
 - The UI does not show the version tag; it only sends it.
 - The settings managed by other features stay read-only here until those features of this app
   exist; their bulk actions arrive with them.

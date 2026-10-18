@@ -49,7 +49,8 @@ Enumeration value arrays used for choices and labels: `mailboxStatusValues`,
 `mailboxRenameStepOutcomeValues`, `mailboxAddressInUseProblemHolderValues`,
 `mailboxCreationReportRateLimitValues`, `mailboxCreationReportTaggedMailHandlingValues`,
 `mailboxCreationReportGroupwareDirectoryUpdateValues`,
-`mailboxDeletionPreviewBlockersDependencyValues`, `componentsParametersMailboxSortValues`,
+`mailboxDeletionPreviewBlockersDependencyValues`, `mailboxRateLimitSourceValues`,
+`mailboxCapabilitiesIdentityProviderTypeValues`, `componentsParametersMailboxSortValues`,
 `componentsParametersMailboxTemplateSortValues` and `knownProblemTypeValues`. These names were
 verified by generating the client from the baseline bundle.
 
@@ -67,7 +68,7 @@ These are not API shapes. Each is derived from API data or from app constants.
 
 | id | Header key | Default | Sort field | Value |
 |---|---|---|---|---|
-| `select` | (checkbox) | ✓ (fixed) | — | selection |
+| `select` | (checkbox) | in selection mode only | — | selection |
 | `address` | `mailbox.username` | ✓ (fixed) | `address` | address, display name below |
 | `domain` | `mailbox.domain` | ✓ | `domain` | `domainUnicode` (ASCII in `title` when it differs) |
 | `quota` | `mailbox.in_use` | ✓ | `percentUsed` | `MailboxQuotaUsage` |
@@ -84,6 +85,10 @@ These are not API shapes. Each is derived from API data or from app constants.
 | `createdAt` | `mailbox.created_on` | — | `createdAt` | date |
 | `modifiedAt` | `mailbox.last_modified` | — | `modifiedAt` | date or "never modified" |
 
+The default columns are always shown; the column chooser shows or hides the optional ones. Section
+labels use `mailboxes.sections.<id>.title`, so that each section's other messages can live under
+`mailboxes.sections.<id>.*`.
+
 The sort control on phones offers all 12 `MailboxSort` fields, including `displayName`, `quota` and
 `quotaUsed`, which have no column of their own.
 
@@ -91,13 +96,13 @@ The sort control on phones offers all 12 `MailboxSort` fields, including `displa
 
 | id | Route name | Label key | Shown to | Summary (FR-016) | Fields (`Mailbox` members) |
 |---|---|---|---|---|---|
-| `general` | `mailbox-general` | `mailboxes.sections.general` | all | display name, quota, status | `displayName`, `quota`, `status`, `webmailRedirect` |
-| `signIn` | `mailbox-sign-in` | `mailboxes.sections.signIn` | all | source, last password change | `authSource`, `password` (write-only), `forcePasswordChange`, `forceSecondFactorSetup`, `recoveryEmail` |
+| `general` | `mailbox-general` | `mailboxes.sections.general.title` | all | display name, quota, status | `displayName`, `quota`, `status`, `webmailRedirect` |
+| `signIn` | `mailbox-sign-in` | `mailboxes.sections.signIn.title` | all | source, last password change | `authSource`, `password` (write-only), `forcePasswordChange`, `forceSecondFactorSetup`, `recoveryEmail` |
 | `protocols` | `mailbox-protocols` | `edit.allowed_protocols` | all | allowed protocols as a list | `protocolAccess.*` |
-| `permissions` | `mailbox-permissions` | `mailboxes.sections.permissions` | all | "n of m allowed" | `userPermissions.*` (present keys only) |
+| `permissions` | `mailbox-permissions` | `mailboxes.sections.permissions.title` | all | "n of m allowed" | `userPermissions.*` (present keys only) |
 | `tags` | `mailbox-tags` | `add.tags` | all | first tags, count | `tags` |
 | `attributes` | `mailbox-attributes` | `edit.custom_attributes` | all | count | `customAttributes` |
-| `history` | — (`HistoryLink`) | `mailboxes.sections.history` | administrators | — | — |
+| `history` | — (`HistoryLink`) | `mailboxes.sections.history.title` | administrators | — | — |
 | `rename` | `mailbox-rename` | `edit.mailbox_rename` | all | current address | — |
 | `delete` | `mailbox-delete` | `mailbox.remove` | all | storage used | — |
 
@@ -148,10 +153,11 @@ above. A new form starts from `built-in-defaults.ts`. The create request sends e
 - **`BulkActionDef`** (`bulk.ts`): `{ action, protocol?, labelKey, effectKey, confirmKey,
   destructive, requiresTypedCount, gate }`.
 - **`RenameReportView`** (`problems.ts`): `{ kind: 'incomplete' | 'unknown' | 'undone',
-  previousAddress, newAddress, steps: { step, outcome }[], unknownStep? }`.
+  previousAddress, newAddress, steps: MailboxRenameStep[], unknownStep? }`. The addresses and steps
+  are taken from the generated problem types, never restated.
 - **`CreationNotice`** (`api.ts`, a module-level one-shot in memory): `{ address, failedSteps:
-  ('rateLimit' | 'taggedMailHandling' | 'groupwareDirectoryUpdate')[], domain, templateId }`. The
-  detail page consumes it once.
+  Exclude<keyof MailboxCreationReport, 'messages'>[], domain, templateId }`. The detail page
+  consumes it once.
 
 ## 3. Server-state cache
 
@@ -165,7 +171,7 @@ above. A new form starts from `built-in-defaults.ts`. The create request sends e
 | `['mailboxes','capabilities']` | `getMailboxCapabilities` | 5 min | list, forms, dialogs | — |
 | `['mailboxes','tags',{q}]` | `listMailboxTags` | 30 s | tag filter and tag input, debounced 300 ms | `useInfiniteQuery`, 25 per page |
 | `['mailbox-templates','list',MailboxTemplateListParams]` | `listMailboxTemplates` | 30 s | template list | — |
-| `['mailbox-templates','all']` | `listMailboxTemplates` (`limit=1000&sort=name`) | 30 s | create screen | Default first |
+| `['mailbox-templates','all']` | `listMailboxTemplates` (`sort=name`, every page at the API's default size until `meta.total`) | 30 s | create screen | Default first |
 | `['mailbox-templates','detail',id]` | `getMailboxTemplate` | 30 s | template detail | `initialData` from cached lists |
 | `['password-policy']` | `getPasswordPolicy` | 0, `refetchOnMount: 'always'` | each password form | FR-030 |
 | `['domains', …]` | `listDomains`, `getDomain` | UI 002 | domain picker, create figures | UI 002's keys and queries, reused through `@/features/domains` |
@@ -182,8 +188,12 @@ above. A new form starts from `built-in-defaults.ts`. The create request sends e
 | `createMailboxTemplate`, `updateMailboxTemplate`, `deleteMailboxTemplate` | write or remove `['mailbox-templates','detail',id]`; invalidate `['mailbox-templates']` | refetch; mark or confirm again |
 | `403 attribute-not-permitted` or `permission-flag-required` | — | invalidate `['identity']` and the affected mailbox |
 
-Mutations that carry a password (`createMailbox`, and `updateMailbox` from the sign-in section)
-use `gcTime: 0` and are reset when they settle (research R8).
+Requests that carry a password (`createMailbox`, and `updateMailbox` with `password`) never go
+through TanStack Query (`docs/conventions.md`, "Secrets in requests or responses"). The page calls
+the generated client directly, and only the non-secret response is then written to the cache with
+the invalidation above (research R8).
+
+No query of this feature polls: there is no `refetchInterval` (UI 001 R9, conventions "Polling").
 
 ## 4. Client state and device storage
 
@@ -202,7 +212,8 @@ use `gcTime: 0` and are reset when they settle (research R8).
 ## 5. Route map
 
 The base is `/ng/`. Every component is lazy. "Access" is UI 001's catalogue check in
-`ShellLayout`. Role restrictions within an entry are rendered in place with `NoAccessState`.
+`ShellLayout`. Role restrictions within an entry use UI 002's `meta.roles` check in `ShellLayout`,
+which renders `NoAccessState` in place.
 
 | Name | Path | Catalogue entry | Extra access | Title key | Component |
 |---|---|---|---|---|---|
@@ -210,16 +221,16 @@ The base is `/ng/`. Every component is lazy. "Access" is UI 001's catalogue chec
 | `mailbox-create` | `/mailboxes/new` | `mailboxes` | — | `mailboxes.create.title` | `pages/MailboxCreatePage.vue` |
 | `mailbox-detail` (layout) | `/mailboxes/:address([^/]+@[^/]+)` | `mailboxes` | — | `mailboxes.detail.title` (with the address) | `pages/MailboxDetailPage.vue` |
 | `mailbox-overview` | `''` (child) | | | | `sections/MailboxOverview.vue` |
-| `mailbox-general` | `general` | | | `mailboxes.sections.general` | `sections/GeneralSection.vue` |
-| `mailbox-sign-in` | `sign-in` | | | `mailboxes.sections.signIn` | `sections/SignInSection.vue` |
+| `mailbox-general` | `general` | | | `mailboxes.sections.general.title` | `sections/GeneralSection.vue` |
+| `mailbox-sign-in` | `sign-in` | | | `mailboxes.sections.signIn.title` | `sections/SignInSection.vue` |
 | `mailbox-protocols` | `protocols` | | | `edit.allowed_protocols` | `sections/ProtocolAccessSection.vue` |
-| `mailbox-permissions` | `permissions` | | | `mailboxes.sections.permissions` | `sections/PermissionsSection.vue` |
+| `mailbox-permissions` | `permissions` | | | `mailboxes.sections.permissions.title` | `sections/PermissionsSection.vue` |
 | `mailbox-tags` | `tags` | | | `add.tags` | `sections/TagsSection.vue` |
 | `mailbox-attributes` | `attributes` | | | `edit.custom_attributes` | `sections/CustomAttributesSection.vue` |
 | `mailbox-rename` | `rename` | | | `edit.mailbox_rename` | `sections/RenameSection.vue` |
 | `mailbox-delete` | `delete` | | | `mailbox.remove` | `sections/MailboxDeleteRoute.vue` (overview plus the open dialog) |
 | `mailbox-templates` | `/mailbox-templates` | `mailboxTemplates` (new) | — | `mailbox.mailbox_templates` | `pages/templates/MailboxTemplatesPage.vue` |
-| `mailbox-template-create` | `/mailbox-templates/new` | `mailboxTemplates` | administrators | `mailbox.add_template` | `pages/templates/MailboxTemplateCreatePage.vue` |
+| `mailbox-template-create` | `/mailbox-templates/new` | `mailboxTemplates` | `meta.roles: ['admin']` | `mailbox.add_template` | `pages/templates/MailboxTemplateCreatePage.vue` |
 | `mailbox-template-detail` | `/mailbox-templates/:templateId(\\d+)` | `mailboxTemplates` | — | `mailboxTemplates.detail.title` | `pages/templates/MailboxTemplateDetailPage.vue` |
 
 **Catalogue changes** (`src/app/navigation/catalogue.ts`):
@@ -234,8 +245,8 @@ The base is `/ng/`. Every component is lazy. "Access" is UI 001's catalogue chec
 
   UI 001's table-driven visibility test covers the new row. `nav.mailboxTemplates` is translated.
 
-The not-found screen for a mailbox or template address shows `NotFoundState` in place, with a link
-to the list (FR-004). A mailbox user at any of these addresses gets `NoAccessState` from the
+The not-found screen for a mailbox or template address is UI 002's `src/app/states/NotFoundPage.vue`
+with its back link to the list (FR-004). A mailbox user at any of these addresses gets `NoAccessState` from the
 catalogue (US1-AS11).
 
 ### Address parameters (`useListState` schemas)
@@ -293,7 +304,7 @@ API decides (research R16).
 | Custom attribute count | at most capability `customAttributeLimit` (100) after the change | `validation.tooMany` |
 | Rate limit | none, or an integer 1–2,147,483,647 with a frame of `second`, `minute`, `hour` or `day` | `validation.outOfRange` |
 | Template name | trimmed, 1–255 characters; uniqueness without regard to letter case is checked by the API | `validation.required`, `validation.tooLong` |
-| Bulk selection | 1 to capability `bulkLimit` items, from the current page | `mailboxes.bulk.limit` |
+| Bulk selection | 1 to capability `bulkLimit` items, from the current page; once the limit is reached, further selection is disabled with the limit stated, and "Select all" is unavailable when the page holds more mailboxes than the limit | `mailboxes.bulk.limit` |
 | Bulk deletion | the typed number equals the selection size | handled by `ConfirmDialog` `requireTyped` |
 
 ## 7. State machines
@@ -338,13 +349,17 @@ acknowledge ──checked──► form ──valid──► confirm ──yes�
 ```text
 idle ──select──► selecting(n ≤ bulkLimit) ──action──► confirming ──yes──► sending
   ▲  list-state reset ──► idle (announced)              │ no ──► selecting
-  │                                                     sending ──200──► summary (refused, outdated
-  │                                                     │           and failed stay selected;
-  │                                                     │           list refetched)
+  │                                                     sending ──200──► summary (refused and
+  │                                                     │           failed stay selected with
+  │                                                     │           refreshed versions; list refetched)
   │                                                     │ 403/422 ──► selecting (one message)
   └────────────── close summary ◄───────────────────────│ network ──► selecting ("outcome unknown";
                                                                   list refetched; no retry)
 ```
+
+After the refetch, the retained items take the `version` of their refreshed list entries, and items
+that are no longer on the page are dropped. `outdated` items are deselected, as the spec's
+clarification decides (research R12).
 
 ### 7.5 Create screen
 
@@ -378,17 +393,19 @@ without `unlimitedQuota` get "creation not possible" (§6).
 
 | Component | Area | Added by later features |
 |---|---|---|
-| `components/MailboxRowActions.vue` | menu of each list card and row: "Edit", "Remove" | UI 007: "Sign in as", "Open webmail as" |
-| `components/MailboxSectionNav.vue` plus the detail child routes in `routes.ts` | the section list | UI 004: "Send as"; UI 009: "Relayhost" |
-| `components/ManagedSettingsGroup.vue` | the FR-040 entries; each has `labelKey`, `value`, `managedByKey` and an optional `to` | UI 005 (tagged mail, TLS, temporary aliases, push), UI 006 (quarantine notification and category, rate limit), UI 009 (relayhost) fill `to` |
-| `components/MailboxBulkActions.vue` | the bulk action menu, from `bulk.ts` | UI 005 and UI 006: TLS and quarantine bulk actions |
+| `components/list/MailboxRowActions.vue` | menu of each list card and row: "Edit", "Remove" | UI 007: "Sign in as", "Open webmail as" |
+| `components/display/MailboxSectionNav.vue` plus the detail child routes in `routes.ts` | the section list | UI 004: "Send as"; UI 009: "Relayhost" |
+| `components/display/ManagedSettingsGroup.vue` | the FR-040 entries; each has `labelKey`, `value`, `managedByKey` and an optional `to` | UI 005 (tagged mail, TLS, temporary aliases, push), UI 006 (quarantine notification and category, rate limit), UI 009 (relayhost) fill `to` |
+| `components/list/MailboxBulkActions.vue` | the bulk action menu, from `bulk.ts` | UI 005 and UI 006: TLS and quarantine bulk actions |
 | `pages/MailboxDetailPage.vue` header | page actions | UI 007: "Sign in as" |
 
 Until a feature ships, nothing is rendered for it (conventions).
 
 ## 9. Translation scope added by UI 003
 
-**`src/i18n/enum-scope.json`** (research R2) gains these values:
+**`src/i18n/coverage.json`** (UI 002's registry, research R2) gains these values. Problem types are
+listed under `problemTypes` by name, the last path segment of the type URI, and compared with
+`knownProblemTypeValues` the same way:
 
 | Enumeration | Values |
 |---|---|
@@ -396,7 +413,7 @@ Until a feature ships, nothing is rendered for it (conventions).
 | `AuditTarget.type` | `mailbox`, `mailboxTemplate` |
 | `AuditFailureReason` | `outcomeUnknown`, `partiallyCompleted`, plus `attributeNotPermitted`, `versionOutdated`, `validationFailed`, `conflict`, `temporaryFailure`, `permissionDenied` and `notFound` unless UI 002 listed them |
 | `ValidationRuleCode` | `notMultipleOf`, `missingCharacterClass`, `conflictsWith`, `unchanged`, `immutable`, plus `outOfRange`, `notEligible`, `tooMany` and `notInList` unless already listed |
-| `KnownProblemType` | `address-in-use`, `mailbox-limit-reached`, `mailbox-not-renamable`, `mailbox-rename-incomplete`, `outcome-unknown`, `mailbox-template-name-exists`, `mailbox-template-protected`, `domain-alias-limit-reached`, `permission-flag-required`, plus `attribute-not-permitted` and `temporary-failure` unless already listed |
+| `problemTypes` | `address-in-use`, `mailbox-limit-reached`, `mailbox-not-renamable`, `mailbox-rename-incomplete`, `outcome-unknown`, `mailbox-template-name-exists`, `mailbox-template-protected`, `domain-alias-limit-reached`, `permission-flag-required`, plus `attribute-not-permitted` and `temporary-failure` unless already listed |
 
 **Closed enumerations added to `ENUM_NAMESPACES`** (`scripts/i18n/lib.mjs`, fully required),
 each under `enums.<name>.<value>`: `mailboxStatusValues`, `mailboxAuthSourceValues`,

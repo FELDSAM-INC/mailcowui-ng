@@ -30,12 +30,18 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     2. otherwise the mailcow-rest-v2 commit that merges the API 003 implementation, so that the
        smoke suite (which checks out the pinned commit, UI 001 R25) runs the implementation that
        matches the contract;
-    3. never "the latest commit" without that check.
+    3. while the implementation is not merged yet, the baseline itself, so that the feature can be
+       built against the mock. The pin then moves forward to the merge commit before the smoke
+       tasks (T131);
+    4. never "the latest commit" without the review below.
 
-    If the pin left by UI 002 already contains every operation of
-    [contracts/README.md](./contracts/README.md) unchanged, it is kept.
-  - **Review step of the bump**: `git diff <baseline>..<ref> -- api/` in mailcow-rest-v2 is read
-    for the 21 operations and the schemas this feature uses. A changed member is a plan change, not
+    Contract pins only move forward (`docs/conventions.md`, "Shared building blocks and canonical
+    names"). If the pin left by UI 002 or a later feature is newer than the baseline and contains
+    every operation of [contracts/README.md](./contracts/README.md), it is kept and never moved
+    back.
+  - **Review step**: whatever the pin, UI 003 checks its own operations against its baseline:
+    `git diff <baseline>..<pinned commit> -- api/` in mailcow-rest-v2 is read for the 21 operations
+    and the schemas this feature uses. A changed member is a plan change, not
     a silent fix.
   - A pin that contains API 003 necessarily contains the contracts of later API features: API 003's
     contract was merged after the plans of API 005, 007 and 009 and was revised after them. The UI
@@ -52,44 +58,34 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
 ### R2. Translation completeness with a full-tree pin (constitution IV, UI 001 R27)
 
-- **Decision**:
-  - UI 001's `i18n:check` rule 3 requires a key for every value of every contract enumeration. At
-    the baseline pin, the open enumerations hold the values of all API features: 161
-    `AuditEventType`, 73 `AuditTarget.type`, 49 `AuditFailureReason`, 46 `ValidationRuleCode` and
-    86 `KnownProblemType` values.
-  - `docs/conventions.md` says that each feature adds labels for its own audit event types and
-    that unknown ones show a generic label. UI 001 FR-074 and FR-076 already fall back to generic
-    messages. So rule 3 is scoped as follows:
-    - A committed file `src/i18n/enum-scope.json` lists, per **open** enumeration, the values the
-      app translates. The open enumerations are `AuditEventType`, `AuditTarget.type`,
-      `AuditFailureReason`, `ValidationRuleCode` and `KnownProblemType`.
-    - Every listed value needs keys in all three locales.
-    - A listed value that the pinned contract no longer has is an error, because it is stale.
-    - A contract value that is not listed produces a warning. At runtime it shows the generic
-      label: UI 001's unknown-value label for audit enumerations, `validation.invalid`, or
-      `problem.status.<status>` followed by `problem.generic`.
-    - **Closed** enumerations that the app renders as choices or values, such as `MailboxStatus`,
-      `MailboxAuthSource`, `BulkItemOutcome` and `MailboxRenameStep.step`, stay fully required.
-      They are added to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`, under `enums.<name>.<value>`
-      as UI 001's implementation names them.
-  - The mechanism changes `requiredKeys()` in `scripts/i18n/lib.mjs` and its caller
-    `scripts/i18n/check.mjs`, which UI 001 implemented (T021).
-  - The problem types come from `knownProblemTypeValues` from now on, instead of the bundle text
-    (UI 001 analysis, LOW item 3).
-  - Each UI feature appends the values of its API feature. UI 003 appends the values listed in
-    data-model §9.
-  - UI 002 bumps the pin first and meets the same problem. If UI 002 already scoped rule 3, T002
-    and T003 only add UI 003's cases and values. Otherwise they implement the scoping, test first.
-    T004 adds the labels.
-- **Rationale**: This follows the conventions literally, keeps "missing keys fail CI" for
-  everything the app renders by design, and avoids translating 300 labels of features that are not
-  built yet. No user-facing text is ever untranslated: unknown values show translated generic
-  labels.
-- **Alternatives considered**:
-  - Translating every enumeration value now: rejected. It means about 300 labels for unbuilt
-    features, it is against the conventions, and the labels drift as those features evolve.
-  - Deriving the scope from which feature introduced a value: the contract does not tag values by
-    feature, so this cannot be done mechanically.
+- **Decision**: UI 003 uses the coverage registry that UI 002 introduces (UI 002 research D2), as
+  `docs/conventions.md` ("Shared building blocks and canonical names") requires. UI 001 defines no
+  scoping mechanism of its own.
+  - UI 001's `i18n:check` rule 3 requires a key for every value of every checked contract
+    enumeration. At the baseline pin, the growing shared enumerations hold the values of all API
+    features: 161 `AuditEventType`, 73 `AuditTarget.type`, 49 `AuditFailureReason`, 46
+    `ValidationRuleCode` and 86 problem types.
+  - UI 002's committed manifest **`src/i18n/coverage.json`** lists, per growing shared enumeration
+    (`AuditEventType`, `AuditTarget.type`, `AuditFailureReason`, `AuthMethod`, `ValidationRuleCode`
+    and `problemTypes`), the values the app translates.
+    - A listed value without a key in any locale, or one that the pinned contract no longer has, is
+      an error.
+    - An unlisted contract value is a warning. At runtime it falls back to the generic label:
+      `auditLog.unknown`, `problem.status.<status>` and then `problem.generic`, or
+      `validation.invalid`.
+  - **UI 003 appends** the values of data-model §9 to `src/i18n/coverage.json` (T003).
+  - **Closed enumerations** that UI 003 introduces into the UI, such as `MailboxStatus`,
+    `MailboxAuthSource` and `MailboxRenameStep.step`, stay fully required, as UI 002 decided for
+    its own. They are added to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`, under
+    `enums.<name>.<value>` as UI 001's implementation names them (data-model §9).
+  - T004 adds the labels.
+- **Rationale**: The conventions name UI 002's registry as the canonical mechanism. It keeps
+  "missing keys fail CI" for everything the app renders by design, and it avoids translating about
+  300 labels of unbuilt features. No user-facing text is ever untranslated: unknown values show
+  translated generic labels.
+- **Alternatives considered**: A separate UI 003 registry (`enum-scope.json`, the first draft of
+  this plan): rejected by the conventions' canonical-names rule. Translating every value now:
+  rejected, because it is against the conventions.
 
 ### R3. Legacy translation reuse (constitution IV, FR-072)
 
@@ -102,7 +98,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     `remove`, `template`, `templates`, `force_pw_update`.
   - `add.*`: `mailbox_username`, `full_name`, `password`, `generate`, `tags`, `quota_mb` (as the
     quota label without "(MiB)": a new key, because the unit changes), `select_domain`.
-  - `edit.*`: `mailbox`, `mailbox_rename`, `mailbox_rename_warning`, `mailbox_rename_agree`,
+  - `edit.*`: `mailbox`, `full_name`, `mailbox_rename`, `mailbox_rename_warning`, `mailbox_rename_agree`,
     `mailbox_rename_title`, `custom_attributes`, `password_recovery_email`, `sogo_access`,
     `sogo_access_info`, `allowed_protocols`, `ratelimit`.
   - `acl.*`: `prohibited`, `protocol_access`, `sogo_access`, `ratelimit`, `unlimited_quota`, and
@@ -159,30 +155,35 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - the audit log screen;
     - the TailAdmin primitives (combobox, dialog, dropdown menu, switch, radio group, checkbox,
       collapsible, table, badge, alert).
-  - **From UI 002, as UI 001 R20 reserves them** (UI 002 is the first use):
-    - `src/shared/composables/useBulkSelection.ts` and `src/shared/components/BulkResultSummary.vue`;
-    - `ConfirmDialog`'s `requireTyped` option;
-    - the changed-value marking of `useVersionedSave` with `src/shared/components/EditableSection.vue`;
+  - **From UI 002**, with the canonical names of `docs/conventions.md` ("Shared building blocks
+    and canonical names") and UI 002's research. UI 003 imports them and never creates a renamed
+    copy:
+    - `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkActionBar.vue` and
+      `src/shared/components/BulkResultSummary.vue` (UI 002 D22);
+    - `src/shared/components/ConfirmDialog.vue` with `requireTyped` and rich content;
+    - `src/shared/components/EditableSection.vue` with the `changedSince` extension of
+      `useVersionedSave` (UI 002 D11);
     - `src/shared/components/HistoryLink.vue`, with the `targetType` and `targetId` filters on the
-      audit log screen.
-  - **Expected from UI 002, not reserved by UI 001**: UI 002 needs each of these for domains, and
-    UI 003 is the second feature that uses it.
+      audit log screen (UI 002 D26);
+    - `src/shared/composables/useLeaveGuard.ts` (`useLeaveGuard(shouldGuard, messageKey)`, UI 002
+      D21);
+    - `formatBytes(bytes, { exact })` in `src/i18n/format.ts` (UI 002 D12);
+    - `src/app/states/NotFoundPage.vue` with its optional back link (UI 002, FR-004);
+    - the coverage registry `src/i18n/coverage.json` (R2).
+  - **Promoted by UI 003 as their second use** (UI 002 D3 keeps them in its feature until then):
 
-    | Block | Path UI 003 uses | Task |
-    |---|---|---|
-    | Quota entry in MiB, GiB or TiB, exact representation | `src/shared/components/QuotaInput.vue`, `src/shared/utils/binary-units.ts` | T012, T016 |
-    | Binary size display in the locale | `formatBinarySize()` and `formatDuration()` in `src/i18n/format.ts` | T012, T016 |
-    | Usage bar with a text equivalent and thresholds | `src/shared/components/UsageBar.vue` | T013, T017 |
-    | Tag set editor (case-insensitive set, limit, suggestions) | `src/shared/components/TagSetInput.vue` | T013, T017 |
-    | Removable filter chips | `src/shared/components/ActiveFilterChips.vue` (promoted from `features/audit-log`, UI 001 R20) | T014, T018 |
-    | Sticky bulk action bar | `src/shared/components/BulkActionBar.vue` | T014, T018 |
-    | Unsaved-changes guard | `src/shared/composables/useUnsavedChangesGuard.ts` | T014, T018 |
-    | Resource "not found" state with a way back | `src/shared/components/NotFoundState.vue` | T014, T018 |
+    | Block | From (UI 002) | To | Task |
+    |---|---|---|---|
+    | Quota field (amount plus MiB, GiB or TiB, largest exact unit) | `src/features/domains/components/fields/QuotaField.vue` and the byte and unit conversion of `src/features/domains/quota.ts` | `src/shared/components/QuotaField.vue`, `src/shared/utils/quota-units.ts` | T012, T016 |
+    | Usage meter (text, bar, level as text) | `src/features/domains/components/list/UsageMeter.vue` and `usage.ts` | `src/shared/components/UsageMeter.vue`, with threshold props; UI 002's levels stay the default | T013, T017 |
+    | Tag set editor (case-insensitive set, limit, suggestions, filter mode) | `src/features/domains/components/fields/TagSetInput.vue` and `tag-set.ts` | `src/shared/components/TagSetInput.vue`, `src/shared/utils/tag-set.ts` | T013, T017 |
+    | Removable filter chips | `src/features/audit-log/components/ActiveFilterChips.vue` (UI 001 R20 promotion path) | `src/shared/components/ActiveFilterChips.vue` | T014, T018 |
 
-    Each task reuses the block when UI 002 put it at that path. Otherwise it moves it there from
-    `src/features/domains/`, updating UI 002's imports and keeping UI 002's tests green, or creates
-    it test first when UI 002 did not need it. The behaviour that UI 003 needs is stated in each
-    task. These are not new runtime dependencies.
+    Each promotion moves the files without changing their behaviour, updates UI 002's (or the audit
+    log's) imports and keeps their tests green. If UI 002 already promoted a block, the task only
+    adds UI 003's cases.
+  - **Added by UI 003**: `formatDuration(minutes)` in `src/i18n/format.ts`, for the garbage-area
+    retention (T012, T016).
   - **Kept in this feature, with a promotion path**:
     - `DomainPicker.vue` (searchable, infinite, single or multiple). UI 004 (aliases) is its second
       use, so it is exported from `@/features/mailboxes`, and UI 004 promotes it.
@@ -246,9 +247,11 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
 ### R6. Section forms, partial saves and outdated saves (FR-031 to FR-033, FR-044)
 
-- **Decision**: `useMailboxSection(section)` in `src/features/mailboxes/composables/` is used by
-  every editable section. It is built on UI 001's `useVersionedSave` with UI 002's changed-value
-  marking.
+- **Decision**: Each section page wraps its fields in UI 002's `EditableSection`. Entering the
+  section's route opens it for editing (the route sets UI 002's `edit` parameter), and
+  `EditableSection` provides Save, Cancel, the sticky action bar below `md` and the inline status.
+  `useMailboxSection(section)` in `src/features/mailboxes/composables/` supplies the mailbox
+  logic. It is built on UI 001's `useVersionedSave` with UI 002's `changedSince` extension.
   - **State**:
     - `base`: the section's fields of the mailbox as read, with its `etag`;
     - `draft`: the user's values;
@@ -267,7 +270,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - `password` is sent only when non-empty;
     - an empty patch disables Save.
   - **Save**: `PATCH /mailboxes/{address}` with `Content-Type: application/merge-patch+json` and
-    `If-Match: base.etag`. On `200`:
+    `If-Match: base.etag`. A save that carries a password calls the generated client directly,
+    never through `useMutation` (R8); the other saves use a TanStack mutation. On `200`:
     1. the response is written to the detail cache and patched into the cached list pages;
     2. lists are invalidated;
     3. `base` and `draft` are reset from the response, and the password is cleared;
@@ -281,17 +285,21 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     5. `base` becomes the reloaded mailbox with its new tag;
     6. a message says that someone else changed the mailbox.
 
-    The user reviews the marks and saves again. Nothing is retried, and there is no "overwrite
-    anyway" (conventions).
+    `EditableSection` offers UI 002's "Save again" and "Discard my changes". Nothing is retried,
+    and there is no "overwrite anyway" (conventions).
+  - **Deactivation**: saving the General section with the status changed to `inactive` or
+    `loginDisabled` asks one explicit confirmation that names the effect (FR-035), as the
+    conventions require for deactivating ("Confirmations").
   - **Other outcomes**:
     - `403 attribute-not-permitted`: each entry of `attributes` (a body path such as
       `protocolAccess.pop3`) gets a field error that names the missing permission from
-      `requiredFlags`. The identity and the mailbox are refetched, and the draft is kept (FR-043).
+      `requiredFlags`, and those fields turn read-only in the open form, as UI 002 D11 does. The
+      identity and the mailbox are refetched, and the other input is kept (FR-043).
     - `422`: field errors through `useProblemForm`.
     - `404`: the not-found state (FR-004).
     - `503`: a message, keeping the draft.
-  - **Leaving with unsaved changes** (FR-033): `useUnsavedChangesGuard` (R4) asks before the route
-    changes, and adds `beforeunload` while the draft is dirty.
+  - **Leaving with unsaved changes** (FR-033): UI 002's `useLeaveGuard(dirty, messageKey)` asks
+    before the route changes, and adds `beforeunload` while the draft is dirty.
 - **Rationale**:
   - Sending only changed members avoids `attribute-not-permitted` for values a domain administrator
     did not touch.
@@ -313,8 +321,11 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
     Defaults are left out of the address. Changing the search, filters, sort or size resets `page`
     and calls `onReset`, which clears the bulk selection with an announcement (FR-054).
-  - **Search**: the input commits 500 ms after the last keystroke with `router.replace` (FR-009).
-    Text is sent as typed, and the API matches it literally (edge case "special characters").
+  - **Search**: nothing is written while the user types. 500 ms after the last keystroke the search
+    is committed with `router.push` (FR-009), so each committed search is one history entry and
+    Back restores the previous list (US1-AS3). This deviates from UI 001 R20's "typing uses
+    replace" for this one parameter, because the spec's acceptance scenario requires it. Text is
+    sent as typed, and the API matches it literally (edge case "special characters").
   - **Filters panel** (`MailboxFilters.vue`): a Reka `Dialog`, a sheet over the list on phones
     (FR-071), opened by "Filters". It contains:
     - **domain**: `DomainPicker` in multiple mode over `listDomains` with `q`;
@@ -335,7 +346,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - Below `md`, `MailboxCard.vue` shows the address, display name, status badge, quota usage and
       message count. The whole card opens the mailbox, and a separate menu button holds the row
       actions.
-    - From `md` up, `MailboxTable.vue` has the default columns of FR-008.
+    - From `md` up, `MailboxTable.vue` has the default columns of FR-008. The default columns are
+      always shown; only the optional ones can be hidden or shown.
     - `ColumnChooser.vue` (a Reka `DropdownMenu` with checkbox items) shows or hides the optional
       columns: authentication source, last password change, the six protocols, TLS in and out,
       quarantine notification and category, created and modified.
@@ -375,7 +387,10 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - "Copy", which uses `src/shared/platform/clipboard.ts` only on that action. When the
       clipboard is refused, the text is selected with a message.
 
-    There is no confirmation field (clarification).
+    There is no confirmation field (clarification). The form has no field with
+    `autocomplete="username"`, so the browser cannot pair the password with an account. A browser
+    may still offer to save a generated password; the user can decline, and the app never stores
+    it. This is accepted.
   - **Generator** (`password/generate.ts`, pure, injectable random source):
     - **Length**: `L = max(16, policy.minLength)`, at most 255 (the contract's `maxLength`).
     - **Alphabets**, without look-alike characters:
@@ -416,14 +431,17 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     is read whenever a password form opens (FR-030). A `503` or another failure shows "The password
     rules are unavailable". The generator then applies the default rules, and submitting stays
     possible. A `422` on `password` refetches the policy (edge case "policy changed").
-  - **Pre-hashed notice**: a value that matches `^\{[A-Za-z0-9-]+\}` gets the notice that it will
-    be stored as a pre-hashed value without the policy check (FR-030). The contract names only
-    examples of the recognised prefixes. The notice is a hint, and the API decides (plan API gap
-    B).
+  - **Pre-hashed notice**: a value that matches `^\{[A-Za-z0-9-]+\}` gets the notice "If {scheme}
+    is a hash scheme the server recognises, the value is stored as a pre-hashed password without
+    the policy check" (FR-030). The contract names only examples of the recognised prefixes, so the
+    notice is worded as a hint for any prefix, and the API decides (plan API gap B). For the
+    documented prefixes this is the notice FR-030 asks for.
   - **Memory hygiene** (FR-074, SC-009):
     - The password exists only in the form's local `ref`, never in a query, route, store or log.
-    - Mutations that carry a password use `gcTime: 0` and call `reset()` when they settle, so the
-      TanStack mutation cache does not keep the variables.
+    - Requests that carry a password (`createMailbox`, and `updateMailbox` with `password`) never
+      go through TanStack Query: the page calls the generated client directly
+      (`docs/conventions.md`, "Secrets in requests or responses"). Only the non-secret response
+      is written to the query cache afterwards. No draft of these forms is ever saved.
     - The field is cleared after a successful submit and on unmount.
     - The problem mapping never echoes request values.
     - The page title never contains form values.
@@ -431,8 +449,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - The clarifications define the rules.
   - Rejection sampling is the standard way to get uniform indexes from CSPRNG bytes.
   - Evaluating with the API's documented definitions keeps the hints honest.
-  - TanStack keeps mutation variables until garbage collection, so `gcTime: 0` is needed for
-    FR-074.
+  - TanStack keeps mutation variables in its mutation cache, so a direct client call is the only
+    way to keep the password out of every cache (FR-074, conventions).
 - **Alternatives considered**:
   - A pronounceable generator, as legacy has: rejected. It ignores the required classes
     (clarification).
@@ -455,8 +473,9 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
       5. initial settings managed later: tagged-mail handling, quarantine notification and
          category, TLS in and out, rate limit.
     - The field components are shared with the template form (R14).
-  - **Templates**: `listMailboxTemplates` with `limit=1000&sort=name`, because templates number in
-    the tens. Default comes first, and it is preselected unless `?template=` names a valid one.
+  - **Templates**: `listMailboxTemplates` with `sort=name`, reading every page with the API's
+    default page size until `meta.total` is reached (templates number in the tens, so one or two
+    requests). Default comes first, and it is preselected unless `?template=` names a valid one.
     - The initial application fills the template-driven fields without asking.
     - A later template choice checks `touched`. When the user changed any template-driven field,
       `useConfirm` asks "Replace your changes with the values of {template}?".
@@ -498,6 +517,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
     Every template-driven field is sent only when it differs from the template's value. Protocol
     and permission objects carry only the members that differ, and they are left out when empty.
+  - **Sending**: the request carries the password, so the page calls the generated client
+    directly, never through `useMutation` (R8).
   - **After success**: the response (without `creationReport`) is written to the detail cache, and
     lists, tags and domains are invalidated. Then:
     - the route is replaced with the new detail screen;
@@ -535,7 +556,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 ### R10. Quota entry and usage display (FR-011, FR-034)
 
 - **Decision**:
-  - `MailboxQuotaField.vue` combines UI 002's `QuotaInput` (number plus MiB, GiB or TiB, whole MiB,
+  - `MailboxQuotaField.vue` combines the promoted `QuotaField` (number plus MiB, GiB or TiB, whole MiB,
     at least 1 MiB, stored value shown in the largest exact unit) with:
     - an "Unlimited" switch, shown only when the caller may give an unlimited quota:
       administrators; domain administrators with `unlimitedQuota`; or, in the general section, a
@@ -545,14 +566,14 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - a warning when the value is below `quotaUsed`: "Mail delivery may be refused once the mailbox
       is over quota". It does not block (edge case).
 
-    Typing 0 never means unlimited: `QuotaInput` refuses 0.
+    Typing 0 never means unlimited: `QuotaField` refuses 0.
   - `MailboxQuotaUsage.vue` shows usage:
     - an unlimited quota is the word "Unlimited", with no bar or percentage;
-    - otherwise UI 002's `UsageBar` with `percentUsed` from the API and thresholds of 75 %
-      (warning) and 90 % (critical);
-    - the percentage as text, formatted with `Intl.NumberFormat` style `percent` (in Czech and
-      Slovak this gives "92 %");
-    - used and total in binary units with `formatBinarySize`;
+    - otherwise the promoted `UsageMeter` (R4) with `percentUsed` from the API and thresholds of
+      75 % (warning) and 90 % (critical);
+    - the percentage as text, formatted with `Intl.NumberFormat` style `percent` ("92%" in en-gb,
+      "92 %" in cs-cz and sk-sk);
+    - used and total in binary units with `formatBytes`;
     - the state ("Nearly full", "Full") in visually hidden text, so it does not depend on colour.
 - **Rationale**: These are the clarified rules. The thresholds are the legacy list's. The API
   computes `percentUsed` and sorts unlimited mailboxes last.
@@ -586,18 +607,22 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 ### R12. Bulk actions (FR-053 to FR-057)
 
 - **Decision**:
-  - **Selection**: `useBulkSelection` (UI 002), keyed by address. Each item stores
-    `BulkTarget { id: address, version: etag }` from the list entry, so outdated items are refused
-    per item (conventions).
+  - **Selection**: UI 002's `useBulkSelection`, keyed by address. Each item stores
+    `BulkTarget { id: address, version }` from the list entry, so outdated items are refused per
+    item (conventions). `version` is the entry's `etag` without its surrounding quotes, as
+    `BulkTarget.version` requires and UI 002's `toBulkTargets()` does; `If-Match` headers send the
+    `etag` unchanged.
     - The selection holds the current page only. It clears with an announcement on every list-state
       reset.
-    - Its maximum is `MailboxCapabilities.bulkLimit` (at most 100).
-    - If an operator lowered the limit below the page size, "Select all" is disabled with "You can
-      select up to N mailboxes at once", and single selection stops at N.
-  - **Phones** (FR-057): a "Select" button enters selection mode. Each card shows a checkbox of at
-    least 44 × 44 px, and UI 002's `BulkActionBar` stays fixed at the bottom with the count, the
-    actions and "Cancel". On wide screens, the table's checkbox column and the "Select all" header
-    are used.
+    - `useBulkSelection` takes the limit from `MailboxCapabilities.bulkLimit` (at most 100). Once
+      the limit is reached, further selection is disabled with a message that states it
+      (`docs/conventions.md`). With the default limit and the largest page size, both 100, "Select
+      all" always fits. When an operator lowered the limit below the page size, "Select all" is
+      unavailable with the same message.
+  - **Selection mode** (FR-057, conventions "Bulk actions"): as in UI 002, a "Select" button enters
+    an explicit selection mode at every width. Cards get a checkbox of at least 44 × 44 px, the
+    table gets its checkbox column and the "Select all on this page" header, and UI 002's
+    `BulkActionBar` shows the count, the actions and "Cancel", fixed at the bottom below `md`.
   - **Actions** (`src/features/mailboxes/bulk.ts`): `activate`, `disableLogin`, `deactivate`,
     `delete`, and "Allow protocol…" and "Disallow protocol…", whose dialog has a radio group of the
     six protocols. Each definition carries its label, its effect text (the FR-035 texts), its
@@ -613,14 +638,19 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - **Result**: `BulkResultSummary` (UI 002) shows the counts of `summary` (done, not found,
     refused, outdated, failed) and one row per `results` item with the translated outcome and,
     for refused, outdated and failed items, the problem type's message. The summary is announced.
-    - Items that were refused, outdated or failed stay selected (conventions; the spec is silent
-      on `outdated`); the others are deselected.
-    - The list is invalidated, so retries use the new versions.
+    - Items that were refused or failed stay selected, and the others are deselected, as the
+      spec's recorded clarification decides. That includes `outdated` items: they changed since
+      the list was read, so the user reviews the refreshed entries and selects them again, as for
+      an outdated single save. The conventions would keep them selected; plan owner question 2
+      records this.
+    - The list is refetched. The retained items take the new `version` of their refreshed entries,
+      and items no longer on the page are dropped from the selection.
   - **Whole-request refusal**: `403 permission-flag-required`, `forbidden` or `422` (for example
     `tooMany` after the operator lowered the limit) gives one message naming the reason. The
     selection is kept.
-  - **No response** (network failure): "The outcome is unknown". The list is refetched, the request
-    is never repeated, and the selection is kept so the user can check it.
+  - **No response** (network failure): "The outcome is unknown". The list is refetched and the
+    request is never repeated. The selection is kept, with refreshed versions, so the user can
+    check it; items no longer on the page are dropped.
 - **Rationale**: These are API FR-054, FR-055 and FR-067, and the conventions' bulk rules. Typing
   the count guards the one action that can delete 100 mailboxes.
 - **Alternatives considered**: Selections across pages: rejected by the conventions. Fetching 100
@@ -636,14 +666,16 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     stable placeholder layout. The dialog then shows:
     - the address;
     - `mail.storageUsed` and `mail.messageCount`;
-    - "The mail moves to mailcow's garbage area and is purged after {retention}", where the
-      retention is `garbageRetentionMinutes` formatted as days or hours with
-      `Intl.NumberFormat` units;
+    - "The mail moves to the server's garbage area and is purged after {retention}", where the
+      retention is `garbageRetentionMinutes` formatted with `formatDuration` as days, hours or
+      minutes. No product name is hard-coded (constitution IV);
     - the aliases that will be deleted (`exclusiveAliases`: count plus up to 100 addresses in a
       scrollable list);
     - the aliases that keep their other recipients (`sharedAliases`: count);
-    - every non-zero `counts` entry and every `present` flag that is true, translated, with
-      passkeys named as passkeys.
+    - every kind of data the spec lists (FR-045), each with its number from `counts` or, for the
+      `present` flags, "yes" or "no". Kinds with a number above 0 come first. The kinds with
+      nothing stored are listed in one line ("Nothing stored for: …"), so the list stays short on a
+      phone and still names every kind. Passkeys are named as passkeys.
   - **Blockers**: when `canProceed` is false, the dialog names each blocker (the mail store or the
     shared store is unreachable), disables "Remove", and offers "Check again".
   - **Version**: the dialog compares `preview.etag` with the version the screen read (the list
@@ -704,8 +736,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - `404`: refresh.
     - `409 mailbox-template-protected`: an explanation.
   - **Errors**: `409 mailbox-template-name-exists` is shown on the name field (FR-060).
-  - **Domain administrators** see the list and the detail read-only. The create route shows
-    `NoAccessState` (FR-063).
+  - **Domain administrators** see the list and the detail read-only. The create route carries
+    UI 002's `meta.roles: ['admin']`, so `ShellLayout` renders `NoAccessState` for them (FR-063).
 - **Rationale**: Per-group saves follow the conventions' editing rule. Sending all values at
   creation makes the form honest (US7-AS2).
 - **Alternatives considered**: Sending only the name and relying on the server's defaults:
@@ -796,7 +828,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - **Rule parameters**:
     - `outOfRange` on a quota carries `max` in bytes and `limit` (`maxMailboxQuota`,
       `domainQuotaLeft`, `largestAllowedQuota`). It is rendered as "At most {max}" with
-      `formatBinarySize` and a limit-specific phrase.
+      `formatBytes` and a limit-specific phrase.
     - `missingCharacterClass` uses `characterClass` (`letter`, `digit`, `special`,
       `lowerAndUpper`).
     - `tooShort` on `password` names the policy minimum.
@@ -805,7 +837,8 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - `notEligible` uses `kind: aliasDomain`.
   - **Field paths**: errors map to fields by their dot path: `protocolAccess.pop3`,
     `userPermissions.syncjobs`, `tags.3`, `customAttributes.<name>`, `rateLimit.value`,
-    `newLocalPart`, `name`.
+    `newLocalPart`, `name`. For `customAttributes.`, everything after the first dot is the
+    attribute name, because attribute names may contain dots.
   - **Audit log labels**: UI 003 adds labels on UI 001's audit log screen for the event types
     `mailboxCreation`, `mailboxUpdate`, `mailboxDeletion`, `mailboxRename`,
     `mailboxTemplateCreation`, `mailboxTemplateUpdate` and `mailboxTemplateDeletion`, the target
@@ -858,8 +891,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - **Into earlier screens** (UI 003 adds them when implemented):
     - UI 002 domain detail, in its designated action area: "Mailboxes" →
       `/mailboxes?domain=<name>` and "Add mailbox" → `/mailboxes/new?domain=<name>` (FR-005).
-      "Add mailbox" is shown only when the domain has mailboxes left or the caller is an
-      administrator.
+      The create screen itself says when the domain has no mailboxes left.
     - UI 002 domain list: the mailbox usage pair of each card and row links to
       `/mailboxes?domain=<name>`.
     - UI 002's "delete unavailable: N mailboxes must be removed first" text links to the same
@@ -888,7 +920,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 - **Decision**:
   - **Handlers** (UI 001 R22), each wrapped by the contract validator:
     - one module per operation group, so that stories never edit the same handler file:
-      `mailboxes-read.ts` (list, get, capabilities, tags), `mailboxes-write.ts` (create, update),
+      `mailboxes-read.ts` (list, get, capabilities, tags), `mailbox-update.ts`, `mailbox-create.ts`,
       `mailbox-deletion.ts` (preview, delete), `mailbox-bulk.ts`, `mailbox-rename.ts`,
       `mailbox-templates.ts` (5 operations) and `password-policy.ts`, all in `tests/mocks/handlers/`.
 
@@ -911,7 +943,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
   - **Failure injection**: by operation, and by target for bulk. It covers `503` per dependency,
     `504`, rename `500 incomplete` and `503` with steps.
   - **Scenarios** (`tests/mocks/scenarios/mailboxes/<story>.ts`, each registered in the index):
-    - `mailboxes-10k`: 10,000 mailboxes in 500 domains, generated deterministically from a seeded
+    - `admin-mailboxes-10k`: 10,000 mailboxes in 500 domains, generated deterministically from a seeded
       generator when the scenario is created (US1's independent test, SC-001, SC-003);
     - the per-story scenarios listed in tasks.md.
   - **Budgets**:

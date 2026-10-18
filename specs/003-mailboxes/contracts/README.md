@@ -24,8 +24,11 @@ git -C ../mailcow-rest-v2 diff 32079252d55797d3da4e58ae661e9fb91c51c6f9..<tag-or
 npm run typecheck && npm run test:unit && npm run i18n:check && npm run test:e2e
 ```
 
-If the pin left by UI 002 already contains every operation below unchanged, it is kept. A changed
-member of a used operation or schema is a plan change. It is never fixed silently.
+Pins only move forward (`docs/conventions.md`). If the pin left by UI 002 or a later feature is
+newer and contains every operation below, it is kept. Before API 003's implementation is merged,
+T001 may pin the baseline itself; the pin then moves forward to the implementation's merge commit
+before the smoke tasks. Whatever the pin, UI 003 checks its own operations against the baseline. A
+changed member of a used operation or schema is a plan change. It is never fixed silently.
 
 At the baseline, `KnownProblemType` is listed under `components.schemas`, so the generated client
 exports `knownProblemTypeValues`. This closes UI 001's API gap 5. The translation check switches to
@@ -92,7 +95,7 @@ documents for these operations.
 | `domain-alias-limit-reached` | 409 | `renameMailbox` | "The domain's alias limit is reached ({count} of {limit})", suggesting a rename without keeping the old address (US8-AS6). |
 | `mailbox-template-name-exists` | 409 | `createMailboxTemplate`, `updateMailboxTemplate` | Error on the name field (FR-060). |
 | `mailbox-template-protected` | 409 | `updateMailboxTemplate` (rename), `deleteMailboxTemplate` | "The Default template cannot be renamed or deleted". The controls are hidden for `isDefault`, so this is only a fallback. |
-| `temporary-failure` | 503 | `listMailboxes`, `getMailbox`, `createMailbox`, `updateMailbox`, `deleteMailbox`, `renameMailbox`, `getPasswordPolicy` | By `dependency`: `mailStore`, `webmail`, `sharedStore`, or a generic text for unknown values. Delete: "not deleted, nothing removed, try again later" (FR-047). Rename: "keeps its old address", with `steps` collapsed. Policy: "the rules are unavailable" (FR-030). Lists and reads: the error state with retry. `Retry-After` is shown as a time when present. |
+| `temporary-failure` | 503 | `listMailboxes`, `getMailbox`, `createMailbox`, `updateMailbox`, `deleteMailbox`, `renameMailbox`, `getPasswordPolicy` | By `dependency`: `mailStore`, `webmail`, `sharedStore`, or a generic text for unknown values. Delete: "not deleted, nothing removed, try again later" (FR-047). Rename: "keeps its old address", with `steps` collapsed. Policy: "the rules are unavailable" (FR-030). Lists and reads: the error state with retry. `Retry-After` is a required header of these responses, so every mocked `503` sends it; the UI shows it as a time. |
 | `outcome-unknown` | 504 | `deleteMailbox`, `renameMailbox` | Delete (`step: mailStoreCleanup`): "outcome unknown; no records were removed; the deletion can be retried later". Rename: the persistent report naming the unknown step (research R15). |
 | `mailbox-rename-incomplete` | 500 | `renameMailbox` | The persistent report with both addresses and every step's translated outcome, advising to contact the server operator; stays until dismissed (FR-052). |
 | `about:blank` 500 | 500 | any | The generic message with the request ID (UI 001 FR-077). |

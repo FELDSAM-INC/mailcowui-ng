@@ -39,8 +39,9 @@ in [research.md](./research.md).
   - the detail renders at once from the list entry;
   - the capabilities read supplies every limit and server setting, and nothing is hard-coded
     (R16).
-- **Editing**: one composable, `useMailboxSection`, over UI 001's `useVersionedSave` and UI 002's
-  changed-value marking. It sends JSON Merge Patches with only the changed members. An outdated
+- **Editing**: each section page wraps its fields in UI 002's `EditableSection`, driven by one
+  composable, `useMailboxSection`, over UI 001's `useVersionedSave` and UI 002's `changedSince`
+  marking. It sends JSON Merge Patches with only the changed members. An outdated
   save keeps the user's input and marks what changed (R6).
 - **Passwords**:
   - the generator uses `crypto.getRandomValues` with rejection sampling, at least 16 characters,
@@ -49,10 +50,12 @@ in [research.md](./research.md).
   - passwords never reach a cache, storage, the address or a log (R8).
 - **Reuse** (R4):
   - UI 001's list state, dialogs, problem forms, announcer and storage wrapper;
-  - UI 002's bulk selection, result summary, typed confirmation, section editing and History link;
-  - UI 002's quota input, usage bar, tag editor, filter chips, bulk bar, unsaved-changes guard and
-    not-found state. UI 003 reuses each at a fixed shared path, or promotes it there as the second
-    use.
+  - UI 002's shared blocks under their canonical names (`docs/conventions.md`, "Shared building
+    blocks and canonical names"): `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`,
+    `ConfirmDialog` with `requireTyped`, `EditableSection`, `HistoryLink`, `useLeaveGuard`,
+    `formatBytes`, `NotFoundPage` with its back link, and the `src/i18n/coverage.json` registry;
+  - promoted from UI 002's feature as their second use: `QuotaField`, `UsageMeter` and
+    `TagSetInput`, plus the audit log's `ActiveFilterChips`.
 - **Tests**:
   - Vitest units for every pure module (`patch`, `create-request`, `quota`, `acl`, `validation`,
     `problems`, `bulk`, `deletion`, the generator and the policy rules);
@@ -120,12 +123,12 @@ Safari and Chrome for Android, served by the `ng-mailcow` image under `/ng/`.
 | Principle | Gate | Status |
 |---|---|---|
 | I. The API contract is the only interface | Only the 21 listed operations are used, through the generated client. The pin is bumped deliberately with the bump script and a review of the used operations (R1). No hand-written API types: form and view models derive from generated types, and list parameters alias generated operation types (data-model §1–§2). The capabilities read replaces the spec's former gaps. The remaining gaps are reported to mailcow-rest-v2 and never worked around: untyped audit details are rendered generically (R17). Errors are handled from `type`, `errors`, `requiredFlags`, `holder`, `count`/`limit`, `dependency` and `steps` ([contracts/README.md](./contracts/README.md)). | PASS |
-| II. Mobile-first | Every screen is designed and tested at 360 px first. Lists are cards below `md` and tables from `md` up. Filters and sorting sit in a panel over the list. Bulk selection on phones uses an explicit mode, 44 × 44 targets and a sticky bar. The long create form is one screen with collapsed groups, not a modal or wizard (clarification). Detail editing is split into sections. Destructive actions are confirmed with their impact: the deletion preview, the typed count for bulk deletion, and the template deletion's effect. Loading, empty and error states use `ListState` and `NotFoundState`. | PASS |
+| II. Mobile-first | Every screen is designed and tested at 360 px first. Lists are cards below `md` and tables from `md` up. Filters and sorting sit in a panel over the list. Bulk selection uses an explicit selection mode at every width, 44 × 44 targets and, on phones, a sticky bar. The long create form is one screen with collapsed groups, not a modal or wizard (clarification). Detail editing is split into sections. Destructive and high-risk actions are confirmed with their impact: the deletion preview, the typed count for bulk deletion, the template deletion's effect, and one confirmation for deactivating a mailbox. Loading, empty and error states use `ListState` and UI 002's `NotFoundPage`. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe runs on every screen, dialog and state in both themes. Sortable headers expose `aria-sort`. Usage bars, statuses, policy marks and bulk outcomes have text equivalents. Dialogs trap and return focus, and the delete dialog focuses "Cancel". The error summary receives the focus. Announcements use UI 001's live regions. A keyboard-only pass is part of Polish (T125). | PASS |
 | IV. i18n and branding | All text is in en-gb, cs-cz and sk-sk. Legacy keys are reused where the meaning is unchanged (R3), with the Slovak gaps supplied by hand. The product name for the built-in source and the `pwReset` label comes from `GET /public-config`. Sizes use binary units, and numbers and dates use the locale. Translation completeness is enforced. The scoping of open enumerations (R2) follows `docs/conventions.md`, and unknown values always show translated generic labels. | PASS |
-| V. Security in the browser | The column choice is the only new storage key. It is a convenience and is allowlisted (data-model §4). Passwords live only in component memory: password mutations use `gcTime: 0`, fields are cleared after submit and on unmount, and nothing goes into the address, title or logs (R8, SC-009 test T126). API text (names, tags, attributes, template names) is rendered as text, with no `v-html`. Gates are a convenience, and every refusal is handled (R11). | PASS |
+| V. Security in the browser | The column choice is the only new storage key. It is a convenience and is allowlisted (data-model §4). Passwords live only in component state: requests that carry one call the generated client directly and never go through TanStack Query (conventions "Secrets in requests or responses"), no draft of these forms is saved, fields are cleared after submit and on unmount, and nothing goes into the address, title or logs (R8, SC-009 test T126). API text (names, tags, attributes, template names) is rendered as text, with no `v-html`. Gates are a convenience, and every refusal is handled (R11). | PASS |
 | VI. Test-first | `tasks.md` puts tests before implementation in every phase. Every pure module has unit tests. Every acceptance scenario has an end-to-end test on both viewports against the contract-validated mock. SC-008's 10,000 passwords per policy are a unit test. Smoke tests cover each story against the real API. | PASS |
-| VII. Performance budgets | Lazy route chunks. No new dependency. A third Lighthouse collection on `/ng/mailboxes` with 10,000 mailboxes (R20). Queries are cached with explicit invalidation, and the detail reuses the list entry (FR-017). There are no automatic refetches (UI 001 R9). | PASS |
+| VII. Performance budgets | Lazy route chunks. No new dependency. A third Lighthouse collection on `/ng/mailboxes` with 10,000 mailboxes (R20). Queries are cached with explicit invalidation, and the detail reuses the list entry (FR-017). There are no automatic refetches and no polling: no query has a `refetchInterval` (UI 001 R9, conventions "Polling"). | PASS |
 | VIII. Simplicity | No new runtime dependency. Shared blocks are reused or promoted only at their second use (R4). The domain picker and the password field stay in the feature, with promotion paths. Later features extend named components instead of a plug-in registry (R19). | PASS |
 | Technology constraints | Only the stack of the constitution. Native `<select>` for selects. Reka `Combobox` without its viewport for the domain picker. No new TailAdmin primitive: UI 003 uses only those UI 001 copied (alert, badge, checkbox, collapsible, combobox, dialog, dropdown menu, radio group, switch, table). | PASS |
 | Workflow and gates | It depends on UI 001, UI 002 and API 003 (below). Every merge gate of UI 001 R28 applies. Commits go to `main`. | PASS |
@@ -139,17 +142,25 @@ introduce no violation. These decisions touched gates:
 - History opens the audit log screen instead of an embedded list (conventions, VIII).
 - External authentication sources are offered from the capabilities read, which FR-024 allows once
   the contract reports them (I).
-- `gcTime: 0` for password mutations (V).
+- Password requests call the client directly and never pass through the query cache (V,
+  conventions "Secrets").
+- `outdated` bulk items are deselected, as the spec's recorded clarification decides, while the
+  conventions would keep them selected (owner question 2).
+- Deactivating one mailbox, or disallowing its login, asks one confirmation (conventions
+  "Confirmations"); the spec is aligned.
+- Shared blocks use UI 002's canonical names; nothing is created under a second name.
 
 ## Dependencies
 
-UI 003 is implemented **after UI 001, UI 002 and the API 003 implementation**.
+UI 003 is implemented **after UI 001 and UI 002**. It is built and tested against the mock from the
+pinned API 003 contract. The smoke tasks, and the final pin, need the API 003 implementation merged
+in mailcow-rest-v2 (research R1).
 
 | Dependency | What UI 003 needs from it |
 |---|---|
 | **UI 001** (planned, `specs/001-sign-in-app-shell/`) | The whole foundation: the generated client behind `@/api`, query client and key factory, router, guards, catalogue and `NoAccessState`, the shell, i18n with `legacy-map.json` and `i18n:check`, `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `useAnnouncer`, `DateTime`, `RelativeTime`, `PageHeader`, `useMediaQuery`, the clipboard and storage wrappers, the audit log screen, the mock server, the validator and the end-to-end fixtures, the smoke harness and the Lighthouse runner. |
-| **UI 002** (specified, planned in parallel) | The domain queries, with `listDomains` and `getDomain` exported from `@/features/domains`, and the domain mock handlers and factory. The reserved blocks of UI 001 R20: `useBulkSelection`, `BulkResultSummary`, `ConfirmDialog` `requireTyped`, the changed-value marking with `EditableSection`, and `HistoryLink` with the audit target filters. The expected blocks of research R4: quota input and binary units, usage bar, tag set editor, filter chips, bulk bar, unsaved-changes guard and not-found state. Each has a Phase 2 task that reuses it, or moves it to the shared path. UI 002's domain detail page and domain list, where UI 003 adds its entry points (T124). |
-| **API 003** (mailcow-rest-v2) | Its merged implementation, so that the smoke suite runs against it. The contract is already merged (baseline `3207925`). The UI can be built against the mock before the implementation is merged. |
+| **UI 002** (planned, `specs/002-domains/`) | The domain queries, with `listDomains` and `getDomain` exported from `@/features/domains`, and the domain mock handlers and factory. Its shared blocks, under the canonical names of `docs/conventions.md`: `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`, `EditableSection` with the `changedSince` extension of `useVersionedSave`, `HistoryLink` with the audit target filters, `useLeaveGuard`, `formatBytes`, `NotFoundPage` with its back link, `meta.roles`, and the coverage registry `src/i18n/coverage.json`. Its feature-local `QuotaField`, `UsageMeter` and `TagSetInput`, which UI 003 promotes to `src/shared/` (T016, T017). UI 002's domain detail page and domain list, where UI 003 adds its entry points (T124). |
+| **API 003** (mailcow-rest-v2) | The contract is merged (baseline `3207925`), so T001 can pin it and the UI can be built against the mock. The implementation must be merged before the smoke tasks, and T001's pin then moves forward to the merge commit (pins only move forward). |
 | **API 002, API 001** | Implemented before API 003 (API plan). The domains, identity, branding and audit target filters. |
 
 ## API dependency and gaps
@@ -196,13 +207,18 @@ and the spec's API Dependency section is aligned:
   - **Until then**: a new template's form starts with the documented upstream values, and the
     create request sends every value explicitly, so the stored template equals what the form showed
     (R14).
+- **Observation, not blocking**: `BulkTarget.version` is "the value of the object's ETag, without
+  quotes", while `Mailbox.etag` is "equal to the `ETag` header", which carries quotes. The UI strips
+  the quotes for bulk targets, as UI 002 does (R12). **Proposed**: state the quoting of `etag`
+  members in the contract.
 - **Observation, not blocking**: the mailbox representation does not say whether a password hash is
   stored. The sign-in section therefore shows the hint "required if the mailbox has no password
   stored" whenever the source is switched to the built-in one (FR-036). The API's `required`
   refusal names the field.
 
-**Coordination with UI 002**: the translation-scope rule (R2) and the reserved shared blocks
-(R4). Whichever of UI 002 and UI 003 is implemented first builds them. UI 002 is scheduled first.
+**Coordination with UI 002**: UI 002's plan defines the translation coverage registry and the shared
+blocks, and `docs/conventions.md` makes its names canonical. UI 003 imports them, and promotes only
+the blocks UI 002 keeps inside its feature (R4).
 
 ## Owner-level questions (defaults applied)
 
@@ -212,10 +228,19 @@ and the spec's API Dependency section is aligned:
    - **Default**: the page size lives in the address only, so links, Back and reloads keep it. The
      column choice is still remembered in the browser. The spec text is aligned.
    - If the owner wants a remembered default page size, the conventions must change first.
+2. **Outdated items after a bulk action**: the spec's recorded clarification keeps only refused and
+   failed mailboxes selected and deselects "the others". The conventions and UI 001 R20 would also
+   keep `outdated` ones selected.
+   - **Default**: the clarification governs, so `outdated` mailboxes are deselected. They changed
+     since the list was read, so the user reviews the refreshed entries before selecting them
+     again, as for an outdated single save.
+   - If the owner prefers the conventions' rule, only `retainOutcomes` in `useMailboxBulk` and the
+     spec's clarification change.
 
 ## Parity notes added by the plan
 
-The spec's parity tables are complete. The plan changes or adds:
+The spec's parity tables are complete. The plan changes or adds the following, and the analysis
+applied them to the spec's tables:
 
 1. **SOGo access hidden when webmail is disabled**: now **Matched**, because the capabilities report
    `groupwareEnabled`. It was "Blocked by API gap 2".
@@ -259,15 +284,17 @@ src/api/query/keys.ts                                             ~ mailboxes, m
 src/app/navigation/catalogue.ts                                   ~ mailboxes available; + mailboxTemplates row
 src/app/router/routes.ts                                          ~ registers the feature's routes
 src/shared/platform/storage.ts                                    ~ + mailcowui-ng.mailboxes.columns
-src/shared/components/{QuotaInput,UsageBar,TagSetInput,ActiveFilterChips,
-                       BulkActionBar,NotFoundState}.vue           reused from UI 002, or promoted/created (T016–T018)
-src/shared/composables/useUnsavedChangesGuard.ts                  reused or created (T018)
-src/shared/utils/binary-units.ts                                  reused or created (T016)
+src/shared/components/{QuotaField,UsageMeter,TagSetInput}.vue    promoted from src/features/domains (T016, T017)
+src/shared/components/ActiveFilterChips.vue                       promoted from src/features/audit-log (T018)
+src/shared/utils/{quota-units,tag-set}.ts                         promoted from src/features/domains (T016, T017)
+src/shared/{components,composables}/…                             UI 002's blocks, imported only: BulkActionBar,
+                                                                  BulkResultSummary, ConfirmDialog, EditableSection,
+                                                                  HistoryLink, useBulkSelection, useLeaveGuard
 src/shared/validation/limits.ts                                   ~ + mailbox schema limits (T020–T021)
-src/i18n/format.ts                                                ~ formatBinarySize, formatDuration if missing (T016)
-src/i18n/enum-scope.json                                          + or extended (T003)
+src/i18n/format.ts                                                ~ + formatDuration (formatBytes is UI 002's) (T016)
+src/i18n/coverage.json                                            ~ UI 003's values appended (T003)
 src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  src/i18n/legacy-map.json  src/i18n/legacy/*.json   ~
-scripts/i18n/{lib,check}.mjs                                      ~ scoped open enumerations (T003, if UI 002 did not)
+scripts/i18n/lib.mjs                                              ~ UI 003's closed enumerations in ENUM_NAMESPACES (T003)
 scripts/run-lhci.mjs  lighthouserc.cjs                            ~ third collection /ng/mailboxes (T127)
 src/features/domains/…                                            ~ entry points (T124); exports used by the picker (T045)
 src/features/audit-log/…                                          ~ detail-key labels (T122); ActiveFilterChips promoted (T018)
@@ -304,7 +331,7 @@ tests/
 ├── unit/features/mailboxes/…   # mirrors src/features/mailboxes (pure modules, composables, components)
 ├── unit/shared/…               # promoted blocks (T012–T015)
 ├── unit/scripts/i18n-tools.spec.ts                               ~ scoping rule (T002)
-├── mocks/handlers/{mailboxes-read,mailboxes-write,mailbox-deletion,mailbox-bulk,mailbox-rename,
+├── mocks/handlers/{mailboxes-read,mailbox-update,mailbox-create,mailbox-deletion,mailbox-bulk,mailbox-rename,
 │                   mailbox-templates,password-policy}.ts           +
 ├── mocks/handlers/index.ts                                       ~ registration
 ├── mocks/factories/{mailbox,mailbox-template,password-policy}.ts     +

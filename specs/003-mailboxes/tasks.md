@@ -52,12 +52,14 @@ new catalogue entry (research R1, R2; data-model §4, §5).
 
 - [ ] T001 Bump the contract (research R1, [contracts/README.md](./contracts/README.md)):
   - Run `scripts/contract/bump.sh <ref>`, where `<ref>` is API 003's release tag or the
-    mailcow-rest-v2 commit that merges the API 003 implementation. Skip the bump if
-    `contract/VERSION.json` already pins a commit that contains every operation of the contracts
-    README.
-  - Review `git -C ../mailcow-rest-v2 diff 32079252d55797d3da4e58ae661e9fb91c51c6f9..<ref> -- api/`
-    for the 21 operations and their schemas. A changed member stops the task and is reported as a
-    plan change.
+    mailcow-rest-v2 commit that merges the API 003 implementation. While that implementation is not
+    merged, `<ref>` is the baseline `32079252d55797d3da4e58ae661e9fb91c51c6f9`, and T131 moves the
+    pin forward before the smoke run. Pins only move forward: skip the bump if
+    `contract/VERSION.json` already pins a newer commit that contains every operation of the
+    contracts README.
+  - Whatever the pin, review `git -C ../mailcow-rest-v2 diff
+    32079252d55797d3da4e58ae661e9fb91c51c6f9..<pinned commit> -- api/` for the 21 operations and
+    their schemas. A changed member stops the task and is reported as a plan change.
   - The bump writes `contract/openapi.yaml`, `contract/openapi.json`, `contract/VERSION.json` and
     `src/api/generated/schema.ts`.
   - Confirm that `knownProblemTypeValues`, `mailboxStatusValues` and
@@ -65,22 +67,19 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   - Record the pinned ref in the "Implementation pin" row of `specs/003-mailboxes/contracts/README.md`.
   - `npm run typecheck`, `npm run test:unit` and `npm run test:e2e` must pass on the existing
     features.
-- [ ] T002 [P] Extend `tests/unit/scripts/i18n-tools.spec.ts` for the scoped open enumerations
-  (research R2). If UI 002 already added the scoping, add only the UI 003 cases. Cover:
-  - for `AuditEventType`, `AuditTarget.type`, `AuditFailureReason`, `ValidationRuleCode` and
-    `KnownProblemType`, keys are required only for the values listed in `src/i18n/enum-scope.json`;
-  - a listed value missing from the contract is an error;
-  - a contract value outside the scope is a warning;
-  - the closed enumerations of data-model §9 added to `ENUM_NAMESPACES` are fully required under
-    `enums.<name>.<value>`;
-  - problem types come from `knownProblemTypeValues`.
+- [ ] T002 [P] Write `tests/unit/i18n/coverage-mailboxes.spec.ts` (research R2). It reads UI 002's
+  `src/i18n/coverage.json` and `scripts/i18n/lib.mjs`, and asserts:
+  - the manifest lists every value of data-model §9 under `AuditEventType`, `AuditTarget.type`,
+    `AuditFailureReason`, `ValidationRuleCode` and `problemTypes` (problem types by name, the last
+    path segment);
+  - `ENUM_NAMESPACES` contains every closed enumeration of data-model §9, under
+    `enums.<name>.<value>`.
 
-  The tests must fail.
-- [ ] T003 Implement the scoping in `scripts/i18n/lib.mjs` (`requiredKeys()`, `ENUM_NAMESPACES`) and
-  `scripts/i18n/check.mjs`, so that T002 passes.
-  - Create `src/i18n/enum-scope.json`, or extend UI 002's file. It holds UI 001's values (every
-    value UI 001 labels), UI 002's values, and UI 003's values from data-model §9.
-  - Add the closed enumerations of data-model §9 to `ENUM_NAMESPACES`.
+  The test must fail.
+- [ ] T003 Append UI 003's values of data-model §9 to `src/i18n/coverage.json`, and add UI 003's
+  closed enumerations to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`, so that T002 passes. UI 002's
+  registry mechanism is reused unchanged (`docs/conventions.md`, "Shared building blocks and
+  canonical names"); no second registry is created.
 - [ ] T004 Add the enumeration labels that T003 makes required to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   - `enums.mailboxStatus.*`: map `mailbox.active`, `mailbox.disable_login` and `mailbox.inactive`
     through `src/i18n/legacy-map.json`;
@@ -95,7 +94,7 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   - `enums.bulkItemOutcome.*`, unless UI 002 added it;
   - the scoped open values: `enums.auditEventType.mailbox*`, `enums.auditTargetType.mailbox` and
     `.mailboxTemplate`, `enums.auditFailureReason.*`;
-  - the `validation.*` codes and `problem.*` names of data-model §9.
+  - the `validation.*` codes and the `problem.*` names of data-model §9 (`problemTypes`).
 
   Run `npm run i18n:import`. `npm run i18n:check` must pass.
 - [ ] T005 [P] Extend `tests/unit/shared/platform/storage.spec.ts`. It covers:
@@ -117,7 +116,8 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   - its placeholder route exists while its status is `placeholder`.
 
   The test must fail.
-- [ ] T008 Add the `mailboxTemplates` row to `src/app/navigation/catalogue.ts` with
+- [ ] T008 After T004 (both edit the message files), add the `mailboxTemplates` row to
+  `src/app/navigation/catalogue.ts` with
   `status: 'placeholder'`, so that T007 passes. Add an icon to `src/shared/icons/` (Lucide
   "layout-template", recorded in `THIRD_PARTY_NOTICES.md`) and `nav.mailboxTemplates` to
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, mapped to `mailbox.mailbox_templates` through
@@ -169,18 +169,42 @@ existing tests pass.
   - `listMailboxTemplates` and `getMailboxTemplate` support `q`, sort and paging, and omit
     overlapping permissions for domain administrators;
   - `getPasswordPolicy` returns the policy and supports a `503` injection;
+  - `updateMailbox`:
+    - JSON Merge Patch: nested `protocolAccess` and `userPermissions` change only the members
+      sent; `tags` is replaced as a case-insensitive set, keeping the first spelling;
+      `customAttributes` adds or replaces names with a value and removes names sent as `null`;
+    - `If-Match` with `412`;
+    - `immutable` for read-only members;
+    - `outOfRange` with `limit: largestAllowedQuota`, while a quota below the usage is accepted;
+    - a status change also changes the own alias;
+    - the password rules (`tooShort`, `missingCharacterClass`), pre-hashed values stored as given,
+      and `passwordChangedAt` updated;
+    - with an external source, a password is refused (`conflictsWith`) unless the same request
+      switches to `mailcow`; switching without a password when none is stored gives `required`;
+    - `recoveryEmail` `invalidFormat` or `conflictsWith`;
+    - `attribute-not-permitted` with `attributes` and `requiredFlags`, where a value equal to the
+      current one is not a choice and an unlimited quota is allowed when the mailbox already has
+      one; omitted user permissions of domain administrators cannot be changed;
+    - `tooMany` on `tags` above `taggingLimit` unless the set shrinks, and the custom-attribute
+      limits and `invalidFormat: attributeName`;
+  - the control endpoint `PATCH /__mock/scenarios/:id` accepts `{ mailboxChange: { address, patch } }`,
+    which changes a mailbox "elsewhere" and its `etag`, and `{ mailboxDelete: address }`;
+  - every injected `503` carries the required `Retry-After` header;
   - every response passes the validator.
 
   The test must fail.
 - [ ] T011 Implement the mock base so that T010 passes:
   - Extend `tests/mocks/scenarios/state.ts` with `mailboxes`, `mailboxTemplates`, `passwordPolicy`,
-    `mailboxCapabilities` and the per-target failure injection (data-model §3 of UI 001's
-    scenario model).
+    `mailboxCapabilities` and the per-target failure injection (the scenario model of UI 001 R22),
+    and the `mailboxChange` and `mailboxDelete` control changes, applied through UI 001's
+    `PATCH /__mock/scenarios/:id` in `tests/mocks/server.ts`.
   - `tests/mocks/handlers/mailboxes-read.ts`: `listMailboxes`, `getMailbox`,
     `getMailboxCapabilities` and `listMailboxTags`.
   - `tests/mocks/handlers/mailbox-templates.ts`: `listMailboxTemplates` and `getMailboxTemplate`;
     US7 adds the writes.
   - `tests/mocks/handlers/password-policy.ts`: `getPasswordPolicy`.
+  - `tests/mocks/handlers/mailbox-update.ts`: the complete `updateMailbox` above, which US3 and US5
+    then use without editing the handler.
   - Register them in `tests/mocks/handlers/index.ts`.
   - Create `tests/mocks/scenarios/mailboxes/base.ts` with `admin-mailboxes-small` (5 mailboxes in
     `a.example` and `b.example`, for unit tests) and `admin-mailboxes-10k` (10,000 mailboxes in 500 domains,
@@ -188,83 +212,84 @@ existing tests pass.
 
 ### Shared blocks from UI 002 (reuse or provide; research R4)
 
-- [ ] T012 [P] Write the tests of the quota family. If UI 002 already has these tests at these
-  paths, add only the missing cases.
-  - `tests/unit/shared/components/QuotaInput.spec.ts`:
-    - a number with a MiB, GiB or TiB unit;
-    - `v-model` in bytes;
+- [ ] T012 [P] Write the tests of the promoted quota field (research R4; UI 002 D12). Move UI 002's
+  existing tests along with the files; if UI 002 already promoted them, add only the missing cases.
+  - `tests/unit/shared/components/QuotaField.spec.ts`:
+    - an amount with a MiB, GiB or TiB unit, and `v-model` in bytes;
     - refuses values that are not a whole number of MiB, values below 1 MiB, and 0;
     - shows a stored value in the largest exact unit (10,240 MiB as 10 GiB; 3,000 MiB stays);
-    - brings up a numeric keypad (`inputmode="decimal"`);
-    - has a labelled unit `<select>`.
-  - `tests/unit/shared/utils/binary-units.spec.ts`: `toExactUnit` and `fromUnit`.
-  - `tests/unit/i18n/format.spec.ts`:
-    - `formatBinarySize(bytes)` uses binary units in the locale (`1,5 GiB` in cs-cz);
-    - `formatDuration(minutes)` gives the largest whole unit (7,200 minutes is "5 days").
+    - `inputmode="decimal"`, `.` or `,` as the decimal separator, and a labelled unit `<select>`.
+  - `tests/unit/shared/utils/quota-units.spec.ts`: the byte and unit conversion moved from
+    `src/features/domains/quota.ts`.
+  - `tests/unit/i18n/format.spec.ts`: `formatDuration(minutes)` gives the largest whole unit (7,200
+    minutes is "5 days", 90 is "90 minutes"). UI 002's `formatBytes` cases stay as they are
+    (FR-073).
 
   The tests must fail where the behaviour is missing.
-- [ ] T013 [P] Write `tests/unit/shared/components/UsageBar.spec.ts` and
-  `tests/unit/shared/components/TagSetInput.spec.ts`. If UI 002 has them, add only the missing
-  cases.
-  - `UsageBar`:
-    - a percent value;
-    - `warnAt` and `criticalAt` thresholds (75 and 90 here);
-    - a text equivalent of the state that does not depend on colour;
-    - `role="meter"` with `aria-valuenow`.
+- [ ] T013 [P] Write `tests/unit/shared/components/UsageMeter.spec.ts` and
+  `tests/unit/shared/components/TagSetInput.spec.ts`, moving UI 002's tests along (UI 002 D10, D13).
+  Add only the missing cases if UI 002 already promoted them.
+  - `UsageMeter`:
+    - UI 002's used-of-limit levels stay the default (`nearlyFull` at 90 %, `over` above the limit);
+    - new threshold props for a percentage with `warning` at 75 % and `critical` at 90 %;
+    - the level as text, not only colour, and the bar `aria-hidden` with the text as its
+      equivalent.
   - `TagSetInput`:
-    - add a tag by typing and Enter or a comma, remove one by one;
-    - tags are trimmed, empty ones refused, at most `maxLength` characters;
-    - a case-insensitive duplicate is not added;
+    - add a tag with Enter, a comma or Add, remove one by one;
+    - tags are trimmed, empty ones ignored, at most `maxLength` characters;
+    - a case-insensitive duplicate is not added, and the first spelling is kept;
     - adding beyond `limit` is refused with the limit stated;
     - a set already above the limit is shown in full and can only shrink;
-    - an optional suggestion provider is debounced 300 ms;
+    - optional suggestions in a Reka `Combobox` without `ComboboxViewport`;
     - a filter mode emits whole tags;
     - every chip has a labelled remove button of at least 44 × 44 px.
 
   The tests must fail where the behaviour is missing.
-- [ ] T014 [P] Write `tests/unit/shared/components/promoted.spec.ts`:
-  - `ActiveFilterChips.vue`: removable chips, "Clear all", announcements;
-  - `BulkActionBar.vue`: fixed at the bottom below `md`, with the count, an actions slot and
-    "Cancel", announced;
-  - `NotFoundState.vue`: a heading, an explanation and a link back given as a prop;
-  - `useUnsavedChangesGuard.ts`: confirms through `useConfirm` before the route leaves when dirty,
-    adds a `beforeunload` listener only while dirty, and removes it on unmount.
-
-  The test must fail where the blocks are missing.
-- [ ] T015 [P] Write `tests/unit/shared/composables/reserved-blocks.spec.ts`. It checks the
-  behaviour of UI 002's reserved blocks that UI 003 relies on, and adds cases only where it is not
-  covered yet:
+- [ ] T014 [P] Move `tests/unit/features/audit-log/ActiveFilterChips.spec.ts`, if it exists, to
+  `tests/unit/shared/components/ActiveFilterChips.spec.ts`, and cover removable chips, "Clear all"
+  and the announcements. The test must fail while the component still lives in the audit-log
+  feature.
+- [ ] T015 [P] Write `tests/unit/shared/composables/ui002-blocks.spec.ts`. It checks the behaviour of
+  UI 002's shared blocks that UI 003 relies on, imported under their canonical names
+  (`docs/conventions.md`), and adds cases only where UI 002's tests do not cover them yet:
   - `useBulkSelection`:
-    - items carry `BulkTarget { id, version }`;
-    - a `max` option caps the selection and reports the refusal;
-    - `retainOutcomes(['refused', 'outdated', 'failed'])` keeps exactly those items after a
-      `BulkResult`;
+    - items carry `BulkTarget { id, version }`, with `version` the `etag` without its quotes;
+    - the limit comes from the capabilities, and once it is reached further selection is disabled
+      with a message that states it; "Select all" is unavailable when the page holds more items;
+    - a retained-outcomes option keeps exactly the given outcomes after a `BulkResult` (UI 003
+      passes `['refused', 'failed']`);
+    - after a refetch, retained items take the refreshed `version`, and items no longer on the page
+      are dropped;
     - the selection clears on `useListState`'s `onReset` with an announcement;
+  - `BulkActionBar`: the count, the actions and "Cancel", fixed at the bottom below `md`;
   - `ConfirmDialog` `requireTyped`: confirm stays disabled until the exact text is typed;
-  - `useVersionedSave`: exposes `outdated` and the reloaded value for the changed-value marking;
-  - `HistoryLink`: builds `/audit-log?targetType=mailbox&targetId=<address>`.
+  - `useVersionedSave`'s `changedSince` and `EditableSection`'s "Save again" and "Discard my
+    changes";
+  - `useLeaveGuard(shouldGuard, messageKey)`: asks through `useConfirm` before leaving while
+    `shouldGuard` is true, with `beforeunload` only while it is true;
+  - `HistoryLink`: builds `/audit-log?targetType=mailbox&targetId=<address>`;
+  - `NotFoundPage`: renders the back link it is given.
 
   The test must fail where the behaviour is missing.
-- [ ] T016 Provide the quota family so that T012 passes:
-  - `src/shared/components/QuotaInput.vue` and `src/shared/utils/binary-units.ts`: reuse UI 002's
-    files at these paths, or move them there from `src/features/domains/`, updating UI 002's
-    imports and keeping its tests green.
-  - `formatBinarySize` and `formatDuration` in `src/i18n/format.ts`, if they are missing.
-- [ ] T017 Provide `src/shared/components/UsageBar.vue` and `src/shared/components/TagSetInput.vue`
-  so that T013 passes. Reuse, promote from `src/features/domains/`, or create them.
-- [ ] T018 Provide the blocks of T014 so that it passes:
-  - `src/shared/components/ActiveFilterChips.vue`: moved from
-    `src/features/audit-log/components/` (the promotion path of UI 001 R20), with the audit log's
-    imports updated, unless UI 002 moved it already;
-  - `src/shared/components/BulkActionBar.vue`;
-  - `src/shared/components/NotFoundState.vue`;
-  - `src/shared/composables/useUnsavedChangesGuard.ts`.
-
-  Only primitives that UI 001 copied are used: alert, badge, checkbox, collapsible, combobox,
-  dialog, dropdown menu, radio group, switch and table.
-- [ ] T019 Extend UI 002's reserved blocks only where T015 fails: the `max` option and
-  `retainOutcomes` in `src/shared/composables/useBulkSelection.ts`, and the `outdated` exposure in
-  `src/shared/composables/useVersionedSave.ts`. Keep UI 002's tests green.
+- [ ] T016 Promote the quota field so that T012 passes: move
+  `src/features/domains/components/fields/QuotaField.vue` to `src/shared/components/QuotaField.vue`
+  and the byte and unit conversion of `src/features/domains/quota.ts` to
+  `src/shared/utils/quota-units.ts`, without changing their behaviour. Update UI 002's imports and
+  keep its tests green. Add `formatDuration` to `src/i18n/format.ts`.
+- [ ] T017 Promote `src/features/domains/components/list/UsageMeter.vue` (with the level function
+  of `src/features/domains/usage.ts`) to `src/shared/components/UsageMeter.vue`, adding the
+  threshold props, and `src/features/domains/components/fields/TagSetInput.vue` (with
+  `src/features/domains/tag-set.ts`) to `src/shared/components/TagSetInput.vue` and
+  `src/shared/utils/tag-set.ts`, so that T013 passes. Update UI 002's imports and keep its tests
+  green.
+- [ ] T018 Move `src/features/audit-log/components/ActiveFilterChips.vue` to
+  `src/shared/components/ActiveFilterChips.vue` (the promotion path of UI 001 R20), update the
+  audit log's and UI 002's imports, and keep their tests green, so that T014 passes. Only
+  primitives that UI 001 copied are used: alert, badge, checkbox, collapsible, combobox, dialog,
+  dropdown menu, radio group, switch and table.
+- [ ] T019 Extend UI 002's `src/shared/composables/useBulkSelection.ts` only where T015 fails: the
+  retained-outcomes option and the version refresh. Never create a renamed copy of a UI 002 block.
+  Keep UI 002's tests green.
 - [ ] T020 [P] Extend `tests/unit/shared/validation/limits.spec.ts`. Each new constant must equal
   its value in `contract/openapi.json`:
   - `MAILBOX_DISPLAY_NAME_MAX` = `Mailbox.displayName.maxLength` (255);
@@ -287,14 +312,17 @@ existing tests pass.
   - the full address "at most 255 characters";
   - the rename check: equal to the current local part ignoring letter case is `unchanged`;
   - the recovery e-mail: empty, or a valid address of at most 255 characters;
-  - the attribute name: 1–255 characters, `^\S+$`, unique case-sensitively;
-  - the attribute value: at most 4,096 characters, or the capability value when given;
+  - the attribute name: 1 to the capability `customAttributeNameMaxLength` characters, `^\S+$`,
+    unique case-sensitively;
+  - the attribute value: at most the capability `customAttributeValueMaxLength` characters;
+  - without capabilities, the capability-driven checks are skipped, never replaced by hard-coded
+    numbers (research R16);
   - the rate limit: an integer from 1 to 2,147,483,647 and one of `second`, `minute`, `hour`,
     `day`;
   - the template name: trimmed, 1–255 characters.
 
   The test must fail.
-- [ ] T023 [P] Write `TM/acl.spec.ts` (research R11, SC-010). It is table-driven:
+- [ ] T023 [P] Write `TM/acl.spec.ts` (research R11, FR-003, FR-041, FR-042, SC-010). It is table-driven:
   - administrators against every field;
   - domain administrators with each combination of `protocolAccess`, `sogoAccess`, `ratelimit`
     and `unlimitedQuota`, in the contexts `create`, `edit` (with an already-unlimited and a limited
@@ -323,7 +351,7 @@ existing tests pass.
   - `canOfferUnlimited(identity, context)`.
 
   The test must fail.
-- [ ] T025 [P] Write `TM/problems.spec.ts` (research R17, SC-005). For every problem type and rule
+- [ ] T025 [P] Write `TM/problems.spec.ts` (research R17, FR-068, SC-005). For every problem type and rule
   code of [contracts/README.md](./contracts/README.md), it asserts the message key and parameters:
   - `address-in-use` per `holder`;
   - `mailbox-limit-reached` and `domain-alias-limit-reached` with `count` and `limit`;
@@ -391,7 +419,8 @@ existing tests pass.
   - the detail query's `initialData` is found in cached list pages, with `initialDataUpdatedAt: 0`
     so that it refetches (FR-017);
   - the detail key lower-cases the address;
-  - the templates `all` query uses `limit=1000&sort=name` and puts Default first;
+  - the templates `all` query uses `sort=name`, reads every page at the API's default size until
+    `meta.total`, and puts Default first;
   - no request is made with a hand-written path; all go through the generated client.
 
   The test must fail.
@@ -464,8 +493,9 @@ existing tests pass.
     legacy text in `title` and visually hidden text (FR-012);
   - `MailboxQuotaUsage`:
     - "Unlimited" without a bar;
-    - otherwise `UsageBar` at 75 and 90, the percentage formatted with `Intl.NumberFormat`
-      `percent` ("92 %" in cs-cz), and used and total with `formatBinarySize`;
+    - otherwise the shared `UsageMeter` with the thresholds 75 and 90, the percentage formatted with
+      `Intl.NumberFormat` `percent` ("92%" in en-gb, "92 %" in cs-cz), and used and total with
+      `formatBytes`;
     - the state as text (US1-AS7, FR-011).
 
   The test must fail.
@@ -481,25 +511,28 @@ existing tests pass.
   - an empty patch.
 
   `useMailboxSection.spec.ts` covers:
+  - it drives UI 002's `EditableSection`: entering the section route opens it for editing;
   - Save sends `application/merge-patch+json` with `If-Match: base.etag`;
   - `200` resets `base` and `draft`, writes the cache, clears the password and announces
     `success.mailbox_modified`;
   - `412`:
     - refetches;
-    - marks the changed section fields with their new values;
+    - marks the changed section fields with their new values through `changedSince`;
     - untouched fields follow the server, and touched fields keep the user's values;
-    - nothing is retried;
-  - `403 attribute-not-permitted` gives field errors and refetches the identity and the mailbox;
+    - offers "Save again" and "Discard my changes", and nothing is retried;
+  - `403 attribute-not-permitted` gives field errors, turns those fields read-only, and refetches
+    the identity and the mailbox;
   - `422` gives field errors;
   - `404` gives the not-found state;
-  - the unsaved-changes guard is active while dirty;
-  - a password mutation uses `gcTime: 0` and is reset.
+  - `useLeaveGuard` is armed while the draft is dirty;
+  - a save that carries a password calls the generated client directly: no TanStack mutation or
+    query cache ever holds the password (conventions "Secrets in requests or responses").
 
   The tests must fail.
 - [ ] T042 [P] Implement `M/components/password/PasswordField.vue` and
   `M/components/password/PasswordPolicyHints.vue` so that T036 passes.
-- [ ] T043 [P] Implement `M/components/fields/MailboxQuotaField.vue` on `QuotaInput` so that T037
-  passes.
+- [ ] T043 [P] Implement `M/components/fields/MailboxQuotaField.vue` on the shared `QuotaField` so
+  that T037 passes.
 - [ ] T044 [P] Implement `M/components/fields/StatusField.vue`, `AuthSourceField.vue`,
   `ProtocolAccessFields.vue`, `UserPermissionsFields.vue`, `InitialSettingsFields.vue`,
   `RateLimitField.vue`, `AclReadOnlyNote.vue` and `CollapsibleGroup.vue` so that T038 passes.
@@ -516,7 +549,8 @@ existing tests pass.
   - invalidate the lists;
   - invalidate the tags if `tags` was sent;
   - invalidate the domain if `quota` or `status` was sent;
-  - `gcTime: 0` when `password` is sent.
+  - a save with `password` calls the generated client directly instead of the mutation, and then
+    applies the same cache writes with the response.
 - [ ] T048 Add the foundation messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   - `mailboxes.common.*`;
   - the field labels and help;
@@ -558,7 +592,7 @@ and as a domain administrator, on 360 px and desktop:
   - `admin-mailboxes-30`: `anna@a.example`, `bob@a.example` named "Joanna Bob", and
     `carl@a.example` tagged "Annapolis"; a mailbox at 92 %; three unlimited mailboxes; an inactive
     one, a login-disabled one and an LDAP one; an IDN domain `bücher.example`; 255-character names
-    and tags;
+    and tags; a display name `<b>Bold</b>` and a tag `<img src=x onerror=alert(1)>` (FR-075);
   - `domain-admin-mailboxes`: manages only `a.example`, while `b.example` exists;
   - `mailbox-user-active`;
   - `mailboxes-empty-filter`;
@@ -569,15 +603,24 @@ and as a domain administrator, on 360 px and desktop:
   - US1-AS1: 30 mailboxes at 360 px show 25 cards sorted by address, the total of 30 and paging,
     with no horizontal scroll;
   - US1-AS2: adding "Last password change" on desktop survives a reload in the same context;
-  - US1-AS3: "ANNA" finds all three; the search is in the address; Back restores the previous list;
-    the search commits 500 ms after the last keystroke (FR-009);
+  - US1-AS3: "ANNA" finds all three; the search is in the address; the search commits 500 ms after
+    the last keystroke with a new history entry, and Back restores the previous list (FR-009,
+    research R7);
   - US1-AS4: domain and status filters, with removable chips and "Clear all";
   - US1-AS5, first half: filters without a match give the empty state with "clear filters";
   - US1-AS6: `percentUsed desc` puts the fullest first, and unlimited mailboxes last, labelled
     "Unlimited" without a bar;
-  - US1-AS7: 92 % shows a critical bar with "92 %" and the sizes in the locale;
+  - US1-AS7: 92 % shows a critical bar with the percentage and the sizes in the locale ("92%" in
+    en-gb, "92 %" in cs-cz);
   - US1-AS10: the error state with retry;
-  - US1-AS11: a mailbox user has no entry and gets "no access";
+  - US1-AS11 and FR-001: a mailbox user has no entry and gets "no access"; administrators and
+    domain administrators have the entry;
+  - FR-007: below `md`, each card shows the address, display name, status, quota usage and message
+    count, and opens the mailbox;
+  - FR-013: each card and row offers "Edit";
+  - FR-065: the loading state keeps the layout stable, and the empty and error states explain and
+    offer the next action;
+  - FR-075: markup in display names and tags is shown as text, and nothing is executed;
   - FR-006: page sizes 25, 50 and 100, kept in the address and not in storage;
   - FR-008: the default columns and each optional column;
   - FR-010: header sort with `aria-sort` on desktop, and the sort control in the panel on phones;
@@ -594,15 +637,21 @@ and as a domain administrator, on 360 px and desktop:
   - US1-AS8: a domain administrator gets "not found" for a mailbox of `b.example`, the same as for
     a missing one, with a link to the list (FR-004);
   - US1-AS9: the overview shows every FR-015 group; settings managed elsewhere are read-only and
-    name their feature as text without a link (FR-040);
+    name their feature as text without a link (FR-040, Edge "links to screens of later features");
+  - FR-002: every section address (`/mailboxes/<address>/general` and the others) opens that
+    section directly, and Back returns to the previous section;
+  - FR-003: the controls shown follow the role and flags of the identity;
   - FR-016: on phones the section list with summaries, and on desktop the side navigation;
     History only for administrators;
   - FR-017: opened from the list, the values show before `getMailbox` resolves (asserted with a
     delayed response), then refresh;
   - the canonical address replaces a differently cased address;
   - IDN: the ASCII form on the detail;
-  - last logins: "No login recorded" for `null`, and never "never";
+  - last logins: "No login recorded" for `null`, and never "never"; with
+    `capabilities-last-logins-off`, the overview says that last logins are not reported;
   - groupware off: the webmail redirect is shown as disabled on the server;
+  - FR-065: a stable loading state, and an error state with retry when `getMailbox` answers `503`
+    (with `Retry-After`) rather than 404;
   - Edge: a mailbox deleted while open gives "not found" on the next load.
 - [ ] T052 [P] [US1] Write the unit tests:
   - `TM/list-state.spec.ts`: data-model §5 parameters mapped to `MailboxListParams`; defaults left
@@ -628,13 +677,15 @@ and as a domain administrator, on 360 px and desktop:
   storage preference) and `M/sections.ts` (the section catalogue of data-model §2).
 - [ ] T055 [P] [US1] Implement the list components in `M/components/list/`:
   - `MailboxCard.vue` (below `md`);
-  - `MailboxTable.vue` (from `md` up, on `src/shared/ui/table`);
+  - `MailboxTable.vue` (from `md` up, on `src/shared/ui/table`); its selection column appears only
+    in selection mode, which US6 adds;
   - `MailboxList.vue`;
   - `MailboxSortControl.vue` (a native `<select>` of the 12 fields × 2 orders);
   - `ColumnChooser.vue` (Reka `DropdownMenu` with checkbox items);
   - `MailboxRowActions.vue` with "Edit". US4 adds "Remove", and later features add theirs
     (data-model §8).
-- [ ] T056 [P] [US1] Implement `M/components/list/MailboxFilters.vue`:
+- [ ] T056 [US1] After T055 (it embeds `MailboxSortControl`), implement
+  `M/components/list/MailboxFilters.vue`:
   - a Reka `Dialog` panel;
   - `DomainPicker` in multiple mode;
   - the status checkboxes;
@@ -645,7 +696,7 @@ and as a domain administrator, on 360 px and desktop:
   It integrates with `ActiveFilterChips`.
 - [ ] T057 [US1] Implement `M/pages/MailboxesPage.vue`:
   - `useListState`;
-  - the debounced search;
+  - the search, committed with `router.push` 500 ms after the last keystroke (research R7);
   - `ListState` with loading, empty ("no mailbox matches", with clear filters) and error with
     retry;
   - `PaginationBar`;
@@ -656,7 +707,8 @@ and as a domain administrator, on 360 px and desktop:
   (`router.hasRoute`), which US2 registers.
 - [ ] T058 [US1] Implement the detail screen:
   - `M/pages/MailboxDetailPage.vue`: the layout, the detail query, the canonical address replace,
-    `NotFoundState` on 404, the side navigation from `lg` up, and a `RouterView` for the sections;
+    UI 002's `NotFoundPage` with its back link on 404, the side navigation from `lg` up, and a
+    `RouterView` for the sections;
   - `M/sections/MailboxOverview.vue`: the groups of FR-015;
   - `M/components/display/MailboxSectionNav.vue`: entries from `sections.ts` whose route exists,
     with a `HistoryLink` for administrators;
@@ -692,7 +744,7 @@ Check each request, each error, and the screen after success.
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T061 [US2] Implement the create mock in `tests/mocks/handlers/mailboxes-write.ts`, registered
+- [ ] T061 [US2] Implement the create mock in `tests/mocks/handlers/mailbox-create.ts`, registered
   in `tests/mocks/handlers/index.ts`. `createMailbox`:
   - trims and lower-cases the local part, and applies the rules of `MailboxCreateRequest`;
   - takes values from the template and then the defaults;
@@ -708,7 +760,7 @@ Check each request, each error, and the screen after success.
   - refuses a password with an external source (`conflictsWith`);
   - answers `notFound` on `templateId` and `notEligible` (`kind: aliasDomain`);
   - returns `creationReport` with injectable failed steps;
-  - sends `Location` and `ETag`;
+  - sends `Location` and `ETag`, and `Retry-After` with every injected `503`;
   - updates the domain's usage.
 
   Create `tests/mocks/scenarios/mailboxes/create.ts`, registered in the index, with:
@@ -723,29 +775,35 @@ Check each request, each error, and the screen after success.
   - `capabilities-ldap` and `capabilities-generic-oidc`;
   - `create-report-failures`;
   - `template-deleted-on-submit`;
+  - `capabilities-groupware-off-create`;
   - `mailboxes-empty-scope`: no mailbox at all;
   - `inactive-backupmx-domain`.
 - [ ] T062 [P] [US2] Write `tests/e2e/mailboxes/create.spec.ts`. It covers:
-  - US2-AS1: ` Anna.Smith ` shows `anna.smith@example.org`; generate and create; the detail opens,
-    and "Mailbox anna.smith@example.org has been added" is announced;
-  - US2-AS2: 1 GiB pre-filled, "max. 5 GiB", and 8 GiB refused on the field before submitting;
+  - US2-AS1 and FR-067: ` Anna.Smith ` shows `anna.smith@example.org`; generate and create; the
+    detail opens, and "Mailbox anna.smith@example.org has been added" (the legacy text) is
+    announced;
+  - US2-AS2 and FR-022: 1 GiB pre-filled, "max. 5 GiB", and 8 GiB refused on the field before
+    submitting;
   - US2-AS3: "Small" fills the fields, including the collapsed-group summaries;
   - US2-AS4: "short" marks both rules as not met, and a generated value meets both;
   - US2-AS5: no "Unlimited" without the flag; protocols read-only with the permission named;
   - US2-AS6: sync jobs absent, with the note;
-  - US2-AS7: the alias holder is named on the local part field, and every entry, including the
-    password, is kept;
+  - US2-AS7 and FR-027: the alias holder is named on the local part field, and every entry,
+    including the password, is kept;
   - US2-AS8: "no mailboxes left", then the refusal with count and limit;
   - US2-AS9: `warning.quota_exceeded_scope` with unlimited only for an administrator, and
     "creation not possible" for a domain administrator without the flag;
   - US2-AS10: `route.abort()` keeps the entries, and a resubmit works;
   - US1-AS5, second half, moved here because it needs this screen: a scope without mailboxes
     offers "Add mailbox";
+  - FR-018: one screen with the essentials first and the other groups collapsed with summaries; no
+    steps and no modal;
   - FR-019: each local-part rule;
   - FR-020: inactive and backup-MX notes, and `?domain=` preselection from the list filtered by
     one domain;
   - FR-021: changing the template after an edit asks first; "No" restores the previous template;
   - FR-023: the display name hint;
+  - FR-031: with `capabilities-groupware-off-create`, the webmail redirect is not offered;
   - FR-024: with `capabilities-ldap`, LDAP is offered; choosing it removes the password and makes
     forced change unavailable with the reason; generic OIDC also disables forced two-factor setup;
   - FR-025: through `mockApi.requests()`, the body holds the local part, domain, `templateId`,
@@ -775,7 +833,8 @@ Check each request, each error, and the screen after success.
     - the essentials first and five collapsed groups with summaries;
     - submit disabled when creation is impossible;
     - the password cleared after success and on unmount;
-    - the create mutation's `gcTime` is 0.
+    - `createMailbox` is called through the generated client directly, never through a TanStack
+      mutation, so no cache holds the password.
 - [ ] T064 [P] [US2] Write `tests/smoke/mailbox-create.smoke.spec.ts`:
   - `admin` creates `smoke-<random>@example.org` with a generated password that the real policy
     accepts, and the detail opens;
@@ -785,8 +844,9 @@ Check each request, each error, and the screen after success.
 
 ### Implementation for User Story 2
 
-- [ ] T065 [US2] Implement `M/create-request.ts` and the `createMailbox` mutation in `M/api.ts`:
-  - `gcTime: 0`;
+- [ ] T065 [US2] Implement `M/create-request.ts` and `createMailbox` in `M/api.ts`:
+  - a direct call of the generated client, not a TanStack mutation (conventions "Secrets in
+    requests or responses");
   - write the detail without `creationReport`;
   - invalidate the lists, tags and domains;
   - set the `CreationNotice` one-shot of data-model §2.
@@ -797,7 +857,7 @@ Check each request, each error, and the screen after success.
     `getDomain` query, the display name, `TemplateSelect`, `PasswordField` with the hints, and
     `MailboxQuotaField`;
   - then the five `CollapsibleGroup`s of research R9, with the gates of `acl.ts`;
-  - `useProblemForm` and `useUnsavedChangesGuard`.
+  - `useProblemForm` and `useLeaveGuard`.
 
   Also implement `M/components/display/CreationNotice.vue`: the success alert with "Add another
   mailbox" and the failed steps, shown once on `MailboxDetailPage.vue`.
@@ -826,40 +886,28 @@ overwritten.
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T070 [US3] Extend `tests/mocks/handlers/mailboxes-write.ts` with `updateMailbox`:
-  - Merge Patch: nested `protocolAccess` and `userPermissions`, `tags` replaced, `customAttributes`
-    with `null` removals;
-  - `If-Match` with `412`;
-  - `immutable` for read-only members;
-  - `outOfRange` with `limit: largestAllowedQuota`, while a quota below the usage is accepted;
-  - a status change also changes the own alias;
-  - the password rules, and `passwordChangedAt` updated;
-  - with an external source: the password is refused unless the same request switches to
-    `mailcow`, and switching without a password when none is stored gives `required`;
-  - `recoveryEmail` `invalidFormat` or `conflictsWith`;
-  - `attribute-not-permitted`, where a value equal to the current one is not a choice, and
-    unlimited is allowed when the mailbox is already unlimited;
-  - `503` injection.
-
-  Add `PATCH /__mock/scenarios/:id` support for `{ mailboxChange: { address, patch } }`, which
-  changes a mailbox "elsewhere" and its `etag`.
-
-  Create `tests/mocks/scenarios/mailboxes/edit.ts`, registered in the index, with `admin-edit`,
-  `admin-edit-ldap`, `domain-admin-edit-no-protocol`, `domain-admin-edit-no-sogo` and
-  `domain-admin-flags-revoked`.
+- [ ] T070 [US3] Create `tests/mocks/scenarios/mailboxes/edit.ts`, registered in
+  `tests/mocks/scenarios/index.ts`, with `admin-edit`, `admin-edit-ldap`,
+  `domain-admin-edit-no-protocol`, `domain-admin-edit-no-sogo` and `domain-admin-flags-revoked`.
+  The `updateMailbox` handler and the "changed elsewhere" control change come from T011.
 - [ ] T071 [P] [US3] Write `tests/e2e/mailboxes/sections.spec.ts`. It covers:
   - US3-AS1: a generated password is saved; the success is announced; the field is cleared; the
     last password change is updated; the password is never shown again;
-  - US3-AS2: "Inactive" explains its effect before saving, and the list shows the new status;
-  - US3-AS3: a quota changed elsewhere refuses the display-name save as outdated; the entry is
-    kept; the quota is marked with its new value; the second save succeeds;
+  - US3-AS2: "Inactive" explains its effect before saving; saving asks one explicit confirmation
+    (conventions "Confirmations"), and so does "Login disallowed"; afterwards the list shows the new
+    status;
+  - US3-AS3, FR-044 and SC-006: a quota changed elsewhere refuses the display-name save as
+    outdated; nothing changes; the entry is kept; the quota is marked with its new value; the
+    second save succeeds;
   - US3-AS4: the maximum is shown above `largestAllowedQuota`, and a warning appears below the
     usage while saving stays possible;
   - US3-AS5: a domain administrator without the flag sees protocols read-only, with the permission
     named and no save;
   - US3-AS6: the LDAP mailbox has no password or recovery fields; forced change is unavailable with
     the reason; switching to the built-in source shows the password with its hint;
-  - US3-AS7: leaving with unsaved changes asks first;
+  - US3-AS7 and FR-033: leaving with unsaved changes asks first;
+  - FR-031: each section has its own form and save action;
+  - FR-067: "Changes to mailbox x have been saved" (the legacy text) is announced;
   - FR-032: only the changed values are sent, asserted on the request; every section then shows
     the returned values;
   - FR-035: the status effects;
@@ -885,14 +933,16 @@ overwritten.
 
 - [ ] T074 [P] [US3] Implement `M/sections/GeneralSection.vue`: display name, `MailboxQuotaField`
   with `largestAllowedQuota` and `quotaUsed`, `StatusField`, and the webmail redirect gated by
-  `sogoAccess` and hidden when `groupwareEnabled` is false. It is built on `useMailboxSection`.
+  `sogoAccess` and hidden when `groupwareEnabled` is false. A save that changes the status to
+  `inactive` or `loginDisabled` first asks one confirmation through `useConfirm`. Like every
+  section, it wraps its fields in UI 002's `EditableSection`, driven by `useMailboxSection`.
 - [ ] T075 [P] [US3] Implement `M/sections/SignInSection.vue`:
   - `AuthSourceField`;
   - `PasswordField` with the hints, only for the built-in source;
   - forced password change and forced second-factor setup, with the unavailable reasons;
   - the recovery e-mail, only for the built-in source.
 - [ ] T076 [P] [US3] Implement `M/sections/ProtocolAccessSection.vue` with `ProtocolAccessFields`.
-  Without the flag it is read-only, with no save action.
+  Without the flag, `EditableSection` is not editable, so there is no save action.
 - [ ] T077 [US3] Register the `mailbox-general`, `mailbox-sign-in` and `mailbox-protocols` routes in
   `M/routes.ts`. The section navigation lists them automatically.
 - [ ] T078 [US3] Add the `mailboxes.sections.general.*`, `mailboxes.sections.signIn.*`,
@@ -916,7 +966,8 @@ and check what the user sees in each case.
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T079 [US4] Implement `tests/mocks/handlers/mailbox-deletion.ts`, registered in the index:
+- [ ] T079 [US4] Implement `tests/mocks/handlers/mailbox-deletion.ts`, registered in the index, with
+  `Retry-After` on every injected `503`:
   - `previewMailboxDeletion`: seeded counts, up to 100 alias addresses, the `present` flags,
     `blockers` with `canProceed: false` when the mail store or shared store is down, and `etag`;
   - `deleteMailbox`: `If-Match` with `412`; `503 temporary-failure` (`dependency: mailStore`);
@@ -926,17 +977,19 @@ and check what the user sees in each case.
   Create `tests/mocks/scenarios/mailboxes/delete.ts`, registered in the index, with:
   - `admin-delete`: a mailbox using 2 GiB in 10,000 messages, with dependents; a mailbox whose mail
     store fails; a mailbox that times out;
-  - hooks "changed elsewhere" and "deleted elsewhere" through `PATCH /__mock/scenarios/:id`;
+  - the "changed elsewhere" and "deleted elsewhere" control changes of T011;
   - `delete-store-unreachable`: the preview has blockers.
 - [ ] T080 [P] [US4] Write `tests/e2e/mailboxes/delete.spec.ts`. It covers:
   - US4-AS1, from the list and from the detail: the name, 2 GiB and 10,000 messages, the garbage
     area with the retention period, the kinds of data with their counts (passkeys named as such),
     shared aliases keeping their other recipients, and the focus on "Cancel";
-  - US4-AS2: the removal is announced, the list no longer shows the mailbox, and the detail returns
-    to the list;
-  - US4-AS3: "not deleted, nothing removed, try again later", and the mailbox is still listed;
-  - US4-AS4: changed elsewhere before opening shows the notice in the dialog; changed after
-    opening gives `412`, a reload and a new confirmation;
+  - US4-AS2, FR-046 and FR-067: "Mailbox x has been removed" is announced, the list no longer shows
+    the mailbox, and the detail returns to the list;
+  - US4-AS3 and FR-047: "not deleted, nothing removed, try again later", and the mailbox is still
+    listed;
+  - US4-AS4, FR-044 and SC-006: changed elsewhere before opening shows the notice in the dialog;
+    changed after opening gives `412`, nothing is deleted, the dialog reloads and asks again;
+  - FR-013: the list row offers "Remove";
   - US4-AS5: deleted elsewhere: "no longer exists", and the list is refreshed;
   - FR-045: the confirm button names the action and the mailbox;
   - blockers disable "Remove" and offer "Check again";
@@ -976,15 +1029,8 @@ the requests and results on both viewports.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T086 [US5] Extend `tests/mocks/handlers/mailboxes-write.ts` and
-  `tests/mocks/handlers/mailboxes-read.ts`:
-  - `userPermissions` omitted, and changes refused, for domain administrators without the
-    overlapping flag;
-  - `tags`: set semantics, the first spelling kept, `tooMany` with `taggingLimit`, a set above the
-    limit allowed to shrink only;
-  - `customAttributes`: add, replace and remove with `null`; `invalidFormat: attributeName`;
-    `tooLong`; `tooMany`;
-  - `listMailboxTags` reflects the changes.
+- [ ] T086 [US5] Create the scenarios below. The `updateMailbox` behaviour for permissions, tags and
+  attributes, and `listMailboxTags`, come from T011.
 
   Create `tests/mocks/scenarios/mailboxes/permissions.ts`, registered in the index, with:
   - `admin-permissions`: a mailbox tagged "Sales"; a mailbox with 30 legacy tags; `old=1`; a
@@ -1016,11 +1062,12 @@ the requests and results on both viewports.
 ### Implementation for User Story 5
 
 - [ ] T090 [P] [US5] Implement `M/sections/PermissionsSection.vue` with `UserPermissionsFields` and
-  the hidden-permissions note.
+  the hidden-permissions note, in an `EditableSection` driven by `useMailboxSection`.
 - [ ] T091 [P] [US5] Implement `M/sections/TagsSection.vue` with `TagSetInput`: the `taggingLimit`
-  and `tagMaxLength` capabilities, `listMailboxTags` suggestions, and shrink-only above the limit.
+  and `tagMaxLength` capabilities, `listMailboxTags` suggestions, and shrink-only above the limit,
+  in an `EditableSection` driven by `useMailboxSection`.
 - [ ] T092 [P] [US5] Implement `M/components/fields/CustomAttributesEditor.vue` and
-  `M/sections/CustomAttributesSection.vue`.
+  `M/sections/CustomAttributesSection.vue`, in an `EditableSection` driven by `useMailboxSection`.
 - [ ] T093 [US5] Register the `mailbox-permissions`, `mailbox-tags` and `mailbox-attributes` routes
   in `M/routes.ts`.
 - [ ] T094 [US5] Add the `mailboxes.sections.permissions.*`, `mailboxes.tags.*` and
@@ -1054,7 +1101,8 @@ the confirmation, the summary and the selection afterwards.
 
   Create `tests/mocks/scenarios/mailboxes/bulk.ts`, registered in the index, with:
   - `admin-bulk`: 50 mailboxes on one page; a hook that deletes two elsewhere; one mailbox whose
-    mail store fails;
+    mail store fails; one changed elsewhere, so its `version` is outdated;
+  - `admin-bulk-100`: 100 mailboxes for SC-007;
   - `domain-admin-no-protocol`;
   - `capabilities-bulk-limit-20`.
 - [ ] T096 [P] [US6] Write `tests/e2e/mailboxes/bulk.spec.ts`. It covers:
@@ -1065,16 +1113,22 @@ the confirmation, the summary and the selection afterwards.
   - US6-AS4: no protocol action for a domain administrator without the flag;
   - US6-AS5: typing 3 confirms the bulk deletion; 2 removed and 1 failed with the translated
     reason, still listed and selected;
-  - US6-AS6: at 360 px, "Select" enters selection mode, checkboxes are at least 44 × 44, and the
-    bar stays at the bottom;
+  - US6-AS6 and FR-057: at 360 px, "Select" enters selection mode, checkboxes are at least
+    44 × 44, and the bar stays at the bottom;
+  - FR-053: activate, disallow login, deactivate, remove, and allow and disallow each of the six
+    protocols;
   - FR-054: "Select all" covers the current page; with `capabilities-bulk-limit-20` and size 25,
-    "Select all" is disabled with the explanation;
+    selection stops at 20 with a message stating the limit, and "Select all" is unavailable with
+    the same message (conventions "Bulk limit");
   - FR-055: each action's confirmation names the action, its effect and the count; deletion also
     lists the addresses and the impact;
-  - FR-056: the summary counts per outcome and per item, announced; outdated items stay selected;
-    a whole-request refusal is one message with the selection kept; `route.abort()` gives "outcome
+  - FR-056: the summary counts per outcome and per item, announced; refused and failed items stay
+    selected with refreshed versions, while done, not found and outdated items are deselected (the
+    spec's clarification); targets carry `version` without quotes, asserted on the request; a
+    whole-request refusal is one message with the selection kept; `route.abort()` gives "outcome
     unknown", the list is refetched, and exactly one bulk request was sent;
-  - SC-007: 100 mailboxes at size 100 show 100 results whose counts equal the response's
+  - FR-066: a double tap on the confirmation sends one request;
+  - SC-007: with `admin-bulk-100` at size 100, 100 results whose counts equal the response's
     `summary`.
 - [ ] T097 [P] [US6] Write `TM/bulk.spec.ts` (definitions, effects and gates),
   `TM/composables/useMailboxBulk.spec.ts` (data-model §7.4, with versions in the targets) and
@@ -1088,9 +1142,11 @@ the confirmation, the summary and the selection afterwards.
 
 - [ ] T099 [US6] Implement `M/bulk.ts`, the bulk mutation in `M/api.ts` (data-model §3) and
   `M/composables/useMailboxBulk.ts`.
-- [ ] T100 [US6] Implement `M/components/list/MailboxBulkActions.vue`. Add selection mode to
-  `MailboxesPage.vue`, `MailboxCard.vue` and `MailboxTable.vue`, with `useBulkSelection` capped at
-  `bulkLimit`, `BulkActionBar` on phones, and `BulkResultSummary`.
+- [ ] T100 [US6] Implement `M/components/list/MailboxBulkActions.vue`. Add the explicit selection
+  mode, entered with "Select" at every width as in UI 002, to `MailboxesPage.vue`, `MailboxCard.vue`
+  and `MailboxTable.vue` (whose selection column appears in this mode). Use UI 002's
+  `useBulkSelection` with `bulkLimit` from the capabilities and the retained outcomes
+  `['refused', 'failed']`, UI 002's `BulkActionBar`, and `BulkResultSummary`.
 - [ ] T101 [US6] Add the `mailboxes.bulk.*` messages. Map `mailbox.toggle_all`.
   `npm run i18n:check` must pass.
 
@@ -1118,21 +1174,30 @@ an administrator, and open them as a domain administrator, on both viewports.
   - `Location` and `ETag`.
 
   Create `tests/mocks/scenarios/mailboxes/templates.ts`, registered in the index, with
-  `admin-templates` (Default, Small, Staff) and `domain-admin-templates`.
+  `admin-templates` (Default, Small, Staff), `domain-admin-templates`, `templates-list-error` (an
+  injected `500` on `listMailboxTemplates`) and `capabilities-groupware-off-templates`. An empty
+  template list cannot occur, because Default always exists.
 - [ ] T103 [P] [US7] Write `tests/e2e/mailboxes/templates.spec.ts`. It covers:
   - US7-AS1: cards and a table with the FR-058 columns;
-  - US7-AS2: "Students" created unchanged has exactly the shown defaults, asserted on the request
-    body;
-  - US7-AS3: "staff" gives the error on the name field;
+  - US7-AS2 and FR-059: "Students" created unchanged has exactly the shown defaults, asserted on
+    the request body;
+  - US7-AS3 and FR-060: "staff" gives the error on the name field;
   - US7-AS4: Default's name is read-only and there is no delete, with the explanation;
   - US7-AS5: changing only the quota sends only `quota`;
-  - US7-AS6: the delete confirmation says that mailboxes do not change;
-  - US7-AS7: a domain administrator reads everything with no controls, and `/mailbox-templates/new`
-    shows "no access";
+  - US7-AS6 and FR-062: the delete confirmation names the template and says that mailboxes do not
+    change;
+  - US7-AS7 and FR-063: a domain administrator reads everything with no controls, and
+    `/mailbox-templates/new` shows "no access";
   - FR-058: search, sort and paging in the address;
-  - FR-061: an outdated group save keeps the input and marks the changes; a `412` on delete asks
-    again;
-  - the navigation entry exists for both roles;
+  - FR-061 and FR-044: an outdated group save keeps the input and marks the changes; a `412` on
+    delete asks again;
+  - FR-001 and FR-002: the navigation entry exists for both roles, and the list and each template
+    have their own address;
+  - FR-065: the loading state, the "no template matches" state of a search, and the error state
+    with retry (`templates-list-error`);
+  - FR-059 and FR-031: with `capabilities-groupware-off-templates`, the webmail redirect is not
+    offered in the template form;
+  - FR-066: a double tap on Save or Delete sends one request;
   - administrators get the template's History link.
 - [ ] T104 [P] [US7] Write the unit tests:
   - `TM/templates/list-state.spec.ts`;
@@ -1153,13 +1218,14 @@ an administrator, and open them as a domain administrator, on both viewports.
 - [ ] T107 [P] [US7] Implement `M/components/templates/TemplateCard.vue`, `TemplateTable.vue` and
   `TemplateValuesGroups.vue`. The groups reuse the shared fields of T043–T045.
 - [ ] T108 [US7] Implement `M/pages/templates/MailboxTemplatesPage.vue`,
-  `MailboxTemplateCreatePage.vue` (administrators only, otherwise `NoAccessState`) and
+  `MailboxTemplateCreatePage.vue` (administrators only, through `meta.roles`) and
   `MailboxTemplateDetailPage.vue`:
   - `EditableSection` for each group;
   - Default's name read-only, and no delete for Default;
   - delete through `useConfirm` with `If-Match`;
   - `HistoryLink` for administrators.
-- [ ] T109 [US7] Register the three template routes in `M/routes.ts`. Set the catalogue's
+- [ ] T109 [US7] Register the three template routes in `M/routes.ts`, the create route with UI 002's
+  `meta.roles: ['admin']`. Set the catalogue's
   `mailboxTemplates` entry to `available` in `src/app/navigation/catalogue.ts`.
 - [ ] T110 [US7] Add the `mailboxTemplates.*` messages. Map `mailbox.mailbox_templates`,
   `mailbox.add_template`, `mailbox.template`, `success.template_added` and
@@ -1189,8 +1255,8 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
     (`count`, `limit`, `requested`);
   - `412`;
   - `422` `unchanged` or `invalidFormat`;
-  - `503 temporary-failure` with `steps`, where `webmailRename` failed and the earlier steps were
-    undone;
+  - `503 temporary-failure` with `steps` and the required `Retry-After`, where `webmailRename`
+    failed and the earlier steps were undone;
   - `500 mailbox-rename-incomplete` with `steps`;
   - `504 outcome-unknown` with `step` and `steps`;
   - an audit record.
@@ -1199,10 +1265,11 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
   `admin-rename`: `anna@example.org`; an inactive mailbox; a taken target; a domain at its alias
   limit; outcomes injected per mailbox.
 - [ ] T112 [P] [US8] Write `tests/e2e/mailboxes/rename.spec.ts`. It covers:
-  - US8-AS1: acknowledge, enter `anna.smith`, keep the alias and confirm; the new detail opens and
-    "Mailbox was renamed from anna@example.org to anna.smith@example.org" is announced;
-  - US8-AS2: the holder is named on the field, and nothing changes;
-  - US8-AS3: an inactive mailbox: unavailable with the reason;
+  - US8-AS1, FR-051 and FR-067: acknowledge, enter `anna.smith`, keep the alias and confirm; the
+    new detail opens and "Mailbox was renamed from anna@example.org to anna.smith@example.org" is
+    announced;
+  - US8-AS2 and FR-052: the holder is named on the field, and nothing changes;
+  - US8-AS3 and FR-050: an inactive mailbox: unavailable with the reason;
   - US8-AS4: the webmail step failed and was undone: "keeps the old address, try later";
   - US8-AS5: incomplete: the persistent report with both addresses and every step, advising the
     operator; it stays until dismissed, there is no navigation, and the list is refreshed;
@@ -1210,7 +1277,8 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
   - FR-048: the form appears only after the acknowledgement;
   - FR-049: nothing preselected, no submit until answered, and a letter-case-only change refused;
   - `504`: the report names the unknown step;
-  - `412`: a reload and a new confirmation.
+  - `412` (FR-044, SC-006): nothing changes, the mailbox is reloaded, and the user confirms again;
+  - FR-066: a double tap on the confirmation sends one request.
 - [ ] T113 [P] [US8] Write `TM/sections/RenameSection.spec.ts` (data-model §7.3) and
   `TM/components/dialogs/RenameReport.spec.ts` (every step and outcome translated, `role="alert"`,
   dismissal).
@@ -1247,16 +1315,19 @@ rename and refused records, as an administrator and as a domain administrator, o
   `admin-history`. It holds audit records built with UI 001's audit factory:
   - a `mailboxUpdate` with `details.changes.quota` (old and new);
   - a `mailboxUpdate` with `details.passwordSet: true` and `preHashed: false`;
-  - a refused `mailboxUpdate` with `failureReason: attributeNotPermitted`;
+  - a refused `mailboxUpdate` with `outcome: failure` and `failureReason: attributeNotPermitted`
+    (`AuditOutcome` has only `success` and `failure`);
   - a bulk `mailboxUpdate` with `bulkRequestId`;
   - a `mailboxRename` with `previousAddress` and `newAddress`;
   - a `mailboxTemplateUpdate`.
 
-  Every value is valid in the pinned contract.
+  Every value is valid in the pinned contract. The `details` members follow API 003 research R22;
+  the contract types `details` only as an open object (plan API gap A).
 - [ ] T119 [P] [US9] Write `tests/e2e/mailboxes/history.spec.ts`. It covers:
   - US9-AS1: from the detail, History opens the audit log filtered to the mailbox; both records,
-    newest first; the quota change with its old and new value; "Password set" without a value;
-  - US9-AS2: the refused record shows "refused" with the translated reason;
+    newest first; the quota change with its old and new value as the API returns them (raw bytes
+    until plan API gap A is closed); the password record labelled "Password set" without a value;
+  - US9-AS2: the refused record shows the outcome "failure" with the translated reason;
   - US9-AS3: a domain administrator has no History entry;
   - FR-064: the rename shows both addresses; bulk records show the bulk request; the template's
     History works too.
@@ -1296,15 +1367,18 @@ rename and refused records, as an administrator and as a domain administrator, o
   action areas of the domain detail page and the domain list in `src/features/domains/`, through
   `mailboxListLink` and `mailboxCreateLink` from `@/features/mailboxes`. Add the matching
   `domains.*` messages if UI 002 lacks them.
-- [ ] T125 [P] Write and pass `tests/e2e/mailboxes/reflow-and-keyboard.spec.ts`:
+- [ ] T125 [P] Write and pass `tests/e2e/mailboxes/reflow-and-keyboard.spec.ts`. This is a
+  cross-story verification of behaviour the stories built test first, so it passes on arrival and
+  guards against regressions, as UI 001 T144 does:
   - every screen and dialog of this feature has no horizontal scroll at 320 px and at the
     equivalent of 400 % zoom;
   - the focused element is never hidden behind the sticky header or the bulk bar;
   - there is no transition under `prefers-reduced-motion`;
   - each user story's main path completes with the keyboard alone, with the focus visible
     throughout (SC-004, FR-070).
-- [ ] T126 [P] Write and pass `tests/e2e/mailboxes/storage-and-secrets.spec.ts` (SC-009, FR-074).
-  After the US2 and US3 flows with typed and generated passwords:
+- [ ] T126 [P] Write and pass `tests/e2e/mailboxes/storage-and-secrets.spec.ts` (SC-009, FR-074), a
+  cross-story verification like T125. After the US2 and US3 flows with typed and generated
+  passwords:
   - `localStorage` and `sessionStorage` hold only allowlisted keys;
   - no stored value, no visited URL, no `document.title`, no `history.state` and no console message
     contains either password;
@@ -1314,17 +1388,21 @@ rename and refused records, as an administrator and as a domain administrator, o
   `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JS is
   at most 204,800 bytes gzipped, and performance and accessibility are at least 0.9 for all three
   URLs.
-- [ ] T128 [P] Run `npm run i18n:check`. Remove the unused keys it reports from
+- [ ] T128 [P] Run `npm run i18n:check` (FR-072, SC-005). Remove the unused keys it reports from
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this
   feature for the owner's review (UI 001 owner question 4).
-- [ ] T129 [P] Add the plan's six parity notes to the "Legacy Parity" tables in
-  `specs/003-mailboxes/spec.md`.
+- [ ] T129 [P] Re-check every row of the "Legacy Parity" tables in `specs/003-mailboxes/spec.md`
+  against the implemented behaviour (SC-011). The plan's parity notes were applied to the tables
+  during the analysis; record any further deviation found during implementation.
 - [ ] T130 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the
-  production build served by `npm run preview:mock` on the local network. Record the SC-001,
-  SC-002 and SC-003 timings and a VoiceOver and TalkBack pass of every user story in the
-  "Validation log" of `specs/003-mailboxes/quickstart.md`.
-- [ ] T131 Run `quickstart.md` Part C against the mailcow-rest-v2 dev stack once the API 003
-  implementation is merged: `scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep mailbox`,
+  production build served by `npm run preview:mock` on the local network. Throttle the connection
+  to a typical mobile profile (Chrome DevTools "Fast 4G") for SC-003. Record the SC-001 and SC-003
+  timings and a VoiceOver and TalkBack pass of every user story. Run a moderated test of the create
+  flow on a phone with at least five administrators and record the first-attempt success rate and
+  times for SC-002. Everything goes in the "Validation log" of `specs/003-mailboxes/quickstart.md`.
+- [ ] T131 Once the API 003 implementation is merged, move the contract pin forward to its merge
+  commit if T001 pinned the baseline (T001's procedure and review), then run `quickstart.md` Part C
+  against the mailcow-rest-v2 dev stack: `scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep mailbox`,
   `scripts/smoke/stack-down.sh`. Confirm that the generated passwords do not appear in the API's
   log.
 
@@ -1336,11 +1414,13 @@ rename and refused records, as an administrator and as a domain administrator, o
 
 - **Prerequisites**: UI 001 and UI 002 implemented. API 003's contract merged; its implementation
   merged for T001's preferred pin and for the smoke tasks.
-- **Setup (Phase 1)**: T001 first. T002 → T003 → T004; T005 → T006; T007 → T008. T002, T005 and
-  T007 can start in parallel after T001.
+- **Setup (Phase 1)**: T001 first. T002 → T003 → T004; T005 → T006; T007 → T008, and T008 after T004
+  (both edit the message files). T002, T005 and T007 can start in parallel after T001.
 - **Foundational (Phase 2)** depends on Setup and **blocks every user story**. Within it:
-  - T009 → T010 → T011 (mock base);
-  - T012–T015 (block tests, [P]) → T016–T019;
+  - T009 → T010 → T011 (mock base, including the complete `updateMailbox` handler and the control
+    changes that US3, US4 and US5 use);
+  - T012–T015 (block tests, [P]) → T016–T019 (promotions of UI 002's feature-local blocks, and
+    extensions of its shared ones);
   - T020 → T021;
   - T022–T027 (pure-module tests, [P]) → T028–T033 ([P]);
   - T034 → T035;
@@ -1376,8 +1456,9 @@ Edits to these files must be serialised, even when stories run in parallel:
 - `src/features/mailboxes/components/list/{MailboxCard,MailboxTable,MailboxRowActions}.vue`: US1,
   US4, US6;
 - `src/app/navigation/catalogue.ts`: T008, US1 (T059), US7 (T109);
-- `tests/mocks/handlers/mailboxes-write.ts`: US2, US3, US5;
-- `tests/mocks/handlers/mailboxes-read.ts`: T011, US5;
+- `src/features/mailboxes/pages/MailboxDetailPage.vue`: US1 (T058), US2 (T067);
+- `tests/mocks/scenarios/state.ts` and `tests/mocks/server.ts`: T011 only, so that no story edits
+  them;
 - `tests/mocks/handlers/index.ts` and `tests/mocks/scenarios/index.ts`: one registration per story;
 - `src/i18n/messages/*.json` and `src/i18n/legacy-map.json`: every story's message task, run one
   after another.

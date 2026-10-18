@@ -23,19 +23,21 @@ are not repeated.
 ## Part A: Contract bump and automated gates
 
 ```bash
-# 1. Pin the contract with API 003 (research R1). Skip if contract/VERSION.json already has it.
+# 1. Pin the contract with API 003 (research R1). Pins only move forward: skip if
+#    contract/VERSION.json already pins a newer commit with every operation of the contracts README.
+#    Before the API 003 implementation is merged, <ref> is the baseline 3207925….
 scripts/contract/bump.sh <api-003-tag-or-merge-commit>
 git -C ../mailcow-rest-v2 diff 32079252d55797d3da4e58ae661e9fb91c51c6f9..<ref> -- api/   # review
 npm run contract:check
 
 # 2. Translations: legacy layer and completeness, with the scoped open enumerations (research R2).
-MAILCOW_REPO=../mailhosting node scripts/i18n/import-legacy.mjs --ref 2026-09a
+MAILCOW_REPO=../mailhosting npm run i18n:import
 npm run i18n:check
 
 # 3. The usual gates (UI 001 Part A).
 npm run lint && npm run typecheck && npm run test:unit
 npm run build && npm run budget:check
-npm run test:e2e -- --grep "mailbox|Mailbox|US[1-9]-AS"
+npm run test:e2e -- tests/e2e/mailboxes
 npm run lhci
 ```
 
@@ -51,7 +53,7 @@ npm run lhci
   - `problems.spec.ts` covering every problem type and rule code of API 003 (SC-005).
 - `budget:check` keeps the initial JavaScript below 204,800 bytes gzipped, and lists the chunks of
   `MailboxesPage`, `MailboxCreatePage`, `MailboxDetailPage` and the template pages separately.
-- `test:e2e` passes every `US1-AS…` to `US9-AS…` test of this feature on `mobile-chromium`,
+- `test:e2e -- tests/e2e/mailboxes` passes every `US1-AS…` to `US9-AS…` test of this feature on `mobile-chromium`,
   `desktop-chromium` and `mobile-webkit`, with no axe, CSP or mock contract violation.
 - `lhci` prints performance and accessibility of at least 0.9 for `/ng/sign-in`, `/ng/` and
   `/ng/mailboxes` (the 10,000-mailbox scenario).
@@ -64,7 +66,8 @@ Check each screen at 360 px and on a desktop, in both themes.
 
 | Story | Scenario | Steps | Expected (spec reference) |
 |---|---|---|---|
-| US1 | `admin-mailboxes-10k` | Open Mailboxes. Search "anna". Filter by a domain and "inactive". Sort by "in use" descending. Page to 3. Reload. Add the "Last password change" column. | Cards at 360 px and a table on desktop. Total shown. Chips per filter and "Clear all". Unlimited mailboxes last. The address keeps every choice. The column persists after a reload, and the page size stays in the address (US1-AS1–AS7) |
+| US1 | `admin-mailboxes-30` | Open Mailboxes. Search "anna". Filter by a domain and "inactive". Sort by "in use" descending. Page to 2. Reload. Add the "Last password change" column. | Cards at 360 px and a table on desktop. Total shown. Chips per filter and "Clear all". Unlimited mailboxes last. The address keeps every choice. The column persists after a reload, and the page size stays in the address (US1-AS1–AS7) |
+| US1 | `admin-mailboxes-10k` | Search a fragment of an address on 360 px and open the mailbox | Within 10 s; the first page is visible within 2 s (SC-001, SC-003) |
 | US1 | `domain-admin-mailboxes` | Open `/ng/mailboxes/x@b.example`, a foreign domain | "Not found" with a link to the list (US1-AS8) |
 | US1 | `mailbox-user-active` | Open `/ng/mailboxes` | No navigation entry; "no access" (US1-AS11) |
 | US2 | `admin-create` | Add mailbox: type ` Anna.Smith `, choose `example.org`, keep Default, generate a password, enter 8 GiB, then 1 GiB, and create | Preview `anna.smith@example.org`; "max. 5 GiB"; an error at 8 GiB before submitting; the detail opens with the announcement and "Add another" (US2-AS1, AS2) |
@@ -74,10 +77,10 @@ Check each screen at 360 px and on a desktop, in both themes.
 | US3 | `admin-edit-ldap` | Open Sign-in and password of the LDAP mailbox | No password or recovery fields; forced change unavailable with the reason; switching to the built-in source shows the password with its hint (US3-AS6) |
 | US4 | `admin-delete` | Remove the 2 GiB, 10,000-message mailbox from the list. Then the one whose mail store fails | Preview numbers, retention and alias counts, with focus on Cancel; removal announced; "not deleted" for the failing one (US4-AS1–AS3) |
 | US5 | `admin-permissions` | Turn on "Sync jobs" and save; add "sales" to a "Sales" mailbox; add `department=Sales`, remove `old` | Only that flag is sent; no duplicate tag; the attribute diff (US5-AS1, AS3, AS5) |
-| US6 | `admin-bulk` | Select 50 on a page of 50 and deactivate; bulk-delete 3 with one mail-store failure, typing 3 | All 50 done; 2 removed and 1 failed, kept selected with the translated reason (US6-AS1, AS5) |
+| US6 | `admin-bulk` | Select 50 on a page of 50 and deactivate; bulk-delete 3 with one mail-store failure, typing 3 | All 50 done; 2 removed and 1 failed, kept selected with the translated reason; an outdated mailbox is deselected (US6-AS1, AS5) |
 | US7 | `admin-templates` | Create "Students" unchanged; open Default; delete "Staff" | Created with the defaults shown; Default name read-only with no delete; the confirmation says mailboxes do not change (US7-AS2, AS4, AS6) |
 | US8 | `admin-rename` | Rename `anna@example.org` to `anna.smith`, keeping the alias; then the scenario's "incomplete" mailbox | The new detail opens with the announcement; the persistent report lists the steps (US8-AS1, AS5) |
-| US9 | `admin-history` | Open a mailbox › History | The audit log filtered to the mailbox, newest first, with "Password set" without a value (US9-AS1) |
+| US9 | `admin-history` | Open a mailbox › History | The audit log filtered to the mailbox, newest first, with "Password set" without a value and the refused record as "failure" with its reason (US9-AS1, AS2) |
 
 ## Part C: Smoke suite against a real mailcow-rest-v2 dev stack
 

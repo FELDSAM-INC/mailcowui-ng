@@ -10,6 +10,7 @@ import ConnectionTest from '@/features/identity-providers/provider/components/Co
 import MappingField from '@/features/identity-providers/provider/components/MappingField.vue'
 import ProviderSecretField from '@/features/identity-providers/provider/components/ProviderSecretField.vue'
 import { useConnectionTest } from '@/features/identity-providers/provider/composables/useConnectionTest'
+import type { ProviderInput } from '@/features/identity-providers/provider/form-model'
 import { i18n } from '@/i18n'
 import { liveMessages } from '@/shared/composables/useAnnouncer'
 
@@ -22,12 +23,12 @@ afterEach(() => {
 })
 
 const candidate = {
-  type: 'ldap' as const,
+  type: 'ldap',
   hosts: ['ldap1.example.org'],
   baseDn: 'dc=example,dc=org',
   bindDn: 'cn=admin,dc=example,dc=org',
   bindPassword: 'secret',
-}
+} as ProviderInput
 
 function withTest(limitMs?: number) {
   let api!: ReturnType<typeof useConnectionTest>

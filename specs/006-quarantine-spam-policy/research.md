@@ -56,8 +56,9 @@ This feature adds **no runtime dependency** (constitution VIII).
   them in one tree. UI 002 (its research D2) therefore scopes 001-R27's rule 3 for the growing
   shared enumerations with the committed manifest `src/i18n/coverage.json`. Each UI feature appends
   the values it translates, and the check fails on a listed value without keys or a listed value
-  the contract no longer has. Every other enumeration the UI renders stays fully required. UI 003
-  calls the same manifest `enum-scope.json`, and T001 settles the name. This feature:
+  the contract no longer has. Every other enumeration the UI renders stays fully required. The UI
+  conventions ("Shared building blocks and canonical names") make `src/i18n/coverage.json` the
+  canonical registry, unless UI 001 defines its own mechanism. This feature:
   1. **appends its open-enumeration values to the manifest**:
      - `AuditEventType`: the 12 values of 006;
      - `AuditTarget.type`: the 7 values of 006;
@@ -262,7 +263,7 @@ This feature adds **no runtime dependency** (constitution VIII).
      cannot reorder the surrounding screen.
   3. **Neutralising.** `neutralise(value, { multiline })` splits the string into text segments and
      marker segments. A marker shows a code point visibly as `U+202E` in a muted style, so a
-     spoofed file name such as `invoice‮fdp.exe` shows its override instead of reading
+     spoofed file name such as `invoice<U+202E>fdp.exe` shows its override instead of reading
      `invoiceexe.pdf`. These characters become markers:
      - C0 controls U+0000–U+001F (except U+0009 and U+000A in multi-line text), U+007F and C1
        controls U+0080–U+009F;
@@ -316,7 +317,16 @@ This feature adds **no runtime dependency** (constitution VIII).
 
 ### R10. Downloads
 
-- **Decision**: `src/shared/platform/download.ts` saves API files without ever displaying them.
+- **Decision**: `src/shared/platform/download.ts`, the canonical download module of the UI
+  conventions, saves API files without ever displaying them.
+  - **Origin**: UI 005 creates the first download helper feature-locally, as
+    `src/features/account/download.ts`, for Apple profiles (its research). It already does the
+    object-URL click and the revocation after one second. UI 006 is implemented next and is its
+    second user, so T029 **promotes** it to `src/shared/platform/download.ts`. T029 keeps UI 005's
+    behaviour and updates its imports, then adds what this feature needs: `Content-Disposition`
+    parsing, name sanitising and the forced `octet-stream` type. UI 010, planned to do the
+    promotion, then finds it done. If UI 005 shipped no such helper, T029 creates the module at
+    the same path.
   - **Request**: `api.GET('/quarantine/{itemId}/attachments/{position}', { parseAs: 'blob' })`,
     and the same for `/message`, through the normal client. Session cookie, middleware and problem
     handling apply, so a refused download becomes an `ApiProblem` and a translated message
@@ -394,8 +404,11 @@ This feature adds **no runtime dependency** (constitution VIII).
     collapsible help text is the legacy `quarantine.qinfo` without markup (R27).
   - **States**: `ListState` gives loading, "no items", "nothing matches" with "clear filters", and
     error. Count changes are announced politely (FR-016), and Refresh calls `refetch()`.
-  - **Filter panel**: full screen on small screens, as UI 002 and UI 003 build theirs, with the
-    shared removable chips and "clear all" (`ActiveFilterChips.vue`).
+  - **Filter panel**: the shared `FilterPanel.vue` (`src/shared/components/`): a full-screen Reka
+    `Dialog` below `md` and an inline panel from `md` up, with "Apply" and "Clear all", plus the
+    shared removable chips (`ActiveFilterChips.vue`). UI 002 and UI 003 each build their filters
+    inside their feature, so if no shared container exists yet, this feature creates it, as its
+    third use (T011). UI 008 expects it at that path.
 - **Rationale**: FR-009 to FR-017, conventions "Lists", and the API's documented semantics
   (`to` exclusive, `minScore`/`maxScore` leave unscored items out).
 - **Alternatives considered**: A date-time range was rejected: the spec asks for days. A recipient
@@ -665,7 +678,9 @@ This feature adds **no runtime dependency** (constitution VIII).
     - domains and alias domains through the shared `DomainPicker.vue` with the matching source
       (`listDomains` or `listAliasDomains`, `q`);
     - mailboxes through `MailboxSearchPicker.vue`, a Reka `Combobox` without its viewport over
-      `listMailboxes` with `q`, kept in this feature because it is its only use.
+      `listMailboxes` with `q`. It is kept in `src/features/rate-limits/components/` because this
+      is its first use. Its canonical name is fixed by the UI conventions, and UI 008, its second
+      user, promotes it to `src/shared/components/`.
 
     The API scopes all three lists. The dialog then navigates to the object's page with the rate
     limit panel focused (`#rate-limit`).
@@ -792,8 +807,20 @@ This feature adds **no runtime dependency** (constitution VIII).
       user's units, the template as "changed" with its sizes, list entries with owner, list and
       pattern) to the contract bump that documents `details`. The template text and subjects are
       never in a record anyway (API FR-063).
-- **Rationale**: FR-066, conventions "History and audit", constitution I, and consistency with UI
-  002.
+  - **Once the keys are documented**: mailcow-rest-v2 tracks this gap as G3 in
+    `docs/api-gaps.md`. Its fix, recorded in the API's `docs/conventions.md` ("Audit record
+    details"), is that each API feature documents its detail keys per event type in
+    `docs/audit-events.md` when it is implemented, and the `AuditEvent.details` description points
+    there. The rule is "clients translate keys they know and show unknown keys verbatim". UI 006 is
+    implemented after API 006, so T125 checks for API 006's section in `docs/audit-events.md` at
+    the pinned commit.
+    - If the section exists, the generic view gains translated labels for those keys
+      (`auditLog.detailKey.<key>`), and enumeration values such as step outcomes are translated
+      where the section names their values.
+    - Values otherwise stay as stored, and unknown keys stay verbatim.
+    - If the section does not exist yet, the view stays generic, and the gap stays open for API 006.
+- **Rationale**: FR-066, conventions "History and audit", constitution I, consistency with UI 002,
+  004 and 010, and the API's "Audit record details" convention.
 - **Alternatives considered**:
   - Formatting the members documented in the API's data model: rejected under constitution I, as UI
     002 rejected it.
@@ -837,6 +864,12 @@ This feature adds **no runtime dependency** (constitution VIII).
 - **Decision**: Query keys and invalidation are in
   [data-model §3](./data-model.md#3-server-state-cache). The policy is 001-R9: `staleTime` 30 s,
   no focus refetch, and no interval, so the quarantine list never refreshes on a timer (FR-086).
+  This feature has **no polling** at all, so the conventions' polling rule (`useInactivity`) does
+  not apply. The one scheduled request is the single re-read of an item 5 seconds after the user's
+  own action met `quarantine-item-busy` (R14). It runs once, never repeats, and is cancelled when
+  the page is left. This feature also handles **no secrets**, so the conventions' rule that secrets
+  bypass the query cache has nothing to apply to. The notification template, patterns and bucket
+  identifiers are not secrets.
   - **Changes shown everywhere** (FR-086): a change invalidates every query that shows the changed
     value, including the read-only values on the host pages of UI 002, 003 and 004:
     - `getDomain` (`rateLimit`), `getAliasDomain` (`rateLimit`), and the mailbox representation

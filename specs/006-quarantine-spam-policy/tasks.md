@@ -90,7 +90,7 @@ mock baseline.
 
 ### Prerequisites from earlier features
 
-- [ ] T010 Write `tests/unit/dependencies/feature-006-dependencies.spec.ts`. It imports each block of plan rows P01–P21 and checks the behaviour listed there. Examples:
+- [ ] T010 Write `tests/unit/dependencies/feature-006-dependencies.spec.ts`. It imports each block of plan rows P01–P21, P24 and P25 and checks the behaviour listed there. The canonical names of the UI conventions ("Shared building blocks and canonical names") apply: `useLeaveGuard`, `BulkActionBar`, `useBulkSelection`, `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink` and `src/i18n/coverage.json`. Examples:
   - `useBulkSelection` honours `limit`, `targets()` returns `{ id, version }`, and `retain(results, keep)` keeps the predicate's rows;
   - `BulkResultSummary` renders an `#item` slot;
   - `ConfirmDialog` supports `requireTyped`;
@@ -104,7 +104,7 @@ mock baseline.
   - the designated areas of P16–P19 exist at their paths.
 
   Run it and record every failure.
-- [ ] T011 Fill every gap that T010 found, as the plan's prerequisite section prescribes. Build a missing block at its listed location, promote a block kept in its first feature (updating that feature's imports and keeping its tests green), or extend a block without changing its behaviour. If a block exists under another path or name, update the references in `plan.md`, `research.md` and this file instead of copying it. T010 must pass, except for P01's prefix (T022, T035) and P21 (T004, T005).
+- [ ] T011 Fill every gap that T010 found, as the plan's prerequisite section prescribes. Build a missing block at its listed location, promote a block kept in its first feature (updating that feature's imports and keeping its tests green), or extend a block without changing its behaviour. If a block exists under another path or name, update the references in `plan.md`, `research.md` and this file instead of copying it. P24 (`FilterPanel`) is created here if absent, as a full-screen Reka `Dialog` below `md` and an inline panel from `md` up, with "Apply" and "Clear all", test first in `tests/unit/shared/components/FilterPanel.spec.ts`. T010 must pass, except for P01's prefix (T022, T035), P21 (T004, T005) and P25 (T029).
 - [ ] T012 Promote `src/features/mailboxes/components/fields/AclReadOnlyNote.vue` to `src/shared/components/AclReadOnlyNote.vue` (P15, research R7). Move its unit test to `tests/unit/shared/components/AclReadOnlyNote.spec.ts`, update UI 003's imports, and keep UI 003's tests green. Its props stay: the flag name (a `PermissionFlags` key), shown as "Prohibited by ACL" (`acl.prohibited`) plus the flag's legacy label.
 
 ### Tests for the foundation (write first; must fail)
@@ -121,7 +121,7 @@ mock baseline.
   - for every hostile vector, the mounted DOM contains no element other than the component's own `bdi`, `div` and `span` (no `script`, `img`, `a`, `style`, `svg` or `iframe`), and no attribute comes from the data.
 - [ ] T015 [P] Write `tests/unit/shared/platform/download.spec.ts` (research R10). It covers:
   - `Content-Disposition` parsing: RFC 8187 `filename*=UTF-8''%C5%BElu%C5%A5ou%C4%8Dk%C3%BD.pdf` is preferred over `filename`, a `charset'lang'value` form, a quoted `filename`, and a missing header falling back to the given name;
-  - sanitising: `../../evil.exe`, a control character, `invoice‮fdp.exe`, a leading dot, trailing dots and spaces, and a 300-character name cut to 200;
+  - sanitising: `../../evil.exe`, a control character, `invoice<U+202E>fdp.exe`, a leading dot, trailing dots and spaces, and a 300-character name cut to 200;
   - the blob saved with type `application/octet-stream` whatever the response type;
   - a temporary `<a download>` is clicked and removed, and the object URL is revoked after 1 s (fake timers);
   - nothing is written to `localStorage`, `sessionStorage` or IndexedDB;
@@ -184,7 +184,7 @@ mock baseline.
 ### Implementation of the foundation
 
 - [ ] T028 [P] Implement `src/shared/security/plain-text.ts` (`neutralise`) and `src/shared/components/PlainText.vue` (`multiline` prop; `<bdi>` or a block with `dir="auto"`), plus the classes in `src/styles/main.css`: the plain-text block (`white-space: pre-wrap`, `overflow-wrap: anywhere`, `unicode-bidi: plaintext`) and the muted marker style. T013 and T014 must pass.
-- [ ] T029 [P] Implement `src/shared/platform/download.ts` (`saveApiFile`, `parseContentDisposition`, `sanitiseFileName`) as data-model §2 "Download target" describes. T015 must pass.
+- [ ] T029 [P] Promote UI 005's `src/features/account/download.ts` to `src/shared/platform/download.ts` (P25, research R10), keeping its behaviour (object URL, temporary `<a download>`, revocation after 1 s, never `data:` URLs), updating UI 005's imports and moving its test. Then add `saveApiFile`, `parseContentDisposition` and `sanitiseFileName` as data-model §2 "Download target" describes. If UI 005 shipped no helper, create the module at that path. T015 and UI 005's download tests must pass.
 - [ ] T030 [P] Implement `src/i18n/parse.ts` and `src/shared/components/LocaleNumberField.vue`. T016 and T017 must pass.
 - [ ] T031 [P] Implement `src/features/quarantine/permissions.ts`, the pure functions of data-model §2. T018 must pass.
 - [ ] T032 Implement `src/features/quarantine/capabilities.ts` (`useQuarantineCapabilities`), the first query of `src/features/quarantine/api.ts`, and export the composable and `permissions.ts` from `src/features/quarantine/index.ts`. T019 must pass.
@@ -323,7 +323,7 @@ sent, and that no markup is ever rendered (spec US1).
 - [ ] T051 [P] [US1] Implement `src/features/quarantine/symbols.ts`, `src/features/quarantine/content-preview.ts` and `src/features/quarantine/action-outcome.ts`. T046 must pass.
 - [ ] T052 [P] [US1] Implement the list components in `src/features/quarantine/components/`:
   - `QuarantineStatusNotice.vue`, with the collapsible help text;
-  - `QuarantineFilters.vue`: a full-screen Reka `Dialog` below `md`, the action, virus, notification, day and score fields (`LocaleNumberField`), and `ActiveFilterChips`;
+  - `QuarantineFilters.vue`: inside the shared `FilterPanel.vue` (P24: full screen below `md`), the action, virus, notification, day and score fields (`LocaleNumberField`), and `ActiveFilterChips`;
   - `QuarantineSortControl.vue`;
   - `ActionBadge.vue`, `VirusBadge.vue` and `NotifiedBadge.vue` (text badges, FR-079);
   - `QuarantineItemCard.vue` (subject heading through `PlainText`, details disclosure for the remaining FR-010 values) and `QuarantineItemRow.vue`;
@@ -788,11 +788,13 @@ the filters and the presentation of each kind of record from the mock (spec US9)
     - an own list entry (`spamPolicyEntry` with its ID);
   - the target type filter offers the 7 types of 006 with their labels;
   - records of one bulk action share a visible `bulkRequestId`.
-- [ ] T124 [P] [US9] Write `tests/unit/features/audit-log/quarantine-labels.spec.ts` (the 12 event types and 7 target types have labels in three locales; an unknown value falls back) and `tests/unit/features/audit-log/AuditEventDetails-plain-text.spec.ts` (generic values render through `PlainText`, overrides become markers, and nothing from `details` is rendered as markup).
+- [ ] T124 [P] [US9] Write `tests/unit/features/audit-log/quarantine-labels.spec.ts` (the 12 event types and 7 target types have labels in three locales; an unknown value falls back) and `tests/unit/features/audit-log/AuditEventDetails-plain-text.spec.ts` (generic values render through `PlainText`, overrides become markers, and nothing from `details` is rendered as markup). If API 006's section of `docs/audit-events.md` exists at the pinned commit (T125), also assert that its documented keys show translated labels and an unknown key shows verbatim.
 
 ### Implementation for User Story 9
 
 - [ ] T125 [US9] Add the 12 event types and 7 target types to `src/features/audit-log/labels.ts`, and render the values of `src/features/audit-log/components/AuditEventDetails.vue`'s generic view through `PlainText` (research R23).
+  - Check `docs/audit-events.md` in mailcow-rest-v2 at the pinned commit. If it has API 006's section (API gap G3), add translated labels `auditLog.detailKey.<key>` for the documented keys, and translate enumeration values where the section names them. Unknown keys stay verbatim (API convention "Audit record details").
+  - If the section is missing, keep the generic view and note G3 as still open for API 006 in `specs/006-quarantine-spam-policy/plan.md`.
 - [ ] T126 [US9] Place `HistoryLink` for administrators (research R23 table):
   - `src/features/quarantine/pages/QuarantineSettingsPage.vue`;
   - `src/features/quarantine/components/NotificationSettingsPanel.vue` (mailbox page only);

@@ -150,22 +150,25 @@ after **API 006 is implemented** (smoke suite). Gaps and observations:
    for the "Spam filter and limits" pages.
    - **UI behaviour**: History per existing own entry (`targetType=spamPolicyEntry&targetId=<id>`),
      and no panel-level list history. Never filtered in the browser.
-   - **Proposed to mailcow-rest-v2**: make list-entry records filterable by owner, for example by
-     letting `targetId` for `spamPolicyEntry` also match `<ownerKind>:<owner>`, or by recording the
-     owner as the target name.
+   - **Proposed to mailcow-rest-v2** (a new entry for its `docs/api-gaps.md`, which this plan cannot
+     edit because the API repository is read-only here): make list-entry records filterable by
+     owner, for example by letting `targetId` for `spamPolicyEntry` also match
+     `<ownerKind>:<owner>`, or by recording the owner as the target name.
 2. **`AuditEvent.details` is untyped (API gap)**: the members of the 006 records (`steps`,
    `changes`, `owner`, `countersExisted` and so on) are documented in the API's `data-model.md`, not
    in the contract (`details` is `additionalProperties: true`). The second half of FR-066 (step
    outcomes, old and new values in the user's units, the template's sizes, the list entry's owner)
-   needs those members. This is the same gap as UI 002's G1.
-   - **UI behaviour**: as UI 002 decided (its D26), the records show their event and target labels,
-     actor, time, address and outcome. Their `details` go through UI 001's generic details view,
-     whose values now render through `PlainText` (R23). The typed presentation of FR-066 is
-     deferred to the contract bump that documents `details`. It is not built from the API's data
-     model (constitution I).
-   - **Proposed to mailcow-rest-v2**: describe the `details` members per event type in the contract,
-     for example as a `oneOf` keyed by `eventType`, or at least in the description of each event
-     type.
+   needs those members. mailcow-rest-v2 already tracks this as **G3** in `docs/api-gaps.md`. The
+   fix is each API feature documenting its keys in `docs/audit-events.md` when it is implemented,
+   per the API convention "Audit record details".
+   - **UI behaviour**: as UI 002, 004 and 010 decided, the records show their event and target
+     labels, actor, time, address and outcome. Their `details` go through UI 001's generic details
+     view, whose values now render through `PlainText` (R23). If API 006's section of
+     `docs/audit-events.md` exists at the pinned commit, T125 adds translated labels for its keys,
+     and unknown keys stay verbatim. The presentation is never built from the API's data model
+     (constitution I).
+   - **Action for mailcow-rest-v2**: API 006's implementation documents its 12 event types' keys in
+     `docs/audit-events.md` (G3).
 3. **Observation: recipient kind.** A quarantine item does not say whether its recipient is an
    existing mailbox, a resource or a deleted mailbox. The item page asks `getMailbox` before
    linking the recipient (R13). This is one extra read per opened item for administrators and
@@ -195,7 +198,9 @@ then fills every gap:
 - a block lacking a listed capability is extended without changing its existing behaviour.
 
 If an earlier feature shipped a block under another name or path, the references in this plan,
-research and tasks are updated instead of creating a copy. P15 is always promoted, by T012.
+research and tasks are updated instead of creating a copy. P15 is always promoted, by T012, and
+P25 by T029. Every name follows the UI conventions' "Shared building blocks and canonical
+names".
 
 | ID | Block or area | Location | From | What this feature relies on |
 |---|---|---|---|---|
@@ -205,7 +210,7 @@ research and tasks are updated instead of creating a copy. P15 is always promote
 | P04 | `BulkActionBar` ("Select", "Done", "Select all", count, fixed bar) | `src/shared/components/BulkActionBar.vue` | 002 | quarantine list selection mode |
 | P05 | `BulkResultSummary` with the `#item` slot and the "outcome unknown" state | `src/shared/components/BulkResultSummary.vue` | 002 | bulk results with action reports (R15) |
 | P06 | `ConfirmDialog` `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue` | 002 | typed count of bulk deletions; item lists in dialogs |
-| P07 | `EditableSection` with the field diff of `useVersionedSave` and the leave guard | `src/shared/components/EditableSection.vue` | 002 | settings sections and every panel form (R16, R17, R20, R21) |
+| P07 | `EditableSection` with the field diff of `useVersionedSave`, and `useLeaveGuard` | `src/shared/components/EditableSection.vue`, `src/shared/composables/useLeaveGuard.ts` | 002 | settings sections and every panel form (R16, R17, R20, R21) |
 | P08 | `HistoryLink` and the audit log target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | 002 | History (R23) |
 | P09 | `meta.roles` check in `ShellLayout` | `src/app/layouts/ShellLayout.vue` | 002 (D4) | sub-pages (R6) |
 | P10 | scroll restoration and focus without scrolling | `src/app/router/{index.ts,focus.ts}` | 002 (D9) | back to the list (R13) |
@@ -222,6 +227,8 @@ research and tasks are updated instead of creating a copy. P15 is always promote
 | P21 | binary bodies in the mock validator | `tests/mocks/contract/validator.ts` | — | downloads (R28); T004 and T005 add it if absent |
 | P22 | contract pin | `contract/VERSION.json` | 005 | bump rule (R1, T001) |
 | P23 | API 006 implemented in the dev stack, with the seeded data of its quickstart | `../mailcow-rest-v2` | API 006 | smoke suite (R28); without it the smoke job stays non-blocking |
+| P24 | `FilterPanel` (full screen below `md`, inline from `md`, "Apply" and "Clear all") | `src/shared/components/FilterPanel.vue` | — (UI 002 and 003 keep theirs in-feature) | quarantine filters (R12); T011 creates it if absent, and UI 008 expects it there |
+| P25 | download helper (object URL, click, revoke after 1 s) | `src/features/account/download.ts`, promoted to `src/shared/platform/download.ts` by T029 | 005 | downloads (R10); T029 creates the module if UI 005 shipped none |
 
 ## Spec alignment
 
@@ -349,9 +356,10 @@ src/
 │   └── alias-domains/pages/AliasDomainDetailPage.vue     ~ entry; rate limit note and report links
 ├── shared/
 │   ├── components/{PlainText,LocaleNumberField,AclReadOnlyNote}.vue   + (R9, R18; promoted R7)
+│   ├── components/FilterPanel.vue                 + if absent (P24, R12)
 │   ├── composables/useListState.ts                ~ key prefix, if absent (R19)
 │   ├── security/plain-text.ts                     + (R9)
-│   ├── platform/download.ts                       + (R10)
+│   ├── platform/download.ts                       + promoted from UI 005's account feature (P25, R10)
 │   └── validation/limits.ts                       ~ bucket identifier pattern (R8)
 ├── i18n/
 │   ├── parse.ts                                   + locale decimals and integers (R18)
@@ -378,10 +386,16 @@ tests/
 **Structure Decision**: The single static frontend of UI 001, with three new feature areas that
 mirror the contract modules (R4). The object pages live in `spam-filter` and compose panels from
 all three areas through their `index.ts`. Shared additions are limited to building blocks with two
-or more uses (`PlainText`: quarantine and audit log; `download.ts`: attachments and messages;
-`parse.ts` and `LocaleNumberField`: scores, the score limit, filters and whole numbers;
-`AclReadOnlyNote`: mailboxes and this feature). Changes to earlier features are confined to the
-action areas their data models designate, and to the audit log's labels and generic details view.
+or more uses:
+- `PlainText`: quarantine and the audit log;
+- `download.ts`: UI 005's profiles, attachments and messages;
+- `parse.ts` and `LocaleNumberField`: scores, the score limit, filters and whole numbers;
+- `AclReadOnlyNote`: mailboxes and this feature;
+- `FilterPanel`: domains, mailboxes and this feature.
+
+Every name follows the UI conventions' canonical list. Changes to earlier features are confined to
+the action areas their data models designate, and to the audit log's labels and generic details
+view.
 
 ## Complexity Tracking
 

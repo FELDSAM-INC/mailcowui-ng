@@ -116,8 +116,10 @@ reads this document next to the constitution. The API side has its own rules in
   designated action area when it is implemented. Earlier plans' tables of action areas don't need
   to list every later entry.
 - **Secrets in requests or responses** (private keys, passwords, generated secrets) never go through
-  TanStack Query caches. Call the client directly, keep the value in component state only, and
-  never save form drafts of such forms.
+  TanStack Query caches. They go through `useSecretRequest`, a direct client call with loading,
+  error and result state, which UI 001 creates for API key creation and UI 005, 010 and 012 reuse.
+  Values stay in component state only, and forms carrying secrets never save drafts. Generated
+  secrets appear only in `OneTimeSecretDialog`.
 - **Polling:** the only automatic polling allowed is a condition-bound `refetchInterval` with
   visibility checks, a pause control and the inactivity limit (the lower of 15 minutes and the
   session idle timeout).

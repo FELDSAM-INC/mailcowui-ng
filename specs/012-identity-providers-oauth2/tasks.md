@@ -174,7 +174,7 @@ address and confirm "no access" with no request.
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T016 [US1] Implement the identity provider handlers in `tests/mocks/handlers/identity-provider.ts` for `getIdentityProviderCapabilities`, `getIdentityProvider`, `saveIdentityProvider` and `testIdentityProviderConnection`, and register them in `tests/mocks/handlers/index.ts` (research R24). The handlers implement:
+- [X] T016 *(done: all six operations in `tests/mocks/handlers/identity-provider.ts` (with T066's change, removal and switches); scenarios `idp-none`, `idp-no-templates`, `idp-templates-fail`, `idp-ldap` and those of T066 in `tests/mocks/scenarios/identity-provider.ts`; UI 003 has not landed, so `tests/mocks/handlers/mailbox-templates.ts` serves the template list from the scenario's names (`idp-templates-many` dropped: the pickers are plain selects, as legacy); checked in `tests/unit/mocks/identity-provider-handlers.spec.ts`)* [US1] Implement the identity provider handlers in `tests/mocks/handlers/identity-provider.ts` for `getIdentityProviderCapabilities`, `getIdentityProvider`, `saveIdentityProvider` and `testIdentityProviderConnection`, and register them in `tests/mocks/handlers/index.ts` (research R24). The handlers implement:
   - `404 identity-provider-not-configured` before the first save;
   - `PUT` answering `201` with `Location` and `ETag` when creating and `200` when replacing, with `If-Match` checked (`412`);
   - `422` errors:
@@ -193,7 +193,7 @@ address and confirm "no access" with no request.
   - `idp-templates-many`: 40 templates;
   - `idp-templates-fail`: `listMailboxTemplates` answers `500`;
   - `idp-ldap`: a complete LDAP configuration with no mailboxes and a `waiting` synchronisation.
-- [ ] T017 [P] [US1] Write `tests/e2e/identity-provider/setup.spec.ts`. It covers:
+- [X] T017 *(done: `tests/e2e/identity-provider/setup.spec.ts`, on the legacy form instead of the step flow (plan "Decisions at implementation" 3): the classic tab with Keycloak chosen, each type's fields and defaults, the two SSL/StartTLS switches, the rules with the summary, the secret, the app's return addresses with a refused clipboard, return URL and mapping entries, no templates, a failing template list, the create-only save of LDAP, Keycloak and Generic-OIDC, the leave guard, network loss and long values. Step names, type explanations, the empty state and the review step are gone with the step flow)* [P] [US1] Write `tests/e2e/identity-provider/setup.spec.ts`. It covers:
   - US1-AS1 and FR-004: the empty state explains single sign-on, provider password sign-in and automatic creation, and offers "Set up an identity provider". The `404` is not shown as an error.
   - FR-003: the loading state while the capabilities and configuration load; with a `500` on `getIdentityProvider` the error state offers a retry that recovers.
   - US1-AS2, FR-009 to FR-011, at 360 px:
@@ -227,7 +227,7 @@ address and confirm "no access" with no request.
   - FR-016: leaving the setup with entries asks for confirmation (`useLeaveGuard`), and "Stay" keeps the entries.
   - `Edge: network loss during a save`: nothing is reported as saved, and the entries stay.
   - `Edge: very long values`: 2,000-character URLs and long DNs wrap at 360 px.
-- [ ] T018 [P] [US1] Write `tests/e2e/identity-provider/connection-test.spec.ts`. It covers:
+- [X] T018 *(done: `tests/e2e/identity-provider/connection-test.spec.ts`: legacy's alert text plus the category, every category, the busy action and the 90-second "no result" with `page.clock`, the client rules first, offline, the request body, and the stored configuration's test without a secret. Staleness marks and the Keycloak `view-users` note are not built (legacy lacks them))* [P] [US1] Write `tests/e2e/identity-provider/connection-test.spec.ts`. It covers:
   - US1-AS3 and FR-036: with `connectionTest.outcome: credentialsRejected`, the result says that the credentials were rejected, with its hint, the tested address, the type and the time; it is announced; and no save request is sent.
   - Each other category (`unreachable`, `timedOut`, `tlsCertificateRejected`, `unexpectedResponse` with status 404) shows its translated hint, and success shows text plus an icon with a text alternative (FR-075).
   - US1-AS4 and FR-037: a successful test, then a changed host, marks the result "refers to earlier values". A change to the mapping does not.
@@ -237,20 +237,20 @@ address and confirm "no access" with no request.
   - The Keycloak success note on the unchecked `view-users` permission, when user import is on.
   - `Edge: test while offline` (`route.abort()`): the network message with retry.
   - The request body is the candidate built from the entered values.
-- [ ] T019 [P] [US1] Write `tests/e2e/identity-provider/access.spec.ts`. It covers US1-AS8, FR-001, FR-002 and SC-010: with UI 001's active domain-administrator and mailbox-user scenarios:
+- [X] T019 *(done: `tests/e2e/identity-provider/access.spec.ts`; the setup route is gone (the form is on the screen itself))* [P] [US1] Write `tests/e2e/identity-provider/access.spec.ts`. It covers US1-AS8, FR-001, FR-002 and SC-010: with UI 001's active domain-administrator and mailbox-user scenarios:
   - the navigation has no "Identity providers and OAuth2" entry;
   - `/ng/identity-providers/provider` and `/ng/identity-providers/provider/setup` show "no access";
   - `mockApi.requests()` contains no operation of API 012.
 
   As an administrator, the entry leads to the identity provider screen, and `/ng/identity-providers` redirects there.
-- [ ] T020 [P] [US1] Write `tests/unit/features/identity-providers/provider/form-model.spec.ts` and `tests/unit/features/identity-providers/provider/sections.spec.ts` (data-model §2, research R11). Check:
+- [X] T020 *(done: `form-model.spec.ts` (one form model for the three types; request bodies checked with the mock validator); there are no sections to test (one section, legacy form))* [P] [US1] Write `tests/unit/features/identity-providers/provider/form-model.spec.ts` and `tests/unit/features/identity-providers/provider/sections.spec.ts` (data-model §2, research R11). Check:
   - `formFromDefaults` uses `capabilities.defaults`;
   - `formFromConfig` maps stored `null` to `''` and `useSsl` to `connectionSecurity: 'ssl'`, whatever `useStartTls` says;
   - `toInput` trims strings, removes empty host and URL entries, sends empty `filter`, `attributeField` and `defaultTemplate` as `null`, maps `connectionSecurity` back to the two booleans, omits an empty secret and never sends read-only members;
   - the built bodies pass the mock validator's request validation for `saveIdentityProvider` and `testIdentityProviderConnection` for each type;
   - `toCandidate` covers its three contexts;
   - `sections` lists exactly the members of the FR-006 table per type, and `fieldSection` maps `attributeMapping.2.template` to `signIn`.
-- [ ] T021 [P] [US1] Write `tests/unit/features/identity-providers/provider/validation.spec.ts`. It is table-driven over the rules of data-model §6 with the limits from capabilities (FR-018). Cases include:
+- [X] T021 *(done: `validation.spec.ts`, including `isLdapHost`)* [P] [US1] Write `tests/unit/features/identity-providers/provider/validation.spec.ts`. It is table-driven over the rules of data-model §6 with the limits from capabilities (FR-018). Cases include:
   - `scopes` of 51 names, a name with `"` and a double space;
   - a filter `(&(a=b)(c=d)` (unbalanced);
   - the attribute field required while `periodicSync` is on;
@@ -261,7 +261,7 @@ address and confirm "no access" with no request.
   - `isLdapHost`: `openldap` and `ldap1.example.org`, `192.0.2.10` and `2001:db8::1` are accepted; `ldap_1.example.org`, `192.0.2.10/24`, a 64-character label and 254 characters are refused.
 
   Messages use `validation.<code>` with the API's parameters.
-- [ ] T022 [P] [US1] Write `tests/unit/features/identity-providers/provider/secret-rule.spec.ts` and `tests/unit/features/identity-providers/provider/setup-steps.spec.ts`.
+- [X] T022 *(done: the secret rule in `validation.spec.ts`; no setup steps exist)* [P] [US1] Write `tests/unit/features/identity-providers/provider/secret-rule.spec.ts` and `tests/unit/features/identity-providers/provider/setup-steps.spec.ts`.
   - `secretRequirement`:
     - in the setup: `noStoredSecret`;
     - in an edit with an unchanged address: optional;
@@ -271,13 +271,13 @@ address and confirm "no access" with no request.
     - five for Keycloak and generic OIDC, four for LDAP;
     - a `?step=` beyond the furthest valid step normalises to it;
     - an unknown value normalises to `type`.
-- [ ] T023 [P] [US1] Write `tests/unit/features/identity-providers/provider/connection-test.spec.ts` and `tests/unit/features/identity-providers/provider/ConnectionTestPanel.spec.ts` (research R16).
+- [X] T023 *(done: `components.spec.ts` (`useConnectionTest` with its limit and busy start, `ConnectionTest` with category, status, progress and problems); no dependency staleness (dropped))* [P] [US1] Write `tests/unit/features/identity-providers/provider/connection-test.spec.ts` and `tests/unit/features/identity-providers/provider/ConnectionTestPanel.spec.ts` (research R16).
   - `TEST_DEPENDENCIES` per type: changes to a listed member mark the result stale, other changes do not.
   - With fake timers, the 90-second abort calls `AbortController.abort()` and sets `noResult`.
   - A second start while running is ignored.
   - The pre-check stops on client errors and on a missing required secret.
   - Panel: the result as text plus an icon with a text alternative, the category hint, the provider status for `unexpectedResponse`, the Keycloak permission note, the stale label, and polite announcements.
-- [ ] T024 [P] [US1] Write component tests in `tests/unit/features/identity-providers/provider/fields/`:
+- [X] T024 *(done: `components.spec.ts` covers `ProviderSecretField`, `AppReturnAddresses` and `MappingField`; legacy's one host field and two switches replace `HostListField` and `ConnectionSecurityChoice`; the template picker is a plain select; `SyncIntervalField` (readable interval) is not built (legacy lacks it))* [P] [US1] Write component tests in `tests/unit/features/identity-providers/provider/fields/`:
   - `AttributeMappingField.spec.ts`: add up to `attributeMappingMaxEntries`, remove labelled with the value, focus on the new entry, duplicate marking, cards below `md`;
   - `TemplateSelect.spec.ts`: a native select with up to 15 templates, a Combobox with client-side search above that, a missing stored template labelled "Template missing", the "None" choice for the default template;
   - `HostListField.spec.ts`;
@@ -286,7 +286,7 @@ address and confirm "no access" with no request.
   - `AppReturnAddressList.spec.ts`: each address through `CopyableValue`, the announcement, selection on refusal, text not links (FR-082), and the mismatch warning;
   - `ProviderSecretField.spec.ts`: on `PasswordInput`; "Set", "Not set" or "Required"; the required reason; `autocomplete="new-password"` and the password-manager opt-outs; no remove action; the value emptied on `reset` and unmount;
   - `SyncIntervalField.spec.ts`: the readable interval "every 15 minutes", "every 2 hours", "every 90 minutes".
-- [ ] T025 [P] [US1] Write `tests/unit/features/identity-providers/provider/IdentityProviderSetupPage.spec.ts`, `tests/unit/features/identity-providers/provider/IdentityProviderPage.spec.ts` and `tests/unit/features/identity-providers/SectionNav.spec.ts`.
+- [X] T025 *(done: `IdentityProviderPage.spec.ts` (create, client errors, section edit, cancel and stored test, removal, in-use refusal, load retry) and `SectionNav.spec.ts`; the setup page does not exist)* [P] [US1] Write `tests/unit/features/identity-providers/provider/IdentityProviderSetupPage.spec.ts`, `tests/unit/features/identity-providers/provider/IdentityProviderPage.spec.ts` and `tests/unit/features/identity-providers/SectionNav.spec.ts`.
   - Setup:
     - steps below `lg` and one page with a section index from `lg` up, keeping the entries across a resize;
     - focus and announcements;
@@ -297,7 +297,7 @@ address and confirm "no access" with no request.
   - Overview: the empty state for a `null` configuration; the error state with retry for other failures; the read-only sections with the stored values.
   - FR-070: the save announcement stays while it has focus or is hovered.
   - `SectionNav`: renders only links whose route is registered, with `aria-current="page"`.
-- [ ] T026 [P] [US1] Write the unit tests for the overview models.
+- [X] T026 *(superseded by the legacy form map, nothing to build: usage counts, synchronisation status and the return-path check are panels legacy never shows (plan "Decisions at implementation"))* [P] [US1] Write the unit tests for the overview models.
   - `tests/unit/features/identity-providers/provider/usage.spec.ts` (data-model §2, FR-005, FR-013, FR-039):
     - `canRemove` only when every count is 0;
     - `blocked(T)` from the other sources' counts;
@@ -306,8 +306,8 @@ address and confirm "no access" with no request.
     - the links carry `authSource`.
   - `tests/unit/features/identity-providers/provider/sync-status.spec.ts`: the label and icon per state, the explanations for `overdue` and `unknown`, `formatInterval` per locale, and the task names `Keycloak Sync` and `LDAP Sync`.
   - `tests/unit/features/identity-providers/provider/return-addresses.spec.ts`: `/ng/sso/return` matches, while `/ng/sso/callback` and `/sso/return` are reported.
-- [ ] T027 [P] [US1] Write `tests/unit/features/identity-providers/provider/overview-parity.spec.ts` with the fixture set `tests/unit/features/identity-providers/provider/fixtures/parity.ts` (SC-007). For an LDAP, a Keycloak and a generic OIDC configuration with legacy defaults, and with legacy-stored values (an empty `filter`, `null` optional values, hosts with IPv6 addresses, 100 mapping entries), the overview renders every non-secret member of the representation with the same value. Empty required values show "Not set" and empty optional values "None" (FR-007).
-- [ ] T028 [P] [US1] Write `tests/smoke/fixtures/identity-provider.ts` and `tests/smoke/identity-provider.smoke.spec.ts`, tagged `@idp` and skipped unless `SMOKE_IDP=1`.
+- [X] T027 *(done in substance by `IdentityProviderPage.spec.ts` and `edit.spec.ts` (every stored value of each type in the read-only section); empty values show "None")* [P] [US1] Write `tests/unit/features/identity-providers/provider/overview-parity.spec.ts` with the fixture set `tests/unit/features/identity-providers/provider/fixtures/parity.ts` (SC-007). For an LDAP, a Keycloak and a generic OIDC configuration with legacy defaults, and with legacy-stored values (an empty `filter`, `null` optional values, hosts with IPv6 addresses, 100 mapping entries), the overview renders every non-secret member of the representation with the same value. Empty required values show "Not set" and empty optional values "None" (FR-007).
+- [X] T028 *(done: `tests/smoke/identity-provider.smoke.spec.ts` with `tests/smoke/fixtures/identity-provider.ts`, tagged `@idp`, skipped unless `SMOKE_IDP=1`; one case at 360 × 780)* [P] [US1] Write `tests/smoke/fixtures/identity-provider.ts` and `tests/smoke/identity-provider.smoke.spec.ts`, tagged `@idp` and skipped unless `SMOKE_IDP=1`.
   - The fixture, as `admin` through the API: creates the mailbox template "Staff" if missing, and removes the identity provider configuration before and after the test when no mailbox uses it.
   - The spec, through the app:
     1. Set up LDAP with host `openldap`, base DN `dc=example,dc=org`, bind DN `cn=admin,dc=example,dc=org`, attribute field `title` and mapping `staff` → "Staff".
@@ -318,17 +318,17 @@ address and confirm "no access" with no request.
 
 ### Implementation for User Story 1
 
-- [ ] T029 [US1] Implement `src/features/identity-providers/provider/api.ts` (research R10, R12, R14, R16), and add a non-behavioural export of UI 003's "all templates" query (`['mailbox-templates','all']`, `limit=1000&sort=name`) to `src/features/mailboxes/index.ts` if it is not exported yet.
+- [X] T029 *(done: `provider/api.ts` with direct calls for every write and the test, `If-None-Match: *` for the first setup (G20), and `api.spec.ts` checking that no cache holds a typed secret; the template list uses UI 003's key from `src/api/query/keys.ts` (no `src/features/mailboxes` yet))* [US1] Implement `src/features/identity-providers/provider/api.ts` (research R10, R12, R14, R16), and add a non-behavioural export of UI 003's "all templates" query (`['mailbox-templates','all']`, `limit=1000&sort=name`) to `src/features/mailboxes/index.ts` if it is not exported yet.
   - Queries:
     - capabilities: `staleTime` 5 min;
     - configuration: `staleTime` 30 s, with `identity-provider-not-configured` mapped to `null`.
   - `saveIdentityProvider(input, etag?)`: calls the generated client directly (PUT with an optional `If-Match`), never `useMutation`, because the body may carry a secret (`docs/conventions.md`, research R14). On success it writes the secret-free response to the configuration query and invalidates the capabilities and `['public-config']`. It returns whether the answer was `201` or `200`.
   - `testIdentityProviderConnection(candidate, signal)`: a direct client call with an `AbortSignal`; the result stays in component state.
   - A unit test in `tests/unit/features/identity-providers/provider/api.spec.ts` asserts that after a save and a test with a typed secret, no value of the query cache or the mutation cache contains it.
-- [ ] T030 [P] [US1] Implement `src/features/identity-providers/provider/sections.ts` and `src/features/identity-providers/provider/form-model.ts`. The form types are derived from the generated input types with mapped types; there are no hand-written API shapes. T020 must pass.
-- [ ] T031 [P] [US1] Implement `src/features/identity-providers/provider/validation.ts` (limits from `capabilities.limits` and `src/shared/validation/limits.ts`; `isLdapHost` on UI 001's `isIpNetwork`) and `src/features/identity-providers/provider/secret-rule.ts`, so that T021 and T022 (secret rule) pass.
-- [ ] T032 [P] [US1] Implement `src/features/identity-providers/provider/setup-steps.ts`, `connection-test.ts`, `usage.ts`, `sync-status.ts` and `return-addresses.ts` in `src/features/identity-providers/provider/`, so that T022 (steps), T023 (model part) and T026 pass.
-- [ ] T033 [P] [US1] Implement the field components in `src/features/identity-providers/provider/components/fields/`:
+- [X] T030 *(done: `form-model.ts` (no `sections.ts`: one section))* [P] [US1] Implement `src/features/identity-providers/provider/sections.ts` and `src/features/identity-providers/provider/form-model.ts`. The form types are derived from the generated input types with mapped types; there are no hand-written API shapes. T020 must pass.
+- [X] T031 *(done: `validation.ts` (hosts with `isIpNetwork`) and `secret-rule.ts`)* [P] [US1] Implement `src/features/identity-providers/provider/validation.ts` (limits from `capabilities.limits` and `src/shared/validation/limits.ts`; `isLdapHost` on UI 001's `isIpNetwork`) and `src/features/identity-providers/provider/secret-rule.ts`, so that T021 and T022 (secret rule) pass.
+- [X] T032 *(done in part: no setup steps, usage, synchronisation status or return-path check (legacy form map); `useConnectionTest.ts` holds the test model)* [P] [US1] Implement `src/features/identity-providers/provider/setup-steps.ts`, `connection-test.ts`, `usage.ts`, `sync-status.ts` and `return-addresses.ts` in `src/features/identity-providers/provider/`, so that T022 (steps), T023 (model part) and T026 pass.
+- [X] T033 *(done: `ProviderSecretField`, `TextField`, `SwitchField`, `ReturnUrlFields`, `AppReturnAddresses` and `IdentityProviderForm` in legacy order, help texts visible and tied with `aria-describedby`)* [P] [US1] Implement the field components in `src/features/identity-providers/provider/components/fields/`:
   - `ProviderSecretField.vue`: on UI 005's `PasswordInput`, the status "Set", "Not set" or "Required", the required reason from `secret-rule.ts`, no remove action, `autocomplete="new-password"`, `data-1p-ignore`, `data-lpignore="true"`, `data-bwignore` and `data-form-type="other"`, and the value emptied on reset and unmount (research R14);
   - `KeycloakConnectionFields.vue`, `OidcConnectionFields.vue`, `LdapConnectionFields.vue` and `LdapDirectorySearchFields.vue`, with the secret through `ProviderSecretField`;
   - `HostListField.vue`;
@@ -340,13 +340,13 @@ address and confirm "no access" with no request.
   - `SyncIntervalField.vue`.
 
   Help texts are visible and tied to their controls with `aria-describedby` (FR-074). T024 must pass, except for the two components of T034.
-- [ ] T034 [P] [US1] Implement `src/features/identity-providers/provider/components/fields/AttributeMappingField.vue` and `TemplateSelect.vue` (Reka `Combobox` without `ComboboxViewport` above 15 templates), so that their parts of T024 pass.
-- [ ] T035 [P] [US1] Implement `src/features/identity-providers/provider/composables/useConnectionTest.ts`, `src/features/identity-providers/provider/components/ConnectionTestPanel.vue` and `ConnectionTestResult.vue`. The 90-second limit uses `setTimeout` and an `AbortController`; results are kept in component state only. T023 must pass.
-- [ ] T036 [US1] Implement the setup flow, so that the setup part of T025 passes.
+- [X] T034 *(done: `MappingField.vue` with plain selects (owner instruction: as in legacy))* [P] [US1] Implement `src/features/identity-providers/provider/components/fields/AttributeMappingField.vue` and `TemplateSelect.vue` (Reka `Combobox` without `ComboboxViewport` above 15 templates), so that their parts of T024 pass.
+- [X] T035 *(done: `useConnectionTest.ts` and `ConnectionTest.vue`)* [P] [US1] Implement `src/features/identity-providers/provider/composables/useConnectionTest.ts`, `src/features/identity-providers/provider/components/ConnectionTestPanel.vue` and `ConnectionTestResult.vue`. The 90-second limit uses `setTimeout` and an `AbortController`; results are kept in component state only. T023 must pass.
+- [X] T036 *(done as `useProviderEditor.ts` and the page's form: the first setup is legacy's form on the screen, not a step flow; `useLeaveGuard` while entries exist)* [US1] Implement the setup flow, so that the setup part of T025 passes.
   - `src/features/identity-providers/provider/composables/useSetupFlow.ts`: the form state, the furthest valid step, the step address parameter (Next and Back push, normalisation replaces), validation per step, the test state, save with the `201` or `200` announcement through `useStatusMessage`, and the `422` mapping to steps.
   - `src/features/identity-providers/provider/components/setup/ProviderTypeStep.vue`, `SetupProgress.vue` ("Step n of m" plus an `<ol>` with `aria-current="step"`), `SetupSectionIndex.vue` and `SetupReview.vue`.
   - `src/features/identity-providers/provider/pages/IdentityProviderSetupPage.vue`: steps below `lg`, one page from `lg` up, and `useLeaveGuard`.
-- [ ] T037 [US1] Implement the read-only overview, so that the overview part of T025 and T027 pass.
+- [X] T037 *(done: `IdentityProviderValues.vue` in one `EditableSection` titled with the type; no overview header, counts, TLS warning or sync status (legacy form map))* [US1] Implement the read-only overview, so that the overview part of T025 and T027 pass.
   - `src/features/identity-providers/provider/components/EmptyState.vue`.
   - `OverviewHeader.vue`:
     - the type;
@@ -362,13 +362,13 @@ address and confirm "no access" with no request.
     - "Template missing" with its explanation for entries with `templateExists: false` and for `defaultTemplateExists: false`;
     - long values wrapping.
   - `src/features/identity-providers/provider/pages/IdentityProviderPage.vue`: `ListState`-style loading and error states, the empty state for `null`, and the overview otherwise.
-- [ ] T038 [US1] Implement:
+- [X] T038 *(done: `SectionNav.vue` with legacy's tab names, `routes.ts` (`identity-providers` redirects to `identity-provider`), the catalogue entry `available`; UI 011's `group` does not exist yet)* [US1] Implement:
   - `src/features/identity-providers/components/SectionNav.vue`;
   - `src/features/identity-providers/routes.ts`, with `identity-providers` redirecting to `identity-provider`, plus `identity-provider` and `identity-provider-setup`, all with `meta.navEntry: 'identityProviders'`;
   - `src/features/identity-providers/index.ts`.
 
   Register the routes in `src/app/router/routes.ts`, and set the catalogue's `identityProviders` entry to `available` with `group: 'system'` in `src/app/navigation/catalogue.ts` (research R3). T019, UI 001's table-driven visibility test and the `SectionNav` part of T025 must pass.
-- [ ] T039 [US1] Use the legacy keys of T005a's form map verbatim for every field label, help and info text, option, action and message of the identity provider screens (`admin.iam_*`, `admin.iam_description`, `admin.iam_extra_permission`, `admin.iam_auth_flow_info` with their markup through `SanitizedHtml.vue`, `success.object_modified`, `success.item_deleted`, `success.iam_test_connection`, `danger.iam_test_connection`). Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's new strings (FR-077 to FR-079: provider names and technical values never translated, "the classic interface" wording, never machine-translated):
+- [X] T039 *(done: legacy keys by the form map; 9 new `identityProvider.*` strings (type options, failure categories, test progress and limit, provider status, stored, stored-secret help, app return addresses, refused copy, secret changed elsewhere))* [US1] Use the legacy keys of T005a's form map verbatim for every field label, help and info text, option, action and message of the identity provider screens (`admin.iam_*`, `admin.iam_description`, `admin.iam_extra_permission`, `admin.iam_auth_flow_info` with their markup through `SanitizedHtml.vue`, `success.object_modified`, `success.item_deleted`, `success.iam_test_connection`, `danger.iam_test_connection`). Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's new strings (FR-077 to FR-079: provider names and technical values never translated, "the classic interface" wording, never machine-translated):
   - `identityProviders.*`: the sub-navigation;
   - `identityProvider.*`:
     - the empty state's "Set up" action;
@@ -593,7 +593,7 @@ without mailboxes in use, and remove the configuration.
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T066 [US4] Extend `tests/mocks/handlers/identity-provider.ts`:
+- [X] T066 *(done: change, removal, `rotateEtagOnNextWrite` and `removedElsewhere`; scenarios `idp-ldap-in-use`, `idp-other-source`, `idp-keycloak`, `idp-oidc`, `idp-incomplete`, `idp-template-missing`, `idp-changed-elsewhere`, `idp-removed-elsewhere` (the sync-state and return-path scenarios are not needed))* [US4] Extend `tests/mocks/handlers/identity-provider.ts`:
   - `updateIdentityProvider`: merge patch with whole arrays, `If-Match` and `412`; `immutable` for another `type`; `conflictsWith` for foreign members and for an empty `attributeField` with `importUsers` or `periodicSync`; `secretRequired` with `reason: addressChanged` and `field`; the normalisations;
   - `deleteIdentityProvider`: `204`; `409` with the counts while any count is above 0; `412`;
   - the switches `rotateEtagOnNextWrite` and `removedElsewhere` (answering `404 identity-provider-not-configured`).
@@ -606,7 +606,7 @@ without mailboxes in use, and remove the configuration.
   - `idp-sync-overdue`, `idp-sync-running`, `idp-sync-unknown` and `idp-sync-disabled`;
   - `idp-return-path-mismatch`;
   - `idp-changed-elsewhere` and `idp-removed-elsewhere`.
-- [ ] T067 [P] [US4] Write `tests/e2e/identity-provider/overview.spec.ts`. It covers:
+- [X] T067 *(done in `edit.spec.ts` (values in legacy order, Edit, Test Connection, Remove, History) and `connection-test.spec.ts` (the stored test); counts, abilities, sync status, TLS and return-path warnings are not built (legacy form map))* [P] [US4] Write `tests/e2e/identity-provider/overview.spec.ts`. It covers:
   - US4-AS1 and FR-005: the type, completeness, abilities, the count with its link to `/ng/mailboxes?source=ldap`, the last change, one read-only section per group with its Edit action, and the actions Test connection, Change provider type and Remove. The History action is tested in US6 (T090).
   - FR-078: in Czech the last change and sync times are formatted for `cs-CZ`, while "Keycloak", "LDAP", URLs and DNs stay as they are.
   - `Edge: other source` (`idp-other-source`): the 3 generic OIDC mailboxes are shown with a link.
@@ -616,7 +616,7 @@ without mailboxes in use, and remove the configuration.
   - FR-020: each synchronisation state as text plus an icon; the overdue and unknown explanations; the last completed run, the failure time and the next run; "every 15 minutes"; and the Cron log link to UI 011 filtered by `LDAP Sync`.
   - FR-027 (`idp-return-path-mismatch`): the return-path warning.
   - FR-033 on the overview: the test runs on the stored values without a secret, and its body has no secret member.
-- [ ] T068 [P] [US4] Write `tests/e2e/identity-provider/section-edit.spec.ts`. It covers:
+- [X] T068 *(done: `tests/e2e/identity-provider/edit.spec.ts` (full-screen on phones, `?edit=provider` and reload, merge patch with If-Match and normalised values, the address rule, secret emptied, outdated save and Save again, leave guard, attribute field rule, removed elsewhere))* [P] [US4] Write `tests/e2e/identity-provider/section-edit.spec.ts`. It covers:
   - FR-015: at 360 px the edit opens full-screen with a sticky Save and Cancel bar, on desktop in place; the address carries `edit=<section>`, and a reload reopens the section with the stored values and an empty secret.
   - US4-AS3: saving the synchronisation section sends `updateIdentityProvider` with `Content-Type: application/merge-patch+json`, `If-Match` and only that section's changed members; the section shows the normalised stored values (StartTLS off with SSL, a trailing slash removed); the outcome is announced.
   - US4-AS2, FR-025 and FR-034:
@@ -631,7 +631,7 @@ without mailboxes in use, and remove the configuration.
   - FR-069: a `422` `conflictsWith` on `attributeField` while turning on synchronisation shows a summary item that links to the directory search section.
   - `idp-removed-elsewhere`: the edit closes into the empty state with an explanation.
   - `Edge: network loss during a save`: the input is kept.
-- [ ] T069 [P] [US4] Write `tests/e2e/identity-provider/type-change-removal.spec.ts`. It covers:
+- [X] T069 *(done in `edit.spec.ts`: type change as a whole save with If-Match and its secret, the in-use refusals with `danger.authsource_in_use`, removal with legacy's confirmation and refreshed public configuration, the outdated removal asked again. No type-change confirmation or blocked-type reasons (legacy lacks them))* [P] [US4] Write `tests/e2e/identity-provider/type-change-removal.spec.ts`. It covers:
   - US4-AS6, FR-013 and FR-039 (`idp-ldap-in-use`): Change provider type and Remove are unavailable with "340 mailboxes" and the link.
   - `idp-other-source`: Remove is unavailable, and in the type step only generic OIDC is selectable while Keycloak shows its reason.
   - FR-013 (`idp-keycloak` with no mailboxes):
@@ -642,7 +642,7 @@ without mailboxes in use, and remove the configuration.
   - FR-014: an injected `409` on that save shows the counts and the links, with nothing changed.
   - US4-AS7: removal of `idp-ldap` names the consequences; then the empty state and the announcement follow; `getPublicConfig` is requested again; and a new page context's sign-in screen offers no single sign-on.
   - A `412` on removal refetches and asks for confirmation again (conventions).
-- [ ] T070 [P] [US4] Write `tests/unit/features/identity-providers/provider/patch.spec.ts` and `conflict.spec.ts` in `tests/unit/features/identity-providers/provider/`.
+- [X] T070 *(done: `toPatch` in `form-model.spec.ts`; the changed-elsewhere list in `useProviderEditor.spec.ts`)* [P] [US4] Write `tests/unit/features/identity-providers/provider/patch.spec.ts` and `conflict.spec.ts` in `tests/unit/features/identity-providers/provider/`.
   - `toPatch`:
     - only changed members of the section;
     - arrays as whole lists;
@@ -650,15 +650,15 @@ without mailboxes in use, and remove the configuration.
     - `null` when nothing changed;
     - every result passes the mock validator for `updateIdentityProvider`.
   - `changedSettings(before, after, section)`: lists changed members with their new values, reports a `clientSecretSet` or `bindPasswordSet` change as "changed elsewhere" without a value, and reports "changed, possibly a secret" when only the tag differs.
-- [ ] T071 [P] [US4] Write component tests:
+- [X] T071 *(done: `IdentityProviderPage.spec.ts` and `useProviderEditor.spec.ts`; no `InUseMessage` or overview header (legacy shows `danger.authsource_in_use` only))* [P] [US4] Write component tests:
   - `tests/unit/features/identity-providers/provider/sections/*.spec.ts`: edit mode on `EditableSection`, Save disabled while saving, secret emptying, conflict marks;
   - `tests/unit/features/identity-providers/provider/InUseMessage.spec.ts`: counts and links from `identityProviderInUseDetails`;
   - `tests/unit/features/identity-providers/provider/OverviewHeader.spec.ts`: the availability of each action from `usage.ts` and `complete`, with reasons.
 
 ### Implementation for User Story 4
 
-- [ ] T072 [US4] Implement `src/features/identity-providers/provider/patch.ts` and `conflict.ts`. Add `updateIdentityProvider(patch, etag)` (a direct client call, never `useMutation`: PATCH with `application/merge-patch+json`, `If-Match`) and `useDeleteIdentityProvider` (`If-Match`) to `src/features/identity-providers/provider/api.ts`, with the cache effects of data-model §3. Extend `tests/unit/features/identity-providers/provider/api.spec.ts`: no cache holds a secret typed into a section save. T070 must pass.
-- [ ] T073 [US4] Implement `src/features/identity-providers/provider/composables/useSectionEdit.ts`:
+- [X] T072 *(done: `toPatch` in `form-model.ts`, the changed-elsewhere list in `useProviderEditor.ts`, `updateIdentityProvider` and `deleteIdentityProvider` as direct calls)* [US4] Implement `src/features/identity-providers/provider/patch.ts` and `conflict.ts`. Add `updateIdentityProvider(patch, etag)` (a direct client call, never `useMutation`: PATCH with `application/merge-patch+json`, `If-Match`) and `useDeleteIdentityProvider` (`If-Match`) to `src/features/identity-providers/provider/api.ts`, with the cache effects of data-model §3. Extend `tests/unit/features/identity-providers/provider/api.spec.ts`: no cache holds a secret typed into a section save. T070 must pass.
+- [X] T073 *(done as `useProviderEditor.ts` with the page's `?edit=provider` handling)* [US4] Implement `src/features/identity-providers/provider/composables/useSectionEdit.ts`:
   - one section in edit at a time, through `EditableSection` and the `edit` query parameter (UI 002 D11);
   - `toPatch`;
   - `useVersionedSave` with `changedSince` and `changedSettings`;
@@ -667,14 +667,14 @@ without mailboxes in use, and remove the configuration.
   - the secret emptied after every outcome.
 
   Add the edit forms to `src/features/identity-providers/provider/components/sections/*Section.vue`, reusing the field components of T033 and T034, with the test panel in the connection section's edit. T068 and the section part of T071 must pass.
-- [ ] T074 [US4] Implement the overview actions in `src/features/identity-providers/provider/components/OverviewHeader.vue` and `src/features/identity-providers/provider/pages/IdentityProviderPage.vue`:
+- [X] T074 *(done: Test Connection on the stored values, Remove with legacy's confirmation through `useVersionedSave.remove`; the type change is the form's select, as legacy, with no confirmation and no blocked types)* [US4] Implement the overview actions in `src/features/identity-providers/provider/components/OverviewHeader.vue` and `src/features/identity-providers/provider/pages/IdentityProviderPage.vue`:
   - Test connection on the stored values, unavailable while incomplete;
   - Change provider type, through `useConfirm`, then `identity-provider-setup?mode=change`;
   - Remove, through `useConfirm` and `useDeleteIdentityProvider`;
   - `src/features/identity-providers/provider/components/InUseMessage.vue`.
 
   Extend `src/features/identity-providers/provider/composables/useSetupFlow.ts` and `src/features/identity-providers/provider/components/setup/ProviderTypeStep.vue` for change mode: the configuration's tag and counts, the current and blocked types disabled with reasons, `If-Match` on save, and the `412` reload. T067, T069 and the rest of T071 must pass.
-- [ ] T075 [US4] Add the `identityProvider.*` new strings of T005a's form map for these to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (saves use `success.object_modified`, removal `success.item_deleted`):
+- [X] T075 *(done: no further strings: saves use `success.object_modified`, removal `success.item_deleted`, refusals `danger.authsource_in_use`, outdated handling UI 002's `sections.*`; "removed elsewhere" is `problem.identity-provider-not-configured`)* [US4] Add the `identityProvider.*` new strings of T005a's form map for these to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (saves use `success.object_modified`, removal `success.item_deleted`):
   - section edits, saves and conflicts, including "changed elsewhere, possibly a secret";
   - the secret required reasons as field help;
   - the type change and removal confirmations with their consequences;

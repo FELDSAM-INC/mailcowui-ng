@@ -9,6 +9,7 @@ import { ViolationRecorder } from '../contract/validator'
 import { standardAccounts, adminAccount, domainAdminAccount, mailboxAccount } from './accounts'
 import { baseScenarios } from './base'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
+import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
 import { signInScenarios } from './sign-in'
 import {
@@ -33,6 +34,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...baseScenarios,
   ...signInScenarios,
   ...passkeySignInScenarios,
+  ...navigationScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

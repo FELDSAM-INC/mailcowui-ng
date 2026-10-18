@@ -32,5 +32,14 @@
     "mailboxes": "Mailboxes",
     "quarantine": "Quarantine",
     "syncJobs": "Sync jobs"
+  },
+  "placeholder": {
+    "pages": {
+      "configuration": "Configuration",
+      "information": "Information",
+      "quarantine": "Quarantine",
+      "queue": "Queue Manager",
+      "userSettings": "User settings"
+    }
   }
 }

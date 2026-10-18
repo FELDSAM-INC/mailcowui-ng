@@ -217,7 +217,9 @@ describe('announcement (FR-048)', () => {
       config: { announcement: { text, type: 'warning', active: true } },
     })
     await vi.waitFor(() =>
-      expect(again.wrapper.find('button[aria-label="Show announcement"]').exists()).toBe(true),
+      expect(again.wrapper.get('[data-announcement] button').text()).toBe(
+        'Warning – Show announcement',
+      ),
     )
     again.wrapper.unmount()
 

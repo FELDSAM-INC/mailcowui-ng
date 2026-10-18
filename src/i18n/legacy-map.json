@@ -16,5 +16,10 @@
   "nav.domains": "mailbox.domains",
   "nav.mailboxes": "mailbox.mailboxes",
   "nav.quarantine": "header.quarantine",
-  "nav.syncJobs": "mailbox.sync_jobs"
+  "nav.syncJobs": "mailbox.sync_jobs",
+  "placeholder.pages.configuration": "header.mailcow_config",
+  "placeholder.pages.information": "header.debug",
+  "placeholder.pages.quarantine": "header.quarantine",
+  "placeholder.pages.queue": "queue.queue_manager",
+  "placeholder.pages.userSettings": "user.user_settings"
 }

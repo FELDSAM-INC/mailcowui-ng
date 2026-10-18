@@ -158,6 +158,16 @@
   "home": {
     "greeting": "Dobrý den, {username}",
     "role": "Jste přihlášeni jako {role}.",
+    "scope": {
+      "allDomains": "Spravujete všechny domény.",
+      "domains": "Spravujete tyto domény:",
+      "heading": "Váš rozsah",
+      "mailbox": "Vaše schránka: {mailbox}",
+      "noDomains": "Nejsou vám přiřazeny žádné domény."
+    },
+    "shortcuts": {
+      "heading": "Sekce"
+    },
     "title": "Domů"
   },
   "lists": {
@@ -189,6 +199,14 @@
       "generic": "S přístupovým klíčem se něco pokazilo. Zkuste to prosím znovu.",
       "insecure": "Přístupové klíče nelze na této adrese použít.",
       "unsupported": "Toto zařízení nemůže vytvořit ani použít přístupový klíč požadovaného typu."
+    }
+  },
+  "placeholder": {
+    "classicHeading": "Zatím použijte klasické rozhraní",
+    "note": "Klasické rozhraní má vlastní relaci, proto se v něm přihlašujete zvlášť.",
+    "pages": {
+      "mailSetup": "Nastavení pošty",
+      "other": "Klasické rozhraní"
     }
   },
   "problem": {

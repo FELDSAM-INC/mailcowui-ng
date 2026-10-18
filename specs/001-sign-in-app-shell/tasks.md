@@ -588,12 +588,12 @@ addresses directly ("no access" with no data request).
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T091 [US3] Extend `tests/mocks/scenarios/index.ts` and `tests/mocks/handlers/identity.ts` with:
+- [X] T091 [US3] Extend `tests/mocks/scenarios/index.ts` and `tests/mocks/handlers/identity.ts` with:
   - the scenarios `domain-admin-two-domains`, `domain-admin-no-domains`, `domain-admin-no-syncjobs`, `domain-admin-bcc`, `mailbox-no-spam-flags`, `mailbox-spam-score`, `mailbox-spam-policy`, `mailbox-syncjobs` and `flags-change`, where flags change through `PATCH /__mock/scenarios/:id`;
   - the app-link variants `app-links-webmail-and-two`, `app-links-groupware-disabled`, `app-links-none` and `app-links-javascript-url`;
   - `announcement-info`, `announcement-warning`, `announcement-danger` and `footer-malicious`;
   - `forbidden` injection for any operation.
-- [ ] T092 [P] [US3] Write `tests/e2e/navigation/navigation.spec.ts`. It covers:
+- [X] T092 [P] [US3] Write `tests/e2e/navigation/navigation.spec.ts`. It covers:
   - US3-AS1 and US3-AS2: the visible entries equal the catalogue for each role and flag scenario (SC-007);
   - US3-AS3: each placeholder names its section, says it comes later and links to the classic address for the role;
   - US3-AS4: `/ng/api-keys` as a domain administrator shows "no access" with a link home, and `mockApi.requests()` contains no `listApiKeys`;
@@ -601,22 +601,26 @@ addresses directly ("no access" with no data request).
   - US3-AS7: flags changed, then a `forbidden` response or a navigation after 5 minutes (`page.clock`) refreshes the navigation (FR-045, FR-050);
   - Edge: a deep link to a section the role may not use shows "no access" after sign-in;
   - every catalogue entry visible to a role resolves to a working screen or a placeholder, never to not-found (SC-007).
-- [ ] T093 [P] [US3] Write `tests/e2e/navigation/home-and-shell.spec.ts`. It covers:
+
+  *Implementation note*: US3-AS7 covers the five-minute refresh here; the `forbidden` path needs a section request, so it is tested with the home screen's passkey read of US4 (`tests/e2e/passkeys/passkey-suggestion.spec.ts`).
+- [X] T093 [P] [US3] Write `tests/e2e/navigation/home-and-shell.spec.ts`. It covers:
   - US3-AS6: home lists the two domains, or says that none are assigned;
   - home for an admin (all domains) and a mailbox user (the mailbox address) with shortcuts equal to the visible entries (FR-047);
   - US3-AS8: the announcement on every page with its type in text, not only colour (FR-084), collapsible for the visit, and the sanitised footer (FR-002, FR-048);
   - US3-AS9: the apps menu order under `appsLabel`, `%u` replaced and encoded, webmail missing when the groupware is disabled, no menu without links, and a `javascript:` link not rendered;
   - Edge: a 255-character username wraps or truncates in the header and user menu at 360 px, with the full value available.
-- [ ] T094 [P] [US3] Write `tests/unit/features/home/HomePage.spec.ts`: the greeting, the scope per role (`allDomains`, `domains` with an empty list, `mailbox`), and shortcuts equal to `visibleEntries` minus home.
-- [ ] T095 [P] [US3] Write `tests/unit/app/shell/AppsMenu.spec.ts` (order, `safeHref`, `%u` encoding, hidden when empty) and `tests/unit/app/states/PlaceholderPage.spec.ts` (classic links per role from `classic-links.ts`, the note about the separate sign-in, no query issued).
-- [ ] T096 [P] [US3] Write `tests/smoke/navigation.smoke.spec.ts`: `reseller` sees its two domains on home and the placeholder link to `/domainadmin/mailbox`, and `/ng/api-keys` shows "no access"; `alice@example.org` sees only mailbox-user entries.
+- [X] T094 [P] [US3] Write `tests/unit/features/home/HomePage.spec.ts`: the greeting, the scope per role (`allDomains`, `domains` with an empty list, `mailbox`), and shortcuts equal to `visibleEntries` minus home.
+- [X] T095 [P] [US3] Write `tests/unit/app/shell/AppsMenu.spec.ts` (order, `safeHref`, `%u` encoding, hidden when empty) and `tests/unit/app/states/PlaceholderPage.spec.ts` (classic links per role from `classic-links.ts`, the note about the separate sign-in, no query issued).
+- [X] T096 [P] [US3] Write `tests/smoke/navigation.smoke.spec.ts`: `reseller` sees its two domains on home and the placeholder link to `/domainadmin/mailbox`, and `/ng/api-keys` shows "no access"; `alice@example.org` sees only mailbox-user entries.
 
 ### Implementation for User Story 3
 
-- [ ] T097 [P] [US3] Implement `src/features/home/components/ScopeSummary.vue` and `src/features/home/components/SectionShortcuts.vue`, and extend `src/features/home/pages/HomePage.vue` (FR-047, except the passkey suggestion, which comes in US4).
-- [ ] T098 [P] [US3] Complete `src/app/states/PlaceholderPage.vue` (classic links per role, the classic sign-in note, no data, FR-044) and the wording of `src/app/states/NoAccessState.vue` (FR-045).
-- [ ] T099 [P] [US3] Implement `src/app/shell/AppsMenu.vue` (Reka `DropdownMenu`) and integrate it in `src/app/shell/AppHeader.vue` (FR-001a, FR-042). The announcement banner already comes from T064.
-- [ ] T100 [US3] Add the `nav.*` labels, `placeholder.*`, `home.scope.*`, `home.shortcuts.*`, `apps.*`, `announcement.*` and `states.noAccess.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use "the classic interface" wording (FR-090), and add legacy-map entries for unchanged section names. `npm run i18n:check` must pass.
+- [X] T097 [P] [US3] Implement `src/features/home/components/ScopeSummary.vue` and `src/features/home/components/SectionShortcuts.vue`, and extend `src/features/home/pages/HomePage.vue` (FR-047, except the passkey suggestion, which comes in US4).
+- [X] T098 [P] [US3] Complete `src/app/states/PlaceholderPage.vue` (classic links per role, the classic sign-in note, no data, FR-044) and the wording of `src/app/states/NoAccessState.vue` (FR-045).
+- [X] T099 [P] [US3] Implement `src/app/shell/AppsMenu.vue` (Reka `DropdownMenu`) and integrate it in `src/app/shell/AppHeader.vue` (FR-001a, FR-042). The announcement banner already comes from T064.
+
+  *Implementation note*: `AppsMenu` sits in the header's actions area, which `ShellLayout` fills (`AppHeader` stays generic). The collapsed announcement button now carries its visible type in its accessible name (WCAG 2.5.3), a foundation fix found by the US3 tests.
+- [X] T100 [US3] Add the `nav.*` labels, `placeholder.*`, `home.scope.*`, `home.shortcuts.*`, `apps.*`, `announcement.*` and `states.noAccess.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use "the classic interface" wording (FR-090), and add legacy-map entries for unchanged section names. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US3 work on their own.
 

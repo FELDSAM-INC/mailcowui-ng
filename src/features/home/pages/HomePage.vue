@@ -1,11 +1,14 @@
 <script setup lang="ts">
-// The home screen (FR-047): a greeting with the username and the translated role. US3 adds the
-// scope and the section shortcuts, US4 the passkey suggestion.
+// The home screen (FR-047): a greeting with the username and the translated role, the scope of
+// the account and shortcuts to the sections it may use. US4 adds the passkey suggestion.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useIdentityQuery } from '@/app/session/queries'
 import PageHeader from '@/shared/components/PageHeader.vue'
+
+import ScopeSummary from '../components/ScopeSummary.vue'
+import SectionShortcuts from '../components/SectionShortcuts.vue'
 
 const { t } = useI18n()
 const identityQuery = useIdentityQuery()
@@ -21,5 +24,9 @@ const description = computed(() =>
 <template>
   <section class="mx-auto flex w-full max-w-5xl flex-col gap-6">
     <PageHeader :title="title" :description="description" />
+    <template v-if="identity">
+      <ScopeSummary :identity="identity" />
+      <SectionShortcuts :identity="identity" />
+    </template>
   </section>
 </template>

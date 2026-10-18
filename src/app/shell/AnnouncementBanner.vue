@@ -99,11 +99,12 @@ function expand() {
       v-else
       type="button"
       class="flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10"
-      :aria-label="t('shell.announcement.expand')"
       @click="expand"
     >
       <component :is="ICONS[announcement.type]" class="size-5 shrink-0" />
-      <span aria-hidden="true">{{ t(`enums.announcementType.${announcement.type}`) }}</span>
+      <!-- The visible type is part of the accessible name (WCAG 2.5.3 label in name). -->
+      <span>{{ t(`enums.announcementType.${announcement.type}`) }}</span>
+      <span class="sr-only">{{ ` – ${t('shell.announcement.expand')}` }}</span>
     </button>
   </div>
 </template>

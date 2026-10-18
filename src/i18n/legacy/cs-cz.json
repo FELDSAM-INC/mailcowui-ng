@@ -32,5 +32,14 @@
     "mailboxes": "Mailové schránky",
     "quarantine": "Karanténa",
     "syncJobs": "Synchronizační úlohy"
+  },
+  "placeholder": {
+    "pages": {
+      "configuration": "Nastavení",
+      "information": "Informace",
+      "quarantine": "Karanténa",
+      "queue": "Správce fronty",
+      "userSettings": "Uživatelské nastavení"
+    }
   }
 }

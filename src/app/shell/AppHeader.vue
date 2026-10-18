@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The shell header (FR-042, FR-046, research R21): the drawer button below lg, the operator's
-// logo, and the actions slot (user menu; the apps menu arrives with US3).
+// logo, and the actions slot (the apps menu and the user menu).
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'

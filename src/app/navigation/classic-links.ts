@@ -9,6 +9,21 @@ export const CLASSIC_SIGN_IN: Readonly<Record<Role, string>> = {
   mailboxUser: '/',
 }
 
+/**
+ * The names of the classic pages that placeholders link to (FR-044), as translation keys. Classic
+ * tabs cannot be deep-linked, so the links open these pages (plan parity note 1).
+ */
+export const CLASSIC_PAGE_LABELS: Readonly<Record<string, string>> = {
+  '/admin/mailbox': 'placeholder.pages.mailSetup',
+  '/domainadmin/mailbox': 'placeholder.pages.mailSetup',
+  '/admin/system': 'placeholder.pages.configuration',
+  '/admin/dashboard': 'placeholder.pages.information',
+  '/admin/queue': 'placeholder.pages.queue',
+  '/domainadmin/user': 'placeholder.pages.userSettings',
+  '/user': 'placeholder.pages.userSettings',
+  '/quarantine': 'placeholder.pages.quarantine',
+}
+
 /** The classic password reset page, linked as "Forgot password?" until feature 005 (FR-009). */
 export const CLASSIC_PASSWORD_RESET = '/reset-password'
 

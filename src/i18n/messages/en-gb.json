@@ -158,6 +158,16 @@
   "home": {
     "greeting": "Hello, {username}",
     "role": "You are signed in as {role}.",
+    "scope": {
+      "allDomains": "You manage all domains.",
+      "domains": "You manage these domains:",
+      "heading": "Your scope",
+      "mailbox": "Your mailbox: {mailbox}",
+      "noDomains": "No domains are assigned to you."
+    },
+    "shortcuts": {
+      "heading": "Sections"
+    },
     "title": "Home"
   },
   "lists": {
@@ -189,6 +199,14 @@
       "generic": "Something went wrong with the passkey. Please try again.",
       "insecure": "Passkeys cannot be used at this address.",
       "unsupported": "This device cannot create or use a passkey of the required kind."
+    }
+  },
+  "placeholder": {
+    "classicHeading": "Use the classic interface for now",
+    "note": "The classic interface has its own session, so you sign in there separately.",
+    "pages": {
+      "mailSetup": "Mail setup",
+      "other": "Classic interface"
     }
   },
   "problem": {

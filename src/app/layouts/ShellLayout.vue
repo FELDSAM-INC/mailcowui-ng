@@ -16,6 +16,7 @@ import { useSignOut } from '../session/sign-out'
 import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
+import AppsMenu from '../shell/AppsMenu.vue'
 import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'
 import SkipLink from '../shell/SkipLink.vue'
@@ -46,6 +47,7 @@ const { signOut, retry, pending: signingOut, failed: signOutFailed } = useSignOu
       @open-menu="drawerOpen = true"
     >
       <template #actions>
+        <AppsMenu v-if="identity" :username="identity.username" />
         <UserMenu
           v-if="identity"
           :identity="identity"

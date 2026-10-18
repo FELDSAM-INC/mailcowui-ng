@@ -146,7 +146,7 @@ describe('custom attributes (FR-039)', () => {
           { id: 5, name: 'toolong', value: '' },
         ],
         caps,
-        [],
+        {},
       ),
     )
     expect(errors['attributes.1.name']).toEqual([{ key: 'validation.format.attributeName' }])
@@ -163,7 +163,9 @@ describe('custom attributes (FR-039)', () => {
 
   it('skips the capability checks without capabilities, and keeps stored values as they are', () => {
     const rows = [{ id: 1, name: 'old', value: 'x'.repeat(5000), storedName: 'old' }]
-    expect(run((e) => checkAttributes(e, rows, undefined, ['old'])).errors).toEqual({})
-    expect(run((e) => checkAttributes(e, rows, caps, ['old'])).errors).toEqual({})
+    expect(
+      run((e) => checkAttributes(e, rows, undefined, { old: 'x'.repeat(5000) })).errors,
+    ).toEqual({})
+    expect(run((e) => checkAttributes(e, rows, caps, { old: 'x'.repeat(5000) })).errors).toEqual({})
   })
 })

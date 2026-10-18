@@ -32,7 +32,7 @@ function identity(role: Identity['role'], granted: Flag[] = []): Identity {
     scope: role === 'admin' ? { type: 'allDomains' } : { type: 'domains', domains: ['a.example'] },
     permissions,
     pendingActions: [],
-  } as Identity
+  }
 }
 
 const sets = Array.from({ length: 16 }, (_, mask) => FLAGS.filter((_, bit) => mask & (1 << bit)))
@@ -101,7 +101,7 @@ describe('labels and permissions', () => {
     ])
     expect(PERMISSION_LABEL_KEYS.pwReset).toBe('acl.pw_reset')
     expect(PERMISSION_LABEL_KEYS.appPasswds).toBe('acl.app_passwds')
-    expect(presentPermissions({ pwReset: true, spamAlias: false } as never)).toEqual([
+    expect(presentPermissions({ pwReset: true, spamAlias: false })).toEqual([
       'spamAlias',
       'pwReset',
     ])

@@ -90,9 +90,9 @@ describe('protocols and permissions', () => {
       dav: false,
     })
     expect(
-      permissionsPatch({ syncjobs: false, pwReset: true } as never, ['syncjobs', 'pwReset']),
+      permissionsPatch({ syncjobs: false, pwReset: true }, ['syncjobs', 'pwReset']),
     ).toEqual({ syncjobs: true })
-    expect(permissionsPatch({ syncjobs: false, pwReset: true } as never, ['pwReset'])).toBeNull()
+    expect(permissionsPatch({ syncjobs: false, pwReset: true }, ['pwReset'])).toBeNull()
   })
 })
 

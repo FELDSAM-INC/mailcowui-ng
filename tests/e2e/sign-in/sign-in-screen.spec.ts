@@ -172,7 +172,7 @@ test.describe('role screens and login page options', () => {
     await expect(page.getByRole('link', { name: 'Forgot Password?' })).toBeVisible()
   })
 
-  test('US1-AS15 FR-007 force single sign-on hides the password form on the role-neutral screen only', async ({
+  test('US1-AS15 FR-007 UI 012 FR-041 force single sign-on without single sign-on keeps the password form', async ({
     page,
     mockApi,
     expectAccessible,
@@ -180,26 +180,16 @@ test.describe('role screens and login page options', () => {
   }) => {
     await mockApi.use('force-sso')
     await page.goto('sign-in')
-    const notice = page.getByRole('region', { name: 'Single sign-on' })
-    await expect(notice).toContainText('This server uses single sign-on.')
-    await expect(
-      notice.getByRole('link', { name: 'Sign in with single sign-on in the classic interface' }),
-    ).toHaveAttribute('href', '/')
-    await expect(passwordForm(page).username).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'Forgot Password?' })).toHaveCount(0)
+    await expect(passwordForm(page).username).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Forgot Password?' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Single Sign-On' })).toHaveCount(0)
     await expectAccessible()
     await expectNoHorizontalScroll()
-
     await page.goto('sign-in/mailbox-user')
-    await expect(passwordForm(page).username).toHaveCount(0)
-    await page.goto('sign-in/admin')
-    await expect(passwordForm(page).username).toBeVisible()
-    await expect(page.getByRole('region', { name: 'Single sign-on' })).toHaveCount(0)
-    await page.goto('sign-in/domain-admin')
     await expect(passwordForm(page).username).toBeVisible()
   })
 
-  test('Edge: force single sign-on on a device without passkeys shows the notice and the role links', async ({
+  test('Edge: force single sign-on on a device without passkeys keeps the password form when single sign-on is not offered', async ({
     page,
     mockApi,
     webauthn,
@@ -208,7 +198,7 @@ test.describe('role screens and login page options', () => {
     await webauthn.withoutPasskeySupport()
     await mockApi.use('force-sso')
     await page.goto('sign-in')
-    await expect(page.getByRole('region', { name: 'Single sign-on' })).toBeVisible()
+    await expect(passwordForm(page).username).toBeVisible()
     await expect(page.getByRole('button', { name: 'Sign in with a passkey' })).toHaveCount(0)
     await expect(
       page.getByRole('navigation', { name: 'Not the correct login?' }).getByRole('link'),
@@ -216,24 +206,18 @@ test.describe('role screens and login page options', () => {
     await expectAccessible()
   })
 
-  test('US1-AS16 FR-008 the identity-provider hint is shown up front with a classic link', async ({
+  test('US1-AS16 FR-008 UI 012 FR-042 no identity-provider hint is shown', async ({
     page,
     mockApi,
     expectAccessible,
   }) => {
     await mockApi.use('idp-configured')
     await page.goto('sign-in')
-    const hint = page.getByRole('note')
-    await expect(hint).toContainText(
-      "Accounts that sign in through your organisation's identity provider cannot use their password here yet.",
-    )
-    await expect(
-      hint.getByRole('link', { name: 'Sign in in the classic interface' }),
-    ).toHaveAttribute('href', '/')
+    await expect(passwordForm(page).username).toBeVisible()
+    await expect(page.getByRole('note')).toHaveCount(0)
+    await expect(page.getByText('cannot use their password here yet')).toHaveCount(0)
     await page.goto('sign-in/admin')
-    await expect(
-      page.getByRole('note').getByRole('link', { name: 'Sign in in the classic interface' }),
-    ).toHaveAttribute('href', '/admin')
+    await expect(page.getByRole('note')).toHaveCount(0)
     await expectAccessible()
   })
 })

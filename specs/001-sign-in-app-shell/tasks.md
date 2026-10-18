@@ -76,7 +76,7 @@ R26–R29).
     - the `reka-ui` named imports `SelectViewport`, `ComboboxViewport`, `AutocompleteViewport`, `ScrollAreaViewport`, the generic `Viewport` and `SplitterResizeHandle` (R3, R18);
   - ignores for `src/api/generated/**`, `dist/**` and `coverage/**`.
 - [X] T007 [P] Create `index.html` and `public/theme-init.js`:
-  - `index.html`: `<html lang="en">`, `<meta name="viewport" content="width=device-width, initial-scale=1">` with no `user-scalable`, `<link rel="icon" href="/favicon.png">` (the host's own favicon, R16), `<script src="/theme-init.js"></script>` in `<head>` (blocking), `<div id="app">`, the module entry `/src/main.ts`, and no inline script or style.
+  - `index.html`: `<html lang="en">`, `<meta name="viewport" content="width=device-width, initial-scale=1">` with no `user-scalable`, the host's own icons (`/favicon.ico`, `/favicon-32x32.png`, `/favicon-16x16.png` and `/apple-touch-icon.png`, R16; first written as `/favicon.png`, which mailcow does not serve), `<script src="/theme-init.js"></script>` in `<head>` (blocking), `<div id="app">`, the module entry `/src/main.ts`, and no inline script or style.
   - `public/theme-init.js` reads `localStorage['mailcowui-ng.theme']` in `try/catch` and sets `.dark` on `<html>` for `dark`, or for `system` when `prefers-color-scheme: dark` holds (R16).
 - [X] T008 Vendor the pinned contract (research R6):
   - Write `scripts/contract/bump.sh` (resolve the ref in `$MAILCOW_REST_V2_DIR` (default `../mailcow-rest-v2`) or in a fresh clone, `git archive` of `api/`, `redocly lint`, `redocly bundle` to YAML, write `VERSION.json`, call `contract:generate`).

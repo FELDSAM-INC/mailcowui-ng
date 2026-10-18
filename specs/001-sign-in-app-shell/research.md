@@ -749,9 +749,13 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     No product, operator or brand name exists anywhere in the source (constitution IV). The page
     title is `"{page} – {pageTitle}"` (FR-049), set in a router `afterEach` and again when the
     language or the configuration changes.
-  - **Favicon**: `<link rel="icon" href="/favicon.png">` uses the host's own favicon. That is the
-    same legacy web root that the contract's default logo URL (`/img/cow_mailcow.svg`) points to,
-    and UI 014 keeps the root icon files (row X10). The app ships no icon of its own.
+  - **Favicon**: `index.html` links the host's own icons, the files mailcow serves from its web
+    root: `/favicon.ico` (`rel="icon"`, `sizes="any"`), `/favicon-32x32.png` and
+    `/favicon-16x16.png` (`rel="icon"`), and `/apple-touch-icon.png` (`rel="apple-touch-icon"`).
+    mailcow has no `/favicon.png`, which the first version linked and which answered 404. That is
+    the same legacy web root that the contract's default logo URL (`/img/cow_mailcow.svg`) points
+    to, and UI 014 keeps the root icon files (row X10). The app ships no icon of its own; the
+    links are same-origin images, which `img-src 'self'` allows.
   - **Announcement** (`AnnouncementBanner.vue`, FR-048): shown in both layouts. Its type is given as
     an icon with a text alternative plus a visually hidden prefix ("Warning:"). It can be collapsed
     for the visit.

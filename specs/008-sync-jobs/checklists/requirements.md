@@ -47,9 +47,11 @@
   one section at a time and marks changed values after an outdated save (FR-016, FR-017, FR-026 to
   FR-028, US3); deleting several jobs needs their number typed (FR-039); History action (FR-015);
   page sizes (FR-012); the automatic refresh pauses, is suspended during selection, and stops after
-  15 minutes of inactivity (FR-014); limits, defaults and the custom-parameter permission come from
-  the capabilities read (FR-018, FR-021, FR-055, FR-056); `permission-flag-required` and the
-  existing-job link (FR-023, FR-047); the domain list and audit log join the used operations
-  (FR-053). The three API gaps are closed by the contract. FR-001 to FR-056 contiguous, no
-  contradictions left. All items still pass.
+  15 minutes of inactivity or the session's idle lifetime, if shorter (FR-014); limits, defaults
+  and the custom-parameter permission come from the capabilities read (FR-018, FR-021, FR-055,
+  FR-056); `permission-flag-required` and the existing-job link (FR-023, FR-047); the domain list
+  and audit log join the used operations (FR-053); a dropped connection clears the selection, as
+  UI 002 decides (FR-037); deactivating asks one explicit confirmation (FR-036, US4-AS1). The
+  three API gaps are closed by the contract. FR-001 to FR-056 contiguous, no contradictions left.
+  All items still pass.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`.

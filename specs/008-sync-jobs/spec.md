@@ -37,7 +37,8 @@ and of the user page, the add-sync-job modals, the edit sync job page and the lo
   request that names every selected job of the current page together with its version tag as
   listed, up to the bulk limit of the capabilities read. The summary shows one result per job;
   failed, refused and outdated jobs stay selected for a retry, and a dropped connection is reported
-  as "outcome unknown" and never retried automatically (FR-037). (consistency change, aligned with
+  as "outcome unknown", clears the selection and is never retried automatically (FR-037).
+  (consistency change, aligned with
   `docs/conventions.md` (Bulk actions) and API 008 FR-023 and FR-024, which now offer
   `POST /sync-jobs/bulk-actions` with `targets`; the first draft sent one request per job because
   the API had no bulk operation then.)
@@ -65,13 +66,14 @@ and of the user page, the add-sync-job modals, the edit sync job page and the lo
 - Q: How does the list stay current while jobs run in the background? → A: Manual refresh, plus an
   automatic refresh every 30 seconds only while the page is visible and a listed job is running
   (FR-014). The automatic refresh can be paused, it is suspended while selection mode is on, and it
-  pauses after 15 minutes without user interaction, with a notice and a "Resume" action. (agent
+  pauses after 15 minutes without user interaction (or the session's idle lifetime, if shorter),
+  with a notice and a "Resume" action. (agent
   decision: legacy has only a manual button; constitution VII forbids refetching without reason,
   and a running job is that reason. The API never starts runs (FR-022 there), so there is no "run
   now" to wait for. Consistency change: WCAG 2.2.2 needs a way to pause content that updates on its
   own; UI 001 FR-033 forbids automatic requests that keep an idle session alive, and UI 011 FR-021
-  pauses its live updates after the same 15 minutes; a bulk action sends the versions as listed, so
-  the list must not change under a selection.)
+  and its plan pause live updates after the same limit; a bulk action sends the versions as listed,
+  so the list must not change under a selection.)
 - Q: How is the run log presented? → A: Full screen on phones and a large dialog on wider screens,
   verbatim plain text in a fixed-width font, wrapped by default with a toggle, a copy action, no
   download, fetched only when opened (FR-041 to FR-046). (agent decision: API 008 reads the log as a
@@ -99,11 +101,12 @@ and of the user page, the add-sync-job modals, the edit sync job page and the lo
   limit and whether the user may set custom parameters come from API 008's capabilities read and are
   never hard-coded (FR-055, FR-056). (alignment with `docs/conventions.md`; replaces the first
   draft's single edit form, which predates the conventions.)
-- Q: Is deactivating a sync job confirmed first? → A: No. Activating, deactivating and scheduling
-  the next run, for one job or a selection, take effect at once and are announced (FR-036).
-  (agent decision: `docs/conventions.md` asks one confirmation for destructive or high-risk actions
-  such as deactivating; deactivating a sync job only pauses copying, deletes nothing and is undone
-  with one action, so it is neither. Legacy does not confirm it either.)
+- Q: Is deactivating a sync job confirmed first? → A: Yes, with one explicit confirmation that
+  says the job will not run until it is activated again and that a run in progress finishes on its
+  own, for one job or a selection. Activating and scheduling the next run take effect at once. All
+  three are announced (FR-036, FR-037). (consistency change, aligned with `docs/conventions.md`
+  (Confirmations), which names deactivating among the actions needing one explicit confirmation;
+  the first draft took effect at once, as legacy does.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -258,8 +261,9 @@ of the three failing, and check the requests, the updated list and the per-job r
 
 **Acceptance Scenarios**:
 
-1. **Given** an active job, **When** the user deactivates it from the list or from the job,
-   **Then** it shows as inactive and the change is announced.
+1. **Given** an active job, **When** the user deactivates it from the list or from the job and
+   confirms, **Then** it shows as inactive and the change is announced; activating it again needs
+   no confirmation.
 2. **Given** a job that has run, **When** the user chooses "Schedule next", **Then** its last run
    and result are cleared and it shows as waiting for its next run.
 3. **Given** three selected jobs, **When** the user activates them, **Then** the app sends one bulk
@@ -345,8 +349,8 @@ and check the confirmation content, the requests and the list afterwards.
 - The server rejects the exclusion pattern or a custom parameter: the error is shown on that
   field, naming the rejected option where the server provides it.
 - The connection drops during a multi-job action: the outcome of every selected job is reported as
-  unknown, the list is refreshed to show what changed, the selection stays, and nothing is retried
-  automatically.
+  unknown, the selection is cleared, the list is refreshed to show what changed, and nothing is
+  retried automatically.
 - The session expires while a form is open: the shell's session handling applies (feature 001);
   the remote password the user typed is not stored to survive the sign-in.
 - Several jobs are running: the list shows their running state and refreshes while any job runs.
@@ -427,9 +431,9 @@ and check the confirmation content, the requests and the list afterwards.
   when no listed job is running or the page is hidden. The automatic refresh MUST:
   - be suspended while selection mode is on;
   - offer a control to pause and resume it (WCAG 2.2.2);
-  - pause after 15 minutes without user interaction (pointer, touch, keyboard or scrolling), with
-    an announced notice and a "Resume" action, so that it never keeps an idle session alive
-    (UI 001 FR-033);
+  - pause after 15 minutes without user interaction (pointer, touch, keyboard or scrolling), or
+    after the session's idle lifetime if that is shorter, with an announced notice and a "Resume"
+    action, so that it never keeps an idle session alive (UI 001 FR-033);
   - announce nothing on its own.
 
   After any change made in this app, the affected jobs MUST be shown with their new values without
@@ -458,10 +462,10 @@ and check the confirmation content, the requests and the list afterwards.
     per second (0 = unlimited), timeout for the remote host, timeout for the local host;
   - **Expert options** (advanced): custom parameters, simulate synchronisation (dry run).
 - **FR-017**: In the create form and on the details screen, below tablet width the advanced
-  sections MUST start collapsed and the others open. On wider screens all sections MUST start open. Each collapsed section header MUST state how many of
-  its values differ from the defaults. A section containing a field with an error MUST open
-  automatically. Sections MUST be operable by keyboard and expose their expanded state to
-  assistive technology.
+  sections MUST start collapsed and the others open. On wider screens all sections MUST start
+  open. Each collapsed section header MUST state how many of its values differ from the defaults.
+  A section containing a field with an error MUST open automatically. Sections MUST be operable by
+  keyboard and expose their expanded state to assistive technology.
 - **FR-018**: The create form MUST start with the creation defaults of API 008's capabilities read
   (FR-055), for every role. Today these are: encryption SSL, interval 20 minutes, active, automap
   on, subscribe all on, delete duplicates on the destination on, delete from source, delete on
@@ -531,12 +535,16 @@ and check the confirmation content, the requests and the list afterwards.
 #### Activate, deactivate and schedule next run
 
 - **FR-036**: Users who may manage sync jobs MUST be able to activate and deactivate a job, and to
-  schedule its next run, from the list (card or row actions) and from the details screen, without a
-  confirmation step. Activate and deactivate MUST send the version the screen shows; when the job
-  changed in the meantime, the app MUST say so, show the job's current values and let the user
-  retry. Schedule next run sends no version. The result MUST be announced and shown in the list.
+  schedule its next run, from the list (card or row actions) and from the details screen.
+  Deactivating MUST ask one explicit confirmation that names the job, says that it will not run
+  until it is activated again and, for a running job, that the run in progress finishes on its own;
+  activating and scheduling the next run need no confirmation. Activate and deactivate MUST send the
+  version the screen shows; when the job changed in the meantime, the app MUST say so, show the
+  job's current values and let the user retry. Schedule next run sends no version. The result MUST
+  be announced and shown in the list.
 - **FR-037**: Users MUST be able to enter a selection mode, select jobs individually or all jobs on
   the current page, and apply activate, deactivate, schedule next run or delete to the selection.
+  Deactivating a selection asks one explicit confirmation that lists the jobs, as in FR-036.
   The selection covers the current page only and MUST clear when the page, search, filters, sort or
   page size change. The app MUST send API 008's bulk operation once, naming every selected job with
   its version as listed (FR-036; the version is not checked for schedule next run), and MUST NOT
@@ -544,8 +552,8 @@ and check the confirmation content, the requests and the list afterwards.
   progress and end with a summary that counts the successes and names each other job with its
   translated outcome and reason (not found, refused, changed in the meantime, failed). Failed,
   refused and outdated jobs MUST stay selected so that the action can be retried. A dropped
-  connection MUST be reported as "outcome unknown" for every selected job and MUST NOT be retried
-  automatically.
+  connection MUST be reported as "outcome unknown" for every selected job, MUST clear the selection
+  and MUST NOT be retried automatically.
 - **FR-038**: When the user deactivates, edits, reschedules or deletes a job that is running, the
   confirmation or result MUST state that the run already in progress is not interrupted and
   finishes on its own.

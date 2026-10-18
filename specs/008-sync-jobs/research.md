@@ -31,8 +31,8 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     need and every later pin contains every earlier feature's contract. The first task of UI 008
     (T001) therefore:
     1. keeps the current pin when `contract/VERSION.json` already names the baseline or a later
-       commit, and otherwise runs `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9`
-       (or a later release tag that contains it);
+       commit, and otherwise runs `scripts/contract/bump.sh` with the baseline commit (or a later
+       release tag that contains it);
     2. verifies that the 9 sync-job operations, their parameters, schemas and documented statuses
        in the pinned bundle are identical to the baseline (`api/modules/sync-jobs/` and the
        `SyncJob*` components). Any difference stops the feature: this plan is updated first.
@@ -48,36 +48,44 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 
 ### R2. Prerequisites from earlier UI features
 
-- **Decision**: UI 008 builds on these parts and does not rebuild them. T004 checks that each one
-  exists before any UI 008 work starts.
+- **Decision**: UI 008 builds on these parts and does not rebuild them. The locations are those of
+  UI 001 R20 and of the UI 002 to UI 006 plans (cited as "002 D<n>", "003 R<n>", "004 D<n>",
+  "006 R<n>"). T004 checks that each one exists before any UI 008 work starts.
 
-  | Part | Owner | Expected location (001 R20 unless stated) | Used for |
+  | Part | Owner | Expected location | Used for |
   |---|---|---|---|
   | Shell, router, catalogue entry `syncJobs`, `canAccess`, `NoAccessState`, `NotFoundPage` | UI 001 | `src/app/**` | FR-001, FR-003 |
-  | `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `RelativeTime`, `useAnnouncer`, `useMediaQuery`, `PageHeader` | UI 001 | `src/shared/**` | lists, forms, dialogs, announcements |
-  | `src/shared/platform/clipboard.ts` | UI 001 | as named | log copy (FR-044) |
-  | `useBulkSelection`, `BulkResultSummary` | UI 002 | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkResultSummary.vue` | FR-037 |
-  | `ConfirmDialog` with `requireTyped` | UI 002 | `src/shared/components/ConfirmDialog.vue` | FR-039 (bulk) |
-  | Section editing with changed-value marking: `EditableSection` and the field diff of `useVersionedSave` | UI 002 | `src/shared/components/EditableSection.vue`, `src/shared/composables/useVersionedSave.ts` | FR-016, FR-026 |
-  | `HistoryLink` and the audit log's `targetType`/`targetId` filters | UI 002 (first contract bump with API 002) | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | FR-015 |
-  | Mailbox list mock (`listMailboxes`) and mailbox state | UI 003 | `tests/mocks/handlers/mailboxes.ts`, `tests/mocks/scenarios/state.ts` | picker and filter |
-  | Domain list mock (`listDomains`) and domain state | UI 002 | `tests/mocks/handlers/domains.ts`, `tests/mocks/scenarios/state.ts` | domain filter |
-  | Mailbox detail screen with an action area for later features | UI 003 | `src/features/mailboxes/pages/MailboxDetailPage.vue` (or the page UI 003's plan names) | FR-004 entry point |
+  | `useListState`, `ListState`, `PaginationBar`, `useConfirm`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `RelativeTime`, `useAnnouncer`, `useMediaQuery`, `PageHeader` | UI 001 | `src/shared/**` | lists, forms, dialogs, announcements |
+  | `clipboard.ts`; the i18n check with `ENUM_NAMESPACES` | UI 001 | `src/shared/platform/clipboard.ts`; `scripts/i18n/lib.mjs` | log copy (FR-044); R19 |
+  | `useBulkSelection` (with its `limit` option), `BulkActionBar`, `BulkResultSummary` | UI 002 D22, 004 D2–D4 | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary}.vue` | FR-037 |
+  | `ConfirmDialog` with `requireTyped` and list content | UI 002, 004 D5 | `src/shared/components/ConfirmDialog.vue` | FR-039 |
+  | `EditableSection` driven by the `edit` address parameter, and `changedSince()` of `useVersionedSave` ("Save again", "Discard my changes") | UI 002 D11 | `src/shared/components/EditableSection.vue`, `src/shared/composables/useVersionedSave.ts` | FR-016, FR-026 |
+  | Leave guard | UI 002 D21 | `src/shared/composables/useLeaveGuard.ts` (UI 003 R4 calls it `useUnsavedChangesGuard.ts`; the implemented name applies) | FR-027 |
+  | `HistoryLink` and the audit log's `targetType`/`targetId` filters | UI 002 D26 | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | FR-015 |
+  | `NotFoundState`, `FilterPanel`, `ActiveFilterChips`, `SearchField` | UI 003 R4, UI 006, UI 004 | `src/shared/components/` | not-found states, list filters |
+  | `DomainPicker` (domains source) | UI 003, promoted by 004 D11 | `src/shared/components/DomainPicker.vue` | domain filter |
+  | `neutralise()` for untrusted multi-line text | UI 006 R9 | `src/shared/security/plain-text.ts` | log display (R17) |
+  | The enumeration scope manifest for the growing shared enumerations | UI 002 D2 | `src/i18n/coverage.json` (UI 003 calls it `enum-scope.json`; the implemented name applies) | R19 |
+  | `requiredFlags` readable on `ApiProblem` | 004 D14 | `src/api/problem.ts` | R13 |
+  | Mailbox and domain mock handlers, factories and state | UI 002 D28, 003 R20 | `tests/mocks/handlers/{domains,mailboxes}.ts`, `tests/mocks/factories/{domain,mailbox}.ts`, `tests/mocks/scenarios/state.ts` | scenarios, pickers |
+  | Mailbox detail route `mailbox-detail` and its header page actions, a designated action area | UI 003 R5, data-model §8 there | `src/features/mailboxes/pages/MailboxDetailPage.vue` | FR-004 entry point |
 
   A missing part from this table blocks UI 008 and is reported to its owning feature; UI 008 does
-  not build a substitute. Two smaller parts may not exist yet, because no feature before UI 008
+  not build a substitute. Three smaller parts may still be missing, because no earlier feature
   strictly needs them; UI 008 adds them where they belong if T004 finds them missing:
   - the session reaction to `403 permission-flag-required` (refresh the identity, as for
-    `forbidden`, 001 R8), in `src/api/query/client.ts` (T005, T006);
-  - the shared search combobox promoted from UI 001's `OwnerPicker` at its second use (001 R20),
-    as `src/shared/components/SearchCombobox.vue`, if UI 002 to UI 007 have not promoted it under
-    another name (T007, T008).
-- **Rationale**: The roadmap orders UI 008 after UI 001 to UI 007, and 001 R20 fixed the owners
+    `forbidden`, 001 R8), in `src/api/query/client.ts` (T005, T006). UI 004 D15 and UI 005 plan to
+    add it, so it normally exists;
+  - the mailbox search picker: UI 006 keeps `MailboxSearchPicker.vue` in its rate-limits feature
+    as its only use. UI 008 is its second use and promotes it to
+    `src/shared/components/MailboxSearchPicker.vue`, adding a free-text mode and an empty-result
+    slot; if it does not exist, UI 008 creates it there test-first (T007, T008);
+  - a "view" parameter kind of `useListState`, for the log viewer's `log` parameter (T009, T010).
+- **Rationale**: The roadmap orders UI 008 after UI 001 to UI 007, and their plans fix the owners
   and locations of these parts. Naming them explicitly makes the dependency testable and stops a
   late feature from forking a shared pattern.
-- **Alternatives considered**: building local copies of bulk selection or section editing was
-  rejected (constitution VIII, conventions). Waiting for UI 002 to UI 007 to be planned before
-  planning UI 008 was rejected: the locations are already fixed by 001 R20.
+- **Alternatives considered**: building local copies of bulk selection, the bulk bar, section
+  editing or the pickers was rejected (constitution VIII, conventions).
 
 ### R3. Feature area and boundaries
 
@@ -101,21 +109,22 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     - `sync-job-create` `/sync-jobs/new` (optional `?mailbox=<address>` preselects the target for
       administrators and domain administrators);
     - `sync-job-detail` `/sync-jobs/:syncJobId([1-9][0-9]{0,9})`. An identifier above
-      2,147,483,647 (the contract's maximum) renders `NotFoundPage` without a request, so the mock
-      validator never sees an out-of-schema path. This is the address UI 014 maps
+      2,147,483,647 (the contract's maximum) renders the in-place `NotFoundState` with a link to the
+      list without a request, so the mock validator never sees an out-of-schema path. This is the address UI 014 maps
       `/edit/syncjob/{id}` to (UI 014 row M30).
   - **Access**: the catalogue already grants `syncJobs` to administrators and to domain
     administrators and mailbox users with `permissions.syncjobs` (001 data-model §2). Without the
     flag, `ShellLayout` renders `NoAccessState` in place and no sync-job request is sent (FR-001,
     FR-003). A `403 permission-flag-required` during the session refreshes the identity (R2), after
     which the same check hides the entry and shows `NoAccessState`. A `404` on the details page
-    renders the "not found" state with a link back to the list (FR-003).
+    renders `NotFoundState` (UI 003) with a link back to the list (FR-003).
   - **Entry point into UI 003** (FR-004, conventions "Where features meet"): `index.ts` exports
     `MailboxSyncJobsLink.vue`, which renders a link to `/sync-jobs?mailbox=<address>` only when
-    `canAccess('syncJobs', identity)` holds. UI 008 places it in the action area of UI 003's mailbox
-    detail screen. It sends no request (no job count), so the mailbox screen stays as fast as
-    before. Mailbox users reach their list from the navigation entry, which UI 001's catalogue
-    already shows them.
+    `canAccess('syncJobs', identity)` holds. UI 008 places it among the header page actions of UI
+    003's `MailboxDetailPage.vue`, which UI 003's data-model §8 designates for later features (UI
+    007 adds "Sign in as" there). It sends no request (no job count), so the mailbox screen stays as
+    fast as before. Mailbox users reach their list from the navigation entry, which UI 001's
+    catalogue already shows them.
 - **Rationale**: the catalogue is the single source of navigation and access (001 R19). A link
   component exported from the feature keeps UI 003 free of sync-job knowledge apart from one
   placement, with no deep import.
@@ -129,14 +138,18 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 - **Decision**: keys extend 001 R9's factory in `src/api/query/keys.ts`:
   - `['sync-jobs','list',params]`, `['sync-jobs','detail',id]`, `['sync-jobs','log',id]`,
     `['sync-jobs','capabilities']`;
-  - pickers under their owning roots, so that those features' invalidations cover them:
-    `['mailboxes','picker',{q}]` and `['domains','picker',{q}]` (reused as they are if UI 002 or
-    UI 003 already defined them).
+  - the pickers keep the keys of their shared components, under their owning roots, so that those
+    features' invalidations cover them: `['domains','picker',{q}]` (`DomainPicker`, UI 007 R14
+    uses the same) and `['mailboxes','picker',{q}]` (`MailboxSearchPicker`, unless UI 006 chose
+    another key, which then applies).
 
   Freshness: the default 30 s for list, detail and pickers; `capabilities` 5 minutes (server
   configuration, read lazily, R10); `log` 30 s with `gcTime` 60 s, so that a multi-megabyte log is
-  released soon after the viewer closes. Mutations write the returned job with `setQueryData` and
-  invalidate the lists; the full table is in [data-model.md](./data-model.md#3-server-state-cache).
+  released soon after the viewer closes. The detail takes `initialData` from a cached list entry
+  with `initialDataUpdatedAt` set to that list's `dataUpdatedAt` (002 D6). Mutations write the
+  returned job with `setQueryData`, invalidate the lists, and invalidate `['audit-events']` so that
+  History shows the new record (002 D6); the full table is in
+  [data-model.md](./data-model.md#3-server-state-cache).
 - **Rationale**: constitution VII and 001 R9. Writing returned jobs into the cache makes changes
   appear without a refresh (FR-014).
 - **Alternatives considered**: reading capabilities at bootstrap was rejected: only users who open
@@ -150,8 +163,8 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
   selection. Default sort `id` with `desc` (newest first, FR-011), although the API's default is
   `id asc`; defaults are omitted from the address. Mailbox users get no `mailbox` and `domain`
   filters and no `mailbox` sort; values given anyway are dropped by normalisation. Sorting by
-  `createdAt` and `modifiedAt`, which the API also offers, is not offered (FR-011 lists the columns).
-  If UI 001's `useListState` cannot carry a parameter that is not a filter, T009 and T010 add
+  `createdAt` and `modifiedAt`, which the API also offers, is not offered (FR-011 lists the
+  columns). If UI 001's `useListState` cannot carry a parameter that is not a filter, T009 and T010 add
   that option with a unit test.
 - **Rationale**: conventions "Lists"; FR-010 and FR-011.
 - **Alternatives considered**: keeping `log` out of the address was rejected (R17).
@@ -167,24 +180,31 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
   3. selection mode is off (the bulk action sends the versions as listed, conventions);
   4. the user has not paused it with the "Pause automatic refresh" control (WCAG 2.2.2), shown only
      while condition 1 holds;
-  5. the last user interaction (pointer, touch, key, wheel or scroll on `window`) is less than 15
-     minutes old. When this condition fails, a polite live notice says that automatic refresh
-     paused because of inactivity, with "Resume" (a manual refresh restarts it too). It never
-     resumes on its own.
+  5. the last user interaction is younger than the inactivity limit, `min(15 min,
+     Session.idleTimeout)` from UI 001's session store, exactly UI 011 R5's rule. Interactions are
+     tracked by `src/features/sync-jobs/composables/useInactivity.ts`, with UI 011 R5's listeners:
+     passive, throttled to once per second, `pointerdown`, `keydown`, `wheel`, `touchstart` and
+     `scroll` on `window`. When this condition fails, a polite live notice says that automatic
+     refresh paused because of inactivity, with "Resume" (a manual refresh restarts it too). It
+     never resumes on its own.
 
   Automatic refreshes announce nothing. The manual "Refresh" (`admin.refresh`) always works. The
-  composable keeps no state outside the page and stops with it.
+  composables keep no state outside the page and stop with it.
 - **Rationale**:
   - FR-014 asks the refresh while a job runs; constitution VII forbids it otherwise.
   - Every API request renews the session's idle timer (API 001), and UI 001 FR-033 forbids
-    automatic requests that keep an idle session alive. The 15-minute inactivity pause bounds that
-    effect exactly as UI 011 FR-021 does, so both features behave alike.
+    automatic requests that keep an idle session alive. The inactivity limit bounds that effect to
+    one idle period after the last interaction, exactly as UI 011 R5 does, so both features behave
+    alike.
   - 001 R9 says "no `refetchInterval` anywhere": this is the one deliberate, condition-bound
-    exception, required by FR-014; the global default stays off.
+    exception, required by FR-014; the global default stays off. UI 011 R5 makes the same kind of
+    exception for its live queries.
 - **Alternatives considered**: a server push channel does not exist in the contract. Refreshing
-  only the running jobs one by one was rejected: more requests than one list page. A shared
-  `useLiveRefresh` in `src/shared/` was rejected for now (constitution VIII: first use); UI 011 is
-  the second use and promotes it.
+  only the running jobs one by one was rejected: more requests than one list page. Putting
+  `useInactivity` in `src/shared/` now was rejected (constitution VIII: UI 008 is its first use).
+  UI 011 is implemented after UI 008 and plans its own `useInactivity.ts`; it should promote UI
+  008's to `src/shared/composables/` instead of writing a second one (reported to the
+  orchestrator).
 
 ### R8. State, result and last run
 
@@ -213,23 +233,26 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 
 ### R9. Target mailbox picker and domain filter
 
-- **Decision**: two thin components on the shared search combobox (R2), each with a 300 ms
-  debounce, 25 results per page and "load more" over `useInfiniteQuery`:
-  - `TargetMailboxPicker.vue` over `listMailboxes` (`q`, `sort=address`). The API never lists
-    resources, and aliases are a different collection, so only mailboxes are offered (FR-020).
-    Each option shows the address and, when set, the display name. Used in the create form and, in
-    free-text mode, as the list's mailbox filter (exact address, as `GET /sync-jobs?mailbox=`
-    expects). An empty result explains that a mailbox must exist first and, when
-    `canAccess('mailboxes')` holds, links to Mailboxes (edge case).
-  - `DomainFilterPicker.vue` over `listDomains` (`q`), for the list's domain filter.
+- **Decision**: the shared pickers (R2), each a Reka `Combobox` without its viewport, with a
+  300 ms debounce, 25 results per page and "load more" over `useInfiniteQuery`:
+  - `MailboxSearchPicker.vue` over `listMailboxes` (`q`, `sort=address`), promoted from UI 006 at
+    this second use. The API never lists resources, and aliases are a different collection, so
+    only mailboxes are offered (FR-020). Each option shows the address and, when set, the display
+    name. Used in the create form and, in its free-text mode, as the list's mailbox filter (exact
+    address, as `GET /sync-jobs?mailbox=` expects). Its empty-result slot explains in the create
+    form that a mailbox must exist first and, when `canAccess('mailboxes')` holds, links to
+    Mailboxes (edge case).
+  - `DomainPicker.vue` (domains source, single mode) over `listDomains` (`q`), for the list's
+    domain filter, for administrators and domain administrators alike (the API scopes the list).
 
   Mailbox users get neither: their target is `identity.scope.mailbox`, shown read-only.
 - **Rationale**: server-side search scales to thousands of mailboxes (FR-020). The combobox
-  without `ComboboxViewport` is CSP-safe (001 R18).
+  without `ComboboxViewport` is CSP-safe (001 R18). Reusing the shared pickers keeps one
+  implementation per object type.
 - **Alternatives considered**: a native `<select>` of the domain administrator's
-  `scope.domains` was rejected: two controls for one filter, and administrators need search
-  anyway. A free-text domain field was rejected, because `domain` matches exactly and partial input
-  would match nothing.
+  `scope.domains` (UI 006's choice for its quarantine filter) was rejected here: one control for
+  both roles is simpler, and the scoped `listDomains` costs one small request. A free-text domain
+  field was rejected, because `domain` matches exactly and partial input would match nothing.
 
 ### R10. Create form model and capabilities
 
@@ -267,6 +290,7 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     destination" while switched on; "Simulate" carries its explanation permanently. Each option
     shows its imapsync option name in `<code>` as secondary text (FR-025); the names are literals,
     not translations.
+  - **Leaving** (FR-027): the leave guard (R2) asks while the form holds input.
   - **Success** (FR-028): `router.replace` to the new job's details screen and a polite
     announcement. Replace, not push, so that Back does not return to an emptied create form.
 - **Rationale**: FR-016 to FR-025 and FR-055; capabilities make operator configuration visible
@@ -279,20 +303,25 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 
 - **Decision**: `SyncJobDetailPage.vue` shows a header (job label, state, last run, result,
   created and changed times, actions) and the seven sections of FR-016. Each section except Target
-  mailbox is an `EditableSection` (UI 002):
+  mailbox is an `EditableSection` (002 D11), driven by the `edit=<section>` address parameter
+  (`source`, `schedule`, `folders`, `duplicates`, `limits`, `expert`), one section at a time; below
+  `md` the open section replaces the page content with its own heading and a sticky Save and
+  Cancel bar, from `md` up it opens in place. Back therefore closes an open section.
   - **Read mode** shows the stored values (booleans as "On"/"Off" text with icons, empty values as
     "Not set").
   - **Edit** opens the section's fields with the stored values, using the same field components
-    as the create form, and moves focus to the first field.
+    as the create form, and moves focus to the section heading (002 D11).
   - **Save** sends `PATCH /sync-jobs/{id}` (`application/merge-patch+json`) with only the fields of
     that section whose value differs from the loaded job, and `If-Match` with the loaded `etag`
     (FR-026, `useVersionedSave`). An unchanged section closes without a request. The response is
     written into the detail and list caches.
-  - **Outdated** (`412`): the input stays, the job is reloaded, the fields whose stored value
-    changed are marked with their new value, and the user saves again; no merge and no "overwrite
-    anyway" (conventions).
-  - **Leaving** (FR-027): `onBeforeRouteLeave` asks through `useConfirm` while any section has
-    unsaved input; "Cancel" in a section discards its input without asking.
+  - **Outdated** (`412`): the input stays, the job is reloaded, `changedSince()` marks the fields
+    whose stored value changed with their new value, and the section offers "Save again" (the
+    fields that differ from the reloaded job, with its version) and "Discard my changes"; no merge
+    and no "overwrite anyway" (conventions, 002 D11).
+  - **Leaving** (FR-027): the leave guard (R2) asks while a section holds changed input; "Cancel" in
+    a section discards its input without asking. A reload with `edit` set reopens the section with
+    the saved values; a typed password is never restored.
   - The **remote password** field in the Source section starts empty with the hint "A password is
     saved. Leave empty to keep it." (`remotePasswordSet`); empty is left out of the patch, non-empty
     replaces it (FR-030). A job without a stored password (possible for legacy rows) shows "No
@@ -368,9 +397,11 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 
 - **Decision** (FR-036, FR-038, FR-039):
   - **Activate / Deactivate**: `PATCH /sync-jobs/{id}` with `{ "active": true|false }` and
-    `If-Match: etag` as shown. No confirmation (spec clarification: deactivating a sync job only
-    pauses copying). A `412` says the job changed, reloads it (list row or details) and leaves the
-    action available for a retry.
+    `If-Match: etag` as shown. Deactivating first asks one explicit confirmation through
+    `useConfirm` that names the job and says that it will not run until activated again (and, when
+    running, that the run in progress finishes on its own); activating does not (conventions
+    "Confirmations", spec clarification). A `412` says the job changed, reloads it (list row or
+    details) and leaves the action available for a retry.
   - **Schedule next**: `POST /sync-jobs/{id}/schedule-reset` without `If-Match`.
   - **Delete**: confirmation (R16), then `DELETE` with `If-Match`; a `412` reloads the job and asks
     again.
@@ -379,33 +410,44 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     own." (FR-038).
   - The same composable (`useSyncJobActions.ts`) serves the card menu, the table row menu and the
     details header, so the behaviour cannot drift.
-- **Rationale**: the contract's single-object operations, and conventions' version handling.
+- **Rationale**: the contract's single-object operations, and conventions' version handling and
+  confirmations.
 - **Alternatives considered**: sending single actions through the bulk operation with one target
   was rejected: the single operations return the updated job and the precise status codes.
+  Deactivating without confirmation, as legacy does and as the first draft of the spec asked, was
+  rejected: `docs/conventions.md` names deactivating among the actions that need one explicit
+  confirmation, and UI 002 confirms domain deactivation the same way.
 
 ### R15. Bulk actions
 
-- **Decision** (FR-037, SC-008): `useBulkSelection` (UI 002) on the current page's jobs.
-  - **Selection mode**: a "Select" toggle in the list header. In it, each card and row gets a
-    44 × 44 px checkbox with the job's label as its accessible name, "Select all on this page"
-    selects the page, and a sticky action bar at the bottom of the viewport offers Activate,
-    Deactivate, Schedule next and Delete, wrapping onto two rows at 360 px rather than scrolling
-    sideways. Changing page, search, filters, sort or size clears the selection (001 R20
+- **Decision** (FR-037, SC-008): the shared bulk parts (R2) on the current page's jobs.
+  - **Selection mode**: `BulkActionBar`'s "Select" control starts it (002 D22). Each card and row
+    gets a 44 × 44 px checkbox with the job's label as its accessible name, the table gets "select
+    all on this page", and the bar, fixed at the bottom on phones, names the count and offers
+    Activate, Deactivate, Schedule next and Delete, wrapping rather than scrolling sideways at
+    360 px. Changing page, search, filters, sort or size clears the selection (`useListState`'s
     `onReset`).
-  - **Limit**: `capabilities.bulkLimit` (read when selection mode starts). With more jobs selected
-    than the limit (only possible with page size 100 and a lower server limit), the actions are
-    disabled and the bar states the limit.
+  - **Limit**: `capabilities.bulkLimit` (read when selection mode starts) is given to
+    `useBulkSelection`'s `limit` option (004 D2), so a selection never exceeds it and the bar says
+    so; the request therefore never names more jobs than the limit. With page sizes up to 100 and
+    the default limit of 100 it matters only on servers with a lower limit.
+  - **Confirmation**: Deactivate asks one explicit confirmation that lists the selected jobs and
+    says that they will not run until activated again (002 D22 does the same for domains); Delete
+    follows R16; Activate and Schedule next run at once.
   - **Request**: `POST /sync-jobs/bulk-actions` `{ action, targets: [{ id: String(job.id),
     version: job.etag without its quotes }] }`; the version is sent for `reschedule` too and
-    ignored there by the API.
-  - **Summary**: `BulkResultSummary` with one row per result, named by the job's label from the
-    selection snapshot, outcome translated (`done`, `notFound`, `refused`, `outdated`, `failed`)
-    and, where present, the item problem's translated message. `done` and `notFound` leave the
-    selection; `refused`, `outdated` and `failed` stay selected. A note says when a selected job was
-    running (FR-038). The summary is announced.
-  - **Network failure**: every selected job is reported "outcome unknown", the list is refetched,
-    the selection stays, and nothing is retried (conventions).
-  - Afterwards the lists are invalidated and the details of deleted jobs are removed from the cache.
+    ignored there by the API. While it runs, an indeterminate progress indicator says "Processing
+    n sync jobs" and is announced (002 D22).
+  - **Summary**: `BulkResultSummary` rows `{ id, label, outcome, problem }`, named by the job's
+    label from the selection snapshot, outcome translated (`done`, `notFound`, `refused`,
+    `outdated`, `failed`) with the item problem's translated message. `done` and `notFound` leave
+    the selection; `refused`, `outdated` and `failed` stay selected, and "Retry" sends exactly those
+    with the version tags of the refreshed list (002 D22). A note says when a selected job was
+    running (FR-038). The counts are announced.
+  - **Network failure**: every selected job is reported "outcome unknown", nothing is retried, the
+    selection is cleared and the list is refetched (002 D22, conventions).
+  - Afterwards the lists and `['audit-events']` are invalidated and the details of deleted jobs are
+    removed from the cache.
   - Automatic refresh is suspended while selection mode is on (R7).
 - **Rationale**: conventions "Bulk actions" and API 008 FR-023, FR-024.
 - **Alternatives considered**: selections across pages were rejected by the conventions.
@@ -419,8 +461,9 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     deletion; from the list, the job disappears and focus moves to the list heading.
   - **Several jobs**: the dialog lists every selected job in a scrollable list with an accessible
     name, says that copied mail stays, and requires the number of jobs to be typed
-    (`requireTyped`, conventions).
-  - Cancelling returns focus to the control that opened the dialog (Reka `AlertDialog`).
+    (`requireTyped`, conventions, 004 D5).
+  - Focus starts on Cancel; cancelling returns focus to the control that opened the dialog (Reka
+    `AlertDialog`).
 - **Rationale**: conventions "Confirmations"; API 008 has no delete preview, so the dialog shows
   the job's own data.
 - **Alternatives considered**: typing a job's host for a single deletion was rejected: the
@@ -447,14 +490,20 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     when it is empty and the job never ran (`lastRunAt` is `null` and `logAvailable` is false);
     "The run produced no output" when it is empty otherwise; plus a notice "A run is in progress.
     This is the log of the previous run." with Refresh when `runStatus.running`.
-  - **Rendering**: verbatim text interpolation only, never `v-html` (FR-042). The text is split once
-    at line breaks into chunks of 500 lines, each rendered as a block with `white-space: pre-wrap`
-    (or `pre` when wrapping is off) and `content-visibility: auto` with an intrinsic size of
-    500 lines, so the browser lays out and paints only the visible chunks. Chunking keeps every
-    character, and Copy uses the original string, so the copied text is identical. The log area is
-    a `role="region"` with an accessible name and `tabindex="0"`, scrollable by keyboard; with
-    wrapping off only this area scrolls sideways (FR-043). Text stays in the accessibility tree and
-    findable with the browser's search, because `content-visibility: auto` does not hide content.
+  - **Rendering**: text interpolation only, never `v-html` (FR-042). The log comes from a remote
+    server, so it is untrusted text: each chunk goes through UI 006's
+    `neutralise(text, { multiline: true })` (`src/shared/security/plain-text.ts`, 006 R9), which
+    shows control and bidi override characters as visible markers (for example `U+202E`) instead
+    of letting them reorder or hide text, and renders inside a `dir="auto"` block with
+    `unicode-bidi: plaintext`. Everything else is shown verbatim. The text is split once at line
+    breaks into chunks of 500 lines, each rendered as a block with `white-space: pre-wrap` (or
+    `pre` when wrapping is off) and `content-visibility: auto` with an intrinsic size of 500 lines,
+    so the browser lays out and paints only the visible chunks. Chunking keeps every character,
+    and Copy uses the original string, so the copied text is byte-identical to the API's. The log
+    area is a `role="region"` with an accessible name and `tabindex="0"`, scrollable by keyboard;
+    with wrapping off only this area scrolls sideways (FR-043). Text stays in the accessibility
+    tree and findable with the browser's search, because `content-visibility: auto` does not hide
+    content.
   - **Copy** (FR-044): `src/shared/platform/clipboard.ts`; success or refusal is announced, and on
     refusal the visible chunk of text can be selected manually.
   - **Memory**: the log string is held in a `shallowRef`; the query's `gcTime` of 60 s frees it
@@ -474,8 +523,11 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 
 - **Decision**: administrators get a History action in the details header, rendered with
   `HistoryLink` (`targetType=syncJob`, `targetId=<id>`). Following conventions "History and audit",
-  UI 008 adds or reviews the audit log labels for `syncJobCreation`, `syncJobUpdate`,
-  `syncJobReschedule` and `syncJobDeletion` and the target type `syncJob`, in all three locales.
+  UI 008 adds the audit log labels for `syncJobCreation`, `syncJobUpdate`, `syncJobReschedule` and
+  `syncJobDeletion`, the target type `syncJob`, and the failure reasons `permissionDenied` and
+  `notFound` unless an earlier feature listed them, in all three locales, and appends them to the
+  enumeration scope manifest (R19). API 008 writes no `details` members that the contract
+  describes, so the audit log shows them through UI 001's generic details view (as 002 D26 does).
 - **Rationale**: FR-015 and API 008 FR-026; only administrators may read the audit log.
 - **Alternatives considered**: a per-job history panel inside the details screen was rejected: the
   audit log screen already exists.
@@ -500,13 +552,20 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     needs a hand-written fallback.
   - Legacy texts with markup (`edit.subfolder2`, `edit.maxage`, `edit.maxbytespersecond`) get new
     keys that separate label and hint (`syncJobs.fields.subfolder`/`subfolderHint`, `maxAge`/
-    `maxAgeHint`, `maxBytesPerSecond`/`maxBytesPerSecondHint`).
-  - `scripts/i18n/check.mjs` gains the required enumerations `SyncJobEncryption`,
-    `SyncJobLastResult` and `SyncJobBulkAction` (and `BulkItemOutcome` if UI 002 did not add it),
-    and `validation.format.hostName` joins the format keys (001 R27).
-  - Problem keys `problem.sync-job-exists` and `problem.permission-flag-required` already exist
-    once the pin contains them (the check derives problem types from the bundle, 001 R27); UI 008
-    reviews their wording.
+    `maxAgeHint`, `maxBytesPerSecond`/`maxBytesPerSecondHint`). UI 002 D27's `stripMarkup` mapping
+    is not used for them, because it would join label and hint into one text.
+  - **Closed enumerations** this feature introduces into the UI are fully required: UI 008 adds
+    `syncJobEncryptionValues` → `enums.syncJobEncryption`, `syncJobLastResultValues` →
+    `enums.syncJobLastResult` and `syncJobBulkActionValues` → `enums.syncJobBulkAction` to
+    `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs` (`bulkItemOutcomeValues` already comes from UI 002;
+    the generated array names are confirmed against `src/api/generated/schema.ts` at T003), and
+    `hostName` joins the checked `validation.format.*` keys.
+  - **Growing shared enumerations** use UI 002 D2's scope manifest: UI 008 appends
+    `AuditEventType` `syncJobCreation`, `syncJobUpdate`, `syncJobReschedule`, `syncJobDeletion`;
+    `AuditTarget.type` `syncJob`; `AuditFailureReason` `permissionDenied`, `notFound`;
+    `ValidationRuleCode` `invalidRegex`, `optionNotAllowed`, `optionContainsSpace`,
+    `customParamsNotPermitted`; and the problem types `sync-job-exists` and
+    `permission-flag-required` (each unless already listed), with their messages.
 - **Rationale**: carries the legacy cs-cz and sk-sk translations over and keeps CI's completeness
   gate meaningful for the new enumerations.
 - **Alternatives considered**: reusing `user.*` duplicates of the same texts was rejected; one

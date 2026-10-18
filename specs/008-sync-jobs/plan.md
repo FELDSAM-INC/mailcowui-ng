@@ -30,12 +30,14 @@ The technical approach (details in [research.md](./research.md)):
 - **Contract**: the 9 sync-job operations of API 008 plus `listMailboxes`, `listDomains`,
   `listAuditEvents` and `getIdentity`, from a pin at or after mailcow-rest-v2 commit `3207925`
   (R1).
-- **Reuse**: bulk selection, typed confirmation, section editing with changed-value marking and
-  `HistoryLink` from UI 002; the mailbox list mock and the mailbox detail screen from UI 003; the
-  shell, list state, forms, dialogs and announcer from UI 001 (R2).
+- **Reuse** (R2): bulk selection, the bulk action bar, typed confirmation, section editing driven
+  by the `edit` address parameter, the leave guard and `HistoryLink` from UI 002; the mailbox
+  detail screen and its header actions from UI 003; the shared `DomainPicker` (UI 003, promoted by
+  UI 004); `MailboxSearchPicker`, promoted from UI 006 at this second use; UI 006's `neutralise()`
+  for the untrusted log text; the shell, list state, forms, dialogs and announcer from UI 001.
 - **Server state**: new query roots `['sync-jobs', …]`; the list's only `refetchInterval`, bound to
-  running jobs, visibility, selection mode, a pause control and a 15-minute inactivity limit (R5,
-  R7).
+  running jobs, visibility, selection mode, a pause control and UI 011's inactivity limit of
+  `min(15 min, session idle timeout)` (R5, R7).
 - **Secrets**: the remote password lives in one component `ref`, never in caches, the address,
   storage or logs, and an end-to-end test proves it (R12).
 - **Log viewer**: an address parameter so Back closes it, and chunked rendering with
@@ -87,10 +89,10 @@ entry point into UI 003.
 | V. Security in the browser | The remote password is masked, protected from autofill and saving, held in one component `ref`, sent only by create and Source saves, never stored, cached, logged or put in the address, and never sent to a third party; an end-to-end test proves it (R12). The log is rendered as text, never as HTML (R17). Hiding the entry is a convenience: `permission-flag-required`, `404` and `412` are handled (R4, R13). | PASS |
 | VI. Test-first | `tasks.md` writes the mock, unit, end-to-end and smoke tests before each story's implementation. Every acceptance scenario of US1 to US6 has an end-to-end test on both viewports against the contract-validated mock; the 5 MB log and the password secrecy have dedicated tests (R20, R21). | PASS |
 | VII. Performance budgets | No new dependency; lazy routes and a lazy log viewer; `budget:check` unchanged initial JS (R22). Server state cached, written from responses and invalidated after mutations; the log is fetched only when opened; the only interval is bounded by running jobs, visibility, selection, a pause control and inactivity (R5, R7). | PASS |
-| VIII. Simplicity | No new dependency. Shared parts are reused from UI 001 and UI 002; single-use parts stay in the feature (`useRunningRefresh`, the log viewer) with UI 011 as the recorded promotion point for the refresh controller. Only two possibly-missing small shared parts are added where UI 001 R20 placed them (R2). | PASS |
+| VIII. Simplicity | No new dependency. Shared parts are reused from UI 001 to UI 006; `MailboxSearchPicker` is promoted at its second use. Single-use parts stay in the feature (`useRunningRefresh`, `useInactivity`, the log viewer), with UI 011 as the recorded promotion point for `useInactivity`. Only possibly-missing small shared parts are added where their owners placed them (R2). | PASS |
 | Technology constraints | Stack unchanged; Reka parts without style injection; no TailAdmin Pro code; no CDN request. | PASS |
 | Workflow and gates | Commits to `main`; CI gates of UI 001 unchanged; this feature names its API dependency and contract pin (R1). | PASS |
-| `docs/conventions.md` | Wording ("the classic interface" where it appears). List state in the address, page sizes 25/50/100, cards and tables, list states. Bulk actions: page-only selection, one bulk request with versions as listed, per-item summary, failed/refused/outdated stay selected, "outcome unknown" without retry. Section editing with only changed fields and the read version; outdated saves keep input, reload and mark, no overwrite. Confirmations: single delete with impact, bulk delete with typed count; deactivating not confirmed, recorded as a spec decision. Secrets: write-only remote password. History via target filters, and audit labels for the four sync-job event types. Problem types and rule codes translated. Capabilities from the capabilities read. Entry point into UI 003 through its action area, shown only when UI 008 exists. | PASS |
+| `docs/conventions.md` | Wording ("the classic interface" where it appears). List state in the address, page sizes 25/50/100, cards and tables, list states. Bulk actions: page-only selection, one bulk request with versions as listed, per-item summary, failed/refused/outdated stay selected, "outcome unknown" without retry. Section editing with only changed fields and the read version; outdated saves keep input, reload and mark, no overwrite. Confirmations: single delete with impact, bulk delete with typed count, one explicit confirmation for deactivating (single and bulk). Secrets: write-only remote password. History via target filters, and audit labels for the four sync-job event types. Problem types and rule codes translated. Capabilities from the capabilities read. Entry point into UI 003 through its action area, shown only when UI 008 exists. | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart
 introduce no violation. Decisions that touched gates:
@@ -133,12 +135,14 @@ Recorded in the spec's Clarifications (session 2026-10-18) and checklist (valida
 3. Deleting several jobs needs their number typed (FR-039).
 4. History action through the audit log's target filters (FR-015); page sizes 25/50/100 (FR-012).
 5. The automatic refresh can be paused, is suspended in selection mode and pauses after 15 minutes
-   of inactivity (FR-014).
+   of inactivity, or the session's idle lifetime if shorter (FR-014).
 6. Defaults, limits, the bulk limit and the custom-parameter permission come from the capabilities
    read (FR-018, FR-021, FR-055, FR-056); the exclusion pattern is now the API's default.
 7. `permission-flag-required` replaces "forbidden", `sync-job-exists` links to the existing job,
    and the retry wording follows the documented statuses (FR-023, FR-047); the domain list and the
    audit log join the used operations (FR-053).
+8. Deactivating asks one explicit confirmation, for one job or a selection (FR-036, FR-037,
+   US4-AS1), and a dropped connection during a bulk action clears the selection, as UI 002 does.
 
 ## Dependencies on earlier features
 
@@ -147,27 +151,25 @@ Specifically (research R2):
 
 - **UI 001**: shell, router, catalogue entry `syncJobs`, `canAccess`, `NoAccessState`, list state,
   forms, dialogs, announcer, clipboard, mock server and fixtures, i18n tooling.
-- **UI 002**: `useBulkSelection`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`,
-  `EditableSection` with the field diff of `useVersionedSave`, `HistoryLink` and the audit log's
-  target filters, the domain list mock.
-- **UI 003**: the mailbox list mock and mailbox state, and the mailbox detail screen with an
-  action area, where UI 008 places "Sync jobs".
-- **UI 004 to UI 007**: no direct dependency; their contract pins precede UI 008's.
+- **UI 002**: `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with
+  `requireTyped`, `EditableSection` driven by `edit` with `changedSince()`, the leave guard,
+  `HistoryLink` and the audit log's target filters, the enumeration scope manifest, the domain
+  list mock.
+- **UI 003**: the mailbox list mock and mailbox state, `NotFoundState`, and the mailbox detail
+  screen whose header page actions (a designated action area) receive "Sync jobs".
+- **UI 004**: the shared `DomainPicker`, `useBulkSelection`'s `limit` option, `SearchField`,
+  `requiredFlags` on `ApiProblem`.
+- **UI 005**: the `permission-flag-required` session reaction (also planned by UI 004).
+- **UI 006**: `MailboxSearchPicker` (promoted here), `neutralise()`, `FilterPanel`.
+- **UI 007**: no direct dependency; its contract pin precedes UI 008's.
 
 Task T004 verifies these parts before any other work. A missing part blocks UI 008 and goes back to
-its owner; only the `permission-flag-required` session reaction and the shared search combobox are
-added by UI 008 if still missing (T005 to T008).
+its owner; only the `permission-flag-required` session reaction, the mailbox search picker and a
+"view" parameter of `useListState` are added by UI 008 if still missing (T005 to T010).
 
 ## Owner-level questions (defaults applied)
 
-1. **Inactivity limit of the automatic refresh**: UI 001 FR-033 forbids automatic requests that
-   keep an idle session alive, yet FR-014 refreshes while a job runs. **Default**: refresh stops
-   after 15 minutes without interaction, with a notice and "Resume", the same limit as UI 011
-   FR-021. A stricter owner reading would tie the limit to the session's idle timeout instead.
-2. **Deactivating without confirmation**: `docs/conventions.md` names "deactivating" among actions
-   needing one confirmation. **Default**: sync job deactivation (single and bulk) is not confirmed,
-   because it only pauses copying and is undone with one action; deletion is always confirmed.
-3. **Review of new Czech and Slovak strings**: **Default**: as in UI 001, the owner reviews the new
+1. **Review of new Czech and Slovak strings**: **Default**: as in UI 001, the owner reviews the new
    cs-cz and sk-sk strings before release; T075 lists them.
 
 ## Parity notes added by the plan
@@ -179,6 +181,8 @@ The spec's parity table is complete. The plan adds:
 2. A success whose exit code the runner did not recognise reads "Success", where the classic
    interface showed "Check log" next to a success icon (research R8).
 3. The log can be linked by address and closed with Back on phones (research R17).
+4. Deactivating asks one explicit confirmation, where the classic interface deactivates at once
+   (conventions "Confirmations", research R14).
 
 ## Project Structure
 
@@ -214,13 +218,13 @@ src/features/sync-jobs/
 ├── log-view.ts                      # log states and chunking
 ├── composables/
 │   ├── useRunningRefresh.ts         # research R7
+│   ├── useInactivity.ts             # research R7 (UI 011 promotes it)
 │   ├── useLogViewer.ts              # research R17
 │   └── useSyncJobActions.ts         # single and bulk actions (research R14, R15)
 ├── components/
 │   ├── SyncJobStateBadges.vue  SyncJobResult.vue  SyncJobLastRun.vue
 │   ├── SyncJobCard.vue  SyncJobTable.vue  SyncJobList.vue  SyncJobFilters.vue
-│   ├── SyncJobRowActions.vue  SyncJobBulkBar.vue  AutoRefreshControl.vue
-│   ├── TargetMailboxPicker.vue  DomainFilterPicker.vue
+│   ├── SyncJobRowActions.vue  AutoRefreshControl.vue  SyncJobDeleteList.vue
 │   ├── FormSection.vue  SourceFields.vue  RemotePasswordField.vue  ScheduleFields.vue
 │   ├── FolderFields.vue  DuplicateFields.vue  LimitFields.vue  ExpertFields.vue
 │   ├── SyncJobSectionValues.vue     # read mode of a details section
@@ -235,13 +239,15 @@ src/features/sync-jobs/
 src/api/query/keys.ts                       # sync-jobs keys; picker keys if missing
 src/api/query/client.ts                     # permission-flag-required reaction, only if missing (T006)
 src/shared/composables/useListState.ts      # view parameter, only if missing (T010)
-src/shared/components/SearchCombobox.vue    # promoted from OwnerPicker, only if missing (T008)
+src/shared/components/MailboxSearchPicker.vue  # promoted from UI 006's rate-limits feature (T008)
+src/features/rate-limits/…                  # imports of the promoted picker updated (T008)
 src/app/navigation/catalogue.ts             # syncJobs → available
 src/app/router/routes.ts                    # register sync-jobs routes
-src/features/mailboxes/pages/MailboxDetailPage.vue   # place MailboxSyncJobsLink (UI 003's action area)
+src/features/mailboxes/pages/MailboxDetailPage.vue   # MailboxSyncJobsLink in the header page actions
 src/features/audit-log/labels.ts            # sync-job event and target labels, if labels are mapped there
 src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  src/i18n/legacy-map.json  src/i18n/legacy/*.json (generated)
-scripts/i18n/check.mjs                      # required sync-job enumerations, hostName format
+src/i18n/coverage.json                      # scope manifest of UI 002 D2 (enum-scope.json in UI 003)
+scripts/i18n/lib.mjs                        # ENUM_NAMESPACES: sync-job enumerations; hostName format
 
 tests/
 ├── mocks/

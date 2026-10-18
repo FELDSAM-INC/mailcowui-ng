@@ -22,8 +22,8 @@ Generated root types, imported from `@/api`:
 | `SyncJobBulkActionRequest`, `SyncJobBulkAction`, `SyncJobBulkTarget` | `applySyncJobBulkAction` | bulk bar | `targets[].id` is the decimal string; `version` is `etag` without quotes |
 | `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `applySyncJobBulkAction` | `BulkResultSummary` | results in request order |
 | `SyncJobPermissionFlagProblem`, `ValidationProblem`, `Problem` | every sync-job error | `ApiProblem`, field messages | `sync-job-exists` carries `syncJobId` |
-| `Mailbox` (address, display name) | `listMailboxes` | `TargetMailboxPicker` | resources are never listed |
-| `Domain` (name) | `listDomains` | `DomainFilterPicker` | administrators and domain administrators only |
+| `Mailbox` (address, display name) | `listMailboxes` | shared `MailboxSearchPicker` (create form, mailbox filter) | resources are never listed |
+| `Domain` (name) | `listDomains` | shared `DomainPicker` (domain filter) | administrators and domain administrators only |
 | `Identity`, `Scope`, `PermissionFlags` | `getIdentity` | access, mailbox user's target, fields per role | `scope.mailbox` for mailbox users |
 | `AuditTarget['type']` (`syncJob`) | `listAuditEvents` via `HistoryLink` | History action | administrators only |
 
@@ -113,7 +113,7 @@ translated through `syncJobs.errors.kind.<kind>`.
 |---|---|
 | request pending | loading state |
 | request failed | `ProblemMessage` with retry; `404` says the job no longer exists |
-| `log` not empty | the text in chunks of 500 lines (`chunkLog(text, 500)` preserves every character; joining the chunks returns the input) |
+| `log` not empty | the text in chunks of 500 lines (`chunkLog(text, 500)` preserves every character; joining the chunks returns the input), each displayed through `neutralise(chunk, { multiline: true })` (UI 006 R9); Copy uses the original text |
 | `log` empty, `lastRunAt` null and `logAvailable` false | "No log yet" |
 | `log` empty otherwise | "The run produced no output" |
 
@@ -133,11 +133,11 @@ starts, so the summary and the delete dialog name jobs even after the list chang
 | Key | Operation | staleTime | Fetched when | Notes |
 |---|---|---|---|---|
 | `['sync-jobs','list',SyncJobListParams]` | `listSyncJobs` | 30 s | on the list page | params from the address (§5); `refetchInterval` per research R7 |
-| `['sync-jobs','detail',id]` | `getSyncJob` | 30 s | on the details page; for the log header when the job is not in the list cache | initial data from the list cache when present |
+| `['sync-jobs','detail',id]` | `getSyncJob` | 30 s | on the details page; for the log header when the job is not in the list cache | `initialData` from a cached list entry, `initialDataUpdatedAt` = that list's `dataUpdatedAt` |
 | `['sync-jobs','log',id]` | `getSyncJobLog` | 30 s, `gcTime` 60 s | when the log viewer opens; on its Refresh | never prefetched (FR-046) |
 | `['sync-jobs','capabilities']` | `getSyncJobsCapabilities` | 5 min | create page; details page; when selection mode starts | refetched after a `customParamsNotPermitted` refusal |
-| `['mailboxes','picker',{q}]` | `listMailboxes` (`sort=address`, `limit=25`) | 30 s | picker open and typing (300 ms debounce) | `useInfiniteQuery`; reused if UI 003 defines it |
-| `['domains','picker',{q}]` | `listDomains` (`limit=25`) | 30 s | domain filter open and typing | `useInfiniteQuery`; reused if UI 002 defines it |
+| `['mailboxes','picker',{q}]` | `listMailboxes` (`sort=address`, `limit=25`) | 30 s | picker open and typing (300 ms debounce) | `useInfiniteQuery`; the key of `MailboxSearchPicker` (UI 006's, if it differs, applies) |
+| `['domains','picker',{q}]` | `listDomains` (`limit=25`) | 30 s | domain filter open and typing | `useInfiniteQuery`; the key of `DomainPicker` (as UI 007 R14) |
 
 `SyncJobListParams` is an alias of the generated
 `NonNullable<operations['listSyncJobs']['parameters']['query']>`.
@@ -146,11 +146,11 @@ starts, so the summary and the delete dialog name jobs even after the list chang
 
 | Mutation | On success | On `412` | On other failures |
 |---|---|---|---|
-| `createSyncJob` | write `['sync-jobs','detail',id]` from the response; invalidate `['sync-jobs','list']` | — | keep the form (FR-023) |
-| `updateSyncJob` (section save, activate, deactivate) | write the detail; replace the entry in cached list pages; invalidate the other list pages | refetch the detail and the list; mark changed values (section) or offer retry (action) | `404`: remove the detail, invalidate the lists, show "no longer exists" |
+| `createSyncJob` | write `['sync-jobs','detail',id]` from the response; invalidate `['sync-jobs','list']` and `['audit-events']` | — | keep the form (FR-023) |
+| `updateSyncJob` (section save, activate, deactivate) | write the detail; replace the entry in cached list pages; invalidate the other list pages and `['audit-events']` | refetch the detail and the list; mark changed values (section) or offer retry (action) | `404`: remove the detail, invalidate the lists, show "no longer exists" |
 | `rescheduleSyncJob` | as `updateSyncJob` | — (no `If-Match`) | as above |
-| `deleteSyncJob` | remove the detail and log; invalidate the lists | refetch the detail; confirm again | as above |
-| `applySyncJobBulkAction` | invalidate the lists; remove details and logs of `done` deletions; invalidate details of other `done` items | per item (`outdated` in the summary) | network: invalidate the lists; "outcome unknown" |
+| `deleteSyncJob` | remove the detail and log; invalidate the lists and `['audit-events']` | refetch the detail; confirm again | as above |
+| `applySyncJobBulkAction` | invalidate the lists and `['audit-events']`; remove details and logs of `done` deletions; invalidate details of other `done` items | per item (`outdated` in the summary) | network: "outcome unknown" for all, selection cleared, lists invalidated |
 
 The typed remote password never enters any cache entry: the create and patch bodies are built in
 the mutation function from component state and are not stored (FR-033).
@@ -159,8 +159,8 @@ the mutation function from component state and are not stored (FR-033).
 
 - **Pinia**: nothing new.
 - **Component state**: form values and section edits; the password `ref` (research R12); the
-  selection (`useBulkSelection`); the automatic refresh controller (paused, inactivity notice, last
-  interaction time); the log viewer's wrap option.
+  selection (`useBulkSelection`); the automatic refresh controller (paused, inactivity notice) and
+  `useInactivity`'s last interaction time; the log viewer's wrap option.
 - **Device storage**: nothing new. UI 001's storage allowlist (data-model §4 there) is unchanged,
   and `tests/e2e/sync-jobs/password-secrecy.spec.ts` asserts it after the sync-job flows.
 
@@ -176,11 +176,14 @@ The base is `/ng/`.
 
 Rules:
 
-- `syncJobId` above 2,147,483,647 renders `NotFoundPage` without a request.
+- `syncJobId` above 2,147,483,647 renders `NotFoundState` with a link to the list, without a request.
 - `sync-job-create` accepts `?mailbox=<address>` (≤ 255 characters) to preselect the target for
   administrators and domain administrators; it is ignored for mailbox users.
 - `sync-jobs` and `sync-job-detail` accept `?log=<id>` (research R17). On the details page only the
   page's own `syncJobId` is accepted; another value is removed with `router.replace`.
+- `sync-job-detail` accepts `?edit=<section>` with `source`, `schedule`, `folders`, `duplicates`,
+  `limits` or `expert`, which opens that section's edit mode (`EditableSection`, research R11);
+  another value, or `expert` with nothing editable, is removed with `router.replace`.
 - UI 014 maps the classic `/edit/syncjob/{id}` to `sync-job-detail` (UI 014 row M30).
 - The catalogue entry `syncJobs` (path `/sync-jobs`) becomes `available` when these routes are
   registered; its placeholder route disappears.
@@ -226,7 +229,7 @@ limit comes from `getSyncJobsCapabilities()` (FR-055); the values in brackets ar
 | Maximum bytes per second | required; whole number in `limits.maxBytesPerSecond` (0–125000000) | `validation.outOfRange` |
 | Timeouts | required; whole numbers in `limits.remoteTimeoutSeconds` and `limits.localTimeoutSeconds` (1–32000) | `validation.outOfRange` |
 | Custom parameters | ≤ `limits.customParametersMaxLength` (512); may be empty | `validation.tooLong` |
-| Bulk selection | ≤ `bulkLimit` (100) | `syncJobs.bulk.overLimit` |
+| Bulk selection | ≤ `bulkLimit` (100), through `useBulkSelection`'s `limit` option | the shared bulk messages |
 | Typed count (bulk delete) | equals the number of selected jobs | `ConfirmDialog` (UI 002) |
 
 ## 7. State machines
@@ -234,13 +237,15 @@ limit comes from `getSyncJobsCapabilities()` (FR-055); the values in brackets ar
 ### Section edit (`EditableSection`, research R11)
 
 ```text
-read ──Edit──► editing ──Save (no change)──► read
-                 │ ──Save──► saving ──200──► read (announce "Saved"; values from response)
-                 │             │ ──412──► outdated (input kept; job reloaded; changed values marked) ──Save──► saving
+read ──Edit [push ?edit=<section>]──► editing ──Save (no change)──► read
+                 │ ──Save──► saving ──200──► read (announce "Saved"; values from response; ?edit removed)
+                 │             │ ──412──► outdated (input kept; job reloaded; changedSince() marks values)
+                 │             │            ├─"Save again"──► saving (fields differing from the reloaded job, its version)
+                 │             │            └─"Discard my changes"──► editing (reloaded values)
                  │             │ ──422/409──► editing (field errors / exists alert with link)
                  │             │ ──404──► gone ("no longer exists"; link to list)
-                 └─Cancel──► read (input and password discarded)
-Leaving the page with any section in editing/outdated and changed input → useConfirm.
+                 └─Cancel or Back──► read (input and password discarded)
+Leaving the page while a section holds changed input → the leave guard asks (useConfirm).
 ```
 
 ### Automatic refresh (`useRunningRefresh`, research R7)
@@ -250,7 +255,7 @@ idle (no running job on the page) ──a listed job runs──► refreshing (e
 refreshing ──page hidden──► hidden ──visible──► refreshing (one refetch if data > 30 s old)
 refreshing ──selection mode on──► suspended ──selection mode off──► refreshing
 refreshing ──"Pause"──► paused ──"Resume"──► refreshing (refetch at once)
-refreshing ──15 min without interaction──► inactive (notice + Resume) ──Resume or manual Refresh──► refreshing
+refreshing ──min(15 min, idle timeout) without interaction──► inactive (notice + Resume) ──Resume or manual Refresh──► refreshing
 any ──no listed job runs──► idle
 ```
 
@@ -265,10 +270,10 @@ shown ──Close / Escape / Back──► closed (router.back() if pushed in-ap
 ### Bulk action (`useSyncJobActions`, research R15)
 
 ```text
-selecting ──action──► [delete only: confirm with typed count] ──► sending ──200──► summary (done/notFound deselected; refused/outdated/failed stay selected)
+selecting ──action──► [deactivate: confirm listing the jobs; delete: confirm with typed count] ──► sending ──200──► summary (done/notFound deselected; refused/outdated/failed stay selected)
                                                                   │ ──403 permission-flag-required──► identity refresh → NoAccessState
                                                                   │ ──422 tooMany──► message with the limit
-                                                                  └──network──► summary "outcome unknown" for all; list refetched; selection kept
+                                                                  └──network──► summary "outcome unknown" for all; selection cleared; list refetched
 ```
 
 ## 8. Mock scenarios (`tests/mocks/scenarios/sync-jobs.ts`)

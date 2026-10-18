@@ -898,7 +898,7 @@ reload.
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T135 [US8] Implement the audit handlers and scenarios:
+- [X] T135 [US8] Implement the audit handlers and scenarios:
   - `tests/mocks/handlers/audit.ts`, `listAuditEvents`:
     - `from` (inclusive) and `to` (exclusive);
     - repeated `eventType` (at most 20);
@@ -909,7 +909,9 @@ reload.
     - `422` for malformed `clientAddress`, `from` and `to`.
   - Register the handler in `tests/mocks/handlers/index.ts`.
   - `tests/mocks/scenarios/index.ts`: the scenarios `audit-records` (a failed sign-in of `alice@example.org` from `192.0.2.10`, key creations and revocations, every event type, outcome and reason, and a 512-character user agent) and `audit-empty`. Records with unknown event types, failure reasons or auth methods are **not** seeded: those enumerations are closed in the pinned contract, and the validator rejects them (R22). T137 covers them.
-- [ ] T136 [P] [US8] Write `tests/e2e/audit-log/audit-log.spec.ts`. It covers:
+
+  *Implementation note*: the `audit-records` scenario builds its 41 records when a scenario is created (a getter), with times relative to that moment, so the presets always find 13, 17 and 25 records. Address and prefix matching uses `node:net`. Handler checks are in `tests/unit/mocks/audit-handler.spec.ts`.
+- [X] T136 [P] [US8] Write `tests/e2e/audit-log/audit-log.spec.ts`. It covers:
   - US8-AS1: failed sign-ins from that address show the attempted username, local time, address and translated reason;
   - US8-AS2: key event types show the acting admin, the key and the time;
   - US8-AS4: filters with no match give an empty state with "clear filters";
@@ -919,21 +921,33 @@ reload.
   - FR-072: 25 per page by default with the total, and an expanded record shows the target, user agent, request ID and details; a 512-character user agent wraps at 360 px without horizontal scroll;
   - FR-073: the presets 24 h, 7 d and 30 d (`page.clock`), several event types at once, and chips removable one by one and all at once;
   - SC-011: finding a failed sign-in on 360 px.
-- [ ] T137 [P] [US8] Write these unit tests:
+
+  *Implementation note*: native `<select>` elements make WebKit report a CSP violation for the inline styles of their user-agent shadow tree (verified with a bare select; Chromium reports none). `tests/e2e/fixtures/csp.ts` leaves out exactly these reports on WebKit; the Chromium projects still fail on any inline style attribute of the app.
+- [X] T137 [P] [US8] Write these unit tests:
   - `tests/unit/features/audit-log/list-state.spec.ts`: data-model §5 parameters, including repeated `event` values;
   - `tests/unit/features/audit-log/time-range.spec.ts`: presets resolved when the query runs, a custom `from < to`;
   - `tests/unit/features/audit-log/labels.spec.ts`, covering US8-AS3, FR-074 and the edge case of later event types with plain values, not mocked responses (R24): known `AuditEventType`, `AuditFailureReason` and `AuthMethod` values are translated, and unknown ones are shown as `auditLog.unknown` with the code. `AuditEventItem` renders such an item with the generic label;
   - `tests/unit/features/audit-log/AuditFilters.spec.ts`: actor at most 255 characters, address checked with `isIpNetwork` and at most 49 characters;
   - `tests/unit/features/audit-log/AuditEventItem.spec.ts`: the outcome in text, the actor variants (username and role, API key ID, attempted username), the expandable details.
-- [ ] T138 [P] [US8] Write `tests/smoke/audit-log.smoke.spec.ts`: as `admin`, the audit log lists this run's sign-in events, and filtering by actor `admin` and outcome `success` narrows the list.
+
+  *Implementation note*: `tests/unit/features/audit-log/AuditLogPage.spec.ts` also covers the page, the table and the chips.
+- [X] T138 [P] [US8] Write `tests/smoke/audit-log.smoke.spec.ts`: as `admin`, the audit log lists this run's sign-in events, and filtering by actor `admin` and outcome `success` narrows the list.
+
+  *Implementation note*: written; the suite runs in T150.
 
 ### Implementation for User Story 8
 
-- [ ] T139 [US8] Implement `src/features/audit-log/api.ts`, `src/features/audit-log/list-state.ts` (with `targetType` and `targetId` reserved, research R20), `src/features/audit-log/time-range.ts`, `src/features/audit-log/labels.ts`, `src/features/audit-log/routes.ts` and `src/features/audit-log/index.ts`, and set the catalogue's `auditLog` entry to `available` in `src/app/navigation/catalogue.ts`.
-- [ ] T140 [P] [US8] Implement `src/features/audit-log/components/AuditFilters.vue` (a collapsible filter section on mobile, presets and a custom range through `datetime-local`, event type checkboxes, native selects, `useProblemForm`) and `src/features/audit-log/components/ActiveFilterChips.vue`.
-- [ ] T141 [P] [US8] Implement `src/features/audit-log/components/AuditEventList.vue` (cards below `md`, a table from `md` up), `src/features/audit-log/components/AuditEventItem.vue` and `src/features/audit-log/components/AuditEventDetails.vue` (a Reka `Collapsible`, with details rendered as text in a definition list).
-- [ ] T142 [US8] Implement `src/features/audit-log/pages/AuditLogPage.vue` with `useListState`, `ListState` and `PaginationBar` (FR-071–FR-074).
-- [ ] T143 [US8] Add the `auditLog.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with a label for every `AuditEventType`, `AuditFailureReason`, `AuthMethod`, `AuditOutcome` and `AuditTarget.type`, plus `auditLog.unknown`. `npm run i18n:check` must pass.
+- [X] T139 [US8] Implement `src/features/audit-log/api.ts`, `src/features/audit-log/list-state.ts` (with `targetType` and `targetId` reserved, research R20), `src/features/audit-log/time-range.ts`, `src/features/audit-log/labels.ts`, `src/features/audit-log/routes.ts` and `src/features/audit-log/index.ts`, and set the catalogue's `auditLog` entry to `available` in `src/app/navigation/catalogue.ts`.
+
+  *Implementation note*: `targetType` and `targetId` are part of the list state (`RESERVED_TARGET_PARAMS`), so History links of later features keep them in the address, but `toAuditParams` never sends them until a contract bump adds target filters; the page then notes that all records are shown. The query key holds a preset as its token, and the start time is resolved when the query runs.
+- [X] T140 [P] [US8] Implement `src/features/audit-log/components/AuditFilters.vue` (a collapsible filter section on mobile, presets and a custom range through `datetime-local`, event type checkboxes, native selects, `useProblemForm`) and `src/features/audit-log/components/ActiveFilterChips.vue`.
+- [X] T141 [P] [US8] Implement `src/features/audit-log/components/AuditEventList.vue` (cards below `md`, a table from `md` up), `src/features/audit-log/components/AuditEventItem.vue` and `src/features/audit-log/components/AuditEventDetails.vue` (a Reka `Collapsible`, with details rendered as text in a definition list).
+
+  *Implementation note*: `AuditOutcome.vue` shows the outcome as text with an icon in both layouts. A table row expands into a row of its own with `AuditEventDetails` in its list variant; cards use its collapsible variant.
+- [X] T142 [US8] Implement `src/features/audit-log/pages/AuditLogPage.vue` with `useListState`, `ListState` and `PaginationBar` (FR-071–FR-074).
+- [X] T143 [US8] Add the `auditLog.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with a label for every `AuditEventType`, `AuditFailureReason`, `AuthMethod`, `AuditOutcome` and `AuditTarget.type`, plus `auditLog.unknown`. `npm run i18n:check` must pass.
+
+  *Implementation note*: the labels of codes stay under `enums.*` (one lookup in `labels.ts`, which later features extend by adding locale keys); `auditLog.*` holds the screen's texts. No legacy key matches these texts.
 
 **Checkpoint**: All user stories work on their own.
 

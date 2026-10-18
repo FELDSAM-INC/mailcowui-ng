@@ -134,6 +134,74 @@
     },
     "title": "Klíče API"
   },
+  "auditLog": {
+    "actor": {
+      "apiKey": "API klíč {id}",
+      "apiKeyOf": "API klíč {id} uživatele {username}",
+      "attempted": "{username} (pokus)",
+      "unknown": "Neznámý aktér",
+      "withRole": "{username} ({role})"
+    },
+    "chips": {
+      "actor": "Uživatel nebo klíč: {value}",
+      "address": "Adresa: {value}",
+      "clearAll": "Zrušit všechny filtry",
+      "custom": "{from} až {to}",
+      "label": "Aktivní filtry",
+      "remove": "Odebrat filtr: {filter}"
+    },
+    "columns": {
+      "actor": "Aktér",
+      "address": "Adresa klienta",
+      "details": "Podrobnosti",
+      "event": "Událost",
+      "method": "Metoda",
+      "outcome": "Výsledek",
+      "reason": "Důvod",
+      "time": "Čas"
+    },
+    "description": "Přihlášení, odhlášení a změny přístupových klíčů, předvoleb a API klíčů, od nejnovějších.",
+    "details": {
+      "hide": "Skrýt podrobnosti",
+      "label": "Podrobnosti: {event}",
+      "none": "Žádné",
+      "requestId": "ID požadavku",
+      "show": "Zobrazit podrobnosti",
+      "target": "Cíl",
+      "userAgent": "User agent"
+    },
+    "empty": "Zatím žádné záznamy auditu.",
+    "filters": {
+      "actor": "Uživatel nebo API klíč",
+      "actorHelp": "Uživatelské jméno, i takové zkoušené při neúspěšném přihlášení, nebo ID API klíče.",
+      "address": "Adresa klienta",
+      "addressHelp": "Adresa IPv4 nebo IPv6 nebo síť, například 192.0.2.0/24.",
+      "anyOutcome": "Libovolný výsledek",
+      "apply": "Použít filtry",
+      "clear": "Zrušit filtry",
+      "eventTypes": "Typy událostí",
+      "from": "Od",
+      "outcome": "Výsledek",
+      "range": "Časové období",
+      "rangeOrder": "Konec musí být po začátku.",
+      "ranges": {
+        "24h": "Posledních 24 hodin",
+        "30d": "Posledních 30 dní",
+        "7d": "Posledních 7 dní",
+        "any": "Kdykoli",
+        "custom": "Vlastní období"
+      },
+      "title": "Filtry",
+      "to": "Do"
+    },
+    "noMatch": "Filtrům neodpovídají žádné záznamy.",
+    "notRecorded": "Nezaznamenáno",
+    "records": "Záznamy auditu",
+    "resultCount": "Nalezené záznamy: {total}",
+    "targetFilterUnavailable": "Filtrování podle jednoho objektu přijde v pozdější verzi aplikace. Zobrazují se všechny záznamy.",
+    "title": "Protokol auditu",
+    "unknown": "Neznámé ({code})"
+  },
   "auth": {
     "notice": {
       "secondFactorRejected": "Kód nebyl přijat. Začněte prosím přihlášení znovu.",

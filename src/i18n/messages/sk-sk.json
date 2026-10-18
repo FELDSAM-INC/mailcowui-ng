@@ -134,6 +134,74 @@
     },
     "title": "Kľúče API"
   },
+  "auditLog": {
+    "actor": {
+      "apiKey": "API kľúč {id}",
+      "apiKeyOf": "API kľúč {id} používateľa {username}",
+      "attempted": "{username} (pokus)",
+      "unknown": "Neznámy aktér",
+      "withRole": "{username} ({role})"
+    },
+    "chips": {
+      "actor": "Používateľ alebo kľúč: {value}",
+      "address": "Adresa: {value}",
+      "clearAll": "Zrušiť všetky filtre",
+      "custom": "{from} až {to}",
+      "label": "Aktívne filtre",
+      "remove": "Odobrať filter: {filter}"
+    },
+    "columns": {
+      "actor": "Aktér",
+      "address": "Adresa klienta",
+      "details": "Podrobnosti",
+      "event": "Udalosť",
+      "method": "Metóda",
+      "outcome": "Výsledok",
+      "reason": "Dôvod",
+      "time": "Čas"
+    },
+    "description": "Prihlásenia, odhlásenia a zmeny prístupových kľúčov, predvolieb a API kľúčov, od najnovších.",
+    "details": {
+      "hide": "Skryť podrobnosti",
+      "label": "Podrobnosti: {event}",
+      "none": "Žiadne",
+      "requestId": "ID požiadavky",
+      "show": "Zobraziť podrobnosti",
+      "target": "Cieľ",
+      "userAgent": "User agent"
+    },
+    "empty": "Zatiaľ žiadne záznamy auditu.",
+    "filters": {
+      "actor": "Používateľ alebo API kľúč",
+      "actorHelp": "Používateľské meno, aj také skúšané pri neúspešnom prihlásení, alebo ID API kľúča.",
+      "address": "Adresa klienta",
+      "addressHelp": "Adresa IPv4 alebo IPv6 alebo sieť, napríklad 192.0.2.0/24.",
+      "anyOutcome": "Ľubovoľný výsledok",
+      "apply": "Použiť filtre",
+      "clear": "Zrušiť filtre",
+      "eventTypes": "Typy udalostí",
+      "from": "Od",
+      "outcome": "Výsledok",
+      "range": "Časové obdobie",
+      "rangeOrder": "Koniec musí byť po začiatku.",
+      "ranges": {
+        "24h": "Posledných 24 hodín",
+        "30d": "Posledných 30 dní",
+        "7d": "Posledných 7 dní",
+        "any": "Kedykoľvek",
+        "custom": "Vlastné obdobie"
+      },
+      "title": "Filtre",
+      "to": "Do"
+    },
+    "noMatch": "Filtrom nezodpovedajú žiadne záznamy.",
+    "notRecorded": "Nezaznamenané",
+    "records": "Záznamy auditu",
+    "resultCount": "Nájdené záznamy: {total}",
+    "targetFilterUnavailable": "Filtrovanie podľa jedného objektu príde v neskoršej verzii aplikácie. Zobrazujú sa všetky záznamy.",
+    "title": "Protokol auditu",
+    "unknown": "Neznáme ({code})"
+  },
   "auth": {
     "notice": {
       "secondFactorRejected": "Kód nebol prijatý. Začnite, prosím, prihlásenie znova.",

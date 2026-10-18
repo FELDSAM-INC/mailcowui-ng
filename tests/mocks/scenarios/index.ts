@@ -7,6 +7,7 @@ import type { ApiKey, AuditEvent, PublicConfig } from '@/api'
 
 import { ViolationRecorder } from '../contract/validator'
 import { standardAccounts, adminAccount, domainAdminAccount, mailboxAccount } from './accounts'
+import { auditLogScenarios } from './audit-log'
 import { baseScenarios } from './base'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
@@ -37,6 +38,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...passkeySignInScenarios,
   ...navigationScenarios,
   ...apiKeyScenarios,
+  ...auditLogScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

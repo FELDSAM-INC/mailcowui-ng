@@ -134,6 +134,74 @@
     },
     "title": "API keys"
   },
+  "auditLog": {
+    "actor": {
+      "apiKey": "API key {id}",
+      "apiKeyOf": "API key {id} of {username}",
+      "attempted": "{username} (attempted)",
+      "unknown": "Unknown actor",
+      "withRole": "{username} ({role})"
+    },
+    "chips": {
+      "actor": "User or key: {value}",
+      "address": "Address: {value}",
+      "clearAll": "Clear all filters",
+      "custom": "{from} to {to}",
+      "label": "Active filters",
+      "remove": "Remove filter: {filter}"
+    },
+    "columns": {
+      "actor": "Actor",
+      "address": "Client address",
+      "details": "Details",
+      "event": "Event",
+      "method": "Method",
+      "outcome": "Outcome",
+      "reason": "Reason",
+      "time": "Time"
+    },
+    "description": "Sign-ins, sign-outs and changes to passkeys, preferences and API keys, newest first.",
+    "details": {
+      "hide": "Hide details",
+      "label": "Details of {event}",
+      "none": "None",
+      "requestId": "Request ID",
+      "show": "Show details",
+      "target": "Target",
+      "userAgent": "User agent"
+    },
+    "empty": "No audit records yet.",
+    "filters": {
+      "actor": "User or API key",
+      "actorHelp": "A username, including one tried in a failed sign-in, or an API key ID.",
+      "address": "Client address",
+      "addressHelp": "An IPv4 or IPv6 address or a network, for example 192.0.2.0/24.",
+      "anyOutcome": "Any outcome",
+      "apply": "Apply filters",
+      "clear": "Clear filters",
+      "eventTypes": "Event types",
+      "from": "From",
+      "outcome": "Outcome",
+      "range": "Time range",
+      "rangeOrder": "The end must be after the start.",
+      "ranges": {
+        "24h": "Last 24 hours",
+        "30d": "Last 30 days",
+        "7d": "Last 7 days",
+        "any": "Any time",
+        "custom": "Custom range"
+      },
+      "title": "Filters",
+      "to": "To"
+    },
+    "noMatch": "No records match these filters.",
+    "notRecorded": "Not recorded",
+    "records": "Audit records",
+    "resultCount": "Records found: {total}",
+    "targetFilterUnavailable": "Filtering by a single object comes with a later version of the app. All records are shown.",
+    "title": "Audit log",
+    "unknown": "Unknown ({code})"
+  },
   "auth": {
     "notice": {
       "secondFactorRejected": "The code was not accepted. Please start the sign-in again.",

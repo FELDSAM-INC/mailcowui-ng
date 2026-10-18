@@ -5,6 +5,7 @@
 import type { RouteRecordRaw } from 'vue-router'
 
 import { apiKeysRoutes } from '@/features/api-keys'
+import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
 import { homeRoutes } from '@/features/home'
 
@@ -16,7 +17,12 @@ const PlaceholderPage = () => import('../states/PlaceholderPage.vue')
 const NotFoundPage = () => import('../states/NotFoundPage.vue')
 
 /** Routes of the features, from their `routes.ts` (US1 adds auth and home, and so on). */
-export const featureRoutes: RouteRecordRaw[] = [...authRoutes, ...homeRoutes, ...apiKeysRoutes]
+export const featureRoutes: RouteRecordRaw[] = [
+  ...authRoutes,
+  ...homeRoutes,
+  ...apiKeysRoutes,
+  ...auditLogRoutes,
+]
 
 export function buildRoutes(): RouteRecordRaw[] {
   return [

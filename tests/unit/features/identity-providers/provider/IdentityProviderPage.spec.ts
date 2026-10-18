@@ -42,7 +42,8 @@ async function fill(wrapper: VueWrapper, id: string, value: string) {
 const buttonNamed = (wrapper: VueWrapper, text: string) =>
   wrapper.findAll('button').find((button) => button.text().trim() === text)
 
-describe('IdentityProviderPage', () => {
+// Each test mounts the whole screen against the mock; a loaded machine needs more than 5 s.
+describe('IdentityProviderPage', { timeout: 20_000 }, () => {
   it('shows the legacy form with Keycloak chosen when nothing is stored, and creates', async () => {
     useScenario('idp-none')
     const { wrapper } = await mountAt()

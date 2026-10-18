@@ -75,7 +75,9 @@ test.describe('OAuth2 client page', () => {
     await page.getByRole('button', { name: 'Edit OAuth2' }).click()
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
-      page.getByText(/^https:\/\/legacy\.example\.org\/cb#frag: Enter an absolute URI/),
+      page
+        .getByRole('main')
+        .getByText(/https:\/\/legacy\.example\.org\/cb#frag: Enter an absolute URI/),
     ).toBeVisible()
     expect(
       (await mockApi.requests()).filter((r) => r.operationId === 'updateOauth2Client'),
@@ -91,7 +93,9 @@ test.describe('OAuth2 client page', () => {
     await page.goto('identity-providers/oauth2-apps/1')
     await page.getByRole('button', { name: 'Edit OAuth2' }).click()
     await page.getByRole('button', { name: 'Save changes' }).click()
-    await expect(page.getByText('Redirect/Callback URL cannot be empty')).toBeVisible()
+    await expect(
+      page.getByRole('main').getByText('Redirect/Callback URL cannot be empty'),
+    ).toBeVisible()
   })
 
   test('FR-066 SC-009 an outdated save keeps the input, marks the change and saves again with the new tag', async ({

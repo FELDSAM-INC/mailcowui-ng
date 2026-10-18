@@ -61,7 +61,7 @@ function sortBy(key: Oauth2ClientSort) {
           >
             <button
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column)"
             >
               {{ resolveText(SORT_LABELS[column], t) }}

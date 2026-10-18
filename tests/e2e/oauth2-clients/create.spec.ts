@@ -27,13 +27,16 @@ test.describe('add an OAuth2 client', () => {
     const field = page.getByRole('textbox', { name: /Redirect URI/ })
     const add = page.getByRole('button', { name: 'Add', exact: true })
     await add.click()
-    await expect(page.getByText('Redirect/Callback URL cannot be empty')).toBeVisible()
+    await expect(
+      page.getByRole('main').getByText('Redirect/Callback URL cannot be empty'),
+    ).toBeVisible()
     await expect(field).toHaveAttribute('aria-invalid', 'true')
     await field.fill('/oauth/callback https://wiki.example.org/cb#frag')
     await add.click()
-    await expect(page.getByText(/^\/oauth\/callback: Enter an absolute URI/)).toBeVisible()
+    const main = page.getByRole('main')
+    await expect(main.getByText(/\/oauth\/callback: Enter an absolute URI/)).toBeVisible()
     await expect(
-      page.getByText(/^https:\/\/wiki\.example\.org\/cb#frag: Enter an absolute URI/),
+      main.getByText(/https:\/\/wiki\.example\.org\/cb#frag: Enter an absolute URI/),
     ).toBeVisible()
     await expectAccessible()
     const created = (await mockApi.requests()).filter((r) => r.operationId === 'createOauth2Client')
@@ -64,7 +67,7 @@ test.describe('add an OAuth2 client', () => {
     expect(request?.body).toEqual({ redirectUris: ['https://wiki.example.org/oauth/callback'] })
     await expect(dialog).toContainText(/Client ID: [0-9a-f]{12}/)
     await expect(dialog).toContainText('This secret is shown only once. It cannot be shown again.')
-    await expect(page.getByText('Added client access')).toBeAttached()
+    await expect(page.locator('#main').getByText('Added client access')).toBeAttached()
     await expectAccessible()
     await expectNoHorizontalScroll()
 

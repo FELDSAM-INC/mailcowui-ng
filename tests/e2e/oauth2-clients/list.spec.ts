@@ -128,7 +128,7 @@ test.describe('OAuth2 apps list', () => {
     expectAccessible,
   }) => {
     await mockApi.use('oauth2-many')
-    await mockApi.failNext('listOauth2Clients', { status: 500 }, { times: 2 })
+    await mockApi.failNext('listOauth2Clients', { status: 500 })
     await page.goto('identity-providers/oauth2-apps')
     await expect(page.getByText('The list could not be loaded.')).toBeVisible()
     await expectAccessible()

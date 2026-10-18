@@ -132,7 +132,7 @@ export const catalogue: readonly NavigationEntry[] = [
     admin: ['/admin/system'],
   }),
   entry('system', '/system', GearIcon, ADMIN, '013', { admin: ['/admin/system'] }),
-  entry('apiKeys', '/api-keys', KeyIcon, ADMIN, '001'),
+  entry('apiKeys', '/api-keys', KeyIcon, ADMIN, '001', {}, 'available'),
   entry('auditLog', '/audit-log', ListIcon, ADMIN, '001'),
 ]
 

@@ -12,6 +12,128 @@
     "skipToContent": "Skip to main content",
     "userMenu": "Account menu of {username}"
   },
+  "apiKeys": {
+    "anyAddress": "Any address",
+    "columns": {
+      "access": "Access",
+      "createdAt": "Created",
+      "expiresAt": "Expires",
+      "lastUsedAt": "Last used",
+      "name": "Name",
+      "owner": "Owner",
+      "prefix": "Prefix",
+      "status": "Status"
+    },
+    "create": {
+      "action": "Create API key",
+      "created": "The API key has been created.",
+      "intro": "The key acts with its owner's role and permissions. Its secret is shown only once, right after it is created.",
+      "submit": "Create API key",
+      "submitting": "Creating…",
+      "title": "Create API key"
+    },
+    "detail": {
+      "back": "Back to API keys",
+      "notEditable": "Keys cannot be edited. To change the access, networks or expiry, create a new key and revoke this one.",
+      "notFound": {
+        "body": "This API key does not exist.",
+        "title": "API key not found"
+      }
+    },
+    "docs": "API documentation",
+    "empty": {
+      "body": "API keys let other programs, such as a billing system, use this API on behalf of an administrator or a domain administrator. Create one key for each program, so that each can be revoked on its own.",
+      "filtered": "No API keys match the filters.",
+      "title": "No API keys yet"
+    },
+    "expiry": {
+      "custom": "On a specific date and time",
+      "customLabel": "Expiry date and time",
+      "days30": "In 30 days",
+      "days365": "In 365 days",
+      "days90": "In 90 days",
+      "never": "Never expires"
+    },
+    "fields": {
+      "access": "Access",
+      "allowedNetworks": "Allowed networks",
+      "created": "Created",
+      "createdBy": "Created by",
+      "expires": "Expires",
+      "lastUsed": "Last used",
+      "owner": "Owner",
+      "prefix": "Prefix",
+      "revoked": "Revoked",
+      "revokedBy": "Revoked by",
+      "status": "Status"
+    },
+    "filters": {
+      "access": "Access",
+      "allAccessLevels": "All access levels",
+      "allStatuses": "All statuses",
+      "clear": "Clear filters",
+      "owner": "Owner",
+      "ownerHint": "Choose an owner, or type a username and press Enter.",
+      "sort": "Sort by",
+      "status": "Status",
+      "title": "Filters"
+    },
+    "form": {
+      "access": "Access",
+      "accessHint": {
+        "readOnly": "A read-only key can read data. A read-only key cannot change anything.",
+        "readWrite": "A read-write key can also create, change and delete data."
+      },
+      "expiry": "Expiry",
+      "name": "Name",
+      "nameHint": "A name that tells you which program uses the key.",
+      "networks": "Allowed networks",
+      "networksHint": "Leave empty to allow any address. Otherwise enter IPv4 or IPv6 addresses or networks, for example 192.0.2.0/24.",
+      "owner": "Owner",
+      "ownerHint": "The key acts with this account's role and permissions. A key owned by a domain administrator is limited to that administrator's domains and permissions."
+    },
+    "intro": "Keys for other programs that use this API, such as billing systems.",
+    "lastUsedFrom": "from {address}",
+    "networks": {
+      "add": "Add a network",
+      "entry": "Allowed network {number}",
+      "limit": "At most {max} networks.",
+      "remove": "Remove network {number}"
+    },
+    "neverExpires": "Never",
+    "neverUsed": "Never used",
+    "owner": {
+      "deleted": "Deleted account",
+      "unusable": "The owner is deactivated or deleted, so this key cannot be used."
+    },
+    "ownerPicker": {
+      "error": "The accounts could not be loaded.",
+      "loadMore": "Load more",
+      "noMatch": "No administrators or domain administrators match.",
+      "searching": "Searching…"
+    },
+    "revoke": {
+      "action": "Revoke key",
+      "body": "Programs using this key stop working immediately. Revocation cannot be undone.",
+      "done": "The key has been revoked.",
+      "title": "Revoke {name}?"
+    },
+    "secret": {
+      "description": "Copy the secret of “{name}” now and store it safely, for example in the program's settings.",
+      "title": "Your new API key"
+    },
+    "sorts": {
+      "createdAt_asc": "Oldest first",
+      "createdAt_desc": "Newest first",
+      "expiresAt_asc": "Expiry, soonest first",
+      "expiresAt_desc": "Expiry, latest first",
+      "lastUsedAt_asc": "Last used, least recently first",
+      "lastUsedAt_desc": "Last used, most recently first",
+      "name_asc": "Name, A to Z",
+      "name_desc": "Name, Z to A"
+    },
+    "title": "API keys"
+  },
   "auth": {
     "notice": {
       "secondFactorRejected": "The code was not accepted. Please start the sign-in again.",
@@ -252,6 +374,20 @@
     "admin": "Administrator",
     "domainAdmin": "Domain administrator",
     "mailboxUser": "Mailbox user"
+  },
+  "secrets": {
+    "close": "Close",
+    "confirmClose": {
+      "body": "It cannot be shown again. Without it, you will have to create a new one.",
+      "cancel": "Back to the secret",
+      "confirm": "Yes, I have saved it",
+      "title": "Have you saved the secret?"
+    },
+    "copied": "Copied to the clipboard.",
+    "copy": "Copy",
+    "copyRefused": "The browser did not allow copying. The secret is selected: copy it yourself.",
+    "label": "Secret",
+    "warning": "This secret is shown only once. It cannot be shown again."
   },
   "session": {
     "idle": {

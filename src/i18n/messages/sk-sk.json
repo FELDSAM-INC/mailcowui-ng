@@ -12,6 +12,128 @@
     "skipToContent": "Preskočiť na hlavný obsah",
     "userMenu": "Ponuka účtu {username}"
   },
+  "apiKeys": {
+    "anyAddress": "Ľubovoľná adresa",
+    "columns": {
+      "access": "Prístup",
+      "createdAt": "Vytvorené",
+      "expiresAt": "Platnosť do",
+      "lastUsedAt": "Naposledy použité",
+      "name": "Názov",
+      "owner": "Vlastník",
+      "prefix": "Predpona",
+      "status": "Stav"
+    },
+    "create": {
+      "action": "Vytvoriť kľúč API",
+      "created": "Kľúč API bol vytvorený.",
+      "intro": "Kľúč koná s rolou a oprávneniami svojho vlastníka. Jeho tajný údaj sa zobrazí len raz, hneď po vytvorení.",
+      "submit": "Vytvoriť kľúč API",
+      "submitting": "Vytváranie…",
+      "title": "Vytvoriť kľúč API"
+    },
+    "detail": {
+      "back": "Späť na kľúče API",
+      "notEditable": "Kľúče nemožno upravovať. Ak chcete zmeniť prístup, siete alebo platnosť, vytvorte nový kľúč a tento zrušte.",
+      "notFound": {
+        "body": "Tento kľúč API neexistuje.",
+        "title": "Kľúč API sa nenašiel"
+      }
+    },
+    "docs": "Dokumentácia API",
+    "empty": {
+      "body": "Kľúče API umožňujú iným programom, napríklad fakturačnému systému, používať toto API v mene správcu alebo správcu domény. Pre každý program vytvorte samostatný kľúč, aby sa dal zrušiť zvlášť.",
+      "filtered": "Filtrom nezodpovedá žiadny kľúč API.",
+      "title": "Zatiaľ žiadne kľúče API"
+    },
+    "expiry": {
+      "custom": "K určitému dátumu a času",
+      "customLabel": "Dátum a čas konca platnosti",
+      "days30": "O 30 dní",
+      "days365": "O 365 dní",
+      "days90": "O 90 dní",
+      "never": "Bez obmedzenia platnosti"
+    },
+    "fields": {
+      "access": "Prístup",
+      "allowedNetworks": "Povolené siete",
+      "created": "Vytvorené",
+      "createdBy": "Vytvoril",
+      "expires": "Platnosť do",
+      "lastUsed": "Naposledy použité",
+      "owner": "Vlastník",
+      "prefix": "Predpona",
+      "revoked": "Zrušené",
+      "revokedBy": "Zrušil",
+      "status": "Stav"
+    },
+    "filters": {
+      "access": "Prístup",
+      "allAccessLevels": "Všetky úrovne prístupu",
+      "allStatuses": "Všetky stavy",
+      "clear": "Zrušiť filtre",
+      "owner": "Vlastník",
+      "ownerHint": "Vyberte vlastníka alebo napíšte používateľské meno a stlačte Enter.",
+      "sort": "Zoradiť podľa",
+      "status": "Stav",
+      "title": "Filtre"
+    },
+    "form": {
+      "access": "Prístup",
+      "accessHint": {
+        "readOnly": "Kľúč len na čítanie môže čítať údaje. Kľúč len na čítanie nemôže nič meniť.",
+        "readWrite": "Kľúč na čítanie aj zápis môže údaje aj vytvárať, meniť a mazať."
+      },
+      "expiry": "Platnosť",
+      "name": "Názov",
+      "nameHint": "Názov, podľa ktorého spoznáte, ktorý program kľúč používa.",
+      "networks": "Povolené siete",
+      "networksHint": "Nechajte prázdne, ak chcete povoliť ľubovoľnú adresu. Inak zadajte adresy alebo siete IPv4 či IPv6, napríklad 192.0.2.0/24.",
+      "owner": "Vlastník",
+      "ownerHint": "Kľúč koná s rolou a oprávneniami tohto účtu. Kľúč vlastnený správcom domény je obmedzený na domény a oprávnenia tohto správcu."
+    },
+    "intro": "Kľúče pre iné programy, ktoré používajú toto API, napríklad fakturačné systémy.",
+    "lastUsedFrom": "z adresy {address}",
+    "networks": {
+      "add": "Pridať sieť",
+      "entry": "Povolená sieť {number}",
+      "limit": "Najviac {max} sietí.",
+      "remove": "Odobrať sieť {number}"
+    },
+    "neverExpires": "Nikdy",
+    "neverUsed": "Nikdy nepoužité",
+    "owner": {
+      "deleted": "Zmazaný účet",
+      "unusable": "Vlastník je deaktivovaný alebo zmazaný, preto tento kľúč nemožno použiť."
+    },
+    "ownerPicker": {
+      "error": "Účty sa nepodarilo načítať.",
+      "loadMore": "Načítať ďalšie",
+      "noMatch": "Nezodpovedá žiadny správca ani správca domény.",
+      "searching": "Hľadanie…"
+    },
+    "revoke": {
+      "action": "Zrušiť kľúč",
+      "body": "Programy, ktoré tento kľúč používajú, okamžite prestanú fungovať. Zrušenie nemožno vrátiť.",
+      "done": "Kľúč bol zrušený.",
+      "title": "Zrušiť {name}?"
+    },
+    "secret": {
+      "description": "Skopírujte teraz tajný údaj kľúča „{name}“ a bezpečne ho uložte, napríklad do nastavení programu.",
+      "title": "Váš nový kľúč API"
+    },
+    "sorts": {
+      "createdAt_asc": "Od najstarších",
+      "createdAt_desc": "Od najnovších",
+      "expiresAt_asc": "Platnosť, najskôr končiace",
+      "expiresAt_desc": "Platnosť, najneskôr končiace",
+      "lastUsedAt_asc": "Naposledy použité, najdávnejšie",
+      "lastUsedAt_desc": "Naposledy použité, najnovšie",
+      "name_asc": "Názov, A až Z",
+      "name_desc": "Názov, Z až A"
+    },
+    "title": "Kľúče API"
+  },
   "auth": {
     "notice": {
       "secondFactorRejected": "Kód nebol prijatý. Začnite, prosím, prihlásenie znova.",
@@ -263,6 +385,20 @@
     "admin": "Administrátor",
     "domainAdmin": "Správca domény",
     "mailboxUser": "Používateľ schránky"
+  },
+  "secrets": {
+    "close": "Zavrieť",
+    "confirmClose": {
+      "body": "Znova ho zobraziť nemožno. Bez neho budete musieť vytvoriť nový.",
+      "cancel": "Späť k tajnému údaju",
+      "confirm": "Áno, mám ho uložený",
+      "title": "Uložili ste si tajný údaj?"
+    },
+    "copied": "Skopírované do schránky.",
+    "copy": "Kopírovať",
+    "copyRefused": "Prehliadač kopírovanie nepovolil. Tajný údaj je označený: skopírujte ho sami.",
+    "label": "Tajný údaj",
+    "warning": "Tento tajný údaj sa zobrazí len raz. Znova ho zobraziť nemožno."
   },
   "session": {
     "idle": {

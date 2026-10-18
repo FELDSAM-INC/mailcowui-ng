@@ -129,6 +129,7 @@ export {
 export {
   createQueryClient,
   queryClient,
+  reportSessionProblem,
   setSessionReactions,
   shouldRetryQuery,
   type SessionReactions,

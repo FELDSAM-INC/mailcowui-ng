@@ -797,7 +797,7 @@ mailbox user, the section is absent and its address shows "no access".
 
 ### Tests for User Story 7 (write first; must fail)
 
-- [ ] T123 [US7] Implement the API key handlers and scenarios:
+- [X] T123 [US7] Implement the API key handlers and scenarios:
   - `tests/mocks/handlers/api-keys.ts`:
     - `listApiKeys`: the `ownerUsername`, `status` and `accessLevel` filters, the sorts `createdAt`, `name`, `expiresAt` and `lastUsedAt`, `order`, `q`, paging, and `ListMeta`;
     - `createApiKey`: the validation codes `required`, `tooLong` (max 255), `notFound`, `notEligible` with `allowedRoles`, `mustBeInFuture`, `invalidFormat` with `format: ipNetwork` at `allowedNetworks.<i>`, and `tooMany` (max 100); a `secret` matching `^mcv2_[A-Za-z0-9]{40}$`; `Location` and `ETag`;
@@ -806,7 +806,9 @@ mailbox user, the section is absent and its address shows "no access".
     - `listApiKeyOwnerCandidates`: `q`, `role` and paging.
   - Register the handlers in `tests/mocks/handlers/index.ts`.
   - `tests/mocks/scenarios/index.ts`: the scenarios `api-keys-empty`, `api-keys-many` (60 keys with every status and access level, some with inactive or deleted owners, 255-character names, many networks), `api-key-owner-deactivated` and `api-key-revoked-elsewhere`.
-- [ ] T124 [P] [US7] Write `tests/e2e/api-keys/list.spec.ts`. It covers:
+
+  *Implementation note*: the scenarios live in `tests/mocks/scenarios/api-keys.ts` with deterministic data (`fixedKeyId`, `scenarioKey`, `ELSEWHERE_KEY`, `LONG_KEY_NAME`) that tests import. The mock reports `owner` and `status` as they are at the time of the answer (accounts and clock). Handler checks are in `tests/unit/mocks/api-key-handlers.spec.ts`.
+- [X] T124 [P] [US7] Write `tests/e2e/api-keys/list.spec.ts`. It covers:
   - US7-AS1 and FR-064: cards at 360 px with name, prefix, owner, access level, status, expiry and last use, and a table on desktop;
   - US7-AS6: filters by status, access level and owner (picker or typed username), sort and page are kept across a reload;
   - US7-AS7: an inactive or deleted owner is flagged as unusable;
@@ -814,7 +816,7 @@ mailbox user, the section is absent and its address shows "no access".
   - US7-AS9 and FR-063: domain administrators and mailbox users get no navigation entry and "no access" at the address;
   - FR-069: the link to `/api/v2/docs`;
   - Edge: long names and network lists wrap without horizontal scroll.
-- [ ] T125 [P] [US7] Write `tests/e2e/api-keys/create.spec.ts`. It covers:
+- [X] T125 [P] [US7] Write `tests/e2e/api-keys/create.spec.ts`. It covers:
   - US7-AS10: read-only and never-expires preselected, with the owner set to the signed-in admin;
   - US7-AS12: the owner picker search lists admins and domain admins with roles, loads more, shows no match, and never offers a mailbox user;
   - US7-AS2: the secret is shown once with a copy button, and the list shows the prefix;
@@ -824,49 +826,61 @@ mailbox user, the section is absent and its address shows "no access".
   - Edge: a clipboard refusal selects the secret for manual copying with a message;
   - FR-065: the explanations, expiry presets of 30, 90 and 365 days or a date in the future, and up to 100 networks;
   - SC-010: the creation flow completes on 360 px.
-- [ ] T126 [P] [US7] Write `tests/e2e/api-keys/detail-revoke.spec.ts`. It covers:
+- [X] T126 [P] [US7] Write `tests/e2e/api-keys/detail-revoke.spec.ts`. It covers:
   - US7-AS4: every attribute, including revocation details;
   - FR-067: the note that keys cannot be edited;
   - US7-AS5 and FR-068: the revoke confirmation names the key and its consequences, after which the key shows as revoked with details and stays listed;
   - Edge: a key revoked by another admin revokes again successfully and shows the current state;
   - Edge: a 412 reloads and allows a retry;
   - an unknown ID shows "not found".
-- [ ] T127 [P] [US7] Write these unit tests:
+- [X] T127 [P] [US7] Write these unit tests:
   - `tests/unit/features/api-keys/list-state.spec.ts`: the address parameters of data-model §5 mapped to the query;
   - `tests/unit/features/api-keys/expiry.spec.ts`: presets from now, local `datetime-local` to UTC RFC 3339, future check;
   - `tests/unit/features/api-keys/NetworkListField.spec.ts`: add and remove entries, at most 100, `isIpNetwork` per entry, server errors at `allowedNetworks.<i>`;
   - `tests/unit/features/api-keys/OwnerPicker.spec.ts`: a 300 ms debounce, `useInfiniteQuery` load more, empty, error and retry, free-text mode for the filter;
   - `tests/unit/features/api-keys/ApiKeySecretDialog.spec.ts`: copy success and refusal, the close and Escape confirmation, the route-leave confirmation while open, the secret cleared on close, nothing written to storage, the router or the query cache;
   - `tests/unit/features/api-keys/ApiKeyCard.spec.ts`: status and owner warnings as text, not only colour (FR-084).
-- [ ] T128 [P] [US7] Write `tests/smoke/api-keys.smoke.spec.ts`: as `admin`, search the owner candidates for "res", create a read-only key owned by `reseller`, copy the secret, see the prefix on the detail page, and revoke the key.
+
+  *Implementation note*: following docs/conventions.md ("Secrets"), the secret dialog is the shared `src/shared/components/OneTimeSecretDialog.vue`, so its spec is `tests/unit/shared/components/OneTimeSecretDialog.spec.ts`, next to `tests/unit/shared/composables/useSecretRequest.spec.ts`. `tests/unit/features/api-keys/pages.spec.ts` covers the three pages as components.
+- [X] T128 [P] [US7] Write `tests/smoke/api-keys.smoke.spec.ts`: as `admin`, search the owner candidates for "res", create a read-only key owned by `reseller`, copy the secret, see the prefix on the detail page, and revoke the key.
 
 ### Implementation for User Story 7
 
-- [ ] T129 [US7] Implement:
+- [X] T129 [US7] Implement:
   - `src/features/api-keys/api.ts`: list, detail, create (the secret stripped before the cache), revoke through `useVersionedSave`, and owner candidates through `useInfiniteQuery`, with the invalidation of data-model §3;
   - `src/features/api-keys/list-state.ts`;
   - `src/features/api-keys/expiry.ts`;
   - `src/features/api-keys/routes.ts` (`api-keys`, `api-key-create`, `api-key-detail`);
   - `src/features/api-keys/index.ts`;
   - the catalogue's `apiKeys` entry set to `available` in `src/app/navigation/catalogue.ts`.
-- [ ] T130 [US7] Implement these list components in `src/features/api-keys/components/`. This depends on T131, because the filters use `OwnerPicker`:
+
+  *Implementation note*: creation goes through the shared `useSecretRequest` (`src/shared/composables/useSecretRequest.ts`), a direct client call that never touches a query cache and reports session problems through `reportSessionProblem` (exported from `@/api`). `rememberCreatedKey` writes the key without its secret. Client network checks are in `src/features/api-keys/networks.ts`.
+- [X] T130 [US7] Implement these list components in `src/features/api-keys/components/`. This depends on T131, because the filters use `OwnerPicker`:
   - `ApiKeyStatusBadge.vue`;
   - `ApiKeyCard.vue` (below `md`);
   - `ApiKeyTable.vue` (from `md` up, on `src/shared/ui/table`), with sortable column headers (`aria-sort`);
   - `ApiKeyList.vue`;
   - `ApiKeyFilters.vue`: native selects for status and access level, `OwnerPicker` in free-text mode, and a native sort select (created, name, expiry, last use, with the order) for the card layout (FR-064).
-- [ ] T131 [P] [US7] Implement these form components in `src/features/api-keys/components/`:
+
+  *Implementation note*: `OwnerSummary.vue` (owner with the unusable warning) and `LastUse.vue` are shared by the card, the table and the detail page.
+- [X] T131 [P] [US7] Implement these form components in `src/features/api-keys/components/`:
   - `OwnerPicker.vue`: Reka `Combobox` without `ComboboxViewport`, username and role per option;
   - `NetworkListField.vue`;
   - `ExpiryField.vue`: never, 30, 90 or 365 days, or a specific date through `<input type="datetime-local">`.
-- [ ] T132 [P] [US7] Implement `src/features/api-keys/components/ApiKeySecretDialog.vue`, following the state machine of data-model §7. The secret lives in a local `ref` only, the clipboard is used through `src/shared/platform/clipboard.ts`, closing uncopied asks through `useConfirm`, and no history entry is pushed.
-- [ ] T133 [US7] Implement these pages in `src/features/api-keys/pages/`:
+
+  *Implementation note*: `OwnerPicker.vue` is an ARIA 1.2 editable combobox written in the feature instead of Reka's `Combobox`: the search runs on the server (debounced 300 ms) with paging, "Load more" and free text, which Reka's client-side filtering and highlighting do not fit, and the list is rendered in place, so it needs no floating layer.
+- [X] T132 [P] [US7] Implement `src/features/api-keys/components/ApiKeySecretDialog.vue`, following the state machine of data-model §7. The secret lives in a local `ref` only, the clipboard is used through `src/shared/platform/clipboard.ts`, closing uncopied asks through `useConfirm`, and no history entry is pushed.
+
+  *Implementation note*: implemented as the shared, generic `src/shared/components/OneTimeSecretDialog.vue` (conventions "Shared building blocks"; texts under `secrets.*`, the title and description passed by the feature), for reuse by UI 005, 010 and 012. It exposes `requestClose()` for the page's route-leave guard. `useLeaveGuard` is not created here: UI 002 owns that name.
+- [X] T133 [US7] Implement these pages in `src/features/api-keys/pages/`:
   - `ApiKeysPage.vue`: `useListState`, `ListState`, `PaginationBar`, the docs link;
   - `ApiKeyCreatePage.vue`: a sectioned form, `useProblemForm`, then the secret dialog, then `router.replace` to the detail page. While the dialog is open, `onBeforeRouteLeave` asks the uncopied-secret confirmation through `useConfirm` (data-model §7);
   - `ApiKeyDetailPage.vue`: every attribute, the not-editable note, revoke with `useConfirm`.
 
   This depends on T129–T132.
-- [ ] T134 [US7] Add the `apiKeys.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, covering every `ApiKeyStatus` and `ApiKeyAccessLevel` label, the explanations of FR-065 and FR-067, and the secret warning. Map legacy API strings through `src/i18n/legacy-map.json` only where the meaning is unchanged. `npm run i18n:check` must pass.
+
+  *Implementation note*: the destructive button variant was darkened to `red-700` for AA contrast (THIRD_PARTY_NOTICES.md). On WebKit, the e2e CSP fixture ignores `style-src-elem` and `style-src-attr` reports, which WebKit's test build raises for the user-agent styles of native `<select>` elements; the Chromium projects still enforce them on the same build.
+- [X] T134 [US7] Add the `apiKeys.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, covering every `ApiKeyStatus` and `ApiKeyAccessLevel` label, the explanations of FR-065 and FR-067, and the secret warning. Map legacy API strings through `src/i18n/legacy-map.json` only where the meaning is unchanged. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US7 work on their own.
 

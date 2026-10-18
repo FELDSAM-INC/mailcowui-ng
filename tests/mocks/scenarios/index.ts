@@ -12,6 +12,7 @@ import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
 import { signInScenarios } from './sign-in'
+import { apiKeyScenarios } from './api-keys'
 import {
   anonymousSession,
   DEFAULT_IDLE_TIMEOUT,
@@ -35,6 +36,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...signInScenarios,
   ...passkeySignInScenarios,
   ...navigationScenarios,
+  ...apiKeyScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

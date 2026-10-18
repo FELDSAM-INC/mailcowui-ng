@@ -1,4 +1,9 @@
 {
+  "apiKeys": {
+    "detail": {
+      "title": "API key"
+    }
+  },
   "apps": {
     "defaultLabel": "Apps"
   },

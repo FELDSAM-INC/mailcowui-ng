@@ -19,9 +19,24 @@ declare global {
   }
 }
 
+/**
+ * WebKit's test build styles native form controls such as `<select>` with its own user-agent
+ * styles and reports them against the page's CSP as `style-src-elem` and `style-src-attr`
+ * violations, attributed to the inspector bootstrap (`web-inspector://bootstrap.js`) or to the
+ * script that created the element, although no page style is involved (measured: a bare
+ * `<select>` added to a page triggers them). On WebKit those two directives are therefore ignored,
+ * and so is its console, which repeats the reports without a source. The Chromium projects check
+ * the same build against the same policy, so an inline style of the app still fails there.
+ */
+const BROWSER_INTERNAL = /^web-inspector:\/\//
+const WEBKIT_UA_STYLE_DIRECTIVES = new Set(['style-src-elem', 'style-src-attr'])
+
 export async function attachCspRecorder(context: BrowserContext): Promise<CspRecorder> {
   const violations: CspViolation[] = []
+  const webkit = context.browser()?.browserType().name() === 'webkit'
   await context.exposeBinding('__mailcowuiNgCsp', (_source, violation: CspViolation) => {
+    if (BROWSER_INTERNAL.test(violation.source)) return
+    if (webkit && WEBKIT_UA_STYLE_DIRECTIVES.has(violation.directive)) return
     violations.push(violation)
   })
   await context.addInitScript(() => {
@@ -35,6 +50,7 @@ export async function attachCspRecorder(context: BrowserContext): Promise<CspRec
     })
   })
   context.on('console', (message) => {
+    if (webkit) return
     if (
       message.type() === 'error' &&
       /Content Security Policy|Refused to (load|apply|execute)/i.test(message.text())

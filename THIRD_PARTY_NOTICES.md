@@ -200,6 +200,8 @@ Further adaptations made while copying:
   translations (constitution IV), and the redundant `role="navigation"` on the pagination `<nav>`
   is removed.
 - Icon components get `aria-hidden="true"` and `focusable="false"` (research R5).
+- The `destructive` button variant uses `red-700` (hover `red-800`) instead of `red-500`, so that
+  its white text meets the WCAG AA contrast ratio (constitution III).
 
 ### MIT licence
 

@@ -1,4 +1,5 @@
 {
+  "apiKeys.detail.title": "admin.api_key",
   "apps.defaultLabel": "header.apps",
   "auth.secondFactor.title": "tfa.tfa",
   "auth.secondFactor.totp.authenticators": "tfa.authenticators",

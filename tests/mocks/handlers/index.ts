@@ -18,6 +18,7 @@ import {
   type OperationMatch,
 } from '../contract/validator'
 import { applyIdleTimeout, type ScenarioState } from '../scenarios/state'
+import { apiKeyHandlers } from './api-keys'
 import { authHandlers } from './auth'
 import { problem, sessionAccount, withScenario } from './context'
 import { identityHandlers } from './identity'
@@ -28,6 +29,7 @@ export const areaHandlers: RequestHandler[] = [
   ...authHandlers,
   ...identityHandlers,
   ...publicConfigHandlers,
+  ...apiKeyHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

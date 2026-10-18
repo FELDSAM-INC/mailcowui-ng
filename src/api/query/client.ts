@@ -25,7 +25,11 @@ export function setSessionReactions(next: SessionReactions | null): void {
   reactions = next
 }
 
-function dispatch(error: unknown): void {
+/**
+ * Passes a session-level problem to the registered reactions. The caches call it for every failed
+ * query and mutation; requests that bypass the caches (secrets, useSecretRequest) call it too.
+ */
+export function reportSessionProblem(error: unknown): void {
   if (!(error instanceof ApiProblem) || !reactions) return
   if (error.is('unauthenticated')) reactions.unauthenticated(error)
   else if (error.is('second-factor-required')) reactions.secondFactorRequired(error)
@@ -41,8 +45,8 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
 
 export function createQueryClient(options: { retryDelay?: number } = {}): QueryClient {
   const client = new QueryClient({
-    queryCache: new QueryCache({ onError: dispatch }),
-    mutationCache: new MutationCache({ onError: dispatch }),
+    queryCache: new QueryCache({ onError: reportSessionProblem }),
+    mutationCache: new MutationCache({ onError: reportSessionProblem }),
     defaultOptions: {
       queries: {
         staleTime: 30_000,

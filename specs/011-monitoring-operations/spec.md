@@ -132,6 +132,29 @@ Configuration."
   this feature, so leaving the action to UI feature 006 would drop a legacy capability with no screen
   to host it.)
 
+### Plan alignment 2026-10-18
+
+The API 011 contract closed several gaps this spec had listed. The plan aligned the spec as follows
+(agent decisions, constitution I and `docs/conventions.md` "Capabilities and limits"):
+
+- Q: Where do the polling interval, the freshness limits, the log lengths and the limits come from?
+  → A: From the API's monitoring capabilities read at run time. The outdated thresholds are each
+  freshness limit plus two of its refresh intervals, which gives the values above with the API's
+  defaults (FR-018, FR-022, FR-040, FR-052, FR-055, FR-069, FR-071).
+- Q: Is "Show public IP" always offered? → A: No. The capabilities say whether the IP check is
+  enabled; the action is offered only then, as in legacy, and otherwise the host section explains
+  where to switch it on (FR-029).
+- Q: What can the app show now that the API reports counts per queue, the caller's own address and
+  each container's role? → A: The queue header and filter show the count per queue, and "Delete all"
+  states the exact number of queued messages (FR-050, FR-058); a denylist entry or denylisting that
+  covers the administrator's own address gets a warning (FR-064, FR-069); container cards name the
+  role, and the restart confirmation warns according to it (FR-008, FR-012).
+- Q: How are the details of this feature's audit records presented, given that the contract leaves
+  them undescribed? → A: As stored, in the audit log's generic details view, with nested values
+  readable and long lists collapsed, until the contract describes them (FR-075, gap 10).
+  Constitution I forbids relying on undocumented shapes; UI feature 002 decided the same for its
+  records.
+
 ## User Scenarios & Testing *(mandatory)*
 
 Terms used throughout:
@@ -449,9 +472,11 @@ what is shown and that release notes are displayed safely.
 3. **Given** the IP check enabled, **When** the administrator chooses "Show public IP", **Then**
    progress is shown and then the IPv4 and IPv6 addresses, or "unavailable" for an address family
    the API could not determine.
-4. **Given** the IP check disabled, **When** the administrator chooses "Show public IP" and the API
-   refuses it as disabled, **Then** the app explains that the IP check is switched off and where it
-   can be switched on.
+4. **Given** the IP check disabled, **When** the dashboard is shown, **Then** "Show public IP" is not
+   offered and the app explains that the IP check is switched off and where it can be switched on.
+   **Given** the check switched off after the dashboard was loaded, **When** the administrator
+   chooses "Show public IP" and the API refuses it as disabled, **Then** the same explanation is
+   shown.
 5. **Given** release notes that contain an image, raw HTML and a link, **When** they are opened,
    **Then** the image is not loaded and appears as a link with its description, the HTML is shown as
    text, the link opens in a new window marked as external, and no request is made to another
@@ -602,7 +627,9 @@ the history from each entry point and check the filters applied and the presenta
     containers that are not running clearly marked by text and icon, not by colour alone;
   - the health status, when the container reports one;
   - the start time, as a relative time with the exact time available;
-  - a "protected" marker for protected containers.
+  - a "protected" marker for protected containers;
+  - the container's role as the API reports it (for example webmail, database or reverse proxy), in
+    words, with roles the app does not know shown as "other".
 - **FR-009**: The container list MUST offer a filter (all, running, not running), a search on the
   service name and the image, and sorting by name (the default), state or start time. Selecting the
   "not running" part of the summary MUST apply that filter. The filter, search and sort MUST be kept
@@ -622,9 +649,12 @@ the history from each entry point and check the filters applied and the presenta
 
 - **FR-012**: Stop and restart MUST ask for confirmation in a dialog that names the container,
   states that its service is interrupted while it stops or restarts, and, for a restart, carries the
-  legacy notice that a graceful restart can take a while. For a protected container, the restart
-  dialog MUST also say that this app may be unavailable for a moment and may then show the outcome
-  as unknown. Start MUST NOT ask for confirmation.
+  legacy notice that a graceful restart can take a while. The restart dialog MUST also warn according
+  to the container's role: for the reverse proxy and the container that serves this app, that this
+  app may be unavailable for a moment and may then show the outcome as unknown; for the database and
+  the key-value store, that other screens may fail for a moment and that the restart may finish
+  without an audit record; for any other protected container, that it is a core service. Start MUST
+  NOT ask for confirmation.
 - **FR-013**: While an action on a container is running, the card MUST show the action in progress
   with the elapsed time and MUST NOT accept another action on that container. Actions on other
   containers MUST stay possible.
@@ -646,9 +676,11 @@ the history from each entry point and check the filters applied and the presenta
 #### Live data and freshness
 
 - **FR-018**: While the dashboard is visible, the app MUST refresh the host figures, the container
-  list and the resource usage of every expanded container at the interval the API contract
-  recommends (every 5 seconds). The mail storage usage MUST be refreshed every 60 seconds, and the
-  version and update status once per visit of the dashboard. Other screens of this feature MUST NOT
+  list and the resource usage of every expanded container at the polling interval the API's
+  monitoring capabilities recommend (5 seconds by default). The mail storage usage MUST be refreshed
+  at its freshness limit as the capabilities report it (60 seconds by default), and the version and
+  update status once per visit of the dashboard. When the capabilities cannot be read, the figures
+  MUST be loaded once, nothing MUST refresh on its own, and a notice with a retry MUST say so. Other screens of this feature MUST NOT
   refresh on their own, except the active bans while a lift is pending (FR-065).
 - **FR-019**: The app MUST stop all automatic refreshing while the page is hidden (for example in a
   background tab or a locked phone) or when the user leaves the dashboard, and MUST request fresh
@@ -662,8 +694,9 @@ the history from each entry point and check the filters applied and the presenta
 - **FR-022**: Each dashboard section MUST show how long ago its data was collected, measured from the
   collection time the API reports against the host's current time from the overview, not against
   the device clock. A section MUST be marked as outdated, in text, when its data is older than its
-  freshness limit plus two of its refresh intervals: host figures after 20 seconds, container states
-  after 15 seconds, container resource samples after 25 seconds, mail storage after 180 seconds.
+  freshness limit plus two of its refresh intervals, both as the monitoring capabilities report them;
+  with the API's defaults: host figures after 20 seconds, container states after 15 seconds,
+  container resource samples after 25 seconds, mail storage after 180 seconds.
 - **FR-023**: When an automatic refresh fails, the last values MUST stay visible and be marked as
   outdated, a notice MUST say that updating failed, and refreshing MUST continue. A manual refresh
   action MUST be available.
@@ -695,10 +728,11 @@ the history from each entry point and check the filters applied and the presenta
   - links MUST open in a new window, MUST be marked as external, and MUST NOT give the opened page
     access to the app;
   - displaying the notes MUST NOT cause any request to another server.
-- **FR-029**: The host section MUST offer "Show public IP". Choosing it MUST show progress and then
-  the IPv4 and IPv6 address, each replaced by "unavailable" when the API could not determine it. When
-  the API refuses the lookup because the IP check is disabled, the app MUST explain that the IP check
-  is switched off and where an administrator can switch it on.
+- **FR-029**: The host section MUST offer "Show public IP" when the monitoring capabilities report
+  the IP check as enabled. Choosing it MUST show progress and then the IPv4 and IPv6 address, each
+  replaced by "unavailable" when the API could not determine it. When the IP check is disabled, or
+  the API refuses the lookup because it was disabled meanwhile, the app MUST explain that the IP
+  check is switched off and where an administrator can switch it on.
 
 #### Logs
 
@@ -758,9 +792,10 @@ the history from each entry point and check the filters applied and the presenta
   removed, MUST use the rate limit reset operation of API feature 006, and MUST refresh the log
   afterwards. When the API answers "not found", the app MUST say that the rate limit was already
   reset.
-- **FR-040**: Each log type MUST explain what the log contains and how long mailcow keeps it:
-  in-memory logs are trimmed to the configured length every minute, the autodiscover log keeps about
-  100 entries, the login log is cleaned daily, and the legacy UI activity log is never trimmed. The
+- **FR-040**: Each log type MUST explain what the log contains and how long mailcow keeps it, from
+  the retention the monitoring capabilities report: in-memory logs are trimmed every minute to the
+  configured length, which MUST be named, the autodiscover log keeps about 100 entries, the login log
+  is cleaned daily, and the legacy UI activity log is never trimmed. The
   Logs screen MUST say that actions taken in this app appear in the audit log, not in the legacy
   logs, and MUST link to the audit log screen of UI feature 001.
 - **FR-041**: Times MUST be shown in the device's time zone, formatted for the user's language, with
@@ -806,7 +841,9 @@ the history from each entry point and check the filters applied and the presenta
   100), the total, sorting by arrival time (default, oldest first), size, sender, queue or queue ID,
   filters by queue (active, deferred, hold, incoming, maildrop), arrival time range, sender and
   recipient, and one search over the queue ID, sender, recipients and deferral reasons. The paging,
-  sort, filters and search MUST be kept in the page address.
+  sort, filters and search MUST be kept in the page address. The header MUST show the number of
+  queued messages in total and per queue, and the queue filter MUST show each queue's count, as the
+  API reports them independently of filters and paging.
 - **FR-051**: Each message MUST show the queue ID, the queue in text, the arrival time as a relative
   time with the exact time available, the size, the sender ("empty sender (bounce)" when empty), and
   each recipient with its deferral reason when there is one, and a marker when Postfix has marked the
@@ -815,7 +852,8 @@ the history from each entry point and check the filters applied and the presenta
   age and the size, with the remaining recipients and reasons reachable without leaving the list. On
   wide screens the list MUST be a table.
 - **FR-052**: When the API reports that the list is truncated, the screen MUST say that only the
-  first 10,000 messages are listed and that flushing and deleting all affect every message.
+  first messages up to the listing limit the monitoring capabilities report (10,000 by default) are
+  listed and that flushing and deleting all affect every message.
 - **FR-053**: The screen MUST explain the queue and each action as the legacy Queue Manager does:
   deliver now attempts delivery again, hold prevents further delivery attempts, release returns held
   messages for delivery, and the deferral reason says why a message was not delivered.
@@ -825,9 +863,10 @@ the history from each entry point and check the filters applied and the presenta
   action bar that names the number of selected messages. The selection MUST be cleared when the
   page, search, filters, sort or page size change.
 - **FR-055**: Administrators MUST also be able to select all messages that match the current search
-  and filters, across pages. When more than 1,000 messages match, the app MUST select the first 1,000
-  in the current sort order and say that only these are selected and that the action can be
-  repeated for the rest. The action bar MUST name the number of selected messages in every case.
+  and filters, across pages. When more messages match than one queue action accepts (the limit the
+  monitoring capabilities report, 1,000 by default), the app MUST select that many, the first in the
+  current sort order, and say that only these are selected and that the action can be repeated for
+  the rest. The action bar MUST name the number of selected messages in every case.
 - **FR-056**: Deleting selected messages MUST ask for confirmation naming the number of messages and
   stating that deletion cannot be undone. Deliver now, hold and release MUST NOT ask for
   confirmation.
@@ -837,9 +876,9 @@ the history from each entry point and check the filters applied and the presenta
   delivery continues in the background.
 - **FR-058**: Administrators MUST be able to flush the queue and to delete all queued messages. The
   flush MUST NOT ask for confirmation and MUST say that held messages stay on hold. Deleting all MUST
-  ask for a confirmation that states the number of queued messages read when the dialog opens ("more
-  than 10,000" when the list is truncated), that held messages and messages arriving in the meantime
-  are included, and that the deletion cannot be undone. Its Delete button MUST stay disabled until
+  ask for a confirmation that states the number of queued messages read when the dialog opens (the
+  API's total count, also when the list is truncated), that held messages and messages arriving in
+  the meantime are included, and that the deletion cannot be undone. Its Delete button MUST stay disabled until
   the administrator ticks "I understand
   that all queued messages, including held ones, are deleted permanently".
 - **FR-059**: When a queue action times out with an unknown outcome, the app MUST say so, refresh the
@@ -872,11 +911,13 @@ the history from each entry point and check the filters applied and the presenta
   pending. Each active ban that is not pending MUST offer: lift ban, lift and allowlist, and
   denylist. Lifting, with or without allowlisting, MUST NOT ask for confirmation. Denylisting MUST ask
   for confirmation naming the network and stating that it becomes a permanent ban within about a
-  minute and is removed from the allowlist.
+  minute and is removed from the allowlist; when the network covers the administrator's own address
+  as the monitoring capabilities report it, the confirmation MUST also warn about that.
 - **FR-065**: After a ban action, the app MUST show the resulting ban and the list changes, say that
   the ban service processes lifts within about 10 seconds, and show the ban as pending until a
   later read no longer lists it. While a listed ban is pending and the page is visible, the app MUST
-  refresh the active bans every 5 seconds, for at most 60 seconds after the last lift. When the API
+  refresh the active bans at the polling interval the monitoring capabilities recommend (5 seconds by
+  default), for at most 60 seconds after the last lift. When the API
   answers "not found", the app MUST say that the ban has already ended and refresh the list.
 - **FR-066**: Each permanent ban MUST show the network and the time the ban started, and MUST offer
   "Remove from denylist", which saves the denylist without that entry together with the version tag
@@ -899,16 +940,19 @@ the history from each entry point and check the filters applied and the presenta
   (addresses and networks) MUST be edited as multi-line fields with one entry per line, showing the
   number of entries, with the legacy explanation that a denylisted entry always outweighs an
   allowlisted one, that list changes take up to a minute to apply, and a warning not to denylist the
-  administrator's own network. Entries MUST be trimmed, empty lines ignored and duplicates kept once
-  before sending. When the API refuses entries, every refused entry MUST be listed below its field
+  administrator's own network. Before a denylist is saved that newly covers the administrator's own
+  address as the monitoring capabilities report it, the app MUST warn and name the address. Each list
+  MUST hold at most the number of entries the capabilities report (10,000 by default). Entries MUST be
+  trimmed, empty lines ignored and duplicates kept once before sending. When the API refuses entries, every refused entry MUST be listed below its field
   with its line number and translated reason, and the user's input MUST be kept.
 - **FR-070**: The external enforcement section MUST offer the "manage externally" switch with the
   legacy explanation, show the public ban list address with a copy action, and offer to generate a
   new address after a confirmation that the old address stops working at once and that external
   firewalls must be updated.
 - **FR-071**: The filter rules MUST be shown as a numbered, ordered list. Administrators MUST be able
-  to add, edit, remove and reorder rules and save the whole list, with 1 to 100 rules of 1 to 1,000
-  characters each, checked before sending. The editor MUST explain that the first capture group of
+  to add, edit, remove and reorder rules and save the whole list, with at least one rule and at most
+  the number and length the monitoring capabilities report (100 rules of 1,000 characters by
+  default), checked before sending. The editor MUST explain that the first capture group of
   each rule must capture the client address, and MUST show each rule the API refuses with its
   translated reason. Administrators MUST be able to reset the rules to mailcow's defaults after a
   confirmation that states that the custom rules are discarded and that the ban service restarts.
@@ -937,6 +981,11 @@ the history from each entry point and check the filters applied and the presenta
   - for a rules change or reset: the old and new rules;
   - for a ban action: the network and the list changes;
   - for a ban list address rotation: that the address was rotated.
+
+  The event type, target, outcome and failure reason MUST be translated. The record details above
+  MUST be shown as the contract describes them. While the contract does not describe them (gap 10),
+  they MUST be shown as stored, with nested values readable and lists of more than 10 items
+  collapsed, without translated names or unit formatting.
 
 #### Errors and feedback
 
@@ -1018,7 +1067,7 @@ with the reason).
 | Tab bar with "System & Containers" and a "Logs" dropdown of 13 tabs | One page with tabs | Improved: own screens with their own addresses; a log type selector instead of a dropdown of tabs | FR-001, FR-002, FR-030 |
 | Card header with the UI title and the product logo | Repeats the branding | Dropped: the shell of UI feature 001 shows the branding, and repeating it costs space on phones | — |
 | Hostname, Architecture | Text | Matched | FR-004 |
-| IPs: "Show public IP" button, or "IP check is disabled" text | Button shown only with the IP check on | Matched; the button is always offered and the disabled state is explained once the API refuses (API gap 1) | FR-029 |
+| IPs: "Show public IP" button, or "IP check is disabled" text | Button shown only with the IP check on | Matched: offered only when the API reports the IP check as enabled, otherwise explained | FR-029 |
 | Version with update status ("latest version", "update available", "could not check"); upstream links the version to a changelog dialog | Checked by the browser on the `master` branch only | Improved: status from the API, release notes of the new and the installed version shown safely, nothing shown when the check is disabled (FeldHost) | FR-026 to FR-028 |
 | System Time, Timezone | Host time as `dd.mm.yyyy hh:mm:ss` | Matched, formatted for the user's language, with the zone's name | FR-004 |
 | Uptime | `1D 2H 3M 4S` | Improved: translated units | FR-004 |
@@ -1026,7 +1075,7 @@ with the reason).
 | CPU: cores @ usage, line chart of 30 samples | Chart drawn in the browser | Matched; text values first, accessible chart loaded on demand | FR-005, FR-083, FR-091 |
 | Memory: total "GB" @ usage, line chart | Binary value labelled GB | Improved: binary units, swap added | FR-005, FR-007 |
 | Polling every 5 seconds while the tab is active | No age shown, no pause | Improved: pauses when hidden, pause control, pause after inactivity, age and outdated markers | FR-018 to FR-024 |
-| Container cards: name, image, "Started on", "Running" with animated dots or "Stopped" | Collapsed cards | Improved: state in text including transitional states, health, protected marker, summary, filter, search, sort, no animation | FR-008, FR-009, FR-084 |
+| Container cards: name, image, "Started on", "Running" with animated dots or "Stopped" | Collapsed cards | Improved: state in text including transitional states, health, role in words, protected marker, summary, filter, search, sort, no animation | FR-008, FR-009, FR-084 |
 | Expanded card: Disk I/O and Net I/O charts, spinner until two samples | Rates computed in the browser | Matched with the API's rates, plus processor and memory of the container | FR-010 |
 | "Restart" link with a coloured state dot | Opens the restart dialog | Improved: start, stop and restart as the API allows, protected containers explained | FR-011 to FR-016 |
 | License and GUID card (upstream only) | — | Dropped: belongs to UI feature 013 | — |
@@ -1043,7 +1092,7 @@ with the reason).
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Explanation of in-memory, external and static logs | Names the configured `LOG_LINES` | Matched per log type, without the configured number (API gap 6) | FR-040 |
+| Explanation of in-memory, external and static logs | Names the configured `LOG_LINES` | Matched per log type, naming the configured length the API reports | FR-040 |
 | Refresh button | Reloads the table | Matched | FR-038 |
 | Quick actions "+ 100", "+ 1000" | Loads a range of older lines | Improved: "Load older entries" in steps of 50, without duplicates, combined with filters | FR-036 |
 | Search, sorting and paging over 1,000 loaded lines | In the browser | Improved: search, time range, severity and type filters applied by the API to every retained entry; the view is kept in the address | FR-035, FR-037 |
@@ -1075,7 +1124,7 @@ with the reason).
 | Checkbox column, Toggle all | Selection on the page | Improved: selection mode on phones, selection of all matching messages up to 1,000 | FR-054, FR-055 |
 | Quick actions Deliver, Unhold, Hold, Remove | One request, overall success only; Remove confirmed by the generic list dialog | Improved: one request with a result per message; deletion confirmed with the number of messages | FR-054 to FR-057 |
 | "Flush queue" | No confirmation | Matched, with the note that held messages stay on hold | FR-058 |
-| "Delete all" with a browser `confirm()` | — | Improved: count, held messages named, explicit acknowledgement | FR-058 |
+| "Delete all" with a browser `confirm()` | — | Improved: exact count (also beyond the listed 10,000), held messages named, explicit acknowledgement | FR-058 |
 | "Show message" dialog with a 40-row text area | Raw `postcat` output | Improved: full-screen viewer on phones, verbatim, wrapping toggle, copy, audit notice, actions | FR-061 |
 | Saved table state | Browser storage | Improved: the view is kept in the address | FR-050 |
 
@@ -1114,15 +1163,16 @@ contract has been merged.
 | Administrator-only access, forbidden for other roles, "not found" for unknown or foreign objects | API 011 FR-001 to FR-004 |
 | System overview with host time, time zone, processor, memory and swap, and its collection time | API 011 FR-005, FR-006, FR-059 |
 | Mail storage usage in bytes, approximate marker, "unavailable" | API 011 FR-007 |
-| Container list with state, health, protected flag and available actions; filter, search and sort | API 011 FR-008 to FR-010 |
+| Container list with state, health, protected flag, role and available actions; filter, search and sort | API 011 FR-008 to FR-010 |
 | Container resource usage with rates, first-sample behaviour and "container not running" | API 011 FR-011 |
 | Recommended polling interval and freshness limits | API 011 FR-012 |
+| Monitoring capabilities: IP check state, polling interval, freshness limits, log retention, the caller's client address, bulk, list and rule limits | API 011 FR-069 |
 | Start, stop, restart with outcome and resulting container; protected refusal; failure with the service's message; timeout as "outcome unknown"; destructive marking | API 011 FR-013 to FR-017 |
 | Version, update status with release notes, disabled check; release notes as externally authored Markdown | API 011 FR-018 to FR-020 |
 | Public addresses and the "IP check disabled" refusal | API 011 FR-021 |
 | Log types and fields, decoding, severity classes, paging, sorting, filters, loading older entries, retention, masking, legacy UI activity messages, login label, rate limit hash, unparsable entries | API 011 FR-022 to FR-032 |
 | Rspamd history and statistics, symbol order, temporary failure | API 011 FR-033 to FR-036 |
-| Queue list with truncation, filters and sorting; content; actions on up to 1,000 IDs with a result per ID; flush and delete all; timing; Postfix not running | API 011 FR-037 to FR-043 |
+| Queue list with truncation, counts per queue, filters and sorting; content; actions on up to 1,000 IDs with a result per ID; flush and delete all; timing; Postfix not running | API 011 FR-037 to FR-043 |
 | Ban settings, partial changes, rules, list validation, timing, filter rules and reset, ban lists, ban actions, permanent bans, ban list rotation, ban service not running | API 011 FR-044 to FR-056 |
 | Version tags and outdated refusal for ban settings and rules | API 011 FR-057 |
 | Temporary failures of mailcow's services | API 011 FR-060 |
@@ -1132,25 +1182,28 @@ contract has been merged.
 | Role of the signed-in user | API 001 FR-028, FR-029 |
 
 **Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
-wanted; until then the app behaves as stated):
+wanted; until then the app behaves as stated). Gaps 1, 2, 4, 5, 6 and 8 were closed by the API 011
+contract (monitoring capabilities, counts per queue and container roles), and this spec was aligned
+in the plan:
 
-1. The system overview does not say whether the IP check is enabled. The "Show public IP" action is
-   therefore always offered, and the app learns that the check is disabled only from the refusal
-   (FR-029); legacy hides the button up front.
-2. The queue list reports no count per queue. The queue filter offers no counts per queue (FR-050).
+1. *Closed*: the monitoring capabilities say whether the IP check is enabled (FR-029).
+2. *Closed*: the queue list reports the count per queue (FR-050, FR-058).
 3. No operation acts on every queued message that matches a filter. Actions on selections are
-   limited to 1,000 messages at a time (FR-055).
-4. The administrator's own client address is not available to the app, so it cannot warn when a
-   denylist entry covers it, as API 011 recommends; the denylist only carries a general warning
-   (FR-069).
-5. The recommended polling interval and the freshness limits are documented, not delivered at run
-   time. Changing them on the server requires a new release of the app (FR-018, FR-022).
-6. The configured length of the in-memory logs is not exposed. The retention explanation cannot name
-   it, as legacy does (FR-040).
+   limited to the API's bulk limit (1,000 messages by default) at a time (FR-055). The API declined
+   to add one, as the bulk limit together with flush and delete all cover the legacy Queue Manager.
+4. *Closed*: the monitoring capabilities report the caller's own client address (FR-064, FR-069).
+5. *Closed*: the polling interval and the freshness limits are delivered at run time (FR-018,
+   FR-022).
+6. *Closed*: the configured retention of each log is exposed (FR-040).
 7. The installed version is readable only by administrators. Domain administrators and mailbox users
-   no longer see it in the footer, as they do in legacy (FR-026).
-8. A container's function (for example reverse proxy or database) is not exposed beyond the
-   protected flag. The restart dialog can only warn generally for protected containers (FR-012).
+   no longer see it in the footer, as they do in legacy (FR-026). The API declined to change this.
+8. *Closed*: each container carries a role (FR-008, FR-012).
+9. The way to load the next entries of a log is documented only for the newest-first order. In
+   oldest-first order the app continues after the entries it shows, which never duplicates an entry
+   but can skip entries that mailcow trims meanwhile (FR-036).
+10. The details of this feature's audit records (state before and after, queue IDs with results,
+    old and new values and rules) are not described in the contract. The history shows them as
+    stored, without translated names or unit formatting, until the contract describes them (FR-075).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1158,8 +1211,11 @@ wanted; until then the app behaves as stated):
   memory and swap figures, and their collection time.
 - **Mail storage usage**: device, used, available and total space, percentage, approximate marker or
   "unavailable", and collection time.
-- **Container**: service name, image, state, running flag, health, start time, protected flag and
-  available actions.
+- **Monitoring capabilities**: whether the IP check is enabled, the polling interval, the freshness
+  limit of each kind of live data, the retention of each log, the caller's own client address and
+  the bulk, list and rule limits.
+- **Container**: service name, image, state, running flag, health, start time, protected flag, role
+  and available actions.
 - **Container resource sample**: processor, memory and limit, disk and network counters and rates at
   one time.
 - **Live series**: the samples the app collected for one chart while it was visible; never stored.
@@ -1196,8 +1252,8 @@ wanted; until then the app behaves as stated):
 - **SC-004**: While the dashboard page is hidden, while live updates are paused, and after 15 minutes
   without user interaction, the app sends 0 status requests; after the page becomes visible again or
   the user resumes, fresh data is requested within 1 second.
-- **SC-005**: In 100 % of tests, a figure whose collection time is older than its freshness limit is
-  marked as outdated, and a figure within its limit is not.
+- **SC-005**: In 100 % of tests, a figure whose collection time is older than its outdated threshold
+  (FR-022) is marked as outdated, and a figure within its threshold is not.
 - **SC-006**: In 100 % of tests with an action timeout or a dropped connection, the app shows
   "Outcome unknown", shows the container's or queue's state read afterwards, and sends the action
   exactly once.
@@ -1233,9 +1289,10 @@ wanted; until then the app behaves as stated):
   the 90 % "nearly full" threshold and the page sizes are defaults of this feature.
 - The API 011 contract is merged before this feature is planned. Until the API is implemented, the
   feature is built and tested against a mock generated from the contract.
-- The API's recommended polling interval (5 seconds) and freshness limits (host figures 10 seconds,
-  container states 5 seconds, resource samples 15 seconds, mail storage 60 seconds) are taken from
-  the contract.
+- The API's recommended polling interval (5 seconds by default), freshness limits (by default host
+  figures 10 seconds, container states 5 seconds, resource samples 15 seconds, mail storage 60
+  seconds), log retention and limits are read at run time from its monitoring capabilities; the
+  values in this spec are the API's defaults.
 - Live charts show only the samples collected while they are visible, as in legacy. The API offers
   no history of host or container figures.
 - Legacy translation keys with unchanged meaning are reused, for example `debug.system_containers`,

@@ -47,3 +47,9 @@
   safety of the display depends on them.
 - "Mid-range phone" in SC-011 follows UI feature 002 (SC-010); the plan fixes the reference device.
 - API gaps that the feature does not work around are listed in the spec's API Dependency section.
+- Plan alignment (after `/speckit-plan`): the API 011 contract closed spec gaps 1, 2, 4, 5, 6 and 8
+  (monitoring capabilities, counts per queue, container roles). FR-008, FR-012, FR-018, FR-022,
+  FR-029, FR-040, FR-050, FR-052, FR-055, FR-058, FR-064, FR-065, FR-069, FR-071, SC-005, the parity
+  rows, the API dependency table, the key entities and the assumptions were aligned; gap 9 (log
+  paging in oldest-first order) and gap 10 (audit details not in the contract, FR-075) were added.
+  All items still pass.

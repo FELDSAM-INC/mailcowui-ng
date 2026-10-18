@@ -89,3 +89,36 @@ reads this document next to the constitution. The API side has its own rules in
   link.
 - Capabilities and limits (bulk limits, field limits, enabled server features) come from each API
   feature's capabilities read. The UI never hard-codes them.
+
+## Shared building blocks and canonical names
+
+- **Ownership:** the first UI feature to be implemented that needs a building block creates it under
+  `src/shared/` (or the location UI 001 reserves) with its canonical name. Later features import it
+  and never create a renamed copy. When two plans name the same thing differently, the name of the
+  earlier feature wins:
+  - leave guard: `useLeaveGuard` (UI 002). It is not `useUnsavedChangesGuard`;
+  - translation coverage registry: the mechanism UI 001 defines, or otherwise UI 002's
+    `src/i18n/coverage.json`;
+  - bulk bar and selection: UI 002's `BulkActionBar`, `useBulkSelection`, `BulkResultSummary`;
+  - confirmations and sections: UI 002's `ConfirmDialog` (with `requireTyped`), `EditableSection`
+    and `HistoryLink`;
+  - inactivity limit for polling: `useInactivity`, created by UI 008 and reused by UI 011;
+  - mailbox search picker: `MailboxSearchPicker`, promoted to `src/shared/components/` at its second
+    use;
+  - untrusted multi-line text: `neutralise()` (UI 006);
+  - downloads: `src/shared/platform/download.ts` (Blob with a revoked object URL, never `data:`
+    URLs).
+- **Bulk limit:** `useBulkSelection` takes the API's bulk limit from the feature's capabilities
+  read. Once the limit is reached, further selection is disabled, with a message that states the
+  limit.
+- **Action areas in earlier screens:** a later feature adds its entry point to an earlier screen's
+  designated action area when it is implemented. Earlier plans' tables of action areas don't need
+  to list every later entry.
+- **Secrets in requests or responses** (private keys, passwords, generated secrets) never go through
+  TanStack Query caches. Call the client directly, keep the value in component state only, and
+  never save form drafts of such forms.
+- **Polling:** the only automatic polling allowed is a condition-bound `refetchInterval` with
+  visibility checks, a pause control and the inactivity limit (the lower of 15 minutes and the
+  session idle timeout).
+- **Contract pins** only move forward. Each feature checks its own operations against its plan's
+  baseline commit.

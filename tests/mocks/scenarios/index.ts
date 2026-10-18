@@ -35,6 +35,7 @@ import { pendingActionScenarios } from './pending-actions'
 import { preferenceScenarios } from './preferences'
 import { signInScenarios } from './sign-in'
 import { apiKeyScenarios } from './api-keys'
+import { applySyncJobChanges, initialSyncJobState, syncJobScenarios } from './sync-jobs'
 import {
   anonymousSession,
   DEFAULT_IDLE_TIMEOUT,
@@ -76,6 +77,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...domainsHistoryScenarios,
   ...mailboxBaseScenarios,
   ...mailboxEditScenarios,
+  ...syncJobScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -149,6 +151,7 @@ export function applyOverrides(
     state.auditEvents = structuredClone<AuditEvent[]>(overrides.auditEvents)
   applyDomainOverrides(state, overrides)
   applyMailboxOverrides(state, overrides)
+  if (overrides.syncJobs) applySyncJobChanges(state, overrides.syncJobs)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -184,6 +187,7 @@ export function createScenarioState(
     now,
     ...initialDomainState(),
     ...initialMailboxState(),
+    syncJobs: initialSyncJobState(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

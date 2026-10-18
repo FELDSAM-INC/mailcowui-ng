@@ -36,6 +36,7 @@ import type {
 
 import { type ViolationRecorder } from '../contract/validator'
 import type { PublicConfigVariant } from './public-config'
+import type { SyncJobChanges, SyncJobState } from './sync-jobs'
 
 /** A second-factor method with the value the mock accepts for it. */
 export interface MockSecondFactor extends SecondFactorMethod {
@@ -352,6 +353,8 @@ export interface ScenarioState {
   mailboxFailures: Record<string, MailboxFailure>
   /** Outcomes of the creation report steps that override the computed ones. */
   mailboxCreationReport: Partial<Omit<MailboxCreationReport, 'messages'>>
+  /** UI 008: sync jobs, their capabilities and injected bulk failures. */
+  syncJobs: SyncJobState
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -398,6 +401,8 @@ export interface ScenarioOverrides {
   mailboxCapabilities?: Partial<MailboxCapabilities>
   mailboxFailures?: Record<string, MailboxFailure | null>
   mailboxCreationReport?: Partial<Omit<MailboxCreationReport, 'messages'>>
+  /** UI 008: sync job data and runtime changes (data-model §8). */
+  syncJobs?: SyncJobChanges
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

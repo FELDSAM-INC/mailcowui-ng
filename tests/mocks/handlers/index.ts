@@ -34,6 +34,7 @@ import { mailboxReadHandlers } from './mailboxes-read'
 import { passkeyHandlers } from './passkeys'
 import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
+import { syncJobHandlers } from './sync-jobs'
 
 /** The typed handlers of every area. Stories add their modules here. */
 export const areaHandlers: RequestHandler[] = [
@@ -51,6 +52,7 @@ export const areaHandlers: RequestHandler[] = [
   ...mailboxUpdateHandlers,
   ...mailboxTemplateReadHandlers,
   ...passwordPolicyHandlers,
+  ...syncJobHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

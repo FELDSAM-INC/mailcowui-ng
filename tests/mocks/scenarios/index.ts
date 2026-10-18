@@ -14,6 +14,7 @@ import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
 import { passkeyScenarios } from './passkeys'
 import { pendingActionScenarios } from './pending-actions'
+import { preferenceScenarios } from './preferences'
 import { signInScenarios } from './sign-in'
 import { apiKeyScenarios } from './api-keys'
 import {
@@ -41,6 +42,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...navigationScenarios,
   ...passkeyScenarios,
   ...pendingActionScenarios,
+  ...preferenceScenarios,
   ...apiKeyScenarios,
   ...auditLogScenarios,
 }

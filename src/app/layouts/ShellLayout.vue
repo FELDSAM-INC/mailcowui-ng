@@ -8,8 +8,10 @@ import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+import { CloseIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
+import { usePreferencesStore } from '../preferences/store'
 import { routeAccess } from '../router/guards'
 import { useIdentityQuery } from '../session/queries'
 import { useSignOut } from '../session/sign-out'
@@ -35,6 +37,7 @@ const header = ref<{ menuButton: HTMLButtonElement | null } | null>(null)
 const menuButton = computed(() => header.value?.menuButton ?? null)
 
 const { signOut, retry, pending: signingOut, failed: signOutFailed } = useSignOut()
+const preferences = usePreferencesStore()
 </script>
 
 <template>
@@ -79,6 +82,21 @@ const { signOut, retry, pending: signingOut, failed: signOutFailed } = useSignOu
           <p class="flex-1">{{ t('shell.signOutFailed') }}</p>
           <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="retry">
             {{ t('common.retry') }}
+          </button>
+        </div>
+        <div
+          v-if="preferences.saveMessage"
+          role="alert"
+          class="mb-6 flex items-start gap-3 rounded-xl border border-warning-200 bg-warning-50 p-4 text-warning-900 dark:border-warning-900 dark:bg-warning-950 dark:text-warning-100"
+        >
+          <p class="min-w-0 flex-1">{{ t(`preferences.${preferences.saveMessage}`) }}</p>
+          <button
+            type="button"
+            class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10"
+            :aria-label="t('common.close')"
+            @click="preferences.saveMessage = null"
+          >
+            <CloseIcon class="size-5" />
           </button>
         </div>
         <RouterView v-if="allowed" />

@@ -453,6 +453,18 @@
       "other": "Classic interface"
     }
   },
+  "preferences": {
+    "changedElsewhere": "Your preferences were changed elsewhere. The saved setting is shown now; choose again if you like.",
+    "language": "Language",
+    "languages": {
+      "cs-cz": "Čeština",
+      "en-gb": "English",
+      "sk-sk": "Slovenčina"
+    },
+    "notSaved": "Your change was not saved. The previous setting is back.",
+    "saved": "Saved.",
+    "theme": "Theme"
+  },
   "problem": {
     "api-key-expired": "This API key has expired.",
     "api-key-invalid": "The API key is not valid.",

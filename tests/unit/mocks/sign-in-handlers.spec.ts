@@ -283,3 +283,45 @@ describe('restricted sessions (T110)', () => {
     expect(after.data.state).toBe('active')
   })
 })
+
+describe('preferences (T116)', () => {
+  const patch = async (body: unknown, ifMatch?: string) =>
+    fetch(api('/me/preferences'), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/merge-patch+json',
+        'X-CSRF-Token': await csrf(),
+        ...(ifMatch ? { 'If-Match': ifMatch } : {}),
+      },
+      body: JSON.stringify(body),
+    })
+
+  it('saves a merge patch with If-Match and answers 412 for a stale version', async () => {
+    useScenario('admin-active')
+    expect((await patch({ theme: 'dark' }, '"old"')).status).toBe(412)
+    const saved = await patch({ language: 'cs-cz' }, '"pref-1"')
+    expect(saved.status).toBe(200)
+    const body = (await saved.json()) as { data: { language: string; theme: string } }
+    expect(body.data).toMatchObject({ language: 'cs-cz', theme: 'system' })
+    expect(saved.headers.get('etag')).toMatch(/^"pref-v\d+"$/)
+  })
+
+  it('refuses a language the server does not enable', async () => {
+    useScenario('admin-active', { publicConfig: 'languages-en-cs' })
+    const refused = await patch({ language: 'sk-sk' })
+    expect(refused.status).toBe(422)
+    expect(await refused.json()).toMatchObject({
+      errors: { language: [{ code: 'notInList', params: { allowed: ['cs-cz', 'en-gb'] } }] },
+    })
+  })
+
+  it('reads a language that is no longer enabled as the default and refuses restricted sessions', async () => {
+    useScenario('profile-language-disabled', { signedInAs: 'admin' })
+    const me = (await (await fetch(api('/me'))).json()) as {
+      data: { preferences: { language: string } }
+    }
+    expect(me.data.preferences.language).toBe('cs-cz')
+    useScenario('forced-password-change')
+    expect((await patch({ theme: 'dark' })).status).toBe(403)
+  })
+})

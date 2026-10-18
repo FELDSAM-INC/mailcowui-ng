@@ -760,8 +760,8 @@ language.
 
 
   *Implementation note*: no legacy key was reused. The forced-2FA strings of the FeldHost fork (`tfa.setup_required`, `tfa.setup_title`) are missing from the upstream cs-cz and sk-sk files, and their wording is about TOTP enrolment, not passkeys.
-- [ ] T116 [US6] Extend `tests/mocks/handlers/identity.ts` with `updatePreferences`: JSON Merge Patch, `If-Match` and `412`, `422 notInList` with `allowed`, refusal in restricted sessions, a stored language that is no longer enabled reading as the default, and failure injection. Add the scenarios `languages-none-translated` (only `de-de`), `languages-single` (only `en-gb`), `default-language-sk`, `profile-cs-dark`, `profile-language-disabled` and `preferences-save-fails`.
-- [ ] T117 [P] [US6] Write `tests/e2e/preferences/preferences.spec.ts`. It covers:
+- [X] T116 [US6] Extend `tests/mocks/handlers/identity.ts` with `updatePreferences`: JSON Merge Patch, `If-Match` and `412`, `422 notInList` with `allowed`, refusal in restricted sessions, a stored language that is no longer enabled reading as the default, and failure injection. Add the scenarios `languages-none-translated` (only `de-de`), `languages-single` (only `en-gb`), `default-language-sk`, `profile-cs-dark`, `profile-language-disabled` and `preferences-save-fails`.
+- [X] T117 [P] [US6] Write `tests/e2e/preferences/preferences.spec.ts`. It covers:
   - US6-AS1: Czech switches the text, dates and numbers at once, `<html lang="cs-CZ">` is set (FR-088), the choice is saved, and a new context signs in in Czech;
   - US6-AS2: the dark theme applies at once with the dark logo and is saved;
   - US6-AS3: `system` follows `emulateMedia` changes without a reload;
@@ -775,20 +775,24 @@ language.
   - Edge: no translated server language gives English, no choice and no language save, while the theme is still saved;
   - Edge: a profile language no longer enabled uses the server default;
   - FR-038 and Edge: on the pending-actions screen of `forced-password-change`, the language and theme choices are offered and apply on the device only, with no `updatePreferences` request.
-- [ ] T118 [P] [US6] Write `tests/unit/app/preferences/sync.spec.ts` (profile versus sign-in choice, `canSave` per field, `If-Match` through `useVersionedSave`, a `412` applying the reloaded value, restore on other failures, local-only when restricted, an untranslated profile language not applied and not overwritten) and `tests/unit/app/preferences/selects.spec.ts` (`LanguageSelect` lists languages by native name with no flags and is hidden with fewer than two; `ThemeSelect` offers three labelled options).
-- [ ] T119 [P] [US6] Write `tests/smoke/preferences.smoke.spec.ts`: `admin` switches to `cs-cz` and dark, signs out, and a new browser context signs in in Czech and dark.
+
+  *Implementation note*: SC-012 is measured in the page, from the `change` of the sign-in screen's language select to the translated heading (the same `chooseLocale` path as the user menu). Through the user menu, WebKit's emulated tap reaches Reka's menu item seconds late on a loaded machine, before the app is involved.
+- [X] T118 [P] [US6] Write `tests/unit/app/preferences/sync.spec.ts` (profile versus sign-in choice, `canSave` per field, `If-Match` through `useVersionedSave`, a `412` applying the reloaded value, restore on other failures, local-only when restricted, an untranslated profile language not applied and not overwritten) and `tests/unit/app/preferences/selects.spec.ts` (`LanguageSelect` lists languages by native name with no flags and is hidden with fewer than two; `ThemeSelect` offers three labelled options).
+- [X] T119 [P] [US6] Write `tests/smoke/preferences.smoke.spec.ts`: `admin` switches to `cs-cz` and dark, signs out, and a new browser context signs in in Czech and dark.
 
 ### Implementation for User Story 6
 
-- [ ] T120 [US6] Implement `src/app/preferences/sync.ts` (FR-059–FR-061):
+- [X] T120 [US6] Implement `src/app/preferences/sync.ts` (FR-059–FR-061):
   - applying the profile after sign-in;
   - `chosenOnSignIn`, which wins and is `PATCH`ed;
   - `PATCH /me/preferences` with `If-Match: preferences.etag` through `useVersionedSave`;
   - on failure, restoring the previous setting with a message;
   - no save when `canSave` is false;
   - remembering the applied language and theme on the device.
-- [ ] T121 [US6] Implement `src/app/preferences/LanguageSelect.vue` (a native `<select>` by native name) and `src/app/preferences/ThemeSelect.vue` (a radio group or native `<select>`). Place them in `src/app/shell/UserMenu.vue` and in `src/app/layouts/AuthLayout.vue`, so that they appear on the sign-in screens and the pending-actions screen (FR-058). Locales load lazily before they are applied.
-- [ ] T122 [US6] Add the `preferences.*` messages (language, theme, saved, not saved) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with legacy-map entries for unchanged labels. `npm run i18n:check` must pass.
+- [X] T121 [US6] Implement `src/app/preferences/LanguageSelect.vue` (a native `<select>` by native name) and `src/app/preferences/ThemeSelect.vue` (a radio group or native `<select>`). Place them in `src/app/shell/UserMenu.vue` and in `src/app/layouts/AuthLayout.vue`, so that they appear on the sign-in screens and the pending-actions screen (FR-058). Locales load lazily before they are applied.
+
+  *Implementation note*: in the user menu the choices are Reka radio items (`menuitemradio`), the accessible pattern inside a menu, where a native select would fight the menu's keyboard handling; `LanguageSelect` and `ThemeSelect` (native selects) sit in `AuthLayout`. The other offered languages are prefetched once the app is idle. A failed or outdated save is shown by the shell (`usePreferencesStore().saveMessage`).
+- [X] T122 [US6] Add the `preferences.*` messages (language, theme, saved, not saved) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, with legacy-map entries for unchanged labels. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US6 work on their own.
 

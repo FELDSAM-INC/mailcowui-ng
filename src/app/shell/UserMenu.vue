@@ -1,22 +1,38 @@
 <script setup lang="ts">
-// The user menu (FR-042): username, role, Passkeys and Sign out. Language and theme choice arrive
-// with US6 (T121). Sign-out is never confirmed (FR-036).
+// The user menu (FR-042, FR-058): username and role, the language and theme choices as radio
+// items, Passkeys and Sign out. Sign-out is never confirmed (FR-036).
 import { useI18n } from 'vue-i18n'
 
-import type { Identity } from '@/api'
+import { themeValues, type Identity, type Theme } from '@/api'
+import { isAppLocale, toBcp47 } from '@/i18n/locales'
 import { ChevronDownIcon, PasskeyIcon, SignOutIcon, UserCircleIcon } from '@/shared/icons'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 
+import { usePreferencesStore } from '../preferences/store'
+import { usePreferenceChoice } from '../preferences/sync'
+
 defineProps<{ identity: Identity; signingOut?: boolean }>()
 defineEmits<{ signOut: [] }>()
 const { t } = useI18n()
+const prefs = usePreferencesStore()
+const { chooseLocale, chooseTheme } = usePreferenceChoice()
+
+function onLocale(value: unknown) {
+  if (isAppLocale(value)) void chooseLocale(value)
+}
+
+function onTheme(value: unknown) {
+  if ((themeValues as readonly unknown[]).includes(value)) void chooseTheme(value as Theme)
+}
 </script>
 
 <template>
@@ -29,7 +45,7 @@ const { t } = useI18n()
       <span class="hidden truncate font-medium sm:inline">{{ identity.username }}</span>
       <ChevronDownIcon class="size-4 shrink-0" />
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="max-w-[calc(100vw-2rem)]">
+    <DropdownMenuContent align="end" class="max-h-[80dvh] max-w-[calc(100vw-2rem)] overflow-y-auto">
       <DropdownMenuLabel class="px-3 py-2">
         <span class="block text-xs text-gray-600 dark:text-gray-400">{{
           t('shell.userMenu.signedInAs')
@@ -41,6 +57,40 @@ const { t } = useI18n()
           t(`roles.${identity.role}`)
         }}</span>
       </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <template v-if="prefs.showLanguageChoice">
+        <DropdownMenuLabel class="px-3 pt-2 pb-1 text-xs text-gray-600 dark:text-gray-400">
+          {{ t('preferences.language') }}
+        </DropdownMenuLabel>
+        <!-- The choice applies on the item's select event: the radio group's value follows later. -->
+        <DropdownMenuRadioGroup :model-value="prefs.locale">
+          <DropdownMenuRadioItem
+            v-for="locale in prefs.availableLocales"
+            :key="locale"
+            :value="locale"
+            :lang="toBcp47(locale)"
+            class="min-h-11"
+            @select="onLocale(locale)"
+          >
+            {{ t(`preferences.languages.${locale}`) }}
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+      </template>
+      <DropdownMenuLabel class="px-3 pt-2 pb-1 text-xs text-gray-600 dark:text-gray-400">
+        {{ t('preferences.theme') }}
+      </DropdownMenuLabel>
+      <DropdownMenuRadioGroup :model-value="prefs.theme">
+        <DropdownMenuRadioItem
+          v-for="theme in themeValues"
+          :key="theme"
+          :value="theme"
+          class="min-h-11"
+          @select="onTheme(theme)"
+        >
+          {{ t(`themes.${theme}`) }}
+        </DropdownMenuRadioItem>
+      </DropdownMenuRadioGroup>
       <DropdownMenuSeparator />
       <DropdownMenuItem to="/passkeys" class="min-h-11">
         <PasskeyIcon />

@@ -13,7 +13,7 @@ import {
   type WebAuthnChallenge,
   type Writable,
 } from '@/api'
-import { usePreferencesStore } from '@/app/preferences/store'
+import { applyProfileAfterSignIn } from '@/app/preferences/sync'
 import { sessionContext } from '@/app/session/context'
 import {
   anonymousSession,
@@ -80,7 +80,7 @@ export async function acceptSession(session: Session): Promise<void> {
     useSessionStore().keptUsername = null
     try {
       const identity = await ctx.queryClient.fetchQuery({ ...identityQuery(), staleTime: 0 })
-      if (identity.preferences) await usePreferencesStore().applyProfile(identity.preferences)
+      await applyProfileAfterSignIn(identity)
     } catch {
       // The guard reads the identity again on the next navigation.
     }

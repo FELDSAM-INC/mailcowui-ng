@@ -464,6 +464,18 @@
       "other": "Klasické rozhranie"
     }
   },
+  "preferences": {
+    "changedElsewhere": "Vaše predvoľby boli zmenené inde. Teraz sa zobrazuje uložené nastavenie; prípadne vyberte znova.",
+    "language": "Jazyk",
+    "languages": {
+      "cs-cz": "Čeština",
+      "en-gb": "English",
+      "sk-sk": "Slovenčina"
+    },
+    "notSaved": "Zmena nebola uložená. Platí predchádzajúce nastavenie.",
+    "saved": "Uložené.",
+    "theme": "Motív"
+  },
   "problem": {
     "api-key-expired": "Platnosť tohto API kľúča vypršala.",
     "api-key-invalid": "API kľúč nie je platný.",

@@ -11,16 +11,25 @@ is pinned, how it is vendored and how the client is generated from it.
 | API repository | `FELDSAM-INC/mailcow-rest-v2` |
 | API feature | 001 – authentication, sessions, passkeys, identity, preferences, API keys, public configuration, audit log |
 | Contract version (`info.version`) | `0.1.0` |
-| Planning baseline commit | `293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa` (2026-10-18, "Resolve analysis findings for feature 001"; the last commit touching `api/`) |
+| Pinned commit (authoritative) | `293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa` (2026-10-18, "Resolve analysis findings for feature 001"): the complete feature 001 contract, without later features |
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` (single file, not dereferenced) |
 | Bundle sha256 at the baseline | `8fb1d4b4c150390fce8fd1c07687badbe7177943ce686b5e68b14b71f4c4b7b7` |
 | Operations | 31 |
 
 The setup task that vendors the contract (T008 in [tasks.md](../tasks.md)) runs the bump script
-against the then-latest commit of mailcow-rest-v2, or against the `v0.1.0` tag once it exists. The
-script writes the commit actually pinned to `contract/VERSION.json`, which is authoritative from
-then on. Any later change is a deliberate contract bump (constitution I): run the script, then
-`npm run typecheck`, `npm test` and the end-to-end suite.
+against exactly this commit, unless mailcow-rest-v2 publishes a release tag for the feature 001
+contract. It must not take "the latest commit": mailcow-rest-v2 merges the contracts of later
+features into the same `api/` tree without changing `info.version`, so `0.1.0` does not identify a
+contract. The script writes the pinned commit to `contract/VERSION.json`, which is authoritative
+from then on. Any later change is a deliberate contract bump (constitution I): run the script,
+then `npm run typecheck`, `npm test` and the end-to-end suite.
+
+**Known gap at the baseline**: `KnownProblemType` is not referenced by any operation or schema, so
+the bundle leaves it out and no `knownProblemTypeValues` constant is generated. It is reported to
+mailcow-rest-v2 as plan API gap 5: list it under `components.schemas` in `api/openapi.yaml`. It
+does not block feature 001. All 20 problem types occur by name in the bundle's response
+descriptions, and the translation check derives them from there. The list is never written by
+hand.
 
 ## Files in the repository
 
@@ -29,7 +38,7 @@ then on. Any later change is a deliberate contract bump (constitution I): run th
 | `contract/openapi.yaml` | The bundled contract, byte-identical to the API's release artifact (`GET /api/v2/openapi.yaml`) | No |
 | `contract/openapi.json` | The same bundle as JSON, read by the mock validator (`tests/mocks/contract/validator.ts`) | No |
 | `contract/VERSION.json` | `repository`, `ref`, `commit`, `contractVersion`, `sha256`, `bundler`, `pinnedAt` | No (written by the script) |
-| `src/api/generated/schema.d.ts` | Generated types: `paths`, `operations`, `components`, root types and enumeration value arrays | No |
+| `src/api/generated/schema.ts` | Generated types: `paths`, `operations`, `components`, root types and enumeration value arrays | No |
 
 ## Commands
 
@@ -40,7 +49,7 @@ MAILCOW_REST_V2_DIR=../mailcow-rest-v2 scripts/contract/bump.sh <ref>
 # Regenerate the JSON bundle and the TypeScript types from contract/openapi.yaml.
 npm run contract:generate
 #   = redocly bundle contract/openapi.yaml --ext json -o contract/openapi.json
-#   + openapi-typescript contract/openapi.yaml -o src/api/generated/schema.d.ts \
+#   + openapi-typescript contract/openapi.yaml -o src/api/generated/schema.ts \
 #       --root-types --root-types-no-schema-prefix --enum-values --read-write-markers --alphabetize
 
 # CI: checksum, regeneration and a clean git diff.
@@ -112,5 +121,5 @@ This is the spec's error table, resolved to contract types. Messages come from
 | `validation-failed` | 422 | Field messages from `errors`; summary when there is more than one (FR-076) |
 | `about:blank` 404 | 404 | "Not found" state with a way back |
 | `about:blank` 412 | 412 | "Changed elsewhere": reload and let the user retry (`useVersionedSave`) |
-| `service-unavailable` | 503 | Full-page "temporarily unavailable" with retry |
+| `service-unavailable` | 503 | Documented only for `GET /health/ready`, which the app never calls, so it cannot be received. It is translated because the bundle names it. "API not ready" reaches the app as a network failure, a non-JSON 502 or 503 from nginx, or a documented `500`, and shows the full-page "temporarily unavailable" with retry (research R11). |
 | `session-required`, `api-key-*`, `insufficient-key-scope`, unknown types, other statuses (including 419) | — | Generic message with retry and the request ID (FR-077) |

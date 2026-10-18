@@ -13,7 +13,7 @@ This app owns no persistent data. This document defines the following:
   secret.
 
 Decisions are justified in [research.md](./research.md). Contract shapes are not restated: types
-come from `src/api/generated/schema.d.ts` through `@/api` (research R7).
+come from `src/api/generated/schema.ts` through `@/api` (research R7).
 
 ## 1. API data consumed
 
@@ -34,12 +34,13 @@ These are generated root types, imported from `@/api`.
 | `ApiKeyOwnerCandidate` | `listApiKeyOwnerCandidates` | owner picker | infinite list |
 | `AuditEvent`, `AuditActor`, `AuditTarget`, `AuditEventType`, `AuditOutcome`, `AuditFailureReason`, `AuthMethod` | `listAuditEvents` | audit-log feature | unknown enumeration values are tolerated (FR-074) |
 | `ListMeta` | every list | lists | `total`, `limit`, `offset` |
-| `Problem`, `ValidationProblem`, `FieldViolation`, `ValidationRuleCode`, `KnownProblemType`, `TooManyRequestsProblem`, `PendingActionProblem` | every error | `ApiProblem`, i18n | R8, R15 |
+| `Problem`, `ValidationProblem`, `FieldViolation`, `ValidationRuleCode`, `TooManyRequestsProblem`, `PendingActionProblem` | every error | `ApiProblem`, i18n | R8, R15. `KnownProblemType` is not in the bundle at the pin (plan API gap 5). |
 
-Operations of the contract that this feature does not call: `getPreferences` (the identity
-carries the preferences), `getPasskey` (list entries carry `etag`), `getPublicConfigLogo` (used
-only as an `<img src>`), and `getLiveness`, `getReadiness`, `getOpenApiDocument`, `getApiDocs` and
-`getProblemTypeDocumentation`. `getApiDocs` is the target of the documentation link (FR-069).
+Two operations are used without a client call: `getPublicConfigLogo` only as an `<img src>`, and
+`getApiDocs` only as the target of the documentation link (FR-069). Both are among the 25 used
+operations in [contracts/README.md](./contracts/README.md). Not used at all: `getPreferences` (the
+identity carries the preferences), `getPasskey` (list entries carry `etag`), `getLiveness`,
+`getReadiness`, `getOpenApiDocument` and `getProblemTypeDocumentation`.
 
 ## 2. App-defined models
 
@@ -80,6 +81,16 @@ The catalogue rows, in navigation order:
 | `apiKeys` | `/api-keys` | ✓ | — | — | 001 | available |
 | `auditLog` | `/audit-log` | ✓ | — | — | 001 | available |
 
+The "status in 001" column is the state once feature 001 is complete. Every row starts as
+`placeholder`, and the story that registers a row's routes flips it to `available`:
+
+- `home`: US1 (T083);
+- `passkeys`: US4 (T106);
+- `apiKeys`: US7 (T129);
+- `auditLog`: US8 (T139).
+
+This way no navigation entry can lead to "not found" at any intermediate point (SC-007).
+
 `visibleEntries(identity)` returns the rows whose `access[identity.role]` is `true`, or whose flag
 condition holds in `identity.permissions`. The user menu holds "Passkeys", language, theme and
 "Sign out" (FR-042). Passkeys appears both there and in the navigation, as the catalogue lists it.
@@ -98,9 +109,12 @@ No section and no menu is shown when the list is empty (FR-001a).
 
 ### ProblemView (`src/api/problem.ts` → `src/i18n/problems.ts`)
 
-`ApiProblem` has these fields:
+`ApiProblem` is a runtime wrapper whose fields are typed from the generated types, not restated:
+`Problem['type' | 'status' | 'requestId']`, `TooManyRequestsProblem['retryAfter']`, `FieldViolation`
+and `PendingAction`. Its fields:
 
-- `kind`: `'problem'` or `'network'`;
+- `kind`: `'problem'`, `'network'`, or `'unavailable'` for a non-problem response of 500 or more,
+  such as nginx's HTML 502;
 - `type`, `status` and `requestId`;
 - `retryAfter`: seconds, from 429 and 503;
 - `fieldErrors`: a `Map<string, FieldViolation[]>`;
@@ -125,21 +139,26 @@ These come from `src/api/query/keys.ts`.
 |---|---|---|---|---|
 | `['public-config']` | `getPublicConfig` | 5 min | at bootstrap; when the sign-in screen opens after a sign-out | `cache: 'no-cache'` lets the ETag and `304` work. A failure falls back to the FR-003 defaults. |
 | `['session']` | `getSession` | ∞ | at bootstrap; on "Stay signed in"; after `second-factor-required`, `pending-action-required` and cross-tab messages | sign-in responses write it with `setQueryData` |
-| `['identity']` | `getIdentity` | 5 min | after each sign-in; at bootstrap when signed in; on a shell navigation when older than 5 min (FR-050); after `forbidden` and `pending-action-required`; on "Check again" | a change of `username` or `role` clears the cache (FR-037) |
+| `['identity']` | `getIdentity` | 5 min | after a sign-in step that results in `active` or `restricted`; at bootstrap when signed in; on a shell navigation when older than 5 min (FR-050); after `forbidden` and `pending-action-required`; on "Check again", together with `session` | a change of `username` or `role` clears the cache (FR-037) |
 | `['passkeys','list',{limit,offset,sort:'registeredAt',order:'desc'}]` | `listPasskeys` | 30 s | on the passkeys page; on the home screen with `limit: 1` for the suggestion (FR-047) | — |
 | `['api-keys','list',ApiKeyListParams]` | `listApiKeys` | 30 s | on the API keys page | params come from the address (§5) |
 | `['api-keys','detail',apiKeyId]` | `getApiKey` | 30 s | on the detail page | the revoke response writes it with `setQueryData` |
 | `['api-keys','owner-candidates',{q,role?}]` | `listApiKeyOwnerCandidates` | 30 s | when the picker opens and on typing (debounced 300 ms) | `useInfiniteQuery`, 25 per page, by `offset` |
 | `['audit-events','list',AuditListParams]` | `listAuditEvents` | 30 s | on the audit log page | params come from the address (§5) |
 
+`ApiKeyListParams` and `AuditListParams` are aliases of the generated
+`NonNullable<operations['listApiKeys']['parameters']['query']>` and
+`NonNullable<operations['listAuditEvents']['parameters']['query']>`. They are not hand-written
+shapes (constitution I).
+
 ### Invalidation after mutations
 
 | Mutation | On success | On 412 |
 |---|---|---|
-| `createSession`, `verifySecondFactor`, `createSessionWithPasskey` | write `session`; fetch `identity`; broadcast `session-changed` | — |
+| `createSession`, `verifySecondFactor`, `createSessionWithPasskey` | write `session`; only when the state is `active` or `restricted`, fetch `identity` and broadcast `session-changed` (research R11) | — |
 | `cancelPendingSignIn` | write `session` (anonymous) | — |
 | `deleteSession` | `queryClient.clear()`; broadcast `signed-out`; new CSRF token | — |
-| `updatePreferences` | write `identity.preferences` from the response | refetch `identity`; restore the previous setting; message (FR-059) |
+| `updatePreferences` | write `identity.preferences` from the response | refetch `identity`; apply the reloaded server value; message "changed elsewhere, choose again". FR-059 and the spec's edge case govern a single immediate choice (research R20). Any other failure restores the previous setting with a message. |
 | `registerPasskey` | invalidate `['passkeys']`; refetch `identity` and `session`, because a pending `secondFactorSetup` lifts (FR-039); broadcast `session-changed` if the state changed | — |
 | `updatePasskey` | replace the entry in `['passkeys','list',…]`; invalidate the other pages | keep the input; refetch the list; "changed elsewhere" (edge case) |
 | `deletePasskey` | invalidate `['passkeys']` | refetch; confirm the deletion again (conventions) |
@@ -170,7 +189,11 @@ only to the secret dialog's local state (FR-066).
 | `theme` | `Theme` (`light`, `dark`, `system`) | Applied to `<html class="dark">` and `color-scheme` |
 | `chosenOnSignIn` | `{ locale: boolean; theme: boolean }` | `true` after an explicit choice on a sign-in screen during this visit (FR-061) |
 | `availableLocales` | computed | server `languages` ∩ app locales; empty means `en-gb` with no choice and no saving (FR-060) |
-| `canSave` | computed | the session is `active` and the locale is offered. A restricted session applies changes on this device only. |
+| `canSave` | computed, **per field** | `canSave.theme`: the session is `active`. `canSave.locale`: the session is `active` and `availableLocales` is not empty. A restricted session applies changes on this device only. |
+
+A profile language that the server still enables but the app does not translate (for example
+`de-de`) is not applied. The app falls back to the pre-sign-in order of FR-061 and does not
+overwrite the profile language unless the user chooses one.
 
 ### Device storage (`src/shared/platform/storage.ts`, each call in `try/catch`)
 
@@ -201,7 +224,7 @@ is enforced by the guard (session state) and by `ShellLayout` (catalogue).
 
 | Name | Path | Layout | Access | Title key | Component (chunk) |
 |---|---|---|---|---|---|
-| `sign-in` | `/sign-in` | auth | anonymous | `auth.signIn.title` | `features/auth/pages/SignInPage.vue` (eager) |
+| `sign-in` | `/sign-in` | auth | anonymous | `auth.signIn.title` | `features/auth/pages/SignInPage.vue` (lazy, like every route) |
 | `sign-in-admin` | `/sign-in/admin` | auth | anonymous | `auth.signIn.titleAdmin` | same page, `props: { role: 'admin' }` |
 | `sign-in-domain-admin` | `/sign-in/domain-admin` | auth | anonymous | `auth.signIn.titleDomainAdmin` | same page, `role: 'domainAdmin'` |
 | `sign-in-mailbox-user` | `/sign-in/mailbox-user` | auth | anonymous | `auth.signIn.titleMailboxUser` | same page, `role: 'mailboxUser'` |
@@ -260,7 +283,11 @@ are reserved for the contract bump that adds target filters (research R20).
 
 ## 6. Client-side validation
 
-These checks run before submitting. Server field errors are always shown too (FR-076).
+These checks run before submitting. Server field errors are always shown too (FR-076). The numeric
+limits are contract values: 255 characters, 100 networks, 49 characters per network, 20 event
+types and 4096 characters for passwords. API 001 has no capabilities read, so they live in one
+module, `src/shared/validation/limits.ts`. A unit test compares each limit with its `maxLength`
+or `maxItems` in `contract/openapi.json`, so that a contract bump cannot leave them stale.
 
 | Field | Rule (from the contract or spec) | Message key |
 |---|---|---|
@@ -307,6 +334,7 @@ The second-factor step works as follows.
   | `401 second-factor-failed` | password step | `secondFactorRejected` (FR-024) |
   | `401 sign-in-expired` | password step | `signInTimedOut` |
   | `503 temporary-verification-failure` | stays in the step; retry or another method | — (FR-027) |
+  | WebAuthn prompt cancelled (`NotAllowedError`) | stays in the step; retry or another method; no request sent | — (FR-021) |
   | `403 second-factor-unavailable` (from the password step) | sign-in screen | `secondFactorUnavailable` (FR-028) |
   | countdown reaches 0 | `DELETE /session/pending-sign-in`, then password step | `signInTimedOut` |
   | "Cancel" | `DELETE /session/pending-sign-in`, then sign-in screen | — (FR-026) |
@@ -337,10 +365,13 @@ The timer runs only while the session is `active` or `restricted`.
 ```text
 shown(secret) ──copy ok──► copied ──close──► closed (secret cleared; replace route → key detail)
      │ copy refused → secret selected for manual copy, with a message
-     └──close without copy──► confirm "Have you saved the secret?" ──yes──► closed
-                                                                   └─no──► shown
+     └──close without copy, Escape, or leaving the page (Back, link)──► confirm "Have you saved
+                                                       the secret?" ──yes──► closed
+                                                                    └─no──► shown
 ```
 
 The secret lives only in the dialog's local `ref`. It is not in route state, the query cache,
 storage or history, and closing clears it. No history entry is pushed while the dialog is open,
-so Back and Forward cannot bring it back (FR-066, US7 AS-11).
+so Back and Forward cannot bring it back (FR-066, US7 AS-11). While the dialog is open,
+`onBeforeRouteLeave` on `ApiKeyCreatePage` asks the same confirmation before any navigation
+(FR-080).

@@ -908,7 +908,8 @@ and the persistence of filters across reloads.
 #### Audit log
 
 - **FR-071**: The audit log MUST be available to administrators only (FR-043, FR-045).
-- **FR-072**: The list MUST show records newest first, 25 per page, with the total count. Each
+- **FR-072**: The list MUST show records newest first, 25 per page by default (page sizes 25, 50
+  and 100, as `docs/conventions.md` sets for every list), with the total count. Each
   record MUST show the time, the event type, the outcome (in text, not only colour), the actor
   (username and role, the key identifier, or the attempted username of a failed sign-in), the
   client address, the authentication method and, for failures, the reason. The target, the user

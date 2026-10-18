@@ -73,7 +73,7 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
   | `tailwindcss`, `@tailwindcss/vite` | 4.3.3 | MIT | Styling (TailAdmin's v4 theme). The Vite plugin replaces TailAdmin's PostCSS setup. |
   | `tw-animate-css` | 1.4.0 | MIT | CSS-only animation utilities that TailAdmin's primitives use (`animate-in`, `fade-in-0`) |
   | `@intlify/unplugin-vue-i18n` | 11.2.7 | MIT | Precompiles messages; switches to the runtime-only vue-i18n build (R15) |
-  | `openapi-typescript` | 7.13.0 | MIT | Generates `src/api/generated/schema.d.ts` (R7) |
+  | `openapi-typescript` | 7.13.0 | MIT | Generates `src/api/generated/schema.ts` (R7) |
   | `@redocly/cli` | 2.64.1 | MIT | Lints and bundles the contract. Same version as mailcow-rest-v2. |
   | `msw` | 3.0.3 | MIT | Mock handlers for every test transport (R22) |
   | `openapi-msw` | 2.1.0 | MIT | Types MSW handlers from the generated `paths` |
@@ -90,6 +90,7 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
   | `eslint-plugin-vuejs-accessibility` | 2.6.2 | MIT | Template accessibility lint |
   | `eslint-config-prettier`, `prettier` | 10.1.8, 3.9.10 | MIT | Formatting |
   | `jiti` | 2.7.0 | MIT | Loads `eslint.config.ts` |
+  | `tsx` | 4.23.15 | MIT | Runs the TypeScript mock server (`tests/mocks/server.ts`) and TypeScript scripts with tsconfig paths. Node's built-in type stripping resolves neither the `@/` alias nor extensionless imports. |
 
   TypeScript runs strictly (`strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`,
   `noFallthroughCasesInSwitch`, `verbatimModuleSyntax`). `exactOptionalPropertyTypes` stays off,
@@ -225,13 +226,18 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - `bundler`: `@redocly/cli@2.64.1`;
     - `pinnedAt`.
 
-  The **planning baseline** is contract `0.1.0` at commit
-  `293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa` ("Resolve analysis findings for feature 001"). This is
-  the last commit that touches `api/` and contains the complete feature 001 contract: 31
-  operations, including `appLinks`, `appsLabel` and `GET /api-keys/owner-candidates`. Its bundle has
-  sha256 `8fb1d4b4c150390fce8fd1c07687badbe7177943ce686b5e68b14b71f4c4b7b7`. Task T008 re-pins to the
-  then-latest commit, or to the `v0.1.0` tag once it exists, and records it in
-  [contracts/README.md](./contracts/README.md).
+  **The pin is commit `293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa`** ("Resolve analysis findings for
+  feature 001"). It contains the complete feature 001 contract, with 31 operations including
+  `appLinks`, `appsLabel` and `GET /api-keys/owner-candidates`, and nothing of later features. Its
+  bundle has sha256 `8fb1d4b4c150390fce8fd1c07687badbe7177943ce686b5e68b14b71f4c4b7b7`.
+
+  **`info.version` does not identify a contract.** mailcow-rest-v2 keeps `0.1.0` while the
+  contracts of later features are merged into the same `api/` tree: its HEAD on 2026-10-18 already
+  has about 250 paths. The commit SHA is therefore authoritative.
+
+  T008 pins exactly this commit, unless mailcow-rest-v2 publishes a release tag for the feature 001
+  contract, and records the result in [contracts/README.md](./contracts/README.md). Later UI
+  features bump the pin when they need their own operations.
 
   `scripts/contract/bump.sh <ref>` performs a pin in these steps:
   1. It resolves `<ref>` in `$MAILCOW_REST_V2_DIR` (default `../mailcow-rest-v2`) or, when that
@@ -259,13 +265,28 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
 ### R7. Generated client and types
 
 - **Decision**:
-  - `openapi-typescript contract/openapi.yaml -o src/api/generated/schema.d.ts --root-types
+  - `openapi-typescript contract/openapi.yaml -o src/api/generated/schema.ts --root-types
     --root-types-no-schema-prefix --enum-values --read-write-markers --alphabetize` runs as
     `npm run contract:generate`.
     - `--root-types` exports `Session`, `Identity`, `ApiKey` and the other schemas as named types.
     - `--enum-values` exports constant arrays of enumeration values (for example
-      `knownProblemTypeValues`, `validationRuleCodeValues` and `auditEventTypeValues`). The
-      translation check (R27) and the problem mapper (R8) use them.
+      `validationRuleCodeValues`, `auditEventTypeValues` and `apiKeyStatusValues`). The
+      translation check (R27) and the problem mapper (R8) use them. Because these arrays are
+      runtime values, the output is a `.ts` file, not `.d.ts`. This was verified by generating from
+      the planning baseline.
+    - **Problem types**: contract 0.1.0 defines `KnownProblemType` "so that generated clients get
+      constants", but no operation or schema references it. The bundled artifact, the API's own
+      release file, therefore leaves it out, and no `knownProblemTypeValues` is generated
+      (verified at the baseline).
+      - This is reported to mailcow-rest-v2 as API gap 5 in the plan: the root document should
+        list it under `components.schemas`.
+      - **Not blocking**: all 20 problem types of API 001 occur by name
+        (`/api/v2/problems/<name>`) in the bundle's response descriptions. The translation check
+        derives the required set from there (R27).
+      - At runtime the problem mapper needs no list: it keys messages by the last path segment of
+        `type` and has a fallback (R15). Only typed constants are missing until a later pin includes
+        the fix.
+      - The UI never copies the list by hand (constitution I).
     - `--read-write-markers` lets `openapi-fetch` drop `readOnly` and `writeOnly` fields in the
       right direction.
   - The generated file is committed, marked `linguist-generated` in `.gitattributes`, and excluded
@@ -280,9 +301,9 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     of R8. It sets `cache: 'no-store'` for every request except `GET /public-config`, which uses
     `cache: 'no-cache'` so that the browser revalidates with `If-None-Match` and the API's
     `ETag`/`304` work.
-- **Rationale**: `openapi-typescript` plus `openapi-fetch` is a types-only generator plus a 2 KB
-  runtime: there is no generated runtime code to review, and every path, parameter, body and
-  status is checked by `vue-tsc`. Root types and enumeration arrays remove the reason anyone would
+- **Rationale**: `openapi-typescript` plus `openapi-fetch` is a type generator, whose only runtime
+  output is the constant enumeration arrays, plus a 2 KB runtime. There is no generated request
+  code to review, and every path, parameter, body and status is checked by `vue-tsc`. Root types and enumeration arrays remove the reason anyone would
   write API types by hand.
 - **Alternatives considered**:
   - `@hey-api/openapi-ts` or `orval`: rejected. They generate runtime SDK code (tens of KB) and
@@ -313,8 +334,10 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
      - `pendingActions`;
      - the response `Date` header.
 
-     A network failure becomes `ApiProblem` with `kind: 'network'`. The English `title` and
-     `detail` are kept for logs only and are never shown (FR-075).
+     A network failure becomes `ApiProblem` with `kind: 'network'`. A response of status 500 or
+     higher that is not problem+json, such as nginx's HTML 502 page while the API container is
+     down, becomes `kind: 'unavailable'`. The English `title` and `detail` are kept for logs only
+     and are never shown (FR-075).
   4. **Session-level reactions**, in the query and mutation caches' `onError` and not in
      middleware, so that tests can observe them:
      - `unauthenticated`: the session has ended (FR-034, R11).
@@ -430,8 +453,10 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     2. Then, in parallel: `GET /session` and `GET /public-config`.
     3. If the session is `active` or `restricted`: `GET /me`.
 
-    On a network error, a `5xx` or a `503`, the app shows `ServiceUnavailablePage` with a retry
-    action (spec edge case). A failed `public-config` alone does not block: the app falls back to
+    On a network error or any `5xx`, including the non-JSON 502 or 503 that nginx answers while the
+    API container is down, the app shows `ServiceUnavailablePage` with a retry action (spec edge
+    case "API not ready"). The documented `service-unavailable` problem belongs to
+    `GET /health/ready` only, which the app never calls. A failed `public-config` alone does not block: the app falls back to
     the built-in defaults of FR-003, with `location.hostname` as the product name.
   - **States** come from `Session.state` and map to routes in the global guard
     (`src/app/router/guards.ts`):
@@ -646,9 +671,16 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
       **upstream baseline** with `git -C $MAILCOW_REPO show 2026-09a:<path>`. `MAILCOW_REPO`
       defaults to `../mailhosting`, which carries the upstream tags.
     - The script converts `%s` placeholders to `{0}`, escapes vue-i18n's special characters
-      (`{ } @ $ |`) as literal interpolations, and refuses any mapped value that contains HTML or
-      the words "FIDO2" or "Touch ID".
-    - It writes the legacy layer.
+      (`{ } @ $ |`) as literal interpolations, and strips decorative leading and trailing glyphs
+      (`>`, `»`, `›` and whitespace; legacy writes "> Forgot Password?"). It refuses any mapped
+      value that contains HTML or the words "FIDO2" or "Touch ID".
+    - It writes the legacy layer, per locale, only for the keys that exist in that locale's legacy
+      file.
+    - **Partly translated legacy keys**: the upstream `sk-sk` file lacks 187 of 1,390 keys,
+      including `login.login_user`, `login.login_admin`, `login.login_dadmin` and
+      `login.forgot_password`. A mapped key must exist in `en-gb`. For a locale whose legacy file
+      lacks it, the hand-written layer of *that locale* supplies the value. A key defined in both
+      layers *for the same locale* is an error.
     - Keys are mapped only where the meaning is unchanged. Texts that name the product or the
       operator are never mapped (FR-086).
   - **API problems and rule codes** (`src/i18n/problems.ts`, FR-075 and FR-076):
@@ -658,7 +690,8 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - Validation messages are `validation.<code>` with named parameters:
       - `max` and `min` are formatted as numbers;
       - `allowed` is formatted with `Intl.ListFormat`;
-      - `format` becomes the translated `validation.format.<format>`;
+      - `format` selects `validation.format.<format>`; an unknown format falls back to the plain
+        `validation.invalidFormat` message;
       - `allowedRoles` becomes the translated role names.
     - An unknown code falls back to `validation.invalid`.
     - Field paths map to form fields by their dot path, for example `allowedNetworks.2` maps to the
@@ -716,6 +749,9 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     No product, operator or brand name exists anywhere in the source (constitution IV). The page
     title is `"{page} – {pageTitle}"` (FR-049), set in a router `afterEach` and again when the
     language or the configuration changes.
+  - **Favicon**: `<link rel="icon" href="/favicon.png">` uses the host's own favicon. That is the
+    same legacy web root that the contract's default logo URL (`/img/cow_mailcow.svg`) points to,
+    and UI 014 keeps the root icon files (row X10). The app ships no icon of its own.
   - **Announcement** (`AnnouncementBanner.vue`, FR-048): shown in both layouts. Its type is given as
     an icon with a text alternative plus a visually hidden prefix ("Warning:"). It can be collapsed
     for the visit.
@@ -777,9 +813,11 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
       static subtrees into `innerHTML`, and parsed style attributes are blocked.
     - Dynamic `:style` bindings are allowed. Vue applies them through CSSOM (`el.style`), which
       CSP does not block, and Reka UI's floating positioning relies on them.
-    - **Forbidden Reka UI parts**: `SelectViewport`, `ComboboxViewport`, `ScrollAreaViewport`,
-      the toast `Viewport` and `SplitterResizeHandle`. Each renders a `<style>` element, verified
-      in `reka-ui@2.11.0/dist`, that a strict `style-src` blocks. `no-restricted-imports` with
+    - **Forbidden Reka UI parts**: `SelectViewport`, `ComboboxViewport` (also re-exported as
+      `AutocompleteViewport`), `ScrollAreaViewport`, the generic `Viewport` and
+      `SplitterResizeHandle`. Each renders or injects a `<style>` element, verified in
+      `reka-ui@2.11.0/dist`, that a strict `style-src` blocks. `ToastViewport` and
+      `NavigationMenuViewport` only bind a `style` prop and are allowed. `no-restricted-imports` with
       `importNames` enforces this. Selects are native `<select>` elements, which are better on
       phones anyway. The owner picker uses Reka `Combobox` without its viewport, with a plain
       scrollable list (R20).
@@ -804,8 +842,8 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
 
 - **Decision**:
   - **Router**: `createWebHistory(import.meta.env.BASE_URL)`, with Vite `base: '/ng/'`, matching
-    API research R23 and UI 014. Every route component is lazy-loaded (constitution VII), except
-    the layouts and the sign-in page (the first screen). The full route map, with the addresses
+    API research R23 and UI 014. Every route component is lazy-loaded (constitution VII), including
+    the sign-in page. Only the two layouts are part of the entry chunk. The full route map, with the addresses
     that feature 014 maps to, is in [data-model.md](./data-model.md#route-map).
   - **Navigation catalogue** (`src/app/navigation/catalogue.ts`): one typed, ordered array that is
     the single source for the navigation, the home screen shortcuts, the placeholder routes and
@@ -876,8 +914,8 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
   | `useListState(schema)` | `shared/composables/useListState.ts` | API keys, audit log, passkeys | Conventions "Lists". It parses and normalises `route.query` against a typed schema of search, filters, sort, order, `page` and `size` (25, 50, 100; default 25), and omits defaults from the address. It maps the state to `limit` and `offset`. Explicit changes use `router.push` (Back restores the view), and typing and normalisation use `router.replace`. Changing filters, sort or size resets `page`. It offers an `onReset` hook for bulk selection. Nothing goes to storage. |
   | `ListState.vue` | `shared/components/` | the same three, plus the owner picker | Loading, empty and error states with retry (constitution II, FR-089) |
   | `PaginationBar.vue` | `shared/components/` | API keys, audit log, passkeys | Pages, total count and page size, built on TailAdmin `ui/pagination` |
-  | `useConfirm()` + `ConfirmDialog.vue` | `shared/composables/`, `shared/components/` | Passkey removal, key revocation, closing the secret dialog uncopied, idle-warning sign-out | Conventions "Confirmations". A promise-based confirmation on Reka `AlertDialog`, with one host in `App.vue`. |
-  | `useVersionedSave()` | `shared/composables/` | Preferences, passkey rename, passkey removal, key revocation | Conventions "Editing and conflicts". It sends `If-Match` with the `etag` that was read. On `412` it keeps the user's input, refetches the resource, exposes `outdated` and the latest value, and never retries or sends `*`. A refused deletion asks for confirmation again. |
+  | `useConfirm()` + `ConfirmDialog.vue` | `shared/composables/`, `shared/components/` | Passkey removal, key revocation, closing the secret dialog uncopied, leaving the create page while the secret is shown | Conventions "Confirmations". A promise-based confirmation on Reka `AlertDialog`, with one host in `App.vue`. Sign-out is never confirmed (FR-036). |
+  | `useVersionedSave()` | `shared/composables/` | Passkey rename, passkey removal, key revocation, preferences | Conventions "Editing and conflicts". It sends `If-Match` with the `etag` that was read. On `412` it keeps the user's input, refetches the resource, exposes `outdated` and the latest value, and never retries or sends `*`. A refused deletion asks for confirmation again. **Preferences** are a single immediate choice: FR-059 and the spec's edge case govern, so a `412` applies the reloaded server value, says the change was made elsewhere and lets the user choose again. |
   | `useProblemForm()`, `FormField.vue`, `ErrorSummary.vue` | `shared/composables/`, `shared/components/` | Sign-in, second factor, key creation, passkey rename, audit filters | FR-075 to FR-078. It maps `errors` paths to fields and builds the linked summary when there is more than one error. Focus moves to the summary or the field. |
   | `ProblemMessage.vue` | `shared/components/` | every screen | A translated message chosen by problem type, with the request ID for generic errors (FR-077) |
   | `SanitizedHtml.vue` | `shared/components/` | Help text, footer | R17 |
@@ -991,6 +1029,14 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
        - The browser selects its scenario with a `mock-scenario` cookie, which the Playwright
          fixture sets per test. Tabs of one test share it, so cross-tab tests work. Without a
          cookie, the server uses `MOCK_DEFAULT_SCENARIO`.
+  - **What a mock may not do**: closed enumerations (`AuditEventType`, `AuditFailureReason`,
+    `AuthMethod`, `ValidationRuleCode`) cannot carry values outside the pinned contract, even where
+    the contract says that clients must tolerate unknown ones. Their unknown-value behaviour
+    (FR-074, FR-076) is tested at unit level with plain values, not through mocked responses.
+  - **API not ready** is not an API response either. Because `service-unavailable` (503) is
+    documented only for `GET /health/ready`, end-to-end tests model it as a transport failure, with
+    Playwright `route.abort()` or an HTML 502 from `route.fulfill()` standing in for nginx, or as
+    the documented `500` of the bootstrap operations.
   - **WebAuthn in the mock**: the options have the right shape and random challenges. A
     registration stores the credential ID from the attestation. An assertion is accepted when its
     `rawId` is a known, active credential of the scenario and the challenge is current. Signatures
@@ -1040,9 +1086,10 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - `mockApi.use(scenario, overrides)`: creates a scenario and sets the cookie. After each test it
       asserts zero contract violations.
     - `expectAccessible(page)`: `@axe-core/playwright` with the tags `wcag2a`, `wcag2aa`,
-      `wcag21a`, `wcag21aa` and `wcag22aa`, run in both themes. It switches with
-      `page.emulateMedia({ colorScheme })` while the app's theme is `system`. Any violation fails
-      the test (constitution III, SC-004).
+      `wcag21a`, `wcag21aa` and `wcag22aa`, run in both themes. It switches by toggling the
+      `.dark` class on `<html>` together with `page.emulateMedia({ colorScheme })`, so both themes
+      are checked whatever theme the scenario's profile chose. Any violation fails the test
+      (constitution III, SC-004).
     - `cspViolations`: an `addInitScript` listener for `securitypolicyviolation`. Any event fails
       the test.
     - `expectNoHorizontalScroll(page)`: `scrollWidth <= clientWidth`, also at 320 px.
@@ -1051,10 +1098,17 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - `virtualAuthenticator(page)`: CDP `WebAuthn.enable` and `addVirtualAuthenticator` (ctap2,
       internal, resident key, user verification, automatic presence). A device without passkey
       support is simulated by deleting `window.PublicKeyCredential` in an init script.
+      `stubCredentials(result)` replaces `navigator.credentials.get` and `create` with a stub that
+      resolves with a contract-valid fake credential, or rejects with a named `DOMException`. Tests
+      that only need a submitted credential therefore run on WebKit too, because the mock does not
+      verify signatures.
     - Clock: `page.clock` for the idle warning, the second-factor limit and throttling.
   - **Coverage rule**: every acceptance scenario of every user story has at least one end-to-end
-    test, run on both viewports. Every screen and state calls `expectAccessible`. Spec IDs appear
-    in the test titles (`US1-AS6 …`), so the analysis can trace them.
+    test, run on both viewports. The exception is a scenario whose data the pinned contract cannot
+    produce in a validated mock: US8-AS3 and the edge case of audit records with later event
+    types. Those are covered by unit tests of the label mapping (R22). Every screen and state calls
+    `expectAccessible`. Spec IDs appear in the test titles (`US1-AS6 …`), so the analysis can trace
+    them.
 - **Rationale**: The constitution requires both viewports, accessibility checks on every screen
   and a mock generated from the contract. WebKit covers the mobile Safari engine for everything
   except virtual authenticators, which only Chromium offers.
@@ -1091,7 +1145,8 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - API key create, copy and revoke;
     - the audit log showing the sign-ins;
     - placeholders and "no access" for a domain administrator;
-    - the CSP header present on `/ng/`.
+    - the CSP header present on `/ng/`. Only the CSP is asserted, because nginx-mailcow adds its
+      own server-level headers (R29).
 
     Failed-sign-in checks use a random unknown username, so that the seeded accounts are never
     throttled.
@@ -1116,6 +1171,15 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     Assertions: `categories:performance ≥ 0.9`, `categories:accessibility ≥ 0.9`, and
     `resource-summary:script:size ≤ 204800` as a cross-check. Reports are uploaded as CI artifacts
     (`temporary-public-storage` is not used).
+
+    The two collections need different default scenarios, and `lighthouserc.cjs` cannot restart
+    servers between URLs. `npm run lhci` therefore runs `scripts/run-lhci.mjs`, which for each
+    collection:
+    1. starts the mock server with its `MOCK_DEFAULT_SCENARIO` and `vite preview`;
+    2. runs `lhci collect` for that URL;
+    3. stops both servers.
+
+    It then runs `lhci assert` once over all results.
 - **Rationale**: The budget script is exact and fast, and it fails the build before Lighthouse
   runs. Lighthouse covers the scores the constitution names. The sign-in screen is the cold-start
   path that SC-008 measures.
@@ -1126,19 +1190,28 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
   - `scripts/i18n/check.mjs` (`npm run i18n:check`) fails CI when any of these holds:
     1. The merged key sets of `en-gb`, `cs-cz` and `sk-sk` differ, or a value is empty.
     2. The placeholder sets of a key differ between locales.
-    3. A required key is missing for a contract enumeration value: every `KnownProblemType`,
-       `ValidationRuleCode`, the `format` parameters, `AuditEventType`, `AuditFailureReason`,
-       `AuthMethod`, `Role`, `PendingAction`, `SecondFactorType`, `ApiKeyStatus`,
-       `ApiKeyAccessLevel`, `Theme` and the announcement types. These come from the generated
-       `--enum-values` arrays (SC-006).
+    3. A required key is missing for a contract enumeration value: `ValidationRuleCode`,
+       `AuditEventType`, `AuditFailureReason`, `AuditOutcome`, `AuditTarget.type`, `AuthMethod`,
+       `Role`, `PendingAction`, `SecondFactorType`, `ApiKeyStatus`, `ApiKeyAccessLevel`, `Theme`
+       and the announcement types, from the generated `--enum-values` arrays. The problem types
+       are every `/api/v2/problems/<name>` that occurs in `contract/openapi.json`, which covers all
+       20 of API 001, plus `knownProblemTypeValues` once a pin contains it (R7, SC-006).
+       - The `format` parameter of `invalidFormat` is not an enumeration in the contract (its
+         values are listed only in prose), so it cannot be checked.
+       - `validation.format.<format>` keys exist for the formats the app's forms can trigger:
+         `dateTime`, `ipNetwork`, `ipAddress`, `totpCode`, `yubicoOtp`.
+       - Any other format falls back to the plain `validation.invalidFormat` message.
     4. A message contains "FIDO2", "Touch ID", or, in `en-gb`, the word "legacy" (FR-015, FR-090).
-    5. A key exists in both the legacy and the app layer, or `legacy-map.json` names a key missing
-       from the generated layer.
+    5. A key exists in both the legacy and the app layer for the same locale, or `legacy-map.json`
+       names a key missing from the `en-gb` legacy file. A key missing only from a `cs-cz` or
+       `sk-sk` legacy file must be supplied by that locale's app layer (R15).
 
     Unused keys are reported as warnings.
   - `scripts/check-licenses.mjs` runs `npm ls --omit=dev --all --json` and fails when a production
     dependency's licence is not in the allowlist: MIT, ISC, BSD-2-Clause, BSD-3-Clause,
-    Apache-2.0, MPL-2.0, 0BSD, or dual licences that contain one of them.
+    Apache-2.0, MPL-2.0, 0BSD, or dual licences that contain one of them. It also checks the dev
+    dependencies whose code ends up in `dist/` (`tailwindcss` and `tw-animate-css` CSS). Copied
+    code is covered by `THIRD_PARTY_NOTICES.md`.
   - **Audit**: `npm audit --omit=dev --audit-level=moderate`, plus `npm audit --audit-level=high`
     for the whole tree. `.github/dependabot.yml` proposes weekly npm and GitHub Actions updates.
 - **Rationale**: These are the constitution's merge gates (translations, vulnerability scan)
@@ -1191,14 +1264,15 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - `location = /ng/healthz` returns `200` for the container health check.
     - `location = /` redirects to `/ng/`, only for direct access to the container.
     - Gzip is on for JavaScript, CSS, JSON and SVG. `server_tokens off`.
-    - The headers are:
-      - the CSP of R18;
-      - `X-Content-Type-Options: nosniff`;
-      - `Referrer-Policy: same-origin`;
+    - The image sends only the headers that nginx-mailcow does not already set at server level:
+      - the CSP of R18, whose `frame-ancestors 'none'` takes precedence over mailcow's
+        `X-Frame-Options: SAMEORIGIN` in browsers;
       - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`, which leaves
         WebAuthn at its default `self`;
-      - `Cross-Origin-Opener-Policy: same-origin`;
-      - `X-Frame-Options: DENY`.
+      - `Cross-Origin-Opener-Policy: same-origin`.
+
+      mailcow's `sites-default.conf.j2` already adds `X-Content-Type-Options`, `X-Frame-Options`
+      and `Referrer-Policy`, and sending them again would duplicate or contradict them.
   - **mailcow integration**: `deploy/docker-compose.override.yml` adds the service `ng-mailcow`
     with these settings:
     - the image `ghcr.io/feldsam-inc/mailcowui-ng:<version>`;

@@ -119,14 +119,14 @@ Initial JavaScript of at most 200 KB gzipped, with lazy routes. The sign-in scre
 | I. The API contract is the only interface | Only contract operations are used. A request matching no operation is a mock violation (R22), and FR-093 is tested. The pinned version is recorded in `contract/VERSION.json` with a checksum (R6). Types and client are generated (`openapi-typescript`, `openapi-fetch`), generated files are guarded by `contract:check`, and they are importable only via `@/api`. No hand-written API types (R7). A bump is a script plus typecheck and tests. Gaps are reported to mailcow-rest-v2 and never worked around (see "API dependency and gaps"). Errors are handled from problem `type` and `errors` (R8, R15). | PASS |
 | II. Mobile-first | Every screen is designed and tested at 360 px first (the `mobile-chromium` and `mobile-webkit` projects), with horizontal-scroll checks at 360 and 320 px and 44 × 44 targets (R21, R24). Lists are cards below `md` and tables above. Long forms are split into sections; the key form is its own page, not a modal. Destructive actions are confirmed with their impact. Every collection has loading, empty and error states (`ListState`). Pinch-zoom is allowed. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe with the WCAG 2.2 AA tags runs on every screen and state, in light and dark (R24); a violation fails the test. The rules of R21 cover keyboard, focus, live regions, the skip link, labels and non-colour status. There are three themes, `light`, `dark` and `system` (R16). | PASS |
-| IV. i18n and branding | All text comes from en-gb, cs-cz and sk-sk messages, and `i18n:check` fails on any gap, including every contract enumeration (R27). Legacy keys are reused through `legacy-map.json` and an import from the upstream baseline (R15). `Intl` formatting uses the user's locale. Product name, logos, texts, links and announcement come from `GET /public-config`. Nothing brand-specific is in the source. Colours stay at the defaults until API 013 (FR-004). | PASS |
+| IV. i18n and branding | All text comes from en-gb, cs-cz and sk-sk messages, and `i18n:check` fails on any gap, including every contract enumeration (R27). Legacy keys are reused through `legacy-map.json` and an import from the upstream baseline (R15). `Intl` formatting uses the user's locale. Product name, logos, texts, links and announcement come from `GET /public-config`. Nothing brand-specific is in the source. Colours stay at the defaults until API 013 (FR-004), recorded under Complexity Tracking. | PASS (deviation recorded) |
 | V. Security in the browser | Same-origin session cookie. The CSRF token is in memory only (R8). Storage holds only the conveniences listed in data-model §4, verified by a unit test. A strict CSP is enforced in the end-to-end tests and on the image (R18). `v-html` appears only in `SanitizedHtml` behind DOMPurify (R17). Hiding is a convenience: "no access" is rendered in place, and 401, 403 and 404 are handled (R11, R19). Lockfile pinning, `npm audit` and a licence allowlist run in CI (R27). | PASS |
-| VI. Test-first | `tasks.md` puts tests before implementation in every phase. Unit and component tests; end-to-end tests of every acceptance scenario on both viewports, against a mock generated from the contract whose requests and responses are validated against it (R22); a smoke suite against the real API (R25). | PASS (see Complexity Tracking for the smoke gate) |
-| VII. Performance budgets | `budget:check` caps the initial JS at 200 KB gzipped from the Vite manifest. Lighthouse CI asserts performance and accessibility of at least 0.9 (R26). Routes are lazy. The query policy forbids refetching without reason and invalidates after mutations (R9). | PASS |
+| VI. Test-first | `tasks.md` puts tests before implementation in every phase. Unit and component tests; end-to-end tests of every acceptance scenario on both viewports, against a mock generated from the contract whose requests and responses are validated against it (R22). The two scenarios whose data the pinned contract cannot produce (US8-AS3, and audit records with later event types) are unit-tested instead, so the mock never contradicts the contract (R24); a smoke suite against the real API (R25). | PASS (see Complexity Tracking for the smoke gate) |
+| VII. Performance budgets | `budget:check` caps the initial JS at 200 KB gzipped from the Vite manifest. Lighthouse CI asserts performance and accessibility of at least 0.9 (R26). Every route, including sign-in, is lazy-loaded (R19). The query policy forbids refetching without reason and invalidates after mutations (R9). | PASS |
 | VIII. Simplicity | Ten runtime dependencies, each justified (R1). Shared components exist only with two uses in this feature; single-use patterns stay in the feature with a recorded promotion path, and later patterns have reserved locations (R20). No date, form, icon or WebAuthn library. | PASS |
 | Technology constraints | The stack is exactly as listed. TailAdmin Vue Free is copied in at a pinned version, with the MIT notice in `THIRD_PARTY_NOTICES.md`. No Pro code or demo parts (R4). Fonts and icons make no CDN request: a system font stack and inline SVG (R5). No SSR and no backend code. Deployment is a static image beside mailcow-rest-v2 via `docker-compose.override.yml`, on the same origin, with no upstream file patched (R29). | PASS |
 | Workflow and gates | CI jobs map to every merge gate: lint, types, unit; end-to-end on both viewports with a11y; budgets; translations; vulnerability scan (R28). Commits go to `main`. Licence: GPL-3.0, with every dependency compatible. | PASS |
-| `docs/conventions.md` | Wording ("the classic interface", "passkeys"). List state in the address, page sizes 25/50/100, cards and tables, list states (`useListState`). Outdated saves keep the input and reload (`useVersionedSave`). Confirmations. Secrets shown once, never stored. Problem types and rule codes translated. Controls hidden or read-only by permission. Bulk actions and History are reserved for the features whose contract offers them (R20). | PASS |
+| `docs/conventions.md` | Wording ("the classic interface", "passkeys"). List state in the address, page sizes 25/50/100, cards and tables, list states (`useListState`). Outdated saves keep the input and reload (`useVersionedSave`); preferences follow FR-059 and the spec's edge case (R20). Confirmations. Secrets shown once, never stored. Problem types and rule codes translated. Controls hidden or read-only by permission. Bulk actions and History are reserved for the features whose contract offers them (R20). | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart
 introduce no violation. Decisions that touched gates:
@@ -139,8 +139,10 @@ introduce no violation. Decisions that touched gates:
 
 ## API dependency and gaps
 
-This feature depends on **mailcow-rest-v2 feature 001**, contract `0.1.0`, with the planning
-baseline at commit `293b7c2` (see [contracts/README.md](./contracts/README.md)). It covers every
+This feature depends on **mailcow-rest-v2 feature 001**, pinned at commit
+`293b7c293ec0b8d8bdf389b35fc1698fcf4d7ffa` (see [contracts/README.md](./contracts/README.md)).
+The commit is the identifier: `info.version` stays `0.1.0` while later features' contracts are
+merged into the same tree (R6). It covers every
 behaviour the spec's "API Dependency" section lists, including `appLinks` with `appsLabel` and
 `GET /api-keys/owner-candidates`. Gaps and observations:
 
@@ -159,6 +161,18 @@ behaviour the spec's "API Dependency" section lists, including `appLinks` with `
 4. **One passkey challenge per session**: two tabs on the sign-in screen invalidate each other's
    conditional challenge. This is accepted and handled by a silent restart (R14). No change is
    requested.
+5. **`KnownProblemType` missing from the bundled contract**: the schema exists "so that generated
+   clients get constants", but no operation or schema references it. Redocly's bundle, which is
+   the API's release artifact, therefore leaves it out, and the generated client has no
+   problem-type constants (verified at the baseline, R7).
+   - **Proposed to mailcow-rest-v2**: list it under `components.schemas` in `api/openapi.yaml`.
+     The same applies to every shared enumeration that later features append to.
+   - **Not blocking for 001**: all 20 problem types of API 001 occur by name in the bundle's
+     response descriptions. The translation check derives the required set from there (R27).
+   - At runtime the app needs no list: messages are keyed by the type's last path segment, with a
+     fallback.
+   - The UI never copies the list by hand. Typed constants arrive with the first pin that contains
+     the fix.
 
 ## Owner-level questions (defaults applied)
 
@@ -231,8 +245,9 @@ deploy/docker-compose.override.yml    # ng-mailcow service for mailcow-dockerize
 public/theme-init.js                  # blocking theme class before first paint (R16)
 scripts/
 ├── contract/{bump.sh,generate.mjs,check.mjs}
-├── i18n/{import-legacy.mjs,check.mjs}
+├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}
 ├── smoke/{stack-up.sh,stack-down.sh}
+├── run-lhci.mjs                      # one Lighthouse collection per mock default scenario (R26)
 ├── check-bundle-budget.mjs
 └── check-licenses.mjs
 src/
@@ -240,7 +255,7 @@ src/
 ├── App.vue                           # RouterView, LiveAnnouncer, ConfirmDialog host, IdleWarningDialog
 ├── env.d.ts
 ├── api/
-│   ├── generated/schema.d.ts         # generated, never edited
+│   ├── generated/schema.ts         # generated, never edited
 │   ├── index.ts                      # the only door: client, root types, enum arrays, ApiProblem
 │   ├── client.ts  csrf.ts  activity.ts  problem.ts
 │   └── query/{client.ts,keys.ts}
@@ -272,7 +287,7 @@ src/
 │   ├── platform/{storage.ts,broadcast.ts,clipboard.ts,
 │   │             webauthn/{support.ts,base64url.ts,options.ts,credential.ts,errors.ts,ceremony.ts}}
 │   ├── security/{sanitize.ts,safe-url.ts}
-│   └── validation/ip-network.ts
+│   └── validation/{ip-network.ts,limits.ts}   # limits checked against contract/openapi.json
 ├── i18n/
 │   ├── index.ts  locales.ts  format.ts  problems.ts
 │   ├── messages/{en-gb,cs-cz,sk-sk}.json   # hand-written
@@ -306,4 +321,5 @@ are isolated in `contract/` and `src/api/generated/`. Deployment artefacts live 
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
+| Brand colours do not yet come from the API's branding configuration (constitution IV): both themes use TailAdmin's default palette, adjusted for AA contrast. | The API offers no colours until feature 013, and spec FR-004 requires the defaults until then. Colours are CSS custom properties, so 013 can set them at runtime through CSSOM without other changes (R16). | Hard-coding operator colours is forbidden by IV. Blocking UI 001 until API 013 would block every other feature. Reading legacy colours is impossible, because legacy has none. |
 | The smoke suite (a constitution VI required layer) is written and runnable, but it is not a blocking merge gate until mailcow-rest-v2 runs its implementation in its dev stack. Until then the CI `smoke` job runs on dispatch, nightly, or when `SMOKE_ENABLED=true`. | Today mailcow-rest-v2 is a merged contract without an implementation. The constitution allows a UI feature to start once the contract is merged (Workflow). A blocking gate would block every merge on a service that cannot yet run. | Leaving the smoke suite out until the API exists was rejected: VI requires the layer, and writing it now keeps it test-first. Mocking the API in the smoke suite was rejected, because that is the end-to-end suite's job and would defeat the smoke layer's purpose. |

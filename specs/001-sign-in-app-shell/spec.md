@@ -89,12 +89,10 @@
   placeholder that names the section, says it will come in a later version, and links to the
   matching screen of the classic interface, which needs its own sign-in. (agent decision: "never a
   broken link"; the legacy UI keeps running until the cutover, feature 014.)
-- Q: What should the API key form preselect, and how is the owner chosen? → A: Read-only access
-  and no expiry are preselected; expiry presets are 30, 90 and 365 days or a specific date. The
-  owner is a username field prefilled with the signed-in administrator, validated by the server.
-  A list to choose from follows when the API can list eligible accounts (feature 007). (agent
-  decision: least privilege for access; legacy keys never expire and silent expiry breaks billing
-  integrations; API feature 001 has no account lookup.)
+- Q: What should the API key form preselect? → A: Read-only access and no expiry are
+  preselected; expiry presets are 30, 90 and 365 days or a specific date. (agent decision: least
+  privilege for access; legacy keys never expire and silent expiry breaks billing integrations.
+  How the owner is chosen was later settled by the orchestrator, see below.)
 - Q: How should the one-time API key secret be presented and protected? → A: In a dialog right
   after creation, with the full secret, a copy button and a warning that it will not be shown
   again. Closing without copying asks for confirmation. The secret exists only while the dialog is
@@ -104,6 +102,27 @@
   ("klasické rozhraní" in Czech, "klasické rozhranie" in Slovak). The word "legacy" is not used in
   the app. (agent decision: users do not know the term "legacy", and a neutral name keeps the app
   free of product names, as constitution IV requires.)
+- Q: Where does the app get the app links (webmail and operator links) that the legacy login page
+  and header show? → A: From the ordered, read-only app links in the API's public configuration,
+  built from legacy `MAILCOW_APPS` and `APP_LINKS`, with Webmail left out when the groupware is
+  disabled. The app shows them where legacy does, on the sign-in screen and in an "Apps" menu of
+  the signed-in header, labelled with the operator's "Apps" UI text. (orchestrator decision: API
+  feature 001 adds the list, which closes the app-links gap.)
+- Q: How does an administrator choose the owner of an API key? → A: With a searchable picker of
+  the key-owner candidates the API offers (active administrators and domain administrators, with
+  search and paging), prefilled with the signed-in administrator. (orchestrator decision: API
+  feature 001 adds an administrator-only read of key-owner candidates, which closes the key-owner
+  gap.)
+- Q: Should the API offer a way to extend a pending sign-in? → A: No. The 5-minute limit stays an
+  essential security time limit: the app warns one minute before it ends and lets the user restart
+  with the username kept. (orchestrator decision.)
+- Q: Should passkeys stay available under "force single sign-on", and should mailbox users land
+  on the home screen instead of webmail? → A: Yes to both. Mailbox users land on the home screen
+  until feature 005 brings webmail single sign-on. (orchestrator decision: confirms the agent
+  defaults above.)
+- Q: Who manages the legacy `/api/v1` keys? → A: The legacy UI. The new app manages only keys of
+  the new API, and the cutover (feature 014) keeps the legacy `/api/v1` key screen reachable.
+  (orchestrator decision.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -132,7 +151,8 @@ and sign out. Repeat each failure scenario below.
 
 1. **Given** a signed-out visitor on a 360 px wide phone, **When** they open the app, **Then** the
    sign-in screen shows the operator's logo for the active theme, the product name, the active
-   announcement and the help text, without horizontal scrolling.
+   announcement, the help text and the operator's app links under its "Apps" text, without
+   horizontal scrolling.
 2. **Given** an administrator without second factors, **When** they submit the correct username
    and password, **Then** they land on the home screen with the administrator navigation.
 3. **Given** a mailbox user with WebAuthn, TOTP and Yubico OTP second factors, **When** the
@@ -279,6 +299,10 @@ directly and confirm the "no access" state.
 8. **Given** an active announcement, **When** any page of the app is shown, **Then** the
    announcement is visible and its type (information, warning, danger) is conveyed in text, not
    only by colour. The footer shows the operator's footer with any unsafe content removed.
+9. **Given** a server with webmail and two operator app links configured, **When** a signed-in
+   user opens the "Apps" menu in the header, **Then** it lists those links in the configured order
+   under the operator's "Apps" text. **Given** a server whose groupware is disabled, **Then**
+   webmail is not listed. **Given** no app links at all, **Then** no "Apps" menu is shown.
 
 ---
 
@@ -434,8 +458,8 @@ access".
    button. After that view is closed, the secret is never shown again anywhere in the app, and the
    list shows the new key with its prefix.
 3. **Given** the create form, **When** the expiry lies in the past, a network entry is malformed,
-   or the owner does not exist or is a mailbox user, **Then** a translated message appears on the
-   matching field or network entry, and nothing is created.
+   or the chosen owner is no longer eligible (deactivated in the meantime), **Then** a translated
+   message appears on the matching field or network entry, and nothing is created.
 4. **Given** a key, **When** the administrator opens it, **Then** they see its name, prefix,
    owner, access level, allowed networks, expiry, status, creation time and creator, last use time
    and address, and, if revoked, the revocation time and the administrator who revoked it.
@@ -453,10 +477,13 @@ access".
 9. **Given** a domain administrator or a mailbox user, **When** they look for API keys, **Then**
    the section is not in the navigation, and its address shows the "no access" state.
 10. **Given** the create form, **When** it opens, **Then** read-only access and "never expires" are
-    preselected, and the owner field holds the signed-in administrator's username.
+    preselected, and the owner picker holds the signed-in administrator.
 11. **Given** the dialog with a new secret, **When** the administrator closes it without using the
     copy button, **Then** the app asks them to confirm that they have saved the secret. **When**
     they then use the browser's Back button, **Then** the secret is not shown again.
+12. **Given** the owner picker, **When** the administrator types part of a username, **Then** it
+    lists the matching active administrators and domain administrators with their roles, loads
+    more on request, and says so when nothing matches. Mailbox users are never offered.
 
 ---
 
@@ -547,6 +574,10 @@ and the persistence of filters across reloads.
   temporarily unavailable and offers to retry.
 - **Clipboard access refused when copying the API key secret**: the secret is selected for manual
   copying and the user is told to copy it themselves.
+- **Key owner deactivated between choosing it and creating the key**: the server's validation
+  message appears on the owner field (FR-065).
+- **No app links configured, or all hidden on the login page**: the sign-in screens show no
+  "Apps" section, and the header shows no "Apps" menu when there are no links at all (FR-001a).
 - **API key revoked by another administrator while it is on screen**: revoking again succeeds and
   changes nothing. The view then shows the current state.
 - **Item changed elsewhere before a rename, revocation or preference change**: the app reports the
@@ -564,8 +595,14 @@ and the persistence of filters across reloads.
 
 - **FR-001**: Before sign-in, the app MUST load the server's public configuration and show the
   operator's logo for the active theme, the product name, the announcement when it is active and
-  has text, the login help text and the footer. The browser page title MUST use the configured
-  page title.
+  has text, the login help text, the app links (FR-001a) and the footer. The browser page title
+  MUST use the configured page title.
+- **FR-001a**: The app links of the public configuration (webmail and the operator's links) MUST
+  be shown in their configured order under the operator's "Apps" text, on the sign-in screens and
+  in the signed-in header (FR-042), as legacy does. Where the configuration hides a link on the
+  login page, the sign-in screens MUST NOT show it. Where a link has a form for signed-in users,
+  the header MUST use that form, as legacy does. The "Apps" text and the link names are plain
+  text. When there are no app links, neither the section nor the menu may be shown.
 - **FR-002**: The help text and the footer contain operator-authored HTML and MUST be sanitised
   before display. Paragraphs, line breaks, emphasis, headings, lists and links with `http`,
   `https` or `mailto` targets MUST be kept. Everything else MUST be removed, including scripts,
@@ -573,9 +610,9 @@ and the persistence of filters across reloads.
   page title and announcement are plain text and MUST be shown as text, never interpreted as
   markup.
 - **FR-003**: If the public configuration cannot be loaded, sign-in MUST still work with neutral
-  built-in defaults: the server's host name as the product name, no logo, no help text, footer or
-  announcement, all languages the app is translated into, and no login page options. No product
-  or operator name may be built into the app (constitution IV).
+  built-in defaults: the server's host name as the product name, no logo, no help text, footer,
+  announcement or app links, all languages the app is translated into, and no login page options.
+  No product or operator name may be built into the app (constitution IV).
 - **FR-004**: Until the API offers branding colours (feature 013), the app MUST use its default
   theme colours in both themes.
 - **FR-005**: The app MUST provide one role-neutral sign-in screen, on which the server resolves
@@ -720,8 +757,9 @@ and the persistence of filters across reloads.
 #### Application shell and navigation
 
 - **FR-042**: Signed-in screens MUST share a shell with:
-  - a header with the operator's logo for the active theme, a control for the navigation and a
-    user menu with the username, the role, language and theme choice, "Passkeys" and "Sign out";
+  - a header with the operator's logo for the active theme, a control for the navigation, an
+    "Apps" menu with the app links when there are any (FR-001a), and a user menu with the
+    username, the role, language and theme choice, "Passkeys" and "Sign out";
   - the main content;
   - the operator's footer (FR-002);
   - a skip link to the main content.
@@ -829,16 +867,20 @@ and the persistence of filters across reloads.
 - **FR-063**: The API keys section MUST be available to administrators only (FR-043, FR-045).
 - **FR-064**: The list MUST show each key's name, non-secret prefix, owner (username and role,
   with a warning when the owner is inactive or deleted), access level, status (active, expired or
-  revoked), expiry and last use (time and address, or "never"). It MUST offer filters by owner
-  username, status and access level, sorting by creation time (newest first by default), name,
-  expiry and last use, and pages with the total count. Filters, sort and page MUST be kept in the
-  page address. On narrow screens keys MUST be shown as cards.
+  revoked), expiry and last use (time and address, or "never"). It MUST offer filters by owner,
+  status and access level, sorting by creation time (newest first by default), name,
+  expiry and last use, and pages with the total count. The owner filter MUST offer the owner
+  picker of FR-065 and also accept a typed username, so that keys of inactive or deleted owners
+  can still be found. Filters, sort and page MUST be kept in the page address. On narrow screens
+  keys MUST be shown as cards.
 - **FR-065**: The create form MUST ask for:
   - a name (required, up to 255 characters);
-  - an owner, entered as a username and prefilled with the signed-in administrator. It must be an
-    administrator or a domain administrator, and the server's validation names an unknown or
-    ineligible owner on the field. A choice from a list follows once the API can list eligible
-    accounts (feature 007);
+  - an owner, chosen with a searchable picker of the key-owner candidates that the API offers
+    (active administrators and domain administrators), prefilled with the signed-in
+    administrator. The picker MUST search by username, show each candidate's username and role,
+    load further results page by page, and have loading, no-match and error states. If the chosen
+    owner stops being eligible before the key is created, the server's validation message MUST
+    appear on the owner field;
   - an access level: read-only (preselected) or read-write;
   - an expiry: never (preselected), 30, 90 or 365 days from now, or a specific date and time in
     the user's local time zone, which must lie in the future;
@@ -939,7 +981,7 @@ and the persistence of filters across reloads.
   legacy `lang.*.json` files MUST be reused where the meaning is unchanged, taken from the upstream
   baseline. Legacy texts that name the product or the operator, and texts that call passkeys
   "FIDO2" or "Touch ID", MUST NOT be reused as they are. Operator texts (product name, help text,
-  footer, announcement) MUST be shown as authored.
+  footer, announcement, "Apps" text and app link names) MUST be shown as authored.
 - **FR-087**: Dates, times and numbers MUST be formatted for the user's language and shown in the
   device's time zone. A relative time ("5 minutes ago") MUST make the absolute time available.
 - **FR-088**: The document language MUST match the language in use.
@@ -985,7 +1027,7 @@ Reference: the FeldHost fork at `../mailhosting/data/web/` (upstream baseline `2
 | FIDO2 alert area | Translated messages, announced | Improved | FR-014, FR-078 |
 | Apple connection profile notice (`mobileconfig_info`) | Not shown | Deferred to 005 (Apple profiles) | — |
 | OAuth2 authorisation login (`oauth2_request`) | Not shown | Deferred to 012 | — |
-| App links on the login page and "Apps" menu in the header (webmail and operator links) | Not shown | Dropped until the API exposes them (API gap) | Assumptions |
+| App links on the login page and "Apps" menu in the header (webmail and operator links) | Same, from the public configuration, in the configured order, under the operator's "Apps" text | Matched | FR-001a, FR-042 |
 | Help text panel (collapsible) | Same, sanitised | Matched | FR-001, FR-002 |
 | Footer (operator HTML) | Same, sanitised | Matched | FR-002, FR-042 |
 | Version number in the footer for signed-in users | Not shown | Deferred to 011 (version information) | — |
@@ -1004,7 +1046,7 @@ Reference: the FeldHost fork at `../mailhosting/data/web/` (upstream baseline `2
 | Unlock icon marking the FIDO2 key used for the current session | Not shown | Dropped: the API does not report it | — |
 | Friendly-name modal (`fido2.set_fn`, `fido2.fn`) | Rename | Matched | FR-054 |
 | Browser "Are you sure?" confirmation for removal | Confirmation naming the passkey and the consequence | Improved | FR-055 |
-| API section of the admin configuration: one read-only and one read-write `/api/v1` key, allowed IPs, "skip IP check", key always readable, activate, regenerate | API keys of this API: many named keys with owner, access level, expiry and networks, secret shown once, inspect, revoke | Replaced. `/api/v1` keys stay managed in the legacy UI | FR-063 to FR-070 |
+| API section of the admin configuration: one read-only and one read-write `/api/v1` key, allowed IPs, "skip IP check", key always readable, activate, regenerate | API keys of this API: many named keys with owner, access level, expiry and networks, secret shown once, inspect, revoke | Replaced. `/api/v1` keys stay managed in the legacy UI, whose key screen the cutover (014) keeps reachable | FR-063 to FR-070 |
 | CORS settings in the same section | Not shown | Deferred to 013 | — |
 | API information text linking to the API documentation | Link to the documentation of this API | Matched | FR-069 |
 | `user-scalable=0` | Pinch-zoom allowed | Improved | FR-083 |
@@ -1018,8 +1060,9 @@ described by behaviour:
 
 - **Session bootstrap**: start an anonymous session and obtain its anti-forgery token, and obtain
   a fresh token after an anti-forgery failure.
-- **Public configuration**: read the branding, login page options, enabled and default languages
-  and whether an identity provider is configured, without signing in; load the operator's logos.
+- **Public configuration**: read the branding, the ordered app links with the operator's "Apps"
+  text, login page options, enabled and default languages and whether an identity provider is
+  configured, without signing in; load the operator's logos.
 - **Session state**: read whether nobody is signed in, a second factor is pending (with its methods
   and expiry), the session is restricted (with its pending actions) or fully signed in, and the
   idle lifetime.
@@ -1035,6 +1078,8 @@ described by behaviour:
   name, rename and remove one.
 - **API keys**: list with pages, sorting and filters (owner, status, access level), inspect, create
   and revoke.
+- **Key-owner candidates** (administrators only): read the active administrators and domain
+  administrators that can own a key, with search by username and pages.
 - **Audit log**: list with pages and filters (time range, event types, outcome, actor, client
   address).
 - **Problem types**: the stable problem types and validation rule codes, with their parameters,
@@ -1044,9 +1089,11 @@ described by behaviour:
 ### Key Entities *(include if feature involves data)*
 
 - **Public configuration**: page title, product name, light and dark logos, help text and footer
-  (operator HTML), announcement (text, type, active), login page options (hide each role's login
-  link, force single sign-on), enabled languages, default language, and whether an identity
-  provider is configured.
+  (operator HTML), announcement (text, type, active), app links (ordered, with the operator's
+  "Apps" text), login page options (hide each role's login link, force single sign-on), enabled
+  languages, default language, and whether an identity provider is configured.
+- **App link**: name, address, whether it is hidden on the login page, and an optional form for
+  signed-in users; webmail or an operator-defined link.
 - **Session state**: anonymous, awaiting a second factor, restricted or active; the account's
   username and role; the sign-in method; the idle lifetime.
 - **Pending sign-in**: the available second-factor methods in presentation order, each with a type,
@@ -1060,6 +1107,8 @@ described by behaviour:
 - **API key**: name, non-secret prefix, owner (username, role, active state), access level, allowed
   networks, expiry, status, created at and by, last used at and from, revoked at and by. The
   secret exists only in the creation response.
+- **Key-owner candidate**: an active administrator or domain administrator that can own a key,
+  with its username and role.
 - **Audit record**: time, event type, outcome, actor, target, client address, user agent,
   authentication method, failure reason, request identifier and non-secret details.
 - **Navigation entry** (app-defined): section name, roles, optional permission flag, delivering
@@ -1108,7 +1157,10 @@ described by behaviour:
   the legacy UI therefore work, and the legacy UI's screens can be linked by their usual
   addresses on that host until the cutover (feature 014); the plan records the exact addresses.
   The legacy UI has its own sessions, so a user following such a link signs in there separately.
-- The legacy UI keeps managing its `/api/v1` keys. This app manages only the keys of the new API.
+- The legacy UI keeps managing its `/api/v1` keys. This app manages only the keys of the new API,
+  and the cutover (feature 014) keeps the legacy `/api/v1` key screen reachable.
+- The app links and the key-owner candidates come from operations that API feature 001 adds to
+  its contract. The plan follows the contract's exact shape for them.
 - Enrolling TOTP, WebAuthn security keys and Yubico OTP, password change and password reset come
   with feature 005. Until then users do these in the legacy UI.
 - Identity-provider sign-in (LDAP, Keycloak, generic OIDC) comes with feature 012. Until then such
@@ -1120,17 +1172,10 @@ described by behaviour:
 - The 5-minute limit of a pending sign-in is treated as a security time limit under the
   "essential" exception of WCAG 2.2.1: the app announces it, warns one minute before it ends and
   lets the user restart with the username kept (FR-025). The idle session limit is extendable
-  (FR-032).
+  (FR-032). The API offers no way to extend a pending sign-in, and none is planned (orchestrator
+  decision).
 - Language and theme remembered on the device, and a dismissed passkey suggestion, are
   conveniences, not credentials (constitution V).
-- **API gaps** (to be specified in mailcow-rest-v2 first, never worked around in the app):
-  - The public configuration has no app links (webmail and operator-defined links, and the "Apps"
-    label) that the legacy login page and header show. The app shows none until the API offers
-    them.
-  - There is no way to list the administrators and domain administrators that can own an API key
-    (expected with feature 007). Until then the owner is typed as a username (FR-065).
-  - Possible: a pending sign-in cannot be extended. If the accessibility review does not accept
-    the "essential" exception above, the API needs a way to extend it.
 - **Out of scope**: managing mail objects; enrolling or removing TOTP, WebAuthn security keys and
   Yubico OTP; password change and reset; identity-provider sign-in; login-as and dual login;
   webmail single sign-on; listing or ending other sessions; managing other accounts' passkeys;

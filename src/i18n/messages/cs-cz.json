@@ -824,7 +824,8 @@
       "ipNetwork": "Zadejte adresu nebo síť IPv4 či IPv6, například 192.0.2.0/24.",
       "totpCode": "Zadejte šestimístný kód.",
       "webauthnCredential": "Odpověď bezpečnostního nebo přístupového klíče není platná.",
-      "yubicoOtp": "Zadejte 44 písmen nebo číslic, které napíše váš YubiKey."
+      "yubicoOtp": "Zadejte 44 písmen nebo číslic, které napíše váš YubiKey.",
+      "attributeName": "Použijte název bez mezer."
     },
     "immutable": "Tuto hodnotu nelze změnit.",
     "invalid": "Tato hodnota není platná.",
@@ -873,6 +874,17 @@
     },
     "sort": {
       "quotaUsed": "Využité místo"
+    },
+    "attributes": {
+      "duplicate": "Tento název již má jiný atribut."
+    },
+    "problem": {
+      "tagLimit": "Povoleno je nejvýše {max} štítků."
+    },
+    "authSource": {
+      "keycloak": "Keycloak",
+      "genericOidc": "Generic-OIDC",
+      "ldap": "LDAP"
     }
   },
   "hibp": {

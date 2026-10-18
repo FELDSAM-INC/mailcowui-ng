@@ -824,7 +824,8 @@
       "ipNetwork": "Enter an IPv4 or IPv6 address or network, for example 192.0.2.0/24.",
       "totpCode": "Enter the six-digit code.",
       "webauthnCredential": "The response of the security key or passkey is not valid.",
-      "yubicoOtp": "Enter the 44 letters or digits your YubiKey types."
+      "yubicoOtp": "Enter the 44 letters or digits your YubiKey types.",
+      "attributeName": "Use a name without spaces."
     },
     "immutable": "This value cannot be changed.",
     "invalid": "This value is not valid.",
@@ -873,6 +874,17 @@
     },
     "sort": {
       "quotaUsed": "Storage used"
+    },
+    "attributes": {
+      "duplicate": "Another attribute already has this name."
+    },
+    "problem": {
+      "tagLimit": "At most {max} tags are allowed."
+    },
+    "authSource": {
+      "keycloak": "Keycloak",
+      "genericOidc": "Generic-OIDC",
+      "ldap": "LDAP"
     }
   },
   "hibp": {

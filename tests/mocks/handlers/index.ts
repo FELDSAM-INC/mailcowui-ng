@@ -28,7 +28,11 @@ import { domainTemplateHandlers } from './domain-templates'
 import { domainHandlers } from './domains'
 import { identityHandlers } from './identity'
 import { langHandlers } from './lang'
+import { mailboxTemplateReadHandlers } from './mailbox-templates'
+import { mailboxUpdateHandlers } from './mailbox-update'
+import { mailboxReadHandlers } from './mailboxes-read'
 import { passkeyHandlers } from './passkeys'
+import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
 
 /** The typed handlers of every area. Stories add their modules here. */
@@ -42,6 +46,11 @@ export const areaHandlers: RequestHandler[] = [
   ...domainHandlers,
   ...domainTemplateHandlers,
   ...directoryListHandlers,
+  // UI 003: one module per operation group (research R20).
+  ...mailboxReadHandlers,
+  ...mailboxUpdateHandlers,
+  ...mailboxTemplateReadHandlers,
+  ...passwordPolicyHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

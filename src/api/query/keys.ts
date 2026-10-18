@@ -23,6 +23,12 @@ export type ResourceListParams = NonNullable<operations['listResources']['parame
 export type SenderPermissionCandidateParams = NonNullable<
   operations['listSenderPermissionCandidates']['parameters']['query']
 >
+// UI 003 (data-model §1).
+export type MailboxListParams = NonNullable<operations['listMailboxes']['parameters']['query']>
+export type MailboxTagParams = NonNullable<operations['listMailboxTags']['parameters']['query']>
+export type MailboxTemplateListParams = NonNullable<
+  operations['listMailboxTemplates']['parameters']['query']
+>
 
 export const queryKeys = {
   publicConfig: () => ['public-config'] as const,
@@ -66,4 +72,28 @@ export const queryKeys = {
     list: (params: TemplateListParams) => ['domain-templates', 'list', params] as const,
     detail: (id: number) => ['domain-templates', 'detail', id] as const,
   },
+  // UI 003 (data-model §3): one `mailboxes` prefix invalidates everything that depends on
+  // mailboxes; templates and the password policy have their own roots.
+  mailboxes: {
+    all: () => ['mailboxes'] as const,
+    lists: () => ['mailboxes', 'list'] as const,
+    list: (params: MailboxListParams) => ['mailboxes', 'list', params] as const,
+    details: () => ['mailboxes', 'detail'] as const,
+    detail: (address: string) => ['mailboxes', 'detail', address.toLowerCase()] as const,
+    deletionPreview: (address: string) =>
+      ['mailboxes', 'deletion-preview', address.toLowerCase()] as const,
+    capabilities: () => ['mailboxes', 'capabilities'] as const,
+    tagLists: () => ['mailboxes', 'tags'] as const,
+    tags: (params: MailboxTagParams) => ['mailboxes', 'tags', params] as const,
+    /** The search of `MailboxSearchPicker` (shared, used by UI 004 and UI 008). */
+    search: (params: MailboxListParams) => ['mailboxes', 'search', params] as const,
+  },
+  mailboxTemplates: {
+    all: () => ['mailbox-templates'] as const,
+    lists: () => ['mailbox-templates', 'list'] as const,
+    list: (params: MailboxTemplateListParams) => ['mailbox-templates', 'list', params] as const,
+    everything: () => ['mailbox-templates', 'all'] as const,
+    detail: (id: number) => ['mailbox-templates', 'detail', id] as const,
+  },
+  passwordPolicy: () => ['password-policy'] as const,
 }

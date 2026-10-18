@@ -25,6 +25,7 @@ import { domainsEditScenarios } from './domains-edit'
 import { domainsFooterScenarios } from './domains-footer'
 import { domainsHistoryScenarios } from './domains-history'
 import { domainsListScenarios } from './domains-list'
+import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from './mailboxes/base'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
@@ -72,6 +73,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...domainTemplateScenarios,
   ...domainsFooterScenarios,
   ...domainsHistoryScenarios,
+  ...mailboxBaseScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -144,6 +146,7 @@ export function applyOverrides(
   if (overrides.auditEvents)
     state.auditEvents = structuredClone<AuditEvent[]>(overrides.auditEvents)
   applyDomainOverrides(state, overrides)
+  applyMailboxOverrides(state, overrides)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -178,6 +181,7 @@ export function createScenarioState(
     violations: new ViolationRecorder(),
     now,
     ...initialDomainState(),
+    ...initialMailboxState(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

@@ -9,7 +9,21 @@ import type {
   DomainDkimCapabilities,
   DomainRateLimit,
   DomainRelayhost,
+  MailboxAuthSource,
+  MailboxCapabilities,
+  MailboxCreationReport,
+  MailboxDeletionPreview,
+  MailboxLastLogins,
+  MailboxProtocolAccess,
+  MailboxQuarantineCategory,
+  MailboxQuarantineNotification,
+  MailboxRateLimit,
+  MailboxRenameStep,
+  MailboxStatus,
+  MailboxTaggedMailHandling,
+  MailboxUserPermissions,
   Passkey,
+  PasswordPolicy,
   PendingAction,
   PermissionFlags,
   Preferences,
@@ -212,6 +226,103 @@ export interface FooterMutations {
   remove?: string[]
 }
 
+/**
+ * A stored mailbox of the mock (UI 003 research R20). Quotas and usage are bytes; the address is
+ * `localPart@domain` with the domain in ASCII. Usage and last logins are not part of the version
+ * tag. The deletion preview's dependent records are seeded per mailbox.
+ */
+export interface MockMailbox {
+  localPart: string
+  domain: string
+  displayName: string
+  status: MailboxStatus
+  authSource: MailboxAuthSource
+  /** Whether a password hash is stored (switching back to `mailcow` needs one). */
+  hasPassword: boolean
+  quota: number
+  quotaUsed: number
+  messageCount: number
+  forcePasswordChange: boolean
+  forceSecondFactorSetup: boolean
+  webmailRedirect: boolean
+  protocolAccess: MailboxProtocolAccess
+  /** All fifteen permissions; domain administrators see the ones their flags allow. */
+  userPermissions: Required<MailboxUserPermissions>
+  tags: string[]
+  customAttributes: Record<string, string>
+  recoveryEmail: string | null
+  passwordChangedAt: string | null
+  lastLogins: MailboxLastLogins
+  taggedMailHandling: MailboxTaggedMailHandling
+  tlsEnforceInbound: boolean
+  tlsEnforceOutbound: boolean
+  quarantineNotification: MailboxQuarantineNotification
+  quarantineCategory: MailboxQuarantineCategory
+  /** The mailbox's own rate limit; the domain's applies when null. */
+  rateLimit: MailboxRateLimit | null
+  relayhostId: number | null
+  activeTemporaryAliases: number
+  pushNotificationsActive: boolean
+  createdAt: string
+  modifiedAt: string | null
+  /** Records a deletion would remove (deletion preview counts); missing counts are 0. */
+  dependents?: Partial<MailboxDeletionPreview['counts']>
+  exclusiveAliases?: string[]
+  sharedAliases?: string[]
+  present?: Partial<MailboxDeletionPreview['present']>
+}
+
+/** A stored mailbox template of the mock. */
+export interface MockMailboxTemplate {
+  id: number
+  name: string
+  quota: number
+  status: MailboxStatus
+  forcePasswordChange: boolean
+  forceSecondFactorSetup: boolean
+  webmailRedirect: boolean
+  protocolAccess: MailboxProtocolAccess
+  userPermissions: Required<MailboxUserPermissions>
+  tags: string[]
+  taggedMailHandling: MailboxTaggedMailHandling
+  quarantineNotification: MailboxQuarantineNotification
+  quarantineCategory: MailboxQuarantineCategory
+  tlsEnforceInbound: boolean
+  tlsEnforceOutbound: boolean
+  rateLimit: MailboxRateLimit | null
+  createdAt: string
+  modifiedAt: string | null
+}
+
+/**
+ * A failure injected for one mailbox (by address) or one template (by `template:<id>`): its
+ * writes, or only the listed operations, answer it. `extra` holds the problem's extension members
+ * (`dependency`, `step`, `steps`, …).
+ */
+export interface MailboxFailure {
+  status: number
+  /** Problem type name; `about:blank` when omitted. */
+  type?: string
+  operations?: string[]
+  retryAfter?: number
+  times?: number
+  extra?: Record<string, unknown> & { steps?: MailboxRenameStep[] }
+}
+
+/** Runtime changes to the mailboxes, standing in for another administrator (UI 003 R20). */
+export interface MailboxMutations {
+  /** Changes stored values by address; every stored change also changes the version tag. */
+  set?: Record<string, Partial<MockMailbox>>
+  add?: (Partial<MockMailbox> & { localPart: string; domain: string })[]
+  remove?: string[]
+}
+
+export interface MailboxTemplateMutations {
+  set?: Record<string, Partial<MockMailboxTemplate>>
+  add?: (Partial<MockMailboxTemplate> & { name: string })[]
+  remove?: number[]
+}
+
 export interface ScenarioState {
   id: string
   name: string
@@ -233,6 +344,14 @@ export interface ScenarioState {
   domainFailures: Record<string, DomainFailure>
   /** Milliseconds an operation's answer is delayed, by operationId. */
   delays: Record<string, number>
+  /** UI 003: mailboxes, mailbox templates, the password policy and the mailbox capabilities. */
+  mailboxes: MockMailbox[]
+  mailboxTemplates: MockMailboxTemplate[]
+  passwordPolicy: Omit<PasswordPolicy, 'etag'>
+  mailboxCapabilities: MailboxCapabilities
+  mailboxFailures: Record<string, MailboxFailure>
+  /** Outcomes of the creation report steps that override the computed ones. */
+  mailboxCreationReport: Partial<Omit<MailboxCreationReport, 'messages'>>
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -272,6 +391,13 @@ export interface ScenarioOverrides {
   delays?: Record<string, number>
   /** Domain administrator assignments by username (`assignDomains`). */
   domainAssignments?: Record<string, string[]>
+  /** UI 003: mailbox data and switches (research R20). */
+  mailboxes?: MailboxMutations
+  mailboxTemplates?: MailboxTemplateMutations
+  passwordPolicy?: Partial<Omit<PasswordPolicy, 'etag'>>
+  mailboxCapabilities?: Partial<MailboxCapabilities>
+  mailboxFailures?: Record<string, MailboxFailure | null>
+  mailboxCreationReport?: Partial<Omit<MailboxCreationReport, 'messages'>>
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

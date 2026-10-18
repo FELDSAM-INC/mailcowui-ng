@@ -6,7 +6,8 @@ Every open point of the plan is settled here, in this order of precedence: the c
 the pinned mailcow-rest-v2 contract, then `docs/conventions.md`, then UI 001's decisions, then best
 practice. Each entry has a **Decision**, its **Rationale** and the **Alternatives considered**.
 UI 001's research (R1–R29) applies unchanged unless an entry here says otherwise; "UI 001 R8" refers
-to it.
+to it. Shared building blocks are named as `docs/conventions.md` ("Shared building blocks and
+canonical names") names them.
 
 ---
 
@@ -15,65 +16,67 @@ to it.
 ### R1. Contract pin, dependencies and the bump
 
 - **Decision**:
-  - **Pin**: mailcow-rest-v2 commit **`32079252d55797d3da4e58ae661e9fb91c51c6f9`**. Its bundle
+  - **Baseline**: mailcow-rest-v2 commit **`32079252d55797d3da4e58ae661e9fb91c51c6f9`**. Its bundle
     (`@redocly/cli@2.64.1 bundle api/openapi.yaml`) has sha256
     `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6`, 250 paths and 376
     operations, and lists `KnownProblemType` (86 types) under `components.schemas`.
     - API 007's contract last changed in `a13c370` ("Apply orchestrator decisions to feature 007");
-      no later commit touches its modules or components.
+      no later commit up to the baseline touches its modules or components.
     - The contracts of API 004 (`df21611`) and API 005 (`f8d973a`) were merged after `a13c370`, so
       the pin must be at least as new as those. `3207925` is the contract head on 2026-10-18 and
       also registers `KnownProblemType` (UI 001 plan, gap 5).
-  - **Bump rule**: when UI 001–006 left `contract/VERSION.json` at a commit that already contains
-    `a13c370`'s API 007 files and the API 004 and 005 contracts, UI 007 keeps that pin. Otherwise
-    T001 runs `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9` (never "the latest
-    commit", UI 001 R6).
-  - **Consequences of the bump** (handled in T001–T004):
-    - the generated `schema.ts` gains the root types and the enumeration arrays this feature uses
-      (`domainAdminPermissionNameValues`, `accountSecondFactorStatusValues`,
+  - **Pins only move forward** (conventions). T001:
+    - keeps the pin UI 001 to 006 left when it is the baseline or newer, and then checks that this
+      feature's 28 operations and their components are unchanged between the baseline and the pin
+      (`git diff 3207925 <pin> -- <the files of contracts/README.md>`); a change is handled as a
+      deliberate bump;
+    - otherwise runs `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9` (never "the
+      latest commit", UI 001 R6).
+  - **Consequences**:
+    - the generated `schema.ts` provides the root types and the enumeration arrays this feature
+      uses (`domainAdminPermissionNameValues`, `accountSecondFactorStatusValues`,
       `knownProblemTypeValues`);
-    - `i18n:check` requires a label for every value of the enumerations it covers, including
-      `AuditEventType`, `AuditTarget.type` and `AuthMethod` values of API features after 007 that
-      the pin contains. Labels for 007's values are written by this feature; values of later
-      features get their real labels from their own UI features, and until then the generic
-      fallback of UI 001 FR-074 is supplied as their message so that the check passes;
-    - `scripts/i18n/check.mjs` adds `DomainAdminPermissionName` and `AccountSecondFactorStatus` to
-      its list of covered enumerations (UI 001 R27 rule 3).
+    - `scripts/i18n/check.mjs` adds the feature enumerations `DomainAdminPermissionName` and
+      `AccountSecondFactorStatus` to the fully checked list (UI 001 R27 rule 3);
+    - the growing shared enumerations stay scoped by UI 002's committed manifest
+      `src/i18n/coverage.json` (UI 002 D2): T005 appends 007's values, so that a missing 007 key
+      fails CI while values of later features stay warnings.
   - **Dependencies**: none added. Every runtime and development package of UI 001 R1 and R2 is
     enough.
 - **Rationale**: The pin must contain the contracts of every feature implemented before or with
-  UI 007. A commit SHA is authoritative because `info.version` stays `0.1.0` (UI 001 R6). Taking
-  `3207925` also closes UI 001's problem-type gap.
-- **Alternatives considered**: Pinning `a13c370` was rejected: it lacks the final contracts of API
-  004 and 005, which UI 004 and UI 005 need. A separate pin per feature is impossible: the app has
-  one generated client.
+  UI 007. A commit SHA is authoritative because `info.version` stays `0.1.0` (UI 001 R6). Checking
+  only the feature's own operations against its baseline is the conventions' rule for a pin that
+  moved ahead.
+- **Alternatives considered**: Pinning `a13c370`: rejected; it lacks the final contracts of API 004
+  and 005 and would move the pin backwards. Placeholder messages for every later value in all three
+  locales: rejected; UI 002's manifest already scopes the check.
 
 ### R2. Module layout and boundaries
 
 - **Decision**:
   - **`src/features/administrators/`**: both account lists, both creation forms and both detail
-    screens, with the components they share (status badges, actions menu, bulk bar, username
-    field, sign-in requirements, account section, domain picker, permission editor, one-time link
-    section). Single-use components stay here (constitution VIII).
+    screens, with the components they share (status badges, actions menu, username field, password
+    field wrapper, sign-in requirements, account section, domain assignments, permission editor,
+    one-time link section, section index). Single-use components stay here (constitution VIII).
   - **`src/features/acting/`**: the entry actions `SignInAsAction.vue` and `OpenWebmailAsAction.vue`,
     `ActingUnavailableNotice.vue`, the pure eligibility rules (`eligibility.ts`), the webmail opener
-    (`webmail-opener.ts`), `useActingState()` and the mutations `startImpersonation`,
+    (`webmail-opener.ts`), `useActingState()` and the requests `startImpersonation`,
     `endImpersonation` and `createWebmailSignInOnBehalf` (`api.ts`). Other features import them only
     from `@/features/acting` (UI 001 R3). Its users are `features/mailboxes` (UI 003),
     `features/administrators`, `features/passkeys`, `features/account` and the shell.
   - **Core (`src/app/`)**: the identity-switch protocol (`session/identity-switch.ts`,
     `session/identity-key.ts`, `session/acting-origin.ts`) and the shell parts every screen needs
-    (`shell/ActingBanner.vue`, `shell/ShellNotice.vue`). The query cache's error hooks, the
-    cross-tab channel, the sign-in landing and acting all call the switch, so it cannot live in a
-    feature.
+    (`shell/ActingBanner.vue`, `shell/ShellNotice.vue`). The query cache's error hooks, the CSRF
+    middleware, the cross-tab channel, the sign-in landing and acting all call the switch, so it
+    cannot live in a feature.
   - **`src/features/auth/`** (UI 001) gains the landing page, `sso-token-capture.ts` and
     `useSsoTokenSignIn()`.
   - **Entry chunk**: only `ActingBanner.vue`, `ShellNotice.vue` and the session modules join it
     (about 3 KB gzipped). Every page of `administrators`, the landing and the acting actions are in
-    lazy chunks. `budget:check` verifies it (T105).
-- **Rationale**: One directory per catalogue section keeps the shared account components without
+    lazy chunks. `budget:check` verifies it (T110).
+- **Rationale**: One directory for the two account lists keeps their shared components without
   cross-feature imports. Acting is used by five features, so its entry actions need a public
-  surface; its core must sit where the shell and the query client can reach it.
+  surface; its core must sit where the shell, the middleware and the query client can reach it.
 - **Alternatives considered**: Separate `features/admins` and `features/domain-admins`: rejected,
   because about 15 components would be shared and need promoting to `src/shared/` with only these
   two users. Putting the entry actions in `src/shared/`: impossible, because shared code may not
@@ -82,36 +85,46 @@ to it.
 ### R3. Routes and navigation
 
 - **Decision**:
-  - The catalogue keeps its single entry `administrators` (path `/administrators`, administrators
-    only), and T041 sets its `status` to `available`. The section has two lists, linked by a tab bar
-    (`AdministratorsSectionTabs.vue`, a `<nav>` with two links and `aria-current="page"`) shown on
-    both list pages.
-  - Routes (all lazy, `meta.navEntry: 'administrators'`):
+  - **Catalogue**: UI 001's single row `administrators` ("Administrators and domain administrators")
+    becomes two consecutive rows, as UI 004 did for its three screens (UI 004 research, catalogue
+    rows), which is FR-001's "sections … as items":
 
-    | Name | Path | Page |
-    |---|---|---|
-    | `administrators` | `/administrators` | redirect to `domain-admins`, keeping the query |
-    | `domain-admins` | `/administrators/domain-admins` | `DomainAdminsPage.vue` |
-    | `domain-admin-create` | `/administrators/add-domain-admin` | `DomainAdminCreatePage.vue` |
-    | `domain-admin-detail` | `/administrators/domain-admins/:username([A-Za-z0-9._-]{1,255})` | `DomainAdminDetailPage.vue` |
-    | `admins` | `/administrators/admins` | `AdminsPage.vue` |
-    | `admin-create` | `/administrators/add-admin` | `AdminCreatePage.vue` |
-    | `admin-detail` | `/administrators/admins/:username([A-Za-z0-9._-]{1,255})` | `AdminDetailPage.vue` |
-    | `sign-in-sso-token` | `/sign-in/sso-token` | `features/auth/pages/SsoTokenLandingPage.vue` (auth layout, any session state) |
+    | id | path | admin | domainAdmin | mailboxUser | by | label |
+    |---|---|---|---|---|---|---|
+    | `domainAdmins` | `/domain-admins` | ✓ | — | — | 007 | legacy `admin.domain_admins` |
+    | `administrators` | `/administrators` | ✓ | — | — | 007 | legacy `admin.admins` |
 
-  - The creation forms are siblings of the lists, not children of the detail path, because every
-    word is a valid username: `/administrators/admins/new` would hide an administrator named `new`.
+    Both keep the classic link `/admin/system` while they are placeholders. US1 flips
+    `domainAdmins` and US4 flips `administrators` to `available` when they register their routes,
+    so no entry ever leads to "not found" (UI 001 SC-007). UI 001's visibility table test gains the
+    new row.
+  - **Routes** (all lazy):
+
+    | Name | Path | Nav entry | Page |
+    |---|---|---|---|
+    | `domain-admins` | `/domain-admins` | `domainAdmins` | `DomainAdminsPage.vue` |
+    | `domain-admin-create` | `/domain-admins/-/new` | `domainAdmins` | `DomainAdminCreatePage.vue` |
+    | `domain-admin-detail` | `/domain-admins/:username([A-Za-z0-9._-]{1,255})` | `domainAdmins` | `DomainAdminDetailPage.vue` |
+    | `admins` | `/administrators` | `administrators` | `AdminsPage.vue` |
+    | `admin-create` | `/administrators/-/new` | `administrators` | `AdminCreatePage.vue` |
+    | `admin-detail` | `/administrators/:username([A-Za-z0-9._-]{1,255})` | `administrators` | `AdminDetailPage.vue` |
+    | `sign-in-sso-token` | `/sign-in/sso-token` | — (auth layout, any session state) | `features/auth/pages/SsoTokenLandingPage.vue` |
+
+  - The creation routes use UI 002 D4's `/-/` separator: every word is a valid username, but a
+    username needs a letter or digit, so the segment `-` can never be one.
+  - Section editing follows UI 002's `EditableSection` and its `edit=<section>` query parameter, so
+    an address names the account and the section being edited (FR-003).
   - The detail routes are the targets of UI 014's `/edit/domainadmin/{username}` and
-    `/edit/admin/{username}` (M22, M23), and the landing is the target of
-    `/domainadmin?sso_token=…` (M13).
+    `/edit/admin/{username}` (M22, M23), `/admin/system` maps to `domain-admins` or `admins` as UI
+    014 decides (M08), and the landing is the target of `/domainadmin?sso_token=…` (M13).
   - Every list keeps its state in the address (FR-003, FR-007); a detail page's back link returns to
-    the list address it was opened from (`history.state.back` when it is a list route of this
-    section, otherwise the plain list).
-- **Rationale**: The UI 001 spec lists one catalogue section, and UI 014 maps `/admin/system` to it.
-  The domain administrator list opens first because it is the daily task (US1 is P1, US4 P2).
-- **Alternatives considered**: Two catalogue rows (`domainAdmins`, `administrators`): rejected,
-  because it changes UI 001's catalogue table, which the spec fixes (owner question 2 in the plan).
-  A section landing page with two cards: rejected as an extra tap for a daily task.
+    the list address it was opened from (`history.state.back` when it is the matching list route,
+    otherwise the plain list).
+- **Rationale**: Separate rows follow UI 004's precedent and the spec's "items"; each list is one tap
+  from the navigation, with no in-section tab bar to build.
+- **Alternatives considered**: One row with a tab bar between the two lists: rejected; it needs a
+  section tab component that no earlier feature built, and UI 004 chose rows for the same situation.
+  `/…/new` creation paths: rejected, because they hide an account named `new`.
 
 ---
 
@@ -120,14 +133,14 @@ to it.
 ### R4. The identity-switch protocol
 
 - **Decision**: `src/app/session/identity-switch.ts` exports
-  `switchIdentity({ reason, csrfToken?, identity?, target })`. Every identity change runs it:
+  `switchIdentity({ reason, csrfToken?, identity?, refusedWrite? })`. Every identity change runs it:
 
-  | Reason | Trigger | `target` after the switch | Notice |
+  | Reason | Trigger | Target after the switch | Notice |
   |---|---|---|---|
   | `actingStarted` | `startImpersonation` `201` | `home` | announce `success.logged_in_as` |
   | `actingEnded` | `endImpersonation` `204` | the acting origin, else `home` | announce "Returned to your account" |
   | `actingEndedByServer` | any `403 impersonation-ended` | the acting origin, else `home` | shell notice: acting ended, last action not carried out (FR-051) |
-  | `changedInAnotherTab` | `session-changed` on the channel; an identity refresh whose key differs; a `csrf-token-mismatch` whose re-read identity differs | the current route if the new identity may use it, else `home` | shell notice: account changed in another tab; with a refused write also "your last action was not carried out" (FR-053) |
+  | `changedInAnotherTab` | a `session-changed` message, an identity refresh, or a `csrf-token-mismatch` re-read whose identity key differs from the cached one | the current route if the new identity may use it, else `home` | shell notice: account changed in another tab; with `refusedWrite` also "your last action was not carried out" (FR-053) |
   | `sessionReplaced` | the landing's `createSessionWithSsoToken` `201` while a session existed | as after sign-in (UI 001 R11) | — |
   | `selfRenamed` | `updateAdmin` of the own username `200` | `admin-detail` with the new name | announce the saved result |
 
@@ -139,9 +152,9 @@ to it.
      and `queryClient.clear()`.
   3. The anti-forgery token: `setCsrfToken(csrfToken)` when the response carried one (start),
      otherwise `refreshCsrfToken()` (`GET /csrf-token`, single-flight).
-  4. The identity: `setQueryData(['identity'], identity)` when the response carried it (start),
-     otherwise `GET /me`. Then `GET /session` (the guard and the banner read `Session.state` and
-     `impersonation`). A `401` here ends the session as UI 001 R11 describes.
+  4. The identity: `setQueryData(['identity'], identity)` when it is already known (start, a
+     re-read), otherwise `GET /me`. Then `GET /session` (the guard and the banner read
+     `Session.state` and `impersonation`). A `401` here ends the session as UI 001 R11 describes.
   5. Broadcast `{ v: 1, type: 'session-changed' }`, except when the reason is
      `changedInAnotherTab` (the change came from elsewhere).
   6. Resolve the target: the origin or the current route is kept only when
@@ -151,8 +164,22 @@ to it.
      the new page's `<h1>`.
 
   The **identity key** is `${username}|${role}|${impersonation?.id ?? ''}`
-  (`src/app/session/identity-key.ts`). UI 001 R12's mismatch check (username and role) uses it, so
+  (`src/app/session/identity-key.ts`). It replaces UI 001 R12's username-and-role comparison, so
   that ending and restarting acting as the same target is still a change.
+
+  **Receiving `session-changed`** (UI 001 R12, amended): the tab first re-reads `GET /me` (a read
+  needs no anti-forgery token). When the key differs, it runs `switchIdentity({ reason:
+  'changedInAnotherTab', identity })`. When it is equal, as after another tab lifted a restriction,
+  UI 001's handling applies unchanged (refetch `session` and `identity`), with no notice and no
+  unmount.
+
+  **FR-054 and focus**: the channel reaches every tab of the browser profile, the only clients that
+  share the session cookie. Background tabs, frozen tabs included, process the queued message when
+  they resume, so a tab shows the change by the time it regains focus, without a request; a
+  discarded tab bootstraps afresh. A request on `visibilitychange` would keep an idle session alive,
+  which UI 001 FR-033 forbids (UI 001 R9 turned off focus refetching for this reason). The fallbacks
+  are the next write (R5), the identity refresh after a `forbidden` and on section opening (UI 001
+  FR-045, FR-050), and `impersonation-ended`.
 
   A **failure** of steps 3 or 4 by network leaves the transition screen with a retry, and never
   shows the previous identity's page again.
@@ -163,7 +190,8 @@ to it.
 - **Alternatives considered**: A full page reload after every switch (as legacy redirects): rejected,
   because it loses the in-memory acting origin, the announcement and the anti-forgery token, and
   costs a bootstrap. Clearing only the queries of the previous role: rejected, because shared paths
-  (`/`, `/account`, `/quarantine`) show different data per identity.
+  (`/`, `/account`, `/quarantine`) show different data per identity. An identity check on focus:
+  rejected by UI 001 FR-033 (owner question 2 in the plan).
 
 ### R5. Anti-forgery retry after an identity change
 
@@ -173,14 +201,18 @@ to it.
      through the client (not the query cache).
   2. Compare its identity key (R4) with the cached identity's key.
      - **Equal**: replay the cloned request once with the new token (UI 001 behaviour).
-     - **Different**: do not replay. Run `switchIdentity({ reason: 'changedInAnotherTab',
-       identity, refusedWrite: true })` and reject the original request with an `ApiProblem` whose
-       `kind` is `'identityChanged'`. Screens ignore this kind: the switch unmounts them.
+     - **Different**: do not replay. Call the identity-change handler with `{ identity,
+       refusedWrite: true }`, and reject the original request with an `ApiProblem` whose `kind` is
+       `'identityChanged'`. Screens ignore this kind: the switch unmounts them.
      - `401` from `GET /me`: the session ended (UI 001 R11).
   3. A second mismatch after a replay still ends the session (UI 001 FR-035).
 
-  The new `kind` is added to `ApiProblem` in `src/api/problem.ts`, typed as an app-defined union
-  member, not an API shape.
+  The handler is registered by `src/app/session` at bootstrap (`setIdentityChangeHandler()` in
+  `src/api/csrf.ts`), the same inversion UI 001 uses for its session reactions, so `src/api` does not
+  import `src/app`. The check sits in the middleware rather than in the cache's `onError` hooks
+  because direct client calls (R10, R11, R14) never pass through those hooks. The new `kind` is an
+  app-defined union member of `ApiProblem` (`src/api/problem.ts`), not an API shape. T020 aligns UI
+  001's FR-035 and research R8 and R12 with this entry and R4.
 - **Rationale**: The token is renewed on every switch precisely so that a write prepared under one
   identity is refused instead of running as another (API 007 R16). Replaying it blindly, as UI 001
   does, would defeat that. The contract and API conventions ("Bulk paths and identity changes") make
@@ -215,7 +247,7 @@ to it.
     the CSS custom property `--shell-sticky-height` with `style.setProperty` (CSSOM, allowed by the
     CSP), and `scroll-padding-top` uses it, so a focused element is never hidden (WCAG 2.4.11).
   - **Markup**: `<section aria-labelledby="acting-banner-title">` (a named region, FR-045) with:
-    - an icon (`user-switch`, `aria-hidden`) and the title "Acting as {target}, {role}";
+    - an icon (`UserSwitchIcon`, `aria-hidden`) and the title "Acting as {target}, {role}";
     - the line "Signed in as {impersonator} since {time}" (`DateTime`, time only when today, date
       and time otherwise);
     - the button "Return to {impersonator}", at least 44 × 44 px (FR-044, FR-046).
@@ -243,19 +275,21 @@ to it.
   - **Eligibility** (`src/features/acting/eligibility.ts`, pure functions over the identity):
     - `canSignInAs(identity, target)`: false while `identity.impersonation` is present or the
       identity has pending actions; administrators: true for every mailbox user and domain
-      administrator, active or not; domain administrators: true only for mailbox users whose domain
-      is in `scope.domains` and only when `permissions.loginAs`; mailbox users: false; never for
-      administrator accounts or resources (FR-040, FR-042).
+      administrator, active or not, including mailboxes in inactive domains and domain
+      administrators without domains; domain administrators: true only for mailbox users whose
+      domain is in `scope.domains` and only when `permissions.loginAs`; mailbox users: false; never
+      for administrator accounts or resources (FR-040, FR-042).
     - `canOpenWebmailAs(identity, mailbox, groupwareEnabled)`: as `canSignInAs` for a mailbox user,
       plus `identity.webmailOnBehalfEnabled === true` and `groupwareEnabled` from UI 003's mailbox
       capabilities (`MailboxCapabilities.groupwareEnabled`), so that the action is hidden on a
       server without webmail instead of failing with `groupware-disabled` (FR-055).
-  - **Entry points** (FR-041, conventions "Where features meet"):
+  - **Entry points** (FR-041, conventions "Where features meet"), in the earlier screens'
+    designated action areas:
     - the domain administrator list's `AccountActionsMenu` and the detail page header
       (`features/administrators`);
-    - the mailbox list entry action menu and the mailbox detail action area of UI 003
-      (`features/mailboxes`), each rendering `SignInAsAction` and `OpenWebmailAsAction` with the
-      mailbox entry.
+    - UI 003's `src/features/mailboxes/components/list/MailboxRowActions.vue` (list cards and rows)
+      and the header of `src/features/mailboxes/pages/MailboxDetailPage.vue`, each rendering
+      `SignInAsAction` and `OpenWebmailAsAction` with the mailbox entry.
     Both render nothing when the rule is false: no placeholder, no disabled item.
   - **Starting** (FR-043): `SignInAsAction` calls `startImpersonation({ role, username })`. Before
     the request it records the origin (R6). On `201` it runs R4 with the response's identity and
@@ -264,9 +298,13 @@ to it.
   - **Credential controls while acting** (FR-049): `useActingState().isActing` disables, with the
     visible reason "Not available while acting as another user" (`ActingUnavailableNotice.vue`):
     - UI 001's passkey page: add, rename and remove;
-    - UI 005's own password change, second-factor enrolment and removal, recovery e-mail change and
-      the mailbox home's Webmail action (FR-057).
-    A `not-allowed-while-impersonating` refusal shows the same text (`problem.not-allowed-while-impersonating`).
+    - UI 005's own password form (`components/password/OwnPasswordForm.vue`), second-factor screens
+      (`components/two-factor/{SecondFactorList,AddSecondFactorMenu,TurnOffTwoFactorDialog}.vue`,
+      `pages/AddSecondFactorPage.vue`) and recovery e-mail form
+      (`components/recovery/RecoveryEmailForm.vue`), all under `src/features/account/`;
+    - UI 005's `WebmailAction.vue` (FR-057, R9).
+    A `not-allowed-while-impersonating` refusal from any of them shows the same text
+    (`problem.not-allowed-while-impersonating`).
   - **Sign out completely** (FR-047): UI 001's `UserMenu.vue` labels the sign-out
     "Sign out completely" while acting; the action is UI 001's sign-out, which ends the whole session
     (API 007 FR-051).
@@ -282,8 +320,8 @@ to it.
 ### R9. Webmail on a user's behalf
 
 - **Decision** (`src/features/acting/webmail-opener.ts`):
-  1. On "Open webmail as", call `createWebmailSignInOnBehalf(mailbox)`. The response sets the
-     webmail hand-off cookie in this browser and returns `url` (`/SOGo/so/`).
+  1. On "Open webmail as", call `createWebmailSignInOnBehalf(mailbox)` directly through the client.
+     The response sets the webmail hand-off cookie in this browser and returns `url` (`/SOGo/so/`).
   2. Then `const win = window.open(url, '_blank')`, and when it returns a window, set
      `win.opener = null`. The app stays on its screen (FR-056).
   3. When `window.open` returns `null` (blocked, typical for iOS Safari after an asynchronous
@@ -294,14 +332,16 @@ to it.
      `permission-flag-required`, `422 notEligible` on `mailbox` with `reason` (`mailboxInactive`,
      `loginDisabled`, `domainInactive`), `404`.
   - **While acting** the API refuses every webmail sign-in (API 007 FR-049, FR-054), so
-    `OpenWebmailAsAction` is never offered while acting, and UI 005's Webmail action on the
-    impersonated user's home is disabled with the acting reason (FR-057 as aligned).
+    `OpenWebmailAsAction` is never offered while acting. UI 005's `WebmailAction.vue` hides itself
+    while acting; this feature changes it to show the action disabled with the acting reason, as
+    FR-057 asks.
 - **Rationale**: Requesting first and opening afterwards means a refusal never leaves an empty tab.
   `noopener` in the features string would make `window.open` return `null` even on success, so the
   opener is cleared afterwards instead, which still lets the app detect a blocked window.
-- **Alternatives considered**: Opening a blank window synchronously before the request and
-  navigating it afterwards: rejected; on phones it switches tabs before the app can show an error,
-  and closing it afterwards is unreliable. Navigating the app's own tab: forbidden by FR-056.
+- **Alternatives considered**: Opening a blank window synchronously before the request (UI 005's
+  approach for the user's own webmail): rejected here; on phones it switches tabs before the app can
+  show the refusal, and refusals are common for support staff working from lists. Navigating the
+  app's own tab: forbidden by FR-056.
 
 ---
 
@@ -325,11 +365,13 @@ to it.
     - no token captured: redirect to `sign-in`;
     - `Session.state` `anonymous`: exchange at once;
     - `active`, `restricted` or `pendingSecondFactor`: ask first (FR-060). The question names the
-      current account (`Session.username`) and "the domain administrator this link was created
-      for" (plan gap G1). "Continue" exchanges; "Stay signed in as {username}" discards the token
-      and opens `home` (or the current state's screen).
-  - **Exchange**: `createSessionWithSsoToken({ token })`, then the token variable is cleared,
-    whatever the outcome.
+      current account, which is `Session.username`, or, while acting, the impersonator from
+      `Session.impersonation` together with the acted-as account, and "the domain administrator this
+      link was created for" (plan gap G1). "Continue" exchanges; "Stay signed in as {username}"
+      discards the token and opens `home` (or the current state's screen).
+  - **Exchange**: a direct client call to `createSessionWithSsoToken({ token })`, never through
+    `useMutation`, so the token never enters the mutation cache (conventions "Secrets in requests
+    or responses"). The token variable is cleared afterwards, whatever the outcome.
     - `201`: write `session`; for a previous session run R4 with `sessionReplaced`, otherwise UI
       001's after-sign-in path. `restricted` goes to the pending-actions screen (FR-060, US5-AS4);
       `active` goes to `home`. Broadcast `session-changed`.
@@ -371,11 +413,11 @@ to it.
     browser replaces your current session". There is no "open" control.
   - Leaving the screen or closing the dialog clears the link (FR-063).
   - `409 account-inactive` shows its message and refreshes the account.
-- **Rationale**: The conventions name one-time sign-in links as secrets that use the shared dialog;
-  the countdown is the only addition. A direct call keeps the credential out of every cache.
-- **Alternatives considered**: An inline section display: rejected by the conventions. `useMutation`
-  with `gcTime: 0`: workable, but the result still sits in the mutation cache until the component
-  resets it; a direct call is simpler.
+- **Rationale**: The conventions name one-time sign-in links as secrets that use the shared dialog
+  and never pass through TanStack caches; the countdown is the only addition.
+- **Alternatives considered**: An inline section display: rejected by the conventions. UI 005's
+  `useSecretMutation`: it strips a secret from a mutation's response, but the conventions ask for a
+  direct call, which is simpler here.
 
 ---
 
@@ -396,18 +438,20 @@ to it.
   - **Cards** below `md` (`DomainAdminCard`, `AdminCard`), the whole card a link to the detail with
     the actions menu as a separate control; **tables** from `md` (`DomainAdminTable`, `AdminTable`)
     with sortable headers (`aria-sort`) (FR-006).
-  - **Card content**: username, the first three assigned domains (`domainUnicode`) and "+N more",
-    a "No domains" warning for an empty list, a "not a domain" marker for `domainExists: false`,
-    `SecondFactorStatusBadge` (none, active, "suspended until next sign-in"), `AccountStatusBadge`,
-    and for administrators the "You" marker when `username === identity.username` (FR-005, FR-032,
-    FR-069: text, never colour alone).
-  - **Empty states**: without filters, the explanation of domain administrators (or
-    administrators) and the primary action; with filters, "No matches" and "Clear filters" (FR-004,
-    US1-AS9).
+  - **Card content**: username, the first three assigned domains (`DomainAdminAssignment.domainUnicode`)
+    and "+N more", a "No domains" warning for an empty list, a "not a domain" marker for
+    `domainExists: false`, `SecondFactorStatusBadge` (none, active, "suspended until next sign-in"),
+    `AccountStatusBadge`, and for administrators the "You" marker when `username ===
+    identity.username` (FR-005, FR-032, FR-069: text, never colour alone).
+  - **States**: `ListState` for loading, error with retry and empty; without filters the empty
+    state explains domain administrators (or administrators) and offers the primary action; with
+    filters, "No matches" and "Clear filters" (FR-004, US1-AS9). Detail pages use UI 003's
+    `NotFoundState` with a link to the list.
   - **Active-administrator count**: `listAdmins({ active: true, limit: 1 })` → `meta.total`, query
     key `['admins', 'active-count']`, fetched on the administrator list and detail screens and
     invalidated after every administrator status change, deletion and bulk action. It drives
-    FR-036.
+    FR-036. Because the signed-in administrator is always active, a count of 1 means the own account
+    is the last active one.
 - **Rationale**: The parameters are the contract's filters one to one (API 007 FR-011, FR-012), and
   the address keeps them (conventions "Lists"). A one-entry list read gives the count without a
   dedicated operation.
@@ -418,34 +462,38 @@ to it.
 ### R13. Bulk actions
 
 - **Decision**:
-  - **Selection**: UI 002's `useBulkSelection` (selection mode on phones, checkboxes on wide
-    screens, current page only, cleared through `useListState`'s `onReset`).
+  - **Selection and bar**: UI 002's `useBulkSelection` (selection mode on phones, checkboxes on wide
+    screens, current page only, cleared through `useListState`'s `onReset`) and `BulkActionBar`,
+    with the actions of the role. `useBulkSelection` takes `AccountCapabilities.bulkLimit` from the
+    account capabilities; once it is reached, further selection is disabled with a message that
+    states the limit (conventions).
   - **Request**: `applyDomainAdminBulkAction` or `applyAdminBulkAction` with
-    `{ action, targets: [{ id: username, version: etag }] }`, at most
-    `AccountCapabilities.bulkLimit` targets (100); page sizes never exceed it. One request for the
-    selection (FR-010 as aligned). The bar shows a busy state while it runs.
-  - **Client checks before sending** (`bulk.ts`, pure):
-    - the own administrator account is removed from the targets of `delete` and `deactivate`, and
-      the summary states "Your own account was left out" (FR-035, clarification);
-    - `deactivate` on administrators is stopped before any request when the selected active
-      accounts are at least the active-administrator count, with "At least one administrator must
-      stay active" (FR-036);
-    - `suspendSecondFactors` sends only accounts whose status is `active`.
+    `{ action, targets: [{ id: username, version: etag }] }`. One request for the selection (FR-010
+    as aligned). `BulkActionBar` shows the busy state while it runs.
+  - **Client planning before sending** (`bulk.ts`, pure, in this order):
+    1. the own administrator account is removed from the targets of `delete` and `deactivate`, and
+       the summary states "Your own account was left out" (FR-035);
+    2. for administrators' `deactivate`, the remaining active targets are compared with the
+       active-administrator count; when they are at least the count (possible only with a stale
+       count, because the own active account is never a target), nothing is sent and the bar shows
+       "At least one administrator must stay active" (FR-036). The API's per-item
+       `last-active-admin` refusal covers concurrent changes;
+    3. `suspendSecondFactors` sends only accounts whose status is `active`.
   - **Confirmations**: `delete` asks once, listing the selected usernames (and, for domain
     administrators, the consequences of FR-025) and requiring the number of accounts typed (UI 002
-    `requireTyped`; conventions "Confirmations"). `suspendSecondFactors` asks once (FR-024's text).
-    `activate` and `deactivate` of other accounts do not ask (FR-026).
+    `ConfirmDialog` with `requireTyped`). `deactivate` asks once, stating that the accounts'
+    sessions end and their API keys stop working until reactivated (FR-026 as aligned).
+    `suspendSecondFactors` asks once (FR-024's text). `activate` does not ask.
   - **Summary**: UI 002's `BulkResultSummary` with one row per account: `done`, `notFound`,
     `refused` (the problem translated: `last-active-admin`, `cannot-delete-own-account`),
     `outdated`, `failed`. Accounts with `refused`, `outdated` and `failed` stay selected; `done`
     accounts are updated by invalidating the list, the details and the active count. A dropped
     connection is reported as "outcome unknown" and never retried.
 - **Rationale**: API 007 FR-075 and the conventions replaced the spec's "one request per account";
-  the shared blocks of UI 002 implement the conventions once. The client checks keep the spec's
-  promises before the API's per-item refusals.
+  the shared blocks of UI 002 implement the conventions once.
 - **Alternatives considered**: One request per account (the spec's first wording): rejected by the
   contract and the conventions, and it would write one audit record per request without a
-  `bulkRequestId`.
+  `bulkRequestId`. A feature-local bulk bar: rejected by the canonical names.
 
 ### R14. Creation forms, usernames, passwords and the domain picker
 
@@ -455,76 +503,83 @@ to it.
     default) and, for domain administrators, Permissions (a Reka `Collapsible`, collapsed). The
     account capabilities (`getAccountCapabilities`, key `['capabilities', 'accounts']`) give the
     defaults (`newAccountDefaults`, `domainAdminPermissionDefaults`), `usernameMaxLength` and
-    `bulkLimit`. One `createDomainAdmin`/`createAdmin` request; only flags that differ from the
-    defaults are sent in `permissions` (FR-015). When the capabilities cannot be read, the
-    Permissions section shows the error with a retry and the form can still be saved without
-    permissions, with the note that the server defaults apply.
+    `bulkLimit`. Only flags that differ from the defaults are sent in `permissions` (FR-015). When the
+    capabilities cannot be read, the Permissions section shows the error with a retry and the form
+    can still be saved without permissions, with the note that the server defaults apply. Leaving
+    with entered values asks through UI 002's `useLeaveGuard`.
+  - **Submission without caches**: `createDomainAdmin` and `createAdmin` carry the password, so they
+    are direct client calls from the page, never `useMutation`; the response (which has no password)
+    is written to the detail key and the lists are invalidated by hand (data-model §3). No draft of
+    these forms is saved (conventions "Secrets in requests or responses").
   - **Username** (`username.ts`, `UsernameField.vue`, FR-012): on blur, trim and lower-case. Before
     submission: required; at most `usernameMaxLength`; only `a-z`, `0-9`, `.`, `_`, `-`; at least
     one letter or digit; not `api`. These are the rules the contract documents on
     `AdminCreateRequest`. The hint lists the allowed characters. Server errors are mapped too:
     `invalidFormat` (`format: accountUsername`), `reserved`, `tooLong` and `409 account-exists`
     (FR-016).
-  - **Password** (FR-014): UI 003's password field (show/hide, "Generate" that meets the policy and
-    reveals and offers to copy, the policy rules listed from `getPasswordPolicy`). The value is in
-    the form's local state only, cleared on unmount, never in the query cache or the router. In the
-    detail screen's Account section the field starts empty and an empty value keeps the password
-    (FR-020). Each unmet rule from the server is shown on the field.
-  - **Domain picker** (`DomainPicker.vue`, `DomainPickerDialog.vue`, FR-013):
-    - the form shows the selection as removable chips (`domainUnicode`, with the ASCII name as a
-      title when different) and an "Add domains" button;
-    - the dialog (a Reka `Dialog`, full screen below `md`, a centred panel above) has a search field
-      and a checkbox list over `listDomains({ q, sort: name, limit: 25 })` with "Load more"
-      (`useInfiniteQuery`, key `['domains', 'picker', { q }]`, 300 ms debounce), so thousands of
-      domains stay usable;
-    - "Done" applies the selection; Escape and "Cancel" discard it;
-    - at least one domain is required before submission;
-    - the request sends ASCII names (`Domain.name`);
-    - server errors on `domains.<index>` (`notFound`, `notEligible` with `kind: aliasDomain`,
-      `invalidFormat` with `format: domainName`) mark the matching chip and name the entry (spec
-      edge case "domain removed while the form is open").
+  - **Password** (FR-014, as aligned): `AccountPasswordField.vue` wraps UI 005's shared
+    `NewPasswordFields.vue` without `confirm` (show and hide through `PasswordInput`, "Generate" from
+    `src/shared/password/generate.ts` that meets the policy and reveals and offers to copy, and
+    `PasswordPolicyChecklist` over `getPasswordPolicy`). The checklist marks rules while typing and
+    never blocks submission; a value that begins with a recognised hash-scheme prefix gets UI 003's
+    pre-hashed notice (stored as given, without the policy check). Server errors (`tooShort`,
+    `missingCharacterClass`) are shown on the field. The value is local component state, cleared on
+    unmount.
+  - **Domain picker** (FR-013): UI 004's shared `src/shared/components/DomainPicker.vue` in multiple
+    mode over `listDomains` (search, infinite list). T040 adds, only if missing and without changing
+    other callers, a full-screen presentation below `md` (a Reka `Dialog` with a search field and a
+    checkbox list, "Done" applies, Escape and "Cancel" discard) and the selection as removable chips
+    (`Domain.unicodeName`, with the ASCII name as a title when different). At least one domain is
+    required before submission; the request sends ASCII names (`Domain.name`). Server errors on
+    `domains.<index>` (`notFound`, `notEligible`, `invalidFormat` with `format: domainName`) mark the
+    matching chip and name the entry (spec edge case "domain removed while the form is open").
   - **After creation** (FR-017): the success message names the account (`success.domain_admin_added`,
     `success.admin_added`) and the detail page opens with `router.replace`.
 - **Rationale**: Every value comes from the contract or its capabilities read (conventions: no
-  hard-coded limits). One picker for every width keeps one implementation while meeting the phone
-  rule.
-- **Alternatives considered**: A Reka `Combobox` with multiple selection on desktop: rejected; a
-  second implementation of the same picker. Sending every flag at creation: works, but the spec
-  asks to send only the differing ones, and it would freeze the defaults of the client.
+  hard-coded limits). Reusing the shared picker and password fields follows the canonical names;
+  direct calls keep passwords out of every cache.
+- **Alternatives considered**: A feature-local picker and dialog: rejected; UI 004 promoted the
+  shared picker. Blocking submission on the checklist (the spec's first wording): rejected for
+  consistency with UI 003 and UI 005 and because the API accepts pre-hashed values without the
+  policy check. Sending every flag at creation: it would freeze the client's view of the defaults.
 
 ### R15. Detail screens, sections, renames, status changes and removal
 
 - **Decision**:
-  - **Sections** (FR-018, FR-034) through UI 002's `EditableSection` (own edit and save, only the
-    changed fields, `If-Match` with the etag of the latest cached account, changed-value marking
-    after `412`):
-    - Account: username, status, creation and modification dates (`DateTime`); edit: username,
-      status, new password;
+  - **Sections** (FR-018, FR-034) through UI 002's `EditableSection` (own edit and save driven by
+    the `edit=<section>` parameter, only the changed fields, `If-Match` with the etag of the latest
+    cached account, and after `412` the reloaded values with the changes marked through
+    `changedSince()`):
+    - Account: username, status, creation and modification dates (`DateTime`); edit: username and
+      status; a separate "Set a new password" form (`PasswordChangeForm.vue`) in the same section
+      sends `{ password }` as a direct client call with `If-Match` (R14), clears the field and
+      writes the returned account;
     - Domains (domain administrators): `DomainAssignmentList` (each existing domain links to UI
-      002's domain detail; "not a domain" warning; an assignment status that differs from the
-      account's shows its own badge, FR-022); edit through the picker, which leaves out entries
-      with `domainExists: false` and refuses an empty selection;
+      002's `domain-detail`; "not a domain" warning; an assignment status that differs from the
+      account's shows its own badge, FR-022); edit through the picker, which leaves out entries with
+      `domainExists: false` and refuses an empty selection;
     - Sign-in and security: second-factor status, number of active passkeys, the two forced flags
       (FR-023, the product name in `edit.force_pw_update_info` from branding), and "Suspend
-      two-factor authentication until next sign-in" when the status is `active` (FR-024);
+      two-factor authentication until next sign-in" when the status is `active` (FR-024), sent with
+      `If-Match`;
     - Permissions (domain administrators, R16);
     - One-time sign-in link (domain administrators, R11);
     - "View history" (`HistoryLink`, R18).
-  - On phones a section index (`DetailSectionIndex.vue`, in-page links) heads the page; on wide
-    screens the sections stack in one column with the same index as a side list.
+  - `DetailSectionIndex.vue` (in-page links) heads the page on phones and stays beside the sections
+    on wide screens; both detail pages use it.
   - Each save updates `['…', 'detail', username]` with `setQueryData` from the response, so the
     other sections use the new etag; a `412` means another client changed the account.
-  - Leaving with unsaved changes in any section asks for confirmation (`onBeforeRouteLeave`,
-    FR-019).
+  - Leaving with unsaved changes in any section asks through UI 002's `useLeaveGuard` (FR-019).
   - **Rename** (FR-021): another account → a confirmation that its open sessions and any acting
     session on it end; the own administrator account → a confirmation that names the new username
     for the next sign-in. After success the page replaces its address with the new username; the
     own rename runs R4 with `selfRenamed`.
-  - **Status** (FR-026, FR-036, FR-037): activating or deactivating another account needs no
-    confirmation, and the message states the effect (deactivation: sessions end and API keys stop
-    working until reactivation). Deactivating the last active administrator is disabled with "At
-    least one administrator must stay active". Deactivating the own account asks first, warning that
-    the session ends; after the `200`, the app calls `GET /session`; when it reports `anonymous`, UI
+  - **Status** (FR-026 as aligned, FR-036, FR-037): activating another account needs no
+    confirmation; deactivating another account asks once and states the effect (sessions end, API
+    keys stop working until reactivation), which the result message repeats. When the
+    active-administrator count is 1, the own account's deactivation is disabled with "At least one
+    administrator must stay active". Deactivating the own account asks first, warning that the
+    session ends; after the `200`, the app calls `GET /session`; when it reports `anonymous`, UI
     001's session end runs with the new notice `selfDeactivated` (FR-037).
   - **Removal** (FR-025, FR-035, FR-038): a confirmation whose content `confirmations.ts` builds:
     the account, its domains (domain administrators), the permanent revocation of its API keys, the
@@ -532,13 +587,13 @@ to it.
     administrators that the domains and mailboxes stay. The confirm button names the action ("Remove
     domain administrator", "Remove administrator"). The own account's "Remove" is disabled
     everywhere with "You cannot remove the account you are signed in with". After `204` the list
-    opens and the result is announced. `412` asks again (conventions).
+    opens and the result is announced. A `412` reloads and asks again (conventions).
   - **API refusals** always show and then reload the account (FR-039): `last-active-admin`,
-    `cannot-delete-own-account`, `account-exists`, `412`, `404` (the not-found state with a link to
-    the list, spec edge case "removed with its last domain").
-- **Rationale**: UI 002's section pattern implements the conventions; the confirmations carry the
-  spec's texts; the self-deactivation flow turns the API's "ends at its next request" into an
-  immediate, explained sign-in screen.
+    `cannot-delete-own-account`, `account-exists`, `412`, and `404` with `NotFoundState` and a link
+    to the list (spec edge case "removed with its last domain").
+- **Rationale**: UI 002's section pattern implements the conventions; the separate password form
+  keeps the password out of the section's versioned-save machinery; the self-deactivation flow turns
+  the API's "ends at its next request" into an immediate, explained sign-in screen.
 - **Alternatives considered**: One form for the whole account: rejected by FR-019 and the
   conventions. Signing out locally after self-deactivation without asking the API: rejected; the
   session end should be confirmed by the server state.
@@ -561,9 +616,10 @@ to it.
     with its label (legacy `acl.<column>` through `legacy-map.json`) and a one-line explanation
     (new key `permissions.explanation.<flag>`) referenced by `aria-describedby` (FR-027, FR-030).
     Used by the creation form (bound to the defaults) and by `PermissionsSection.vue`.
-  - `PermissionsSection.vue` sends `updateDomainAdmin({ permissions: <changed flags> })` with
-    `If-Match` (FR-029), shows `success.acl_saved`, keeps the switches on failure and on `412` (with
-    "load current values"), and joins the unsaved-changes guard.
+  - `PermissionsSection.vue` (on `EditableSection`) sends `updateDomainAdmin({ permissions:
+    <changed flags> })` with `If-Match` (FR-029), shows `success.acl_saved`, keeps the switches on
+    failure, and on `412` keeps the user's switches, reloads, and marks the flags that changed
+    elsewhere, offering the current values (FR-066, conventions); it joins the leave guard.
   - An account without a permission record reads every flag as off, exactly as the API reports it;
     saving creates the record (spec edge case).
   - No permission editor exists for administrators (FR-031).
@@ -587,30 +643,40 @@ to it.
     user"), `webmail-on-behalf-disabled`, `account-inactive`, and the reused `permission-flag-required`
     (with the translated flag from `requiredFlags`), `groupware-disabled`, `session-required` and
     the `412` "changed elsewhere".
-  - **Field messages**: `validation.format.accountUsername`; `reserved` on a username (legacy
-    `danger.username_invalid` with the name); `notEligible` with `kind: aliasDomain` on a domain;
-    `notEligible` with `reason` on a mailbox (three messages); `immutable` and `unknownField` fall
-    back to the generic `validation.<code>`; feature 003's password codes (`tooShort`,
-    `missingCharacterClass`) come from UI 003. `account-exists` maps to the username field (legacy
-    `danger.object_exists`).
-  - **Legacy keys** (FR-030, FR-072, SC-007): the 42 keys of the spec's list and the 19 flag labels
-    `acl.<column>` are mapped in `src/i18n/legacy-map.json`. Upstream `cs-cz` and `sk-sk` lack
-    `tfa.force_tfa`, `tfa.force_tfa_info` and `acl.alias_external_goto`; their app layers supply them
-    (UI 001 R15). `edit.force_pw_update_info` keeps its `%s` (→ `{0}`) for the product name.
-    `admin.generate` ("generate", lower case) is not mapped; the password field's own label comes
-    from UI 003.
+  - **Field messages**: `validation.format.accountUsername`; `reserved` on a username
+    (`accounts.validation.reservedUsername`, mapped to legacy `danger.username_invalid` with the
+    name); `notEligible` on `domains.<index>`, keyed by the code and the path only (plan finding 7);
+    `notEligible` with `reason` on `mailbox` (three messages); `immutable` and `unknownField` fall
+    back to the generic `validation.<code>`; the password codes (`tooShort`,
+    `missingCharacterClass`) come with UI 005's shared fields. `account-exists` maps to the username
+    field (legacy `danger.object_exists`).
+  - **Legacy keys** (FR-030, FR-072, SC-007): the 40 keys of the spec's list and the 19 flag labels
+    `acl.<column>`, 59 in all, are mapped in `src/i18n/legacy-map.json`. Upstream `cs-cz` and
+    `sk-sk` lack `tfa.force_tfa`, `tfa.force_tfa_info` and `acl.alias_external_goto`; their app
+    layers supply them (UI 001 R15). `edit.force_pw_update_info` keeps its `%s` (→ `{0}`) for the
+    product name. `tests/unit/i18n/legacy-keys-007.spec.ts` lists the 59 keys.
   - **New namespaces**: `accounts.*` (shared account texts), `domainAdmins.*`, `admins.*`,
     `permissions.*`, `acting.*`, `webmailOnBehalf.*`, `ssoSignIn.*` (landing), `ssoLink.*` (link
-    creation), additions to `auditLog.*` and `auth.signIn.notice.*`.
-  - **Enumerations** checked by `i18n:check`: `DomainAdminPermissionName` and
-    `AccountSecondFactorStatus` are added; the 007 values of `AuditEventType` (12),
-    `AuditTarget.type` (`admin`, `domainAdmin`, `ssoToken`, `impersonation`) and `AuthMethod`
-    (`ssoToken`) get labels (R1 for values of later features).
+    creation), additions to `auditLog.*`, `nav.*` and `auth.signIn.notice.*`.
+  - **Enumerations**: `DomainAdminPermissionName` and `AccountSecondFactorStatus` are fully checked
+    (R1). In `src/i18n/coverage.json` this feature appends the 12 event types of API 007
+    (`adminCreation`, `adminUpdate`, `adminDeletion`, `adminSecondFactorSuspension`,
+    `domainAdminCreation`, `domainAdminUpdate`, `domainAdminDeletion`,
+    `domainAdminSecondFactorSuspension`, `ssoTokenIssue`, `impersonationStart`, `impersonationEnd`,
+    `webmailSignInOnBehalf`), the targets `admin`, `domainAdmin`, `ssoToken` and `impersonation`, the
+    method `ssoToken`, the eight problem types of API 007 plus `permission-flag-required` and
+    `groupware-disabled` when not yet listed, and the rule codes `reserved`, `immutable`,
+    `unknownField` and `notEligible` when not yet listed.
+  - **No English detail**: the e2e fixture fails a test when the mock's sentinel `detail` text ever
+    appears on the page (R20, SC-008).
 - **Rationale**: Messages by type and code, never by English detail (constitution I). Reusing the
-  legacy keys carries their translations over (constitution IV).
+  legacy keys carries their translations over (constitution IV). The manifest is UI 002's canonical
+  coverage registry.
 - **Alternatives considered**: Reusing `warning.no_active_admin` for the disabled reason too:
   rejected; the spec gives a different, clearer text for the reason ("At least one administrator
-  must stay active"), while the legacy text fits the refusal.
+  must stay active"), while the legacy text fits the refusal. Mapping `admin.generate`: rejected;
+  the shared password field brings its own "Generate" label, and an unused key only produces a
+  warning.
 
 ### R18. Audit log and History links
 
@@ -619,7 +685,8 @@ to it.
     `targetType=admin` or `domainAdmin` and `targetId=<username>`.
   - **Impersonated account** (US7-AS2, AS3) in UI 001's audit log feature:
     - list state gains `impersonated` (string ≤ 255) → `impersonatedAccount`, with a filter field
-      and a removable chip;
+      and a removable chip in the shared `src/shared/components/ActiveFilterChips.vue` (promoted by
+      UI 003);
     - `AuditEventItem.vue` shows, when `impersonatedAccount` is present, the actor (the
       impersonator) and the marker "while acting as {username} ({role})" in text;
     - `labels.ts` gains the 12 event types of API 007, the four target types and the `ssoToken`
@@ -635,14 +702,18 @@ to it.
 
 - **Decision**: New roots in `src/api/query/keys.ts` (full table in data-model §3):
   `['admins', 'list', params]`, `['admins', 'detail', username]`, `['admins', 'active-count']`,
-  `['domain-admins', 'list', params]`, `['domain-admins', 'detail', username]`,
-  `['capabilities', 'accounts']`, `['domains', 'picker', { q }]`. They follow UI 001 R9's defaults
-  (30 s stale time; capabilities 5 min). Mutations write the returned account with `setQueryData`
-  and invalidate the lists (and the active count for administrators). Tokens, links and webmail
-  sign-ins are never cached. The identity switch clears everything (R4).
+  `['domain-admins', 'list', params]`, `['domain-admins', 'detail', username]` and
+  `['capabilities', 'accounts']`; the domain picker uses UI 004's shared picker queries. They follow
+  UI 001 R9's defaults (30 s stale time; capabilities 5 min); there is no polling and no focus
+  refetch (conventions "Polling"). Mutations without secrets write the returned account with
+  `setQueryData` and invalidate the lists (and the active count for administrators). Requests with a
+  password or token, the one-time link and the webmail sign-in are direct client calls whose secret
+  values never reach either cache (conventions "Secrets in requests or responses"). The identity
+  switch clears everything (R4).
   - `src/api/query/client.ts` adds `impersonation-ended` to the session-level reactions of UI 001
     R8 step 4, delegating to `switchIdentity({ reason: 'actingEndedByServer' })`; the request is never
-    retried.
+    retried. Direct client calls reach the same reaction through `handleSessionProblem()` from
+    `src/app/session`, which their callers invoke on an `ApiProblem`.
 - **Rationale**: UI 001's key factory and invalidation pattern; only the switch empties the cache.
 - **Alternatives considered**: Keeping capabilities across switches: rejected; they are
   administrator-only and an identity switch can remove access.
@@ -658,9 +729,9 @@ to it.
     - `tests/mocks/handlers/admins.ts`: `listAdmins` (filters, sorts, paging, `meta.total`),
       `createAdmin`, `getAdmin`, `updateAdmin` (merge patch, `If-Match`/`412`, rename,
       `last-active-admin` atomically over the scenario state, self-deactivation ending the session
-      at the next request), `deleteAdmin` (`cannot-delete-own-account`, `last-active-admin`),
-      `suspendAdminSecondFactors`, `applyAdminBulkAction` (in order, per-item outcomes,
-      `tooMany` above the limit), `getAccountCapabilities`;
+      at the next request), `deleteAdmin` (`cannot-delete-own-account`, `last-active-admin`,
+      `If-Match`), `suspendAdminSecondFactors` (`If-Match`), `applyAdminBulkAction` (in order,
+      per-item outcomes, `tooMany` above the limit), `getAccountCapabilities`;
     - `tests/mocks/handlers/domain-admins.ts`: the same for domain administrators, with domain
       normalisation and the `domains.<i>` errors, `permissions` merge, the `domain` and
       `permission`/`permissionValue` filters, `domainCount` sort;
@@ -674,18 +745,22 @@ to it.
     - changes: `identity.ts` (target identity, effective flags of API 007 R18, `impersonation`,
       `webmailOnBehalfEnabled`), `auth.ts` (the anti-forgery token renewed on every start, end and
       automatic end, so an old token gets `csrf-token-mismatch`; `deleteSession` ends the whole
-      session while acting), `passkeys.ts` and UI 005's `self-service.ts` (`not-allowed-while-impersonating`
-      on credential and webmail hand-off operations while acting), `audit.ts` (`impersonatedAccount`
-      in records and as a filter).
+      session while acting), `passkeys.ts` and UI 005's `self-service/own-account.ts`
+      (`not-allowed-while-impersonating` on credential and webmail hand-off operations while
+      acting), `audit.ts` (`impersonatedAccount` in records and as a filter).
+  - **Sentinel detail** (SC-008): every problem the mock builds carries the `detail` text
+    `"[mock English detail]"`; the end-to-end fixture `tests/e2e/fixtures/test.ts` fails a test when
+    that text is ever visible.
   - **Automatic end**: `PATCH /__mock/scenarios/:id` with `{ invalidateImpersonation: '<reason>' }`
     makes the next session request, except `endImpersonation` and `deleteSession`, answer `403
     impersonation-ended`, end the impersonation and renew the token, as API 007 R17 describes.
   - **Scenario modules**: `tests/mocks/scenarios/administrators.ts` (lists of 3, 0 and 120 domain
     administrators; no domains; a non-domain assignment; differing assignment status; no permission
-    record; one and two active administrators; changed elsewhere), `acting.ts` (admin with mailboxes
-    and domain administrators; domain administrators with and without `loginAs`; webmail setting on
-    and off; groupware disabled; already acting), `sso-sign-in.ts` (valid, expired, used and
-    malformed tokens; a forced password change; throttled).
+    record; one and two active administrators; list and detail errors; changed elsewhere),
+    `acting.ts` (admin with mailboxes and domain administrators; domain administrators with and
+    without `loginAs`; webmail setting on and off; groupware disabled; already acting),
+    `sso-sign-in.ts` (valid, expired, used and malformed tokens; a forced password change;
+    throttled).
   - **Factories**: `tests/mocks/factories/{admin,domain-admin,impersonation}.ts`.
   - **Webmail tab**: the end-to-end fixture `tests/e2e/fixtures/popup.ts` fulfils `/SOGo/**` with a
     stub page and records popups; `window.open` blocking is simulated with an init script.
@@ -706,52 +781,61 @@ to it.
     the banner (region, names, middle ellipsis, button, colours by token, title prefix); the landing
     capture (token out of the address before the bootstrap) and its state machine; the webmail
     opener (blocked window, refusals); username rules; permission groups; bulk planning (own
-    account, last administrator); list-state mappings; the domain picker; the one-time link dialog
-    countdown; confirmations' content.
+    account, stale count); list-state mappings; the picker extension; the one-time link dialog
+    countdown; confirmations' content; secrets (no password or token in either cache after create,
+    password change and exchange).
   - **End-to-end** (Playwright, both viewports plus `mobile-webkit`, axe in both themes on every
     screen and dialog, UI 001 fixtures): every acceptance scenario of US1 to US7, the edge cases
-    the mock can produce, and SC-001, SC-002, SC-003, SC-004, SC-005, SC-008 and SC-010. Test titles
-    carry the spec IDs (`US2-AS3 …`, `FR-052 …`, `Edge: …`). SC-004 is asserted by checking, after
-    every switch, that no text of the previous identity's list or detail is visible and that
-    `mockApi.requests()` holds no resent request.
+    the mock can produce, and SC-001 to SC-006 and SC-008 to SC-010. Test titles carry the spec IDs
+    (`US2-AS3 …`, `FR-052 …`, `Edge: …`). SC-004 is asserted by checking, after every switch, that
+    no text of the previous identity's list or detail is visible and that `mockApi.requests()` holds
+    no resent request.
   - **Smoke** (against the API dev stack and its `DevelopmentSeeder`: `admin`, `reseller`,
     `alice@example.org`, password `Passw0rd!dev`):
-    - create, change, suspend and remove a domain administrator `smoke-da-<random>` with one domain;
-    - change one permission flag and see it after reload;
-    - as `admin`, act as `alice@example.org` from the mailbox list and return; act as `reseller` from
-      the domain administrator list and return;
-    - issue a one-time link for `reseller`, open it in a new browser context and land on its home;
-    - the audit log filtered by impersonated account `alice@example.org` shows the run's records;
-    - webmail on behalf only when `SMOKE_WEBMAIL_ON_BEHALF=1` says the stack enables
-      `ALLOW_ADMIN_EMAIL_LOGIN`.
+    - `tests/smoke/administrators.smoke.spec.ts`: create, change, suspend and remove a domain
+      administrator `smoke-da-<random>` with one domain, and change one permission flag;
+    - `tests/smoke/admins.smoke.spec.ts`: the own account with "You" and Remove disabled; create,
+      deactivate, activate and remove `smoke-admin-<random>`;
+    - `tests/smoke/acting.smoke.spec.ts`: as `admin`, act as `alice@example.org` from the mailbox
+      list and return; act as `reseller` and return; the audit log filtered by impersonated account;
+      webmail on behalf only when `SMOKE_WEBMAIL_ON_BEHALF=1` says the stack enables
+      `ALLOW_ADMIN_EMAIL_LOGIN`;
+    - `tests/smoke/sso-sign-in.smoke.spec.ts`: issue a one-time link for `reseller`, open it in a
+      new browser context and land on its home.
     Nothing destructive touches `admin` or `reseller`.
 - **Rationale**: Constitution VI's three layers; the smoke cases cover what the mock cannot prove:
   real token renewal, real single use and the real audit records.
 - **Alternatives considered**: Testing acting only at unit level: rejected; the banner on every
   screen and the cross-tab behaviour are browser properties.
 
-### R22. Building blocks expected from UI 002–006
+### R22. Building blocks from UI 002–006 (canonical names)
 
-- **Decision**: UI 007 uses these blocks where the earlier feature put them; the tasks name the
-  expected paths:
+- **Decision**: UI 007 imports these blocks; it never creates a renamed copy (conventions). Where a
+  block lacks a capability this feature needs, the task adds it without changing other callers:
 
-  | Block | Expected path | Owner | If it is still feature-local |
+  | Block | Path | Owner | Used for |
   |---|---|---|---|
-  | `useBulkSelection`, `BulkResultSummary` | `src/shared/composables/`, `src/shared/components/` | UI 002 (UI 001 R20) | — (UI 003 already reuses them) |
-  | `ConfirmDialog` with `requireTyped` | `src/shared/components/ConfirmDialog.vue` | UI 002 | — |
-  | `EditableSection` and the field diff of `useVersionedSave` | `src/shared/components/EditableSection.vue` | UI 002 | — |
-  | `HistoryLink`, audit `targetType`/`targetId` | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | UI 002 | — |
-  | Domain detail route name | `domain-detail` from `@/features/domains` | UI 002 | use the name UI 002 exports |
-  | Mailbox entry action menu and detail action area | `src/features/mailboxes/components/MailboxActionsMenu.vue`, `src/features/mailboxes/pages/MailboxDetailPage.vue` | UI 003 | use the components UI 003's tasks name |
-  | Password field with generator and policy | `src/shared/components/PasswordField.vue` | UI 003, promoted at its second use (UI 005) | T037 promotes it without behaviour change |
-  | Password policy and mailbox capabilities queries | exported by `@/features/mailboxes` | UI 003 | — |
-  | Section tab bar | `src/shared/components/SectionTabs.vue` | UI 004 | `AdministratorsSectionTabs.vue` stays in the feature |
-  | Detail section index | `src/shared/components/SectionIndex.vue` | UI 002 | `DetailSectionIndex.vue` stays in the feature |
-  | `OneTimeSecretDialog` | `src/shared/components/OneTimeSecretDialog.vue` | UI 005 (UI 001 R20) | — |
-  | Own credential screens and the Webmail action | `src/features/account/` | UI 005 | use the components UI 005's tasks name |
+  | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary}.vue` | UI 002 | bulk actions (R13) |
+  | `ConfirmDialog` with `requireTyped`, `useConfirm` | `src/shared/components/ConfirmDialog.vue`, `src/shared/composables/useConfirm.ts` | UI 001, UI 002 | confirmations |
+  | `EditableSection`, `changedSince()` of `useVersionedSave` | `src/shared/components/EditableSection.vue`, `src/shared/composables/useVersionedSave.ts` | UI 002 | detail sections (R15, R16) |
+  | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` | UI 002 | unsaved forms and sections |
+  | `HistoryLink`, audit `targetType`/`targetId` | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | UI 002 | History links (R18) |
+  | `domain-detail` route | `src/features/domains/routes.ts` | UI 002 | assignment links |
+  | Coverage manifest | `src/i18n/coverage.json` | UI 002 | translation scope (R1, R17) |
+  | `NotFoundState` | `src/shared/components/NotFoundState.vue` | UI 003 | detail not found |
+  | `ActiveFilterChips` | `src/shared/components/ActiveFilterChips.vue` | UI 003 (promoted) | the impersonated filter chip |
+  | Designated action areas | `src/features/mailboxes/components/list/MailboxRowActions.vue`, `src/features/mailboxes/pages/MailboxDetailPage.vue` header | UI 003 | "Sign in as", "Open webmail as" |
+  | Mailbox capabilities and password policy queries | `src/features/mailboxes/composables/{useMailboxCapabilities,usePasswordPolicy}.ts`, exported from `@/features/mailboxes` | UI 003 | `groupwareEnabled`; the checklist |
+  | Pre-hashed password detection | `src/features/mailboxes/password/pre-hashed.ts` (or its shared location if promoted) | UI 003 | the pre-hashed notice |
+  | `DomainPicker` (single or multiple) | `src/shared/components/DomainPicker.vue` | UI 004 (promoted) | domain assignments (R14) |
+  | `NewPasswordFields`, `PasswordInput`, `PasswordPolicyChecklist`, `policy.ts`, `generate.ts` | `src/shared/components/password/`, `src/shared/password/` | UI 005 | account passwords (R14) |
+  | `OneTimeSecretDialog` | `src/shared/components/OneTimeSecretDialog.vue` | UI 005 (promoted) | one-time link (R11) |
+  | Credential screens and `WebmailAction.vue` | `src/features/account/` | UI 005 | unavailable while acting (R8, R9) |
+  | Self-service mock handlers | `tests/mocks/handlers/self-service/` | UI 005 | refusals while acting (R20) |
 
-- **Rationale**: UI 001 R20 fixed the owners of the first rows; the others follow constitution
-  VIII's "promote at the second use". Naming the fallback keeps the tasks executable whatever the
-  earlier plans decided.
-- **Alternatives considered**: Re-implementing missing blocks inside this feature: rejected as
-  duplication when the earlier feature already has them.
+  When the pre-hashed detection is still feature-local in UI 003, T038 promotes it to
+  `src/shared/password/pre-hashed.ts` with its tests and updates UI 003's imports, without behaviour
+  change.
+- **Rationale**: The conventions fix these names and owners; an earlier feature's name wins.
+- **Alternatives considered**: Feature-local copies (`AccountBulkBar`, a local picker, a local leave
+  guard): rejected by the canonical-names rule.

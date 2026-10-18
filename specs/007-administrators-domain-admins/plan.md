@@ -28,13 +28,15 @@ staff and resellers use every day. It delivers:
   of the audit log.
 
 The technical approach reuses every decision of UI 001 and the shared building blocks of UI 002 to
-006 (details in [research.md](./research.md)):
+006 under their canonical names (`docs/conventions.md`; details in [research.md](./research.md)):
 
-- **No new runtime dependency.** The pinned contract moves to mailcow-rest-v2 commit
-  `32079252d55797d3da4e58ae661e9fb91c51c6f9`, which contains the final API 007 contract (R1).
+- **No new runtime dependency.** The contract pin must contain API 007's final contract; the
+  baseline is mailcow-rest-v2 commit `32079252d55797d3da4e58ae661e9fb91c51c6f9`. Pins only move
+  forward (R1).
 - **Feature layout**: `src/features/administrators/` holds both account lists, their forms and
-  detail screens. `src/features/acting/` holds the entry actions ("Sign in as", "Open webmail as"),
-  their eligibility rules and the switch mutations. Cross-cutting parts live in the core:
+  detail screens, reached from two catalogue rows, `domainAdmins` and `administrators`.
+  `src/features/acting/` holds the entry actions ("Sign in as", "Open webmail as"), their
+  eligibility rules and the switch requests. Cross-cutting parts live in the core:
   `src/app/session/identity-switch.ts` and `acting-origin.ts`, and `src/app/shell/ActingBanner.vue`
   and `ShellNotice.vue`. The one-time sign-in landing joins `src/features/auth/` (R2, R3).
 - **One identity-switch protocol** serves every change of identity: starting and ending acting, an
@@ -45,8 +47,12 @@ The technical approach reuses every decision of UI 001 and the shared building b
 - **UI 001's anti-forgery retry changes**: after `csrf-token-mismatch` the client re-reads
   `GET /me` and replays the write only when the identity is unchanged, as the contract now
   requires. Otherwise it discards the write and runs the identity switch (R5).
+- **Secrets never enter TanStack caches**: requests that carry a password or a sign-in token, and
+  the one-time link response, are direct client calls whose values live in component state only
+  (conventions "Secrets in requests or responses"; R10, R11, R14).
 - **Bulk actions** use the API's `/admins/bulk-actions` and `/domain-admins/bulk-actions` with each
-  item's version tag, through UI 002's `useBulkSelection` and `BulkResultSummary` (R13).
+  item's version tag, through UI 002's `useBulkSelection`, `BulkActionBar` and `BulkResultSummary`
+  (R13).
 - **Tests**: unit and component tests first; Playwright on 360 px and desktop with axe in both
   themes against the contract-validated mock, which models impersonation, token renewal and
   automatic ends; smoke tests against the API's dev stack (R20, R21).
@@ -57,11 +63,12 @@ The technical approach reuses every decision of UI 001 and the shared building b
 
 **Primary Dependencies**: the ten runtime dependencies of UI 001 R1, unchanged. No new runtime or
 development dependency. Feature 007 builds on code of UI 001 to 006, listed under "Dependencies on
-earlier UI features" below.
+earlier features" below.
 
 **Storage**: none on a server. In the browser: the query cache and two Pinia stores (UI 001 R10).
 The session store gains memory-only fields (data-model §4). Nothing new goes to `localStorage`,
 `sessionStorage` or IndexedDB: no token, link, password, username or origin path (constitution V).
+Passwords, sign-in tokens and one-time links never enter the query or mutation cache.
 
 **Testing**: Vitest and Vue Test Utils for units and components; Playwright `mobile-chromium`,
 `desktop-chromium` and `mobile-webkit` against the production build with the production CSP and
@@ -75,9 +82,10 @@ Safari and Chrome for Android, served under `/ng/` on the mailcow host's origin.
 
 **Performance Goals**: initial JavaScript stays under 200 KB gzipped: the new routes are lazy, and
 only the acting banner, the shell notice and the identity-switch module join the entry chunk (about
-3 KB). Lighthouse mobile scores stay at least 90. SC-001: a domain administrator with two domains
-created in under 2 minutes at 360 px. SC-009: a valid one-time link reaches the home screen within
-5 seconds. SC-010: a permission change saved in under 30 seconds.
+3 KB). Lighthouse mobile scores stay at least 90. No polling: countdowns are local timers. SC-001: a
+domain administrator with two domains created in under 2 minutes at 360 px. SC-009: a valid
+one-time link reaches the home screen within 5 seconds. SC-010: a permission change saved in under
+30 seconds.
 
 **Constraints**:
 
@@ -88,9 +96,9 @@ created in under 2 minutes at 360 px. SC-009: a valid one-time link reaches the 
   FR-063).
 - Strict CSP; WCAG 2.2 AA; 360 px first; en/cs/sk complete (UI 001 constraints).
 
-**Scale/Scope**: 7 user stories (2 at P1, 3 at P2, 2 at P3); 7 new routes plus the landing; 20 of
-the 21 operations of API 007 and 8 operations of earlier features; changes to screens of UI 001,
-003 and 005; about 300 new translation keys, 61 of them reused from legacy.
+**Scale/Scope**: 7 user stories (2 at P1, 3 at P2, 2 at P3); 6 new routes plus the landing; 2
+catalogue rows; 20 of the 21 operations of API 007 and 8 operations of earlier features; changes to
+screens of UI 001, 003 and 005; about 300 new translation keys, 59 of them reused from legacy.
 
 ## Constitution Check
 
@@ -98,17 +106,17 @@ the 21 operations of API 007 and 8 operations of earlier features; changes to sc
 
 | Principle | Gate | Status |
 |---|---|---|
-| I. The API contract is the only interface | Every operation is in the pinned contract (`3207925`, R1); the [contracts README](./contracts/README.md) lists the 28 used. Types come from the generated client: `Admin`, `DomainAdmin`, `DomainAdminPermissions`, `AccountCapabilities`, `Impersonation`, `ImpersonationStarted`, `DomainAdminSsoToken`, `MailboxWebmailSignIn`, `BulkResult` and the enumeration arrays `domainAdminPermissionNameValues` and `accountSecondFactorStatusValues`. Messages are chosen by problem `type` and rule `code` (R17). Both gaps the spec named are closed by the contract, as are UI 001's problem-type gap and the bulk question; one new gap is recorded and not worked around ("API dependency and gaps"). | PASS |
-| II. Mobile-first | Lists are cards below `md` and tables above (FR-006). Forms are full screens with collapsible sections; the domain picker is a full-screen dialog on phones (FR-013). The acting banner is designed for 360 px first, with middle ellipsis for long names (R7). Every list has loading, empty and error states (`ListState`). Destructive actions are confirmed with their impact (R13, R15). 44 × 44 px targets. | PASS |
+| I. The API contract is the only interface | Every operation is in the pinned contract (baseline `3207925`, R1); the [contracts README](./contracts/README.md) lists the 28 used. Types come from the generated client: `Admin`, `DomainAdmin`, `DomainAdminPermissions`, `AccountCapabilities`, `Impersonation`, `ImpersonationStarted`, `DomainAdminSsoToken`, `MailboxWebmailSignIn`, `BulkResult` and the enumeration arrays `domainAdminPermissionNameValues` and `accountSecondFactorStatusValues`. Messages are chosen by problem `type` and rule `code` (R17). Both gaps the spec named are closed by the contract, as are UI 001's problem-type gap and the bulk question; one new gap is recorded and not worked around ("API dependency and gaps"). | PASS |
+| II. Mobile-first | Lists are cards below `md` and tables above (FR-006). Forms are full screens with collapsible sections; the domain picker is a full-screen list on phones (FR-013). The acting banner is designed for 360 px first, with middle ellipsis for long names (R7). Every list and detail has loading, empty or not-found, and error states (`ListState`, `NotFoundState`). Destructive and high-risk actions are confirmed with their impact, deactivation included (R13, R15). 44 × 44 px targets. | PASS |
 | III. Accessibility | axe on every screen, dialog and state in both themes. The banner is a labelled region with icon and text, never colour alone; switches are announced; the page title carries the acting prefix (R7). Permission switches are grouped in fieldsets with descriptions (R16). Focus moves into dialogs and back. SC-006 keyboard-only paths are tested. | PASS |
-| IV. i18n and branding | All texts in en-gb, cs-cz and sk-sk; 61 legacy keys reused through `legacy-map.json`, with cs and sk values supplied where upstream lacks them (R17). `i18n:check` gains the enumerations `DomainAdminPermissionName` and `AccountSecondFactorStatus`. The product name in `edit.force_pw_update_info` comes from branding. Dates and times via `Intl`. | PASS |
-| V. Security in the browser | The sign-in token is removed from the address bar and history before the bootstrap runs, held in memory and exchanged only for a visible, non-prerendered page (R10). Issued links and passwords live in component memory only, never in the query or mutation cache, router state or storage (R11, R14). The CSRF retry never resends a write under another identity (R5). Webmail opens with `opener` cleared (R9). Hidden controls are conveniences; every refusal is handled (FR-002). | PASS |
+| IV. i18n and branding | All texts in en-gb, cs-cz and sk-sk; 59 legacy keys reused through `legacy-map.json`, with cs and sk values supplied where upstream lacks them (R17). `i18n:check` gains the enumerations `DomainAdminPermissionName` and `AccountSecondFactorStatus`, and 007's values of the shared enumerations join UI 002's coverage manifest `src/i18n/coverage.json`. The product name in `edit.force_pw_update_info` comes from branding. Dates and times via `Intl`. | PASS |
+| V. Security in the browser | The sign-in token is removed from the address bar and history before the bootstrap runs, held in memory and exchanged by a direct call only for a visible, non-prerendered page (R10). Passwords and issued links live in component state only, never in the query or mutation cache, router state or storage (R11, R14). The CSRF retry never resends a write under another identity (R5). Webmail opens with `opener` cleared (R9). Hidden controls are conveniences; every refusal is handled (FR-002). | PASS |
 | VI. Test-first | `tasks.md` puts every test before its implementation. Every acceptance scenario has an end-to-end test on both viewports, against a mock whose requests and responses are validated against the contract. Smoke tests run against the real API (R21). | PASS |
-| VII. Performance budgets | Lazy routes; the entry chunk grows by about 3 KB, checked by `budget:check` (R2). Query defaults of UI 001 R9; the identity switch clears the cache instead of refetching stale data; lists invalidate after mutations (R19). No polling: countdowns are local (R11). | PASS |
-| VIII. Simplicity | No new dependency. Shared blocks are reused (UI 001, UI 002, UI 003, UI 005). New code lives in the features unless it has two uses: `SignInAsAction` (mailboxes and domain administrators) is exported from `@/features/acting`; the identity switch (seven triggers) and the banner are core. Single-use components stay in `features/administrators` (R2, R22). | PASS |
+| VII. Performance budgets | Lazy routes; the entry chunk grows by about 3 KB, checked by `budget:check` (R2). Query defaults of UI 001 R9; no polling and no focus refetch; the identity switch clears the cache instead of refetching stale data; lists invalidate after mutations (R19). | PASS |
+| VIII. Simplicity | No new dependency. The canonical shared blocks are reused: UI 002's `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink` and `useLeaveGuard`; UI 003's `NotFoundState`; UI 004's shared `DomainPicker`; UI 005's password fields and `OneTimeSecretDialog` (R22). New code lives in the features unless it has two uses: `SignInAsAction` (mailboxes and domain administrators) is exported from `@/features/acting`; the identity switch (seven triggers) and the banner are core. | PASS |
 | Technology constraints | Stack unchanged. Reka `Dialog`, `Switch`, `Checkbox`, `DropdownMenu` and `Collapsible` from the TailAdmin primitives; no banned viewport part. No SSR, no backend code. | PASS |
 | Workflow and gates | Commits to `main`. CI gates unchanged; `i18n:check`, `contract:check` and the end-to-end suite cover the new screens. | PASS |
-| `docs/conventions.md` | Wording ("the classic interface", "passkeys"). List state in the address, sizes 25/50/100, cards and tables. Bulk: explicit selection mode, current page only, API bulk operation with version tags, per-item summary, failed items stay selected, "outcome unknown" on a dropped connection (R13). Sections with their own save, changed fields only, `If-Match`, outdated handling without merge (R15). Confirmations: impact dialogs, typed count for bulk removal (R13). Secrets: the one-time link in the one-time secret dialog (R11). History links (R18). Problem types and rule codes translated (R17). Entry points into UI 003 and UI 005 screens through their action areas (R8). Capabilities from `GET /capabilities/accounts` (R14). | PASS |
+| `docs/conventions.md` | Wording ("the classic interface", "passkeys"). List state in the address, sizes 25/50/100, cards and tables. Bulk: explicit selection mode, current page only, bulk limit from the capabilities with selection disabled at the limit, API bulk operation with version tags, per-item summary, failed items stay selected, "outcome unknown" on a dropped connection (R13). Sections with their own save, changed fields only, `If-Match`, outdated handling with marked changes and no merge (R15). Confirmations: impact dialogs, one confirmation for deactivating, typed count for bulk removal (R13, R15). Secrets: never in TanStack caches; the one-time link in the one-time secret dialog (R11, R14). Polling: none. Contract pins only move forward (R1). History links (R18). Problem types and rule codes translated (R17). Entry points into UI 003 and UI 005 screens through their designated action areas (R8). Capabilities from `GET /capabilities/accounts` (R14). Canonical shared names (R22). | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, the contracts README and the
 quickstart introduce no violation. Decisions that touched gates:
@@ -118,6 +126,8 @@ quickstart introduce no violation. Decisions that touched gates:
   (V; R10).
 - The acting origin stays in memory, so a reload returns to the home screen instead of storing a
   path that can contain search terms (V; R6).
+- FR-054 is met through the cross-tab channel, without a request on focus, because UI 001 FR-033
+  forbids automatic requests that keep an idle session alive (VII; R4).
 - The one-time link uses the shared one-time secret dialog, extended with a countdown, instead of
   a second secret display (VIII, conventions; R11).
 
@@ -129,24 +139,25 @@ Complexity Tracking).
 
 | Feature | Used or extended by UI 007 | Why |
 |---|---|---|
-| UI 001 | Client, CSRF middleware, problem mapping, query client and keys; session store, cross-tab channel, session end, sign-out; router, guards, title, focus; catalogue entry `administrators`; shell, layouts, user menu; `useListState`, `ListState`, `PaginationBar`, `useConfirm`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `useAnnouncer`, `useCountdown`, `useMediaQuery`, clipboard; auth feature (sign-in notices, `useThrottle`); passkeys page; audit log | Everything; R4–R8, R10, R18 |
-| UI 002 | `useBulkSelection`, `BulkResultSummary`, `ConfirmDialog` `requireTyped`, `EditableSection` with the changed-value diff, `HistoryLink`, the audit log's `targetType`/`targetId` parameters, the domain detail route | Bulk actions, sections, History links, domain links (R13, R15, R18) |
-| UI 003 | The mailbox list entry action menu and the mailbox detail action area; the password field with generator and policy hints; the password policy and mailbox capabilities queries | Entry points; passwords; `groupwareEnabled` (R8, R9, R14) |
-| UI 004 | A section tab bar, if UI 004 promoted one to `src/shared/` | Two lists in one catalogue section (R3) |
-| UI 005 | `OneTimeSecretDialog`; the own password, second-factor and recovery e-mail screens; the mailbox home Webmail action; the self-service mock handlers | One-time link; credential controls while acting (R8, R11) |
-| API 007 | 21 operations and the additive changes to 001's components | Contract at `a13c370`, in the pin `3207925` |
+| UI 001 | Client, CSRF middleware, problem mapping, query client and keys; session store, cross-tab channel, session end, sign-out; router, guards, title, focus; catalogue and visibility; shell, layouts, user menu; `useListState`, `ListState`, `PaginationBar`, `useConfirm`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `useAnnouncer`, `useCountdown`, `useMediaQuery`, clipboard; auth feature (sign-in notices, `useThrottle`); passkeys page; audit log | Everything; R4–R8, R10, R18 |
+| UI 002 | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`, `EditableSection` with `changedSince()`, `useLeaveGuard`, `HistoryLink`, the audit log's `targetType`/`targetId` parameters, the `domain-detail` route, the coverage manifest `src/i18n/coverage.json` | Bulk actions, sections, leave guard, History links, domain links, translation scope (R13, R15, R17, R18) |
+| UI 003 | `MailboxRowActions.vue` and the `MailboxDetailPage.vue` header (designated action areas); `NotFoundState`; `ActiveFilterChips` (promoted); the mailbox capabilities and password policy queries; the pre-hashed password detection | Entry points; states; `groupwareEnabled`; passwords (R8, R9, R14, R18) |
+| UI 004 | The shared `DomainPicker.vue` (single or multiple) | Domain assignments (R14) |
+| UI 005 | `NewPasswordFields`, `PasswordInput`, `PasswordPolicyChecklist`, `src/shared/password/{policy,generate}.ts`; `OneTimeSecretDialog`; the own password, second-factor and recovery e-mail screens and `WebmailAction.vue`; the self-service mock handlers | Passwords; one-time link; credential controls while acting (R8, R11, R14) |
+| API 007 | 21 operations and the additive changes to 001's components | Contract at `a13c370`, within the baseline `3207925` |
 
-The expected locations and the fallback when an earlier feature named a block differently are in
+The expected locations, and the rule when an earlier feature named a block differently, are in
 research R22.
 
 ## API dependency and gaps
 
 This feature depends on **mailcow-rest-v2 feature 007** (`specs/007-administrators-domain-admins/`)
-with its contract as of commit `a13c370` ("Apply orchestrator decisions to feature 007"). The UI pins
-the contract head `32079252d55797d3da4e58ae661e9fb91c51c6f9` ("Register KnownProblemType in contract
-components"), the first commit that contains the final contracts of API 001 to 007 together with
-the registered `KnownProblemType` (see [contracts/README.md](./contracts/README.md)). It covers
-every capability of the spec's "API Dependency" table. Findings:
+with its contract as of commit `a13c370` ("Apply orchestrator decisions to feature 007"). The
+baseline pin is the contract head `32079252d55797d3da4e58ae661e9fb91c51c6f9` ("Register
+KnownProblemType in contract components"), the first commit that contains the final contracts of
+API 001 to 007 together with the registered `KnownProblemType` (see
+[contracts/README.md](./contracts/README.md)). It covers every capability of the spec's "API
+Dependency" table. Findings:
 
 1. **Closed: default permission flags** (spec API gap 2). `GET /capabilities/accounts` returns
    `domainAdminPermissionDefaults` and the other limits (API 007 FR-077). The creation form reads
@@ -156,7 +167,7 @@ every capability of the spec's "API Dependency" table. Findings:
    `not-allowed-while-impersonating` (API 007 FR-049, FR-054). The spec's FR-057 and US6-AS4 are
    aligned below.
 3. **Closed: problem-type constants** (UI 001 plan gap 5). `KnownProblemType` is registered under
-   `components.schemas` at the pin, so `knownProblemTypeValues` is generated.
+   `components.schemas` at the baseline, so `knownProblemTypeValues` is generated.
 4. **Closed by the contract: bulk actions.** API 007 FR-075 replaced "one request per account" with
    bulk operations of up to 100 accounts. The spec's FR-010 is aligned below.
 5. **New gap G1: naming the link's account before the exchange.** FR-060 asks the landing to name
@@ -165,7 +176,8 @@ every capability of the spec's "API Dependency" table. Findings:
    only operation that reads a token, and it replaces the session.
    - **Proposed to mailcow-rest-v2**: a non-consuming read, for example
      `POST /session/sso-token/inspection` with `{token}`, answering the username for a valid token
-     and the generic `sign-in-failed` otherwise, counted towards the same throttle.
+     and the generic `sign-in-failed` otherwise, counted towards the same throttle and audited like
+     a failed sign-in when refused.
    - **Until then** the landing names the current account and refers to the other as "the domain
      administrator this link was created for" (R10). The spec's FR-060 and US5-AS3 state this. No
      workaround: the UI does not read a username from the link, because a link parameter is not
@@ -173,7 +185,12 @@ every capability of the spec's "API Dependency" table. Findings:
 6. **Behaviour change taken from the contract: the anti-forgery retry.** The contract now says: on
    `csrf-token-mismatch`, fetch a new token, re-read `GET /me`, and retry once only when the
    identity is unchanged. UI 001 retries without the check because its pin predates API 007. This
-   feature implements the new rule in `src/api/csrf.ts` (R5).
+   feature implements the new rule in `src/api/csrf.ts` (R5) and aligns UI 001's FR-035 and
+   research R8 (T020).
+7. **Contract inconsistency to report** (not blocking): `DomainAdminCreateRequest` describes an
+   alias domain name as `notEligible` with `expected: primaryDomain`, while `ValidationRuleCode`
+   lists `notEligible` with `kind: aliasDomain`. The UI keys the message on the code and the field
+   path `domains.<index>` only, so either parameter works (R17).
 
 ## Spec alignment made by this plan
 
@@ -182,8 +199,7 @@ These edits bring the spec in line with the published contract (constitution I) 
 
 1. **Bulk actions** (clarification on multi-select actions, FR-009, FR-010): the app sends the API's
    bulk operation for the selection, with each account's version tag, instead of one request per
-   account. Removing several accounts also asks for the number of accounts to be typed
-   (conventions "Confirmations").
+   account. Removing several accounts also asks for the number of accounts to be typed.
 2. **Webmail while acting** (US6 narrative, Independent Test, US6-AS4, FR-057, parity row, API gap 1):
    the webmail control on the impersonated user's home is unavailable with the reason "Not
    available while acting as another user".
@@ -191,21 +207,29 @@ These edits bring the spec in line with the published contract (constitution I) 
    capabilities.
 4. **Landing question** (FR-060, US5-AS3, API gaps): the current account is named; the link's
    account is named once the API can report it (gap G1).
-5. **API Dependency**: the contract is published; the pinned commit is recorded.
+5. **API Dependency**: the contract is published; the baseline commit is recorded.
+6. **Deactivation** (status clarification, FR-026): deactivating another account, alone or in a
+   multi-select, needs one explicit confirmation stating the effect (conventions "Confirmations").
+7. **Password policy** (FR-014, US1-AS4): the rules are marked while typing and never block
+   submission, as UI 003 and UI 005 decided; the API's refusal names each unmet rule.
+8. **Smaller alignments**: FR-006 (tables from 768 px, conventions "Lists"), FR-012 (the length the
+   API reports), FR-035 (the own account also left out of a bulk deactivate), US4-AS4 (the only
+   active administrator is the signed-in one), FR-054 (no request on focus, UI 001 FR-033), and the
+   legacy key list without `admin.generate` (the shared password field brings its label).
 
 ## Owner-level questions (defaults applied)
 
 1. **Naming the link's account on the landing** (gap G1): should mailcow-rest-v2 add a
    non-consuming token read? **Default**: the landing names only the current account until the API
-   offers it; the gap is proposed to mailcow-rest-v2.
-2. **Section entry of the navigation**: the catalogue has one section, "Administrators and domain
-   administrators". **Default**: one navigation entry at `/administrators` that opens the domain
-   administrator list, with a tab bar to the administrator list (R3). Two separate navigation
-   entries would need a catalogue row the UI 001 spec does not list.
+   offers it; the gap is proposed to mailcow-rest-v2 (T113).
+2. **Identity check when a tab regains focus**: FR-054 originally asked for one; a request on focus
+   would keep an idle session alive, which UI 001 FR-033 forbids. **Default**: no request on focus;
+   the cross-tab message, which background tabs process when they resume, and the next write or
+   refused request carry the change (R4).
 3. **Documented landing address for billing panels**: **Default**:
    `https://<host>/ng/sign-in/sso-token?sso_token=<token>`, keeping legacy's parameter name so that
    panels change only the path, and so that UI 014's redirect of `/domainadmin?sso_token=` maps one
-   to one (R10). The address is documented in `quickstart.md` for operators.
+   to one (R10).
 
 ## Parity notes added by the plan
 
@@ -237,39 +261,43 @@ specs/007-administrators-domain-admins/
 Only the files that UI 007 adds or changes are listed; the layout is UI 001's.
 
 ```text
-contract/{openapi.yaml,openapi.json,VERSION.json}      # pin 3207925 (when UI 001–006 left an older pin)
+contract/{openapi.yaml,openapi.json,VERSION.json}      # moved forward to the baseline when older
 src/api/generated/schema.ts                            # regenerated
 src/api/
 ├── index.ts                     # changed: re-exports Admin, DomainAdmin, … and the new enum arrays
+├── problem.ts                   # changed: kind 'identityChanged'
 ├── csrf.ts                      # changed: identity check before a replay (R5)
 └── query/{client.ts,keys.ts}    # changed: impersonation-ended reaction; new key roots (R19)
 src/main.ts                      # changed: captures the sign-in token before the bootstrap (R10)
+src/styles/main.css              # changed: acting colour tokens, sticky height variable
+src/shared/icons/{UserSwitchIcon,ShieldOffIcon,LinkIcon}.vue   # new (THIRD_PARTY_NOTICES.md)
+src/shared/components/OneTimeSecretDialog.vue          # changed (UI 005): optional expiry countdown
+src/shared/components/DomainPicker.vue                 # changed (UI 004), only if it lacks the phone list and chips
 src/app/
 ├── session/
 │   ├── identity-switch.ts       # new: the switch protocol (R4)
 │   ├── identity-key.ts          # new: username|role|impersonation id
 │   ├── acting-origin.ts         # new: origin of the acting session, memory only (R6)
 │   ├── store.ts                 # changed: identityTransition, actingOrigin, shellNotice, notices
-│   └── cross-tab.ts             # changed: session-changed runs the identity switch
+│   └── cross-tab.ts             # changed: session-changed re-reads the identity, switches on change
 ├── shell/
 │   ├── ActingBanner.vue         # new (R7)
 │   ├── ShellNotice.vue          # new: dismissible, announced shell message
 │   └── UserMenu.vue             # changed: "Sign out completely" while acting
 ├── layouts/{ShellLayout.vue,AuthLayout.vue}   # changed: banner, transition gate, notice
 ├── router/{routes.ts,guards.ts,title.ts}      # changed: routes, landing in any state, title prefix
-└── navigation/catalogue.ts      # changed: `administrators` available
+└── navigation/catalogue.ts      # changed: rows domainAdmins and administrators, available
 src/features/
 ├── administrators/              # new
 │   ├── index.ts  routes.ts  api.ts  list-state.ts  username.ts  permissions.ts  bulk.ts
 │   ├── confirmations.ts  sso-link.ts
-│   ├── pages/{AdministratorsSectionTabs.vue,DomainAdminsPage.vue,DomainAdminCreatePage.vue,
-│   │          DomainAdminDetailPage.vue,AdminsPage.vue,AdminCreatePage.vue,AdminDetailPage.vue}
+│   ├── pages/{DomainAdminsPage,DomainAdminCreatePage,DomainAdminDetailPage,
+│   │          AdminsPage,AdminCreatePage,AdminDetailPage}.vue
 │   └── components/{AccountStatusBadge,SecondFactorStatusBadge,DomainAdminCard,DomainAdminTable,
 │                   DomainAdminFilters,AdminCard,AdminTable,AdminFilters,AccountActionsMenu,
-│                   AccountBulkBar,UsernameField,SignInRequirementsFields,AccountSection,
-│                   SignInSecuritySection,DomainPicker,DomainPickerDialog,DomainAssignmentList,
-│                   DomainsSection,PermissionsEditor,PermissionsSection,SsoLinkSection,
-│                   DetailSectionIndex}.vue
+│                   UsernameField,AccountPasswordField,SignInRequirementsFields,AccountSection,
+│                   PasswordChangeForm,SignInSecuritySection,DomainAssignmentList,DomainsSection,
+│                   PermissionsEditor,PermissionsSection,SsoLinkSection,DetailSectionIndex}.vue
 ├── acting/                      # new
 │   ├── index.ts  api.ts  eligibility.ts  webmail-opener.ts
 │   ├── composables/useActingState.ts
@@ -279,28 +307,31 @@ src/features/
 │   ├── pages/SsoTokenLandingPage.vue  components/SignInNotice.vue  api.ts  routes.ts  index.ts
 ├── audit-log/                   # changed (UI 001/002): impersonated filter, labels, item marker
 ├── passkeys/                    # changed (UI 001): unavailable while acting
-├── mailboxes/                   # changed (UI 003): Sign in as and Open webmail as
-└── account/                     # changed (UI 005): credential controls and Webmail while acting
-src/shared/components/OneTimeSecretDialog.vue   # changed (UI 005): optional expiry countdown
+├── mailboxes/                   # changed (UI 003): MailboxRowActions.vue, MailboxDetailPage.vue
+└── account/                     # changed (UI 005): credential controls and WebmailAction while acting
 src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  src/i18n/legacy-map.json  src/i18n/legacy/*.json
-scripts/i18n/check.mjs                          # changed: two more enumerations
+src/i18n/coverage.json                          # changed (UI 002): 007's shared enumeration values
+scripts/i18n/check.mjs                          # changed: two more feature enumerations
+specs/001-sign-in-app-shell/{spec.md,research.md}   # aligned: FR-035, R8, R12 (T020)
 tests/
 ├── mocks/handlers/{admins,domain-admins,impersonation,sso-tokens}.ts       # new
-├── mocks/handlers/{identity,auth,passkeys,self-service,audit,index}.ts     # changed
+├── mocks/handlers/{identity,auth,passkeys,audit,index}.ts                  # changed
+├── mocks/handlers/self-service/own-account.ts                              # changed (UI 005)
 ├── mocks/scenarios/{administrators,acting,sso-sign-in}.ts                  # new
 ├── mocks/factories/{admin,domain-admin,impersonation}.ts                   # new
 ├── e2e/fixtures/{tabs,popup}.ts                                            # new
+├── e2e/fixtures/test.ts                                                    # changed: sentinel detail check
 ├── e2e/{administrators,acting,sso-sign-in,webmail-on-behalf}/              # new
 ├── e2e/audit-log/impersonation.spec.ts                                     # new
 ├── unit/…                                                                  # mirrors src/
-└── smoke/{administrators,acting,sso-sign-in}.smoke.spec.ts                 # new
+└── smoke/{administrators,admins,acting,sso-sign-in}.smoke.spec.ts          # new
 ```
 
 **Structure Decision**: The single frontend project of UI 001. Both account lists share one
-feature directory, because they share one catalogue section and most components. Acting is split
-into the core switch (`src/app/session`, `src/app/shell`), which every screen depends on, and a
-feature (`src/features/acting`) that other features import through its `index.ts` for their entry
-points. The landing belongs to the auth feature, next to the other sign-in routes.
+feature directory, because they form one area of the navigation and share most components. Acting
+is split into the core switch (`src/app/session`, `src/app/shell`), which every screen depends on,
+and a feature (`src/features/acting`) that other features import through its `index.ts` for their
+entry points. The landing belongs to the auth feature, next to the other sign-in routes.
 
 ## Complexity Tracking
 

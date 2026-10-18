@@ -50,9 +50,11 @@ from UI feature 001."
   need a confirmation? → A: The own account's Remove control is disabled with its reason.
   Deactivating the last active administrator is disabled with its reason, and a multi-select
   deactivation that would leave none is stopped before any request. Deactivating the own account
-  needs a confirmation warning that the session ends. Activating and deactivating other accounts
-  need no confirmation, but the result message states the effect. The API's refusals are always
-  shown. (agent decision: API 007 FR-028 and FR-029 define the rules, and legacy reports them only
+  needs a confirmation warning that the session ends. Activating other accounts needs no
+  confirmation; deactivating them needs one explicit confirmation that states the effect, and the
+  result message states it too. The API's refusals are always shown. (Aligned by the plan:
+  `docs/conventions.md` lists deactivating among the high-risk actions that need one explicit
+  confirmation.) (agent decision: API 007 FR-028 and FR-029 define the rules, and legacy reports them only
   after submission. Constitution II requires confirmation for destructive actions; deactivation is
   reversible, and API 007 FR-035 keeps the API keys so that reactivation restores them.)
 - Q: Are a new domain administrator's permission flags and forced sign-in requirements set in the
@@ -132,9 +134,10 @@ state.
    enters a password that meets the policy and saves, **Then** the account is created with the
    permissions shown in the form, a translated success message names it, and its detail screen
    opens.
-4. **Given** the creation form, **When** no domain is picked, the password misses a policy rule, or
-   the username contains characters other than a–z, 0–9, `-`, `_` and `.`, **Then** saving is
-   blocked and each problem is shown on its field.
+4. **Given** the creation form, **When** no domain is picked or the username contains characters
+   other than a–z, 0–9, `-`, `_` and `.`, **Then** saving is blocked and each problem is shown on
+   its field. **When** the password misses a policy rule, **Then** the rule is marked as not met
+   while typing, and the API's refusal names it on the password field.
 5. **Given** a username that already exists as an administrator or domain administrator in any
    letter case, **When** the administrator saves, **Then** the username field shows a translated
    "already exists" message and the form keeps its values.
@@ -263,9 +266,9 @@ protection, confirmation and message.
    policy and save, **Then** the account is created and a translated success message names it.
 3. **Given** their own account, **When** they open its actions, **Then** "Remove" is disabled and
    the reason "You cannot remove the account you are signed in with" is shown.
-4. **Given** only one active administrator, **When** anyone opens that account's actions or edit
-   screen, **Then** deactivation is disabled and the reason "At least one administrator must stay
-   active" is shown.
+4. **Given** an administrator who is the only active administrator, **When** they open their own
+   account's actions or edit screen, **Then** deactivation is disabled and the reason "At least one
+   administrator must stay active" is shown.
 5. **Given** their own account and another active administrator, **When** they deactivate their own
    account, **Then** a confirmation warns that their session ends, and confirming saves the change
    and then shows the sign-in screen with an explanation.
@@ -457,7 +460,8 @@ accounts.
   active, or suspended until next sign-in), status, and an action menu with Edit, Sign in as
   (FR-040), Activate or Deactivate, Suspend two-factor authentication (when active), and Remove.
 - **FR-006**: Below 768 px the list MUST render as cards, the whole card opening the detail screen.
-  From 768 px it MAY render as a table. Neither layout MAY need horizontal scrolling.
+  From 768 px it MUST render as a table (`docs/conventions.md`). Neither layout MAY need horizontal
+  scrolling.
 - **FR-007**: The list MUST offer a search on usernames and assigned domain names; filters by
   status, two-factor status, pending sign-in requirement (forced password change, forced
   two-factor setup), assigned domain, and the value of one permission flag; sorting by username,
@@ -481,19 +485,21 @@ accounts.
   default), Domains (one or more), Sign-in requirements (force password change, force two-factor
   setup, both off by default) and Permissions (FR-028), and MUST send everything in one request. On
   phones it MUST be a full screen, not a modal dialog.
-- **FR-012**: The username MUST be validated before submission: required, at most 255 characters,
-  only a–z, 0–9, `-`, `_` and `.`, at least one letter or digit, and not `api` in any letter case.
+- **FR-012**: The username MUST be validated before submission: required, at most the length the
+  API reports (255 characters), only a–z, 0–9, `-`, `_` and `.`, at least one letter or digit, and not `api` in any letter case.
   Leading and trailing spaces MUST be removed and upper-case letters converted to lower case when
   the field loses focus, with a hint that explains the allowed characters.
 - **FR-013**: The domain picker MUST let the user search the server's primary domains, select
   several, and see the selection as removable chips. On phones it MUST open as a full-screen list
   with a search field and checkboxes. At least one domain MUST be selected.
 - **FR-014**: The password field MUST be a single field with show and hide controls. It MUST list the
-  server's password policy as read from the API and check it before submission, and MUST offer
-  "Generate", which fills the field with a random password that meets the policy, reveals it and
+  server's password policy as read from the API and mark each rule as met or not met while the user
+  types, without blocking submission: the API decides, and stores a value that begins with a
+  recognised hash-scheme prefix as given, as in UI feature 003. It MUST offer "Generate", which fills the field with a random password that meets the policy, reveals it and
   offers to copy it. Passwords MUST NOT be kept anywhere after the form is left.
 - **FR-015**: The Permissions section of the creation form MUST start collapsed, with the server's
-  default flags (from the API's account capabilities) selected and a note that the defaults apply. Expanding it MUST show the switches of
+  default flags (from the API's account capabilities) selected and a note that the defaults apply.
+  Expanding it MUST show the switches of
   FR-028, and only flags that differ from the defaults need to be sent.
 - **FR-016**: Errors returned by the API MUST appear on the matching fields, using the
   machine-readable rule codes and their parameters to build translated messages (API feature 001,
@@ -535,9 +541,10 @@ accounts.
   second factors are removed, its sessions end, and the domains and their mailboxes stay. The
   confirm control MUST be labelled with the action ("Remove domain administrator"), not "OK". After
   the removal the app MUST return to the list and announce the result.
-- **FR-026**: Activating and deactivating another account MUST need no confirmation. The result
-  message MUST state the effect: for a deactivation, that the account's sessions end and its API keys
-  stop working until it is activated again. A refusal MUST restore the previous state.
+- **FR-026**: Activating another account MUST need no confirmation. Deactivating another account,
+  alone or in a multi-select, MUST need one explicit confirmation that states the effect: the
+  account's sessions end and its API keys stop working until it is activated again. The result
+  message MUST state the effect too. A refusal MUST restore the previous state.
 
 #### Domain administrator permissions
 
@@ -573,7 +580,7 @@ accounts.
   sections (FR-019 to FR-021, FR-023, FR-024) and the "View history" link (FR-071).
 - **FR-035**: The own account's Remove control MUST be disabled everywhere, with the visible reason
   "You cannot remove the account you are signed in with". The own account MUST be left out of a
-  multi-select remove, and the summary MUST say so.
+  multi-select remove or deactivate, and the summary MUST say so.
 - **FR-036**: When exactly one administrator is active, that account's deactivation MUST be disabled
   everywhere, with the visible reason "At least one administrator must stay active". A multi-select
   deactivation that would leave no active administrator MUST be stopped before any request is sent,
@@ -637,8 +644,10 @@ accounts.
 - **FR-053**: When a request is refused by the anti-forgery check after the identity changed in
   another tab, the app MUST re-read the identity, apply FR-052, say that the action was not carried
   out because the account changed in another tab, and MUST NOT resend the request.
-- **FR-054**: Every tab of the browser MUST reflect a change of identity on its next request or when
-  it regains focus.
+- **FR-054**: Every tab of the browser MUST reflect a change of identity when another tab announces
+  it, which also reaches background tabs by the time they regain focus, and otherwise at the latest
+  on its next write or refused request. No automatic request is made on focus, because UI feature
+  001 forbids automatic requests that would keep an idle session alive (FR-033 there).
 
 #### Webmail on a user's behalf
 
@@ -772,7 +781,7 @@ token), `sogo-auth.php` (webmail on a user's behalf).
 
 Reused legacy translation keys (meaning unchanged): `admin.admins`, `admin.domain_admins`,
 `admin.domain_admin`, `admin.add_admin`, `admin.add_domain_admin`, `admin.admin_domains`,
-`admin.search_domain_da`, `admin.username`, `admin.password`, `admin.generate`, `admin.active`,
+`admin.search_domain_da`, `admin.username`, `admin.password`, `admin.active`,
 `admin.action`, `edit.admin`, `edit.domain_admin`, `edit.domains`, `edit.force_pw_update`,
 `edit.force_pw_update_info` (product name from branding), `tfa.tfa`, `tfa.disable_tfa`,
 `tfa.force_tfa`, `tfa.force_tfa_info`, `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`,
@@ -781,8 +790,10 @@ Reused legacy translation keys (meaning unchanged): `admin.admins`, `admin.domai
 `danger.object_exists`, `danger.domain_invalid`, `danger.password_complexity`,
 `success.admin_added`, `success.admin_modified`, `success.admin_removed`,
 `success.domain_admin_added`, `success.domain_admin_modified`, `success.domain_admin_removed`,
-`success.acl_saved`, `success.logged_in_as`, `user.open_webmail_sso`. Keys whose legacy text contains
-a brand name or HTML are replaced by new keys with a product-name placeholder.
+`success.acl_saved`, `success.logged_in_as`, `user.open_webmail_sso` (40 keys and the 19 flags).
+The "Generate" control's label comes from the shared password field of UI features 003 and 005, so
+`admin.generate` is not reused here. Keys whose legacy text contains a brand name or HTML are
+replaced by new keys with a product-name placeholder.
 
 ### API Dependency
 

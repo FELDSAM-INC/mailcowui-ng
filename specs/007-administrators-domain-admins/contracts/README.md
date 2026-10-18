@@ -18,8 +18,8 @@ version, the operations this feature uses, and the app's response to each proble
 | Paths, operations | 250, 376 (the contracts of API 001 to 013) |
 | `KnownProblemType` | registered under `components.schemas` (86 types), so `knownProblemTypeValues` is generated |
 
-The setup task T001 keeps the pin that UI 001 to 006 left when it already contains API 007's
-contract as of `a13c370` and the contracts of API 004 and 005; otherwise it runs
+Pins only move forward. The setup task T001 keeps the pin that UI 001 to 006 left when it is this
+baseline or newer, and then checks this feature's operations against the baseline; otherwise it runs
 `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9` and confirms the sha256 above.
 It never pins "the latest commit". The result is recorded in `contract/VERSION.json`, which is
 authoritative from then on.
@@ -76,6 +76,13 @@ Not called by UI 007, but their screens (UI 001, UI 005) are made unavailable wh
 `enrolOwnSecondFactor`, `deleteOwnSecondFactor`, `removeAllOwnSecondFactors`,
 `replaceOwnRecoveryEmail` and `createWebmailHandOff`.
 
+## Calls that bypass the query cache
+
+Requests and responses that carry a secret are direct client calls, never `useQuery` or
+`useMutation` (`docs/conventions.md`, "Secrets in requests or responses"): `createAdmin`,
+`createDomainAdmin`, `updateAdmin` and `updateDomainAdmin` when they carry `password`,
+`createSessionWithSsoToken`, `issueDomainAdminSsoToken` and `createWebmailSignInOnBehalf`.
+
 ## Behaviour taken from the contract's root document
 
 - **Anti-forgery after an identity change** ("Authentication", step 1): on `csrf-token-mismatch`,
@@ -106,6 +113,6 @@ Messages come from `problem.<name>` and `validation.<code>`, never from `title` 
 | `forbidden` | 403 | any | "No permission" in context, identity refreshed (UI 001 FR-045) |
 | `sign-in-failed` | 401 | `createSessionWithSsoToken` | Sign-in screen with "This sign-in link is invalid or has expired" (FR-061) |
 | `too-many-requests` | 429 | `createSessionWithSsoToken` | UI 001's throttling message with countdown on the landing (FR-061) |
-| `validation-failed` | 422 | creates, updates, bulk (`tooMany`), webmail (`notEligible`) | Field errors: `invalidFormat` (`accountUsername`, `domainName`), `reserved`, `tooLong`, `required`, `notFound` and `notEligible` on `domains.<i>`, `notEligible` with `reason` on `mailbox`, password rule codes; a summary when there is more than one (FR-016) |
+| `validation-failed` | 422 | creates, updates, bulk (`tooMany`), webmail (`notEligible`) | Field errors: `invalidFormat` (`accountUsername`, `domainName`), `reserved`, `tooLong`, `required`, `notFound` and `notEligible` on `domains.<i>` (keyed by code and path only, because the contract describes the alias-domain case with `expected` in one place and `kind` in another), `notEligible` with `reason` on `mailbox`, password rule codes; a summary when there is more than one (FR-016) |
 | `about:blank` 404 | 404 | details, start, webmail, token issue | "Not found" state with a link to the list; for start and webmail a message in place |
 | `about:blank` 412 | 412 | updates, suspension, deletion | "Changed elsewhere": input kept, values reloaded and marked (FR-066) |

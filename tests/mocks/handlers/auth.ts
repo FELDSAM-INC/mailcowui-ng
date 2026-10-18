@@ -20,6 +20,7 @@ import {
   findAccount,
   signIn,
   type MockAccount,
+  type MockAuthMethod,
   type ScenarioState,
 } from '../scenarios/state'
 import { csrfProblem, http, problem, scenario, sessionBody } from './context'
@@ -57,6 +58,23 @@ function passkeyOwner(state: ScenarioState, credentialId: string): MockAccount |
     account.passkeys.some((passkey) => passkey.credentialId === credentialId && passkey.active),
   )
 }
+
+/**
+ * UI 012 (FR-050): LDAP mailboxes sign in against the directory and Keycloak mailboxes through the
+ * mailpassword flow; the session names the method. Other accounts use mailcow's own password.
+ */
+function passwordMethod(account: MockAccount, withSecondFactor: boolean): MockAuthMethod {
+  if (account.source === 'ldap') {
+    return withSecondFactor ? 'directoryPasswordAndSecondFactor' : 'directoryPassword'
+  }
+  if (account.source === 'keycloak') {
+    return withSecondFactor ? 'providerPasswordAndSecondFactor' : 'providerPassword'
+  }
+  return withSecondFactor ? 'passwordAndSecondFactor' : 'password'
+}
+
+const viaProvider = (account: MockAccount | undefined) =>
+  account?.source === 'ldap' || account?.source === 'keycloak'
 
 function pendingExpired(state: ScenarioState): boolean {
   const pending = state.session.pendingSignIn
@@ -100,7 +118,19 @@ export const authHandlers = [
       )
     }
     const account = resolveAccount(state, username, body.role)
-    if (!account || !account.active || account.external || account.password !== body.password) {
+    // UI 012 (FR-051): the provider cannot be reached; the attempt counts towards no throttling.
+    if (viaProvider(account) && state.singleSignOn.providerOutage) {
+      return response.untyped(
+        problem(503, 'identity-provider-unavailable', {}, { 'Retry-After': '30' }),
+      )
+    }
+    if (
+      !account ||
+      !account.active ||
+      account.external ||
+      account.source === 'genericOidc' ||
+      account.password !== body.password
+    ) {
       state.failedSignIns += 1
       return response.untyped(problem(401, 'sign-in-failed'))
     }
@@ -119,7 +149,7 @@ export const authHandlers = [
         expiresAt: new Date(state.now() + CHALLENGE_LIFETIME_MS).toISOString(),
       }
     } else {
-      signIn(state, account, 'password')
+      signIn(state, account, passwordMethod(account, false))
     }
     return response(201).json(
       { data: sessionBody(state) },
@@ -266,7 +296,7 @@ export const authHandlers = [
         break
       }
     }
-    signIn(state, account, 'passwordAndSecondFactor')
+    signIn(state, account, passwordMethod(account, true))
     return response(200).json({ data: sessionBody(state) })
   }),
 ]

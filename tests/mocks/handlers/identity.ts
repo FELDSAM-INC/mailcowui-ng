@@ -3,9 +3,9 @@
 // language. Preferences are a JSON Merge Patch with `If-Match` (412 when outdated), languages are
 // checked against the enabled ones (`422 notInList` with `allowed`), and a restricted session is
 // refused like every other operation.
-import type { Preferences, PreferencesPatch, Writable } from '@/api'
+import type { IdentityProviderType, Preferences, PreferencesPatch, Writable } from '@/api'
 
-import type { MockAccount, ScenarioState } from '../scenarios/state'
+import type { MockAccount, MockAuthMethod, ScenarioState } from '../scenarios/state'
 import { csrfProblem, http, problem, requireAccount, scenario } from './context'
 
 let version = 1
@@ -19,6 +19,18 @@ function effectivePreferences(state: ScenarioState, account: MockAccount): Prefe
     : { ...account.preferences, language: state.publicConfig.defaultLanguage }
 }
 
+/** UI 012: sign-ins through the identity provider name the provider type. */
+function authenticationOf(state: ScenarioState): {
+  method: MockAuthMethod
+  identityProvider?: IdentityProviderType
+} {
+  const method = state.session.authMethod ?? 'password'
+  if (method === 'singleSignOn') return { method, identityProvider: state.singleSignOn.provider }
+  if (method.startsWith('directoryPassword')) return { method, identityProvider: 'ldap' }
+  if (method.startsWith('providerPassword')) return { method, identityProvider: 'keycloak' }
+  return { method }
+}
+
 export const identityHandlers = [
   http.get('/me', ({ response }) => {
     const state = scenario()
@@ -28,7 +40,7 @@ export const identityHandlers = [
       data: {
         username: account.username,
         role: account.role,
-        authentication: { method: state.session.authMethod ?? 'password' },
+        authentication: authenticationOf(state),
         scope: account.scope,
         permissions: account.permissions,
         pendingActions: account.pendingActions,

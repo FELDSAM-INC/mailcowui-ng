@@ -8,7 +8,7 @@ import { createOpenApiHttp } from 'openapi-msw'
 import type { PendingAction, paths, Session } from '@/api'
 
 import { requestId } from '../factories/ids'
-import { findAccount, type MockAccount, type ScenarioState } from '../scenarios/state'
+import { endSession, findAccount, type MockAccount, type ScenarioState } from '../scenarios/state'
 
 /** Typed MSW handlers for the contract's paths, on any origin. */
 export const http = createOpenApiHttp<paths>({ baseUrl: '*/api/v2' })
@@ -84,6 +84,11 @@ export function requireAccount(
   options: { allowRestricted?: boolean } = {},
 ): MockAccount | Response {
   if (state.session.state === 'pendingSecondFactor') return problem(401, 'second-factor-required')
+  // UI 012 (FR-052): the provider refused to renew a single sign-on session; the session is gone.
+  if (state.singleSignOn.endIdpSession && state.session.authMethod === 'singleSignOn') {
+    endSession(state)
+    return problem(401, 'identity-provider-session-ended')
+  }
   const account = sessionAccount(state)
   if (!account || !account.active) return problem(401, 'unauthenticated')
   if (state.session.state === 'restricted' && !options.allowRestricted) {

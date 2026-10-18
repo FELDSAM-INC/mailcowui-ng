@@ -47,6 +47,9 @@ export default defineConfig({
     {
       name: 'mobile-webkit',
       testDir: 'tests/e2e',
+      // WebKit runs the two-theme accessibility checks much slower than Chromium; under a loaded
+      // machine screens with long lists exceed the default 30 s.
+      timeout: 60_000,
       grepInvert: /@virtual-authenticator/,
       use: { ...devices['iPhone 13'], ...mobile, browserName: 'webkit', baseURL },
     },

@@ -1,0 +1,4501 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "mailcow REST API v2",
+    "version": "0.1.0",
+    "summary": "Standards-compliant REST API for mailcow-dockerized.",
+    "license": {
+      "name": "GPL-3.0-only",
+      "identifier": "GPL-3.0-only"
+    },
+    "description": "mailcow REST API v2 runs next to the legacy mailcow UI and `/api/v1`, which keep working\nunchanged. It is the only backend of the mailcowui-ng web app. This document is the source of\ntruth: the implementation mirrors it exactly, and undocumented behaviour is a bug.\n\n## Conventions\n\n- Names are camelCase. Booleans are `true`/`false`. Times are RFC 3339 in UTC.\n- A single resource is returned as `{\"data\": {...}}`. A list is returned as\n  `{\"data\": [...], \"meta\": {\"total\", \"limit\", \"offset\"}}` and accepts `limit` (default 25, at\n  most 1,000), `offset`, `sort`, `order`, a substring search `q` and the documented filters.\n- Create returns `201` with a `Location` header, read and update return `200`, delete returns\n  `204`. Non-CRUD actions are sub-resources (for example `POST /api-keys/{apiKeyId}/revocation`)\n  and return `200` with the affected resource or the ceremony data.\n- `PATCH` takes JSON Merge Patch (RFC 7396, `application/merge-patch+json`).\n- Mutable resources carry a version tag: a strong ETag over their stored settings, never over\n  usage data. A single read returns it in the `ETag` header, and every representation,\n  including each list entry, carries the same value in `etag`. Writes accept `If-Match` and\n  answer `412` when it does not match. The legacy UI edits the same rows, so clients should\n  send it.\n\n## Errors\n\nEvery error is an RFC 9457 problem (`application/problem+json`) with `type`, `title`,\n`status`, `detail` and `requestId`. Problem types that clients act on are relative URI\nreferences of the form `/api/v2/problems/{name}`, documented in `docs/problems.md` and served\nas HTML by `GET /problems/{problemType}`. Compare `type` as an exact string. Other problems\nuse `about:blank` and are identified by their status (`400` malformed request, `404` unknown\nresource or path, `405` method not allowed, `409` conflict described in `detail`, `412`\nprecondition failed, `500` unexpected failure).\n\nErrors are never localised: the API ignores `Accept-Language`. `title` and `detail` are\nEnglish and meant for logs and scripts. A validation problem (`422`) carries an `errors` map\nfrom each invalid field to a list of violations, each with a stable rule `code` and its\n`params`, so that clients build translated messages themselves.\n\n## Authentication\n\n**Browser clients** use a same-origin session cookie (`sessionCookie`, `Secure`, `HttpOnly`,\n`SameSite=Strict`). Every state-changing request made with a session, including sign-in, must\ncarry the session's anti-forgery token in the `X-CSRF-Token` header (`csrfToken`), whatever\nits content type. The flow is:\n\n1. `GET /csrf-token` starts an anonymous session and returns its token. The token stays valid\n   for the lifetime of the session, including across sign-in. A `403` with type\n   `/api/v2/problems/csrf-token-mismatch` means the session ended: fetch a new token and retry\n   once.\n2. Sign in with a passkey (`POST /session/passkey-challenge`, then\n   `POST /session/passkey-assertion`) or with a password (`POST /session`).\n3. If the password step answers with state `pendingSecondFactor`, complete one of the listed\n   methods (`POST /session/pending-sign-in/second-factor`, after\n   `POST /session/pending-sign-in/webauthn-challenge` for WebAuthn) or cancel it\n   (`DELETE /session/pending-sign-in`).\n4. Sign out with `DELETE /session`.\n\n**Automation clients** send an API key in the `X-API-Key` header (`apiKeyAuth`). A request\nwith a key never creates a session and needs no anti-forgery token. When a request carries\nboth a key and a session cookie, the key decides and the cookie is ignored. Any request that\ncarries a non-empty `X-API-Key` header is authenticated by that key, and an invalid, expired\nor revoked key, or a key used from a disallowed address, is reported to mailcow's fail2ban.\nThe System operations (health checks, the contract, the documentation and the problem pages)\nignore `X-API-Key`.\n\n## Recommended presentation of sign-in methods\n\nClients should offer **passkey sign-in first** whenever the device supports WebAuthn\n(`PublicKeyCredential` is available), and username and password second. Passkeys registered\nin the legacy UI under the names \"FIDO2\" or \"Touch ID\" are ordinary passkeys and need no\nspecial handling. In the second-factor step, `PendingSignIn.methods` is already in the\nrecommended order: WebAuthn security keys and passkeys first, TOTP second, Yubico OTP last.\nMethods with `tier: primary` are offered directly; methods with `tier: advanced` belong behind\nan \"other methods\" option.\n\n## Restricted sessions\n\nWhen mailcow forces an account to change its password or to set up a second factor, the\nsession is restricted (`state: restricted`, non-empty `pendingActions`). It can read\n`GET /me`, sign out and, when only `secondFactorSetup` is pending, register a passkey.\nOperations that need no signed-in account stay available: `GET /csrf-token`, `GET /session`,\nsign-in and its steps, the public configuration, the documentation and the health checks.\nEvery other operation answers `403` with type `/api/v2/problems/pending-action-required`.\nAPI keys are never restricted: `Identity.pendingActions` is empty for them. Pending actions are re-evaluated from mailcow's\ndata on every request, so a restriction lifts as soon as it is resolved in either UI.\n"
+  },
+  "servers": [
+    {
+      "url": "/api/v2",
+      "description": "Same origin as the mailcow UI."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "CSRF bootstrap, password and passkey sign-in, second factors and sign-out."
+    },
+    {
+      "name": "Identity",
+      "description": "The authenticated caller and its preferences."
+    },
+    {
+      "name": "Passkeys",
+      "description": "The signed-in user's own passkeys (legacy \"FIDO2\" credentials)."
+    },
+    {
+      "name": "API keys",
+      "description": "Administrator-managed keys for automation clients."
+    },
+    {
+      "name": "Public configuration",
+      "description": "Branding and login page settings readable before sign-in."
+    },
+    {
+      "name": "Audit",
+      "description": "Authentication and key-management audit log."
+    },
+    {
+      "name": "System",
+      "description": "Health, the contract itself and problem type documentation."
+    }
+  ],
+  "paths": {
+    "/csrf-token": {
+      "get": {
+        "operationId": "getCsrfToken",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get the anti-forgery token",
+        "description": "Returns the anti-forgery token of the caller's session and starts an anonymous session (sets\nthe session cookie) when there is none. Call it once when the web app starts and after a\n`csrf-token-mismatch` problem. The token stays valid until the session ends, including\nacross sign-in.\n",
+        "security": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/CsrfTokenResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/session": {
+      "get": {
+        "operationId": "getSession",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get the current session",
+        "description": "Returns the state of the caller's browser session: `anonymous`, `pendingSecondFactor` (with\nthe methods to offer), `restricted` (with the pending actions) or `active`. Never fails for a\nmissing or ended session; it reports `anonymous` instead. Requests with an API key are refused\nwith `session-required`.\n",
+        "security": [
+          {},
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SessionResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSession",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Sign in with username and password",
+        "description": "Verifies an existing mailcow username and password, for every role, with every password hash\nformat mailcow accepts. Signing in never modifies the stored hash.\n\n- Without an active second factor the session becomes `active`, or `restricted` when mailcow\n  forces a password change or second-factor setup. All of the account's second-factor entries\n  are re-activated (legacy \"disable second factor for the next login\").\n- With active second factors the session becomes `pendingSecondFactor` and lists the methods\n  in the recommended order. Complete one within 5 minutes.\n- A mailbox user's password verification records a recent-login entry (mailcow `sasl_log`),\n  as legacy does.\n\nFailures return one generic `sign-in-failed` error, are audited and are published to mailcow's\nfail2ban channel as `mailcow UI: Invalid password for <username> by <client address>` (not for\nmailboxes that authenticate against an external identity provider). Each failure for the same\nusername and client address is answered 0.5 s later than the previous one; after 10 failures\nwithin 15 minutes attempts are refused with `429` without checking the password. A correct\npassword resets the count.\n\nThe session identifier is renewed when the step succeeds. A previous sign-in of the same\nsession is replaced.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSignInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/SessionCreated"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/SignInRejected"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignInForbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSession",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Sign out",
+        "description": "Ends the session immediately in any state, including a pending sign-in, and audits the\nsign-out of a signed-in account. Any further request with the old cookie is anonymous; fetch a\nnew anti-forgery token before signing in again. Without a live session the request succeeds\nand changes nothing, and no anti-forgery token is needed.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          },
+          {}
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/session/pending-sign-in": {
+      "delete": {
+        "operationId": "cancelPendingSignIn",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Cancel the pending sign-in",
+        "description": "Cancels a sign-in that awaits a second factor. The session returns to `anonymous` and keeps\nits anti-forgery token. Succeeds and changes nothing when no sign-in is pending.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignInForbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/session/pending-sign-in/webauthn-challenge": {
+      "post": {
+        "operationId": "createSecondFactorWebAuthnChallenge",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get a WebAuthn challenge for the pending sign-in",
+        "description": "Issues a single-use WebAuthn challenge, bound to the pending sign-in, that allows the\naccount's active WebAuthn second factors. It expires after 5 minutes or at the first\nverification attempt. A new request replaces the previous challenge. User verification\nfollows mailcow's `WEBAUTHN_UV_FLAG_LOGIN`, and `extensions.appid` is set as in legacy.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/WebAuthnChallengeResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/SignInRejected"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignInForbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/session/pending-sign-in/second-factor": {
+      "post": {
+        "operationId": "verifySecondFactor",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Complete the pending sign-in with a second factor",
+        "description": "Verifies one of the pending sign-in's methods: a TOTP code, a WebAuthn assertion or a Yubico\nOTP. Second factors enrolled in the legacy UI verify without re-enrolment.\n\nOn success the session identifier is renewed, the session becomes `active` (or `restricted`)\nand the sign-in is audited with `authMethod: passwordAndSecondFactor`.\n\nOne failed attempt cancels the pending sign-in (`second-factor-failed`), counts towards the\nsign-in throttling of the username and client address, and is audited. A method that was\ndeactivated or deleted since the password step also cancels it. A TOTP code is accepted only\nonce within its validity window. When the Yubico service is unreachable the answer is `503`,\nthe pending sign-in stays open and nothing is counted. A malformed request (`422`) changes\nnothing.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecondFactorVerification"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SessionResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/SignInRejected"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignInForbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/TemporaryVerificationFailure"
+          }
+        }
+      }
+    },
+    "/session/passkey-challenge": {
+      "post": {
+        "operationId": "createPasskeyChallenge",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Get a passkey sign-in challenge",
+        "description": "Issues a single-use challenge for usernameless passkey sign-in, bound to the session, with\nan empty `allowCredentials` list so that the device offers its discoverable credentials for\nthis host. It expires after 5 minutes or at the first sign-in attempt. A new request replaces\nthe previous challenge. User verification follows mailcow's `FIDO2_UV_FLAG_LOGIN` (default\n`preferred`).\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/WebAuthnChallengeResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignInForbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/session/passkey-assertion": {
+      "post": {
+        "operationId": "createSessionWithPasskey",
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Sign in with a passkey",
+        "description": "Verifies an assertion for the session's passkey challenge and signs in the account that owns\nthe credential, with no password and no further second factor. Passkeys registered in the\nlegacy UI (\"FIDO2\", \"Touch ID\") work unchanged.\n\nThe credential must be active and its account must be able to sign in (active account, active\nmailbox and domain, not a resource mailbox). Without `role`, the account type is resolved in\nmailcow's order (administrator or domain administrator, then mailbox user); with `role`, an\naccount of another type fails. Forced password change and second-factor setup restrict the\nsession as after a password sign-in. A mailbox user's sign-in records a recent-login entry.\n\nFailures return the generic `sign-in-failed` error, are audited and count towards throttling\nper client address. They are not reported to fail2ban. The session identifier is renewed on\nsuccess.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeySignInRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/SessionCreated"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/SignInRejected"
+          },
+          "403": {
+            "$ref": "#/components/responses/SignInForbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "operationId": "getIdentity",
+        "tags": [
+          "Identity"
+        ],
+        "summary": "Who am I",
+        "description": "Returns the authenticated caller: username, role, how it authenticated, scope, effective\npermission flags, pending actions and, for sessions, the preferences. For an API key it\nreturns the owner's role, scope and flags together with the key's identifier, name and access\nlevel. Available in restricted sessions.\n",
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/IdentityResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/me/preferences": {
+      "get": {
+        "operationId": "getPreferences",
+        "tags": [
+          "Identity"
+        ],
+        "summary": "Get my preferences",
+        "description": "Returns the signed-in user's language and theme. Not available to API keys.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PreferencesResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updatePreferences",
+        "tags": [
+          "Identity"
+        ],
+        "summary": "Update my preferences",
+        "description": "Changes the signed-in user's language (one of the enabled languages) and/or theme. The change\npersists across sessions and devices and is audited. Not available to API keys.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/merge-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PreferencesResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/me/passkeys": {
+      "get": {
+        "operationId": "listPasskeys",
+        "tags": [
+          "Passkeys"
+        ],
+        "summary": "List my passkeys",
+        "description": "Lists the signed-in user's passkeys, including those registered in the legacy UI as \"FIDO2\"\nor \"Touch ID\" credentials. `q` searches the name and the authenticator description. Not\navailable to API keys or in restricted sessions.\n",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/PasskeySort"
+          },
+          {
+            "$ref": "#/components/parameters/Order"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PasskeyListResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "registerPasskey",
+        "tags": [
+          "Passkeys"
+        ],
+        "summary": "Register a passkey",
+        "description": "Verifies the authenticator's response to the session's registration options and saves the\npasskey where legacy mailcow stores FIDO2 credentials, bound to this host name, so that it\nworks for usernameless sign-in in both UIs. User verification and accepted attestation formats\nfollow mailcow's `FIDO2_UV_FLAG_REGISTER` and `FIDO2_FORMATS`. The registration is audited.\n\nNeeds a full session, or a session restricted only by `secondFactorSetup`, which the\nregistration lifts immediately. Not available to API keys or during a pending sign-in.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeyRegistrationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/PasskeyCreated"
+          },
+          "400": {
+            "$ref": "#/components/responses/PasskeyRegistrationRejected"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/me/passkeys/registration-options": {
+      "post": {
+        "operationId": "createPasskeyRegistrationOptions",
+        "tags": [
+          "Passkeys"
+        ],
+        "summary": "Get passkey registration options",
+        "description": "Issues single-use registration options bound to the session: a discoverable credential\n(`residentKey: required`) for this host name, with the account's existing passkeys excluded.\nThey expire after 5 minutes or at the first registration attempt. A new request replaces the\nprevious options. Same access rules as `registerPasskey`.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PasskeyRegistrationOptionsResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/me/passkeys/{passkeyId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/PasskeyId"
+        }
+      ],
+      "get": {
+        "operationId": "getPasskey",
+        "tags": [
+          "Passkeys"
+        ],
+        "summary": "Get one of my passkeys",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PasskeyResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updatePasskey",
+        "tags": [
+          "Passkeys"
+        ],
+        "summary": "Rename one of my passkeys",
+        "description": "Changes the display name. Audited.",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/merge-patch+json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasskeyPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PasskeyResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deletePasskey",
+        "tags": [
+          "Passkeys"
+        ],
+        "summary": "Remove one of my passkeys",
+        "description": "Removes the passkey from mailcow, so it no longer signs in through either UI. Removing the\nlast passkey is allowed, as in legacy. Audited.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api-keys": {
+      "get": {
+        "operationId": "listApiKeys",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "List API keys",
+        "description": "Lists API keys, including revoked and expired ones. Administrators only: a signed-in\nadministrator or a key owned by an administrator. Secrets are never included. `q` searches\nthe name, the prefix and the owner's username.\n",
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/ApiKeySort"
+          },
+          {
+            "$ref": "#/components/parameters/Order"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "name": "ownerUsername",
+            "in": "query",
+            "required": false,
+            "description": "Only keys owned by this account (exact match).",
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ApiKeyStatus"
+            }
+          },
+          {
+            "name": "accessLevel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ApiKeyAccessLevel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ApiKeyListResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createApiKey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Create an API key",
+        "description": "Creates a key owned by an existing administrator or domain administrator, with an access\nlevel, an optional expiry in the future and optional allowed source networks. The response\ncontains the secret exactly once; only its SHA-256 hash is stored. Audited without the\nsecret.\n\nOnly a signed-in administrator may create keys. Requests authenticated by a key are refused\nwith `session-required`, so that a leaked key cannot mint replacements for itself.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/ApiKeyCreatedResponse"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api-keys/owner-candidates": {
+      "get": {
+        "operationId": "listApiKeyOwnerCandidates",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "List possible key owners",
+        "description": "Lists the active administrators and active domain administrators that can own an API key\n(mailcow's `admin` table with `active = 1`), for the owner field of the key form. Mailbox users\nare never listed. Administrators only: a signed-in administrator or a key owned by an\nadministrator, read-only keys included.\n",
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/ApiKeyOwnerCandidateSort"
+          },
+          {
+            "$ref": "#/components/parameters/Order"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "description": "Only this role.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "domainAdmin"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ApiKeyOwnerCandidateListResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api-keys/{apiKeyId}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ApiKeyId"
+        }
+      ],
+      "get": {
+        "operationId": "getApiKey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Get an API key",
+        "description": "Returns one key with its owner, access level, networks, expiry, creation, last use (accurate\nto the minute), status and revocation. Administrators only, as for `listApiKeys`.\n",
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ApiKeyResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/api-keys/{apiKeyId}/revocation": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ApiKeyId"
+        }
+      ],
+      "post": {
+        "operationId": "revokeApiKey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Revoke an API key",
+        "description": "Revokes the key. It is refused from the very next request, stays listed with its revocation\ntime and the revoking administrator, and cannot be restored. Audited. Revoking an already\nrevoked key succeeds and changes nothing; this check comes before `If-Match`, so a retried\nrevocation never answers `412`.\n\nOnly a signed-in administrator may revoke keys; requests authenticated by a key are refused\nwith `session-required`.\n",
+        "security": [
+          {
+            "sessionCookie": [],
+            "csrfToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ApiKeyResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/public-config": {
+      "get": {
+        "operationId": "getPublicConfig",
+        "tags": [
+          "Public configuration"
+        ],
+        "summary": "Get the public configuration",
+        "description": "Returns the branding, login page options and languages configured in mailcow's legacy UI.\nNo authentication is needed. Values are read from mailcow on every request, so a change saved\nin the legacy UI is visible immediately; clients revalidate with `If-None-Match`.\n",
+        "security": [],
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "`ETag` of a cached representation.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/PublicConfigResponse"
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/public-config/logos/{variant}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/LogoVariant"
+        }
+      ],
+      "get": {
+        "operationId": "getPublicConfigLogo",
+        "tags": [
+          "Public configuration"
+        ],
+        "summary": "Get an uploaded logo",
+        "description": "Returns the logo uploaded in the legacy UI. `404` when none is uploaded for this variant; the\npublic configuration then points to the default logo instead.\n",
+        "security": [],
+        "parameters": [
+          {
+            "name": "v",
+            "in": "query",
+            "required": false,
+            "description": "Version from `Logo.url`. With a matching version the response is cacheable for a year.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8,64}$"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LogoImage"
+          },
+          "304": {
+            "$ref": "#/components/responses/NotModified"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/audit-events": {
+      "get": {
+        "operationId": "listAuditEvents",
+        "tags": [
+          "Audit"
+        ],
+        "summary": "List audit records",
+        "description": "Lists audit records, newest first by default. Administrators only: a signed-in administrator\nor a key owned by an administrator. Records cannot be changed or deleted through the API and\nare removed after the configured retention period (365 days by default). `q` searches the\nactor username, the target name and the user agent.\n",
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Offset"
+          },
+          {
+            "$ref": "#/components/parameters/AuditEventSort"
+          },
+          {
+            "$ref": "#/components/parameters/Order"
+          },
+          {
+            "$ref": "#/components/parameters/Search"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "Only records at or after this time.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Only records before this time.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "eventType",
+            "in": "query",
+            "required": false,
+            "description": "Only these event types. Repeat the parameter for several.",
+            "style": "form",
+            "explode": true,
+            "schema": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "$ref": "#/components/schemas/AuditEventType"
+              }
+            }
+          },
+          {
+            "name": "outcome",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/AuditOutcome"
+            }
+          },
+          {
+            "name": "actor",
+            "in": "query",
+            "required": false,
+            "description": "Only records whose actor username (including attempted usernames) or API key ID equals this value.",
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "clientAddress",
+            "in": "query",
+            "required": false,
+            "description": "Only records from this IPv4 or IPv6 address, or from within this prefix.",
+            "schema": {
+              "type": "string",
+              "maxLength": 49
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/AuditEventListResponse"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "getLiveness",
+        "tags": [
+          "System"
+        ],
+        "summary": "Liveness check",
+        "description": "Answers `200` while the PHP runtime serves requests. Checks no dependency and ignores `X-API-Key`.",
+        "security": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/HealthResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "getReadiness",
+        "tags": [
+          "System"
+        ],
+        "summary": "Readiness check",
+        "description": "Checks the MariaDB connection, the mailcow schema version (`versions.db_schema` must be one\nthis release supports), the Redis connection and that this API's own migrations are applied.\nIgnores `X-API-Key`.\n",
+        "security": [],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/HealthResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/openapi.yaml": {
+      "get": {
+        "operationId": "getOpenApiDocument",
+        "tags": [
+          "System"
+        ],
+        "summary": "Get this contract",
+        "description": "Returns the bundled OpenAPI document of the running release. Ignores `X-API-Key`.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The bundled contract.",
+            "content": {
+              "application/yaml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "operationId": "getApiDocs",
+        "tags": [
+          "System"
+        ],
+        "summary": "Interactive API documentation",
+        "description": "HTML page that renders `GET /openapi.yaml`. All assets are served by the API itself. Ignores `X-API-Key`.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The documentation page.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    },
+    "/problems/{problemType}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ProblemTypeName"
+        }
+      ],
+      "get": {
+        "operationId": "getProblemTypeDocumentation",
+        "tags": [
+          "System"
+        ],
+        "summary": "Problem type documentation",
+        "description": "Human-readable documentation of a problem type, so that every documented `type` URI\ndereferences on each installation. Rendered from `docs/problems.md`. Ignores `X-API-Key`.\n",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The documentation of this problem type.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-restv2_session",
+        "description": "Same-origin browser session. The cookie is `Secure`, `HttpOnly`, `SameSite=Strict`,\n`Path=/` and has no `Domain`. It expires after the server's idle session lifetime\n(mailcow's `SESSION_LIFETIME`, 3 hours by default) and when the user agent changes.\n"
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token",
+        "description": "Anti-forgery token of the current session, obtained from `GET /csrf-token`. Required on\nevery state-changing request made with a session.\n"
+      },
+      "apiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Secret of an API key created by an administrator. The key acts with its owner's role,\nscope and permission flags, limited by its access level.\n"
+      }
+    },
+    "schemas": {
+      "CsrfToken": {
+        "type": "object",
+        "description": "Anti-forgery token of the current session.",
+        "required": [
+          "token",
+          "headerName"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 40,
+            "description": "Send this value in the `X-CSRF-Token` header of every state-changing request."
+          },
+          "headerName": {
+            "type": "string",
+            "const": "X-CSRF-Token"
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "description": "RFC 9457 problem details (`application/problem+json`). `type` is the stable machine-readable\ncode: compare it as an exact string. `title` and `detail` are English and may be reworded.\nExtension members may be added later without notice.\n",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "requestId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Problem type. Either one of the documented types (see `KnownProblemType` and\n`docs/problems.md`) or `about:blank`, in which case the status code identifies the problem.\n",
+            "examples": [
+              "/api/v2/problems/sign-in-failed",
+              "about:blank"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "Short English summary of the problem type.",
+            "examples": [
+              "Sign-in failed"
+            ]
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599,
+            "description": "HTTP status code of this occurrence."
+          },
+          "detail": {
+            "type": "string",
+            "description": "English explanation of this occurrence. Never contains secrets."
+          },
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$",
+            "description": "Identifier of the request (the W3C trace ID), also written to the service log and to any\naudit record of the request.\n"
+          }
+        },
+        "additionalProperties": true
+      },
+      "PendingAction": {
+        "type": "string",
+        "description": "Action an account must complete before the session is fully usable.\n\n- `passwordChange`: mailcow forces a password change (`force_pw_update`). Until password change\n  arrives in this API, the user changes the password in the legacy UI.\n- `secondFactorSetup`: mailcow forces second-factor setup (`force_tfa`) and the account has no\n  second factor and no active passkey. Registering a passkey (`POST /me/passkeys`) resolves it.\n",
+        "enum": [
+          "passwordChange",
+          "secondFactorSetup"
+        ]
+      },
+      "PendingActionProblem": {
+        "description": "Problem of type `/api/v2/problems/pending-action-required` (status `403`). The session is\nrestricted until the listed actions are completed.\n",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "pendingActions"
+            ],
+            "properties": {
+              "pendingActions": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "$ref": "#/components/schemas/PendingAction"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "SessionState": {
+        "type": "string",
+        "description": "- `anonymous`: no account is signed in. The session only carries the anti-forgery token and\n  any passkey challenge.\n- `pendingSecondFactor`: the password was verified and one of `pendingSignIn.methods` must be\n  completed within 5 minutes.\n- `restricted`: signed in, but `pendingActions` must be completed first.\n- `active`: signed in with full access for the account's role.\n",
+        "enum": [
+          "anonymous",
+          "pendingSecondFactor",
+          "restricted",
+          "active"
+        ]
+      },
+      "Role": {
+        "type": "string",
+        "description": "Account role. `admin` and `domainAdmin` accounts live in mailcow's `admin` table (`superadmin`\n1 or 0); `mailboxUser` accounts are rows of the `mailbox` table.\n",
+        "enum": [
+          "admin",
+          "domainAdmin",
+          "mailboxUser"
+        ]
+      },
+      "SecondFactorType": {
+        "type": "string",
+        "description": "Second-factor type. `webauthn` covers security keys and passkeys enrolled as a second factor\n(mailcow `tfa.authmech = webauthn`), `totp` authenticator apps, `yubiOtp` Yubico OTP keys\nverified against the Yubico service. Deprecated U2F and HOTP entries are never offered.\n",
+        "enum": [
+          "webauthn",
+          "totp",
+          "yubiOtp"
+        ]
+      },
+      "SecondFactorMethod": {
+        "type": "object",
+        "description": "One enrolled second factor. Never contains secret material.",
+        "required": [
+          "id",
+          "type",
+          "name",
+          "tier"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Identifier of the second factor (mailcow `tfa.id`)."
+          },
+          "type": {
+            "$ref": "#/components/schemas/SecondFactorType"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name given at enrolment (mailcow `tfa.key_id`).",
+            "examples": [
+              "YubiKey 5C",
+              "Phone"
+            ]
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "primary",
+              "advanced"
+            ],
+            "description": "`primary` for `webauthn` and `totp`, offered directly. `advanced` for `yubiOtp`, offered\nbehind an \"other methods\" option.\n"
+          }
+        }
+      },
+      "PendingSignIn": {
+        "type": "object",
+        "description": "A sign-in whose password was verified and which needs one second factor. `methods` lists the\naccount's active, usable second factors in the recommended presentation order: WebAuthn\nsecurity keys and passkeys first, TOTP second, Yubico OTP last. One failed attempt cancels the\npending sign-in.\n",
+        "required": [
+          "methods",
+          "expiresAt"
+        ],
+        "properties": {
+          "methods": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/SecondFactorMethod"
+            }
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Five minutes after the password step."
+          }
+        }
+      },
+      "Session": {
+        "type": "object",
+        "description": "The browser session of the caller. `username` and `role` are present in every state except\n`anonymous`. `authMethod` and `signedInAt` are present in `restricted` and `active`.\n`pendingSignIn` is present only in `pendingSecondFactor`.\n",
+        "required": [
+          "state",
+          "pendingActions",
+          "idleTimeout"
+        ],
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/SessionState"
+          },
+          "username": {
+            "type": "string",
+            "description": "Normalised (trimmed, lower-cased) username of the account.",
+            "examples": [
+              "alice@example.org"
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "authMethod": {
+            "type": "string",
+            "enum": [
+              "password",
+              "passwordAndSecondFactor",
+              "passkey"
+            ],
+            "description": "How this session was signed in."
+          },
+          "signedInAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "idleTimeout": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Seconds of inactivity after which the session ends (mailcow's `SESSION_LIFETIME`, 10800 by\ndefault). Every request resets the timer.\n"
+          },
+          "pendingSignIn": {
+            "$ref": "#/components/schemas/PendingSignIn"
+          },
+          "pendingActions": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Empty unless `state` is `restricted`.",
+            "items": {
+              "$ref": "#/components/schemas/PendingAction"
+            }
+          }
+        }
+      },
+      "PasswordSignInRequest": {
+        "type": "object",
+        "description": "Username and password of an existing mailcow account. The username is trimmed and lower-cased\nbefore lookup. Without `role`, account types are tried in mailcow's order: administrator,\ndomain administrator, mailbox user. With `role`, only that type is tried.\n",
+        "required": [
+          "username",
+          "password"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "examples": [
+              "alice@example.org"
+            ]
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "writeOnly": true,
+            "format": "password"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        }
+      },
+      "ValidationRuleCode": {
+        "type": "string",
+        "description": "Stable code of a validation rule. Clients must treat unknown codes as a generic invalid value,\nbecause later features may add codes.\n\n- `required`: the field is missing, `null` or empty.\n- `invalidType`: wrong JSON type. Params: `expected` (`string`, `integer`, `boolean`, `array`,\n  `object`).\n- `tooShort` / `tooLong`: string length out of bounds. Params: `min` / `max`.\n- `tooMany`: too many list items. Params: `max`.\n- `outOfRange`: number out of bounds. Params: `min`, `max`.\n- `notInList`: value not among the allowed values. Params: `allowed`.\n- `invalidFormat`: value does not match a format. Params: `format`, one of `dateTime`\n  (RFC 3339), `ipNetwork` (IPv4 or IPv6 address or prefix), `ipAddress`, `totpCode` (six\n  digits), `yubicoOtp` (44 letters or digits), `base64url`, `webauthnCredential`.\n- `mustBeInFuture`: a time that must lie in the future does not.\n- `notFound`: the referenced object does not exist.\n- `notEligible`: the referenced object exists but cannot be used here. Params: `allowedRoles`.\n",
+        "enum": [
+          "required",
+          "invalidType",
+          "tooShort",
+          "tooLong",
+          "tooMany",
+          "outOfRange",
+          "notInList",
+          "invalidFormat",
+          "mustBeInFuture",
+          "notFound",
+          "notEligible"
+        ]
+      },
+      "FieldViolation": {
+        "type": "object",
+        "description": "One violated validation rule of one field.",
+        "required": [
+          "code",
+          "params",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ValidationRuleCode"
+          },
+          "params": {
+            "type": "object",
+            "description": "Parameters of the rule, for building a translated message. Known keys: `min`, `max`\n(numbers), `allowed` (list of allowed values), `format` (name of the expected format, see\n`ValidationRuleCode`), `expected` (expected JSON type) and `allowedRoles`.\n",
+            "additionalProperties": true
+          },
+          "message": {
+            "type": "string",
+            "description": "English message for logs and scripts. Clients translate from `code` and `params`."
+          }
+        }
+      },
+      "ValidationProblem": {
+        "description": "Problem of type `/api/v2/problems/validation-failed` (status `422`). `errors` maps each invalid\nfield to its violations. Body fields use their dot-separated path in the request body\n(`allowedNetworks.2`); query parameters use their name (`limit`); the key `body` stands for the\nrequest body as a whole (for example an empty merge patch).\n",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "errors"
+            ],
+            "properties": {
+              "errors": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "$ref": "#/components/schemas/FieldViolation"
+                  }
+                },
+                "examples": [
+                  {
+                    "language": [
+                      {
+                        "code": "notInList",
+                        "params": {
+                          "allowed": [
+                            "cs-cz",
+                            "en-gb",
+                            "sk-sk"
+                          ]
+                        },
+                        "message": "The selected language is not enabled on this server."
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "TooManyRequestsProblem": {
+        "description": "Problem of type `/api/v2/problems/too-many-requests` (status `429`). The `Retry-After` header\ncarries the same value as `retryAfter`.\n",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "retryAfter"
+            ],
+            "properties": {
+              "retryAfter": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Seconds until the next attempt will be considered."
+              }
+            }
+          }
+        ]
+      },
+      "Base64Url": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]*$",
+        "description": "Unpadded base64url encoding (RFC 4648, section 5) of binary data."
+      },
+      "WebAuthnCredentialDescriptor": {
+        "type": "object",
+        "description": "`PublicKeyCredentialDescriptorJSON` of WebAuthn Level 3.",
+        "required": [
+          "type",
+          "id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "public-key"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "transports": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "WebAuthnRequestOptions": {
+        "type": "object",
+        "description": "`PublicKeyCredentialRequestOptionsJSON` of WebAuthn Level 3. Pass it to\n`PublicKeyCredential.parseRequestOptionsFromJSON()` and then to `navigator.credentials.get()`.\n",
+        "required": [
+          "challenge",
+          "rpId",
+          "userVerification",
+          "allowCredentials",
+          "timeout"
+        ],
+        "properties": {
+          "challenge": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "rpId": {
+            "type": "string",
+            "description": "Host name serving the API and the web app.",
+            "examples": [
+              "mail.example.org"
+            ]
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Milliseconds."
+          },
+          "userVerification": {
+            "type": "string",
+            "enum": [
+              "required",
+              "preferred",
+              "discouraged"
+            ],
+            "description": "Follows mailcow's `FIDO2_UV_FLAG_LOGIN` (passkeys) or `WEBAUTHN_UV_FLAG_LOGIN` (second factor)."
+          },
+          "allowCredentials": {
+            "type": "array",
+            "description": "Empty for passkey sign-in (discoverable credentials); the account's WebAuthn second factors otherwise.",
+            "items": {
+              "$ref": "#/components/schemas/WebAuthnCredentialDescriptor"
+            }
+          },
+          "extensions": {
+            "type": "object",
+            "description": "Client extension inputs. The second-factor challenge sets `appid` as legacy mailcow does.",
+            "properties": {
+              "appid": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "WebAuthnChallenge": {
+        "type": "object",
+        "description": "A single-use WebAuthn challenge bound to the session.",
+        "required": [
+          "publicKey",
+          "expiresAt"
+        ],
+        "properties": {
+          "publicKey": {
+            "$ref": "#/components/schemas/WebAuthnRequestOptions"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Five minutes after issue. The challenge is consumed by the first verification attempt."
+          }
+        }
+      },
+      "TotpSecondFactor": {
+        "type": "object",
+        "description": "A code from the authenticator app enrolled as method `methodId`. A code accepted once is not\naccepted again within its validity window.\n",
+        "required": [
+          "type",
+          "methodId",
+          "code"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "totp"
+          },
+          "methodId": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "`id` of a `totp` method of the pending sign-in."
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "writeOnly": true
+          }
+        }
+      },
+      "WebAuthnAuthenticationResponse": {
+        "type": "object",
+        "description": "`AuthenticationResponseJSON` of WebAuthn Level 3, as returned by\n`PublicKeyCredential.prototype.toJSON()` after `navigator.credentials.get()`.\n",
+        "required": [
+          "id",
+          "rawId",
+          "type",
+          "response"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "rawId": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "type": {
+            "type": "string",
+            "const": "public-key"
+          },
+          "response": {
+            "type": "object",
+            "required": [
+              "clientDataJSON",
+              "authenticatorData",
+              "signature"
+            ],
+            "properties": {
+              "clientDataJSON": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "authenticatorData": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "signature": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "userHandle": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/Base64Url"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "authenticatorAttachment": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clientExtensionResults": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "WebAuthnSecondFactor": {
+        "type": "object",
+        "description": "Assertion for the challenge from `POST /session/pending-sign-in/webauthn-challenge`. The\ncredential must be one of the pending sign-in's `webauthn` methods.\n",
+        "required": [
+          "type",
+          "credential"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "webauthn"
+          },
+          "credential": {
+            "$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
+          }
+        }
+      },
+      "YubiOtpSecondFactor": {
+        "type": "object",
+        "description": "A Yubico OTP. The key is identified by the OTP's public ID among the account's active Yubico OTP\nmethods and verified against the Yubico service with the credentials stored in mailcow.\n",
+        "required": [
+          "type",
+          "otp"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "yubiOtp"
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9]{44}$",
+            "writeOnly": true
+          }
+        }
+      },
+      "SecondFactorVerification": {
+        "description": "Proof for one of the pending sign-in's methods.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TotpSecondFactor"
+          },
+          {
+            "$ref": "#/components/schemas/WebAuthnSecondFactor"
+          },
+          {
+            "$ref": "#/components/schemas/YubiOtpSecondFactor"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "totp": "#/components/schemas/TotpSecondFactor",
+            "webauthn": "#/components/schemas/WebAuthnSecondFactor",
+            "yubiOtp": "#/components/schemas/YubiOtpSecondFactor"
+          }
+        }
+      },
+      "PasskeySignInRequest": {
+        "type": "object",
+        "description": "Assertion for the challenge from `POST /session/passkey-challenge`. The account is the owner of\nthe credential. With `role`, the sign-in fails unless that account is of that role.\n",
+        "required": [
+          "credential"
+        ],
+        "properties": {
+          "credential": {
+            "$ref": "#/components/schemas/WebAuthnAuthenticationResponse"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        }
+      },
+      "AuthMethod": {
+        "type": "string",
+        "description": "How the caller authenticated: `password` (no second factor active), `passwordAndSecondFactor`,\n`passkey` (usernameless passkey sign-in) or `apiKey`.\n",
+        "enum": [
+          "password",
+          "passwordAndSecondFactor",
+          "passkey",
+          "apiKey"
+        ]
+      },
+      "ApiKeyAccessLevel": {
+        "type": "string",
+        "description": "`readOnly` keys may only call safe methods (GET, HEAD); `readWrite` keys may also change state.",
+        "enum": [
+          "readOnly",
+          "readWrite"
+        ]
+      },
+      "IdentityAuthentication": {
+        "type": "object",
+        "description": "How the caller authenticated. `apiKey` is present only when `method` is `apiKey`.",
+        "required": [
+          "method"
+        ],
+        "properties": {
+          "method": {
+            "$ref": "#/components/schemas/AuthMethod"
+          },
+          "apiKey": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "prefix",
+              "accessLevel"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+              },
+              "name": {
+                "type": "string"
+              },
+              "prefix": {
+                "type": "string",
+                "description": "Non-secret leading characters of the key."
+              },
+              "accessLevel": {
+                "$ref": "#/components/schemas/ApiKeyAccessLevel"
+              }
+            }
+          }
+        }
+      },
+      "AllDomainsScope": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "allDomains"
+          }
+        }
+      },
+      "DomainsScope": {
+        "type": "object",
+        "required": [
+          "type",
+          "domains"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "domains"
+          },
+          "domains": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "examples": [
+                "example.org"
+              ]
+            }
+          }
+        }
+      },
+      "MailboxScope": {
+        "type": "object",
+        "required": [
+          "type",
+          "mailbox",
+          "domain"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "mailbox"
+          },
+          "mailbox": {
+            "type": "string",
+            "examples": [
+              "alice@example.org"
+            ]
+          },
+          "domain": {
+            "type": "string",
+            "examples": [
+              "example.org"
+            ]
+          }
+        }
+      },
+      "Scope": {
+        "description": "Objects the caller may reach: every domain for an administrator, the managed domains for a\ndomain administrator (active assignments in mailcow's `domain_admins`), the own mailbox for a\nmailbox user. A domain administrator without domains has an empty list.\n",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AllDomainsScope"
+          },
+          {
+            "$ref": "#/components/schemas/DomainsScope"
+          },
+          {
+            "$ref": "#/components/schemas/MailboxScope"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "allDomains": "#/components/schemas/AllDomainsScope",
+            "domains": "#/components/schemas/DomainsScope",
+            "mailbox": "#/components/schemas/MailboxScope"
+          }
+        }
+      },
+      "PermissionFlags": {
+        "type": "object",
+        "description": "Effective permission flags, named after the columns of mailcow's `user_acl` and `da_acl` tables\nin camelCase. An administrator has every flag. A domain administrator has every `user_acl` flag,\noverridden by its own `da_acl` row where the names overlap (`syncjobs`, `quarantine`,\n`appPasswds`, `pushover`, `spamPolicy`). A mailbox user has its `user_acl` row and `false` for\nthe flags that exist only in `da_acl`. This is the legacy `acl('to_session')` logic.\n",
+        "required": [
+          "spamAlias",
+          "tlsPolicy",
+          "spamScore",
+          "spamPolicy",
+          "delimiterAction",
+          "syncjobs",
+          "easReset",
+          "sogoProfileReset",
+          "pushover",
+          "quarantine",
+          "quarantineAttachments",
+          "quarantineNotification",
+          "quarantineCategory",
+          "appPasswds",
+          "pwReset",
+          "loginAs",
+          "sogoAccess",
+          "bccMaps",
+          "filters",
+          "ratelimit",
+          "extendSenderAcl",
+          "unlimitedQuota",
+          "protocolAccess",
+          "smtpIpAccess",
+          "aliasDomains",
+          "mailboxRelayhost",
+          "domainRelayhost",
+          "domainDesc",
+          "aliasExternalGoto"
+        ],
+        "properties": {
+          "spamAlias": {
+            "type": "boolean",
+            "description": "`user_acl.spam_alias`"
+          },
+          "tlsPolicy": {
+            "type": "boolean",
+            "description": "`user_acl.tls_policy`"
+          },
+          "spamScore": {
+            "type": "boolean",
+            "description": "`user_acl.spam_score`"
+          },
+          "spamPolicy": {
+            "type": "boolean",
+            "description": "`user_acl.spam_policy`, `da_acl.spam_policy`"
+          },
+          "delimiterAction": {
+            "type": "boolean",
+            "description": "`user_acl.delimiter_action`"
+          },
+          "syncjobs": {
+            "type": "boolean",
+            "description": "`user_acl.syncjobs`, `da_acl.syncjobs`"
+          },
+          "easReset": {
+            "type": "boolean",
+            "description": "`user_acl.eas_reset`"
+          },
+          "sogoProfileReset": {
+            "type": "boolean",
+            "description": "`user_acl.sogo_profile_reset`"
+          },
+          "pushover": {
+            "type": "boolean",
+            "description": "`user_acl.pushover`, `da_acl.pushover`"
+          },
+          "quarantine": {
+            "type": "boolean",
+            "description": "`user_acl.quarantine`, `da_acl.quarantine`"
+          },
+          "quarantineAttachments": {
+            "type": "boolean",
+            "description": "`user_acl.quarantine_attachments`"
+          },
+          "quarantineNotification": {
+            "type": "boolean",
+            "description": "`user_acl.quarantine_notification`"
+          },
+          "quarantineCategory": {
+            "type": "boolean",
+            "description": "`user_acl.quarantine_category`"
+          },
+          "appPasswds": {
+            "type": "boolean",
+            "description": "`user_acl.app_passwds`, `da_acl.app_passwds`"
+          },
+          "pwReset": {
+            "type": "boolean",
+            "description": "`user_acl.pw_reset`"
+          },
+          "loginAs": {
+            "type": "boolean",
+            "description": "`da_acl.login_as`"
+          },
+          "sogoAccess": {
+            "type": "boolean",
+            "description": "`da_acl.sogo_access`"
+          },
+          "bccMaps": {
+            "type": "boolean",
+            "description": "`da_acl.bcc_maps`"
+          },
+          "filters": {
+            "type": "boolean",
+            "description": "`da_acl.filters`"
+          },
+          "ratelimit": {
+            "type": "boolean",
+            "description": "`da_acl.ratelimit`"
+          },
+          "extendSenderAcl": {
+            "type": "boolean",
+            "description": "`da_acl.extend_sender_acl`"
+          },
+          "unlimitedQuota": {
+            "type": "boolean",
+            "description": "`da_acl.unlimited_quota`"
+          },
+          "protocolAccess": {
+            "type": "boolean",
+            "description": "`da_acl.protocol_access`"
+          },
+          "smtpIpAccess": {
+            "type": "boolean",
+            "description": "`da_acl.smtp_ip_access`"
+          },
+          "aliasDomains": {
+            "type": "boolean",
+            "description": "`da_acl.alias_domains`"
+          },
+          "mailboxRelayhost": {
+            "type": "boolean",
+            "description": "`da_acl.mailbox_relayhost`"
+          },
+          "domainRelayhost": {
+            "type": "boolean",
+            "description": "`da_acl.domain_relayhost`"
+          },
+          "domainDesc": {
+            "type": "boolean",
+            "description": "`da_acl.domain_desc`"
+          },
+          "aliasExternalGoto": {
+            "type": "boolean",
+            "description": "`da_acl.alias_external_goto`"
+          }
+        }
+      },
+      "Theme": {
+        "type": "string",
+        "description": "`system` follows the device setting.",
+        "enum": [
+          "light",
+          "dark",
+          "system"
+        ]
+      },
+      "Preferences": {
+        "type": "object",
+        "description": "Per-account web app preferences, stored by this API and shared by every device. Defaults: the\nserver's default language and `system`. A stored language that is no longer enabled falls back\nto the default language.\n",
+        "required": [
+          "language",
+          "theme",
+          "etag"
+        ],
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "One of the enabled language codes from `GET /public-config`.",
+            "examples": [
+              "cs-cz"
+            ]
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          },
+          "etag": {
+            "type": "string",
+            "description": "Version tag of the stored settings, equal to the `ETag` header of a single read. Send it in\n`If-Match` when changing the resource.\n"
+          }
+        }
+      },
+      "Identity": {
+        "type": "object",
+        "description": "The authenticated caller. Role, scope, permission flags, account status and pending actions are\nevaluated from mailcow's current data on every request, so changes made in either UI apply to\nthe next request. For an API key, `username` and `role` are those of the key's owner.\n",
+        "required": [
+          "username",
+          "role",
+          "authentication",
+          "scope",
+          "permissions",
+          "pendingActions"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "examples": [
+              "reseller@example.org"
+            ]
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "authentication": {
+            "$ref": "#/components/schemas/IdentityAuthentication"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/Scope"
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/PermissionFlags"
+          },
+          "pendingActions": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "Pending actions of a session. Always empty for an API key, which is never restricted.",
+            "items": {
+              "$ref": "#/components/schemas/PendingAction"
+            }
+          },
+          "preferences": {
+            "description": "Present for sessions only.",
+            "$ref": "#/components/schemas/Preferences"
+          }
+        }
+      },
+      "PreferencesPatch": {
+        "type": "object",
+        "description": "JSON Merge Patch of `Preferences`. Omitted members stay unchanged.",
+        "minProperties": 1,
+        "properties": {
+          "language": {
+            "type": "string",
+            "maxLength": 16,
+            "description": "Must be one of the enabled language codes."
+          },
+          "theme": {
+            "$ref": "#/components/schemas/Theme"
+          }
+        }
+      },
+      "Passkey": {
+        "type": "object",
+        "description": "A passkey of the signed-in account: a discoverable WebAuthn credential stored where legacy\nmailcow stores FIDO2 credentials (table `fido2`), so it works in both UIs.\n",
+        "required": [
+          "id",
+          "name",
+          "authenticatorDescription",
+          "registeredAt",
+          "hostName",
+          "active",
+          "etag"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "Non-secret identifier, the SHA-256 of the credential ID in hex (the legacy `cid`)."
+          },
+          "name": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Display name chosen by the user (`fido2.friendlyName`), `null` when never set."
+          },
+          "authenticatorDescription": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Subject of the attestation certificate (`fido2.certificateSubject`), `null` when the\nauthenticator sent none. Legacy shows \"Unknown\" with the registration date in that case.\n"
+          },
+          "registeredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hostName": {
+            "type": "string",
+            "description": "Host name the passkey is bound to (`fido2.rpId`). It only works on that host.",
+            "examples": [
+              "mail.example.org"
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Inactive passkeys cannot sign in (`fido2.active`)."
+          },
+          "etag": {
+            "type": "string",
+            "description": "Version tag of the stored settings, equal to the `ETag` header of a single read. Send it in\n`If-Match` when changing the resource.\n"
+          }
+        }
+      },
+      "ListMeta": {
+        "type": "object",
+        "description": "Pagination metadata of a list response.",
+        "required": [
+          "total",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of items matching the filters, ignoring `limit` and `offset`."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Applied page size."
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Applied offset."
+          }
+        }
+      },
+      "WebAuthnRegistrationResponse": {
+        "type": "object",
+        "description": "`RegistrationResponseJSON` of WebAuthn Level 3, as returned by\n`PublicKeyCredential.prototype.toJSON()` after `navigator.credentials.create()`.\n",
+        "required": [
+          "id",
+          "rawId",
+          "type",
+          "response"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "rawId": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "type": {
+            "type": "string",
+            "const": "public-key"
+          },
+          "response": {
+            "type": "object",
+            "required": [
+              "clientDataJSON",
+              "attestationObject"
+            ],
+            "properties": {
+              "clientDataJSON": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "attestationObject": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "transports": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "authenticatorData": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "publicKey": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "publicKeyAlgorithm": {
+                "type": "integer"
+              }
+            }
+          },
+          "authenticatorAttachment": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clientExtensionResults": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "PasskeyRegistrationRequest": {
+        "type": "object",
+        "description": "Authenticator response to the options from `POST /me/passkeys/registration-options`.",
+        "required": [
+          "credential"
+        ],
+        "properties": {
+          "credential": {
+            "$ref": "#/components/schemas/WebAuthnRegistrationResponse"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional display name. It can be set or changed later with `PATCH`."
+          }
+        }
+      },
+      "WebAuthnCreationOptions": {
+        "type": "object",
+        "description": "`PublicKeyCredentialCreationOptionsJSON` of WebAuthn Level 3. Pass it to\n`PublicKeyCredential.parseCreationOptionsFromJSON()` and then to `navigator.credentials.create()`.\n",
+        "required": [
+          "rp",
+          "user",
+          "challenge",
+          "pubKeyCredParams",
+          "timeout",
+          "excludeCredentials",
+          "authenticatorSelection",
+          "attestation"
+        ],
+        "properties": {
+          "rp": {
+            "type": "object",
+            "required": [
+              "id",
+              "name"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "examples": [
+                  "mail.example.org"
+                ]
+              },
+              "name": {
+                "type": "string"
+              }
+            }
+          },
+          "user": {
+            "type": "object",
+            "required": [
+              "id",
+              "name",
+              "displayName"
+            ],
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Base64Url"
+              },
+              "name": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              }
+            }
+          },
+          "challenge": {
+            "$ref": "#/components/schemas/Base64Url"
+          },
+          "pubKeyCredParams": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "alg"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "public-key"
+                },
+                "alg": {
+                  "type": "integer",
+                  "description": "COSE algorithm identifier (for example -7 for ES256, -257 for RS256)."
+                }
+              }
+            }
+          },
+          "timeout": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Milliseconds."
+          },
+          "excludeCredentials": {
+            "type": "array",
+            "description": "Passkeys already registered to the account, so the authenticator refuses duplicates.",
+            "items": {
+              "$ref": "#/components/schemas/WebAuthnCredentialDescriptor"
+            }
+          },
+          "authenticatorSelection": {
+            "type": "object",
+            "required": [
+              "residentKey",
+              "requireResidentKey",
+              "userVerification"
+            ],
+            "properties": {
+              "authenticatorAttachment": {
+                "type": "string",
+                "enum": [
+                  "platform",
+                  "cross-platform"
+                ]
+              },
+              "residentKey": {
+                "type": "string",
+                "const": "required"
+              },
+              "requireResidentKey": {
+                "type": "boolean",
+                "const": true
+              },
+              "userVerification": {
+                "type": "string",
+                "enum": [
+                  "required",
+                  "preferred",
+                  "discouraged"
+                ],
+                "description": "Follows mailcow's `FIDO2_UV_FLAG_REGISTER`."
+              }
+            }
+          },
+          "attestation": {
+            "type": "string",
+            "enum": [
+              "none",
+              "indirect",
+              "direct",
+              "enterprise"
+            ],
+            "description": "`none` when mailcow's `FIDO2_FORMATS` only allows `none`, `direct` otherwise."
+          },
+          "extensions": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "PasskeyRegistrationOptions": {
+        "type": "object",
+        "description": "Single-use passkey registration options bound to the session.",
+        "required": [
+          "publicKey",
+          "expiresAt"
+        ],
+        "properties": {
+          "publicKey": {
+            "$ref": "#/components/schemas/WebAuthnCreationOptions"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Five minutes after issue. The options are consumed by the first registration attempt."
+          }
+        }
+      },
+      "PasskeyPatch": {
+        "type": "object",
+        "description": "JSON Merge Patch of a passkey. Only the display name can change.",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        }
+      },
+      "ApiKeyStatus": {
+        "type": "string",
+        "description": "`revoked` once revoked (final), otherwise `expired` once `expiresAt` has passed, otherwise\n`active`. A key whose owner is inactive or deleted keeps its status but is rejected as invalid\n(see `owner.active`).\n",
+        "enum": [
+          "active",
+          "expired",
+          "revoked"
+        ]
+      },
+      "ApiKeyOwner": {
+        "type": "object",
+        "description": "The account whose role, scope and permission flags the key acts with, evaluated on every\nrequest. `role` is `null` when the account no longer exists.\n",
+        "required": [
+          "username",
+          "role",
+          "active"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "role": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "admin",
+                  "domainAdmin"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "`false` when the owner is deactivated or deleted. The key is then rejected as invalid."
+          }
+        }
+      },
+      "AccountRef": {
+        "type": "object",
+        "description": "Reference to a mailcow account by username.",
+        "required": [
+          "username"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "description": "An API key. The secret is never returned after creation.",
+        "required": [
+          "id",
+          "name",
+          "prefix",
+          "owner",
+          "accessLevel",
+          "allowedNetworks",
+          "expiresAt",
+          "status",
+          "createdAt",
+          "createdBy",
+          "lastUsedAt",
+          "lastUsedFrom",
+          "revokedAt",
+          "revokedBy",
+          "etag"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "description": "ULID."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "prefix": {
+            "type": "string",
+            "description": "Non-secret leading characters of the secret, for recognising the key.",
+            "examples": [
+              "mcv2_Q7xK2pL"
+            ]
+          },
+          "owner": {
+            "$ref": "#/components/schemas/ApiKeyOwner"
+          },
+          "accessLevel": {
+            "$ref": "#/components/schemas/ApiKeyAccessLevel"
+          },
+          "allowedNetworks": {
+            "type": "array",
+            "description": "Normalised IPv4 and IPv6 prefixes. Empty means any address.",
+            "items": {
+              "type": "string",
+              "examples": [
+                "192.0.2.0/24",
+                "2001:db8::/32",
+                "198.51.100.7/32"
+              ]
+            }
+          },
+          "expiresAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ApiKeyStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/AccountRef"
+          },
+          "lastUsedAt": {
+            "description": "Accurate to the minute. `null` when never used.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastUsedFrom": {
+            "description": "Client address of the last use.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revokedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revokedBy": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AccountRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "etag": {
+            "type": "string",
+            "description": "Version tag of the stored settings (not of `lastUsedAt`, `lastUsedFrom` or `status`), equal to the `ETag` header of a single read. Send it in\n`If-Match` when changing the resource.\n"
+          }
+        }
+      },
+      "ApiKeyCreateRequest": {
+        "type": "object",
+        "description": "A new API key. Keys cannot be edited: to change the access level, networks or expiry, create a\nnew key and revoke the old one.\n",
+        "required": [
+          "name",
+          "ownerUsername",
+          "accessLevel"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "ownerUsername": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "An existing administrator or domain administrator. Mailbox users cannot own keys."
+          },
+          "accessLevel": {
+            "$ref": "#/components/schemas/ApiKeyAccessLevel"
+          },
+          "expiresAt": {
+            "description": "Must be in the future. Omit or send `null` for a key that never expires.",
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "allowedNetworks": {
+            "type": "array",
+            "maxItems": 100,
+            "description": "IPv4 or IPv6 addresses or prefixes. Omit or send an empty list to allow any address.",
+            "items": {
+              "type": "string",
+              "maxLength": 49
+            }
+          }
+        }
+      },
+      "ApiKeyCreated": {
+        "description": "A newly created API key with its secret. The secret is shown only in this response.",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiKey"
+          },
+          {
+            "type": "object",
+            "required": [
+              "secret"
+            ],
+            "properties": {
+              "secret": {
+                "type": "string",
+                "pattern": "^mcv2_[A-Za-z0-9]{40}$",
+                "description": "Send it in the `X-API-Key` header. Only its SHA-256 hash is stored."
+              }
+            }
+          }
+        ]
+      },
+      "ApiKeyOwnerCandidate": {
+        "type": "object",
+        "description": "An active administrator or domain administrator that can own an API key.",
+        "required": [
+          "username",
+          "role"
+        ],
+        "properties": {
+          "username": {
+            "type": "string",
+            "examples": [
+              "reseller"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "domainAdmin"
+            ]
+          }
+        }
+      },
+      "Logo": {
+        "type": "object",
+        "description": "A logo. When the operator uploaded one, `url` points to `GET /public-config/logos/{variant}`\nwith a version parameter that changes with the image. Otherwise `url` is the default logo of\nthe deployed legacy UI (`/img/cow_mailcow.svg` upstream), served by the legacy web root.\n",
+        "required": [
+          "url",
+          "isDefault"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri-reference",
+            "examples": [
+              "/api/v2/public-config/logos/light?v=5f3c1a9e",
+              "/img/cow_mailcow.svg"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Announcement": {
+        "type": "object",
+        "description": "Announcement banner (`UI_ANNOUNCEMENT_*`). The text is plain text.",
+        "required": [
+          "text",
+          "type",
+          "active"
+        ],
+        "properties": {
+          "text": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "info",
+                  "warning",
+                  "danger"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Show the banner only when `active` is `true` and `text` is not `null`."
+          }
+        }
+      },
+      "LoginPageOptions": {
+        "type": "object",
+        "description": "Login page options (`CUSTOM_LOGIN`). All default to `false`.",
+        "required": [
+          "hideAdminLogin",
+          "hideDomainAdminLogin",
+          "hideMailboxUserLogin",
+          "forceSingleSignOn"
+        ],
+        "properties": {
+          "hideAdminLogin": {
+            "type": "boolean",
+            "description": "Hide the administrator login link (`hide_admin_quicklink`)."
+          },
+          "hideDomainAdminLogin": {
+            "type": "boolean",
+            "description": "Hide the domain administrator login link (`hide_domainadmin_quicklink`)."
+          },
+          "hideMailboxUserLogin": {
+            "type": "boolean",
+            "description": "Hide the mailbox user login link (`hide_user_quicklink`)."
+          },
+          "forceSingleSignOn": {
+            "type": "boolean",
+            "description": "Legacy hides the password form in favour of identity-provider sign-in (`force_sso`)."
+          }
+        }
+      },
+      "Language": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "examples": [
+              "cs-cz"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Native name as configured in mailcow.",
+            "examples": [
+              "Čeština (Czech)"
+            ]
+          }
+        }
+      },
+      "AppLink": {
+        "type": "object",
+        "description": "A link of the apps menu. Built-in apps (`source: builtIn`) come from mailcow's `$MAILCOW_APPS`\n(by default Webmail at `/SOGo/so`). Operator links (`source: operator`) come from the legacy\ncustomisation \"App links\" (Redis `APP_LINKS`). Addresses are as configured: relative to the\nmailcow host or absolute.\n",
+        "required": [
+          "name",
+          "url",
+          "signedInUrl",
+          "description",
+          "showOnLoginPage",
+          "source"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "examples": [
+              "Webmail"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "description": "Address used on the login page (legacy `link`).",
+            "examples": [
+              "/SOGo/so"
+            ]
+          },
+          "signedInUrl": {
+            "type": "string",
+            "description": "Address used for signed-in users (legacy `user_link`, or `link` when unset). It may contain\nthe placeholder `%u`, which the client replaces with the signed-in username, as legacy does.\n",
+            "examples": [
+              "/SOGo/so",
+              "https://helpdesk.example.org/?user=%u"
+            ]
+          },
+          "description": {
+            "description": "Tooltip text of a built-in app (`$MAILCOW_APPS` `description`), `null` otherwise.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "showOnLoginPage": {
+            "type": "boolean",
+            "description": "`false` when the link is hidden (legacy `hide`). Hiding applies only to the login page; the\napps menu of signed-in users shows every link.\n"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "builtIn",
+              "operator"
+            ]
+          }
+        }
+      },
+      "PublicConfig": {
+        "type": "object",
+        "description": "Branding and login page settings for signed-out clients. Values come from mailcow's existing\ncustomisation (the legacy admin UI's \"Customize\" screen) and language settings, so the\noperator configures them in one place. Unset values fall back to the defaults the deployed\nlegacy UI shows. Contains no secrets and nothing account-specific.\n\n`loginHelpHtml` and `footerHtml` contain operator-authored HTML, rendered unescaped by the\nlegacy UI. Clients must sanitise them before rendering. Every other text is plain text.\n",
+        "required": [
+          "pageTitle",
+          "productName",
+          "logos",
+          "loginHelpHtml",
+          "footerHtml",
+          "announcement",
+          "loginPage",
+          "languages",
+          "defaultLanguage",
+          "externalIdentityProvider",
+          "appsLabel",
+          "appLinks"
+        ],
+        "properties": {
+          "pageTitle": {
+            "type": "string",
+            "description": "Browser title (`TITLE_NAME`). Default `<MAILCOW_HOSTNAME> - mail UI`.",
+            "examples": [
+              "mail.example.org - mail UI"
+            ]
+          },
+          "productName": {
+            "type": "string",
+            "description": "Name shown on the login page (`MAIN_NAME`). Same default as `pageTitle`."
+          },
+          "logos": {
+            "type": "object",
+            "required": [
+              "light",
+              "dark"
+            ],
+            "properties": {
+              "light": {
+                "$ref": "#/components/schemas/Logo"
+              },
+              "dark": {
+                "$ref": "#/components/schemas/Logo"
+              }
+            }
+          },
+          "loginHelpHtml": {
+            "description": "Operator HTML shown below the login form (`HELP_TEXT`), `null` when unset.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "footerHtml": {
+            "description": "Operator HTML footer (`UI_FOOTER`), `null` when unset.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "announcement": {
+            "$ref": "#/components/schemas/Announcement"
+          },
+          "loginPage": {
+            "$ref": "#/components/schemas/LoginPageOptions"
+          },
+          "languages": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Enabled languages (mailcow's `$AVAILABLE_LANGUAGES`, including local overrides).",
+            "items": {
+              "$ref": "#/components/schemas/Language"
+            }
+          },
+          "defaultLanguage": {
+            "type": "string",
+            "description": "mailcow's `$DEFAULT_LANG`.",
+            "examples": [
+              "en-gb"
+            ]
+          },
+          "externalIdentityProvider": {
+            "type": "object",
+            "required": [
+              "configured"
+            ],
+            "properties": {
+              "configured": {
+                "type": "boolean",
+                "description": "`true` when mailcow has an external identity provider (Keycloak, generic OIDC or LDAP)\nconfigured. Sign-in through it is not available in this API yet.\n"
+              }
+            }
+          },
+          "appsLabel": {
+            "description": "Label of the apps menu set by the operator (`APPS_NAME`, plain text). `null` when unset; the\nclient then shows its own translated \"Apps\".\n",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "appLinks": {
+            "type": "array",
+            "description": "App links in legacy order: built-in apps first, then operator links in their stored order.\nBuilt-in apps that point to SOGo are left out when SOGo is disabled (`SKIP_SOGO=y`). Show the\nlogin-page block only when at least one link has `showOnLoginPage: true`.\n",
+            "items": {
+              "$ref": "#/components/schemas/AppLink"
+            }
+          }
+        }
+      },
+      "AuditEventType": {
+        "type": "string",
+        "description": "Audited event. Later features add values; clients must tolerate unknown ones.",
+        "enum": [
+          "signIn",
+          "signOut",
+          "preferencesUpdate",
+          "passkeyRegistration",
+          "passkeyRename",
+          "passkeyRemoval",
+          "apiKeyCreation",
+          "apiKeyRevocation"
+        ]
+      },
+      "AuditOutcome": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failure"
+        ]
+      },
+      "AuditActor": {
+        "type": "object",
+        "description": "Who acted. For a failed sign-in, `username` is the attempted username when one is known and\n`role` may be `null`. `apiKeyId` is set when the request was authenticated by an API key.\n",
+        "required": [
+          "username",
+          "role",
+          "apiKeyId"
+        ],
+        "properties": {
+          "username": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "role": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "apiKeyId": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "AuditTarget": {
+        "type": "object",
+        "description": "Object the event acted on.",
+        "required": [
+          "type",
+          "id",
+          "name"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "apiKey",
+              "passkey",
+              "preferences",
+              "session"
+            ]
+          },
+          "id": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "AuditFailureReason": {
+        "type": "string",
+        "description": "Why an audited operation failed. Later features add values.\n\n- `invalidCredentials`: unknown account, wrong password or malformed username.\n- `accountInactive`: inactive account, inactive domain or resource mailbox.\n- `externalIdentitySource`: the mailbox authenticates against LDAP or an OIDC provider.\n- `unknownPasskey`, `passkeyInactive`, `roleMismatch`, `passkeyVerificationFailed`.\n- `challengeExpired`: pending sign-in, challenge or registration options missing, used or expired.\n- `secondFactorFailed`, `secondFactorUnavailable`, `verificationUnavailable` (Yubico service).\n- `throttled`: refused by sign-in throttling without checking credentials.\n- `registrationFailed`: the authenticator's registration response was rejected.\n",
+        "enum": [
+          "invalidCredentials",
+          "accountInactive",
+          "externalIdentitySource",
+          "unknownPasskey",
+          "passkeyInactive",
+          "roleMismatch",
+          "passkeyVerificationFailed",
+          "challengeExpired",
+          "secondFactorFailed",
+          "secondFactorUnavailable",
+          "verificationUnavailable",
+          "throttled",
+          "registrationFailed"
+        ]
+      },
+      "AuditEvent": {
+        "type": "object",
+        "description": "One immutable audit record. Never contains passwords, one-time codes, WebAuthn assertions, key\nsecrets or session identifiers.\n",
+        "required": [
+          "id",
+          "occurredAt",
+          "eventType",
+          "outcome",
+          "actor",
+          "target",
+          "clientAddress",
+          "userAgent",
+          "authMethod",
+          "failureReason",
+          "requestId",
+          "details"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "eventType": {
+            "$ref": "#/components/schemas/AuditEventType"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/AuditOutcome"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/AuditActor"
+          },
+          "target": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AuditTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clientAddress": {
+            "type": "string",
+            "description": "Real client address as seen by mailcow's reverse proxy."
+          },
+          "userAgent": {
+            "oneOf": [
+              {
+                "type": "string",
+                "maxLength": 512
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "authMethod": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AuthMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failureReason": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AuditFailureReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requestId": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "details": {
+            "type": "object",
+            "description": "Non-secret event details, for example `requestedRole`, `secondFactorType`,\n`changedFields` or `accessLevel`.\n",
+            "additionalProperties": true
+          }
+        }
+      },
+      "HealthCheckStatus": {
+        "type": "string",
+        "description": "`ok`, or `failed`. For `schema`, `failed` means the mailcow database schema version\n(`versions.db_schema`) is not one this release supports.\n",
+        "enum": [
+          "ok",
+          "failed"
+        ]
+      },
+      "HealthChecks": {
+        "type": "object",
+        "description": "Result of each readiness check.",
+        "required": [
+          "database",
+          "schema",
+          "redis",
+          "migrations"
+        ],
+        "properties": {
+          "database": {
+            "$ref": "#/components/schemas/HealthCheckStatus"
+          },
+          "schema": {
+            "$ref": "#/components/schemas/HealthCheckStatus"
+          },
+          "redis": {
+            "$ref": "#/components/schemas/HealthCheckStatus"
+          },
+          "migrations": {
+            "$ref": "#/components/schemas/HealthCheckStatus"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "description": "Health of the service.",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          },
+          "checks": {
+            "$ref": "#/components/schemas/HealthChecks"
+          }
+        }
+      },
+      "ReadinessProblem": {
+        "description": "Problem of type `/api/v2/problems/service-unavailable` (status `503`) returned by the readiness\ncheck, with the result of each dependency check.\n",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Problem"
+          },
+          {
+            "type": "object",
+            "required": [
+              "checks"
+            ],
+            "properties": {
+              "checks": {
+                "$ref": "#/components/schemas/HealthChecks"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "responses": {
+      "CsrfTokenResponse": {
+        "description": "The session's anti-forgery token.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/CsrfToken"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "The caller is not authenticated. Possible types:\n- `/api/v2/problems/unauthenticated`: no session and no API key, or the session ended (idle\n  timeout, sign-out, changed user agent, account deactivated or deleted).\n- `/api/v2/problems/second-factor-required`: the session's sign-in still awaits a second factor.\n- `/api/v2/problems/api-key-invalid`: the key matches no key, or its owner is inactive or deleted.\n- `/api/v2/problems/api-key-expired`, `/api/v2/problems/api-key-revoked`.\n",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "examples": {
+              "unauthenticated": {
+                "value": {
+                  "type": "/api/v2/problems/unauthenticated",
+                  "title": "Authentication required",
+                  "status": 401,
+                  "detail": "Sign in or send a valid API key.",
+                  "requestId": "4bf92f3577b34da6a3ce929d0e0e4736"
+                }
+              },
+              "apiKeyRevoked": {
+                "value": {
+                  "type": "/api/v2/problems/api-key-revoked",
+                  "title": "API key revoked",
+                  "status": 401,
+                  "detail": "The API key was revoked and can no longer be used.",
+                  "requestId": "4bf92f3577b34da6a3ce929d0e0e4736"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "The caller is authenticated but may not perform this request. Possible types:\n- `/api/v2/problems/forbidden`: the caller's role or permission flags do not allow it.\n- `/api/v2/problems/csrf-token-mismatch`: a session request without a valid `X-CSRF-Token`.\n- `/api/v2/problems/session-required`: the operation is not available to API keys.\n- `/api/v2/problems/pending-action-required`: the session is restricted (extension `pendingActions`).\n- `/api/v2/problems/insufficient-key-scope`: a read-only key used for a state-changing request.\n- `/api/v2/problems/api-key-source-not-allowed`: the key is used from an address outside its\n  allowed networks.\n",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PendingActionProblem"
+                },
+                {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              ]
+            },
+            "examples": {
+              "pendingAction": {
+                "value": {
+                  "type": "/api/v2/problems/pending-action-required",
+                  "title": "Pending action required",
+                  "status": 403,
+                  "detail": "Complete the pending actions before using this operation.",
+                  "requestId": "4bf92f3577b34da6a3ce929d0e0e4736",
+                  "pendingActions": [
+                    "passwordChange"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "Unexpected failure (type `about:blank`). Nothing was changed, and no audit record was lost.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "SessionResponse": {
+        "description": "The caller's session.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SessionCreated": {
+        "description": "Sign-in step succeeded. The session identifier was renewed. `state` is `active`, `restricted` or `pendingSecondFactor`.",
+        "headers": {
+          "Location": {
+            "description": "Absolute path of the created resource.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri-reference"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Malformed request, for example a body that is not valid JSON (type `about:blank`).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "SignInRejected": {
+        "description": "The sign-in step failed. Possible types:\n- `/api/v2/problems/sign-in-failed`: one generic error for an unknown account, a wrong password,\n  an inactive account or domain, a resource mailbox, a malformed username, a mailbox that\n  authenticates against an external identity provider, and an unknown, inactive or\n  wrong-role passkey. It never reveals which.\n- `/api/v2/problems/sign-in-expired`: there is no pending sign-in or challenge in this session,\n  or it expired or was already used. Start again.\n- `/api/v2/problems/second-factor-failed`: the second factor was wrong or no longer exists. The\n  pending sign-in is cancelled; start again with the password.\n- The API key types of `Unauthorized` when the request carries an invalid `X-API-Key`.\n",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "examples": {
+              "signInFailed": {
+                "value": {
+                  "type": "/api/v2/problems/sign-in-failed",
+                  "title": "Sign-in failed",
+                  "status": 401,
+                  "detail": "The credentials are invalid or the account cannot sign in.",
+                  "requestId": "4bf92f3577b34da6a3ce929d0e0e4736"
+                }
+              }
+            }
+          }
+        }
+      },
+      "SignInForbidden": {
+        "description": "The sign-in request is refused. Possible types:\n- `/api/v2/problems/csrf-token-mismatch`: missing or wrong `X-CSRF-Token`. Call\n  `GET /csrf-token` first.\n- `/api/v2/problems/session-required`: the request carries an API key; sign-in is for browser\n  sessions only.\n- `/api/v2/problems/second-factor-unavailable`: the password is correct, but the account's only\n  active second factors are deprecated U2F or HOTP entries. An administrator must reset them.\n- `/api/v2/problems/insufficient-key-scope` and `/api/v2/problems/api-key-source-not-allowed`:\n  the request carries a read-only API key, or a key used from a disallowed address.\n",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "ValidationFailed": {
+        "description": "Validation failed (type `/api/v2/problems/validation-failed`). See `errors`.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationProblem"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Throttled (type `/api/v2/problems/too-many-requests`). Sign-in attempts are refused after 10\nfailures for the same username and client address (passkeys: the same client address) within\n15 minutes, without checking credentials.\n",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds after which the request may be retried.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/TooManyRequestsProblem"
+            }
+          }
+        }
+      },
+      "NoContent": {
+        "description": "Done. No content."
+      },
+      "WebAuthnChallengeResponse": {
+        "description": "A single-use WebAuthn challenge bound to the session.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/WebAuthnChallenge"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "The request conflicts with the current state of the resource (type `about:blank`). See `detail`.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "TemporaryVerificationFailure": {
+        "description": "The Yubico verification service could not be reached (type\n`/api/v2/problems/temporary-verification-failure`). The pending sign-in stays open, so another\nmethod can be tried, and the attempt does not count towards throttling.\n",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds after which the request may be retried.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "IdentityResponse": {
+        "description": "The authenticated caller.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Identity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PreferencesResponse": {
+        "description": "The caller's preferences.",
+        "headers": {
+          "ETag": {
+            "description": "Version tag (strong ETag) of the resource's stored settings, equal to `data.etag`. Send it in `If-Match` when changing the resource.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Preferences"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PreconditionFailed": {
+        "description": "The `If-Match` header does not match the current representation (type `about:blank`). Nothing changed.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "PasskeyListResponse": {
+        "description": "The caller's passkeys.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data",
+                "meta"
+              ],
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Passkey"
+                  }
+                },
+                "meta": {
+                  "$ref": "#/components/schemas/ListMeta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PasskeyCreated": {
+        "description": "The passkey was registered.",
+        "headers": {
+          "Location": {
+            "description": "Absolute path of the created resource.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri-reference"
+            }
+          },
+          "ETag": {
+            "description": "Version tag (strong ETag) of the resource's stored settings, equal to `data.etag`. Send it in `If-Match` when changing the resource.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Passkey"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PasskeyRegistrationRejected": {
+        "description": "The registration was rejected. Possible types:\n- `/api/v2/problems/passkey-registration-failed`: the registration options are missing, used\n  or expired, the authenticator response does not verify (challenge, origin, host name, user\n  verification, attestation format), or the credential is already registered.\n- `about:blank`: the body is not valid JSON.\n",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "PasskeyRegistrationOptionsResponse": {
+        "description": "Single-use registration options bound to the session.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/PasskeyRegistrationOptions"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PasskeyResponse": {
+        "description": "One of the caller's passkeys.",
+        "headers": {
+          "ETag": {
+            "description": "Version tag (strong ETag) of the resource's stored settings, equal to `data.etag`. Send it in `If-Match` when changing the resource.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Passkey"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The resource does not exist or is outside the caller's scope (type `about:blank`).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "ApiKeyListResponse": {
+        "description": "API keys matching the filters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data",
+                "meta"
+              ],
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKey"
+                  }
+                },
+                "meta": {
+                  "$ref": "#/components/schemas/ListMeta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApiKeyCreatedResponse": {
+        "description": "The key was created. This is the only response that contains the secret.",
+        "headers": {
+          "Location": {
+            "description": "Absolute path of the created resource.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri-reference"
+            }
+          },
+          "ETag": {
+            "description": "Version tag (strong ETag) of the resource's stored settings, equal to `data.etag`. Send it in `If-Match` when changing the resource.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/ApiKeyCreated"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApiKeyOwnerCandidateListResponse": {
+        "description": "Accounts that can own an API key.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data",
+                "meta"
+              ],
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKeyOwnerCandidate"
+                  }
+                },
+                "meta": {
+                  "$ref": "#/components/schemas/ListMeta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ApiKeyResponse": {
+        "description": "One API key.",
+        "headers": {
+          "ETag": {
+            "description": "Version tag (strong ETag) of the resource's stored settings, equal to `data.etag`. Send it in `If-Match` when changing the resource.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/ApiKey"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PublicConfigResponse": {
+        "description": "The public configuration. Changes saved in the legacy UI are visible on the next request.",
+        "headers": {
+          "ETag": {
+            "description": "Strong entity tag of the representation. Send it in `If-None-Match` to revalidate.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "Always `no-cache`; revalidate with `If-None-Match`.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-cache"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/PublicConfig"
+                }
+              }
+            },
+            "examples": {
+              "customised": {
+                "summary": "Customised server with SOGo enabled",
+                "value": {
+                  "data": {
+                    "pageTitle": "Example Mail",
+                    "productName": "Example Mail",
+                    "logos": {
+                      "light": {
+                        "url": "/api/v2/public-config/logos/light?v=5f3c1a9e0b7d4c21",
+                        "isDefault": false
+                      },
+                      "dark": {
+                        "url": "/img/cow_mailcow.svg",
+                        "isDefault": true
+                      }
+                    },
+                    "loginHelpHtml": "<p>Need help? Call <b>+420 123 456 789</b>.</p>",
+                    "footerHtml": null,
+                    "announcement": {
+                      "text": "Maintenance on Sunday 02:00–04:00 UTC.",
+                      "type": "warning",
+                      "active": true
+                    },
+                    "loginPage": {
+                      "hideAdminLogin": false,
+                      "hideDomainAdminLogin": false,
+                      "hideMailboxUserLogin": false,
+                      "forceSingleSignOn": false
+                    },
+                    "languages": [
+                      {
+                        "code": "cs-cz",
+                        "name": "Čeština (Czech)"
+                      },
+                      {
+                        "code": "en-gb",
+                        "name": "English"
+                      },
+                      {
+                        "code": "sk-sk",
+                        "name": "Slovenčina (Slovak)"
+                      }
+                    ],
+                    "defaultLanguage": "en-gb",
+                    "externalIdentityProvider": {
+                      "configured": false
+                    },
+                    "appsLabel": null,
+                    "appLinks": [
+                      {
+                        "name": "Webmail",
+                        "url": "/SOGo/so",
+                        "signedInUrl": "/SOGo/so",
+                        "description": null,
+                        "showOnLoginPage": false,
+                        "source": "builtIn"
+                      },
+                      {
+                        "name": "Helpdesk",
+                        "url": "https://helpdesk.example.org/",
+                        "signedInUrl": "https://helpdesk.example.org/?user=%u",
+                        "description": null,
+                        "showOnLoginPage": true,
+                        "source": "operator"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotModified": {
+        "description": "The representation matching `If-None-Match` is still current.",
+        "headers": {
+          "ETag": {
+            "description": "Strong entity tag of the current representation.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LogoImage": {
+        "description": "The logo image uploaded in the legacy UI, with the media type it was uploaded with (GIF, JPEG,\nPNG or SVG). Responses with the `v` query parameter are cacheable for a year.\n",
+        "headers": {
+          "ETag": {
+            "description": "Strong entity tag of the image.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Cache-Control": {
+            "description": "`public, max-age=31536000, immutable` with a matching `v`, `no-cache` otherwise.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          "Content-Security-Policy": {
+            "description": "`default-src 'none'; style-src 'unsafe-inline'; sandbox`, so that SVG logos cannot run scripts.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        },
+        "content": {
+          "image/png": {
+            "schema": {
+              "type": "string",
+              "contentMediaType": "image/png"
+            }
+          },
+          "image/jpeg": {
+            "schema": {
+              "type": "string",
+              "contentMediaType": "image/jpeg"
+            }
+          },
+          "image/gif": {
+            "schema": {
+              "type": "string",
+              "contentMediaType": "image/gif"
+            }
+          },
+          "image/svg+xml": {
+            "schema": {
+              "type": "string",
+              "contentMediaType": "image/svg+xml"
+            }
+          }
+        }
+      },
+      "AuditEventListResponse": {
+        "description": "Audit records matching the filters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data",
+                "meta"
+              ],
+              "properties": {
+                "data": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEvent"
+                  }
+                },
+                "meta": {
+                  "$ref": "#/components/schemas/ListMeta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "HealthResponse": {
+        "description": "The service is healthy.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "data"
+              ],
+              "properties": {
+                "data": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "Not ready (type `/api/v2/problems/service-unavailable`), with the failed checks.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ReadinessProblem"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": false,
+        "description": "`ETag` from a previous read, or `*`. When it does not match the current representation, the\nrequest fails with `412` and nothing changes.\n",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "description": "Page size.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 25
+        }
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "required": false,
+        "description": "Number of items to skip.",
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "PasskeySort": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "description": "Sort field. Default `registeredAt` with `order=asc`.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "registeredAt",
+            "name"
+          ],
+          "default": "registeredAt"
+        }
+      },
+      "Order": {
+        "name": "order",
+        "in": "query",
+        "required": false,
+        "description": "Sort direction. Each list documents its default.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "asc",
+            "desc"
+          ]
+        }
+      },
+      "Search": {
+        "name": "q",
+        "in": "query",
+        "required": false,
+        "description": "Case-insensitive substring search over the list's documented search fields. Leading and trailing\nwhitespace is ignored; an empty value means no search.\n",
+        "schema": {
+          "type": "string",
+          "maxLength": 255
+        }
+      },
+      "PasskeyId": {
+        "name": "passkeyId",
+        "in": "path",
+        "required": true,
+        "description": "`id` of one of the caller's passkeys. Other accounts' passkeys answer `404`.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "ApiKeySort": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "description": "Sort field. Default `createdAt` with `order=desc`.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "createdAt",
+            "name",
+            "expiresAt",
+            "lastUsedAt"
+          ],
+          "default": "createdAt"
+        }
+      },
+      "ApiKeyOwnerCandidateSort": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "description": "Sort field. Default `username` with `order=asc`.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "username"
+          ],
+          "default": "username"
+        }
+      },
+      "ApiKeyId": {
+        "name": "apiKeyId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+        }
+      },
+      "LogoVariant": {
+        "name": "variant",
+        "in": "path",
+        "required": true,
+        "description": "`light` (`MAIN_LOGO`) or `dark` (`MAIN_LOGO_DARK`).",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "light",
+            "dark"
+          ]
+        }
+      },
+      "AuditEventSort": {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "description": "Sort field. Default `occurredAt` with `order=desc` (newest first).",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "occurredAt"
+          ],
+          "default": "occurredAt"
+        }
+      },
+      "ProblemTypeName": {
+        "name": "problemType",
+        "in": "path",
+        "required": true,
+        "description": "Last path segment of a documented problem type URI.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "examples": [
+            "sign-in-failed"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -288,8 +288,8 @@ Rules:
 - `:aliasDomain` is the ASCII name in every link the app builds. Other spellings are replaced by the
   canonical address once loaded (UI 002 D4).
 - The `mailbox-send-as` record is exported by `src/features/sender-settings/index.ts` and listed among
-  the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`. `MailboxSectionNav.vue`
-  gains its "Send as" entry (research R4).
+  the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`. A `sendAs` entry in
+  `src/features/mailboxes/sections.ts` makes `MailboxSectionNav.vue` show it (research R4).
 - An object outside the scope answers 404, which shows the "not found" state with a link back to the
   list, exactly like a missing object (FR-003).
 - The catalogue rows `aliases`, `aliasDomains` and `resources` (research R4) are flipped to

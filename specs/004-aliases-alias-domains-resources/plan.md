@@ -278,7 +278,7 @@ src/features/
 │   └── components/{AlwaysAllowedSection,ReceiveOnlySection,ExplicitPermissionsSection,
 │                   PermissionCandidatePicker,AnyAddressSwitch,SenderCheckStatus,
 │                   ExternalSenderAddressesSection,SendAsHints}.vue
-├── mailboxes/{routes.ts,components/MailboxSectionNav.vue}   # UI 003: "Send as" child route and entry (R4)
+├── mailboxes/{routes.ts,sections.ts}                # UI 003: "Send as" child route and section entry (R4)
 ├── domains/…                                         # UI 002: imports of the promoted components updated
 └── audit-log/labels.ts                               # + 004 event and target labels and target links (R19)
 src/shared/
@@ -312,7 +312,8 @@ tests/
 │   └── handlers/{feature-004-rules,aliases,alias-domains,resources,sender-settings}.ts
 ├── e2e/{aliases,alias-domains,resources,sender-settings,history}/*.spec.ts
 │   └── shell/feature-004-{reflow,keyboard,permissions-matrix}.spec.ts
-└── smoke/{aliases,alias-domains,resources,sender-settings}.smoke.spec.ts
+└── smoke/{aliases-list,aliases-create,aliases-edit,aliases-bulk,alias-domains,resources,
+           sender-settings}.smoke.spec.ts
 ```
 
 **Structure Decision**: Four feature areas, one per screen family and navigation entry, in the
@@ -320,7 +321,8 @@ single static frontend of UI 001. `aliases` owns what the whole API feature shar
 capabilities read, `CapabilitiesGate` and the FR-002 permission matrix. The other areas depend on
 it, never the reverse, so there is no import cycle. Generic building blocks with two or more uses go
 to `src/shared/`. "Send as" is a route record exported by `sender-settings` and mounted as a child
-of UI 003's mailbox detail layout, with its entry in UI 003's designated `MailboxSectionNav`.
+of UI 003's mailbox detail layout. Its entry goes in UI 003's `sections.ts`, which the designated
+`MailboxSectionNav` renders.
 
 ## Complexity Tracking
 

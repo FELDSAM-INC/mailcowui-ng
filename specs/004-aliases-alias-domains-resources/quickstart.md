@@ -105,8 +105,11 @@ scripts/smoke/stack-down.sh
 
 **Expected**: the smoke specs pass for:
 
-- `aliases.smoke.spec.ts`: create (one and several addresses), edit a destination, bulk deactivate
-  and activate, delete, and `reseller` sees only its domains;
+- `aliases-list.smoke.spec.ts`: `admin` filters by domain, `reseller` sees only its domains, and
+  there is no horizontal scroll at 360 px;
+- `aliases-create.smoke.spec.ts`, `aliases-edit.smoke.spec.ts` and `aliases-bulk.smoke.spec.ts`:
+  create (one and several addresses), edit a destination, delete, and bulk deactivate, activate and
+  delete;
 - `alias-domains.smoke.spec.ts`: create with DKIM off and see the report, deactivate, delete;
 - `resources.smoke.spec.ts`: create with the previewed address, change the booking rule, delete;
 - `sender-settings.smoke.spec.ts`: grant an alias address to a seeded mailbox and revoke it.

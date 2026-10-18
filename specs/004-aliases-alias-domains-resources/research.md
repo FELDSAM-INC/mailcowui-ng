@@ -80,14 +80,14 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   | D8 | `ActiveFilterChips.vue` | `src/shared/components/` | promoted by 003 (its T011) | removable chips and "Clear all" |
   | D9 | Leave guard | `src/shared/composables/useLeaveGuard.ts` (UI 003 R4 names it `useUnsavedChangesGuard.ts`) | 002 D21 | asks through `useConfirm` before route changes and on `beforeunload` while dirty (FR-025) |
   | D10 | `NotFoundState.vue` | `src/shared/components/` | 003 R4 | the in-place "not found" state with a link back (FR-003) |
-  | D11 | `DomainPicker.vue` | `@/features/mailboxes` (UI 003 R4: "UI 004 promotes it") | 003 | **Promoted here** to `src/shared/components/DomainPicker.vue`, with props for the sources (domains, alias domains) and a `disabledReason(item)` callback for relay domains. UI 003's imports are updated. |
+  | D11 | `DomainPicker.vue` (single or multiple) | `src/features/mailboxes/components/fields/DomainPicker.vue`, exported from `@/features/mailboxes` (UI 003 R4: "UI 004 promotes it") | 003 | **Promoted here** to `src/shared/components/DomainPicker.vue`, with props for the sources (domains, alias domains) and a `disabledReason(item)` callback for relay domains. UI 003's imports are updated. |
   | D12 | `DomainNameText.vue` | `src/features/domains/components/list/` | 002 | **Promoted here** to `src/shared/components/DomainNameText.vue`, for alias domain names and addresses: the readable text, plus the ASCII text when it differs |
   | D13 | `DkimFields.vue`, `RateLimitField.vue`, `CreationReport.vue` | `src/features/domains/components/{fields,detail}/` | 002 D16, D19 | **Promoted here** to `src/shared/components/`, prop-driven: key sizes, the default selector and the frames as props, and report lines as a prop with a per-line `#repeat` slot. The parent owns the values, so UI 004 can pre-fill the selector (R13). UI 002's imports are updated, and its tests stay green. |
   | D14 | Problem extension members | `src/api/problem.ts` | 002 D25, 003 R17 | `holder`, `count`, `limit`, `requested`, `existingKind`, `attributes`, `requiredFlags` are readable on `ApiProblem` |
   | D15 | Identity refresh on `attribute-not-permitted` and `permission-flag-required` | `src/api/query/client.ts` | 002 D11 and 003 R6 refresh in their features | **Adds if missing**: the global reaction for both types, next to UI 001's `forbidden` (FR-004) |
   | D16 | `isEntryAvailable(id)` | `src/app/navigation/visibility.ts` | 003 R19 (FR-040 links) | **Adds if missing**: `true` when the catalogue entry is `available` and accessible |
   | D17 | Domain detail route `domain-detail`, `/domains/:domain` (ASCII name) | `src/features/domains/routes.ts` | 002 D4 | links from aliases and alias domains |
-  | D18 | Mailbox detail layout `mailbox-detail`, `/mailboxes/:address([^/]+@[^/]+)`, with child routes, and the designated action area `MailboxSectionNav.vue` | `src/features/mailboxes/` | 003 R5, R19 | "Send as" becomes a child route and a `MailboxSectionNav` entry (R4) |
+  | D18 | Mailbox detail layout `mailbox-detail`, `/mailboxes/:address([^/]+@[^/]+)`, with child routes, and the designated action area `MailboxSectionNav.vue`, which renders the entries of `sections.ts` whose route exists | `src/features/mailboxes/{routes.ts,sections.ts,components/display/MailboxSectionNav.vue}` | 003 R5, R19 | "Send as" becomes a child route and a `sections.ts` entry (R4) |
   | D19 | Enumeration scope manifest and `stripMarkup` | `src/i18n/coverage.json` (`enum-scope.json` in UI 003), `scripts/i18n/` | 002 D2, D27; 003 R2 | this feature appends its values and uses `{ "from": …, "stripMarkup": true }` (R20) |
   | D20 | Mock state, handlers and factories for domains and mailboxes | `tests/mocks/handlers/{domains,mailboxes}.ts`, `tests/mocks/factories/{domain,mailbox}.ts`, `tests/mocks/scenarios/state.ts` | 002 D28, 003 R20 | the 004 rules read domains (alias limits, relay state) and mailboxes (holders, sender settings) |
 
@@ -199,8 +199,10 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       layout's children in `src/features/mailboxes/routes.ts`.
     - `sender-settings` never imports `mailboxes`, so there is no cycle.
   - **Entry point into UI 003**: `MailboxSectionNav.vue`, UI 003's designated action area for UI 004
-    (UI 003 R19), gains a "Send as" entry that links to `mailbox-send-as`. It is shown to
-    administrators and domain administrators, who only ever reach mailboxes in their scope.
+    (UI 003 R19), renders the entries of `src/features/mailboxes/sections.ts` whose route exists.
+    UI 004 adds a `sendAs` entry for `mailbox-send-as` there, with its one-line summary
+    ("Who this mailbox may send as"). It is shown to administrators and domain administrators, who
+    only ever reach mailboxes in their scope.
     Resources are not mailboxes in the app, so FR-048's "not for resources" holds by construction,
     and a test asserts it.
   - **Links into other features**:

@@ -111,6 +111,24 @@ describe('contract limits (data-model §6)', () => {
     ['SEARCH_MAX_LENGTH', queryParameter('/domains', 'get', 'q').maxLength],
     ['SEARCH_MAX_LENGTH', queryParameter('/domain-templates', 'get', 'q').maxLength],
     ['AUDIT_TARGET_ID_MAX_LENGTH', queryParameter('/audit-events', 'get', 'targetId').maxLength],
+    // UI 003 (T020)
+    ['MAILBOX_ADDRESS_MAX', schemaValue('Mailbox', 'properties', 'address', 'maxLength')],
+    ['MAILBOX_DISPLAY_NAME_MAX', schemaValue('Mailbox', 'properties', 'displayName', 'maxLength')],
+    [
+      'MAILBOX_PASSWORD_MAX',
+      schemaValue('MailboxCreateRequest', 'properties', 'password', 'maxLength'),
+    ],
+    [
+      'MAILBOX_TEMPLATE_NAME_MAX',
+      schemaValue('MailboxTemplate', 'properties', 'name', 'maxLength'),
+    ],
+    ['MAILBOX_RATE_LIMIT_MAX', schemaValue('MailboxRateLimit', 'properties', 'value', 'maximum')],
+    ['MAILBOX_RATE_LIMIT_MIN', schemaValue('MailboxRateLimit', 'properties', 'value', 'minimum')],
+    [
+      'MAILBOX_RECOVERY_EMAIL_MAX',
+      schemaValue('MailboxPatch', 'properties', 'recoveryEmail', 'oneOf', '0', 'maxLength'),
+    ],
+    ['SEARCH_MAX_LENGTH', queryParameter('/mailboxes', 'get', 'q').maxLength],
   ]
 
   it.each(cases)('%s equals the contract value', (name, expected) => {

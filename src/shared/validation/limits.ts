@@ -69,3 +69,26 @@ export const SEARCH_MAX_LENGTH = 255
 
 /** listAuditEvents query parameter `targetId` maxLength */
 export const AUDIT_TARGET_ID_MAX_LENGTH = 255
+
+// UI 003 (T021): mailbox schema limits.
+
+/** Mailbox.properties.address.maxLength (the full address) */
+export const MAILBOX_ADDRESS_MAX = 255
+
+/** Mailbox.properties.displayName.maxLength */
+export const MAILBOX_DISPLAY_NAME_MAX = 255
+
+/** MailboxCreateRequest.properties.password.maxLength (and MailboxPatch) */
+export const MAILBOX_PASSWORD_MAX = 255
+
+/** MailboxTemplate.properties.name.maxLength */
+export const MAILBOX_TEMPLATE_NAME_MAX = 255
+
+/** MailboxRateLimit.properties.value.minimum */
+export const MAILBOX_RATE_LIMIT_MIN = 1
+
+/** MailboxRateLimit.properties.value.maximum */
+export const MAILBOX_RATE_LIMIT_MAX = 2_147_483_647
+
+/** MailboxPatch.properties.recoveryEmail.oneOf[0].maxLength */
+export const MAILBOX_RECOVERY_EMAIL_MAX = 255

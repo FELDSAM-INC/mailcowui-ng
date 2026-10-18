@@ -65,7 +65,7 @@ function stop(child) {
 
 let first = true
 for (const { url, scenario } of collections) {
-  const mock = start(bin('tsx'), ['tests/mocks/server.ts'], {
+  const mock = start(bin('tsx'), ['--tsconfig', 'tsconfig.vitest.json', 'tests/mocks/server.ts'], {
     MOCK_PORT: String(mockPort),
     MOCK_DEFAULT_SCENARIO: scenario,
   })

@@ -291,5 +291,5 @@ export function toPatch(
     }
     if (JSON.stringify(value) !== JSON.stringify(before[key])) patch[key] = value
   }
-  return Object.keys(patch).length > 0 ? (patch as ProviderPatch) : null
+  return Object.keys(patch).length > 0 ? (patch) : null
 }

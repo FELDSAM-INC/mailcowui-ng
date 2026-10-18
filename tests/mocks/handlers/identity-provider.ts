@@ -319,7 +319,7 @@ export const identityProviderHandlers = [
     if (preconditionFailed(state, request.headers.get('if-match'))) {
       return response.untyped(outdated())
     }
-    const input = (await request.json()) as IdentityProviderInput
+    const input = (await request.json())
     const values = input as unknown as Record<string, unknown>
     const errors: Violations = {}
     checkSettings(errors, values, state, { templates: true })

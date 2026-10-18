@@ -637,7 +637,7 @@ and a device without passkey support.
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T101 [US4] Implement the passkeys handlers and scenarios:
+- [X] T101 [US4] Implement the passkeys handlers and scenarios:
   - `tests/mocks/handlers/passkeys.ts`:
     - `listPasskeys`: `sort`, `order`, `q`, paging;
     - `createPasskeyRegistrationOptions`: `excludeCredentials` of the account, `residentKey: required`;
@@ -645,7 +645,9 @@ and a device without passkey support.
     - `updatePasskey` and `deletePasskey`, with `If-Match` and `412`.
   - Register the passkeys handlers in `tests/mocks/handlers/index.ts`.
   - `tests/mocks/scenarios/index.ts`: the scenarios `admin-no-passkeys`, `user-with-passkeys` (one bound to another host, one inactive, one with neither a name nor a description), `passkey-registration-rejected` and `passkey-changed-elsewhere`.
-- [ ] T102 [P] [US4] Write `tests/e2e/passkeys/passkeys.spec.ts`. It covers:
+
+  *Implementation note*: `PASSKEY_IDS` and `alicePasskeys()` (`tests/mocks/scenarios/passkeys.ts`) give fixed IDs and version tags, so tests change a passkey "elsewhere" through `mockApi.patch`. Injected failures can now carry field `errors` (a `422 validation-failed` needs them).
+- [X] T102 [P] [US4] Write `tests/e2e/passkeys/passkeys.spec.ts`. It covers:
   - US4-AS1: the empty state;
   - `@virtual-authenticator` US4-AS2: add with a name, then the list shows the name and date and the success is announced;
   - `@virtual-authenticator` US4-AS3: sign out, then sign in with the new passkey (needs US2's passkey sign-in);
@@ -660,36 +662,38 @@ and a device without passkey support.
   - FR-057: the page shows only the user's own passkeys;
   - Edge: a rename or removal changed elsewhere (412) reloads and allows a retry;
   - Edge: long names wrap.
-- [ ] T103 [P] [US4] Write `tests/e2e/passkeys/passkey-suggestion.spec.ts`. It covers:
+- [X] T103 [P] [US4] Write `tests/e2e/passkeys/passkey-suggestion.spec.ts`. It covers:
   - FR-047: the home suggestion appears when the user has no passkey and the device supports passkeys, and is absent otherwise;
   - dismissing it persists on the device (`mailcowui-ng.passkey-suggestion-dismissed`);
   - FR-051: "Passkeys" is reachable from the user menu and from the suggestion.
-- [ ] T104 [P] [US4] Write these unit tests:
+- [X] T104 [P] [US4] Write these unit tests:
   - `tests/unit/features/passkeys/usePasskeyRegistration.spec.ts`: options, `create`, register with an optional name; cancel is silent; `InvalidStateError`, `passkey-registration-failed` and 422 are mapped;
   - `tests/unit/features/passkeys/display-name.spec.ts`;
   - `tests/unit/features/passkeys/RenamePasskeyDialog.spec.ts`: 1–255 characters after trimming, input kept on 412;
   - `tests/unit/features/passkeys/PasskeyList.spec.ts`;
   - `tests/unit/features/home/PasskeySuggestion.spec.ts`.
-- [ ] T105 [P] [US4] Write `tests/smoke/passkeys.smoke.spec.ts` with a virtual authenticator against the real API: `admin` registers a passkey, renames it, signs out, signs in with it (US2 with real verification), then removes it.
+- [X] T105 [P] [US4] Write `tests/smoke/passkeys.smoke.spec.ts` with a virtual authenticator against the real API: `admin` registers a passkey, renames it, signs out, signs in with it (US2 with real verification), then removes it.
 
 ### Implementation for User Story 4
 
-- [ ] T106 [US4] Implement:
+- [X] T106 [US4] Implement:
   - `src/features/passkeys/api.ts`: queries and mutations with the invalidation of data-model §3, and `useVersionedSave` for rename and remove;
   - `src/features/passkeys/display-name.ts`;
   - `src/features/passkeys/composables/usePasskeyRegistration.ts`;
   - `src/features/passkeys/routes.ts`;
   - `src/features/passkeys/index.ts`, which exports `usePasskeyRegistration` for US5;
   - the catalogue's `passkeys` entry set to `available` in `src/app/navigation/catalogue.ts`.
-- [ ] T107 [US4] Implement `src/features/passkeys/pages/PasskeysPage.vue` (`useListState` with `page` and `size`, `ListState`, `PaginationBar`) and these components:
+- [X] T107 [US4] Implement `src/features/passkeys/pages/PasskeysPage.vue` (`useListState` with `page` and `size`, `ListState`, `PaginationBar`) and these components:
   - `src/features/passkeys/components/PasskeyList.vue`;
   - `src/features/passkeys/components/PasskeyCard.vue`: host and inactive notes as text;
   - `src/features/passkeys/components/AddPasskeyForm.vue`: optional name, unavailable with an explanation without support;
   - `src/features/passkeys/components/RenamePasskeyDialog.vue`.
 
   Removal uses `useConfirm` (FR-051–FR-057).
-- [ ] T108 [P] [US4] Implement `src/features/home/components/PasskeySuggestion.vue`, shown in `src/features/home/pages/HomePage.vue` with a `listPasskeys` call using `limit: 1`. The user menu's "Passkeys" link already comes from T064.
-- [ ] T109 [US4] Add the `passkeys.*` and `home.passkeySuggestion.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, using "passkey" wording only. Map legacy keys (for example the friendly-name and removal strings) through `src/i18n/legacy-map.json` where the meaning is unchanged. `npm run i18n:check` must pass.
+
+  *Implementation note*: Rename and Remove carry the passkey's name as visually hidden text, so each button's accessible name says which passkey it acts on.
+- [X] T108 [P] [US4] Implement `src/features/home/components/PasskeySuggestion.vue`, shown in `src/features/home/pages/HomePage.vue` with a `listPasskeys` call using `limit: 1`. The user menu's "Passkeys" link already comes from T064.
+- [X] T109 [US4] Add the `passkeys.*` and `home.passkeySuggestion.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, using "passkey" wording only. Map legacy keys (for example the friendly-name and removal strings) through `src/i18n/legacy-map.json` where the meaning is unchanged. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US4 work on their own, and the passkey smoke test covers US2 and US4.
 

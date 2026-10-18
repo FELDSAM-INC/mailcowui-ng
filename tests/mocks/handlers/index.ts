@@ -23,6 +23,7 @@ import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
 import { problem, sessionAccount, withScenario } from './context'
 import { identityHandlers } from './identity'
+import { passkeyHandlers } from './passkeys'
 import { publicConfigHandlers } from './public-config'
 
 /** The typed handlers of every area. Stories add their modules here. */
@@ -30,6 +31,7 @@ export const areaHandlers: RequestHandler[] = [
   ...authHandlers,
   ...identityHandlers,
   ...publicConfigHandlers,
+  ...passkeyHandlers,
   ...apiKeyHandlers,
   ...auditHandlers,
 ]
@@ -65,6 +67,7 @@ function injectedFailure(state: ScenarioState, match: OperationMatch): Response 
     headers['Retry-After'] = String(extra.retryAfter)
   }
   if (failure.pendingActions) extra.pendingActions = failure.pendingActions
+  if (failure.errors) extra.errors = failure.errors
   return problem(failure.status, failure.type ?? null, extra, headers)
 }
 

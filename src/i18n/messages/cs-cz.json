@@ -347,6 +347,12 @@
   },
   "home": {
     "greeting": "Dobrý den, {username}",
+    "passkeySuggestion": {
+      "action": "Přidat přístupový klíč",
+      "body": "Přidejte si přístupový klíč a přihlašujte se otiskem prstu, obličejem nebo PIN zařízení místo hesla.",
+      "dismiss": "Teď ne",
+      "title": "Přihlašujte se rychleji přístupovým klíčem"
+    },
     "role": "Jste přihlášeni jako {role}.",
     "scope": {
       "allDomains": "Spravujete všechny domény.",
@@ -384,12 +390,43 @@
     "system": "Nastavení systému"
   },
   "passkeys": {
+    "add": {
+      "heading": "Přidat přístupový klíč",
+      "name": "Název (nepovinný)",
+      "nameHelp": "Například zařízení, ve kterém je přístupový klíč uložen.",
+      "submit": "Přidat přístupový klíč",
+      "unsupported": "Toto zařízení nemůže vytvářet přístupové klíče. Své přístupové klíče zde však můžete přejmenovat a odebrat.",
+      "waiting": "Čekání na zařízení…"
+    },
+    "added": "Přístupový klíč byl přidán.",
+    "empty": "Zatím nemáte žádné přístupové klíče. Přístupový klíč vám umožní přihlásit se jedním klepnutím, bez hesla.",
     "errors": {
       "alreadyRegistered": "Toto zařízení už má přístupový klíč pro váš účet.",
       "generic": "S přístupovým klíčem se něco pokazilo. Zkuste to prosím znovu.",
       "insecure": "Přístupové klíče nelze na této adrese použít.",
       "unsupported": "Toto zařízení nemůže vytvořit ani použít přístupový klíč požadovaného typu."
-    }
+    },
+    "inactive": "Neaktivní: nelze jím se přihlásit",
+    "intro": "Přístupové klíče vám umožní přihlásit se bez hesla, otiskem prstu, obličejem nebo PIN zařízení. Fungují zde i v klasickém rozhraní.",
+    "otherHost": "Funguje pouze na {host}",
+    "registered": "Zaregistrován",
+    "remove": {
+      "action": "Odebrat",
+      "body": "Už vás nepřihlásí, ani zde, ani v klasickém rozhraní.",
+      "confirm": "Odebrat",
+      "last": "Je to váš poslední přístupový klíč. Přihlašovat se budete i nadále heslem.",
+      "title": "Odebrat přístupový klíč „{name}“?"
+    },
+    "removed": "Přístupový klíč byl odebrán.",
+    "rename": {
+      "name": "Název",
+      "outdated": "Tento přístupový klíč byl mezitím změněn jinde a byl znovu načten. Zkontrolujte název a uložte znovu.",
+      "save": "Uložit",
+      "title": "Přejmenovat přístupový klíč"
+    },
+    "renamed": "Přístupový klíč byl přejmenován.",
+    "title": "Přístupové klíče",
+    "unknown": "Neznámý přístupový klíč, zaregistrován {date}"
   },
   "placeholder": {
     "classicHeading": "Zatím použijte klasické rozhraní",

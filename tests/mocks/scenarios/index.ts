@@ -12,6 +12,7 @@ import { baseScenarios } from './base'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
+import { passkeyScenarios } from './passkeys'
 import { signInScenarios } from './sign-in'
 import { apiKeyScenarios } from './api-keys'
 import {
@@ -37,6 +38,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...signInScenarios,
   ...passkeySignInScenarios,
   ...navigationScenarios,
+  ...passkeyScenarios,
   ...apiKeyScenarios,
   ...auditLogScenarios,
 }

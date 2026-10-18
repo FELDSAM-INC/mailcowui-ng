@@ -1,7 +1,7 @@
 // The US1 mock handlers (T066): password sign-in, the second-factor step and their refusals.
 import { describe, expect, it } from 'vitest'
 
-import { fakeAssertion, SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
+import { fakeAssertion, fakeRegistration, SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { MOCK_PASSWORD } from '../../mocks/scenarios/accounts'
 import { mockState, useScenario } from '../../mocks/node'
 
@@ -196,5 +196,61 @@ describe('passkey sign-in (T085)', () => {
   it('throttles passkey sign-in', async () => {
     useScenario('passkey-throttled')
     expect((await assertion(SEEDED_CREDENTIALS.alice)).response.status).toBe(429)
+  })
+})
+
+describe('own passkeys (T101)', () => {
+  it('lists newest first with paging metadata', async () => {
+    useScenario('user-with-passkeys')
+    const response = await fetch(api('/me/passkeys?sort=registeredAt&order=desc&limit=2'))
+    const body = (await response.json()) as { data: { name: string | null }[]; meta: unknown }
+    expect(body.data.map((p) => p.name)).toEqual([null, 'Lost key'])
+    expect(body.meta).toEqual({ total: 4, limit: 2, offset: 0 })
+  })
+
+  it('registers a passkey once and refuses the same credential again', async () => {
+    useScenario('admin-no-passkeys')
+    const options = await send('POST', '/me/passkeys/registration-options')
+    const credential = fakeRegistration('Y3JlZC1uZXc', options.body?.data.publicKey.challenge)
+    const created = await send('POST', '/me/passkeys', { credential, name: 'Laptop' })
+    expect(created.response.status).toBe(201)
+    expect(created.response.headers.get('etag')).toBe(created.body?.data.etag)
+    const again = await send('POST', '/me/passkeys/registration-options')
+    expect(again.body?.data.publicKey.excludeCredentials).toEqual([
+      { type: 'public-key', id: 'Y3JlZC1uZXc' },
+    ])
+    const duplicate = fakeRegistration('Y3JlZC1uZXc', again.body?.data.publicKey.challenge)
+    const refused = await send('POST', '/me/passkeys', { credential: duplicate })
+    expect(refused.body?.type).toBe('/api/v2/problems/passkey-registration-failed')
+  })
+
+  it('renames and removes with If-Match, answering 412 for a stale version', async () => {
+    useScenario('user-with-passkeys')
+    const path = `/me/passkeys/${'1'.repeat(64)}`
+    const stale = await fetch(api(path), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/merge-patch+json',
+        'X-CSRF-Token': await csrf(),
+        'If-Match': '"old"',
+      },
+      body: JSON.stringify({ name: 'New' }),
+    })
+    expect(stale.status).toBe(412)
+    const renamed = await fetch(api(path), {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/merge-patch+json',
+        'X-CSRF-Token': await csrf(),
+        'If-Match': '"pk-phone-1"',
+      },
+      body: JSON.stringify({ name: 'New' }),
+    })
+    expect(renamed.status).toBe(200)
+    const removed = await fetch(api(path), {
+      method: 'DELETE',
+      headers: { 'X-CSRF-Token': await csrf(), 'If-Match': renamed.headers.get('etag') ?? '' },
+    })
+    expect(removed.status).toBe(204)
   })
 })

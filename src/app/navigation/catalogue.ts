@@ -88,7 +88,7 @@ export const catalogue: readonly NavigationEntry[] = [
     domainAdmin: ['/domainadmin/user'],
     mailboxUser: ['/user'],
   }),
-  entry('passkeys', '/passkeys', PasskeyIcon, ALL, '001'),
+  entry('passkeys', '/passkeys', PasskeyIcon, ALL, '001', {}, 'available'),
   entry('quarantine', '/quarantine', ArchiveIcon, ALL, '006', {
     admin: ['/quarantine'],
     domainAdmin: ['/quarantine'],

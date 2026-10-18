@@ -358,6 +358,12 @@
   },
   "home": {
     "greeting": "Dobrý deň, {username}",
+    "passkeySuggestion": {
+      "action": "Pridať prístupový kľúč",
+      "body": "Pridajte si prístupový kľúč a prihlasujte sa odtlačkom prsta, tvárou alebo PIN zariadenia namiesto hesla.",
+      "dismiss": "Teraz nie",
+      "title": "Prihlasujte sa rýchlejšie prístupovým kľúčom"
+    },
     "role": "Ste prihlásení ako {role}.",
     "scope": {
       "allDomains": "Spravujete všetky domény.",
@@ -395,12 +401,43 @@
     "system": "Nastavenia systému"
   },
   "passkeys": {
+    "add": {
+      "heading": "Pridať prístupový kľúč",
+      "name": "Názov (nepovinný)",
+      "nameHelp": "Napríklad zariadenie, v ktorom je prístupový kľúč uložený.",
+      "submit": "Pridať prístupový kľúč",
+      "unsupported": "Toto zariadenie nemôže vytvárať prístupové kľúče. Svoje prístupové kľúče tu však môžete premenovať a odstrániť.",
+      "waiting": "Čaká sa na zariadenie…"
+    },
+    "added": "Prístupový kľúč bol pridaný.",
+    "empty": "Zatiaľ nemáte žiadne prístupové kľúče. Prístupový kľúč vám umožní prihlásiť sa jedným ťuknutím, bez hesla.",
     "errors": {
       "alreadyRegistered": "Toto zariadenie už má prístupový kľúč pre váš účet.",
       "generic": "S prístupovým kľúčom sa niečo pokazilo. Skúste to, prosím, znova.",
       "insecure": "Prístupové kľúče nemožno na tejto adrese použiť.",
       "unsupported": "Toto zariadenie nemôže vytvoriť ani použiť prístupový kľúč požadovaného typu."
-    }
+    },
+    "inactive": "Neaktívny: nemožno sa ním prihlásiť",
+    "intro": "Prístupové kľúče vám umožnia prihlásiť sa bez hesla, odtlačkom prsta, tvárou alebo PIN zariadenia. Fungujú tu aj v klasickom rozhraní.",
+    "otherHost": "Funguje iba na {host}",
+    "registered": "Zaregistrovaný",
+    "remove": {
+      "action": "Odstrániť",
+      "body": "Už vás neprihlási, ani tu, ani v klasickom rozhraní.",
+      "confirm": "Odstrániť",
+      "last": "Je to váš posledný prístupový kľúč. Prihlasovať sa budete aj naďalej heslom.",
+      "title": "Odstrániť prístupový kľúč „{name}“?"
+    },
+    "removed": "Prístupový kľúč bol odstránený.",
+    "rename": {
+      "name": "Názov",
+      "outdated": "Tento prístupový kľúč bol medzitým zmenený inde a bol znova načítaný. Skontrolujte názov a uložte znova.",
+      "save": "Uložiť",
+      "title": "Premenovať prístupový kľúč"
+    },
+    "renamed": "Prístupový kľúč bol premenovaný.",
+    "title": "Prístupové kľúče",
+    "unknown": "Neznámy prístupový kľúč, zaregistrovaný {date}"
   },
   "placeholder": {
     "classicHeading": "Zatiaľ použite klasické rozhranie",

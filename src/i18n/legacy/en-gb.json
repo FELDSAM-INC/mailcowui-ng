@@ -38,6 +38,11 @@
     "quarantine": "Quarantine",
     "syncJobs": "Sync jobs"
   },
+  "passkeys": {
+    "rename": {
+      "action": "Rename"
+    }
+  },
   "placeholder": {
     "pages": {
       "configuration": "Configuration",

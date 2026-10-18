@@ -8,6 +8,7 @@ import { apiKeysRoutes } from '@/features/api-keys'
 import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
 import { homeRoutes } from '@/features/home'
+import { passkeysRoutes } from '@/features/passkeys'
 
 import { placeholderRouteSpecs } from '../navigation/catalogue'
 
@@ -20,6 +21,7 @@ const NotFoundPage = () => import('../states/NotFoundPage.vue')
 export const featureRoutes: RouteRecordRaw[] = [
   ...authRoutes,
   ...homeRoutes,
+  ...passkeysRoutes,
   ...apiKeysRoutes,
   ...auditLogRoutes,
 ]

@@ -38,6 +38,11 @@
     "quarantine": "Karanténa",
     "syncJobs": "Synchronizační úlohy"
   },
+  "passkeys": {
+    "rename": {
+      "action": "Přejmenovat"
+    }
+  },
   "placeholder": {
     "pages": {
       "configuration": "Nastavení",

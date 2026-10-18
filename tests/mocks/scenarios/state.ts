@@ -87,6 +87,8 @@ export interface InjectedFailure {
   times?: number
   retryAfter?: number
   pendingActions?: PendingAction[]
+  /** Field violations of an injected `422 validation-failed`. */
+  errors?: Record<string, { code: string; message: string; params?: Record<string, unknown> }[]>
 }
 
 export interface RecordedRequest {

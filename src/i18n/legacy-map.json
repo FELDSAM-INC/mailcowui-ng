@@ -18,6 +18,7 @@
   "nav.mailboxes": "mailbox.mailboxes",
   "nav.quarantine": "header.quarantine",
   "nav.syncJobs": "mailbox.sync_jobs",
+  "passkeys.rename.action": "fido2.rename",
   "placeholder.pages.configuration": "header.mailcow_config",
   "placeholder.pages.information": "header.debug",
   "placeholder.pages.quarantine": "header.quarantine",

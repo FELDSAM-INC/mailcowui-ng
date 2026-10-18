@@ -25,6 +25,11 @@
     "quarantine": "Karanténa",
     "syncJobs": "Synchronizačné úlohy"
   },
+  "passkeys": {
+    "rename": {
+      "action": "Premenovať"
+    }
+  },
   "placeholder": {
     "pages": {
       "configuration": "Konfigurácia",

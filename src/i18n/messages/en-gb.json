@@ -347,6 +347,12 @@
   },
   "home": {
     "greeting": "Hello, {username}",
+    "passkeySuggestion": {
+      "action": "Add a passkey",
+      "body": "Add a passkey to sign in with your fingerprint, face or device PIN instead of your password.",
+      "dismiss": "Not now",
+      "title": "Sign in faster with a passkey"
+    },
     "role": "You are signed in as {role}.",
     "scope": {
       "allDomains": "You manage all domains.",
@@ -384,12 +390,43 @@
     "system": "System settings"
   },
   "passkeys": {
+    "add": {
+      "heading": "Add a passkey",
+      "name": "Name (optional)",
+      "nameHelp": "For example the device the passkey is stored on.",
+      "submit": "Add a passkey",
+      "unsupported": "This device cannot create passkeys. You can still rename and remove your passkeys here.",
+      "waiting": "Waiting for your device…"
+    },
+    "added": "Passkey added.",
+    "empty": "You have no passkeys yet. A passkey lets you sign in with one tap, without a password.",
     "errors": {
       "alreadyRegistered": "This device already has a passkey for your account.",
       "generic": "Something went wrong with the passkey. Please try again.",
       "insecure": "Passkeys cannot be used at this address.",
       "unsupported": "This device cannot create or use a passkey of the required kind."
-    }
+    },
+    "inactive": "Inactive: it cannot be used to sign in",
+    "intro": "Passkeys let you sign in without a password, with your fingerprint, face or device PIN. They work here and in the classic interface.",
+    "otherHost": "Works only on {host}",
+    "registered": "Registered",
+    "remove": {
+      "action": "Remove",
+      "body": "It will no longer sign you in, here or in the classic interface.",
+      "confirm": "Remove",
+      "last": "This is your last passkey. Your password remains the way to sign in.",
+      "title": "Remove the passkey “{name}”?"
+    },
+    "removed": "Passkey removed.",
+    "rename": {
+      "name": "Name",
+      "outdated": "This passkey was changed elsewhere and has been reloaded. Check the name and save again.",
+      "save": "Save",
+      "title": "Rename passkey"
+    },
+    "renamed": "Passkey renamed.",
+    "title": "Passkeys",
+    "unknown": "Unknown passkey, registered {date}"
   },
   "placeholder": {
     "classicHeading": "Use the classic interface for now",

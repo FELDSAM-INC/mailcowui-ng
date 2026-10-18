@@ -761,6 +761,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       changed at once".
     - Once the limit is reached, further selection is disabled with the same message (conventions
       "Shared building blocks").
+    - The capped "Select all" is an opt-in mode of `useBulkSelection`. UI 002's lists keep
+      disabling "Select all" when the page exceeds the remaining capacity (plan owner question 3).
     - The bar sits inside `CapabilitiesGate`.
   - **Actions** (FR-057), filtered by R6 and by `groupwareEnabled`:
     - aliases: activate, deactivate, show in groupware, hide in groupware, copy over alias domains,

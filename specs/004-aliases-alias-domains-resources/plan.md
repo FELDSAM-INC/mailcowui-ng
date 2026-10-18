@@ -206,6 +206,14 @@ audit log with the `targetType` and `targetId` filters that API 002 added) and A
    reusable but that are missing from the legacy cs-cz or sk-sk files (R20).
    - **Default**: the owner reviews them before the release.
 
+3. **"Select all" at a reduced bulk limit.**
+   - When the server's bulk limit is below the page size, UI 002 and UI 003 disable "Select all on
+     this page". UI 004's spec instead requires selecting the first N with an explanation (FR-060,
+     US6-AS6).
+   - Both follow the conventions' rule that selection stops at the limit.
+   - **Default**: UI 004's lists use the capped mode of `useBulkSelection`, an opt-in, because the
+     spec governs its own screens. The owner may align all lists on one behaviour later.
+
 ## Parity notes added by the plan
 
 The spec's parity tables are complete. The plan adds:

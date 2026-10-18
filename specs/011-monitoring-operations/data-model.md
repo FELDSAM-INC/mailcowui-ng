@@ -135,7 +135,7 @@ empty lines dropped, duplicates kept once (case-insensitive for host names), `li
 |---|---|---|---|---|
 | `['monitoring','capabilities']` | `getMonitoringCapabilities` | 5 min | any screen of this feature opens | refetched after `409 ip-check-disabled` |
 | `['monitoring','live','host']` | `getHostOverview` | 0 | dashboard; then every `pollIntervalSeconds` while running | `retry: false`; skew source |
-| `['monitoring','live','containers']` | `listContainers` (`limit = limits.maxPageSize`, `sort=name`) | 0 | dashboard, ban screen (for `banService`); polled on the dashboard | filtered in the browser |
+| `['monitoring','live','containers']` | `listContainers` (`limit = LIST_LIMIT_MAX`, the `Limit` maximum, `sort=name`) | 0 | dashboard, ban screen (for `banService`); polled on the dashboard | filtered in the browser |
 | `['monitoring','live','resource-usage',name]` | `getContainerResourceUsage` | 0 | card expanded and container running; polled | stops on `409` |
 | `['monitoring','live','mail-storage']` | `getMailStorageUsage` | 0 | dashboard; every `maxAgeSeconds.mailStorage` | — |
 | `['monitoring','installation']` | `getInstallationVersion` | ∞ | each dashboard visit (`refetchOnMount: 'always'`) | — |
@@ -188,8 +188,9 @@ UI 001's row `operations` is replaced by these four rows, in this order, with th
 | `mailQueue` | `/operations/mail-queue` | ✓ | — | — | 011 | available |
 | `fail2ban` | `/operations/fail2ban` | ✓ | — | — | 011 | available |
 
-Each row starts as `placeholder` (with the classic addresses `/admin/dashboard` or `/admin/queue`)
-and the story that registers its routes sets it to `available`: `dashboard` in US1, `logs` in US3,
+Each row starts as `placeholder`, with the classic addresses `/admin/dashboard` (dashboard, logs),
+`/admin/queue` (mail queue) or `/admin/system` (Fail2ban), and the story that registers its routes
+sets it to `available`: `dashboard` in US1, `logs` in US3,
 `mailQueue` in US4, `fail2ban` in US5. No entry ever leads to "not found" (UI 001 SC-007).
 
 ### Route map (base `/ng/`, all shell layout, `active` session, admin only via the catalogue)

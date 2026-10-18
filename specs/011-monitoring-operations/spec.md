@@ -149,6 +149,9 @@ The API 011 contract closed several gaps this spec had listed. The plan aligned 
   states the exact number of queued messages (FR-050, FR-058); a denylist entry or denylisting that
   covers the administrator's own address gets a warning (FR-064, FR-069); container cards name the
   role, and the restart confirmation warns according to it (FR-008, FR-012).
+- Q: What if the session's idle timeout is shorter than the 15-minute inactivity pause? → A: Live
+  updates pause after the shorter of the two, so that an unattended dashboard keeps a session alive
+  for at most one idle timeout beyond what the session itself allows (FR-021).
 - Q: How are the details of this feature's audit records presented, given that the contract leaves
   them undescribed? → A: As stored, in the audit log's generic details view, with nested values
   readable and long lists collapsed, until the contract describes them (FR-075, gap 10).
@@ -689,8 +692,9 @@ the history from each entry point and check the filters applied and the presenta
   the dashboard MUST say so and since when, MUST NOT refresh on its own, and the manual refresh MUST
   still work. "Resume" MUST request fresh data at once and restart the automatic refreshing.
 - **FR-021**: After 15 minutes without any user interaction (pointer, touch, keyboard or scrolling)
-  on a screen of this feature, every automatic refreshing of this feature MUST pause, with a notice
-  that live updates were paused because of inactivity and a Resume action as in FR-020.
+  on a screen of this feature, or after the session's idle timeout when that is shorter, every
+  automatic refreshing of this feature MUST pause, with a notice that live updates were paused
+  because of inactivity and a Resume action as in FR-020.
 - **FR-022**: Each dashboard section MUST show how long ago its data was collected, measured from the
   collection time the API reports against the host's current time from the overview, not against
   the device clock. A section MUST be marked as outdated, in text, when its data is older than its
@@ -1306,11 +1310,13 @@ in the plan:
   `admin.f2b_*`, `admin.queue_unban`, `admin.unban_pending`, `admin.no_active_bans`,
   `admin.reset_default`, `admin.arrival_time`, `admin.message_size`, `admin.sender`,
   `admin.recipients`, `admin.priority`, `admin.message`, `admin.rate_name`, `admin.authed_user`,
-  `admin.task`, `admin.ip_check_disabled`, `admin.reset_limit`, `admin.hash_remove_info`,
-  `admin.ban_list_info`, `success.f2b_modified`, `success.f2b_banlist_refreshed`,
-  `success.queue_command_success` and `danger.reset_f2b_regex`. Legacy texts that contain HTML markup
-  or the product name are carried over without the markup and with the product name from the
-  branding configuration. Labels whose meaning changes get new keys.
+  `admin.task`, `admin.ip_check_disabled`, `admin.reset_limit`, `success.f2b_modified`,
+  `success.f2b_banlist_refreshed` and `success.queue_command_success`. Legacy texts that contain HTML
+  markup or the product name are carried over without the markup and with the product name from the
+  branding configuration. Labels whose meaning changes get new keys; the plan found this for the
+  duration labels in seconds, `admin.f2b_list_info` (a few seconds instead of up to a minute),
+  `admin.hash_remove_info` and `admin.ban_list_info` (colours this feature replaces) and
+  `danger.reset_f2b_regex` (it asks to try again, which the API advises against).
 - **Out of scope**: container log streams; installing updates; editing the IP check switch, the
   update check settings, the protected containers and the container-service timeout (server
   settings, UI feature 013 or the host); the license and GUID card (UI feature 013); quarantine and

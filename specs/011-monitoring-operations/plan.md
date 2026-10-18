@@ -77,6 +77,9 @@ for Android; the static image under `/ng/`.
 
 **Performance Goals**:
 
+- "Mid-range phone" (SC-011) means Lighthouse's mobile emulation (Moto G Power class, 4× CPU
+  slowdown, slow 4G) in the automated checks, and a real Android device of that class in the device
+  validation (T149).
 - Dashboard figures and the first page of a log visible within 2 s on a mid-range phone when the API
   answers within 1 s (SC-011).
 - A 10 MiB queued message readable within 2 s after it arrives (first 256 Ki characters, R15).

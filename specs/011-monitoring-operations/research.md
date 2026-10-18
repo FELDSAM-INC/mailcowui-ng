@@ -116,7 +116,7 @@ Playwright projects, smoke harness) are not repeated.
     | Truncation notice | `limits.mailQueueListingMax` | FR-052 |
     | Rule count and length | `limits.fail2banRulesMax`, `limits.fail2banRuleMaxLength` | FR-071 |
     | List entry count | `limits.fail2banListMaxEntries` | FR-069 |
-    | Largest page | `limits.maxPageSize` | the unfiltered container list, "select all matching" |
+    | Largest page | `limits.maxPageSize` | paging of "select all matching" |
 
     With the default capabilities the thresholds are the spec's values: host figures 10 + 2 × 5 =
     20 s, container states 5 + 2 × 5 = 15 s, resource samples 15 + 2 × 5 = 25 s, mail storage
@@ -258,7 +258,10 @@ Playwright projects, smoke harness) are not repeated.
 ### R8. Containers: list, roles, actions and outcomes
 
 - **Decision**:
-  - **List**: one polled request, `GET /containers?limit=<limits.maxPageSize>&sort=name`, unfiltered.
+  - **List**: one polled request, `GET /containers?limit=<LIST_LIMIT_MAX>&sort=name`, unfiltered.
+    `LIST_LIMIT_MAX` is the `maximum` of the contract's `Limit` parameter (1,000), kept in
+    `src/shared/validation/limits.ts` and verified against `contract/openapi.json` as UI 001's
+    limits are, so the dashboard lists every container even when the capabilities cannot be read.
     The filter (all, running, not running), the search over name and image and the sort (name,
     state, start time; ties by name, as the API sorts) are applied in the browser by
     `dashboard/container-list.ts`, from the address (FR-009). The summary counts come from the same
@@ -685,14 +688,19 @@ Playwright projects, smoke harness) are not repeated.
     `admin.queue_unban`, `admin.unban_pending`, `admin.no_active_bans`, `admin.reset_default`,
     `admin.arrival_time`, `admin.message_size`, `admin.sender`, `admin.recipients`, `admin.priority`,
     `admin.message`, `admin.rate_name`, `admin.authed_user`, `admin.task`, `admin.ip_check_disabled`,
-    `admin.reset_limit`, `admin.hash_remove_info`, `admin.ban_list_info`, `success.f2b_modified`,
-    `success.f2b_banlist_refreshed`, `success.queue_command_success`, `danger.reset_f2b_regex`).
-    Labels whose meaning changes get new keys, notably the duration labels with "(s)"
-    (`admin.f2b_ban_time`, `admin.f2b_max_ban_time`, `admin.f2b_retry_window`) because the unit is now
-    chosen, and `debug.log_info`, which names `LOG_LINES` and the product.
-  - **Markup**: six reused keys contain HTML (`footer.restart_container_info`, `queue.info`,
-    `admin.f2b_list_info`, `admin.ip_check_disabled`, `admin.hash_remove_info`,
-    `admin.ban_list_info`). They are mapped with UI 002's opt-in form
+    `admin.reset_limit`, `success.f2b_modified`, `success.f2b_banlist_refreshed`,
+    `success.queue_command_success`).
+    Labels whose meaning changes get new keys:
+    - the duration labels with "(s)" (`admin.f2b_ban_time`, `admin.f2b_max_ban_time`,
+      `admin.f2b_retry_window`), because the unit is now chosen;
+    - `debug.log_info`, which names `LOG_LINES` and the product;
+    - `admin.f2b_list_info` ("list updates take a few seconds"; the API documents up to a minute);
+    - `admin.hash_remove_info` and `admin.ban_list_info`, which explain colours and a text layout
+      that this feature replaces;
+    - `danger.reset_f2b_regex`, which says "please try again", while the API says not to repeat the
+      reset.
+  - **Markup**: three reused keys contain HTML (`footer.restart_container_info`, `queue.info`,
+    `admin.ip_check_disabled`). They are mapped with UI 002's opt-in form
     `{ "from": "<legacy key>", "stripMarkup": true }`, which removes tags, decodes entities and
     collapses whitespace; the plain form keeps refusing HTML.
   - **Slovak gaps**: the upstream `sk-sk` file lacks `debug.architecture`, `debug.current_time`,

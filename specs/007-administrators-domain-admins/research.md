@@ -91,8 +91,8 @@ canonical names") names them.
 
     | id | path | admin | domainAdmin | mailboxUser | by | label |
     |---|---|---|---|---|---|---|
-    | `domainAdmins` | `/domain-admins` | ✓ | — | — | 007 | legacy `admin.domain_admins` |
-    | `administrators` | `/administrators` | ✓ | — | — | 007 | legacy `admin.admins` |
+    | `domainAdmins` | `/administrators/domain-admins` | ✓ | — | — | 007 | legacy `admin.domain_admins` |
+    | `administrators` | `/administrators/admins` | ✓ | — | — | 007 | legacy `admin.admins` |
 
     Both keep the classic link `/admin/system` while they are placeholders. US1 flips
     `domainAdmins` and US4 flips `administrators` to `available` when they register their routes,
@@ -102,21 +102,27 @@ canonical names") names them.
 
     | Name | Path | Nav entry | Page |
     |---|---|---|---|
-    | `domain-admins` | `/domain-admins` | `domainAdmins` | `DomainAdminsPage.vue` |
-    | `domain-admin-create` | `/domain-admins/-/new` | `domainAdmins` | `DomainAdminCreatePage.vue` |
-    | `domain-admin-detail` | `/domain-admins/:username([A-Za-z0-9._-]{1,255})` | `domainAdmins` | `DomainAdminDetailPage.vue` |
-    | `admins` | `/administrators` | `administrators` | `AdminsPage.vue` |
-    | `admin-create` | `/administrators/-/new` | `administrators` | `AdminCreatePage.vue` |
-    | `admin-detail` | `/administrators/:username([A-Za-z0-9._-]{1,255})` | `administrators` | `AdminDetailPage.vue` |
-    | `sign-in-sso-token` | `/sign-in/sso-token` | — (auth layout, any session state) | `features/auth/pages/SsoTokenLandingPage.vue` |
+    | `administrators` | `/administrators` | — | redirect to `domain-admins`, keeping the query |
+    | `domain-admins` | `/administrators/domain-admins` | `domainAdmins` | `DomainAdminsPage.vue` |
+    | `domain-admin-create` | `/administrators/domain-admins/-/new` | `domainAdmins` | `DomainAdminCreatePage.vue` |
+    | `domain-admin-detail` | `/administrators/domain-admins/:username([A-Za-z0-9._-]{1,255})` | `domainAdmins` | `DomainAdminDetailPage.vue` |
+    | `admins` | `/administrators/admins` | `administrators` | `AdminsPage.vue` |
+    | `admin-create` | `/administrators/admins/-/new` | `administrators` | `AdminCreatePage.vue` |
+    | `admin-detail` | `/administrators/admins/:username([A-Za-z0-9._-]{1,255})` | `administrators` | `AdminDetailPage.vue` |
+    | `sign-in-sso-token` | `/sign-in/sso-token` | — (auth layout, `meta.public: true`) | `features/auth/pages/SsoTokenLandingPage.vue` |
+
+  - Both lists live under `/administrators/`, the address UI 001's single row used, so the route
+    names and paths are the ones UI 014's route table already lists (`administrators`,
+    `admin-detail`, `domain-admin-detail`) and UI 014 needs no change.
 
   - The creation routes use UI 002 D4's `/-/` separator: every word is a valid username, but a
     username needs a letter or digit, so the segment `-` can never be one.
   - Section editing follows UI 002's `EditableSection` and its `edit=<section>` query parameter, so
     an address names the account and the section being edited (FR-003).
   - The detail routes are the targets of UI 014's `/edit/domainadmin/{username}` and
-    `/edit/admin/{username}` (M22, M23), `/admin/system` maps to `domain-admins` or `admins` as UI
-    014 decides (M08), and the landing is the target of `/domainadmin?sso_token=…` (M13).
+    `/edit/admin/{username}` (M22, M23), `/admin/system` maps to `administrators` (M08), and the
+    landing is the target of `/domainadmin?sso_token=…` (M13, through UI 014's in-memory hand-off,
+    R10).
   - Every list keeps its state in the address (FR-003, FR-007); a detail page's back link returns to
     the list address it was opened from (`history.state.back` when it is the matching list route,
     otherwise the plain list).
@@ -209,8 +215,9 @@ canonical names") names them.
 
   The handler is registered by `src/app/session` at bootstrap (`setIdentityChangeHandler()` in
   `src/api/csrf.ts`), the same inversion UI 001 uses for its session reactions, so `src/api` does not
-  import `src/app`. The check sits in the middleware rather than in the cache's `onError` hooks
-  because direct client calls (R10, R11, R14) never pass through those hooks. The new `kind` is an
+  import `src/app`. The check sits in the middleware because only the middleware holds the cloned
+  request it would replay; it applies equally to TanStack requests and to `useSecretRequest`
+  calls (R14). The new `kind` is an
   app-defined union member of `ApiProblem` (`src/api/problem.ts`), not an API shape. T020 aligns UI
   001's FR-035 and research R8 and R12 with this entry and R4.
 - **Rationale**: The token is renewed on every switch precisely so that a write prepared under one
@@ -320,8 +327,9 @@ canonical names") names them.
 ### R9. Webmail on a user's behalf
 
 - **Decision** (`src/features/acting/webmail-opener.ts`):
-  1. On "Open webmail as", call `createWebmailSignInOnBehalf(mailbox)` directly through the client.
-     The response sets the webmail hand-off cookie in this browser and returns `url` (`/SOGo/so/`).
+  1. On "Open webmail as", call `createWebmailSignInOnBehalf(mailbox)` as a TanStack mutation (its
+     body carries no secret, as UI 005 treats its own webmail hand-off). The response sets the
+     webmail hand-off cookie in this browser and returns `url` (`/SOGo/so/`).
   2. Then `const win = window.open(url, '_blank')`, and when it returns a window, set
      `win.opener = null`. The app stays on its screen (FR-056).
   3. When `window.open` returns `null` (blocked, typical for iOS Safari after an asynchronous
@@ -351,13 +359,16 @@ canonical names") names them.
 
 - **Decision**:
   - **Address** (FR-058): `/ng/sign-in/sso-token?sso_token=<token>`, documented for operators in
-    `quickstart.md`. The parameter keeps legacy's name, so UI 014 maps `/domainadmin?sso_token=…`
-    one to one (M13), and billing panels change only the path.
+    `quickstart.md`. The parameter keeps legacy's name, so billing panels change only the path.
   - **Capture before anything else** (FR-059): `src/main.ts` calls `captureSsoToken()` from
     `@/features/auth` before the bootstrap. When `location.pathname` is the landing path, it reads
     `sso_token`, keeps it in a module-level variable (memory only), and calls
     `history.replaceState(history.state, '', <path without the token>)`. The bootstrap requests and
     the first render therefore never see the token, and history holds no entry with it.
+  - **Hand-off for UI 014**: classic links reach the app through UI 014's arrival page with
+    `#sso_token=…` and a client-side navigation, which skips the page-load capture. The auth feature
+    therefore also exports `handOverSsoToken(token)`, which puts a token into the same memory holder
+    before the arrival page replaces the route with `sign-in-sso-token` (UI 014 research, M13).
   - **No exchange on prefetch** (FR-059): the page exchanges only when
     `document.visibilityState === 'visible'` and `document.prerendering !== true`; otherwise it
     waits for `visibilitychange` or `prerenderingchange`. Plain HTTP prefetches never run scripts.
@@ -369,9 +380,9 @@ canonical names") names them.
       `Session.impersonation` together with the acted-as account, and "the domain administrator this
       link was created for" (plan gap G1). "Continue" exchanges; "Stay signed in as {username}"
       discards the token and opens `home` (or the current state's screen).
-  - **Exchange**: a direct client call to `createSessionWithSsoToken({ token })`, never through
-    `useMutation`, so the token never enters the mutation cache (conventions "Secrets in requests
-    or responses"). The token variable is cleared afterwards, whatever the outcome.
+  - **Exchange**: `createSessionWithSsoToken({ token })` through `useSecretRequest` (UI 001 and
+    UI 005), never `useMutation`, so the token never enters the mutation cache (conventions "Secrets
+    in requests or responses"). The token variable is cleared afterwards, whatever the outcome.
     - `201`: write `session`; for a previous session run R4 with `sessionReplaced`, otherwise UI
       001's after-sign-in path. `restricted` goes to the pending-actions screen (FR-060, US5-AS4);
       `active` goes to `home`. Broadcast `session-changed`.
@@ -381,8 +392,8 @@ canonical names") names them.
       (`useThrottle`) and a link to normal sign-in (FR-061).
     - `422` (an empty or over-long token): handled as `sign-in-failed`.
     - a network failure: a message with "Try again" while the token is still in memory.
-  - **Guard**: the route carries `meta.anySessionState: true`; UI 001's guard lets it through in
-    every state.
+  - **Guard**: the route carries the canonical `meta.public: true`; UI 005 already extended UI
+    001's guard so that public routes resolve in every session state.
 - **Rationale**: Capturing in `main.ts` is the earliest point the app controls; `replaceState` keeps
   the token out of the address bar, history and later `Referer` headers. The visibility and
   prerender checks stop browsers' speculative loading from consuming a single-use token.
@@ -397,9 +408,9 @@ canonical names") names them.
 - **Decision**:
   - `SsoLinkSection.vue` on the domain administrator detail screen offers "Create sign-in link",
     disabled with the reason "The account is inactive" when `active` is false (FR-062).
-  - The token is requested with a direct client call (`issueDomainAdminSsoToken`), not through
-    `useMutation`, so it is never held by the mutation cache; the response (`Cache-Control: no-store`)
-    goes only into the dialog's local state.
+  - The token is requested through `useSecretRequest` (`issueDomainAdminSsoToken`), never
+    `useMutation`, so it is never held by the mutation cache; the response (`Cache-Control:
+    no-store`) goes only into the dialog's local state.
   - The link is shown in UI 005's `OneTimeSecretDialog.vue` (conventions "Secrets": one-time
     sign-in links use the one-time secret dialog), which this feature extends with two optional
     props:
@@ -415,9 +426,9 @@ canonical names") names them.
   - `409 account-inactive` shows its message and refreshes the account.
 - **Rationale**: The conventions name one-time sign-in links as secrets that use the shared dialog
   and never pass through TanStack caches; the countdown is the only addition.
-- **Alternatives considered**: An inline section display: rejected by the conventions. UI 005's
-  `useSecretMutation`: it strips a secret from a mutation's response, but the conventions ask for a
-  direct call, which is simpler here.
+- **Alternatives considered**: An inline section display: rejected by the conventions. A TanStack
+  mutation with `gcTime: 0`: rejected; the conventions route every secret through
+  `useSecretRequest`.
 
 ---
 
@@ -508,9 +519,11 @@ canonical names") names them.
     can still be saved without permissions, with the note that the server defaults apply. Leaving
     with entered values asks through UI 002's `useLeaveGuard`.
   - **Submission without caches**: `createDomainAdmin` and `createAdmin` carry the password, so they
-    are direct client calls from the page, never `useMutation`; the response (which has no password)
-    is written to the detail key and the lists are invalidated by hand (data-model §3). No draft of
-    these forms is saved (conventions "Secrets in requests or responses").
+    run through `useSecretRequest` (UI 001 and UI 005: a direct client call with `pending`,
+    `problem` and `result` as component state, which passes problems to
+    `dispatchProblemReactions()`), never `useMutation`; the response (which has no password) is
+    written to the detail key and the lists are invalidated by the caller (data-model §3). No draft
+    of these forms is saved (conventions "Secrets in requests or responses").
   - **Username** (`username.ts`, `UsernameField.vue`, FR-012): on blur, trim and lower-case. Before
     submission: required; at most `usernameMaxLength`; only `a-z`, `0-9`, `.`, `_`, `-`; at least
     one letter or digit; not `api`. These are the rules the contract documents on
@@ -518,13 +531,13 @@ canonical names") names them.
     `invalidFormat` (`format: accountUsername`), `reserved`, `tooLong` and `409 account-exists`
     (FR-016).
   - **Password** (FR-014, as aligned): `AccountPasswordField.vue` wraps UI 005's shared
-    `NewPasswordFields.vue` without `confirm` (show and hide through `PasswordInput`, "Generate" from
-    `src/shared/password/generate.ts` that meets the policy and reveals and offers to copy, and
-    `PasswordPolicyChecklist` over `getPasswordPolicy`). The checklist marks rules while typing and
-    never blocks submission; a value that begins with a recognised hash-scheme prefix gets UI 003's
-    pre-hashed notice (stored as given, without the policy check). Server errors (`tooShort`,
-    `missingCharacterClass`) are shown on the field. The value is local component state, cleared on
-    unmount.
+    `NewPasswordFields.vue` without `confirm`, which combines `PasswordField.vue` (show and hide,
+    "Generate" from `src/shared/password/generate.ts` that meets the policy and reveals and offers
+    to copy) and `PasswordPolicyHints.vue` (rules from `src/shared/password/policy-rules.ts` over
+    `getPasswordPolicy`). The hints mark rules while typing and never block submission; a value that
+    begins with a recognised hash-scheme prefix gets UI 003's pre-hashed notice (stored as given,
+    without the policy check). Server errors (`tooShort`, `missingCharacterClass`) are shown on the
+    field. The value is local component state, cleared on unmount.
   - **Domain picker** (FR-013): UI 004's shared `src/shared/components/DomainPicker.vue` in multiple
     mode over `listDomains` (search, infinite list). T040 adds, only if missing and without changing
     other callers, a full-screen presentation below `md` (a Reka `Dialog` with a search field and a
@@ -537,7 +550,7 @@ canonical names") names them.
     `success.admin_added`) and the detail page opens with `router.replace`.
 - **Rationale**: Every value comes from the contract or its capabilities read (conventions: no
   hard-coded limits). Reusing the shared picker and password fields follows the canonical names;
-  direct calls keep passwords out of every cache.
+  `useSecretRequest` keeps passwords out of every cache.
 - **Alternatives considered**: A feature-local picker and dialog: rejected; UI 004 promoted the
   shared picker. Blocking submission on the checklist (the spec's first wording): rejected for
   consistency with UI 003 and UI 005 and because the API accepts pre-hashed values without the
@@ -552,7 +565,7 @@ canonical names") names them.
     `changedSince()`):
     - Account: username, status, creation and modification dates (`DateTime`); edit: username and
       status; a separate "Set a new password" form (`PasswordChangeForm.vue`) in the same section
-      sends `{ password }` as a direct client call with `If-Match` (R14), clears the field and
+      sends `{ password }` through `useSecretRequest` with `If-Match` (R14), clears the field and
       writes the returned account;
     - Domains (domain administrators): `DomainAssignmentList` (each existing domain links to UI
       002's `domain-detail`; "not a domain" warning; an assignment status that differs from the
@@ -648,7 +661,7 @@ canonical names") names them.
     name); `notEligible` on `domains.<index>`, keyed by the code and the path only (plan finding 7);
     `notEligible` with `reason` on `mailbox` (three messages); `immutable` and `unknownField` fall
     back to the generic `validation.<code>`; the password codes (`tooShort`,
-    `missingCharacterClass`) come with UI 005's shared fields. `account-exists` maps to the username
+    `missingCharacterClass`) come with the shared password fields (UI 003, UI 005). `account-exists` maps to the username
     field (legacy `danger.object_exists`).
   - **Legacy keys** (FR-030, FR-072, SC-007): the 40 keys of the spec's list and the 19 flag labels
     `acl.<column>`, 59 in all, are mapped in `src/i18n/legacy-map.json`. Upstream `cs-cz` and
@@ -707,13 +720,14 @@ canonical names") names them.
   UI 001 R9's defaults (30 s stale time; capabilities 5 min); there is no polling and no focus
   refetch (conventions "Polling"). Mutations without secrets write the returned account with
   `setQueryData` and invalidate the lists (and the active count for administrators). Requests with a
-  password or token, the one-time link and the webmail sign-in are direct client calls whose secret
-  values never reach either cache (conventions "Secrets in requests or responses"). The identity
-  switch clears everything (R4).
-  - `src/api/query/client.ts` adds `impersonation-ended` to the session-level reactions of UI 001
-    R8 step 4, delegating to `switchIdentity({ reason: 'actingEndedByServer' })`; the request is never
-    retried. Direct client calls reach the same reaction through `handleSessionProblem()` from
-    `src/app/session`, which their callers invoke on an `ApiProblem`.
+  password or token and the one-time link run through `useSecretRequest`, whose values never reach
+  either cache (conventions "Secrets in requests or responses"). The identity switch clears
+  everything (R4).
+  - `impersonation-ended` joins the session-level reactions of `dispatchProblemReactions()` in
+    `src/api/query/client.ts` (UI 001 R8 step 4, the dispatcher UI 005 introduced for both caches and
+    `useSecretRequest`), delegating to `switchIdentity({ reason: 'actingEndedByServer' })`; the
+    request is never retried. So `unauthenticated`, `pending-action-required`, `forbidden`,
+    `permission-flag-required` and `impersonation-ended` behave the same for every request.
 - **Rationale**: UI 001's key factory and invalidation pattern; only the switch empties the cache.
 - **Alternatives considered**: Keeping capabilities across switches: rejected; they are
   administrator-only and an identity switch can remove access.
@@ -828,7 +842,9 @@ canonical names") names them.
   | Mailbox capabilities and password policy queries | `src/features/mailboxes/composables/{useMailboxCapabilities,usePasswordPolicy}.ts`, exported from `@/features/mailboxes` | UI 003 | `groupwareEnabled`; the checklist |
   | Pre-hashed password detection | `src/features/mailboxes/password/pre-hashed.ts` (or its shared location if promoted) | UI 003 | the pre-hashed notice |
   | `DomainPicker` (single or multiple) | `src/shared/components/DomainPicker.vue` | UI 004 (promoted) | domain assignments (R14) |
-  | `NewPasswordFields`, `PasswordInput`, `PasswordPolicyChecklist`, `policy.ts`, `generate.ts` | `src/shared/components/password/`, `src/shared/password/` | UI 005 | account passwords (R14) |
+  | `NewPasswordFields`, `PasswordField`, `PasswordPolicyHints`, `generate.ts`, `policy-rules.ts` | `src/shared/components/password/{NewPasswordFields,PasswordField,PasswordPolicyHints}.vue`, `src/shared/password/{generate,policy-rules}.ts` | UI 003, promoted by UI 005 | account passwords (R14) |
+  | `useSecretRequest`, `dispatchProblemReactions()` | `src/shared/composables/useSecretRequest.ts`, `src/api/query/client.ts` | UI 001 (API keys), UI 005 | requests with secrets (R10, R11, R14, R19) |
+  | `meta.public` and its guard rule | `src/app/router/guards.ts` | UI 005 | the landing route (R10) |
   | `OneTimeSecretDialog` | `src/shared/components/OneTimeSecretDialog.vue` | UI 005 (promoted) | one-time link (R11) |
   | Credential screens and `WebmailAction.vue` | `src/features/account/` | UI 005 | unavailable while acting (R8, R9) |
   | Self-service mock handlers | `tests/mocks/handlers/self-service/` | UI 005 | refusals while acting (R20) |

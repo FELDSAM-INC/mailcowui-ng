@@ -78,10 +78,12 @@ Not called by UI 007, but their screens (UI 001, UI 005) are made unavailable wh
 
 ## Calls that bypass the query cache
 
-Requests and responses that carry a secret are direct client calls, never `useQuery` or
-`useMutation` (`docs/conventions.md`, "Secrets in requests or responses"): `createAdmin`,
-`createDomainAdmin`, `updateAdmin` and `updateDomainAdmin` when they carry `password`,
-`createSessionWithSsoToken`, `issueDomainAdminSsoToken` and `createWebmailSignInOnBehalf`.
+Requests and responses that carry a secret run through the canonical `useSecretRequest`, never
+`useQuery` or `useMutation` (`docs/conventions.md`, "Secrets in requests or responses"):
+`createAdmin`, `createDomainAdmin`, `updateAdmin` and `updateDomainAdmin` when they carry
+`password`, `createSessionWithSsoToken` and `issueDomainAdminSsoToken`. Their problems still pass
+through `dispatchProblemReactions()`, so the session reactions apply. `createWebmailSignInOnBehalf`
+carries no secret in its body and is an ordinary mutation.
 
 ## Behaviour taken from the contract's root document
 

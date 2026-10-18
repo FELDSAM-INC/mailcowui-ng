@@ -38,7 +38,7 @@ are defined in `tests/mocks/scenarios/{administrators,acting,sso-sign-in}.ts`.
 
 | Story | Scenario | Steps | Expected (spec reference) |
 |---|---|---|---|
-| US1 | `domain-admins-three` | Open Domain administrators (`/ng/domain-admins`); search a domain; open an account and go back | Three cards with domains, two-factor status and status; the search survives the round trip (AS-1, AS-2) |
+| US1 | `domain-admins-three` | Open Domain administrators (`/ng/administrators/domain-admins`); search a domain; open an account and go back | Three cards with domains, two-factor status and status; the search survives the round trip (AS-1, AS-2) |
 | US1 | `domain-admins-three` | Add a domain administrator with two domains, a generated password and "unlimited quota" off | Success message names it; its detail opens; the request sends only the changed flag (AS-3, SC-001) |
 | US1 | `domain-admins-three` | Assign a third domain; suspend second factors; deactivate and remove an account | Exactly the new set; "suspended until next sign-in" after a confirmation that mentions passkeys; the deactivation confirmation states its effect; the removal dialog names the domains (AS-6, AS-7, AS-8, FR-026) |
 | US1 | `domain-admins-edge` | Open the account without domains, the one with `ALL`, the one without a permission record | "No domains" warning; "not a domain" warning; every switch off (edge cases) |
@@ -48,7 +48,7 @@ are defined in `tests/mocks/scenarios/{administrators,acting,sso-sign-in}.ts`.
 | US2 | `acting-admin` | Open a second tab; start acting in the first; return to the second and save something | The second tab shows the banner; a change prepared before the switch is not carried out and says why (AS-10) |
 | US2 | `acting-reseller-login-as`, `acting-reseller-no-login-as` | Sign in as the reseller and open the mailbox list | "Sign in as" only with the flag (AS-4) |
 | US3 | `domain-admins-three` | Change three switches, try to leave, then save | Leave guard; only the three flags sent; saved state after reload (AS-1 to AS-3, SC-010) |
-| US4 | `admins-one-active` | Open Administrators (`/ng/administrators`) and your own account | Remove disabled with its reason; deactivation disabled with "At least one administrator must stay active" (AS-3, AS-4) |
+| US4 | `admins-one-active` | Open Administrators (`/ng/administrators/admins`) and your own account | Remove disabled with its reason; deactivation disabled with "At least one administrator must stay active" (AS-3, AS-4) |
 | US4 | `admins-two-active` | Deactivate your own account | Confirmation that the session ends; then the sign-in screen with an explanation (AS-5) |
 | US5 | `sso-valid` | Open `/ng/sign-in/sso-token?sso_token=<scenario token>` signed out | Home of the domain administrator; the address bar and history hold no token (AS-1) |
 | US5 | `sso-valid-signed-in` | Open the same address while signed in as admin | The question names admin; "Continue" signs in as the link's account; "Stay signed in" keeps admin (AS-3) |

@@ -21,20 +21,20 @@ Generated root types, re-exported by `src/api/index.ts`.
 
 | Type | Operation(s) | Used by | Notes |
 |---|---|---|---|
-| `Admin`, `AdminCreateRequest`, `AdminPatch` | `listAdmins`, `getAdmin`, `createAdmin`, `updateAdmin`, `deleteAdmin`, `suspendAdminSecondFactors` | administrators | `etag` per entry; `password` is write-only and sent only by direct calls |
+| `Admin`, `AdminCreateRequest`, `AdminPatch` | `listAdmins`, `getAdmin`, `createAdmin`, `updateAdmin`, `deleteAdmin`, `suspendAdminSecondFactors` | administrators | `etag` per entry; `password` is write-only and sent only through `useSecretRequest` |
 | `DomainAdmin`, `DomainAdminAssignment`, `DomainAdminCreateRequest`, `DomainAdminPatch` | `listDomainAdmins`, `getDomainAdmin`, `createDomainAdmin`, `updateDomainAdmin`, `deleteDomainAdmin`, `suspendDomainAdminSecondFactors` | administrators | `domains[].domainUnicode` and `domainExists`; `domains` sent as ASCII strings |
 | `DomainAdminPermissions`, `DomainAdminPermissionsPatch`, `DomainAdminPermissionName` | as above | permission editor | `domainAdminPermissionNameValues` drives the groups |
 | `AccountSecondFactorStatus` | in `Admin` and `DomainAdmin`; list filter | badges, filters | `accountSecondFactorStatusValues` |
 | `AccountCapabilities` | `getAccountCapabilities` | creation forms, bulk | defaults, `bulkLimit`, `usernameMaxLength`, `ssoTokenLifetime` |
 | `AccountBulkActionRequest`, `BulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `applyAdminBulkAction`, `applyDomainAdminBulkAction` | bulk bar, summary | `version` = the entry's `etag` |
-| `DomainAdminSsoToken` | `issueDomainAdminSsoToken` | one-time link dialog | direct call; never cached; `Cache-Control: no-store` |
-| `SsoTokenSignInRequest`, `Session` | `createSessionWithSsoToken` | landing | direct call; the token is write-only |
+| `DomainAdminSsoToken` | `issueDomainAdminSsoToken` | one-time link dialog | `useSecretRequest`; never cached; `Cache-Control: no-store` |
+| `SsoTokenSignInRequest`, `Session` | `createSessionWithSsoToken` | landing | `useSecretRequest`; the token is write-only |
 | `Impersonation`, `ImpersonationStartRequest`, `ImpersonationStarted` | `startImpersonation`, `endImpersonation` | acting | the start response carries `identity` and `csrfToken` |
 | `Identity` (`impersonation`, `webmailOnBehalfEnabled`), `Session` (`impersonation`, `authMethod: ssoToken`) | `getIdentity`, `getSession` | banner, eligibility, guards | additive to UI 001 |
 | `MailboxWebmailSignIn` | `createWebmailSignInOnBehalf` | webmail opener | `url` opened in the same browser |
 | `AuditEvent` (`impersonatedAccount`), `AuditImpersonatedAccount` | `listAuditEvents` | audit log | new filter `impersonatedAccount` |
 | `Domain` | `listDomains` | shared domain picker (UI 004) | `name` (ASCII), `unicodeName` |
-| `PasswordPolicy` | `getPasswordPolicy` | password checklist (UI 005 fields, UI 003 query) | administrators may read it |
+| `PasswordPolicy` | `getPasswordPolicy` | `PasswordPolicyHints` (shared password fields, UI 003 query) | administrators may read it |
 | `MailboxCapabilities` | `getMailboxCapabilities` | webmail eligibility | `groupwareEnabled` (UI 003's query) |
 | `ImpersonationPermissionFlagProblem`, `Problem`, `ValidationProblem` | errors | problem mapping | `requiredFlags: [loginAs]` |
 
@@ -51,8 +51,8 @@ UI 001's row `administrators` becomes two consecutive rows (research R3):
 
 | id | path | admin | domainAdmin | mailboxUser | by | label | status after |
 |---|---|---|---|---|---|---|---|
-| `domainAdmins` | `/domain-admins` | ✓ | — | — | 007 | `nav.domainAdmins` (legacy `admin.domain_admins`) | US1 |
-| `administrators` | `/administrators` | ✓ | — | — | 007 | `nav.administrators` (legacy `admin.admins`) | US4 |
+| `domainAdmins` | `/administrators/domain-admins` | ✓ | — | — | 007 | `nav.domainAdmins` (legacy `admin.domain_admins`) | US1 |
+| `administrators` | `/administrators/admins` | ✓ | — | — | 007 | `nav.administrators` (legacy `admin.admins`) | US4 |
 
 Both start as placeholders with the classic link `/admin/system`.
 
@@ -134,21 +134,22 @@ focus refetch.
 
 ### Writes and invalidation
 
-"Direct" means a client call outside TanStack Query, because the request or response carries a
-secret (conventions "Secrets in requests or responses"); the caller writes the cache by hand.
+`useSecretRequest` (UI 001, UI 005) is a direct client call outside TanStack Query, used because the
+request or response carries a secret (conventions "Secrets in requests or responses"); it passes
+problems to `dispatchProblemReactions()`, and the caller writes the cache itself.
 
 | Write | How | On success | On 412 |
 |---|---|---|---|
-| `createAdmin`, `createDomainAdmin` | direct (password) | write `[…,'detail',username]` from the response; invalidate `[…,'list']`; for administrators `['admins','active-count']` | — |
+| `createAdmin`, `createDomainAdmin` | `useSecretRequest` (password) | write `[…,'detail',username]` from the response; invalidate `[…,'list']`; for administrators `['admins','active-count']` | — |
 | `updateAdmin`, `updateDomainAdmin` without `password` | `EditableSection` / `useVersionedSave` | write `[…,'detail',username]` (the new name after a rename, and remove the old key); invalidate `[…,'list']`; for an administrator status change `['admins','active-count']` | keep the input; reload the detail; mark the changed values (`changedSince()`) |
-| `updateAdmin`, `updateDomainAdmin` with `password` | direct, `If-Match` | write the detail; clear the field | reload the detail; message; the field keeps its value until the user leaves |
+| `updateAdmin`, `updateDomainAdmin` with `password` | `useSecretRequest`, `If-Match` | write the detail; clear the field | reload the detail; message; the field keeps its value until the user leaves |
 | `suspendAdminSecondFactors`, `suspendDomainAdminSecondFactors` | mutation with `If-Match` | write the detail; invalidate the list | reload; offer the action again |
 | `deleteAdmin`, `deleteDomainAdmin` | mutation with `If-Match` | remove the detail; invalidate the list; for administrators the active count | reload; confirm the removal again (conventions) |
 | `applyAdminBulkAction`, `applyDomainAdminBulkAction` | mutation | invalidate `[…,'list']`, `[…,'detail']` of the `done` items and, for administrators, the active count | per item: `outdated` stays selected |
 | `startImpersonation`, `endImpersonation` | `features/acting/api.ts` | identity switch: clear everything (R4) | — |
-| `createSessionWithSsoToken` | direct (token) | write `session`; the identity switch or UI 001's after-sign-in path | — |
-| `issueDomainAdminSsoToken` | direct (token in response) | nothing is cached | — |
-| `createWebmailSignInOnBehalf` | direct | nothing is cached | — |
+| `createSessionWithSsoToken` | `useSecretRequest` (token) | write `session`; the identity switch or UI 001's after-sign-in path | — |
+| `issueDomainAdminSsoToken` | `useSecretRequest` (token in response) | nothing is cached | — |
+| `createWebmailSignInOnBehalf` | mutation (no secret in the body) | nothing is cached | — |
 | `updateAdmin` of the own username | as above | identity switch `selfRenamed` | — |
 
 ## 4. Client state
@@ -162,8 +163,9 @@ secret (conventions "Secrets in requests or responses"); the caller writes the c
 | `shellNotice` | `{ key: 'actingEndedByServer' \| 'changedInAnotherTab'; refusedWrite: boolean; target?: string } \| null` | memory, until dismissed or the next navigation | shown by `ShellNotice.vue`, announced (assertive) |
 | `notice` (UI 001) | adds `'ssoLinkInvalid' \| 'selfDeactivated'` | one-shot | shown on the sign-in screen |
 
-The sign-in token captured by the landing lives in a module-level variable of
-`src/features/auth/sso-token-capture.ts`, cleared after the exchange or the "Stay signed in" choice.
+The sign-in token captured by the landing (or handed over by UI 014's arrival page through
+`handOverSsoToken()`) lives in a module-level variable of `src/features/auth/sso-token-capture.ts`,
+cleared after the exchange or the "Stay signed in" choice.
 Issued links live in the dialog's local state; passwords in the form's local state.
 
 ### Device storage
@@ -184,24 +186,26 @@ differs; otherwise UI 001's handling applies (R4).
 
 | Name | Path | Layout | Access | Title key | Component (lazy) |
 |---|---|---|---|---|---|
-| `domain-admins` | `/domain-admins` | shell | nav `domainAdmins` | `domainAdmins.title` | `features/administrators/pages/DomainAdminsPage.vue` |
-| `domain-admin-create` | `/domain-admins/-/new` | shell | nav `domainAdmins` | `domainAdmins.create.title` | `…/DomainAdminCreatePage.vue` |
-| `domain-admin-detail` | `/domain-admins/:username([A-Za-z0-9._-]{1,255})` | shell | nav `domainAdmins` | `domainAdmins.detail.title` | `…/DomainAdminDetailPage.vue` |
-| `admins` | `/administrators` | shell | nav `administrators` | `admins.title` | `…/AdminsPage.vue` |
-| `admin-create` | `/administrators/-/new` | shell | nav `administrators` | `admins.create.title` | `…/AdminCreatePage.vue` |
-| `admin-detail` | `/administrators/:username([A-Za-z0-9._-]{1,255})` | shell | nav `administrators` | `admins.detail.title` | `…/AdminDetailPage.vue` |
-| `sign-in-sso-token` | `/sign-in/sso-token` | auth | any session state (`meta.anySessionState`) | `ssoSignIn.title` | `features/auth/pages/SsoTokenLandingPage.vue` |
+| `administrators` | `/administrators` | shell | — | — | redirect to `domain-admins`, keeping the query |
+| `domain-admins` | `/administrators/domain-admins` | shell | nav `domainAdmins` | `domainAdmins.title` | `features/administrators/pages/DomainAdminsPage.vue` |
+| `domain-admin-create` | `/administrators/domain-admins/-/new` | shell | nav `domainAdmins` | `domainAdmins.create.title` | `…/DomainAdminCreatePage.vue` |
+| `domain-admin-detail` | `/administrators/domain-admins/:username([A-Za-z0-9._-]{1,255})` | shell | nav `domainAdmins` | `domainAdmins.detail.title` | `…/DomainAdminDetailPage.vue` |
+| `admins` | `/administrators/admins` | shell | nav `administrators` | `admins.title` | `…/AdminsPage.vue` |
+| `admin-create` | `/administrators/admins/-/new` | shell | nav `administrators` | `admins.create.title` | `…/AdminCreatePage.vue` |
+| `admin-detail` | `/administrators/admins/:username([A-Za-z0-9._-]{1,255})` | shell | nav `administrators` | `admins.detail.title` | `…/AdminDetailPage.vue` |
+| `sign-in-sso-token` | `/sign-in/sso-token` | auth | every session state (`meta.public: true`, UI 005) | `ssoSignIn.title` | `features/auth/pages/SsoTokenLandingPage.vue` |
 
-Detail pages take UI 002's `edit=<section>` parameter for the section being edited. UI 014 maps
-`/edit/domainadmin/{username}` to `domain-admin-detail`, `/edit/admin/{username}` to
-`admin-detail`, `/admin/system` to one of the two lists, and any classic domain administrator
-address with `sso_token` to `sign-in-sso-token` with that parameter.
+Detail pages take UI 002's `edit=<section>` parameter for the section being edited. These are the
+route names and paths UI 014's route table lists: it maps `/edit/domainadmin/{username}` to
+`domain-admin-detail`, `/edit/admin/{username}` to `admin-detail`, `/admin/system` to
+`administrators`, and any classic domain administrator address with `sso_token` to its arrival page,
+which hands the token over in memory (`handOverSsoToken()`) and opens `sign-in-sso-token`.
 
 ### Address parameters (`useListState` schemas in `src/features/administrators/list-state.ts`)
 
 Defaults are omitted from the address; invalid values fall back to the default (UI 001 §5).
 
-**Domain administrators** (`/domain-admins`):
+**Domain administrators** (`/administrators/domain-admins`):
 
 | Param | Type | Default | Maps to |
 |---|---|---|---|
@@ -217,7 +221,7 @@ Defaults are omitted from the address; invalid values fall back to the default (
 | `page` | integer ≥ 1 | 1 | `offset = (page − 1) × size` |
 | `size` | 25, 50, 100 | 25 | `limit` |
 
-**Administrators** (`/administrators`): `q`, `status`, `tfa`, `pending`, `sort` (`username`,
+**Administrators** (`/administrators/admins`): `q`, `status`, `tfa`, `pending`, `sort` (`username`,
 `active`, `createdAt`, `modifiedAt`), `order`, `page`, `size`, mapped as above.
 
 **Audit log** (UI 001 §5) gains `impersonated` (string ≤ 255) → `impersonatedAccount`.
@@ -230,7 +234,7 @@ API reports them (conventions).
 | Field | Rule | Message key |
 |---|---|---|
 | Username (create, rename) | trimmed and lower-cased on blur; required; ≤ `usernameMaxLength`; only `a-z 0-9 . _ -`; at least one letter or digit; not `api` | `validation.required`, `validation.tooLong`, `validation.format.accountUsername`, `accounts.validation.reservedUsername` |
-| Password (create) | required; ≤ 4,096 characters; the policy rules marked met or not met while typing, never blocking (FR-014); a hash-scheme prefix shows the pre-hashed notice | `validation.required`, `validation.tooLong`, UI 005's checklist texts |
+| Password (create) | required; ≤ 4,096 characters; the policy rules marked met or not met while typing by `PasswordPolicyHints`, never blocking (FR-014); a hash-scheme prefix shows the pre-hashed notice | `validation.required`, `validation.tooLong`, the shared hints' texts |
 | Password (change) | as at creation; sent only when filled | as above |
 | Domains (create, edit) | at least one selected; entries with `domainExists: false` are not part of the edit selection | `domainAdmins.validation.domainRequired` |
 | Bulk selection | ≤ `bulkLimit` (further selection disabled at the limit); administrators' `deactivate` blocked by `planBulk` step 2 | `accounts.bulk.limit`, `admins.reason.lastActiveAdmin` |

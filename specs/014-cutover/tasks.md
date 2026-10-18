@@ -78,12 +78,12 @@ templates, schemas, the nginx harness and CI (research R11, R15).
   - `RR` ids match `^RR[0-9]{3,4}$` and `CL` ids `^CL[0-9]{2,3}$`.
 - [ ] T005 [P] Create the nginx harness:
   - `tests/nginx/compose.yaml`, with these services:
-    - `nginx-mailcow`: `ghcr.io/mailcow/nginx:1.30.4-1` pinned by digest. Environment: `MAILCOW_HOSTNAME=mail.example.test`, `ADDITIONAL_SERVER_NAMES=webmail.example.test`, `HTTPS_PORT=8443`, `HTTP_PORT=8080`, `SKIP_SOGO=n`, `SKIP_RSPAMD=n`, `PHPFPMHOST=php-fpm-mailcow`, `SOGOHOST=sogo-stub`, `RSPAMDHOST=rspamd-stub`. It mounts `tests/nginx/fixtures/mailcow/data/conf/nginx` at `/etc/nginx/conf.d`, the stub web root at `/web` and generated certificates at `/etc/ssl/mail`, and publishes `127.0.0.1:${NGC_HARNESS_PORT:-18443}:8443`;
-    - `php-fpm-mailcow`: `php:8.4-fpm-alpine`, with pools on 9001 and 9002 and the docroot `/web`;
+    - `nginx-mailcow`: `ghcr.io/mailcow/nginx:1.30.4-1` pinned by digest. Environment: `MAILCOW_HOSTNAME=mail.example.test`, `ADDITIONAL_SERVER_NAMES=webmail.example.test`, `HTTPS_PORT=8443`, `HTTP_PORT=8080`, `ENABLE_IPV6=false`, `SKIP_SOGO=n`, `SKIP_RSPAMD=n`, `PHPFPMHOST=php-fpm-mailcow`, `SOGOHOST=sogo-stub`, `RSPAMDHOST=rspamd-stub`. It mounts `tests/nginx/fixtures/mailcow/data/conf/nginx` at `/etc/nginx/conf.d`, the stub web root at `/web` and generated certificates at `/etc/ssl/mail`, and publishes `127.0.0.1:${NGC_HARNESS_PORT:-18443}:8443`;
+    - `php-fpm-mailcow`: `php:8.4-fpm-alpine`, with pools on 9001 and 9002, the docroot `/web`, and the network alias `phpfpm`, because the baseline template's 9082 server hard-codes `fastcgi_pass phpfpm:9001` and nginx resolves it at start;
     - `restv2-mailcow`: a php-fpm stub on 9000 serving `/app/public/index.php`;
     - `ng-mailcow`: `nginxinc/nginx-unprivileged:1.28-alpine` serving `tests/nginx/fixtures/ng` under `/ng/`;
     - `sogo-stub` and `rspamd-stub`: busybox `httpd` on 20000 and 11334.
-  - `tests/nginx/global-setup.ts`: generate a self-signed certificate (`alpine` plus `openssl`) into a temporary directory, copy the vendored templates of each `verifiedAgainst` release into `fixtures/mailcow/data/conf/nginx/templates/`, run `compose up -d --wait`, and tear down at the end.
+  - `tests/nginx/global-setup.ts`: generate a self-signed certificate (`alpine` plus `openssl`) into a temporary directory, copy the vendored templates of each `verifiedAgainst` release into `fixtures/mailcow/data/conf/nginx/templates/`, write `fixtures/ng/release.ready.json` and `release.not-ready.json` with the mapping digest of the generated rules, run `compose up -d --wait`, and tear down at the end.
   - `vitest.nginx.config.ts`: node environment, `fileParallelism: false`, 120 s hooks.
   - `scripts/cutover/harness.sh up|down`.
   - `tests/nginx/helpers.ts`: install or remove the generated files in the fixture mailcow directory, write the state bits and reload, send requests with a chosen Host, SNI, method and cookies without following redirects, and read the nginx-mailcow logs.
@@ -91,7 +91,7 @@ templates, schemas, the nginx harness and CI (research R11, R15).
 - [ ] T006 [P] Create the harness fixtures:
   - `tests/nginx/fixtures/web/`: a PHP stub for every classic script of data-model.md §2 and the exclusions. Each answers with a fixture status, content type and header `X-Stub: <script>?<query>`, including `index.php` answering `404` on `autodiscover.` and `autoconfig.` hosts and `mobileconfig.php` answering `302 Location: index.php?mobileconfig[&only_email][&app_password]` when signed out. Add the static files of X10;
   - `tests/nginx/fixtures/api/public/index.php`: `GET /api/v2/health/ready`, `/health/live` and `/public-config`, with the announcement switchable through a fixture file;
-  - `tests/nginx/fixtures/ng/`: `index.html`, `release.json`, and the variants `release.ready.json` and `release.not-ready.json`;
+  - `tests/nginx/fixtures/ng/`: `index.html` and `release.json` (a copy of one of the two variants that `global-setup.ts` writes with the current digest);
   - `tests/nginx/fixtures/mailcow/`: `mailcow.conf` with the harness host names and ports, `data/web/inc/app_info.inc.php` with `$MAILCOW_GIT_VERSION="2026-09a";`, `data/conf/nginx/` containing only `site.restv2.custom` copied from mailcow-rest-v2's `deploy/nginx/`, and `docker-compose.yml` pointing to `tests/nginx/compose.yaml` for the CLI's Compose detection.
 - [ ] T007 [P] Extend `.github/workflows/ci.yml` (UI 001 R28) with these jobs:
   - `cutover` (needs `quality`): `npm run cutover:check`, `npm run cutover:readiness -- --allow-unsigned`, `npm run cutover:classic-links` and `shellcheck deploy/cutover/bin/ng-cutover scripts/cutover/*.sh`;
@@ -213,6 +213,7 @@ signed out and signed in, on 360 px and desktop (spec US1 "Independent Test").
   - **alias** `john@example.org`: `listAliases` with `address`, then a `replace`. An empty result shows UI 004's alias not-found state with a way to the list;
   - **template** `12`: `getDomainTemplate` `200` leads to `domain-template-detail`. A `404` leads to `getMailboxTemplate`, which leads to `mailbox-template-detail`. Both `404` show the domain templates not-found state;
   - **`403`**: the no-access state (UI 001 FR-045);
+  - **network failure or `5xx`**: UI 001's error state with a retry, and no `replace`;
   - **sieve-filter**: while SF is not pinned, a `replace` to `filters` and the arrival marked as a fallback (plan owner question 1). Once pinned, `listSieveFilters` with `id` and a `replace` to `filter-detail` with the filter's `mailbox` and `filterId`; an empty result shows the filters not-found state.
 - [ ] T021 [P] [US1] Extend `tests/unit/app/router/guards.spec.ts` and `tests/unit/app/router/return-to.spec.ts`:
   - the `arrival` route is reachable in every session state (anonymous, pending second factor, restricted, active) without a guard redirect;
@@ -247,7 +248,7 @@ signed out and signed in, on 360 px and desktop (spec US1 "Independent Test").
 ### Implementation for User Story 1
 
 - [ ] T025 [US1] Implement `src/features/cutover/resolve-arrival.ts` (research R3; data-model.md §2, §5) and `src/features/cutover/arrival-state.ts` with `kind`, `row`, `targetPath` and `visible` (data-model.md §6). The device counters come in T063.
-- [ ] T026 [US1] Implement `src/features/cutover/api.ts` (query functions for `getAlias`, `listAliases` with `address` and `limit=1`, `getDomainTemplate`, `getMailboxTemplate`, and `listSieveFilters` with `id` once SF is pinned; until then the `sieve-filter` kind replaces itself with `filters` as a fallback arrival) and `src/features/cutover/pages/ClassicTargetPage.vue`. The page shows a loading state, `router.replace` to the detail route, or the target feature's not-found or no-access component, exported through that feature's `index.ts`.
+- [ ] T026 [US1] Implement `src/features/cutover/api.ts` (query functions for `getAlias`, `listAliases` with `address` and `limit=1`, `getDomainTemplate`, `getMailboxTemplate`, and `listSieveFilters` with `id` once SF is pinned; until then the `sieve-filter` kind replaces itself with `filters` as a fallback arrival) and `src/features/cutover/pages/ClassicTargetPage.vue`. The page shows a loading state, `router.replace` to the detail route, the target feature's not-found or no-access component (exported through that feature's `index.ts`), or UI 001's error state with a retry.
 - [ ] T027 [US1] Implement `src/features/cutover/pages/ArrivalPage.vue`:
   1. read `window.location.hash` raw, once, on setup;
   2. set the arrival state;
@@ -372,7 +373,7 @@ each, roll back, and check that every classic address answers as in the baseline
 - [ ] T043 [US3] Implement `scripts/cutover/release-manifest.mjs`. Add `ARG CUTOVER_READY=0` and its environment variable to the build stage of `docker/Dockerfile`. Add `location = /ng/release.json { add_header Cache-Control "no-cache" always; … }`, with the security headers include, to `docker/nginx/default.conf`.
 - [ ] T044 [US3] Implement `scripts/cutover/readiness.mjs`, with validation, `--allow-unsigned`, `--scaffold` and `--render` to `docs/cutover/readiness-register.md`. Create `cutover/readiness-register.json` with the `changed` entry `014#M31` (while SF is open) and the `kept-classic` entry "API keys for `/api/v1` (configuration › Access › Administrators › API)" (`entryTarget: "api-v1-keys"`), `deliveredBy: null` and `signOff: null` (data-model.md §8).
 - [ ] T045 [US3] Implement `scripts/cutover/gates.mjs`. It runs the five gates of research R8:
-  1. no `placeholder` catalogue entry, by running `tests/unit/app/navigation/catalogue.spec.ts` (its no-placeholder assertion is added in T052);
+  1. no `placeholder` catalogue entry and no `PlaceholderPage` route, by running `tests/unit/features/cutover/no-placeholders.spec.ts` (written in T052);
   2. the readiness register is signed (`readiness.mjs` without `--allow-unsigned`);
   3. the classic links are clean (`classic-links-scan.mjs --cutover-ready`);
   4. `tests/unit/features/cutover/targets.spec.ts` passes;
@@ -435,7 +436,7 @@ forbidden (spec US4 "Independent Test").
   - it allows only `/classic?to=<entry key>`, the prefixes `/api/v2/`, `/api/`, `/SOGo`, `/oauth/` and `/rspamd/`, and elements marked `data-operator-link`;
   - it fails when `[data-testid="placeholder-page"]` appears.
 
-  Then update `tests/unit/app/navigation/catalogue.spec.ts` (UI 001) to assert that no entry has `status: 'placeholder'`.
+  Then write `tests/unit/features/cutover/no-placeholders.spec.ts`: no entry of `src/app/navigation/catalogue.ts` has `status: 'placeholder'`, and no route of the real router renders `PlaceholderPage` (FR-003). Adjust UI 001's `tests/unit/app/navigation/visibility.spec.ts` where it relies on placeholder rows.
 
 ### Implementation for User Story 4
 

@@ -316,7 +316,8 @@ src/features/cutover/
 src/i18n/messages/{en-gb,cs-cz,sk-sk}.json   # cutover.* keys
 tests/
 ├── unit/cutover/{mapping,generate,readiness,classic-links,release-manifest,smoke,report,preflight}.spec.ts
-├── unit/features/cutover/{fragment,classic-decode,resolve-arrival,arrival-state,targets,ArrivalNotice,ClassicApiKeysNote,ClassicTargetPage}.spec.ts
+├── unit/features/cutover/{fragment,classic-decode,resolve-arrival,arrival-state,targets,no-placeholders,ArrivalNotice,ClassicApiKeysNote,ClassicTargetPage}.spec.ts
+├── unit/features/auth/sso-token-handover.spec.ts
 ├── e2e/cutover/{arrival-targets,arrival-notice,api-keys-note,classic-link-crawl}.spec.ts
 ├── nginx/
 │   ├── compose.yaml                   # real mailcow nginx image + stubs + app image

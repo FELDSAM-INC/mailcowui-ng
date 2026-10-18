@@ -75,20 +75,24 @@ Edit mailbox page and the mailbox templates tab and edit page."
   FR-042). (agent decision: legacy renders such controls as plain text with the "Prohibited by ACL"
   tooltip; read-only display tells the domain administrator what the mailbox will get; the API
   omits the overlapping permissions (API FR-035), so the UI cannot show them.)
-- Q: How is a quota entered and displayed? → A: Entered as a number with a MiB or GiB unit,
-  converted to whole MiB, with a separate "Unlimited" switch instead of legacy's "0 = ∞"; the
-  largest allowed quota is shown next to the field. Usage is displayed in binary units with a bar
-  whose style changes at 75% and 90%, as in legacy, always with the percentage as text (FR-011,
-  FR-034). (agent decision: API FR-009 requires whole MiB and uses 0 for unlimited; an explicit
-  switch avoids creating an unlimited mailbox by typing 0; GiB entry suits today's quota sizes.)
+- Q: How is a quota entered and displayed? → A: Entered as a number with a MiB, GiB or TiB unit
+  that must come to a whole number of MiB and at least 1 MiB, with a separate "Unlimited" switch
+  instead of legacy's "0 = ∞"; a stored value is shown in the largest unit that represents it
+  exactly, as in UI feature 002. The largest allowed quota is shown next to the field. Usage is
+  displayed in binary units with a bar whose style changes at 75% and 90%, as in the legacy mailbox
+  list, always with the percentage as text (FR-011, FR-034). (agent decision: API FR-009 requires
+  whole MiB and uses 0 for unlimited; an explicit switch avoids creating an unlimited mailbox by
+  typing 0; the same entry rules as the domain screens keep the app consistent.)
 - Q: How does bulk selection work across pages, and what does the user see afterwards? → A: The
-  selection persists across pages, searches and filters until it is cleared or an action finishes,
-  is capped at 100 with a visible counter, and "select all" selects the current page. Afterwards the
-  UI shows the number of mailboxes per outcome and a list of every mailbox with its translated
-  outcome; mailboxes that failed or were refused stay selected for a retry, the others are
-  deselected. If the connection drops before the response, the outcome is reported as unknown, the
-  list is refreshed, and the request is never repeated automatically (FR-054, FR-056). (agent
-  decision: API FR-054 and FR-055 set the limit and return one result per mailbox; legacy reloads
+  selection holds only mailboxes of the current page and is cleared, with an announcement, when the
+  page, page size, search, filters or sort change, as in UI feature 002. "Select all" selects the
+  current page; the largest page size equals the bulk limit of 100. Afterwards the UI shows the
+  number of mailboxes per outcome and a list of every mailbox with its translated outcome;
+  mailboxes that failed or were refused stay selected for a retry, the others are deselected. If
+  the connection drops before the response, the outcome is reported as unknown, the list is
+  refreshed, and the request is never repeated automatically (FR-054, FR-056). (agent decision: API
+  FR-054 and FR-055 set the limit and return one result per mailbox; clearing the selection never
+  lets an action reach mailboxes the user no longer sees and matches the domain list; legacy reloads
   the page and shows only toasts; keeping failures selected makes a retry one tap.)
 - Q: How strong must the delete confirmations be? → A: A single deletion uses a dialog that names
   the mailbox, shows its storage used and message count, explains the garbage area and lists the
@@ -373,12 +377,13 @@ afterwards.
 
 **Acceptance Scenarios**:
 
-1. **Given** 50 mailboxes selected on two pages, **When** the user chooses "Deactivate" and
+1. **Given** 50 mailboxes selected on a page of 50, **When** the user chooses "Deactivate" and
    confirms, **Then** the result says that all 50 were done and the list shows them as inactive.
 2. **Given** a selection in which two mailboxes were deleted elsewhere, **When** an action is
    applied, **Then** those two are reported as not found and the others as done.
-3. **Given** 100 selected mailboxes, **When** the user tries to select another, **Then** the
-   selection is refused with a message that states the limit of 100.
+3. **Given** a selection, **When** the user goes to the next page or changes the search,
+   **Then** the selection is cleared and this is announced, so no action can reach mailboxes that
+   are no longer shown.
 4. **Given** a domain administrator without the "protocol access" flag, **When** they open the bulk
    actions, **Then** no protocol action is offered.
 5. **Given** a bulk deletion of three mailboxes in which the mail store of one cannot be cleaned,
@@ -515,7 +520,7 @@ viewports.
   claims that a mailbox has never logged in.
 - **Mailbox already carrying more tags than the limit**: all tags are shown; saving requires
   reducing the set to the limit.
-- **Selected mailbox no longer exists when a bulk action runs**: reported as not found.
+- **Selected mailbox deleted elsewhere before a bulk action runs**: reported as not found.
 - **Bulk action refused as a whole** (role, key scope or permission): the message names the
   reason, nothing changed, and the selection is kept.
 - **Connection lost during a bulk action**: the outcome is reported as unknown, the list is
@@ -697,10 +702,11 @@ viewports.
   mailbox and use its new version.
 - **FR-033**: Leaving a section with unsaved changes MUST ask the user whether to discard them.
 - **FR-034**: Wherever a quota is entered (creation, the general section, templates), it MUST be
-  entered as a number with a MiB or GiB unit and converted to whole MiB, with a separate
-  "Unlimited" switch; typing 0 MUST NOT mean unlimited. For a mailbox, the field MUST show the
-  largest quota the mailbox may be given and refuse a larger value before saving, and a quota below
-  the storage used MUST be accepted with a warning.
+  entered as a number with a MiB, GiB or TiB unit that comes to a whole number of MiB and at least
+  1 MiB, with a separate "Unlimited" switch; typing 0 MUST NOT mean unlimited. A stored value MUST
+  be shown in the largest unit that represents it exactly, as in UI feature 002. For a mailbox, the
+  field MUST show the largest quota the mailbox may be given and refuse a larger value before
+  saving, and a quota below the storage used MUST be accepted with a warning.
 - **FR-035**: The status control MUST explain the effect of each value before saving: an active
   mailbox receives mail and signs in; a mailbox with login disallowed receives mail but cannot sign
   in and disappears from the webmail address book; an inactive mailbox receives no mail.
@@ -756,11 +762,12 @@ viewports.
 #### Deleting a mailbox
 
 - **FR-045**: Deleting a mailbox MUST require confirmation in a dialog that names the mailbox,
-  shows its storage used and message count, says that its mail moves to mailcow's garbage area and
-  is purged after the server's retention period (API gap 4), and lists the kinds of data removed
-  with it: aliases whose only recipient it is, sender permissions, sync jobs, temporary aliases,
-  app passwords, filters, spam settings and allow and block lists, second factors and passkeys,
-  quarantine items, push notification settings and webmail data. It MUST say that aliases with
+  shows its current storage used and message count, loaded when the dialog opens, says that its
+  mail moves to mailcow's garbage area and is purged after the server's retention period (API gap
+  4), and lists the kinds of data removed with it: aliases whose only recipient it is, sender
+  permissions, sync jobs, temporary aliases, app passwords, filters, spam settings and allow and
+  block lists, second factors and passkeys, quarantine items, push notification settings and
+  webmail data. It MUST say that aliases with
   other recipients keep them. The confirm button MUST name the action and the mailbox, and the
   cancel choice MUST have the initial focus.
 - **FR-046**: After a successful deletion, the UI MUST announce it, remove the mailbox from the
@@ -793,10 +800,10 @@ viewports.
   activate, disallow login, deactivate, remove, or allow or disallow one of the six protocols. The
   protocol actions MUST NOT be offered to a domain administrator without the "protocol access"
   flag.
-- **FR-054**: A selection MUST persist across pages, searches and filters until the user clears it
-  or an action finishes, and MUST NOT exceed 100 mailboxes. "Select all" MUST select the mailboxes
-  of the current page. The UI MUST show the number selected and refuse further selections at the
-  limit with a message that states it.
+- **FR-054**: A selection MUST hold only mailboxes of the current page and MUST be cleared, with an
+  announcement, when the page, page size, search, filters or sort change. "Select all" MUST select
+  every mailbox of the current page. The UI MUST show the number selected, and a selection MUST
+  NOT exceed the bulk limit of 100, which equals the largest page size.
 - **FR-055**: Every bulk action MUST be confirmed in a dialog that names the action, its effect and
   the number of mailboxes. A bulk deletion MUST also list the selected addresses and the impact of
   FR-045, and MUST require typing the number of selected mailboxes before it can be confirmed.
@@ -925,7 +932,7 @@ removes it, and **Blocked by an API gap** waits for a capability listed under AP
 | Page length selector | FR-006, FR-008 | Matched (25, 50, 100), remembered |
 | "Refresh" button | FR-014 | Matched, plus automatic refresh after own changes |
 | Count badge in the card header | FR-006 | Matched (total) |
-| "Toggle all" | FR-054 | Improved: selects the current page within the limit of 100 |
+| "Toggle all" | FR-054 | Matched: selects the current page (at most 100) |
 | "Expand all" / "Collapse all" | FR-007, FR-008 | Dropped: no row collapse any more |
 | Mass actions: activate, disallow login, deactivate, remove | FR-053 to FR-056 | Improved: confirmation and one result per mailbox instead of a page reload |
 | Mass actions: protocol on/off (six protocols) | FR-053 | Matched; hidden without the "protocol access" flag |

@@ -43,16 +43,19 @@ English, Czech and Slovak."
   only on the mailbox-user page; one tap to the provider is quicker than typing a password, so it
   precedes the form.)
 - Q: What does "force single sign-on" do now that single sign-on exists? → A: When the option is set
-  and single sign-on is available, the role-neutral and mailbox-user screens show only "Sign in with
-  single sign-on" and the "Not the correct login?" links that the login page options allow: no
-  password form, no passkey action and no "Forgot password?". When the option is set but single
-  sign-on is not available (an LDAP provider, an incomplete configuration or none), the option is
-  ignored and the screens look as without it. The administrator and domain-administrator screens are
-  never affected. This replaces UI 001 FR-007 once this feature ships. (agent decision: API 012
-  FR-020 documents that clients then offer only single sign-on on the mailbox-user screen, and the
-  legacy page hides the form and the passkey button; the legacy option text applies it only "if an
-  external OIDC provider is configured", and legacy otherwise shows an empty login page, which locks
-  users out.)
+  and single sign-on is available, the role-neutral and mailbox-user screens hide the password form
+  and "Forgot password?" and keep passkey sign-in. The order is passkey sign-in (when the device
+  supports it), then "Sign in with single sign-on", plus the "Not the correct login?" links that the
+  login page options allow. This matches UI 001 FR-007, with the single sign-on action in place of
+  its notice that points to the classic interface. When the option is set but single sign-on is not
+  available (an LDAP provider, an incomplete configuration or none), the option is ignored and the
+  screens look as without it. The administrator and domain-administrator screens are never affected.
+  (orchestrator decision on the owner question, 2026-10-18: passkeys are phishing-resistant
+  credentials held by mailcow and the owner wants them first, as decided in UI 001; this
+  deliberately deviates from legacy and from the API 012 FR-020 client note, which also hide the
+  passkey button. Agent decision for the unavailable case: the legacy option text applies it only
+  "if an external OIDC provider is configured", and legacy otherwise shows an empty login page,
+  which locks users out.)
 - Q: How does the page a user asked for survive the round trip to the provider? → A: Before leaving
   for the provider, the app keeps the requested in-app address for this browser tab only, reads and
   discards it on return, opens it only if it is an address of the app (UI 001 FR-092), and otherwise
@@ -90,8 +93,9 @@ English, Czech and Slovak."
   endpoint or the LDAP hosts change in the same edit, the field becomes required and explains why.
   Secret fields are never filled with the administrator's own saved credentials and are emptied
   after every save, refusal or cancel. (agent decision: API 012 FR-014 makes secrets write-only,
-  kept when omitted and required again for a new receiving address; a configuration without its
-  secret cannot sign anyone in, so a remove action would only break it.)
+  kept when omitted and required again for a new receiving address. The "explicit remove action" of
+  `docs/conventions.md` does not apply: API 012 offers no removal of these secrets, and a
+  configuration without its secret cannot sign anyone in.)
 - Q: Which values does "Test connection" use, and must a test succeed before saving? → A: It tests
   the values currently entered, completed with the stored values for everything not being edited,
   and is offered in the setup's connection step, in the connection section's edit and on the
@@ -100,23 +104,27 @@ English, Czech and Slovak."
   test. (agent decision: API 012 FR-019 tests unsaved candidate settings; legacy places the test
   next to Save and does not require it; providers can be temporarily unreachable while the settings
   are right.)
-- Q: Which bulk actions does the OAuth2 apps screen offer? → A: Administrators select clients on the
-  current page, on phones through a selection mode, and can revoke all tokens of, or delete, the
-  selected clients after one confirmation that lists them with their token counts. The app sends one
-  request per client, continues after failures, shows progress and ends with a result per client and
-  a "Retry failed" action. Generating new secrets in bulk is not offered. The selection is cleared
-  when the page, search, filter, sort or page size changes. (agent decision: API 012 FR-060 has no
-  batch operations; legacy offers the three quick actions; each new secret must be shown and copied
-  individually, which a bulk run cannot do safely; UI 002 and 003 established the same bulk
-  pattern.)
+- Q: Which bulk actions does the OAuth2 apps screen offer? → A: In an explicit selection mode,
+  administrators select clients on the current page and can revoke all tokens of, or delete, the
+  selected clients through the API's bulk operations, with each client's version tag as listed. The
+  app shows one result per client; failed, refused and outdated clients stay selected for a retry,
+  and a dropped connection is reported as "outcome unknown" and never retried automatically.
+  Generating new secrets in bulk is not offered. The selection is cleared when the page, search,
+  filter, sort or page size changes. Until API 012 offers these bulk operations, the bulk actions
+  are not shown (API gap 4). (agent decision, aligned with `docs/conventions.md`: legacy offers the
+  quick actions, and the API conventions provide bulk operations wherever legacy has mass actions,
+  although API 012 FR-060 still excludes them; sending one request per client would work around the
+  API; each new secret must be shown and copied individually, which a bulk run cannot do safely.)
 - Q: How strong must the confirmations for destructive actions be? → A: Removing the configuration,
   changing the provider type, deleting a client, revoking a client's tokens and generating a new
   secret each need a confirmation dialog that names the item and states the consequences (token
-  counts for clients); no typing is required. Removal and type change are unavailable, with the
-  reason and a link to the affected mailboxes, while the configuration reports mailboxes of the
-  configured type. (agent decision: constitution II requires explicit confirmation showing what is
-  affected; the API refuses removal and type changes while mailboxes depend on the provider, so the
-  remaining impact is limited and recoverable by re-entering settings or issuing a new secret.)
+  counts for clients); no typing is required, except that a bulk deletion of clients needs the
+  number of selected clients typed. Removal and type change are unavailable, with the reason and a
+  link to the affected mailboxes, while the configuration reports mailboxes of the configured type.
+  (agent decision: constitution II requires explicit confirmation showing what is affected;
+  `docs/conventions.md` asks for the typed number in bulk deletions; the API refuses removal and
+  type changes while mailboxes depend on the provider, so the remaining impact is limited and
+  recoverable by re-entering settings or issuing a new secret.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -222,11 +230,12 @@ messages, and that the code and state are gone from the page address.
    sign-on action, and returns to the same page after the next sign-in.
 9. **Given** a single sign-on session, **When** the user signs out, **Then** the sign-out
    confirmation adds that they are still signed in at their organisation's provider.
-10. **Given** "force single sign-on" is set and single sign-on is available, **When** a visitor
-    opens the role-neutral or the mailbox-user sign-in screen, **Then** only "Sign in with single
-    sign-on" and the permitted "Not the correct login?" links are shown, without the password form,
-    the passkey action or "Forgot password?". **Given** the option is set but only an LDAP provider
-    is configured, **When** the screen opens, **Then** it looks as without the option.
+10. **Given** "force single sign-on" is set and single sign-on is available, **When** a visitor on a
+    device that supports passkeys opens the role-neutral or the mailbox-user sign-in screen,
+    **Then** passkey sign-in, then "Sign in with single sign-on" and the permitted "Not the correct
+    login?" links are shown, without the password form or "Forgot password?". **Given** the option
+    is set but only an LDAP provider is configured, **When** the screen opens, **Then** it looks as
+    without the option.
 11. **Given** a device that supports passkeys and single sign-on is available, **When** the
     role-neutral sign-in screen opens, **Then** the order is passkey sign-in, single sign-on, then
     the password form.
@@ -350,9 +359,10 @@ and confirm that a secret is visible only in the credentials dialog.
    whose client ID or redirect URIs contain "wiki" are listed, and a reload keeps the search.
 8. **Given** no clients, **When** the screen opens, **Then** an empty state explains what OAuth2
    apps are for and offers to add one.
-9. **Given** three selected clients of which one was deleted elsewhere, **When** the administrator
-   deletes them and confirms, **Then** the app reports a result per client (two deleted, one not
-   found) and offers "Retry failed". Generating new secrets is not offered as a bulk action.
+9. **Given** the API offers bulk operations and three selected clients of which one was changed
+   elsewhere, **When** the administrator deletes them, typing "3" to confirm, **Then** the app
+   reports a result per client (two deleted, one outdated) and the outdated client stays selected
+   for a retry. Generating new secrets is not offered as a bulk action.
 
 ---
 
@@ -406,7 +416,7 @@ client page, apply the new filters, and confirm the entries shown.
 - **"Force single sign-on" set while only an LDAP provider, an incomplete configuration or no
   provider exists**: the option is ignored and the normal sign-in screens are shown.
 - **"Force single sign-on" set on a device without passkey support**: only the single sign-on action
-  is shown, as on any device.
+  is shown, because passkey sign-in is not offered on such devices (UI 001 FR-010).
 - **Administrator on the role-neutral screen while "force single sign-on" applies**: they use the
   administrator screen through "Not the correct login?" or its own address, which keeps the password
   form.
@@ -448,7 +458,7 @@ client page, apply the new filters, and confirm the entries shown.
 - **FR-003**: Every screen and every collection of this feature MUST have defined loading, empty and
   error states. The error state MUST offer a retry and MUST keep any entered input. Every
   destructive action MUST ask for a confirmation that names the item and states what will be
-  affected; no confirmation of this feature requires typing.
+  affected. Only a bulk deletion requires typing (FR-065).
 
 #### Identity provider overview
 
@@ -568,8 +578,9 @@ client page, apply the new filters, and confirm the entries shown.
   equivalent ("every 15 minutes", "every 2 hours"). The Synchronisation section MUST explain that
   user import creates a mailbox for each provider user without one, that periodic full
   synchronisation re-applies the mapped template to existing mailboxes and never uses the default
-  template, and that a job runs at most once per interval and picks up changes at its next run. It
-  MUST link to the scheduled-job log of UI feature 011, or to its placeholder.
+  template, and that a job runs at most once per interval and picks up changes at its next run. Once
+  UI feature 011 ships, it MUST link to that feature's scheduled-job log; until then it MUST show no
+  link and no placeholder.
 - **FR-021**: For Keycloak, the mailpassword flow MUST be explained as letting mailboxes sign in
   with a password whose hash Keycloak keeps in the user's `mailcow_password` attribute. The form
   MUST state that the mailpassword flow, user import and periodic synchronisation need a service
@@ -663,13 +674,16 @@ client page, apply the new filters, and confirm the entries shown.
   otherwise it MUST come first. The password form MUST follow it after an "or" divider. The
   administrator and domain-administrator screens MUST NOT offer it.
 - **FR-041**: When the "force single sign-on" login option is set and single sign-on is available,
-  the role-neutral and mailbox-user sign-in screens MUST show only the single sign-on action and the
-  "Not the correct login?" links that the login page options allow (UI 001 FR-006). They MUST NOT
-  show the password form, the passkey action or "Forgot password?". When the option is set and
-  single sign-on is not available, the option MUST be ignored. The administrator and
-  domain-administrator screens MUST NOT be affected. This requirement replaces UI 001 FR-007.
-- **FR-042**: The hint of UI 001 FR-008 MUST no longer be shown: LDAP and Keycloak mailboxes sign in
-  with the password form, and single sign-on accounts use the single sign-on action.
+  the role-neutral and mailbox-user sign-in screens MUST NOT show the password form or "Forgot
+  password?". They MUST keep passkey sign-in, first when the device supports it, followed by the
+  single sign-on action and the "Not the correct login?" links that the login page options allow (UI
+  001 FR-006). The single sign-on action takes the place of the UI 001 FR-007 notice that points to
+  the classic interface; everything else of UI 001 FR-007 applies unchanged. When the option is set
+  and single sign-on is not available, the option MUST be ignored. The administrator and
+  domain-administrator screens MUST NOT be affected.
+- **FR-042**: The hint of UI 001 FR-008, which tells identity-provider accounts that they cannot use
+  their password here yet, MUST no longer be shown: LDAP and Keycloak mailboxes now sign in with the
+  password form, and single sign-on accounts use the single sign-on action.
 - **FR-043**: Starting single sign-on MUST show a busy state on the action and prevent a second
   start, request the start from the API, and then open the provider's authorization address that the
   API returns in the same tab. Before leaving, the app MUST keep the in-app address the user had
@@ -738,7 +752,7 @@ client page, apply the new filters, and confirm the entries shown.
   active tokens. Search, sort, filter, page and page size MUST be kept in the page address.
 - **FR-055**: On narrow screens each client MUST be a card with its client ID, its identifier, its
   first redirect URI and the number of further ones, and its active access and refresh token counts
-  ("No active tokens" when both are zero). Wide screens MAY show a table with the same values. No
+  ("No active tokens" when both are zero). Wide screens MUST show a table with the same values. No
   secret MUST appear.
 - **FR-056**: The empty state MUST explain that OAuth2 apps let other applications sign mailbox
   users in through this server and offer "Add OAuth2 client". A search or filter without matches
@@ -782,13 +796,23 @@ client page, apply the new filters, and confirm the entries shown.
   and stating that the application stops working at once, that its tokens are removed and that this
   cannot be undone. On success the client MUST disappear from the list, the outcome MUST be
   announced, and from the client page the app MUST return to the list.
-- **FR-065**: Administrators MUST be able to select clients on the current page, on narrow screens
-  through a selection mode, and to revoke all tokens of, or delete, the selected clients. One
-  confirmation MUST list the selected clients with their token counts and the consequences of FR-063
-  or FR-064. The app MUST send one request per client with its version tag, continue after failures,
-  show progress, and end with a result per client and a "Retry failed" action that sends only the
-  failed clients. Generating new secrets MUST NOT be offered as a bulk action. The selection MUST be
-  cleared when the page, search, filter, sort or page size changes.
+- **FR-065**: When the API offers bulk operations for OAuth2 clients, administrators MUST be able to
+  select clients on the current page in an explicit selection mode and to revoke all tokens of, or
+  delete, the selected clients:
+  - one confirmation MUST list the selected clients with their token counts and the consequences of
+    FR-063 or FR-064, and a bulk deletion MUST require the number of selected clients to be typed;
+  - the app MUST send the API's bulk operation with each client's version tag as listed, within the
+    bulk limit the API reports;
+  - the app MUST show a summary with one result per client (done, not found, refused, outdated or
+    failed), and failed, refused and outdated clients MUST stay selected so that they can be
+    retried;
+  - a dropped connection MUST be reported as "outcome unknown" and MUST NOT be retried
+    automatically;
+  - generating new secrets MUST NOT be offered as a bulk action;
+  - the selection MUST be cleared when the page, search, filter, sort or page size changes.
+
+  Until the API offers these bulk operations, the app MUST NOT offer bulk actions and MUST NOT
+  replace them with one request per client.
 - **FR-066**: When an OAuth2 change is refused as outdated, the app MUST keep the entered redirect
   URIs and handle it as in FR-017. For a secret regeneration, a revocation or a deletion, it MUST
   show the current state of the client and ask again.
@@ -911,7 +935,7 @@ this feature, with the reason).
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
 | "Single Sign-On" button (`admin.iam_sso`) under "Other logins" on the mailbox-user page | Shown when a Keycloak or generic OIDC provider is configured; below the form; links to `/?iam_sso=1` | Improved: on the role-neutral and mailbox-user screens, after passkey sign-in and before the password form | FR-040, FR-043 |
-| `force_sso` login option | Hides the password form, the passkey button and "Forgot password?" on the mailbox-user page, even when no single sign-on is available | Matched when single sign-on is available; Improved: ignored when it is not, so that nobody is locked out | FR-041 |
+| `force_sso` login option | Hides the password form, the passkey button and "Forgot password?" on the mailbox-user page, even when no single sign-on is available | Changed, deliberate deviation: the password form and "Forgot password?" are hidden as in legacy, but passkey sign-in stays, first (owner decision, as in UI 001 FR-007); Improved: ignored while single sign-on is unavailable, so that nobody is locked out | FR-041 |
 | Return to `/` with code and state | State compared with the session; a mismatch is ignored silently; failures show "Login failed" | Improved: dedicated return screen, specific translated outcomes, code and state removed from the address | FR-045 to FR-049 |
 | Redirect after single sign-on | Mailbox user area or webmail | Changed: requested app page or home screen, as for every sign-in of UI 001 | FR-047 |
 | Provider token renewal on every page load; on failure, redirect to the provider | Silent redirect, the user may land on the provider's page unexpectedly | Improved: explanation on the sign-in screen with one action to sign in again | FR-052 |
@@ -925,7 +949,7 @@ this feature, with the reason).
 |---|---|---|---|
 | Information text (`admin.oauth2_info`, HTML) | Static text with endpoint paths | Improved: information panel with copyable endpoint addresses | FR-057 |
 | Table: ID, Client ID, Client secret, Redirect URI, actions | DataTables, client-side search, table state in browser storage; secret shown in clear | Improved: secret never listed; server-side search, sort, active-token filter and token counts; state in the page address | FR-054, FR-055 |
-| Toggle all, Quick actions Remove, Revoke all client tokens | One request for all selected items, no per-item result; only removal asks for confirmation | Improved: selection mode on phones, confirmation for both, result per client, retry | FR-065 |
+| Toggle all, Quick actions Remove, Revoke all client tokens | One request for all selected items, no per-item result; only removal asks for confirmation | Improved: selection mode, confirmation for both (typed number for deletion), result per client, failed items kept for retry; offered once API 012 has bulk operations (API gap 4) | FR-065 |
 | Quick action Generate new client secret | New secrets for all selected clients, visible only later in the table | Dropped: each new secret must be shown once and copied individually; offered per client | FR-062 |
 | Add OAuth2 client button and modal (one Redirect URI field, cached form) | Any text accepted, even unusable URIs; the secret appears later in the table | Improved: several redirect URIs, checked; secret shown once in a dialog | FR-058, FR-059 |
 | Edit action and Remove action per row | Edit page; generic confirmation | Improved: client page with every action; removal shows impact | FR-060, FR-064 |
@@ -981,7 +1005,7 @@ and mailbox list filters of API feature 003. At the time of writing the publishe
 | Version tags and outdated refusal | API 012 FR-050, FR-051 |
 | Audit records, target types, sign-in methods, failure reasons and filters | API 012 FR-052 to FR-054; API 001 FR-045 to FR-047 |
 | Problem types and validation rule codes | API 012 FR-057; API 001 FR-049, FR-055 |
-| No batch operations | API 012 FR-060 |
+| Bulk revoke-tokens and delete operations for OAuth2 clients, with per-item version tags and results, and the bulk limit | API conventions (`docs/conventions.md`, "Bulk actions"); not yet in API 012, whose FR-060 excludes them (gap 4) |
 | Mailbox templates list; mailbox list filter by authentication source | API 003 (mailbox templates, FR-013 there) |
 
 **Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
@@ -995,6 +1019,10 @@ wanted; until then the app behaves as stated):
    The app explains the behaviour and links to the scheduled-job log of UI feature 011 (FR-020).
 3. A cancellation or refusal reported by the provider on return cannot be passed to the API, so it
    is not audited as such; the app only cancels the pending sign-in (FR-048).
+4. API 012 FR-060 excludes batch operations, although the API conventions provide bulk operations
+   wherever legacy offers mass actions, as it does for OAuth2 clients (remove, revoke all tokens).
+   The app needs bulk revoke-tokens and bulk delete operations for OAuth2 clients, and the bulk
+   limit. Until API 012 is aligned, the app offers no bulk actions (FR-065).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1046,8 +1074,9 @@ wanted; until then the app behaves as stated):
 - **SC-012**: In a moderated test with at least 5 administrators, at least 4 name the cause of a
   failed connection test (address, certificate, credentials or provider response) from its result
   alone, without help.
-- **SC-013**: A bulk action on 20 OAuth2 clients reports an individual outcome for all 20, and a
-  retry sends only the clients that failed.
+- **SC-013**: Once the API offers bulk operations, a bulk action on 20 OAuth2 clients reports an
+  individual outcome for all 20, and only the clients that did not succeed stay selected for a
+  retry.
 
 ## Assumptions
 
@@ -1056,15 +1085,18 @@ wanted; until then the app behaves as stated):
   status announcements and the audit log screen, which this feature extends (FR-067). UI feature 002
   establishes the conventions for version-tag conflicts and section editing. UI feature 003 provides
   the mailbox list with its authentication-source filter and the mailbox templates. UI feature 011
-  provides the scheduled-job log; until then FR-020 links to its placeholder.
+  provides the scheduled-job log, which FR-020 links to once it ships. This feature follows
+  `docs/conventions.md`.
 - The API 012 contract, including the single sign-on availability in the public configuration and
   the path of the app's sign-in return address, is merged before this feature is planned. Until the
   API is implemented, the feature is built and tested against a mock generated from the contract.
 - The operator registers the app's return addresses at the provider (API 012 assumption). Until then
   single sign-on from the app fails on the provider's page.
-- Once this feature ships, FR-041 replaces UI 001 FR-007 ("force single sign-on" with a link to the
-  classic interface) and FR-042 replaces UI 001 FR-008 (the hint for identity-provider accounts).
-  The rest of the UI 001 sign-in screens is unchanged.
+- This feature is consistent with UI 001 FR-007 and FR-008. Under "force single sign-on", the
+  password form and "Forgot password?" stay hidden and passkey sign-in stays first, as UI 001
+  decided; this feature only adds the single sign-on action, in place of the notice that points to
+  the classic interface (FR-041), and retires the temporary FR-008 hint, because the password
+  sign-in it announced now works (FR-042). The rest of the UI 001 sign-in screens is unchanged.
 - The OAuth2 authorize, token and profile endpoints and the consent page stay in the classic
   interface until feature 014. A user authorising an application signs in there. Their paths are
   fixed and documented in the API contract, so the information panel shows them on the current host

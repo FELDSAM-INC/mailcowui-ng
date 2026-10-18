@@ -1,6 +1,8 @@
 // Tests of the translation tooling (constitution IV 1.3.0, SC-006, research R15, R27): the
 // completeness check of the new strings, the check of the legacy keys the source uses against the
 // bundled en-gb snapshot, and the review list of new strings that repeat a legacy text.
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -343,5 +345,56 @@ describe('coverage manifest (UI 002 research D2)', () => {
     input.app['en-gb'] = { ...input.app['en-gb'], validation: { belowInUse: 'In use: {inUse}' } }
     input.app['cs-cz'] = { ...input.app['cs-cz'], validation: { belowInUse: 'Použito: {inUse}' } }
     expect(checkMessages(input).errors.join('\n')).toMatch(/sk-sk.*validation\.belowInUse/)
+  })
+})
+
+describe('UI 012: enumerations the identity provider screen introduces (T003, research R26)', () => {
+  const realCoverage = JSON.parse(readFileSync('src/i18n/coverage.json', 'utf8')) as {
+    partial: Record<string, string[]>
+    complete: Record<string, string>
+  }
+  const realContract = JSON.parse(readFileSync('contract/openapi.json', 'utf8')) as Record<
+    string,
+    unknown
+  >
+  const realEnums = enumValuesFromSchema(readFileSync('src/api/generated/schema.ts', 'utf8'))
+
+  it('requires a key for every provider type and every test failure category', () => {
+    expect(realCoverage.complete['identityProvider.type']).toBe(
+      '#/components/schemas/IdentityProviderType',
+    )
+    expect(realCoverage.complete['identityProvider.test.failure']).toBe(
+      '#/components/schemas/IdentityProviderConnectionTestResult/properties/failureCategory/oneOf/0',
+    )
+    const { required, errors } = checkCoverage({
+      coverage: realCoverage,
+      enums: realEnums,
+      problemNames: [],
+      contract: realContract,
+    })
+    expect(errors).toEqual([])
+    for (const type of realEnums.identityProviderTypeValues ?? []) {
+      expect(required).toContain(`identityProvider.type.${type}`)
+    }
+    for (const category of realEnums.identityProviderConnectionTestResultFailureCategoryOneOf0Values ??
+      []) {
+      expect(required).toContain(`identityProvider.test.failure.${category}`)
+    }
+  })
+
+  it('fails when a test failure category has no text in a locale', () => {
+    const input = baseInput()
+    input.required = ['identityProvider.test.failure.timedOut']
+    input.app['en-gb'] = {
+      ...input.app['en-gb'],
+      identityProvider: { test: { failure: { timedOut: 'The provider did not answer in time.' } } },
+    }
+    input.app['cs-cz'] = {
+      ...input.app['cs-cz'],
+      identityProvider: { test: { failure: { timedOut: 'Poskytovatel neodpověděl včas.' } } },
+    }
+    expect(checkMessages(input).errors.join('\n')).toMatch(
+      /sk-sk.*identityProvider\.test\.failure\.timedOut/,
+    )
   })
 })

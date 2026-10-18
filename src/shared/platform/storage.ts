@@ -10,7 +10,11 @@ export const ALLOWED_LOCAL_KEYS = [
   'mailcowui-ng.mailboxes.columns',
 ] as const
 
-export const ALLOWED_SESSION_KEYS = ['mailcowui-ng.announcement-collapsed'] as const
+export const ALLOWED_SESSION_KEYS = [
+  'mailcowui-ng.announcement-collapsed',
+  // UI 012 (data-model §4): the requested in-app path during a single sign-on round trip only.
+  'mailcowui-ng.sso-return-to',
+] as const
 
 export type LocalStorageKey = (typeof ALLOWED_LOCAL_KEYS)[number]
 export type SessionStorageKey = (typeof ALLOWED_SESSION_KEYS)[number]

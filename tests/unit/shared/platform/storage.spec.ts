@@ -30,7 +30,19 @@ describe('allowlist (data-model §4)', () => {
       'mailcowui-ng.passkey-suggestion-dismissed',
       'mailcowui-ng.theme',
     ])
-    expect([...ALLOWED_SESSION_KEYS]).toEqual(['mailcowui-ng.announcement-collapsed'])
+    expect([...ALLOWED_SESSION_KEYS].sort()).toEqual([
+      'mailcowui-ng.announcement-collapsed',
+      'mailcowui-ng.sso-return-to',
+    ])
+  })
+
+  it('UI 012: writes, reads and removes the single sign-on return address', () => {
+    expect(sessionStore.set('mailcowui-ng.sso-return-to', '/mailboxes?page=2')).toBe(true)
+    expect(sessionStorage.getItem('mailcowui-ng.sso-return-to')).toBe('/mailboxes?page=2')
+    expect(sessionStore.get('mailcowui-ng.sso-return-to')).toBe('/mailboxes?page=2')
+    sessionStore.remove('mailcowui-ng.sso-return-to')
+    expect(sessionStorage.length).toBe(0)
+    expect(localStore.set('mailcowui-ng.sso-return-to' as LocalStorageKey, '/')).toBe(false)
   })
 
   it('writes, reads and removes an allowed localStorage key', () => {
@@ -111,6 +123,9 @@ describe('storage disabled', () => {
     expect(sessionStore.set('mailcowui-ng.announcement-collapsed', 'x')).toBe(false)
     expect(sessionStore.get('mailcowui-ng.announcement-collapsed')).toBeNull()
     expect(() => sessionStore.remove('mailcowui-ng.announcement-collapsed')).not.toThrow()
+    expect(sessionStore.set('mailcowui-ng.sso-return-to', '/')).toBe(false)
+    expect(sessionStore.get('mailcowui-ng.sso-return-to')).toBeNull()
+    expect(() => sessionStore.remove('mailcowui-ng.sso-return-to')).not.toThrow()
   })
 
   it('never throws when accessing the storage object itself throws', () => {

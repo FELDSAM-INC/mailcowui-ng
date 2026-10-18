@@ -16,6 +16,8 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'problem.status.403': 'danger.access_denied',
   'problem.status.500': 'danger.generic_server_error',
   'problem.generic': 'danger.unknown',
+  // UI 012: the identity provider cannot be changed or removed while mailboxes use it.
+  'problem.identity-provider-in-use': 'danger.authsource_in_use',
   // Column headers built from the column's name.
   'apiKeys.columns.owner': 'mailbox.owner',
   'apiKeys.columns.status': 'mailbox.status',

@@ -27,6 +27,9 @@ import { directoryListHandlers } from './directory-lists'
 import { domainTemplateHandlers } from './domain-templates'
 import { domainHandlers } from './domains'
 import { identityHandlers } from './identity'
+import { identityProviderHandlers } from './identity-provider'
+import { oauth2ClientHandlers } from './oauth2-clients'
+import { singleSignOnHandlers } from './single-sign-on'
 import { langHandlers } from './lang'
 import { mailboxTemplateReadHandlers } from './mailbox-templates'
 import { mailboxUpdateHandlers } from './mailbox-update'
@@ -53,6 +56,10 @@ export const areaHandlers: RequestHandler[] = [
   ...mailboxTemplateReadHandlers,
   ...passwordPolicyHandlers,
   ...syncJobHandlers,
+  // UI 012
+  ...identityProviderHandlers,
+  ...singleSignOnHandlers,
+  ...oauth2ClientHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null
@@ -152,9 +159,15 @@ export function createHandlers(stateResolver: StateResolver): RequestHandler[] {
         body: redact(requestInfo.body),
         headers: Object.fromEntries(
           [...request.headers].filter(([name]) =>
-            ['x-csrf-token', 'x-api-key', 'if-match', 'if-none-match', 'content-type'].includes(
-              name,
-            ),
+            [
+              'x-csrf-token',
+              'x-api-key',
+              'if-match',
+              'if-none-match',
+              'content-type',
+              // UI 012 (SC-003): the page address a request was sent from.
+              'referer',
+            ].includes(name),
           ),
         ),
       })

@@ -10,7 +10,8 @@ container="${project}-ng"
 
 docker rm -f "$container" >/dev/null 2>&1 || true
 if [[ -d "$work" ]]; then
-  (cd "$work" && docker compose -p "$project" down -v --remove-orphans)
+  # UI 012: also the `idp` profile that SMOKE_IDP=1 started.
+  (cd "$work" && docker compose -p "$project" --profile idp down -v --remove-orphans)
   git -C "$api_dir" worktree remove --force "$work" 2>/dev/null || rm -rf "$work"
 fi
 echo "smoke stack removed"

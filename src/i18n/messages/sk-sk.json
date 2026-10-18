@@ -439,6 +439,22 @@
     },
     "title": "Domov"
   },
+  "identityProvider": {
+    "test": {
+      "failure": {
+        "credentialsRejected": "Poskytovateľ odmietol prihlasovacie údaje.",
+        "timedOut": "Poskytovateľ neodpovedal včas.",
+        "tlsCertificateRejected": "TLS certifikát poskytovateľa nebol prijatý.",
+        "unexpectedResponse": "Poskytovateľ odpovedal neočakávane.",
+        "unreachable": "Poskytovateľ nie je dosiahnuteľný. Skontrolujte adresu a port."
+      }
+    },
+    "type": {
+      "genericOidc": "Generic-OIDC",
+      "keycloak": "Keycloak",
+      "ldap": "LDAP"
+    }
+  },
   "leaveGuard": {
     "body": "Vaše zmeny sa stratia.",
     "leave": "Odísť",
@@ -602,6 +618,9 @@
     "domain-not-empty": "Doména stále obsahuje schránky ({mailboxes}) a prostriedky ({resources}). Najprv ich odstráňte.",
     "domain-template-name-exists": "Šablóna domény s týmto názvom už existuje.",
     "domain-template-protected": "Predvolenú šablónu nemožno premenovať ani odstrániť.",
+    "identity-provider-not-configured": "Nie je nastavený žiadny poskytovateľ identít.",
+    "identity-provider-session-ended": "Vaša relácia jednotného prihlásenia skončila. Prihláste sa prosím znova.",
+    "identity-provider-unavailable": "Prihlasovacia služba vašej organizácie nie je dostupná. Skúste to prosím o niekoľko minút znova.",
     "insufficient-key-scope": "API kľúč túto akciu nepovoľuje.",
     "network": "Server je nedostupný. Skontrolujte pripojenie a skúste to znova.",
     "passkey-registration-failed": "Prístupový kľúč sa nepodarilo zaregistrovať. Skúste to, prosím, znova.",
@@ -611,6 +630,8 @@
     "service-unavailable": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
     "session-required": "Táto akcia vyžaduje prihlásenie.",
     "sign-in-expired": "Časový limit prihlásenia vypršal. Začnite, prosím, znova.",
+    "sign-in-state-invalid": "Prihlásenie vypršalo alebo už bolo dokončené. Začnite prosím znova.",
+    "single-sign-on-not-available": "Jednotné prihlásenie nie je na tomto serveri k dispozícii.",
     "status": {
       "400": "Požiadavku sa nepodarilo spracovať.",
       "401": "Prihláste sa, prosím, znova.",
@@ -710,6 +731,7 @@
   "validation": {
     "belowInUse": "Hodnota je nižšia, než je využité: {inUse}.",
     "conflictsWith": "Táto hodnota je v rozpore s poľom {field}.",
+    "duplicate": "Táto hodnota je zadaná viackrát.",
     "format": {
       "base64url": "Táto hodnota nie je platný base64url.",
       "dateTime": "Zadajte platný dátum a čas.",
@@ -717,8 +739,16 @@
       "domainName": "Zadajte platný názov domény, napríklad example.org.",
       "email": "Zadajte platnú e-mailovú adresu.",
       "hostName": "Zadajte názov hostiteľa alebo adresu IPv4.",
+      "httpUrl": "Zadajte úplnú adresu začínajúcu http:// alebo https://.",
       "ipAddress": "Zadajte platnú adresu IPv4 alebo IPv6.",
       "ipNetwork": "Zadajte adresu alebo sieť IPv4 či IPv6, napríklad 192.0.2.0/24.",
+      "keycloakRealm": "Zadajte názov realmu bez lomky.",
+      "keycloakVersion": "Zadajte verziu z najviac štyroch čísel oddelených bodkami, napríklad 26.0.7.",
+      "ldapAttribute": "Zadajte názov atribútu: písmeno, za ním písmená, číslice alebo spojovníky.",
+      "ldapFilter": "Zadajte filter, ktorý začína znakom ( a končí znakom ), s vyváženými zátvorkami.",
+      "oauthErrorCode": "Poskytovateľ vrátil neplatný chybový kód.",
+      "redirectUri": "Zadajte úplnú URI so schémou, bez # a bez medzier.",
+      "scopeList": "Zadajte názvy scope oddelené jednou medzerou, bez úvodzoviek a spätných lomiek.",
       "totpCode": "Zadajte šesťmiestny kód.",
       "webauthnCredential": "Odpoveď bezpečnostného alebo prístupového kľúča nie je platná.",
       "yubicoOtp": "Zadajte 44 písmen alebo číslic, ktoré napíše váš YubiKey.",
@@ -732,11 +762,20 @@
     "mustNotExceed": "Hodnota nesmie byť vyššia ako {field} ({value}).",
     "notEligible": "Túto položku tu nemožno použiť. Povolené: {allowedRoles}.",
     "notFound": "Táto položka neexistuje.",
+    "notFoundResource": {
+      "mailboxTemplate": "Táto šablóna schránky neexistuje."
+    },
     "notInList": "Zvoľte jednu z možností: {allowed}.",
     "notMultipleOf": "Zadajte celý násobok {factor}.",
     "outOfRange": "Zadajte hodnotu od {min} do {max}.",
     "required": "Toto pole je povinné.",
     "reserved": "Tento názov je vyhradený pre server.",
+    "secretRequired": "Zadajte tajný údaj znova.",
+    "secretRequiredReason": {
+      "addressChanged": "Zadajte ho znova: bol by odoslaný na novú adresu.",
+      "noStoredSecret": "Povinné: pre tento typ poskytovateľa zatiaľ nie je uložený žiadny tajný údaj.",
+      "typeChanged": "Povinné: mení sa typ poskytovateľa."
+    },
     "tooLong": "Zadajte najviac {max} znakov.",
     "tooLongBytes": "Text môže mať najviac {max}.",
     "tooMany": "Zadajte najviac {max} položiek.",

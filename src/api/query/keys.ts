@@ -31,6 +31,13 @@ export type MailboxTemplateListParams = NonNullable<
 >
 export type SyncJobListParams = NonNullable<operations['listSyncJobs']['parameters']['query']>
 
+export type MailboxTemplateListParams = NonNullable<
+  operations['listMailboxTemplates']['parameters']['query']
+>
+export type Oauth2ClientListParams = NonNullable<
+  operations['listOauth2Clients']['parameters']['query']
+>
+
 export const queryKeys = {
   publicConfig: () => ['public-config'] as const,
   session: () => ['session'] as const,
@@ -108,4 +115,16 @@ export const queryKeys = {
     detail: (id: number) => ['mailbox-templates', 'detail', id] as const,
   },
   passwordPolicy: () => ['password-policy'] as const,
+  identityProvider: {
+    all: () => ['identity-provider'] as const,
+    capabilities: () => ['identity-provider', 'capabilities'] as const,
+    configuration: () => ['identity-provider', 'configuration'] as const,
+  },
+  oauth2Clients: {
+    all: () => ['oauth2-clients'] as const,
+    capabilities: () => ['oauth2-clients', 'capabilities'] as const,
+    lists: () => ['oauth2-clients', 'list'] as const,
+    list: (params: Oauth2ClientListParams) => ['oauth2-clients', 'list', params] as const,
+    detail: (id: number) => ['oauth2-clients', 'detail', id] as const,
+  },
 }

@@ -439,6 +439,22 @@
     },
     "title": "Domů"
   },
+  "identityProvider": {
+    "test": {
+      "failure": {
+        "credentialsRejected": "Poskytovatel odmítl přihlašovací údaje.",
+        "timedOut": "Poskytovatel neodpověděl včas.",
+        "tlsCertificateRejected": "TLS certifikát poskytovatele nebyl přijat.",
+        "unexpectedResponse": "Poskytovatel odpověděl neočekávaně.",
+        "unreachable": "Poskytovatel není dosažitelný. Zkontrolujte adresu a port."
+      }
+    },
+    "type": {
+      "genericOidc": "Generic-OIDC",
+      "keycloak": "Keycloak",
+      "ldap": "LDAP"
+    }
+  },
   "leaveGuard": {
     "body": "Vaše změny budou ztraceny.",
     "leave": "Odejít",
@@ -602,6 +618,9 @@
     "domain-not-empty": "Doména stále obsahuje schránky ({mailboxes}) a prostředky ({resources}). Nejprve je odstraňte.",
     "domain-template-name-exists": "Šablona domény s tímto názvem již existuje.",
     "domain-template-protected": "Výchozí šablonu nelze přejmenovat ani smazat.",
+    "identity-provider-not-configured": "Není nastaven žádný poskytovatel identit.",
+    "identity-provider-session-ended": "Vaše relace jednotného přihlášení skončila. Přihlaste se prosím znovu.",
+    "identity-provider-unavailable": "Přihlašovací služba vaší organizace není dostupná. Zkuste to prosím za několik minut znovu.",
     "insufficient-key-scope": "API klíč tuto akci nepovoluje.",
     "network": "Server je nedostupný. Zkontrolujte připojení a zkuste to znovu.",
     "passkey-registration-failed": "Přístupový klíč se nepodařilo zaregistrovat. Zkuste to prosím znovu.",
@@ -611,6 +630,8 @@
     "service-unavailable": "Služba je dočasně nedostupná. Zkuste to prosím za chvíli znovu.",
     "session-required": "Tato akce vyžaduje přihlášení.",
     "sign-in-expired": "Časový limit přihlášení vypršel. Začněte prosím znovu.",
+    "sign-in-state-invalid": "Přihlášení vypršelo nebo už bylo dokončeno. Začněte prosím znovu.",
+    "single-sign-on-not-available": "Jednotné přihlášení není na tomto serveru k dispozici.",
     "status": {
       "400": "Požadavek se nepodařilo zpracovat.",
       "401": "Přihlaste se prosím znovu.",
@@ -710,6 +731,7 @@
   "validation": {
     "belowInUse": "Hodnota je nižší, než je využito: {inUse}.",
     "conflictsWith": "Tato hodnota je v rozporu s polem {field}.",
+    "duplicate": "Tato hodnota je zadána vícekrát.",
     "format": {
       "base64url": "Tato hodnota není platný base64url.",
       "dateTime": "Zadejte platné datum a čas.",
@@ -717,8 +739,16 @@
       "domainName": "Zadejte platný název domény, například example.org.",
       "email": "Zadejte platnou e-mailovou adresu.",
       "hostName": "Zadejte název hostitele nebo adresu IPv4.",
+      "httpUrl": "Zadejte úplnou adresu začínající http:// nebo https://.",
       "ipAddress": "Zadejte platnou adresu IPv4 nebo IPv6.",
       "ipNetwork": "Zadejte adresu nebo síť IPv4 či IPv6, například 192.0.2.0/24.",
+      "keycloakRealm": "Zadejte název realmu bez lomítka.",
+      "keycloakVersion": "Zadejte verzi z nejvýše čtyř čísel oddělených tečkami, například 26.0.7.",
+      "ldapAttribute": "Zadejte název atributu: písmeno, za ním písmena, číslice nebo pomlčky.",
+      "ldapFilter": "Zadejte filtr, který začíná znakem ( a končí znakem ), s vyváženými závorkami.",
+      "oauthErrorCode": "Poskytovatel vrátil neplatný chybový kód.",
+      "redirectUri": "Zadejte úplnou URI se schématem, bez # a bez mezer.",
+      "scopeList": "Zadejte názvy scope oddělené jednou mezerou, bez uvozovek a zpětných lomítek.",
       "totpCode": "Zadejte šestimístný kód.",
       "webauthnCredential": "Odpověď bezpečnostního nebo přístupového klíče není platná.",
       "yubicoOtp": "Zadejte 44 písmen nebo číslic, které napíše váš YubiKey.",
@@ -732,11 +762,20 @@
     "mustNotExceed": "Hodnota nesmí být vyšší než {field} ({value}).",
     "notEligible": "Tuto položku zde nelze použít. Povoleno: {allowedRoles}.",
     "notFound": "Tato položka neexistuje.",
+    "notFoundResource": {
+      "mailboxTemplate": "Tato šablona schránky neexistuje."
+    },
     "notInList": "Zvolte jednu z možností: {allowed}.",
     "notMultipleOf": "Zadejte celý násobek {factor}.",
     "outOfRange": "Zadejte hodnotu od {min} do {max}.",
     "required": "Toto pole je povinné.",
     "reserved": "Tento název je vyhrazen serveru.",
+    "secretRequired": "Zadejte tajný údaj znovu.",
+    "secretRequiredReason": {
+      "addressChanged": "Zadejte jej znovu: byl by odeslán na novou adresu.",
+      "noStoredSecret": "Povinné: pro tento typ poskytovatele zatím není uložen žádný tajný údaj.",
+      "typeChanged": "Povinné: mění se typ poskytovatele."
+    },
     "tooLong": "Zadejte nejvýše {max} znaků.",
     "tooLongBytes": "Text smí mít nejvýše {max}.",
     "tooMany": "Zadejte nejvýše {max} položek.",

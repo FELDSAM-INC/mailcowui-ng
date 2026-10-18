@@ -3,6 +3,7 @@
 // a problem is named by the last path segment of its `type`.
 import type {
   FieldViolation,
+  IdentityProviderInUseProblem,
   PendingAction,
   Problem,
   TooManyRequestsProblem,
@@ -177,4 +178,33 @@ export async function peekProblemName(response: Response): Promise<string | null
 export function problemOf(error: unknown): ApiProblem | null {
   if (!error) return null
   return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'problem', cause: error })
+}
+
+/** UI 012 (FR-014): the members of an "identity provider in use" refusal. */
+export type IdentityProviderInUseDetails = Pick<
+  IdentityProviderInUseProblem,
+  'blockingMailboxes' | 'mailboxCounts'
+>
+
+/**
+ * The blocking mailbox count and the counts per source of an `identity-provider-in-use` problem;
+ * null for any other problem, or a body without these members.
+ */
+export function identityProviderInUseDetails(
+  problem: ApiProblem | null | undefined,
+): IdentityProviderInUseDetails | null {
+  if (!problem?.is('identity-provider-in-use')) return null
+  const { blockingMailboxes, mailboxCounts } = problem.extensions
+  const counts = mailboxCounts as Record<string, unknown> | null | undefined
+  if (typeof blockingMailboxes !== 'number' || !counts || typeof counts !== 'object') return null
+  const sources = ['keycloak', 'genericOidc', 'ldap'] as const
+  if (!sources.every((source) => typeof counts[source] === 'number')) return null
+  return {
+    blockingMailboxes,
+    mailboxCounts: {
+      keycloak: counts.keycloak as number,
+      genericOidc: counts.genericOidc as number,
+      ldap: counts.ldap as number,
+    },
+  }
 }

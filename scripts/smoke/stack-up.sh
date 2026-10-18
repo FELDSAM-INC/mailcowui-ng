@@ -71,5 +71,25 @@ wait_for() {
 wait_for "http://127.0.0.1:${port}/api/v2/health/ready"
 wait_for "http://127.0.0.1:${port}/ng/"
 
+# 5. UI 012 (research R25): with SMOKE_IDP=1, the API's `idp` profile (OpenLDAP, and Keycloak for
+#    the manual single sign-on checks), for the identity provider smoke tests tagged @idp.
+if [[ "${SMOKE_IDP:-}" == "1" ]]; then
+  compose --profile idp up -d
+  deadline=$((SECONDS + 180))
+  until compose exec -T openldap ldapsearch -x -H ldap://localhost:389 -b '' -s base \
+    >/dev/null 2>&1; do
+    if ((SECONDS > deadline)); then
+      echo "timed out waiting for OpenLDAP" >&2
+      exit 1
+    fi
+    sleep 2
+  done
+  echo "idp: openldap ready"
+  if [[ -z "${SMOKE_SSO_USERNAME:-}" ]]; then
+    echo "idp: SMOKE_SSO_USERNAME and SMOKE_SSO_PASSWORD are not set; the single sign-on smoke" \
+      "test (@sso) will be skipped"
+  fi
+fi
+
 echo "ready: http://localhost:${port}/ng/"
 echo "run:   SMOKE_BASE_URL=http://localhost:${port}/ng/ npm run test:smoke"

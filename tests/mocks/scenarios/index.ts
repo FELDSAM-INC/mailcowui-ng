@@ -36,6 +36,13 @@ import { preferenceScenarios } from './preferences'
 import { signInScenarios } from './sign-in'
 import { apiKeyScenarios } from './api-keys'
 import { applySyncJobChanges, initialSyncJobState, syncJobScenarios } from './sync-jobs'
+import { auditIdentityProviderScenarios } from './audit-identity-provider'
+import { identityProviderScenarios } from './identity-provider'
+import { oauth2ClientScenarios } from './oauth2-clients'
+import { providerPasswordScenarios } from './provider-password'
+import { singleSignOnScenarios } from './single-sign-on'
+import { initialIdentityProvider } from '../factories/identity-provider'
+import { OAUTH2_CAPABILITIES } from '../factories/oauth2-client'
 import {
   anonymousSession,
   DEFAULT_IDLE_TIMEOUT,
@@ -78,6 +85,12 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...mailboxBaseScenarios,
   ...mailboxEditScenarios,
   ...syncJobScenarios,
+  // UI 012
+  ...identityProviderScenarios,
+  ...singleSignOnScenarios,
+  ...providerPasswordScenarios,
+  ...oauth2ClientScenarios,
+  ...auditIdentityProviderScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -135,6 +148,27 @@ function applyDomainOverrides(state: ScenarioState, overrides: ScenarioPatch): v
   if (overrides.footers) applyFooterMutations(state, overrides.footers)
 }
 
+/** UI 012: identity provider, single sign-on, OAuth2 and template data (research R24). */
+function applyIdentityProviderOverrides(state: ScenarioState, overrides: ScenarioPatch): void {
+  if (overrides.identityProvider) {
+    const { capabilities, ...rest } = overrides.identityProvider
+    state.identityProvider = { ...state.identityProvider, ...rest }
+    if (capabilities) {
+      state.identityProvider.capabilities = {
+        ...state.identityProvider.capabilities,
+        ...capabilities,
+      }
+    }
+  }
+  if (overrides.singleSignOn) {
+    state.singleSignOn = { ...state.singleSignOn, ...overrides.singleSignOn }
+  }
+  if (overrides.oauth2Clients) state.oauth2Clients = structuredClone(overrides.oauth2Clients)
+  if (overrides.oauth2Capabilities) {
+    state.oauth2Capabilities = { ...state.oauth2Capabilities, ...overrides.oauth2Capabilities }
+  }
+}
+
 /** Applies JSON overrides or runtime patches to a state. */
 export function applyOverrides(
   state: ScenarioState,
@@ -152,6 +186,7 @@ export function applyOverrides(
   applyDomainOverrides(state, overrides)
   applyMailboxOverrides(state, overrides)
   if (overrides.syncJobs) applySyncJobChanges(state, overrides.syncJobs)
+  applyIdentityProviderOverrides(state, overrides)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -188,6 +223,19 @@ export function createScenarioState(
     ...initialDomainState(),
     ...initialMailboxState(),
     syncJobs: initialSyncJobState(),
+    identityProvider: initialIdentityProvider(),
+    singleSignOn: {
+      pending: null,
+      completion: 'success',
+      username: 'anna@example.org',
+      provider: 'keycloak',
+      startNotAvailable: false,
+      endIdpSession: false,
+      providerOutage: false,
+      counter: 0,
+    },
+    oauth2Clients: [],
+    oauth2Capabilities: { ...OAUTH2_CAPABILITIES },
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

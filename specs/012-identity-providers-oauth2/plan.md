@@ -185,38 +185,167 @@ is supported; legacy values are loaded at runtime from the installation and show
 through `SanitizedHtml.vue`, product names as the installation's files have them); a missing key
 falls back to `en-gb`, never to a hand-written value.
 
-**Legacy form map**: written into this section by T005a before any screen is built.
+### Decisions at implementation (2026-10-19)
 
-**Deviations needing a decision** (not built until the owner or orchestrator decides; until then the
-legacy form applies):
+The orchestrator settled the plan's "Deviations needing a decision" through `docs/conventions.md`
+("Decisions on the deviations found in plans 002–014"): follow the legacy form and its controls, a
+legacy tab becomes one section, no help text, explanation or section heading that legacy lacks, no
+panel with data legacy never shows, no confirmation legacy lacks except the typed and bulk ones, and
+actions that legacy offers only in the list stay in the list. The improvements that stay are
+sections with their own save, typed and bulk confirmations, bulk mode and outdated-version
+handling. Applied to this feature:
 
-1. **LDAP hosts** (FR-019): legacy has one text input `admin.iam_host` with the tooltip
-   `admin.iam_host_info` ("Enter one or more LDAP hosts, separated by commas."); the plan has a list
-   of entries (`HostListField`), for which the legacy help text no longer fits.
-2. **LDAP connection security** (FR-019): legacy has two switches, `admin.iam_use_ssl` and
-   `admin.iam_use_tls`, with `admin.iam_use_ssl_info` and `admin.iam_use_tls_info`; the plan has
-   one choice of None, SSL and StartTLS (`ConnectionSecurityChoice`) with port hints.
-3. **Section split of the single legacy form**: legacy shows each type's fields in one flat form.
-   The plan's sections (Connection, Directory search, Return addresses, Sign-in, Synchronisation)
-   need new headings and move `admin.ignore_ssl_error`, which legacy places between the mailpassword
-   flow and `admin.iam_login_provisioning` (Keycloak) or after the mapping (OIDC).
-4. **Type explanations and empty-state text** (FR-004, FR-010): legacy offers a bare select
-   (Keycloak, Generic-OIDC, LDAP) under `admin.iam_description`. The plan adds one-sentence type
-   explanations and an empty-state explanation as new strings. The legacy form map uses
-   `admin.iam_description` verbatim; the extra explanations need approval.
-5. **OAuth2 information text** (FR-057, parity note 1): `admin.oauth2_info` is shown verbatim, but
-   it names only the authorization code grant and fixed paths. Listing further grant types and token
-   lifetimes from the capabilities read needs new strings next to it, or is dropped.
-6. **OAuth2 client secret**: legacy lists the stored secret as a column (`admin.oauth2_client_secret`)
-   and shows it on the edit page (`edit.client_secret`). The app never shows a stored secret
-   (conventions "Secrets"). **Decided by the owner (2026-10-18): shown only once**, at creation or
-   renewal, in `OneTimeSecretDialog`. The column and the field are dropped.
-7. **OAuth2 bulk "Generate new client secret"** (`admin.oauth2_renew_secret` quick action):
-   **kept, as in legacy** (orchestrator, 2026-10-18). The API adds the bulk action `renewSecret`
-   (gap G42). The new secrets are shown once, one per client, in `OneTimeSecretDialog`, together
-   with the per-client action (FR-062).
-8. **Redirect URIs** (FR-058, FR-060): legacy has one text field (`admin.oauth2_redirect_uri` in the
-   modal, `edit.redirect_uri` on the edit page); the plan has a list of entries with a length meter.
+1. **LDAP hosts**: one text field `admin.iam_host` with `admin.iam_host_info` as visible help, as
+   legacy has it. The app splits it on commas into the API's `hosts` and shows a stored list joined
+   by `, `.
+2. **LDAP connection security**: the two switches `admin.iam_use_ssl` and `admin.iam_use_tls` with
+   their `*_info` help texts; turning one on turns the other off, as legacy's `onchange` does.
+3. **One section**: the identity provider tab is one section with legacy's field order per type.
+   There is no setup flow, no step pages, no section index and no section headings. With no stored
+   configuration the page shows the same form, ready to fill in (legacy shows the form with
+   Keycloak chosen); a stored configuration is shown read-only in one `EditableSection` whose Edit
+   opens the form.
+4. **No type explanations and no empty state**: `admin.iam_description` is shown verbatim above the
+   form; the type select offers legacy's three options (hard-coded `Keycloak`, `Generic-OIDC`,
+   `LDAP`, new strings whose text equals legacy's).
+5. **OAuth2 information**: `admin.oauth2_info` verbatim above the list. No grant types, token
+   lifetimes or copyable endpoints.
+6. **OAuth2 secrets**: never shown again (owner). No secret column, no secret field.
+7. **Bulk "Generate new client secret"**: kept, through the bulk action `renewSecret` (G42). The
+   new secrets are shown once, one client after another, in `OneTimeSecretDialog`.
+8. **Redirect URIs**: one text field (`admin.oauth2_redirect_uri` in the create form,
+   `edit.redirect_uri` on the client page), as legacy has it. Several URIs are separated by spaces,
+   as legacy stores them; the app splits the field on whitespace into `redirectUris`.
+
+Further consequences of the same rules (recorded here, not built):
+
+- Dropped from the identity provider screen because legacy lacks them: the overview header
+  (completeness, abilities, last change), the mailbox counts per source with links, the TLS warning,
+  the synchronisation status, "Template missing" marks, the type-change confirmation and the
+  blocked-type reasons (the API's refusal shows `danger.authsource_in_use`), the readable sync
+  interval, the test result's tested address, time and staleness, and the 90-second client limit's
+  "Test again" action (the test button is simply usable again).
+- Dropped from the OAuth2 screens: token counts, the token filter, the empty-state explanation, the
+  copy of the client ID, and the client page's own Generate new secret, Revoke tokens and Delete
+  (legacy offers them only in the list: row action `admin.remove`, quick actions `mailbox.remove`,
+  `admin.oauth2_revoke_tokens` and `admin.oauth2_renew_secret`).
+- Kept although legacy lacks it, because single sign-on in this app cannot work without it: the
+  app's own return addresses (`appReturnUrls` of the capabilities), listed read-only with a copy
+  button under legacy's redirect URL field, with one new string as their label.
+- The template pickers are plain selects, as in legacy, whatever the number of templates.
+- The sign-in screens put the single sign-on button where `user_index.twig` has it: after the
+  password form and "Forgot password?", below legacy's `login.other_logins` divider. With "force
+  single sign-on" and single sign-on available, the password form, "Forgot password?" and the
+  divider are hidden; the passkey action stays, as UI 001 keeps it. "Force single sign-on" without
+  available single sign-on is ignored (FR-041).
+
+### Legacy form map (T005a)
+
+Paths are under `../mailhosting/data/web/`. "new" marks a new string (en-gb, cs-cz, sk-sk) with its
+reason; everything else is a legacy key used verbatim.
+
+#### Identity provider (`/identity-providers/provider`, route `identity-provider`) → `templates/admin/tab-config-identity-provider.twig`
+
+| Element | Legacy key or source |
+|---|---|
+| Page title (card header) | `admin.iam` |
+| Description | `admin.iam_description` (markup, `SanitizedHtml`) |
+| Sub-navigation between the two screens (System › Configuration tabs) | `admin.iam`, `admin.oauth2_apps`; landmark name `nav.identityProviders` (existing) |
+| Section title of a stored configuration | the type's option text (below) |
+| Type select label | `admin.iam` |
+| Type options | `Keycloak`, `Generic-OIDC`, `LDAP` (hard-coded in legacy) → new `identityProvider.type.<type>`, same text |
+| Keycloak fields, in order | `admin.iam_server_url`, `admin.iam_realm`, `admin.iam_client_id`, `admin.iam_client_secret`, `admin.iam_redirect_url` (+ additional URLs), `admin.iam_version`, mapping, `admin.iam_extra_permission` (markup), `admin.iam_rest_flow` with `admin.iam_auth_flow_info` (markup), `admin.ignore_ssl_error`, `admin.iam_login_provisioning`, `admin.iam_periodic_full_sync`, `admin.iam_import_users`, `admin.iam_sync_interval` |
+| Generic-OIDC fields, in order | `admin.iam_authorize_url`, `admin.iam_token_url`, `admin.iam_userinfo_url`, `admin.iam_client_id`, `admin.iam_client_secret`, `admin.iam_redirect_url` (+ additional URLs), `admin.iam_client_scopes` (placeholder `capabilities.defaults.scopes`, legacy's hard-coded value), mapping, `admin.ignore_ssl_error`, `admin.iam_login_provisioning` |
+| LDAP fields, in order | `admin.iam_host` with `admin.iam_host_info`, `admin.iam_port`, `admin.iam_use_ssl` with `admin.iam_use_ssl_info`, `admin.iam_use_tls` with `admin.iam_use_tls_info`, `admin.ignore_ssl_error`, `admin.iam_basedn`, `admin.iam_username_field` (placeholder `mail`, the default), `admin.filter`, `admin.iam_attribute_field`, `admin.iam_binddn`, `admin.iam_bindpass`, mapping, `admin.iam_login_provisioning`, `admin.iam_periodic_full_sync`, `admin.iam_import_users`, `admin.iam_sync_interval` |
+| Mapping | label `admin.iam_mapping`; columns `user.attribute`, `mailbox.template`; default row `admin.iam_default_template` with `admin.iam_default_template_description` (legacy tooltip, shown as visible help, FR-074); empty option `-- ` + `mailbox.template` + ` --` as the template renders it |
+| Add and remove buttons of the mapping and the additional URLs (icon-only in legacy) | accessible names `admin.add` and `mailbox.remove`, the remove action with the entry's value |
+| Secret help when a secret is stored | new `identityProvider.secretStored` (write-only secrets, conventions "Secrets") |
+| The app's return addresses | new `identityProvider.appReturnUrls` (label), copy button `secrets.copy`, `secrets.copied`, `secrets.copyRefused` (existing) |
+| Read-only values: on and off switches | new `identityProvider.on`, `identityProvider.off`; empty values `—` |
+| Read-only mapping entry | attribute value → template, as text |
+| Buttons | `admin.iam_test_connection`, `admin.save`, `mailbox.remove`; section Edit, Cancel and the outdated actions from `EditableSection` |
+| Show and hide a typed secret (legacy eye button) | `auth.signIn.showPassword`, `auth.signIn.hidePassword` (existing) |
+
+Messages:
+
+| Outcome | Message |
+|---|---|
+| Save (`PUT` 201 or 200, `PATCH` 200) | `success.object_modified` with `''`, as `identity_provider('edit')` returns it |
+| Removal (204) | `success.item_deleted` with `''` |
+| `identity-provider-in-use` (409, save of another type or removal) | `danger.authsource_in_use` (through `LEGACY_TEXTS`) |
+| Removal confirmation | `footer.confirm_delete`, `footer.delete_these_items`, the type's option text, `footer.delete_now`, `footer.cancel` (legacy `#ConfirmDeleteModal`) |
+| Test success / failure | `success.iam_test_connection` / `danger.iam_test_connection` (`admin.js`) |
+| Test failure category | new `identityProvider.test.failure.<category>` (5 values; legacy cannot report the category) and `identityProvider.test.providerStatus` for `unexpectedResponse` |
+| No test result within 90 s | new `identityProvider.test.noResult` |
+| `identity-provider-not-configured` on a section save or removal | new `problem.identity-provider-not-configured`; the page then shows the empty form |
+| Outdated (412) | `EditableSection`'s outdated notice (UI 002) with field labels from the legacy keys above |
+| Rule codes | `validation.<code>`; API 012 formats `validation.format.<format>`; `secretRequired` with `reason` → new `validation.secretRequiredReason.<reason>`; `notFound` with `resource: mailboxTemplate` → new `validation.notFoundResource.mailboxTemplate`; `duplicate` → new `validation.duplicate`; `conflictsWith` → new `validation.conflictsWith` |
+
+#### Single sign-on (`/sign-in`, `/sign-in/mailbox-user`) → `templates/user_index.twig`; return page `/ng/sso/return` (no legacy page)
+
+| Element | Legacy key or source |
+|---|---|
+| Divider before the button | `login.other_logins` |
+| Button | `admin.iam_sso` |
+| Return page title and progress | new `auth.sso.return.title`, `auth.sso.return.progress` |
+| Provider reported an error | new `auth.sso.outcome.cancelled` |
+| Completion refused as failed | `danger.login_failed` |
+| State invalid, provider unavailable, not available, other errors | `problem.sign-in-state-invalid`, `problem.identity-provider-unavailable`, `problem.single-sign-on-not-available` (new), UI 001's problem messages |
+| Actions | `common.retry` (existing), new `auth.sso.backToSignIn` |
+| Busy state of the button | new `auth.sso.starting` |
+| Session ended at the provider (sign-in notice) | new `auth.notice.ssoSessionEnded` |
+| Signed out of a single sign-on session (sign-in notice) | new `auth.notice.signedOutSso` |
+| Password sign-in while the provider is unreachable | `problem.identity-provider-unavailable` (new) |
+
+#### OAuth2 apps (`/identity-providers/oauth2-apps`, route `oauth2-clients`) → `templates/admin/tab-config-oauth2.twig`, `js/site/admin.js` `draw_oauth2_clients`
+
+| Element | Legacy key or source |
+|---|---|
+| Title | `admin.oauth2_apps` |
+| Information | `admin.oauth2_info` (markup) |
+| Columns | `ID` (hard-coded) → new `oauth2.columns.id`; `admin.oauth2_client_id`; `admin.oauth2_redirect_uri`; `admin.action`. No secret column (owner) |
+| Row actions | `admin.edit`, `admin.remove` |
+| Search, paging, empty, loading | `datatables.search`, `datatables.emptyTable`, `datatables.zeroRecords`, `datatables.loadingRecords`, UI 001's `PaginationBar` |
+| Sort control (cards) | `domains.sort.*` (UI 002's sort labels), options `oauth2.columns.id`, `admin.oauth2_client_id`, `admin.oauth2_redirect_uri` |
+| Selection and quick actions | UI 002's `bulk.*`; actions `mailbox.remove`, `admin.oauth2_revoke_tokens`, `admin.oauth2_renew_secret` |
+| Add | `admin.oauth2_add_client` |
+| Confirmations | `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel`; the bulk deletion's typed count `bulk.confirm.typeCount`; revoke and renew use the action's label as title and `footer.delete_these_items` before the client IDs |
+| New secrets of a renewal | `OneTimeSecretDialog` titled `admin.oauth2_renew_secret`, described by `admin.oauth2_client_id` and the client ID |
+
+Messages: deletion `success.items_deleted` with the ID; revocation and renewal
+`success.object_modified` with the ID (legacy `oauth2('edit')`); bulk lines the same per client
+with UI 002's bulk summary.
+
+#### Add OAuth2 client (`/identity-providers/oauth2-apps/new`, route `oauth2-client-create`) → `templates/modals/admin.twig` `addOAuth2ClientModal`
+
+| Element | Legacy key or source |
+|---|---|
+| Title | `admin.oauth2_add_client` (the modal's title is a hard-coded "OAuth2"; the button that opens it carries this key) |
+| Field | `admin.oauth2_redirect_uri` (required) |
+| Button | `admin.add` |
+| Created (201) | "Added client access" (hard-coded in `functions.oauth2.inc.php`) → new `oauth2.added`, same text; then `OneTimeSecretDialog` titled `admin.oauth2_add_client`, described by `admin.oauth2_client_id` and the new client ID |
+| Empty field | "Redirect/Callback URL cannot be empty" (hard-coded) → new `oauth2.redirectUriEmpty`, same text |
+| Invalid URI | new `validation.format.redirectUri`; `tooLong` → `validation.tooLong` |
+
+#### OAuth2 client page (`/identity-providers/oauth2-apps/:oauth2ClientId`, route `oauth2-client-detail`) → `templates/edit/oauth2client.twig`
+
+| Element | Legacy key or source |
+|---|---|
+| Title | `OAuth2` (hard-coded `<h4>`) → new `oauth2.title`, with the client ID as the object's name |
+| Read-only | `edit.client_id`, `edit.scope` |
+| Editable | `edit.redirect_uri` |
+| Save | `admin.save` |
+| Saved | `success.object_modified` with the ID |
+| Not found | UI 001's not-found page, back to the list with new `oauth2.backToList` |
+| Secret | dropped (owner) |
+
+#### Audit log (UI 001's screen, no legacy counterpart)
+
+New `enums.auditEventType.*`, `enums.auditTargetType.*`, `enums.authMethod.*` and
+`enums.auditFailureReason.*` labels for API 012's values, listed in `src/i18n/coverage.json`. The
+target type `identityProvider` is labelled through `LEGACY_TEXTS` with `admin.iam`, and the auth
+method `singleSignOn` with `admin.iam_sso`, where legacy has the same name; the rest are new
+strings. Details use UI 001's generic view, which shows every documented key.
 
 ## API dependency and gaps
 

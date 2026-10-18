@@ -129,7 +129,150 @@ describe('contract limits (data-model §6)', () => {
       schemaValue('MailboxPatch', 'properties', 'recoveryEmail', 'oneOf', '0', 'maxLength'),
     ],
     ['SEARCH_MAX_LENGTH', queryParameter('/mailboxes', 'get', 'q').maxLength],
+    // UI 012 (T006): identity provider, single sign-on and OAuth2 client fields that the
+    // capabilities read does not carry.
+    [
+      'KEYCLOAK_REALM_MAX_LENGTH',
+      schemaValue(
+        'IdentityProviderKeycloakInput',
+        'allOf',
+        '2',
+        'properties',
+        'realm',
+        'maxLength',
+      ),
+    ],
+    [
+      'PROVIDER_CLIENT_ID_MAX_LENGTH',
+      schemaValue(
+        'IdentityProviderKeycloakInput',
+        'allOf',
+        '2',
+        'properties',
+        'clientId',
+        'maxLength',
+      ),
+    ],
+    [
+      'PROVIDER_CLIENT_ID_MAX_LENGTH',
+      schemaValue(
+        'IdentityProviderGenericOidcInput',
+        'allOf',
+        '2',
+        'properties',
+        'clientId',
+        'maxLength',
+      ),
+    ],
+    [
+      'KEYCLOAK_VERSION_MAX_LENGTH',
+      schemaValue(
+        'IdentityProviderKeycloakInput',
+        'allOf',
+        '2',
+        'properties',
+        'version',
+        'maxLength',
+      ),
+    ],
+    [
+      'LDAP_HOST_MAX_LENGTH',
+      schemaValue(
+        'IdentityProviderLdapInput',
+        'allOf',
+        '1',
+        'properties',
+        'hosts',
+        'items',
+        'maxLength',
+      ),
+    ],
+    [
+      'LDAP_PORT_MIN',
+      schemaValue('IdentityProviderLdapInput', 'allOf', '1', 'properties', 'port', 'minimum'),
+    ],
+    [
+      'LDAP_PORT_MAX',
+      schemaValue('IdentityProviderLdapInput', 'allOf', '1', 'properties', 'port', 'maximum'),
+    ],
+    [
+      'LDAP_ATTRIBUTE_MAX_LENGTH',
+      schemaValue(
+        'IdentityProviderLdapInput',
+        'allOf',
+        '1',
+        'properties',
+        'usernameField',
+        'maxLength',
+      ),
+    ],
+    [
+      'MAPPING_TEMPLATE_MAX_LENGTH',
+      schemaValue('IdentityProviderMappingEntryInput', 'properties', 'template', 'maxLength'),
+    ],
+    [
+      'SSO_CODE_MAX_LENGTH',
+      schemaValue('SingleSignOnCompletionRequest', 'properties', 'code', 'maxLength'),
+    ],
+    [
+      'SSO_STATE_MAX_LENGTH',
+      schemaValue('SingleSignOnCompletionRequest', 'properties', 'state', 'maxLength'),
+    ],
+    [
+      'SSO_STATE_MAX_LENGTH',
+      schemaValue('SingleSignOnProviderErrorRequest', 'properties', 'state', 'maxLength'),
+    ],
+    [
+      'REDIRECT_URI_MAX_LENGTH',
+      schemaValue('Oauth2ClientCreateRequest', 'properties', 'redirectUris', 'items', 'maxLength'),
+    ],
   ]
+
+  // UI 012 (T006): syntax rules of the contract, compared as pattern sources.
+  const patterns: [keyof typeof limits, unknown][] = [
+    [
+      'KEYCLOAK_VERSION_PATTERN',
+      schemaValue(
+        'IdentityProviderKeycloakInput',
+        'allOf',
+        '2',
+        'properties',
+        'version',
+        'pattern',
+      ),
+    ],
+    [
+      'LDAP_ATTRIBUTE_PATTERN',
+      schemaValue(
+        'IdentityProviderLdapInput',
+        'allOf',
+        '1',
+        'properties',
+        'usernameField',
+        'pattern',
+      ),
+    ],
+    [
+      'SCOPES_PATTERN',
+      schemaValue(
+        'IdentityProviderGenericOidcInput',
+        'allOf',
+        '2',
+        'properties',
+        'scopes',
+        'pattern',
+      ),
+    ],
+    [
+      'OAUTH_ERROR_CODE_PATTERN',
+      schemaValue('SingleSignOnProviderErrorRequest', 'properties', 'error', 'pattern'),
+    ],
+  ]
+
+  it.each(patterns)('%s has the contract pattern', (name, expected) => {
+    expect(typeof expected).toBe('string')
+    expect((limits[name] as RegExp).source).toBe(new RegExp(expected as string).source)
+  })
 
   it.each(cases)('%s equals the contract value', (name, expected) => {
     expect(typeof expected).toBe('number')
@@ -147,9 +290,18 @@ describe('contract limits (data-model §6)', () => {
     expect(limits.RATE_LIMIT_MIN).toBe(1)
     expect(limits.QUOTA_MAX_BYTES).toBe(9_007_199_254_740_992)
     expect(limits.TEMPLATE_NAME_MAX_LENGTH).toBe(255)
+    expect(limits.KEYCLOAK_REALM_MAX_LENGTH).toBe(255)
+    expect(limits.KEYCLOAK_VERSION_MAX_LENGTH).toBe(64)
+    expect(limits.LDAP_HOST_MAX_LENGTH).toBe(253)
+    expect(limits.LDAP_PORT_MAX).toBe(65535)
+    expect(limits.SSO_CODE_MAX_LENGTH).toBe(4096)
+    expect(limits.SSO_STATE_MAX_LENGTH).toBe(512)
+    expect(limits.REDIRECT_URI_MAX_LENGTH).toBe(2000)
   })
 
   it('tests every exported limit', () => {
-    expect(Object.keys(limits).sort()).toEqual([...new Set(cases.map(([name]) => name))].sort())
+    expect(Object.keys(limits).sort()).toEqual(
+      [...new Set([...cases, ...patterns].map(([name]) => name))].sort(),
+    )
   })
 })

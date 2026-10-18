@@ -439,6 +439,22 @@
     },
     "title": "Home"
   },
+  "identityProvider": {
+    "test": {
+      "failure": {
+        "credentialsRejected": "The provider rejected the credentials.",
+        "timedOut": "The provider did not answer in time.",
+        "tlsCertificateRejected": "The provider's TLS certificate was not accepted.",
+        "unexpectedResponse": "The provider gave an unexpected answer.",
+        "unreachable": "The provider could not be reached. Check the address and the port."
+      }
+    },
+    "type": {
+      "genericOidc": "Generic-OIDC",
+      "keycloak": "Keycloak",
+      "ldap": "LDAP"
+    }
+  },
   "leaveGuard": {
     "body": "Your changes will be lost.",
     "leave": "Leave",
@@ -602,6 +618,9 @@
     "domain-not-empty": "The domain still has {mailboxes} mailboxes and {resources} resources. Remove them first.",
     "domain-template-name-exists": "A domain template with this name already exists.",
     "domain-template-protected": "The Default template cannot be renamed or deleted.",
+    "identity-provider-not-configured": "No identity provider is configured.",
+    "identity-provider-session-ended": "Your single sign-on session has ended. Please sign in again.",
+    "identity-provider-unavailable": "Your organisation's sign-in service cannot be reached. Please try again in a few minutes.",
     "insufficient-key-scope": "The API key does not allow this action.",
     "network": "The server could not be reached. Check your connection and try again.",
     "passkey-registration-failed": "The passkey could not be registered. Please try again.",
@@ -611,6 +630,8 @@
     "service-unavailable": "The service is temporarily unavailable. Please try again in a moment.",
     "session-required": "This action needs a signed-in session.",
     "sign-in-expired": "The sign-in timed out. Please start again.",
+    "sign-in-state-invalid": "The sign-in has expired or was already completed. Please start it again.",
+    "single-sign-on-not-available": "Single sign-on is not offered on this server.",
     "status": {
       "400": "The request could not be processed.",
       "401": "Please sign in again.",
@@ -710,6 +731,7 @@
   "validation": {
     "belowInUse": "This is below what is in use: {inUse}.",
     "conflictsWith": "This conflicts with {field}.",
+    "duplicate": "This value is entered more than once.",
     "format": {
       "base64url": "This value is not valid base64url.",
       "dateTime": "Enter a valid date and time.",
@@ -717,8 +739,16 @@
       "domainName": "Enter a valid domain name, for example example.org.",
       "email": "Enter a valid email address.",
       "hostName": "Enter a host name or an IPv4 address.",
+      "httpUrl": "Enter an absolute address starting with http:// or https://.",
       "ipAddress": "Enter a valid IPv4 or IPv6 address.",
       "ipNetwork": "Enter an IPv4 or IPv6 address or network, for example 192.0.2.0/24.",
+      "keycloakRealm": "Enter the realm name without a slash.",
+      "keycloakVersion": "Enter a version of up to four numbers separated by dots, for example 26.0.7.",
+      "ldapAttribute": "Enter an attribute name: a letter followed by letters, digits or hyphens.",
+      "ldapFilter": "Enter a filter that starts with ( and ends with ), with balanced parentheses.",
+      "oauthErrorCode": "The provider returned an invalid error code.",
+      "redirectUri": "Enter an absolute URI with a scheme, without # and without spaces.",
+      "scopeList": "Enter scope names separated by single spaces, without quotation marks or backslashes.",
       "totpCode": "Enter the six-digit code.",
       "webauthnCredential": "The response of the security key or passkey is not valid.",
       "yubicoOtp": "Enter the 44 letters or digits your YubiKey types.",
@@ -732,11 +762,20 @@
     "mustNotExceed": "This may not be higher than {field} ({value}).",
     "notEligible": "This item cannot be used here. Allowed: {allowedRoles}.",
     "notFound": "This item does not exist.",
+    "notFoundResource": {
+      "mailboxTemplate": "This mailbox template does not exist."
+    },
     "notInList": "Choose one of: {allowed}.",
     "notMultipleOf": "Enter a whole multiple of {factor}.",
     "outOfRange": "Enter a value from {min} to {max}.",
     "required": "This field is required.",
     "reserved": "This name is reserved by the server.",
+    "secretRequired": "Enter the secret again.",
+    "secretRequiredReason": {
+      "addressChanged": "Enter it again: it would be sent to a new address.",
+      "noStoredSecret": "Required: no secret is stored for this provider type yet.",
+      "typeChanged": "Required: the provider type changes."
+    },
     "tooLong": "Enter at most {max} characters.",
     "tooLongBytes": "This text may be at most {max} long.",
     "tooMany": "Enter at most {max} entries.",

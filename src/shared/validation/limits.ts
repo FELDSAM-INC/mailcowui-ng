@@ -92,3 +92,51 @@ export const MAILBOX_RATE_LIMIT_MAX = 2_147_483_647
 
 /** MailboxPatch.properties.recoveryEmail.oneOf[0].maxLength */
 export const MAILBOX_RECOVERY_EMAIL_MAX = 255
+
+// UI 012 (T012): identity provider, single sign-on and OAuth2 client fields that the identity
+// provider and OAuth2 capabilities reads do not carry.
+
+/** IdentityProviderKeycloakInput realm.maxLength */
+export const KEYCLOAK_REALM_MAX_LENGTH = 255
+
+/** IdentityProviderKeycloakInput and IdentityProviderGenericOidcInput clientId.maxLength */
+export const PROVIDER_CLIENT_ID_MAX_LENGTH = 255
+
+/** IdentityProviderKeycloakInput version.maxLength */
+export const KEYCLOAK_VERSION_MAX_LENGTH = 64
+
+/** IdentityProviderKeycloakInput version.pattern */
+export const KEYCLOAK_VERSION_PATTERN = /^[0-9]+(\.[0-9]+){0,3}$/
+
+/** IdentityProviderLdapInput hosts.items.maxLength */
+export const LDAP_HOST_MAX_LENGTH = 253
+
+/** IdentityProviderLdapInput port.minimum */
+export const LDAP_PORT_MIN = 1
+
+/** IdentityProviderLdapInput port.maximum */
+export const LDAP_PORT_MAX = 65535
+
+/** IdentityProviderLdapInput usernameField.maxLength (and attributeField) */
+export const LDAP_ATTRIBUTE_MAX_LENGTH = 255
+
+/** IdentityProviderLdapInput usernameField.pattern (format `ldapAttribute`, also attributeField) */
+export const LDAP_ATTRIBUTE_PATTERN = /^[A-Za-z][A-Za-z0-9-]*$/
+
+/** IdentityProviderGenericOidcInput scopes.pattern (format `scopeList`) */
+export const SCOPES_PATTERN = /^[\x21\x23-\x5B\x5D-\x7E]+( [\x21\x23-\x5B\x5D-\x7E]+){0,49}$/
+
+/** IdentityProviderMappingEntryInput template.maxLength (and defaultTemplate) */
+export const MAPPING_TEMPLATE_MAX_LENGTH = 255
+
+/** SingleSignOnCompletionRequest code.maxLength */
+export const SSO_CODE_MAX_LENGTH = 4096
+
+/** SingleSignOnCompletionRequest state.maxLength and SingleSignOnProviderErrorRequest state.maxLength */
+export const SSO_STATE_MAX_LENGTH = 512
+
+/** SingleSignOnProviderErrorRequest error.pattern (format `oauthErrorCode`) */
+export const OAUTH_ERROR_CODE_PATTERN = /^[\x20-\x21\x23-\x5B\x5D-\x7E]{1,64}$/
+
+/** Oauth2ClientCreateRequest redirectUris.items.maxLength */
+export const REDIRECT_URI_MAX_LENGTH = 2000

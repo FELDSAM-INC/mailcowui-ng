@@ -47,12 +47,12 @@ can be implemented and tested on its own once the foundation is in place.
 **Purpose**: Make sure the pinned contract contains API 012 and that every building block borrowed
 from earlier UI features exists (research R1), and extend the tooling.
 
-- [ ] T001 Pin the contract that implements API 012 (research R1, [contracts/README.md](./contracts/README.md) "Rule for T001"):
+- [X] T001 *(done: pinned at mailcow-rest-v2 `33f1eea` (main after `fc79902`), bundle sha256 `c4dfc9f9…a7e43f`; the API 012 files differ from the baseline only by G42 (`renewSecret`, `Oauth2ClientBulkResult`) and G20 (`If-None-Match: *` on the first save, which closes API gap 3); typecheck and unit tests clean after the bump)* Pin the contract that implements API 012 (research R1, [contracts/README.md](./contracts/README.md) "Rule for T001"):
   1. Confirm that mailcow-rest-v2 feature 012 is implemented (its `tasks.md` complete, its quickstart Part A passing).
   2. Diff the API 012 contract files listed in the contracts README between the baseline `32079252d55797d3da4e58ae661e9fb91c51c6f9` and the release tag (`contract-012` if it exists) or the first implementing commit. Review every difference against plan.md, data-model.md and this file before going on, and adjust them if the contract changed.
   3. Run `scripts/contract/bump.sh <tag-or-commit>`. Never pin a commit older than the one in `contract/VERSION.json`. Then run `npm run typecheck`, `npm run test:unit` and `npm run test:e2e`, and fix the fallout of the bump.
   4. Confirm that the generated file exports the API 012 root types of data-model §1 and `knownProblemTypeValues`, and record the ref, commit and bundle sha256 in the "Pin at implementation" row of `specs/012-identity-providers-oauth2/contracts/README.md`.
-- [ ] T002 Check the building blocks in plan.md "Dependencies on earlier UI features", one row at a time. Each must exist with the stated behaviour, and its own tests must pass:
+- [X] T002 *(done: present and passing — coverage manifest, parsed problem bodies, merge-patch section saves, `EditableSection`, `changedSince`/`useVersionedSave`, `useLeaveGuard`, `ConfirmDialog` with `requireTyped`, `useBulkSelection`/`BulkActionBar`/`BulkResultSummary`, `HistoryLink` with target filters, `OneTimeSecretDialog` and `useSecretRequest` (UI 001). Not on `main` because UI 003, 005, 010 and 011 have not landed: `PasswordInput`/`CopyButton`, `CopyableValue`, `useStatusMessage`, UI 003's template query and routes, UI 011's catalogue group and Cron log. Decision: under the legacy form map only the template list is still needed, so `listMailboxTemplates` gets the canonical key `['mailbox-templates','all']` in `src/api/query/keys.ts` and the mock handler `tests/mocks/handlers/mailbox-templates.ts` (list only); the secret field's reveal toggle and the copy of the return addresses stay in the feature (one use each); outcomes are announced with `announce()` and the sections' inline status, as in UI 002)* Check the building blocks in plan.md "Dependencies on earlier UI features", one row at a time. Each must exist with the stated behaviour, and its own tests must pass:
   - `src/i18n/coverage.json` and its handling in `scripts/i18n/check.mjs` (UI 002 D2);
   - the parsed problem body on `ApiProblem` in `src/api/problem.ts`;
   - UI 002's merge-patch section saves;
@@ -71,15 +71,15 @@ from earlier UI features exists (research R1), and extend the tooling.
   - UI 011's `group` field in `src/app/navigation/catalogue.ts` and its route `operations-log` with `logType` and the `task` parameter.
 
   When a block was built under another name or path, use it and correct the paths in this file and in plan.md. When a block or a listed capability is missing, build it now, test-first, at the listed path with the listed behaviour, before any story starts, and add a row for it to the plan's Complexity Tracking.
-- [ ] T003 [P] Extend `tests/unit/scripts/i18n-tools.spec.ts` (research R26, UI 002 D2). These enumerations, which this feature introduces into the UI, join the check's **fully required** enumerations (a key for every value, outside the coverage manifest):
+- [X] T003 *(done: the real coverage manifest must require every `IdentityProviderType` and test failure category; a fixture without a Slovak text fails. The synchronisation state and the grant types are not shown (legacy form map), so they are not required)* [P] Extend `tests/unit/scripts/i18n-tools.spec.ts` (research R26, UI 002 D2). These enumerations, which this feature introduces into the UI, join the check's **fully required** enumerations (a key for every value, outside the coverage manifest):
   - `IdentityProviderType`;
   - `IdentityProviderSynchronisation.state`;
   - `IdentityProviderConnectionTestResult.outcome` and `.failureCategory`;
   - the items of `Oauth2ClientCapabilities.grantTypes`.
 
   Their values come from the generated enumeration arrays where `--enum-values` emits them, and otherwise from their schema paths in `contract/openapi.json`, never from a hand-written list. Check with fixture message sets that a missing `identityProvider.sync.state.overdue` fails. The test must fail.
-- [ ] T004 Extend `scripts/i18n/check.mjs` and `scripts/i18n/lib.mjs` so that T003 passes.
-- [ ] T005 [P] Extend `scripts/smoke/stack-up.sh` and `scripts/smoke/stack-down.sh` (research R25).
+- [X] T004 *(done: no script change was needed: the manifest's `complete` registry (UI 002) takes `identityProvider.type` and `identityProvider.test.failure`)* Extend `scripts/i18n/check.mjs` and `scripts/i18n/lib.mjs` so that T003 passes.
+- [X] T005 *(done: `SMOKE_IDP=1` starts the `idp` profile, waits for OpenLDAP with `ldapsearch` and prints the notes; `stack-down.sh` stops the profile)* [P] Extend `scripts/smoke/stack-up.sh` and `scripts/smoke/stack-down.sh` (research R25).
   - With `SMOKE_IDP=1`, `stack-up.sh` runs `docker compose --profile idp up -d` in `$MAILCOW_REST_V2_DIR` after the base stack and waits until OpenLDAP accepts connections on port 389.
   - `stack-down.sh` also stops the `idp` profile.
   - Print `idp: openldap ready` and, unless `SMOKE_SSO_USERNAME` is set, a note that the single sign-on smoke test will be skipped.
@@ -96,12 +96,12 @@ and the parameter-driven validation messages that every story uses.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T005a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+- [X] T005a *(done: "Decisions at implementation" and "Legacy form map (T005a)" in plan.md)* Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
   Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Tests for the foundation (write first; must fail)
 
-- [ ] T006 [P] Extend `tests/unit/shared/validation/limits.spec.ts` (research R15). Each new constant of `src/shared/validation/limits.ts` must equal its value in `contract/openapi.json`:
+- [X] T006 *(done: 13 numeric limits and 4 patterns, compared with the contract)* [P] Extend `tests/unit/shared/validation/limits.spec.ts` (research R15). Each new constant of `src/shared/validation/limits.ts` must equal its value in `contract/openapi.json`:
   - Keycloak `realm` `maxLength` 255, `clientId` 255, `version` `maxLength` 64 with `pattern` `^[0-9]+(\.[0-9]+){0,3}$`;
   - LDAP host item `maxLength` 253, `port` `minimum` 1 and `maximum` 65535, `usernameField` `pattern` `^[A-Za-z][A-Za-z0-9-]*$`;
   - mapping `template` `maxLength` 255;
@@ -109,19 +109,19 @@ and the parameter-driven validation messages that every story uses.
   - `SingleSignOnProviderErrorRequest.error` `pattern` `^[\x20-\x21\x23-\x5B\x5D-\x7E]{1,64}$`;
   - `Oauth2ClientCreateRequest.redirectUris` item `maxLength` 2000;
   - the `scopes` `pattern`.
-- [ ] T007 [P] Extend `tests/unit/shared/platform/storage.spec.ts` (data-model §4). `sessionStorage` key `mailcowui-ng.sso-return-to` can be written, read and removed. Every other new key is still refused. A throwing `sessionStorage` never breaks the caller.
-- [ ] T008 [P] Extend `tests/unit/i18n/problems.spec.ts` (research R26, FR-068). Check:
+- [X] T007 *(done)* [P] Extend `tests/unit/shared/platform/storage.spec.ts` (data-model §4). `sessionStorage` key `mailcowui-ng.sso-return-to` can be written, read and removed. Every other new key is still refused. A throwing `sessionStorage` never breaks the caller.
+- [X] T008 *(done: `tests/unit/i18n/problems-identity-provider.spec.ts`; `duplicate` has one message without the entry number)* [P] Extend `tests/unit/i18n/problems.spec.ts` (research R26, FR-068). Check:
   - the six API 012 problem types (`identity-provider-not-configured`, `identity-provider-in-use`, `single-sign-on-not-available`, `sign-in-state-invalid`, `identity-provider-unavailable`, `identity-provider-session-ended`) map to `problem.<name>`, and each is in `knownProblemTypeValues`;
   - `secretRequired` with `reason` `noStoredSecret`, `typeChanged` or `addressChanged` selects `validation.secretRequiredReason.<reason>`, and an unknown reason falls back to `validation.secretRequired`;
   - `notFound` with `resource: mailboxTemplate` selects `validation.notFoundResource.mailboxTemplate`;
   - `duplicate` with `duplicateOf: attributeMapping.0.attributeValue` reads "same as entry 1";
   - `conflictsWith` with `field: importUsers` names that field's label;
   - `invalidFormat` with each format `httpUrl`, `hostName`, `keycloakRealm`, `keycloakVersion`, `scopeList`, `ldapAttribute`, `ldapFilter`, `redirectUri` and `oauthErrorCode` selects `validation.format.<format>`.
-- [ ] T009 [P] Write `tests/unit/api/identity-provider-in-use.spec.ts`. `identityProviderInUseDetails(problem)` returns `{ blockingMailboxes, mailboxCounts }` for an `ApiProblem` of type `/api/v2/problems/identity-provider-in-use`, typed from the generated `IdentityProviderInUseProblem`. It returns `null` for any other type and for a body without the members.
+- [X] T009 *(done)* [P] Write `tests/unit/api/identity-provider-in-use.spec.ts`. `identityProviderInUseDetails(problem)` returns `{ blockingMailboxes, mailboxCounts }` for an `ApiProblem` of type `/api/v2/problems/identity-provider-in-use`, typed from the generated `IdentityProviderInUseProblem`. It returns `null` for any other type and for a body without the members.
 
 ### Mock infrastructure
 
-- [ ] T010 Extend `tests/mocks/scenarios/state.ts` and create factories (research R24).
+- [X] T010 *(done: state for the identity provider (`MockIdentityProvider`), single sign-on (`MockSingleSignOn`), OAuth2 clients and mailbox template names, with overrides; factories `identity-provider.ts`, `oauth2-client.ts` and `mailbox-template.ts`, checked against the contract in `tests/unit/mocks/identity-provider-factories.spec.ts`; the area modules of handlers and scenarios are registered empty for the stories)* Extend `tests/mocks/scenarios/state.ts` and create factories (research R24).
   - Scenario state gains:
     - `identityProvider`: the stored configuration or `null`, its `etag` and `modifiedAt`, and the secrets kept server-side only;
     - capabilities overrides;
@@ -138,17 +138,17 @@ and the parameter-driven validation messages that every story uses.
     - synchronisation states;
     - test results.
   - Create `tests/mocks/factories/oauth2-client.ts`: client IDs of 12 lowercase hexadecimal characters, secrets of 24, `etag` values and token counts.
-- [ ] T011 Extend the request recorder in `tests/mocks/server.ts`, and `mockApi.requests()` in `tests/e2e/fixtures/mock-api.ts`, so that each recorded request also holds its `Referer` header (research R5, SC-003).
+- [X] T011 *(done: the recorder in `tests/mocks/handlers/index.ts` keeps the `referer` header, which `mockApi.requests()` returns)* Extend the request recorder in `tests/mocks/server.ts`, and `mockApi.requests()` in `tests/e2e/fixtures/mock-api.ts`, so that each recorded request also holds its `Referer` header (research R5, SC-003).
 
 ### Implementation for the foundation
 
-- [ ] T012 [P] Add the API 012 constants of T006 to `src/shared/validation/limits.ts`, each with a comment naming its schema path, so that T006 passes.
-- [ ] T013 Extend the API layer (research R10, R17), so that T009 passes and the typecheck stays clean.
+- [X] T012 *(done)* [P] Add the API 012 constants of T006 to `src/shared/validation/limits.ts`, each with a comment naming its schema path, so that T006 passes.
+- [X] T013 *(done: the root types, enumeration arrays, `identityProviderInUseDetails()`, and the keys `identityProvider.*`, `oauth2Clients.*` and `mailboxTemplates.*`)* Extend the API layer (research R10, R17), so that T009 passes and the typecheck stays clean.
   - `src/api/index.ts` re-exports the generated root types and enumeration arrays of data-model §1: `IdentityProvider` and its variants, `IdentityProviderInput` and its variants, `IdentityProviderPatch`, `IdentityProviderCapabilities`, `IdentityProviderConnectionTestResult`, `IdentityProviderType`, `IdentityProviderMailboxCounts`, `IdentityProviderSynchronisation`, `IdentityProviderInUseProblem`, `SingleSignOnStart`, the two single sign-on request types, `Oauth2Client`, `Oauth2ClientWithSecret`, `Oauth2ClientCapabilities`, `Oauth2ClientCreateRequest`, `Oauth2ClientPatch` and `Oauth2ClientBulkActionRequest`.
   - `src/api/problem.ts` gains `identityProviderInUseDetails()`, reading the parsed problem body that T002 confirmed.
   - `src/api/query/keys.ts` gains `identityProvider.capabilities()`, `identityProvider.configuration()`, `oauth2Clients.capabilities()`, `oauth2Clients.list(params)` and `oauth2Clients.detail(id)`, with `Oauth2ClientListParams` aliased from `NonNullable<operations['listOauth2Clients']['parameters']['query']>`.
-- [ ] T014 [P] Add `sessionStorage` key `mailcowui-ng.sso-return-to` to the allowlist in `src/shared/platform/storage.ts`, so that T007 passes.
-- [ ] T015 Extend `src/i18n/problems.ts` with the parameter-driven selections of research R26, and map the API 012 problem types and rule codes to the legacy `danger.*` messages of T005a's form map (for example `identity-provider-in-use` → `danger.authsource_in_use`). Add these new strings, only where the form map has no legacy key, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+- [X] T014 *(done)* [P] Add `sessionStorage` key `mailcowui-ng.sso-return-to` to the allowlist in `src/shared/platform/storage.ts`, so that T007 passes.
+- [X] T015 *(done: `secretRequired` with `reason` and `notFound` with `resource` select their messages; `identity-provider-in-use` shows the legacy `danger.authsource_in_use` through `LEGACY_TEXTS`; 26 new strings, plus the 8 type and failure texts of T004)* Extend `src/i18n/problems.ts` with the parameter-driven selections of research R26, and map the API 012 problem types and rule codes to the legacy `danger.*` messages of T005a's form map (for example `identity-provider-in-use` → `danger.authsource_in_use`). Add these new strings, only where the form map has no legacy key, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   - `problem.<name>` for the API 012 types without a legacy message;
   - `validation.format.{httpUrl,hostName,keycloakRealm,keycloakVersion,scopeList,ldapAttribute,ldapFilter,redirectUri,oauthErrorCode}`;
   - `validation.secretRequiredReason.{noStoredSecret,typeChanged,addressChanged}`;

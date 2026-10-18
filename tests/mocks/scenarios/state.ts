@@ -22,6 +22,8 @@ import type {
   MailboxStatus,
   MailboxTaggedMailHandling,
   MailboxUserPermissions,
+  IdentityProviderType,
+  Oauth2ClientCapabilities,
   Passkey,
   PasswordPolicy,
   PendingAction,
@@ -35,6 +37,8 @@ import type {
 } from '@/api'
 
 import { type ViolationRecorder } from '../contract/validator'
+import type { MockIdentityProvider } from '../factories/identity-provider'
+import type { MockOauth2Client } from '../factories/oauth2-client'
 import type { PublicConfigVariant } from './public-config'
 import type { SyncJobChanges, SyncJobState } from './sync-jobs'
 
@@ -64,9 +68,43 @@ export interface MockAccount {
   scope: Scope
   pendingActions: PendingAction[]
   preferences: Preferences
+  /**
+   * UI 012: the authentication source (`mailbox.authsource`); `mailcow` when absent. LDAP and
+   * Keycloak mailboxes sign in with their password through the provider.
+   */
+  source?: 'mailcow' | IdentityProviderType
 }
 
-export type MockAuthMethod = 'password' | 'passwordAndSecondFactor' | 'passkey'
+export type MockAuthMethod =
+  | 'password'
+  | 'passwordAndSecondFactor'
+  | 'passkey'
+  // UI 012: sign-ins through the identity provider.
+  | 'singleSignOn'
+  | 'directoryPassword'
+  | 'directoryPasswordAndSecondFactor'
+  | 'providerPassword'
+  | 'providerPasswordAndSecondFactor'
+
+/** UI 012: single sign-on of the mock (research R24). */
+export interface MockSingleSignOn {
+  /** The session's pending single sign-on: its state, expiry (epoch ms) and return address. */
+  pending: { state: string; expiresAt: number; returnUrl: string } | null
+  /** How a completion with the pending state is answered. */
+  completion: 'success' | 'stateInvalid' | 'refused' | 'unavailable' | 'notAvailable'
+  /** The mailbox a successful completion signs in. */
+  username: string
+  /** The provider of a successful completion. */
+  provider: IdentityProviderType
+  /** The start is answered `409 single-sign-on-not-available` even when available. */
+  startNotAvailable: boolean
+  /** Every authenticated request answers `401 identity-provider-session-ended`. */
+  endIdpSession: boolean
+  /** The password sign-in of provider accounts answers `503 identity-provider-unavailable`. */
+  providerOutage: boolean
+  /** Counter of issued codes and states. */
+  counter: number
+}
 
 export interface MockChallenge {
   challenge: string
@@ -365,6 +403,11 @@ export interface ScenarioState {
   violations: ViolationRecorder
   /** Clock of the mock, in epoch ms. */
   now: () => number
+  /** UI 012: the identity provider configuration, single sign-on, OAuth2 clients and templates. */
+  identityProvider: MockIdentityProvider
+  singleSignOn: MockSingleSignOn
+  oauth2Clients: MockOauth2Client[]
+  oauth2Capabilities: Oauth2ClientCapabilities
 }
 
 /** JSON overrides for a scenario, given by tests through `POST /__mock/scenarios`. */
@@ -403,6 +446,12 @@ export interface ScenarioOverrides {
   mailboxCreationReport?: Partial<Omit<MailboxCreationReport, 'messages'>>
   /** UI 008: sync job data and runtime changes (data-model §8). */
   syncJobs?: SyncJobChanges
+  /** UI 012: merged into the identity provider state (`stored` replaces the configuration). */
+  identityProvider?: Partial<MockIdentityProvider>
+  singleSignOn?: Partial<MockSingleSignOn>
+  /** Replaces the OAuth2 clients. */
+  oauth2Clients?: MockOauth2Client[]
+  oauth2Capabilities?: Partial<Oauth2ClientCapabilities>
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

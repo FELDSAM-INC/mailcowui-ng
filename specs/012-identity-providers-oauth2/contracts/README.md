@@ -17,7 +17,7 @@ generation are unchanged from [UI 001](../../001-sign-in-app-shell/contracts/REA
 | Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
 | Operations at the baseline | 376, of which 19 belong to API 012; `KnownProblemType` is registered (UI 001 API gap 5 closed) |
 | Last change to the API 012 contract files | `5c6f4e9` ("Align feature 012 with capabilities, history and refusal conventions") |
-| Pin at implementation | the release tag (`contract-012` once mailcow-rest-v2 tags contract releases, its `docs/api-gaps.md` G5), or else the first commit, at which mailcow-rest-v2 feature 012 is implemented and its quickstart Part A passes (research R1) |
+| Pin at implementation | `33f1eea0fd0278ba61d9adae9398797d89df6857` (mailcow-rest-v2 `main` on 2026-10-19, after `fc79902` "Record the final gates of feature 012 on main"), bundle sha256 `c4dfc9f94acf3310c7802d51f38a8f508589a2a6f6dc267c97bdea9572e7c43f`. The API 012 contract files differ from the baseline only by G42 (the bulk action `renewSecret`, `Oauth2ClientBulkResult` with each new `clientSecret`) and G20 (`If-None-Match: *` on `PUT /identity-provider`, which closes API gap 3) |
 
 **Rule for T001** (UI 002 D1 policy):
 

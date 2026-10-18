@@ -19,7 +19,7 @@ quickstart; only what this feature adds is listed here.
 cat contract/VERSION.json               # commit contains API 007 (a13c370) — see contracts/README.md
 npm run contract:check                  # vendored contract and generated client up to date
 npm run lint && npm run typecheck
-npm run i18n:check                      # en-gb, cs-cz, sk-sk complete; feature enums and coverage.json values
+npm run i18n:check                      # new strings in en-gb, cs-cz, sk-sk; used legacy keys in the en-gb snapshot; feature enums and coverage.json values
 npm run test:unit                       # incl. tests/unit/app/session/identity-switch.spec.ts and csrf identity check
 npm run build && npm run budget:check   # entry chunk grows by about 3 KB only
 npm run test:e2e -- --grep "US[1-7]-|FR-0|Edge:" tests/e2e/administrators tests/e2e/acting \
@@ -48,7 +48,7 @@ are defined in `tests/mocks/scenarios/{administrators,acting,sso-sign-in}.ts`.
 | US2 | `acting-admin` | Open a second tab; start acting in the first; return to the second and save something | The second tab shows the banner; a change prepared before the switch is not carried out and says why (AS-10) |
 | US2 | `acting-reseller-login-as`, `acting-reseller-no-login-as` | Sign in as the reseller and open the mailbox list | "Sign in as" only with the flag (AS-4) |
 | US3 | `domain-admins-three` | Change three switches, try to leave, then save | Leave guard; only the three flags sent; saved state after reload (AS-1 to AS-3, SC-010) |
-| US4 | `admins-one-active` | Open Administrators (`/ng/administrators/admins`) and your own account | Remove disabled with its reason; deactivation disabled with "At least one administrator must stay active" (AS-3, AS-4) |
+| US4 | `admins-one-active` | Open Administrators (`/ng/administrators/admins`) and your own account | Remove disabled with its reason; deactivation disabled with the legacy `warning.no_active_admin` ("Cannot deactivate last active admin") (AS-3, AS-4) |
 | US4 | `admins-two-active` | Deactivate your own account | Confirmation that the session ends; then the sign-in screen with an explanation (AS-5) |
 | US5 | `sso-valid` | Open `/ng/sign-in/sso-token?sso_token=<scenario token>` signed out | Home of the domain administrator; the address bar and history hold no token (AS-1) |
 | US5 | `sso-valid-signed-in` | Open the same address while signed in as admin | The question names admin; "Continue" signs in as the link's account; "Stay signed in" keeps admin (AS-3) |

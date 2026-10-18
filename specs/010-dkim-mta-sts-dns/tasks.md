@@ -98,7 +98,10 @@ translation check (research R1, R3, R22).
     `DkimDnsPublicationStatus` (`dns.publication.status.*`), `DkimDnsPublicationReasonCode`
     (`dns.publication.reasons.*`), `DnsCheckStatus` (`dns.diagnostics.status.*`),
     `DnsCheckMessageCode` (`dns.diagnostics.messages.*`), `DnsCheck.scope`
-    (`dns.diagnostics.scopes.*`) and `MtaStsMode` (`dns.mtaSts.modes.*.label` and `.description`);
+    (`dns.diagnostics.scopes.*`). `MtaStsMode` is not translated: legacy shows the raw values
+    `enforce`, `testing` and `none` (constitution IV 1.3.0, research R22). Where a value has a
+    legacy key (`admin.dkim_key_valid`, `admin.dkim_key_missing`, `admin.dkim_key_unused`), the
+    check accepts that key instead of a new string;
   - in `src/i18n/coverage.json`, append:
     - `AuditEventType`: `dkimKeyGeneration`, `dkimKeyImport`, `dkimKeyCopy`, `dkimKeyDeletion`,
       `dkimPrivateKeyExport`, `dkimDnsPublication`, `mtaStsPolicyCreation` and
@@ -123,6 +126,11 @@ translation check (research R1, R3, R22).
 blocks of research R3, the publication outcome component and the base translations.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Legacy form map
+
+- [ ] T004a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Test infrastructure
 
@@ -281,16 +289,16 @@ blocks of research R3, the publication outcome component and the base translatio
   - Replace every reference to the catalogue id `'dns'` with `'dkimKeys'`, for example the
     `isEntryAvailable('dns')` links of UI 002's and UI 004's creation reports. The
     `NavigationEntry` id union makes `npm run typecheck` find them.
-  - Replace `nav.dns` by `nav.dkimKeys` and `nav.mtaStsPolicies` in
-    `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `nav.dkimKeys` to `admin.dkim_keys` in
-    `src/i18n/legacy-map.json` and run `npm run i18n:import`.
+  - Remove `nav.dns` from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. The `dkimKeys` entry uses
+    the legacy key `admin.dkim_keys` verbatim; add `nav.mtaStsPolicies` as a new string only if the
+    legacy form map (T004a) finds no legacy key for it.
 
   T018 and T019 must pass.
 - [ ] T022 [P] Give `src/shared/components/CopyButton.vue` (UI 005) the `selectTarget` fallback, if
   T001 found it missing. If T001 found no `CopyButton`, create it on UI 001's
-  `src/shared/platform/clipboard.ts` and `useAnnouncer`, with `common.copy.*` messages in three
-  locales (`common.copy.done` mapped to `admin.copy_to_clipboard`; `sk-sk` supplied in its app
-  layer). Implement `src/features/dns/components/RecordValue.vue`. T013 must pass.
+  `src/shared/platform/clipboard.ts` and `useAnnouncer`, using the legacy key
+  `admin.copy_to_clipboard` verbatim for the copied message (falling back to `en-gb` where a locale
+  lacks it) and new strings only for the other `common.copy.*` texts. Implement `src/features/dns/components/RecordValue.vue`. T013 must pass.
 - [ ] T023 [P] Promote UI 005's `src/features/account/download.ts` to
   `src/shared/platform/download.ts` with `downloadText(text, fileName, mediaType)`, and update UI
   005's imports. If T001 found it promoted already, add `downloadText` if missing; if absent,
@@ -318,7 +326,10 @@ blocks of research R3, the publication outcome component and the base translatio
   Extend `tests/unit/app/router/guards.spec.ts`, or the router's unit test, for both (FR-013).
 - [ ] T028 [P] Implement `src/features/dns/components/PublicationOutcome.vue` (research R16). T017
   must pass.
-- [ ] T029 Add the foundation messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+- [ ] T029 Add the foundation's new strings of the legacy form map (T004a) to
+  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, never machine-translated, and use legacy keys
+  verbatim wherever the form map names one (for example the `danger.*` message of a problem type or
+  rule code with the same meaning):
   - `problem.dkim-key-exists`, `problem.dkim-private-key-export-disabled`,
     `problem.dkim-dns-publication-disabled` and `problem.mta-sts-policy-exists`, if not yet present;
   - `validation.invalidPrivateKey`, `validation.encryptedPrivateKey`,
@@ -493,12 +504,13 @@ option, press every copy button, and compare the copied text with the mock data.
   T001 if they differ. On the domain page, add the link "DKIM keys of this domain and its alias
   domains". T033 and T035
   must pass.
-- [ ] T042 [US1] Add the `dns.dkim.*` messages for the list, filters, sort, empty states, entry,
-  record, incomplete notice and settings summary to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
-  Map the legacy keys of research R22 for this story in `src/i18n/legacy-map.json`:
-  `admin.dkim_keys`, `admin.dkim_key_valid`, `admin.dkim_key_missing`, `admin.dkim_key_unused`,
-  `admin.dkim_domains_selector` and `admin.dkim_key_length`. Run `npm run i18n:import` and
-  `npm run i18n:check`.
+- [ ] T042 [US1] Add the legacy form map's new strings (T004a) under `dns.dkim.*` for the list,
+  filters, sort, empty states, entry, record, incomplete notice and settings summary to
+  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use these legacy keys verbatim through UI 001's
+  legacy translation layer (no copies, no hand-written values): `admin.dkim_keys`,
+  `admin.dkim_key_valid`, `admin.dkim_key_missing`, `admin.dkim_key_unused`,
+  `admin.dkim_domains_selector`, `admin.dkim_key_length`, `add.domain`, `mailbox.toggle_all` and
+  `admin.remove`. Run `npm run i18n:check`.
 
 **Checkpoint**: US1 works on its own: list, entry, copy and the domain and alias domain sections.
 
@@ -614,10 +626,11 @@ and a dropped connection.
 - [ ] T050 [US2] Add "Generate a key" to `src/features/dns/pages/DkimKeyPage.vue` (missing state)
   and to `src/features/dns/components/DomainDkimSection.vue`. Both open `GenerateKeyDialog` for that
   name and move the focus to the record heading after success. T044 must pass.
-- [ ] T051 [US2] Add the `dns.dkim.generate.*`, `dns.dkim.run.*` and `dns.dkim.selection.*` messages
-  in three locales. Map `admin.dkim_add_key`, `success.dkim_added` (`{0}`) and
-  `danger.dkim_domain_or_sel_exists` (`{0}`) in `src/i18n/legacy-map.json`. Run
-  `npm run i18n:import` and `npm run i18n:check`.
+- [ ] T051 [US2] Add the legacy form map's new strings under `dns.dkim.generate.*`,
+  `dns.dkim.run.*` and `dns.dkim.selection.*` in three locales. Use verbatim `admin.dkim_add_key`,
+  `admin.dkim_domains_wo_keys`, `admin.domain_s`, `admin.add`, `success.dkim_added` (`%s`),
+  `danger.dkim_domain_or_sel_exists` (`%s`) and `danger.dkim_domain_or_sel_invalid` (`%s`). Run
+  `npm run i18n:check`.
 
 **Checkpoint**: US1 and US2 work: keys can be found, generated and their records copied.
 
@@ -803,10 +816,11 @@ summary and the downloaded zone file with the mock.
     `unknown`, the causes and SPF results;
   - the summary, filter, facts, zone file, run states, rate-limit and timeout texts.
 
-  Map `diagnostics.dns_records`, `diagnostics.dns_records_24hours`,
-  `diagnostics.dns_records_name`, `diagnostics.dns_records_type`, `diagnostics.cname_from_a` and
-  `diagnostics.optional` in `src/i18n/legacy-map.json`. Run `npm run i18n:import` and
-  `npm run i18n:check`.
+  Add only the legacy form map's new strings (T004a). Use verbatim `diagnostics.dns_records`,
+  `diagnostics.dns_records_24hours`, `diagnostics.dns_records_name`,
+  `diagnostics.dns_records_type`, `diagnostics.dns_records_data`, `diagnostics.dns_records_status`
+  (unless the owner approves new labels, plan deviation 6), `diagnostics.cname_from_a` and
+  `diagnostics.optional`. Run `npm run i18n:check`.
 
 **Checkpoint**: US1 to US3 (all P1 stories) work on their own.
 
@@ -928,7 +942,7 @@ Check the values sent and every message.
   T067 must pass.
 - [ ] T071 [P] [US4] Implement in `src/features/dns/components/`:
   - `MxHostListField.vue` and `MaxAgeField.vue`;
-  - `MtaStsModeField.vue`: a Reka `RadioGroup` with each mode's description visible;
+  - `MtaStsModeField.vue`: the modes as their raw values in legacy's order (`enforce`, `testing`, `none`) with `edit.mta_sts_mode_info` shown whole through `SanitizedHtml.vue` (per-mode descriptions only if the owner approves plan deviation 1);
   - `MtaStsForm.vue`: the version as fixed text `STSv1`; the active `Switch` with the legacy
     explanation; the FR-051 notice next to the set-up form;
   - `MtaStsRecords.vue` and `MtaStsPolicyFacts.vue`.
@@ -950,20 +964,21 @@ Check the values sent and every message.
     `MtaStsFilters.vue`.
 
   T066 must pass.
-- [ ] T074 [US4] Add the `dns.mtaSts.*` messages in three locales:
-  - `dns.mtaSts.modes.<mode>.label` and `.description`, with the legacy `edit.mta_sts_mode_info`
-    wording split per mode;
-  - the units, the identifier notice, the deactivation confirmation, the certificate notice, and
-    the list texts.
+- [ ] T074 [US4] Add the legacy form map's new strings under `dns.mtaSts.*` in three locales: the
+  identifier notice, the deactivation confirmation, the certificate notice and the list texts (and
+  the units or per-mode explanations only if the owner approves plan deviations 1 and 3).
 
-  Map in `src/i18n/legacy-map.json` (research R22):
+  Use verbatim through UI 001's legacy translation layer (research R22):
   - `edit.mta_sts`, `edit.mta_sts_version`, `edit.mta_sts_mode`, `edit.mta_sts_max_age`,
-    `edit.mta_sts_mx`, `edit.mta_sts_mx_info` and `edit.mta_sts_active_info`;
-  - with `stripMarkup: true` (UI 002 D27): `dns.mtaSts.explanation` from `edit.mta_sts_info`, and
-    `dns.mtaSts.fields.versionHelp` from `edit.mta_sts_version_info`.
+    `edit.mta_sts_max_age_info`, `edit.mta_sts_mx`, `edit.mta_sts_mx_info`,
+    `edit.mta_sts_mx_notice`, `edit.active`, `edit.mta_sts_active_info` and `admin.save`, and the
+    messages `danger.version_invalid`, `danger.mode_invalid`, `danger.max_age_invalid`,
+    `danger.mx_invalid` and `success.object_modified` where the API outcome has the same meaning;
+  - through `SanitizedHtml.vue`, whole and unaltered: `edit.mta_sts_info`,
+    `edit.mta_sts_version_info` and `edit.mta_sts_mode_info`.
 
-  `sk-sk` supplies all of them in its app layer, and `cs-cz` supplies `edit.mta_sts_active_info`.
-  Run `npm run i18n:import` and `npm run i18n:check`.
+  No locale supplies its own value for a legacy key; missing keys fall back to `en-gb`. Run
+  `npm run i18n:check`.
 
 **Checkpoint**: US1 to US4 work on their own.
 
@@ -1174,11 +1189,12 @@ every validation rule. Check that a domain administrator is never offered these 
 
   T076–T079 must pass.
 - [ ] T088 [US5] Add the `dns.dkim.import.*`, `dns.dkim.copy.*`, `dns.dkim.delete.*` (including
-  `bulk.typeCountMismatch`) and `dns.dkim.replace.*` messages in three locales. Map
-  `admin.import_private_key`, `admin.private_key`, `admin.dkim_overwrite_key`,
-  `admin.duplicate_dkim`, `admin.dkim_from`, `admin.dkim_to`, `success.dkim_removed` (`{0}`) and
-  `success.dkim_duplicated` (`{0}`, `{1}`) in `src/i18n/legacy-map.json`. Run
-  `npm run i18n:import` and `npm run i18n:check`.
+  `bulk.typeCountMismatch`) and `dns.dkim.replace.*` new strings of the legacy form map in three
+  locales. Use verbatim `admin.import_private_key`, `admin.domain`, `admin.private_key`,
+  `admin.dkim_private_key`, `admin.dkim_overwrite_key`, `admin.import`, `admin.duplicate_dkim`,
+  `admin.dkim_from`, `admin.dkim_from_title`, `admin.dkim_to`, `admin.dkim_to_title`,
+  `admin.duplicate`, `success.dkim_removed` (`%s`), `success.dkim_duplicated` (`%s`, `%s`) and
+  `danger.private_key_error` (`%s`). Run `npm run i18n:check`.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -1452,7 +1468,8 @@ Edits to these files must be serialised, even when stories run in parallel:
 - `src/features/dns/components/PublicationOutcome.vue`: Foundational, US7;
 - the UI 002 domain page and list and the UI 004 alias domain page and list: US1, US3, US4;
 - `tests/mocks/handlers/dkim.ts` and `tests/mocks/scenarios/dns.ts`: every story;
-- `src/i18n/messages/*.json` and `src/i18n/legacy-map.json`: every story.
+- `specs/010-dkim-mta-sts-dns/plan.md` (legacy form map): T004a, before every screen task;
+- `src/i18n/messages/*.json`: every story.
 
 ### Within Each User Story
 
@@ -1542,7 +1559,7 @@ Edits to the shared files listed under "Files edited by several stories" run one
 - Commit after each task or logical group, directly to `main`, with short imperative subjects.
 - Never add:
   - a hand-written API type;
-  - a `v-html`;
+  - a `v-html` (legacy texts with HTML go through UI 001's `SanitizedHtml.vue` only);
   - an inline style or script;
   - a storage key;
   - a TanStack query or mutation that carries a private key;

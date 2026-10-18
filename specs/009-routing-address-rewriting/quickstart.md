@@ -26,8 +26,8 @@ npm ci
 npm run lint && npm run format:check
 npm run typecheck
 npm run contract:check                  # vendored contract checksum; generated files up to date
-npm run i18n:check                      # en-gb, cs-cz, sk-sk complete; routing enums; rich hints parse
-npm run test:unit                       # includes tests/unit/features/routing/** and the rich import
+npm run i18n:check                      # new strings in en-gb, cs-cz, sk-sk; legacy keys in the en-gb snapshot; routing enums
+npm run test:unit                       # includes tests/unit/features/routing/** (legacy hints through SanitizedHtml)
 npm run build && npm run budget:check   # initial JS unchanged; routing chunks listed
 npm run test:e2e -- tests/e2e/routing   # mobile-chromium, desktop-chromium, mobile-webkit
 npm run test:e2e                        # the whole suite, including UI 002/003 detail pages

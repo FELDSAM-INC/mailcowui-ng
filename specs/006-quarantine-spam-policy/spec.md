@@ -309,10 +309,11 @@ remove single and several entries, at both widths, with Czech and English locale
    server defaults are shown as in effect.
 6. **Given** the spam policy permission, **When** the user adds "*@Spam.Example " to the Denylist,
    **Then** the entry `*@spam.example` appears in the Denylist and the field is ready for the next
-   entry. **When** they add the same pattern to the Allowlist, **Then** the app says it is already
-   on the Denylist and adds nothing.
+   entry. **When** they add the same pattern to the Allowlist, **Then** the app shows the legacy
+   message that the record exists (`danger.policy_list_from_exists`) and adds nothing.
 7. **Given** the pattern `user+tag@example.org`, **When** the user tries to add it, **Then** the
-   app states which characters are allowed and sends nothing.
+   app shows the legacy invalid-format message (`danger.policy_list_from_invalid`) and sends
+   nothing.
 8. **Given** a domain Denylist entry, **When** the user views the Denylist, **Then** the entry
    appears in the group "Set for example.org", read-only, without a remove control.
 9. **Given** three selected own entries, one of which was removed elsewhere, **When** the user
@@ -584,9 +585,10 @@ the filters and the presentation of each kind of record from the mock.
 #### Quarantine list
 
 - **FR-008**: Above the list the app MUST show the quarantine status for every role: when inactive,
-  the legacy notice that the configuration disables the quarantine; otherwise the maximum number of
-  items kept per mailbox and the maximum message size, formatted as a size. The legacy explanation
-  of the quarantine MUST be available as collapsible help text.
+  the legacy notice that the configuration disables the quarantine; otherwise the legacy
+  `quarantine.settings_info` text with the maximum number of items kept per mailbox and the maximum
+  message size in MiB. The legacy explanation of the quarantine (`quarantine.qinfo`, verbatim with
+  its markup) MUST be available as collapsible help text.
 - **FR-009**: The list MUST show the items in the user's scope, page by page, with 25 (default), 50
   or 100 per page, the total number of matching items, and controls for the first, previous, next
   and last page with the current page number. The default order MUST be newest first.
@@ -762,8 +764,9 @@ the filters and the presentation of each kind of record from the mock.
   or digit, and at most 100 characters. The field MUST explain that `*` matches any characters,
   with the placeholder `*@example.org`. After a successful addition, the entry MUST appear and the
   field MUST be empty and focused for the next entry.
-- **FR-049**: A conflict with an existing entry MUST be shown as "already on the Allowlist" or
-  "already on the Denylist", naming the existing pattern, and nothing MUST be added.
+- **FR-049**: A conflict with an existing entry MUST be shown with the legacy message
+  `danger.policy_list_from_exists`, and nothing MUST be added. Naming the list that holds the
+  pattern is a pending deviation (plan, "Deviations needing a decision").
 - **FR-050**: Users permitted to change the list MUST be able to remove one own entry after a
   confirmation naming the pattern and the list, and to select several own entries of the current
   page and remove them after one confirmation that requires typing their number
@@ -913,11 +916,15 @@ the filters and the presentation of each kind of record from the mock.
 
 #### Internationalisation
 
-- **FR-080**: All text of this feature MUST come from the translation files and MUST be complete in
-  English, Czech and Slovak. Legacy translation keys MUST be reused where the meaning is unchanged;
-  legacy texts that contain markup MUST be carried over without it.
+- **FR-080**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key (legacy texts that contain markup are rendered whole through the
+  sanitiser, never stripped); the screens MUST mirror the legacy forms (fields, labels, help texts,
+  options, units, order and messages); new strings, only for elements the classic interface lacks,
+  MUST exist in English, Czech and Slovak and MUST NOT be machine-translated.
 - **FR-081**: Dates and times MUST be shown in the user's locale and time zone, numbers and scores
-  with the locale's separators, and sizes in binary units formatted for the locale.
+  with the locale's separators, and sizes in binary units formatted for the locale. Where a legacy
+  text or field fixes the unit (MiB), that unit is kept.
 - **FR-082**: Message data (subjects, addresses, text, symbol names and options, file names, hashes),
   patterns, object names and mail server answers MUST be shown as received and never translated.
 
@@ -948,7 +955,7 @@ Legacy reference: FeldHost fork of mailcow-dockerized (upstream tag `2026-09a`),
 `templates/mailbox/tab-mailboxes.twig`, `templates/mailbox/rl-frame.twig`,
 `templates/admin/tab-config-quarantine.twig`, `templates/dashboard.twig`, `js/site/quarantine.js`,
 `js/site/qhandler.js`, `js/site/user.js`, `js/site/edit.js`, `js/site/dashboard.js`,
-`inc/ajax/qitem_details.php` and `lang/lang.{en-gb,cs-cz,sk-sk}.json`. Status: **Matched** (same
+`inc/ajax/qitem_details.php` and `lang/lang.*.json` (all languages). Status: **Matched** (same
 capability), **Improved** (same capability, better behaviour) or **Dropped** (intentionally not in
 this feature, with the reason).
 
@@ -958,7 +965,7 @@ this feature, with the reason).
 |---|---|---|---|
 | Card header with count badge, Refresh | Total rows, reload | Matched | FR-009, FR-016 |
 | "Disabled by config" alert, "settings info" line | Shown from the settings | Matched | FR-008 |
-| Explanation text (`qinfo`, with markup) | Always shown | Improved: collapsible help, without markup | FR-008, FR-080 |
+| Explanation text (`qinfo`, with markup) | Always shown | Improved: collapsible help, verbatim with its markup | FR-008, FR-080 |
 | Search box, page length 10/25/50/100/all, paging | Client-side over all items | Improved: server-side search, 25/50/100, totals | FR-009, FR-012 |
 | No filters | — | Improved: action, virus, notification, time, score, recipient and domain filters | FR-013 |
 | Sortable columns, saved table state in browser storage | DataTables `stateSave` | Improved: 10 sort keys, state in the page address | FR-014, FR-015 |
@@ -1141,9 +1148,10 @@ wanted; until then the app behaves as stated):
   dropped connections the app never sends an item action twice.
 - **SC-008**: 100 % of saves based on outdated data are stopped, and the user's unsaved input is still
   present afterwards.
-- **SC-009**: 100 % of the error types and validation rules of API feature 006 are shown translated in
-  English, Czech and Slovak with their parameters filled in, and translation checks find 0 missing
-  keys.
+- **SC-009**: 100 % of the error types and validation rules of API feature 006 are shown with the
+  legacy message of the same meaning or a new string, in every supported language, with their
+  parameters filled in, and translation checks find 0 missing keys (new strings in English, Czech
+  and Slovak; legacy keys in the `en-gb` snapshot).
 - **SC-010**: When the API answers within 1 second, the first page of the quarantine list is visible
   within 2 seconds of opening it on a mid-range phone over a mobile connection, and search results
   update within 1 second after the user stops typing.
@@ -1166,7 +1174,8 @@ wanted; until then the app behaves as stated):
   feature is built and tested against a mock generated from the contract.
 - The legacy quick release and delete pages behind notification links stay in the legacy component,
   and notification e-mails keep linking there.
-- Legacy translation keys with unchanged meaning are reused, for example `quarantine.quarantine`,
+- Legacy texts are used verbatim by their legacy keys (constitution IV 1.3.0), for example
+  `quarantine.quarantine`,
   `quarantine.deliver_inbox`, `quarantine.learn_spam_delete`, `quarantine.remove`,
   `quarantine.download_eml`, `quarantine.rspamd_result`, `quarantine.spam_score`,
   `quarantine.sender`, `quarantine.sender_header`, `quarantine.recipients`, `quarantine.atts`,
@@ -1180,8 +1189,8 @@ wanted; until then the app behaves as stated):
   `admin.hash_remove_info`, `danger.policy_list_from_exists`, `danger.policy_list_from_invalid`,
   `danger.release_send_failed`, `danger.rl_timeframe`, `success.item_released`,
   `success.items_released`, `success.qlearn_spam`, `success.rl_saved`, `success.hash_deleted` and
-  `warning.hash_not_found`. Texts whose meaning changes, and new texts (learning switch, step
-  outcomes, virus acknowledgement, inherited groups), get new keys.
+  `warning.hash_not_found`. Only elements the classic interface lacks (learning switch, step
+  outcomes, virus acknowledgement, inherited groups) get new strings.
 - The 20-line content preview, the single re-check after 5 seconds of an item being processed, and
   the page sizes are defaults of this feature.
 - **Out of scope**: the quick release and delete pages; quarantine ingestion and notification

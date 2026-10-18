@@ -120,16 +120,20 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
   rules. Each page has:
   - `id`, `group`, `routeName`, `titleKey`, `descriptionKey`;
   - `sections`: `{ id, headingKey, fieldKeys[] }`, where `id` is also the heading's DOM id;
-  - `legacyNameKeys`: legacy keys reused through `legacy-map.json` (for example
-    `admin.customize`, `admin.sys_mails`), plus literal legacy names that legacy never translated
-    ("Rspamd UI", "Prefilter", "Postfilter"), stored as messages in all three locales;
+    `titleKey`, `headingKey` and `fieldKeys` are the legacy keys of T008a's form map (the legacy menu
+    entry, card title and field label) wherever one exists, and new strings only otherwise
+    (constitution IV 1.3.0);
+  - `legacyNameKeys`: further legacy keys used verbatim (for example `admin.customize`,
+    `admin.sys_mails`), plus literal legacy names that legacy never translated ("Rspamd UI",
+    "Prefilter", "Postfilter"), stored as new strings in all three locales;
   - `auditTarget`: `{ type: AuditTargetType }` for History (R27);
   - `visible(capabilities)`: `false` only for License while license verification is disabled
     (FR-033).
 
   The full table is in [data-model.md](./data-model.md#10-settings-catalogue). A unit test checks
   that every page has a route, every section id appears as a heading id in its page component (a
-  static scan of the SFC), and every key exists in en-gb.
+  static scan of the SFC), and every key exists in en-gb (a new string) or in the bundled `en-gb`
+  legacy snapshot (a legacy key).
 - **Rationale**: The same pattern as 001-R19's navigation catalogue: one array makes a missing
   entry or a broken link impossible, and FR-008 forbids searching anything but the app's own
   catalogue.
@@ -144,8 +148,9 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
   - **Haystacks** per page: title, description, every section heading, every field label, and the
     legacy names in the language in use **and in English**. English legacy names are included
     because the clarified spec's examples search "Customize" and "System mails" in a Czech app.
-    en-gb messages are always bundled (001-R15), so `t(key, {}, { locale: 'en-gb' })` needs no
-    extra load.
+    The English values come from the installation's `en-gb` legacy file, which UI 001's legacy layer
+    loads as the fallback, or from the bundled `en-gb` snapshot and the bundled en-gb new strings,
+    so they need no extra load.
   - **Normalisation** of both query and haystack: `toLocaleLowerCase(locale)`, Unicode NFD, removal
     of combining marks (`\p{M}`), collapse of whitespace. "uprava" finds "Úprava".
   - **Matching**: the query is split on whitespace; an entry matches when every token is a
@@ -294,10 +299,12 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
 
   **English diagnostics**: two parameters are free text by contract: `sieveSyntax.message` (the
   legacy parser's message) and the Dovecot reply in `MassMailRecipient.failureReason`. FR-069
-  requires the parser's reason. Both are shown inside a translated sentence, marked as the server's
-  own message (`<q lang="en">`), never as the whole message, and rendered through UI 006's
-  `PlainText.vue` and `neutralise()` (`src/shared/security/plain-text.ts`), so control and bidi
-  characters are shown as markers and cannot spoof the screen. `DovecotRestartOutcome.detail`
+  requires the parser's reason. Both are shown inside a translated sentence (for the parser, the
+  legacy `danger.sieve_error`, "Sieve parser error: %s", as in the classic interface; constitution
+  IV 1.3.0), marked as the server's own message (`<q lang="en">`), never as the whole message,
+  and rendered through UI 006's `PlainText.vue` and `neutralise()`
+  (`src/shared/security/plain-text.ts`), so control and bidi characters are shown as markers and
+  cannot spoof the screen. `DovecotRestartOutcome.detail`
   and `ContainerProblem.serviceMessage` are not shown; the translated outcome suffices.
 - **Rationale**: FR-092 and constitution I/IV: the app's text is translated; quoted server
   diagnostics are data, like a stored value.
@@ -577,8 +584,8 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
   - **Presets** (FR-056, FR-061, FR-062): `PresetPicker.vue` lists `listPresets(kind)` (cached
     with a long stale time; presets ship with mailcow). The headline is `t(presetKey(translationKey))`
     when the app knows the key, otherwise the API's English headline. `presetKey()` maps
-    `admin.rsettings_preset_4` to `systemSettings.presets.admin_rsettings_preset_4`, whose
-    translations come from the legacy layer (R28). Choosing a preset fills the fields; if the user
+    `admin.rsettings_preset_4` to the legacy key `admin.rsettings_preset_4` itself, used verbatim
+    (constitution IV 1.3.0, R28). Choosing a preset fills the fields; if the user
     typed something, a confirmation asks before replacing. In UI 005's form, only the script (and
     the description when empty) is filled. The global Sieve filters never offer presets.
   - **Effective map** (FR-060): its own address, a read-only `CodeEditor` with line numbers, a copy
@@ -853,31 +860,44 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
 
 ### R28. Translations
 
+> **Superseded in part by constitution IV 1.3.0** (owner rule, 2026-10-18; `docs/conventions.md`,
+> "Translations and forms"; plan, "Translations and forms (constitution IV 1.3.0)"). There is no
+> build-time import, no `legacy-map.json` aliasing, no stripped markup and no hand-written value
+> for a legacy key. The items below are corrected in place.
+
 - **Decision**:
-  - Namespace `systemSettings.*` (data-model §8 lists the key groups), plus additions to `problem.*`,
-    `validation.*`, `auditLog.*` and `nav.system`.
-  - **Legacy reuse** through `src/i18n/legacy-map.json` for the keys the spec's Assumptions list
-    whose meaning is unchanged. Excluded: keys that name the product or operator
-    (`admin.main_name`, `admin.title_name`, `admin.apps_name`, `admin.force_sso`), keys whose
-    meaning changed (`admin.ui_header_announcement_content`, "HTML allowed"), and vendor-link texts
-    (`admin.license_info`).
-  - **Importer extension** (`scripts/i18n/import-legacy.mjs`, `lib.mjs`): `%d` converts like `%s`
-    (needed for `admin.password_policy_length`), and a map entry may be `{ "key": "...",
-    "stripHtml": true }`, which removes tags (keeping their text, `<br>` becoming a space) and then
-    refuses the value if any `<` remains. FR-103 requires legacy texts with markup to be carried
-    over without it (for example `admin.ip_check_opt_in`). A text whose meaning depends on markup
-    that the app does not reproduce is not reused (`admin.rspamd_global_filters_regex` points to a
-    restart link).
+  - Namespace `systemSettings.*` (data-model §8 lists the key groups) for new strings only, plus
+    additions to `problem.*`, `validation.*`, `auditLog.*` and `nav.system`. Where a planned new
+    string has a legacy equivalent in T008a's form map, the legacy key is used instead.
+  - **Legacy keys used verbatim** by their legacy name, through UI 001's legacy translation layer
+    (runtime `/lang/` loader, `en-gb` snapshot, formatter): the keys of the spec's Assumptions,
+    including those that name the product (`admin.main_name`, `admin.title_name`,
+    `admin.apps_name`, `admin.force_sso`, shown as the installation's files have them) and those
+    with markup (`admin.ip_check_opt_in`, `admin.rspamd_com_settings`, `admin.merged_vars_hint`,
+    `admin.license_info`, `admin.reset_password_vars`, rendered through `SanitizedHtml.vue`).
+    `admin.ui_header_announcement_content` ("HTML allowed"), the vendor links of
+    `admin.license_info` and the restart link of `admin.rspamd_global_filters_regex` are plan
+    "Deviations needing a decision" items 4, 6 and 7.
+  - **Placeholders**: `%d` is substituted like `%s` by UI 001's formatter (needed for
+    `admin.password_policy_length`); T004 and T005 verify it and add it there if missing. There is no
+    importer extension.
   - **Keys missing from the upstream sk-sk file** (for example `admin.login_page`,
     `admin.app_hide`, `admin.cors_settings`, `admin.password_reset_settings`,
-    `success.custom_login_modified`) are supplied in `src/i18n/messages/sk-sk.json` (001-R15).
-  - **Presets**: `systemSettings.presets.admin_rsettings_preset_<n>` and
-    `systemSettings.presets.mailbox_sieve_preset_<n>` map to the legacy keys (R19).
+    `success.custom_login_modified`) fall back to `en-gb`, as in the classic interface. The FeldHost
+    fork's `sk-sk` file has them. Nothing is written by hand.
+  - **Messages**: API outcomes, problem types and rule codes map to the legacy `success.*`,
+    `warning.*` and `danger.*` keys of the functions listed in the plan (for example
+    `sieveSyntax` → `danger.sieve_error` with the parser message, a refused CORS origin →
+    `danger.cors_invalid_origin`), and to new strings only where legacy has none.
+  - **Presets**: the headlines use the legacy keys `admin.rsettings_preset_<n>` and
+    `mailbox.sieve_preset_<n>` directly (R19).
   - **Wording**: "the classic interface" / "klasické rozhraní" / "klasické rozhranie"; plural forms
     for counts ("Send to {count} mailboxes").
   - **Sizes** in binary units, numbers, ratios and times through UI 001's `format.ts` (FR-105).
 - **Rationale**: Constitution IV; FR-103, FR-104.
-- **Alternatives considered**: Copying legacy strings by hand was rejected (001-R15).
+- **Alternatives considered**: Copying legacy strings by hand was rejected (001-R15). A build-time
+  import with stripped markup (the first version of this decision) is forbidden by constitution IV
+  1.3.0.
 
 ### R29. Accessibility specifics
 

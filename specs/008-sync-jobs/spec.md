@@ -13,7 +13,7 @@ with each job's state, last run and last result, which becomes cards on phones. 
 edit jobs in a grouped form whose many advanced options stay collapsed on phones, activate and
 deactivate them, schedule the next run, delete them, and read the log of the last run. The remote
 password is never shown again after it is saved. Every view has loading, empty and error states,
-works at 360 px with touch, meets WCAG 2.2 AA and is translated into English, Czech and Slovak.
+works at 360 px with touch, meets WCAG 2.2 AA and is translated into every language mailcow ships.
 Replaces the legacy 'Sync jobs' tab of the mailbox page (administrators and domain administrators)
 and of the user page, the add-sync-job modals, the edit sync job page and the log modal."
 
@@ -158,7 +158,8 @@ data.
    icon and text, not by colour alone. **Given** an unrecognised reason, **Then** it reads "Check
    log" with a direct way to open the run log.
 6. **Given** a job that has never run, **When** the list is shown, **Then** its last run reads
-   "Never" and it has no result.
+   "Never" and it has no result. (Pending decision under constitution IV 1.3.0: the classic
+   interface reads "Waiting", `mailbox.waiting`; plan, "Deviations needing a decision" 1.)
 7. **Given** a list being loaded, **Then** a loading state is shown; **given** no jobs, **Then** an
    empty state explains what sync jobs are and offers to create one when the user may; **given** a
    failed load, **Then** an error state explains the problem and offers to retry.
@@ -612,17 +613,22 @@ and check the confirmation content, the requests and the list afterwards.
 - **FR-051**: Dates and times MUST be shown in the user's locale, with the full date and time
   available when a relative form ("5 minutes ago") is shown. Numbers MUST use the locale's
   grouping.
-- **FR-052**: All text MUST come from translation files and be complete in English, Czech and
-  Slovak. Legacy keys MUST be reused where the meaning is unchanged: the sync job titles
+- **FR-052**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key; the screens MUST mirror the legacy forms (fields, labels, help texts,
+  options, units, order and messages); new strings, only for elements the classic interface lacks,
+  MUST exist in English, Czech and Slovak and MUST NOT be machine-translated. The legacy keys
+  include at least the sync job titles
   (`mailbox.sync_jobs`, `user.sync_jobs`, `user.create_syncjob`, `add.syncjob`, `edit.syncjob`), the
   plain-text password notice (`add.syncjob_hint`), the field labels in `add.*` and `edit.*`, the
   list labels (`mailbox.owner`, `mailbox.last_run`, `mailbox.syncjob_last_run_result`,
   `mailbox.running`, `mailbox.waiting`, `mailbox.open_logs`, `mailbox.last_run_reset`,
   `mailbox.mins_interval`, `mailbox.excludes`), the result texts (`mailbox.syncjob_EX_OK`,
   `mailbox.syncjob_EXIT_*`, `mailbox.syncjob_check_log`) and the actions (`mailbox.activate`,
-  `mailbox.deactivate`, `mailbox.remove`, `admin.refresh`, `edit.save`). Legacy texts that contain
-  markup (`edit.subfolder2`, `edit.maxage`, `edit.maxbytespersecond`) MUST be replaced by new keys
-  that separate the label from its hint, because the app does not render markup from translations.
+  `mailbox.deactivate`, `mailbox.remove`, `admin.refresh`, `edit.save`); the create form uses the
+  add modals' `add.*` keys and the details screen the edit page's `edit.*` keys. Legacy texts that
+  contain markup (`edit.subfolder2`, `edit.maxage`, `edit.maxbytespersecond`) MUST be shown
+  unaltered through the app's sanitiser with a small allowlist, never split or reworded.
 
 #### Contract and testing
 
@@ -739,7 +745,9 @@ exclusion pattern defaults to `(?i)spam|(?i)junk` (FR-017 there).
   or browser storage entries, and in no request other than the create or edit request that sets it.
 - **SC-004**: Every screen of this feature shows 0 automated accessibility violations in light and
   dark themes on both test viewports.
-- **SC-005**: 100% of this feature's texts exist in English, Czech and Slovak.
+- **SC-005**: 100% of this feature's new strings exist in English, Czech and Slovak, every legacy
+  key of the plan's legacy form map is used verbatim, and every language mailcow ships is offered
+  when the server lists it.
 - **SC-006**: For 100% of the documented validation rules of the create and edit operations, the
   error appears on the matching field in the user's language.
 - **SC-007**: A 5 MB run log opens in under 3 seconds on a mid-range phone and scrolls without

@@ -92,15 +92,18 @@ trip (data-model §4).
 - Only contract operations; limits come from the capabilities reads, never hard-coded.
 - Usable at 360 and 320 px and at 400 % zoom, with WCAG 2.2 AA in both themes.
 - No automatic requests while idle.
-- en/cs/sk complete, with about 45 Slovak strings written anew for keys the upstream Slovak file
-  lacks.
+- Constitution IV 1.3.0: every language mailcow ships; legacy texts verbatim by their legacy keys,
+  loaded at runtime from the installation; new strings only for elements the classic interface
+  lacks, complete in en/cs/sk ("Translations and forms (constitution IV 1.3.0)").
 
 **Scale/Scope**:
 
 - 6 user stories (3 at P1, 2 at P2, 1 at P3), 82 functional requirements, 13 success criteria.
 - 7 new routes (one a redirect) and 19 new API operations, plus 8 reused in a new way.
 - One configuration per server, and up to a few hundred OAuth2 clients.
-- About 350 new translation keys, about 45 of them mapped to legacy keys.
+- About 45 legacy keys used verbatim (data-model §8, completed by T005a's legacy form map), plus
+  the new strings for elements the classic interface lacks. The form map fixes their number, kept
+  to the minimum.
 
 ## Constitution Check
 
@@ -111,14 +114,14 @@ trip (data-model §4).
 | I. The API contract is the only interface | Only the 19 operations of API 012 plus API 001, 002 and 003 operations are used ([contracts/README.md](./contracts/README.md)). T001 bumps the pin to the commit that implements API 012, after a diff check of the API 012 contract files against the planning baseline (R1). Types come from the generated schema through `@/api`; the form model is derived from generated input types with mapped types (R11). Errors follow problem types and rule codes. Three missing capabilities are recorded as API gaps (method filter, request filter, create-only precondition) and not worked around: no client-side filtering of paged results (R23). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first. The setup is a step flow below `lg` (R12). The mapping entries and OAuth2 clients are cards below `md`. Section edits open full-screen below `md` (UI 002 pattern). Long values wrap. Removal, type change, deletion, revocation and new secrets are confirmed with their impact, and a bulk deletion needs the typed count. Every collection has loading, empty and error states. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe in both themes on every screen and state, including every return-page outcome and every test result. Step changes focus the step heading and announce "Step n of m". Outcomes are announced. Status (completeness, test result, sync state, token status, "Template missing") is shown as text plus an icon with a text alternative. Add and remove actions are named after their entry. Help texts are visible. | PASS |
-| IV. i18n and branding | All text is in en-gb, cs-cz and sk-sk. Legacy keys with unchanged meaning are reused through `legacy-map.json` (data-model §8). Slovak values for the keys the upstream file lacks are written in the app layer. Provider names and technical values are never translated. The return page shows the operator's branding from `GET /public-config`. | PASS |
+| IV. i18n and branding | Constitution 1.3.0: every mailcow language is offered. The screens mirror the legacy Identity Provider and OAuth2 forms, and their texts are mailcow's own translations, used verbatim by legacy key (data-model §8 and T005a's legacy form map), loaded at runtime from the installation, with markup through `SanitizedHtml.vue` and `en-gb` as the fallback; nothing is hand-written for a legacy key. New strings, only for elements the classic interface lacks, exist in en-gb, cs-cz and sk-sk. Provider names and technical values are never translated. The return page shows the operator's branding from `GET /public-config`. | PASS |
 | V. Security in the browser | The code and state are captured and stripped before the first request, kept in memory and sent once (R5). The single new storage key holds a validated in-app path, never a credential (R4). Secrets are write-only, masked, never filled from saved sign-ins and emptied after every outcome. Every request that carries a secret, a provider code or a provider state in its body or response calls the generated client directly and never passes through a TanStack Query cache (`docs/conventions.md`, R14, R22, R27). OAuth2 client secrets exist only in the dialog's state. `authorizationUrl` is checked with `safeHref()`. All API values are rendered as text. Hidden admin entries are a convenience; the shell's "no access" state prevents requests (FR-002). | PASS |
 | VI. Test-first | `tasks.md` puts handlers and failing tests before the implementation in every phase. Every acceptance scenario has an end-to-end test on both viewports against the contract-validated mock. Smoke tests run against the real API (single sign-on opt-in: see Complexity Tracking). | PASS (deviation recorded) |
 | VII. Performance budgets | All new routes are lazy. The entry grows by the capture module only. `budget:check` and Lighthouse run as in UI 001. No polling of the synchronisation status (R18). Caches are invalidated after mutations (data-model §3). | PASS |
 | VIII. Simplicity | No new dependency. Shared blocks from earlier features are reused, never duplicated (R1). Single-use parts stay in the feature: `ProviderSecretField`, `TemplateSelect`, `AttributeMappingField`, `HostListField`, `RedirectUriListField`, `isLdapHost` and the test panel. One form model serves three uses. | PASS |
 | Technology constraints | Native `<select>` for small choices; Reka `Combobox` without `ComboboxViewport` for the template search (001 R18). No new copied TailAdmin primitive. The image gains one nginx location (R5). | PASS |
 | Workflow and gates | Commits go to `main`. The CI jobs of UI 001 cover every gate, and the image check gains `/ng/sso/return`. | PASS |
-| `docs/conventions.md` | It covers the wording ("the classic interface"), list state in the address, page sizes and cards or tables. Bulk actions use the page-only selection, per-item versions and results, and "outcome unknown". Section editing keeps the input on `412` and never merges. Confirmations show the impact. Secrets are shown once or are write-only. History links use the target filters, and audit labels are added. Problem types and rule codes are translated. Admin-only screens show "no access". UI 011's job-log link appears only when that route exists. Limits come from capabilities. | PASS |
+| `docs/conventions.md` | It covers the wording ("the classic interface"), list state in the address, page sizes and cards or tables. Bulk actions use the page-only selection, per-item versions and results, and "outcome unknown". Section editing keeps the input on `412` and never merges. Confirmations show the impact. Secrets are shown once or are write-only. History links use the target filters, and audit labels are added. Problem types and rule codes are translated, through the legacy `danger.*` messages where the meaning matches. Admin-only screens show "no access". UI 011's job-log link appears only when that route exists. Limits come from capabilities. | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart
 introduce no violation. Decisions that touched gates:
@@ -131,6 +134,86 @@ introduce no violation. Decisions that touched gates:
 - A 90-second client timeout for the connection test only: the spec's requirement; the narrow
   exception to 001 R8 is documented in R16.
 - The single sign-on smoke test is opt-in: VI (Complexity Tracking).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature. It overrides any earlier text in this plan, the spec, research and tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`):
+
+- **Identity provider screen** (overview, setup and section edits) →
+  `templates/admin/tab-config-identity-provider.twig` (one form per type: Keycloak, Generic-OIDC,
+  LDAP, chosen with the `admin.iam` select), included from `templates/admin.twig` (System ›
+  Configuration). JS: `js/site/admin.js` (`iam_test_connection`, the mapping and redirect URL rows,
+  the `#iam_provider` switch). Messages: `identity_provider()` in `inc/functions.inc.php`
+  (`success.object_modified`, `success.item_deleted`, `danger.authsource_in_use`,
+  `danger.required_data_missing`) and `success.iam_test_connection` / `danger.iam_test_connection`
+  from `admin.js`.
+- **Single sign-on action** on the sign-in screens → `templates/user_index.twig` (the button
+  labelled `admin.iam_sso`, `force_sso`). Return outcomes: `inc/triggers.user.inc.php` and the
+  `identity_provider('login'…)` paths of `inc/functions.inc.php` (`danger.login_failed`,
+  `success.logged_in_as`).
+- **OAuth2 apps list** → `templates/admin/tab-config-oauth2.twig` (`admin.oauth2_apps`,
+  `admin.oauth2_info`, `mailbox.toggle_all`, `mailbox.quick_actions`, `mailbox.remove`,
+  `admin.oauth2_revoke_tokens`, `admin.oauth2_renew_secret`, `admin.oauth2_add_client`). JS:
+  `js/site/admin.js` `draw_oauth2_clients` (columns ID, `admin.oauth2_client_id`,
+  `admin.oauth2_client_secret`, `admin.oauth2_redirect_uri`, `admin.action`; row actions
+  `admin.edit` and `admin.remove`).
+- **Create OAuth2 client** → `templates/modals/admin.twig` `addOAuth2ClientModal`
+  (`admin.oauth2_redirect_uri`, `admin.add`).
+- **OAuth2 client page** → `templates/edit/oauth2client.twig` (`edit.client_id`,
+  `edit.client_secret`, `edit.scope`, `edit.redirect_uri`, `admin.save`). Messages:
+  `inc/functions.oauth2.inc.php` (`success.object_modified`, `success.items_deleted`; its add,
+  duplicate, empty-URI and scope messages are hard-coded English, not keys).
+
+**Screens or elements without a legacy counterpart** use new strings (en-gb, cs-cz, sk-sk, never
+machine-translated), kept minimal: the empty state's "Set up" action, the setup step names and
+"Step n of m", section headings, the usage counts and the in-use details, the synchronisation status,
+the app's return addresses and the mismatch warning, the connection test's failure categories and
+hints, the single sign-on return page and its specific outcomes, the session notices, the token
+counts and filter, the credentials dialog, the confirmations, bulk summaries, outdated-version
+handling and the audit log labels.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`,
+`admin.iam_description`, `admin.iam_extra_permission`, `admin.iam_auth_flow_info`,
+`admin.oauth2_info`), placeholders, option labels, units, order and grouping, column headers, action
+labels and success, warning and danger messages come from the legacy keys. Every mailcow language
+is supported; legacy values are loaded at runtime from the installation and shown verbatim (markup
+through `SanitizedHtml.vue`, product names as the installation's files have them); a missing key
+falls back to `en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by T005a before any screen is built.
+
+**Deviations needing a decision** (not built until the owner or orchestrator decides; until then the
+legacy form applies):
+
+1. **LDAP hosts** (FR-019): legacy has one text input `admin.iam_host` with the tooltip
+   `admin.iam_host_info` ("Enter one or more LDAP hosts, separated by commas."); the plan has a list
+   of entries (`HostListField`), for which the legacy help text no longer fits.
+2. **LDAP connection security** (FR-019): legacy has two switches, `admin.iam_use_ssl` and
+   `admin.iam_use_tls`, with `admin.iam_use_ssl_info` and `admin.iam_use_tls_info`; the plan has
+   one choice of None, SSL and StartTLS (`ConnectionSecurityChoice`) with port hints.
+3. **Section split of the single legacy form**: legacy shows each type's fields in one flat form.
+   The plan's sections (Connection, Directory search, Return addresses, Sign-in, Synchronisation)
+   need new headings and move `admin.ignore_ssl_error`, which legacy places between the mailpassword
+   flow and `admin.iam_login_provisioning` (Keycloak) or after the mapping (OIDC).
+4. **Type explanations and empty-state text** (FR-004, FR-010): legacy offers a bare select
+   (Keycloak, Generic-OIDC, LDAP) under `admin.iam_description`. The plan adds one-sentence type
+   explanations and an empty-state explanation as new strings. The legacy form map uses
+   `admin.iam_description` verbatim; the extra explanations need approval.
+5. **OAuth2 information text** (FR-057, parity note 1): `admin.oauth2_info` is shown verbatim, but
+   it names only the authorization code grant and fixed paths. Listing further grant types and token
+   lifetimes from the capabilities read needs new strings next to it, or is dropped.
+6. **OAuth2 client secret**: legacy lists the stored secret as a column (`admin.oauth2_client_secret`)
+   and shows it on the edit page (`edit.client_secret`). The app never shows a stored secret
+   (conventions "Secrets"). The column and field are dropped or shown as "set".
+7. **OAuth2 bulk "Generate new client secret"** (`admin.oauth2_renew_secret` quick action): dropped
+   by the spec, replaced by a per-client action with a one-time dialog (FR-062).
+8. **Redirect URIs** (FR-058, FR-060): legacy has one text field (`admin.oauth2_redirect_uri` in the
+   modal, `edit.redirect_uri` on the edit page); the plan has a list of entries with a length meter.
 
 ## API dependency and gaps
 
@@ -207,10 +290,11 @@ T002, test-first, at the listed path with the listed behaviour before any story 
 
 ## Owner-level questions (defaults applied)
 
-1. **Native review of the new Slovak strings.** The upstream Slovak file lacks every `admin.iam_*`
-   key, so about 45 legacy-mapped strings, plus about 300 new strings in each locale, are written by
-   the implementer. **Default**: as in UI 001 owner question 4, the owner arranges a native review
-   of the new cs-cz and sk-sk strings before the release. `i18n:check` guarantees completeness only.
+1. **Native review of the new strings.** Legacy keys are never translated by hand (constitution IV
+   1.3.0): the upstream Slovak file lacks every `admin.iam_*` key, but those fall back to `en-gb`, and
+   the FeldHost fork's `sk-sk` file has them. Only the new strings of the legacy form map are written
+   in cs-cz and sk-sk. **Default**: the owner reviews them before the release, as constitution IV
+   requires. `i18n:check` guarantees completeness only.
 2. **Keycloak in CI for the single sign-on smoke test.** **Default**: the test is opt-in (it runs
    with `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` against a Keycloak set up as API quickstart
    Part B describes). It becomes a CI gate once mailcow-rest-v2 ships a Keycloak realm import for its
@@ -220,9 +304,9 @@ T002, test-first, at the listed path with the listed behaviour before any story 
 
 The spec's parity tables are complete. The plan adds:
 
-1. Legacy's OAuth2 information text documents only the authorization code grant. The app's panel
-   lists every grant type the server's token endpoint accepts, as reported by the capabilities read,
-   and recommends the authorization code grant (R21).
+1. Legacy's OAuth2 information text documents only the authorization code grant. The app shows it
+   verbatim; listing the further grant types the capabilities read reports is "Deviations needing a
+   decision" item 5 (R21).
 2. The classic interface prefills the stored client secret and bind password in its form. The app
    also blocks browsers and password managers from filling these fields with the administrator's own
    saved sign-in (R14).
@@ -311,7 +395,7 @@ src/
     ├── problems.ts                               ~ parameter-driven messages (R26)
     ├── messages/{en-gb,cs-cz,sk-sk}.json         ~ identityProviders, identityProvider, oauth2, auth.sso, …
     ├── coverage.json                             ~ API 012 values of the shared enumerations
-    └── legacy-map.json (+ legacy/*.json regenerated) ~ data-model §8
+    └── (no legacy copies: the data-model §8 keys are used verbatim, constitution IV 1.3.0)
 tests/
 ├── mocks/
 │   ├── factories/{identity-provider,oauth2-client,audit-identity-provider}.ts   +

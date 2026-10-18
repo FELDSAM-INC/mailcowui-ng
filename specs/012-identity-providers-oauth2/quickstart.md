@@ -29,7 +29,7 @@ commands and development servers apply unchanged.
 npm ci
 npm run lint && npm run format:check && npm run typecheck
 npm run contract:check                  # the pin contains the 19 API 012 operations (T001)
-npm run i18n:check                      # en-gb, cs-cz, sk-sk complete, incl. API 012 enumerations
+npm run i18n:check                      # new strings in en-gb/cs-cz/sk-sk; legacy keys in snapshot
 npm run test:unit
 npm run build && npm run budget:check   # initial JS ≤ 200 KB gzipped; three new lazy chunks
 npm run test:e2e                        # whole suite; this feature's specs are in
@@ -66,7 +66,7 @@ that host automatically.
 | US1 | `idp-none` | Set up LDAP at 360 px: two hosts, StartTLS, a bind DN, a wrong bind password; Test; correct it; Test; map `students` and `staff`; turn on synchronisation; review; Save | "Step 2 of 4"; defaults prefilled from the capabilities (port 389, `mail`, 15 minutes); the first test says the credentials were rejected and names the address, and after a change the result is marked outdated; a duplicate `staff` entry blocks Next; the overview shows "Set", complete, directory password sign-in and no mailboxes (US1-AS2 to AS6) |
 | US1 | `idp-none` | Set up Keycloak on a desktop | One page with a section index; the return addresses step lists `http://localhost:4173/ng/sso/return` with a copy action next to the classic return URL (US1-AS7) |
 | US1 | UI 001's active domain-administrator scenario | Open `/ng/identity-providers/provider` | "No access", and no identity provider request in `mockApi.requests()` (US1-AS8) |
-| US2 | `sso-available` | Open `/ng/sign-in`, then `/ng/sign-in/admin` | Passkey, "Sign in with single sign-on", "or", form on the first; no single sign-on on the admin screen (US2-AS1, AS11) |
+| US2 | `sso-available` | Open `/ng/sign-in`, then `/ng/sign-in/admin` | Passkey, "Single Sign-On" (`admin.iam_sso`), "or", form on the first; no single sign-on on the admin screen (US2-AS1, AS11) |
 | US2 | `sso-available` | Open `/ng/mailboxes` signed out, tap single sign-on, complete with the return address | Busy state, then the provider address; on return, "Completing sign-in", then `/ng/mailboxes` with no `code` or `state` in the address bar (US2-AS2, AS3, SC-011) |
 | US2 | `sso-available` | Return with `?error=access_denied&state=<state>` | "Cancelled or refused" without provider text; Try again starts a new sign-in (US2-AS5) |
 | US2 | `sso-refused`, `sso-provider-down`, `sso-disabled-after-start` | Complete a return | The generic failure, "service not reachable" and "not offered" (with the action gone) respectively (US2-AS6, AS7, FR-048) |

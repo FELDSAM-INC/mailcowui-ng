@@ -18,8 +18,8 @@ This guide proves the feature works. It relies on UI 001's setup and gates
 - mailcow-rest-v2 feature 004 is implemented. `contract/VERSION.json` pins the commit or tag that
   ships it, and its feature 004 contract files match the planning baseline `3207925` or were
   reviewed (research R1).
-- To refresh the reused legacy translations: a mailcow-dockerized checkout with the upstream tags at
-  `$MAILCOW_REPO` (default `../mailhosting`).
+- Legacy texts come at runtime from the installation's `/lang/lang.<code>.json`, with UI 001's
+  bundled `en-gb` snapshot as the fallback (constitution IV 1.3.0).
 
 ## Part A: Automated gates
 
@@ -27,7 +27,8 @@ The commands are UI 001's (Part A there). What this feature adds:
 
 ```bash
 npm run contract:check   # pin = API 004 implementation commit or tag (R1)
-npm run i18n:check       # en-gb, cs-cz, sk-sk complete; 004 values in the scope manifest; closed enums
+npm run i18n:check       # new strings in en-gb, cs-cz, sk-sk; used legacy keys in the en-gb snapshot;
+                         #   004 values in the scope manifest; closed enums
 npm run test:unit        # + dependencies, mock handlers, entry lists, sequential creation, drafts,
                          #   patch builders, address preview, send-as model, permission matrix
 npm run build && npm run budget:check   # initial JS still ≤ 200 KB gzipped; 10 new lazy chunks
@@ -46,20 +47,14 @@ npm run lhci             # + /ng/aliases (scenario aliases-60): performance and 
   `ResourceCreatePage`, `ResourceDetailPage` and `SendAsPage`. The initial size is unchanged within
   a few hundred bytes (three catalogue rows).
 
-### Refreshing the reused legacy translations
+### Legacy texts
 
-```bash
-MAILCOW_REPO=../mailhosting node scripts/i18n/import-legacy.mjs --ref 2026-09a
-npm run i18n:check
-```
-
-The `legacy-map.json` entries of this feature use these forms (research R20):
-
-- `{ "from": "edit.sender_acl_disabled", "stripMarkup": true }`: UI 002's option, which converts
-  markup to plain text.
-- `{ "from": "mailbox.domain_aliases", "locales": ["cs-cz", "sk-sk"] }`: added here. The English
-  text comes from the app layer.
-- A plain string, as before. `%s` and `%d` become `{0}`, `{1}` and so on, in order.
+Constitution IV 1.3.0 replaced the build-time import (research R20). This feature has no
+`legacy-map.json` entries: it uses legacy keys verbatim through UI 001's legacy translation layer,
+texts with markup render through `SanitizedHtml.vue`, and a key missing in a language falls back to
+`en-gb`. Check a screen in English, Czech, Slovak and one other mailcow language (for example
+de-de), and compare its labels, help texts, options and messages with the classic interface's form
+named in the plan's legacy form map.
 
 ## Part B: Manual checks per user story (mock API)
 
@@ -75,7 +70,7 @@ Scenario names are defined in `tests/mocks/scenarios/`.
 | US2 | `aliases-create-da-no-external` | As the domain administrator, add an external destination | Advance notice; after saving, the message names the destination and "Allow aliases with external goto domains" (US2-AS7) |
 | US3 | `aliases-edit` | Edit the destination of `sales@`; meanwhile change it in the mock (`curl -X PATCH localhost:4010/__mock/scenarios/<id> -d '{"changeElsewhere":"sales@example.org"}'`); save | "Changed elsewhere" with the new value marked, your input kept, nothing overwritten (US3-AS2) |
 | US4 | `alias-domains` (domain admin with `aliasDomains`) | Add `example.net` for `example.org` with DKIM on | The report lists four steps; with the `dkim-failed` variant, the DKIM step is a warning naming DKIM keys (US4-AS1, AS2) |
-| US4 | `alias-domains-feldhost` (admin) | Open "Add alias domain" | "Generate a DKIM key" is on, with selector `feldhost` and 2048 bits; switching it off and saving reports "no DKIM key requested" (US4-AS10) |
+| US4 | `alias-domains-feldhost` (admin) | Open "Add domain alias" | "Generate a DKIM key" is on, with selector `feldhost` and 2048 bits; switching it off and saving reports "no DKIM key requested" (US4-AS10) |
 | US5 | `sender-settings` (admin) | Open Mailboxes › anna › Send as; allow sending as `info@`; save; turn on "any address" | Sections as in US5-AS1; `info@` moves to explicit; the warning, then "Sender check is disabled" (US5-AS1–AS3) |
 | US5 | `sender-settings-da` | As the domain administrator, open the same screen | `@other.example` marked not changeable; external addresses read-only with the permission note; no "any address" (US5-AS4–AS6) |
 | US6 | `bulk-004` | Select all 30 aliases; deactivate; then copy `sales@example.org` over its alias domains | Confirmation with the count; 30 done; copy results show `sales@example.com` created and `example.net` skipped (US6-AS1, AS4) |

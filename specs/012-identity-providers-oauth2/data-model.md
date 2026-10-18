@@ -12,7 +12,7 @@ The app owns no persistent data. This document defines:
 - the client-side validation;
 - the state machines of single sign-on, the setup flow, section editing, the connection test and the
   OAuth2 actions;
-- the reused legacy translation keys.
+- the legacy translation keys used verbatim.
 
 It extends [UI 001's data model](../001-sign-in-app-shell/data-model.md) and does not repeat it.
 Contract shapes are never restated: types come from `src/api/generated/schema.ts` through `@/api`
@@ -415,11 +415,14 @@ selecting ──Revoke/Delete──► confirm (list + counts; delete: type the 
         ──network──► "outcome unknown"; nothing retried; list invalidated
 ```
 
-## 8. Reused legacy translation keys
+## 8. Legacy translation keys used verbatim
 
-These go into `src/i18n/legacy-map.json` (001 R15), from the upstream baseline `2026-09a`. "sk" marks
-keys that the upstream `sk-sk` file lacks; their Slovak values are written in
-`src/i18n/messages/sk-sk.json` under the same app key.
+Constitution IV 1.3.0: the app uses these legacy keys by their legacy name, verbatim, through UI
+001's legacy translation layer (runtime `/lang/` loader, `en-gb` snapshot of upstream `2026-09a`,
+formatter). The "App key" column only names the element; there is no alias and no copy in
+`src/i18n/messages/`. "sk" marks keys that the upstream `sk-sk` file lacks; they fall back to
+`en-gb` as in the classic interface (the FeldHost fork's `sk-sk` has them) and are never written by
+hand. T005a's legacy form map completes this table, including the messages.
 
 | App key | Legacy key | sk |
 |---|---|---|
@@ -463,15 +466,17 @@ keys that the upstream `sk-sk` file lacks; their Slovak values are written in
 | `identityProvider.abilities.singleSignOn` | `admin.iam_sso` | sk |
 | `oauth2.title` | `admin.oauth2_apps` | — |
 | `oauth2.add` | `admin.oauth2_add_client` | — |
-| `oauth2.fields.clientId` | `admin.oauth2_client_id` | — |
-| `oauth2.fields.clientSecret` | `admin.oauth2_client_secret` | — |
-| `oauth2.fields.redirectUri` | `admin.oauth2_redirect_uri` | — |
+| `oauth2.fields.clientId` | `admin.oauth2_client_id` (list), `edit.client_id` (client page) | — |
+| `oauth2.fields.clientSecret` | `admin.oauth2_client_secret` (list), `edit.client_secret` (client page) | — |
+| `oauth2.fields.redirectUri` | `admin.oauth2_redirect_uri` (list, create), `edit.redirect_uri` (client page) | — |
 | `oauth2.actions.regenerate` | `admin.oauth2_renew_secret` | — |
 | `oauth2.actions.revokeTokens` | `admin.oauth2_revoke_tokens` | — |
 | `oauth2.fields.scope` | `edit.scope` | — |
 
-These are rewritten under new keys: `admin.iam_description`, `admin.oauth2_info`,
-`admin.iam_auth_flow_info`, `admin.iam_extra_permission`, `admin.iam_host_info` and
-`admin.iam_redirect_url` (research R26). The sign-in action "Sign in with single sign-on"
-(`auth.sso.action`) is a new key; legacy's `admin.iam_sso` ("Single Sign-On") labels the ability
-only.
+These are also used verbatim, no longer rewritten (constitution IV 1.3.0, research R26):
+`admin.iam_description`, `admin.oauth2_info` (markup through `SanitizedHtml.vue`),
+`admin.iam_auth_flow_info`, `admin.iam_extra_permission` (product name as the installation's file
+has it), `admin.iam_host_info` (with the legacy host input; plan "Deviations needing a decision"
+item 1) and `admin.iam_redirect_url` (the redirect URL field). The sign-in action is labelled
+`admin.iam_sso` ("Single Sign-On"), as on the classic login page; there is no `auth.sso.action`
+key.

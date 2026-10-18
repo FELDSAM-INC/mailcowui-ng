@@ -107,7 +107,8 @@ for Android; the static image under `/ng/`.
 - 44 operations (42 of API 011, one of API 006, one of API 001).
 - 12 log types, about 20 containers, queues up to 10,000 listed messages, ban lists up to 10,000
   entries.
-- About 350 new translation keys per locale, part of them reused from legacy.
+- Every language mailcow ships, with mailcow's own texts used verbatim through their legacy keys,
+  and new strings (en-gb, cs-cz, sk-sk) only for elements the classic interface lacks.
 
 ## Constitution Check
 
@@ -118,7 +119,7 @@ for Android; the static image under `/ng/`.
 | I. The API contract is the only interface | 44 operations of the pinned commit, all through the generated client (contracts/README.md). Types come from `@/api`; no hand-written API shapes (data-model §1). Gaps are reported, never worked around: actions on more than 1,000 queued messages are not batched (API gap 1), oldest-first log paging uses the documented `offset` (API gap 3), undocumented audit details are shown as stored, not typed by hand (API gap 8), and the undocumented `step` extension is not read (R17). Problems are handled from `type` and `errors` (R17). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first: container and queue cards, log cards, a log type `<select>` instead of tabs, full-screen viewers and forms on phones, a sticky selection bar, a section index on the ban screen. Destructive actions are confirmed with what is affected (stop, restart, delete, delete all, denylist, rule reset, rotation, rate limit reset). Every collection has loading, empty and error states (FR-025, FR-043, FR-049, FR-062, FR-074). | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe on every screen and state in both themes; charts with text values, patterns, summaries and table alternatives; no blinking and no animation; silent automatic updates with one announcement per stopped container; keyboard reordering of rules; dialogs per UI 001 R21; tables with `aria-sort` (R7, R13, R20). | PASS |
-| IV. i18n and branding | All text in en-gb, cs-cz and sk-sk; legacy keys reused through `legacy-map.json`, HTML legacy texts imported without markup; Slovak gaps filled by hand; enumerations enforced by `i18n:check`; binary units and locale formats; product name from the branding (R19). | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0 (see "Translations and forms" below): every language mailcow ships; texts with a classic-interface equivalent are mailcow's own, used verbatim by legacy key and loaded at runtime from the installation, legacy texts with HTML rendered whole through `SanitizedHtml.vue`, no hand-written Slovak or Czech values for legacy keys (fallback to `en-gb`); the screens mirror the legacy forms; new strings only where legacy has none, in en, cs and sk, never machine-translated; `i18n:check` covers the new strings, the legacy keys used (against the `en-gb` snapshot) and the enumerations; binary units and locale formats; the app's own strings take the product name from the branding, and legacy texts that name the product are shown as installed (R19). | PASS |
 | V. Security in the browser | Release notes: raw HTML escaped, images as links, links `noopener noreferrer`, sanitised with a dedicated DOMPurify profile, rendered only in `SanitizedHtml`; no third-party request (R9). Log contents, queued content, Rspamd history, rules and audit details are shown as text only, through UI 006's `PlainText`/`neutralise()` (visible control and bidi markers). Queued content is discarded on close. No new storage. Controls follow the role; the API enforces it (FR-001, FR-003). | PASS |
 | VI. Test-first | `tasks.md` orders tests before implementation in every phase: unit and component tests, e2e tests of every acceptance scenario on both viewports against the contract-validated mock, and the smoke suite. Unknown enumeration values are unit-tested because the mock may not send them (R21). | PASS (smoke gate as UI 001 Complexity Tracking) |
 | VII. Performance budgets | Charts are an async chunk with a budget; `marked` only via dynamic import; routes lazy; per-chunk budgets and a dashboard Lighthouse collection; polling only while visible, running and interacted with; logs never refetch on their own; list data cached and invalidated after mutations (R5, R11, R22). | PASS |
@@ -136,6 +137,117 @@ introduce no violation. Decisions that touched gates:
 - Release notes rendered through a second sanitiser profile, keeping the single `v-html` (V; R9).
 - Statement of the device time zone on every log screen instead of reading the host overview, so
   logs never depend on the container service (FR-041; R11).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature, and it overrides any earlier text in this plan, the spec, research and
+tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`; on the dashboard page
+`js/site/dashboard.js` reads `lang.<key>` from the `admin` section and `lang_debug.<key>` from
+`debug`, on the queue page `lang.<key>` is the `queue` section):
+
+- **Dashboard and container cards** (`/operations/dashboard`, `/operations/containers/:name`): the
+  `#tab-containers` tab of `templates/dashboard.twig` (`debug.system_containers`,
+  `debug.architecture`, `debug.current_time`, `debug.timezone`, `debug.uptime`,
+  `debug.disk_usage`, `debug.cores`, `debug.memory`, `debug.show_ip`, `admin.ip_check_disabled`,
+  container cards with `debug.started_on`, `debug.container_running`, `debug.container_stopped`,
+  `debug.restart_container`), the host figures and charts of `js/site/dashboard.js`, and the
+  version and "Restart SOGo" entries of `templates/base.twig`. Entry: `admin/dashboard.php`.
+- **Container start, stop and restart**: the `RestartContainer` dialog of
+  `templates/modals/footer.twig` (`footer.restart_container`, `footer.restart_container_info`,
+  `footer.restart_now`, `footer.cancel`), `js/build/013-mailcow.js` (`footer.restarting_container`)
+  and `inc/ajax/container_ctrl.php`.
+- **Updates and public addresses**: `js/site/dashboard.js` (`debug.update_available`,
+  `debug.no_update_available`, `debug.update_failed`, `debug.error_show_ip`) and
+  `inc/ajax/update_check.php`.
+- **Logs** (`/operations/logs`, `/operations/logs/:logType`): the log tabs of
+  `templates/dashboard.twig` (`debug.logs`, `debug.in_memory_logs`, `debug.external_logs`,
+  `debug.static_logs`, `debug.log_info` with `%d` filled with the configured log length plus one,
+  as legacy fills it from `log_lines`; the tab names are product names) and the log tables of
+  `js/site/dashboard.js` (columns `admin.time`, `admin.priority`, `admin.message`, `admin.task`,
+  `admin.rate_name`, `admin.authed_user`, `admin.sender`, `admin.recipients`, `admin.action`; the
+  SASL table `admin.username`, `admin.service`, `admin.login_time`).
+- **Rate limit reset in the rate-limited log**: the `#tab-api-rl` tab of `templates/dashboard.twig`
+  (`admin.hash_remove_info`, `admin.reset_limit`), with UI 006's dialog and the messages of
+  `inc/functions.ratelimit.inc.php` (`success.hash_deleted`, `warning.hash_not_found`).
+- **Rspamd** (`/operations/logs/rspamd`): the `#tab-rspamd-history` tab of
+  `templates/dashboard.twig` (`debug.chart_this_server`, `debug.history_all_servers`) and the
+  history table of `js/site/dashboard.js`.
+- **Mail queue** (`/operations/mail-queue`): `templates/queue.twig` (`queue.queue_manager`,
+  `queue.info`, `queue.legend`, `queue.deliver_mail`, `queue.deliver_mail_legend`,
+  `queue.hold_mail`, `queue.hold_mail_legend`, `queue.unhold_mail`, `queue.unhold_mail_legend`,
+  `queue.flush`, `queue.delete`, `queue.ays`, `admin.refresh`, `mailbox.toggle_all`,
+  `mailbox.quick_actions`, `mailbox.remove`), `templates/modals/queue.twig` and `js/site/queue.js`
+  (columns `admin.arrival_time`, `admin.message_size`, `admin.sender`, `admin.recipients`,
+  `queue.show_message`). Entry: `admin/queue.php`. Messages: `inc/functions.mailq.inc.php`
+  (`success.queue_command_success`, `danger.access_denied`, `danger.unknown`).
+- **Ban service** (`/operations/fail2ban`): `templates/admin/tab-config-f2b.twig`
+  (`admin.f2b_parameters`, `admin.f2b_ban_time`, `admin.f2b_ban_time_increment`,
+  `admin.f2b_max_ban_time`, `admin.f2b_max_attempts`, `admin.f2b_retry_window`,
+  `admin.f2b_netban_ipv4`, `admin.f2b_netban_ipv6`, `admin.f2b_list_info`, `admin.f2b_whitelist`,
+  `admin.f2b_blacklist`, `admin.f2b_manage_external`, `admin.f2b_manage_external_info`,
+  `admin.f2b_filter`, `admin.f2b_regex_info`, `admin.add_row`, `admin.remove_row`,
+  `admin.reset_default`, `admin.ban_list_info`, `admin.queue_unban`, `admin.unban_pending`,
+  `admin.no_active_bans`, `admin.needs_restart`, `header.restart_netfilter`, `admin.save`), in that
+  order, and `js/site/admin.js`. Entry: `admin/system.php`. Messages:
+  `inc/functions.fail2ban.inc.php` (`success.f2b_modified`, `success.f2b_banlist_refreshed`,
+  `success.object_modified`, `danger.network_host_invalid`, `danger.reset_f2b_regex`,
+  `danger.access_denied`).
+
+**Screens or elements without a legacy counterpart** get new strings (en-gb, cs-cz and sk-sk, never
+machine-translated), kept minimal: the live-update bar (updated, outdated, paused, inactivity,
+resume), health values, container roles, resource labels and chart text alternatives, the log type
+explanations beyond `debug.log_info`, the log filters and "load older", the queue filters, counts,
+"all matching" selection, truncation and viewer texts, the own-address warning, ban rotation, the
+pending refresh, the bulk summaries, outdated-version handling and the History records. Column
+titles that legacy hard-codes in English in `js/site/dashboard.js` ("IP", "Hash", "Msg ID",
+"Score", "Symbols" and so on) have no legacy key, so they are new strings too. The
+`ban-rules-not-restored` problem has no legacy equivalent: `danger.reset_f2b_regex` describes a
+timeout and asks to try again.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`),
+placeholders, option labels, units, order and grouping, column headers, action labels and success,
+warning and danger messages come from the legacy keys. Every mailcow language is supported. Legacy
+values are loaded at runtime from the installation and shown verbatim:
+`footer.restart_container_info`, `queue.info`, `admin.ip_check_disabled`, `debug.log_info`,
+`admin.f2b_list_info`, `admin.ban_list_info` and `admin.hash_remove_info` go whole, with their
+markup, through `SanitizedHtml.vue`. A missing key falls back to `en-gb`, never to a hand-written
+value.
+
+**Legacy form map**: written into this section by task T010a, before any screen is built.
+
+**Deviations needing a decision**:
+
+1. **Duration units** (FR-068, clarification on the ban settings): legacy enters ban time, maximum
+   ban time and retry window in seconds, labelled `admin.f2b_ban_time` "Ban time (s)",
+   `admin.f2b_max_ban_time` and `admin.f2b_retry_window`. The planned number-and-unit field changes
+   the unit and would need new labels. Until decided, the legacy labels and seconds apply.
+2. **Texts that describe the legacy presentation**: `admin.ban_list_info` ("Red labels indicate
+   active permanent bans") and `admin.hash_remove_info` ("Each hash is indicated by an individual
+   color") are shown verbatim, so the screens either mirror those red labels and colours or the
+   texts describe something absent.
+3. **`admin.ip_check_disabled`** points to "System > Configuration > Options > Customize", a
+   classic-interface path. Shown verbatim, it names a path that differs in the app.
+4. **`admin.f2b_list_info`** says list updates take "a few seconds", while the API documents up to a
+   minute. Shown verbatim.
+5. **Log types as a `<select>` and per-type explanations**: legacy has tabs and only the shared
+   `debug.log_info`. The per-type explanations are new strings.
+6. **Expand all / Collapse all** (`datatables.expand_all`, `datatables.collapse_all`) on every log
+   table are dropped, because cards replace collapsed rows.
+7. **"Delete all" confirmation**: legacy asks `queue.ays`. The typed count and the acknowledgement
+   (FR-056, FR-058) are kept as typed confirmations, with `queue.ays` as the dialog text; the
+   acknowledgement label is a new string.
+8. **Arrival time**: the legacy column `admin.arrival_time` says "Arrival time (server time)", while
+   FR-051 shows the arrival time relative and in the device's time zone. Either the column shows
+   server time as the label says, or the label no longer fits.
+9. **SASL log columns**: earlier drafts named `debug.service`, `debug.username` and
+   `debug.login_time` ("Time"). The legacy table uses `admin.service`, `admin.username` and
+   `admin.login_time` ("Login time"), because the dashboard binds `lang` to the `admin` section; the
+   plan now uses those (no decision needed, recorded for the reviewer).
 
 ## Dependencies on earlier work
 
@@ -157,10 +269,11 @@ implementation). Task T001 verifies these prerequisites (research R1 lists them 
   `src/shared/components/BulkActionBar.vue`, `src/shared/components/BulkResultSummary.vue`,
   `src/shared/components/EditableSection.vue` (driven by the `edit` address parameter) with
   `useVersionedSave`'s `changedSince` marking, `src/shared/composables/useLeaveGuard.ts`,
-  `ConfirmDialog` with rich content and `requireTyped`, the `stripMarkup` mapping of
-  `scripts/i18n/import-legacy.mjs`, and `formatBytes` in `src/i18n/format.ts`. UI 002 pins the same
-  contract commit. UI 002 has no app-level status message host (its messages are inline), so UI 011
-  creates one (R8).
+  `ConfirmDialog` with rich content and `requireTyped`, and `formatBytes` in `src/i18n/format.ts`.
+  (UI 002's `stripMarkup` mapping is superseded by constitution IV 1.3.0; UI 011 relies on UI 001's
+  legacy translation layer: runtime `/lang/` loader, `en-gb` snapshot, formatter.) UI 002 pins the
+  same contract commit. UI 002 has no app-level status message host (its messages are inline), so
+  UI 011 creates one (R8).
 - **UI 002** also provides the translation coverage manifest `src/i18n/coverage.json`, to which
   each story of UI 011 appends the shared-enumeration values it shows (R19).
 - **UI 006** (as its plan names them): `ResetBucketDialog` and its composable, exported from
@@ -294,8 +407,7 @@ src/shared/filters/time-range.ts                # promoted from the audit log (R
 src/shared/composables/useListState.ts          # + key prefix option, if absent
 src/shared/icons/                               # + server, logs, queue, shield, play, stop, restart, pause, arrow-up, arrow-down
 src/i18n/format.ts                              # + formatRate, formatUptime (formatBytes from UI 002)
-src/i18n/messages/{en-gb,cs-cz,sk-sk}.json      # + operations.*, nav.groups.system, audit labels
-src/i18n/legacy-map.json, src/i18n/legacy/*.json
+src/i18n/messages/{en-gb,cs-cz,sk-sk}.json      # + new strings only: operations.*, audit labels
 src/i18n/coverage.json                          # + 011 audit, validation and problem values (R19)
 src/features/audit-log/labels.ts                # + 011 event types, targets, failure reasons
 src/features/audit-log/components/AuditEventDetails.vue  # nested values, long arrays collapsed (R18)

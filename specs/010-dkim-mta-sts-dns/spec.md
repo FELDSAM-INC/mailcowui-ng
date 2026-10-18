@@ -23,7 +23,9 @@ Destructive actions need confirmation, lists and results become cards on phones,
 loading, empty and error states. The feature replaces the legacy System › Configuration › ARC/DKIM
 keys tab and its private key modal, the DKIM record and MTA-STS tab of the Edit domain page, and the
 DNS diagnostics modal opened from the domain and alias domain lists. Every screen works at 360 px
-width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
+width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak." (Superseded by
+constitution IV 1.3.0: every language mailcow ships, with mailcow's own translations verbatim; see
+FR-087.)
 
 ## Clarifications
 
@@ -1070,8 +1072,11 @@ a domain administrator is never offered it.
 
 #### Internationalisation
 
-- **FR-087**: All text of this feature MUST come from the translation files and MUST be complete in
-  English, Czech and Slovak. Legacy translation keys MUST be reused where the meaning is unchanged.
+- **FR-087**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships is
+  supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key; the screens MUST mirror the legacy forms (fields, labels, help texts,
+  options, units, order and messages); new strings, only for elements the classic interface lacks,
+  MUST exist in English, Czech and Slovak and MUST NOT be machine-translated.
 - **FR-088**: Names, selectors, record names and values, values found, MX hosts, policy texts,
   policy identifiers, zone files and technical publication reasons MUST be shown as returned and
   never translated. Numbers, durations and times MUST be formatted for the user's language, and times
@@ -1091,7 +1096,7 @@ Legacy reference: FeldHost fork of mailcow-dockerized (upstream tag `2026-09a`),
 (`showDKIMprivKey`), `js/site/admin.js` (`#dkim_missing_keys`, private key modal),
 `templates/edit/domain.twig` (DKIM record, `dmtasts` tab), `edit.php`, `templates/modals/mailbox.twig`
 (`dnsInfoModal`), `js/site/mailbox.js` (DNS buttons in the domain and alias domain tables, modal
-loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.{en-gb,cs-cz,sk-sk}.json`. Status:
+loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.*.json`. Status:
 **Matched** (same capability), **Improved** (same capability, better behaviour) or **Dropped**
 (intentionally not in this feature, with the reason).
 
@@ -1120,7 +1125,7 @@ loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.{en-gb,cs-cz,sk-sk}.json`
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
 | DKIM record under the domain form: "Domain: x (selector._domainkey)" and the TXT value | Read-only `pre` block, administrators and domain administrators | Improved: DKIM section with state, copy buttons and generation when missing (domain administrators had no generation form) | FR-021, FR-024 |
-| MTA-STS tab with HTML info text | Links and markup in the translation | Matched as plain explanatory text | FR-046, FR-087 |
+| MTA-STS tab with HTML info text | Links and markup in the translation | Matched: the legacy text shown verbatim through the app's sanitiser (constitution IV 1.3.0) | FR-046, FR-087 |
 | Version select with the single option STSv1 | Select | Improved: fixed text | FR-047 |
 | Mode select enforce/testing/none, explanation in a tooltip | Tooltip on a "?" icon; a new policy starts with "enforce" | Improved: explanations visible next to each choice, usable by touch; a new policy starts with "testing" | FR-047 |
 | Max age in seconds | Number input, checked only by the server, empty for a new policy | Improved: number with a unit, readable duration, 1 week for a new policy, checked before sending | FR-046 to FR-048 |
@@ -1246,7 +1251,8 @@ wanted; until then the app behaves as stated):
   still present afterwards.
 - **SC-011**: A run on 50 names reports an individual outcome for all 50, and a retry sends only the
   names that failed.
-- **SC-012**: Translation completeness checks find 0 missing keys in English, Czech and Slovak.
+- **SC-012**: Translation completeness checks find 0 new strings missing in English, Czech or Slovak,
+  and 0 legacy keys used by this feature missing from the bundled `en-gb` snapshot.
 - **SC-013**: When the API answers within 1 second, the first page of the DKIM key list is visible
   within 2 seconds of opening it on a mid-range phone over a mobile connection, and the diagnostics
   progress state appears at once after the run starts.
@@ -1270,7 +1276,8 @@ wanted; until then the app behaves as stated):
 - API 010 FR-012 exposes the server's default DKIM selector, which closes gap 8 of UI feature 002
   (selector shown as "server default") once both contracts are pinned.
 - The legacy UI keeps working for everything outside this feature.
-- Legacy translation keys with unchanged meaning are reused, for example `admin.dkim_keys`,
+- Legacy translation keys are used verbatim (constitution IV 1.3.0), loaded at runtime from the
+  installation in every mailcow language, for example `admin.dkim_keys`,
   `admin.dkim_key_valid`, `admin.dkim_key_missing`, `admin.dkim_key_unused`,
   `admin.dkim_domains_selector`, `admin.dkim_key_length`, `admin.dkim_add_key`,
   `admin.dkim_domains_wo_keys`, `admin.import_private_key`, `admin.private_key`,
@@ -1279,11 +1286,13 @@ wanted; until then the app behaves as stated):
   `edit.mta_sts_max_age`, `edit.mta_sts_max_age_info`, `edit.mta_sts_mx`, `edit.mta_sts_mx_info`,
   `edit.mta_sts_active_info`, `diagnostics.dns_records`, `diagnostics.dns_records_24hours`,
   `diagnostics.dns_records_name`, `diagnostics.dns_records_type`, `diagnostics.cname_from_a`,
-  `diagnostics.optional`, `diagnostics.allow`, `success.dkim_added`, `success.dkim_removed`,
-  `success.dkim_duplicated` and `danger.dkim_domain_or_sel_exists`. Legacy texts that contain HTML
-  markup (`edit.mta_sts_info`, `edit.mta_sts_mode_info`, `edit.mta_sts_version_info`) are carried
-  over without the markup, and labels whose meaning changes (such as "Correct Data", now "Expected
-  value") get new keys.
+  `diagnostics.optional`, `success.dkim_added`, `success.dkim_removed`,
+  `success.dkim_duplicated` and `danger.dkim_domain_or_sel_exists` (`diagnostics.allow` is
+  fork-only and therefore a new string, plan). Legacy texts that contain HTML markup
+  (`edit.mta_sts_info`, `edit.mta_sts_mode_info`, `edit.mta_sts_version_info`) are shown whole and
+  unaltered through the app's sanitiser. Labels whose meaning the first plan considered changed
+  (such as "Correct Data") and the MTA-STS form differences are listed in the plan's "Deviations
+  needing a decision".
 - These are defaults of this feature, not API rules: the page sizes, the 90 % length indicator, the
   collapsed zone file view, the 10-minute reuse of a diagnostics result, the 45-second wait for a
   run, and the MTA-STS set-up values (testing, 1 week, inactive).

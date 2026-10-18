@@ -42,7 +42,10 @@ error handling), 002 (domains) and 003 (mailboxes)."
   and Slovak texts, and their English texts become "Alias domains" and "Add alias domain" (FR-067,
   Translation reuse). (agent decision: API feature 004 and the legacy add form and edit page say
   "alias domain", the Czech and Slovak legacy texts already use a single term, and the meaning is
-  unchanged, so constitution IV's key reuse applies.)
+  unchanged, so constitution IV's key reuse applies.) **Superseded by constitution IV 1.3.0
+  (owner rule, 2026-10-18)**: legacy texts are never reworded, so `mailbox.domain_aliases` and
+  `mailbox.add_domain_alias` are shown verbatim in every language, including the English "Domain
+  aliases" and "Add domain alias". New strings use "alias domain", as the API does.
 - Q: Where does a user manage what a mailbox may send as? → A: On a separate "Send as" screen opened
   from the mailbox detail screen of UI feature 003, not inside the mailbox edit form (FR-048).
   (agent decision: the API models sender settings as a separate resource with its own version tag,
@@ -530,7 +533,8 @@ absent.
 
 #### Access and navigation
 
-- **FR-001**: The app MUST offer "Aliases", "Alias domains" and "Resources" as separate screens in
+- **FR-001**: The app MUST offer "Aliases", "Alias domains" and "Resources" (shown with the legacy
+  texts `mailbox.aliases`, `mailbox.domain_aliases` and `mailbox.resources`) as separate screens in
   the mail setup navigation of administrators and domain administrators, replacing the placeholder
   that UI feature 001 shows for feature 004, and MUST NOT offer them to mailbox users. Opening such
   a screen as a mailbox user MUST show the "no access" state of UI feature 001.
@@ -840,13 +844,17 @@ absent.
 - **FR-065**: Address and domain inputs MUST turn off automatic capitalisation and correction and
   request an e-mail-friendly keyboard where the field holds a single address.
 - **FR-066**: Content MUST reflow without loss at a width of 320 CSS px and at 400% zoom.
-- **FR-067**: All texts MUST come from the translation files and MUST be complete in English, Czech
-  and Slovak. Legacy keys MUST be reused where their meaning is unchanged (see Legacy parity).
-  Legacy texts that contain markup MUST be shown as plain text with any emphasis provided by the
-  app, never as raw HTML. Texts that name the product MUST use the product name from the API's
-  branding configuration.
+- **FR-067**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key and loaded at runtime from the installation; the screens MUST mirror
+  the legacy forms (fields, labels, help texts, options, units, order and messages); new strings,
+  only for elements the classic interface lacks, MUST exist in English, Czech and Slovak and MUST
+  NOT be machine-translated. Legacy texts that contain markup MUST be rendered through the app's
+  sanitiser, unchanged. Legacy texts that name the product are shown as the installation's files
+  have them; the app's own strings take the product name from the API's branding configuration.
 - **FR-068**: Every error type and validation rule code of API feature 004 MUST have a translated
-  message that uses the parameters the API returns (for example the byte limit, the count and limit,
+  message, the legacy `danger.*` or `warning.*` message of the same meaning where one exists, that
+  uses the parameters the API returns (for example the byte limit, the count and limit,
   the kind of holder or the destination). An unknown error type MUST produce a generic translated
   message with the request identifier.
 - **FR-069**: Dates, times and numbers MUST be formatted with the user's locale.
@@ -928,9 +936,9 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 | Legacy element | Status | Requirements | Notes |
 |---|---|---|---|
 | Alias address/es text area, comma-separated, `@domain` for catch-all | Matched | FR-018, FR-019, FR-021 | Per-address results; refused entries stay for correction |
-| Help text naming the product ("mailcow domains only", fork: "FeldHost™ Mailhosting domains only") | Improved | FR-067 | Product name from the branding configuration |
+| Help text naming the product ("mailcow domains only", fork: "FeldHost™ Mailhosting domains only") | Matched | FR-067 | `add.alias_address_info` verbatim, as the installation's file has it (constitution IV 1.3.0) |
 | Goto addresses text area | Matched | FR-018 | |
-| Mutually exclusive checkboxes "Silently discard", "Learn as spam", "Learn as ham" that disable the goto field | Improved | FR-018 | One single-choice control |
+| Mutually exclusive checkboxes "Silently discard", "Learn as spam", "Learn as ham" that disable the goto field | Improved | FR-018 | One single-choice control; pending a decision under constitution IV 1.3.0 (plan, "Deviations needing a decision" 2) |
 | "Alias is visible in SOGo" (checked; hidden when the groupware is disabled) | Matched | FR-018, FR-071 | Hidden when the capabilities report the groupware disabled |
 | "Internal" (unchecked), "Allow to send as this alias" (checked), "Active" (checked) | Matched | FR-018 | Same defaults |
 | Comments only on the edit page | Improved | FR-018 | Comments can be set at creation |
@@ -951,7 +959,7 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 
 | Legacy element | Status | Requirements | Notes |
 |---|---|---|---|
-| "Domain aliases" entry in the "Aliases" tab dropdown | Improved | FR-001 | Own navigation entry "Alias domains" |
+| "Domain aliases" entry in the "Aliases" tab dropdown | Improved | FR-001 | Own navigation entry, labelled `mailbox.domain_aliases` ("Domain aliases") |
 | Columns alias domain, target domain (link to edit domain), active | Matched | FR-033 | |
 | Badge "Alias domain inactive for relay domain" | Matched | FR-033, FR-063 | |
 | — | Improved | FR-033 | New: number of aliases, linked to the filtered alias list |
@@ -1019,7 +1027,9 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 
 ### Translation reuse
 
-Legacy keys reused with unchanged meaning (markup removed where present): `mailbox.aliases`,
+Constitution IV 1.3.0 applies: these legacy keys are used verbatim by key, loaded at runtime from the
+installation, with markup rendered through the app's sanitiser. The plan's legacy form map is the
+complete list. `mailbox.aliases`,
 `mailbox.domain_aliases`, `mailbox.resources`, `mailbox.add_alias`, `mailbox.add_domain_alias`,
 `mailbox.add_resource`, `mailbox.add_alias_expand`, `edit.edit_alias_domain`,
 `mailbox.alias_domain_alias_hint`, `mailbox.catch_all`, `mailbox.alias`, `mailbox.target_address`,
@@ -1042,11 +1052,12 @@ Legacy keys reused with unchanged meaning (markup removed where present): `mailb
 `danger.description_invalid`, `success.alias_added`, `success.alias_modified`,
 `success.alias_removed`, `success.aliasd_added`, `success.aliasd_modified`,
 `success.alias_domain_removed`, `success.resource_added`, `success.resource_removed` and
-`warning.is_not_primary_alias`. All exist in en-gb, cs-cz and sk-sk. `mailbox.domain_aliases` and
-`mailbox.add_domain_alias` are reused with their Czech and Slovak texts; their English texts become
-"Alias domains" and "Add alias domain", the canonical term. `add.alias_address_info` names the
-product and is replaced by a new key that takes the branding product name.
-`success.resource_modified` says "mailbox" and is replaced by a new key.
+`warning.is_not_primary_alias`, plus `add.alias_address_info`, `add.sender_allowed` and
+`success.resource_modified`, which legacy shows for these forms. Eight values are missing from the
+upstream cs-cz or sk-sk files and fall back to `en-gb`, as in the classic interface; the FeldHost
+fork's files contain them. `mailbox.domain_aliases` and `mailbox.add_domain_alias` keep their legacy
+texts in every language. `add.alias_address_info` is shown as the installation's file has it ("mailcow
+domains only", fork: "FeldHost™ Mailhosting domains only").
 
 ## API dependency
 
@@ -1108,8 +1119,9 @@ the UI does not work around it.
 - **SC-004**: With test data containing 254-character addresses and aliases with 200 destinations,
   no screen of this feature scrolls horizontally at 360 px.
 - **SC-005**: 100% of the error types and validation rule codes of API feature 004 produce a
-  translated message in English, Czech and Slovak, and translation completeness checks pass with no
-  missing key.
+  translated message: the legacy message of the same meaning, or else a new string in English, Czech
+  and Slovak. Translation completeness checks pass with no missing new string and no used legacy key
+  absent from the `en-gb` snapshot.
 - **SC-006**: In 100% of tested saves with an outdated version tag, the conflict notice appears, no
   stored value is overwritten, and every value the user entered is still visible.
 - **SC-007**: For every role and permission flag combination in the test matrix, no control is shown

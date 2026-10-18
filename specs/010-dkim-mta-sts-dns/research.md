@@ -649,6 +649,11 @@ already made are not repeated; this file covers only what UI 010 adds or changes
       - MX hosts `[serverHostname]` (plan spec change 6);
       - active `capabilities.mtaSts.defaultActive`, which is `false`.
     - The set-up explanation of FR-051 is shown next to the form.
+    - **Constitution IV 1.3.0**: the labels and help texts are the legacy `edit.mta_sts*` keys,
+      verbatim; `edit.mta_sts_mode_info` is shown whole through `SanitizedHtml.vue`, never split. The
+      per-mode explanations, the set-up defaults, the fixed version text, `MaxAgeField`'s units (R18)
+      and `MxHostListField` differ from the legacy form and wait for a decision (plan, "Deviations
+      needing a decision" 1–5).
     - Create sends `createMtaStsPolicy`. Change sends `updateMtaStsPolicy` (`application/merge-patch+json`)
       with only the changed members and `If-Match`.
     - `412`: UI 002's flow keeps the input, reloads, marks every changed value with its new saved
@@ -806,16 +811,30 @@ already made are not repeated; this file covers only what UI 010 adds or changes
 
 ### R22. Translations
 
+- **Superseded in part (constitution IV 1.3.0, owner rule of 2026-10-18)**: legacy texts are used
+  directly by their legacy keys, verbatim, loaded at runtime from the installation in every mailcow
+  language. There is no `src/i18n/legacy-map.json` aliasing, no copy in `src/i18n/messages/`, no
+  `stripMarkup`, no hand-written value for a key a locale lacks, and no split legacy string. The
+  table below now lists which element uses which legacy key.
 - **Decision**:
   - **Namespaces**: `dns.common`, `dns.dkim`, `dns.mtaSts`, `dns.diagnostics`, `dns.publication`
     and `dns.capabilities`, plus `nav.dkimKeys` and `nav.mtaStsPolicies`, `auditLog.events.*` and
     `auditLog.targets.*` for 010 values, `problem.<name>` for the four 010 types, and
     `validation.<code>` and `validation.format.<format>` for `dkimSelector`, `domainName` and
     `mxHost`. The `common.copy.*` keys of `CopyButton` are added only if UI 010 creates it.
-  - **Legacy reuse** through `src/i18n/legacy-map.json`, checked against the upstream baseline
-    `2026-09a`:
+  - **Legacy keys**, used verbatim through UI 001's legacy translation layer and checked against the
+    upstream `en-gb` snapshot at `2026-09a` (the first column is the element; the former app key is
+    kept for reference). The legacy form map (plan, T004a) completes the list with the template keys
+    not named here, for example `admin.dkim_domains_wo_keys`, `admin.dkim_from_title`,
+    `admin.dkim_to_title`, `admin.domain_s`, `admin.dkim_private_key`, `admin.import`,
+    `admin.duplicate`, `admin.add`, `admin.remove`, `mailbox.toggle_all`, `edit.active`,
+    `edit.mta_sts_max_age_info`, `edit.mta_sts_mx_notice`, `admin.save`,
+    `diagnostics.dns_records_data`, `diagnostics.dns_records_status`, and the messages
+    `danger.dkim_domain_or_sel_invalid`, `danger.private_key_error`, `danger.version_invalid`,
+    `danger.mode_invalid`, `danger.max_age_invalid`, `danger.mx_invalid` and
+    `success.object_modified` where the API's problem or rule code has the same meaning.
 
-    | App key | Legacy key |
+    | Element (former app key) | Legacy key |
     |---|---|
     | `nav.dkimKeys`, `dns.dkim.title` | `admin.dkim_keys` |
     | `dns.dkim.states.valid` | `admin.dkim_key_valid` |
@@ -849,27 +868,34 @@ already made are not repeated; this file covers only what UI 010 adds or changes
     | `dns.diagnostics.messages.matchedByAddressRecords` | `diagnostics.cname_from_a` |
     | `dns.diagnostics.optionalExplanation` | `diagnostics.optional` |
 
-  - **Locale gaps found at the baseline**:
-    - `sk-sk` lacks `admin.copy_to_clipboard` and every `edit.mta_sts*` key;
-    - `cs-cz` lacks `edit.mta_sts_active_info`.
-
-    The app layer of that locale supplies them (UI 001 R15).
-  - **Reused with markup stripped** (UI 002 D27's `{ "from": …, "stripMarkup": true }` form):
-    `dns.mtaSts.explanation` from `edit.mta_sts_info`, and `dns.mtaSts.fields.versionHelp` from
-    `edit.mta_sts_version_info`. `sk-sk` lacks both, so its app layer supplies them.
-  - **Not reusable**:
-    - `edit.mta_sts_mode_info` contains one HTML list for all three modes, while FR-047 shows each
-      mode's explanation next to it. New keys `dns.mtaSts.modes.<mode>.description` carry the
-      legacy wording, split per mode.
-    - `edit.mta_sts_max_age_info` says "in seconds", which units make wrong.
+  - **Locale gaps found at the baseline** (upstream `sk-sk` lacks `admin.copy_to_clipboard` and
+    every `edit.mta_sts*` key; `cs-cz` lacks `edit.mta_sts_active_info`): these keys fall back to
+    `en-gb`, as in the classic interface. No locale supplies its own value. The fork's `cs-cz` and
+    `sk-sk` files contain all of them.
+  - **Legacy values with HTML**, `edit.mta_sts_info` (with its links), `edit.mta_sts_version_info`
+    and `edit.mta_sts_mode_info` (one list for the three modes), are rendered whole through
+    `SanitizedHtml.vue`, unaltered. The first plan's stripped copies and per-mode split
+    (`dns.mtaSts.modes.<mode>.description`) are dropped; per-mode explanations are a deviation
+    waiting for a decision (plan).
+  - **Formerly "not reusable"**, now decisions for the owner or orchestrator (plan, "Deviations
+    needing a decision"):
+    - `edit.mta_sts_max_age_info` says "in seconds"; it is used verbatim, and it fits only if the
+      field keeps seconds as legacy does;
     - `diagnostics.dns_records_data` ("Correct Data") and `diagnostics.dns_records_status`
-      ("Current State") change meaning (spec Assumptions).
-    - `diagnostics.allow` exists only in the FeldHost fork, not upstream, so it is a new key.
+      ("Current State") are the legacy column headers, used verbatim unless the owner approves new
+      labels;
+    - `diagnostics.allow` exists only in the FeldHost fork, not in the upstream `en-gb` snapshot,
+      so it stays a new string until the snapshot question is decided.
+  - **New strings** exist only for elements legacy lacks (diagnostics statuses, message codes,
+    summary groups, publication outcomes and reasons, runs, the export dialog, the overview), in
+    en-gb, cs-cz and sk-sk, never machine-translated.
   - **Enumerations** (T004):
     - **Fully required** (every value needs a key, UI 002 D2), added to `scripts/i18n/check.mjs`:
       `DkimKeyState`, `DkimKeyKind`, `DkimKeyDetails.missingParts`, `DkimDnsPublicationStatus`,
-      `DkimDnsPublicationReasonCode`, `DnsCheckStatus`, `DnsCheckMessageCode`, `DnsCheck.scope`
-      and `MtaStsMode`. `BulkItemOutcome` is already fully required by UI 002.
+      `DkimDnsPublicationReasonCode`, `DnsCheckStatus`, `DnsCheckMessageCode` and `DnsCheck.scope`.
+      `BulkItemOutcome` is already fully required by UI 002. `MtaStsMode` is not translated: the
+      legacy form shows the raw values `enforce`, `testing` and `none` (constitution IV 1.3.0).
+      `DkimKeyState` uses the legacy `admin.dkim_key_*` keys where they exist.
     - **Growing shared enumerations**: this feature appends its values to `src/i18n/coverage.json`
       (UI 002 D2):
       - `AuditEventType`: the eight `dkim*` and `mtaSts*` values;
@@ -881,10 +907,10 @@ already made are not repeated; this file covers only what UI 010 adds or changes
         UI 002 did not add it.
     - **Formats**: `dkimSelector`, `domainName` and `mxHost` are added to the required
       `validation.format.*` set, unless UI 002 or UI 004 already added them.
-- **Rationale**: Constitution IV. Every mapped legacy value is plain text with unchanged meaning.
+- **Rationale**: Constitution IV (1.3.0): mailcow's human-made translations are used one to one.
   The verification against the baseline files was done during planning.
-- **Alternatives considered**: Mapping the HTML keys after stripping markup in the import script:
-  rejected. UI 001 R15 refuses HTML on purpose, and the mode texts must be split anyway.
+- **Alternatives considered**: Mapping the HTML keys after stripping markup, or splitting the mode
+  texts: rejected by constitution IV 1.3.0, because both change legacy text.
 
 ### R23. Accessibility specifics
 
@@ -1012,7 +1038,8 @@ already made are not repeated; this file covers only what UI 010 adds or changes
 
 - **Decision**:
   - DNS values, policy texts, zone files, record values and publication details are rendered with
-    text interpolation only. No `v-html` exists in the feature (ESLint enforces it).
+    text interpolation only. No `v-html` exists in the feature (ESLint enforces it); the legacy
+    help texts with HTML go through UI 001's shared `SanitizedHtml.vue` (constitution IV 1.3.0).
   - The policy address and guidance URLs are links only through `safeHref`, with `target="_blank"
     rel="noopener noreferrer"` (FR-078).
   - Problem `detail`, `errors[].message` and `DnsCheckMessage.message` are never shown as the

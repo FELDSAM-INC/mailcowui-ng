@@ -48,8 +48,9 @@ The technical approach (details in [research.md](./research.md)):
   an async section after Groupware on UI 002's domain page (`edit=relayhost`), and a child route
   `relayhost` of UI 003's mailbox layout with an entry in its section catalogue. Administrators
   pick from `GET /relayhosts`, domain administrators from `GET /relayhost-choices` (R9).
-- **Text**: the legacy keys of the spec are reused, including ten hints with markup, which the
-  i18n import converts into a small notation that `RichText.vue` renders without `v-html` (R20).
+- **Text**: mailcow's own translations, used verbatim by their legacy keys and loaded at runtime from
+  the installation; the twelve hints with markup render through `SanitizedHtml.vue`, unaltered
+  (constitution IV 1.3.0, R20, "Translations and forms" below).
 - **Tests**: stateful, contract-validated mock handlers for the eight API 009 modules (R23);
   end-to-end tests of every user story on 360 px and desktop with axe in both themes; unit and
   component tests; smoke tests against the API dev stack with a real SMTP target (R24).
@@ -100,13 +101,17 @@ and the sections load as async components (research R25). Lighthouse mobile scor
 - No automatic polling (conventions "Polling"); the contract pin only moves forward and the 46
   operations are checked against the baseline commit (conventions "Contract pins").
 - Limits from the capabilities read (conventions).
-- Every user-facing text in en-gb, cs-cz and sk-sk, reusing the listed legacy keys.
+- Constitution IV 1.3.0: every mailcow language; legacy texts verbatim from the installation; forms
+  one to one with the legacy forms; new strings only where legacy has none, in en-gb, cs-cz and
+  sk-sk.
 
 **Scale/Scope**:
 
 - 9 user stories (3 at P1, 5 at P2, 1 at P3), 75 functional requirements, 10 success criteria.
 - 22 routes, 2 sections embedded in UI 002 and UI 003, 46 contract operations.
-- About 90 reused legacy keys and roughly 400 new message keys per locale.
+- About 100 legacy keys used verbatim; new strings only for the elements legacy lacks (fewer than the
+  first plan's 400 per locale, which assumed new keys for statuses, actions and messages that legacy
+  has).
 - Up to 10,000 entries per collection (paged lists, paged pickers).
 
 ## Constitution Check
@@ -118,11 +123,11 @@ and the sections load as async components (research R25). Lighthouse mobile scor
 | I. The API contract is the only interface | All calls are operations of the pinned contract through the generated client; the bump is a deliberate task with typecheck and all tests (R1). Types are generated root types and operation parameter aliases (data-model §1). Gaps are to be registered in mailcow-rest-v2's gap register first (G34–G37 below, checked by T001) and are not worked around: the shared-next-hop lookup sends the input unnormalised (R10), and the permission message stays neutral without `requiredFlagsMatch` (R19). Errors are handled from `type`, extension members and `errors` (R19, contracts README). | PASS |
 | II. Mobile-first | Every screen is designed and tested at 360 px first. Lists are cards below `md` and tables above (R4). Forms are their own pages with a sticky action bar (R6); the Relayhost sections open full-screen on phones (R9). Destructive actions are confirmed with their impact (R5, R8). Every list and picker has loading, empty and error states. The test summary fits 360 × 780 (R12); the transcript wraps (R13). | PASS |
 | III. Accessibility | axe in both themes on every screen and state (R24). Statuses in words (R4). Live announcements for saves, bulk results, result counts, test progress and summary. Pickers and dialogs are Reka components with focus handling (FR-071). The transcript direction is spoken, not only shown (R13). | PASS |
-| IV. i18n and branding | All text from en-gb, cs-cz and sk-sk messages. The spec's legacy keys are reused, including markup hints through the rich import (R20, R21). `i18n:check` covers the routing enumerations. Values from the API are shown untranslated (FR-073). No brand-specific text. | PASS |
-| V. Security in the browser | Passwords are write-only in the UI too: empty fields, status only, `new-password` autocomplete, cleared after every save attempt, never in cache, address, history state or storage (R7). API data is rendered as text; `RichText` renders only translation text from the repository, without `v-html` (R20). Hiding controls is a convenience: the API's refusals are handled (R19). | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0: every mailcow language; legacy texts by their legacy keys, verbatim from the installation's `/lang/` files, markup hints through `SanitizedHtml.vue` (R20, R21); the screens mirror the legacy forms and messages ("Translations and forms" below); new strings only for elements legacy lacks, in en, cs and sk, never machine-translated. `i18n:check` covers the new strings, the legacy keys against the `en-gb` snapshot and the routing enumerations. Values from the API are shown untranslated (FR-073). No brand-specific text in the app's own strings. | PASS |
+| V. Security in the browser | Passwords are write-only in the UI too: empty fields, status only, `new-password` autocomplete, cleared after every save attempt, never in cache, address, history state or storage (R7). API data is rendered as text; legacy hints with markup go only through `SanitizedHtml.vue`, the one `v-html` (R20). Hiding controls is a convenience: the API's refusals are handled (R19). | PASS |
 | VI. Test-first | `tasks.md` writes tests before implementation in every phase. End-to-end tests of every acceptance scenario on both viewports against the contract-validated mock (R23, R24). Unit tests cover unknown enumeration values that a mock may not send. Smoke tests against the real API. | PASS |
 | VII. Performance budgets | No new dependency; lazy routes; async sections; debounced searches; capabilities cached for 5 minutes; invalidation only of what a change affects (R22, R25). `budget:check` and Lighthouse run on a routing page. | PASS |
-| VIII. Simplicity | One feature directory. Generic `EntryList` and `CredentialFields` inside the feature because six and two of its screens use them; `RichText` in `src/shared/` because ten hints on six screens use it. Earlier features' shared blocks (`BulkActionBar`, `useLeaveGuard`, `PasswordInput`, `CopyButton`, `AclReadOnlyNote`, `ActiveFilterChips` and the others of R1) are reused, not rebuilt. | PASS |
+| VIII. Simplicity | One feature directory. Generic `EntryList` and `CredentialFields` inside the feature because six and two of its screens use them; legacy hints reuse UI 001's `SanitizedHtml.vue` instead of a new renderer. Earlier features' shared blocks (`BulkActionBar`, `useLeaveGuard`, `PasswordInput`, `CopyButton`, `AclReadOnlyNote`, `ActiveFilterChips` and the others of R1) are reused, not rebuilt. | PASS |
 | Technology constraints | The constitution's stack and TailAdmin primitives only; no new font, icon set or CDN request. Static build, unchanged deployment. | PASS |
 | Workflow and gates | All UI 001 CI gates apply unchanged; the smoke job runs the `@routing` specs with the `routing` profile. | PASS |
 | `docs/conventions.md` | Legacy names kept ("Sender-dependent transports"). List state in the address, page sizes 25/50/100, cards and tables, list states (R4). Bulk: explicit selection, current page only, per-item version tags, per-item results, failed items stay selected, "outcome unknown" (R5). Editing: changed fields plus version tag, input kept on `412`, changed values marked, no overwrite, refused deletion confirmed again (R6). Confirmations: impact preview, typed count for bulk deletion, explicit confirmation for deactivation (R5, R8). Write-only secrets (R7). History by target type and ID, audit labels (R18). Problems and rule codes translated (R19). Entry points into UI 002 and UI 003 through their section areas (R9). Limits from the capabilities read (R3). | PASS |
@@ -133,9 +138,97 @@ introduce no violation. Decisions that touched gates:
 - The test watchdog aborts the request at the server's total timeout plus 15 s, an exception to UI
   001 R8's "no client-side timeout" for this one operation (R11); it follows FR-045 and the
   conventions' "limits from capabilities", and is not a constitution deviation.
-- The rich legacy hints are rendered from repository translations without `v-html` (V, R20).
+- The legacy hints with markup are rendered verbatim through `SanitizedHtml.vue` (IV 1.3.0, V,
+  R20); the first plan's `RichText.vue` notation is dropped.
 - The admin relayhost picker reads `GET /relayhosts` to show usernames (FR-032) instead of asking
   the API for a new field (I, R9).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen and section of this feature, and overrides earlier text in this plan, the spec, research and
+tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`; entry pages `admin/system.php`
+for `templates/admin.twig`, `admin/mailbox.php` and `domainadmin/mailbox.php` for
+`templates/mailbox.twig`, `edit.php` for the edit pages):
+
+- **Sender-dependent transports** (list, add) → the relayhost card of
+  `templates/admin/tab-routing.twig` (add form below the table, `mailbox.quick_actions` menu,
+  `mailbox.toggle_all`), `draw_relayhosts()` in `js/site/admin.js` (columns ID, `admin.host`,
+  `admin.username`, `admin.in_use_by`, `admin.active`, `admin.action`); messages of `relayhost()` in
+  `inc/functions.transports.inc.php`.
+- **Relayhost edit** → `templates/edit/relayhost.twig` (`add.hostname`, `add.username`,
+  `add.password`, `add.relayhost_wrapped_tls_info`, `edit.active`, `edit.save`).
+- **Transport maps** (list, add) → the transport card of `tab-routing.twig`,
+  `draw_transport_maps()` in `admin.js` (ID, `admin.destination`, `admin.nexthop`,
+  `admin.username`, `admin.active`, `admin.action`); **edit** → `templates/edit/transport.twig`
+  (`add.destination`, `edit.nexthop`, `edit.lookup_mx`, `add.username`, `add.password`,
+  `edit.active`); messages of `transport()` in `functions.transports.inc.php`.
+- **Connection test** → `testTransportModal` in `templates/modals/admin.twig` (`admin.relay_from`,
+  `admin.relay_rcpt`, `admin.transport_test_rcpt_info`, `admin.relay_run`), the `#test_transport`
+  handler in `admin.js` and `inc/ajax/transport_check.php`.
+- **BCC maps** → the BCC card of `templates/mailbox/tab-bcc.twig` (`mailbox.bcc_maps`,
+  `mailbox.bcc_info`, `mailbox.bcc_to_rcpt`, `mailbox.bcc_to_sender`, `admin.refresh`),
+  `draw_bcc_table()` in `js/site/mailbox.js` (`mailbox.bcc_type`, `mailbox.bcc_local_dest`,
+  `mailbox.bcc_destinations`, `mailbox.domain`, `mailbox.active`, `mailbox.action`), add form
+  `addBCCModalAdmin` in `templates/modals/mailbox.twig`, edit `templates/edit/bcc.twig`; messages of
+  `bcc()` in `inc/functions.address_rewriting.inc.php`.
+- **Recipient maps** → the recipient map card of `tab-bcc.twig`, `draw_recipient_map_table()` in
+  `mailbox.js`, `addRecipientMapModalAdmin`, `templates/edit/recipient_map.twig`; messages of
+  `recipient_map()` in `functions.address_rewriting.inc.php`.
+- **TLS policy maps** → `templates/mailbox/tab-tls-policy.twig`, `draw_tls_policy_table()` in
+  `mailbox.js`, `addTLSPolicyMapAdmin` (the eight options are the raw Postfix values),
+  `templates/edit/tls_policy_map.twig`; messages of `tls_policy_maps()` in
+  `inc/functions.tls_policy_maps.inc.php`.
+- **Forwarding hosts** → `templates/admin/tab-config-fwdhosts.twig`, `draw_fwd_hosts()` in
+  `admin.js` (`admin.host`, `admin.source`, `admin.spamfilter`, `admin.action`); messages of
+  `fwdhost()` in `inc/functions.fwdhost.inc.php`.
+- **Relayhost sections** → the relayhost selector of `templates/edit/domain.twig` (`edit.relayhost`,
+  `edit.none_inherit`) and of `templates/edit/mailbox.twig` (also `edit.mailbox_relayhost_info`).
+- **Navigation labels** → `admin.routing`, `admin.forwarding_hosts`, `mailbox.address_rewriting` and
+  `mailbox.tls_policy_maps` of `templates/admin.twig` and `templates/mailbox.twig`.
+
+**Screens and elements without a legacy counterpart** use new strings (en-gb, cs-cz, sk-sk, never
+machine-translated), kept minimal: the relayhost usage view, password status and removal, the test
+summary, steps and transcript legend, shared next hops, the effective relayhost, dangling and
+inactive assignments, "Whole domain", orphaned BCC maps, bulk result summaries, outdated-version
+handling, the forwarding hosts' "Enable/Disable spam filter" (hard-coded English in legacy) and
+History.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`,
+`*_hint`), placeholders, option labels, units, order and grouping, column headers, action labels and
+success, warning and danger messages come from the legacy keys; the add and edit screens each use
+their own legacy template's keys (for example `admin.host` on the add form, `add.hostname` on the
+edit page). Every mailcow language is supported; legacy values are loaded at runtime from the
+installation and shown verbatim (HTML through `SanitizedHtml.vue`); a missing key falls back to
+`en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by T004a before any screen is built.
+
+**Deviations needing a decision** (not built until the owner or orchestrator decides):
+
+1. **Navigation grouping**: legacy spreads these screens over System › Routing (relayhosts,
+   transports), System › Configuration › Forwarding hosts, Mail setup › Address rewriting (BCC and
+   recipient maps) and Mail setup › TLS policy maps; the plan groups all six under one Routing
+   entry (UI 001's catalogue, FR-001).
+2. **Test addresses**: legacy prefills the recipient with `null@hosted.mailcow.de` (value and
+   placeholder) and shows the placeholder `relay@example.org` for the sender; the plan leaves both
+   empty with the server's defaults as placeholders (parity note 2).
+3. **Test dialog title**: legacy's hard-coded "Transport"; the plan replaces it with a new string.
+4. **Edit page heading**: legacy's relayhost and transport edit pages are headed `edit.resource`
+   ("Resource", a legacy slip); verbatim use would show "Resource".
+5. **Added explanatory texts** (new strings beyond the legacy forms): "also called relayhosts"
+   (FR-001), the port 465 warning, the `*` transport warning, the TLS policy explanations (legacy
+   shows only the raw values), the BCC type explanations, the spam and sub-address explanation, and
+   the credential lookup note of the mailbox section.
+6. **Dropped legacy columns and option text**: the leading ID column of the BCC, recipient and TLS
+   policy map tables (spec Legacy Parity), and the username in a domain administrator's relayhost
+   options ("ID n: host (username)"; API FR-023 withholds it).
+7. **Write-only relay passwords**: legacy's edit pages show the stored password in its field; the
+   plan shows only its status (conventions "Secrets"; listed for completeness).
 
 ## Consistency changes to the spec
 
@@ -177,7 +270,8 @@ in the spec's "Consistency changes (plan)" clarification:
   released (T120 re-checks the pin then).
 - **UI**: UI 001 (foundation); UI 002 (domain page with its section list, bulk selection and action
   bar, typed confirmation, section editing, leave guard, History link, role-restricted routes,
-  coverage manifest, legacy map object entries); UI 003 (mailbox layout with child-route sections,
+  coverage manifest); UI 001's legacy translation layer (runtime `/lang/` loader, `en-gb` snapshot,
+  formatter) and `SanitizedHtml.vue`; UI 003 (mailbox layout with child-route sections,
   `ActiveFilterChips`, `AclReadOnlyNote`); UI 005 (`PasswordInput`, `CopyButton`, flag labels);
   UI 006 (promotes `AclReadOnlyNote`); UI 007 (manages the permission flags this feature reads,
   flag labels). UI 004 and UI 008 add nothing this feature needs, but their contract pins come
@@ -198,8 +292,9 @@ in the spec's "Consistency changes (plan)" clarification:
   | Mock state and handlers of domains and mailboxes | `tests/mocks/scenarios/state.ts`, `tests/mocks/handlers/{domains,mailboxes}.ts` (UI 002, UI 003) | _to be recorded_ |
   | `PasswordInput`, `CopyButton` | `src/shared/components/password/PasswordInput.vue`, `src/shared/components/CopyButton.vue` (UI 005) | _to be recorded_ |
   | `AclReadOnlyNote` | `src/shared/components/AclReadOnlyNote.vue` (UI 003, promoted by UI 006) | _to be recorded_ |
-  | Domain administrator flag labels | legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost` through the legacy map (UI 007) | _to be recorded_ |
-  | Coverage registry, `ENUM_NAMESPACES`, legacy map object entries | `src/i18n/coverage.json` (canonical), `scripts/i18n/lib.mjs`, `{ "from", "stripMarkup" }` (UI 002, UI 003) | _to be recorded_ |
+  | Domain administrator flag labels | legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`, used verbatim (UI 007) | _to be recorded_ |
+  | Coverage registry, `ENUM_NAMESPACES` | `src/i18n/coverage.json` (canonical), `scripts/i18n/lib.mjs` (UI 002, UI 003) | _to be recorded_ |
+  | Legacy translation layer and `SanitizedHtml.vue` allowlist | UI 001 (constitution IV 1.3.0) | _to be recorded_ |
 
 ## API dependency and gaps
 
@@ -230,8 +325,8 @@ Observations without a register entry:
 
 ## Owner-level questions (defaults applied)
 
-1. **Review of the new Czech and Slovak strings** (about 400 per locale): reused legacy
-   translations are reviewed upstream; new strings are written by the implementer. **Default**: the
+1. **Review of the new Czech and Slovak strings**: legacy translations are used verbatim and need no
+   review; only the new strings, which the implementer writes and never machine-translates, do. **Default**: the
    owner reviews the list that T118 produces before the release, as for UI 001 (UI 001 owner
    question 4).
 
@@ -243,9 +338,8 @@ The spec's parity table is complete. The plan adds:
    "Domain no longer exists" and can filter and delete them. Improved, from API 009.
 2. **Test addresses**: legacy prefills `null@hosted.mailcow.de`; the app leaves the fields empty
    and shows the server's configured defaults as placeholders. Improved.
-3. **Rich legacy hints**: bold, code, bullet and link formatting of the reused hints is kept
-   through the app's own formatting, and the Postfix documentation link says that it opens an
-   external site. Matched.
+3. **Legacy hints with markup**: shown verbatim, with their bold, code, bullet and link formatting,
+   through `SanitizedHtml.vue` (constitution IV 1.3.0). Matched.
 
 ## Project Structure
 
@@ -272,7 +366,7 @@ New files of this feature, plus the existing files it changes (marked "changed")
 .github/workflows/ci.yml                                  # changed: smoke job with the routing profile (T120)
 contract/{openapi.yaml,openapi.json,VERSION.json}        # changed: bumped pin (T002)
 scripts/
-├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}            # changed: rich hints (T004), routing enums (T025)
+├── i18n/{lib.mjs,check.mjs}                              # changed: routing enums (T025)
 ├── smoke/stack-up.sh                                     # changed: SMOKE_COMPOSE_PROFILES (T072)
 └── run-lhci.mjs                                          # changed: routing collection (T116)
 src/
@@ -326,12 +420,8 @@ src/
 │   ├── mailboxes/sections.ts                             # changed (UI 003): `relayhost` section entry
 │   ├── mailboxes/components/display/ManagedSettingsGroup.vue   # changed (UI 003): relayhost `to`
 │   └── audit-log/labels.ts                               # changed: routing event and target labels
-├── shared/
-│   └── components/RichText.vue                           # new unless an earlier feature added it
 └── i18n/
     ├── messages/{en-gb,cs-cz,sk-sk}.json                 # changed: routing.*, validation.*, problem.*, auditLog.*
-    ├── legacy/{en-gb,cs-cz,sk-sk}.json                   # regenerated
-    ├── legacy-map.json                                   # changed: reused keys, rich entries
     ├── coverage.json                                     # changed: API 009 values
     └── problems.ts                                       # changed: `because` parameter
 tests/
@@ -347,8 +437,7 @@ tests/
 │                  connection-test}.ts
 ├── unit/
 │   ├── features/routing/**                               # logic, composables, components, api
-│   ├── shared/components/RichText.spec.ts
-│   └── scripts/i18n-rich.spec.ts
+│   └── features/routing/legacy-hints.spec.ts             # legacy hints verbatim through SanitizedHtml
 ├── e2e/routing/{routing-shell,relayhosts,relayhost-usage,relayhost-sections,transports,
 │                connection-test,bcc-maps,tls-policy-maps,recipient-maps,forwarding-hosts,
 │                history,credential-secrecy,reflow-and-keyboard}.spec.ts
@@ -357,8 +446,8 @@ tests/
 ```
 
 **Structure Decision**: one feature directory for the Routing section, organised by screen inside
-(R2). Building blocks that six or two of its screens share stay in the feature; `RichText` goes
-to `src/shared/` because other features' hints can use it. The domain section and the mailbox
+(R2). Building blocks that six or two of its screens share stay in the feature; legacy hints with
+markup reuse UI 001's `SanitizedHtml.vue`. The domain section and the mailbox
 child route are the feature's public surface for UI 002 and UI 003, through `index.ts`.
 
 ## Complexity Tracking

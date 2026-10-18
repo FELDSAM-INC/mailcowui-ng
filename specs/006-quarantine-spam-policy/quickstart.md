@@ -21,8 +21,9 @@ scripts are UI 001's
   R1).
 - For Part C: a mailcow-rest-v2 checkout at `$MAILCOW_REST_V2_DIR` (default `../mailcow-rest-v2`)
   with API 006 implemented, and Docker with Compose v2.
-- For refreshing reused translations: a mailcow-dockerized checkout with the upstream tags at
-  `$MAILCOW_REPO` (default `../mailhosting`).
+- For the legacy form map and the legacy keys: a mailcow-dockerized checkout with the upstream tags
+  at `$MAILCOW_REPO` (default `../mailhosting`). Legacy texts are loaded at runtime from the
+  installation's `/lang/`, so nothing is imported.
 
 ## Part A: Automated gates
 
@@ -31,7 +32,7 @@ npm ci
 npm run lint && npm run format:check
 npm run typecheck
 npm run contract:check          # pin contains API 006; generated types current
-npm run i18n:check              # en-gb, cs-cz, sk-sk complete, including the 006 enumerations (research R2)
+npm run i18n:check              # new strings en/cs/sk; legacy keys in en-gb snapshot; 006 enums (R2)
 npm run test:unit               # includes the SC-005 matrix and the SC-002 hostile corpus
 npm run build && npm run budget:check
 npm run test:e2e                # every US1–US9 scenario on mobile-chromium, desktop-chromium and mobile-webkit

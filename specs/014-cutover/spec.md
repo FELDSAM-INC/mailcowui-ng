@@ -491,7 +491,9 @@ smoke test and the report show them.
 #### Exclusions
 
 - **FR-015**: The addresses of the exclusion list MUST never be redirected, whatever the switch
-  state, and MUST answer exactly as before cutover.
+  state, and MUST answer exactly as before cutover. This includes mailcow's language files
+  (`/lang/lang.<code>.json`, X10), which the app loads at runtime (constitution IV 1.3.0): they
+  MUST keep answering `200` with `application/json` for every role.
 - **FR-016**: The root and the classic sign-in addresses (rows M01, M05 and M10) MUST NOT be
   redirected when the request carries a classic sign-in flow parameter: `oauth`, `iam_sso`, `code`
   together with `state`, `cancel_tfa_login` or `cancel_tfa_setup`. The root carrying `mobileconfig`
@@ -578,8 +580,8 @@ smoke test and the report show them.
 
 #### Communication
 
-- **FR-040**: The runbook MUST offer announcement texts in English, Czech and Slovak for the branding
-  announcement: a "before" text naming the date, the new address, that users sign in again with
+- **FR-040**: The runbook MUST offer announcement texts in English, Czech and Slovak, written by people
+  and never machine-translated, for the branding announcement: a "before" text naming the date, the new address, that users sign in again with
   their usual account, that passkeys and second factors keep working, that bookmarks are forwarded,
   and that webmail, mail apps and quarantine e-mail links are unaffected; and an "after" text saying
   that the switch has happened and where to get help. It MUST recommend activating the "before"
@@ -626,7 +628,10 @@ smoke test and the report show them.
 
 - **FR-049**: The arrival notice and the classic interface note on the API keys screen MUST meet WCAG
   2.2 AA, work at 360 px without horizontal scrolling, have touch targets of at least 44 × 44 CSS px,
-  and have English, Czech and Slovak texts.
+  and have English, Czech and Slovak texts. They have no classic-interface counterpart, so under
+  constitution IV 1.3.0 their texts are new strings: written by people in these three languages,
+  never machine-translated, with every other mailcow language falling back to English, and a legacy
+  key used verbatim wherever one has the same meaning.
 
 ### Route Mapping
 
@@ -694,7 +699,7 @@ These addresses are never redirected (FR-015). Prefixes include everything below
 | X07 | `/oauth/authorize`, `/oauth/token`, `/oauth/profile` and their `.php` forms | OAuth2 provider endpoints and consent page (API feature 012, FR-049) |
 | X08 | M01, M05 and M10 with a classic sign-in flow parameter (FR-016) | OAuth2 sign-in, classic single sign-on, cancelling a classic second-factor step |
 | X09 | `/f2b-banlist…`, `/cache/…`, `/resource.php`, `/_rspamderror.php`, `/rspamd/…` | Ban list for external firewalls, served resources, Rspamd's own interface |
-| X10 | `/css/…`, `/js/…`, `/img/…`, `/fonts/…`, icon and manifest files at the root, `/robots.txt`, `/_status.502.html` | Static files the classic interface, the webmail and error pages use |
+| X10 | `/css/…`, `/js/…`, `/img/…`, `/fonts/…`, `/lang/…`, icon and manifest files at the root, `/robots.txt`, `/_status.502.html` | Static files the classic interface, the webmail and error pages use; the app loads mailcow's language files from `/lang/` at runtime (constitution IV 1.3.0) |
 | X11 | `/inc/ajax/…`, `/inc/lib/…` (stays refused) | Calls from classic pages still open or opened with a classic pass |
 | X12 | Every request with a method other than GET or HEAD (FR-008) | Form submissions, webmail sign-out, classic page calls |
 | X13 | Every classic address for a browser with a classic pass (FR-031) | Classic interface entry |

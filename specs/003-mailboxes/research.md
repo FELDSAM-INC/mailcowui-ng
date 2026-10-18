@@ -89,15 +89,24 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
 ### R3. Legacy translation reuse (constitution IV, FR-072)
 
-- **Decision**: Map these legacy keys through `src/i18n/legacy-map.json`, because their meaning is
-  unchanged. The upstream baseline is `2026-09a` (UI 001 R15).
+> **Superseded in part by constitution IV 1.3.0 (owner rule, 2026-10-18;
+> `docs/conventions.md`, "Translations and forms").** The keys below are used directly by their
+> legacy name, verbatim, from the installation's `/lang/` files at runtime, with no
+> `legacy-map.json` alias and no copy in `src/i18n/messages/`. The "Not mapped" exclusions are
+> lifted, nothing is supplied by hand for a missing Czech or Slovak value (it falls back to
+> `en-gb`), and the list is completed by the legacy form map (T008a), which covers every legacy
+> key the screens of plan.md "Translations and forms" use, not only these.
+
+- **Decision**: Use these legacy keys verbatim. The upstream baseline of the bundled `en-gb`
+  snapshot is `2026-09a`.
   - `mailbox.*`: `mailboxes`, `add_mailbox`, `mailbox_templates`, `add_template`, `username`,
     `domain`, `active`, `inactive`, `disable_login`, `in_use`, `msg_num`, `last_mail_login`,
     `last_pw_change`, `created_on`, `last_modified`, `tls_enforce_in`, `tls_enforce_out`,
     `quarantine_notification`, `quarantine_category`, `allowed_protocols`, `toggle_all`, `edit`,
     `remove`, `template`, `templates`, `force_pw_update`.
-  - `add.*`: `mailbox_username`, `full_name`, `password`, `generate`, `tags`, `quota_mb` (as the
-    quota label without "(MiB)": a new key, because the unit changes), `select_domain`.
+  - `add.*`: `mailbox_username`, `full_name`, `password`, `password_repeat`, `generate`, `tags`,
+    `quota_mb` (verbatim, with its "(MiB)"; the unit question is plan deviation 3),
+    `select_domain`.
   - `edit.*`: `mailbox`, `full_name`, `mailbox_rename`, `mailbox_rename_warning`, `mailbox_rename_agree`,
     `mailbox_rename_title`, `custom_attributes`, `password_recovery_email`, `sogo_access`,
     `sogo_access_info`, `allowed_protocols`, `ratelimit`.
@@ -114,28 +123,30 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     `success.mailbox_renamed`, `success.template_added`, `success.template_modified`.
   - `warning.quota_exceeded_scope`.
 
-  **Not mapped**:
-  - `acl.pw_reset` ("Allow to reset mailcow user password") and the built-in source label
-    ("mailcow") embed the product name. New keys take `{productName}` from the branding
-    configuration (FR-072, US5-AS6).
-  - `edit.force_pw_update_info` names the product with `%s`. It gets a new key with
-    `{productName}`.
-  - `success.template_removed` ("Template ID %s has been deleted") names an ID. The app announces
-    the name with a new key.
-  - `edit.mailbox_rename_alias` ("Create alias automatically") is a checkbox text, while the app
-    asks a yes/no question (FR-049). It gets a new key.
-  - Every value with HTML (`user.tag_help_explain`, `user.tls_policy_warning`) is refused by the
-    import script (UI 001 R15).
+  **Formerly "not mapped", now used verbatim** (constitution IV 1.3.0):
+  - `acl.pw_reset` ("Allow to reset mailcow user password" upstream; the installation's own text,
+    such as the fork's "FeldHost™ Mailhosting" wording, is what appears). No `{productName}` key.
+  - `edit.force_pw_update_info`, whose `%s` is filled with the product name from the branding
+    configuration, as legacy fills it with `ui_texts.main_name`.
+  - `success.template_removed` ("Template ID %s has been deleted"), with the template's ID as legacy
+    passes it.
+  - `edit.mailbox_rename_alias` ("Create alias automatically"), with the legacy checkbox (plan
+    deviation 5).
+  - The HTML values `user.tag_help_explain` and `user.tls_policy_warning`, rendered through
+    `SanitizedHtml.vue`.
+  - The built-in authentication source option has no legacy key (the template hard-codes the
+    product name), so it takes the product name from the branding configuration.
 
-  **Missing in the upstream Slovak file**, so `src/i18n/messages/sk-sk.json` supplies them:
-  `edit.mailbox_rename`, `edit.mailbox_rename_warning`, `edit.mailbox_rename_agree`,
-  `edit.mailbox_rename_title`, `edit.custom_attributes`, `edit.password_recovery_email`,
-  `success.mailbox_renamed`, `user.attribute`. `tfa.force_tfa` is missing in both `cs-cz` and
-  `sk-sk`. These were verified at `2026-09a`.
-- **Rationale**: Constitution IV: existing translations carry over where the meaning is unchanged,
-  and nothing brand-specific is hard-coded.
-- **Alternatives considered**: Mapping `acl.pw_reset` and replacing "mailcow" at runtime: rejected,
-  because it would break in Czech and Slovak grammar and hides a brand string in the source.
+  **Missing in the upstream Slovak file** (`edit.mailbox_rename`, `edit.mailbox_rename_warning`,
+  `edit.mailbox_rename_agree`, `edit.mailbox_rename_title`, `edit.custom_attributes`,
+  `edit.password_recovery_email`, `success.mailbox_renamed`, `user.attribute`; `tfa.force_tfa` also
+  in `cs-cz`, verified at `2026-09a`): they fall back to `en-gb`, as in the classic interface. The
+  fork's `cs-cz` and `sk-sk` files have all of them. No value is written by hand.
+- **Rationale**: Constitution IV 1.3.0: mailcow's translations were written by people and are used
+  one to one, and the installation's own files decide the wording, including the product name.
+- **Alternatives considered**: New keys with `{productName}` for `acl.pw_reset` and
+  `edit.force_pw_update_info`, and hand-written Slovak values: rejected by the owner rule of
+  2026-10-18, because they change or replace human translations.
 
 ---
 
@@ -814,8 +825,15 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
 - **Decision**:
   - **Problem types**: the problem types and validation rule codes of API 003 are translated
-    through UI 001's `problems.ts`, with keys `problem.<name>` and `validation.<code>`. The
-    feature-specific variants live in `src/features/mailboxes/problems.ts` (pure, unit-tested):
+    through UI 001's `problems.ts`, with keys `problem.<name>` and `validation.<code>`. Under
+    constitution IV 1.3.0, each one is first mapped to the legacy `danger.*` or `warning.*` key of
+    the same meaning (for example `address-in-use` → `danger.is_alias_or_mailbox`,
+    `mailbox-limit-reached` → `danger.max_mailbox_exceeded` with `count` and `limit`, a quota above
+    the domain limit → `danger.mailbox_quota_exceeded` or `danger.mailbox_quota_left_exceeded` in
+    MiB, `missingCharacterClass` → `danger.password_complexity`, a duplicate template name →
+    `danger.template_exists`), recorded in the legacy form map (T008a). The new strings below
+    remain only where legacy has no equivalent. The feature-specific variants live in
+    `src/features/mailboxes/problems.ts` (pure, unit-tested):
     - the holder of `address-in-use` → `mailboxes.problem.addressInUse.<holder>`;
     - `mailbox-limit-reached` and `domain-alias-limit-reached` with `count` and `limit`;
     - `temporary-failure` per `dependency` (`mailStore`, `webmail`, `sharedStore`, otherwise the

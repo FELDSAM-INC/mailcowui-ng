@@ -50,8 +50,10 @@ The technical approach (details in [research.md](./research.md)):
   and rendered by Vue, instead of relaxing `img-src` (R10).
 - **Webmail**: the new tab is opened synchronously in the click handler so popup blockers allow it;
   a single `continueAfterSignIn()` applies the forwarding rule after every sign-in path (R20).
-- **i18n**: legacy keys are reused, including those with HTML (converted to plain text with link
-  slots at import time); Czech and Slovak plural rules (R23).
+- **i18n**: constitution IV 1.3.0: the screens mirror the legacy forms and use mailcow's own
+  translations verbatim by legacy key, including those with HTML (rendered through
+  `SanitizedHtml.vue`); new strings only where legacy has none, with Czech and Slovak plural rules
+  (R23, "Translations and forms" below).
 - **Tests**: contract-validated mock handlers for the self-service module, end-to-end tests of every
   acceptance scenario on 360 px and desktop with axe in both themes, and smoke tests against the API
   dev stack (R24).
@@ -85,8 +87,8 @@ loads on a mid-range phone (SC-011); webmail reachable within 3 s (SC-012); init
 **Constraints**: no automatic polling (no `refetchInterval` anywhere in this feature); strict CSP
 unchanged (no `data:` images, no inline style or script); no secret in
 storage, address, history, caches or logs (SC-008); WCAG 2.2 AA in both themes; 360 px first; only
-contract operations; no hard-coded capabilities or limits (FR-009); every legacy key of the parity
-section reused (SC-007).
+contract operations; no hard-coded capabilities or limits (FR-009); the legacy forms mirrored with
+their keys, verbatim (SC-007, constitution IV 1.3.0).
 
 **Scale/Scope**:
 
@@ -94,7 +96,8 @@ section reused (SC-007).
 - 31 new routes: 15 in My account, 11 in the mailbox context, 3 for Mail setup › Filters, 2 for the
   password reset.
 - 49 of the 51 self-service operations, plus 7 operations of features 001–003.
-- 3 locales; about 450 new translation keys, about 90 of them reused from legacy.
+- Every language mailcow ships (33); legacy keys from the legacy form map, and new strings in
+  en-gb, cs-cz and sk-sk only for elements the classic interface lacks.
 
 ## Constitution Check
 
@@ -105,7 +108,7 @@ section reused (SC-007).
 | I. The API contract is the only interface | Only operations of the pinned contract, through the generated client (contracts/README.md lists 49 + 7). The pin moves to a commit containing API 005 (R2), recorded in `contract/VERSION.json`. No hand-written API type: section rules, presets and view models are app-defined (data-model §2). Where the contract falls short (bulk TLS version tag, filter by ID), gaps AG1 and AG2 are reported, and the UI does not work around them. Errors are handled from `type`, `errors` and the documented extension members (R6). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px: sections as their own pages, lists as cards below `md`, long forms split (Pushover "Advanced", filter editor page, TOTP steps), the TOTP open/copy actions before the QR code. Selection modes for multi-item actions. Destructive actions confirmed with their impact; bulk deletions typed; the SOGo reset needs an acknowledgement. Every list has loading, empty and error states. Tested on `mobile-chromium` and `mobile-webkit`. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe on every screen and state in both themes; the QR code has a text alternative pointing to the grouped key; statuses in text; announced copy results, saves and WebAuthn waits; no time limit without "Try again"; confirmation dialogs trap and return focus (FR-112 to FR-116). | PASS |
-| IV. i18n and branding | All text in en-gb, cs-cz and sk-sk; legacy keys mapped, including HTML-bearing ones converted to plain text at import time (R23); missing cs/sk legacy values supplied by the hand-written layer; Czech and Slovak plural rules; locale formatting of sizes, dates, countries. No brand text: the Yubico API key URL is a vendor address, not operator branding. | PASS |
+| IV. i18n and branding | Constitution 1.3.0: every mailcow language; the screens mirror the legacy forms of "Translations and forms" below, with mailcow's translations loaded at runtime and used verbatim by legacy key, HTML-bearing values through `SanitizedHtml.vue`, missing keys falling back to `en-gb` (R23); new strings only where legacy has none, in en-gb, cs-cz and sk-sk, never machine-translated, with Czech and Slovak plural rules; locale formatting of sizes, dates, countries. No brand text in the app's own strings: the Yubico API key URL is a vendor address, not operator branding. | PASS |
 | V. Security in the browser | Same-origin session and in-memory CSRF token (001). No new storage key; secret-bearing requests outside every cache (`useSecretRequest`), secrets never in the address bar, history or logs; the reset token scrubbed in `beforeEnter`; the profile blob released after hand-over. CSP unchanged: the QR code is rendered from an allowlisted SVG subset, not `data:` or `v-html`. Hiding is a convenience: refusals (`forbidden`, `permission-flag-required`, `404`) are handled and the identity re-read (FR-007). | PASS |
 | VI. Test-first | Every phase of tasks.md writes failing tests first: units and components, end-to-end tests of all 68 acceptance scenarios on both viewports against the contract-validated mock, and smoke tests against the API dev stack. Mocked requests and responses, including the binary profile and the `Set-Cookie` of the hand-off, are validated against the contract (R24). | PASS (smoke gate as UI 001's Complexity Tracking) |
 | VII. Performance budgets | All routes lazy; the account and filters indexes export only light modules; `budget:check` and a Lighthouse collection for `/ng/account`; queries follow 001-R9 with 5-minute freshness for capabilities and the overview and invalidation after every mutation (data-model §3). | PASS |
@@ -122,6 +125,106 @@ section reused (SC-007).
   FR-042 requires (R12).
 - Bulk TLS blocked on API gap AG1 instead of omitting the version tag (I, conventions, R16).
 - Profiles downloaded through a revoked object URL, never cached (V, R21).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature and overrides any earlier text in this plan, the spec, research and tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`):
+
+- **My account hub and its sections** (mailbox users): `templates/user.twig` (tab names
+  `user.mailbox_general`, `user.mailbox_details`, `user.mailbox_settings`, `user.spam_aliases`,
+  `user.app_passwds`, Pushover) with `user/tab-user-auth.twig`, `user/tab-user-details.twig` and
+  `user/tab-user-settings.twig`; the domain administrator's `templates/domainadmin.twig` ("User
+  settings" card); `js/site/user.js`.
+- **Own password and forced password change**: `templates/modals/user.twig` `#pwChangeModal`
+  (`user.password_now`, `user.new_password`, `user.new_password_repeat`, `user.generate`,
+  `user.change_password_hint_app_passwords`) and
+  `templates/modals/footer.twig` `#ChangePWModal` (`user.pw_update_required`); for administrators
+  `templates/edit/admin.twig`; messages from `edit_user_account()` and `password_check()` /
+  `password_complexity()` in `inc/functions.inc.php`.
+- **Recovery e-mail**: `templates/modals/user.twig` `#pwRecoveryEmailModal`
+  (`user.pw_recovery_email`, `user.email`, `user.password_reset_info`).
+- **Second factors and forced setup**: `user/tab-user-auth.twig` and `templates/tfa_keys.twig`
+  (`tfa.tfa`, `tfa.set_tfa`, `tfa.select` and the method options), `templates/modals/footer.twig`
+  `#YubiOTPModal`, `#WebAuthnModal`, `#TOTPModal`, `#DisableTFAModal`, `#ConfirmTFAModal` and
+  `#SetupTFAModal` (`tfa.setup_title`, `tfa.setup_required`); administrators through
+  `admin/tab-config-admins.twig`; messages from `set_tfa()`, `unset_tfa_key()` and
+  `verify_tfa_login()` in `inc/functions.inc.php`.
+- **Password reset** (request and new password): `templates/reset-password.twig`, the link
+  `login.forgot_password` in `templates/user_index.twig`; messages from `reset_password()` in
+  `inc/functions.inc.php`.
+- **Mailbox overview, webmail and mail app setup**: `user/tab-user-auth.twig` (overview, protocols,
+  `user.direct_protocol_access`, `user.open_webmail_sso`, the Apple connection profiles and
+  `user.client_configuration`) and `user/tab-user-details.twig` (aliases and send-as).
+- **Recent logins**: `user/tab-user-auth.twig` (`user.recent_successful_connections`,
+  `user.login_history`, `user.clear_recent_successful_connections`, the day/week/month choices);
+  `last_login()` in `inc/functions.inc.php`.
+- **App passwords**: `user/AppPasswds.twig`, `templates/modals/user.twig` `#addAppPasswdModal`,
+  `templates/edit/app-passwd.twig`; `draw_app_passwd_table()` in `js/site/user.js` (columns
+  `user.app_name`, `user.allowed_protocols`, `user.active`, `user.action`);
+  `inc/functions.app_passwd.inc.php`.
+- **Temporary aliases**: `user/SpamAliases.twig`, `templates/modals/user.twig` `#tempAliasModal`;
+  `draw_tla_table()` in `js/site/user.js` (columns `user.alias`, `user.description`,
+  `user.alias_valid_until`, `user.created_on`, `user.action`); `time_limited_aliases` in
+  `inc/functions.mailbox.inc.php`.
+- **Mail settings (tagged mail, TLS) and bulk TLS**: `user/tab-user-settings.twig`, the
+  administrator's `templates/edit/mailbox.twig` (tagging and TLS buttons), and the TLS entries of
+  the mailbox list's bulk menu in `templates/mailbox/tab-mailboxes.twig` (`mailbox.tls_enforce_in`,
+  `mailbox.tls_enforce_out`, `mailbox.activate`, `mailbox.deactivate`); `delimiter_action` and
+  `tls_policy` in `inc/functions.mailbox.inc.php`. The quarantine notification settings of the
+  same tab belong to UI 006.
+- **Push notifications**: `user/Pushover.twig` and the `#mpushover` tab of
+  `templates/edit/mailbox.twig` (tab label `edit.pushover`); `inc/functions.pushover.inc.php`.
+- **Groupware resets**: `user/tab-user-settings.twig` (`user.eas_reset`, `user.eas_reset_help`,
+  `user.eas_reset_now`, `user.sogo_profile_reset`, `user.sogo_profile_reset_help`,
+  `user.sogo_profile_reset_now`); `eas_cache` and `sogo_profile` in
+  `inc/functions.mailbox.inc.php`.
+- **Filters** (Mail setup › Filters, the mailbox context and the user's read-only view):
+  `templates/mailbox/tab-filters.twig`, the add-filter modal in `templates/modals/mailbox.twig`,
+  `templates/edit/filter.twig`, the user's `#userFilterModal` in `templates/modals/user.twig`
+  (`user.active_sieve`, `user.show_sieve_filters`); `draw_filter_table()` in `js/site/mailbox.js`;
+  `filter` in `inc/functions.mailbox.inc.php`; `inc/ajax/sieve_validation.php`.
+
+**Screens or elements without a legacy counterpart** get new strings in en-gb, cs-cz and sk-sk
+(never machine-translated), kept minimal: the passkey link and passkey texts (owner decision), the
+one-time secret dialog of app passwords, the per-item result summaries, outdated-version handling,
+"Sign out my other sessions" and the post-change summary of ended sessions and the mail server's
+cache time, the reset link validity, the read-only and "no access" reasons, the dependency outage
+labels, and the History labels for the audit log. Counts in new strings use the Czech and Slovak
+plural rules (R23); legacy strings with `%d` stay as they are.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`),
+placeholders, option labels, units, order and grouping, column headers, action labels and
+success, warning and danger messages come from the legacy keys. Every mailcow language is
+supported; legacy values are loaded at runtime from the installation and shown verbatim, values
+with HTML (`tfa.api_register`, `user.direct_protocol_access`, `user.tls_policy_warning`,
+`user.pushover_info`, `edit.pushover_vars`, `mailbox.sieve_info` and others) through
+`SanitizedHtml.vue`, and a missing key falls back to `en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by task T010a before any screen is built.
+
+**Deviations needing a decision** (found at planning time):
+
+1. **App password creation and renewal**: the legacy add modal and edit page let the user type a
+   password twice or generate one in the browser (`user.password`, `user.password_repeat`,
+   `user.generate`; `edit.password`, `edit.password_repeat`, `edit.generate`). The plan creates
+   the password on the server and shows it once (R14), which drops those fields.
+   `AppPasswordCreateRequest` and `AppPasswordPatch` both accept an optional `password`, so the
+   legacy fields could be mirrored.
+   Decision: keep server generation, or mirror the legacy fields.
+2. **Recovery-related reset messages**: legacy reports `success.recovery_email_sent` ("Recovery
+   email sent to %s") and `danger.password_reset_invalid_user`. API 005 deliberately answers the
+   same way for every account, so these outcomes cannot occur and the confirmation is a new string.
+   Confirm that this stays (spec parity row "Dropped").
+3. **Temporary alias validity at creation**: legacy creates an alias valid for one year and changes
+   the validity afterwards (`user.expire_in`). The plan adds the validity choice to creation (R15).
+   It is an added field labelled with the legacy keys; confirm it is accepted as an improvement.
+4. **Pushover tab label**: the user page hard-codes "Pushover API" (no key). The app uses the
+   edit-mailbox tab key `edit.pushover` ("Pushover") on both screens.
 
 ## API dependency and gaps
 
@@ -285,10 +388,9 @@ src/
     ├── index.ts                      # + cs-cz and sk-sk plural rules
     ├── problems.ts                   # + parameters of the 005 problem types and rule codes
     ├── coverage.json                 # UI 002's manifest: + 005 values
-    ├── messages/{en-gb,cs-cz,sk-sk}.json
-    └── legacy-map.json               # + stripMarkup entries; linkSlot for tfa.api_register
+    └── messages/{en-gb,cs-cz,sk-sk}.json   # new strings only; legacy keys are used verbatim
 scripts/
-├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}   # HTML-to-plain import; plural-form check
+├── i18n/{lib.mjs,check.mjs}       # plural-form check for new strings
 └── run-lhci.mjs                      # + /ng/account collection
 tests/
 ├── support/totp.ts                   # promoted from tests/smoke/fixtures/totp.ts
@@ -323,8 +425,10 @@ UI features are implemented in order (001 → 004, then 005), after API feature 
   secret dialog, and the shared primitives of 001-R20.
 - **UI 002**: `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with
   `requireTyped`, `EditableSection` with changed-value marking, `HistoryLink` and the audit log's
-  `targetType`/`targetId` filters, `useLeaveGuard`, `formatBytes`, `src/i18n/coverage.json` and the
-  `stripMarkup` import (UI 002 D2, D21, D22, D27).
+  `targetType`/`targetId` filters, `useLeaveGuard`, `formatBytes` and `src/i18n/coverage.json`
+  (UI 002 D2, D21, D22). Legacy texts come from UI 001's legacy translation layer (runtime `/lang/`
+  loader, `en-gb` snapshot, formatter) and `SanitizedHtml.vue`, not from UI 002's `stripMarkup`
+  import (constitution IV 1.3.0).
 - **UI 003**: the mailbox detail (`mailbox-detail`, `/mailboxes/:address`) with its section list
   (`sections.ts`, `MailboxSectionNav.vue`, child routes in `routes.ts`), `ManagedSettingsGroup.vue`
   with the optional `to` of its FR-040 entries, the bulk menu `MailboxBulkActions.vue` with `bulk.ts`,

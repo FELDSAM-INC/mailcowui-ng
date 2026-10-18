@@ -13,7 +13,8 @@ staff and resellers use every day. It delivers:
 - **domain administrators**: list, search, filter, create (account, domains, sign-in requirements,
   permissions), inspect and edit in sections, rename, change status, suspend second factors,
   remove, and bulk actions;
-- **permission flags**: the 19 flags as grouped, labelled switches;
+- **permission flags**: the 19 flags as labelled switches with the legacy `acl.*` texts (the
+  grouping awaits a decision, "Translations and forms");
 - **administrators**: the same list and edit screens, with the last-administrator and own-account
   protections shown before submission;
 - **acting as another account** (API "impersonation", legacy "login as"): "Sign in as" from the
@@ -96,11 +97,16 @@ one-time link reaches the home screen within 5 seconds. SC-010: a permission cha
 - Data of a previous identity is never visible after a switch (FR-052, SC-004).
 - Tokens, links and passwords live in component memory only and are cleared on leave (FR-014,
   FR-063).
-- Strict CSP; WCAG 2.2 AA; 360 px first; en/cs/sk complete (UI 001 constraints).
+- Strict CSP; WCAG 2.2 AA; 360 px first (UI 001 constraints).
+- Texts follow constitution IV 1.3.0: every language mailcow ships, legacy texts verbatim by their
+  legacy keys, forms one to one with the classic interface, and new strings complete in en-gb,
+  cs-cz and sk-sk ("Translations and forms" below).
 
 **Scale/Scope**: 7 user stories (2 at P1, 3 at P2, 2 at P3); 7 new routes (one a redirect) plus the landing; 2
 catalogue rows; 20 of the 21 operations of API 007 and 8 operations of earlier features; changes to
-screens of UI 001, 003 and 005; about 300 new translation keys, 59 of them reused from legacy.
+screens of UI 001, 003 and 005; about 70 legacy keys used verbatim (the legacy form map lists
+them), and new strings only for what the classic interface lacks (the acting banner and notices,
+the one-time link and its landing, the impersonation audit fields, filters and impact texts).
 
 ## Constitution Check
 
@@ -111,7 +117,7 @@ screens of UI 001, 003 and 005; about 300 new translation keys, 59 of them reuse
 | I. The API contract is the only interface | Every operation is in the pinned contract (baseline `3207925`, R1); the [contracts README](./contracts/README.md) lists the 28 used. Types come from the generated client: `Admin`, `DomainAdmin`, `DomainAdminPermissions`, `AccountCapabilities`, `Impersonation`, `ImpersonationStarted`, `DomainAdminSsoToken`, `MailboxWebmailSignIn`, `BulkResult` and the enumeration arrays `domainAdminPermissionNameValues` and `accountSecondFactorStatusValues`. Messages are chosen by problem `type` and rule `code` (R17). Both gaps the spec named are closed by the contract, as are UI 001's problem-type gap and the bulk question; one new gap is recorded and not worked around ("API dependency and gaps"). | PASS |
 | II. Mobile-first | Lists are cards below `md` and tables above (FR-006). Forms are full screens with collapsible sections; the domain picker is a full-screen list on phones (FR-013). The acting banner is designed for 360 px first, with middle ellipsis for long names (R7). Every list and detail has loading, empty or not-found, and error states (`ListState`, `NotFoundState`). Destructive and high-risk actions are confirmed with their impact, deactivation included (R13, R15). 44 × 44 px targets. | PASS |
 | III. Accessibility | axe on every screen, dialog and state in both themes. The banner is a labelled region with icon and text, never colour alone; switches are announced; the page title carries the acting prefix (R7). Permission switches are grouped in fieldsets with descriptions (R16). Focus moves into dialogs and back. SC-006 keyboard-only paths are tested. | PASS |
-| IV. i18n and branding | All texts in en-gb, cs-cz and sk-sk; 59 legacy keys reused through `legacy-map.json`, with cs and sk values supplied where upstream lacks them (R17). `i18n:check` gains the enumerations `DomainAdminPermissionName` and `AccountSecondFactorStatus`, and 007's values of the shared enumerations join UI 002's coverage manifest `src/i18n/coverage.json`. The product name in `edit.force_pw_update_info` comes from branding. Dates and times via `Intl`. | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0 ("Translations and forms" below): every mailcow language; the screens mirror the legacy forms of `tab-config-admins.twig`, `modals/admin.twig`, `edit/admin.twig` and `edit/domainadmin.twig`, with their labels, help texts, actions and messages taken verbatim by legacy key from the installation's `/lang/` files (`en-gb` fallback, never a hand-written value); `edit.force_pw_update_info` gets the product name from branding, as legacy fills it from `ui_texts.main_name`. New strings only for elements legacy lacks, in en-gb, cs-cz and sk-sk, never machine-translated (R17). `i18n:check` gains the enumerations `DomainAdminPermissionName` and `AccountSecondFactorStatus`, and 007's values of the shared enumerations join UI 002's coverage manifest `src/i18n/coverage.json`. Dates and times via `Intl`. Deviations from the legacy forms wait for a decision. | PASS |
 | V. Security in the browser | The sign-in token is removed from the address bar and history before the bootstrap runs, held in memory and exchanged through `useSecretRequest` only for a visible, non-prerendered page (R10). Passwords and issued links live in component state only, never in the query or mutation cache, router state or storage (R11, R14). The CSRF retry never resends a write under another identity (R5). Webmail opens with `opener` cleared (R9). Hidden controls are conveniences; every refusal is handled (FR-002). | PASS |
 | VI. Test-first | `tasks.md` puts every test before its implementation. Every acceptance scenario has an end-to-end test on both viewports, against a mock whose requests and responses are validated against the contract. Smoke tests run against the real API (R21). | PASS |
 | VII. Performance budgets | Lazy routes; the entry chunk grows by about 3 KB, checked by `budget:check` (R2). Query defaults of UI 001 R9; no polling and no focus refetch; the identity switch clears the cache instead of refetching stale data; lists invalidate after mutations (R19). | PASS |
@@ -132,6 +138,124 @@ quickstart introduce no violation. Decisions that touched gates:
   forbids automatic requests that keep an idle session alive (VII; R4).
 - The one-time link uses the shared one-time secret dialog, extended with a countdown, instead of
   a second secret display (VIII, conventions; R11).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature and overrides any earlier text in this plan, the spec, research and tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`; page entry `admin/system.php`,
+`templates/admin.twig`, tab `admin.admins`):
+
+- **Domain administrator list**: `templates/admin/tab-config-admins.twig`, card
+  `admin.domain_admins` (toggle `mailbox.toggle_all`; action menu `mailbox.quick_actions` with
+  `mailbox.activate`, `mailbox.deactivate`, `tfa.disable_tfa`, `mailbox.remove`; add button
+  `admin.add_domain_admin`). Table: `js/site/admin.js` `draw_domain_admins` and
+  `process_table_data` (`domainadminstable`): columns `admin.username`, `admin.admin_domains`, TFA
+  (hard-coded in legacy; the app uses `tfa.tfa`), `admin.active`, `admin.action`; row actions
+  `admin.edit`, `admin.remove` and the untranslated "Login" button (see "Deviations"). Messages:
+  `inc/functions.domain_admin.inc.php` (`success.domain_admin_added`,
+  `success.domain_admin_modified`, `success.domain_admin_removed`, `danger.username_invalid`,
+  `danger.object_exists`, `danger.domain_invalid`, `danger.access_denied`).
+- **Add domain administrator**: `templates/modals/admin.twig` `#addDomainAdminModal`: title
+  `admin.add_domain_admin`; `admin.username`; `admin.admin_domains` with the placeholder
+  `admin.search_domain_da`; `admin.password` with `admin.generate`; `admin.password_repeat`;
+  `admin.active` (checked); submit `admin.add`. Password outcomes from `inc/functions.inc.php`
+  `password_check()` (`danger.password_complexity`, `danger.password_mismatch`); policy hints from
+  the shared password fields (`admin.password_policy_*`).
+- **Domain administrator detail**: `templates/edit/domainadmin.twig` via `edit.php`: title
+  `edit.domain_admin`; in this order `edit.username`, `edit.domains`, `edit.password` with
+  `edit.generate`, `edit.password_repeat`, `edit.active`, `tfa.disable_tfa`, `tfa.force_tfa` with
+  `tfa.force_tfa_info`, `edit.force_pw_update` with `edit.force_pw_update_info` (`%s` = product
+  name); save `edit.save`. Permissions: the second form of the same template, the `acl.<flag>`
+  labels in the `da_acl` column order and save `admin.save`; `success.acl_saved` and
+  `danger.access_denied` from `inc/functions.acl.inc.php`. Legacy writes the form's heading as the
+  untranslated text "ACL", so the section heading is a new string.
+- **Administrator list**: `templates/admin/tab-config-admins.twig`, card `admin.admin_details` (the
+  same toggle, action menu and `admin.add_admin`). Table: `js/site/admin.js` `draw_admins`
+  (`adminstable`): `admin.username`, TFA (`tfa.tfa`), `admin.active`, `admin.action`; row actions
+  `admin.edit`, `admin.remove`. Messages: `inc/functions.admin.inc.php` (`success.admin_added`,
+  `success.admin_modified`, `success.admin_removed`, `danger.username_invalid`,
+  `danger.object_exists`, `warning.no_active_admin`, `warning.cannot_delete_self`).
+- **Add administrator**: `templates/modals/admin.twig` `#addAdminModal` (`admin.add_admin`,
+  `admin.username`, `admin.password`, `admin.generate`, `admin.password_repeat`, `admin.active`,
+  `admin.add`).
+- **Administrator detail**: `templates/edit/admin.twig` (`edit.admin`, then the fields of the domain
+  administrator detail without domains and permissions, and `edit.save`).
+- **Removal confirmations**: the classic confirmation modal of `templates/modals/footer.twig`
+  (`footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel`).
+  The impact lines (API keys, passkeys, sessions, domains stay) and the typed count are new strings
+  (conventions: typed confirmations).
+- **"Sign in as" and "Open webmail as"** in UI 003's mailbox screens: `js/site/mailbox.js` (the
+  untranslated "Login" and "SOGo" buttons) and `js/site/admin.js` (the domain administrator "Login"
+  button), `inc/triggers.global.inc.php` (dual login) and `sogo-auth.php`. "Open webmail as" uses
+  `user.open_webmail_sso`, the label of the webmail button in `templates/user/tab-user-auth.twig`.
+  After a switch: `success.logged_in_as`.
+
+**Screens or elements without a legacy counterpart** get new strings in en-gb, cs-cz and sk-sk,
+written for the owner's review and never machine-translated, and kept minimal: the acting banner,
+its return control, the shell notices and "Sign out completely" (legacy shows only "username
+(impersonator)" in the navbar, with no text); the one-time sign-in landing and the link section with
+its countdown (legacy has no screen); the impersonation fields and filter of the audit log and the
+audit labels; the "You" marker; the second-factor status "suspended until next sign-in"; the passkey
+count (passkeys by owner decision); the deactivation and suspension confirmations and the impact
+lines; the filter panel's own texts where no legacy key fits; bulk summaries; outdated-version
+handling; and the problems legacy cannot produce (`already-impersonating`, `impersonation-ended`,
+`not-allowed-while-impersonating`, `webmail-on-behalf-disabled`, `account-inactive`).
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`),
+placeholders, option labels, units, order and grouping, column headers, action labels and the
+success, warning and danger messages come from the legacy keys. Every mailcow language is supported;
+legacy values are loaded at runtime from the installation and shown verbatim (HTML through
+`SanitizedHtml.vue`), and a key missing in the selected language falls back to `en-gb`, never to a
+hand-written value. Fields the API adds (the sign-in requirements and permissions at creation, the
+creation and modification dates) use the legacy key that labels the same field in another legacy
+form (`edit.force_pw_update`, `tfa.force_tfa`, `acl.<flag>`, `mailbox.created_on`,
+`mailbox.last_modified`). Disabled-control reasons reuse the legacy refusal texts of the same
+meaning: `warning.cannot_delete_self` and `warning.no_active_admin`.
+
+**Messages**: `account-exists` → `danger.object_exists` (the username) on the username field;
+`reserved` and `invalidFormat` (`accountUsername`) on the username → `danger.username_invalid` (the
+username); domain errors on `domains.<index>` → `danger.domain_invalid`; the password rules →
+`danger.password_complexity` and the policy hints; `last-active-admin` →
+`warning.no_active_admin`; `cannot-delete-own-account` → `warning.cannot_delete_self`; creation,
+change and removal → the `success.*` keys above with the username (`success.admin_modified` has no
+placeholder); a permission save → `success.acl_saved` (the username); a started or ended acting
+session → `success.logged_in_as` (the new username). Bulk items use the same keys; only the summary
+line is new.
+
+**Legacy form map**: written into this section by task T006a before any screen is built (screen →
+legacy template → field or element → legacy key, with the messages and placeholder sources).
+
+**Deviations needing a decision** (not built until the owner or orchestrator decides):
+
+1. **Password repeat field**: legacy's add modals and edit pages have `admin.password_repeat` /
+   `edit.password_repeat` ("Confirmation password (repeat)") with `danger.password_mismatch`.
+   FR-014 and R14 use one field with show and hide, and the spec's parity table drops the repeat
+   field. It needs no API support (the comparison is local), and UI 005's `NewPasswordFields` has a
+   `confirm` mode. **Proposed**: mirror legacy with `confirm`.
+2. **Permission editor layout**: legacy lists the 19 `acl.*` flags flat, in the `da_acl` column
+   order (`syncjobs`, `quarantine`, `login_as`, `sogo_access`, `app_passwds`, `bcc_maps`,
+   `pushover`, `filters`, `ratelimit`, `spam_policy`, `extend_sender_acl`, `unlimited_quota`,
+   `protocol_access`, `smtp_ip_access`, `alias_domains`, `mailbox_relayhost`, `domain_relayhost`,
+   `domain_desc`, `alias_external_goto`), without explanations. FR-027 and FR-028 (R16) regroup
+   them under four new group names and add 19 new explanation strings. **Until decided**: switches
+   in legacy order with the `acl.*` labels and no explanations; the groups and explanations wait.
+3. **"Sign in as" label**: the classic "Login" button is untranslated hard-coded English, so no
+   human translation exists. Options: the legacy key `login.login` ("Login", the sign-in button's
+   text, translated in every language) or the new string "Sign in as". **Until decided**: the new
+   string, with the target username as its accessible description.
+4. **Have I Been Pwned check** (`data-hibp`, `footer.hibp_check`, `footer.hibp_ok`,
+   `footer.hibp_nok`) stays dropped: it calls a third-party service from the browser (constitution
+   V and the no-third-party-requests rule). Confirm.
+5. **Creation form extras**: legacy's add modals have no sign-in requirements and no permissions;
+   FR-011 adds both (labelled with legacy keys, see above). Confirm as an API-added improvement.
+6. **Field order on the detail screen**: legacy orders username, domains, password, active, then
+   the two-factor and sign-in checkboxes. FR-018 and FR-020 put status and the password form in the
+   Account section, above Domains. **Proposed**: accept the sections and keep legacy's order inside
+   each section.
 
 ## Dependencies on earlier features
 
@@ -216,8 +340,9 @@ These edits bring the spec in line with the published contract (constitution I) 
    submission, as UI 003 and UI 005 decided; the API's refusal names each unmet rule.
 8. **Smaller alignments**: FR-006 (tables from 768 px, conventions "Lists"), FR-012 (the length the
    API reports), FR-035 (the own account also left out of a bulk deactivate), US4-AS4 (the only
-   active administrator is the signed-in one), FR-054 (no request on focus, UI 001 FR-033), and the
-   legacy key list without `admin.generate` (the shared password field brings its label).
+   active administrator is the signed-in one) and FR-054 (no request on focus, UI 001 FR-033). The
+   earlier removal of `admin.generate` from the legacy key list is reversed by constitution IV
+   1.3.0: the forms label "Generate" with `admin.generate` and `edit.generate`, as legacy does.
 
 ## Owner-level questions (defaults applied)
 
@@ -311,7 +436,7 @@ src/features/
 ├── passkeys/                    # changed (UI 001): unavailable while acting
 ├── mailboxes/                   # changed (UI 003): MailboxRowActions.vue, MailboxDetailPage.vue
 └── account/                     # changed (UI 005): credential controls and WebmailAction while acting
-src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  src/i18n/legacy-map.json  src/i18n/legacy/*.json
+src/i18n/messages/{en-gb,cs-cz,sk-sk}.json      # new strings only; legacy keys via UI 001's runtime layer
 src/i18n/coverage.json                          # changed (UI 002): 007's shared enumeration values
 scripts/i18n/check.mjs                          # changed: two more feature enumerations
 specs/001-sign-in-app-shell/{spec.md,research.md}   # aligned: FR-035, R8, R12 (T020)

@@ -20,7 +20,7 @@ domain administrators do the same for the mailboxes in their scope where the API
 including the mailbox sieve filters only they manage and bulk TLS enforcement. Every section follows
 the permission flags (hidden or read-only when disallowed, still enforced by the API), shows secrets
 once with a copy button, and has loading, empty and error states. Every screen works at 360 px,
-meets WCAG 2.2 AA and is translated into English, Czech and Slovak. Sign-in, the app shell,
+meets WCAG 2.2 AA and is translated into every language mailcow ships. Sign-in, the app shell,
 navigation, passkeys, the audit log viewer and error handling come from UI feature 001; the mailbox
 list and mailbox detail screens come from UI feature 003. The legacy reference is the user page,
 the 2FA modals, the password reset page, the own-password and 2FA sections of the administrator and
@@ -750,7 +750,7 @@ type and confirm the entries and that no secret is shown.
   users, the number of app passwords that keep working, and say that mail apps may accept the old
   password for a few minutes. The user stays signed in and the fields are cleared.
 - **FR-027**: Before the change, the form MUST tell mailbox users how many active app passwords they
-  have and that those keep working.
+  have and that those keep working, with the legacy text `user.change_password_hint_app_passwords`.
 - **FR-028**: A wrong current password MUST be reported on the current-password field. Repeated
   failures MUST show the "too many attempts" message with the retry time.
 
@@ -1062,13 +1062,18 @@ type and confirm the entries and that no secret is shown.
 
 #### Internationalisation
 
-- **FR-117**: All text MUST come from the translation files in English, Czech and Slovak.
-- **FR-118**: Legacy keys MUST be reused where the meaning is unchanged, at least those listed in the
-  Legacy Parity section. Legacy strings with HTML markup MUST be carried over as plain text with safe
-  formatting, never rendered as raw HTML.
-- **FR-119**: Counts and durations ("3 app passwords", "expires in 2 days", "2 sessions signed out")
+- **FR-117**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key; the screens MUST mirror the legacy forms (fields, labels, help texts,
+  options, units, order and messages); new strings, only for elements the classic interface lacks,
+  MUST exist in English, Czech and Slovak and MUST NOT be machine-translated.
+- **FR-118**: The legacy keys MUST include at least those listed in the Legacy Parity section.
+  Legacy strings with HTML markup MUST be shown unaltered through the app's sanitiser with a small
+  allowlist, never converted to plain text and never rendered as unsanitised HTML.
+- **FR-119**: Counts and durations in new strings ("2 sessions signed out", "expires in 2 days")
   MUST use the plural rules of each language, including the Czech and Slovak forms for 1, 2 to 4 and
-  5 or more.
+  5 or more. Legacy strings with `%d` (for example `user.change_password_hint_app_passwords`) are
+  used as they are.
 - **FR-120**: Dates, times, sizes and numbers MUST be formatted with the user's locale, and expiry
   times MUST show the relative duration and the absolute date.
 
@@ -1138,7 +1143,8 @@ from upstream only in the recent-login service label (`WEBUI`). "Matched" keeps 
 | Admin own password (through "edit admin") and domain-admin "change password" link | FR-021 | Improved | One own-password screen for every role |
 | Admins reaching a user's app passwords, temporary aliases or recent logins only by logging in as the user | FR-003, FR-004 | Improved | Mailbox context, without impersonation |
 
-Legacy translation keys reused (meaning unchanged): the `user.*` keys for password, recovery e-mail,
+Legacy translation keys used verbatim (constitution IV 1.3.0; the plan's legacy form map is
+authoritative): the `user.*` keys for password, recovery e-mail,
 app passwords, temporary aliases, tagging, TLS policy, Pushover, resets, recent logins, active
 filter and webmail; `edit.pushover_*`; `tfa.tfa`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`,
 `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`,
@@ -1157,11 +1163,11 @@ filter and webmail; `edit.pushover_*`; `tfa.tfa`, `tfa.totp`, `tfa.webauthn`, `t
 `danger.password_reset_na`, `danger.reset_token_limit_exceeded`, `danger.invalid_reset_token`,
 `danger.sieve_error`, `danger.pushover_key`, `danger.pushover_token`,
 `danger.pushover_credentials_missing`, `success.password_changed_success`,
-`success.app_passwd_added`, `success.eas_reset`, `success.sogo_profile_reset`. Not reused:
-`user.alias_full_date` (locale formatting replaces it), `success.recovery_email_sent` and
-`danger.password_reset_invalid_user` (dropped behaviour), and strings whose `%s` or `%d` placeholders
-need plural forms (for example `user.change_password_hint_app_passwords`), which get new keys with the
-legacy text as the starting translation.
+`success.app_passwd_added`, `success.eas_reset`, `success.sogo_profile_reset`,
+`user.change_password_hint_app_passwords` (verbatim, with its `%d`). Not used:
+`user.alias_full_date` (a date format pattern; locale formatting replaces it), and
+`success.recovery_email_sent` and `danger.password_reset_invalid_user` (the API never produces these
+outcomes; listed in the plan's "Deviations needing a decision").
 
 ### API Dependency
 
@@ -1252,8 +1258,9 @@ TLS action; the others do not block this feature.
   violations on the mobile and desktop viewports, in light and dark themes.
 - **SC-006**: No screen of this feature scrolls horizontally at 360 px in 100% of the end-to-end
   checks.
-- **SC-007**: 100% of user-facing strings exist in English, Czech and Slovak, and every legacy key
-  listed in the Legacy Parity section is reused.
+- **SC-007**: 100% of new strings exist in English, Czech and Slovak, every legacy key listed in the
+  Legacy Parity section and in the plan's legacy form map is used verbatim, and every language
+  mailcow ships is offered when the server lists it.
 - **SC-008**: In end-to-end tests, no password, one-time code, TOTP key, app password, Yubico key,
   Pushover credential or reset token is found in browser storage, the address bar or history (after
   the reset link has been read), or the console.

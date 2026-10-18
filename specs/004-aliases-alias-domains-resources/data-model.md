@@ -346,6 +346,12 @@ The checks below are input aids. The server stays authoritative (FR-019, FR-070)
 from `AliasCapabilities`, except the 64-character derived local part, which is part of the
 contract's documented derivation rule.
 
+Constitution IV 1.3.0: wherever a legacy `danger.*` or `warning.*` key has the same meaning as a
+message key below (shown in brackets as "legacy …" or found while writing the plan's legacy form
+map, for example `danger.is_alias`, `danger.is_spam_alias` and `danger.targetd_relay_domain`), the
+legacy key is used verbatim instead of the new key. The new keys remain only for outcomes legacy
+cannot produce.
+
 | Field | Check before submitting | Message key |
 |---|---|---|
 | Alias addresses (creation) | at least one entry after `parseEntryList` | `aliases.form.errors.addresses.required` (legacy `danger.alias_empty`) |
@@ -450,8 +456,8 @@ detail ─Copy→ explain dialog ─confirm→ sending (If-Match) ─200→ copy
 
 ### Enumeration scope manifest additions (`src/i18n/coverage.json`, research D19)
 
-Each listed value needs keys in en-gb, cs-cz and sk-sk. Values already listed by UI 001–003 are not
-repeated.
+Each listed value needs a label: a legacy key of the same meaning where one exists, otherwise a new
+string in en-gb, cs-cz and sk-sk. Values already listed by UI 001–003 are not repeated.
 
 | Enumeration | Values this feature appends |
 |---|---|
@@ -480,11 +486,14 @@ repeated.
 
 `BulkItemOutcome` and the rate limit frames are already fully required by UI 002.
 
-### Legacy keys reused (`src/i18n/legacy-map.json`, research R20)
+### Legacy keys used verbatim (constitution IV 1.3.0, research R20)
 
-`*` marks `stripMarkup: true`. `†` marks `locales: ["cs-cz", "sk-sk"]`, where en-gb comes from the app
-layer. `‡` marks a value missing upstream in sk-sk (and in cs-cz where noted), which that locale's app
-layer supplies. Keys that UI 002 or UI 003 already mapped are reused through their existing app key.
+These keys are used directly by legacy key through UI 001's legacy translation layer, loaded at
+runtime from the installation; the plan's legacy form map is the complete list. `*` marks a value
+with markup, rendered unchanged through `SanitizedHtml.vue`. `†` marks a key whose English text is
+shown as legacy has it ("Domain aliases", "Add domain alias"). `‡` marks a value missing upstream in
+sk-sk (and in cs-cz where noted); it falls back to `en-gb`, and no locale writes it by hand. Keys
+that UI 002 or UI 003 also use are the same legacy keys.
 
 | Area | Legacy keys |
 |---|---|
@@ -497,13 +506,15 @@ layer supplies. Keys that UI 002 or UI 003 already mapped are reused through the
 | Permission labels | `acl.alias_domains`, `acl.alias_external_goto`‡ (cs-cz too), `acl.extend_sender_acl`, `acl.ratelimit` |
 | Messages | `danger.alias_empty`, `danger.goto_empty`, `danger.goto_invalid`, `danger.alias_invalid`, `danger.is_alias_or_mailbox` (fallback when `holder` is unknown), `danger.max_alias_exceeded`, `danger.external_goto_denied`‡ (cs-cz too), `danger.aliasd_targetd_identical`, `danger.alias_domain_invalid`, `danger.target_domain_invalid`, `danger.extra_acl_invalid`, `danger.extra_acl_invalid_domain`, `danger.resource_invalid`, `danger.description_invalid`, `success.alias_added` (`{0}` address, `{1}` ID), `success.alias_modified`, `success.alias_removed`, `success.aliasd_added`, `success.aliasd_modified`, `success.alias_domain_removed`, `success.resource_added`, `success.resource_removed`, `warning.is_not_primary_alias` |
 
-**Not reused**, with new keys instead (research R20):
-
-- `mailbox.alias_domain_alias_hint`: its meaning changes, because it names the legacy "Filters" tab;
-- `add.alias_address_info`: it names the product, and the new key takes `{productName}`;
-- `success.resource_modified`: it says "mailbox".
+**Formerly not reused, now verbatim** (constitution IV 1.3.0, research R20):
+`mailbox.alias_domain_alias_hint`* (pending the owner, plan "Deviations needing a decision" 3),
+`add.alias_address_info`* (as the installation's file names the product) and
+`success.resource_modified` (legacy's own message for a changed resource).
 
 ### New key namespaces
+
+Only for elements without a legacy equivalent (plan, "Translations and forms"), in en-gb, cs-cz and
+sk-sk, never machine-translated:
 
 - `aliases.*`, `aliasDomains.*`, `resources.*`, `senderSettings.*`: titles, field labels and
   explanations, states, confirmations, results and notes;

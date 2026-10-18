@@ -28,7 +28,7 @@ Playwright projects, smoke harness) are not repeated.
   | UI 002 (UI 001 R20 reserved) | `HistoryLink.vue`, `targetType`/`targetId` in the audit log's list state and filters | History links |
   | UI 002 (UI 001 R20 reserved) | `useBulkSelection.ts`, `BulkActionBar.vue`, `BulkResultSummary.vue` | queue selection, action bar and results |
   | UI 002 (UI 001 R20 reserved) | `EditableSection.vue` (driven by the `edit` address parameter) and `useVersionedSave`'s `changedSince` marking | ban service sections and rules (FR-067, FR-071, FR-072) |
-  | UI 002 | `useLeaveGuard.ts`, `ConfirmDialog` with rich content, the `stripMarkup` mapping of the legacy importer, `formatBytes` in `src/i18n/format.ts` | unsaved-changes guard (FR-074), confirmations with warnings, legacy texts without markup, binary sizes |
+  | UI 002 | `useLeaveGuard.ts`, `ConfirmDialog` with rich content, `formatBytes` in `src/i18n/format.ts` (its `stripMarkup` mapping is superseded by constitution IV 1.3.0) | unsaved-changes guard (FR-074), confirmations with warnings, binary sizes |
   | UI 006 | `ResetBucketDialog` and its composable, exported from `src/features/rate-limits/index.ts` (UI 006 R20, FR-058), and the bucket identifier pattern in `src/shared/validation/limits.ts` | "Reset rate limit" (FR-039) |
   | UI 006 | `src/features/quarantine/components/statistics/ActionStatisticsList.vue` (count, share and a decorative bar per action) | first use of the bar list that R13 promotes |
   | UI 006 | `neutralise()` (`src/shared/security/plain-text.ts`) and `PlainText.vue` (bidi isolation, visible control markers, `pre-wrap`, `overflow-wrap: anywhere`), also in the audit log's generic details view; the `prefix` option of `useListState` | every untrusted text: log entries, Rspamd history, queued content, audit details (R11, R13, R15, R18); the two ban lists (R16) |
@@ -288,12 +288,13 @@ Playwright projects, smoke harness) are not repeated.
     they cannot be stopped; the API's own container (`role: api`) explains that it can be neither
     stopped nor restarted.
   - **Confirmation** (FR-012) through `useConfirm`, for stop and restart only, naming the container
-    and the interruption, with the legacy restart notice (`footer.restart_container_info` without
-    markup). The role refines the warning: `proxy`, and `webApp` (the container that serves this
-    app) → "this app may be unavailable for a moment and may show the outcome as unknown";
-    `database` and `keyValueStore` → "other screens may fail for a moment and figures may be marked
-    outdated; the restart may finish without an audit record"; any other protected container → the
-    general protected wording (spec gap 8, closed by `Container.role`).
+    and the interruption, with the legacy restart notice (`footer.restart_container_info`, verbatim
+    with its markup through `SanitizedHtml.vue`). The role refines the warning: `proxy`, and
+    `webApp` (the container that serves this app) → "this app may be unavailable for a moment and
+    may show the outcome as unknown"; `database` and `keyValueStore` → "other screens may fail for a
+    moment and figures may be marked outdated; the restart may finish without an audit record"; any
+    other protected container → the general protected wording (spec gap 8, closed by
+    `Container.role`).
   - **Action runner** (`dashboard/composables/useContainerAction.ts`, data-model §7): one mutation
     per container (`mutationKey: ['containers', 'action', name]`). While pending, the card shows the
     action with the elapsed time (`useCountdown`-style ticker, not announced) and accepts no other
@@ -365,9 +366,9 @@ Playwright projects, smoke harness) are not repeated.
 - **Decision**: "Show public IP" is offered only when `ipCheckEnabled` is `true` (FR-029). It calls
   `GET /host/public-addresses` on demand (no caching beyond the visit), shows progress, then each
   address or "unavailable" for `null`. When the check is disabled, the host section explains that
-  it is switched off and where: the legacy wording `admin.ip_check_disabled` without markup
-  ("System › Configuration › Options › Customize" in the classic interface), until UI 013 adds its
-  own link. A `409 ip-check-disabled` (the setting changed meanwhile) shows the same explanation and
+  it is switched off and where: the legacy wording `admin.ip_check_disabled`, verbatim with its
+  markup ("System > Configuration > Options > Customize" in the classic interface; plan deviation
+  3). A `409 ip-check-disabled` (the setting changed meanwhile) shows the same explanation and
   refreshes the capabilities.
 - **Rationale**: The capabilities close spec gap 1; legacy hides the button up front.
 - **Alternatives considered**: Always offering the button (the spec's original fallback) was
@@ -504,7 +505,7 @@ Playwright projects, smoke harness) are not repeated.
   - **Truncation** (FR-052): when `meta.truncated`, a notice says that only the first
     `limits.mailQueueListingMax` messages are listed and that flush and delete all affect every
     message.
-  - **Help** (FR-053): the legacy explanation and legend (`queue.info` without markup,
+  - **Help** (FR-053): the legacy explanation and legend (`queue.info` verbatim with its markup,
     `queue.legend`, `queue.*_legend`) in a collapsible help panel.
   - **Selection** (FR-054, FR-055): UI 002's `useBulkSelection` for the current page (clears through
     `useListState`'s reset hook), configured with `maxItems = limits.mailQueueBulkMaxIds` and
@@ -587,9 +588,12 @@ Playwright projects, smoke harness) are not repeated.
     confirmation through UI 002's `useLeaveGuard` (FR-074).
   - **Durations** (FR-068): `fail2ban/duration.ts` converts seconds to the largest exact unit (days,
     hours, minutes, seconds) and back; `DurationField.vue` is a number input (`inputmode="numeric"`)
-    plus a unit `<select>`. Ranges come from `fail2ban/limits.ts` (R4); "maximum not below ban time"
-    is checked too. A stored value outside the rules is shown as stored and does not block a save
-    that leaves it unchanged, because only changed values are sent.
+    plus a unit `<select>`. **Pending (constitution IV 1.3.0, plan deviation 1)**: legacy enters
+    seconds under `admin.f2b_ban_time`, `admin.f2b_max_ban_time` and `admin.f2b_retry_window`; until
+    the owner or orchestrator decides, the fields use those labels and seconds, and the unit
+    `<select>` is not built. Ranges come from `fail2ban/limits.ts` (R4); "maximum not below ban
+    time" is checked too. A stored value outside the rules is shown as stored and does not block a
+    save that leaves it unchanged, because only changed values are sent.
   - **Lists** (FR-069): `EntryListField.vue`, a `<textarea>` with one entry per line
     (`autocapitalize="none"`, `autocorrect="off"`, `spellcheck="false"`) and an entry count.
     `fail2ban/list-entries.ts` trims, drops empty lines and keeps the first of duplicates, keeping a
@@ -696,37 +700,43 @@ Playwright projects, smoke harness) are not repeated.
 
 ### R19. Internationalisation
 
+**Superseded in part by constitution IV 1.3.0** (owner rule of 2026-10-18, `docs/conventions.md`
+"Translations and forms"): legacy keys are used directly and verbatim through UI 001's legacy
+translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter). There is no
+`legacy-map.json` aliasing, no copy in `src/i18n/messages/`, no `stripMarkup`, and no hand-written
+Slovak or Czech value for a legacy key: a key missing in a language falls back to `en-gb`.
+
 - **Decision**:
-  - New hand-written keys under `operations.*` (`nav`, `live`, `dashboard`, `containers`, `logs`,
-    `rspamd`, `queue`, `fail2ban`, `updates`) and `nav.groups.system`, in `en-gb`, `cs-cz` and
-    `sk-sk`.
-  - **Legacy reuse** through `src/i18n/legacy-map.json` for the keys the spec lists where the meaning
-    is unchanged (`debug.*`, `footer.restart_*`, `header.restart_netfilter`, `queue.*`, `admin.f2b_*`,
-    `admin.queue_unban`, `admin.unban_pending`, `admin.no_active_bans`, `admin.reset_default`,
-    `admin.arrival_time`, `admin.message_size`, `admin.sender`, `admin.recipients`, `admin.priority`,
-    `admin.message`, `admin.rate_name`, `admin.authed_user`, `admin.task`, `admin.ip_check_disabled`,
-    `admin.reset_limit`, `success.f2b_modified`, `success.f2b_banlist_refreshed`,
-    `success.queue_command_success`).
-    Labels whose meaning changes get new keys:
+  - New hand-written strings under `operations.*` (`live`, `dashboard`, `containers`, `logs`,
+    `rspamd`, `queue`, `fail2ban`, `updates`), in `en-gb`, `cs-cz` and `sk-sk`, only for elements
+    the classic interface lacks (plan "Translations and forms"). Navigation labels use legacy keys:
+    `header.mailcow_system` for the group, and `debug.system_containers`, `debug.logs` and
+    `queue.queue_manager` for three entries. The ban service has no legacy menu entry (it is a
+    section of System › Configuration), so the form map takes its legacy section title
+    (`admin.f2b_parameters`) or records a new string.
+  - **Legacy keys used verbatim** (`debug.*`, `footer.restart_*`, `header.restart_netfilter`,
+    `queue.*`, `admin.f2b_*`, `admin.queue_unban`, `admin.unban_pending`, `admin.no_active_bans`,
+    `admin.reset_default`, `admin.arrival_time`, `admin.message_size`, `admin.sender`,
+    `admin.recipients`, `admin.priority`, `admin.message`, `admin.rate_name`, `admin.authed_user`,
+    `admin.task`, `admin.ip_check_disabled`, `admin.reset_limit`, `success.f2b_modified`,
+    `success.f2b_banlist_refreshed`, `success.queue_command_success`). The SASL log columns are
+    `admin.username`, `admin.service` and `admin.login_time`, because the legacy dashboard binds
+    `lang` to the `admin` section. These were "new keys" before 1.3.0 and are now used verbatim too:
     - the duration labels with "(s)" (`admin.f2b_ban_time`, `admin.f2b_max_ban_time`,
-      `admin.f2b_retry_window`), because the unit is now chosen;
-    - `debug.log_info`, which names `LOG_LINES` and the product;
-    - `admin.f2b_list_info` ("list updates take a few seconds"; the API documents up to a minute);
-    - `admin.hash_remove_info` and `admin.ban_list_info`, which explain colours and a text layout
-      that this feature replaces;
-    - `danger.reset_f2b_regex`, which says "please try again", while the API says not to repeat the
-      reset.
-  - **Markup**: three reused keys contain HTML (`footer.restart_container_info`, `queue.info`,
-    `admin.ip_check_disabled`). They are mapped with UI 002's opt-in form
-    `{ "from": "<legacy key>", "stripMarkup": true }`, which removes tags, decodes entities and
-    collapses whitespace; the plain form keeps refusing HTML.
-  - **Slovak gaps**: the upstream `sk-sk` file lacks `debug.architecture`, `debug.current_time`,
-    `debug.timezone`, `debug.cores`, `debug.memory`, `debug.container_running`,
-    `debug.container_stopped`, `debug.show_ip`, `debug.error_show_ip`, `debug.update_available`,
-    `debug.no_update_available`, `debug.update_failed`, `admin.f2b_ban_time_increment`,
-    `admin.f2b_manage_external`, `admin.f2b_manage_external_info`, `admin.queue_unban`, `admin.task`
-    and `success.f2b_banlist_refreshed`; their Slovak values are written in
-    `src/i18n/messages/sk-sk.json` (UI 001 R15).
+      `admin.f2b_retry_window`), with seconds as the unit (plan deviation 1);
+    - `debug.log_info`, with `%d` filled with the configured log length plus one, as legacy fills
+      it, and the product name as the installation's file has it;
+    - `admin.f2b_list_info`, `admin.hash_remove_info` and `admin.ban_list_info` (plan deviations 2
+      and 4).
+
+    `danger.reset_f2b_regex` describes a timeout and asks to try again; the API's
+    `ban-rules-not-restored` is a different condition, so it keeps a new string.
+  - **Markup**: legacy keys with HTML (`footer.restart_container_info`, `queue.info`,
+    `admin.ip_check_disabled`, `debug.log_info`, `admin.f2b_list_info`, `admin.ban_list_info`,
+    `admin.hash_remove_info`) are rendered whole through `SanitizedHtml.vue`, never stripped.
+  - **Missing translations**: the upstream `sk-sk` file lacks some of these keys (for example
+    `debug.architecture`, `debug.show_ip`, `admin.task`); they fall back to `en-gb`, as in the
+    classic interface. The FeldHost fork's `sk-sk` and `cs-cz` files are complete.
   - **Enumerations**: `scripts/i18n/check.mjs` adds `ContainerState`, `ContainerRole`,
     `ContainerAction`, `LogSeverity`, `MailQueueName` and `MonitoringLogRetention.policy` to its
     fully required enumerations (every value needs a key), as UI 002 does for the enumerations a
@@ -743,9 +753,9 @@ Playwright projects, smoke harness) are not repeated.
     minutes with `Intl.NumberFormat` unit style) there; percentages with `Intl.NumberFormat`
     (`style: 'percent'`). Host time in the host's time zone with the zone's
     name (`Intl.DateTimeFormat` with `timeZone` and `timeZoneName: 'long'`) (FR-004).
-  - Product names in explanations come from the branding (FR-089); no text names mailcow's product
-    brand.
-- **Rationale**: Constitution IV and UI 001 R15/R27.
+  - Product names in the app's own strings come from the branding (FR-089); no new string names
+    mailcow's product brand. Legacy texts that name the product are shown as installed.
+- **Rationale**: Constitution IV 1.3.0 and UI 001 R27.
 
 ### R20. Accessibility and mobile specifics
 

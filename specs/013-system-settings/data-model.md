@@ -366,13 +366,17 @@ page.
 
 ## 8. Translation keys
 
-New keys are hand-written in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`; reused legacy keys are
-mapped in `src/i18n/legacy-map.json`.
+Constitution IV 1.3.0: legacy keys are used verbatim by their legacy name through UI 001's legacy
+translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter), never mapped or copied.
+New strings, only for elements the classic interface lacks, are hand-written in
+`src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` and never machine-translated. T008a's legacy form map
+decides which of the groups below keep new strings; every group that has a legacy equivalent uses
+the legacy key.
 
 | Key group | Content |
 |---|---|
-| `systemSettings.overview.*`, `systemSettings.groups.<id>`, `systemSettings.pages.<id>.{title,description}` | overview, groups, pages |
-| `systemSettings.sections.<page>.<section>`, `systemSettings.fields.<page>.<field>` | section headings and field labels (also the search haystacks) |
+| `systemSettings.overview.*`, `systemSettings.groups.<id>`, `systemSettings.pages.<id>.{title,description}` | overview, groups, pages; a page title is a new string only where no legacy menu entry or card title exists (for example Colours) |
+| `systemSettings.sections.<page>.<section>`, `systemSettings.fields.<page>.<field>` | only for section headings and field labels without a legacy key (also the search haystacks) |
 | `systemSettings.legacyNames.<name>` | legacy names never translated by legacy ("Rspamd UI", "Prefilter", "Postfilter"), same text in all locales |
 | `systemSettings.search.*` | search label, result count (plural), no results, clear |
 | `systemSettings.common.*` | edit, save, cancel, discard, default badge, empty meanings, demo-mode notice, outdated notice, unsaved-changes confirmation, history, not found, copy |
@@ -382,7 +386,6 @@ mapped in `src/i18n/legacy-map.json`.
 | `systemSettings.rspamdRules.*`, `.filterMaps.*`, `.rspamdUi.*`, `.globalSieve.*` | spam and mail filtering |
 | `systemSettings.cors.*`, `.ipCheck.*`, `.license.*` | integrations |
 | `systemSettings.massMail.*` | compose, preview, confirmation (plural "Send to {count} mailboxes"), jobs, statuses, outcomes, failure labels |
-| `systemSettings.presets.admin_rsettings_preset_<n>`, `systemSettings.presets.mailbox_sieve_preset_<n>` | legacy preset headlines |
 | `codeEditor.*`, `emailPreview.*`, `tagEditor.*` (additions) | shared components |
 | `problem.<name>` | `demo-mode`, `feature-disabled`, `regex-map-unavailable`, `global-sieve-filter-unavailable`, `mass-mail-already-running`, `mass-mail-recipient-count-changed`, `container-action-failed`, `outcome-unknown`, `temporary-failure` (specific wording for this feature where it differs) |
 | `validation.<code>` | `unsupportedImageType`, `invalidImage`, `imageDimensionsExceeded`, `unsafeSvgContent`, `insufficientContrast`, `invalidRegexLine`, `unbalancedStructure`, `mutuallyExclusive`, `tooFew`, `sieveSyntax` |
@@ -391,7 +394,8 @@ mapped in `src/i18n/legacy-map.json`.
 | `validation.params.reason.<v>` | `notSlashDelimited`, `tooManyFlags`, `innerSlash`, `doesNotCompile`, `notReceiving`, `outsideSelectedDomains` |
 | `auditLog.events.<type>`, `auditLog.targets.<type>`, `auditLog.failureReasons.<reason>`, `auditLog.details.systemSettings.*` | §11 |
 
-Reused legacy keys (meaning unchanged, from the spec's Assumptions) include `admin.customize`,
+Legacy keys used verbatim (from the spec's Assumptions and the plan's "Translations and forms")
+include `admin.customize`,
 `admin.change_logo`, `admin.logo_normal_label`, `admin.logo_dark_label`, `admin.upload`,
 `admin.ip_check`, `admin.login_page`, `admin.quicklink_text`, `admin.user_quicklink`,
 `admin.domainadmin_quicklink`, `admin.admin_quicklink`, `admin.app_links`, `admin.app_name`,
@@ -411,12 +415,13 @@ Reused legacy keys (meaning unchanged, from the spec's Assumptions) include `adm
 `success.password_policy_saved`, `success.rspamd_ui_pw_set`, `success.cors_headers_edited`,
 `success.global_filter_written`, `success.dovecot_restart_success`, `warning.dovecot_restart_failed`,
 `danger.img_size_exceeded`, `danger.img_dimensions_exceeded`, `danger.cors_invalid_origin`,
-`danger.cors_invalid_method`. With `stripHtml`: `admin.ip_check_opt_in`. Not reused:
-`admin.main_name`, `admin.title_name`, `admin.apps_name`, `admin.force_sso` (they name the product),
-`admin.ui_header_announcement_content` (meaning changed), `admin.license_info` (vendor links),
-`admin.merged_vars_hint` (technical file names), `admin.rspamd_global_filters_regex` (it points to a
-restart link that this page does not have), `danger.sieve_error` (the parser message is shown by
-`validation.sieveSyntax`).
+`danger.cors_invalid_method`, the preset headlines `admin.rsettings_preset_<n>` and
+`mailbox.sieve_preset_<n>`, and, no longer excluded (constitution IV 1.3.0): `admin.ip_check_opt_in`
+and `admin.rspamd_com_settings` (markup through `SanitizedHtml.vue`), `admin.main_name`,
+`admin.title_name`, `admin.apps_name`, `admin.force_sso` and `admin.force_sso_text` (product name as
+the installation's file has it), `admin.merged_vars_hint`, `danger.sieve_error` (with the parser
+message as its placeholder). `admin.ui_header_announcement_content`, `admin.license_info` and
+`admin.rspamd_global_filters_regex` wait for plan "Deviations needing a decision" items 4, 6 and 7.
 
 ## 9. Client-side validation
 

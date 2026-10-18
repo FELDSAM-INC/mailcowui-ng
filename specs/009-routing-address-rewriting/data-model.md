@@ -67,11 +67,11 @@ an empty page.
 
 | id | route | label (legacy key) | intro keys | roles |
 |---|---|---|---|---|
-| `relayhosts` | `routing-relayhosts` | `admin.relayhosts` | `admin.relayhosts_hint` (rich), `routing.relayhosts.alsoCalledRelayhosts` | admin |
-| `transports` | `routing-transports` | `admin.transport_maps` | `admin.transports_hint` (rich) | admin |
-| `tlsPolicyMaps` | `routing-tls-policy-maps` | `mailbox.tls_policy_maps` | `mailbox.tls_policy_maps_info` (rich), `mailbox.tls_policy_maps_enforced_tls` (rich) | admin |
+| `relayhosts` | `routing-relayhosts` | `admin.relayhosts` | `admin.relayhosts_hint` (HTML, through `SanitizedHtml.vue`), `routing.relayhosts.alsoCalledRelayhosts` | admin |
+| `transports` | `routing-transports` | `admin.transport_maps` | `admin.transports_hint` (HTML, through `SanitizedHtml.vue`) | admin |
+| `tlsPolicyMaps` | `routing-tls-policy-maps` | `mailbox.tls_policy_maps` | `mailbox.tls_policy_maps_info` (HTML, through `SanitizedHtml.vue`), `mailbox.tls_policy_maps_enforced_tls` (HTML, through `SanitizedHtml.vue`) | admin |
 | `recipientMaps` | `routing-recipient-maps` | `mailbox.recipient_maps` | `mailbox.recipient_map_info` | admin |
-| `bccMaps` | `routing-bcc-maps` | `mailbox.bcc_maps` | `mailbox.bcc_info` (rich), `routing.bccMaps.spamAndTagsInfo` | admin, domainAdmin |
+| `bccMaps` | `routing-bcc-maps` | `mailbox.bcc_maps` | `mailbox.bcc_info` (HTML, through `SanitizedHtml.vue`), `routing.bccMaps.spamAndTagsInfo` | admin, domainAdmin |
 | `forwardingHosts` | `routing-forwarding-hosts` | `admin.forwarding_hosts` | `admin.forwarding_hosts_hint` | admin |
 
 ### Access predicates (`src/features/routing/access.ts`)
@@ -331,7 +331,7 @@ field (gap G36).
 | Transport destinations (create) | at least one after splitting; each ≤ cap `maxLengths.transportDestination` | `validation.required`, `validation.tooLong` |
 | Destination `*` | warning only (FR-040, US3-AS7) | `routing.transports.wildcardWarning` |
 | BCC local destination | required, chosen from the picker; ≤ cap `bccMaps.localDestinationMaxLength` | `validation.required` |
-| BCC destination | required; ≤ cap `bccMaps.bccDestinationMaxLength`; one address: no `,`, `;` or whitespace between parts (US5-AS3) | `validation.required`, `add.bcc_dest_format` (rich) |
+| BCC destination | required; ≤ cap `bccMaps.bccDestinationMaxLength`; one address: no `,`, `;` or whitespace between parts (US5-AS3) | `validation.required`, `add.bcc_dest_format` (HTML, through `SanitizedHtml.vue`) |
 | Recipient map destinations | required; ≤ cap `maxLengths.recipientMapDestination` | `validation.required`, `validation.tooLong` |
 | TLS destination, parameters | destination required; each ≤ cap `maxLengths.tlsPolicyDestination` / `tlsPolicyParameters` | `validation.required`, `validation.tooLong` |
 | TLS policy | required; one of cap `tlsPolicies` | `validation.required` |

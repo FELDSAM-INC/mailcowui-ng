@@ -400,8 +400,9 @@ This feature adds **no runtime dependency** (constitution VIII).
     stays visible without horizontal scrolling.
   - **Status notice** (FR-008): from `getQuarantineSettings`, which gives the public subset to
     domain administrators and mailbox users. "Inactive" uses the legacy
-    `quarantine.disabled_by_config`; otherwise it shows the retention and the maximum size. The
-    collapsible help text is the legacy `quarantine.qinfo` without markup (R27).
+    `quarantine.disabled_by_config`; otherwise it shows the legacy `quarantine.settings_info` with
+    the retention and the maximum size in MiB. The collapsible help text is the legacy
+    `quarantine.qinfo`, verbatim with its markup through `SanitizedHtml.vue` (R27).
   - **States**: `ListState` gives loading, "no items", "nothing matches" with "clear filters", and
     error. Count changes are announced politely (FR-016), and Refresh calls `refetch()`.
   - **Filter panel**: the shared `FilterPanel.vue` (`src/shared/components/`): a full-screen Reka
@@ -856,6 +857,18 @@ This feature adds **no runtime dependency** (constitution VIII).
   Field paths map to the form fields of each section, for example `excludedDomains.3` to the
   fourth chip. Client-side checks use the same message keys, so a refusal reads the same whether
   it comes from the browser or the server.
+
+  **Legacy messages first (constitution IV 1.3.0)**: where a legacy message has the same meaning,
+  its key replaces a new message, with its placeholders filled as legacy fills them:
+  `spam-policy-entry-exists` → `danger.policy_list_from_exists`; `invalidFormat` with
+  `senderPattern` → `danger.policy_list_from_invalid`; `quarantine-delivery-refused` →
+  `danger.release_send_failed` (with the server answer); an invalid rate limit frame →
+  `danger.rl_timeframe`; a bucket already gone → `warning.hash_not_found`; a failed learning step →
+  `danger.spam_learn_error` or `danger.ham_learn_error`, and a failed hash step →
+  `warning.fuzzy_learn_error`. Successes use `success.item_released`, `success.learned_ham`,
+  `success.qlearn_spam`, `success.item_deleted`, `success.rl_saved`, `success.hash_deleted`,
+  `success.saved_settings`, `success.mailbox_modified` and `success.domain_modified`. The other
+  rows above keep new strings. The full mapping is part of the legacy form map (plan, T009a).
 - **Rationale**: FR-067, FR-068 and SC-009. The API never localises (`docs/problems.md`).
 - **Alternatives considered**: Showing `detail` was rejected by constitution I and FR-067.
 
@@ -926,8 +939,13 @@ This feature adds **no runtime dependency** (constitution VIII).
 
 ### R27. Legacy translation reuse
 
-- **Decision**: Legacy keys whose meaning is unchanged are mapped through `src/i18n/legacy-map.json`
-  (001-R15). Among others:
+**Superseded in part by constitution IV 1.3.0** (owner rule of 2026-10-18, `docs/conventions.md`
+"Translations and forms"): legacy keys are used directly and verbatim through UI 001's legacy
+translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter). There is no
+`legacy-map.json` aliasing, no copy in `src/i18n/messages/`, no `stripMarkup` and no `segment`.
+A key missing in a language falls back to `en-gb`, never to a hand-written value.
+
+- **Decision**: Legacy keys are used verbatim by their legacy names. Among others:
   - `quarantine.*`: `quarantine`, `deliver_inbox`, `learn_spam_delete`, `remove`, `download_eml`,
     `rspamd_result`, `spam_score`, `sender`, `sender_header`, `recipients`, `atts`, `check_hash`,
     `text_plain_content`, `text_from_html_content`, `disabled_by_config`, `rejected`,
@@ -947,30 +965,29 @@ This feature adds **no runtime dependency** (constitution VIII).
     `quarantine_notification_subject`, `quarantine_exclude_domains`, `reset_limit`;
   - `danger.rl_timeframe`, `success.hash_deleted` and `warning.hash_not_found`.
 
-  **Legacy texts with markup** (FR-080) are carried over without it, through UI 002's object form
-  of a `legacy-map.json` entry, `{ "from": "<legacy key>", "stripMarkup": true }` (its D27): tags
-  removed, `<br>` becoming a space, entities decoded, whitespace collapsed, and no `<` or `>`
-  left. This feature adds one optional member, `"segment": <n>`. The value is first split at its
-  `<br>` tags, and only segment `n` is converted, so that a legacy label and its help text, which
-  legacy keeps in one string, become two app keys. This reuses the Czech and Slovak texts of:
+  **Legacy texts with markup** (FR-080) are shown whole, through `SanitizedHtml.vue`, exactly as the
+  classic interface shows them. A legacy label that carries its help text after `<br><small>` stays
+  one string, used as the field's label:
   - `quarantine.qinfo`;
   - `user.spamfilter_wl_desc` and `user.spamfilter_bl_desc`;
   - `admin.quarantine_retention_size`, `quarantine_max_size`, `quarantine_max_score`,
     `quarantine_max_age`, `quarantine_bcc`, `quarantine_redirect` and
-    `quarantine_notification_html` (label segment and help segment);
-  - `admin.hash_remove_info`, segment 0 only, because segment 1 describes legacy colour stripes.
+    `quarantine_notification_html`;
+  - `admin.hash_remove_info`, whole, including its sentence about colour stripes.
 
-  If UI 002–005 already added an equivalent of `segment`, that is used instead.
-
-  **Not reused, because the meaning changed**: `quarantine.settings_info` (a fixed "MiB" unit and
-  markup), `user.spamfilter_table_domain_policy` (replaced by owner groups),
-  `danger.policy_list_from_exists` and `danger.policy_list_from_invalid` (FR-049 names the list,
-  and US4-AS7 names the allowed characters), and `success.item_released`, `success.items_released`
-  and `success.qlearn_spam` (FR-029 reports steps). They get new keys.
-- **Rationale**: Constitution IV and FR-080. Segment selection reuses the existing Czech and Slovak
-  texts instead of rewriting them.
-- **Alternatives considered**: Rewriting every marked-up text by hand in three languages was
-  rejected: it loses reviewed translations.
+  **Also used verbatim** (they were "not reused" before 1.3.0): `quarantine.settings_info` (with the
+  retention count and the maximum size in MiB, as legacy fills it),
+  `user.spamfilter_table_domain_policy` for inherited entries where legacy shows it,
+  `danger.policy_list_from_exists` and `danger.policy_list_from_invalid` (R24), and
+  `success.item_released`, `success.items_released` and `success.qlearn_spam` for the overall
+  outcome. Only the step lines of FR-029 are new strings.
+  Naming the list in a conflict, and the allowed characters, are listed under the plan's
+  "Deviations needing a decision".
+- **Rationale**: Constitution IV 1.3.0 and FR-080: mailcow's translations were written by people
+  and are used one to one, in every language mailcow ships.
+- **Alternatives considered**: Stripping markup or splitting values into segments (this decision
+  before 1.3.0): rejected, because it changes legacy text. Rewriting marked-up texts by hand:
+  rejected, because it loses reviewed translations.
 
 ### R28. Mock API, scenarios and the test plan
 

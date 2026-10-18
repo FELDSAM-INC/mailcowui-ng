@@ -33,7 +33,8 @@ npm run lhci                                      # now also /ng/system/ui-texts
 - `contract:check` passes, and `tests/unit/api/system-settings-operations.spec.ts` finds all 44 API
   013 operations of the contracts README.
 - `i18n:check` passes with every `AuditEventType`, `AuditTarget` type, `AuditFailureReason`,
-  `ValidationRuleCode` and `KnownProblemType` value of the pin translated in en-gb, cs-cz and sk-sk.
+  `ValidationRuleCode` and `KnownProblemType` value of the pin shown through a legacy message or a
+  new string in en-gb, cs-cz and sk-sk, and every legacy key used present in the `en-gb` snapshot.
 - Every `US<n>-AS<m>` test of US1–US12 passes on `mobile-chromium`, `desktop-chromium` and
   `mobile-webkit`, with no axe violation in four passes (light, dark, light at the limit colour
   `#767676`, dark at `#8f8f8f`), no CSP violation, no mock contract violation, no horizontal scroll

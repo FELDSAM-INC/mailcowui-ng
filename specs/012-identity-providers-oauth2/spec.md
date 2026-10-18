@@ -512,9 +512,10 @@ client page, apply the target, event type and outcome filters, and confirm the e
 #### Identity provider overview
 
 - **FR-004**: The Identity provider screen MUST read the configuration. When the API answers
-  "identity provider not configured", the screen MUST show an empty state that explains single
-  sign-on, password sign-in through the provider and automatic mailbox creation, and offers "Set up
-  an identity provider". This answer MUST NOT be presented as an error.
+  "identity provider not configured", the screen MUST show an empty state with the legacy
+  description `admin.iam_description` (verbatim) and offer "Set up an identity provider". This
+  answer MUST NOT be presented as an error. (Further explanations are pending: plan, "Deviations
+  needing a decision" item 4.)
 - **FR-005**: For a stored configuration, the overview MUST show:
   - the provider type;
   - whether the configuration is complete for sign-in, and when it is not, a warning that neither
@@ -560,7 +561,8 @@ client page, apply the target, event type and outcome filters, and confirm the e
   one-sentence explanation: Keycloak offers single sign-on, optional password sign-in through the
   mailpassword flow, user import and synchronisation; a generic OpenID Connect provider offers
   single sign-on without synchronisation; LDAP offers password sign-in against a directory, user
-  import and synchronisation.
+  import and synchronisation. (Pending: the explanations are new strings next to legacy's bare
+  select; plan, "Deviations needing a decision" item 4.)
 - **FR-011**: The setup form MUST start with the defaults that the API's identity provider
   capabilities report, currently: automatic creation on; scopes `openid profile email
   mailcow_template`; port 389; neither SSL nor StartTLS; username field `mail`; sync interval 15
@@ -631,7 +633,10 @@ client page, apply the target, event type and outcome filters, and confirm the e
 - **FR-019**: LDAP hosts MUST be entered as a list of entries with add and remove actions.
   Connection security MUST be one choice of "None", "SSL" and "StartTLS". When SSL is chosen with
   port 389, the form MUST say that port 636 will be used; when StartTLS is chosen, it MUST say that
-  the directory's standard port is expected.
+  the directory's standard port is expected. (Pending: legacy has one comma-separated
+  `admin.iam_host` input with `admin.iam_host_info`, and the two switches `admin.iam_use_ssl` and
+  `admin.iam_use_tls` with their `*_info` texts; plan, "Deviations needing a decision" items 1 and
+  2. Until decided, the legacy fields apply.)
 - **FR-020**: The sync interval MUST be entered in whole minutes and shown with a readable
   equivalent ("every 15 minutes", "every 2 hours"). The Synchronisation section MUST explain that
   user import creates a mailbox for each provider user without one, that periodic full
@@ -645,10 +650,10 @@ client page, apply the target, event type and outcome filters, and confirm the e
   derived from the scheduled-job log, which keeps a limited number of entries, so that "unknown" can
   mean that no run was logged recently and a failure that the jobs do not log shows only as an
   overdue run.
-- **FR-021**: For Keycloak, the mailpassword flow MUST be explained as letting mailboxes sign in
-  with a password whose hash Keycloak keeps in the user's `mailcow_password` attribute. The form
-  MUST state that the mailpassword flow, user import and periodic synchronisation need a service
-  account with the `view-users` permission for the client in Keycloak.
+- **FR-021**: For Keycloak, the form MUST show the legacy texts verbatim, as the classic interface
+  does: `admin.iam_extra_permission` (the service account with the `view-users` permission) before
+  the mailpassword flow, user import and synchronisation settings, and `admin.iam_auth_flow_info`
+  (the hash in the user's `mailcow_password` attribute) with the mailpassword flow switch.
 - **FR-022**: For a generic OIDC provider, the form MUST NOT offer synchronisation settings and MUST
   say that such a provider has no synchronisation.
 
@@ -736,9 +741,9 @@ client page, apply the target, event type and outcome filters, and confirm the e
 #### Single sign-on on the sign-in screens
 
 - **FR-040**: When the public configuration reports single sign-on as available, the role-neutral
-  and mailbox-user sign-in screens of UI 001 MUST offer "Sign in with single sign-on" as a
-  full-width action. On a device that supports passkeys it MUST come directly after passkey sign-in;
-  otherwise it MUST come first. The password form MUST follow it after an "or" divider. The
+  and mailbox-user sign-in screens of UI 001 MUST offer the single sign-on action, labelled with the
+  legacy `admin.iam_sso` ("Single Sign-On"), as a full-width action. On a device that supports
+  passkeys it MUST come directly after passkey sign-in; otherwise it MUST come first. The password form MUST follow it after an "or" divider. The
   administrator and domain-administrator screens MUST NOT offer it.
 - **FR-041**: When the "force single sign-on" login option is set and single sign-on is available,
   the role-neutral and mailbox-user sign-in screens MUST NOT show the password form or "Forgot
@@ -824,14 +829,11 @@ client page, apply the target, event type and outcome filters, and confirm the e
 - **FR-056**: The empty state MUST explain that OAuth2 apps let other applications sign mailbox
   users in through this server and offer "Add OAuth2 client". A search or filter without matches
   MUST offer to clear it.
-- **FR-057**: The screen MUST offer an information panel, collapsed on narrow screens, that explains
-  how applications connect: the authorization code grant with refresh tokens, a new refresh token
-  after each use, the `profile` scope, the required `state` parameter, that only mailbox users can
-  authorise, that applications must name their redirect URI when several are registered, the
-  consequences of a new secret and of revoking tokens, and the authorization, token and profile
-  addresses on the current host name with copy actions. The endpoint paths, the scope, the grant
-  types the server accepts and the access and refresh token lifetimes MUST come from the OAuth2
-  capabilities read.
+- **FR-057**: The screen MUST offer an information panel, collapsed on narrow screens, with the
+  legacy text `admin.oauth2_info` verbatim (markup through the sanitiser), and the authorization,
+  token and profile addresses on the current host name with copy actions. The endpoint paths MUST
+  come from the OAuth2 capabilities read. (Pending: further explanations, the grant types the server
+  accepts and the token lifetimes as new strings; plan, "Deviations needing a decision" item 5.)
 
 #### OAuth2 client changes
 
@@ -839,7 +841,8 @@ client page, apply the target, event type and outcome filters, and confirm the e
   add and remove actions. Each entry MUST be an absolute URI with a scheme, without a fragment and
   without whitespace; duplicates MUST be marked; and the entries joined by single spaces MUST NOT
   exceed 2,000 characters, with the remaining length shown. On success the app MUST show the
-  credentials dialog of FR-059.
+  credentials dialog of FR-059. (Pending: legacy has one Redirect URI field; plan, "Deviations
+  needing a decision" item 8.)
 - **FR-059**: After a client is created or its secret regenerated, a dialog MUST show the client ID
   and the secret, each with a copy action, and a warning that the secret will not be shown again.
   Closing the dialog without having copied the secret MUST ask for confirmation, and the Escape key
@@ -941,14 +944,16 @@ client page, apply the target, event type and outcome filters, and confirm the e
 
 #### Internationalisation
 
-- **FR-077**: All app text MUST come from translations in English, Czech and Slovak. Legacy
-  `lang.*.json` keys MUST be reused where the meaning is unchanged, taken from the upstream
-  baseline. Legacy texts that name the product or the operator, or that contain markup, MUST NOT be
-  reused as they are.
+- **FR-077**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key, including texts that name the product or contain markup; the screens
+  MUST mirror the legacy forms (fields, labels, help texts, options, units, order and messages); new
+  strings, only for elements the classic interface lacks, MUST exist in English, Czech and Slovak
+  and MUST NOT be machine-translated.
 - **FR-078**: Provider names (Keycloak, LDAP, OpenID Connect) and technical values (URLs, DNs,
   filters, attribute and claim names, scopes, client IDs) MUST be shown as they are and never
   translated. Dates, times and numbers MUST be formatted for the user's language.
-- **FR-079**: User-facing text MUST call the legacy mailcow UI "the classic interface" (UI 001
+- **FR-079**: New strings MUST call the legacy mailcow UI "the classic interface" (UI 001
   FR-090).
 
 #### Security in the browser
@@ -982,20 +987,20 @@ this feature, with the reason).
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
 | Card used as a tab, collapsed on phones | Collapsed card with all three forms in the page | Improved: own screen, overview with sections | FR-001, FR-005, FR-006 |
-| Description text (`admin.iam_description`, HTML) | Static text | Matched, without markup, in the empty state and setup | FR-004, FR-010 |
+| Description text (`admin.iam_description`, HTML) | Static text | Matched: verbatim, markup through the sanitiser, in the empty state and setup | FR-004, FR-010 |
 | Provider select (Keycloak, Generic-OIDC, LDAP) switching the visible form | Switching shows another form; saving it changes the type; the old type's values stay stored | Improved: type chosen in setup; an explicit type change with impact and the mailbox-use rule | FR-009, FR-010, FR-013 |
 | Keycloak: Server URL, Realm, Client ID, Version | Text inputs, only presence checked | Improved: checked before sending | FR-006, FR-018 |
 | Client Secret / Bind Password, prefilled with the stored secret, reveal button | Stored secret sent to the browser and revealable | Improved: secret never shown, only "Set"; replaced by typing | FR-023 to FR-026 |
 | Redirect Url and additional redirect URL rows with + and × buttons | Required URL, list of extra URLs | Matched, plus the app's return addresses to register | FR-027, FR-028 |
 | Attribute Mapping rows (Attribute, Template, + and ×), Default Template with hover tooltip | Rows silently dropped when incomplete; deleted templates not noticed | Improved: cards on phones, duplicates refused, missing templates flagged, visible help | FR-007, FR-029 to FR-031, FR-074 |
-| Service account hint (`admin.iam_extra_permission`) | Static text naming the product | Matched, without the product name | FR-021, FR-077 |
+| Service account hint (`admin.iam_extra_permission`) | Static text naming the product | Matched: verbatim, with the product name the installation's file has | FR-021, FR-077 |
 | Mailpassword Flow switch with info text | Switch | Matched | FR-021 |
 | Ignore SSL Errors switch | Switch | Improved: warning while on | FR-008 |
 | Auto-create users on login | Switch | Matched, with explanation | FR-032 |
 | Periodic Full Sync, Import Users, Sync / Import interval (min) | Switches and a number (values below 1 raised to 1) | Improved: range 1 to 10,080, readable interval, explanation, synchronisation status, link to the job log | FR-018, FR-020 |
 | Generic OIDC: Authorization, Token and User info endpoints, Client Scopes with placeholder | Text inputs | Matched, checked before sending, default scopes prefilled | FR-011, FR-018 |
-| LDAP: Host (comma-separated, tooltip) | One text input | Improved: list of entries | FR-019 |
-| LDAP: Port, Use SSL, Use StartTLS (switches that clear each other, tooltips) | Two switches | Improved: one choice with visible hints on ports | FR-019 |
+| LDAP: Host (comma-separated, tooltip) | One text input | Improved: list of entries (pending decision, plan "Deviations" item 1) | FR-019 |
+| LDAP: Port, Use SSL, Use StartTLS (switches that clear each other, tooltips) | Two switches | Improved: one choice with visible hints on ports (pending decision, plan "Deviations" item 2) | FR-019 |
 | LDAP: Base DN, Username Field (placeholder `mail`), Filter, Attribute Field, Bind DN | Text inputs | Matched, checked before sending | FR-006, FR-018 |
 | Test Connection button | Generic "Connection successful" or "Connection failed" alert | Improved: failure category with hint, tested address, stale marking, announced | FR-033 to FR-038 |
 | Save button | Saves the whole form; last write wins | Improved: whole save in setup, section saves later, version tags | FR-012, FR-015, FR-017 |
@@ -1019,11 +1024,11 @@ this feature, with the reason).
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Information text (`admin.oauth2_info`, HTML) | Static text with endpoint paths | Improved: information panel with copyable endpoint addresses | FR-057 |
+| Information text (`admin.oauth2_info`, HTML) | Static text with endpoint paths | Matched: verbatim; Improved: copyable endpoint addresses (grant types and lifetimes pending, plan "Deviations" item 5) | FR-057 |
 | Table: ID, Client ID, Client secret, Redirect URI, actions | DataTables, client-side search, table state in browser storage; secret shown in clear | Improved: secret never listed; server-side search, sort, active-token filter and token counts; state in the page address | FR-054, FR-055 |
 | Toggle all, Quick actions Remove, Revoke all client tokens | One request for all selected items, no per-item result; only removal asks for confirmation | Improved: selection mode, confirmation for both (typed number for deletion), result per client, failed items kept for retry | FR-065 |
-| Quick action Generate new client secret | New secrets for all selected clients, visible only later in the table | Dropped: each new secret must be shown once and copied individually; offered per client | FR-062 |
-| Add OAuth2 client button and modal (one Redirect URI field, cached form) | Any text accepted, even unusable URIs; the secret appears later in the table | Improved: several redirect URIs, checked; secret shown once in a dialog | FR-058, FR-059 |
+| Quick action Generate new client secret | New secrets for all selected clients, visible only later in the table | Dropped: each new secret must be shown once and copied individually; offered per client (pending decision, plan "Deviations" item 7) | FR-062 |
+| Add OAuth2 client button and modal (one Redirect URI field, cached form) | Any text accepted, even unusable URIs; the secret appears later in the table | Improved: several redirect URIs, checked (pending decision, plan "Deviations" item 8); secret shown once in a dialog | FR-058, FR-059 |
 | Edit action and Remove action per row | Edit page; generic confirmation | Improved: client page with every action; removal shows impact | FR-060, FR-064 |
 
 #### OAuth2 client edit page
@@ -1141,8 +1146,9 @@ were closed by API 012 and are covered by FR-005, FR-013, FR-020, FR-039, FR-048
 - **SC-005**: No screen of this feature needs horizontal scrolling at 360 px width or at 400 % zoom
   on a 1,280 px wide screen.
 - **SC-006**: 100 % of the problem types, validation rule codes, test result categories and audit
-  failure reasons of API feature 012 have English, Czech and Slovak translations, and no English API
-  text is shown as a message.
+  failure reasons of API feature 012 are shown with the legacy message of the same meaning or with a
+  new string that exists in English, Czech and Slovak, and no English API text is shown as a
+  message.
 - **SC-007**: For 100 % of the configurations in the parity test set, every value that the legacy
   Identity Provider tab shows, apart from secrets, is shown by the app with the same value.
 - **SC-008**: An administrator adds an OAuth2 client and copies its credentials on a phone in under
@@ -1187,7 +1193,7 @@ were closed by API 012 and are covered by FR-005, FR-013, FR-020, FR-039, FR-048
   name.
 - mailcow stores no name for an OAuth2 client, so clients are recognised by their client ID and
   redirect URIs.
-- Legacy translation keys with unchanged meaning are reused, for example `admin.iam`,
+- Constitution IV 1.3.0 applies: legacy translation keys are used verbatim, for example `admin.iam`,
   `admin.iam_sso`, `admin.iam_server_url`, `admin.iam_realm`, `admin.iam_client_id`,
   `admin.iam_client_secret`, `admin.iam_version`, `admin.iam_mapping`, `admin.iam_default_template`,
   `admin.iam_default_template_description`, `admin.iam_rest_flow`, `admin.iam_login_provisioning`,
@@ -1199,13 +1205,14 @@ were closed by API 012 and are covered by FR-005, FR-013, FR-020, FR-039, FR-048
   `admin.ignore_ssl_error`, `success.iam_test_connection`, `danger.iam_test_connection`,
   `danger.authsource_in_use`, `admin.oauth2_apps`, `admin.oauth2_add_client`,
   `admin.oauth2_client_id`, `admin.oauth2_redirect_uri`, `admin.oauth2_renew_secret`,
-  `admin.oauth2_revoke_tokens`, `edit.client_id`, `edit.scope`, `user.attribute` and
-  `mailbox.template`. Texts that name the product (`admin.iam_auth_flow_info`,
-  `admin.iam_extra_permission`, `admin.force_sso`, `admin.force_sso_text`) or contain markup
-  (`admin.iam_description`, `admin.oauth2_info`) are carried over rewritten.
-  `admin.iam_redirect_url` gets a new key, because the app now distinguishes its own return
-  addresses from the classic interface's. The upstream Slovak file lacks most `admin.iam_*` keys;
-  these are translated anew.
+  `admin.oauth2_revoke_tokens`, `edit.client_id`, `edit.client_secret`, `edit.redirect_uri`,
+  `edit.scope`, `user.attribute` and `mailbox.template`. Texts that name the product
+  (`admin.iam_auth_flow_info`, `admin.iam_extra_permission`) or contain markup
+  (`admin.iam_description`, `admin.oauth2_info`) are used verbatim too, as the installation's files
+  have them. `admin.iam_redirect_url` labels the redirect URL field as in legacy; only the app's own
+  return addresses next to it are a new string. The upstream Slovak file lacks most `admin.iam_*`
+  keys; they fall back to `en-gb` as in the classic interface (the FeldHost fork's `sk-sk` has
+  them), and none is translated by hand.
 - **Out of scope**: running, triggering or scheduling the synchronisation; single sign-on for
   administrators and domain administrators; signing out at the provider; more than one provider;
   filling the OIDC endpoints from the provider's discovery document (the app never contacts the

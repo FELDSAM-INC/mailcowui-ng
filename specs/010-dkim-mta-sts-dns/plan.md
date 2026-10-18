@@ -101,7 +101,10 @@ runtime or development dependency is added (research R26).
 **Constraints**:
 - Only contract operations are used.
 - Strict CSP: downloads work without `data:` URLs or inline code (R13).
-- No `v-html`. DNS values, policy texts and zone files are rendered as text (FR-078).
+- No `v-html` in the feature. DNS values, policy texts and zone files are rendered as text (FR-078).
+  Legacy help texts with HTML (`edit.mta_sts_info`, `edit.mta_sts_mode_info`,
+  `edit.mta_sts_version_info`) go through UI 001's `SanitizedHtml.vue`, unaltered (constitution IV
+  1.3.0).
 - WCAG 2.2 AA in both themes, 360 px and 400 % zoom.
 - No automatic request while idle. A diagnostics run starts only when its page opens without a
   fresh result, or when the user asks (FR-058).
@@ -112,7 +115,9 @@ runtime or development dependency is added (research R26).
 - 7 new routes (one a redirect), 2 navigation entries, and entry points on 5 earlier screens (UI
   002 domain list and page, UI 004 alias domain list and detail, UI 001 audit log).
 - 15 of the contract's operations, plus UI 001's `listAuditEvents` and `getIdentity`.
-- About 350 new translation keys, 30 of them reused from legacy (R22).
+- About 40 legacy keys used verbatim; new strings only for what legacy lacks (diagnostics statuses
+  and messages, publication outcomes, runs, exports, the overview), fewer than the first plan's
+  350 (R22).
 - Lists of up to 10,000 entries are paged by the API.
 
 ## Constitution Check
@@ -124,7 +129,7 @@ runtime or development dependency is added (research R26).
 | I. The API contract is the only interface | Only the 15 operations listed in contracts/README.md, through the generated client. The pin is bumped to a commit that contains the whole API 010 contract (R1), and generated types are re-exported through `@/api` (no hand-written API type). Gaps the API still has are listed below and not worked around: audit `details` are shown generically; the bulk limit comes from the contract's `maxItems`. Problem types and rule codes drive the UI (R21). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first. The DKIM list, the policy list and the diagnostics results are cards below `md` and tables from `md` up. Import and copy are pages, not modals. Generation and deletion are short dialogs, full-screen sheets on phones. Selection uses a mode with a sticky action bar. Destructive actions show their impact: single deletion, bulk deletion with the number typed, replacement, overwrite, deactivation and export. Every list and result has loading, empty and error states (FR-014, FR-056, FR-069). | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe on every screen and state in both themes. Tables have header cells and `aria-sort`. Card lists are lists with headings. Badges carry text and icon. Copy buttons have names that say what they copy. Runs, counts, diagnostics start and end, and copies are announced politely, a countdown at most once. Dialogs trap focus and return it. Sticky bars never hide the focus (R23). | PASS |
-| IV. i18n and branding | All text is in en-gb, cs-cz and sk-sk. 30 legacy keys are reused through `legacy-map.json`. Where a legacy locale lacks a key, that locale's app layer supplies it (R22). Diagnostics purposes, statuses, message codes, publication outcomes and reason codes are translated from contract codes. Unknown codes fall back to a translated generic label with the API's English text marked `lang="en"`, as the contract asks. Durations, numbers and times use `Intl`. No brand data is introduced. | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0: every mailcow language; legacy texts by their legacy keys, verbatim from the installation's `/lang/` files, HTML help texts through `SanitizedHtml.vue`; a key missing in a locale falls back to `en-gb`, never to a hand-written value (R22). The screens mirror the legacy forms and messages ("Translations and forms" below). New strings, only for elements legacy lacks, are in en, cs and sk and never machine-translated. Diagnostics purposes, statuses, message codes, publication outcomes and reason codes are translated from contract codes. Unknown codes fall back to a translated generic label with the API's English text marked `lang="en"`, as the contract asks. Durations, numbers and times use `Intl`. No brand data is introduced. | PASS |
 | V. Security in the browser | Private keys:<br>• kept in component state only;<br>• never in a TanStack mutation (`variables` would be cached) or query;<br>• cleared on success, close, leave and `pagehide`;<br>• never in storage, the address, history or error reports (R11, R12).<br>The export dialog asks before closing an uncopied key (conventions "Secrets"). DNS content is plain text, and guidance links pass `safeHref` (R27). Downloads use `blob:` object URLs revoked at once, which the CSP allows (R13). Hiding actions is a convenience: 403 and 404 are handled (FR-003, FR-004). | PASS |
 | VI. Test-first | `tasks.md` puts tests before implementation in every phase. Every acceptance scenario has an end-to-end test on both viewports against the contract-validated mock. Unknown-code fallbacks of closed enumerations are unit-tested with plain values, so the mock never contradicts the contract (UI 001 R22). Smoke tests run against the API dev stack (R25). | PASS (UI 001's smoke-gate entry still applies) |
 | VII. Performance budgets | Routes are lazy (`dns` chunks). There is no new dependency. The query policy reuses cached lists and diagnostics: no refetch without reason, no polling. A Lighthouse collection is added for `/ng/dns/dkim-keys` (R26). | PASS |
@@ -143,6 +148,91 @@ quickstart introduce no violation. These decisions touched gates:
 - The catalogue row `dns` is split into two rows for FR-001 (R2).
 - Bulk deletion needs the number typed, aligned with `docs/conventions.md` (spec change 2 below).
 
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen and section of this feature, and overrides earlier text in this plan, the spec, research and
+tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`):
+
+- **ARC/DKIM keys** (list, generation, import, copy, deletion) → `templates/admin/tab-config-dkim.twig`
+  (System › Configuration › `admin.dkim_keys` in `templates/admin.twig`, page `admin/system.php`):
+  the state toggles `admin.dkim_key_valid`, `admin.dkim_key_unused`, `admin.dkim_key_missing`;
+  `mailbox.toggle_all` and `admin.remove`; the add form `admin.dkim_add_key` (`admin.domain_s`,
+  `admin.dkim_domains_wo_keys`, `admin.dkim_domains_selector`, `admin.dkim_key_length`,
+  `admin.add`); the import form `admin.import_private_key` (`admin.domain`,
+  `admin.dkim_domains_selector`, `admin.private_key`, `admin.dkim_private_key`,
+  `admin.dkim_overwrite_key`, `admin.import`); the copy form `admin.duplicate_dkim`
+  (`admin.dkim_from`, `admin.dkim_from_title`, `admin.dkim_to`, `admin.dkim_to_title`,
+  `admin.duplicate`). JS: `#dkim_missing_keys` and the private key modal in `js/site/admin.js`;
+  the private key modal `showDKIMprivKey` in `templates/modals/admin.twig`. Messages of `dkim()` in
+  `inc/functions.dkim.inc.php`: `success.dkim_added`, `success.dkim_removed`,
+  `success.dkim_duplicated`, `danger.dkim_domain_or_sel_exists`,
+  `danger.dkim_domain_or_sel_invalid`, `danger.private_key_error`, `danger.access_denied`.
+- **DKIM section** on the domain and alias domain pages → the DKIM block below the form of
+  `templates/edit/domain.twig` (`add.domain`, selector, TXT value).
+- **MTA-STS section** → the `dmtasts` tab of `templates/edit/domain.twig`: `edit.mta_sts`,
+  `edit.mta_sts_info`; `edit.mta_sts_version` (`edit.mta_sts_version_info`, option `STSv1`);
+  `edit.mta_sts_mode` (`edit.mta_sts_mode_info`, options `enforce`, `testing`, `none` as raw
+  values); `edit.mta_sts_max_age` (`edit.mta_sts_max_age_info`); `edit.mta_sts_mx`
+  (`edit.mta_sts_mx_info`, `edit.mta_sts_mx_notice`); `edit.active` (`edit.mta_sts_active_info`);
+  `admin.save`. Messages of `mailbox('add'|'edit', 'mta_sts', …)` in
+  `inc/functions.mailbox.inc.php`: `danger.version_invalid`, `danger.mode_invalid`,
+  `danger.max_age_invalid`, `danger.mx_invalid`, `success.object_modified`.
+- **DNS diagnostics** → `dnsInfoModal` in `templates/modals/mailbox.twig`
+  (`diagnostics.dns_records`, `diagnostics.dns_records_24hours`), opened by the "DNS" buttons of the
+  domain and alias domain tables in `js/site/mailbox.js`, with the content of
+  `inc/ajax/dns_diagnostics.php`: columns `diagnostics.dns_records_name`,
+  `diagnostics.dns_records_type`, `diagnostics.dns_records_data`, `diagnostics.dns_records_status`;
+  footnotes `diagnostics.cname_from_a` and `diagnostics.optional`; the fork's SPF hint with
+  `diagnostics.allow`.
+- **ISPConfig publication** (fork) → `dkim_update_in_dns()` in `inc/functions.dkim.inc.php` with
+  `inc/lib/ispconfig.php`. Legacy publishes silently, with no text of its own.
+
+**Screens and elements without a legacy counterpart** use new strings (en-gb, cs-cz, sk-sk, never
+machine-translated), kept minimal: the MTA-STS policies overview, the alias domain MTA-STS section,
+the DKIM entry page's record forms and copy names, run and bulk result summaries, the export dialog,
+the diagnostics statuses, summary groups, message codes and rate-limit notices, the publication
+outcomes and reasons, "Publish DNS record again", "Replace with a new key", outdated-version
+handling and History. Fields of these screens that legacy forms also have (selector, key length,
+MTA-STS fields) use the legacy keys above.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`,
+`*_title`), placeholders, option labels, units, order and grouping, column headers, action labels
+and success, warning and danger messages come from the legacy keys. Every mailcow language is
+supported; legacy values are loaded at runtime from the installation and shown verbatim (HTML
+through `SanitizedHtml.vue`); a missing key falls back to `en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by T004a before any screen is built.
+
+**Deviations needing a decision** (not built until the owner or orchestrator decides):
+
+1. **MTA-STS mode help**: legacy's `edit.mta_sts_mode_info` is one HTML list for all three modes.
+   The first plan split it into new per-mode keys next to each choice (FR-047). Splitting a legacy
+   string is not allowed, so the plan now shows it whole; per-mode explanations would be new
+   strings.
+2. **MTA-STS defaults for a new policy**: legacy starts with `enforce` (first option), an empty max
+   age and the server-side default for active; the plan starts with `testing`, 1 week and inactive.
+3. **MTA-STS max age unit**: legacy takes seconds (`edit.mta_sts_max_age_info`, "Time in seconds");
+   the plan offers a number with a unit and a readable duration (R18).
+4. **MTA-STS MX hosts**: legacy is a comma-separated text area with `edit.mta_sts_mx_notice`; the
+   plan uses a list of entries, for which that notice no longer fits.
+5. **MTA-STS version**: legacy is a select with the one option `STSv1`; the plan shows fixed text.
+6. **DNS diagnostics columns**: the plan replaced `diagnostics.dns_records_data` ("Correct Data")
+   and `diagnostics.dns_records_status` ("Current State") with new "expected" and "found" labels,
+   and legacy's ✓, ✗ and ? icons with six text statuses.
+7. **Fork-only key** `diagnostics.allow` ("Allow", SPF hint): it is not in the upstream `en-gb`
+   snapshot, so `i18n:check` cannot accept it as a legacy key. It stays a new string unless the
+   snapshot is to include fork keys.
+8. **"DNS" button**: legacy's hard-coded "DNS" label; the plan's "Check DNS" is a new string.
+9. **Added screens and roles**: domain administrators get the DKIM keys screen with generation
+   (legacy: administrators only), and the MTA-STS policies overview and the alias domain section
+   have no legacy counterpart. The free-text domain entry of legacy's add form is dropped (API
+   FR-024).
+
 ## Dependencies and order
 
 UI 010 is implemented **after UI 001–009** and after **mailcow-rest-v2 feature 010 is implemented**
@@ -151,8 +241,8 @@ API implementation is needed only for the smoke tests (T110). The prerequisites:
 
 | Prerequisite | From | What UI 010 uses |
 |---|---|---|
-| Foundation | UI 001 | Shell, catalogue, router guards, session, `@/api` client and query keys, i18n and problem mapping, `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `useAnnouncer`, `useCountdown`, `useMediaQuery`, `clipboard.ts`, `safeHref`, `limits.ts`, the mock server and fixtures, the audit log screen |
-| Domain list and domain page with section editing | UI 002 | The action areas of UI 002 data-model §9; `EditableSection.vue` and the field diff of `useVersionedSave`; `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`; `ConfirmDialog` `requireTyped`; `useLeaveGuard`; `HistoryLink.vue` and the audit `targetType` and `targetId` filters; router scroll restoration (UI 002 D9); the `src/i18n/coverage.json` manifest (UI 002 D2); `stripMarkup` in `legacy-map.json` (UI 002 D27) |
+| Foundation | UI 001 | Shell, catalogue, router guards, session, `@/api` client and query keys, i18n and problem mapping, the legacy translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter) and `SanitizedHtml.vue`, `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `useAnnouncer`, `useCountdown`, `useMediaQuery`, `clipboard.ts`, `safeHref`, `limits.ts`, the mock server and fixtures, the audit log screen |
+| Domain list and domain page with section editing | UI 002 | The action areas of UI 002 data-model §9; `EditableSection.vue` and the field diff of `useVersionedSave`; `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`; `ConfirmDialog` `requireTyped`; `useLeaveGuard`; `HistoryLink.vue` and the audit `targetType` and `targetId` filters; router scroll restoration (UI 002 D9); the `src/i18n/coverage.json` manifest (UI 002 D2) |
 | Alias domain list and alias domain detail view | UI 004 | Their card, table and detail page; `useSequentialCreate`, `DomainNameText`, `SearchField` and `utf8ByteLength` (promoted to `src/shared/`); `isEntryAvailable` |
 | `OneTimeSecretDialog.vue`, `CopyButton.vue`; `download.ts` | UI 005 | The export dialog, extended with a download action; copy buttons; the download helper, promoted by UI 010 |
 | Contract pins of UI 002–009 | UI 002–009 | The pin T002 starts from |
@@ -180,7 +270,8 @@ in this plan, and the tasks use the recorded path.
 | Domain name syntax check (readable or ASCII, 253/63) | `src/features/domains/domain-name.ts`, feature-local | UI 002 | T024 promotes it to `src/shared/validation/domain-name.ts` (second use) and adds the `*.` wildcard option |
 | Text download through a revoked object URL | `src/features/account/download.ts`, feature-local in UI 005 | UI 005 | T023 promotes it to `src/shared/platform/download.ts` (second use), or creates it |
 | Router scroll restoration on Back, and focus without scrolling | `src/app/router/index.ts`, `src/app/router/focus.ts` | UI 002 (D9) | T027 adds it |
-| Enumeration coverage manifest; legacy `stripMarkup` | `src/i18n/coverage.json`, `scripts/i18n/{check,import-legacy}.mjs` | UI 002 (D2, D27), UI 004 (R20) | Hard prerequisite: stop |
+| Enumeration coverage manifest | `src/i18n/coverage.json`, `scripts/i18n/check.mjs` | UI 002 (D2), UI 004 (R20) | Hard prerequisite: stop |
+| Legacy translation layer and `SanitizedHtml.vue` | `src/i18n/`, `src/shared/components/SanitizedHtml.vue` | UI 001 (constitution IV 1.3.0) | Hard prerequisite: stop |
 
 ### Entry points into earlier screens
 
@@ -335,8 +426,7 @@ src/
 │   └── validation/{limits,domain-name}.ts  # + 010 limits; domain-name promoted from UI 002
 └── i18n/
     ├── messages/{en-gb,cs-cz,sk-sk}.json   # + dns.*, problem.*, validation.*, auditLog.*
-    ├── coverage.json                       # + 010 values of the shared enumerations (UI 002 D2)
-    └── legacy-map.json                     # + about 30 legacy keys (research R22)
+    └── coverage.json                       # + 010 values of the shared enumerations (UI 002 D2)
 scripts/i18n/check.mjs                      # + 010 enumerations (fully required) and formats
 tests/
 ├── mocks/

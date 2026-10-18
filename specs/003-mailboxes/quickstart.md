@@ -17,8 +17,9 @@ are not repeated.
 - UI 001 and UI 002 are implemented, and their gates pass.
 - A checkout of `mailcow-rest-v2` at `../mailcow-rest-v2` (or `$MAILCOW_REST_V2_DIR`) that contains
   the API 003 implementation, for Parts A (bump) and C.
-- For the reused translations: `$MAILCOW_REPO` (default `../mailhosting`) with the upstream tag
-  `2026-09a`.
+- For the legacy form map and the bundled `en-gb` snapshot: `$MAILCOW_REPO` (default
+  `../mailhosting`) with the upstream tag `2026-09a`. Legacy texts themselves load at runtime from
+  the installation's `/lang/` (constitution IV 1.3.0).
 
 ## Part A: Contract bump and automated gates
 
@@ -30,8 +31,8 @@ scripts/contract/bump.sh <api-003-tag-or-merge-commit>
 git -C ../mailcow-rest-v2 diff 32079252d55797d3da4e58ae661e9fb91c51c6f9..<ref> -- api/   # review
 npm run contract:check
 
-# 2. Translations: legacy layer and completeness, with the scoped open enumerations (research R2).
-MAILCOW_REPO=../mailhosting npm run i18n:import
+# 2. Translations: new strings complete in en-gb, cs-cz and sk-sk, legacy keys present in the
+#    bundled en-gb snapshot, and the scoped open enumerations (research R2, constitution IV 1.3.0).
 npm run i18n:check
 
 # 3. The usual gates (UI 001 Part A).

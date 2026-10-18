@@ -96,6 +96,9 @@ and the parameter-driven validation messages that every story uses.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
+- [ ] T005a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
+
 ### Tests for the foundation (write first; must fail)
 
 - [ ] T006 [P] Extend `tests/unit/shared/validation/limits.spec.ts` (research R15). Each new constant of `src/shared/validation/limits.ts` must equal its value in `contract/openapi.json`:
@@ -145,8 +148,8 @@ and the parameter-driven validation messages that every story uses.
   - `src/api/problem.ts` gains `identityProviderInUseDetails()`, reading the parsed problem body that T002 confirmed.
   - `src/api/query/keys.ts` gains `identityProvider.capabilities()`, `identityProvider.configuration()`, `oauth2Clients.capabilities()`, `oauth2Clients.list(params)` and `oauth2Clients.detail(id)`, with `Oauth2ClientListParams` aliased from `NonNullable<operations['listOauth2Clients']['parameters']['query']>`.
 - [ ] T014 [P] Add `sessionStorage` key `mailcowui-ng.sso-return-to` to the allowlist in `src/shared/platform/storage.ts`, so that T007 passes.
-- [ ] T015 Extend `src/i18n/problems.ts` with the parameter-driven selections of research R26. Add these messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
-  - `problem.<name>` for each of the six API 012 types;
+- [ ] T015 Extend `src/i18n/problems.ts` with the parameter-driven selections of research R26, and map the API 012 problem types and rule codes to the legacy `danger.*` messages of T005a's form map (for example `identity-provider-in-use` → `danger.authsource_in_use`). Add these new strings, only where the form map has no legacy key, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+  - `problem.<name>` for the API 012 types without a legacy message;
   - `validation.format.{httpUrl,hostName,keycloakRealm,keycloakVersion,scopeList,ldapAttribute,ldapFilter,redirectUri,oauthErrorCode}`;
   - `validation.secretRequiredReason.{noStoredSecret,typeChanged,addressChanged}`;
   - `validation.notFoundResource.mailboxTemplate`.
@@ -365,12 +368,12 @@ address and confirm "no access" with no request.
   - `src/features/identity-providers/index.ts`.
 
   Register the routes in `src/app/router/routes.ts`, and set the catalogue's `identityProviders` entry to `available` with `group: 'system'` in `src/app/navigation/catalogue.ts` (research R3). T019, UI 001's table-driven visibility test and the `SectionNav` part of T025 must pass.
-- [ ] T039 [US1] Add these messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (FR-077 to FR-079: legacy keys reused where the meaning is unchanged, provider names and technical values never translated, "the classic interface" wording):
+- [ ] T039 [US1] Use the legacy keys of T005a's form map verbatim for every field label, help and info text, option, action and message of the identity provider screens (`admin.iam_*`, `admin.iam_description`, `admin.iam_extra_permission`, `admin.iam_auth_flow_info` with their markup through `SanitizedHtml.vue`, `success.object_modified`, `success.item_deleted`, `success.iam_test_connection`, `danger.iam_test_connection`). Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's new strings (FR-077 to FR-079: provider names and technical values never translated, "the classic interface" wording, never machine-translated):
   - `identityProviders.*`: the sub-navigation;
   - `identityProvider.*`:
-    - the empty state, rewritten from `admin.iam_description` without markup;
-    - the type explanations of FR-010;
-    - the field labels and help texts of FR-019 to FR-032, with the Keycloak service account note rewritten from `admin.iam_extra_permission` without the product name;
+    - the empty state's "Set up" action;
+    - the type explanations of FR-010, once approved (plan, "Deviations needing a decision" item 4);
+    - the help texts of FR-019 to FR-032 that have no legacy key;
     - the return-address explanation and mismatch warning;
     - the test categories and hints of FR-036;
     - the synchronisation states and explanations of FR-020;
@@ -378,7 +381,7 @@ address and confirm "no access" with no request.
     - the setup step names and "Step {n} of {m}";
     - the announcements.
 
-  Add the `identityProvider.*` rows of data-model §8 to `src/i18n/legacy-map.json`, and write the Slovak values of the rows marked "sk" in `src/i18n/messages/sk-sk.json`. Append the rule codes `secretRequired`, `duplicate`, `conflictsWith` and `immutable` and the problem types `identity-provider-not-configured` and `identity-provider-in-use` to `src/i18n/coverage.json` where not listed yet. Run `npm run i18n:import`. `npm run i18n:check` must pass.
+  No `legacy-map.json` entry and no hand-written Slovak value for a legacy key (the rows marked "sk" in data-model §8 fall back to `en-gb`). Append the rule codes `secretRequired`, `duplicate`, `conflictsWith` and `immutable` and the problem types `identity-provider-not-configured` and `identity-provider-in-use` to `src/i18n/coverage.json` where not listed yet. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 works on its own: all T016–T028 tests pass (the smoke test with `SMOKE_IDP=1` once API 012 runs). This is the MVP.
 
@@ -525,8 +528,8 @@ without the code or state outside the completion.
 
   T045 and the session part of T048 must pass.
 - [ ] T058 [P] [US2] Add a `location = /ng/sso/return` block with `access_log off` to `docker/nginx/default.conf`. It serves `/ng/index.html` and includes `security-headers.conf`. T049 must pass.
-- [ ] T059 [US2] Add these messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
-  - `auth.sso.*`: the action "Sign in with single sign-on", the busy announcement, the return page title and progress, each outcome of FR-048 with "Try again" and "Back to sign-in", and "not offered";
+- [ ] T059 [US2] Label the single sign-on action with the legacy `admin.iam_sso`, and show `danger.login_failed` for a failed return without a more specific outcome. Add these new strings to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+  - `auth.sso.*`: the busy announcement, the return page title and progress, each outcome of FR-048 with "Try again" and "Back to sign-in", and "not offered";
   - `session.notice.ssoSessionEnded` and `session.notice.signedOutSso`.
 
   Use "the classic interface" wording where it applies. Append the problem types `single-sign-on-not-available`, `sign-in-state-invalid`, `identity-provider-unavailable` and `identity-provider-session-ended` to `src/i18n/coverage.json`. `npm run i18n:check` must pass.
@@ -671,12 +674,12 @@ without mailboxes in use, and remove the configuration.
   - `src/features/identity-providers/provider/components/InUseMessage.vue`.
 
   Extend `src/features/identity-providers/provider/composables/useSetupFlow.ts` and `src/features/identity-providers/provider/components/setup/ProviderTypeStep.vue` for change mode: the configuration's tag and counts, the current and blocked types disabled with reasons, `If-Match` on save, and the `412` reload. T067, T069 and the rest of T071 must pass.
-- [ ] T075 [US4] Add the `identityProvider.*` messages for these to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+- [ ] T075 [US4] Add the `identityProvider.*` new strings of T005a's form map for these to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (saves use `success.object_modified`, removal `success.item_deleted`):
   - section edits, saves and conflicts, including "changed elsewhere, possibly a secret";
   - the secret required reasons as field help;
   - the type change and removal confirmations with their consequences;
   - the unavailable reasons;
-  - the in-use message with `blockingMailboxes`, reusing `admin.iam`-family keys only where the meaning is unchanged;
+  - the in-use details with `blockingMailboxes`, next to the legacy `danger.authsource_in_use`, which is used verbatim;
   - "removed elsewhere".
 
   `npm run i18n:check` must pass.
@@ -803,15 +806,15 @@ and confirm that a secret appears only in the credentials dialog.
   - `Oauth2ClientDetailPage.vue`: the attributes, the redirect URIs on `EditableSection`, the actions through `useConfirm` with refetch and re-confirmation on `412`, the deletion announcement through `useStatusMessage` after returning to the list, and the not-found state.
 
   Add the routes `oauth2-clients`, `oauth2-client-create` and `oauth2-client-detail` (`:oauth2ClientId(\d{1,10})`) to `src/features/identity-providers/routes.ts`. T077–T080 must pass.
-- [ ] T088 [US5] Add the `oauth2.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
-  - the list, the empty state and the filters;
-  - the information panel, rewritten from `admin.oauth2_info` without markup;
-  - the grant type labels;
+- [ ] T088 [US5] Use the legacy keys of T005a's form map verbatim for the OAuth2 screens: the list (`admin.oauth2_apps`, the `draw_oauth2_clients` column titles, `mailbox.toggle_all`, `mailbox.quick_actions`, `mailbox.remove`, `admin.oauth2_revoke_tokens`, `admin.oauth2_add_client`), the information panel (`admin.oauth2_info` through `SanitizedHtml.vue`), the create form (`admin.oauth2_redirect_uri`, `admin.add`), the client page (`edit.client_id`, `edit.client_secret`, `edit.scope`, `edit.redirect_uri`, `admin.save`) and the messages (`success.object_modified`, `success.items_deleted`). Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's `oauth2.*` new strings:
+  - the empty state and the token filter;
+  - the grant type labels, once approved (plan, "Deviations needing a decision" item 5);
+  - the create success, duplicate, empty-URI and scope messages, which legacy hard-codes in English;
   - the create page, the dialog warning and the client page;
   - the confirmations of FR-062 to FR-064;
   - the bulk texts.
 
-  Add the `oauth2.*` rows of data-model §8 to `src/i18n/legacy-map.json`, and run `npm run i18n:import`. `npm run i18n:check` must pass.
+  No `legacy-map.json` entry. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -888,8 +891,8 @@ devices and a real API.
   - no storage value, address, `history.state` or recorded request header contains the code, the state, the bind password, the client secret or an OAuth2 client secret;
   - only the completion request body contains the code and state, and only the setup, edit and test bodies contain the typed secrets.
 - [ ] T097 Run `npm run build && npm run budget:check && npm run lhci`. The initial JavaScript must stay at most 204,800 bytes gzipped, with growth of under 1 KB from `capture.ts`. Performance and accessibility must stay at least 0.9 on `/ng/sign-in` and `/ng/`. Fix regressions, for example by splitting the setup page's step components or the template combobox into lazy imports.
-- [ ] T098 [P] Run `npm run i18n:check` (SC-006: every API 012 problem type, rule code, test category and audit failure reason is translated in all three locales) and remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. List the new cs-cz and sk-sk strings of this feature, including the about 45 Slovak values written for the legacy keys missing upstream, for the owner's native review (plan, owner question 1).
-- [ ] T099 [P] Add the plan's two parity notes to the "Legacy Parity" tables in `specs/012-identity-providers-oauth2/spec.md`: the information panel lists every accepted grant type; the secret fields block saved sign-ins from being filled in.
+- [ ] T098 [P] Run `npm run i18n:check` (SC-006: every API 012 problem type, rule code, test category and audit failure reason is shown with a legacy message or a new string in all three locales; every legacy key used exists in the `en-gb` snapshot) and remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Check that no new string duplicates a legacy key of the form map. List the new cs-cz and sk-sk strings of this feature for the owner's native review (plan, owner question 1).
+- [ ] T099 [P] Add the plan's two parity notes to the "Legacy Parity" tables in `specs/012-identity-providers-oauth2/spec.md`: the information panel shows `admin.oauth2_info` verbatim (with the accepted grant types only if plan "Deviations needing a decision" item 5 is approved); the secret fields block saved sign-ins from being filled in.
 - [ ] T100 Run quickstart.md Part D on a mailcow host with a mid-range Android phone and an iPhone. Record these in a "Validation log" section appended to `specs/012-identity-providers-oauth2/quickstart.md`:
   - the timings of SC-001, SC-002 (20 attempts) and SC-008;
   - the configuration comparison of SC-007;
@@ -909,6 +912,7 @@ devices and a real API.
 - **Setup (Phase 1)**: T001 first, because T002 and every later task need the generated types of
   API 012. T003 → T004. T005 is independent.
 - **Foundational (Phase 2)** depends on Setup and **blocks every user story**:
+  - T005a (the legacy form map) first; every screen and message task depends on it;
   - T006–T009 (tests) in parallel;
   - T010 → T011;
   - then T012–T015. T013 needs T009; T015 needs T008.
@@ -949,15 +953,15 @@ Edits to these files must be serialised, even when the stories run in parallel:
   `public-config.ts`: US2 (T040).
 - `src/features/auth/pages/SignInPage.vue`: US2 (T055) only. `usePasswordSignIn.ts` and
   `PasswordForm.vue`: US3 (T064) only.
-- `src/i18n/messages/*.json`, `src/i18n/legacy-map.json` and `src/i18n/coverage.json`: T015, T039,
+- `src/i18n/messages/*.json` and `src/i18n/coverage.json`: T015, T039,
   T059, T065, T075, T088, T094 and T098. Run these one after another.
 - `src/features/mailboxes/index.ts` (UI 003's feature): T029 adds one non-behavioural export only.
 
 ### Within Each User Story
 
 - First, the mock handlers and scenarios. Then the end-to-end, unit and smoke tests, which must
-  fail. Then the implementation (models → api → composables → components → pages → routes). Then
-  the messages in all three locales.
+  fail. Then the implementation (models → api → composables → components → pages → routes), with
+  the legacy keys of T005a's form map. Then the story's new strings in all three locales.
 
 ### Parallel Opportunities
 

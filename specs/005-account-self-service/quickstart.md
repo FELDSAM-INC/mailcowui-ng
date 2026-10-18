@@ -25,8 +25,9 @@ scripts/contract/bump.sh <commit>       # once, in the setup task; then review c
 npm run lint && npm run format:check
 npm run typecheck
 npm run contract:check
-npm run i18n:check                      # en-gb, cs-cz, sk-sk complete; 005 problem types, rule codes,
-                                        # audit labels, permission flags; cs/sk plural forms
+npm run i18n:check                      # new strings complete in en-gb, cs-cz, sk-sk; used legacy keys
+                                        # in the en-gb snapshot; 005 problem types, rule codes, audit
+                                        # labels; cs/sk plural forms
 npm run test:unit
 npm run build && npm run budget:check   # initial JS ≤ 200 KB gzipped; account and filters chunks listed
 npm run test:e2e                        # mobile-chromium, desktop-chromium, mobile-webkit

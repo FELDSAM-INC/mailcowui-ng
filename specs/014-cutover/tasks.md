@@ -89,7 +89,7 @@ templates, schemas, the nginx harness and CI (research R11, R15).
   - `tests/nginx/helpers.ts`: install or remove the generated files in the fixture mailcow directory, write the state bits and reload, send requests with a chosen Host, SNI, method and cookies without following redirects, and read the nginx-mailcow logs.
   - `tests/nginx/.gitignore`: `*.active`, generated certificates, `ng-cutover*` copies.
 - [ ] T006 [P] Create the harness fixtures:
-  - `tests/nginx/fixtures/web/`: a PHP stub for every classic script of data-model.md §2 and the exclusions. Each answers with a fixture status, content type and header `X-Stub: <script>?<query>`, including `index.php` answering `404` on `autodiscover.` and `autoconfig.` hosts and `mobileconfig.php` answering `302 Location: index.php?mobileconfig[&only_email][&app_password]` when signed out. Add the static files of X10;
+  - `tests/nginx/fixtures/web/`: a PHP stub for every classic script of data-model.md §2 and the exclusions. Each answers with a fixture status, content type and header `X-Stub: <script>?<query>`, including `index.php` answering `404` on `autodiscover.` and `autoconfig.` hosts and `mobileconfig.php` answering `302 Location: index.php?mobileconfig[&only_email][&app_password]` when signed out. Add the static files of X10, including `lang/lang.en-gb.json` and `lang/lang.sk-sk.json` served as `application/json`;
   - `tests/nginx/fixtures/api/public/index.php`: `GET /api/v2/health/ready`, `/health/live` and `/public-config`, with the announcement switchable through a fixture file;
   - `tests/nginx/fixtures/ng/`: `index.html` and `release.json` (a copy of one of the two variants that `global-setup.ts` writes with the current digest);
   - `tests/nginx/fixtures/mailcow/`: `mailcow.conf` with the harness host names and ports, `data/web/inc/app_info.inc.php` with `$MAILCOW_GIT_VERSION="2026-09a";`, `data/conf/nginx/` containing only `site.restv2.custom` copied from mailcow-rest-v2's `deploy/nginx/`, and `docker-compose.yml` pointing to `tests/nginx/compose.yaml` for the CLI's Compose detection.
@@ -109,6 +109,11 @@ templates, schemas, the nginx harness and CI (research R11, R15).
 (research R2, R3, R11; data-model §2, §3, §5).
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Legacy form map (constitution IV 1.3.0)
+
+- [ ] T007a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it. For this feature the map lists the arrival notice, arrival page and API keys note strings (none mirrors a classic form), any legacy key reused for them (for example `admin.loading`), and the `/lang/…` exclusion.
 
 ### Tests for the foundation (write first; must fail)
 
@@ -149,7 +154,7 @@ templates, schemas, the nginx harness and CI (research R11, R15).
 - [ ] T013 Write `cutover/mapping.json` (data-model.md §2):
   - the top-level fields, with `verifiedAgainst[0]` from T003;
   - all 36 rows, with `paths`, `editType`, `query`, `hostKinds`, `carry`, `decode`, `target` (route names of data-model.md §5), `deliveredBy`, `precedence` and samples. Sample values include `john%40example.org`, `%40example.org` (catch-all), `john%2Btag%40example.org`, `7`, `xn--bcher-kva.example` and a numeric ID per ID row;
-  - all 16 exclusions with the samples listed in research R12, plus `/administrator` and `/ngc-smoke-unknown` for X16.
+  - all 16 exclusions with the samples listed in research R12, plus `/administrator` and `/ngc-smoke-unknown` for X16, and `/lang/lang.en-gb.json` and `/lang/lang.sk-sk.json` for X10 (the app loads these at runtime, constitution IV 1.3.0).
 - [ ] T014 Reconcile the target route contract with the shipped routers (data-model.md §5):
   1. The names, paths and parameters in data-model.md §5 come from the UI 002–013 plans. For each target route that the shipped router lacks or names differently, either correct `cutover/mapping.json`, or add the route to the delivering feature's `routes.ts`, opening that feature's existing view for the object.
   2. List each change in the commit message.
@@ -278,7 +283,7 @@ compare. Then run the runbook's end-to-end checks (spec US2 "Independent Test").
 
 - [ ] T031 [P] [US2] Write `tests/nginx/exclusions.spec.ts`. In every switch state, every exclusion sample matches the off-state answer (status, content type, `Location` and `X-Stub`). It covers:
   - X01, `/ng/` and `/api/v2/` through `site.restv2.custom`;
-  - X02–X07 and X09–X11;
+  - X02–X07 and X09–X11. For X10 this includes `/lang/lang.en-gb.json` and `/lang/lang.sk-sk.json`, which answer `200` with `application/json` in every switch state and for every role's session or classic pass, never a redirect (constitution IV 1.3.0: the app loads them at runtime);
   - **X08**: `/?oauth`, `/?iam_sso`, `/?code=1&state=2`, `/?state=2&code=1`, `/?cancel_tfa_login`, `/admin?cancel_tfa_setup`, `/domainadmin/?cancel_tfa_login`, `/index.php?oauth` and `/domainadmin?sso_token=abc&cancel_tfa_login`;
   - **X12**: `POST`, `PUT`, `DELETE` and `OPTIONS` to M01, M05, M14 and M20, never redirected (US2-AS8);
   - **X14**: `/` and `/?mobileconfig` with `Host: autodiscover.example.test` and `autoconfig.example.test` answer `404` (US2-AS9);
@@ -421,7 +426,7 @@ forbidden (spec US4 "Independent Test").
   - the text says that keys for the classic API (`/api/v1`) are managed in the classic interface, which has its own sign-in (FR-035);
   - the link's `href` is `/classic?to=api-v1-keys`, from `classic-links.ts`, and it is a plain anchor, not a `RouterLink`;
   - the note renders only for the `admin` role;
-  - the label is translated in en-gb, cs-cz and sk-sk.
+  - the label is a new string present in en-gb, cs-cz and sk-sk, and another mailcow language (for example de-de) shows the English text.
 - [ ] T050 [P] [US4] Write `tests/e2e/cutover/api-keys-note.spec.ts`:
   - US4-AS1: the note is in the API keys screen's related area, with axe and no horizontal scrolling at 360 px;
   - US4-AS4: a domain administrator and a mailbox user see no link to the entry anywhere they can navigate.
@@ -441,7 +446,7 @@ forbidden (spec US4 "Independent Test").
 ### Implementation for User Story 4
 
 - [ ] T053 [US4] Generate the pass map, the entry allowlist map and the `location = /classic` and `location = /classic/exit` blocks in `scripts/cutover/generate.mjs`, replacing T033's constant `$ngc_pass`. Run `npm run cutover:generate`. T047 and T048 pass, and T012's comparison now includes `/classic`.
-- [ ] T054 [US4] Implement `src/features/cutover/components/ClassicApiKeysNote.vue` and export it from `src/features/cutover/index.ts`. Add the keys `cutover.classicApiKeys.title`, `.body` and `.link` to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, using "the classic interface", "klasické rozhraní" and "klasické rozhranie" (FR-039).
+- [ ] T054 [US4] Implement `src/features/cutover/components/ClassicApiKeysNote.vue` and export it from `src/features/cutover/index.ts`. Add the keys `cutover.classicApiKeys.title`, `.body` and `.link` to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` as T007a's form map lists them, using "the classic interface", "klasické rozhraní" and "klasické rozhranie" (FR-039). Never machine-translate.
 - [ ] T055 [US4] Add a designated "related" area below the page header of `src/features/api-keys/pages/ApiKeysPage.vue` (conventions "Where features meet"), and place `ClassicApiKeysNote` there for administrators (FR-035).
 - [ ] T056 [US4] Reduce `src/app/navigation/classic-links.ts` to `classicEntry('api-v1-keys')`, which returns `/classic?to=api-v1-keys`, and the excluded targets in use. Mark operator app links with `data-operator-link` in `src/app/shell/AppsMenu.vue` and in the sign-in screen's app links (`src/features/auth/`).
 - [ ] T057 [US4] Remove the placeholder mechanism (FR-003):
@@ -493,9 +498,9 @@ languages (spec US5 "Independent Test").
 ### Implementation for User Story 5
 
 - [ ] T063 [US5] Add the device counters to `src/features/cutover/arrival-state.ts`, and allow the three keys in `src/shared/platform/storage.ts`.
-- [ ] T064 [US5] Implement `src/features/cutover/components/ArrivalNotice.vue` and export it from `src/features/cutover/index.ts`. Add `cutover.arrival.title`, `.body`, `.fallback`, `.close`, `.dontShowAgain` and `.loading` (the arrival page) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (FR-039, FR-041). `npm run i18n:check` passes.
+- [ ] T064 [US5] Implement `src/features/cutover/components/ArrivalNotice.vue` and export it from `src/features/cutover/index.ts`. Add `cutover.arrival.title`, `.body`, `.fallback`, `.close` and `.dontShowAgain` to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (FR-039, FR-041), never machine-translated. The arrival page's loading text is the legacy `admin.loading`, verbatim, unless T007a's form map adds `cutover.arrival.loading` with a reason. `npm run i18n:check` passes.
 - [ ] T065 [US5] Render `ArrivalNotice` below `AnnouncementBanner` in `src/app/layouts/AuthLayout.vue` and `src/app/layouts/ShellLayout.vue`. T059–T062 pass.
-- [ ] T066 [US5] Add the section "Telling users" to `docs/cutover/runbook.md`, with the "before" and "after" announcement texts in English, Czech and Slovak (FR-040). The "before" text has the date placeholder, the address `https://<host>/ng/`, signing in again with the usual account, passkeys and second factors still working, forwarded bookmarks, and unaffected webmail, mail apps and quarantine links. The "after" text says the switch has happened and where to get help. Recommend activating "before" at least 7 days ahead and keeping "after" for at least 14 days, through UI 013's announcement settings. Note that the apply step warns when no announcement is active.
+- [ ] T066 [US5] Add the section "Telling users" to `docs/cutover/runbook.md`, with the "before" and "after" announcement texts in English, Czech and Slovak (FR-040), written by people and never machine-translated (constitution IV 1.3.0). The "before" text has the date placeholder, the address `https://<host>/ng/`, signing in again with the usual account, passkeys and second factors still working, forwarded bookmarks, and unaffected webmail, mail apps and quarantine links. The "after" text says the switch has happened and where to get help. Recommend activating "before" at least 7 days ahead and keeping "after" for at least 14 days, through UI 013's announcement settings. Note that the apply step warns when no announcement is active.
 
 **Checkpoint**: Users are informed in both interfaces and on arrival.
 
@@ -592,8 +597,9 @@ final content and sign-off, the rehearsal, and the cutover-ready release.
 
 - **Before anything**: UI 001–013 shipped (T001). This is an external dependency, not a task.
 - **Setup (Phase 1)**: T001 first. T002 then unblocks T003–T007, which can run in parallel.
-- **Foundational (Phase 2)**: depends on Setup and blocks all stories. T013 comes before T014 and
-  T015. T016 is independent of T015. T017 closes the phase.
+- **Foundational (Phase 2)**: depends on Setup and blocks all stories. T007a comes first; the
+  screen and string tasks depend on its form map. T013 comes before T014 and T015. T016 is
+  independent of T015. T017 closes the phase.
 - **US1 (Phase 3)**: depends on Phase 2.
 - **US2 (Phase 4)**: depends on Phase 2. It is safe to start in parallel with US1, but it edits
   `scripts/cutover/generate.mjs` after T015. Sequence T033 after T030 when one person does both.

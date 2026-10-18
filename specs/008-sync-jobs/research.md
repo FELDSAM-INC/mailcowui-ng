@@ -228,6 +228,11 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
   to failures. The `logAvailable` refinement keeps a rescheduled job from claiming it never ran.
 - **Alternatives considered**: showing the raw `exitStatus` was rejected (not translated).
   Predicting the next run time was rejected (spec Assumptions).
+- **Constitution IV 1.3.0**: legacy shows `mailbox.waiting` for every job without a last run, and
+  `mailbox.syncjob_check_log` for any success whose exit code it does not recognise. The "Never",
+  "Cleared, runs on the next cycle" and "Success for an unparsed code" refinements above deviate
+  from that, so they wait for a decision (plan, "Deviations needing a decision" 1 and 2). Until
+  then the legacy behaviour is built.
 
 ## 3. Forms
 
@@ -534,9 +539,19 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
 
 ### R19. Translations
 
+> **Superseded in part by constitution IV 1.3.0** (owner rule, 2026-10-18; `docs/conventions.md`,
+> "Translations and forms"). The screens mirror the legacy forms named in plan.md "Translations and
+> forms (constitution IV 1.3.0)", and mailcow's translations are used verbatim, in every language
+> mailcow ships, loaded at runtime from the installation. The bullets below are corrected in place.
+
 - **Decision** (FR-052, constitution IV):
-  - New messages under `syncJobs.*` in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
-  - Legacy reuse through `src/i18n/legacy-map.json` (meaning unchanged): the titles
+  - New strings under `syncJobs.*` in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, only for
+    elements the legacy forms lack (plan, "Translations and forms"), never machine-translated.
+  - Legacy keys used verbatim by their legacy key through UI 001's legacy translation layer (no
+    `src/i18n/legacy-map.json` alias, no copy in `src/i18n/messages/`). The create screen uses the
+    add modals' keys and the details screen the edit page's keys (`edit.hostname`, `edit.username`,
+    `edit.password`, `edit.encryption`, `edit.mins_interval`, `edit.exclude`, `edit.delete1`, …),
+    exactly as each legacy form does. The list: the titles
     `mailbox.sync_jobs`, `user.create_syncjob`, `add.syncjob`, `edit.syncjob`; the notice
     `add.syncjob_hint`; the field labels `add.hostname`, `add.port`, `add.enc_method`,
     `add.username`, `add.password`, `add.mins_interval`, `add.exclude`, `add.timeout1`,
@@ -547,13 +562,16 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     `mailbox.inactive`, `mailbox.never`, `mailbox.open_logs`, `mailbox.last_run_reset`,
     `mailbox.mins_interval`, `mailbox.excludes`; the results `mailbox.syncjob_EX_OK`, the six
     `mailbox.syncjob_EXIT_*` and `mailbox.syncjob_check_log`; the actions `mailbox.activate`,
-    `mailbox.deactivate`, `mailbox.remove`, `admin.refresh`, `edit.save`. All exist in the
-    upstream `2026-09a` files of en-gb, cs-cz and sk-sk (checked while planning), so no locale
-    needs a hand-written fallback.
-  - Legacy texts with markup (`edit.subfolder2`, `edit.maxage`, `edit.maxbytespersecond`) get new
-    keys that separate label and hint (`syncJobs.fields.subfolder`/`subfolderHint`, `maxAge`/
-    `maxAgeHint`, `maxBytesPerSecond`/`maxBytesPerSecondHint`). UI 002 D27's `stripMarkup` mapping
-    is not used for them, because it would join label and hint into one text.
+    `mailbox.deactivate`, `mailbox.remove`, `admin.refresh`, `edit.save`; the mailbox user's list
+    uses the `user.*` column keys of `js/site/user.js`. The messages: `success.mailbox_modified`,
+    `success.deleted_syncjob`, `success.deleted_syncjobs`, `danger.object_exists`,
+    `danger.no_user_defined`, `danger.access_denied`. All exist in the upstream `2026-09a` files
+    of en-gb, cs-cz and sk-sk (checked while planning); a key missing in a language would fall back
+    to `en-gb`, never to a hand-written value.
+  - Legacy texts with markup (`edit.subfolder2`, `edit.maxage`, `edit.maxbytespersecond`) are shown
+    verbatim as the field labels, through `SanitizedHtml.vue`, as the classic interface shows them.
+    The earlier plan to split them into new label and hint keys is withdrawn (constitution IV
+    1.3.0: no text change).
   - **Closed enumerations** this feature introduces into the UI are fully required: UI 008 adds
     `syncJobEncryptionValues` → `enums.syncJobEncryption`, `syncJobLastResultValues` →
     `enums.syncJobLastResult` and `syncJobBulkActionValues` → `enums.syncJobBulkAction` to
@@ -566,10 +584,11 @@ UI 008 is implemented after UI 001 to UI 007 and after API 008's contract is mer
     `ValidationRuleCode` `invalidRegex`, `optionNotAllowed`, `optionContainsSpace`,
     `customParamsNotPermitted`; and the problem types `sync-job-exists` and
     `permission-flag-required` (each unless already listed), with their messages.
-- **Rationale**: carries the legacy cs-cz and sk-sk translations over and keeps CI's completeness
-  gate meaningful for the new enumerations.
-- **Alternatives considered**: reusing `user.*` duplicates of the same texts was rejected; one
-  mapping per meaning is enough.
+- **Rationale**: constitution IV 1.3.0: mailcow's human-made translations are used one to one, and
+  CI's completeness gate stays meaningful for new strings and the new enumerations.
+- **Alternatives considered**: one key per meaning across both lists was rejected by constitution
+  IV 1.3.0: each screen uses the keys its own legacy form uses (`mailbox.*` for the administrators'
+  list, `user.*` for the mailbox user's list).
 
 ## 6. Testing and budgets
 

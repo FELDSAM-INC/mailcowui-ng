@@ -73,8 +73,9 @@ horizontal scrolling; strict CSP (no inline style, no `v-html`); no automatic re
 user is idle beyond the bounded refresh of R7; limits and defaults never hard-coded (FR-055).
 
 **Scale/Scope**: 6 user stories (3 at P1, 3 at P2); 3 routes and one address-driven dialog; 13
-operations; 3 locales; about 150 new translation keys, about 55 of them reused from legacy; one
-entry point into UI 003.
+operations; every language mailcow ships, with the legacy keys of the legacy form map and new
+strings in en-gb, cs-cz and sk-sk only for elements the classic interface lacks; one entry point
+into UI 003.
 
 ## Constitution Check
 
@@ -85,7 +86,7 @@ entry point into UI 003.
 | I. The API contract is the only interface | Only the 13 operations of [contracts/README.md](./contracts/README.md), through `@/api`. The pin is recorded in `contract/VERSION.json` and verified against the baseline (R1). No hand-written API type: form values and view models derive from generated types (data-model §2). The first draft's three API gaps are closed by the contract; none is open, and nothing is worked around. Errors come from problem `type`, rule `code` and `params` (R13). | PASS |
 | II. Mobile-first | Designed at 360 px first: cards below `md`, a table from `md` up; advanced form sections collapsed on phones; the log full screen on phones; the selection bar wraps instead of scrolling; 44 × 44 px targets; a top-of-page create action (FR-048). Deleting is confirmed with the jobs named, and several deletions need the count typed. Loading, empty, no-match and error states on the list, details, pickers and log. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe in both themes on every screen and state of the end-to-end tests. State and result use icons with text; table headers with `aria-sort`; a heading per card; keyboard-scrollable log region; announced saves, deletions, summaries, copies and result counts; the automatic refresh can be paused (WCAG 2.2.2) and announces nothing on its own (R7, R8, R17). | PASS |
-| IV. i18n and branding | All text in `syncJobs.*` for en-gb, cs-cz and sk-sk; about 55 legacy keys reused through `legacy-map.json`, all present in the upstream sk-sk file; markup-carrying legacy texts replaced by label and hint keys; new contract enumerations required by `i18n:check` (R19). Locale formatting for times and numbers. No brand data. | PASS |
+| IV. i18n and branding | Constitution 1.3.0: every mailcow language; the screens mirror the legacy forms of "Translations and forms" below, with mailcow's translations loaded at runtime and used verbatim by legacy key, the markup-carrying labels through `SanitizedHtml.vue`, missing keys falling back to `en-gb`; new strings under `syncJobs.*` only where legacy has none, in en-gb, cs-cz and sk-sk, never machine-translated; new contract enumerations required by `i18n:check` (R19). Locale formatting for times and numbers. No brand data. | PASS |
 | V. Security in the browser | The remote password is masked, protected from autofill and saving, held in one component `ref`, sent only by create and Source saves, never stored, cached, logged or put in the address, and never sent to a third party; an end-to-end test proves it (R12). The log is rendered as text, never as HTML (R17). Hiding the entry is a convenience: `permission-flag-required`, `404` and `412` are handled (R4, R13). | PASS |
 | VI. Test-first | `tasks.md` writes the mock, unit, end-to-end and smoke tests before each story's implementation. Every acceptance scenario of US1 to US6 has an end-to-end test on both viewports against the contract-validated mock; the 5 MB log and the password secrecy have dedicated tests (R20, R21). | PASS |
 | VII. Performance budgets | No new dependency; lazy routes and a lazy log viewer; `budget:check` unchanged initial JS (R22). Server state cached, written from responses and invalidated after mutations; the log is fetched only when opened; the only interval is bounded by running jobs, visibility, selection, a pause control and inactivity (R5, R7). | PASS |
@@ -103,6 +104,80 @@ introduce no violation. Decisions that touched gates:
   (VIII; R17).
 - Custom parameters hidden or read-only from the capabilities read, instead of a refusal after
   submission (I, conventions; R10).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature and overrides any earlier text in this plan, the spec, research and tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`):
+
+- **List** (administrators and domain administrators): `templates/mailbox/tab-syncjobs.twig`
+  (`mailbox.sync_jobs`, `user.create_syncjob`, `admin.refresh`, the quick actions
+  `mailbox.activate`, `mailbox.deactivate`, `mailbox.last_run_reset`, `mailbox.remove`,
+  `mailbox.toggle_all`); `draw_sync_job_table()` in `js/site/mailbox.js` (columns ID,
+  `mailbox.owner`, Server, `mailbox.last_run`, `mailbox.syncjob_last_run_result`, Log,
+  `mailbox.active`, `mailbox.status`, `mailbox.excludes`, `mailbox.mins_interval`,
+  `mailbox.action`; states `mailbox.running`, `mailbox.waiting`, `mailbox.inactive`,
+  `mailbox.never`; results `mailbox.syncjob_EX_OK`, the six `mailbox.syncjob_EXIT_*`,
+  `mailbox.syncjob_check_log`; `mailbox.open_logs`).
+- **List** (mailbox users): `templates/user/Syncjobs.twig` (`user.sync_jobs`,
+  `user.create_syncjob`); `draw_sync_job_table()` in `js/site/user.js` (columns `user.username`,
+  `user.last_run`, `user.syncjob_last_run_result`, `user.active`, `user.status`,
+  `user.encryption`, `user.excludes`, `user.interval` with "(min)", `user.action`).
+- **Create**: `templates/modals/mailbox.twig` `#addSyncJobModalAdmin` (with the owner select
+  `add.username`) and `templates/modals/user.twig` `#addSyncJobModal`: `add.syncjob`,
+  `add.syncjob_hint`, `add.hostname`, `add.port`, `add.username`, `add.password`,
+  `add.enc_method`, `add.select`, `add.mins_interval`, `edit.subfolder2`, `edit.maxage`,
+  `edit.maxbytespersecond`, `edit.timeout1`, `edit.timeout2`, `add.exclude`, `add.custom_params`,
+  `add.delete2duplicates`, `add.delete1`, `add.delete2`, `add.automap`,
+  `add.skipcrossduplicates`, `add.subscribeall`, `add.dry`, `add.active`, `admin.add`, in that
+  order.
+- **Details and section editing**: `templates/edit/syncjob.twig` (`edit.syncjob` and the edit page's
+  own keys: `edit.hostname`, `edit.username`, `edit.password`, `edit.encryption`,
+  `edit.mins_interval`, `edit.subfolder2`, `edit.maxage`, `edit.maxbytespersecond`,
+  `add.timeout1`, `add.timeout2`, `edit.exclude`, `add.custom_params`, `add.custom_params_hint`,
+  `edit.delete2duplicates`, `edit.delete1`, `edit.delete2`, `edit.automap`,
+  `edit.skipcrossduplicates`, `add.subscribeall`, `add.dry`, `edit.active`, `edit.save`).
+- **Run log**: `#syncjobLogModal` in `templates/modals/mailbox.twig` and
+  `templates/modals/user.twig`; `inc/ajax/syncjob_logs.php`.
+- **Messages**: the `syncjob` cases of `mailbox('add' | 'edit' | 'delete')` in
+  `inc/functions.mailbox.inc.php`: create and change → `success.mailbox_modified` (`%s` the target
+  mailbox), delete → `success.deleted_syncjob` (`%s` the ID) and `success.deleted_syncjobs`;
+  `danger.object_exists` (`%s` "host / user") for `sync-job-exists`, `danger.no_user_defined`,
+  `danger.access_denied`.
+
+**Screens or elements without a legacy counterpart** get new strings in en-gb, cs-cz and sk-sk
+(never machine-translated), kept minimal: filters, sorts and paging controls, the running-refresh
+pause control and the inactivity notice, the saved-password hint of the write-only password, the
+deactivation confirmations, per-job bulk results and outdated-version handling, the log viewer's
+copy and wrap controls, empty states, the custom-parameter refusals (`optionContainsSpace`,
+`optionNotAllowed`: legacy reports them as untranslated English), and History labels. The
+hard-coded legacy texts "Server", "Log" (column and log title) and "ID" have no key, so they are
+new strings too.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts, placeholders,
+option labels, units, order and grouping, column headers, action labels and success, warning and
+danger messages come from the legacy keys. Every mailcow language is supported; legacy values are
+loaded at runtime from the installation and shown verbatim, values with HTML (`edit.subfolder2`,
+`edit.maxage`, `edit.maxbytespersecond`) through `SanitizedHtml.vue`, and a missing key falls back
+to `en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by task T004a before any screen is built.
+
+**Deviations needing a decision** (found at planning time; not built until decided):
+
+1. **Last run without a time**: legacy shows `mailbox.waiting` ("Waiting") in the last-run column
+   whenever a job has no last run (never run, or cleared by "Schedule next"). Research R8 plans
+   `mailbox.never` for a job that never ran and a new "Cleared, runs on the next cycle" after a
+   reschedule (parity note 1).
+2. **Unrecognised success code**: legacy shows `mailbox.syncjob_check_log` ("Check log") next to the
+   success icon; parity note 2 plans "Success" (`mailbox.syncjob_EX_OK`) instead.
+3. **Success messages**: legacy confirms a created or changed job with `success.mailbox_modified`
+   ("Changes to mailbox %s have been saved") and has no "job created" text. Mirroring it is the
+   default; a new string would need approval.
 
 ## API dependency and gaps
 
@@ -150,7 +225,8 @@ UI 008 is implemented after **UI 001 to UI 007** and after **API 008's contract*
 Specifically (research R2):
 
 - **UI 001**: shell, router, catalogue entry `syncJobs`, `canAccess`, `NoAccessState`, list state,
-  forms, dialogs, announcer, clipboard, mock server and fixtures, i18n tooling.
+  forms, dialogs, announcer, clipboard, mock server and fixtures, i18n tooling, and the legacy
+  translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter) with `SanitizedHtml.vue`.
 - **UI 002**: `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with
   `requireTyped`, `EditableSection` driven by `edit` with `changedSince()`, the leave guard,
   `HistoryLink` and the audit log's target filters, the enumeration scope manifest, the domain
@@ -170,16 +246,20 @@ its owner; only the `permission-flag-required` session reaction, the mailbox sea
 ## Owner-level questions (defaults applied)
 
 1. **Review of new Czech and Slovak strings**: **Default**: as in UI 001, the owner reviews the new
-   cs-cz and sk-sk strings before release; T075 lists them.
+   cs-cz and sk-sk strings (written by hand, never machine-translated) before release; T075 lists
+   them. Legacy texts are not reviewed: they are mailcow's own.
 
 ## Parity notes added by the plan
 
 The spec's parity table is complete. The plan adds:
 
 1. A job whose last run was cleared by "Schedule next" reads "Cleared, runs on the next cycle"
-   instead of the classic "Waiting" in the last-run column (research R8).
+   instead of the classic "Waiting" in the last-run column (research R8). **Pending decision**
+   ("Deviations needing a decision" 1, which also covers "Never"); until then the legacy
+   `mailbox.waiting` is shown for every job without a last run.
 2. A success whose exit code the runner did not recognise reads "Success", where the classic
-   interface showed "Check log" next to a success icon (research R8).
+   interface showed "Check log" next to a success icon (research R8). **Pending decision**
+   ("Deviations needing a decision" 2); until then the legacy `mailbox.syncjob_check_log` is shown.
 3. The log can be linked by address and closed with Back on phones (research R17).
 4. Deactivating asks one explicit confirmation, where the classic interface deactivates at once
    (conventions "Confirmations", research R14).
@@ -245,7 +325,7 @@ src/app/navigation/catalogue.ts             # syncJobs → available
 src/app/router/routes.ts                    # register sync-jobs routes
 src/features/mailboxes/pages/MailboxDetailPage.vue   # MailboxSyncJobsLink in the header page actions
 src/features/audit-log/labels.ts            # sync-job event and target labels, if labels are mapped there
-src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  src/i18n/legacy-map.json  src/i18n/legacy/*.json (generated)
+src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  # new strings only; legacy keys are used verbatim
 src/i18n/coverage.json                      # scope manifest of UI 002 D2 (enum-scope.json in UI 003)
 scripts/i18n/lib.mjs                        # ENUM_NAMESPACES: sync-job enumerations; hostName format
 

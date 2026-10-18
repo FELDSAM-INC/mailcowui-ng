@@ -122,7 +122,7 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 ### R4. Starting single sign-on
 
 - **Decision**: `useSingleSignOnStart()` (in `src/features/auth/composables/`) runs these steps when
-  the user activates "Sign in with single sign-on":
+  the user activates the single sign-on action (labelled `admin.iam_sso`, constitution IV 1.3.0):
   1. It sets a busy state that disables the action against a second start (FR-043) and announces
      "Opening your organisation's sign-in page" politely.
   2. It aborts any running WebAuthn ceremony through the single abort controller of 001 R14, because
@@ -702,6 +702,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - afterwards `['oauth2-clients', 'list']` is invalidated.
   - The **information panel** (`Oauth2InfoPanel.vue`, FR-057) is a Reka `Collapsible`, collapsed
     below `md`. It shows:
+    - the legacy text `admin.oauth2_info` verbatim, through `SanitizedHtml.vue` (constitution IV
+      1.3.0). The scope, grant type and lifetime items below are new strings and wait for plan
+      "Deviations needing a decision" item 5;
     - the endpoint addresses `new URL(capabilities.endpoints.*, location.origin)` as copyable text;
     - the scope;
     - the grant types the server accepts, with translated labels, recommending the authorization
@@ -910,8 +913,15 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
 
 ### R26. Translations
 
+> **Superseded in part by constitution IV 1.3.0** (owner rule, 2026-10-18; `docs/conventions.md`,
+> "Translations and forms"; plan, "Translations and forms (constitution IV 1.3.0)"). Legacy keys
+> are used verbatim by their legacy name, never aliased through `legacy-map.json` or copied into
+> `src/i18n/messages/`; texts with markup or the product name are no longer rewritten; no Slovak
+> value is written for a legacy key. The namespaces below hold only the new strings that T005a's
+> legacy form map keeps; where a planned new string has a legacy equivalent, the legacy key wins.
+
 - **Decision**:
-  - **New namespaces** in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+  - **New namespaces** in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (new strings only):
     - `identityProviders.*` (sub-navigation);
     - `identityProvider.*` (overview, setup, sections, fields, help texts, test, sync, usage,
       return addresses, confirmations, announcements);
@@ -923,7 +933,10 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     - `validation.secretRequiredReason.{noStoredSecret,typeChanged,addressChanged}`,
       `validation.notFoundResource.mailboxTemplate` and the `duplicate` and `conflictsWith`
       wording with a position or a field label.
-    `problem.*` gets entries for the six API 012 problem types.
+    `problem.*` gets entries for the API 012 problem types that have no legacy message of the same
+    meaning: `identity-provider-in-use` shows `danger.authsource_in_use`, a failed single sign-on
+    return falls back to `danger.login_failed`, and a failed connection test to
+    `danger.iam_test_connection` (with the category hint as a new string).
   - **Parameter-driven messages**: `src/i18n/problems.ts` (001 R15) selects
     `validation.secretRequiredReason.<reason>` for `secretRequired` and
     `validation.notFoundResource.<resource>` for `notFound`, each falling back to the plain
@@ -931,28 +944,34 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     `attributeMapping.0.attributeValue`) into the entry's position, and `conflictsWith`'s `field`
     into that field's label. Earlier features may have added some of these selections already;
     this feature adds the missing ones.
-  - **Legacy reuse** through `src/i18n/legacy-map.json` for keys whose meaning is unchanged. The full
-    list is in data-model §8. It includes `admin.iam`, `admin.iam_server_url`, `admin.iam_realm`,
+  - **Legacy keys used verbatim** (constitution IV 1.3.0), listed in data-model §8 and completed by
+    the legacy form map. They include `admin.iam`, `admin.iam_server_url`, `admin.iam_realm`,
     `admin.iam_client_id`, `admin.iam_client_secret`, `admin.iam_version`, `admin.iam_mapping`,
     `admin.iam_default_template`, `admin.iam_default_template_description`, `admin.iam_rest_flow`,
     `admin.iam_login_provisioning`, `admin.iam_periodic_full_sync`, `admin.iam_import_users`,
     `admin.iam_sync_interval`, `admin.iam_test_connection`, the OIDC endpoint keys, the LDAP keys,
     `admin.iam_use_ssl_info`, `admin.iam_use_tls_info`, `admin.filter`, `admin.ignore_ssl_error`,
     `success.iam_test_connection`, `danger.iam_test_connection`, `danger.authsource_in_use`,
-    `admin.iam_sso`, six `admin.oauth2_*` labels, `edit.scope`, `user.attribute` and
-    `mailbox.template`.
-  - **Not reused**: `admin.iam_description` and `admin.oauth2_info` contain markup and say something
-    else than the new texts (UI 002's `stripMarkup` option, D27, would only remove the markup);
-    `admin.iam_auth_flow_info` and `admin.iam_extra_permission` name the product;
-    `admin.iam_host_info` described comma-separated hosts; `admin.iam_redirect_url` is now the
-    classic interface's return URL; `admin.force_sso*` are not shown by this feature. Each is
-    rewritten under a new key (FR-077).
+    `admin.iam_sso` (also the label of the sign-in action), `admin.iam_redirect_url`,
+    `admin.iam_description`, `admin.iam_extra_permission`, `admin.iam_auth_flow_info`,
+    `admin.iam_host_info`, the `admin.oauth2_*` labels and `admin.oauth2_info`, the edit page's
+    `edit.client_id`, `edit.client_secret`, `edit.scope` and `edit.redirect_uri`, `admin.add`,
+    `admin.save`, `admin.edit`, `admin.remove`, `admin.action`, `mailbox.toggle_all`,
+    `mailbox.quick_actions`, `user.attribute`, `mailbox.template`, and the messages
+    `success.object_modified`, `success.item_deleted`, `success.items_deleted` and
+    `danger.login_failed`.
+  - **No longer rewritten** (constitution IV 1.3.0): `admin.iam_description` and `admin.oauth2_info`
+    are shown verbatim with their markup through `SanitizedHtml.vue` (no `stripMarkup`);
+    `admin.iam_auth_flow_info` and `admin.iam_extra_permission` are shown verbatim with the product
+    name the installation's file has; `admin.iam_redirect_url` labels the redirect URL field as in
+    legacy; `admin.iam_host_info` stays with the comma-separated host input unless the owner approves
+    the list (plan, "Deviations needing a decision" item 1). `admin.force_sso*` are not shown by this
+    feature (UI 013 edits the option).
   - **Slovak**: the upstream `sk-sk` file has none of the `admin.iam_*` keys, nor `admin.filter`,
     `admin.ignore_ssl_error`, `success.iam_test_connection`, `danger.iam_test_connection`,
-    `danger.authsource_in_use` or `user.attribute`. Following 001 R15, their Slovak values are written
-    in `src/i18n/messages/sk-sk.json` under the same app keys. That is about 45 mapped keys, plus every
-    new string. The `admin.oauth2_*`, `edit.*` and `mailbox.template` keys exist in Slovak and are
-    imported.
+    `danger.authsource_in_use` or `user.attribute`. They fall back to `en-gb`, as in the classic
+    interface, and are never written by hand. The FeldHost fork's `sk-sk` file, which the app loads
+    at runtime, has all of them.
   - **Translation check** (UI 002 D2):
     - The growing shared enumerations are covered through the manifest `src/i18n/coverage.json`.
       Each story's message task appends the API 012 values it translates, where not listed yet:
@@ -973,7 +992,9 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
     (FR-078). User-facing text says "the classic interface" (FR-079).
 - **Rationale**: These are 001 R15 and R27, with UI 002's coverage manifest, applied to this
   feature's strings and enumerations.
-- **Alternatives considered**: Leaving Slovak to fall back to English: forbidden by constitution IV.
+- **Alternatives considered**: Hand-written Slovak values for the legacy keys missing upstream (the
+  first version of this decision): forbidden by constitution IV 1.3.0, which falls back to `en-gb`
+  as the classic interface does.
 
 ### R27. Security, storage and performance
 

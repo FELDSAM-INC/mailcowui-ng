@@ -26,7 +26,7 @@ point that UI 003's plan has to provide (R5).
   |---|---|---|
   | UI 001 | client, `ApiProblem`, query client and keys, session store and reactions, router guard, navigation catalogue, shell, `NoAccessState`, pending-actions screen, second-factor step components, `usePasskeyRegistration`, WebAuthn platform module, `useListState`, `ListState`, `PaginationBar`, `useConfirm`/`ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `RelativeTime`, `useAnnouncer`, `useCountdown`, `clipboard.ts`, `safeHref`, audit log screen | `src/api/`, `src/app/`, `src/features/{auth,passkeys,audit-log}/`, `src/shared/` |
   | UI 001 | `ApiKeySecretDialog.vue`, promoted here as planned (R13) | `src/features/api-keys/components/` → `src/shared/components/OneTimeSecretDialog.vue` |
-  | UI 002 (D21, D22, D27, D2) | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`, `EditableSection` with changed-value marking, `HistoryLink` with the audit target filters, `useLeaveGuard`, `formatBytes`, the translation coverage manifest, the `stripMarkup` import of legacy texts | `src/shared/composables/{useBulkSelection,useLeaveGuard}.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary,ConfirmDialog,EditableSection,HistoryLink}.vue`, `src/i18n/format.ts`, `src/i18n/coverage.json`, `scripts/i18n/import-legacy.mjs` |
+  | UI 002 (D21, D22, D27, D2) | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`, `EditableSection` with changed-value marking, `HistoryLink` with the audit target filters, `useLeaveGuard`, `formatBytes`, the translation coverage manifest (legacy texts come from UI 001's legacy translation layer and `SanitizedHtml.vue`, constitution IV 1.3.0) | `src/shared/composables/{useBulkSelection,useLeaveGuard}.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary,ConfirmDialog,EditableSection,HistoryLink}.vue`, `src/i18n/format.ts`, `src/i18n/coverage.json` |
   | UI 003 (R4, R19, data-model §8) | the mailbox detail with its section list (`sections.ts`, `MailboxSectionNav.vue`, child routes of `mailbox-detail` in `routes.ts`), the FR-040 entries (`ManagedSettingsGroup.vue`, optional `to`), the mailbox list's bulk menu (`MailboxBulkActions.vue`, `bulk.ts`), the password field, generator and policy hints (`PasswordField.vue`, `PasswordPolicyHints.vue`, `password/{generate,policy-rules}.ts`), promoted here at their second use | `src/features/mailboxes/` (R5), `src/features/mailboxes/password/`, `src/features/mailboxes/components/password/` |
   | UI 004 (R2, R8) | `utf8ByteLength`, the promoted `DomainPicker` (the pattern of `MailboxSearchPicker`, R19) | `src/shared/validation/utf8.ts`, `src/shared/components/DomainPicker.vue` |
 
@@ -273,11 +273,12 @@ point that UI 003's plan has to provide (R5).
     cryptographic shuffle (FR-025).
   - **Own password** (`/account/password`, FR-021 to FR-028): current password, new password twice,
     "Sign out my other sessions" ticked by default (`endOtherSessions`). Before the change, mailbox
-    users see "Your {n} app passwords keep working" from the overview's `activeAppPasswords`
-    (FR-027). The request runs through `useSecretRequest` (R13). On `200` the app clears the fields
-    and announces one message built from
-    `sessionsEnded`, `activeAppPasswords` (mailbox users) and `mailServerCacheSeconds` ("Mail apps
-    may accept the old password for up to 5 minutes"), with plural forms (FR-026, FR-119). The
+    users see the legacy `user.change_password_hint_app_passwords` with the overview's
+    `activeAppPasswords` (FR-027). The request runs through `useSecretRequest` (R13). On `200`
+    the app clears the fields and announces the legacy `success.password_changed_success`,
+    followed by new strings built from `sessionsEnded`, `activeAppPasswords` (mailbox users) and
+    `mailServerCacheSeconds` ("Mail apps may accept the old password for up to 5 minutes"), with
+    plural forms (FR-026, FR-119). The
     response renews the session cookie; the next write that meets `csrf-token-mismatch` is retried
     once by 001's middleware. `current-password-incorrect` goes on the current-password field;
     `too-many-requests` shows the countdown (FR-028).
@@ -630,7 +631,7 @@ point that UI 003's plan has to provide (R5).
     limit"). Outcomes: `2xx` done, `404` not found (the alias expired, spec edge case;
     the list refreshes without it), `412` outdated, `403` refused with the reason, network failure
     "outcome unknown" without automatic retry. Items that did not succeed stay selected (FR-019).
-  - Explanation: legacy `user.spam_aliases_info` (plain text, R23).
+  - Explanation: legacy `user.spam_aliases_info`, verbatim through `SanitizedHtml.vue` (R23).
 - **Rationale**: Legacy chooses the validity only after creation (one year fixed); choosing it at
   creation is the improvement the parity table records. The runner is the conventions' bulk
   behaviour for APIs without a bulk operation (clarification).
@@ -883,39 +884,44 @@ point that UI 003's plan has to provide (R5).
 
 ### R23. Internationalisation
 
+> **Superseded in part by constitution IV 1.3.0** (owner rule, 2026-10-18; `docs/conventions.md`,
+> "Translations and forms"). The screens mirror the legacy forms named in plan.md "Translations and
+> forms (constitution IV 1.3.0)", and mailcow's translations are used verbatim, in every language
+> mailcow ships, loaded at runtime from the installation. The bullets below are corrected in place.
+
 - **Decision**:
-  - **Legacy reuse** (constitution IV, FR-118, SC-007): every key listed in the spec's Legacy Parity
-    section is mapped in `src/i18n/legacy-map.json`. Checked against the upstream `2026-09a` files
-    while planning:
+  - **Legacy keys** (constitution IV, FR-118, SC-007): every key listed in the spec's Legacy Parity
+    section, and every key of the plan's legacy form map (task T010a), is used directly by its
+    legacy key through UI 001's legacy translation layer (runtime `/lang/` loader, `en-gb`
+    snapshot, formatter). There is no `src/i18n/legacy-map.json` alias and no copy in
+    `src/i18n/messages/`. Checked against the upstream `2026-09a` files while planning:
     - **HTML in legacy values** (`tfa.api_register`, `login.invalid_pass_reset_token`,
       `mailbox.sieve_info`, `user.spam_aliases_info`, `user.tls_policy_warning`,
       `user.pushover_info`, `edit.pushover_vars`, `user.eas_reset_help`,
-      `user.direct_protocol_access`, `user.force_pw_update`): UI 002's importer (D27) accepts
-      `{ "from": "<legacy key>", "stripMarkup": true }`, removing the tags (`<br>` becomes a space)
-      and decoding entities. UI 005 adds one option for the only text whose anchor carries meaning,
-      `tfa.api_register`: with `"linkSlot": true`, the importer turns its single `<a …>text</a>` into
-      the named placeholder `{link}` and writes the anchor text to the sibling key `<appKey>Link`;
-      any second anchor is refused. Components render `{link}` through `<i18n-t>` with a URL from
-      code, never from translations. No `v-html` is involved.
-    - **Missing in cs-cz**: `tfa.setup_title`, `tfa.setup_required`, `danger.tfa_removal_blocked`,
-      `user.pw_update_required`. **Missing in sk-sk**: those four plus `login.reset_password`,
-      `login.request_reset_password`, `login.new_password`, `login.new_password_confirm`,
-      `login.invalid_pass_reset_token`, `danger.password_reset_na`,
-      `danger.reset_token_limit_exceeded`, `danger.invalid_reset_token`,
-      `success.password_changed_success`, `user.password_reset_info`, `user.tfa_info`,
-      `user.spam_aliases_info`. They are written in that locale's hand-written layer (001-R15).
-    - **Placeholders**: `%s` becomes `{0}` (001-R15). Strings whose `%d` needs plural forms
-      (`user.change_password_hint_app_passwords`) get new keys with the legacy text as the starting
-      translation, as the spec allows.
-  - **Plural rules** (FR-119): `src/i18n/index.ts` registers `pluralRules` for `cs-cz` and `sk-sk`
-    (1 → first form, 2–4 → second, otherwise third), unless UI 002 or 003 already did.
-    `scripts/i18n/check.mjs` gains a rule: a key whose `en-gb` value has plural choices must have
-    exactly three choices in `cs-cz` and `sk-sk`.
-  - **New namespaces**: `account.*`, `filters.*`, `auth.passwordReset.*`,
-    `auth.pendingActions.passwordChange.*`, `auth.pendingActions.secondFactor.*`,
-    `permissionFlags.*` (the nine flags), `selfService.dependency.*`, `selfService.service.*`, and
-    and the `problem.*`, `validation.*` and `auditLog.*` keys of the values appended to
-    `src/i18n/coverage.json`.
+      `user.direct_protocol_access`, `user.force_pw_update`): shown verbatim through
+      `SanitizedHtml.vue` with UI 001's small allowlist. They are not stripped to plain text, and
+      `tfa.api_register` keeps its own anchor (no `linkSlot`); its `%s` gets the product name from
+      the branding configuration, as the classic interface fills it from `ui_texts.main_name`.
+    - **Missing in the upstream cs-cz or sk-sk files** (`tfa.setup_title`, `tfa.setup_required`,
+      `danger.tfa_removal_blocked`, `user.pw_update_required`, and in sk-sk also the `login.*` reset
+      keys, `danger.password_reset_na`, `danger.reset_token_limit_exceeded`,
+      `danger.invalid_reset_token`, `success.password_changed_success`, `user.password_reset_info`,
+      `user.tfa_info`, `user.spam_aliases_info`): no hand-written value. They fall back to `en-gb`,
+      as in the classic interface; the FeldHost fork's cs-cz and sk-sk files are complete anyway.
+    - **Placeholders**: `%s` and `%d` are converted mechanically and filled as the classic interface
+      fills them. `user.change_password_hint_app_passwords` is used verbatim with its `%d` (the
+      number of active app passwords), not replaced by a plural key.
+  - **Plural rules** (FR-119), for new strings only: `src/i18n/index.ts` registers `pluralRules`
+    for `cs-cz` and `sk-sk` (1 → first form, 2–4 → second, otherwise third), unless UI 002 or 003
+    already did. `scripts/i18n/check.mjs` gains a rule: a new string whose `en-gb` value has plural
+    choices must have exactly three choices in `cs-cz` and `sk-sk`.
+  - **New namespaces**, only for elements the legacy forms lack (section names, the permission
+    flag labels (`acl.*`), field labels and messages with a legacy key use that key): `account.*`,
+    `filters.*`, `auth.passwordReset.*`, `auth.pendingActions.passwordChange.*`,
+    `auth.pendingActions.secondFactor.*`, `selfService.dependency.*`, `selfService.service.*`, and
+    the `problem.*`, `validation.*` and `auditLog.*` keys of the values appended to
+    `src/i18n/coverage.json` that have no legacy `danger.*` equivalent. Each is in en-gb, cs-cz and
+    sk-sk, never machine-translated.
   - **Problem messages with parameters** (`src/i18n/problems.ts`): `permission-flag-required` with
     the flag labels joined by `Intl.ListFormat` (conjunction or disjunction by
     `requiredFlagsMatch`); `temporary-failure` with the dependency; `second-factor-enrolment-failed`
@@ -924,10 +930,12 @@ point that UI 003's plan has to provide (R5).
     the translated class; the formats `email`, `pushoverCredential`, `soundName` and `digits`.
   - **Formatting**: sizes with the byte formatter of `src/i18n/format.ts` (binary units, locale
     digits), countries with `Intl.DisplayNames`, expiry as relative plus absolute time (FR-120).
-- **Rationale**: The constitution requires legacy keys to carry over and missing keys to fail CI;
-  converting markup at import time keeps the runtime free of HTML and the translations auditable.
+- **Rationale**: Constitution IV 1.3.0: mailcow's human-made translations are used one to one, and
+  missing keys fail CI (new strings in en, cs and sk; used legacy keys in the `en-gb` snapshot).
 - **Alternatives considered**: Rewriting every HTML-bearing string as a new key was rejected: it
-  would drop 33 existing translations per key and fail SC-007.
+  would drop 33 existing translations per key and fail SC-007. Converting markup to plain text at
+  import time (the earlier decision) was rejected by constitution IV 1.3.0: legacy text is never
+  altered.
 
 ### R24. Testing
 

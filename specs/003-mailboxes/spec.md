@@ -894,8 +894,11 @@ viewports.
   rename incomplete (steps), outcome unknown (with the step), the domain's alias limit, template
   name already exists, protected template, temporary failure (mail store, webmail service or shared
   store), the quota rules with the bytes allowed, each
-  password policy rule with its parameter, the tag limit and the read-only field rule. The English
-  detail text of the API MUST NOT be shown to users as the message.
+  password policy rule with its parameter, the tag limit and the read-only field rule. Each MUST
+  be shown with the legacy `danger.*` or `warning.*` message of the same meaning where one exists
+  (for example `danger.max_mailbox_exceeded`, `danger.mailbox_quota_exceeded`,
+  `danger.template_exists`), and with a new string only otherwise (constitution IV 1.3.0). The
+  English detail text of the API MUST NOT be shown to users as the message.
 - **FR-069**: Field errors from the API MUST be shown on the matching fields, with a summary at the
   top of the form that links to each field and receives the focus after a failed submit.
 
@@ -909,12 +912,16 @@ viewports.
 - **FR-071**: Every screen MUST be designed first for a 360 px wide viewport with touch input:
   touch targets of at least 44×44 px, no horizontal scrolling of primary content, filters and
   sorting in a panel that opens over the list, and form groups that stack in one column.
-- **FR-072**: All user-facing text MUST come from the translation files in English, Czech and
-  Slovak. Legacy keys MUST be reused where the meaning is unchanged (the `mailbox`, `add`, `edit`,
-  `acl`, `tfa`, `user`, `danger`, `success` and `warning` sections, for example `acl.prohibited`,
-  `edit.mailbox_rename_warning`, `warning.quota_exceeded_scope`). Legacy texts that embed the product
-  name (the password reset permission and the built-in authentication source) MUST take the product
-  name from the branding configuration (feature 001).
+- **FR-072**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key (the `mailbox`, `add`, `edit`, `acl`, `tfa`, `user`, `admin`,
+  `danger`, `success` and `warning` sections, for example `acl.prohibited`, `acl.pw_reset`,
+  `edit.mailbox_rename_warning`, `warning.quota_exceeded_scope`); the screens MUST mirror the
+  legacy forms (fields, labels, help texts, options, units, order and messages); new strings, only
+  for elements the classic interface lacks, MUST exist in English, Czech and Slovak and MUST NOT be
+  machine-translated. Legacy placeholders that the classic interface fills with the product name
+  (`edit.force_pw_update_info`), and the built-in authentication source, which its template
+  hard-codes, MUST take the product name from the branding configuration (feature 001).
 - **FR-073**: Sizes MUST be shown in binary units (MiB, GiB, TiB), and numbers, dates and times in
   the user's locale and time zone.
 
@@ -935,6 +942,13 @@ Legacy reference: FeldHost fork `feldhost-202609a` of upstream tag `2026-09a`,
 and `js/build/013-mailcow.js`. **Matched** keeps the behaviour, **Improved** keeps the purpose
 with a better behaviour, **Deferred** moves it to the named feature of this app, **Dropped**
 removes it, and **Blocked by an API gap** waits for a capability listed under API gaps.
+
+**Constitution IV 1.3.0 (forms one to one)**: rows marked **Improved** or **Dropped** that change a
+legacy field, label, unit, option or grouping (the password repeat, quota units, the
+haveibeenpwned check, the rename alias choice, the grouped permission switches, allowed hosts for
+SMTP, mass template removal, the detail's section split) are pending decisions, listed in
+plan.md under "Translations and forms (constitution IV 1.3.0)". Until decided, the legacy form
+applies.
 
 #### Mailbox list ("Mail setup › Mailboxes" tab)
 
@@ -1142,7 +1156,9 @@ Gaps that remain, recorded in the plan. Each is to be specified in mailcow-rest-
   zero violations on the 360 px and the desktop viewport, in light and dark themes, and needs no
   horizontal scrolling at 360 px.
 - **SC-005**: 100% of the error types and validation rule codes that API feature 003 documents are
-  shown as translated messages in English, Czech and Slovak; no translation key is missing.
+  shown as translated messages, legacy messages where one has the same meaning, in every supported
+  language; no new string is missing in English, Czech or Slovak, and no legacy key used is missing
+  from the `en-gb` snapshot.
 - **SC-006**: In 100% of conflict tests, an outdated save, deletion or rename changes nothing, the
   user is told, and their entries are kept.
 - **SC-007**: For a bulk action on 100 mailboxes, the user sees one outcome per mailbox, and the

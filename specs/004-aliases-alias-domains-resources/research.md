@@ -88,7 +88,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   | D16 | `isEntryAvailable(id)` | `src/app/navigation/visibility.ts` | 003 R19 (FR-040 links) | **Adds if missing**: `true` when the catalogue entry is `available` and accessible |
   | D17 | Domain detail route `domain-detail`, `/domains/:domain` (ASCII name) | `src/features/domains/routes.ts` | 002 D4 | links from aliases and alias domains |
   | D18 | Mailbox detail layout `mailbox-detail`, `/mailboxes/:address([^/]+@[^/]+)`, with child routes, and the designated action area `MailboxSectionNav.vue`, which renders the entries of `sections.ts` whose route exists | `src/features/mailboxes/{routes.ts,sections.ts,components/display/MailboxSectionNav.vue}` | 003 R5, R19 | "Send as" becomes a child route and a `sections.ts` entry (R4) |
-  | D19 | Enumeration scope manifest and `stripMarkup` | `src/i18n/coverage.json` (canonical), `scripts/i18n/` | 002 D2, D27; 003 R2 | this feature appends its values and uses `{ "from": …, "stripMarkup": true }` (R20) |
+  | D19 | Enumeration scope manifest | `src/i18n/coverage.json` (canonical), `scripts/i18n/` | 002 D2; 003 R2 | this feature appends its values (R20). UI 002's `stripMarkup` is not used: legacy texts are shown verbatim (constitution IV 1.3.0) |
   | D20 | Mock state, handlers and factories for domains and mailboxes | `tests/mocks/handlers/{domains,mailboxes}.ts`, `tests/mocks/factories/{domain,mailbox}.ts`, `tests/mocks/scenarios/state.ts` | 002 D28, 003 R20 | the 004 rules read domains (alias limits, relay state) and mailboxes (holders, sender settings) |
 
   New shared blocks of this feature, each with at least two uses here (R3):
@@ -179,8 +179,9 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       placeholder.
     - US1, US4 and US7 each flip their row to `available` when they register its routes, so no
       entry ever leads to "not found" (SC-007, 001 data-model §2).
-    - The labels reuse `mailbox.aliases`, `mailbox.domain_aliases` (cs-cz and sk-sk; English "Alias
-      domains") and `mailbox.resources`. The app-layer English text of `nav.aliases` is removed.
+    - The labels are the legacy keys `mailbox.aliases`, `mailbox.domain_aliases` and
+      `mailbox.resources`, verbatim in every language (constitution IV 1.3.0). The app-layer English
+      text of `nav.aliases` is removed.
   - **Routes** (full map in data-model §5): `aliases`, `alias-create`, `alias-detail`,
     `alias-domains`, `alias-domain-create`, `alias-domain-detail`, `resources`, `resource-create`,
     `resource-detail` and `mailbox-send-as`.
@@ -387,8 +388,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **Alias creation form** (FR-018–FR-020): four sections, "Addresses", "Destination", "Options"
     and "Comments", on one full-screen page.
     - **Addresses**: `AddressEntriesField`, with entries of the form `@domain` marked "Catch-all"
-      (US2-AS2). The help text replaces `add.alias_address_info` with a new key that takes the
-      branding `productName` (FR-067).
+      (US2-AS2). The help text is `add.alias_address_info`, verbatim through `SanitizedHtml.vue`, as
+      the installation's file has it (constitution IV 1.3.0, FR-067).
     - **Destination**: a Reka `RadioGroup` with "Deliver to addresses", "Discard silently", "Learn
       as spam" and "Learn as ham".
       - The destination list is editable only for the first choice. For the others it is shown
@@ -726,8 +727,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **External sender addresses** (`ExternalSenderAddressesSection`, FR-052): an `EntryListField`
     for administrators and for domain administrators with `extendSenderAcl`. Others see it read-only,
     with a note that an administrator grants "Allow to extend sender ACL by external addresses". The
-    legacy hints (`edit.extended_sender_acl_info`, split into lines) and `edit.sender_acl_info`
-    (FR-053) are shown as plain text.
+    legacy hints `edit.extended_sender_acl_info` and `edit.sender_acl_info` (FR-053) are shown
+    verbatim, with their line breaks, through `SanitizedHtml.vue` (constitution IV 1.3.0).
   - **Save** (FR-054): one save bar for the screen.
     - The patch contains `explicitPermissions` only if that set changed, and
       `externalSenderAddresses` only if that list changed. Each is the whole set, with `If-Match`.
@@ -907,37 +908,42 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
 - **Alternatives considered**: Labelling the members from API research R20 alone: rejected,
   because research is not the published contract (constitution I).
 
-### R20. Translations and the legacy import
+### R20. Translations and the legacy texts
+
+> **Superseded in part by constitution IV 1.3.0 (owner rule, 2026-10-18).** mailcow's translations
+> are used one to one and the forms mirror legacy (`docs/conventions.md`, "Translations and forms";
+> plan, "Translations and forms (constitution IV 1.3.0)"). The build-time import, `legacy-map.json`
+> aliasing, `stripMarkup`, the per-locale restriction and the hand-written cs-cz and sk-sk values
+> below are withdrawn. The decision now reads as follows.
 
 - **Decision**:
-  - **Reuse**: every key the spec's "Translation reuse" lists is mapped in
-    `src/i18n/legacy-map.json`, with these exceptions and adjustments, verified against upstream
-    `2026-09a`:
-    - **Markup, converted to plain text**: `add.goto_spam`, `add.goto_ham`, `edit.sender_acl_info`,
-      `edit.sender_acl_disabled` and `edit.extended_sender_acl_info`.
-    - **Not reused**: `mailbox.alias_domain_alias_hint`. It still names the legacy "Filters" tab and
-      "SOGo -> Forwarder", and its Czech text lacks the last sentence, so the meaning changes; FR-017
-      gets a new key. `add.alias_address_info` names the product and is replaced by a key with
-      `{productName}`. `success.resource_modified` says "mailbox" and is replaced.
-    - **Restricted to cs-cz and sk-sk**: `mailbox.domain_aliases` and `mailbox.add_domain_alias`. The
-      en-gb app layer supplies "Alias domains" and "Add alias domain".
-    - **Missing upstream**, supplied by that locale's app layer (001 R15):
-      - in sk-sk: `add.internal`, `edit.internal_info`, `edit.sender_allowed` and
-        `edit.sender_allowed_info`;
-      - in cs-cz and sk-sk: `acl.alias_external_goto` and `danger.external_goto_denied`.
-    - **Already mapped**: keys that UI 002 or UI 003 already mapped to an app key are reused through
-      that app key, for example `ratelimit.*`, `acl.ratelimit`, `admin.dkim_*`, `mailbox.activate`
-      and `mailbox.deactivate`. No second app key is added for the same legacy key and meaning.
-  - **Import mechanism**: UI 002 D27's object form `{ "from": "<legacy key>", "stripMarkup": true }`
-    converts the five markup texts. Tags are removed, `<br>` becomes a space, the basic entities are
-    decoded, whitespace is collapsed, and no `<` or `>` may remain. UI 004 adds two options to the
-    same object form, test first, unless UI 002 or UI 003 already did:
-    1. `"locales": ["cs-cz", "sk-sk"]` limits the entry to those locales. For the other locales, the
-       app layer must supply the key, and the check enforces that.
-    2. **Positional placeholders**: `%s` and `%d`, in order, become `{0}`, `{1}` and so on. For example
-       `success.alias_added` becomes "Alias address {0} ({1}) has been added".
-
-    The converted texts are rendered as plain text, never as HTML (constitution V).
+  - **Legacy keys, verbatim**: every key the spec's "Translation reuse" lists, and every other key of
+    the plan's legacy form map, is used directly by its legacy key through UI 001's legacy
+    translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter). No app key aliases it
+    and no value is copied into `src/i18n/messages/`. Verified against upstream `2026-09a`:
+    - **Markup**: `add.goto_spam`, `add.goto_ham`, `add.alias_address_info`,
+      `add.target_address_info`, `add.alias_domain_info`, `edit.sender_acl_info`,
+      `edit.sender_acl_disabled`, `edit.extended_sender_acl_info` and
+      `mailbox.alias_domain_alias_hint` are rendered unchanged through `SanitizedHtml.vue`.
+    - **Formerly not reused, now verbatim**: `add.alias_address_info` (the installation's file names
+      the product: "mailcow", fork "FeldHost™ Mailhosting"), `success.resource_modified` (legacy's
+      own message for a changed resource) and `mailbox.alias_domain_alias_hint` (pending the owner,
+      plan "Deviations needing a decision" 3).
+    - **No rewording**: `mailbox.domain_aliases` and `mailbox.add_domain_alias` keep their legacy
+      texts in every language, including English.
+    - **Missing upstream** (in sk-sk: `add.internal`, `edit.internal_info`, `edit.sender_allowed`,
+      `edit.sender_allowed_info`; in cs-cz and sk-sk: `acl.alias_external_goto`,
+      `danger.external_goto_denied`): they fall back to `en-gb`, as in the classic interface. No
+      locale gets a hand-written value. The FeldHost fork's files contain all of them.
+    - **Shared with UI 002 and UI 003**: keys such as `ratelimit.*`, `acl.ratelimit`, `admin.dkim_*`,
+      `mailbox.activate` and `mailbox.deactivate` are the same legacy keys; nothing is duplicated.
+    - **Messages**: problem types and rule codes map to the legacy key of the same meaning where one
+      exists, for example `address-in-use` with `holder: alias` → `danger.is_alias`, with
+      `holder: temporaryAlias` → `danger.is_spam_alias`, otherwise `danger.is_alias_or_mailbox`;
+      `notEligible` with `kind: relayDomain` → `danger.targetd_relay_domain`. Only outcomes legacy
+      cannot produce get new `problem.*` or `validation.*` sub-keys.
+  - **Placeholders**: UI 001's formatter fills `%s` and `%d` in order, for example
+    `success.alias_added` with the address and the ID, as `inc/functions.mailbox.inc.php` does.
   - **Enumeration scope** (D19): this feature appends to the scope manifest:
     - the ten 004 audit event types and the four target types;
     - the rule codes its forms show;
@@ -948,19 +954,24 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     `ResourceBookingRule`, `MailboxSenderPermission.type`, `MailboxImplicitSenderAddress.source`,
     `AliasCopyOutcome.outcome`, `AliasCopyOutcome.reason` and the four `AliasDomainCreationReport`
     steps. The full lists are in data-model §8.
-  - **New keys**, per area: `aliases.*`, `aliasDomains.*`, `resources.*`, `senderSettings.*`,
-    `bulk.*` (if UI 002's shared bulk strings lack an action), plus the problem and validation
-    sub-keys of R17, and the audit labels of R19. All three locales are complete (`i18n:check`).
-  - **The product name** in the address help comes from the branding configuration (FR-067).
+  - **New strings**, only for elements without a legacy equivalent (plan, "Screens or elements
+    without a legacy counterpart"), per area: `aliases.*`, `aliasDomains.*`, `resources.*`,
+    `senderSettings.*`, `bulk.*` (if UI 002's shared bulk strings lack an action), the problem and
+    validation sub-keys of R17 that no legacy message covers, and the audit labels of R19. They are
+    written in en-gb, cs-cz and sk-sk, never machine-translated (`i18n:check`). Closed enumeration
+    values whose meaning a legacy key carries use it, for example `AliasDestinationType` `discard`,
+    `learnSpam` and `learnHam` → `add.goto_null`, `add.goto_spam`, `add.goto_ham`, and
+    `ResourceBookingRule` → the `mailbox.booking_*` keys.
+  - **The product name** appears only inside legacy texts, as the installation's file has it
+    (FR-067).
   - **"SOGo"** stays in the reused groupware texts (spec assumption).
-- **Rationale**: The constitution wants legacy translations to carry over where the meaning is
-  unchanged. Converting presentational markup keeps the meaning, and refusing links and scripts keeps
-  the import safe. The two-layer model already handles per-locale gaps.
+- **Rationale**: Constitution IV 1.3.0: mailcow's translations were written by people and are used
+  one to one, from the installation, so the app shows exactly what the classic interface shows.
 - **Alternatives considered**:
-  - Rendering legacy HTML through `SanitizedHtml`: rejected. That path is for operator content, and
-    FR-067 asks for plain text.
-  - Retyping the affected texts as new keys: rejected, because it loses the reviewed cs-cz and
-    sk-sk translations.
+  - Converting legacy markup to plain text at import (the earlier decision): withdrawn, because it
+    changes the text.
+  - Retyping the affected texts as new keys: rejected, because it loses the reviewed translations of
+    all 33 languages.
   - Translating every enumeration value of the pin: rejected by UI 002 D2 and UI 003 R2. Unknown
     values show a translated generic label.
 

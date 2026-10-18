@@ -49,10 +49,12 @@ and UI 002 and UI 003 deliver, and adds:
   them (R5).
 - **The contract-validated mock** gains handlers for the 23 operations, on one scenario state that
   shares mailboxes and domains with UI 002 and UI 003 (R21).
-- **i18n**: the spec's legacy keys are reused through UI 002's `stripMarkup` import option, plus two
-  options added here: per-locale restriction and positional placeholders. They cover the texts with
-  markup and the eight cs-cz or sk-sk gaps. The feature's values are appended to the enumeration
-  scope manifest of UI 002 and UI 003 (R20).
+- **i18n** (constitution IV 1.3.0, "Translations and forms" below): the screens mirror the legacy
+  alias, alias domain, resource and sender-permission forms. Their texts are mailcow's own
+  translations, used verbatim by legacy key through UI 001's legacy translation layer (runtime
+  `/lang/` loader, `en-gb` snapshot, formatter); texts with markup go through `SanitizedHtml.vue`.
+  New strings exist only where legacy has no equivalent. The feature's values are appended to the
+  enumeration scope manifest of UI 002 and UI 003 (R20).
 
 ## Technical Context
 
@@ -99,7 +101,7 @@ tests to the existing project.
 - Lists never load a whole collection: every list, picker and the grantable-entry list are searched
   and paged by the server.
 - No inline script or style, and `v-html` only in `SanitizedHtml.vue`. Legacy texts with markup are
-  imported as plain text (R20).
+  shown verbatim through `SanitizedHtml.vue` (constitution IV 1.3.0, R20).
 - 44 × 44 px targets. Usable at 360 px and 320 px and at 400 % zoom.
 - Limits, the groupware state, the external-destination setting, the DKIM defaults and the bulk
   limit come from the capabilities read, never from constants (FR-071).
@@ -113,7 +115,8 @@ tests to the existing project.
 - 8 user stories: 3 at P1, 3 at P2, 2 at P3.
 - 10 new routes and 3 catalogue entries replacing one.
 - 23 new contract operations, plus 4 reused ones.
-- About 260 new translation keys, about 75 of them reused from legacy.
+- About 75 legacy keys used verbatim, plus only the new strings that the legacy form map lists for
+  elements legacy lacks (constitution IV 1.3.0).
 - Target servers have 5,000 domains and 200,000 aliases.
 
 ## Constitution Check
@@ -125,8 +128,8 @@ tests to the existing project.
 | I. The API contract is the only interface | The pin is a reviewed bump (`contract/VERSION.json`, regenerated types, typecheck and all tests; R1). The 23 operations of [contracts/README.md](./contracts/README.md) are called through `@/api`, with types re-exported from the generated schema. No hand-written API type. The mock validates every request and response. Four gaps are reported to mailcow-rest-v2 and not worked around (see "API dependency and gaps"). Problem `type` and `errors` drive every message (R17). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first. Lists are cards below 768 px and tables above. The creation forms are full-screen pages, and section editors open full screen on phones (FR-064). Selection mode has 44 px checkboxes and a sticky action bar (FR-056). Destructive actions are confirmed with their impact, and a mass deletion needs the typed count (FR-029, FR-058). Every list and detail view has loading, empty and error states (FR-008). Pinch-zoom is untouched. | PASS |
 | III. Accessibility | axe in both themes on every screen, dialog and state. Single-choice controls are Reka radio groups. Errors are linked to their fields and summarised. Saves, deletions, result counts and bulk summaries are announced. Every state shown by colour also has text (FR-063). A keyboard-only end-to-end pass covers every story (R21). | PASS |
-| IV. i18n and branding | en-gb, cs-cz and sk-sk complete, checked by `i18n:check`. It covers the feature's values in the enumeration scope manifest and every closed enumeration the feature renders (R20). Legacy keys are reused where the meaning is unchanged, and markup is converted to plain text at import (R20). The product name in the address help comes from `GET /public-config`. Dates and numbers use `Intl`. | PASS |
-| V. Security in the browser | No new storage key. Form drafts are kept in memory only (R10), and the storage audit end-to-end test is extended. No `v-html`. Hidden controls are a convenience: `forbidden`, `permission-flag-required` and `attribute-not-permitted` refresh the identity (FR-004). 404 for objects outside the scope is shown as "not found" (FR-003). | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0 ("Translations and forms" below): every mailcow language; the screens mirror the legacy forms; text with a legacy equivalent is mailcow's own translation, used verbatim by legacy key and loaded at runtime from the installation, with HTML through `SanitizedHtml.vue` and a missing key falling back to `en-gb`. New strings only for elements legacy lacks, in en-gb, cs-cz and sk-sk, never machine-translated. `i18n:check` fails on a missing new string or a used legacy key absent from the `en-gb` snapshot, and covers the feature's values in the enumeration scope manifest and every closed enumeration the feature renders (R20). Product names inside legacy texts are the installation's (`add.alias_address_info`). Dates and numbers use `Intl`. | PASS |
+| V. Security in the browser | No new storage key. Form drafts are kept in memory only (R10), and the storage audit end-to-end test is extended. No `v-html` of its own: legacy texts with markup go through UI 001's `SanitizedHtml.vue`. Hidden controls are a convenience: `forbidden`, `permission-flag-required` and `attribute-not-permitted` refresh the identity (FR-004). 404 for objects outside the scope is shown as "not found" (FR-003). | PASS |
 | VI. Test-first | `tasks.md` puts the tests before the implementation in every phase. End-to-end tests cover every acceptance scenario on both viewports against the contract-validated mock. Unit tests cover the logic: entry parsing, sequential creation, patch building, the address preview, the send-as model and the permission matrix. Smoke tests run against the real API. | PASS (smoke gate as UI 001, Complexity Tracking there) |
 | VII. Performance budgets | Ten lazy route chunks and no new dependency, checked by `budget:check`. Lighthouse adds `/ng/aliases` (R22). The query policy refetches only after invalidation, and the invalidation table is in data-model §3. | PASS |
 | VIII. Simplicity | No new dependency. New shared code has at least two uses (R3). Blocks that UI 002 or UI 003 kept in their feature folders are promoted, not copied, when they get their second use here (R2). The patch building and the address preview are plain functions. | PASS |
@@ -139,9 +142,99 @@ violation. Decisions that touched gates:
 - Lists do not wait for the capabilities. Their page sizes follow the UI conventions and the API's
   fixed list defaults (R5, VII, spec edge case "Capabilities cannot be read").
 - Form drafts are held in memory only, never in storage (V, R10).
-- Legacy texts with markup are converted to plain text at import time and rendered as text, never
-  as HTML (IV, V, R20).
+- Legacy texts with markup are rendered verbatim through `SanitizedHtml.vue`, never converted or
+  rewritten (IV 1.3.0, V, R20). This supersedes the earlier plain-text import.
 - The candidate labels fall back to the contract's coarser `type` until API gap G1 is closed (I).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature. It overrides any earlier text in this plan, the spec, research, data-model,
+quickstart and tasks that says otherwise.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`; page entries
+`admin/mailbox.php`, `domainadmin/mailbox.php` and `edit.php`):
+
+- **Alias list** (`/aliases`): `templates/mailbox/tab-mbox-aliases.twig` (title, hint
+  `mailbox.alias_domain_alias_hint`, toggle all, quick actions activate, deactivate, remove,
+  `mailbox.add_alias_expand`, `mailbox.sogo_visible_y`/`_n`, `mailbox.add_alias`);
+  `js/site/mailbox.js` `draw_alias_table()` (columns alias, target address, domain, SOGo visible,
+  public comment, private comment, internal, active, action; the catch-all, spam and ham badges).
+- **Alias creation** (`/aliases/new`): `templates/modals/mailbox.twig` `#addAliasModal` (alias
+  address with `add.alias_address_info`, target address with `add.target_address_info`, the
+  mutually exclusive `add.goto_null`, `add.goto_spam`, `add.goto_ham` checkboxes that disable the
+  target field, `js/site/mailbox.js`; `edit.sogo_visible`, `add.internal`, `add.sender_allowed`
+  with their `*_info` texts; `add.active`; `admin.add`).
+- **Alias detail** (`/aliases/:id`): `templates/edit/alias.twig` and `js/site/edit.js` (target
+  address, goto checkboxes, SOGo visible, internal, allowed to send, private and public comment,
+  active).
+- **Alias domain list, creation and detail**: `templates/mailbox/tab-domain-aliases.twig`;
+  `js/site/mailbox.js` `draw_aliasdomain_table()`; `templates/modals/mailbox.twig`
+  `#addAliasDomainModal` (alias domain with `add.alias_domain_info`, target domain, active, rate
+  limit with `ratelimit.disabled` as placeholder, DKIM selector and key length);
+  `templates/edit/aliasdomain.twig` (target domain, active, rate limit).
+- **Resource list, creation and detail**: `templates/mailbox/tab-resources.twig` (booking legend);
+  `js/site/mailbox.js` `draw_resource_table()` (columns description, alias, kind, domain, multiple
+  bookings badges `booking_*_short`, with " (n)" after the hard limit, active);
+  `templates/modals/mailbox.twig` `#addResourceModal` (description, domain, kind, multiple
+  bookings with the custom number, active); `templates/edit/resource.twig`.
+- **Send as** (`/mailboxes/:address/send-as`): the "Allow to send as" and "External sender
+  addresses" part of `templates/edit/mailbox.twig` (`edit.sender_acl` with the
+  `edit.dont_check_sender_acl` options, `edit.sender_acl_disabled`, `edit.sender_acl_info`,
+  `edit.extended_sender_acl`, `edit.extended_sender_acl_info`).
+- **Messages**: `inc/functions.mailbox.inc.php` (`mailbox('add' | 'edit' | 'delete', 'alias' |
+  'alias_domain' | 'resource' | 'mailbox')`): `success.alias_added` (address, ID),
+  `success.alias_modified`, `success.alias_removed`, `success.aliasd_added`,
+  `success.aliasd_modified`, `success.alias_domain_removed`, `success.resource_added`,
+  `success.resource_modified` (legacy's own text for a resource, used as it is),
+  `success.resource_removed`, `warning.is_not_primary_alias`, and the `danger.*` keys of the alias,
+  alias domain, resource and sender-permission checks (for example `danger.is_alias`,
+  `danger.is_spam_alias`, `danger.is_alias_or_mailbox`, `danger.targetd_relay_domain`,
+  `danger.alias_goto_identical`, `danger.sender_acl_invalid`, `danger.extended_sender_acl_denied`).
+
+**Screens or elements without a legacy counterpart** get new strings (en-gb, cs-cz and sk-sk,
+never machine-translated), kept minimal: the creation report of an alias domain and the per-entry
+results of multi-entry creation, the derived-address preview of a resource, the copy report over
+alias domains, bulk summaries and the outdated-version handling, filter and sort controls the
+legacy client-side tables lack, the read-only rate limit note, the orphaned-alias warning, the
+History link and the audit labels. The kind options of a resource are hard-coded English in the
+legacy template ("Location", "Group", "Thing"), so they are new strings whose English text equals
+legacy's.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`),
+placeholders, option labels, units, order and grouping, column headers, action labels and the
+success, warning and danger messages come from the legacy keys. Every mailcow language is
+supported. Legacy values are loaded at runtime from the installation and shown verbatim (HTML
+through `SanitizedHtml.vue`), and a missing key falls back to `en-gb`, never to a hand-written
+value. In particular the English legacy texts "Domain aliases" (`mailbox.domain_aliases`) and "Add
+domain alias" (`mailbox.add_domain_alias`) are shown as they are; the spec's earlier change of
+their English text to "Alias domains" is withdrawn.
+
+**Legacy form map**: written into this section by task T005a before any screen is built.
+
+**Deviations needing a decision**:
+
+1. **Send as screen** (FR-048 to FR-051): legacy has one multi-select (`edit.sender_acl`) mixing
+   `edit.dont_check_sender_acl` domain entries, `*`, addresses and aliases marked allowed or
+   blocked, inside the Edit mailbox form. The plan splits it into always-allowed, receive-only and
+   explicit sections, a separate "any address" switch and a searchable picker. Keep the restructured
+   screen with legacy labels wherever one exists, or mirror the single multi-select?
+2. **Alias destination control** (FR-018): legacy shows the target address field plus three
+   mutually exclusive checkboxes (`add.goto_null`, `add.goto_spam`, `add.goto_ham`) that disable the
+   field. The plan uses a radio group with a fourth option "Deliver to addresses", which has no
+   legacy key. Mirroring legacy is the default unless the owner keeps the radio group.
+3. **`mailbox.alias_domain_alias_hint`** (FR-017): the legacy hint names the legacy "Filters" tab
+   and "SOGo -> Forwarder". The plan replaced it with a new key. Under the rule it is shown verbatim
+   on the alias list, unless the owner decides its meaning no longer fits the app.
+4. **Section headings of the creation forms** ("Addresses", "Destination", "Options",
+   "Comments"): legacy's add dialogs have no groups, and the add alias dialog has no comment fields
+   (only `edit/alias.twig` has them). Drop the headings and the comments at creation, or keep them as
+   new strings?
+5. **Separate screens per legacy tab** (spec clarification): kept as the app's layout (each legacy
+   tab becomes its own screen and navigation entry with the legacy title key). Listed for
+   visibility only.
 
 ## API dependency and gaps
 
@@ -202,8 +295,9 @@ audit log with the `targetType` and `targetId` filters that API 002 added) and A
    - **Alternative**: hold US5 until mailcow-rest-v2 adds `kind`.
    - Every other part of US5 is unaffected.
 2. **Native review of the new cs-cz and sk-sk strings**, as UI 001's owner question 4. This feature
-   writes about 185 new strings per locale. It also writes the eight values that the spec counted as
-   reusable but that are missing from the legacy cs-cz or sk-sk files (R20).
+   writes only the new strings of its legacy form map (constitution IV 1.3.0), far fewer than the
+   earlier estimate of about 185 per locale. It no longer writes values for legacy keys missing from
+   the upstream cs-cz or sk-sk files: they fall back to `en-gb`, and the fork's files are complete.
    - **Default**: the owner reviews them before the release.
 
 3. **"Select all" at a reduced bulk limit.**
@@ -218,16 +312,17 @@ audit log with the `targetType` and `targetId` filters that API 002 added) and A
 
 The spec's parity tables are complete. The plan adds:
 
-1. `mailbox.alias_domain_alias_hint` is **not reused**. Without its markup it still names the legacy
-   "Filters" tab and "SOGo -> Forwarder", which the spec drops (FR-017), and its Czech text lacks
-   the last sentence. FR-017 gets a new key with the same meaning in all three locales (R20).
-2. The spec says every reused key exists in en-gb, cs-cz and sk-sk. Eight values are missing from
-   upstream `2026-09a`:
+1. `mailbox.alias_domain_alias_hint` is shown verbatim, with its markup, through
+   `SanitizedHtml.vue` (constitution IV 1.3.0). The earlier plan replaced it with a new key because
+   it names the legacy "Filters" tab and "SOGo -> Forwarder"; that is now "Deviations needing a
+   decision" item 3.
+2. Eight values are missing from upstream `2026-09a`:
    - `add.internal`, `edit.internal_info`, `edit.sender_allowed` and `edit.sender_allowed_info` in
      sk-sk;
    - `acl.alias_external_goto` and `danger.external_goto_denied` in both cs-cz and sk-sk.
 
-   The app layer of those locales supplies them (UI 001 R15).
+   They fall back to `en-gb`, as in the classic interface, and are never written by hand. The
+   FeldHost fork's cs-cz and sk-sk files contain all of them.
 3. Destinations, copy addresses and external sender addresses are shown as stored (ASCII) until API
    gap G2 is closed.
 4. The list action "Edit" opens the detail screen with its main section open for editing:
@@ -312,8 +407,8 @@ src/shared/
 src/i18n/
 ├── problems.ts                                       # + param-discriminated and form-context keys (R17)
 ├── coverage.json                                     # enumeration scope manifest (UI 002 D2): + 004 values
-├── messages/{en-gb,cs-cz,sk-sk}.json  legacy-map.json  legacy/*.json
-scripts/i18n/{lib.mjs,import-legacy.mjs,check.mjs}    # + locales, positional placeholders; ENUM_NAMESPACES (R20)
+├── messages/{en-gb,cs-cz,sk-sk}.json                 # new strings of the legacy form map only
+scripts/i18n/{lib.mjs,check.mjs}                      # ENUM_NAMESPACES (R20); legacy keys checked by UI 001
 scripts/run-lhci.mjs                                  # + /ng/aliases collection (R22)
 tests/
 ├── unit/

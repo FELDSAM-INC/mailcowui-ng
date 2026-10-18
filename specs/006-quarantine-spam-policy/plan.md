@@ -105,7 +105,9 @@ repository.
 - 9 user stories: 2 at P1, 5 at P2 and 2 at P3.
 - 10 routes, and entry points into 5 screens of UI 002–004.
 - 44 contract operations: 38 of API 006 and 6 of API 001–004.
-- 3 locales and about 350 new or refined translation keys.
+- Every language mailcow ships, with mailcow's own texts used verbatim through their legacy keys,
+  and new strings (en-gb, cs-cz, sk-sk) only for elements the classic interface lacks (fewer than
+  the 350 first estimated, because legacy keys now replace the refined ones).
 - The API is sized for 100,000 quarantine items, and no screen loads more than one page.
 
 ## Constitution Check
@@ -117,7 +119,7 @@ repository.
 | I. The API contract is the only interface | Only operations of the pinned contract are used (contracts README), through `@/api`. The pin moves forward by `scripts/contract/bump.sh` with the bump rule of R1, then typecheck and the tests run. No hand-written API type: problem extension members are read through guards over the generated types. Gaps are recorded below and never worked around: list-entry history is not filtered client-side, and audit `details` are not typed from the API's data model (R23). Errors are handled from `type` and `errors`, including `requiredFlags`, `requiredFlagsMatch`, `attributes`, `dependency`, `step`, `smtpResponse`, `size` and `limit` (R24). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first: cards below `md`, a full-screen filter panel, full-screen section forms, and a sticky action bar and bulk bar with scroll padding. Destructive actions are confirmed with their impact, and bulk deletions require typing the count (conventions). Every list and panel has loading, empty and error states. No horizontal scroll at 360 or 320 px, or at 400 % zoom (FR-072). | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe in both themes on every screen and state. Status is never colour alone: badges, the band, bars and outcomes carry text (FR-079). Sortable headers have `aria-sort`. Dialogs are Reka. Announcements go through `useAnnouncer`. 44 × 44 targets, including the selection checkboxes. Focus is never hidden behind the sticky bars (R13). | PASS |
-| IV. i18n and branding | All text is in en-gb, cs-cz and sk-sk. Legacy keys are reused, and marked-up legacy texts are carried over without markup through `stripMarkup`/`segment` mappings (R27). `i18n:check` covers the 006 enumerations (R2). Numbers, scores, sizes and dates use `Intl` in the user's locale (FR-081). Message data is never translated (FR-082). Nothing is brand-specific. | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0 (see "Translations and forms" below): every language mailcow ships; texts with a classic-interface equivalent are mailcow's own, used verbatim by legacy key, loaded at runtime from the installation, with marked-up values rendered whole through `SanitizedHtml.vue` (no `stripMarkup` or `segment`, R27); the screens mirror the legacy forms; new strings only where legacy has none, in en, cs and sk, never machine-translated. `i18n:check` covers the new strings, the legacy keys used (against the `en-gb` snapshot) and the 006 enumerations (R2). Numbers, scores, sizes and dates use `Intl` in the user's locale (FR-081). Message data is never translated (FR-082). Nothing brand-specific is hard-coded; legacy texts that name the product are shown as the installation has them. | PASS |
 | V. Security in the browser | No `v-html`. Message data renders only through `PlainText` with bidi isolation and visible control markers (R9). No storage of content, attachments or files (FR-085). Downloads are octet-stream blobs, never opened (R10). The external lookup carries only the hash, with no referrer (R11). Hiding is a convenience, and 401, 403 and 404 are handled (R7). | PASS |
 | VI. Test-first | `tasks.md` puts mock fixtures, then failing tests, before the implementation in every phase. Every acceptance scenario gets an end-to-end test on both viewports against the validated mock, which is extended for binary bodies. Unit tests cover the matrix (SC-005), the hostile corpus (SC-002), parsing and arithmetic. A smoke suite runs against the real API. | PASS |
 | VII. Performance budgets | Lazy routes; the initial JS is unchanged and checked by `budget:check`. Lighthouse covers `/ng/quarantine`. The query policy: no focus or timer refetch, invalidation after mutations, and a 60 s `gcTime` for item details (R25). | PASS |
@@ -134,6 +136,114 @@ introduce no violation. Decisions that touched gates:
 - `format-detection` off app-wide: V and FR-083 (R9).
 - Page-only selection overriding the spec's clarification: conventions (R15).
 - No template preview: VIII and FR-063 (R3).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature, and it overrides any earlier text in this plan, the spec, research and
+tasks.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`):
+
+- **Quarantine list** (`/quarantine`): `templates/quarantine.twig` (title `quarantine.quarantine`,
+  `quarantine.refresh`, `quarantine.qinfo`, `quarantine.disabled_by_config`,
+  `quarantine.settings_info` with the retention count and the maximum size in MiB, the
+  `quarantine.toggle_all` and `quarantine.quick_actions` menus) and `js/site/quarantine.js` (table
+  `quarantinetable`: columns `qid`, `sender`, `subj`, `rspamd_result`, `rcpt`, `danger`,
+  `spam_score`, `notified`, `received`, `action`; badges `high_danger`, `neutral_danger`,
+  `rejected`, `junk_folder`, `rewrite_subject`; row actions `show_item`, `remove`). Entry:
+  `quarantine.php`.
+- **Quarantine item page** (`/quarantine/:itemId`): `templates/modals/quarantine.twig` (`qitem`,
+  `rspamd_result`, `spam_score`, `subj`, `recipients`, `sender_header`, `sender`,
+  `text_plain_content`, `text_from_html_content`, `atts`, `check_hash`, actions `deliver_inbox`,
+  `learn_spam_delete`, `download_eml`, `remove`), filled by `js/site/quarantine.js` and
+  `inc/ajax/qitem_details.php`.
+- **Bulk actions on the list**: the mass-action menus of `templates/quarantine.twig`.
+- **Quarantine and item messages**: `inc/functions.quarantine.inc.php`: `success.item_released`,
+  `success.learned_ham`, `success.qlearn_spam`, `success.item_deleted`, `success.saved_settings`,
+  `danger.release_send_failed`, `danger.ham_learn_error`, `danger.spam_learn_error`,
+  `warning.fuzzy_learn_error`, `danger.access_denied`.
+- **Notifications** (own page, mailbox panel, mailbox list bulk actions):
+  `templates/user/tab-user-settings.twig` and `templates/edit/mailbox.twig`
+  (`user.quarantine_notification`, `user.quarantine_category`, options `user.never`,
+  `user.hourly`, `user.daily`, `user.weekly`, `user.q_reject`, `user.q_add_header`, `user.q_all`,
+  with `user.quarantine_notification_info` and `user.quarantine_category_info`), and the mass-action
+  menu of `templates/mailbox/tab-mailboxes.twig` (header `mailbox.quarantine_notification`) with
+  `js/site/mailbox.js`. Messages: `inc/functions.mailbox.inc.php` (`success.mailbox_modified`,
+  `danger.quarantine_category_invalid`).
+- **Spam filter** (own page; "Spam filter and limits" of domains, alias domains and mailboxes):
+  `templates/user/Spamfilter.twig` (`user.spamfilter`, `user.spamfilter_behavior`,
+  `user.spamfilter_green`, `_yellow`, `_red`, `user.save_changes`, `user.spam_score_reset`,
+  `user.spamfilter_wl`, `user.spamfilter_wl_desc`, `user.spamfilter_bl`, `user.spamfilter_bl_desc`,
+  `user.spamfilter_table_add`, `mailbox.toggle_all`, `mailbox.quick_actions`, `mailbox.remove`),
+  the `#dspamfilter` tab of `templates/edit/domain.twig` (`edit.spam_filter`), and the list tables
+  of `js/site/user.js` and `js/site/edit.js` (`user.spamfilter_table_rule`,
+  `user.spamfilter_table_domain_policy`). Messages: `inc/functions.policy.inc.php`
+  (`danger.policy_list_from_exists`, `danger.policy_list_from_invalid`, `success.domain_modified`,
+  `success.mailbox_modified`, `success.item_deleted`, `success.items_deleted`) and
+  `inc/functions.mailbox.inc.php` for the spam score (`success.mailbox_modified`).
+- **Rate limit panels**: the `#dratelimit` tab of `templates/edit/domain.twig`, the rate limit form
+  of `templates/edit/aliasdomain.twig` and `templates/edit/mailbox.twig` (`edit.ratelimit`, the
+  value placeholder `ratelimit.disabled`, the frame options of `templates/mailbox/rl-frame.twig`:
+  `ratelimit.second`, `minute`, `hour`, `day`; `edit.mbox_rl_info` on the mailbox). Messages:
+  `inc/functions.ratelimit.inc.php` (`success.rl_saved`, `danger.rl_timeframe`,
+  `success.hash_deleted`, `warning.hash_not_found`).
+- **Bucket reset**: the rate-limited log of `templates/dashboard.twig` (`admin.reset_limit`,
+  `admin.hash_remove_info`) and `js/site/dashboard.js`.
+- **Quarantine settings** (`/quarantine/settings`): `templates/admin/tab-config-quarantine.twig`
+  (`admin.quarantine`, `quarantine.disabled_by_config`, `admin.quarantine_retention_size`,
+  `_max_size`, `_max_score`, `_max_age`, `_redirect`, `_bcc`, `_notification_sender`,
+  `_notification_subject`, `_release_format` with `_raw` and `_att`, `tfa.select`,
+  `_exclude_domains`, `_notification_html`, `admin.save`), in that order. The four sections keep
+  the legacy field order. Messages: `success.saved_settings`.
+- **Statistics** (`/quarantine/statistics`): the Rspamd chart of `templates/dashboard.twig`
+  (`debug.chart_this_server`) and `js/site/dashboard.js` (`rspamd/actions`).
+
+**Screens or elements without a legacy counterpart** get new strings (en-gb, cs-cz and sk-sk, never
+machine-translated), kept minimal: the Rate limits overview, the list filters other than the
+legacy column labels, the item page's added fields (size, sending server, authenticated sender),
+the learning switch, the virus acknowledgement and the step report (FR-026 to FR-029), the
+"Not set" category, the spam score field labels and server-default note, the inherited-group
+labels, the template editor's placeholder reference, size indicator and restore confirmation, the
+statistics period lines, the bulk summaries, outdated-version handling and the History records.
+Fields legacy has on another form (for example the domain spam lists' labels on alias domain and
+mailbox pages) use that form's legacy keys.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Labels, help and info texts (`*_info`),
+placeholders, option labels, units (MiB for sizes, as legacy), order and grouping, column headers,
+action labels and success, warning and danger messages come from the legacy keys. Every mailcow
+language is supported. Legacy values are loaded at runtime from the installation and shown verbatim:
+marked-up values such as `quarantine.qinfo`, `user.spamfilter_wl_desc` and the
+`admin.quarantine_*` labels with their `<br><small>` help go whole through `SanitizedHtml.vue`, and
+are never split or stripped. A missing key falls back to `en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by task T009a, before any screen is built.
+
+**Deviations needing a decision**:
+
+1. **Rate limits overview** (FR-056, FR-057): a screen with no legacy counterpart. Its texts would
+   be new strings except the legacy `edit.ratelimit`, `ratelimit.*` and `admin.reset_limit`
+   labels.
+2. **"Remove limit"** (FR-052 to FR-054): legacy removes a rate limit by an empty value (placeholder
+   `ratelimit.disabled`) and Save. The planned explicit action with a confirmation is a new element.
+3. **Quick release and quick delete links** (`quarantine.quick_release_link`,
+   `quarantine.quick_delete_link` in the item modal) are dropped and replaced by a learning switch
+   on "Deliver to inbox" (FR-026, FR-028), which needs new strings.
+4. **"Not set" notification category** (FR-040, US3): not a legacy option.
+5. **Spam score input**: legacy has one two-handle slider labelled `user.spamfilter_behavior` with
+   the green, yellow and red explanations. Two number fields need labels and a server-default note
+   that legacy lacks.
+6. **Conflict and format messages** (FR-049, US4-AS6, US4-AS7): legacy says
+   `danger.policy_list_from_exists` ("A record with given name exists") and
+   `danger.policy_list_from_invalid` ("Record has invalid format"). The plan now uses these legacy
+   messages. Naming the list that holds the pattern, and listing the allowed characters, would be
+   new strings on top.
+7. **Expand all / Collapse all** (`datatables.expand_all`, `datatables.collapse_all`) are dropped,
+   because cards replace collapsed table rows.
+8. **Statistics as a text list** instead of legacy's colour chart: the action labels come from the
+   API values as in legacy, and the shares, totals and period lines are new strings.
 
 ## API dependency and gaps
 
@@ -216,7 +326,7 @@ names".
 | P10 | scroll restoration and focus without scrolling | `src/app/router/{index.ts,focus.ts}` | 002 (D9) | back to the list (R13) |
 | P11 | `SearchField`, `ActiveFilterChips`, `IdnText`, `utf8ByteLength()` | `src/shared/components/{SearchField,ActiveFilterChips,IdnText}.vue`, `src/shared/validation/utf8.ts` | 002, 003 | list search and chips; readable domain names; template size |
 | P12 | `ApiProblem.extensions`, and the identity refresh on `permission-flag-required` and `attribute-not-permitted` | `src/api/problem.ts`, `src/api/query/client.ts` | 002, 003 | refusals (R7, R24) |
-| P13 | the coverage manifest of open enumerations, `stripMarkup` legacy mappings | `src/i18n/coverage.json`, `scripts/i18n/{import-legacy,check}.mjs` | 002 (D2, D27) | translations (R2, R27); **plus `segment`** (T002, T003) |
+| P13 | the coverage manifest of open enumerations (UI 002's `stripMarkup` mappings are superseded by constitution IV 1.3.0: legacy values are used whole) | `src/i18n/coverage.json`, `scripts/i18n/check.mjs` | 002 (D2) | translations (R2); the closed 006 enumerations (T002, T003) |
 | P14 | `DomainPicker` (searched, infinite, single or multiple, domain and alias domain sources) | `src/shared/components/DomainPicker.vue` | 003, promoted by 004 | an administrator's domain filter; excluded domains; "Set a rate limit" |
 | P15 | `AclReadOnlyNote` ("Prohibited by ACL" with the flag label) | `src/features/mailboxes/components/fields/AclReadOnlyNote.vue`, promoted to `src/shared/components/` by T012 | 003 | read-only presentation (R7) |
 | P16 | domain page with its section list (after Groupware, reserved for 006) and the Delivery section's read-only rate limit; key root `['domains', …]` | `src/features/domains/pages/DomainDetailPage.vue`, `/domains/:domain` | 002 (data-model §9) | entry point (R26); invalidation (R25) |
@@ -260,6 +370,10 @@ The plan applies these decisions, and the analysis step aligned the spec text:
 7. **"Remove hash" in the rate-limited log** (FR-058) is delivered by UI 011 (its FR-039, "Reset rate
    limit"), with the dialog this feature exports. This feature delivers the overview reset. The spec
    text is unchanged, because the requirement is met once UI 011 ships.
+8. **Translations and forms** (constitution IV 1.3.0): FR-008, FR-049, FR-080, FR-081, SC-009,
+   US4-AS6, US4-AS7, the `qinfo` parity row and the Assumptions are aligned to "Translations and
+   forms" above: legacy texts verbatim, including their markup, legacy messages where the meaning
+   matches, and every mailcow language.
 
 ## Owner-level questions (defaults applied)
 
@@ -308,7 +422,7 @@ layout and what UI 002–005 added (see the prerequisite table).
 contract/{openapi.yaml,openapi.json,VERSION.json}  src/api/generated/schema.ts   ~ bumped (T001)
 index.html                                         ~ <meta name="format-detection" …> (R9)
 scripts/
-├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}     ~ `segment` opt-in; closed 006 enumerations (R2, R27)
+├── i18n/{lib.mjs,check.mjs}                       ~ closed 006 enumerations (R2)
 ├── smoke/stack-up.sh                              ~ mailpit profile and release SMTP env (R28)
 └── run-lhci.mjs                                   ~ /ng/quarantine collection
 src/
@@ -366,7 +480,7 @@ src/
 │   ├── problems.ts                                ~ 006 extension parameters (R24)
 │   ├── coverage.json                              ~ 006 open-enumeration values (R2)
 │   ├── messages/{en-gb,cs-cz,sk-sk}.json          ~ quarantine.*, spamFilter.*, rateLimits.*, problem, validation, auditLog
-│   ├── legacy-map.json  legacy/*.json             ~ reused legacy keys (R27)
+│   (legacy keys used verbatim through UI 001's legacy translation layer: no copies, R27)
 └── styles/main.css                                ~ plain-text block, control marker, sticky bar scroll padding
 tests/
 ├── unit/dependencies/feature-006-dependencies.spec.ts   +

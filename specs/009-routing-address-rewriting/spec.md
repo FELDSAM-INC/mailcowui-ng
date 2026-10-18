@@ -79,9 +79,10 @@ selectors of the edit-domain and edit-mailbox pages."
   "Sender-dependent transports" (`admin.relayhosts`, also the Relayhost section title
   `edit.relayhost`) and "Transport maps" (`admin.transport_maps`). The screen's introduction mentions
   that sender-dependent transports are also called relayhosts. This spec uses "relayhost" and "transport" as its canonical
-  terms. (agent decision: constitution IV reuses legacy keys where the meaning is unchanged, so the
-  existing Czech and Slovak translations and operators' habits carry over; the API's term is shown once
-  so that documentation and API users can match it.)
+  terms. (agent decision: constitution IV uses mailcow's translations verbatim, so the existing
+  translations of every language and operators' habits carry over; the API's term is shown once so
+  that documentation and API users can match it, as a new string, which the plan lists among its
+  deviations.)
 - Q: Can administrators trace changes of routing entries from these screens? → A: Yes. Each entry and
   each relayhost assignment offers a "History" action to administrators that opens the audit log
   filtered to that entry. Domain administrators do not get it. (agent decision: API user story 9 and
@@ -781,9 +782,11 @@ action.
 
 #### Internationalisation
 
-- **FR-072**: Every user-facing text of this feature MUST exist in English, Czech and Slovak. Legacy
-  translation keys MUST be reused where the meaning is unchanged (see Legacy Parity); new texts get new
-  keys.
+- **FR-072**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships is
+  supported; text with a classic-interface equivalent MUST be mailcow's own translation, used verbatim
+  by its legacy key (see Legacy Parity); the screens MUST mirror the legacy forms (fields, labels, help
+  texts, options, units, order and messages); new strings, only for elements the classic interface
+  lacks, MUST exist in English, Czech and Slovak and MUST NOT be machine-translated.
 - **FR-073**: Numbers, counts and times MUST be formatted with the user's locale. Values that come from
   the API (hosts, destinations, addresses, parameters, server replies and transcripts) MUST be shown as
   returned, untranslated.
@@ -815,7 +818,7 @@ better), **dropped** (not carried over, with the reason).
 | Edit transport page with the password in clear text | `templates/edit/transport.twig` | FR-042, FR-025 to FR-028 | **Improved**: password never shown |
 | Transport mass activate, deactivate and delete | `tab-routing.twig` | FR-015 to FR-017 | **Matched**, with per-entry outcomes |
 | Forwarding hosts table (host, source, spam filter) and add form (host, spam filter) | `templates/admin/tab-config-fwdhosts.twig`, `draw_fwd_hosts()` | FR-059 to FR-063 | **Improved**: every resulting address reported as added or updated; filter by source |
-| Forwarding hosts mass "Enable spam filter" / "Disable spam filter" (hard-coded English) | `tab-config-fwdhosts.twig` | FR-015, FR-072 | **Improved**: translated |
+| Forwarding hosts mass "Enable spam filter" / "Disable spam filter" (hard-coded English) | `tab-config-fwdhosts.twig` | FR-015, FR-072 | **Improved**: translated as new strings (no legacy key exists) |
 | BCC maps tab (ID, type badge, local destination, BCC destination, domain, active; mass activate, deactivate, switch type, delete; add dialog with a grouped picker; refresh) | `templates/mailbox/tab-bcc.twig`, `draw_bcc_table()` in `js/site/mailbox.js`, `templates/modals/mailbox.twig` (`addBCCModalAdmin`) | FR-002, FR-015, FR-050 to FR-054 | **Improved**: own add screen instead of an extra-large dialog; the picker searches and pages instead of loading every object, and shows what aliases deliver to; type stated in text |
 | BCC tab for domain administrators: list visible, write buttons gated by `bcc_maps` | `tab-bcc.twig` (`data-acl`) | FR-002 | **Matched** |
 | Edit BCC map page (BCC destination, type, active) | `templates/edit/bcc.twig` | FR-053 | **Matched**, local destination shown read-only |
@@ -829,7 +832,10 @@ better), **dropped** (not carried over, with the reason).
 | Collapsed cards used as tabs on phones | all tabs above | FR-001, FR-005 | **Dropped**: each list is its own screen |
 | Change log entries in the legacy `logs` table | `json_api.php` logging | FR-064 | **Improved**: History opens the audit log filtered to the entry, without passwords |
 
-**Legacy translation keys reused** (meaning unchanged): `admin.relayhosts`, `admin.relayhosts_hint`,
+**Legacy translation keys used verbatim** (constitution IV 1.3.0; the plan's legacy form map is the
+complete list, including the keys the templates use that this list lacks, such as `admin.add`,
+`admin.action`, `mailbox.quick_actions` and the edit pages' own keys): `admin.relayhosts`,
+`admin.relayhosts_hint`,
 `admin.add_relayhost`, `admin.add_relayhost_hint`, `add.relayhost_wrapped_tls_info`, `admin.host`,
 `admin.username`, `admin.password`, `admin.active`, `admin.inactive`, `admin.in_use_by`,
 `admin.transport_maps`, `admin.transports_hint`, `admin.add_transport`, `admin.add_transports_hint`,
@@ -857,8 +863,9 @@ better), **dropped** (not carried over, with the reason).
 `invalid_recipient_map_new`, `tls_policy_map_entry_saved`, `tls_policy_map_entry_deleted`,
 `tls_policy_map_entry_exists`, `tls_policy_map_dest_invalid`, `tls_policy_map_parameter_invalid`,
 `transport_dest_exists`, `invalid_destination`, `invalid_nexthop`, `invalid_nexthop_authenticated`.
-All of them exist in the legacy English, Czech and Slovak files. New keys are needed for the password
-status and removal, the port-465 and `*` warnings, the test summary and its steps, the policy
+They are loaded at runtime from the installation, in every mailcow language, and values with HTML are
+rendered through the app's sanitiser, unaltered. New strings (English, Czech and Slovak) are needed
+only for the password status and removal, the port-465 and `*` warnings, the test summary and its steps, the policy
 explanations, shared credentials, the effective relayhost, dangling assignments, the credential lookup
 note, usage counts, bulk outcomes and History.
 
@@ -932,7 +939,8 @@ The plan lists the remaining minor gaps, none of which blocks this feature.
   the step are visible on a 360 px screen without opening the transcript or scrolling.
 - **SC-005**: 100% of the legacy elements listed in Legacy Parity are matched, improved or dropped with
   a stated reason, and every matched or improved element is covered by a requirement.
-- **SC-006**: 0 missing translation keys for English, Czech and Slovak in this feature.
+- **SC-006**: 0 new strings of this feature missing in English, Czech or Slovak, and 0 legacy keys used
+  by this feature missing from the bundled `en-gb` snapshot.
 - **SC-007**: 100% of the validation rule codes and error types that the API documents for this feature
   map to a translated message shown at the right field or as the right message.
 - **SC-008**: With the performance tests' standard mobile profile (mid-range phone, throttled 4G
@@ -955,9 +963,9 @@ The plan lists the remaining minor gaps, none of which blocks this feature.
 - The test's default sender and recipient addresses are server settings; the app reads them from the
   routing capabilities only to show them as placeholders.
 - Server output in test transcripts is technical English text and is not translated.
-- Legacy hint texts that contain markup (bold, line breaks, code, links) are reused with their meaning
-  and links preserved; the app renders them with its own safe formatting and never interprets
-  translation text or API data as raw markup.
+- Legacy hint texts that contain markup (bold, line breaks, code, links) are used verbatim and rendered
+  through the app's sanitiser with a small allowlist (constitution IV 1.3.0); API data is never
+  interpreted as markup.
 - A bulk action covers at most the server's bulk limit (100 by default); larger selections are not
   split into several actions.
 - Testing a next hop or credentials that are not saved is out of scope, as in the API and in legacy.

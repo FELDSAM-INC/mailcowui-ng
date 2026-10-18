@@ -180,8 +180,8 @@ menus, ten tabs and several collapsed cards, which are hard to find and to use o
 
 **Independent Test**: Against a mock API generated from the contract, open the settings area as an
 administrator at 360 px and at desktop width. Search for page names, section names, field labels and
-legacy tab names in English, Czech and Slovak, open each page from the search, from the list and by
-its address, and move between groups. Repeat as a domain administrator and as a mailbox user.
+legacy tab names in the selected language (for example English, Czech and Slovak), open each page
+from the search, from the list and by its address, and move between groups. Repeat as a domain administrator and as a mailbox user.
 
 **Acceptance Scenarios**:
 
@@ -889,7 +889,10 @@ that domain administrators are never offered it.
   text, at most 65,535 characters), its type (information, warning, very important or none) and
   whether it is active. Line breaks MUST be refused in the single-line fields. The apps heading MUST
   explain that it titles the Apps menu of UI feature 001 and that an empty value means the
-  translated default "Apps".
+  translated default "Apps". The labels are the legacy ones (`admin.title_name`, `admin.main_name`,
+  `admin.apps_name`, `admin.help_text`, `admin.ui_footer`, `admin.ui_header_announcement_*`); the
+  announcement text's legacy label says "HTML allowed" (pending: plan, "Deviations needing a
+  decision" item 4).
 - **FR-035**: Plain-text values MUST be shown as text everywhere and never interpreted as markup.
 - **FR-036**: The help text and the footer MUST each offer a preview that renders the HTML through
   exactly the sanitiser of UI feature 001 (FR-002 there), so that it shows what the sign-in screen
@@ -926,9 +929,9 @@ that domain administrators are never offered it.
 #### IP check
 
 - **FR-042**: The IP check page MUST offer the opt-in as a switch, saved with the page's Save action,
-  and MUST explain that the server then contacts the third-party services `ipv4.mailcow.email` and
-  `ipv6.mailcow.email` to learn its public addresses, and that the dashboard (UI feature 011) can
-  show those addresses only while the opt-in is on.
+  labelled with the legacy `admin.ip_check_opt_in` verbatim (it names the third-party services
+  `ipv4.mailcow.email` and `ipv6.mailcow.email`), and MUST explain that the dashboard (UI feature
+  011) can show the public addresses only while the opt-in is on.
 
 #### Password policy
 
@@ -972,7 +975,8 @@ that domain administrators are never offered it.
 - **FR-051**: The domain page of UI feature 002 MUST gain a "Quota notification copies" section for
   administrators and for the domain administrators of that domain. It MUST show the copy recipients
   and whether copies are active, and MUST explain that each copy is a separate message whose subject
-  ends with the mailbox name in parentheses.
+  ends with the mailbox name in parentheses. The section heading and the explanation are the legacy
+  `edit.quota_warning_bcc` and `edit.quota_warning_bcc_info`, verbatim.
 - **FR-052**: Recipients MUST be edited as a set of entries with the behaviour of UI feature 002's
   tag editor (FR-039 there): each entry a valid e-mail address checked before sending, entries that
   differ only in letter case kept once with the first spelling, at most 100 entries. Several
@@ -990,8 +994,9 @@ that domain administrators are never offered it.
   identifier, ascending). The search, filter, sort and page MUST be kept in the page address.
 - **FR-055**: The administrator MUST be able to create a rule on its own page with a description
   (1 to 255 characters), the content (required, at most 1 MiB) in the text editor of FR-072, and the
-  active state, which MUST start switched on as in legacy. The page MUST explain that Rspamd generates
-  the setting's name itself and MUST link to the Rspamd documentation of the settings structure.
+  active state, which MUST start switched on as in legacy. The page MUST show the legacy text
+  `admin.rspamd_com_settings` verbatim, which explains that the setting's name is generated and
+  links to the Rspamd documentation of the settings structure.
 - **FR-056**: The new-rule page MUST offer "Insert example", listing the Rspamd presets of the API by
   their translated headline. Choosing one MUST fill in the description with the headline and the
   content with the preset's content, and MUST ask before replacing values the user has typed.
@@ -1024,7 +1029,9 @@ that domain administrators are never offered it.
 
 - **FR-063**: The Global filter maps page MUST list the editable maps with their name, as the API
   supplies it, and their identifier, with a search on the name, and MUST explain what the maps are
-  for and the `/pattern/flags` format with an example.
+  for and the `/pattern/flags` format with an example, through the legacy texts
+  `admin.rspamd_global_filters_info` and `admin.rspamd_global_filters_regex` (pending for the
+  latter's restart link: plan, "Deviations needing a decision" item 7).
 - **FR-064**: Each map MUST open on its own page in the text editor of FR-072. While the user types,
   the app MUST mark every line that is neither empty, nor a comment starting with `#`, nor a
   `/pattern/` expression followed by at most one of the flags `i`, `m` or `s`.
@@ -1074,7 +1081,8 @@ that domain administrators are never offered it.
   control, accepting 6 to 256 characters without control characters, checked before sending, and
   MUST work with password managers as a new password. The field MUST always start empty, because
   the password is write-only. The page MUST link to the Rspamd web interface at the address the
-  settings capabilities report.
+  settings capabilities report. (Pending: legacy asks for the password twice, `admin.password` and
+  `admin.password_repeat`; plan, "Deviations needing a decision" item 8.)
 - **FR-074**: After a successful change the app MUST say that the password is set and Rspamd
   restarted, and MUST clear the field. When the API reports a container service failure, the app
   MUST say that the change could not be confirmed and that the new password may take effect only at
@@ -1241,12 +1249,15 @@ that domain administrators are never offered it.
 
 #### Internationalisation
 
-- **FR-103**: All text of this feature MUST come from the translation files and MUST be complete in
-  English, Czech and Slovak. Legacy translation keys MUST be reused where the meaning is unchanged.
-  Legacy texts that name the product or the operator (for example `admin.main_name`,
-  `admin.title_name`, `admin.force_sso`) MUST NOT be reused as they are, and legacy texts with HTML
-  markup MUST be carried over without it. User-facing text MUST call the legacy UI "the classic
-  interface" ("klasické rozhraní" in Czech, "klasické rozhranie" in Slovak), never "legacy".
+- **FR-103**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key, including texts that name the product (for example
+  `admin.main_name`, `admin.title_name`, `admin.force_sso`) and texts with HTML markup (rendered
+  through the sanitiser); the screens MUST mirror the legacy forms (fields, labels, help texts,
+  options, units, order and messages); new strings, only for elements the classic interface lacks,
+  MUST exist in English, Czech and Slovak and MUST NOT be machine-translated. New strings MUST call
+  the legacy UI "the classic interface" ("klasické rozhraní" in Czech, "klasické rozhranie" in
+  Slovak), never "legacy".
 - **FR-104**: Operator texts, logos, app link names, rule descriptions, map contents, scripts,
   templates, mass mail content and addresses MUST be shown as stored and never translated. Filter
   map names MUST be shown as the API supplies them, because the operator's configuration defines
@@ -1298,12 +1309,12 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 | Logo thumbnail with dimensions, type and size badges | Light logo on white, dark logo on black | Improved: both themes, header and sign-in sizes, text details | FR-018, FR-019 |
 | Reset to default | Deletes both logos at once, no confirmation | Improved: each logo on its own, with a confirmation | FR-022 |
 | Logo size hint (`admin.logo_info`) | 40 px header height, 250 px start page | Matched, with the sizes this app uses | FR-023 |
-| IP Check opt-in checkbox and Save | Text with markup | Matched, explanation without markup | FR-042 |
+| IP Check opt-in checkbox and Save | Text with markup | Matched, explanation verbatim with its markup through the sanitiser | FR-042 |
 | Login Page: three quick-link checkboxes, force SSO with explanation, Save | — | Matched; force SSO explains when it has no effect | FR-038 |
 | App links table: name, link, user link, "Hide for login", Remove row, Add row, Save | Rows on one wide table; mismatched rows saved nothing yet reported success | Improved: cards on phones, reordering, validation per entry, user link preview, limit | FR-039 to FR-041 |
 | Greyed-out built-in app links (`admin.merged_vars_hint`) | Read-only rows | Matched | FR-039 |
-| UI texts: website title, product name, "Apps" name, help text | Inputs with branded placeholders | Matched; empty meaning explained, branded placeholders dropped (constitution IV) | FR-016, FR-034 |
-| Announcement: type select, text "(HTML allowed)", active checkbox | The text is in fact shown escaped | Improved: preview; labelled as plain text | FR-034, FR-037 |
+| UI texts: website title, product name, "Apps" name, help text | Inputs with branded placeholders | Matched with the legacy labels verbatim; empty meaning explained; hard-coded brand placeholders dropped (constitution IV; plan "Deviations" item 5), `header.apps` placeholder kept | FR-016, FR-034 |
+| Announcement: type select, text "(HTML allowed)", active checkbox | The text is in fact shown escaped | Improved: preview; plain-text label pending (plan "Deviations" item 4) | FR-034, FR-037 |
 | Footer "(HTML allowed)" | Rendered raw by legacy | Improved: preview through the app's sanitiser | FR-036 |
 | Demo mode refusal | Error message after submitting | Improved: branding pages read-only with the reason in demo mode | FR-017, FR-033 |
 | No brand colours | — | Improved: new colours with live preview and contrast checks | FR-024 to FR-030 |
@@ -1347,8 +1358,8 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| "I will be careful!" gate | Remembered in browser storage and the session | Dropped: replaced by a review and confirmation of each change | FR-066 |
-| Explanation and format example | Text with markup and a restart link | Matched without markup; restarting Rspamd belongs to UI feature 011 | FR-063 |
+| "I will be careful!" gate | Remembered in browser storage and the session | Dropped: replaced by a review and confirmation of each change (pending decision, plan "Deviations" item 7) | FR-066 |
+| Explanation and format example | Text with markup and a restart link | Matched verbatim with its markup; the restart link is pending (plan "Deviations" item 7); restarting Rspamd belongs to UI feature 011 | FR-063 |
 | Index of maps with anchors | One long page with every map | Improved: list with search and one page per map | FR-063, FR-064 |
 | Text area per map, Validate (browser), Save enabled only after Validate | Browser check only; editing disables Save again | Improved: live line marks, server check with line numbers, review before save | FR-064 to FR-066 |
 | Missing map file | Silently reported as success | Improved: "not available" message | FR-067 |
@@ -1370,7 +1381,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
 | Link to the Rspamd UI, Rspamd logo | Fixed path `/rspamd/` | Link matched, at the address the capabilities report; logo dropped (decoration) | FR-073 |
-| Password and repeat fields, Save | Minimum 6 characters | Improved: one field with show and hide, password-manager support, outcome including restart | FR-073, FR-074 |
+| Password and repeat fields, Save | Minimum 6 characters | Improved: one field with show and hide (pending decision, plan "Deviations" item 8), password-manager support, outcome including restart | FR-073, FR-074 |
 
 #### Access › Administrators › API › CORS Settings
 
@@ -1394,7 +1405,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 |---|---|---|---|
 | GUID field, heart icon for a valid license, customer ID, service ID, "Moo level" | Icon only for validity | Improved: result in text, copy action; page hidden where verification is disabled | FR-033, FR-077 |
 | "Validate GUID against license server" button | — | Matched with progress and an explanation of what is sent | FR-078 |
-| License info text with links to the vendor's order pages | — | Text kept, vendor links dropped (no third-party links built into the app) | FR-077 |
+| License info text with links to the vendor's order pages | — | Text kept verbatim; dropping the vendor links is pending (plan "Deviations" item 6) | FR-077 |
 
 ### API Dependency
 
@@ -1513,7 +1524,8 @@ the app translates only the known reason `interrupted` and quotes other replies 
   screens show is shown by the new app.
 - **SC-012**: In 100 % of the permission tests (administrator, domain administrator, mailbox user),
   the app offers exactly the capabilities of FR-002.
-- **SC-013**: Translation completeness checks find 0 missing keys in English, Czech and Slovak.
+- **SC-013**: Translation completeness checks find 0 new strings missing in English, Czech or Slovak,
+  and 0 legacy keys used by the feature missing from the bundled `en-gb` snapshot.
 - **SC-014**: When the API answers within 1 second, every settings page is usable within 2 seconds of
   opening it on a mid-range phone over a mobile connection, and the settings search shows results
   within 300 ms of a keystroke.
@@ -1538,7 +1550,8 @@ the app translates only the known reason `interrupted` and quotes other replies 
   as `#1D2939`.
 - The legacy UI keeps working for everything until the cutover (feature 014), and it never sends
   version tags.
-- Legacy translation keys with unchanged meaning are reused, for example `admin.customize`,
+- Constitution IV 1.3.0 applies: legacy translation keys are used verbatim, for example
+  `admin.customize`,
   `admin.change_logo`, `admin.logo_normal_label`, `admin.logo_dark_label`, `admin.upload`,
   `admin.ip_check`, `admin.login_page`, `admin.quicklink_text`, `admin.user_quicklink`,
   `admin.domainadmin_quicklink`, `admin.admin_quicklink`, `admin.app_links`, `admin.app_name`,
@@ -1557,8 +1570,12 @@ the app translates only the known reason `interrupted` and quotes other replies 
   `success.password_policy_saved`, `success.rspamd_ui_pw_set`, `success.cors_headers_edited`,
   `success.global_filter_written`, `success.dovecot_restart_success`,
   `warning.dovecot_restart_failed`, `danger.sieve_error`, `danger.img_size_exceeded`,
-  `danger.img_dimensions_exceeded`, `danger.cors_invalid_origin` and `danger.cors_invalid_method`.
-  Labels whose meaning changes (for example the announcement text, which is not HTML) get new keys.
+  `danger.img_dimensions_exceeded`, `danger.cors_invalid_origin` and `danger.cors_invalid_method`,
+  and also the texts that name the product or carry markup (`admin.main_name`, `admin.title_name`,
+  `admin.force_sso`, `admin.ip_check_opt_in`, `admin.rspamd_com_settings`,
+  `admin.merged_vars_hint`, `admin.license_info`). Where a legacy text's meaning no longer fits (the
+  announcement text label), the plan lists it under "Deviations needing a decision" instead of
+  giving it a new key.
 - Defaults of this feature: page sizes 25 (default), 50 and 100; the 90 % size indicator of the
   editors.
 - **Out of scope**: per-domain branding, favicons, custom style sheets and more than one brand colour

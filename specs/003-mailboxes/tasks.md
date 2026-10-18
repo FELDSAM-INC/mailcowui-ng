@@ -43,6 +43,14 @@ be implemented and tested on its own once the foundation is in place.
 - Paths are relative to the repository root `mailcowui-ng/`. `M/` stands for
   `src/features/mailboxes/` and `TM/` for `tests/unit/features/mailboxes/`.
 
+**Translations and forms (constitution IV 1.3.0)**: T008a writes the legacy form map, and every
+screen task builds the legacy form it names. In the message tasks, "Map `x.y`" means: use the
+legacy key `x.y` verbatim through UI 001's legacy translation layer, with no `legacy-map.json`
+alias, no copy in `src/i18n/messages/` and no hand-written value for a missing translation (it falls
+back to `en-gb`). "Add the … messages" means: add only the new strings of the form map, in
+`src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, never machine-translated. Success, warning and danger
+messages are the form map's legacy keys wherever one has the same meaning.
+
 ---
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -80,12 +88,17 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   closed enumerations to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`, so that T002 passes. UI 002's
   registry mechanism is reused unchanged (`docs/conventions.md`, "Shared building blocks and
   canonical names"); no second registry is created.
-- [ ] T004 Add the enumeration labels that T003 makes required to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
-  - `enums.mailboxStatus.*`: map `mailbox.active`, `mailbox.disable_login` and `mailbox.inactive`
-    through `src/i18n/legacy-map.json`;
-  - `enums.mailboxAuthSource.*`: the `mailcow` label is `{productName}` (research R3); the others
-    are "Keycloak", "Generic OIDC" and "LDAP";
-  - the quarantine notification and category labels;
+- [ ] T004 Add the enumeration labels that T003 makes required. A value whose option label exists in
+  the legacy templates of plan.md "Translations and forms" (`templates/edit/mailbox.twig`,
+  `templates/modals/mailbox.twig`, `js/site/mailbox.js`) uses that legacy key verbatim; only the
+  others get new strings in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. T008a records the
+  result in the form map:
+  - `enums.mailboxStatus.*`: map `mailbox.active`, `mailbox.disable_login` and `mailbox.inactive`;
+  - `enums.mailboxAuthSource.*`: the `mailcow` option is the product name from the branding
+    configuration, as the legacy template hard-codes the product name there (research R3); the
+    others are "Keycloak", "Generic OIDC" and "LDAP", as the legacy template writes them;
+  - the quarantine notification and category labels: map `user.never`, `user.hourly`,
+    `user.daily`, `user.weekly`, `user.q_reject`, `user.q_add_header` and `user.q_all`;
   - `enums.mailboxTaggedMailHandling.*`: map `user.tag_in_none`, `user.tag_in_subfolder` and
     `user.tag_in_subject`;
   - the rate-limit frames, the bulk actions and protocols, the rename steps and outcomes, the
@@ -96,7 +109,7 @@ new catalogue entry (research R1, R2; data-model §4, §5).
     `.mailboxTemplate`, `enums.auditFailureReason.*`;
   - the `validation.*` codes and the `problem.*` names of data-model §9 (`problemTypes`).
 
-  Run `npm run i18n:import`. `npm run i18n:check` must pass.
+  `npm run i18n:check` must pass.
 - [ ] T005 [P] Extend `tests/unit/shared/platform/storage.spec.ts`. It covers:
   - the key `mailcowui-ng.mailboxes.columns` is accepted, with a JSON array value of at most 20
     column ids;
@@ -120,8 +133,8 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   `src/app/navigation/catalogue.ts` with
   `status: 'placeholder'`, so that T007 passes. Add an icon to `src/shared/icons/` (Lucide
   "layout-template", recorded in `THIRD_PARTY_NOTICES.md`) and `nav.mailboxTemplates` to
-  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, mapped to `mailbox.mailbox_templates` through
-  `src/i18n/legacy-map.json`. US7 sets the row to `available`.
+  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, which is the legacy key `mailbox.mailbox_templates`
+  used verbatim (no new string). US7 sets the row to `available`.
 
 **Checkpoint**: The pinned contract contains API 003, and `npm run i18n:check`, `typecheck` and the
 existing tests pass.
@@ -141,6 +154,15 @@ existing tests pass.
 - the base translations.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Legacy form map
+
+- [ ] T008a Write the legacy form map for this feature's screens (screen → legacy template → field →
+  legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new
+  strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations
+  and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision".
+  Every later screen task depends on it.
 
 ### Mock API base
 
@@ -552,7 +574,8 @@ existing tests pass.
   - invalidate the domain if `quota` or `status` was sent;
   - a save with `password` goes through UI 001's `useSecretRequest` instead of the mutation, and
     then applies the same cache writes with the response.
-- [ ] T048 Add the foundation messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+- [ ] T048 Add the foundation messages of the T008a form map to
+  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (new strings only):
   - `mailboxes.common.*`;
   - the field labels and help;
   - `mailboxes.password.*`, `mailboxes.quota.*` and `mailboxes.acl.*`;
@@ -560,14 +583,18 @@ existing tests pass.
   - the `validation.format.localPart`, `.email` and `.attributeName` formats;
   - `validation.missingCharacterClass.*` and `validation.quota.*`.
 
-  Map the legacy keys of research R3 through `src/i18n/legacy-map.json`: the `acl.*` labels except
-  `pw_reset`, `add.*`, `edit.*`, `tfa.force_tfa`, `user.tag_*` and `admin.password_policy_*`.
-  - Write `pwReset` and the built-in source with `{productName}`.
-  - Supply the keys missing from the upstream Slovak file (`edit.custom_attributes`,
-    `edit.password_recovery_email`, `user.attribute`) in `src/i18n/messages/sk-sk.json`, and
-    `tfa.force_tfa` in both `cs-cz` and `sk-sk`.
+  Use the legacy keys of research R3 and the form map verbatim: the `acl.*` labels including
+  `pw_reset`, `add.*`, `edit.*`, `tfa.force_tfa`, `tfa.force_tfa_info`, `user.tag_*` and
+  `admin.password_policy_*`. `problems.ts` maps each problem type and rule code to its legacy
+  `danger.*` key first (research R17); a `mailboxes.problem.*` or `validation.*` new string exists
+  only where legacy has none.
+  - `edit.force_pw_update_info` gets the product name from the branding configuration as its
+    placeholder.
+  - Nothing is written by hand for legacy keys missing from the upstream Slovak or Czech file
+    (`edit.custom_attributes`, `edit.password_recovery_email`, `user.attribute`, `tfa.force_tfa`):
+    they fall back to `en-gb`.
 
-  Run `npm run i18n:import`. `npm run i18n:check` must pass.
+  `npm run i18n:check` must pass.
 
 **Checkpoint**: The foundation is ready, and all Phase 2 tests pass. The stories can start.
 
@@ -721,8 +748,10 @@ and as a domain administrator, on 360 px and desktop:
   `src/app/navigation/catalogue.ts`. Export `mailboxListLink({ domain })` from `M/index.ts`.
 - [ ] T060 [US1] Add the `mailboxes.list.*`, `mailboxes.filters.*`, `mailboxes.columns.*`,
   `mailboxes.detail.*`, `mailboxes.overview.*`, `mailboxes.managed.*` and `mailboxes.sections.*`
-  messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map the `mailbox.*` list keys of
-  research R3 through `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+  messages that the T008a form map lists as new to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+  The column headers, row actions and section names are the legacy keys of `draw_mailbox_table()`
+  and `templates/edit/mailbox.twig` (the `mailbox.*` list keys of research R3), used verbatim.
+  `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 works on its own, and T049–T053 pass. This is the MVP: a read-only mailbox
 browser.
@@ -867,8 +896,9 @@ Check each request, each error, and the screen after success.
   mailboxes. Export `mailboxCreateLink({ domain, template })` from `M/index.ts`.
 - [ ] T069 [US2] Add the `mailboxes.create.*` and `mailboxes.creationReport.*` messages. Map
   `mailbox.add_mailbox`, `add.mailbox_username`, `add.full_name`, `add.password`, `add.generate`,
-  `add.select_domain`, `warning.quota_exceeded_scope` and `success.mailbox_added` through
-  `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+  `add.select_domain`, `add.password_repeat` (subject to plan deviation 2),
+  `warning.quota_exceeded_scope` and `success.mailbox_added`, and the other legacy keys of the
+  `#addMailboxModal` in the form map. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 and US2 work on their own.
 
@@ -1072,8 +1102,9 @@ the requests and results on both viewports.
 - [ ] T093 [US5] Register the `mailbox-permissions`, `mailbox-tags` and `mailbox-attributes` routes
   in `M/routes.ts`.
 - [ ] T094 [US5] Add the `mailboxes.sections.permissions.*`, `mailboxes.tags.*` and
-  `mailboxes.attributes.*` messages. Map `add.tags`, `edit.custom_attributes` and `user.attribute`,
-  and supply the Slovak gaps. `npm run i18n:check` must pass.
+  `mailboxes.attributes.*` messages. Map `add.tags`, `edit.custom_attributes`, `user.attribute`,
+  `user.value`, `admin.add_row`, `admin.remove_row` and the `acl.*` labels; missing Slovak values
+  fall back to `en-gb`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -1229,9 +1260,9 @@ an administrator, and open them as a domain administrator, on both viewports.
   `meta.roles: ['admin']`. Set the catalogue's
   `mailboxTemplates` entry to `available` in `src/app/navigation/catalogue.ts`.
 - [ ] T110 [US7] Add the `mailboxTemplates.*` messages. Map `mailbox.mailbox_templates`,
-  `mailbox.add_template`, `mailbox.template`, `success.template_added` and
-  `success.template_modified`, and add the new key for the deletion announcement.
-  `npm run i18n:check` must pass.
+  `mailbox.add_template`, `mailbox.template`, `success.template_added`,
+  `success.template_modified` and `success.template_removed` (with the template's ID, as legacy
+  passes it). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US7 work on their own.
 
@@ -1293,10 +1324,10 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
   the new one, invalidate the lists and domains, and refetch both addresses after `500` and `504`.
 - [ ] T116 [US8] Implement `M/sections/RenameSection.vue` and
   `M/components/dialogs/RenameReport.vue`. Register the `mailbox-rename` route in `M/routes.ts`.
-- [ ] T117 [US8] Add the `mailboxes.rename.*` messages. Map `edit.mailbox_rename`,
-  `edit.mailbox_rename_warning`, `edit.mailbox_rename_agree`, `edit.mailbox_rename_title` and
-  `success.mailbox_renamed`, with their Slovak values written in `src/i18n/messages/sk-sk.json`.
-  `npm run i18n:check` must pass.
+- [ ] T117 [US8] Add the `mailboxes.rename.*` messages (new strings only: the incomplete-rename
+  report). Map `edit.mailbox_rename`, `edit.mailbox_rename_warning`, `edit.mailbox_rename_agree`,
+  `edit.mailbox_rename_title`, `edit.mailbox_rename_alias` and `success.mailbox_renamed`; missing
+  Slovak values fall back to `en-gb`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US8 work on their own.
 
@@ -1391,7 +1422,9 @@ rename and refused records, as an administrator and as a domain administrator, o
   URLs.
 - [ ] T128 [P] Run `npm run i18n:check` (FR-072, SC-005). Remove the unused keys it reports from
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this
-  feature for the owner's review (UI 001 owner question 4).
+  feature for the owner's review (UI 001 owner question 4). Check against the T008a form map that
+  no new string duplicates a legacy key's meaning and that every screen shows the legacy fields,
+  labels, options, units and order (constitution IV 1.3.0).
 - [ ] T129 [P] Re-check every row of the "Legacy Parity" tables in `specs/003-mailboxes/spec.md`
   against the implemented behaviour (SC-011). The plan's parity notes were applied to the tables
   during the analysis; record any further deviation found during implementation.
@@ -1418,6 +1451,7 @@ rename and refused records, as an administrator and as a domain administrator, o
 - **Setup (Phase 1)**: T001 first. T002 → T003 → T004; T005 → T006; T007 → T008, and T008 after T004
   (both edit the message files). T002, T005 and T007 can start in parallel after T001.
 - **Foundational (Phase 2)** depends on Setup and **blocks every user story**. Within it:
+  - T008a (the legacy form map) first; every screen and message task follows it;
   - T009 → T010 → T011 (mock base, including the complete `updateMailbox` handler and the control
     changes that US3, US4 and US5 use);
   - T012–T015 (block tests, [P]) → T016–T019 (promotions of UI 002's feature-local blocks, and
@@ -1461,8 +1495,7 @@ Edits to these files must be serialised, even when stories run in parallel:
 - `tests/mocks/scenarios/state.ts` and `tests/mocks/server.ts`: T011 only, so that no story edits
   them;
 - `tests/mocks/handlers/index.ts` and `tests/mocks/scenarios/index.ts`: one registration per story;
-- `src/i18n/messages/*.json` and `src/i18n/legacy-map.json`: every story's message task, run one
-  after another.
+- `src/i18n/messages/*.json`: every story's message task, run one after another.
 
 Scenario modules (`tests/mocks/scenarios/mailboxes/<story>.ts`) and handler modules per operation
 group keep the stories' mock work in separate files.
@@ -1471,7 +1504,7 @@ group keep the stories' mock work in separate files.
 
 - First the mock handlers and scenarios (test fixtures). Then the end-to-end, unit and smoke tests,
   which must fail. Then the implementation (api → composables → components → pages → routes). Then
-  the messages in all three locales.
+  the story's new strings in en-gb, cs-cz and sk-sk.
 
 ### Parallel Opportunities
 

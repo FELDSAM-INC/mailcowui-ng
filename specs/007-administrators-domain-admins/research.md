@@ -487,7 +487,7 @@ canonical names") names them.
     2. for administrators' `deactivate`, the remaining active targets are compared with the
        active-administrator count; when they are at least the count (possible only with a stale
        count, because the own active account is never a target), nothing is sent and the bar shows
-       "At least one administrator must stay active" (FR-036). The API's per-item
+       the legacy `warning.no_active_admin` (FR-036). The API's per-item
        `last-active-admin` refusal covers concurrent changes;
     3. `suspendSecondFactors` sends only accounts whose status is `active`.
   - **Confirmations**: `delete` asks once, listing the selected usernames (and, for domain
@@ -531,9 +531,12 @@ canonical names") names them.
     `invalidFormat` (`format: accountUsername`), `reserved`, `tooLong` and `409 account-exists`
     (FR-016).
   - **Password** (FR-014, as aligned): `AccountPasswordField.vue` wraps UI 005's shared
-    `NewPasswordFields.vue` without `confirm`, which combines `PasswordField.vue` (show and hide,
-    "Generate" from `src/shared/password/generate.ts` that meets the policy and reveals and offers
-    to copy) and `PasswordPolicyHints.vue` (rules from `src/shared/password/policy-rules.ts` over
+    `NewPasswordFields.vue` without `confirm` (legacy's repeat field is a deviation awaiting a
+    decision, plan "Translations and forms"; mirroring it means `confirm` with
+    `admin.password_repeat` or `edit.password_repeat`), which combines `PasswordField.vue` (show and
+    hide, "Generate" labelled `admin.generate` on the creation forms and `edit.generate` on the
+    detail screens, from `src/shared/password/generate.ts` that meets the policy and reveals and
+    offers to copy) and `PasswordPolicyHints.vue` (rules from `src/shared/password/policy-rules.ts` over
     `getPasswordPolicy`). The hints mark rules while typing and never block submission; a value that
     begins with a recognised hash-scheme prefix gets UI 003's pre-hashed notice (stored as given,
     without the policy check). Server errors (`tooShort`, `missingCharacterClass`) are shown on the
@@ -572,9 +575,9 @@ canonical names") names them.
       account's shows its own badge, FR-022); edit through the picker, which leaves out entries with
       `domainExists: false` and refuses an empty selection;
     - Sign-in and security: second-factor status, number of active passkeys, the two forced flags
-      (FR-023, the product name in `edit.force_pw_update_info` from branding), and "Suspend
-      two-factor authentication until next sign-in" when the status is `active` (FR-024), sent with
-      `If-Match`;
+      (FR-023: `edit.force_pw_update` and `tfa.force_tfa` with their `*_info` texts, the `%s` of
+      `edit.force_pw_update_info` filled with the product name from branding), and the suspension
+      labelled `tfa.disable_tfa` when the status is `active` (FR-024), sent with `If-Match`;
     - Permissions (domain administrators, R16);
     - One-time sign-in link (domain administrators, R11);
     - "View history" (`HistoryLink`, R18).
@@ -590,16 +593,17 @@ canonical names") names them.
   - **Status** (FR-026 as aligned, FR-036, FR-037): activating another account needs no
     confirmation; deactivating another account asks once and states the effect (sessions end, API
     keys stop working until reactivation), which the result message repeats. When the
-    active-administrator count is 1, the own account's deactivation is disabled with "At least one
-    administrator must stay active". Deactivating the own account asks first, warning that the
+    active-administrator count is 1, the own account's deactivation is disabled with the legacy
+    `warning.no_active_admin`. Deactivating the own account asks first, warning that the
     session ends; after the `200`, the app calls `GET /session`; when it reports `anonymous`, UI
     001's session end runs with the new notice `selfDeactivated` (FR-037).
   - **Removal** (FR-025, FR-035, FR-038): a confirmation whose content `confirmations.ts` builds:
     the account, its domains (domain administrators), the permanent revocation of its API keys, the
     removal of its passkeys and second factors, the end of its sessions, and for domain
-    administrators that the domains and mailboxes stay. The confirm button names the action ("Remove
-    domain administrator", "Remove administrator"). The own account's "Remove" is disabled
-    everywhere with "You cannot remove the account you are signed in with". After `204` the list
+    administrators that the domains and mailboxes stay. The dialog uses the classic confirmation's
+    `footer.confirm_delete`, `footer.delete_now` and `footer.cancel`; the impact lines are new
+    strings. The own account's "Remove" is disabled everywhere with the legacy
+    `warning.cannot_delete_self`. After `204` the list
     opens and the result is announced. A `412` reloads and asks again (conventions).
   - **API refusals** always show and then reload the account (FR-039): `last-active-admin`,
     `cannot-delete-own-account`, `account-exists`, `412`, and `404` with `NotFoundState` and a link
@@ -626,8 +630,12 @@ canonical names") names them.
     lands in "Other" (FR-028). A unit test asserts that the 19 values of the pin are all grouped and
     that an unknown plain value goes to "Other".
   - `PermissionsEditor.vue`: one `<fieldset>` with a `<legend>` per group; per flag a Reka `Switch`
-    with its label (legacy `acl.<column>` through `legacy-map.json`) and a one-line explanation
-    (new key `permissions.explanation.<flag>`) referenced by `aria-describedby` (FR-027, FR-030).
+    with its label (legacy `acl.<column>`, verbatim) and a one-line explanation (new string
+    `permissions.explanation.<flag>`) referenced by `aria-describedby` (FR-027, FR-030).
+    **Constitution IV 1.3.0**: legacy lists the flags flat in the `da_acl` column order without
+    explanations, so the groups and explanations are a deviation awaiting a decision (plan,
+    "Translations and forms"). Until it is decided, the editor renders one fieldset with the flags
+    in legacy order and no explanations; the group map stays ready for the decision.
     Used by the creation form (bound to the defaults) and by `PermissionsSection.vue`.
   - `PermissionsSection.vue` (on `EditableSection`) sends `updateDomainAdmin({ permissions:
     <changed flags> })` with `If-Match` (FR-029), shows `success.acl_saved`, keeps the switches on
@@ -649,25 +657,38 @@ canonical names") names them.
 ### R17. Errors and translations
 
 - **Decision**:
-  - **Problem messages** (FR-064, FR-065), keyed by `problem.<name>` (UI 001 R15):
-    `account-exists`, `last-active-admin` (legacy `warning.no_active_admin`),
-    `cannot-delete-own-account` (legacy `warning.cannot_delete_self`), `already-impersonating`,
+  - **Problem messages** (FR-064, FR-065): a legacy key where one has the same meaning, otherwise
+    a new string `problem.<name>` (UI 001 R15): `account-exists` (legacy `danger.object_exists`),
+    `last-active-admin` (legacy `warning.no_active_admin`), `cannot-delete-own-account` (legacy
+    `warning.cannot_delete_self`), and as new strings `already-impersonating`,
     `impersonation-ended`, `not-allowed-while-impersonating` ("Not available while acting as another
     user"), `webmail-on-behalf-disabled`, `account-inactive`, and the reused `permission-flag-required`
     (with the translated flag from `requiredFlags`), `groupware-disabled`, `session-required` and
     the `412` "changed elsewhere".
-  - **Field messages**: `validation.format.accountUsername`; `reserved` on a username
-    (`accounts.validation.reservedUsername`, mapped to legacy `danger.username_invalid` with the
-    name); `notEligible` on `domains.<index>`, keyed by the code and the path only (plan finding 7);
+  - **Field messages**: `invalidFormat` (`accountUsername`) and `reserved` on a username → legacy
+    `danger.username_invalid` with the name; `notFound`, `notEligible` and `invalidFormat` on
+    `domains.<index>` → legacy `danger.domain_invalid`, keyed by the code and the path only (plan
+    finding 7);
     `notEligible` with `reason` on `mailbox` (three messages); `immutable` and `unknownField` fall
     back to the generic `validation.<code>`; the password codes (`tooShort`,
-    `missingCharacterClass`) come with the shared password fields (UI 003, UI 005). `account-exists` maps to the username
-    field (legacy `danger.object_exists`).
-  - **Legacy keys** (FR-030, FR-072, SC-007): the 40 keys of the spec's list and the 19 flag labels
-    `acl.<column>`, 59 in all, are mapped in `src/i18n/legacy-map.json`. Upstream `cs-cz` and
-    `sk-sk` lack `tfa.force_tfa`, `tfa.force_tfa_info` and `acl.alias_external_goto`; their app
-    layers supply them (UI 001 R15). `edit.force_pw_update_info` keeps its `%s` (→ `{0}`) for the
-    product name. `tests/unit/i18n/legacy-keys-007.spec.ts` lists the 59 keys.
+    `missingCharacterClass`) come with the shared password fields (UI 003, UI 005), and the
+    request-level refusal uses legacy `danger.password_complexity`. `account-exists` maps to the
+    username field (legacy `danger.object_exists` with the username).
+  - **Success messages**: `success.domain_admin_added`, `success.domain_admin_modified`,
+    `success.domain_admin_removed`, `success.admin_added`, `success.admin_modified`,
+    `success.admin_removed`, `success.acl_saved` and `success.logged_in_as`, with the username as
+    legacy passes it.
+  - **Legacy keys** (FR-030, FR-072, SC-007), **superseded by constitution IV 1.3.0**
+    (`docs/conventions.md`, "Translations and forms"): the keys of the plan's legacy form map (the
+    spec's list, the 19 flag labels `acl.<column>` and the form keys the spec adds) are used
+    directly by their legacy keys through UI 001's legacy translation layer (runtime `/lang/`
+    loader, `en-gb` snapshot, formatter): no `legacy-map.json` alias and no copy in
+    `src/i18n/messages/`. Upstream `cs-cz` and `sk-sk` lack `tfa.force_tfa`, `tfa.force_tfa_info`
+    and `acl.alias_external_goto`; these fall back to `en-gb` as in the classic interface, and no
+    hand-written value is added (the fork's `cs-cz` and `sk-sk` files have them).
+    `edit.force_pw_update_info` keeps its `%s`, filled with the product name from branding as legacy
+    fills it from `ui_texts.main_name`. `tests/unit/i18n/legacy-keys-007.spec.ts` lists the form
+    map's keys.
   - **New namespaces**: `accounts.*` (shared account texts), `domainAdmins.*`, `admins.*`,
     `permissions.*`, `acting.*`, `webmailOnBehalf.*`, `ssoSignIn.*` (landing), `ssoLink.*` (link
     creation), additions to `auditLog.*`, `nav.*` and `auth.signIn.notice.*`.
@@ -682,14 +703,14 @@ canonical names") names them.
     `unknownField` and `notEligible` when not yet listed.
   - **No English detail**: the e2e fixture fails a test when the mock's sentinel `detail` text ever
     appears on the page (R20, SC-008).
-- **Rationale**: Messages by type and code, never by English detail (constitution I). Reusing the
-  legacy keys carries their translations over (constitution IV). The manifest is UI 002's canonical
+- **Rationale**: Messages by type and code, never by English detail (constitution I). mailcow's
+  translations are used one to one (constitution IV 1.3.0). The manifest is UI 002's canonical
   coverage registry.
-- **Alternatives considered**: Reusing `warning.no_active_admin` for the disabled reason too:
-  rejected; the spec gives a different, clearer text for the reason ("At least one administrator
-  must stay active"), while the legacy text fits the refusal. Mapping `admin.generate`: rejected;
-  the shared password field brings its own "Generate" label, and an unused key only produces a
-  warning.
+- **Alternatives considered**: A separate, clearer text for the disabled reasons ("At least one
+  administrator must stay active", "You cannot remove the account you are signed in with"):
+  rejected by constitution IV 1.3.0, because `warning.no_active_admin` and
+  `warning.cannot_delete_self` have the same meaning. Leaving out `admin.generate`: rejected for the
+  same reason; the forms label "Generate" with `admin.generate` and `edit.generate`.
 
 ### R18. Audit log and History links
 

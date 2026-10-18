@@ -123,7 +123,8 @@ operator tooling in `deploy/cutover/`. There is no backend code.
 - 33 mapping rows, 3 fallback families and 16 exclusion classes.
 - 3 roles and 8 switch states.
 - About 400 smoke requests per host name.
-- 2 new app routes, 2 new components and about 20 translation keys.
+- 2 new app routes, 2 new components and about 20 new strings (en-gb, cs-cz, sk-sk), for elements
+  the classic interface does not have (constitution IV 1.3.0).
 - A readiness register over every parity row of UI 001–013 and the legacy inventory.
 
 ## Constitution Check
@@ -135,7 +136,7 @@ operator tooling in `deploy/cutover/`. There is no backend code.
 | I. The API contract is the only interface | The app uses only contract operations: `getAlias`, `listAliases`, `getDomainTemplate`, `getMailboxTemplate`, and `listSieveFilters` with an `id` filter once gap SF is pinned (contracts §1). The missing Sieve-filter lookup is gap SF, specified in mailcow-rest-v2 first, with no paging workaround; until then M31 arrives on the filters list as a fallback. Classic pages appear only as link targets: the entry and the excluded addresses. The operator tool calls only the anonymous `getReadiness` and `getPublicConfig`. | PASS (SF recorded) |
 | II. Mobile-first | The arrival notice and the API keys note are designed at 360 px first, without horizontal scrolling, with 44 × 44 targets. FR-045's end-to-end tests run on the 360 px project. `ArrivalPage` shows only a loading state, and `classic-target` shows the target's own loading, not-found and error states. | PASS |
 | III. Accessibility | The notice is non-modal, has a heading, is announced through the polite live region and is keyboard-dismissible. axe runs on every arrival and note state in both themes (SC-009). Focus follows UI 001's rule after the replace. | PASS |
-| IV. i18n and branding | New text (`cutover.*`) exists in en-gb, cs-cz and sk-sk, and `i18n:check` gates it. The wording is "the classic interface", "klasické rozhraní" and "klasické rozhranie" (FR-039). The runbook's announcement texts are written in all three languages, and the operator places them through the existing branding announcement. Nothing is brand-specific. | PASS |
+| IV. i18n and branding | Constitution IV 1.3.0 ("Translations and forms" below). The feature's screens have no classic-interface counterpart, so their text is new strings (`cutover.*`) in en-gb, cs-cz and sk-sk, never machine-translated; every other mailcow language falls back to English. A legacy key is used verbatim wherever one has the same meaning (for example `admin.loading`). `i18n:check` gates both. The wording is "the classic interface", "klasické rozhraní" and "klasické rozhranie" (FR-039). The runbook's announcement texts are written in the same three languages, and the operator places them through the existing branding announcement. The redirect never touches `/lang/…`, which the app loads at runtime (X10). Nothing is brand-specific. | PASS |
 | V. Security in the browser | Device storage holds only the three notice counters, never tokens or identifiers. Tokens pass through the fragment, are handed to the target, which removes them at once, and are never logged again. No `v-html`. The entity decoding uses an inert `DOMParser` document, never rendering. The pass is not a credential. The redirect can only lead to `/ng/arrival/<row>`, and raw values are charset-checked, which excludes `\` (R2). Hiding the API keys note from other roles is a convenience; the classic interface enforces its own sign-in. | PASS |
 | VI. Test-first | `tasks.md` puts every test before its implementation: units, end-to-end on both viewports, the nginx harness against the real upstream image, and the smoke suite against the real API (R15). Mocks stay contract-validated, as UI 001 requires. | PASS |
 | VII. Performance budgets | The arrival and `classic-target` routes are lazy. The notice component is small and loaded with the layouts. The redirect costs nothing in the app. Server state reuses the delivering features' query keys, and the resolver's lookups are single requests. | PASS |
@@ -154,6 +155,54 @@ quickstart introduce no violation. Decisions that touched gates:
 - SF raised in mailcow-rest-v2 instead of paging through filters (I);
 - the real upstream nginx image in tests rather than a re-implementation (VI);
 - two cookies instead of a signed expiry, so no secret and no module is needed (VIII, V).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature. It overrides any earlier text in this plan, the spec, research and tasks
+that says otherwise.
+
+**Legacy forms mirrored**: none. UI 014 adds no screen that replaces a classic form. Its redirects
+lead to the screens of UI 001–013, which mirror their legacy forms under their own plans. The
+classic page entries it maps (`data/web/index.php`, `user.php`, `admin/*.php`,
+`domainadmin/*.php`, `edit.php`, `quarantine.php`, `reset-password.php`) are routing references,
+not forms. The `ClassicTargetPage` lookup shows the target feature's own loading, not-found and
+no-access components, with that feature's legacy keys.
+
+**Screens or elements without a legacy counterpart** get new strings (en-gb, cs-cz and sk-sk,
+never machine-translated; other languages fall back to English), kept minimal:
+
+- the arrival notice and its fallback sentence (`ArrivalNotice.vue`, FR-041, FR-042);
+- the arrival page's loading state, which uses the legacy `admin.loading` ("Please wait...") if
+  the form map confirms the meaning;
+- the classic interface note on UI 001's API keys screen (`ClassicApiKeysNote.vue`). The classic
+  `/api/v1` key settings live in `templates/admin/tab-config-admins.twig`; the note only links
+  there, so it mirrors no field;
+- the runbook's "before" and "after" announcement texts (operator documentation placed through the
+  branding announcement, not app strings), written in the same three languages and never
+  machine-translated.
+
+**Deviation-free rule**: these elements add, drop, rename, reword or reorder nothing of a legacy
+form, because they have none. Any element for which a legacy key with the same meaning exists uses
+that key verbatim. Every mailcow language is supported. Legacy values are loaded at runtime from
+the installation and shown verbatim (HTML through `SanitizedHtml.vue`), and a missing key falls back
+to `en-gb`, never to a hand-written value.
+
+**The language files stay reachable**: the app loads the installation's `/lang/lang.<code>.json`
+at runtime (constitution IV 1.3.0). The redirect rules never redirect or block `/lang/…`, for any
+role and in every switch state: it keeps answering `200` with `application/json`. It is listed in
+exclusion X10, checked by the nginx harness (T031) and the operator's smoke test.
+
+**Readiness**: a feature counts as done, and so as ready in the readiness register (FR-002), only
+when its plan has its legacy form map (constitution 1.3.0, "Development Workflow & Quality Gates").
+
+**Legacy form map**: written into this section by task T007a before any screen is built. For this
+feature it lists the new strings, any legacy key reused for them, and the `/lang/` exclusion.
+
+**Deviations needing a decision**: none found at planning time. The spec drops the classic
+`?lang=<code>` parameter (parity table, "Changed"). Now that the app offers every mailcow language
+with mailcow's codes, carrying it into the app's language choice would be possible; the plan keeps
+the spec's decision unless the owner asks for it.
 
 ## Dependencies and order
 
@@ -290,7 +339,7 @@ deploy/cutover/
 ├── nginx/{ng-cutover.conf,site.ng-cutover.custom}          # GENERATED (R2, R6, R7)
 └── data/{smoke-cases.json,mapping.json}                    # GENERATED / copied
 docs/cutover/
-├── runbook.md                         # operator runbook with announcement texts en/cs/sk (R16)
+├── runbook.md                         # operator runbook with announcement texts en/cs/sk, never machine-translated (R16)
 ├── mapping.md                         # GENERATED documented mapping (FR-029)
 └── readiness-register.md              # GENERATED view for the owner's sign-off
 scripts/cutover/
@@ -313,7 +362,7 @@ src/features/cutover/
 ├── api.ts                             # lookups for classic-target
 ├── pages/{ArrivalPage.vue,ClassicTargetPage.vue}
 └── components/{ArrivalNotice.vue,ClassicApiKeysNote.vue}
-src/i18n/messages/{en-gb,cs-cz,sk-sk}.json   # cutover.* keys
+src/i18n/messages/{en-gb,cs-cz,sk-sk}.json   # cutover.* new strings (no legacy counterpart)
 tests/
 ├── unit/cutover/{mapping,generate,readiness,classic-links,release-manifest,smoke,report,preflight}.spec.ts
 ├── unit/features/cutover/{fragment,classic-decode,resolve-arrival,arrival-state,targets,no-placeholders,ArrivalNotice,ClassicApiKeysNote,ClassicTargetPage}.spec.ts

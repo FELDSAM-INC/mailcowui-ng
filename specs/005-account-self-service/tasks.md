@@ -18,7 +18,9 @@ description: "Task list for UI feature 005: account self-service"
     audit log and shared primitives;
   - UI 002's `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with
     `requireTyped`, `EditableSection`, `HistoryLink` with the audit target filters, `useLeaveGuard`,
-    `formatBytes`, `src/i18n/coverage.json` and the `stripMarkup` import;
+    `formatBytes` and `src/i18n/coverage.json`; legacy texts come from UI 001's legacy translation
+    layer (runtime `/lang/` loader, `en-gb` snapshot, formatter) and `SanitizedHtml.vue`
+    (constitution IV 1.3.0);
   - UI 003's mailbox detail and list with their designated action areas (`sections.ts`, `routes.ts`,
     `MailboxSectionNav.vue`, `ManagedSettingsGroup.vue`, `MailboxBulkActions.vue`, `bulk.ts`;
     research R5), and its password field, hints, generator and policy rules;
@@ -59,17 +61,16 @@ validator and the test helpers this feature needs (research R2, R23, R24).
 
 - [ ] T001 Bump the contract pin (research R2): run `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9`, or a later mailcow-rest-v2 commit when the pin in `contract/VERSION.json` is already newer or a later commit contains the fix of API gap AG1 or AG2. Pins only move forward: never pin an older commit than the current one. Diff `api/` between the baseline and the chosen commit and check every operation listed in `specs/005-account-self-service/contracts/README.md` for changes before accepting it. This rewrites `contract/openapi.yaml`, `contract/openapi.json`, `contract/VERSION.json` and `src/api/generated/schema.ts`. Confirm that the bundle contains the 51 operations of `api/modules/self-service/` and `knownProblemTypeValues`. Run `npm run typecheck` and fix the type errors the bump causes in existing code. Record the pinned commit, sha256 and operation count in `specs/005-account-self-service/contracts/README.md` when they differ from the baseline.
 - [ ] T002 Extend `tests/unit/scripts/i18n-tools.spec.ts` with failing cases (research R23):
-  - a UI 002 `stripMarkup` entry with `"linkSlot": true` (`{ "from": "tfa.api_register", "stripMarkup": true, "linkSlot": true }`) turns its single `<a href="…">text</a>` into `{link}` and writes the anchor text to the sibling key `<appKey>Link`; a second anchor is refused; without `linkSlot` UI 002's behaviour is unchanged;
-  - a key whose `en-gb` value has plural choices must have exactly three choices in `cs-cz` and `sk-sk`;
+  - a new string whose `en-gb` value has plural choices must have exactly three choices in `cs-cz` and `sk-sk`;
   - the enumerations this feature introduces into the UI are fully required (outside UI 002's coverage manifest): `OwnSecondFactorType`, `AppPasswordProtocol`, `MailboxTaggedMailHandling` and `SieveFilterKind`.
-- [ ] T003 Implement T002 in `scripts/i18n/lib.mjs`, `scripts/i18n/import-legacy.mjs` and `scripts/i18n/check.mjs`, so that T002 passes.
-- [ ] T004 Append the values this feature translates to UI 002's coverage manifest `src/i18n/coverage.json` (UI 002 D2), and add their keys to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, through `src/i18n/legacy-map.json` where a legacy text has the same meaning, so that `npm run i18n:check` passes at the new pin:
+- [ ] T003 Implement T002 in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`, so that T002 passes.
+- [ ] T004 Append the values this feature translates to UI 002's coverage manifest `src/i18n/coverage.json` (UI 002 D2). Where a legacy `danger.*` or `success.*` message has the same meaning, the value is shown with that legacy key (conventions "Translations and forms", "Messages"); only the others get new strings in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, so that `npm run i18n:check` passes at the new pin:
   - `problem.<name>` for the feature 005 types `current-password-incorrect`, `password-managed-externally`, `password-reset-unavailable`, `invalid-reset-token`, `second-factor-enrolment-expired`, `second-factor-enrolment-failed`, `last-second-factor`, `second-factor-required-by-policy`, `push-notifications-not-configured` and `groupware-disabled` (and `temporary-failure`, `permission-flag-required` unless listed);
   - `validation.<code>` for `preHashedPassword`, `sieveSyntax`, `secretRequired`, `mutuallyExclusive` and `invalidRegex` unless listed, and `validation.format.{email,pushoverCredential,soundName,digits}`;
   - `auditLog` labels for the 23 self-service `AuditEventType` values, the 12 self-service `AuditTarget.type` values and the 10 new `AuditFailureReason` values (research R22);
   - labels for every value of `OwnSecondFactorType`, `AppPasswordProtocol`, `MailboxTaggedMailHandling` and `SieveFilterKind`.
 
-  Legacy messages reused here: `danger.last_key`, `danger.tfa_removal_blocked`, `danger.password_reset_na`, `danger.invalid_reset_token`, `danger.reset_token_limit_exceeded`. Supply the cs-cz and sk-sk values missing from the upstream legacy files (`danger.tfa_removal_blocked` in both; `danger.password_reset_na`, `danger.invalid_reset_token`, `danger.reset_token_limit_exceeded` in sk-sk) in that locale's hand-written layer. Run `npm run i18n:import`.
+  Legacy messages used verbatim here: `danger.last_key`, `danger.tfa_removal_blocked`, `danger.password_reset_na`, `danger.invalid_reset_token`, `danger.reset_token_limit_exceeded`. Keys missing from an upstream cs-cz or sk-sk file fall back to `en-gb`; no hand-written value is added for them.
 - [ ] T005 [P] Extend `tests/unit/mocks/validator.spec.ts` with failing cases: an `application/x-apple-aspen-config` response of `getOwnAppleProfile` is validated as a string body; a missing `Content-Disposition` or `Cache-Control` on it is rejected; a `createWebmailHandOff` response without `Set-Cookie` is rejected; an `application/merge-patch+json` request body of `updateAppPassword` is validated against `AppPasswordPatch`.
 - [ ] T006 Implement T005 in `tests/mocks/contract/validator.ts`: non-JSON response bodies validated against their documented string schema, and every header the operation's response declares as `required` checked, so that T005 passes.
 - [ ] T007 [P] Write `tests/unit/support/totp.spec.ts` with the RFC 6238 SHA-1 test vectors (six digits, 30-second steps) and a ±1-step verification. The test must fail.
@@ -89,6 +90,11 @@ i18n:check` and the existing unit and end-to-end suites pass.
 section registry and visibility, the My account hub and the mailbox-context group.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Legacy form map (constitution IV 1.3.0)
+
+- [ ] T010a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Test infrastructure
 
@@ -191,7 +197,7 @@ section registry and visibility, the My account hub and the mailbox-context grou
 
   Register the routes in `src/app/router/routes.ts`, set the catalogue's `account` entry to `available`, add "My account" above "Passkeys" in `src/app/shell/UserMenu.vue`, and add the optional reason key to `src/app/states/NoAccessState.vue`. T023 must pass.
 - [ ] T036 Add the "Self-service" group to UI 003's designated section list: spread `mailboxSelfServiceRoutes` into the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`, and `mailboxSelfServiceSections` into `src/features/mailboxes/sections.ts`, rendered by `src/features/mailboxes/components/display/MailboxSectionNav.vue` (UI 003 data-model §8). Only sections with registered routes appear. T024 must pass.
-- [ ] T037 Add the `account.hub.*`, `account.sections.*`, `account.readOnly.*`, `permissionFlags.*` (`appPasswds`, `spamAlias`, `filters`, `pushover`, `delimiterAction`, `tlsPolicy`, `easReset`, `sogoProfileReset`, `pwReset`), `nav.filters` and `selfService.dependency.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map legacy `mailbox.filters` and `login.mobileconfig_info` in `src/i18n/legacy-map.json`. Run `npm run i18n:import`; `npm run i18n:check` must pass, and T025 must pass.
+- [ ] T037 Add the `account.hub.*`, `account.readOnly.*` and `selfService.dependency.*` new strings that the legacy form map (T010a) lists to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use legacy keys verbatim for the rest: the section names (`user.mailbox_general`, `user.mailbox_details`, `user.mailbox_settings`, `user.app_passwds`, `user.spam_aliases`, `edit.pushover` and the others of the map), the permission flag labels (`acl.app_passwds`, `acl.spam_alias`, `acl.filters`, `acl.pushover`, `acl.delimiter_action`, `acl.tls_policy`, `acl.eas_reset`, `acl.sogo_profile_reset`, `acl.pw_reset`), `mailbox.filters` for `nav.filters`, and `login.mobileconfig_info`. `npm run i18n:check` must pass, and T025 must pass.
 
 **Checkpoint**: The foundation is ready. My account opens for every role with an empty hub (no
 section yet), the user menu links to it, and Mail setup › Filters is a placeholder. The mailbox
@@ -227,7 +233,7 @@ address leads back to the screen.
   - US1-AS1 on `domain-admin-account`: "Password changed, 2 other sessions signed out", fields cleared, still signed in; and with the box unticked, `endOtherSessions: false` asserted through `mockApi.requests()`;
   - US1-AS2: a wrong current password shows the error on its field, and on `password-throttled` the "too many attempts" countdown appears;
   - US1-AS3: typing "summer" marks the 10-character and digit rules as not met, and a refused save shows both on the new-password field;
-  - US1-AS4 on `mailbox-account`: "your 3 app passwords keep working";
+  - US1-AS4 on `mailbox-account`: the legacy `user.change_password_hint_app_passwords` text with 3;
   - US1-AS8 on `mailbox-external-source`: the external notice and no form;
   - FR-023: the mismatch before submit;
   - FR-024: show/hide by keyboard, the autocomplete attributes and the hidden username field;
@@ -251,7 +257,7 @@ address leads back to the screen.
 - [ ] T043 [US1] Implement `src/features/account/api/password.ts` (`useOwnPasswordPolicy`, and `changeOwnPassword()` through `useSecretRequest` with the invalidation of data-model §3) and `src/features/account/api/overview.ts` (`useOwnMailboxOverview`, key `['me','mailbox']`, staleTime 5 min). Export the password hooks from `src/features/account/index.ts` for the pending-actions screen.
 - [ ] T044 [US1] Implement `src/features/account/components/password/OwnPasswordForm.vue` and `ExternalPasswordNotice.vue`, and `src/features/account/pages/PasswordPage.vue`. Add the `account-password` route to `src/features/account/routes.ts`.
 - [ ] T045 [US1] Implement `src/features/auth/components/pending/ForcedPasswordChange.vue`, and change `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue` to the linear flow of research R8. Remove the classic link and "Check again" of the password action; continue through `continueAfterSignIn()` once no action is pending.
-- [ ] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` messages, including new plural keys for "{n} other sessions signed out" and "{n} app passwords keep working" (the latter replaces `user.change_password_hint_app_passwords`, starting from its legacy text), to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.pw_update_required`, `login.new_password`, `login.new_password_confirm`, `success.password_changed_success`, `danger.password_mismatch` and `danger.password_complexity` (the summary when the policy refuses a password) in `src/i18n/legacy-map.json`. Write the missing values: `user.pw_update_required` in cs-cz and sk-sk; `login.new_password`, `login.new_password_confirm` and `success.password_changed_success` in sk-sk. `npm run i18n:check` must pass.
+- [ ] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` new strings of the legacy form map, including the plural key for "{n} other sessions signed out", to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim by legacy key: the own-password form's `user.change_password`, `user.password_now`, `user.new_password`, `user.new_password_repeat`, `user.generate` and `user.change_password_hint_app_passwords` (with its `%d`), `user.pw_update_required`, `success.password_changed_success`, `danger.password_mismatch` and `danger.password_complexity` (the summary when the policy refuses a password). No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 works on its own: T039–T042 pass. This is the MVP: forced password changes no
 longer need the classic interface.
@@ -342,7 +348,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
 - [ ] T056 [P] [US2] Implement `src/features/account/composables/useSecurityKeyEnrolment.ts`, `src/features/account/components/two-factor/SecurityKeySetup.vue` and `src/features/account/components/two-factor/YubicoOtpSetup.vue` (prop `requireCurrentPassword`; the `tfa.api_register` link slot to `https://upgrade.yubico.com/getapikey/`), following research R11.
 - [ ] T057 [US2] Implement `src/features/account/components/two-factor/SecondFactorList.vue`, `SecondFactorItem.vue`, `AddSecondFactorMenu.vue` and `TurnOffTwoFactorDialog.vue`, plus `src/features/account/pages/TwoFactorPage.vue` and `src/features/account/pages/AddSecondFactorPage.vue`. Add the `account-two-factor` and `account-two-factor-add` routes to `src/features/account/routes.ts`. Export `TotpSetup`, `SecurityKeySetup` and `YubicoOtpSetup` from `src/features/account/index.ts`.
 - [ ] T058 [US2] Implement `src/features/auth/components/pending/ForcedSecondFactorSetup.vue` and integrate it into `src/features/auth/pages/PendingActionsPage.vue` (research R8): method order, the passkey through `usePasskeyRegistration`, inline enrolment without the password, then refetch and `continueAfterSignIn()`.
-- [ ] T059 [US2] Add the `account.twoFactor.*` and `auth.pendingActions.secondFactor.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: `tfa.tfa`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`, `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`, `tfa.api_register` (`stripMarkup`, `linkSlot`), `tfa.setup_title`, `tfa.setup_required`, `tfa.start_webauthn_validation`, `tfa.delete_tfa`, `danger.totp_verification_failed`, `danger.yotp_verification_failed`, `danger.webauthn_verification_failed` and `user.tfa_info`. Write the missing values (`tfa.setup_title` and `tfa.setup_required` in cs-cz and sk-sk; `user.tfa_info` in sk-sk). `npm run i18n:check` must pass.
+- [ ] T059 [US2] Add the `account.twoFactor.*` and `auth.pendingActions.secondFactor.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `tfa.tfa`, `tfa.set_tfa`, `tfa.select`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`, `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`, `tfa.api_register` (HTML, through `SanitizedHtml.vue`), `tfa.setup_title`, `tfa.setup_required`, `tfa.start_webauthn_validation`, `tfa.delete_tfa`, `danger.totp_verification_failed`, `danger.yotp_verification_failed`, `danger.webauthn_verification_failed` and `user.tfa_info`. No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 and US2 work on their own; every forced restriction is resolved in the app
 (SC-002).
@@ -420,7 +426,7 @@ server.
 - [ ] T068 [US3] Give `src/features/auth/components/TotpForm.vue`, `YubiOtpForm.vue`, `WebAuthnFactor.vue` and `OtherMethods.vue`, and `src/features/auth/composables/useSecondFactor.ts`, a `submit(proof)` callback and a challenge provider, so that the sign-in step and the reset page share them. UI 001's second-factor tests must still pass.
 - [ ] T069 [US3] Implement `src/features/auth/pages/PasswordResetRequestPage.vue`, `src/features/auth/pages/PasswordResetPage.vue` and `src/features/auth/components/ResetSignedInNotice.vue`. Add the `password-reset-request` and `password-reset` routes, with `meta.public` and the token-capturing `beforeEnter` (query or fragment), to `src/features/auth/routes.ts`.
 - [ ] T070 [US3] Implement `src/features/auth/components/ForgotPasswordLink.vue` and use it in `src/features/auth/pages/SignInPage.vue` in place of UI 001's classic `/reset-password` link. Remove the now unused reset constant from `src/app/navigation/classic-links.ts`, and update UI 001's FR-009 tests in `tests/e2e/sign-in/sign-in-screen.spec.ts` and `tests/unit/features/auth/SignInPage.spec.ts`.
-- [ ] T071 [US3] Add the `account.recoveryEmail.*` and `auth.passwordReset.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (the link text keeps UI 001's mapping of `login.forgot_password`). Map `login.reset_password`, `login.request_reset_password`, `login.invalid_pass_reset_token` (`stripMarkup`) and `user.password_reset_info` in `src/i18n/legacy-map.json`, and write their missing sk-sk values. `npm run i18n:check` must pass.
+- [ ] T071 [US3] Add the `account.recoveryEmail.*` and `auth.passwordReset.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (only the new strings of the legacy form map; the link text is UI 001's verbatim `login.forgot_password`). Use verbatim by legacy key: `user.pw_recovery_email`, `user.email`, `login.username`, `login.reset_password`, `login.request_reset_password`, `login.new_password`, `login.new_password_confirm`, `login.invalid_pass_reset_token` (HTML, through `SanitizedHtml.vue`) and `user.password_reset_info`. No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories but app passwords work; a locked-out user recovers without the
 classic interface.
@@ -480,7 +486,7 @@ domain administrators with and without the flag.
 - [ ] T077 [US4] Implement `src/features/account/api/app-passwords.ts` (`useSecretRequest` for creation and regeneration, TanStack mutations for the other changes; the invalidation of data-model §3) and the app password schema in `src/features/account/list-state.ts`.
 - [ ] T078 [P] [US4] Implement `src/features/account/components/app-passwords/AppPasswordList.vue`, `AppPasswordCard.vue`, `AppPasswordTable.vue`, `AppPasswordFilters.vue`, `AppPasswordForm.vue` and `ProtocolCheckboxes.vue`.
 - [ ] T079 [US4] Implement `src/features/account/pages/AppPasswordsPage.vue`, `AppPasswordCreatePage.vue` and `AppPasswordDetailPage.vue` for both contexts. Add the routes `account-app-passwords`, `account-app-password-create` and `account-app-password-detail` to `src/features/account/routes.ts`, and `mailbox-app-passwords`, `mailbox-app-password-create` and `mailbox-app-password-detail` to `src/features/account/mailbox-routes.ts`.
-- [ ] T080 [US4] Add the `account.appPasswords.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `add.app_password`, `add.app_name`, `add.app_passwd_protocols`, `user.app_hint` and `success.app_passwd_added` in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T080 [US4] Add the `account.appPasswords.*` new strings of the legacy form map to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim by legacy key: `user.app_passwds`, `user.create_app_passwd`, `add.app_password`, `add.app_name`, `add.app_passwd_protocols`, `add.active`, `edit.app_passwd`, the table columns of `draw_app_passwd_table()` (`user.app_name`, `user.allowed_protocols`, `user.active`, `user.action`), `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove`, `user.app_hint` and `success.app_passwd_added`. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories (US1 to US4) work.
 
@@ -527,7 +533,7 @@ from a deep link.
 - [ ] T085 [US5] Implement `src/features/account/api/webmail.ts`, `src/features/account/composables/useWebmailHandOff.ts` and `src/features/account/components/overview/WebmailAction.vue` (research R20).
 - [ ] T086 [P] [US5] Implement `src/features/account/components/overview/MailboxOverview.vue`, `QuotaUsage.vue`, `ProtocolAccessList.vue`, `AddressLists.vue` and `MailboxHomeCard.vue`, and show the overview at the top of `src/features/account/pages/AccountHomePage.vue` for mailbox users. Sizes come from the byte formatter in `src/i18n/format.ts`; add `formatBytes` there if UI 002 or 003 did not.
 - [ ] T087 [US5] Implement `src/features/account/webmail-forwarding.ts`, register it as a landing hook in `src/app/session/landing.ts`, and show `MailboxHomeCard` for mailbox users in `src/features/home/pages/HomePage.vue`.
-- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.open_webmail_sso`, `user.direct_protocol_access` (`stripMarkup`) and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in) in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.overview`, `user.protocols`, `user.open_webmail_sso`, `user.direct_protocol_access` (HTML, through `SanitizedHtml.vue`), the `user.*` keys of `user/tab-user-details.twig`, and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -577,7 +583,7 @@ permanent with one failing, delete them. Repeat in the mailbox context.
 - [ ] T094 [US6] Implement `src/features/account/api/temporary-aliases.ts` (including `listTemporaryAliasDomains` with `limit: 1000`), `src/features/account/validity.ts`, and the alias schema in `src/features/account/list-state.ts`.
 - [ ] T095 [P] [US6] Implement `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`, `TemporaryAliasCard.vue`, `TemporaryAliasTable.vue`, `TemporaryAliasFilters.vue`, `GenerateAliasPanel.vue` and `ValiditySelect.vue`. Selection and outcomes use UI 002's `useBulkSelection`, `BulkActionBar` and `BulkResultSummary` with `usePerItemRunner` (T029).
 - [ ] T096 [US6] Implement `src/features/account/pages/TemporaryAliasesPage.vue` for both contexts. Add `account-temporary-aliases` to `src/features/account/routes.ts` and `mailbox-temporary-aliases` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entry for active temporary aliases in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
-- [ ] T097 [US6] Add the `account.temporaryAliases.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.spam_aliases_info` (`stripMarkup`) and the validity labels whose legacy meaning is unchanged (for example `user.expire_never`) in `src/i18n/legacy-map.json`, and write the missing sk-sk value of `user.spam_aliases_info`. `npm run i18n:check` must pass.
+- [ ] T097 [US6] Add the `account.temporaryAliases.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.spam_aliases`, `user.spam_aliases_info` (HTML, through `SanitizedHtml.vue`), `user.alias_create_random`, `user.description`, `user.expire_in` and the validity labels (`user.hour`, `user.day`, `user.week`, `user.month`, `user.year`, `user.years`, `user.expire_never`), and the table columns of `draw_tla_table()`. No hand-written value for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US6 work on their own.
 
@@ -644,7 +650,7 @@ Turn each flag off and confirm the control is absent. As an administrator, enfor
 - [ ] T105 [P] [US7] Implement `src/features/account/components/mail-settings/TaggedMailSetting.vue` and `TlsPolicySetting.vue`, and `src/features/account/components/push/PushNotificationsForm.vue` and `WriteOnlySecretField.vue`.
 - [ ] T106 [US7] Implement `src/features/account/pages/MailSettingsPage.vue` (anchors `#tagged-mail`, `#tls-policy`) and `src/features/account/pages/PushNotificationsPage.vue` for both contexts. Add `account-mail-settings` and `account-push-notifications` to `src/features/account/routes.ts`, and `mailbox-mail-settings` and `mailbox-push-notifications` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entries for tagging, TLS and push notifications in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
 - [ ] T107 [US7] Implement `src/features/account/components/mail-settings/BulkTlsDialog.vue` and add the bulk TLS action to UI 003's bulk menu (`src/features/mailboxes/components/list/MailboxBulkActions.vue` and `src/features/mailboxes/bulk.ts`), with UI 002's `useBulkSelection` taking `bulkLimit` from the self-service capabilities, `applyMailboxMailSettingsBulkAction`, the listed version tag per target and `BulkResultSummary`. **Depends on API gap AG1** being fixed in the pinned contract (plan). If it is still open at implementation time, leave this task open, do not omit the version tag, and register no action (owner question 2).
-- [ ] T108 [US7] Add the `account.mailSettings.*`, `account.push.*` and `account.bulkTls.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: the `user.*` tagging and TLS keys whose meaning is unchanged, `user.tls_policy_warning` (`stripMarkup`), `user.pushover_info` (`stripMarkup`, `{0}` the mailbox), the `edit.pushover_*` keys including `edit.pushover_vars` (`stripMarkup`), `danger.pushover_key`, `danger.pushover_token` and `danger.pushover_credentials_missing`. `npm run i18n:check` must pass.
+- [ ] T108 [US7] Add the `account.mailSettings.*`, `account.push.*` and `account.bulkTls.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: the `user.*` tagging and TLS keys of `user/tab-user-settings.twig` (`user.tag_handling`, `user.tag_in_subfolder`, `user.tag_in_subject`, `user.tag_in_none`, `user.tag_help_explain`, `user.tag_help_example`, `user.tls_policy`, `user.tls_enforce_in`, `user.tls_enforce_out`), `user.tls_policy_warning`, the `user.pushover_*` keys of `user/Pushover.twig` including `user.pushover_info` (`%s` the mailbox), the `edit.pushover_*` keys including `edit.pushover_vars`, the bulk menu's `mailbox.tls_enforce_in`, `mailbox.tls_enforce_out`, `mailbox.activate` and `mailbox.deactivate`, `danger.pushover_key`, `danger.pushover_token` and `danger.pushover_credentials_missing`. Values with HTML go through `SanitizedHtml.vue`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US7 work on their own (bulk TLS once AG1 is fixed).
 
@@ -685,7 +691,7 @@ administrator, read and clear in the mailbox context.
 - [ ] T114 [US8] Implement `src/features/account/api/recent-logins.ts`, `src/features/account/recent-login-period.ts`, and the recent-login schema in `src/features/account/list-state.ts`.
 - [ ] T115 [P] [US8] Implement `src/features/account/components/recent-logins/RecentLoginList.vue`, `RecentLoginCard.vue`, `RecentLoginTable.vue` and `RecentLoginFilters.vue`.
 - [ ] T116 [US8] Implement `src/features/account/pages/RecentLoginsPage.vue` for both contexts. Add `account-recent-logins` to `src/features/account/routes.ts` and `mailbox-recent-logins` to `src/features/account/mailbox-routes.ts`.
-- [ ] T117 [US8] Add the `account.recentLogins.*` and `selfService.service.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, mapping the legacy recent-login keys whose meaning is unchanged (for example `user.login_history`, `user.day`, `user.week`, `user.weeks`, `user.month`). `npm run i18n:check` must pass.
+- [ ] T117 [US8] Add the `account.recentLogins.*` and `selfService.service.*` new strings of the legacy form map to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use the legacy recent-login keys verbatim (`user.recent_successful_connections`, `user.login_history`, `user.clear_recent_successful_connections`, `user.day`, `user.week`, `user.weeks`, `user.month`). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US8 work on their own.
 
@@ -733,7 +739,7 @@ with the scenario, copy each value, download each profile variant.
 - [ ] T122 [US9] Implement `src/features/account/api/client-setup.ts`, `src/shared/platform/download.ts` (the canonical download helper of `docs/conventions.md`; reuse it if an earlier feature created it) and `src/features/account/composables/useProfileDownload.ts` (both profile requests through `useSecretRequest` with `parseAs: 'blob'`, research R21).
 - [ ] T123 [P] [US9] Implement `src/features/account/components/mail-apps/ClientSetupGuide.vue`, `ProtocolCard.vue` and `AppleProfileDownloads.vue`.
 - [ ] T124 [US9] Implement `src/features/account/pages/MailAppsPage.vue`, with the preselection read and removed from the address, and add the `account-mail-apps` route to `src/features/account/routes.ts`. Its section passes the `login.mobileconfig_info` reason to `NoAccessState` for other roles.
-- [ ] T125 [US9] Add the `account.mailApps.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.apple_connection_profile`, `user.apple_connection_profile_mailonly`, `user.apple_connection_profile_complete`, `user.apple_connection_profile_with_app_password`, `user.email`, `user.email_and_dav`, `user.with_app_password` and `user.client_configuration` in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T125 [US9] Add the `account.mailApps.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.apple_connection_profile`, `user.apple_connection_profile_mailonly`, `user.apple_connection_profile_complete`, `user.apple_connection_profile_with_app_password`, `user.email`, `user.email_and_dav`, `user.with_app_password` and `user.client_configuration`. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P2 stories (US5 to US9) work.
 
@@ -791,7 +797,7 @@ read filters and the active script.
 - [ ] T131 [US10] Implement `src/features/filters/api.ts` (lists, CRUD, validation, active script, with the invalidation of data-model §3), `src/features/filters/list-state.ts` and `src/features/filters/index.ts`.
 - [ ] T132 [P] [US10] Implement `src/features/filters/components/FilterList.vue`, `FilterCard.vue`, `FilterTable.vue`, `FilterFilters.vue`, `FilterForm.vue`, `ScriptEditor.vue`, `ScriptBlock.vue`, `ActivationWarning.vue`, `ActiveScriptPanel.vue` and `FilterMailboxField.vue`, and `src/shared/components/MailboxSearchPicker.vue` (canonical name; created here because no earlier-implemented feature has it, modelled on the promoted `DomainPicker`, research R19). Selection and outcomes use `useBulkSelection`, `BulkActionBar`, `usePerItemRunner` and `BulkResultSummary`.
 - [ ] T133 [US10] Implement `src/features/filters/pages/FiltersPage.vue`, `MailboxFiltersPage.vue` and `FilterFormPage.vue`, and `src/features/filters/routes.ts` (`filters`, `filter-create`, `filter-detail`). Register them in `src/app/router/routes.ts` and set the catalogue's `filters` entry to `available`. Add `mailbox-filters`, `mailbox-filter-create` and `mailbox-filter-detail` to `src/features/account/mailbox-routes.ts`. Implement `src/features/account/pages/OwnFiltersPage.vue` and add the `account-filters` route to `src/features/account/routes.ts`.
-- [ ] T134 [US10] Add the `filters.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: `mailbox.add_filter`, `mailbox.sieve_info` (`stripMarkup`), `mailbox.set_prefilter`, `mailbox.set_postfilter`, `add.sieve_desc`, `add.sieve_type`, `add.validate`, `add.activate_filter_warn`, `edit.validate_save`, `danger.sieve_error` (`{0}` the parser message) and `user.no_active_filter`. `npm run i18n:check` must pass.
+- [ ] T134 [US10] Add the `filters.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `mailbox.filters`, `mailbox.add_filter`, `mailbox.sieve_info` (HTML, through `SanitizedHtml.vue`), `mailbox.set_prefilter`, `mailbox.set_postfilter`, the table columns of `draw_filter_table()`, `add.sieve_desc`, `add.sieve_type`, `add.validate`, `add.activate_filter_warn`, `edit.validate_save`, `danger.sieve_error` (`%s` the parser message), `user.active_sieve`, `user.show_sieve_filters` and `user.no_active_filter`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US10 work on their own.
 
@@ -821,7 +827,7 @@ disable webmail, and confirm the control is absent.
 ### Implementation for User Story 11
 
 - [ ] T138 [US11] Implement `src/features/account/api/groupware.ts`, `src/features/account/components/groupware/GroupwareResets.vue` and `src/features/account/pages/DevicesPage.vue`. Add `requireAcknowledgement` to UI 002's `src/shared/components/ConfirmDialog.vue`. Add `account-devices` to `src/features/account/routes.ts` and `mailbox-groupware` to `src/features/account/mailbox-routes.ts`.
-- [ ] T139 [US11] Add the `account.devices.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.eas_reset_help` (`stripMarkup`), `success.eas_reset` (`{0}` the mailbox), `success.sogo_profile_reset` (`{0}` the mailbox) and the legacy reset button labels whose meaning is unchanged in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T139 [US11] Add the `account.devices.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.eas_reset`, `user.eas_reset_help` (HTML, through `SanitizedHtml.vue`), `user.eas_reset_now`, `user.sogo_profile_reset`, `user.sogo_profile_reset_help`, `user.sogo_profile_reset_now`, `success.eas_reset` (`%s` the mailbox) and `success.sogo_profile_reset` (`%s` the mailbox). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US11 work on their own.
 
@@ -884,8 +890,8 @@ types; use the History action of a mailbox's self-service group and of an app pa
   - FR-011: every successful change is announced in the polite region while focus stays on the changed control;
   - FR-015: leaving the recovery e-mail form, a second-factor setup, the app password and filter forms and the alias generation panel with input asks for confirmation.
 - [ ] T149 Add the `/ng/account` collection (scenario `mailbox-account`) to `scripts/run-lhci.mjs`. Run `npm run build && npm run budget:check && npm run lhci` and fix regressions until the initial JS is at most 204,800 bytes gzipped and `/ng/account` scores at least 0.9 for performance and accessibility (SC-011).
-- [ ] T150 [P] Write and pass `tests/unit/i18n/legacy-reuse-005.spec.ts`: every legacy key listed in the spec's Legacy Parity section is mapped in `src/i18n/legacy-map.json`, apart from the keys the spec names as not reused (SC-007). Add the plan's three parity notes to the Legacy Parity table in `specs/005-account-self-service/spec.md` (SC-010).
-- [ ] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings for the owner's review (UI 001 owner question 4).
+- [ ] T150 [P] Write and pass `tests/unit/i18n/legacy-reuse-005.spec.ts`: every legacy key listed in the spec's Legacy Parity section and in the plan's legacy form map is used by its legacy key and exists in the bundled `en-gb` snapshot, apart from the keys the spec names as not used, and no legacy value is copied into `src/i18n/messages/` (SC-007, constitution IV 1.3.0). Add the plan's three parity notes to the Legacy Parity table in `specs/005-account-self-service/spec.md` (SC-010).
+- [ ] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings (written by hand, never machine-translated) for the owner's review (UI 001 owner question 4).
 - [ ] T152 Run quickstart.md Part B on a mid-range Android phone and an iPhone, and Part D on a mailcow host:
   - authenticator apps, a security key, a YubiKey, forced actions, the reset, webmail, and the Apple profiles on an iPhone, an iPad and a Mac;
   - VoiceOver and TalkBack passes.
@@ -903,6 +909,7 @@ types; use the History action of a mailbox's self-service group and of an app pa
 - **Setup (Phase 1)** depends on UI 001 to 004 being complete. T001 comes first; T002 → T003 → T004;
   T005 → T006; T007 → T008; T009 → T010.
 - **Foundational (Phase 2)** depends on Setup and **blocks every user story**. Within it:
+  - the legacy form map first (T010a); every screen and message task depends on it;
   - test infrastructure first (T011 → T012 → T013);
   - then the core tests T014–T025 (all [P]);
   - then the implementation T026–T037, in the order shared pieces (T026–T029) → api and i18n
@@ -949,15 +956,15 @@ Edits to these files must be serialised, even when stories run in parallel:
   (one registration line each);
 - `tests/smoke/account.smoke.spec.ts`: US2, US4 to US9; `tests/smoke/account-credentials.smoke.spec.ts`:
   US1, US3; `tests/smoke/mailbox-self-service.smoke.spec.ts`: US4, US7, US10;
-- `src/i18n/messages/*.json` and `src/i18n/legacy-map.json`: every story.
+- `src/i18n/messages/*.json` (new strings only): every story.
 
 Scenarios avoid conflicts through one module per story under `tests/mocks/scenarios/`.
 
 ### Within Each User Story
 
 - First the mock handlers and scenarios, then the end-to-end, unit and smoke tests (they must fail),
-  then the implementation (api → composables → components → pages and routes), then the messages
-  in all three locales.
+  then the implementation (api → composables → components → pages and routes), then the story's
+  new strings in all three locales (legacy keys come from the form map, T010a).
 - Each story's message task edits the shared locale files; run those tasks one after another across
   stories.
 

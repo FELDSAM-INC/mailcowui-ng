@@ -49,9 +49,9 @@ on that bundle.
     | Mailbox layout `mailbox-detail` (`/mailboxes/:address`) with one child route per section, the section catalogue, `MailboxSectionNav.vue` and `ManagedSettingsGroup.vue`, key `['mailboxes','detail',address]` | `src/features/mailboxes/{routes.ts,sections.ts,pages/MailboxDetailPage.vue,components/display/}` | UI 003 R19, data-model §8 | the mailbox's Relayhost section as a child route (R9) |
     | `PasswordInput.vue` (show/hide toggle) and `CopyButton.vue` | `src/shared/components/password/`, `src/shared/components/` | UI 005 R7 | relay passwords (R7), the transcript copy action (R13) |
     | `AclReadOnlyNote.vue` ("Prohibited by ACL" with the permission's label) | `src/shared/components/` (promoted by UI 006) | UI 003, UI 006 | read-only BCC maps and Relayhost sections (R9, R14) |
-    | Domain administrator flag labels (legacy `acl.<column>` keys through the legacy map) | `src/i18n/legacy-map.json` | UI 007 R16, R17 | permission messages and read-only notes (R19) |
+    | Domain administrator flag labels (legacy `acl.<column>` keys, used verbatim) | UI 001's legacy translation layer | UI 007 R16, R17 | permission messages and read-only notes (R19) |
     | Translation coverage registry and `ENUM_NAMESPACES` | `src/i18n/coverage.json` (UI 002 D2, the canonical name in `docs/conventions.md`), `scripts/i18n/lib.mjs` | UI 002, UI 003 R2 | translation completeness (R21) |
-    | Legacy map object entries `{ "from", "stripMarkup" }` | `src/i18n/legacy-map.json`, `scripts/i18n/import-legacy.mjs` | UI 002 D27 | the base of the rich hints (R20) |
+    | Legacy translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter) and `SanitizedHtml.vue` with its allowlist | `src/i18n/`, `src/shared/components/SanitizedHtml.vue` | UI 001 (constitution IV 1.3.0) | legacy texts verbatim, hints with HTML (R20, R21) |
 
     The first setup task verifies each item against the implemented code and records the actual
     names in the plan. Any item that is missing is built at its planned location with the behaviour
@@ -591,8 +591,10 @@ on that bundle.
     field for administrators). Each option shows its value, its kind in words, its domain and, for
     aliases and alias-domain addresses, "delivers to {mailboxes}". SC-008 (matches within 1 s of a
     pause) is met by the debounce and one request per pause.
-  - **Type**: two radio buttons with the legacy labels "Recipient map" and "Sender map", each with
-    a one-line explanation (copies of mail to, or sent by, the local destination).
+  - **Type**: two radio buttons with the legacy labels `mailbox.bcc_rcpt_map` and
+    `mailbox.bcc_sender_map`, in legacy's order (recipient first), each with a one-line explanation
+    (copies of mail to, or sent by, the local destination). The explanations are new strings that
+    legacy does not have (plan, "Deviations needing a decision").
   - **BCC destination**: one address. When the value contains a comma, semicolon or whitespace
     between addresses, the field shows `add.bcc_dest_format` (use an alias for several recipients)
     before saving; the API's `tooMany` (`max: 1`) shows the same message.
@@ -614,9 +616,10 @@ on that bundle.
 - **Decision**: The policy is a radio group (TailAdmin `radio-group` on Reka) with eight options in
   the order of `capabilities.administration.tlsPolicies`. Each option shows the policy name
   untranslated (`dane-only`, a Postfix keyword) and a one-line translated explanation (FR-058). The
-  list's policy filter is a checkbox group (repeated `policy`). The screen shows the legacy hints and
-  a link to the Postfix `smtp_tls_policy_maps` documentation, rendered by `RichText` (R20) with
-  "opens an external site" in words. Parameters are shown as returned, or a dash when empty
+  list's policy filter is a checkbox group (repeated `policy`). The screen shows the legacy hints,
+  with the link to the Postfix `smtp_tls_policy_maps` documentation that `mailbox.tls_policy_maps_info`
+  contains, verbatim through `SanitizedHtml.vue` (R20). The per-option explanations are new strings
+  that legacy does not have (plan, "Deviations needing a decision"). Parameters are shown as returned, or a dash when empty
   (FR-057). Duplicates (`409 routing-entry-exists`, `field: destination`) use
   `danger.tls_policy_map_entry_exists` at the destination field.
 - **Rationale**: A native select cannot show an explanation per option on every platform; a radio
@@ -626,8 +629,8 @@ on that bundle.
 
 - **Decision**: Two fields with the legacy hints `mailbox.recipient_map_old_info` and
   `mailbox.recipient_map_new_info`. Values starting with `@` are labelled "Whole domain" in words
-  (FR-055). The API's `invalidFormat` (`format: recipientMapDestination`) explains the accepted
-  forms (US7-AS3), and `409 routing-entry-exists` (`field: originalDestination`) shows
+  (FR-055). The API's `invalidFormat` (`format: recipientMapDestination`) shows the legacy
+  `danger.invalid_recipient_map_old` or `danger.invalid_recipient_map_new` by field (US7-AS3, R19), and `409 routing-entry-exists` (`field: originalDestination`) shows
   `danger.recipient_map_entry_exists` at that field (US7-AS2).
 
 ### R17. Forwarding hosts
@@ -692,10 +695,10 @@ on that bundle.
 
   | Problem | App behaviour |
   |---|---|
-  | `409 routing-entry-exists` (`field`, `conflictingId`) | Message at the named field, using the legacy `danger.*_exists` text of that entry type, with a link to the existing entry (R14–R16; transport: `danger.transport_dest_exists`) |
+  | `409 routing-entry-exists` (`field`, `conflictingId`) | Message at the named field, using the legacy `danger.*_exists` text of that entry type verbatim, with a link to the existing entry (R14–R16; transport: `danger.transport_dest_exists`) |
   | `409 next-hop-credentials-differ` (`nextHop`, `transportIds`), creation only | R10; at the username field, with links |
   | `409 next-hop-interferes` (`nextHop`, `transportIds`) | R10; at the next hop field, naming `nextHop`, with links |
-  | `403 permission-flag-required` (`requiredFlags`) | "Missing permission: {flags}" with the flags' labels from UI 007's legacy-mapped domain administrator flag labels (`acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`), the only label source; refresh the identity; nothing shown as done (FR-003, FR-066) |
+  | `403 permission-flag-required` (`requiredFlags`) | "Missing permission: {flags}" (a new string) with the flags' labels from the legacy domain administrator flag keys, used verbatim as in UI 007 (`acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`), the only label source; refresh the identity; nothing shown as done (FR-003, FR-066) |
   | `403 forbidden` | UI 001's global handling ("no permission", identity refresh) |
   | `412` (`about:blank`) | R6 |
   | `404` (`about:blank`) | "This entry no longer exists" with the way back to the list |
@@ -713,8 +716,17 @@ on that bundle.
   formats `nextHop`, `transportDestination`, `recipientMapDestination`, `tlsPolicyDestination`,
   `tlsPolicyParameters`, `domainName`, `email` and `ipNetwork`, `invalidRegex`, `immutable`,
   `notFound` (unknown or out-of-scope BCC local destination or relayhost), `notResolvable` and
-  `invalidCharacter` (`characters`, for example `:` in a username). Each gets a
-  `validation.*` message; the formats get `validation.format.<format>`. UI 001's mapper gains
+  `invalidCharacter` (`characters`, for example `:` in a username). A code or format with a legacy
+  `danger.*` message of the same meaning shows that message verbatim (constitution IV 1.3.0;
+  `docs/conventions.md` "Translations and forms", "Messages"): `nextHop` →
+  `danger.invalid_nexthop`, `transportDestination` → `danger.invalid_destination`,
+  `recipientMapDestination` → `danger.invalid_recipient_map_old` or
+  `danger.invalid_recipient_map_new` by field, `tlsPolicyDestination` →
+  `danger.tls_policy_map_dest_invalid`, `tlsPolicyParameters` →
+  `danger.tls_policy_map_parameter_invalid`, `email` on `bccDestination` →
+  `danger.bcc_must_be_email`, `required` on `bccDestination` → `danger.bcc_empty`. The others get
+  a `validation.*` message; the formats get `validation.format.<format>`. The legacy form map
+  (plan, T004a) lists the final mapping. UI 001's mapper gains
   one rule: a `because` parameter selects `validation.<code>Because.<because>` when it exists.
 
   The UI spec listed "too many requests" and "attribute not permitted" among this feature's error
@@ -726,60 +738,30 @@ on that bundle.
 
 ### R20. Legacy hints with markup
 
-- **Decision**: Ten reused legacy keys carry markup or entities in at least one locale:
+- **Superseded (constitution IV 1.3.0, owner rule of 2026-10-18)**: the earlier decision converted
+  these hints into a feature-local text notation rendered by a new `RichText.vue`. Legacy texts are
+  now never altered, so that notation, its import step and `RichText.vue` are dropped.
+- **Decision**: These legacy keys carry markup or entities in at least one locale:
   `admin.relayhosts_hint`, `add.relayhost_wrapped_tls_info`, `admin.transports_hint`,
-  `admin.lookup_mx`, `admin.credentials_transport_warning`, `mailbox.bcc_info`,
-  `add.bcc_dest_format`, `mailbox.tls_policy_maps_info`, `mailbox.tls_policy_maps_enforced_tls`
-  and `admin.transport_test_rcpt_info` (a `&#8226;` entity). The upstream `2026-09a` files were
-  checked: they use `<br>`, `<br/>`, `<b>`, `<code>`, `<a href … target="_blank">` and, in the
-  Slovak `mailbox.bcc_info`, `<i>` with plain line breaks instead of `<br>`. Their plain text also
-  contains `*`, `_` and backslashes (`"*" destination`, `smtp_tls_policy_maps`,
-  `.*\.google\.com`). UI 001's import refuses HTML (R15), and the spec requires the hints' meaning
-  and links with the app's own safe formatting (Assumptions). The decision:
-  - **Import**: UI 002 D27 gave `src/i18n/legacy-map.json` an object form,
-    `{ "from": "<key>", "stripMarkup": true }`, which removes markup. UI 009 adds a sibling option,
-    `{ "from": "<key>", "rich": true }`. For such keys, `scripts/i18n/import-legacy.mjs` converts
-    the legacy HTML of every locale into a small text notation and refuses anything else:
-    - **escaping first**: outside the tags, the notation characters `\`, `*`, `_`, `` ` ``, `[`
-      and `]` are escaped with a backslash, and a `- ` at the start of a line becomes `\- `, so
-      that legacy text is never read as notation;
-    - `<br>`, `<br/>` and `<br />` become a line break, with or without a following line break in
-      the source (one line break, not two); a plain `\n` or `\r\n` in the source is kept as a line
-      break; two or more line breaks in a row become a paragraph break; other whitespace runs
-      become one space;
-    - `&#8226;` at the start of a line becomes the list marker `- `;
-    - `<b>` and `<strong>` become `**…**`, `<i>` and `<em>` become `_…_`; an unmatched closing tag
-      (legacy's `admin.transports_hint` has one `</b>` too many) is dropped;
-    - `<code>…</code>` becomes `` `…` ``, with its content kept literally (no escaping inside); a
-      backtick inside is refused;
-    - `<a href="https?://…">text</a>` becomes `[text](url)`; on `<a>` only the attributes `href`,
-      `target` and `rel` are accepted, and `target` and `rel` are dropped, because the renderer
-      sets its own; any other scheme is refused;
-    - the entities `&amp; &lt; &gt; &quot; &#39; &#8226;` are decoded;
-    - every other tag or attribute is refused with an error naming the key and locale;
-    - vue-i18n's special characters are escaped afterwards, as for every legacy value.
-  - **Rendering**: `src/shared/components/RichText.vue` turns the notation into virtual nodes:
-    paragraphs and line breaks, `<ul>` for runs of `- ` lines, `<strong>`, `<em>`, `<code>`,
-    backslash escapes as the literal character, and links
-    through UI 001's `safeHref` with `target="_blank"`, `rel="noopener noreferrer"`, an external
-    link icon and the visually hidden words "(opens an external site)". It never uses `v-html`. A
-    link that `safeHref` rejects renders as its text.
-  - `i18n:check` verifies that rich keys parse in all three locales and that their link targets are
-    equal across locales.
-  - The first setup task reuses an equivalent mechanism if an earlier feature already added one.
-- **Rationale**: Constitution IV reuses the legacy keys so that Czech and Slovak carry over;
-  constitution V and UI 001 R17 forbid rendering translation text as HTML. A tiny notation keeps
-  both. UI 002's `stripMarkup` suits its one-sentence hints, but this spec requires the hints'
-  meaning and links preserved (Assumptions, FR-058): `admin.transports_hint` is a six-item list,
-  and `mailbox.tls_policy_maps_info` carries the Postfix documentation link.
-- **Alternatives considered**: UI 002's `stripMarkup` for these hints: rejected, because it
-  flattens the bullet lists into one paragraph, leaves `&#8226;` undecoded and drops the link
-  that FR-058 requires. Hand-written replacements for the ten hints: rejected by constitution IV,
-  because their cs and sk translations exist. Rendering them through
-  `SanitizedHtml`: rejected, because the spec says translation text is never interpreted as markup,
-  and `SanitizedHtml` is reserved for operator HTML. vue-i18n component interpolation: rejected,
-  because the link texts are inside the legacy sentences and cannot be split into separate keys
-  automatically.
+  `admin.lookup_mx`, `edit.lookup_mx`, `admin.credentials_transport_warning`, `mailbox.bcc_info`,
+  `add.bcc_dest_format`, `edit.bcc_dest_format`, `mailbox.tls_policy_maps_info`,
+  `mailbox.tls_policy_maps_enforced_tls` and `admin.transport_test_rcpt_info` (a `&#8226;`
+  entity). The upstream `2026-09a` files use `<br>`, `<br/>`, `<b>`, `<code>`,
+  `<a href … target="_blank">` and, in the Slovak `mailbox.bcc_info`, `<i>` with plain line breaks.
+  - They are loaded at runtime from the installation, like every legacy text, and rendered through
+    `SanitizedHtml.vue` with UI 001's small allowlist, unaltered: no conversion, no stripped tags,
+    no repaired markup (legacy's extra `</b>` in `admin.transports_hint` is left to the sanitiser).
+  - Links keep the legacy `href` (the Postfix documentation link that FR-058 requires). What the
+    sanitiser adds to links (`rel`, external-link marking) is UI 001's decision for every legacy
+    text, not this feature's.
+  - A tag that UI 001's allowlist lacks is raised with UI 001; the feature adds no allowlist of its
+    own.
+- **Rationale**: Constitution IV 1.3.0 uses mailcow's human-made translations verbatim and renders
+  values with HTML through the sanitiser. Constitution V allows `v-html` only after sanitising,
+  in `SanitizedHtml.vue`.
+- **Alternatives considered**: The notation of the first plan: rejected, because it rewrites
+  legacy text. UI 002's `stripMarkup`: rejected for the same reason. Hand-written replacements:
+  rejected, because they would replace human translations with new strings.
 
 ### R21. Translations
 
@@ -789,11 +771,20 @@ on that bundle.
     `routing.recipientMaps`, `routing.tlsPolicyMaps`, `routing.forwardingHosts`, `routing.bulk`
     and `routing.history`, plus entries in the shared `validation.*`, `problem.*`,
     `auditLog.event.*` and `auditLog.target.*` namespaces.
-  - **Legacy reuse**: every key the spec's Legacy Parity section lists is mapped in
-    `src/i18n/legacy-map.json`, rich keys in the object form (R20). All of them exist in the
-    upstream `en-gb`, `cs-cz` and `sk-sk` files at `2026-09a` (checked during planning), so no
-    per-locale fallback is needed. The `%s` placeholders of the `success.*` and `danger.*` messages
-    become `{0}` and `{1}` in order, as UI 001's import does, and the UI passes list parameters.
+  - **Legacy texts** (constitution IV 1.3.0, superseding the earlier mapping through
+    `src/i18n/legacy-map.json`): every key the spec's Legacy Parity section lists, plus the keys the
+    legacy templates use that the list lacks (for example `admin.add`, `admin.action`,
+    `admin.source`, `admin.spamfilter`, `mailbox.quick_actions`, `mailbox.bcc_type`,
+    `mailbox.bcc_destinations`, `add.active`, and the edit pages' `add.hostname`,
+    `add.destination`, `edit.nexthop`, `edit.lookup_mx`, `edit.bcc_dest_format`, `edit.active`), is
+    used directly by its legacy key through UI 001's legacy translation layer, loaded at runtime from
+    the installation, in every mailcow language. Nothing is copied into `src/i18n/messages/`, and a
+    key missing in a locale falls back to `en-gb`. The `%s` placeholders of the `success.*` and
+    `danger.*` messages are filled in order by UI 001's formatter with what legacy fills them with.
+    The legacy form map (plan, T004a) is the complete list.
+  - **New strings** exist only for elements legacy lacks (password status, the test summary, shared
+    next hops, the effective relayhost, dangling assignments, bulk outcomes, History), in en-gb,
+    cs-cz and sk-sk, never machine-translated.
   - **Enumerations** follow UI 002 D2 and UI 003 R2:
     - the **open** shared enumerations get API 009's values appended to the coverage manifest
       (`src/i18n/coverage.json`, the canonical registry): the 21 event types
@@ -820,12 +811,13 @@ on that bundle.
       `…RelayhostUsageSortValues`, `…TransportSortValues`, `…BccMapSortValues`,
       `…RecipientMapSortValues`, `…TlsPolicyMapSortValues`, `…ForwardingHostSortValues`), as UI 002
       did for its sort enumerations. These names were generated from the baseline bundle.
-  - **Wording**: the screens keep the legacy names ("Sender-dependent transports", "Transport
-    Maps"), and the relayhost screen's introduction says that sender-dependent transports are also
-    called relayhosts (FR-001). User-facing text calls the legacy UI "the classic interface".
+  - **Wording**: the screens keep the legacy names and texts ("Sender-dependent transports",
+    "Transport Maps"), and the relayhost screen's introduction says that sender-dependent transports
+    are also called relayhosts (FR-001; a new string, listed in the plan's deviations). New strings
+    call the legacy UI "the classic interface".
   - **Formatting**: counts with `Intl.NumberFormat`, times with UI 001's `DateTime`, durations in
     seconds with the locale. Values from the API are shown as returned (FR-073).
-- **Rationale**: Constitution IV and UI 001's i18n tooling.
+- **Rationale**: Constitution IV (1.3.0) and UI 001's legacy translation layer.
 
 ---
 

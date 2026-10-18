@@ -54,14 +54,13 @@ smoke stack, Lighthouse, query keys) that every story uses.
   - If the kept commit is later than the baseline, run `git -C ../mailcow-rest-v2 diff 32079252..<ref> -- api/modules/quarantine api/modules/spam-policy api/modules/rate-limits api/components` and update `specs/006-quarantine-spam-policy/contracts/README.md` for any change to an operation, schema, problem type or rule code used here.
   - Record the pinned commit, the bundle sha256 and the operation count in that README's "Pinned contract" table.
   - Run `npm run typecheck`. The 006 root types (`QuarantineItem`, `QuarantineCapabilities`, `SpamPolicyEntry`, `RateLimit` and so on) and `knownProblemTypeValues` must be exported from `src/api/generated/schema.ts`.
-- [ ] T002 [P] Write `tests/unit/scripts/i18n-tools-006.spec.ts` against fixture message sets. It covers:
-  - the `segment` member of a `stripMarkup` mapping (research R27): `{ "from": "admin.quarantine_bcc", "stripMarkup": true, "segment": 0 }` gives "Send a copy of all notifications (BCC) to this recipient:", and segment 1 gives "Leave empty to disable. Unsigned, unchecked mail. Should be delivered internally only.";
-  - an out-of-range segment and a value with a `<a>` tag are refused;
+- [ ] T002 [P] Write `tests/unit/scripts/i18n-tools-006.spec.ts` against fixture message sets. It covers (no `segment` or `stripMarkup` mapping: constitution IV 1.3.0, research R27):
+  - every legacy key this feature uses (the legacy form map, T009a) exists in the bundled `en-gb` snapshot;
   - the check requires a key for every value of the closed 006 enumerations of research R2, read from `contract/openapi.json` (for example `QuarantineActionReport.learning` and `SpamFilterTemporaryFailureProblem.dependency`), plus the fixed `invalidTemplate` reasons `syntax`, `security`, `render` and `timeout`;
   - a 006 value appended to `src/i18n/coverage.json` (P13) without keys fails the check.
 
   The test must fail.
-- [ ] T003 Implement T002 in `scripts/i18n/lib.mjs`, `scripts/i18n/import-legacy.mjs` and `scripts/i18n/check.mjs`. Reuse UI 002's `stripMarkup` and coverage mechanisms (P13), and add only `segment` and the closed-enumeration pointers (if UI 002 already reads inline enumerations, add the 006 pointers to its list). Append the 006 open-enumeration values of research R2 to `src/i18n/coverage.json`. The check fails until the story tasks add the keys; that is expected.
+- [ ] T003 Implement T002 in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`. Reuse UI 002's coverage mechanism (P13) and UI 001's legacy-key check, and add only the closed-enumeration pointers (if UI 002 already reads inline enumerations, add the 006 pointers to its list). Append the 006 open-enumeration values of research R2 to `src/i18n/coverage.json`. The check fails until the story tasks add the keys; that is expected.
 - [ ] T004 [P] Extend `tests/unit/mocks/validator.spec.ts` (only if P21 is absent). The validator must:
   - accept a `downloadQuarantineAttachment` `200` with an `application/octet-stream` body and the four required headers (`Content-Disposition`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy`, `Cache-Control`);
   - reject the same response without `Content-Disposition`, and a `downloadQuarantineMessage` `200` declared as `text/html`;
@@ -87,6 +86,11 @@ query, problem messages, the route skeletons with the object page, the section n
 mock baseline.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Legacy form map
+
+- [ ] T009a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Prerequisites from earlier features
 
@@ -151,6 +155,7 @@ mock baseline.
   - `spam-policy-entry-exists` with the `list` label and the pattern passed by the caller;
   - `temporary-failure` with each `dependency` and `step` label;
   - `permission-flag-required`: `["quarantine","quarantineAttachments"]` joined with "and" when `requiredFlagsMatch` is absent or `all`, and with "or" for `any`, each flag by its legacy label;
+  - the legacy messages of research R24: `spam-policy-entry-exists` gives `danger.policy_list_from_exists`, `invalidFormat` with `senderPattern` gives `danger.policy_list_from_invalid`, and `quarantine-delivery-refused` gives `danger.release_send_failed` with the server answer;
   - `attribute-not-permitted` with `attributes` mapped to field labels;
   - validation messages for `invalidFormat` with `format` `email`, `domainName` and `senderPattern`; `notMultipleOf` with `factor` 0.1 and 1048576; `mustNotExceed` with `field` and `value`; `tooLong` with `unit: bytes`; `tooMany` with `max`; and `invalidTemplate` with each `reason` and `line`;
   - an unknown `reason` falls back to the generic `invalidTemplate` message.
@@ -205,9 +210,9 @@ mock baseline.
   - download errors;
   - the object page header and its fallback link;
   - the section navigation labels;
-  - the problem and validation messages of T021.
+  - the problem and validation messages of T021 that have no legacy equivalent. The others use the legacy `danger.*`, `warning.*` and `success.*` keys of the form map (research R24).
 
-  Add `src/i18n/legacy-map.json` entries for `acl.prohibited` and the seven `acl.*` flag labels where UI 003 has not mapped them. Run `npm run i18n:import`. T021 must pass.
+  Only the form map's new strings are added. `acl.prohibited` and the seven `acl.*` flag labels are used verbatim by their legacy keys (no `legacy-map.json` entry, no import). T021 must pass.
 
 **Checkpoint**: All Phase 2 tests pass. The object pages render their header and "not found", and
 the dependency test is green.
@@ -241,7 +246,7 @@ sent, and that no markup is ever rendered (spec US1).
   - `quarantine-empty`.
 - [ ] T041 [P] [US1] Write `tests/e2e/quarantine/list.spec.ts`. It covers:
   - US1-AS1: 25 newest of 30, total 30, a way to the rest, and every card value with the arrival time in the locale;
-  - US1-AS11 and FR-008: the inactive notice with the legacy text; the retention and maximum size (as a size) when active; the collapsible explanation without markup;
+  - US1-AS11 and FR-008: the inactive notice with the legacy text; the legacy `quarantine.settings_info` with the retention and the maximum size in MiB when active; the collapsible explanation verbatim with its markup;
   - FR-009: page sizes 25, 50 and 100, and first, previous, next and last page;
   - FR-012: search after the pause, with the announced count;
   - FR-013: action, virus, notification, day range and score range filters as chips with "clear all", and the full-screen panel at 360 px;
@@ -355,10 +360,10 @@ sent, and that no markup is ever rendered (spec US1).
   - focus on the heading.
 
   Register the `quarantine-item` route (`/quarantine/:itemId(\d+)`, after the literal routes).
-- [ ] T058 [US1] Add the `quarantine.list.*`, `quarantine.filters.*`, `quarantine.item.*`, `quarantine.actions.*`, `quarantine.downloads.*` and `quarantine.status.*` messages, with the outcome and warning texts, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
-  - Add `src/i18n/legacy-map.json` entries for the `quarantine.*` keys of research R27, and `quarantine.qinfo` with `stripMarkup`.
-  - Write new keys for the texts whose meaning changed.
-  - Run `npm run i18n:import`. `npm run i18n:check` must pass for every key used so far.
+- [ ] T058 [US1] Add only the form map's new strings for the list, filters, item, actions, downloads and status (the step lines, the learning switch, the virus acknowledgement, the added item fields) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+  - Use the `quarantine.*` keys of research R27 verbatim, `quarantine.qinfo` and `quarantine.settings_info` with their markup through `SanitizedHtml.vue`, and the legacy `success.*`, `danger.*` and `warning.*` outcomes of research R24.
+  - No `legacy-map.json` entry, no import, and no new key where a legacy key has the meaning.
+  - `npm run i18n:check` must pass for every key used so far.
 
 **Checkpoint**: US1 works on its own. All T039–T048 tests pass. This is the MVP: mailbox users can
 recover wrongly caught mail in the new app.
@@ -432,7 +437,7 @@ connection, and compare the results with the mock (spec US2).
   - the domain filter (`identity.scope.domains` for domain administrators, `DomainPicker` for administrators);
   - the recipient column for administrators and domain administrators.
 - [ ] T068 [US2] Add the recipient link to `src/features/quarantine/components/ItemSummary.vue`: for administrators and domain administrators, query `getMailbox` (UI 003's key) and link to `spam-filter-mailbox` only on `200`; otherwise show the address as `PlainText`.
-- [ ] T069 [US2] Add the `quarantine.bulk.*` messages (limit, typed count, virus count, outcomes and the per-row warnings), the recipient and domain filter labels, and the busy texts to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass.
+- [ ] T069 [US2] Add the form map's new `quarantine.bulk.*` strings (limit, typed count, virus count, summary and the per-row warnings), the domain filter label and the busy texts to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Per-item lines use the legacy outcome messages and the recipient filter uses `quarantine.rcpt`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 and US2 work on their own. All P1 stories are done.
 
@@ -481,7 +486,7 @@ US3).
 - [ ] T076 [US3] Implement `src/features/quarantine/components/NotificationSettingsPanel.vue` (on `EditableSection`) and `src/features/quarantine/pages/NotificationsPage.vue`. Register the `quarantine-notifications` route (`meta.roles: ['mailboxUser']`, `meta.sectionNav`) before `quarantine-item`.
 - [ ] T077 [US3] Mount `NotificationSettingsPanel` in the `notifications` slot of `src/features/spam-filter/pages/ObjectSpamFilterPage.vue` for the kind `mailbox` (`id="notifications"`). Export the panel from `src/features/quarantine/index.ts`.
 - [ ] T078 [US3] Implement `src/features/quarantine/composables/useNotificationBulk.ts` and `src/features/quarantine/components/NotificationBulkAction.vue`, export them from `src/features/quarantine/index.ts`, and render the two items in `src/features/mailboxes/components/list/MailboxBulkActions.vue` (UI 003's designated area, P17) for administrators and domain administrators.
-- [ ] T079 [US3] Add the `quarantine.notifications.*` and bulk action messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Add `src/i18n/legacy-map.json` entries for `user.quarantine_notification`, `user.quarantine_notification_info`, `user.quarantine_category`, `user.quarantine_category_info`, `user.never`, `user.hourly`, `user.daily`, `user.weekly`, `user.q_reject`, `user.q_add_header` and `user.q_all`. Run `npm run i18n:import`. `npm run i18n:check` must pass.
+- [ ] T079 [US3] Add the form map's new `quarantine.notifications.*` and bulk action strings (the effect timing, "Not set" if approved, the bulk summary) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim `user.quarantine_notification`, `user.quarantine_notification_info`, `user.quarantine_category`, `user.quarantine_category_info`, `user.never`, `user.hourly`, `user.daily`, `user.weekly`, `user.q_reject`, `user.q_add_header`, `user.q_all`, `mailbox.quarantine_notification` and `success.mailbox_modified` (no `legacy-map.json`, no import). `npm run i18n:check` must pass.
 
 **Checkpoint**: US3 works on its own.
 
@@ -555,10 +560,9 @@ entries, at both widths, in Czech and English (spec US4).
   - `components/RemoveEntriesDialog.vue` and `components/RemoveEntriesReport.vue`;
   - `composables/useRemoveEntries.ts`.
 - [ ] T088 [US4] Implement `src/features/spam-filter/pages/SpamFilterPage.vue` (the own mailbox: spam score panel and lists panel). Register the `spam-filter` route (`/spam-filter`, `meta.navEntry: 'spamFilter'`), and set the catalogue entry `spamFilter` to `available` in `src/app/navigation/catalogue.ts`, with UI 001's visibility test table updated.
-- [ ] T089 [US4] Add the `spamFilter.*` messages (score, band, lists, notes, conflicts, removal report) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
-  - Add `src/i18n/legacy-map.json` entries for the `user.spamfilter*` keys of research R27 and `user.spam_score_reset`.
-  - Map `user.spamfilter_wl_desc` and `user.spamfilter_bl_desc` with `stripMarkup`.
-  - Run `npm run i18n:import`. `npm run i18n:check` must pass.
+- [ ] T089 [US4] Add the form map's new `spamFilter.*` strings (score field labels, server-default note, band, removal summary) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+  - Use the `user.spamfilter*` keys of research R27 and `user.spam_score_reset` verbatim, `user.spamfilter_wl_desc` and `user.spamfilter_bl_desc` with their markup through `SanitizedHtml.vue`, and `danger.policy_list_from_exists`, `danger.policy_list_from_invalid`, `success.mailbox_modified` and `success.item_deleted` for the outcomes.
+  - No `legacy-map.json` entry and no import. `npm run i18n:check` must pass.
 
 **Checkpoint**: US4 works on its own.
 
@@ -604,7 +608,7 @@ the owner links (spec US5).
   - for a domain and an alias domain, `PolicyListsPanel`.
 
   The inherited owner links follow `canReadPolicy`.
-- [ ] T096 [US5] Add the `spamFilter.object.*` messages (page titles per kind, "Set for mailboxes", "Set for <domain>", the precedence note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and map `edit.spam_filter`. `npm run i18n:check` must pass.
+- [ ] T096 [US5] Add the form map's new `spamFilter.object.*` strings (page titles per kind, "Set for mailboxes", "Set for <domain>", the precedence note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use `edit.spam_filter`, `user.spamfilter_table_domain_policy` and `success.domain_modified` verbatim. `npm run i18n:check` must pass.
 
 **Checkpoint**: US4 and US5 work on their own (US5 reuses US4's panels).
 
@@ -669,9 +673,9 @@ value, and reset existing and unknown buckets (spec US6).
   - `SetRateLimitDialog.vue` and `MailboxSearchPicker.vue` (a Reka `Combobox` without its viewport, infinite over `listMailboxes`);
   - `ResetBucketDialog.vue`, with `useResetRateLimitBucket`.
 - [ ] T105 [US6] Implement `src/features/rate-limits/pages/RateLimitsPage.vue`. Register the `quarantine-rate-limits` route (`meta.navEntry: 'quarantine'`, `meta.roles: ['admin', 'domainAdmin']`, `meta.sectionNav` "Rate limits") before `quarantine-item`.
-- [ ] T106 [US6] Add the `rateLimits.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
-  - Add `src/i18n/legacy-map.json` entries for `ratelimit.disabled`, `ratelimit.second`, `ratelimit.minute`, `ratelimit.hour`, `ratelimit.day`, `edit.ratelimit`, `edit.mbox_rl_info`, `admin.reset_limit`, `danger.rl_timeframe`, `success.hash_deleted`, `warning.hash_not_found`, and `admin.hash_remove_info` with `stripMarkup` and `segment: 0`.
-  - Run `npm run i18n:import`. `npm run i18n:check` must pass.
+- [ ] T106 [US6] Add the form map's new `rateLimits.*` strings (the overview and "Remove limit", if approved) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+  - Use verbatim `ratelimit.disabled`, `ratelimit.second`, `ratelimit.minute`, `ratelimit.hour`, `ratelimit.day`, `edit.ratelimit`, `edit.mbox_rl_info`, `admin.reset_limit`, `danger.rl_timeframe`, `success.rl_saved`, `success.hash_deleted`, `warning.hash_not_found`, and `admin.hash_remove_info` whole with its markup.
+  - No `legacy-map.json` entry and no import. `npm run i18n:check` must pass.
 
 **Checkpoint**: US6 works on its own.
 
@@ -726,10 +730,10 @@ confirm that the page is not offered (spec US7).
 - [ ] T112 [P] [US7] Implement `src/features/quarantine/components/settings/StorageSection.vue`, `ReleaseSection.vue`, `NotificationMailSection.vue` and `ExcludedDomainsPicker.vue` (`DomainPicker` in multiple mode with both sources, and `IdnText`), each on `EditableSection`.
 - [ ] T113 [P] [US7] Implement `src/features/quarantine/components/settings/TemplateSection.vue`, `TemplatePlaceholders.vue` and `TemplateSizeIndicator.vue`.
 - [ ] T114 [US7] Implement `src/features/quarantine/pages/QuarantineSettingsPage.vue` (the active state and the four sections). Register the `quarantine-settings` route (`meta.roles: ['admin']`, `meta.sectionNav` "Settings") before `quarantine-item`.
-- [ ] T115 [US7] Add the `quarantine.settings.*` messages, including the effect timing, the placeholders and the template notes, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
-  - Add `src/i18n/legacy-map.json` entries for `admin.quarantine_release_format`, `admin.quarantine_release_format_raw`, `admin.quarantine_release_format_att`, `admin.quarantine_notification_sender`, `admin.quarantine_notification_subject` and `admin.quarantine_exclude_domains`.
-  - Map with `stripMarkup` and `segment` 0 (label) and 1 (help): `admin.quarantine_retention_size`, `admin.quarantine_max_size`, `admin.quarantine_max_score`, `admin.quarantine_max_age`, `admin.quarantine_bcc`, `admin.quarantine_redirect` and `admin.quarantine_notification_html`.
-  - Run `npm run i18n:import`. `npm run i18n:check` must pass.
+- [ ] T115 [US7] Add the form map's new `quarantine.settings.*` strings (the effect timing, the placeholder reference and the template notes) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+  - Use verbatim `admin.quarantine`, `admin.quarantine_release_format`, `admin.quarantine_release_format_raw`, `admin.quarantine_release_format_att`, `admin.quarantine_notification_sender`, `admin.quarantine_notification_subject`, `admin.quarantine_exclude_domains`, `tfa.select`, `admin.save` and `success.saved_settings`.
+  - Use whole, with their `<br><small>` help through `SanitizedHtml.vue`, as the field labels: `admin.quarantine_retention_size`, `admin.quarantine_max_size`, `admin.quarantine_max_score`, `admin.quarantine_max_age`, `admin.quarantine_bcc`, `admin.quarantine_redirect` and `admin.quarantine_notification_html`.
+  - No `legacy-map.json` entry and no import. `npm run i18n:check` must pass.
 
 **Checkpoint**: US7 works on its own.
 
@@ -759,7 +763,7 @@ the spam filter unreachable. As a domain administrator, confirm that it is not o
 ### Implementation for User Story 8
 
 - [ ] T120 [US8] Implement the statistics query in `src/features/quarantine/api.ts` (key `['spam-policy','statistics']`; the quarantine feature never imports from `spam-filter` or `rate-limits`, research R4), `src/features/quarantine/statistics.ts`, `src/features/quarantine/components/statistics/ActionStatisticsList.vue` and `src/features/quarantine/pages/SpamFilterStatisticsPage.vue`. Register the `quarantine-statistics` route (`meta.roles: ['admin']`, `meta.sectionNav` "Statistics") before `quarantine-item`.
-- [ ] T121 [US8] Add the `quarantine.statistics.*` messages (actions, total, period lines, the reset note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass.
+- [ ] T121 [US8] Add the form map's new `quarantine.statistics.*` strings (total, period lines, the reset note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`; the action names are shown as the API reports them, as in legacy's chart. `npm run i18n:check` must pass.
 
 **Checkpoint**: US8 works on its own.
 
@@ -860,7 +864,7 @@ not reachable.
 
   Write them in the "Validation log" of `specs/006-quarantine-spam-policy/quickstart.md`.
 - [ ] T140 Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @006`, `scripts/smoke/stack-down.sh`) against the dev stack with API 006 implemented, and trigger the CI `smoke` job through `workflow_dispatch`. Once it passes, the smoke suite counts as this feature's merge gate (plan, Complexity Tracking). Then run quickstart Part D on a mailcow host: the SC-006 value comparison of ten items with the classic quarantine, the round trips of step 3, and the `learnham` check of step 4. Record the results in the "Validation log" of `specs/006-quarantine-spam-policy/quickstart.md`.
-- [ ] T141 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this feature for the owner's review (plan, owner question 2).
+- [ ] T141 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, check that no new string duplicates a legacy key of the form map, and list the new cs-cz and sk-sk strings of this feature for the owner's review (plan, owner question 2).
 
 ---
 
@@ -871,7 +875,7 @@ not reachable.
 | Depends on | Needed by | Why |
 |---|---|---|
 | UI 001 (implemented) | everything | stack, client, shell, catalogue, primitives, mock and fixtures (P01, P02) |
-| UI 002 (implemented) | Phase 2 onwards | bulk selection, bar and summary; typed confirmation; editable sections; History links and audit target filters; `meta.roles`; scroll restoration; `SearchField`, `IdnText` and `utf8ByteLength`; coverage manifest and `stripMarkup`; domain page (P03–P13, P16) |
+| UI 002 (implemented) | Phase 2 onwards | bulk selection, bar and summary; typed confirmation; editable sections; History links and audit target filters; `meta.roles`; scroll restoration; `SearchField`, `IdnText` and `utf8ByteLength`; coverage manifest; domain page (P03–P13, P16) |
 | UI 003 (implemented) | Phase 2, US2, US3, Phase 12 | `DomainPicker`, `AclReadOnlyNote`, identity refresh, mailbox detail areas, mailbox list bulk area, `getMailbox` key (P12, P14, P15, P17) |
 | UI 004 (implemented) | Phase 2, Phase 12 | the `DomainPicker` promotion, the alias domain detail with `isEntryAvailable` links, the resource detail, the `aliasDomains` catalogue entry (P14, P18, P19) |
 | UI 005 (implemented) | T001 | the pin to start from (P22) |
@@ -883,7 +887,7 @@ not reachable.
 
 - **Setup (Phase 1)**: T001 first, because the generated types are needed everywhere. T003 needs
   T002, and T005 needs T004. The others are [P] after T001.
-- **Foundational (Phase 2)**: T010 → T011 → T012. Then the tests T013–T024 (all [P]) and the mock
+- **Foundational (Phase 2)**: T009a first (the legacy form map). Then T010 → T011 → T012. Then the tests T013–T024 (all [P]) and the mock
   baseline T025 → T026, plus T027. Then the implementation T028–T038. T032 needs T031. T036 needs
   T035 when the prefix was missing. T038 last.
 - **User stories (Phases 3–11)** depend on the foundation:
@@ -917,14 +921,14 @@ not reachable.
 - `tests/mocks/handlers/quarantine.ts`: T026, T039, T059, T070, T107.
 - `tests/mocks/handlers/spam-policy.ts`: T080, T090, T116.
 - `tests/mocks/scenarios/{quarantine,spam-filter}.ts` and `index.ts`: each story's fixture task.
-- `src/i18n/messages/*.json` and `src/i18n/legacy-map.json`: T038, T058, T069, T079, T089, T096,
-  T106, T115, T121, T127, T134, T141.
+- `src/i18n/messages/*.json` (new strings only): T038, T058, T069, T079, T089, T096, T106, T115,
+  T121, T127, T134, T141.
 
 ### Within each user story
 
 Mock handlers and scenarios first, then end-to-end, unit and smoke tests (which must fail), then
 the implementation (api → pure modules → composables → components → pages and routes), then the
-messages in all three locales.
+form map's new strings in en-gb, cs-cz and sk-sk (legacy keys are used verbatim, never copied).
 
 ### Parallel opportunities
 

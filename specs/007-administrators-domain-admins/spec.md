@@ -265,10 +265,11 @@ protection, confirmation and message.
 2. **Given** the creation form, **When** they enter a valid username and a password that meets the
    policy and save, **Then** the account is created and a translated success message names it.
 3. **Given** their own account, **When** they open its actions, **Then** "Remove" is disabled and
-   the reason "You cannot remove the account you are signed in with" is shown.
+   the reason is shown with the legacy text `warning.cannot_delete_self` ("Cannot delete logged in
+   user").
 4. **Given** an administrator who is the only active administrator, **When** they open their own
-   account's actions or edit screen, **Then** deactivation is disabled and the reason "At least one
-   administrator must stay active" is shown.
+   account's actions or edit screen, **Then** deactivation is disabled and the reason is shown with
+   the legacy text `warning.no_active_admin` ("Cannot deactivate last active admin").
 5. **Given** their own account and another active administrator, **When** they deactivate their own
    account, **Then** a confirmation warns that their session ends, and confirming saves the change
    and then shows the sign-in screen with an explanation.
@@ -495,8 +496,12 @@ accounts.
 - **FR-014**: The password field MUST be a single field with show and hide controls. It MUST list the
   server's password policy as read from the API and mark each rule as met or not met while the user
   types, without blocking submission: the API decides, and stores a value that begins with a
-  recognised hash-scheme prefix as given, as in UI feature 003. It MUST offer "Generate", which fills the field with a random password that meets the policy, reveals it and
-  offers to copy it. Passwords MUST NOT be kept anywhere after the form is left.
+  recognised hash-scheme prefix as given, as in UI feature 003. It MUST offer "Generate" (legacy
+  `admin.generate` on the creation forms, `edit.generate` on the detail screens), which fills the
+  field with a random password that meets the policy, reveals it and offers to copy it. Passwords
+  MUST NOT be kept anywhere after the form is left. Legacy's password repeat field
+  (`admin.password_repeat`, `edit.password_repeat`) is a deviation awaiting a decision (plan,
+  "Translations and forms").
 - **FR-015**: The Permissions section of the creation form MUST start collapsed, with the server's
   default flags (from the API's account capabilities) selected and a note that the defaults apply.
   Expanding it MUST show the switches of
@@ -527,20 +532,24 @@ accounts.
   selection, and MUST link each assigned domain to its screen in UI feature 002. An assignment that
   is not a domain MUST be shown with a warning that it grants no access and is dropped at the next
   save. An assignment whose status differs from the account's MUST show its own status.
-- **FR-023**: The Sign-in and security section MUST allow switching "Force password change at next
-  sign-in" and "Force two-factor setup at next sign-in", each with its explanation, using the product
-  name from the branding configuration where legacy shows it.
-- **FR-024**: When the account has active second factors, the section MUST offer "Suspend two-factor
-  authentication until next sign-in", after a confirmation that states that the account can then
-  sign in with its password alone until its next successful sign-in, and that passkeys keep working.
+- **FR-023**: The Sign-in and security section MUST allow switching the forced password change
+  (legacy `edit.force_pw_update` with `edit.force_pw_update_info`) and the forced two-factor setup
+  (legacy `tfa.force_tfa` with `tfa.force_tfa_info`), each with its legacy explanation, the `%s` of
+  `edit.force_pw_update_info` filled with the product name from the branding configuration, as
+  legacy fills it.
+- **FR-024**: When the account has active second factors, the section MUST offer the suspension of
+  two-factor authentication (legacy `tfa.disable_tfa`, "Disable TFA until next successful login"),
+  after a confirmation that states that the account can then sign in with its password alone until
+  its next successful sign-in, and that passkeys keep working.
 
 #### Removing and changing status
 
 - **FR-025**: Removing a domain administrator MUST need a confirmation dialog that names the account,
   lists its assigned domains, and states that its API keys are revoked permanently, its passkeys and
   second factors are removed, its sessions end, and the domains and their mailboxes stay. The
-  confirm control MUST be labelled with the action ("Remove domain administrator"), not "OK". After
-  the removal the app MUST return to the list and announce the result.
+  dialog MUST use the classic confirmation's texts (`footer.confirm_delete` as its title,
+  `footer.delete_now` on the confirm control, `footer.cancel`), never "OK"; the impact lines are new
+  strings. After the removal the app MUST return to the list and announce the result.
 - **FR-026**: Activating another account MUST need no confirmation. Deactivating another account,
   alone or in a multi-select, MUST need one explicit confirmation that states the effect: the
   account's sessions end and its API keys stop working until it is activated again. The result
@@ -549,7 +558,9 @@ accounts.
 #### Domain administrator permissions
 
 - **FR-027**: The Permissions section MUST show the account's permission flags as labelled switches
-  with a one-line explanation each, reflecting their stored state.
+  with a one-line explanation each, reflecting their stored state. (The explanations and FR-028's
+  grouping have no legacy counterpart and await a decision, plan "Translations and forms"; until
+  then the switches follow legacy's flag order without explanations.)
 - **FR-028**: The switches MUST be grouped, each group as a labelled set:
   - Mailbox settings: protocol access, allowed SMTP hosts, unlimited quota, mailbox relayhost,
     webmail access management, app passwords, push notifications, sync jobs, filters;
@@ -561,8 +572,8 @@ accounts.
   A flag the API reports that is not in this list MUST still be shown, in an "Other" group.
 - **FR-029**: Saving MUST send only the changed flags with the version tag read, and MUST show a
   translated success or error message. A failed save MUST keep the user's choices.
-- **FR-030**: Labels MUST reuse the legacy `acl.*` translation keys where the meaning is unchanged.
-  Explanations use new keys.
+- **FR-030**: Labels MUST be the legacy `acl.*` translations, used verbatim (constitution IV 1.3.0).
+  Explanations, if the decision on FR-027 keeps them, are new strings.
 - **FR-031**: Permission flags MUST NOT be offered for administrator accounts, which always hold
   every permission.
 
@@ -579,12 +590,12 @@ accounts.
 - **FR-034**: The administrator detail screen MUST offer the Account and Sign-in and security
   sections (FR-019 to FR-021, FR-023, FR-024) and the "View history" link (FR-071).
 - **FR-035**: The own account's Remove control MUST be disabled everywhere, with the visible reason
-  "You cannot remove the account you are signed in with". The own account MUST be left out of a
-  multi-select remove or deactivate, and the summary MUST say so.
+  in the legacy text `warning.cannot_delete_self` ("Cannot delete logged in user"). The own account
+  MUST be left out of a multi-select remove or deactivate, and the summary MUST say so.
 - **FR-036**: When exactly one administrator is active, that account's deactivation MUST be disabled
-  everywhere, with the visible reason "At least one administrator must stay active". A multi-select
-  deactivation that would leave no active administrator MUST be stopped before any request is sent,
-  with the same reason.
+  everywhere, with the visible reason in the legacy text `warning.no_active_admin` ("Cannot
+  deactivate last active admin"). A multi-select deactivation that would leave no active
+  administrator MUST be stopped before any request is sent, with the same reason.
 - **FR-037**: Deactivating the own account MUST need a confirmation that warns that the current
   session ends. After the save, the app MUST show the sign-in screen with a translated explanation.
 - **FR-038**: Removing an administrator MUST need a confirmation dialog that names the account and
@@ -720,9 +731,13 @@ accounts.
   UI feature 001 filtered to that account. The audit log MUST show, for records written while acting,
   the impersonator as the actor and the impersonated account, marked as done while acting, and MUST
   offer a filter by impersonated account.
-- **FR-072**: Every user-facing text MUST come from the translation files in English, Czech and
-  Slovak. Legacy keys MUST be reused where the meaning is unchanged (see Legacy Parity), and brand
-  names MUST come from the branding configuration.
+- **FR-072**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key (see Legacy Parity); the screens MUST mirror the legacy forms (fields,
+  labels, help texts, options, units, order and messages); new strings, only for elements the
+  classic interface lacks, MUST exist in English, Czech and Slovak and MUST NOT be
+  machine-translated. Brand names in the app's own strings MUST come from the branding
+  configuration; legacy texts are shown as the installation's files have them.
 - **FR-073**: Dates and times MUST be formatted in the user's locale.
 - **FR-074**: Every screen MUST be designed first for a 360 px viewport and MUST pass automated
   accessibility checks with no violation in both themes.
@@ -757,9 +772,9 @@ token), `sogo-auth.php` (webmail on a user's behalf).
 | Add domain administrator modal: username, searchable domain multi-select, password, repeat, generate, active | Improved | FR-011 to FR-017 | Full-screen picker with chips, sign-in requirements and permissions in the same form |
 | Edit domain administrator page: rename, domains, password, active, disable TFA, force 2FA, force password update | Matched | FR-018 to FR-024 | Same fields, in sections |
 | Edit domain administrator: an empty domain selection silently keeps the old domains | Improved | FR-022 | An empty selection is refused visibly |
-| `da_acl` multi-select box (10 rows, Ctrl-click to select) | Improved | FR-027 to FR-031 | Grouped, labelled switches with explanations, usable by touch and screen readers |
+| `da_acl` multi-select box (10 rows, Ctrl-click to select) | Improved | FR-027 to FR-031 | Labelled switches with the legacy `acl.*` texts, usable by touch and screen readers; grouping and explanations await a decision (plan, "Translations and forms") |
 | TFA column showing only on or off | Improved | FR-005, FR-032 | Distinguishes none, active and suspended |
-| "Login" button on domain administrator rows (hard-coded English) | Improved | FR-040, FR-041, FR-043 | Translated "Sign in as" |
+| "Login" button on domain administrator rows (hard-coded English) | Improved | FR-040, FR-041, FR-043 | Translated "Sign in as"; the label (new string or legacy `login.login`) awaits a decision (plan, "Translations and forms") |
 | "Login" button on mailbox rows for administrators and domain administrators with `login_as` | Matched | FR-040 to FR-043 | Placed in UI feature 003's screens |
 | "SOGo" button on mailbox rows (`ALLOW_ADMIN_EMAIL_LOGIN`) | Matched | FR-055, FR-056 | Shown only when the identity reports the setting on |
 | Dual login started by a `?duallogin=` link | Improved | FR-043 | Started only by an explicit action, so a crafted link cannot switch identity |
@@ -772,14 +787,15 @@ token), `sogo-auth.php` (webmail on a user's behalf).
 | `?sso_token=` sign-in on the domain administrator page | Improved | FR-058 to FR-061 | Token removed from the address bar, no silent account switch |
 | `sso/domain-admin` token issuance (legacy: `/api/v1` only, no screen) | New | FR-062, FR-063 | Lets administrators test billing integrations |
 | Password "generate" link (`pwgen`) | Matched | FR-014 | Generated passwords meet the server policy |
-| Password repeat field | Dropped | FR-014 | The API takes the password once; a show control replaces retyping |
+| Password repeat field | Deviation awaiting a decision | FR-014 | The API takes the password once; legacy's `admin.password_repeat` / `edit.password_repeat` with `danger.password_mismatch` can be mirrored locally (plan, "Translations and forms") |
 | Have I Been Pwned check on password fields (`data-hibp`) | Dropped | — | It sends requests to a third-party service, which the constitution forbids. A server-side policy refusal is shown through FR-016 |
 | Username lower-cased on every key press | Improved | FR-012 | Converted when the field loses focus, so the cursor does not jump |
-| Success and error alerts from legacy message keys | Matched | FR-016, FR-064, FR-065 | Translated from the API's codes |
+| Success and error alerts from legacy message keys | Matched | FR-016, FR-064, FR-065 | The same legacy `success.*`, `warning.*` and `danger.*` keys, chosen from the API's problem types and codes |
 | DataTables state saving (page, search) | Matched | FR-003, FR-007 | Kept in the screen's address |
 | Legacy UI log entries "impersonator => target" | Improved | FR-071 | Audit log shows both accounts and filters by impersonated account |
 
-Reused legacy translation keys (meaning unchanged): `admin.admins`, `admin.domain_admins`,
+Legacy translation keys used verbatim (constitution IV 1.3.0; the plan's legacy form map is the
+complete list): `admin.admins`, `admin.domain_admins`,
 `admin.domain_admin`, `admin.add_admin`, `admin.add_domain_admin`, `admin.admin_domains`,
 `admin.search_domain_da`, `admin.username`, `admin.password`, `admin.active`,
 `admin.action`, `edit.admin`, `edit.domain_admin`, `edit.domains`, `edit.force_pw_update`,
@@ -790,10 +806,13 @@ Reused legacy translation keys (meaning unchanged): `admin.admins`, `admin.domai
 `danger.object_exists`, `danger.domain_invalid`, `danger.password_complexity`,
 `success.admin_added`, `success.admin_modified`, `success.admin_removed`,
 `success.domain_admin_added`, `success.domain_admin_modified`, `success.domain_admin_removed`,
-`success.acl_saved`, `success.logged_in_as`, `user.open_webmail_sso` (40 keys and the 19 flags).
-The "Generate" control's label comes from the shared password field of UI features 003 and 005, so
-`admin.generate` is not reused here. Keys whose legacy text contains a brand name or HTML are
-replaced by new keys with a product-name placeholder.
+`success.acl_saved`, `success.logged_in_as`, `user.open_webmail_sso` (40 keys and the 19 flags),
+and from the legacy forms also `admin.admin_details`, `admin.edit`, `admin.remove`, `admin.add`,
+`admin.generate`, `edit.generate`, `edit.username`, `edit.password`, `edit.active`, `edit.save`,
+`admin.save`, `mailbox.toggle_all`, `mailbox.quick_actions`, `footer.confirm_delete`,
+`footer.delete_now`, `footer.cancel`, `mailbox.created_on` and `mailbox.last_modified`. Keys whose
+legacy text names the product or contains HTML are used verbatim too: `%s` placeholders get what
+legacy fills them with, and HTML is rendered through the sanitiser.
 
 ### API Dependency
 
@@ -874,8 +893,9 @@ becomes available with it).
   restored in 100% of tested cases where that screen is still available.
 - **SC-006**: Automated accessibility checks report 0 violations on every screen and dialog of this
   feature, in light and dark themes, and every flow can be completed with the keyboard alone.
-- **SC-007**: 100% of the feature's texts exist in English, Czech and Slovak, and every legacy key
-  listed under Legacy Parity is reused.
+- **SC-007**: Every legacy key of the plan's legacy form map is used verbatim and exists in the
+  bundled `en-gb` snapshot, and 100% of the feature's new strings exist in English, Czech and
+  Slovak.
 - **SC-008**: In tests, the UI never offers removing the own account or deactivating the last active
   administrator, and 100% of API refusals in this feature appear as translated messages, none as the
   API's English text.

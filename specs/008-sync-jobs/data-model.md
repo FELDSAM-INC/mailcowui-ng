@@ -63,6 +63,11 @@ summaries. Long labels wrap (`break-words`), never truncate silently (FR-008).
 | `null` | false | "Never" (`mailbox.never`) |
 | `null` | true | "Cleared, runs on the next cycle" (`syncJobs.lastRun.cleared`) |
 
+Constitution IV 1.3.0: the two `null` rows, and "Success" for an unrecognised success code above,
+deviate from the classic interface (`mailbox.waiting` for every job without a last run;
+`mailbox.syncjob_check_log` for an unrecognised code). They wait for a decision (plan, "Deviations
+needing a decision"); until then the legacy texts are shown.
+
 ### Form values and sections (`form-model.ts`)
 
 `SyncJobFormValues` is `Required<Omit<SyncJobCreateRequest, 'mailbox' | 'remotePassword'>>` plus

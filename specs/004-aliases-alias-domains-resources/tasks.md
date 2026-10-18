@@ -43,8 +43,8 @@ be implemented and tested on its own once the foundation is in place.
 
 ## Phase 1: Setup (contract and tooling)
 
-**Purpose**: Pin the contract that ships API 004, expose its types, and extend the translation
-tooling (research R1, R20).
+**Purpose**: Pin the contract that ships API 004, expose its types, and check that UI 001's legacy
+translation layer covers this feature (research R1, R20; constitution IV 1.3.0).
 
 - [ ] T001 Bump the contract (research R1):
   - Run `scripts/contract/bump.sh <ref>`. `<ref>` is the mailcow-rest-v2 release tag that ships the
@@ -75,20 +75,26 @@ tooling (research R1, R20).
 
   Then run `npm run typecheck`, `npm run test:unit` and `npm run test:e2e`, and fix any type error
   the bump caused in existing code without changing behaviour.
-- [ ] T003 [P] Extend `tests/unit/scripts/i18n-tools.spec.ts` (research R20):
-  - a `legacy-map.json` object entry with `"locales": ["cs-cz", "sk-sk"]` is written only to those
-    locales' legacy layers, and the check fails until the en-gb app layer supplies the key;
-  - `%s` and `%d` become `{0}`, `{1}` and so on, in order (`"Alias address %s (%d) has been added"`);
-  - these options combine with UI 002's `stripMarkup`.
+- [ ] T003 [P] Extend the tests of UI 001's legacy translation layer (research R20, constitution IV
+  1.3.0) with this feature's cases, skipping what UI 001, UI 002 or UI 003 already cover:
+  - `%s` and `%d` are filled in order (`success.alias_added`: "Alias address %s (%d) has been added"
+    with the address and the ID);
+  - values with markup (`add.goto_spam`, `edit.sender_acl_info`, `add.alias_address_info`) render
+    unchanged through `SanitizedHtml.vue`;
+  - a key missing in sk-sk upstream (`add.internal`) falls back to `en-gb`.
 
-  Skip the cases UI 002 or UI 003 already cover. The new tests must fail.
-- [ ] T004 Implement the two options in `scripts/i18n/lib.mjs`, `scripts/i18n/import-legacy.mjs` and
-  `scripts/i18n/check.mjs` so that T003 passes.
+  The new tests must fail.
+- [ ] T004 Fill the gaps T003 reports in UI 001's legacy translation layer, test first, without
+  changing its behaviour for earlier features. There is no build-time import, `legacy-map.json`
+  option or `stripMarkup` step to add.
 - [ ] T005 Extend the translation scope (research R20, data-model §8):
   - Append this feature's values to `src/i18n/coverage.json`: the 10 event types, the 4 target
     types, the failure reasons, the rule codes and the problem types of data-model §8.
   - Add the closed enumerations of data-model §8 to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`.
-  - Write their labels in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (FR-067, SC-005):
+  - Write their labels in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (FR-067, SC-005), only
+    where no legacy key has the same meaning (constitution IV 1.3.0; for example
+    `AliasDestinationType` uses `add.goto_null`, `add.goto_spam`, `add.goto_ham`, and
+    `ResourceBookingRule` the `mailbox.booking_*` keys). Never machine-translate:
     - `enums.<name>.<value>`;
     - `auditLog.eventTypes.*` and `auditLog.targets.*` under UI 001's naming;
     - the base `problem.<name>` messages.
@@ -110,6 +116,11 @@ accepts the new entry forms.
 - the capabilities, permissions and catalogue rows.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
+
+### Legacy form map (constitution IV 1.3.0)
+
+- [ ] T005a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+  Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Dependencies on earlier features (research R2)
 
@@ -139,7 +150,7 @@ accepts the new entry forms.
   - D17 the route `domain-detail`.
   - D18 the route `mailbox-detail`, `src/features/mailboxes/sections.ts` and `MailboxSectionNav`
     rendering entries whose route exists.
-  - D19 `src/i18n/coverage.json` and `stripMarkup`.
+  - D19 `src/i18n/coverage.json`.
   - D20 the domain and mailbox mock state, handlers and factories.
   - `SearchField.vue`: submit or a 500 ms pause, and a result-count hook.
   - `utf8ByteLength()`.
@@ -385,14 +396,11 @@ accepts the new entry forms.
   They sit consecutively where `aliases` was, after `mailboxTemplates`. No entry leads to "not
   found".
 - [ ] T029 Update `src/app/navigation/catalogue.ts` (rows and the `NavigationEntry` id union) and its
-  icons in `src/shared/icons/` so that T028 passes. Map the labels in `src/i18n/legacy-map.json`:
-  - `nav.aliases` → `mailbox.aliases`;
-  - `nav.aliasDomains` → `{ "from": "mailbox.domain_aliases", "locales": ["cs-cz","sk-sk"] }`, with
-    en-gb "Alias domains" in `src/i18n/messages/en-gb.json`;
-  - `nav.resources` → `mailbox.resources`.
+  icons in `src/shared/icons/` so that T028 passes. The labels are the legacy keys
+  `mailbox.aliases`, `mailbox.domain_aliases` and `mailbox.resources`, verbatim in every language
+  (constitution IV 1.3.0).
 
-  Remove the former app-layer `nav.aliases` values. Run `npm run i18n:import`, then
-  `npm run i18n:check`.
+  Remove the former app-layer `nav.aliases` values. Run `npm run i18n:check`.
 
 **Checkpoint**: The dependencies are verified, the mock serves all 23 operations, and the shared
 blocks, capabilities, permissions and catalogue rows are in place. The stories can start.
@@ -533,11 +541,12 @@ compare the values with the mock data.
   - `NotFoundState` on 404.
 
   Also implement `src/features/aliases/components/OrphanedAliasWarning.vue`.
-- [ ] T040 [US1] (FR-067) Add the `aliases.title`, `aliases.list.*`, `aliases.filters.*`, `aliases.sort.*`,
-  `aliases.badges.*`, `aliases.detail.*` and FR-017 hint messages to
-  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Add the `legacy-map.json` entries of data-model §8
-  for the alias list and detail (`*` with `stripMarkup`, `‡` supplied in sk-sk). Run
-  `npm run i18n:import`, then `npm run i18n:check`.
+- [ ] T040 [US1] (FR-067) Use the legacy keys of T005a's form map for the alias list and detail
+  verbatim (texts with markup through `SanitizedHtml.vue`, the FR-017 hint
+  `mailbox.alias_domain_alias_hint` unless the owner decides otherwise). Add to
+  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's new strings among
+  `aliases.title`, `aliases.list.*`, `aliases.filters.*`, `aliases.sort.*`, `aliases.badges.*` and
+  `aliases.detail.*`, never machine-translated. Run `npm run i18n:check`.
 
 **Checkpoint**: US1 works on its own. This is the MVP: aliases can be found and inspected on any
 device.
@@ -634,13 +643,13 @@ page).
   Add the route `alias-create` (`/aliases/new`) to `src/features/aliases/routes.ts`. Add the "Add
   alias" control to the header and the "nothing exists yet" state of `AliasesPage.vue`, only when
   permitted.
-- [ ] T049 [US2] Add the `aliases.create.*`, `aliases.form.*` (labels, explanations, the product-name
-  address help, the notice, results) and `aliases.form.errors.*` messages to the three locales. Add
-  the `legacy-map.json` entries of data-model §8 for the alias form and its messages:
-  - `success.alias_added` with positional parameters;
-  - `acl.alias_external_goto` and `danger.external_goto_denied`, supplied in cs-cz and sk-sk.
-
-  Run `npm run i18n:import`, then `npm run i18n:check`.
+- [ ] T049 [US2] Use the legacy keys of T005a's form map for the alias form verbatim: the labels and
+  `*_info` texts of `#addAliasModal`, `add.alias_address_info` as the installation has it, and the
+  messages, with problem types and rule codes mapped to the legacy `danger.*` keys
+  (`success.alias_added` with the address and the ID; `acl.alias_external_goto` and
+  `danger.external_goto_denied` fall back to `en-gb` where a language lacks them). Add only the
+  form map's new strings among `aliases.create.*`, `aliases.form.*` and `aliases.form.errors.*` to
+  the three locales. Run `npm run i18n:check`.
 
 **Checkpoint**: US1 and US2 work.
 
@@ -730,9 +739,9 @@ with and without confirming.
 
   Add "Edit" and "Delete" to the menus of `AliasCard.vue` and `AliasTable.vue` (FR-015). "Edit"
   opens the detail with `edit=destination`.
-- [ ] T058 [US3] Add the `aliases.edit.*`, `aliases.delete.*` and `aliases.orphaned.*` messages to
-  the three locales, and the `legacy-map.json` entries `success.alias_modified` and
-  `success.alias_removed`. Run `npm run i18n:import`, then `npm run i18n:check`.
+- [ ] T058 [US3] Use `success.alias_modified`, `success.alias_removed` and the other legacy keys of
+  T005a's form map verbatim. Add only the form map's new strings among `aliases.edit.*`,
+  `aliases.delete.*` and `aliases.orphaned.*` to the three locales. Run `npm run i18n:check`.
 
 **Checkpoint**: All P1 stories (US1 to US3) work.
 
@@ -857,19 +866,18 @@ failed steps and every documented refusal.
     - the alias count link;
     - Delete with the impact of research R11;
     - `NotFoundState`.
-- [ ] T069 [US4] Add the `aliasDomains.*` messages to the three locales: titles, fields, report
-  lines `aliasDomains.report.<step>.<outcome>`, warnings, notes, errors and confirmations. Add the
-  `legacy-map.json` entries of data-model §8 for alias domains:
-  - `mailbox.add_domain_alias` with `locales`;
+- [ ] T069 [US4] Use the legacy keys of T005a's form map for alias domains verbatim:
+  - `mailbox.add_domain_alias` (its English text "Add domain alias" as legacy has it);
   - `edit.edit_alias_domain`;
   - `mailbox.alias_domain_backupmx`;
   - `acl.alias_domains`;
   - `success.aliasd_added`, `success.aliasd_modified` and `success.alias_domain_removed`;
   - `danger.aliasd_targetd_identical`, `danger.alias_domain_invalid` and
-    `danger.target_domain_invalid`.
+    `danger.target_domain_invalid`;
+  - the same legacy keys as UI 002 for the rate limit frames and DKIM labels.
 
-  Reuse UI 002's app keys for the rate limit frames and DKIM labels. Run `npm run i18n:import`, then
-  `npm run i18n:check`.
+  Add to the three locales only the form map's new `aliasDomains.*` strings (for example the report
+  lines `aliasDomains.report.<step>.<outcome>`, which legacy lacks). Run `npm run i18n:check`.
 
 **Checkpoint**: US4 works on its own, next to US1–US3.
 
@@ -914,7 +922,7 @@ point at US1's detail.
   - US5-AS8: "no longer exists", removable by administrators;
   - US5-AS9 and FR-050: on 5,000 candidates, a search for "sales" with load more and the labels of
     plan API gap G1, then removing a changeable entry;
-  - FR-052 and FR-053: the hints as plain text;
+  - FR-052 and FR-053: the legacy hints verbatim, with their markup rendered;
   - Edge, "any address" seen by a domain administrator: "Sender check is disabled", read-only, with
     no add control;
   - Edge, stale sender permission;
@@ -973,7 +981,7 @@ point at US1's detail.
   `PermissionCandidatePicker.vue` (Reka `Combobox` without a viewport, with loading, "no match" and
   error states), `AnyAddressSwitch.vue` (confirmation through `useConfirm`),
   `SenderCheckStatus.vue`, `ExternalSenderAddressesSection.vue` (`EntryListField`) and
-  `SendAsHints.vue`. Texts with markup are rendered as plain text.
+  `SendAsHints.vue`. Legacy texts with markup are rendered unchanged through `SanitizedHtml.vue`.
 - [ ] T077 [US5] Implement `src/features/sender-settings/pages/SendAsPage.vue`:
   - the sections;
   - one sticky save bar;
@@ -983,14 +991,16 @@ point at US1's detail.
   - the leave guard and `useFormDraft`;
   - announcements;
   - `NotFoundState`.
-- [ ] T078 [US5] Add the `senderSettings.*` messages to the three locales. Add the `legacy-map.json`
-  entries of data-model §8 for "Send as":
-  - `edit.sender_acl`, `edit.extended_sender_acl` and `acl.extend_sender_acl`;
-  - `danger.extra_acl_invalid` and `danger.extra_acl_invalid_domain`;
-  - with `stripMarkup`: `edit.sender_acl_info`, `edit.sender_acl_disabled` and
+- [ ] T078 [US5] Use the legacy keys of T005a's form map for "Send as" verbatim:
+  - `edit.sender_acl`, `edit.dont_check_sender_acl`, `add.sender_allowed`,
+    `edit.extended_sender_acl` and `acl.extend_sender_acl`;
+  - `danger.extra_acl_invalid`, `danger.extra_acl_invalid_domain`, `danger.sender_acl_invalid` and
+    `danger.extended_sender_acl_denied`;
+  - with markup, through `SanitizedHtml.vue`: `edit.sender_acl_info`, `edit.sender_acl_disabled` and
     `edit.extended_sender_acl_info`.
 
-  Run `npm run i18n:import`, then `npm run i18n:check`.
+  Add only the form map's new `senderSettings.*` strings to the three locales. Run
+  `npm run i18n:check`.
 
 **Checkpoint**: US5 works on its own, reached from the mailbox detail.
 
@@ -1084,11 +1094,12 @@ per-object results and the selection afterwards.
   `useAliasDomainBulkAction` in `src/features/alias-domains/api.ts`. Add selection mode to
   `src/features/alias-domains/pages/AliasDomainsPage.vue`, `components/AliasDomainCard.vue` and
   `components/AliasDomainTable.vue`.
-- [ ] T089 [US6] Add the `aliases.bulk.*`, `aliases.copy.*` and `aliasDomains.bulk.*` messages to
-  the three locales. Add the `legacy-map.json` entries `mailbox.sogo_visible_y`,
-  `mailbox.sogo_visible_n`, `mailbox.add_alias_expand` and `warning.is_not_primary_alias`, reusing
-  UI 003's app keys for `mailbox.toggle_all`, `mailbox.activate`, `mailbox.deactivate` and
-  `mailbox.remove`. Run `npm run i18n:import`, then `npm run i18n:check`.
+- [ ] T089 [US6] Use the legacy keys `mailbox.sogo_visible_y`, `mailbox.sogo_visible_n`,
+  `mailbox.add_alias_expand`, `warning.is_not_primary_alias`, `mailbox.toggle_all`,
+  `mailbox.activate`, `mailbox.deactivate` and `mailbox.remove` verbatim; each bulk result line uses
+  the single action's legacy message. Add only the form map's new strings among `aliases.bulk.*`,
+  `aliases.copy.*` and `aliasDomains.bulk.*` (summaries, copy report) to the three locales. Run
+  `npm run i18n:check`.
 
 **Checkpoint**: All P2 stories (US4 to US6) work, next to the P1 stories.
 
@@ -1184,12 +1195,12 @@ shared D2–D5.
   - `ResourceCreatePage.vue`: `CapabilitiesGate`, the preview blocking submit, the leave guard and
     `useFormDraft`;
   - `ResourceDetailPage.vue`: the section, Delete with the consequences, and `NotFoundState`.
-- [ ] T101 [US7] Add the `resources.*` messages to the three locales, with a new "resource changed"
-  message instead of `success.resource_modified`. Add the `legacy-map.json` entries of data-model §8
-  for resources: `mailbox.add_resource`, the booking texts, `add.kind`, `add.multiple_bookings`,
-  `add.description`, `success.resource_added`, `success.resource_removed`,
-  `danger.resource_invalid` and `danger.description_invalid`. Run `npm run i18n:import`, then
-  `npm run i18n:check`.
+- [ ] T101 [US7] Use the legacy keys of T005a's form map for resources verbatim:
+  `mailbox.add_resource`, the booking texts, `add.kind`, `add.multiple_bookings`, `add.description`,
+  `success.resource_added`, `success.resource_modified` (legacy's own text), `success.resource_removed`,
+  `danger.resource_invalid` and `danger.description_invalid`. Add only the form map's new
+  `resources.*` strings (the kind options, whose English equals legacy's hard-coded text, and the
+  address preview) to the three locales. Run `npm run i18n:check`.
 
 **Checkpoint**: US7 works on its own, and US6's resource scenario (US6-AS3) passes.
 
@@ -1277,8 +1288,7 @@ audit log is filtered by that object. As a domain administrator, check that the 
   `specs/004-aliases-alias-domains-resources/quickstart.md`, and add any missing test.
 - [ ] T113 [P] Align `specs/004-aliases-alias-domains-resources/spec.md` with the plan:
   - add the plan's parity notes 1–4 to "Legacy parity";
-  - correct the "Translation reuse" claim that all keys exist in the three locales (the eight
-    missing values, research R20), and note that `mailbox.alias_domain_alias_hint` is replaced;
+  - check that "Translation reuse" matches T005a's legacy form map (constitution IV 1.3.0);
   - list API gaps G1–G4 under "API gaps";
   - note under FR-005 and FR-071 that the page sizes follow the conventions and the API-wide list
     defaults, so that lists work without the capabilities (research R5).
@@ -1291,8 +1301,9 @@ audit log is filtered by that object. As a domain administrator, check that the 
   `npm run test:smoke -- --grep @feature-004`, then `scripts/smoke/stack-down.sh`) against the
   mailcow-rest-v2 dev stack at the pinned commit.
 - [ ] T116 [P] Run `npm run i18n:check`, remove the unused keys it reports from
-  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list this feature's new cs-cz and sk-sk strings
-  for the owner's review (plan, owner question 2).
+  `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, check that no new string duplicates a legacy key of
+  the form map, and list this feature's new cs-cz and sk-sk strings for the owner's review (plan,
+  owner question 2).
 
 ---
 
@@ -1304,6 +1315,7 @@ audit log is filtered by that object. As a domain administrator, check that the 
   R1, R2).
 - **Setup (Phase 1)**: T001 → T002 → T005. T003 → T004, in parallel with T001–T002.
 - **Foundational (Phase 2)** depends on Setup and **blocks every user story**. Within it:
+  - T005a first; every screen and message task depends on its legacy form map.
   - T006 first, then T007, T008 and T009 (T008 and T009 in parallel). T006 passes after them.
   - T010 → T011, and T012 → T013.
   - T014 → T015 → T016 → T017 → T018.
@@ -1344,7 +1356,7 @@ Edits to these files must be serialised, even when stories run in parallel:
 - `src/features/resources/pages/ResourceDetailPage.vue`: US7, US8;
 - `src/features/sender-settings/pages/SendAsPage.vue`: US5, US8;
 - `tests/mocks/scenarios/index.ts`: one registration line per story;
-- `src/i18n/messages/*.json` and `src/i18n/legacy-map.json`: every story.
+- `src/i18n/messages/*.json`: every story.
 
 The mock handlers are complete after Phase 2, so no story edits them.
 

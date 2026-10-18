@@ -93,6 +93,9 @@ Lighthouse ≥ 90).
 - 360 px and 400 % zoom without page scroll; only an editor with wrapping off scrolls sideways.
 - Only contract operations; limits from the capabilities or the contract, never hard-coded.
 - No automatic requests while the user is idle (UI 001 FR-033); the job refresh pauses (R23).
+- Constitution IV 1.3.0: every language mailcow ships; legacy texts verbatim by their legacy keys,
+  loaded at runtime from the installation; new strings only for elements the classic interface
+  lacks, complete in en/cs/sk ("Translations and forms (constitution IV 1.3.0)").
 
 **Scale/Scope**:
 
@@ -100,7 +103,9 @@ Lighthouse ≥ 90).
 - 23 routes in one feature folder, plus sections added to UI 002's domain page and UI 005's filter
   form.
 - 44 of API 013's 45 operations, plus 7 operations of API 001–003.
-- About 450 translation keys per locale, part of them reused from legacy.
+- About 120 legacy keys used verbatim (data-model §8, completed by T008a's legacy form map), plus
+  the new strings for elements the classic interface lacks (overview, search, colours, mass mail
+  jobs, previews, checks). The form map fixes their number, kept to the minimum.
 
 ## Constitution Check
 
@@ -111,14 +116,14 @@ Lighthouse ≥ 90).
 | I. The API contract is the only interface | Only the operations of [contracts/README.md](./contracts/README.md), through the generated client; the pin is bumped with `bump.sh` to a ref containing the baseline commit (R2), and a presence test guards the operations. No hand-written API types (view models only, data-model §2). Problems drive behaviour by `type` and rule `code` (R10). The one gap found (stable mass mail failure codes) is reported to mailcow-rest-v2, and the UI shows only what the contract offers (API gap G1). | PASS |
 | II. Mobile-first | Every screen designed and tested at 360 px first; overview as its own screen, page switcher, steps for mass mail below `lg`, sticky Save/Cancel, cards below `md`, 44 px targets including reorder and entry removal, dialogs that scroll inside (R7, R9, R22, R29). Loading, empty and error states for every collection (FR-015). Destructive and high-risk actions confirmed with their impact. | PASS |
 | III. Accessibility | axe on every screen and state in both themes, plus limit-palette passes that make every later end-to-end test check brand colours at 4.5:1 (R12). Text equivalents for contrast verdicts, line marks, statuses and progress; throttled announcements; focus to headings and section headings; keyboard-only editors with a documented Tab behaviour (R17, R29). | PASS |
-| IV. i18n and branding | All text from en-gb, cs-cz and sk-sk; legacy keys reused through `legacy-map.json`, with the importer extended for `%d` and HTML stripping (R28). Product name, logos, colours, links and texts come from the API at runtime; the brand colours are now applied (closing 001's Complexity Tracking row). Two English server diagnostics are quoted inside translated messages (Complexity Tracking). | PASS (deviation recorded) |
+| IV. i18n and branding | Constitution 1.3.0: every mailcow language is offered. The pages mirror the legacy System › Configuration forms, and their page titles, section headings, field labels, help texts, options and messages are mailcow's own translations, used verbatim by legacy key (data-model §8 and T008a's legacy form map), loaded at runtime from the installation, with markup through `SanitizedHtml.vue` and `en-gb` as the fallback; no build-time import, no stripped markup, nothing hand-written for a legacy key (R28). New strings, only for elements the classic interface lacks, exist in en-gb, cs-cz and sk-sk. Operator texts, logos, colours and links come from the API at runtime; the brand colours are now applied (closing 001's Complexity Tracking row). Two English server diagnostics are quoted inside translated messages (Complexity Tracking); the Sieve parser message goes through the legacy `danger.sieve_error` ("Sieve parser error: %s"), as in the classic interface. | PASS (deviation recorded) |
 | V. Security in the browser | The CSP stays strict: brand colours through CSSOM, e-mail previews in a script-less sandboxed frame with CSSOM styles and no remote resources, `v-html` only in `SanitizedHtml.vue` (R12, R15, R21). `img-src` gains `blob:` for pre-upload logo previews, which adds no inline script or style (R14). The Rspamd password is write-only, sent by a direct client call that bypasses every TanStack Query cache, kept only in component state and cleared after every attempt (R25, secrets rule of the conventions); mass mail content stays in memory (FR-108). Hiding is a convenience: the API enforces roles; 401, 403 and 404 are handled. | PASS |
 | VI. Test-first | `tasks.md` puts mocks and tests before implementation in every phase; end-to-end tests of every acceptance scenario on both viewports against a contract-validated mock; smoke tests against the real API (R30, R31). | PASS |
 | VII. Performance budgets | Lazy chunks for every page, the editor and the preview; the entry chunk grows by about 2 KB (R32). Queries follow 001-R9; the single periodic refresh (running job) is the condition-bound exception the conventions allow: it pauses when hidden, on request, and after the shared inactivity limit (R23, Complexity Tracking). | PASS (deviation recorded) |
 | VIII. Simplicity | No new dependency; textarea editor instead of CodeMirror; multiset diff; one feature folder; shared blocks only with two uses (code editor, e-mail preview, contrast maths, entry lists), each justified (R3, R17, R18, R26). | PASS |
 | Technology constraints | Stack unchanged; Reka parts without viewports (pickers, dialogs); no CDN, no SSR, no backend code. | PASS |
 | Workflow and gates | Every CI gate of 001-R28 applies; Lighthouse gains a settings URL (R32). Commits to `main`. GPL-3.0 compatibility unchanged (no new dependency). | PASS |
-| `docs/conventions.md` | Wording ("the classic interface"); lists in the address with 25/50/100 and cards/tables (one documented exception, Complexity Tracking); sections with own Save and outdated handling; confirmations (one explicit confirmation for mass mail); write-only secret (Rspamd password); History by target type and ID with this feature's labels; problems and rule codes translated; capabilities and limits from the API; entry points added through earlier screens' section areas. | PASS (deviation recorded) |
+| `docs/conventions.md` | Wording ("the classic interface"); lists in the address with 25/50/100 and cards/tables (one documented exception, Complexity Tracking); sections with own Save and outdated handling; confirmations (one explicit confirmation for mass mail); write-only secret (Rspamd password); History by target type and ID with this feature's labels; problems and rule codes translated, through the legacy `danger.*` messages where the meaning matches; capabilities and limits from the API; entry points added through earlier screens' section areas. | PASS (deviation recorded) |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart add
 no violation. Decisions that touched gates:
@@ -129,6 +134,152 @@ no violation. Decisions that touched gates:
   second document with `style-src 'unsafe-inline'`: V (R21).
 - Attended job refresh: VII and UI 001 FR-033 (R23).
 - Textarea editor instead of CodeMirror 6: VIII (R17).
+
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature. It overrides any earlier text in this plan, the spec, research and tasks.
+The operator's UI texts (page title, product name, help text, footer, announcement, app link names)
+are API data shown as stored; the rule covers the labels and messages around them.
+
+**Legacy forms mirrored** (paths under `../mailhosting/data/web/`; page entry `admin/system.php`):
+
+- **Settings area** (overview, page list, switcher) → `templates/admin.twig`: the menus Access
+  (`admin.access`), Options (`admin.options`) and Global filter maps (`admin.rspamd_global_filters`)
+  and the System mails tab (`admin.sys_mails`); the menu entries name the pages.
+- **Logos** → `templates/admin/tab-config-customize.twig`, "Change logo" card (`admin.change_logo`,
+  `admin.logo_normal_label`, `admin.logo_dark_label`, `admin.upload`, `admin.reset_default`,
+  `admin.logo_info`) and `templates/admin/customize/logo.twig`. Messages:
+  `inc/functions.customize.inc.php` (`success.upload_success`, `success.reset_main_logo`,
+  `danger.img_invalid`, `danger.invalid_mime_type`, `danger.img_size_exceeded`,
+  `danger.img_dimensions_exceeded`, `danger.demo_mode_enabled`).
+- **UI texts** → the same template, UI texts card (`admin.ui_texts`, `admin.title_name`,
+  `admin.main_name`, `admin.apps_name` with the placeholder `header.apps`, `admin.help_text`,
+  `admin.ui_footer`, `admin.ui_header_announcement`, `admin.ui_header_announcement_select`,
+  `admin.ui_header_announcement_type_*`, `admin.ui_header_announcement_content`,
+  `admin.ui_header_announcement_active`, `admin.ui_header_announcement_help`); `success.ui_texts`.
+- **Sign-in page** → the Login page card (`admin.login_page`, `admin.quicklink_text`,
+  `admin.user_quicklink`, `admin.domainadmin_quicklink`, `admin.admin_quicklink`, `admin.force_sso`,
+  `admin.force_sso_text`); `success.custom_login_modified`.
+- **App links** → the App links card (`admin.app_links`, `admin.app_name`, `admin.link`,
+  `admin.user_link`, `admin.app_hide`, `admin.add_row`, `admin.remove_row`,
+  `admin.merged_vars_hint`) and its rows in `js/site/admin.js`; `success.app_links`.
+- **IP check** → the IP check card (`admin.ip_check`, `admin.ip_check_opt_in`);
+  `success.ip_check_opt_in_modified`.
+- **Password policy and password reset e-mail** →
+  `templates/admin/tab-config-password-settings.twig` (`admin.password_settings`,
+  `admin.password_policy`, `admin.password_length`, the `admin.password_policy_*` options,
+  `admin.password_reset_settings`, `admin.quota_notification_sender`,
+  `admin.quota_notification_subject`, `admin.password_reset_tmpl_text`,
+  `admin.password_reset_tmpl_html`, `admin.reset_password_vars`, `admin.restore_template`).
+  Messages: `password_complexity()` and `reset_password()` in `inc/functions.inc.php`
+  (`success.password_policy_saved`).
+- **Quota notifications** → `templates/admin/tab-config-quota.twig` (`admin.quota_notifications`,
+  `admin.quota_notifications_info`, `admin.quota_notification_sender`,
+  `admin.quota_notification_subject`, `admin.quarantine_notification_html`,
+  `admin.quota_notifications_vars`); `inc/functions.quota_notification.inc.php`
+  (`success.saved_settings`, `danger.goto_invalid`). **Quota warning BCC** on UI 002's domain page →
+  `templates/edit/domain.twig`, tab `dqwbcc` (`edit.quota_warning_bcc`,
+  `edit.quota_warning_bcc_info`, `edit.target_address`, `edit.active`).
+- **Rspamd settings rules** → `templates/admin/tab-config-rsettings.twig`
+  (`admin.rspamd_settings_map`, `admin.active_rspamd_settings_map`, `admin.rsetting_none`,
+  `admin.rsetting_no_selection`, `admin.rsetting_desc`, `admin.rsetting_content`, `admin.active`,
+  `admin.save`, `admin.remove`, `admin.rsetting_add_rule`) and `templates/modals/admin.twig`
+  `addRsettingModal` (`admin.add_settings_rule`, `admin.rspamd_com_settings` with the Rspamd
+  documentation link, presets from `js/presets/rspamd.js` with `admin.rsettings_preset_<n>`).
+  Messages: `rsettings()` in `inc/functions.rspamd.inc.php` (`success.settings_map_added`,
+  `success.object_modified`, `success.settings_map_removed`, `danger.settings_map_invalid`,
+  `danger.map_content_empty`).
+- **Global filter maps** → `templates/admin/tab-globalfilter-regex.twig`
+  (`admin.rspamd_global_filters`, `admin.regex_maps`, `admin.rspamd_global_filters_info`,
+  `admin.rspamd_global_filters_regex`, `admin.rspamd_global_filters_agree`, `add.validate`,
+  `edit.save`) and `js/site/admin.js`. Messages: `inc/functions.rspamd.inc.php`
+  (`success.object_modified`, `danger.global_map_invalid`, `danger.global_map_write_error`).
+- **Rspamd web interface** → `templates/admin/tab-config-rspamd.twig` (`admin.password`,
+  `admin.password_repeat`, `admin.save`; the "Rspamd UI" heading is hard-coded). Messages:
+  `rspamd_ui()` in `inc/functions.inc.php` (`success.rspamd_ui_pw_set`, `danger.password_empty`,
+  `danger.password_mismatch`, `danger.rspamd_ui_pw_length`).
+- **Global Sieve filters** → `templates/mailbox/tab-filters.twig` (the hard-coded "Global
+  Prefilter" and "Global Postfilter" headings, `add.validate`, `admin.save`) and
+  `js/site/mailbox.js`. Messages: `inc/functions.mailbox.inc.php` (`success.global_filter_written`,
+  `danger.global_filter_write_error`, `danger.sieve_error`, `success.dovecot_restart_success`,
+  `warning.dovecot_restart_failed`).
+- **Sieve presets** in UI 005's create-filter form → `templates/modals/mailbox.twig`
+  (`mailbox.sieve_preset_header`) and `js/presets/sieveMailbox.js` (`mailbox.sieve_preset_<n>`).
+- **CORS** → `templates/admin/tab-config-admins.twig`, CORS card (`admin.cors_settings`,
+  `admin.allowed_origins`, `admin.allowed_methods`, `admin.save`). Messages: `cors()` in
+  `inc/functions.inc.php` (`success.cors_headers_edited`, `danger.cors_invalid_origin`,
+  `danger.cors_invalid_method`).
+- **License** → upstream `templates/dashboard.twig` at `2026-09a`, GUID & License card
+  (`admin.guid_and_license`, `admin.guid`, `admin.customer_id`, `admin.service_id`,
+  `admin.validate_license_now`, `admin.license_info`); removed in the FeldHost fork. `license()` in
+  `inc/functions.inc.php`.
+- **Send mass mail** → `templates/admin/tab-sys-mails.twig` (`admin.sys_mails`, `admin.from`,
+  `admin.subject`, `admin.include_exclude`, `admin.include_exclude_info`, `admin.includes`,
+  `admin.excludes`, `admin.text`, `admin.html`, `admin.optional`, `admin.activate_send`,
+  `admin.send`). Messages: `sys_mail()` in `inc/functions.inc.php` (`danger.from_invalid`,
+  `danger.subject_empty`, `danger.text_empty`; its completion and mailer messages are hard-coded
+  English).
+
+**Screens or elements without a legacy counterpart** use new strings (en-gb, cs-cz, sk-sk, never
+machine-translated), kept minimal: the overview's group names and page descriptions, the search,
+the Colours page, the empty-value meanings (FR-016), the logo previews, the HTML previews and their
+removed-content notes, the line marks, server checks and change review of the editors, the restart
+choice of the global Sieve filters, the recipient preview and confirmation, the mass mail jobs
+pages, the quota copies pointer, the CORS scope note, confirmations, bulk summaries, outdated-version
+handling and the audit log labels. The literal legacy names "Rspamd UI", "Prefilter" and "Postfilter",
+which legacy hard-codes, are new strings with the same text.
+
+**Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to the
+legacy forms above, except the conventions' improvements (sections with their own save, typed
+confirmations, bulk mode, outdated-version handling). Page titles, section headings (the legacy card
+titles), labels, help and info texts (`*_info`, `*_vars`, `admin.logo_info`,
+`admin.ip_check_opt_in`, `admin.rspamd_com_settings`), placeholders, option labels, units, order
+and grouping, column headers, action labels and success, warning and danger messages come from the
+legacy keys. Every mailcow language is supported; legacy values are loaded at runtime from the
+installation and shown verbatim (markup through `SanitizedHtml.vue`, product names as the
+installation's files have them, for example `admin.main_name`); a missing key falls back to
+`en-gb`, never to a hand-written value.
+
+**Legacy form map**: written into this section by T008a before any screen is built.
+
+**Deviations needing a decision** (not built until the owner or orchestrator decides; until then the
+legacy form applies):
+
+1. **Structure of the settings area** (FR-004 to FR-008): legacy spreads the pages over the Access,
+   Options and Global filter maps menus and the System mails tab, and keeps Change logo, IP check,
+   Login page, App links and UI texts as cards of one Customize tab. The plan regroups them into
+   seven new groups and seventeen pages with descriptions and a search. Page titles use the legacy
+   card and menu keys; the groups, descriptions and search are new strings.
+2. **Colours page** (FR-024 to FR-031): no legacy counterpart (a new capability of API 013).
+3. **Mass mail jobs** (FR-087 to FR-089) and the recipient preview: no legacy counterpart; legacy
+   sends synchronously. Legacy's include/exclude multi-selects (`admin.includes`, `admin.excludes`,
+   `admin.include_exclude_info`) become a domain limit, an include-or-exclude choice and searchable
+   pickers, and the "Activate send button" checkbox (`admin.activate_send`) becomes a confirmation of
+   the count. The "Convert HTML to plain text" link (`admin.convert_html_to_text`) is dropped
+   (earlier orchestrator decision).
+4. **Announcement text label** (FR-034): legacy's `admin.ui_header_announcement_content` says
+   "Text (HTML allowed)", but legacy shows the text escaped, and the plan treats it as plain text.
+   Verbatim, the label contradicts the behaviour.
+5. **UI texts placeholders**: legacy hard-codes the brand ("FeldHost™ Mailhosting UI" in the fork,
+   "mailcow UI" upstream) as the placeholder of the title and product name fields. The app cannot
+   hard-code a brand (constitution IV); the apps heading keeps its legacy placeholder `header.apps`.
+6. **License vendor links** (FR-077): `admin.license_info` contains links to the vendor's order
+   pages, which an earlier orchestrator decision drops. Verbatim through the sanitiser, the links
+   would stay.
+7. **Global filter maps explanation** (FR-063): `admin.rspamd_global_filters_regex` contains a
+   "restart Rspamd" link that opens a legacy modal; the app has no restart on this page (UI 011).
+   The "I will be careful!" gate (`admin.rspamd_global_filters_agree`) is replaced by the change
+   review, and the legacy Validate-then-Save flow (`add.validate`) by live line marks and a server
+   check.
+8. **Rspamd web interface password** (FR-073): legacy asks for the password twice (`admin.password`,
+   `admin.password_repeat`); the plan has one field with show and hide.
+9. **CORS** (FR-075): legacy has an origins text area and a methods multi-select; the plan has a
+   list of entries and checkboxes, plus a scope note (new string).
+10. **Quota warning BCC** (FR-052): legacy has one recipients text area (`edit.target_address`); the
+    plan has a list of entries.
+11. **Global Sieve filters restart choice** (FR-070): legacy restarts Dovecot on every save; the plan
+    adds an explicit choice (new strings).
 
 ## API dependency and gaps
 
@@ -182,7 +333,7 @@ configuration.
 | 001-R9 query policy | one condition-bound `refetchInterval` (running mass mail job) with the shared `useInactivity` limit, as `docs/conventions.md` allows | FR-088 (R23) |
 | `tests/e2e/fixtures/a11y.ts` (001-R24) | two limit-palette passes | SC-003, SC-004 (R12) |
 | `tests/mocks/contract/validator.ts` (001-R22) | binary request bodies | `replaceLogo` (R30) |
-| `scripts/i18n/import-legacy.mjs`, `lib.mjs` (001-R15) | `%d` placeholders; `stripHtml` map entries | FR-103 (R28) |
+| UI 001's legacy translation layer (formatter) | `%d` substituted like `%s`, if UI 001 does not yet do it; no build-time import and no stripped markup (constitution IV 1.3.0) | FR-103 (R28) |
 | `scripts/run-lhci.mjs` (001-R26) | a `/ng/system/ui-texts` collection | VII (R32) |
 | `src/features/audit-log/` (UI 001) | labels and detail formatters for 013's events and targets | FR-091 (R27) |
 | UI 002's tag editor | `validateEntry`, `normalise`, `max`, `splitPattern` | FR-052, FR-075 (R26) |
@@ -197,11 +348,11 @@ configuration.
    apply to raster files only.
 2. **Link to the Rspamd documentation.** FR-055 requires a link to the Rspamd documentation of the
    settings structure, while the spec drops the licence vendor links and the HTML-to-text converter
-   as third-party links. **Default**: keep the documentation link (FR-055 is explicit; it is a link,
-   not a request).
-3. **Native review of new Czech and Slovak strings** (as in UI 001, owner question 4). **Default**:
-   the owner reviews the new cs-cz and sk-sk strings of this feature before release; `i18n:check`
-   guarantees completeness, not wording.
+   as third-party links. **Default**: keep the documentation link. Under constitution IV 1.3.0 it is
+   part of the legacy text `admin.rspamd_com_settings`, shown verbatim.
+3. **Native review of new Czech and Slovak strings** (constitution IV 1.3.0). **Default**: the owner
+   reviews the new cs-cz and sk-sk strings of this feature before release; legacy keys are never
+   translated by hand. `i18n:check` guarantees completeness, not wording.
 
 ## Parity notes added by the plan
 
@@ -236,7 +387,6 @@ marked *(extends)*.
 
 ```text
 docker/nginx/security-headers.conf                     # (extends 001) img-src 'self' blob:
-scripts/i18n/{import-legacy.mjs,lib.mjs}               # (extends 001) %d, stripHtml
 scripts/run-lhci.mjs                                   # (extends 001) settings collection
 src/
 ├── api/
@@ -294,7 +444,7 @@ src/
 │   ├── security/{sanitize.ts,email-html.ts}           # (extends 001) + new
 │   ├── ui/{button,switch,checkbox,radio-group}/       # (extends 001) accent tokens
 │   └── validation/{email.ts,entry-list.ts,limits.ts}  # new / (extends 001)
-├── i18n/{messages/*.json,legacy-map.json}             # (extends)
+├── i18n/messages/*.json                               # (extends) new strings only
 └── styles/main.css                                    # (extends 001) accent tokens
 tests/
 ├── unit/                                              # mirrors src/ for the files above

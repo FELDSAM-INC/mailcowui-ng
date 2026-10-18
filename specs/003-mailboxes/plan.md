@@ -106,7 +106,9 @@ Safari and Chrome for Android, served by the `ng-mailcow` image under `/ng/`.
 - Usable at 360 px and 320 px.
 - No password anywhere but component memory.
 - Limits come from the capabilities read.
-- en-gb, cs-cz and sk-sk complete, reusing legacy keys.
+- Every language mailcow ships. Legacy texts verbatim by their legacy keys, and the screens mirror
+  the classic interface's forms; new strings complete in en-gb, cs-cz and sk-sk (constitution IV
+  1.3.0, "Translations and forms" below).
 
 **Scale/Scope**:
 
@@ -114,7 +116,8 @@ Safari and Chrome for Android, served by the `ng-mailcow` image under `/ng/`.
 - 15 routes (12 mailbox routes, 3 template routes).
 - 21 operations (16 of API 003, 2 of API 002, 3 of API 001).
 - Up to 10,000 mailboxes in 500 domains, and tens of templates.
-- About 450 new translation keys, part of them reused from legacy.
+- Legacy keys for every element with a classic-interface equivalent; new strings only for the
+  rest, counted in the legacy form map (T008a).
 
 ## Constitution Check
 
@@ -125,7 +128,7 @@ Safari and Chrome for Android, served by the `ng-mailcow` image under `/ng/`.
 | I. The API contract is the only interface | Only the 21 listed operations are used, through the generated client. The pin is bumped deliberately with the bump script and a review of the used operations (R1). No hand-written API types: form and view models derive from generated types, and list parameters alias generated operation types (data-model §1–§2). The capabilities read replaces the spec's former gaps. The remaining gaps are reported to mailcow-rest-v2 and never worked around: untyped audit details are rendered generically (R17). Errors are handled from `type`, `errors`, `requiredFlags`, `holder`, `count`/`limit`, `dependency` and `steps` ([contracts/README.md](./contracts/README.md)). | PASS |
 | II. Mobile-first | Every screen is designed and tested at 360 px first. Lists are cards below `md` and tables from `md` up. Filters and sorting sit in a panel over the list. Bulk selection uses an explicit selection mode at every width, 44 × 44 targets and, on phones, a sticky bar. The long create form is one screen with collapsed groups, not a modal or wizard (clarification). Detail editing is split into sections. Destructive and high-risk actions are confirmed with their impact: the deletion preview, the typed count for bulk deletion, the template deletion's effect, and one confirmation for deactivating a mailbox. Loading, empty and error states use `ListState` and UI 002's `NotFoundPage`. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe runs on every screen, dialog and state in both themes. Sortable headers expose `aria-sort`. Usage bars, statuses, policy marks and bulk outcomes have text equivalents. Dialogs trap and return focus, and the delete dialog focuses "Cancel". The error summary receives the focus. Announcements use UI 001's live regions. A keyboard-only pass is part of Polish (T125). | PASS |
-| IV. i18n and branding | All text is in en-gb, cs-cz and sk-sk. Legacy keys are reused where the meaning is unchanged (R3), with the Slovak gaps supplied by hand. The product name for the built-in source and the `pwReset` label comes from `GET /public-config`. Sizes use binary units, and numbers and dates use the locale. Translation completeness is enforced. The scoping of open enumerations (R2) follows `docs/conventions.md`, and unknown values always show translated generic labels. | PASS |
+| IV. i18n and branding | Every language mailcow ships. Every element with a classic-interface equivalent uses the legacy key verbatim, loaded at runtime from the installation, with `en-gb` as the fallback and no hand-written value for a missing translation (R3). The screens mirror the legacy forms listed in "Translations and forms" below; new strings exist only for elements without a legacy equivalent, in en-gb, cs-cz and sk-sk. `acl.pw_reset` and `edit.force_pw_update_info` are shown verbatim, the latter's placeholder filled with the product name from `GET /public-config`, as legacy fills it with `ui_texts.main_name`. The built-in source option, which the legacy template hard-codes, also takes the product name from branding. Sizes use binary units, and numbers and dates use the locale. Translation completeness is enforced. The scoping of open enumerations (R2) follows `docs/conventions.md`, and unknown values always show translated generic labels. | PASS |
 | V. Security in the browser | The column choice is the only new storage key. It is a convenience and is allowlisted (data-model §4). Passwords live only in component state: requests that carry one go through UI 001's `useSecretRequest` and never through TanStack Query (conventions "Secrets in requests or responses"), no draft of these forms is saved, fields are cleared after submit and on unmount, and nothing goes into the address, title or logs (R8, SC-009 test T126). API text (names, tags, attributes, template names) is rendered as text, with no `v-html`. Gates are a convenience, and every refusal is handled (R11). | PASS |
 | VI. Test-first | `tasks.md` puts tests before implementation in every phase. Every pure module has unit tests. Every acceptance scenario has an end-to-end test on both viewports against the contract-validated mock. SC-008's 10,000 passwords per policy are a unit test. Smoke tests cover each story against the real API. | PASS |
 | VII. Performance budgets | Lazy route chunks. No new dependency. A third Lighthouse collection on `/ng/mailboxes` with 10,000 mailboxes (R20). Queries are cached with explicit invalidation, and the detail reuses the list entry (FR-017). There are no automatic refetches and no polling: no query has a `refetchInterval` (UI 001 R9, conventions "Polling"). | PASS |
@@ -150,6 +153,91 @@ introduce no violation. These decisions touched gates:
   "Confirmations"); the spec is aligned.
 - Shared blocks use UI 002's canonical names; nothing is created under a second name.
 
+## Translations and forms (constitution IV 1.3.0)
+
+The owner rule of 2026-10-18 (`docs/conventions.md`, "Translations and forms") applies to every
+screen of this feature and overrides earlier text in this plan, the spec, research and tasks.
+
+- **Legacy forms mirrored** (paths under `../mailhosting/data/web/`):
+  - mailbox list → `templates/mailbox/tab-mailboxes.twig`, with the columns, row actions, "Toggle
+    all" and mass actions of `draw_mailbox_table()` in `js/site/mailbox.js` (`lang` is
+    `lang_mailbox` there);
+  - create screen → the `#addMailboxModal` of `templates/modals/mailbox.twig`, with the password
+    policy and generator of `js/build/013-mailcow.js` and `js/site/pwgen.js`;
+  - mailbox detail → `templates/edit/mailbox.twig` through `edit.php`. Its tabs, in order:
+    "Mailbox" (`edit.mailbox`), "Custom attributes" (`edit.custom_attributes`), "Pushover"
+    (`edit.pushover`, UI 005), "ACL" (`edit.acl`), "Rate limit" (`edit.ratelimit`, UI 006) and
+    "Rename" (`edit.mailbox_rename`). Fields that later features own (sender ACL and external
+    sender addresses for UI 004, relayhost for UI 009, tagging, quarantine notification and
+    category and TLS policy for UI 005 and 006) keep their legacy place in the "Mailbox" section
+    when those features add them;
+  - mailbox templates → `templates/mailbox/tab-templates-mbox.twig` and `draw_templates_mbox_table()`
+    in `js/site/mailbox.js`, the `#addMailboxTemplateModal` of `templates/modals/mailbox.twig`, and
+    `templates/edit/mailbox-templates.twig`;
+  - deletion and bulk confirmations → `#ConfirmDeleteModal` of `templates/modals/footer.twig`
+    (`footer.confirm_delete`, `footer.delete_these_items`);
+  - messages → the `success.*`, `danger.*` and `warning.*` keys that `mailbox('add' | 'edit' |
+    'delete', …)` returns for mailboxes, templates and renames in `inc/functions.mailbox.inc.php`,
+    and the password checks of `password_check()` in `inc/functions.inc.php`. Examples:
+    `success.mailbox_added`, `success.mailbox_modified`, `success.mailbox_removed`,
+    `success.mailbox_renamed`, `success.template_added`, `success.template_modified`,
+    `success.template_removed`, `danger.mailbox_invalid`, `danger.is_alias_or_mailbox`,
+    `danger.max_mailbox_exceeded`, `danger.mailbox_quota_exceeded`,
+    `danger.mailbox_quota_left_exceeded`, `danger.unlimited_quota_acl`,
+    `danger.password_complexity`, `danger.password_mismatch`, `danger.template_exists`,
+    `warning.quota_exceeded_scope`.
+- **Elements without a legacy counterpart** get new strings in en-gb, cs-cz and sk-sk, never
+  machine-translated, and kept minimal: the deletion preview's impact lines (passkeys among them),
+  the bulk result summary, outdated-version handling, the incomplete-rename report, failed
+  creation follow-up steps, the list filters and column chooser the classic interface lacks, the
+  pre-hashed password notice, the "password rules unavailable" notice, and History.
+- **Deviation-free rule**: these screens add, drop, rename, reword or reorder nothing relative to
+  the legacy forms above, except the conventions' improvements (sections with their own save,
+  typed confirmations, bulk mode, outdated-version handling). Labels, help and info texts
+  (`*_info`), placeholders, option labels, units, order and grouping, column headers, action labels
+  and the success, warning and danger messages come from the legacy keys those templates,
+  `js/site/mailbox.js` and `inc/functions.mailbox.inc.php` use. Every language mailcow ships is
+  supported. Legacy values are loaded at runtime from the installation and shown verbatim, HTML
+  ones (`user.tag_help_explain`, `edit.allow_from_smtp`) through `SanitizedHtml.vue`. A missing
+  key falls back to `en-gb`, never to a hand-written value.
+- **Messages**: R17's problem and rule-code table maps each outcome to the legacy key of the same
+  meaning first, and to a `mailboxes.problem.*` new string only where legacy has none (for example
+  `outcome-unknown`, the rename steps, `temporary-failure` per dependency).
+- **Legacy form map**: written into this section by T008a before any screen is built.
+- **Deviations needing a decision** (the spec's parity table marks them "Improved" or "Dropped";
+  under the rule they wait for the owner or orchestrator):
+  1. **Detail grouping**: the plan splits the legacy "Mailbox" tab into General, Sign-in and
+     password, Protocol access and Tags sections, and calls the "ACL" tab Permissions. The rule
+     asks for one section per legacy tab, in the legacy order and with the legacy field order
+     (authentication source, full name, tags, quota, …, active, force password update, force 2FA,
+     SOGo access). R5's per-section routes and the US3 and US5 tasks follow whichever grouping is
+     decided.
+  2. **Password repeat**: legacy's add and edit forms have "Confirmation password"
+     (`add.password_repeat`, `edit.password_repeat`, `danger.password_mismatch`). The spec drops
+     it for a show/hide control. Restoring it needs no API change, because the comparison is
+     client-side.
+  3. **Quota units**: legacy enters quotas in MiB (`add.quota_mb`, `edit.quota_mb`, "0 = ∞"). The
+     plan uses UI 002's `QuotaField` with a MiB, GiB or TiB select and an "Unlimited" switch (UI 002
+     research D12, spec clarification on quotas). This is shared with UI 002 and needs one decision
+     for both.
+  4. **haveibeenpwned check** (`footer.hibp_check`, a third-party request from the browser): dropped
+     for privacy and CSP (constitution "no third-party requests"). Keeping it dropped is a
+     deviation from the legacy form.
+  5. **Rename alias choice**: legacy offers "Create alias automatically" (`edit.mailbox_rename_alias`,
+     checked by default). FR-049 requires an explicit yes or no answer. Mirroring legacy means the
+     preselected checkbox.
+  6. **ACL flags grouped**: the plan groups the 15 permission switches under headings legacy does
+     not have (legacy: one multi-select in the `acl.*` order). Mirroring legacy means the legacy
+     order without new headings.
+  7. **"Allowed hosts for SMTP"** (`edit.allow_from_smtp`, shown in legacy when the
+     `smtp_ip_access` ACL is set): the API offers no such field. A legacy field the API does not
+     support (gap to raise in mailcow-rest-v2, or an approved drop).
+  8. **Mass removal of templates**: legacy can remove several templates at once; the API has no bulk
+     template action (spec: "Dropped").
+  9. **Added explanations**: the plan adds help texts the legacy form lacks (the status effect, the
+     domain figures on the create screen, the external-source reasons). They are new strings and
+     need approval as improvements, or are left out.
+
 ## Dependencies
 
 UI 003 is implemented **after UI 001 and UI 002**. It is built and tested against the mock from the
@@ -158,7 +246,7 @@ in mailcow-rest-v2 (research R1).
 
 | Dependency | What UI 003 needs from it |
 |---|---|
-| **UI 001** (planned, `specs/001-sign-in-app-shell/`) | The whole foundation: the generated client behind `@/api`, query client and key factory, router, guards, catalogue and `NoAccessState`, the shell, i18n with `legacy-map.json` and `i18n:check`, `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `useAnnouncer`, `DateTime`, `RelativeTime`, `PageHeader`, `useMediaQuery`, the clipboard and storage wrappers, the audit log screen, the mock server, the validator and the end-to-end fixtures, the smoke harness and the Lighthouse runner. |
+| **UI 001** (planned, `specs/001-sign-in-app-shell/`) | The whole foundation: the generated client behind `@/api`, query client and key factory, router, guards, catalogue and `NoAccessState`, the shell, i18n with its legacy translation layer (runtime `/lang/` loader, `en-gb` snapshot, formatter) and `i18n:check`, `useListState`, `ListState`, `PaginationBar`, `useConfirm` and `ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `useAnnouncer`, `DateTime`, `RelativeTime`, `PageHeader`, `useMediaQuery`, the clipboard and storage wrappers, the audit log screen, the mock server, the validator and the end-to-end fixtures, the smoke harness and the Lighthouse runner. |
 | **UI 002** (planned, `specs/002-domains/`) | The domain queries, with `listDomains` and `getDomain` exported from `@/features/domains`, and the domain mock handlers and factory. Its shared blocks, under the canonical names of `docs/conventions.md`: `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`, `EditableSection` with the `changedSince` extension of `useVersionedSave`, `HistoryLink` with the audit target filters, `useLeaveGuard`, `formatBytes`, `NotFoundPage` with its back link, `meta.roles`, and the coverage registry `src/i18n/coverage.json`. Its feature-local `QuotaField`, `UsageMeter` and `TagSetInput`, which UI 003 promotes to `src/shared/` (T016, T017). UI 002's domain detail page and domain list, where UI 003 adds its entry points (T124). |
 | **API 003** (mailcow-rest-v2) | The contract is merged (baseline `3207925`), so T001 can pin it and the UI can be built against the mock. The implementation must be merged before the smoke tasks, and T001's pin then moves forward to the merge commit (pins only move forward). |
 | **API 002, API 001** | Implemented before API 003 (API plan). The domains, identity, branding and audit target filters. |
@@ -289,7 +377,7 @@ src/shared/{components,composables}/…                             UI 002's blo
 src/shared/validation/limits.ts                                   ~ + mailbox schema limits (T020–T021)
 src/i18n/format.ts                                                ~ + formatDuration (formatBytes is UI 002's) (T016)
 src/i18n/coverage.json                                            ~ UI 003's values appended (T003)
-src/i18n/messages/{en-gb,cs-cz,sk-sk}.json  src/i18n/legacy-map.json  src/i18n/legacy/*.json   ~
+src/i18n/messages/{en-gb,cs-cz,sk-sk}.json                       ~ new strings of the legacy form map only (T008a)
 scripts/i18n/lib.mjs                                              ~ UI 003's closed enumerations in ENUM_NAMESPACES (T003)
 scripts/run-lhci.mjs  lighthouserc.cjs                            ~ third collection /ng/mailboxes (T127)
 src/features/domains/…                                            ~ entry points (T124); exports used by the picker (T045)

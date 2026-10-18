@@ -101,7 +101,10 @@ changed between those versions. The results are quoted where they matter:
     It runs in the server rewrite phase, before mailcow's locations are selected. It therefore
     needs no change to them and cannot alter what any location does when it is false. A request
     that matches no mapping row or fallback family never gets a row, so it is never redirected.
-    That covers every exclusion, ACME challenges and operator files (X16, FR-013).
+    That covers every exclusion, ACME challenges and operator files (X16, FR-013), and mailcow's
+    language files under `/lang/` (X10), which the app loads at runtime (constitution IV 1.3.0).
+    No mapping row or fallback family may ever match `/lang/…`; the nginx harness and the smoke
+    test check it (T013, T031).
   - **The decision pipeline**: a chain of generated `map` blocks in `ng-cutover.conf`. Each map is
     evaluated lazily, only when `$ngc_redirect` is read. The variables are listed in
     [data-model.md §3](./data-model.md#3-nginx-decision-variables).
@@ -608,7 +611,10 @@ changed between those versions. The results are quoted where they matter:
     component (FR-042). A direct visit, which never passes through the arrival route, shows
     nothing (US5-AS4).
   - **Translations**: the keys are under `cutover.arrival.*` in `en-gb`, `cs-cz` and `sk-sk`, and
-    use "the classic interface" (FR-039, constitution IV).
+    use "the classic interface" (FR-039, constitution IV). The notice has no classic-interface
+    counterpart, so these are new strings under constitution IV 1.3.0: never machine-translated,
+    other mailcow languages fall back to English, and a legacy key with the same meaning is used
+    verbatim instead (the arrival page's loading text is `admin.loading`, "Please wait...").
 - **Rationale**: the notice reuses the shell's announcement slot and live region. Storage holds
   only counters, which UI 001's storage allowlist test can extend.
 - **Alternatives considered**:
@@ -848,7 +854,8 @@ changed between those versions. The results are quoted where they matter:
   - a review of operator app links that point to classic addresses;
   - uninstalling.
 
-  The announcement texts are given in English, Czech and Slovak, for "before" (with the date
+  The announcement texts are given in English, Czech and Slovak, written by people and never
+  machine-translated (constitution IV 1.3.0), for "before" (with the date
   placeholder, the new address `/ng/`, signing in again, passkeys and second factors, forwarded
   bookmarks, and unaffected webmail, mail apps and quarantine links) and "after" (with where to get
   help). The runbook recommends at least 7 days ahead and at least 14 days after (FR-040).

@@ -1043,11 +1043,15 @@ the history from each entry point and check the filters applied and the presenta
 
 #### Internationalisation
 
-- **FR-088**: All text of this feature MUST come from the translation files and MUST be complete in
-  English, Czech and Slovak. Legacy translation keys MUST be reused where the meaning is unchanged.
+- **FR-088**: All user-facing text MUST follow constitution IV 1.3.0: every language mailcow ships
+  is supported; text with a classic-interface equivalent MUST be mailcow's own translation, used
+  verbatim by its legacy key; the screens MUST mirror the legacy forms (fields, labels, help texts,
+  options, units, order and messages); new strings, only for elements the classic interface lacks,
+  MUST exist in English, Czech and Slovak and MUST NOT be machine-translated.
 - **FR-089**: Container names, images, host names, versions, log contents, queue IDs, addresses,
   networks, rules, subjects and symbols MUST be shown as returned and never translated. The product
-  name in explanatory texts MUST come from the branding configuration.
+  name in the app's own explanatory texts MUST come from the branding configuration; legacy texts
+  that name the product are shown as the installation's language files have them.
 
 #### Data freshness and performance
 
@@ -1064,7 +1068,7 @@ Legacy reference: FeldHost fork of mailcow-dockerized (upstream tag `2026-09a`),
 `templates/admin/tab-config-f2b.twig`, `templates/modals/footer.twig` (`RestartContainer`,
 `showVersionModal`), `templates/base.twig` ("Restart SOGo" menu entry, footer version),
 `js/site/dashboard.js`, `js/site/queue.js`, `js/site/admin.js`, `js/build/013-mailcow.js` (restart
-dialog) and `lang/lang.{en-gb,cs-cz,sk-sk}.json`. On these screens the fork differs from upstream
+dialog) and `lang/lang.*.json` (all languages). On these screens the fork differs from upstream
 only in branding, in the removed version link and changelog dialog, in the removed license and GUID
 card, and in showing `MAILCOWUI` logins as `WEBUI`. Status: **Matched** (same capability),
 **Improved** (same capability, better behaviour) or **Dropped** (intentionally not in this feature,
@@ -1280,7 +1284,8 @@ in the plan:
   are visible within 2 seconds of opening them on a mid-range phone over a mobile connection, the
   content of a 10 MiB queued message is readable within 2 seconds after it has arrived, and opening a
   screen without charts does not download chart rendering.
-- **SC-012**: Translation completeness checks find 0 missing keys in English, Czech and Slovak.
+- **SC-012**: Translation completeness checks find 0 missing keys: new strings in English, Czech and
+  Slovak, and every legacy key used in the `en-gb` snapshot.
 - **SC-013**: In a moderated test with at least 5 administrators who know the legacy UI, at least 90 %
   lift a ban, find a log entry by address and restart a container on a phone at the first attempt
   without help.
@@ -1305,7 +1310,8 @@ in the plan:
   values in this spec are the API's defaults.
 - Live charts show only the samples collected while they are visible, as in legacy. The API offers
   no history of host or container figures.
-- Legacy translation keys with unchanged meaning are reused, for example `debug.system_containers`,
+- Legacy texts are used verbatim by their legacy keys (constitution IV 1.3.0), for example
+  `debug.system_containers`,
   `debug.architecture`, `debug.current_time`, `debug.timezone`, `debug.uptime`,
   `debug.disk_usage`, `debug.cores`, `debug.memory`, `debug.container_running`,
   `debug.container_stopped`, `debug.started_on`, `debug.show_ip`, `debug.error_show_ip`,
@@ -1318,11 +1324,11 @@ in the plan:
   `admin.recipients`, `admin.priority`, `admin.message`, `admin.rate_name`, `admin.authed_user`,
   `admin.task`, `admin.ip_check_disabled`, `admin.reset_limit`, `success.f2b_modified`,
   `success.f2b_banlist_refreshed` and `success.queue_command_success`. Legacy texts that contain HTML
-  markup or the product name are carried over without the markup and with the product name from the
-  branding configuration. Labels whose meaning changes get new keys; the plan found this for the
-  duration labels in seconds, `admin.f2b_list_info` (a few seconds instead of up to a minute),
-  `admin.hash_remove_info` and `admin.ban_list_info` (colours this feature replaces) and
-  `danger.reset_f2b_regex` (it asks to try again, which the API advises against).
+  markup or the product name are shown whole, as the installation has them, with the markup through
+  the sanitiser. The duration labels in seconds, `admin.f2b_list_info`, `admin.hash_remove_info`,
+  `admin.ban_list_info` and `admin.ip_check_disabled` no longer get new keys; where their wording no
+  longer fits the screen, the plan lists them under "Deviations needing a decision". Only the
+  `ban-rules-not-restored` refusal, which legacy cannot produce, gets a new string.
 - **Out of scope**: container log streams; installing updates; editing the IP check switch, the
   update check settings, the protected containers and the container-service timeout (server
   settings, UI feature 013 or the host); the license and GUID card (UI feature 013); quarantine and

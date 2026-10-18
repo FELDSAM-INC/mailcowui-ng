@@ -188,7 +188,7 @@ renders in:
 
 ### Test infrastructure
 
-- [ ] T023 [P] Write `tests/unit/mocks/validator.spec.ts`. The validator must:
+- [X] T023 [P] Write `tests/unit/mocks/validator.spec.ts`. The validator must:
   - accept a valid `getSession` 200;
   - reject an undocumented status;
   - reject a body that violates the schema, for example `Base64Url` with `=` padding;
@@ -200,33 +200,33 @@ renders in:
   - reject a value outside a closed enumeration, for example an unknown `AuditEventType` (R22).
 
   The test must fail.
-- [ ] T024 Implement `tests/mocks/contract/validator.ts` (R22):
+- [X] T024 Implement `tests/mocks/contract/validator.ts` (R22):
   - Ajv 2020 with `ajv-formats` over `contract/openapi.json`;
   - `discriminator`, `example`, `xml` and `externalDocs` registered as annotation keywords, and the `password` format registered;
   - resolution of `$ref` response objects;
   - operation matching, then request and response validation;
   - a violation recorder that answers `500` with `mock-contract-violation`.
-- [ ] T025 [P] Create the scenario model and the base data:
+- [X] T025 [P] Create the scenario model and the base data:
   - `tests/mocks/scenarios/state.ts`: scenario state with accounts, second factors, passkeys, API keys, audit events, preferences, public-config variant, session (state, CSRF token, last activity, pending sign-in, challenge), behaviour switches and failure injection by operationId;
   - `tests/mocks/scenarios/accounts.ts`;
   - `tests/mocks/scenarios/public-config.ts`: variants default, custom branding, `forceSingleSignOn`, hidden login links, identity provider configured, no app links, malicious HTML, language subsets, unavailable;
   - `tests/mocks/scenarios/index.ts`: a registry that aggregates one module per area (`tests/mocks/scenarios/<area>.ts`), so that parallel stories never edit the same scenario file. It starts with `tests/mocks/scenarios/base.ts`, which holds `anonymous-default`, `admin-active`, `config-unavailable` (documented `500` on `getPublicConfig`) and `bootstrap-500` (documented `500` on `getSession`). "API not ready" as a transport failure is not a mock scenario: tests use Playwright `route.abort()` or an HTML 502 `route.fulfill()` (R22). Later story tasks that name `tests/mocks/scenarios/index.ts` add their scenarios in their own area module, registered there;
   - the factories `tests/mocks/factories/passkey.ts`, `tests/mocks/factories/api-key.ts`, `tests/mocks/factories/audit-event.ts` and `tests/mocks/factories/webauthn.ts` (option builders and credential ID extraction from `attestationObject` and `rawId`).
-- [ ] T026 Implement the baseline handlers with `openapi-msw`, all wrapped by the validator of T024:
+- [X] T026 Implement the baseline handlers with `openapi-msw`, all wrapped by the validator of T024:
   - `tests/mocks/handlers/public-config.ts`: `getPublicConfig` with `ETag` and `304` on `If-None-Match`, and `getPublicConfigLogo`;
   - `tests/mocks/handlers/auth.ts`: `getCsrfToken` (creates the anonymous session), `getSession` for every state, and `deleteSession`;
   - `tests/mocks/handlers/identity.ts`: `getIdentity`, deriving `scope` and `permissions` from the account;
   - `tests/mocks/handlers/index.ts`: a factory `createHandlers(stateResolver)`.
 
   The handlers apply the server idle timeout: a request after `idleTimeout` seconds without activity sees the session as ended.
-- [ ] T027 Create `tests/mocks/node.ts` (`setupServer` from `msw/node` with a single default scenario state) and wire it into `tests/setup/vitest.setup.ts`: `onUnhandledRequest: 'error'`, a reset after each test, and a test failure when the validator recorded a violation.
-- [ ] T028 Create the Node mock server `tests/mocks/server.ts` on port 4010 (R22):
+- [X] T027 Create `tests/mocks/node.ts` (`setupServer` from `msw/node` with a single default scenario state) and wire it into `tests/setup/vitest.setup.ts`: `onUnhandledRequest: 'error'`, a reset after each test, and a test failure when the validator recorded a violation.
+- [X] T028 Create the Node mock server `tests/mocks/server.ts` on port 4010 (R22):
   - `node:http` plus MSW 3 `getResponse(handlers, request)` for `/api/v2/*`;
   - `POST /__mock/scenarios` (`{ name, overrides }` returns `{ id }`), `PATCH /__mock/scenarios/:id` (changes flags and accounts at runtime), `GET /__mock/scenarios/:id/violations` and `GET /__mock/scenarios/:id/requests`;
   - scenario selection by the `mock-scenario` cookie, with `MOCK_DEFAULT_SCENARIO` as the fallback.
 
   Add the package scripts `mock:server` (`tsx tests/mocks/server.ts`), `mock:scenario` (prints a URL that sets the cookie for a scenario name), `dev:mock` (mock server plus `vite` with `API_PROXY_TARGET=http://127.0.0.1:4010`) and `preview:mock`.
-- [ ] T029 Create the end-to-end fixtures (R24):
+- [X] T029 Create the end-to-end fixtures (R24):
   - `tests/e2e/fixtures/test.ts`: extends Playwright `test` with the fixtures below and the per-test assertions of zero contract violations and zero CSP violations;
   - `tests/e2e/fixtures/mock-api.ts`: `mockApi.use(name, overrides)`, `mockApi.patch(changes)`, `mockApi.requests()`;
   - `tests/e2e/fixtures/a11y.ts`: `expectAccessible(page)` with the tags `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa` and `wcag22aa`, run once in light and once in dark. It toggles the `.dark` class on `<html>` together with `emulateMedia`, so both themes are checked whatever theme the scenario's profile chose (FR-079, SC-004);
@@ -236,7 +236,7 @@ renders in:
 
 ### Tests for the core (write first; must fail)
 
-- [ ] T030 [P] Write `tests/unit/api/client.spec.ts` and `tests/unit/api/query-client.spec.ts` (R7, R8, R9). `query-client.spec.ts` must check the `QueryClient` defaults: `staleTime` 30 s, `refetchOnWindowFocus` and `refetchOnReconnect` false, and no `refetchInterval`, which FR-033 depends on. It must also check the retry policy (once only after a network error or a non-problem 5xx, never after a 4xx, never for mutations), and that the `onError` hooks dispatch `unauthenticated`, `second-factor-required`, `pending-action-required` and `forbidden` to the session reactions. `client.spec.ts` must check:
+- [X] T030 [P] Write `tests/unit/api/client.spec.ts` and `tests/unit/api/query-client.spec.ts` (R7, R8, R9). `query-client.spec.ts` must check the `QueryClient` defaults: `staleTime` 30 s, `refetchOnWindowFocus` and `refetchOnReconnect` false, and no `refetchInterval`, which FR-033 depends on. It must also check the retry policy (once only after a network error or a non-problem 5xx, never after a 4xx, never for mutations), and that the `onError` hooks dispatch `unauthenticated`, `second-factor-required`, `pending-action-required` and `forbidden` to the session reactions. `client.spec.ts` must check:
   - `X-CSRF-Token` is sent on POST, PATCH and DELETE only;
   - the token fetch is single-flight under concurrent writes;
   - a `csrf-token-mismatch` leads to one silent refresh and replay with the original body (FR-035), and a second mismatch or `unauthenticated` emits the session-ended signal;
@@ -263,16 +263,16 @@ renders in:
     - a profile language enabled on the server but not translated by the app (`de-de`) falls back to that order without overwriting the profile;
     - `<html lang>` is set to BCP 47.
   - `theme.spec.ts`: `system` follows `matchMedia` changes without a reload (FR-062), `.dark` and `color-scheme` are applied, and `mailcowui-ng.theme` is written.
-- [ ] T033 [P] Write `tests/unit/shared/platform/storage.spec.ts` and `tests/unit/shared/platform/broadcast.spec.ts`.
+- [X] T033 [P] Write `tests/unit/shared/platform/storage.spec.ts` and `tests/unit/shared/platform/broadcast.spec.ts`.
   - Storage: only the keys of data-model §4 can be written (FR-091), and a throwing `localStorage` or `sessionStorage` never breaks the caller (edge "storage disabled").
   - Broadcast: messages are versioned, and an unknown `v` or `type` is ignored.
-- [ ] T034 [P] Write `tests/unit/shared/security/sanitize.spec.ts` and `tests/unit/shared/security/safe-url.spec.ts` (R17, SC-013).
+- [X] T034 [P] Write `tests/unit/shared/security/sanitize.spec.ts` and `tests/unit/shared/security/safe-url.spec.ts` (R17, SC-013).
   - The sanitiser test runs the injection vector table (`<script>`, `onerror`, `javascript:` and `data:` hrefs, `<iframe>`, `<form>`, `<svg onload>`, `<style>`, `<img src=//evil>`, `<math>` mutation XSS, `<a href=" javascript:">`). Each vector must be neutralised, while `p br strong b em i u small h1–h6 ul ol li a blockquote` and `http`, `https` and `mailto` links are kept, with `rel="noopener noreferrer nofollow"`.
   - `safeHref` accepts http(s) and same-origin paths and rejects `javascript:`, `data:` and `//host` values.
-- [ ] T035 [P] Write `tests/unit/shared/validation/ip-network.spec.ts` and `tests/unit/shared/validation/limits.spec.ts`.
+- [X] T035 [P] Write `tests/unit/shared/validation/ip-network.spec.ts` and `tests/unit/shared/validation/limits.spec.ts`.
   - `ip-network.spec.ts`: IPv4 addresses and prefixes `/0–32`, IPv6 addresses (compressed and full) and prefixes `/0–128` are accepted. Out-of-range octets and prefixes, extra characters and over-long values (> 49 characters) are rejected.
   - `limits.spec.ts`: every constant of `limits.ts` equals its `maxLength` or `maxItems` in `contract/openapi.json`, for example `ApiKeyCreateRequest.name` 255, `allowedNetworks` 100 and 49, `eventType` 20 and `password` 4096 (data-model §6).
-- [ ] T036 [P] Write `tests/unit/shared/platform/webauthn.spec.ts` (R14). It covers:
+- [X] T036 [P] Write `tests/unit/shared/platform/webauthn.spec.ts` (R14). It covers:
   - support detection (secure context and `PublicKeyCredential`);
   - `isConditionalMediationAvailable`;
   - the unpadded base64url round trip;
@@ -337,17 +337,17 @@ renders in:
 
 ### Core implementation
 
-- [ ] T049 Implement `src/api/problem.ts` (`ApiProblem` with fields typed from the generated `Problem`, `TooManyRequestsProblem`, `FieldViolation` and `PendingAction`; type guards; `problemName(type)` returning the last segment of `/api/v2/problems/<name>`, with no hand-written list of types), `src/api/csrf.ts` (an in-memory token with a single-flight refresh), `src/api/activity.ts`, `src/api/client.ts` (`createClient<paths>` with `baseUrl: '/api/v2'`, `credentials: 'same-origin'` and the middleware order of R8) and `src/api/index.ts` (the only barrel: the client, the re-exported root types, the enumeration arrays and `ApiProblem`), so that T030 passes.
-- [ ] T050 Implement `src/api/query/client.ts` and `src/api/query/keys.ts`:
+- [X] T049 Implement `src/api/problem.ts` (`ApiProblem` with fields typed from the generated `Problem`, `TooManyRequestsProblem`, `FieldViolation` and `PendingAction`; type guards; `problemName(type)` returning the last segment of `/api/v2/problems/<name>`, with no hand-written list of types), `src/api/csrf.ts` (an in-memory token with a single-flight refresh), `src/api/activity.ts`, `src/api/client.ts` (`createClient<paths>` with `baseUrl: '/api/v2'`, `credentials: 'same-origin'` and the middleware order of R8) and `src/api/index.ts` (the only barrel: the client, the re-exported root types, the enumeration arrays and `ApiProblem`), so that T030 passes.
+- [X] T050 Implement `src/api/query/client.ts` and `src/api/query/keys.ts`:
   - `QueryClient` defaults per research R9: `staleTime` 30 s, `refetchOnWindowFocus` and `refetchOnReconnect` false, and the retry policy of R8;
   - `QueryCache` and `MutationCache` `onError` hooks for `unauthenticated`, `second-factor-required`, `pending-action-required` and `forbidden`, delegating to `src/app/session`;
   - the typed key factory of data-model §3, with list parameter types aliased from the generated `operations[…]['parameters']['query']`.
 
   The query-client part of T030 must pass.
-- [ ] T051 [P] Implement `src/shared/platform/storage.ts` (an allowlist of the data-model §4 keys, every call in `try/catch`), `src/shared/platform/broadcast.ts` and `src/shared/platform/clipboard.ts` (`navigator.clipboard.writeText` with a refusal result), so that T033 passes.
-- [ ] T052 [P] Implement `src/shared/security/sanitize.ts` (the DOMPurify allowlist and hook of R17) and `src/shared/security/safe-url.ts`, so that T034 passes.
-- [ ] T053 [P] Implement `src/shared/validation/ip-network.ts` and `src/shared/validation/limits.ts` (the contract limits of data-model §6, each with a comment naming its schema path), so that T035 passes.
-- [ ] T054 [P] Implement `src/shared/platform/webauthn/support.ts`, `base64url.ts`, `options.ts`, `credential.ts`, `errors.ts` and `ceremony.ts`, so that T036 passes.
+- [X] T051 [P] Implement `src/shared/platform/storage.ts` (an allowlist of the data-model §4 keys, every call in `try/catch`), `src/shared/platform/broadcast.ts` and `src/shared/platform/clipboard.ts` (`navigator.clipboard.writeText` with a refusal result), so that T033 passes.
+- [X] T052 [P] Implement `src/shared/security/sanitize.ts` (the DOMPurify allowlist and hook of R17) and `src/shared/security/safe-url.ts`, so that T034 passes.
+- [X] T053 [P] Implement `src/shared/validation/ip-network.ts` and `src/shared/validation/limits.ts` (the contract limits of data-model §6, each with a comment naming its schema path), so that T035 passes.
+- [X] T054 [P] Implement `src/shared/platform/webauthn/support.ts`, `base64url.ts`, `options.ts`, `credential.ts`, `errors.ts` and `ceremony.ts`, so that T036 passes.
 - [ ] T055 Implement the i18n core:
   - `src/i18n/index.ts`: `createI18n`, `legacy: false`, `en-gb` bundled, `cs-cz` and `sk-sk` as lazy chunks, `DefineLocaleMessage` typing from `en-gb`;
   - `src/i18n/locales.ts`: the codes and `toBcp47`;

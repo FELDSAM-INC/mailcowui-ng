@@ -1,6 +1,6 @@
 // The only door to the generated API types for hand-written code (constitution I, research R7).
 // Features import from `@/api`; nothing outside src/api imports src/api/generated.
-// The client, the query client and the problem helpers are exported below as they are added.
+// It also exports the client, the query client, the query keys and the problem helpers.
 
 export type { components, operations, paths } from './generated/schema'
 export type {
@@ -112,3 +112,29 @@ export {
   componentsParametersOrderValues,
   componentsParametersPasskeySortValues,
 } from './generated/schema'
+
+export { onActivity, recordActivity } from './activity'
+export { api, onSessionEnded, requireData } from './client'
+export { clearCsrfToken, currentCsrfToken, ensureCsrfToken, refreshCsrfToken } from './csrf'
+export {
+  ApiProblem,
+  isApiProblem,
+  problemFromResponse,
+  problemName,
+  type ApiProblemParts,
+  type ProblemKind,
+} from './problem'
+export {
+  createQueryClient,
+  queryClient,
+  setSessionReactions,
+  shouldRetryQuery,
+  type SessionReactions,
+} from './query/client'
+export {
+  queryKeys,
+  type ApiKeyListParams,
+  type ApiKeyOwnerCandidateParams,
+  type AuditListParams,
+  type PasskeyListParams,
+} from './query/keys'

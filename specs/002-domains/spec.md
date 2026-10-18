@@ -100,6 +100,35 @@ width, meets WCAG 2.2 AA and is translated into English, Czech and Slovak."
   log screen avoids duplication (constitution VIII); API 002 FR-058 adds the target filters; API 002
   User Story 7.)
 
+### Alignment 2026-10-18 (planning)
+
+After the session above, API 002 resolved the gaps this spec reported and `docs/conventions.md`
+was collected. Its rule is: "the next change to that spec aligns it". The plan aligned this spec as
+follows ([plan.md](./plan.md#spec-alignment)). The answers above stay as recorded.
+
+- **Bulk actions**: the answer on bulk behaviour assumed that "the API has no batch operation" and
+  that list entries carry no version tag. API 002 now offers a bulk operation for activation,
+  deactivation and deletion, with a version tag on every list entry and on every bulk item (API
+  002 FR-015, FR-062, FR-063). The conventions require that operation. FR-046 to FR-048 therefore
+  send the selection in one bulk request with each domain's version tag. Failed, refused and
+  outdated domains stay selected, so they can be retried, and a lost connection is reported as
+  "outcome unknown". Selection, progress, per-domain results and the confirmation rules for
+  activation and deactivation are unchanged.
+- **Bulk deletion confirmation**: the answer on deletion strength required an acknowledgement
+  instead of typing for several domains. The conventions require the number of objects to be typed
+  for every bulk deletion, as UI feature 003 does, so FR-047 and User Story 5, scenario 3 require
+  the number of domains to be typed. Typing the name of a single domain is unchanged.
+- **Resolved gaps**:
+  - the domain capabilities report the groupware state, the tagging limit, the default DKIM
+    selector, the bulk limit and the footer limit;
+  - the usage figures include resources and the largest existing mailbox quota;
+  - a deletion preview names what a deletion removes and the domain administrator accounts it
+    deletes;
+  - a distinct tag list feeds suggestions.
+
+  FR-010, FR-021, FR-024, FR-031, FR-032, FR-039 to FR-043, FR-055 and the affected edge cases now
+  use them.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Find and inspect domains (Priority: P1)
@@ -253,8 +282,8 @@ and every message shown.
 An administrator removes a cancelled customer's domain. Before anything happens, the app shows what
 the deletion will remove: the domain's aliases and alias domains, its footer and tags, its stored
 data and the domain administrator accounts that are left without a domain. The administrator
-confirms by typing the domain name. A domain that still has mailboxes cannot be deleted, and the app
-says so before the administrator tries.
+confirms by typing the domain name. A domain that still has mailboxes or resources cannot be
+deleted, and the app says so before the administrator tries.
 
 **Why this priority**: Deletion completes the customer life cycle but is less frequent than
 creating and editing.
@@ -271,9 +300,9 @@ resources remain, because the version is outdated and because the domain no long
    button stays disabled until the domain name is typed.
 2. **Given** a domain with 3 mailboxes, **When** an administrator looks for Delete, **Then** the
    action is unavailable and the app explains that the 3 mailboxes must be removed first.
-3. **Given** a domain whose last resource the list cannot know about, **When** the API refuses the
-   deletion because the domain is not empty, **Then** the app shows how many mailboxes and resources
-   remain and nothing is deleted.
+3. **Given** a domain that gained a mailbox or a resource after it was loaded, **When** the deletion
+   preview or the API refuses the deletion because the domain is not empty, **Then** the app shows
+   how many mailboxes and resources remain and nothing is deleted.
 4. **Given** a confirmed deletion, **When** it succeeds, **Then** the app returns to the list,
    announces that the domain was deleted, and the domain is no longer listed.
 
@@ -301,7 +330,7 @@ domain with mailboxes.
    ones, **Then** only those 2 are sent again.
 3. **Given** a bulk deletion of 4 domains, one of which has mailboxes, **When** the confirmation is
    shown, **Then** it lists the 3 deletable domains with their impact and the fourth as skipped, and
-   it requires an explicit acknowledgement.
+   it requires the number of domains to be deleted, 3, to be typed.
 4. **Given** a phone, **When** the administrator turns on selection mode, **Then** each card gets a
    checkbox of at least 44 × 44 px and the available actions appear in a bar that names the number
    of selected domains.
@@ -394,8 +423,9 @@ and check that a domain administrator is never offered it.
 - **Many tags**: a card or row shows the first tags and a "+n" indicator. The domain page shows all
   of them.
 - **More tags than the server's limit** (possible after legacy edits): the domain can still be
-  viewed and edited. A save that would keep it above the limit is refused, and the app shows the
-  limit from the error.
+  viewed and edited, and its tag set can shrink. A save that would keep it at or above its current
+  size while above the limit is refused before sending, with the limit the API reports. A refusal
+  by the API shows the limit from the error.
 - **Usage already above a limit** (possible after changes by other tools): the pair is shown as over
   the limit, for example "12 of 10". Other settings can still be saved. The affected limit can only
   be saved with a value at least equal to the usage.
@@ -413,8 +443,9 @@ and check that a domain administrator is never offered it.
   their other values.
 - **No templates at all** (the Default template is missing from the database): the create form
   starts with the built-in values the API documents and names no template.
-- **Groupware disabled on the server**: the restart option is still offered, and the creation report
-  shows "groupware disabled" for the groupware steps.
+- **Groupware disabled on the server**: the API reports it in the domain capabilities. The creation
+  form then hides the Global Address List flag and the restart option, as legacy does. The creation
+  report shows "groupware disabled" for the groupware steps.
 - **Explicitly no DKIM key**: when the user switches DKIM key generation off, the report shows the
   DKIM key as "not requested".
 - **Footer exclusion that no longer belongs to the domain**, for example a deleted mailbox: it is
@@ -426,12 +457,16 @@ and check that a domain administrator is never offered it.
   refusal, because the version tag does not cover them.
 - **Saves from the legacy UI**: the legacy UI never sends a version tag, so its saves can overwrite
   changes made in this app. The app cannot detect this.
-- **Connection lost during a bulk action**: domains not yet processed are reported as not processed
-  and can be retried.
-- **Leaving the page during a bulk action**: the app warns that the remaining domains will not be
-  processed.
-- **Bulk selection that includes domains with mailboxes**: those are listed as skipped in the delete
-  confirmation and never sent.
+- **Connection lost during a bulk action**: the outcome of every domain of the request is reported
+  as unknown. Nothing is retried automatically. The user can refresh the list to see the current
+  state.
+- **Leaving the page during a bulk action**: the app warns that the result will not be shown. For
+  the deletion of several templates, which sends one request per template, it warns that the
+  remaining templates will not be processed.
+- **Bulk selection that includes domains with mailboxes or resources**: those are listed as skipped
+  in the delete confirmation and never sent.
+- **Bulk selection above the bulk limit** that the API reports: the actions are unavailable, and
+  the limit is stated.
 - **Temporary failure** reported by the API: the app says nothing was changed and offers a retry
   that keeps the input.
 - **Session expiry or sign-out in another tab while a form is open**: handled by UI feature 001.
@@ -503,7 +538,8 @@ and check that a domain administrator is never offered it.
 - **FR-010**: The list MUST offer these filters: active state (all, active, inactive), relay (all,
   relay domains, other domains) and tags (one or more whole tags; a domain matches when it has any of
   them). The number of active filters MUST be visible on the filter control, and one action MUST
-  clear all filters. Selecting a tag shown on an entry MUST add that tag as a filter.
+  clear all filters. Selecting a tag shown on an entry MUST add that tag as a filter. The tag
+  filter MUST suggest the distinct tags in the user's scope as the user types.
 - **FR-011**: The list MUST be sortable, ascending or descending, by name, description, active state,
   "relay this domain", mailboxes in use, aliases in use, quota allocated, storage used, maximum
   mailboxes, maximum aliases, default mailbox quota, maximum mailbox quota, domain quota, creation
@@ -568,8 +604,9 @@ and check that a domain administrator is never offered it.
 - **FR-021**: The DKIM settings MUST offer a switch for generating a DKIM key, a selector and a key
   size of 1024, 2048, 3072 or 4096 bits. Switching key generation off MUST create the domain without
   a DKIM key. With the switch on, an empty selector MUST mean the server's default selector, and the
-  field MUST say so. The selector MUST accept only letters, digits, `-`, `_` and `.`, up to 255
-  characters.
+  field MUST say so, naming that selector as the API reports it. The selector MUST accept only
+  letters, digits, `-`, `_` and `.`, up to 255 characters. The key sizes offered MUST be those the
+  API reports.
 - **FR-022**: The rate limit MUST be either none, or a whole number from 1 to 2,147,483,647 together
   with a time frame of second, minute, hour or day, labelled as legacy labels them ("msgs / hour").
 - **FR-023**: The review MUST summarise every value the domain will be created with, and the domain
@@ -577,7 +614,8 @@ and check that a domain administrator is never offered it.
 - **FR-024**: The review MUST offer the groupware restart that legacy offers as "Add domain and
   restart SOGo" as a switch that is off by default. It MUST explain that the groupware learns about
   a new domain only after a restart and that the restart briefly interrupts webmail for every user
-  of the server.
+  of the server. When the API reports the groupware disabled, the switch and the Global Address List
+  flag of the creation form MUST be hidden, as legacy does.
 - **FR-025**: While a creation is being sent, the create action MUST show progress and MUST NOT
   accept a second submission.
 - **FR-026**: After a successful creation, the app MUST open the new domain's page and show the
@@ -602,15 +640,16 @@ and check that a domain administrator is never offered it.
 - **FR-030**: Every save MUST send only the changed values of its section together with the version
   tag of the domain data the form was based on.
 - **FR-031**: The limits and quotas form MUST show the current usage next to each limit it can
-  check: mailboxes in use, aliases in use and quota allocated. It MUST refuse, before sending, a
-  mailbox limit, alias limit or domain quota below that usage.
+  check: mailboxes in use, aliases in use, quota allocated and the largest quota of an existing
+  mailbox. It MUST refuse, before sending, a changed mailbox limit, alias limit, domain quota or
+  maximum mailbox quota below that usage.
 - **FR-032**: Quota fields MUST take a number and a unit of MiB, GiB or TiB, and MUST show a stored
   value in the largest unit that represents it exactly (10,240 MiB as 10 GiB, 3,000 MiB as
   3,000 MiB). Before sending, the app MUST check the rules the API documents: limits are whole
   numbers from 0 to 2,147,483,647; quotas are at least 1 MiB and whole MiB; the default mailbox quota
   is not above the maximum mailbox quota, which is not above the domain quota; the description has at
-  most 255 characters. Every rule the app cannot check, for example the largest existing mailbox
-  quota, MUST be left to the API, and its error MUST be shown next to the field with its parameters.
+  most 255 characters. Every rule the app cannot check, for example the server's host name, MUST be
+  left to the API, and its error MUST be shown next to the field with its parameters.
 - **FR-033**: The relay options MUST stay consistent as the API normalises them: switching on
   "relay non-existing mailboxes only" switches on the other two, switching on "relay all recipients"
   switches on "relay this domain", switching off "relay this domain" switches off the other two, and
@@ -633,29 +672,35 @@ and check that a domain administrator is never offered it.
 - **FR-039**: Tags MUST be edited as a set: the user adds a tag by typing it and confirming with
   Enter, a comma or an add button, and removes a tag with its own labelled remove button. Tags MUST
   be trimmed, empty tags MUST be ignored, tags longer than 255 characters MUST be refused, and tags
-  that differ only in letter case MUST be kept once with the first spelling.
-- **FR-040**: Saving the tags MUST replace the whole set. When the API refuses the set because it
-  exceeds the server's tagging limit, the app MUST show the limit from the error.
+  that differ only in letter case MUST be kept once with the first spelling. The tag editor MUST
+  suggest the distinct tags in the user's scope as the user types.
+- **FR-040**: Saving the tags MUST replace the whole set. A set above the server's tagging limit,
+  which the API reports, MUST be refused before sending with that limit, unless it shrinks a set
+  that is already above the limit. When the API refuses the set anyway, the app MUST show the limit
+  from the error.
 
 #### Deleting a domain
 
 - **FR-041**: Administrators MUST be able to delete a domain from its page and from the actions of
-  its list entry. When the domain has mailboxes in use, the delete action MUST be unavailable and the
-  app MUST say how many mailboxes have to be removed first.
-- **FR-042**: Before deleting, the app MUST show a confirmation with the impact:
+  its list entry. When the domain has mailboxes or resources in use, the delete action MUST be
+  unavailable and the app MUST say how many mailboxes and resources have to be removed first.
+- **FR-042**: Before deleting, the app MUST show a confirmation with the impact, as the API's
+  deletion preview reports it:
   - the readable and ASCII name;
-  - the number of aliases and of alias domains that will be removed;
-  - the assigned domain administrators, and that those left without any domain will be deleted
-    together with their accounts;
-  - that the footer, the tags and the stored data of the domain are removed;
-  - that the DKIM key is kept.
+  - the alias domains that will be removed, by name, and the number of aliases that will be
+    removed;
+  - the assigned domain administrators, and by name the accounts that will be deleted because they
+    are left without any domain;
+  - that the footer (when one exists), the tags and the stored data of the domain are removed;
+  - that the DKIM key, when one exists, is kept.
 
-  The Delete button MUST stay disabled until the user types the domain name, in its readable or
-  ASCII form, letter case ignored.
-- **FR-043**: The deletion MUST be sent with the domain's version tag. When the API refuses it as
-  outdated, the app MUST show the impact again with fresh data. When it refuses it because the domain
-  is not empty, the app MUST show how many mailboxes and resources remain. When the domain no longer
-  exists, the app MUST say so and remove it from the list.
+  When the preview reports that the domain is no longer empty, the app MUST show the blocking
+  mailboxes and resources instead and offer no deletion. The Delete button MUST stay disabled until
+  the user types the domain name, in its readable or ASCII form, letter case ignored.
+- **FR-043**: The deletion MUST be sent with the version tag of the deletion preview. When the API
+  refuses it as outdated, the app MUST show the impact again with fresh data. When it refuses it
+  because the domain is not empty, the app MUST show how many mailboxes and resources remain. When
+  the domain no longer exists, the app MUST say so and remove it from the list.
 - **FR-044**: After a successful deletion, the app MUST return to the list, announce the deletion,
   and no longer list the domain.
 
@@ -668,15 +713,20 @@ and check that a domain administrator is never offered it.
   filters, sort or page size change. Deactivation MUST ask for confirmation, listing the selected
   domains and stating that it affects every mailbox in them, for example that their users can no
   longer sign in. Activation needs no confirmation.
-- **FR-046**: Because the API offers no batch operation, the app MUST send one request per domain,
-  continue after failures, show progress, and finish with a result for every domain: done, failed
-  with a translated reason, or not processed. It MUST offer to retry the failed and unprocessed
-  domains only. Bulk requests carry no version tag, because list entries do not include one.
+- **FR-046**: The app MUST send the selection with the API's bulk operation, each domain with the
+  version tag of its list entry, and MUST NOT select more domains for one action than the bulk limit
+  the API reports. It MUST show progress while the action runs, and finish with a result for every
+  domain: done, not found, refused or failed with a translated reason, or outdated. Failed, refused
+  and outdated domains MUST stay selected, and the app MUST offer to retry exactly those. When the
+  connection is lost, every domain of the request MUST be reported as "outcome unknown" and MUST
+  NOT be retried automatically.
 - **FR-047**: Bulk deletion MUST ask for confirmation, listing every selected domain with its impact
-  as in FR-042, and MUST require an explicit acknowledgement instead of a typed name. Domains with
-  mailboxes in use MUST be listed as skipped and MUST NOT be sent.
-- **FR-048**: Leaving the page while a bulk action is running MUST warn that the remaining domains
-  will not be processed.
+  (the aliases and alias domains to be removed, the assigned domain administrators and the rule for
+  those left without a domain, and the removal of footer, tags and stored data), and MUST require the
+  number of domains to be deleted to be typed. Domains with mailboxes or resources in use MUST be
+  listed as skipped and MUST NOT be sent.
+- **FR-048**: Leaving the page while a bulk action is running MUST warn that its result will not be
+  shown.
 
 #### Domain templates
 
@@ -701,9 +751,15 @@ and check that a domain administrator is never offered it.
 - **FR-054**: Saving a template MUST send only the changed values with the version tag and MUST
   handle an outdated version as in FR-037. A duplicate name MUST be shown as an error on the name
   field.
-- **FR-055**: Administrators MUST be able to delete one template, or several selected ones as in
-  FR-046, after a confirmation that names them and states that domains created from them keep their
-  values. The Default template MUST NOT be selectable for deletion.
+- **FR-055**: Administrators MUST be able to delete one template, or several selected ones, after a
+  confirmation that names them and states that domains created from them keep their values. A
+  deletion of several templates MUST require their number to be typed. The API has no bulk
+  operation for templates, so the app MUST send one request per template, each with its version
+  tag, continue after failures, show progress, and finish with a result per template. It MUST offer
+  to retry the failed, refused and outdated ones. A lost connection marks that template "outcome
+  unknown" and the rest "not processed", and leaving the page while it runs MUST warn that the
+  remaining templates will not be processed. The Default template MUST NOT be selectable for
+  deletion.
 - **FR-056**: The template list MUST define loading, no-templates, no-matches and error states as
   in FR-014.
 
@@ -841,7 +897,7 @@ with the reason).
 | Template select | Default preselected, choosing fills the fields | Matched; asks before overwriting changed fields | FR-019 |
 | Tags | Tag box | Matched | FR-039 |
 | Max. aliases, Max. mailboxes, Default mailbox quota, Max. quota per mailbox (MiB), Total domain quota (MiB) | Number inputs, quotas in MiB | Improved: quota entry in MiB, GiB or TiB, cross-field checks before sending | FR-031, FR-032 |
-| Global Address List (hidden when SOGo is disabled), Active | Checkboxes | Matched, except that the GAL is always shown (API gap) | FR-018 |
+| Global Address List (hidden when SOGo is disabled), Active | Checkboxes | Matched: the GAL is hidden when the API reports the groupware disabled | FR-018, FR-024 |
 | Rate limit value and frame | Number and select | Matched | FR-022 |
 | DKIM selector, DKIM key length | Input, select | Matched; explicit switch for "no DKIM key" | FR-021 |
 | Relay options with info texts | Three checkboxes, no consistency logic | Improved: kept consistent as the API normalises | FR-033 |
@@ -873,7 +929,7 @@ with the reason).
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
 | Explanation and placeholder list | Static text | Improved: copy action per placeholder | FR-057 |
-| Exclude from footer | Multi-select of the domain's mailboxes, aliases and alias domains | Improved in validation (per-entry errors); the picker depends on the mailbox and alias screens (API gap) | FR-058 |
+| Exclude from footer | Multi-select of the domain's mailboxes, aliases and alias domains | Improved in validation (per-entry errors); the picker arrives with the mailbox and alias screens (UI features 003 and 004), whose list operations API 002 names for it | FR-058 |
 | Ignore footer on reply e-mails | Checkbox | Matched | FR-057 |
 | HTML footer, PLAIN footer | Text areas, no size limit | Matched, with a size indicator and the 1 MiB limit | FR-059, FR-060 |
 | Save | Invalid exclusions silently skipped, last write wins | Improved: refused entries marked, outdated saves stopped | FR-058, FR-061 |
@@ -914,28 +970,29 @@ merged.
 | Footer read and replace, exclusion validation, 1 MiB limit, placeholders | API 002 FR-051 to FR-055 |
 | Audit records with target filters, changed values, creation report and deletion outcome | API 002 FR-057, FR-058; API 001 FR-046, FR-047 |
 | Problem types and validation rule codes with parameters | API 002 FR-059; API 001 FR-049, FR-055 |
-| No batch operations | API 002 FR-062 |
+| Bulk activation, deactivation and deletion with one result per domain and per-item version tags | API 002 FR-015, FR-062, FR-063 |
+| Domain capabilities: groupware state, tagging limit, field and footer limits, bulk limit, page sizes, DKIM defaults | API 002 FR-064 |
+| Deletion preview: blockers, removals, domain administrator accounts to be deleted, DKIM key, version tag | API 002 FR-065 |
+| Distinct domain tags in scope | API 002 FR-066 |
 | Role, scope and permission flags (`domainDesc`) of the signed-in user | API 001 FR-028, FR-029 |
 
-**Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
-wanted; until then the app behaves as stated):
+**API gaps.** This spec first listed nine gaps. API 002 resolved these before planning:
 
-1. Whether the groupware is disabled on the server is not exposed. The Global Address List flag and
-   the restart switch are therefore always shown; legacy hides them when SOGo is disabled.
-2. The server's tagging limit is not exposed. The app learns it only from a refused save (FR-040).
-3. The domain representation has no resource count. The delete action cannot foresee a refusal
-   caused by resources and relies on the "not empty" error (FR-043).
-4. The largest quota of an existing mailbox is not in the domain representation. The maximum
-   mailbox quota rule is checked only by the API (FR-032).
-5. The domain representation does not say which domain administrators manage no other domain. The
-   deletion impact states the rule, not the accounts that will be deleted (FR-042).
-6. List entries carry no version tag. Bulk actions cannot guard against outdated data (FR-046).
-7. There is no list of the distinct domain tags in scope. The tag filter and the tag editor offer no
-   suggestions (FR-010, FR-039).
-8. The server's default DKIM selector is not readable. An empty selector is shown as "server
-   default" instead of its actual value (FR-021, FR-052).
-9. API 002 offers no list of footer exclusion candidates. A picker needs the mailbox and alias list
-   operations of API features 003 and 004 (FR-058).
+- the groupware state, the tagging limit and the default DKIM selector (FR-064);
+- the resource count and the largest existing mailbox quota (FR-008);
+- the domain administrator accounts a deletion removes (FR-065);
+- the version tags of list entries (FR-015);
+- the distinct tag list (FR-066).
+
+Footer exclusion candidates are not a gap: API 002 names the mailbox and alias list operations of
+features 003 and 004 for them, and those UI features add the picker (FR-058).
+
+One gap remains, recorded in the plan, and the app does not work around it:
+
+1. The members of the audit details of domain, template and footer records (old and new values,
+   the creation report, the removed objects) are not described in the contract. Until they are,
+   history entries show these details as stored, without unit formatting or translated step
+   outcomes (FR-063).
 
 A changed Global Address List flag takes effect only after a groupware restart, and API 002 offers
 no restart outside domain creation. The app can only inform the user (FR-034); restarting containers
@@ -977,7 +1034,7 @@ belongs to API and UI feature 011.
 - **SC-007**: 100 % of field errors returned by the API are shown next to their field in English,
   Czech and Slovak, with their parameters filled in.
 - **SC-008**: A bulk action on 50 domains reports an individual outcome for all 50, and a retry
-  sends only the domains that failed.
+  sends only the domains that failed, were refused or were outdated.
 - **SC-009**: Translation completeness checks find 0 missing keys in English, Czech and Slovak.
 - **SC-010**: When the API answers within 1 second, the first page of the domain list is visible
   within 2 seconds of opening it on a mid-range phone over a mobile connection, and search results

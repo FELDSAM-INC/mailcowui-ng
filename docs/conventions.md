@@ -140,6 +140,20 @@ it.
   fork, the runtime files still supply the fork's own text.
 - **Legacy labels that include their help text** are shown verbatim. The accessible name is the
   visible label.
+- **Detail pages** (decided for UI 002, applies to every feature):
+  - The title is legacy's edit heading with the object's name. No status badges.
+  - Actions that legacy offers only in the list stay only in the list. Deletion is one of them.
+  - Display-only panels stay if legacy shows the same data elsewhere, labelled with that screen's
+    legacy keys. Examples are usage figures from the list columns and the administrators of a
+    domain. A panel with data legacy never shows is a deviation.
+  - A field another feature edits is shown read-only in its legacy position until that feature
+    lands, then becomes editable there.
+- **Outcomes** of creations and changes are shown as legacy shows them: one alert per outcome,
+  using the `success.*`, `warning.*` and `danger.*` key legacy returns for it. There is no step
+  table. A new string is used only for an outcome legacy cannot report (for example DKIM DNS
+  publication).
+- **No confirmation legacy lacks**, except the typed and bulk confirmations above. For example,
+  choosing a template overwrites the form's fields without asking, as in legacy.
 - **Two security deviations** wait for the owner: the haveibeenpwned check (a third-party request
   from the browser) and showing stored OAuth2 client secrets in lists. Until the owner decides,
   neither is built.

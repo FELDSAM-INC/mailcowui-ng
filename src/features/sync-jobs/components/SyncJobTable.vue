@@ -207,7 +207,7 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
                 </dd>
                 <dt class="text-gray-600 dark:text-gray-400">
                   {{ label(texts.interval)
-                  }}<template v-if="!manager"> {{ t('syncJobs.columns.minutes') }}</template>
+                  }}<template v-if="!manager">{{ ` ${t('syncJobs.columns.minutes')}` }}</template>
                 </dt>
                 <dd class="text-gray-900 dark:text-white">{{ fmt.number(job.intervalMinutes) }}</dd>
               </dl>

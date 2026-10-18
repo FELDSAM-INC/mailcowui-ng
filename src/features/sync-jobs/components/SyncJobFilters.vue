@@ -7,7 +7,7 @@ import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Role } from '@/api'
-import { legacy, resolveText, type TextRef } from '@/i18n'
+import { legacy, resolveText, text, type TextRef } from '@/i18n'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -164,9 +164,9 @@ function value(event: Event): string | undefined {
           @change="emit('update', { result: value($event) as SyncJobListFilters['result'] })"
         >
           <option value="">{{ t('syncJobs.filters.any') }}</option>
-          <option value="succeeded">{{ t('enums.syncJobLastResult.succeeded') }}</option>
-          <option value="failed">{{ t('enums.syncJobLastResult.failed') }}</option>
-          <option value="none">{{ t('enums.syncJobLastResult.unknown') }}</option>
+          <option value="succeeded">{{ text('enums.syncJobLastResult.succeeded') }}</option>
+          <option value="failed">{{ text('enums.syncJobLastResult.failed') }}</option>
+          <option value="none">{{ text('enums.syncJobLastResult.unknown') }}</option>
         </select>
       </div>
       <div class="flex items-end">

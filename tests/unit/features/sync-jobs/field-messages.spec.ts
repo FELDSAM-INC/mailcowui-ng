@@ -15,11 +15,13 @@ const v = (code: string, params: Record<string, unknown> = {}): FieldViolation =
   ({ code, params, message: 'x' }) as FieldViolation
 
 describe('fieldMessageKey', () => {
-  it('maps the sync-job rules to the form\'s messages', () => {
+  it("maps the sync-job rules to the form's messages", () => {
     expect(fieldMessageKey('remoteHost', v('invalidFormat', { format: 'hostName' }))).toBe(
       'validation.format.hostName',
     )
-    expect(fieldMessageKey('exclude', v('invalidRegex'))).toBe('syncJobs.form.errors.exclude.invalidRegex')
+    expect(fieldMessageKey('exclude', v('invalidRegex'))).toBe(
+      'syncJobs.form.errors.exclude.invalidRegex',
+    )
     for (const code of ['optionNotAllowed', 'optionContainsSpace', 'customParamsNotPermitted']) {
       expect(fieldMessageKey('customParameters', v(code))).toBe(
         `syncJobs.form.errors.customParameters.${code}`,
@@ -43,12 +45,12 @@ describe('fieldMessageKey', () => {
   it('fills the refused option and token', () => {
     const tr = { t: text, te: hasMessage, locale: 'en-gb' }
     const context = { formKey: 'syncJobs.form', path: 'customParameters' }
-    expect(violationMessage(v('optionNotAllowed', { option: 'showpasswords' }), tr, context)).toContain(
-      '--showpasswords',
-    )
-    expect(violationMessage(v('optionContainsSpace', { token: 'maxsize 1' }), tr, context)).toContain(
-      'maxsize 1',
-    )
+    expect(
+      violationMessage(v('optionNotAllowed', { option: 'showpasswords' }), tr, context),
+    ).toContain('--showpasswords')
+    expect(
+      violationMessage(v('optionContainsSpace', { token: 'maxsize 1' }), tr, context),
+    ).toContain('maxsize 1')
   })
 
   it('leaves every other code to the generic messages', () => {

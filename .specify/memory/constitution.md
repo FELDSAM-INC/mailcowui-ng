@@ -98,8 +98,18 @@ legacy Twig/jQuery UI feature by feature.
     that remains.
   - vue-i18n for translations.
   - A client generated from the OpenAPI contract.
-  - The component library is chosen in the first `/speckit-plan` and recorded here by amendment.
-    It must be accessible, themeable and mobile-friendly.
+  - The visual base and UI primitives come from **TailAdmin Vue Free** (MIT,
+    `github.com/TailAdmin/vue-tailwind-admin-dashboard`). Its `components/ui` primitives are
+    built on Reka UI and Tailwind CSS v4.
+  - TailAdmin is a template, not a dependency. Copy in only the layout shell and the primitives
+    a feature needs. Record the source version, and keep the MIT notice, in
+    `THIRD_PARTY_NOTICES.md`.
+  - TailAdmin **Pro** code or assets are never used, because they are under a commercial
+    licence.
+  - Demo-only parts are not copied unless a feature spec needs them: sample pages, brand logos,
+    calendar, maps, carousel, date picker and charts. Charts are lazy-loaded on their route.
+- Fonts and icons are self-hosted. The app makes no requests to third-party CDNs, for CSP,
+  privacy (GDPR) and offline installations.
 - **No server-side rendering and no backend code** in this repository. The build output is
   static files.
 - **Deployment**: the static build is served next to mailcow-rest-v2 on the same origin. That
@@ -141,6 +151,7 @@ legacy Twig/jQuery UI feature by feature.
   - Vue.js for the UI.
   - The API (Laravel, repository `mailcow-rest-v2`) and this app live in separate repositories.
   - GPL-3.0 for both repositories, and commits go directly to `main` (added in 1.1.0).
+  - TailAdmin Vue Free as the visual base (added in 1.2.0).
 - Agent runtime guidance lives in `CLAUDE.md` and MUST NOT contradict this document.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18
+**Version**: 1.2.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18

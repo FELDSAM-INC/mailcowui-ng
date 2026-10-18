@@ -2,11 +2,14 @@
 // The username and password form (FR-016–FR-019, FR-081, research R21): labelled fields that
 // password managers recognise, pasting allowed, no auto-capitalisation or correction of the
 // username, an accessible show/hide toggle, a busy state without double submits, and the
-// throttling countdown. US2 adds the passkeys of the username autofill (`webauthnAutofill`).
-import { ref, useId, watch } from 'vue'
+// throttling countdown. US2 adds the passkeys of the username autofill (`webauthnAutofill`). Labels,
+// placeholders and the button are those of the classic login pages (`login.*`): the mailbox-user
+// and role-neutral screens ask for the email address, the others for the username.
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Role } from '@/api'
+import { lt } from '@/i18n'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -35,6 +38,9 @@ const { username, password, pending, problem, throttle, form, submit } = usePass
   onFailed: () => emit('failed'),
 })
 const visible = ref(false)
+const usernamePlaceholder = computed(() =>
+  props.role === null || props.role === 'mailboxUser' ? lt('login.email') : lt('login.username'),
+)
 
 // The "too many attempts" message goes once sign-in is possible again.
 watch(throttle.active, (active) => {
@@ -60,7 +66,7 @@ watch(throttle.active, (active) => {
     <FormField
       :id="usernameId"
       v-slot="field"
-      :label="t('auth.signIn.username')"
+      :label="lt('login.username')"
       :errors="form.errorsFor('username')"
     >
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
@@ -73,13 +79,14 @@ watch(throttle.active, (active) => {
         autocapitalize="none"
         spellcheck="false"
         maxlength="255"
+        :placeholder="usernamePlaceholder"
         class="form-control"
       />
     </FormField>
     <FormField
       :id="passwordId"
       v-slot="field"
-      :label="t('auth.signIn.password')"
+      :label="lt('login.password')"
       :errors="form.errorsFor('password')"
     >
       <div class="relative">
@@ -91,6 +98,7 @@ watch(throttle.active, (active) => {
           :type="visible ? 'text' : 'password'"
           autocomplete="current-password"
           maxlength="4096"
+          :placeholder="lt('login.password')"
           class="form-control pe-12"
         />
         <button
@@ -113,7 +121,7 @@ watch(throttle.active, (active) => {
       :disabled="pending || throttle.active.value"
       :aria-busy="pending ? 'true' : 'false'"
     >
-      {{ pending ? t('auth.signIn.submitting') : t('auth.signIn.submit') }}
+      {{ pending ? lt('footer.loading') : lt('login.login') }}
     </button>
   </form>
 </template>

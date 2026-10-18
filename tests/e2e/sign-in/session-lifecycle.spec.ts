@@ -24,12 +24,12 @@ test('US1-AS12 SC-009 sign-out confirms on the sign-in screen and Back reveals n
   await navigation.getByRole('link', { name: 'Mailboxes' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Mailboxes' })).toBeVisible()
   await signOutFromMenu(page)
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await expect(page.getByRole('main').getByText('You have signed out.')).toBeVisible()
   await expectAccessible()
   await page.goBack()
   await expect(page).toHaveURL(/\/ng\/sign-in\?returnTo=(%2F|\/)domains$/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await expect(page.getByRole('heading', domainsHeading)).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Account menu of / })).toHaveCount(0)
 })
@@ -86,7 +86,7 @@ test('US1-AS17 SC-014 the idle warning comes 2 minutes before expiry, "Stay sign
   await expect(dialog).toBeVisible()
   await mockApi.patch({ expireSession: true })
   await page.clock.fastForward('02:00')
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await expect(
     page.getByRole('main').getByText('Your session has ended. Please sign in again.'),
   ).toBeVisible()
@@ -142,7 +142,7 @@ test('FR-034 a request answered as unauthenticated shows the session-ended messa
   await page.clock.fastForward('06:00')
   const navigation = await openNavigation(page)
   await navigation.getByRole('link', { name: 'Mailboxes' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await expect(
     page.getByRole('main').getByText('Your session has ended. Please sign in again.'),
   ).toBeVisible()
@@ -210,7 +210,7 @@ test('FR-037 a sign-out in another page ends this one, and a sign-in there as an
   await signOutFromMenu(other)
   await expect(other.getByRole('main').getByText('You have signed out.')).toBeVisible()
 
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await expect(page.getByRole('heading', domainsHeading)).toHaveCount(0)
 
   await submitPassword(other, 'alice@example.org')

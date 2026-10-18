@@ -5,7 +5,7 @@ export async function signIn(page: Page, username: string, password: string, pat
   await page.goto(path)
   await page.getByLabel('Username', { exact: true }).fill(username)
   await page.getByLabel('Password', { exact: true }).fill(password)
-  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await page.getByRole('button', { name: 'Login', exact: true }).click()
 }
 
 export async function signOut(page: Page) {

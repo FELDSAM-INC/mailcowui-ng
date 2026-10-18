@@ -2,12 +2,14 @@
 // The authenticator app (FR-022): with several authenticators the user chooses one by name; a
 // single one is preselected and its code field takes focus. The field brings up a numeric
 // keyboard, accepts one-time-code autofill and pasting, and the code must be exactly six digits
-// (whitespace removed) before it is sent. The field is cleared after every attempt (FR-091).
+// (whitespace removed) before it is sent. The field is cleared after every attempt (FR-091). As in
+// the classic two-factor modal: "Authenticators" over the list, "123456" in the field and "Login".
 import { onMounted, ref, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { SecondFactorMethod, SecondFactorVerification, Writable } from '@/api'
 import FormField from '@/shared/components/FormField.vue'
+import LegacyText from '@/shared/components/LegacyText.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -54,7 +56,7 @@ function submit() {
     <form novalidate class="flex flex-col gap-4" @submit.prevent="submit">
       <fieldset v-if="methods.length > 1" class="flex flex-col">
         <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ t('auth.secondFactor.totp.authenticators') }}
+          <LegacyText k="tfa.authenticators" />
         </legend>
         <label
           v-for="method in methods"
@@ -87,6 +89,7 @@ function submit() {
           inputmode="numeric"
           autocomplete="one-time-code"
           maxlength="16"
+          placeholder="123456"
           class="form-control tabular-nums"
         />
       </FormField>
@@ -96,7 +99,7 @@ function submit() {
         :disabled="busy"
         :aria-busy="busy ? 'true' : 'false'"
       >
-        {{ t('auth.secondFactor.verify') }}
+        <LegacyText k="login.login" />
       </button>
     </form>
   </MethodSection>

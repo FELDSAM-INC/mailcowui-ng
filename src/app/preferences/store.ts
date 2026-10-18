@@ -10,7 +10,7 @@ import {
   applyLocale,
   canSavePreferences,
   rememberedLocale,
-  resolveAvailableLocales,
+  resolveAvailableLanguages,
   resolvePreSignInLocale,
   resolveSignedInLocale,
   showLanguageChoice as hasChoice,
@@ -21,14 +21,16 @@ export const usePreferencesStore = defineStore('preferences', () => {
   const locale = ref<AppLocale>(DEFAULT_LOCALE)
   const theme = ref<Theme>('system')
   const chosenOnSignIn = ref({ locale: false, theme: false })
-  /** `null` until the public configuration is known, or when it could not be loaded. */
+  /** `null` until the start sequence sets the server's (or mailcow's default) languages. */
   const serverLanguages = ref<Language[] | null>(null)
   const serverDefault = ref<string | null>(null)
   const sessionState = ref<SessionState | null>(null)
   /** The outcome of the last failed save, shown by the shell (FR-059, spec edge case). */
   const saveMessage = ref<'notSaved' | 'changedElsewhere' | null>(null)
 
-  const availableLocales = computed(() => resolveAvailableLocales(serverLanguages.value))
+  /** The languages offered, with the names of the installation's language menu. */
+  const availableLanguages = computed(() => resolveAvailableLanguages(serverLanguages.value))
+  const availableLocales = computed(() => availableLanguages.value.map((language) => language.code))
   const showLanguageChoice = computed(() => hasChoice(availableLocales.value))
   const canSave = computed(() => canSavePreferences(sessionState.value, availableLocales.value))
 
@@ -110,6 +112,7 @@ export const usePreferencesStore = defineStore('preferences', () => {
     serverLanguages,
     sessionState,
     saveMessage,
+    availableLanguages,
     availableLocales,
     showLanguageChoice,
     canSave,

@@ -26,7 +26,7 @@
     "test:smoke": "playwright test --project=smoke",
     "contract:generate": "node scripts/contract/generate.mjs",
     "contract:check": "node scripts/contract/check.mjs",
-    "i18n:import": "node scripts/i18n/import-legacy.mjs",
+    "i18n:snapshot": "node scripts/i18n/refresh-snapshot.mjs",
     "i18n:check": "node scripts/i18n/check.mjs",
     "licenses:check": "node scripts/check-licenses.mjs",
     "audit": "npm audit --omit=dev --audit-level=moderate && npm audit --audit-level=critical",

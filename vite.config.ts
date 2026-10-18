@@ -32,10 +32,11 @@ export default defineConfig({
       runtimeOnly: true,
       compositionOnly: true,
       fullInstall: false,
-      include: [
-        fileURLToPath(new URL('./src/i18n/messages/**', import.meta.url)),
-        fileURLToPath(new URL('./src/i18n/legacy/**', import.meta.url)),
-      ],
+      // Every new string is precompiled to an AST, and mailcow's strings are never compiled
+      // (constitution IV), so the runtime needs no message compiler.
+      dropMessageCompiler: true,
+      // Only the app's new strings: mailcow's own strings are never compiled (constitution IV).
+      include: [fileURLToPath(new URL('./src/i18n/messages/**', import.meta.url))],
     }),
   ],
   resolve: {
@@ -49,9 +50,14 @@ export default defineConfig({
     modulePreload: { polyfill: false },
     sourcemap: 'hidden',
   },
+  // mailcow serves its language files on the same origin as the API (`/lang/`, constitution IV).
   server: {
     proxy: {
       '/api/v2': {
+        target: process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
+        changeOrigin: false,
+      },
+      '/lang/': {
         target: process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
         changeOrigin: false,
       },
@@ -60,6 +66,10 @@ export default defineConfig({
   preview: {
     proxy: {
       '/api/v2': {
+        target: process.env.MOCK_API_TARGET ?? 'http://127.0.0.1:4010',
+        changeOrigin: false,
+      },
+      '/lang/': {
         target: process.env.MOCK_API_TARGET ?? 'http://127.0.0.1:4010',
         changeOrigin: false,
       },

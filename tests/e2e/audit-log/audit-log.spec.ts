@@ -33,7 +33,8 @@ async function apply(page: Page) {
   await (await filters(page)).getByRole('button', { name: 'Apply filters' }).click()
 }
 
-const summary = (page: Page) => page.getByText(/^\d+–\d+ of \d+$|^No entries$/)
+// DataTables' entries line (`datatables.info`).
+const summary = (page: Page) => page.getByText(/^Showing \d+ to \d+ of \d+ entries$/)
 
 test('US8-AS1 SC-011 failed sign-ins from an address show the attempted username, local time, address and reason', async ({
   page,
@@ -49,7 +50,7 @@ test('US8-AS1 SC-011 failed sign-ins from an address show the attempted username
   await form.getByLabel('Client address').fill('192.0.2.10')
   await expectAccessible()
   await apply(page)
-  await expect(summary(page)).toHaveText('1–3 of 3')
+  await expect(summary(page)).toHaveText('Showing 1 to 3 of 3 entries')
   const first = records(page).first()
   await expect(first).toContainText('alice@example.org (attempted)')
   await expect(first).toContainText('192.0.2.10')
@@ -75,7 +76,7 @@ test('US8-AS2 key creations and revocations show the acting administrator, the k
   await form.getByRole('checkbox', { name: 'API key created' }).check()
   await form.getByRole('checkbox', { name: 'API key revoked' }).check()
   await apply(page)
-  await expect(summary(page)).toHaveText('1–3 of 3')
+  await expect(summary(page)).toHaveText('Showing 1 to 3 of 3 entries')
   const rows = records(page)
   await expect(rows.nth(0)).toContainText('API key created')
   await expect(rows.nth(0)).toContainText('admin (Administrator)')
@@ -98,10 +99,10 @@ test('US8-AS4 filters that match nothing give an empty state that clears them', 
   await form.getByLabel('User or API key').fill('nobody@example.org')
   await apply(page)
   const main = page.getByRole('main')
-  await expect(main.getByText('No records match these filters.')).toBeVisible()
+  await expect(main.getByText('No matching records found')).toBeVisible()
   await expectAccessible()
   await main.getByRole('button', { name: 'Clear filters' }).last().click()
-  await expect(summary(page)).toHaveText('1–25 of 41')
+  await expect(summary(page)).toHaveText('Showing 1 to 25 of 41 entries')
   await expect(page).toHaveURL(/\/ng\/audit-log$/)
 })
 
@@ -116,15 +117,15 @@ test('US8-AS5 a reload or the shared address keeps the filters', async ({
   await form.getByRole('checkbox', { name: 'Sign-in' }).check()
   await form.getByLabel('Outcome').selectOption('failure')
   await apply(page)
-  await expect(summary(page)).toHaveText('1–12 of 12')
+  await expect(summary(page)).toHaveText('Showing 1 to 12 of 12 entries')
   await expect(page).toHaveURL(/event=signIn/)
   await page.reload()
-  await expect(summary(page)).toHaveText('1–12 of 12')
+  await expect(summary(page)).toHaveText('Showing 1 to 12 of 12 entries')
   await expect((await filters(page)).getByRole('checkbox', { name: 'Sign-in' })).toBeChecked()
 
   const other = await context.newPage()
   await other.goto(page.url())
-  await expect(summary(other)).toHaveText('1–12 of 12')
+  await expect(summary(other)).toHaveText('Showing 1 to 12 of 12 entries')
   await expect(other.getByRole('region', { name: 'Active filters' })).toContainText('Failure')
   await other.close()
 })
@@ -181,7 +182,7 @@ test('FR-072 25 records per page with the total; an expanded record shows target
 }) => {
   await mockApi.use('audit-records')
   await openLog(page)
-  await expect(summary(page)).toHaveText('1–25 of 41')
+  await expect(summary(page)).toHaveText('Showing 1 to 25 of 41 entries')
   await expect(records(page)).toHaveCount(25)
   const pagination = page.getByRole('navigation', { name: 'Pagination' })
   await expect(pagination).toBeVisible()
@@ -202,8 +203,8 @@ test('FR-072 25 records per page with the total; an expanded record shows target
   await expect(page.getByText(LONG_USER_AGENT.slice(0, 40))).toBeVisible()
   await expectNoHorizontalScroll()
 
-  await page.getByRole('button', { name: 'Next page' }).click()
-  await expect(summary(page)).toHaveText('26–41 of 41')
+  await page.getByRole('button', { name: 'Next' }).click()
+  await expect(summary(page)).toHaveText('Showing 26 to 41 of 41 entries')
   await expect(page).toHaveURL(/page=2/)
 })
 
@@ -219,9 +220,9 @@ test('FR-073 presets, several event types, and chips removed one by one and all 
   const form = await filters(page)
   const range = form.getByLabel('Time range')
   for (const [preset, total] of [
-    ['24h', '1–13 of 13'],
-    ['7d', '1–17 of 17'],
-    ['30d', '1–25 of 25'],
+    ['24h', 'Showing 1 to 13 of 13 entries'],
+    ['7d', 'Showing 1 to 17 of 17 entries'],
+    ['30d', 'Showing 1 to 25 of 25 entries'],
   ] as const) {
     await range.selectOption(preset)
     await apply(page)
@@ -248,12 +249,12 @@ test('FR-073 presets, several event types, and chips removed one by one and all 
   await expect(chips.getByRole('button', { name: /^Remove filter: / })).toHaveCount(3)
   await chips.getByRole('button', { name: 'Clear all filters' }).click()
   await expect(page.getByRole('region', { name: 'Active filters' })).toHaveCount(0)
-  await expect(summary(page)).toHaveText('1–25 of 41')
+  await expect(summary(page)).toHaveText('Showing 1 to 25 of 41 entries')
 })
 
 test('Edge: the empty audit log explains itself', async ({ page, mockApi, expectAccessible }) => {
   await mockApi.use('audit-empty')
   await openLog(page)
-  await expect(page.getByRole('main').getByText('No audit records yet.')).toBeVisible()
+  await expect(page.getByRole('main').getByText('No data available in table')).toBeVisible()
   await expectAccessible()
 })

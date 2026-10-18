@@ -1,10 +1,12 @@
 <script setup lang="ts">
 // The second-factor step (FR-020–FR-029, data-model §7): its own screen with the methods in the
 // server's order, the time limit with a warning one minute before it ends, "Cancel", and every
-// outcome of the step. A reload resumes it from GET /session (FR-029).
+// outcome of the step. A reload resumes it from GET /session (FR-029). The title and "Cancel" are
+// the classic two-factor modal's (`tfa.tfa`, `footer.cancel`).
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -19,7 +21,6 @@ import { useSecondFactor, type MethodSection } from '../composables/useSecondFac
 const { t } = useI18n()
 const titleId = useId()
 const {
-  session,
   pendingSignIn,
   groups,
   busy,
@@ -42,16 +43,13 @@ const focusTotp = (section: MethodSection) => section.methods.length === 1
 
 <template>
   <section class="surface flex flex-col gap-5" :aria-labelledby="titleId">
-    <h1
+    <LegacyText
       :id="titleId"
+      k="tfa.tfa"
+      as="h1"
       tabindex="-1"
       class="text-2xl font-semibold text-gray-900 focus:outline-none dark:text-white"
-    >
-      {{ t('auth.secondFactor.title') }}
-    </h1>
-    <p v-if="session?.username" class="wrap-anywhere text-gray-700 dark:text-gray-300">
-      {{ t('auth.secondFactor.intro', { username: session.username }) }}
-    </p>
+    />
     <p class="text-sm text-gray-700 tabular-nums dark:text-gray-300">
       {{ t('auth.secondFactor.timeLeft', { time: timer.clock.value }) }}
     </p>
@@ -101,7 +99,7 @@ const focusTotp = (section: MethodSection) => section.methods.length === 1
       :disabled="busy === 'cancel'"
       @click="cancel"
     >
-      {{ t('common.cancel') }}
+      <LegacyText k="footer.cancel" />
     </button>
   </section>
 </template>

@@ -34,19 +34,19 @@ describe('PlaceholderPage', () => {
     expect(wrapper.text()).toContain('This section comes in a later version of the app.')
   })
 
-  it('links to the classic pages of the role', async () => {
+  it('links to the classic pages of the role by their classic menu entries', async () => {
     expect(links(await mountPlaceholder('domains', 'admin'))).toEqual([
-      ['Mail setup', '/admin/mailbox'],
+      ['E-Mail › Configuration', '/admin/mailbox'],
     ])
     expect(links(await mountPlaceholder('domains', 'domainAdmin'))).toEqual([
-      ['Mail setup', '/domainadmin/mailbox'],
+      ['E-Mail › Configuration', '/domainadmin/mailbox'],
     ])
     expect(links(await mountPlaceholder('account', 'mailboxUser'))).toEqual([
-      ['User settings', '/user'],
+      ['User Settings', '/user'],
     ])
     expect(links(await mountPlaceholder('routing', 'admin'))).toEqual([
-      ['Configuration', '/admin/system'],
-      ['Mail setup', '/admin/mailbox'],
+      ['System › Configuration', '/admin/system'],
+      ['E-Mail › Configuration', '/admin/mailbox'],
     ])
   })
 

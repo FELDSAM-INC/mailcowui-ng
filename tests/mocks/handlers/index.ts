@@ -1,7 +1,8 @@
 // Mock API handlers (research R22), shared by every transport: Vitest (msw/node), the Node mock
 // server for development, end-to-end tests and Lighthouse.
 //
-// `createHandlers(stateResolver)` returns one catch-all handler for `/api/v2/*` that
+// `createHandlers(stateResolver)` returns the handler of mailcow's language files (`./lang`) and one
+// catch-all handler for `/api/v2/*` that
 //   1. validates the request against the contract (a request matching no operation is a violation),
 //   2. applies the server idle timeout and injected failures,
 //   3. delegates to the typed handlers of each area, with the request's scenario state,
@@ -23,6 +24,7 @@ import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
 import { problem, sessionAccount, withScenario } from './context'
 import { identityHandlers } from './identity'
+import { langHandlers } from './lang'
 import { passkeyHandlers } from './passkeys'
 import { publicConfigHandlers } from './public-config'
 
@@ -75,6 +77,8 @@ export function createHandlers(stateResolver: StateResolver): RequestHandler[] {
   const validator = contractValidator()
 
   return [
+    // mailcow's static language files: same origin, outside the API contract.
+    ...langHandlers(stateResolver),
     mswHttp.all('*/api/v2/*', async ({ request }) => {
       const state = stateResolver(request)
       const url = new URL(request.url)

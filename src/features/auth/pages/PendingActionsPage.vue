@@ -3,7 +3,8 @@
 // language, the password change first, their resolutions and "Sign out". Every other address shows
 // this screen (the guard). After a passkey registration or a successful "Check again" the app
 // continues as after sign-in (FR-031), without a new sign-in. Language and theme are chosen in the
-// layout and apply on this device only, because the server does not save preferences here.
+// layout and apply on this device only, because the server does not save preferences here. "Sign
+// out" is the classic forced-setup modal's "Cancel and log out" (`tfa.cancel_setup`).
 import { computed, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -14,6 +15,7 @@ import { rerouteCurrent } from '@/app/session/reroute'
 import { useSignOut } from '@/app/session/sign-out'
 import { usePasskeyRegistration } from '@/features/passkeys'
 import { queryKeys } from '@/api'
+import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { passkeysSupported } from '@/shared/platform/webauthn'
@@ -122,7 +124,7 @@ async function register() {
         :disabled="signingOut"
         @click="signOut"
       >
-        {{ t('common.signOut') }}
+        <LegacyText k="tfa.cancel_setup" />
       </button>
     </div>
   </section>

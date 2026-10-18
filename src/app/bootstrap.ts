@@ -5,12 +5,17 @@
 // A network error or any 5xx (including nginx's HTML 502 while the API is down) shows the
 // "service unavailable" page with a retry. A failed public configuration alone uses the FR-003
 // defaults. Language and theme are applied from the device, the server and the profile (R15, R16).
+// mailcow's language files are requested at the start, next to the API calls: en-gb and the
+// language remembered on the device, so that applying the language rarely waits for them.
 import type { QueryClient } from '@tanstack/vue-query'
 import { readonly, ref } from 'vue'
 
 import { isApiProblem, refreshCsrfToken } from '@/api'
+import { prefetchLegacy } from '@/i18n'
+import { DEFAULT_LOCALE, isAppLocale } from '@/i18n/locales'
 
 import { brandingFrom, publicConfigQuery } from './branding/public-config'
+import { rememberedLocale } from './preferences/locale'
 import { usePreferencesStore } from './preferences/store'
 import { identityQuery, isSignedIn, sessionQuery } from './session/queries'
 
@@ -43,7 +48,10 @@ function notReady(error: unknown): boolean {
 async function applyPreferences(ctx: BootstrapContext, signedIn: boolean): Promise<void> {
   const preferences = usePreferencesStore()
   const branding = brandingFrom(ctx.queryClient.getQueryData(publicConfigQuery().queryKey))
-  preferences.setServerLanguages(branding.languages, branding.defaultLanguage)
+  // Without the public configuration: mailcow's default language menu, a lazy chunk (FR-003).
+  const languages =
+    branding.languages ?? (await import('@/i18n/default-languages')).DEFAULT_LANGUAGES
+  preferences.setServerLanguages([...languages], branding.defaultLanguage)
   await preferences.initialise()
   const profile = signedIn
     ? ctx.queryClient.getQueryData(identityQuery().queryKey)?.preferences
@@ -59,6 +67,8 @@ export async function runBootstrap(ctx: BootstrapContext): Promise<BootstrapStat
     })
   }
   status.value = 'pending'
+  const remembered = rememberedLocale()
+  prefetchLegacy(isAppLocale(remembered) ? remembered : DEFAULT_LOCALE)
   try {
     await refreshCsrfToken()
     const [session] = await Promise.all([

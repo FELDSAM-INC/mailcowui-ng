@@ -39,7 +39,8 @@ describe('PendingActionsPage', () => {
     useScenario('forced-both')
     installWebAuthn()
     const { wrapper } = await mountPage()
-    expect(headings(wrapper)).toEqual(['Change your password', 'Set up a second factor'])
+    // The classic forced-change modals' titles (`user.change_password`, `tfa.setup_title`).
+    expect(headings(wrapper)).toEqual(['Change password', 'Two-Factor Authentication Required'])
     expect(wrapper.text()).toContain(
       'You can register a passkey here once your password has been changed.',
     )

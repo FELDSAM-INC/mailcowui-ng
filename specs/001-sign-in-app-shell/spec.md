@@ -62,7 +62,9 @@
   app's translations? → A: Only languages that are both enabled on the server and translated in
   the app (initially English, Czech and Slovak). If there are none, the app uses English, offers no
   language choice and saves no language. (agent decision: constitution IV requires complete
-  translations, and API FR-030 rejects languages that the server has not enabled.)
+  translations, and API FR-030 rejects languages that the server has not enabled.) *Amended
+  2026-10-18 (constitution 1.3.0): the app ships every mailcow language, so it offers the server's
+  enabled languages that mailcow ships; see FR-060.*
 - Q: When the language or theme chosen on the sign-in screen differs from the saved profile
   preference, which one applies after sign-in? → A: A choice the user made on the sign-in screen
   during this visit applies and is saved to the profile; otherwise the profile applies. The last
@@ -393,7 +395,8 @@ both, and walk through each resolution path, including a device without passkey 
 
 ### User Story 6 - Choose language and theme (Priority: P2)
 
-Any signed-in user switches the language between English, Czech and Slovak, and the theme between
+Any signed-in user switches the language between the languages the server enables (every language
+mailcow ships; amended for constitution 1.3.0), and the theme between
 light, dark and the device setting. The change applies at once and is saved to their profile, so
 it follows them to other devices. Before sign-in, the app uses the browser's language.
 
@@ -611,7 +614,8 @@ and the persistence of filters across reloads.
   markup.
 - **FR-003**: If the public configuration cannot be loaded, sign-in MUST still work with neutral
   built-in defaults: the server's host name as the product name, no logo, no help text, footer,
-  announcement or app links, all languages the app is translated into, and no login page options.
+  announcement or app links, the languages of mailcow's default language menu (amended for
+  constitution 1.3.0), and no login page options.
   No product or operator name may be built into the app (constitution IV).
 - **FR-004**: Until the API offers branding colours (feature 013), the app MUST use its default
   theme colours in both themes.
@@ -849,10 +853,11 @@ and the persistence of filters across reloads.
 - **FR-059**: A change MUST apply at once to all text, the document language, date and number
   formats, the theme and the logo, and MUST be saved to the user's profile when signed in. If
   saving fails, the previous setting MUST be restored and a translated message shown.
-- **FR-060**: The app MUST offer the languages that are both enabled on the server and translated
-  in the app (initially English, Czech and Slovak). When only one language is available, no
-  language choice may be shown. When none of the server's enabled languages is translated in the
-  app, the app MUST use English, offer no language choice and save no language to the profile.
+- **FR-060**: The app MUST offer the languages that are both enabled on the server and shipped by
+  mailcow (its 33 `lang.<code>.json` files; amended for constitution 1.3.0), in the server's order
+  and with the names of the server's language menu. When only one language is available, no
+  language choice may be shown. When none of the server's enabled languages is one of them, the
+  app MUST use English, offer no language choice and save no language to the profile.
 - **FR-061**: Before sign-in, the app MUST use the language and theme last applied on this device.
   Without them, it MUST use the browser's preferred language when the app offers it, otherwise the
   server's default language when the app offers it, otherwise English, and the device's theme
@@ -978,11 +983,16 @@ and the persistence of filters across reloads.
   into sections.
 - **FR-084**: Status, outcome and announcement types MUST NOT be conveyed by colour alone.
 - **FR-085**: Animations MUST respect the device's reduced-motion setting.
-- **FR-086**: All app text MUST come from translations in English, Czech and Slovak. Keys of the
-  legacy `lang.*.json` files MUST be reused where the meaning is unchanged, taken from the upstream
-  baseline. Legacy texts that name the product or the operator, and texts that call passkeys
-  "FIDO2" or "Touch ID", MUST NOT be reused as they are. Operator texts (product name, help text,
-  footer, announcement, "Apps" text and app link names) MUST be shown as authored.
+- **FR-086** (amended for constitution 1.3.0): All app text MUST come from translations. Every
+  element with a classic-interface counterpart MUST show mailcow's own text, verbatim, loaded at
+  runtime from the installation's `/lang/lang.<code>.json` merged over its `lang.en-gb.json` (a
+  missing key shows English, as in the classic interface), with the bundled upstream en-gb snapshot
+  used only when `/lang/` cannot be loaded. Legacy values MUST NOT be changed: only `%s`, `%d` and
+  the DataTables placeholders are filled, and markup is rendered through the sanitiser. Elements
+  the classic interface lacks MUST use new strings in English, Czech and Slovak; other languages
+  show their English text. Passkey texts are new strings (owner decision). Operator texts (product
+  name, help text, footer, announcement, "Apps" text and app link names) MUST be shown as
+  authored. Each screen follows the legacy form map in the plan.
 - **FR-087**: Dates, times and numbers MUST be formatted for the user's language and shown in the
   device's time zone. A relative time ("5 minutes ago") MUST make the absolute time available.
 - **FR-088**: The document language MUST match the language in use.
@@ -1007,7 +1017,7 @@ Reference: the FeldHost fork at `../mailhosting/data/web/` (upstream baseline `2
 `templates/{user_index,admin_index,domainadmin_index,base}.twig`, `templates/modals/footer.twig`,
 `templates/fido2.twig`, `templates/admin/tab-config-admins.twig`,
 `templates/user/tab-user-auth.twig`, `templates/domainadmin.twig`, `js/build/013-mailcow.js` and
-`lang/lang.{en-gb,cs-cz,sk-sk}.json`.
+`lang/lang.*.json` (all 33, loaded from the installation at runtime; constitution 1.3.0).
 
 | Legacy screen or element | New app | Status | Requirements |
 |---|---|---|---|
@@ -1015,7 +1025,8 @@ Reference: the FeldHost fork at `../mailhosting/data/web/` (upstream baseline `2
 | Role title in the login card header (`login.login_user`, `login_admin`, `login_dadmin`) | Heading of the role-specific sign-in | Matched | FR-005 |
 | "Not the correct login?" links, hidden by the login page options | Links to role-specific sign-in, same options | Matched | FR-006 |
 | Dark-mode switch on the login page and in the header (light or dark, kept in browser storage) | Light, dark or device setting, saved to the profile | Improved | FR-058 to FR-062 |
-| Language drop-down with flag icons (cookie per browser) | Language choice by name, saved to the profile | Improved: flags are not languages and are not accessible | FR-058 to FR-061 |
+| Language drop-down with flag icons (cookie per browser) | Language choice by the menu's names, every mailcow language the server enables, saved to the profile | Improved: flags are not languages and are not accessible | FR-058 to FR-061 |
+| Texts of every screen in the user's language (`lang.<code>.json` over `lang.en-gb.json`) | mailcow's own texts, verbatim, from the installation's `/lang/` at runtime | Matched (constitution 1.3.0) | FR-086 |
 | Light and dark logo | Same, from the public configuration | Matched | FR-001 |
 | Announcement on the login page and on signed-in pages | Same, plain text, type not by colour only | Matched | FR-048 |
 | Product name (`main_name`) as the login legend, website title | Same | Matched | FR-001, FR-049 |
@@ -1132,9 +1143,10 @@ described by behaviour:
   completed with a keyboard alone and with a screen reader.
 - **SC-005**: No screen of this feature scrolls horizontally at 360 px, and every touch target is
   at least 44 × 44 CSS px.
-- **SC-006**: 100 % of app texts, problem types and validation rule codes of the API feature 001
-  contract have English, Czech and Slovak translations, and no English API message is ever shown
-  as a user-facing message.
+- **SC-006**: 100 % of new strings, problem types and validation rule codes of the API feature 001
+  contract have English, Czech and Slovak translations or the classic interface's message of the
+  same meaning, every legacy key the app uses exists in the en-gb snapshot, and no English API
+  message is ever shown as a user-facing message.
 - **SC-007**: Every navigation entry of every role leads to a working screen or a placeholder (zero
   broken links), and each role sees exactly the entries of the navigation catalogue for its
   permission flags.

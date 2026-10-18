@@ -30,7 +30,7 @@ export interface Branding {
   /** Present only when the announcement is active and has text. */
   announcement: { text: string; type: AnnouncementType } | null
   loginPage: LoginPageOptions
-  /** `null` when unknown: every app language is offered (FR-003). */
+  /** `null` when unknown: mailcow's default language menu is offered (FR-003). */
   languages: Language[] | null
   defaultLanguage: string | null
   externalIdentityProvider: boolean

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 // Yubico OTP (FR-023): one field for the key's output, checked to be 44 letters or digits before it
-// is sent, and cleared after every attempt.
+// is sent, and cleared after every attempt. As in the classic two-factor modal: the field under
+// "Authenticators", the placeholder "Touch Yubikey" and "Login".
 import { ref, useId, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { SecondFactorVerification, Writable } from '@/api'
+import { lt } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
+import LegacyText from '@/shared/components/LegacyText.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -42,8 +45,7 @@ function submit() {
       <FormField
         :id="fieldId"
         v-slot="field"
-        :label="t('auth.secondFactor.yubiOtp.field')"
-        :description="t('auth.secondFactor.yubiOtp.help')"
+        :label="lt('tfa.authenticators')"
         :errors="error ? [error] : []"
       >
         <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
@@ -56,6 +58,7 @@ function submit() {
           autocapitalize="none"
           spellcheck="false"
           maxlength="64"
+          :placeholder="t('auth.secondFactor.yubiOtp.placeholder')"
           class="form-control"
         />
       </FormField>
@@ -65,7 +68,7 @@ function submit() {
         :disabled="busy"
         :aria-busy="busy ? 'true' : 'false'"
       >
-        {{ t('auth.secondFactor.verify') }}
+        <LegacyText k="login.login" />
       </button>
     </form>
   </MethodSection>

@@ -1,25 +1,44 @@
 // Language resolution (FR-060, FR-061, FR-088, research R15). Pure rules plus `applyLocale`,
-// which switches the messages, the document language and the remembered device language.
+// which switches mailcow's strings and the new strings, the document language and the remembered
+// device language.
 import type { Language, SessionState } from '@/api'
-import { i18n, loadLocale } from '@/i18n'
+import { i18n, loadLegacy, loadLocale } from '@/i18n'
 import {
-  APP_LOCALES,
   DEFAULT_LOCALE,
   isAppLocale,
-  primarySubtag,
+  matchBrowserLanguage,
   toBcp47,
   type AppLocale,
 } from '@/i18n/locales'
 import { localStore } from '@/shared/platform/storage'
 
+export interface AvailableLanguage {
+  code: AppLocale
+  /** The label of the installation's language menu (`$AVAILABLE_LANGUAGES`). */
+  name: string
+}
+
 /**
- * The server's enabled languages that the app translates, in the app's order. `null` means the
- * public configuration could not be loaded: every app language is offered (FR-003).
+ * The server's enabled languages that mailcow ships (constitution IV), in the server's order and
+ * with its names, as the classic language menu lists them. `null` (not known yet) offers none; the
+ * start sequence passes mailcow's default menu when the public configuration fails (FR-003).
  */
+export function resolveAvailableLanguages(
+  serverLanguages: readonly Language[] | null,
+): AvailableLanguage[] {
+  const result: AvailableLanguage[] = []
+  for (const language of serverLanguages ?? []) {
+    const code = language.code.toLowerCase()
+    if (isAppLocale(code) && !result.some((item) => item.code === code)) {
+      result.push({ code, name: language.name })
+    }
+  }
+  return result
+}
+
+/** The codes of `resolveAvailableLanguages`. */
 export function resolveAvailableLocales(serverLanguages: readonly Language[] | null): AppLocale[] {
-  if (serverLanguages === null) return [...APP_LOCALES]
-  const codes = new Set(serverLanguages.map((language) => language.code.toLowerCase()))
-  return APP_LOCALES.filter((locale) => codes.has(locale))
+  return resolveAvailableLanguages(serverLanguages).map((language) => language.code)
 }
 
 /** A language choice is shown only when there is something to choose (FR-060). */
@@ -51,7 +70,7 @@ export function resolvePreSignInLocale(input: PreSignInInput): AppLocale {
     isAppLocale(code) && available.includes(code)
   if (offered(input.remembered)) return input.remembered
   for (const language of input.browserLanguages) {
-    const match = available.find((locale) => primarySubtag(locale) === primarySubtag(language))
+    const match = matchBrowserLanguage(language, available)
     if (match) return match
   }
   const serverDefault = input.serverDefault?.toLowerCase() ?? null
@@ -69,8 +88,8 @@ export interface SignedInInput extends PreSignInInput {
 
 /**
  * After sign-in the profile language applies, unless the user chose a language on the sign-in
- * screen during this visit, which is kept and saved. An untranslated profile language falls back
- * to the pre-sign-in order and is not overwritten (FR-061, data-model §4).
+ * screen during this visit, which is kept and saved. A profile language that is not available
+ * falls back to the pre-sign-in order and is not overwritten (FR-061, data-model §4).
  */
 export function resolveSignedInLocale(input: SignedInInput): {
   locale: AppLocale
@@ -88,9 +107,12 @@ export function resolveSignedInLocale(input: SignedInInput): {
   return { locale: resolvePreSignInLocale(input), saveToProfile: false }
 }
 
-/** Switches the app to a language: messages, `<html lang>` and the remembered language. */
+/**
+ * Switches the app to a language: mailcow's strings from the installation and the new strings
+ * (both loaded before the switch), `<html lang>` and the remembered language.
+ */
 export async function applyLocale(locale: AppLocale): Promise<void> {
-  await loadLocale(i18n, locale)
+  await Promise.all([loadLocale(i18n, locale), loadLegacy(locale)])
   i18n.global.locale.value = locale
   document.documentElement.lang = toBcp47(locale)
   localStore.set('mailcowui-ng.locale', locale)

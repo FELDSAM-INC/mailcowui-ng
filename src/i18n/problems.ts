@@ -1,11 +1,14 @@
 // Translated messages for API problems and field violations (FR-075–FR-077, research R15). The
 // app never shows the API's English `title`, `detail` or `message`. Problems are keyed by the last
-// path segment of their type, so no list of types is written by hand (constitution I).
+// path segment of their type, so no list of types is written by hand (constitution I). A key that
+// the classic interface has a message for resolves to mailcow's own text (`./legacy-messages`,
+// constitution IV 1.3.0): the translator's `t` and `te` are those of `useText()`.
 import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, FieldViolation } from '@/api'
 
 import { formatList, formatNumber } from './format'
+import { hasMessage, text } from './index'
 import { isAppLocale, DEFAULT_LOCALE, type AppLocale } from './locales'
 
 export interface MessageTranslator {
@@ -86,8 +89,8 @@ export function violationMessage(violation: FieldViolation, tr: MessageTranslato
 export function useProblemMessages() {
   const composer = useI18n({ useScope: 'global' })
   const tr = (): MessageTranslator => ({
-    t: (key, named) => (named ? composer.t(key, named) : composer.t(key)),
-    te: (key) => composer.te(key),
+    t: text,
+    te: hasMessage,
     locale: composer.locale.value,
   })
   return {

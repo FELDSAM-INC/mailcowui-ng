@@ -6,6 +6,7 @@ import { ref, shallowRef, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Passkey } from '@/api'
+import { lt } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
@@ -121,7 +122,7 @@ async function save() {
             :class="buttonVariants({ variant: 'outline' })"
             @click="open = false"
           >
-            {{ t('common.cancel') }}
+            {{ lt('footer.cancel') }}
           </button>
           <button
             type="submit"

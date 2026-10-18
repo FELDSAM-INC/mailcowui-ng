@@ -1,42 +1,21 @@
-// The app's vue-i18n setup (research R15): Composition API mode, runtime-only, with messages
-// precompiled by @intlify/unplugin-vue-i18n (no runtime compilation, CSP). Each locale has two
-// layers: the legacy layer generated from mailcow's translations and the hand-written app layer.
-// en-gb is bundled as the fallback; cs-cz and sk-sk are lazy chunks loaded before they are
-// applied.
+// The app's translations (constitution IV 1.3.0, research R15), in two parts:
+// - mailcow's own strings, loaded at runtime from the installation (`./legacy`, `lt()`,
+//   `<LegacyText>`), never compiled by vue-i18n;
+// - the app's new strings, in vue-i18n (Composition API mode, runtime-only, messages precompiled
+//   by @intlify/unplugin-vue-i18n: no runtime compilation, CSP). en-gb is bundled; cs-cz and sk-sk
+//   are lazy chunks; every other locale falls back to en-gb.
 import { createI18n } from 'vue-i18n'
 
-import enGbLegacy from './legacy/en-gb.json'
+import { lt } from './legacy'
+import { LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
-import enGbApp from './messages/en-gb.json'
+import enGb from './messages/en-gb.json'
 
-export type MessageSchema = typeof enGbApp & typeof enGbLegacy
+export type MessageSchema = typeof enGb
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface DefineLocaleMessage extends MessageSchema {}
-}
-
-type Tree = Record<string, unknown>
-
-/** A compiled message (vue-i18n AST: type 0 with a body), as opposed to a namespace. */
-function isMessageAst(value: Tree): boolean {
-  return (value.t ?? value.type) === 0 && ('b' in value || 'body' in value)
-}
-
-const isTree = (value: unknown): value is Tree =>
-  value !== null &&
-  typeof value === 'object' &&
-  !Array.isArray(value) &&
-  !isMessageAst(value as Tree)
-
-/** Merges the two layers; they never share a key (checked by `npm run i18n:check`). */
-export function mergeLayers(legacy: Tree, app: Tree): Tree {
-  const out: Tree = { ...legacy }
-  for (const [key, value] of Object.entries(app)) {
-    const existing = out[key]
-    out[key] = isTree(existing) && isTree(value) ? mergeLayers(existing, value) : value
-  }
-  return out
 }
 
 export function createAppI18n() {
@@ -47,31 +26,49 @@ export function createAppI18n() {
     fallbackLocale: DEFAULT_LOCALE,
     missingWarn: false,
     fallbackWarn: false,
-    messages: { [DEFAULT_LOCALE]: mergeLayers(enGbLegacy, enGbApp) as MessageSchema },
+    messages: { [DEFAULT_LOCALE]: enGb },
   })
 }
 
 export type AppI18n = ReturnType<typeof createAppI18n>
 
-const loaders: Record<Exclude<AppLocale, 'en-gb'>, () => Promise<[Tree, Tree]>> = {
-  'cs-cz': () =>
-    Promise.all([
-      import('./legacy/cs-cz.json').then((m) => m.default as Tree),
-      import('./messages/cs-cz.json').then((m) => m.default as Tree),
-    ]),
-  'sk-sk': () =>
-    Promise.all([
-      import('./legacy/sk-sk.json').then((m) => m.default as Tree),
-      import('./messages/sk-sk.json').then((m) => m.default as Tree),
-    ]),
+const loaders: Partial<Record<AppLocale, () => Promise<MessageSchema>>> = {
+  'cs-cz': () => import('./messages/cs-cz.json').then((m) => m.default),
+  'sk-sk': () => import('./messages/sk-sk.json').then((m) => m.default),
 }
 
-/** Loads a locale's messages into an i18n instance (once). Does not switch to it. */
+/**
+ * Loads a locale's new strings into an i18n instance (once), if it has its own; the others use
+ * en-gb. Does not switch to it.
+ */
 export async function loadLocale(target: AppI18n, locale: AppLocale): Promise<void> {
-  if (locale === 'en-gb' || target.global.availableLocales.includes(locale)) return
-  const [legacy, app] = await loaders[locale]()
-  target.global.setLocaleMessage(locale, mergeLayers(legacy, app) as MessageSchema)
+  const loader = loaders[locale]
+  if (!loader || target.global.availableLocales.includes(locale)) return
+  target.global.setLocaleMessage(locale, await loader())
 }
 
 /** The app's single i18n instance. */
 export const i18n = createAppI18n()
+
+/**
+ * Whether a key built at runtime has a text: a new string (en-gb is complete and cs-cz and sk-sk
+ * have the same keys, `npm run i18n:check`, so en-gb answers for every locale), or mailcow's own
+ * text through `LEGACY_TEXTS`.
+ */
+export function hasMessage(key: string): boolean {
+  return key in LEGACY_TEXTS || i18n.global.te(key, DEFAULT_LOCALE)
+}
+
+/**
+ * The text of a key built at runtime (`roles.${role}`, `problem.${name}`): mailcow's own text when
+ * `LEGACY_TEXTS` names one, otherwise the new string. Reactive like `t`.
+ */
+export function text(key: string, named?: Record<string, unknown>): string {
+  const classic = LEGACY_TEXTS[key]
+  if (classic) return lt(classic)
+  return named ? i18n.global.t(key, named) : i18n.global.t(key)
+}
+
+export { hasLegacy, legacyStatus, loadLegacy, lt, prefetchLegacy, type LegacyKey } from './legacy'
+export type { LegacyArg, LegacyNamed } from './legacy-format'
+export { legacy, resolveText, type LegacyRef, type TextRef } from './text'

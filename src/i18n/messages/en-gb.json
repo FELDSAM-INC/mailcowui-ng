@@ -5,10 +5,8 @@
     "errorPrefix": "Error:",
     "mainNavigation": "Main navigation",
     "morePages": "More pages",
-    "nextPage": "Next page",
-    "openNavigation": "Open navigation",
+    "openNavigation": "Toggle navigation",
     "pagination": "Pagination",
-    "previousPage": "Previous page",
     "skipToContent": "Skip to main content",
     "userMenu": "Account menu of {username}"
   },
@@ -20,16 +18,13 @@
       "expiresAt": "Expires",
       "lastUsedAt": "Last used",
       "name": "Name",
-      "owner": "Owner",
-      "prefix": "Prefix",
-      "status": "Status"
+      "prefix": "Prefix"
     },
     "create": {
       "action": "Create API key",
       "created": "The API key has been created.",
       "intro": "The key acts with its owner's role and permissions. Its secret is shown only once, right after it is created.",
       "submit": "Create API key",
-      "submitting": "Creating…",
       "title": "Create API key"
     },
     "detail": {
@@ -56,26 +51,21 @@
     },
     "fields": {
       "access": "Access",
-      "allowedNetworks": "Allowed networks",
       "created": "Created",
       "createdBy": "Created by",
       "expires": "Expires",
       "lastUsed": "Last used",
-      "owner": "Owner",
       "prefix": "Prefix",
       "revoked": "Revoked",
-      "revokedBy": "Revoked by",
-      "status": "Status"
+      "revokedBy": "Revoked by"
     },
     "filters": {
       "access": "Access",
       "allAccessLevels": "All access levels",
       "allStatuses": "All statuses",
       "clear": "Clear filters",
-      "owner": "Owner",
       "ownerHint": "Choose an owner, or type a username and press Enter.",
       "sort": "Sort by",
-      "status": "Status",
       "title": "Filters"
     },
     "form": {
@@ -87,9 +77,7 @@
       "expiry": "Expiry",
       "name": "Name",
       "nameHint": "A name that tells you which program uses the key.",
-      "networks": "Allowed networks",
       "networksHint": "Leave empty to allow any address. Otherwise enter IPv4 or IPv6 addresses or networks, for example 192.0.2.0/24.",
-      "owner": "Owner",
       "ownerHint": "The key acts with this account's role and permissions. A key owned by a domain administrator is limited to that administrator's domains and permissions."
     },
     "intro": "Keys for other programs that use this API, such as billing systems.",
@@ -100,7 +88,6 @@
       "limit": "At most {max} networks.",
       "remove": "Remove network {number}"
     },
-    "neverExpires": "Never",
     "neverUsed": "Never used",
     "owner": {
       "deleted": "Deleted account",
@@ -157,8 +144,7 @@
       "event": "Event",
       "method": "Method",
       "outcome": "Outcome",
-      "reason": "Reason",
-      "time": "Time"
+      "reason": "Reason"
     },
     "description": "Sign-ins, sign-outs and changes to passkeys, preferences and API keys, newest first.",
     "details": {
@@ -170,7 +156,6 @@
       "target": "Target",
       "userAgent": "User agent"
     },
-    "empty": "No audit records yet.",
     "filters": {
       "actor": "User or API key",
       "actorHelp": "A username, including one tried in a failed sign-in, or an API key ID.",
@@ -194,7 +179,6 @@
       "title": "Filters",
       "to": "To"
     },
-    "noMatch": "No records match these filters.",
     "notRecorded": "Not recorded",
     "records": "Audit records",
     "resultCount": "Records found: {total}",
@@ -221,7 +205,7 @@
     "pendingActions": {
       "intro": "Your account has actions to complete before you can continue.",
       "password": {
-        "body": "Your password must be changed. This app cannot change passwords yet: change it in the classic interface, then check again here.",
+        "body": "This app cannot change passwords yet: change it in the classic interface, then check again here.",
         "checkAgain": "Check again",
         "link": "Change your password in the classic interface",
         "stillPending": "The password change is still pending."
@@ -230,76 +214,56 @@
         "afterPassword": "You can register a passkey here once your password has been changed.",
         "classicLink": "Set up a second factor in the classic interface",
         "register": "Register a passkey",
-        "required": "Your account must have a second factor. A passkey counts as one.",
+        "required": "A passkey counts as a second factor.",
         "unsupported": "This device cannot create passkeys. You can set up a second factor in the classic interface."
       },
       "title": "Actions required"
     },
     "secondFactor": {
-      "intro": "Signing in as {username}. Confirm the sign-in with one of your second factors.",
       "oneMinute": "One minute left to complete the sign-in.",
       "otherMethods": "Other methods",
       "timeLeft": "Time left: {time}",
       "totp": {
         "code": "Six-digit code"
       },
-      "verify": "Verify",
       "webauthn": {
         "start": "Use your security key or passkey",
         "unsupported": "This device cannot use a security key or passkey. Choose another method.",
         "waiting": "Waiting for your security key or passkey…"
       },
       "yubiOtp": {
-        "field": "Yubico OTP",
-        "help": "Touch your YubiKey to type the code into this field."
+        "placeholder": "Touch Yubikey"
       }
     },
     "signIn": {
       "anyRole": "Sign in with any account",
-      "help": "Help",
       "idpHint": {
         "body": "Accounts that sign in through your organisation's identity provider cannot use their password here yet.",
         "link": "Sign in in the classic interface"
       },
-      "showPassword": "Show password",
+      "showPassword": "Toggle password visibility",
       "sso": {
         "body": "This server uses single sign-on. For now it is available in the classic interface.",
-        "link": "Sign in with single sign-on in the classic interface",
-        "title": "Single sign-on"
+        "link": "Sign in with single sign-on in the classic interface"
       },
-      "submit": "Sign in",
-      "submitting": "Signing in…",
       "throttle": {
         "announce": "Too many attempts. You can try again in {time}.",
         "countdown": "You can try again in {time}",
         "ended": "You can try to sign in again."
-      },
-      "title": "Sign in"
+      }
     }
   },
   "common": {
     "close": "Close",
     "documentTitle": "{page} – {site}",
     "goHome": "Go to the home screen",
-    "next": "Next",
     "opensInNewTab": "(opens in a new tab)",
-    "previous": "Previous",
     "requestId": "Request ID: {requestId}",
     "retry": "Try again",
     "signOut": "Sign out"
   },
   "enums": {
-    "announcementType": {
-      "danger": "Important",
-      "info": "Information",
-      "warning": "Warning"
-    },
-    "apiKeyAccessLevel": {
-      "readOnly": "Read only",
-      "readWrite": "Read and write"
-    },
     "apiKeyStatus": {
-      "active": "Active",
       "expired": "Expired",
       "revoked": "Revoked"
     },
@@ -329,29 +293,16 @@
       "verificationUnavailable": "Verification service unavailable"
     },
     "auditOutcome": {
-      "failure": "Failure",
-      "success": "Success"
+      "failure": "Failure"
     },
     "auditTargetType": {
-      "apiKey": "API key",
       "passkey": "Passkey",
       "preferences": "Preferences",
       "session": "Session"
     },
     "authMethod": {
-      "apiKey": "API key",
       "passkey": "Passkey",
-      "password": "Password",
       "passwordAndSecondFactor": "Password and second factor"
-    },
-    "pendingAction": {
-      "passwordChange": "Change your password",
-      "secondFactorSetup": "Set up a second factor"
-    },
-    "secondFactorType": {
-      "totp": "Authenticator app (TOTP)",
-      "webauthn": "Security key or passkey",
-      "yubiOtp": "Yubico OTP"
     }
   },
   "forms": {
@@ -383,15 +334,10 @@
   },
   "lists": {
     "pagination": {
-      "current": "Page {page} of {pages}",
-      "empty": "No entries",
-      "pageSize": "Per page",
-      "summary": "{from}–{to} of {total}"
+      "current": "Page {page} of {pages}"
     }
   },
   "nav": {
-    "account": "My account",
-    "administrators": "Administrators",
     "aliases": "Aliases and resources",
     "apiKeys": "API keys",
     "auditLog": "Audit log",
@@ -401,7 +347,6 @@
     "operations": "Monitoring and operations",
     "passkeys": "Passkeys",
     "routing": "Routing and rewriting",
-    "spamFilter": "Spam filter",
     "system": "System settings"
   },
   "passkeys": {
@@ -426,9 +371,7 @@
     "otherHost": "Works only on {host}",
     "registered": "Registered",
     "remove": {
-      "action": "Remove",
       "body": "It will no longer sign you in, here or in the classic interface.",
-      "confirm": "Remove",
       "last": "This is your last passkey. Your password remains the way to sign in.",
       "title": "Remove the passkey “{name}”?"
     },
@@ -447,18 +390,12 @@
     "classicHeading": "Use the classic interface for now",
     "note": "The classic interface has its own session, so you sign in there separately.",
     "pages": {
-      "mailSetup": "Mail setup",
       "other": "Classic interface"
     }
   },
   "preferences": {
     "changedElsewhere": "Your preferences were changed elsewhere. The saved setting is shown now; choose again if you like.",
     "language": "Language",
-    "languages": {
-      "cs-cz": "Čeština",
-      "en-gb": "English",
-      "sk-sk": "Slovenčina"
-    },
     "notSaved": "Your change was not saved. The previous setting is back.",
     "saved": "Saved.",
     "theme": "Theme"
@@ -468,43 +405,33 @@
     "api-key-invalid": "The API key is not valid.",
     "api-key-revoked": "The API key has been revoked.",
     "api-key-source-not-allowed": "The API key cannot be used from this network address.",
-    "csrf-token-mismatch": "Your session could not be verified. Please try again.",
-    "forbidden": "You do not have permission to do this.",
-    "generic": "Something went wrong. Please try again.",
     "insufficient-key-scope": "The API key does not allow this action.",
     "network": "The server could not be reached. Check your connection and try again.",
     "passkey-registration-failed": "The passkey could not be registered. Please try again.",
     "pending-action-required": "Your account has actions to complete first.",
     "second-factor-failed": "The code was not accepted. Please start the sign-in again.",
-    "second-factor-required": "Please complete the second sign-in step.",
     "second-factor-unavailable": "Your second factors cannot be used here. Ask an administrator to reset them.",
     "service-unavailable": "The service is temporarily unavailable. Please try again in a moment.",
     "session-required": "This action needs a signed-in session.",
     "sign-in-expired": "The sign-in timed out. Please start again.",
-    "sign-in-failed": "Sign-in failed. Check your details and try again.",
     "status": {
       "400": "The request could not be processed.",
       "401": "Please sign in again.",
-      "403": "You do not have permission to do this.",
       "404": "This item could not be found.",
       "409": "This conflicts with the current state. Reload and try again.",
       "412": "This item was changed elsewhere. It has been reloaded; please try again.",
       "413": "The request is too large.",
       "422": "Some values are not valid.",
       "429": "Too many requests. Please wait before trying again.",
-      "500": "Something went wrong on the server. Please try again.",
       "502": "The service is temporarily unavailable. Please try again in a moment.",
       "503": "The service is temporarily unavailable. Please try again in a moment.",
       "504": "The server took too long to answer. Please try again."
     },
-    "temporary-verification-failure": "The code could not be checked right now. Try again or choose another method.",
     "too-many-requests": "Too many attempts. Please wait before trying again.",
     "unauthenticated": "Your session has ended. Please sign in again.",
     "validation-failed": "Some fields need your attention."
   },
   "roles": {
-    "admin": "Administrator",
-    "domainAdmin": "Domain administrator",
     "mailboxUser": "Mailbox user"
   },
   "secrets": {
@@ -535,17 +462,11 @@
       "expand": "Show announcement",
       "prefix": "{type}:"
     },
-    "signOutFailed": "Sign-out could not be confirmed. Check your connection and try again.",
-    "signingOut": "Signing out…",
-    "userMenu": {
-      "signedInAs": "Signed in as"
-    }
+    "signOutFailed": "Sign-out could not be confirmed. Check your connection and try again."
   },
   "states": {
     "list": {
-      "empty": "Nothing to show.",
-      "error": "The list could not be loaded.",
-      "loading": "Loading…"
+      "error": "The list could not be loaded."
     },
     "noAccess": {
       "body": "Your account cannot use this section. If you think this is wrong, ask your administrator.",

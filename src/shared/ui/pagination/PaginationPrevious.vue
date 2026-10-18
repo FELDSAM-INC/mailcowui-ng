@@ -1,15 +1,15 @@
 <!-- Derived from TailAdmin Vue Free 2.5.0 (94ebe1b), MIT. See THIRD_PARTY_NOTICES.md. -->
 <script setup lang="ts">
 import { useAttrs } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { ButtonSize, ButtonVariant } from '@/shared/ui/button'
 import { ChevronLeftIcon } from '@/shared/icons'
+import { lt } from '@/i18n'
+
 import PaginationLink from './PaginationLink.vue'
 
 defineOptions({ inheritAttrs: false })
 
-// Deviation: user-facing text comes from the app's translations (constitution IV).
-const { t } = useI18n()
+// Deviation: user-facing text is the classic interface's DataTables text (constitution IV).
 
 withDefaults(
   defineProps<{
@@ -29,7 +29,7 @@ const attrs = useAttrs()
 
 <template>
   <PaginationLink
-    :aria-label="t('a11y.previousPage')"
+    :aria-label="lt('datatables.paginate.previous')"
     :size="size"
     :variant="variant"
     :disabled="disabled"
@@ -37,7 +37,9 @@ const attrs = useAttrs()
   >
     <slot>
       <ChevronLeftIcon data-icon="inline-start" class="rtl:rotate-180" />
-      <span v-if="size !== 'icon'" class="hidden sm:block">{{ text ?? t('common.previous') }}</span>
+      <span v-if="size !== 'icon'" class="hidden sm:block">{{
+        text ?? lt('datatables.paginate.previous')
+      }}</span>
     </slot>
   </PaginationLink>
 </template>

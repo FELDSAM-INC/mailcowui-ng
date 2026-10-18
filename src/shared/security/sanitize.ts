@@ -1,5 +1,8 @@
-// Sanitiser for operator-authored HTML: the login help text and the footer (FR-002, research R17).
-// The output may only be rendered through SanitizedHtml.vue, the one place that uses v-html.
+// Sanitisers for HTML the app shows (research R17), rendered only through SanitizedHtml.vue, the
+// one place that uses v-html:
+// - operator-authored HTML: the login help text and the footer (FR-002);
+// - the markup in mailcow's own language values (`<b>`, `<br>`, `<code>`, links and lists), shown
+//   verbatim (constitution IV 1.3.0) through a small allowlist of what those values use.
 import DOMPurify from 'dompurify'
 
 const ALLOWED_TAGS = [
@@ -51,6 +54,48 @@ export function defangForParsing(html: string): string {
     result = next
   }
   return result
+}
+
+const LEGACY_TAGS = [
+  'b',
+  'strong',
+  'i',
+  'em',
+  'br',
+  'small',
+  'code',
+  'ul',
+  'ol',
+  'li',
+  'p',
+  'span',
+  'div',
+  'a',
+]
+
+// http(s), mailto, and relative references (`/api`, `#`, `../x`); never `//host` or other schemes.
+const LEGACY_URI = /^(?:https?:|mailto:|\/(?!\/)|\.\.?\/|[#?]|[^:/?#]+(?:[/?#]|$))/i
+
+// Its own instance, so that its hook never touches operator HTML.
+const legacyPurify = DOMPurify(window)
+
+legacyPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName !== 'A') return
+  if (node.getAttribute('target') !== '_blank') node.removeAttribute('target')
+  if (node.hasAttribute('href')) node.setAttribute('rel', 'noopener noreferrer')
+  else node.removeAttribute('target')
+})
+
+/** Markup of a mailcow language value: its formatting kept, everything else removed. */
+export function sanitizeLegacyHtml(html: string): string {
+  return legacyPurify.sanitize(defangForParsing(html), {
+    ALLOWED_TAGS: LEGACY_TAGS,
+    ALLOWED_ATTR: ['href', 'target'],
+    ALLOWED_URI_REGEXP: LEGACY_URI,
+    ALLOW_DATA_ATTR: false,
+    ALLOW_ARIA_ATTR: false,
+    RETURN_TRUSTED_TYPE: false,
+  })
 }
 
 export function sanitizeHtml(html: string): string {

@@ -148,10 +148,11 @@ describe('useProblemForm', () => {
       }),
     )
     await flushPromises()
-    expect(wrapper.get('[role="alert"]').text()).toContain('You do not have permission to do this.')
+    // The classic interface's message of the same meaning (`danger.access_denied`).
+    expect(wrapper.get('[role="alert"]').text()).toContain('Access denied or invalid form data')
     await new Promise((resolve) => setTimeout(resolve, 60))
     expect(wrapper.get('[data-live="assertive"]').text()).toContain(
-      'You do not have permission to do this.',
+      'Access denied or invalid form data',
     )
     wrapper.unmount()
   })
@@ -181,7 +182,7 @@ describe('ProblemMessage', () => {
       title: 'English title',
     })
     const wrapper = mountWithApp(ProblemMessage, { props: { problem, retry: true } })
-    expect(wrapper.text()).toContain('Something went wrong. Please try again.')
+    expect(wrapper.text()).toContain('An unknown error occurred')
     expect(wrapper.text()).toContain('Request ID: 0123456789abcdef0123456789abcdef')
     expect(wrapper.text()).not.toContain('English title')
     expect(wrapper.find('[role="alert"]').exists()).toBe(true)

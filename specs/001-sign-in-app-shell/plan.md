@@ -106,8 +106,8 @@ Initial JavaScript of at most 200 KB gzipped, with lazy routes. The sign-in scre
 - 8 user stories (5 at P1, 2 at P2, 1 at P3).
 - 14 routes, plus 13 placeholder sections from the navigation catalogue.
 - 25 of the contract's 31 operations.
-- 3 locales.
-- About 400 translation keys, part of them reused from legacy.
+- 33 locales (mailcow's languages); new strings in 3 of them.
+- About 350 new strings, plus about 70 legacy keys used directly.
 - The foundation for 13 later UI features.
 
 ## Constitution Check
@@ -119,7 +119,7 @@ Initial JavaScript of at most 200 KB gzipped, with lazy routes. The sign-in scre
 | I. The API contract is the only interface | Only contract operations are used. A request matching no operation is a mock violation (R22), and FR-093 is tested. The pinned version is recorded in `contract/VERSION.json` with a checksum (R6). Types and client are generated (`openapi-typescript`, `openapi-fetch`), generated files are guarded by `contract:check`, and they are importable only via `@/api`. No hand-written API types (R7). A bump is a script plus typecheck and tests. Gaps are reported to mailcow-rest-v2 and never worked around (see "API dependency and gaps"). Errors are handled from problem `type` and `errors` (R8, R15). | PASS |
 | II. Mobile-first | Every screen is designed and tested at 360 px first (the `mobile-chromium` and `mobile-webkit` projects), with horizontal-scroll checks at 360 and 320 px and 44 × 44 targets (R21, R24). Lists are cards below `md` and tables above. Long forms are split into sections; the key form is its own page, not a modal. Destructive actions are confirmed with their impact. Every collection has loading, empty and error states (`ListState`). Pinch-zoom is allowed. | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe with the WCAG 2.2 AA tags runs on every screen and state, in light and dark (R24); a violation fails the test. The rules of R21 cover keyboard, focus, live regions, the skip link, labels and non-colour status. There are three themes, `light`, `dark` and `system` (R16). | PASS |
-| IV. i18n and branding | All text comes from en-gb, cs-cz and sk-sk messages, and `i18n:check` fails on any gap, including every contract enumeration (R27). Legacy keys are reused through `legacy-map.json` and an import from the upstream baseline (R15). `Intl` formatting uses the user's locale. Product name, logos, texts, links and announcement come from `GET /public-config`. Nothing brand-specific is in the source. Colours stay at the defaults until API 013 (FR-004), recorded under Complexity Tracking. | PASS (deviation recorded) |
+| IV. i18n and branding | Amended for 1.3.0: the 33 mailcow languages; mailcow's own strings loaded verbatim at runtime from the installation's `/lang/`, with the bundled upstream en-gb snapshot for key types and as the fallback; new strings only where legacy has none, in en-gb, cs-cz and sk-sk; the legacy form map below (R15). `i18n:check` fails on an incomplete or unused new string, a missing contract enumeration key, or a legacy key the snapshot lacks, and lists new strings that repeat a legacy text (R27). `Intl` formatting uses the user's locale. Product name, logos, texts, links and announcement come from `GET /public-config`. Nothing brand-specific is in the source. Colours stay at the defaults until API 013 (FR-004), recorded under Complexity Tracking. | PASS (deviation recorded) |
 | V. Security in the browser | Same-origin session cookie. The CSRF token is in memory only (R8). Storage holds only the conveniences listed in data-model §4, verified by a unit test. A strict CSP is enforced in the end-to-end tests and on the image (R18). `v-html` appears only in `SanitizedHtml` behind DOMPurify (R17). Hiding is a convenience: "no access" is rendered in place, and 401, 403 and 404 are handled (R11, R19). Lockfile pinning, `npm audit` and a licence allowlist run in CI (R27). | PASS |
 | VI. Test-first | `tasks.md` puts tests before implementation in every phase. Unit and component tests; end-to-end tests of every acceptance scenario on both viewports, against a mock generated from the contract whose requests and responses are validated against it (R22). The two scenarios whose data the pinned contract cannot produce (US8-AS3, and audit records with later event types) are unit-tested instead, so the mock never contradicts the contract (R24); a smoke suite against the real API (R25). | PASS (see Complexity Tracking for the smoke gate) |
 | VII. Performance budgets | `budget:check` caps the initial JS at 200 KB gzipped from the Vite manifest. Lighthouse CI asserts performance and accessibility of at least 0.9 (R26). Every route, including sign-in, is lazy-loaded (R19). The query policy forbids refetching without reason and invalidates after mutations (R9). | PASS |
@@ -187,10 +187,10 @@ behaviour the spec's "API Dependency" section lists, including `appLinks` with `
 3. **CI access to mailcow-rest-v2 for the smoke suite**: **Default**: a read-only token in the
    secret `MAILCOW_REST_V2_TOKEN`. Without it, the `smoke` job is skipped and the suite runs
    locally with `scripts/smoke/stack-up.sh`.
-4. **Native review of new Czech and Slovak strings**: reused legacy translations are reviewed
-   upstream; new strings are written by the implementer. **Default**: the owner reviews the new
-   cs-cz and sk-sk strings before the first release. `i18n:check` guarantees completeness, not
-   wording.
+4. **Native review of new Czech and Slovak strings**: mailcow's own translations come from the
+   installation, verbatim; new strings are written by the implementer. **Default**: the owner
+   reviews the new cs-cz and sk-sk strings (`translation-review.md`) before the first release.
+   `i18n:check` guarantees completeness, not wording.
 
 ## Parity notes added by the plan
 
@@ -200,6 +200,123 @@ The spec's parity table is complete. The plan adds:
    interface has no hash-to-tab handling. The exact addresses are in research R19.
 2. Classic app links with a `javascript:` or other non-http(s) address are not rendered, as a
    security fix (R17). Legacy renders them as links.
+
+## Translations and forms (constitution IV 1.3.0)
+
+Amended on 2026-10-18 for the owner rule (constitution 1.3.0, `docs/conventions.md`
+"Translations and forms"). It replaces the build-time import of selected legacy keys (the former
+`legacy-map.json` and `src/i18n/legacy/`). The mechanism is research R15; the checks are R27.
+
+- **Languages**: the 33 mailcow languages, by mailcow's codes. The app offers the server's
+  `languages` (from `GET /public-config`) that are among them, in the server's order and with the
+  server's names, which are the labels of the classic language menu (`$AVAILABLE_LANGUAGES`).
+  Without the public configuration it offers mailcow's default menu (`src/i18n/default-languages.ts`,
+  a lazy chunk; FR-003).
+- **mailcow's strings** come from the installation at runtime (`/lang/lang.<code>.json` merged over
+  `lang.en-gb.json`), verbatim, through `lt()`, `<LegacyText>` and `legacy()` references. Values
+  with markup go through the legacy sanitiser. The bundled upstream snapshot is a lazy chunk used
+  only when `/lang/` cannot be loaded or lacks a key.
+- **New strings** (vue-i18n, `src/i18n/messages/`) exist in en-gb, cs-cz and sk-sk; every other
+  language shows their English text. `specs/001-sign-in-app-shell/translation-review.md` lists them
+  for the owner.
+- **Keys built at runtime** (problem types, statuses and enumeration values) that the classic
+  interface has a text for resolve to it through `LEGACY_TEXTS` (`src/i18n/legacy-messages.ts`).
+
+### Legacy form map
+
+Paths are relative to `../mailhosting/data/web/` (FeldHost fork, upstream tag `2026-09a`). "New"
+marks a new string, with the reason.
+
+**1. Fields and elements**
+
+| Screen (route) | Legacy counterpart | Element | Legacy key |
+|---|---|---|---|
+| Sign-in, role screens (`/sign-in/admin`, `/sign-in/domain-admin`, `/sign-in/mailbox-user`) | `admin_index.twig`, `domainadmin_index.twig`, `user_index.twig` card header | Heading and document title | `login.login_admin`, `login.login_dadmin`, `login.login_user` |
+| Sign-in, role-neutral (`/sign-in`) | — (new screen) | Heading and document title | `login.login` (same meaning: "Login") |
+| Sign-in | login card legend | Product name | branding `productName` (`ui_texts.main_name`) |
+| Sign-in | `#login_user` | Username label | `login.username` (legacy's visually hidden label) |
+| Sign-in | `#login_user` placeholder | Placeholder: role-neutral and mailbox-user screens / other screens | `login.email` / `login.username` |
+| Sign-in | `#pass_user` | Password label and placeholder | `login.password` |
+| Sign-in | show-password button | Accessible name | New `auth.signIn.showPassword`: legacy hard-codes "Toggle password visibility" (English equal to it) |
+| Sign-in | submit | Button; busy state | `login.login`; `footer.loading` |
+| Sign-in | `/reset-password` link (mailbox-user page) | Link, verbatim with its "> " | `login.forgot_password` |
+| Sign-in | `login.other_logins` and the FIDO2 button | Passkey button, separator, waiting, choose again, failure | New `auth.passkey.*`: passkey wording and passkey-first order (owner decision) |
+| Sign-in | IAM SSO button (`admin.iam_sso`) | Force-SSO notice title | `admin.iam_sso`; body and link new (`auth.signIn.sso.*`): the notice has no legacy counterpart |
+| Sign-in | — | Identity-provider hint | New `auth.signIn.idpHint.*` (FR-008, no legacy counterpart) |
+| Sign-in | "Not the correct login?" quick links | Label and links | `login.login_linkstext`, `login.login_admintext`, `login.login_domainadmintext`, `login.login_usertext`; "Sign in with any account" new (`auth.signIn.anyRole`, the role-neutral screen is new) |
+| Sign-in | help card (`ui_texts.help_text`) | Disclosure toggle, collapsed as in legacy | `start.help`; the text is operator HTML |
+| Sign-in | apps legend | Section heading | branding `appsLabel`, else `header.apps` |
+| Sign-in | `login.delayed` | Throttling countdown and announcements | New `auth.signIn.throttle.*`: a retry time, not a delay (FR-017) |
+| Sign-in | — | One-shot notices (signed out, session ended, timed out, second factor rejected or unavailable) | New `auth.notice.*` (FR-024, FR-025, FR-028, FR-034, FR-036) |
+| Second factor (`/sign-in/second-factor`) | `modals/footer.twig` `#ConfirmTFAModal` | Heading, document title | `tfa.tfa` |
+| Second factor | tabs (hard-coded "WebAuthn", "Yubi OTP", "Time-based OTP") | Method headings | `tfa.webauthn`, `tfa.totp`, `tfa.yubi_otp` (keys of the same meaning from the setup modals) |
+| Second factor | `tfa.authenticators` legend | TOTP authenticator list; Yubico OTP field label | `tfa.authenticators` |
+| Second factor | TOTP field placeholder "123456" | Placeholder | "123456" (digits, not text); the field label "Six-digit code" is new (`auth.secondFactor.totp.code`), legacy has none |
+| Second factor | Yubi OTP placeholder "Touch Yubikey" (hard-coded) | Placeholder | New `auth.secondFactor.yubiOtp.placeholder`, English equal to legacy |
+| Second factor | `login.login` buttons | TOTP and Yubico OTP submit | `login.login` |
+| Second factor | — | WebAuthn start, waiting, unsupported | New `auth.secondFactor.webauthn.*` (passkey wording) |
+| Second factor | — | Time left, one-minute warning, "Other methods" | New `auth.secondFactor.timeLeft`, `oneMinute`, `otherMethods` (FR-020, FR-025: the time limit and the grouping are the app's) |
+| Second factor | modal close | Cancel | `footer.cancel` |
+| Pending actions (`/pending-actions`) | — (two modals become one screen) | Heading, intro | New `auth.pendingActions.title`, `intro` |
+| Pending actions | `#ChangePWModal` | Heading; first sentence | `user.change_password`; `user.pw_update_required` |
+| Pending actions | — | "This app cannot change passwords yet…", link, "Check again", still pending | New `auth.pendingActions.password.*` (FR-040, FR-041: the change happens in the classic interface until UI 005) |
+| Pending actions | `#SetupTFAModal` | Heading; first sentence | `tfa.setup_title`; `tfa.setup_required` |
+| Pending actions | — | "A passkey counts as a second factor", register, after password, unsupported, classic link | New `auth.pendingActions.secondFactor.*` (passkey wording) |
+| Pending actions | `tfa.cancel_setup` | Sign-out button | `tfa.cancel_setup` |
+| Shell header (`base.twig` navbar) | `.navbar-toggler` aria-label "Toggle navigation" (hard-coded) | Drawer button | New `a11y.openNavigation`, English equal to legacy |
+| Shell | logged-in user | User menu heading | `success.logged_in_as` with the username |
+| Shell | apps menu (`ui_texts.apps_name`) | Label | branding `appsLabel`, else `header.apps` |
+| Shell | — | User menu label, skip link, navigation landmarks, close, sign out, sign-out failure | New `a11y.*`, `common.signOut`, `shell.signOutFailed` (legacy has an icon only) |
+| Shell | announcement alert | Type names | `admin.ui_header_announcement_type_info`, `_warning`, `_danger`; collapse and expand new (`shell.announcement.*`) |
+| Navigation | menu entries | Domains, Mailboxes, User Settings, Quarantine, Spam filter, Administrators, Sync jobs | `mailbox.domains`, `mailbox.mailboxes`, `header.user_settings`, `header.quarantine`, `user.spamfilter`, `admin.admins`, `mailbox.sync_jobs` |
+| Navigation | — | Home, Passkeys, API keys, Audit log, and the sections whose features map them (aliases, routing, DNS, operations, identity providers, system) | New `nav.*` until those features map them (conventions "Where features meet") |
+| Placeholders | `base.twig` menu | Classic page links | the menu path: `header.email` › `header.mailcow_config` (mailbox page), `header.mailcow_system` › `header.mailcow_config` (system page), `header.mailcow_system` › `header.debug`, `header.email` › `queue.queue_manager`, `header.user_settings`, `header.quarantine` |
+| Placeholders | — | "Comes later", "Use the classic interface", session note | New `states.placeholder.body`, `placeholder.*` |
+| Language and theme | language dropdown (flags, `$AVAILABLE_LANGUAGES` labels) | Options | the server's language names; label "Language" new (legacy shows a flag only) |
+| Language and theme | dark-mode switch (icon only) | Theme select | New `preferences.theme`, `themes.*` (three choices, FR-062) |
+| API keys (`/api-keys`) | `admin/tab-config-admins.twig` `#admin_api` | Access levels | `admin.api_read_only`, `admin.api_read_write` (via `LEGACY_TEXTS`) |
+| API keys | `admin.api_allow_from` | Allowed networks label | `admin.api_allow_from` |
+| API keys | `admin.api_key` | Detail title | `admin.api_key` |
+| API keys | — | Status "Active"; "Never Expire" | `admin.active`; `user.expire_never` |
+| API keys | `admin.api_info` | Intro and docs link | New `apiKeys.intro`, `apiKeys.docs`: `admin.api_info` points to `/api` (API v1) and no longer fits |
+| API keys | — | Named keys, owners, expiry, revocation, filters, sort, columns, one-time secret | New `apiKeys.*`, `secrets.*` (legacy has two fixed keys) |
+| API keys | `footer.cancel`, `footer.loading` | Cancel, busy state | `footer.cancel`, `footer.loading` |
+| Audit log (`/audit-log`) | `dashboard.twig` log tables (`js/site/dashboard.js`) | Time column | `admin.time` |
+| Audit log | DataTables (`lang.datatables`) | Empty, no match, loading | `datatables.emptyTable`, `datatables.zeroRecords`, `datatables.loadingRecords` |
+| Audit log | — | Outcome "Success"; target and method "API key", "Password" | `debug.success`; `admin.api_key`, `login.password` (via `LEGACY_TEXTS`) |
+| Audit log | — | Other columns, filters, chips, details, event and failure labels | New `auditLog.*`, `enums.audit*` (no classic counterpart, conventions "History and audit") |
+| Lists (shared) | DataTables | Entries shown; page size; previous, next | `datatables.info` (`_START_`, `_END_`, `_TOTAL_`), `datatables.infoEmpty`, `datatables.lengthMenu` (`_MENU_` is the select), `datatables.paginate.previous`, `.next`; "Page {page} of {pages}" new |
+| Confirmations (shared) | `#ConfirmDeleteModal` | Cancel | `footer.cancel` |
+| Passkeys (`/passkeys`) | `fido2.twig` | Rename, Remove | `fido2.rename`, `user.remove`; everything else new (passkey wording) |
+| Home (`/`) | — | All texts | New `home.*` (no classic counterpart) |
+
+**2. Messages**
+
+| API outcome | Legacy key | Placeholders |
+|---|---|---|
+| `sign-in-failed` | `danger.login_failed` | — |
+| `csrf-token-mismatch` | `warning.session_token` | — |
+| `forbidden`, any 403 | `danger.access_denied` | — |
+| `second-factor-required` | `info.awaiting_tfa_confirmation` | — |
+| `temporary-verification-failure` | `danger.temp_error` | — |
+| Any 500 without its own message | `danger.generic_server_error` | — |
+| Any other unknown problem | `danger.unknown` | — |
+| Signed in, user menu | `success.logged_in_as` | the username |
+
+Problems the classic interface cannot report keep their new `problem.*` strings: the API key
+problems, `second-factor-failed` and `second-factor-unavailable` (their FR-024 and FR-028 texts tell
+the user what to do next), `sign-in-expired`, `too-many-requests`, `session-required`,
+`unauthenticated`, `pending-action-required`, `passkey-registration-failed`, `validation-failed`,
+the transport failures and the other statuses. Rule codes keep `validation.*`.
+
+**3. Deviations needing a decision**: none open. Decided under the rule:
+
+- Passkey texts stay new strings (owner decision).
+- The second-factor step no longer shows the explanatory "Signing in as …" sentence, which legacy
+  lacks (conventions: no explanation legacy lacks).
+- The role-neutral sign-in screen, the pending-actions screen, the time limit, the theme choice and
+  the API keys and audit log screens are the app's improvements; their elements without a legacy
+  equivalent are new strings, listed above.
 
 ## Project Structure
 
@@ -245,7 +362,7 @@ deploy/docker-compose.override.yml    # ng-mailcow service for mailcow-dockerize
 public/theme-init.js                  # blocking theme class before first paint (R16)
 scripts/
 ├── contract/{bump.sh,generate.mjs,check.mjs}
-├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}
+├── i18n/{lib.mjs,check.mjs,refresh-snapshot.mjs}
 ├── smoke/{stack-up.sh,stack-down.sh}
 ├── run-lhci.mjs                      # one Lighthouse collection per mock default scenario (R26)
 ├── check-bundle-budget.mjs
@@ -280,7 +397,7 @@ src/
 ├── shared/
 │   ├── ui/                           # TailAdmin primitives (R4) + utils/{cn.ts,focusOnOpen.ts}
 │   ├── icons/
-│   ├── components/{SanitizedHtml,LiveAnnouncer,ListState,PaginationBar,ConfirmDialog,FormField,
+│   ├── components/{SanitizedHtml,LegacyText,LiveAnnouncer,ListState,PaginationBar,ConfirmDialog,FormField,
 │   │               ErrorSummary,ProblemMessage,DateTime,RelativeTime,PageHeader}.vue
 │   ├── composables/{useListState,useConfirm,useVersionedSave,useProblemForm,useAnnouncer,
 │   │                useCountdown,useMediaQuery}.ts
@@ -289,10 +406,10 @@ src/
 │   ├── security/{sanitize.ts,safe-url.ts}
 │   └── validation/{ip-network.ts,limits.ts}   # limits checked against contract/openapi.json
 ├── i18n/
-│   ├── index.ts  locales.ts  format.ts  problems.ts
-│   ├── messages/{en-gb,cs-cz,sk-sk}.json   # hand-written
-│   ├── legacy/{en-gb,cs-cz,sk-sk}.json     # generated by scripts/i18n/import-legacy.mjs
-│   └── legacy-map.json
+│   ├── index.ts  locales.ts  format.ts  problems.ts  default-languages.ts
+│   ├── legacy.ts  legacy-format.ts  legacy-messages.ts  text.ts   # mailcow's strings (R15)
+│   ├── messages/{en-gb,cs-cz,sk-sk}.json   # new strings, hand-written
+│   └── snapshot/lang.en-gb.json            # upstream 2026-09a, scripts/i18n/refresh-snapshot.mjs
 └── styles/main.css                   # Tailwind v4 + TailAdmin tokens, system font stack
 tests/
 ├── setup/vitest.setup.ts

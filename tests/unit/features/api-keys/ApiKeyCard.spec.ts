@@ -28,9 +28,10 @@ describe('ApiKeyCard', () => {
     expect(text).toContain(scenarioKey(7).prefix)
     expect(text).toContain('admin')
     expect(text).toContain('Administrator')
-    expect(text).toContain('Read only')
+    // The classic API section's names (`admin.api_read_only`, `admin.active`, `user.expire_never`).
+    expect(text).toContain('Read-Only Access')
     expect(text).toContain('Active')
-    expect(text).toContain('Never')
+    expect(text).toContain('Never Expire')
     expect(text).toContain('198.51.100.7')
   })
 

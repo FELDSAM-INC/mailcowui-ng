@@ -6,6 +6,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Passkey } from '@/api'
+import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import DateTime from '@/shared/components/DateTime.vue'
 import { InfoIcon, WarningIcon } from '@/shared/icons'
@@ -57,14 +58,14 @@ const otherHost = computed(() =>
         :class="buttonVariants({ variant: 'outline' })"
         @click="$emit('rename', passkey)"
       >
-        {{ t('passkeys.rename.action') }}<span class="sr-only">{{ ` ${name}` }}</span>
+        {{ lt('fido2.rename') }}<span class="sr-only">{{ ` ${name}` }}</span>
       </button>
       <button
         type="button"
         :class="buttonVariants({ variant: 'outline', class: 'text-red-700 dark:text-red-300' })"
         @click="$emit('remove', passkey)"
       >
-        {{ t('passkeys.remove.action') }}<span class="sr-only">{{ ` ${name}` }}</span>
+        {{ lt('user.remove') }}<span class="sr-only">{{ ` ${name}` }}</span>
       </button>
     </div>
   </li>

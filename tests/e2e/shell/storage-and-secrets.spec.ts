@@ -36,7 +36,7 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
   await page.goto('sign-in')
   await submitPassword(page, 'alice@example.org')
   await page.getByLabel('Six-digit code').fill('123456')
-  await page.getByRole('button', { name: 'Verify', exact: true }).click()
+  await page.getByRole('button', { name: 'Login', exact: true }).click()
   await expect(
     page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
   ).toBeVisible()

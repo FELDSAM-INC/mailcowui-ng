@@ -44,11 +44,11 @@ describe('ApiKeysPage', () => {
     useScenario('api-keys-many')
     const { wrapper, router } = await mountAt('/api-keys', ApiKeysPage)
     await vi.waitFor(() => expect(wrapper.findAll('article')).toHaveLength(25))
-    expect(wrapper.text()).toContain('1–25 of 60')
+    expect(wrapper.text()).toContain('Showing 1 to 25 of 60 entries')
     const status = wrapper.findAll('select')[0]!
     await status.setValue('revoked')
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual({ status: 'revoked' }))
-    await vi.waitFor(() => expect(wrapper.text()).toContain('1–12 of 12'))
+    await vi.waitFor(() => expect(wrapper.text()).toContain('Showing 1 to 12 of 12 entries'))
     const clear = wrapper.findAll('button').find((b) => b.text() === 'Clear filters')
     await clear!.trigger('click')
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual({}))
@@ -70,7 +70,7 @@ describe('ApiKeysPage', () => {
     await vi.waitFor(() =>
       expect(router.currentRoute.value.query).toEqual({ sort: 'name', order: 'desc' }),
     )
-    await wrapper.get('button[aria-label="Next page"]').trigger('click')
+    await wrapper.get('button[aria-label="Next"]').trigger('click')
     await vi.waitFor(() => expect(router.currentRoute.value.query.page).toBe('2'))
   })
 

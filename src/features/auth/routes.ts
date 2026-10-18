@@ -1,11 +1,13 @@
 // Routes of the sign-in flow (data-model §5). Every component is lazy-loaded (constitution VII).
 import type { RouteRecordRaw } from 'vue-router'
 
+import { legacy, type TextRef } from '@/i18n'
+
 const SignInPage = () => import('./pages/SignInPage.vue')
 const SecondFactorPage = () => import('./pages/SecondFactorPage.vue')
 const PendingActionsPage = () => import('./pages/PendingActionsPage.vue')
 
-const signIn = (path: string, name: string, role: string | null, titleKey: string) =>
+const signIn = (path: string, name: string, role: string | null, titleKey: TextRef) =>
   ({
     path,
     name,
@@ -15,25 +17,25 @@ const signIn = (path: string, name: string, role: string | null, titleKey: strin
   }) satisfies RouteRecordRaw
 
 export const authRoutes: RouteRecordRaw[] = [
-  signIn('/sign-in', 'sign-in', null, 'auth.signIn.title'),
-  signIn('/sign-in/admin', 'sign-in-admin', 'admin', 'auth.signIn.titleAdmin'),
+  signIn('/sign-in', 'sign-in', null, legacy('login.login')),
+  signIn('/sign-in/admin', 'sign-in-admin', 'admin', legacy('login.login_admin')),
   signIn(
     '/sign-in/domain-admin',
     'sign-in-domain-admin',
     'domainAdmin',
-    'auth.signIn.titleDomainAdmin',
+    legacy('login.login_dadmin'),
   ),
   signIn(
     '/sign-in/mailbox-user',
     'sign-in-mailbox-user',
     'mailboxUser',
-    'auth.signIn.titleMailboxUser',
+    legacy('login.login_user'),
   ),
   {
     path: '/sign-in/second-factor',
     name: 'sign-in-second-factor',
     component: SecondFactorPage,
-    meta: { layout: 'auth', access: 'pendingSecondFactor', titleKey: 'auth.secondFactor.title' },
+    meta: { layout: 'auth', access: 'pendingSecondFactor', titleKey: legacy('tfa.tfa') },
   },
   {
     path: '/pending-actions',

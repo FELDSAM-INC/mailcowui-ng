@@ -27,8 +27,8 @@ function form(page: Page) {
   return {
     name: page.getByRole('textbox', { name: 'Name' }),
     owner: page.getByRole('combobox', { name: 'Owner' }),
-    readOnly: page.getByRole('radio', { name: 'Read only' }),
-    readWrite: page.getByRole('radio', { name: 'Read and write' }),
+    readOnly: page.getByRole('radio', { name: 'Read-Only Access' }),
+    readWrite: page.getByRole('radio', { name: 'Read-Write Access' }),
     never: page.getByRole('radio', { name: 'Never expires' }),
     days30: page.getByRole('radio', { name: 'In 30 days' }),
     custom: page.getByRole('radio', { name: 'On a specific date and time' }),
@@ -69,7 +69,7 @@ test('US7-AS10 FR-065 read-only and never-expires are preselected, the owner is 
     'Owner',
     'Access',
     'Expiry',
-    'Allowed networks',
+    'Allow API access from these IPs/CIDR network notations',
   ])
   await expectAccessible()
   await expectNoHorizontalScroll()

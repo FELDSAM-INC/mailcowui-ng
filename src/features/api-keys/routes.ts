@@ -2,7 +2,9 @@
 // `apiKeys` (FR-063). Every component is lazy-loaded (constitution VII).
 import type { RouteRecordRaw } from 'vue-router'
 
-const meta = (titleKey: string) =>
+import { legacy, type TextRef } from '@/i18n'
+
+const meta = (titleKey: TextRef) =>
   ({ layout: 'shell', access: 'session', navEntry: 'apiKeys', titleKey }) as const
 
 export const apiKeysRoutes: RouteRecordRaw[] = [
@@ -23,6 +25,6 @@ export const apiKeysRoutes: RouteRecordRaw[] = [
     name: 'api-key-detail',
     component: () => import('./pages/ApiKeyDetailPage.vue'),
     props: true,
-    meta: meta('apiKeys.detail.title'),
+    meta: meta(legacy('admin.api_key')),
   },
 ]

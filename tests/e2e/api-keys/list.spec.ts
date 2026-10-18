@@ -39,7 +39,7 @@ test('US7-AS1 FR-064 each key shows name, prefix, owner, access, status, expiry 
   await expect(first).toContainText(/mcv2_\w{7}/)
   await expect(first).toContainText('reseller')
   await expect(first).toContainText('Domain administrator')
-  await expect(first).toContainText('Read and write')
+  await expect(first).toContainText('Read-Write Access')
   await expect(first).toContainText('Revoked')
   await expect(first).toContainText('198.51.100.7')
   if ((page.viewportSize()?.width ?? 0) < 768) {
@@ -63,7 +63,7 @@ test('US7-AS1 FR-064 each key shows name, prefix, owner, access, status, expiry 
       'descending',
     )
   }
-  await expect(page.getByRole('main')).toContainText('1–25 of 60')
+  await expect(page.getByRole('main')).toContainText('Showing 1 to 25 of 60 entries')
   await expectAccessible()
   await expectNoHorizontalScroll()
 })
@@ -77,7 +77,7 @@ test('US7-AS6 FR-064 filters, sort and page are kept in the address and survive 
   await openList(page)
   await page.getByLabel('Status').selectOption('revoked')
   await expect(page).toHaveURL(/status=revoked/)
-  await expect(page.getByRole('main')).toContainText('1–12 of 12')
+  await expect(page.getByRole('main')).toContainText('Showing 1 to 12 of 12 entries')
   await page.getByLabel('Access').selectOption('readWrite')
   await expect(page).toHaveURL(/access=readWrite/)
   await expect(page.getByRole('main')).toContainText('of 4')
@@ -88,7 +88,7 @@ test('US7-AS6 FR-064 filters, sort and page are kept in the address and survive 
   await expectAccessible()
 
   await page.getByRole('button', { name: 'Clear filters' }).click()
-  await expect(page.getByRole('main')).toContainText('1–25 of 60')
+  await expect(page.getByRole('main')).toContainText('Showing 1 to 25 of 60 entries')
 
   // The owner picker, and a typed username for an owner that is no longer a candidate.
   const owner = page.getByRole('combobox', { name: 'Owner' })
@@ -113,12 +113,12 @@ test('US7-AS6 FR-064 filters, sort and page are kept in the address and survive 
   }
   await expect(page).toHaveURL(/sort=name/)
   await expect(keys(page).first()).toContainText('Billing 01')
-  await page.getByRole('button', { name: 'Next page' }).click()
+  await page.getByRole('button', { name: 'Next' }).click()
   await expect(page).toHaveURL(/page=2/)
   await expect(keys(page).first()).toContainText('Billing 27')
   await page.reload()
   await expect(keys(page).first()).toContainText('Billing 27')
-  await expect(page.getByRole('main')).toContainText('26–50 of 60')
+  await expect(page.getByRole('main')).toContainText('Showing 26 to 50 of 60 entries')
 })
 
 test('US7-AS7 a key whose owner is deactivated or deleted is flagged as unusable', async ({

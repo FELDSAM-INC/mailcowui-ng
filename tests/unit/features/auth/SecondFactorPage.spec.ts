@@ -56,18 +56,22 @@ describe('methods (FR-020, FR-022)', () => {
     pendingScenario('mailbox-all-factors')
     const { wrapper } = await mountStep()
     expect(wrapper.get('h1').text()).toBe('Two-factor authentication')
-    expect(headings(wrapper)).toEqual(['Security key or passkey', 'Authenticator app (TOTP)'])
+    // The classic names of the methods (`tfa.webauthn`, `tfa.totp`, `tfa.yubi_otp`).
+    expect(headings(wrapper)).toEqual([
+      'WebAuthn authentication',
+      'Time-based OTP (Google Authenticator, Authy, etc.)',
+    ])
     const trigger = wrapper.get('button[aria-expanded]')
     expect(trigger.text()).toContain('Other methods')
     await trigger.trigger('click')
     await flushPromises()
-    expect(headings(wrapper)).toContain('Yubico OTP')
+    expect(headings(wrapper)).toContain('Yubico OTP authentication')
   })
 
   it('shows Yubico OTP directly when it is the only method', async () => {
     pendingScenario('yubi-only')
     const { wrapper } = await mountStep()
-    expect(headings(wrapper)).toEqual(['Yubico OTP'])
+    expect(headings(wrapper)).toEqual(['Yubico OTP authentication'])
     expect(wrapper.find('button[aria-expanded]').exists()).toBe(false)
   })
 
@@ -129,9 +133,7 @@ describe('validation and outcomes (FR-022–FR-027)', () => {
       .get('[data-method="yubiOtp"] input')
       .setValue('cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf')
     await wrapper.get('[data-method="yubiOtp"] form').trigger('submit')
-    await vi.waitFor(() =>
-      expect(wrapper.text()).toContain('The code could not be checked right now.'),
-    )
+    await vi.waitFor(() => expect(wrapper.text()).toContain('Temporary error'))
     expect(router.currentRoute.value.name).toBe('sign-in-second-factor')
   })
 

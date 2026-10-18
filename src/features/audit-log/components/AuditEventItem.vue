@@ -5,6 +5,7 @@ import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AuditEvent } from '@/api'
+import { lt } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
 
 import { useAuditLabels } from '../labels'
@@ -29,7 +30,7 @@ const reason = computed(() =>
       <AuditOutcome :outcome="event.outcome" />
     </div>
     <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-      <dt class="text-gray-600 dark:text-gray-400">{{ t('auditLog.columns.time') }}</dt>
+      <dt class="text-gray-600 dark:text-gray-400">{{ lt('admin.time') }}</dt>
       <dd class="min-w-0 text-gray-900 dark:text-white"><DateTime :value="event.occurredAt" /></dd>
       <dt class="text-gray-600 dark:text-gray-400">{{ t('auditLog.columns.actor') }}</dt>
       <dd class="min-w-0 wrap-anywhere text-gray-900 dark:text-white">{{ labels.actor(event) }}</dd>

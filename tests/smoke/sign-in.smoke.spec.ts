@@ -31,16 +31,14 @@ test('alice completes her TOTP second factor and signs out', async ({ page }) =>
     page.getByRole('heading', { level: 1, name: 'Two-factor authentication' }),
   ).toBeVisible()
   await page.getByLabel('Six-digit code').fill(await freshTotp(alice.totpSecret))
-  await page.getByRole('button', { name: 'Verify', exact: true }).first().click()
+  await page.getByRole('button', { name: 'Login', exact: true }).first().click()
   await expectHome(page, alice.username)
   await signOut(page)
 })
 
 test('an unknown username gets the generic failure', async ({ page }) => {
   await signIn(page, unknownUsername(), 'not-the-password')
-  await expect(page.getByRole('alert')).toContainText(
-    'Sign-in failed. Check your details and try again.',
-  )
+  await expect(page.getByRole('alert')).toContainText('Login failed')
 })
 
 test('/ng/ sends the strict Content-Security-Policy', async ({ request, baseURL }) => {

@@ -1,5 +1,5 @@
-// T118: the language and theme choices (FR-058, FR-060): languages by native name without flags,
-// hidden with fewer than two; three labelled themes.
+// T118: the language and theme choices (FR-058, FR-060): languages by the names of mailcow's
+// language menu, in its order and without flags, hidden with fewer than two; three labelled themes.
 import { describe, expect, it } from 'vitest'
 
 import LanguageSelect from '@/app/preferences/LanguageSelect.vue'
@@ -9,13 +9,13 @@ import { usePreferencesStore } from '@/app/preferences/store'
 import { mountWithApp } from '../../support/mount'
 
 describe('LanguageSelect', () => {
-  it('lists the available languages by native name, without flags', () => {
+  it("lists the available languages by the server's names, in its order, without flags", () => {
     usePreferencesStore().setServerLanguages(
       [
-        { code: 'sk-sk', name: 'Slovenčina' },
+        { code: 'sk-sk', name: 'Slovenčina (Slovak)' },
         { code: 'en-gb', name: 'English' },
-        { code: 'cs-cz', name: 'Čeština' },
-        { code: 'de-de', name: 'Deutsch' },
+        { code: 'gr-gr', name: 'Ελληνικά (Greek)' },
+        { code: 'en-us', name: 'English (US)' },
       ],
       'en-gb',
     )
@@ -23,9 +23,9 @@ describe('LanguageSelect', () => {
     const select = wrapper.get('select')
     expect(wrapper.get(`label[for="${select.attributes('id')}"]`).text()).toBe('Language')
     expect(select.findAll('option').map((o) => [o.text(), o.attributes('lang')])).toEqual([
+      ['Slovenčina (Slovak)', 'sk-SK'],
       ['English', 'en-GB'],
-      ['Čeština', 'cs-CZ'],
-      ['Slovenčina', 'sk-SK'],
+      ['Ελληνικά (Greek)', 'el-GR'],
     ])
     expect(wrapper.find('img').exists()).toBe(false)
   })

@@ -1,4 +1,5 @@
-// Node mock server (T028, research R22): serves /api/v2/* from the same handlers as Vitest, for
+// Node mock server (T028, research R22): serves /api/v2/* and mailcow's /lang/*.json from the same
+// handlers as Vitest, for
 // `npm run dev:mock`, `npm run preview:mock`, the end-to-end tests and Lighthouse.
 //
 // Scenario selection: the `mock-scenario` cookie holds either the ID of a scenario created through
@@ -15,6 +16,7 @@
 //   DELETE /__mock/scenarios/:id
 //   GET    /__mock/use?scenario=<name>&redirect=<url>              sets the cookie, redirects
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
+import { gzipSync } from 'node:zlib'
 
 import { getResponse } from 'msw'
 
@@ -161,15 +163,23 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL): Promise
   response.headers.forEach((value, name) => {
     outgoing[name] = value
   })
+  let payload = Buffer.from(await response.arrayBuffer())
+  // mailcow's nginx gzips the language files (`gzip_types … application/json`); so does the mock,
+  // so that Lighthouse measures a realistic transfer.
+  if (url.pathname.startsWith('/lang/') && /\bgzip\b/.test(req.headers['accept-encoding'] ?? '')) {
+    payload = gzipSync(payload)
+    outgoing['content-encoding'] = 'gzip'
+    outgoing.vary = 'Accept-Encoding'
+  }
   res.writeHead(response.status, outgoing)
-  res.end(Buffer.from(await response.arrayBuffer()))
+  res.end(payload)
 }
 
 const server = createServer((req, res) => {
   const url = new URL(req.url ?? '/', `http://${req.headers.host ?? `${host}:${port}`}`)
   const handle = url.pathname.startsWith('/__mock/')
     ? control(req, res, url)
-    : url.pathname.startsWith('/api/v2/')
+    : url.pathname.startsWith('/api/v2/') || url.pathname.startsWith('/lang/')
       ? api(req, res, url)
       : Promise.resolve(sendJson(res, 404, { error: 'Not a mock API address' }))
   handle.catch((error: unknown) => {

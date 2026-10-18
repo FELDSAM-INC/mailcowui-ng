@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { AppLink } from '@/api'
 import { appsLabel, loginPageLinks, signedInLinks } from '@/app/branding/app-links'
-import { i18n } from '@/i18n'
+import { loadLegacy, lt } from '@/i18n'
 
 const link = (overrides: Partial<AppLink>): AppLink => ({
   name: 'Webmail',
@@ -79,11 +79,12 @@ describe('signed-in links', () => {
 })
 
 describe('apps label', () => {
-  const t = (key: string) => i18n.global.t(key)
-
-  it('is the operator label as plain text, or the translated default', () => {
-    expect(appsLabel('<b>Tools</b>', t)).toBe('<b>Tools</b>')
-    expect(appsLabel(null, t)).toBe('Apps')
-    expect(appsLabel('', t)).toBe('Apps')
+  it("is the operator label as plain text, or the classic interface's default", async () => {
+    expect(appsLabel('<b>Tools</b>')).toBe('<b>Tools</b>')
+    expect(appsLabel(null)).toBe('Apps')
+    expect(appsLabel('')).toBe('Apps')
+    await loadLegacy('cs-cz')
+    expect(appsLabel(null)).toBe('Aplikace')
+    expect(lt('header.apps')).toBe('Aplikace')
   })
 })

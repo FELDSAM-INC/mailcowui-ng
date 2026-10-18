@@ -1,86 +1,20 @@
-// Tests of the translation tooling (FR-086, SC-006, research R15, R27): the legacy import and the
-// completeness check, against fixture message sets.
+// Tests of the translation tooling (constitution IV 1.3.0, SC-006, research R15, R27): the
+// completeness check of the new strings, the check of the legacy keys the source uses against the
+// bundled en-gb snapshot, and the review list of new strings that repeat a legacy text.
 import { describe, expect, it } from 'vitest'
 
 import {
-  buildLegacyLayer,
   checkMessages,
-  convertLegacyValue,
+  duplicateLegacyMeanings,
   enumValuesFromSchema,
+  legacyKeysInSource,
+  legacyTextsFromSource,
+  appKeysInSource,
   placeholders,
   problemNamesFromContract,
-  refusalReason,
   requiredKeys,
   type CheckInput,
 } from '../../../scripts/i18n/lib.mjs'
-
-describe('legacy import: value conversion', () => {
-  it('turns %s placeholders into list interpolations', () => {
-    expect(convertLegacyValue('Login was delayed by %s seconds.')).toBe(
-      'Login was delayed by {0} seconds.',
-    )
-    expect(convertLegacyValue('%s of %s')).toBe('{0} of {1}')
-  })
-
-  it("escapes vue-i18n's special characters as literal interpolations", () => {
-    expect(convertLegacyValue('a {b} @c $d |e')).toBe("a {'{'}b{'}'} {'@'}c {'$'}d {'|'}e")
-  })
-
-  it('strips decorative leading and trailing glyphs', () => {
-    expect(convertLegacyValue('> Forgot Password?')).toBe('Forgot Password?')
-    expect(convertLegacyValue('» Next ›')).toBe('Next')
-    expect(convertLegacyValue('  Password  ')).toBe('Password')
-  })
-
-  it('refuses values with HTML, "FIDO2" or "Touch ID"', () => {
-    expect(refusalReason('The token is invalid.<br>Please request a new link.')).toBe('html')
-    expect(refusalReason('FIDO2/WebAuthn Login')).toBe('fido2')
-    expect(refusalReason('Touch ID on Apple M1')).toBe('touch-id')
-    expect(refusalReason('Password')).toBeNull()
-  })
-})
-
-describe('legacy import: building a locale layer', () => {
-  const map = {
-    'auth.signIn.password': 'login.password',
-    'auth.signIn.titleAdmin': 'login.login_admin',
-    'auth.signIn.delayed': 'login.delayed',
-  }
-
-  it('writes the mapped keys under the app keys, converted', () => {
-    const { layer, missing } = buildLegacyLayer(map, {
-      login: { password: 'Password', login_admin: 'Administrator Login', delayed: 'Wait %s s' },
-    })
-    expect(layer).toEqual({
-      auth: {
-        signIn: { password: 'Password', titleAdmin: 'Administrator Login', delayed: 'Wait {0} s' },
-      },
-    })
-    expect(missing).toEqual([])
-  })
-
-  it("leaves out a key that the locale's legacy file lacks", () => {
-    const { layer, missing } = buildLegacyLayer(map, {
-      login: { password: 'Heslo', delayed: 'Oneskorené o %s s' },
-    })
-    expect(layer).toEqual({
-      auth: { signIn: { password: 'Heslo', delayed: 'Oneskorené o {0} s' } },
-    })
-    expect(missing).toEqual(['auth.signIn.titleAdmin'])
-  })
-
-  it('refuses a mapped value with HTML or a banned name', () => {
-    expect(() =>
-      buildLegacyLayer(
-        { 'auth.x': 'login.fido2_webauthn' },
-        { login: { fido2_webauthn: 'FIDO2' } },
-      ),
-    ).toThrow(/auth\.x.*fido2/i)
-    expect(() =>
-      buildLegacyLayer({ 'auth.y': 'login.reset' }, { login: { reset: 'Invalid.<br>Retry' } }),
-    ).toThrow(/auth\.y.*html/i)
-  })
-})
 
 describe('placeholders and contract inputs', () => {
   it('extracts named and list placeholders but not literal interpolations', () => {
@@ -126,20 +60,44 @@ describe('placeholders and contract inputs', () => {
   })
 })
 
+describe('legacyKeysInSource', () => {
+  it('finds the keys of lt(), legacy() and LegacyText', () => {
+    const source = [
+      "const a = lt('login.login')",
+      'const b = lt("tfa.tfa", count)',
+      "title: legacy('header.debug'),",
+      '<LegacyText k="login.forgot_password" />',
+      '<LegacyText :k="\'datatables.lengthMenu\'" as="label">',
+      "t('auth.signIn.submitting')",
+      "someOther('login.password')",
+    ].join('\n')
+    expect(legacyKeysInSource(source)).toEqual([
+      'datatables.lengthMenu',
+      'header.debug',
+      'login.forgot_password',
+      'login.login',
+      'tfa.tfa',
+    ])
+  })
+})
+
+const snapshot = {
+  login: { login: 'Login', password: 'Password', forgot_password: '> Forgot Password?' },
+  footer: { cancel: 'Cancel' },
+  datatables: { paginate: { next: 'Next' } },
+}
+
 function baseInput(): CheckInput {
   return {
     app: {
       'en-gb': { common: { save: 'Save', greet: 'Hello {name}' } },
       'cs-cz': { common: { save: 'Uložit', greet: 'Ahoj {name}' } },
-      'sk-sk': { common: { save: 'Uložiť', greet: 'Ahoj {name}' }, auth: { title: 'Prihlásenie' } },
+      'sk-sk': { common: { save: 'Uložiť', greet: 'Ahoj {name}' } },
     },
-    legacy: {
-      'en-gb': { auth: { title: 'Administrator Login' } },
-      'cs-cz': { auth: { title: 'Přihlášení administrátora' } },
-      'sk-sk': {},
-    },
-    legacyMap: { 'auth.title': 'login.login_admin' },
     required: ['common.save'],
+    snapshot,
+    legacyKeysUsed: ['login.login', 'datatables.paginate.next'],
+    usedKeys: new Set(['common.save', 'common.greet']),
   }
 }
 
@@ -151,7 +109,7 @@ describe('completeness check (research R27)', () => {
   it('rule 1: fails on differing key sets and on empty values', () => {
     const input = baseInput()
     input.app['cs-cz'] = { common: { save: 'Uložit', greet: 'Ahoj {name}', extra: 'Navíc' } }
-    input.app['sk-sk'] = { common: { save: '', greet: 'Ahoj {name}' }, auth: { title: 'X' } }
+    input.app['sk-sk'] = { common: { save: '', greet: 'Ahoj {name}' } }
     const { errors } = checkMessages(input)
     expect(errors.join('\n')).toMatch(/common\.extra/)
     expect(errors.join('\n')).toMatch(/sk-sk.*common\.save.*empty/)
@@ -173,42 +131,90 @@ describe('completeness check (research R27)', () => {
     const input = baseInput()
     input.app['en-gb'] = { common: { save: 'Save in the legacy UI', greet: 'Hello {name}' } }
     input.app['cs-cz'] = { common: { save: 'Uložit FIDO2', greet: 'Ahoj {name}' } }
-    input.app['sk-sk'] = {
-      common: { save: 'Touch ID', greet: 'Ahoj {name}' },
-      auth: { title: 'Prihlásenie' },
-    }
+    input.app['sk-sk'] = { common: { save: 'Touch ID', greet: 'Ahoj {name}' } }
     const text = checkMessages(input).errors.join('\n')
     expect(text).toMatch(/en-gb.*legacy/i)
     expect(text).toMatch(/cs-cz.*FIDO2/)
     expect(text).toMatch(/sk-sk.*Touch ID/)
   })
 
-  it('rule 5: fails on a key defined in both layers of one locale', () => {
+  it('rule 5: fails on a legacy key that the en-gb snapshot lacks', () => {
     const input = baseInput()
-    input.app['cs-cz'] = {
-      common: { save: 'Uložit', greet: 'Ahoj {name}' },
-      auth: { title: 'Dvakrát' },
-    }
-    expect(checkMessages(input).errors.join('\n')).toMatch(/cs-cz.*auth\.title.*both/i)
+    input.legacyKeysUsed = ['login.login', 'login.nothing', 'datatables.paginate']
+    const text = checkMessages(input).errors.join('\n')
+    expect(text).toMatch(/login\.nothing.*snapshot/)
+    // A group is not a text.
+    expect(text).toMatch(/datatables\.paginate.*snapshot/)
   })
 
-  it('rule 5: fails on a legacy-map key missing from the en-gb legacy file', () => {
+  it('rule 6: fails on an unused new string, except keys built at runtime', () => {
     const input = baseInput()
-    input.legacyMap = { ...input.legacyMap, 'auth.missing': 'login.nothing' }
-    expect(checkMessages(input).errors.join('\n')).toMatch(/auth\.missing.*en-gb legacy/i)
+    input.usedKeys = new Set(['common.save'])
+    input.app['en-gb'] = { ...input.app['en-gb'], problem: { generic: 'Error' } }
+    input.app['cs-cz'] = { ...input.app['cs-cz'], problem: { generic: 'Chyba' } }
+    input.app['sk-sk'] = { ...input.app['sk-sk'], problem: { generic: 'Chyba' } }
+    const errors = checkMessages(input).errors.join('\n')
+    expect(errors).toMatch(/common\.greet.*unused/)
+    expect(errors).not.toMatch(/problem\.generic/)
+  })
+})
+
+describe('duplicateLegacyMeanings (review list)', () => {
+  it('lists new strings whose English text a legacy key already has', () => {
+    const list = duplicateLegacyMeanings(
+      {
+        common: { cancel: 'Cancel', forgot: 'Forgot password?', save: 'Save the key' },
+        pages: { next: 'Next' },
+      },
+      snapshot,
+    )
+    expect(list).toEqual([
+      { key: 'common.cancel', value: 'Cancel', legacyKeys: ['footer.cancel'] },
+      { key: 'common.forgot', value: 'Forgot password?', legacyKeys: ['login.forgot_password'] },
+      { key: 'pages.next', value: 'Next', legacyKeys: ['datatables.paginate.next'] },
+    ])
+  })
+})
+
+describe('LEGACY_TEXTS (keys built at runtime with a classic text)', () => {
+  it('reads the table from the source', () => {
+    const source = [
+      'export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {',
+      '  // Problems',
+      "  'problem.sign-in-failed': 'danger.login_failed',",
+      "  'roles.admin': 'admin.admin',",
+      '}',
+    ].join('\n')
+    expect(legacyTextsFromSource(source)).toEqual({
+      'problem.sign-in-failed': 'danger.login_failed',
+      'roles.admin': 'admin.admin',
+    })
   })
 
-  it('rule 5: a key missing from a cs-cz or sk-sk legacy file must come from that app layer', () => {
+  it('satisfies a required key, refuses a duplicate new string and checks the target', () => {
     const input = baseInput()
-    input.app['sk-sk'] = { common: { save: 'Uložiť', greet: 'Ahoj {name}' } }
-    expect(checkMessages(input).errors.join('\n')).toMatch(/sk-sk.*auth\.title/)
+    input.required = ['common.save', 'problem.sign-in-failed']
+    input.legacyTexts = { 'problem.sign-in-failed': 'login.login' }
+    expect(checkMessages(input).errors).toEqual([])
+    input.legacyTexts = { 'common.save': 'login.login', 'roles.admin': 'login.nothing' }
+    const text = checkMessages(input).errors.join('\n')
+    expect(text).toMatch(/common\.save.*must not be a new string/)
+    expect(text).toMatch(/roles\.admin.*login\.nothing/)
+  })
+})
+
+describe('new-string keys named in the source', () => {
+  it('finds quoted keys of the app namespaces only', () => {
+    const source = "t('common.save'); legacy('login.login'); x = \"common.greet\"; y = 'a.b'"
+    expect(appKeysInSource(source, ['common'])).toEqual(['common.greet', 'common.save'])
   })
 
-  it('reports unused keys as warnings, not errors', () => {
+  it('rule 7: fails on a key the source names that is not a new string', () => {
     const input = baseInput()
-    input.usedKeys = new Set(['common.save', 'auth.title'])
-    const result = checkMessages(input)
-    expect(result.errors).toEqual([])
-    expect(result.warnings.join('\n')).toMatch(/common\.greet/)
+    input.appKeysUsed = ['common.save', 'common.cancel', 'problem.generic']
+    input.legacyTexts = { 'problem.generic': 'login.login' }
+    const errors = checkMessages(input).errors.join('\n')
+    expect(errors).toMatch(/common\.cancel.*not a new string/)
+    expect(errors).not.toMatch(/problem\.generic/)
   })
 })

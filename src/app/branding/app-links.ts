@@ -2,6 +2,7 @@
 // http(s) and same-origin paths are rendered. On the sign-in screens only links shown on the login
 // page appear; the header uses the signed-in address with `%u` replaced by the encoded username.
 import type { AppLink } from '@/api'
+import { lt } from '@/i18n'
 import { safeHref } from '@/shared/security/safe-url'
 
 export interface AppLinkView {
@@ -29,7 +30,7 @@ export function signedInLinks(links: readonly AppLink[], username: string): AppL
     .filter((link): link is AppLinkView => link !== null)
 }
 
-/** The operator's "Apps" text, or the translated default. */
-export function appsLabel(label: string | null, t: (key: string) => string): string {
-  return label ? label : t('apps.defaultLabel')
+/** The operator's "Apps" text, or the classic interface's default (`header.apps`). */
+export function appsLabel(label: string | null): string {
+  return label ? label : lt('header.apps')
 }

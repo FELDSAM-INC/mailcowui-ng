@@ -2,14 +2,19 @@
 // The sign-in screens (FR-001–FR-009, FR-016–FR-019, data-model §5): one role-neutral screen and
 // one per role, which names the role in its heading and in every sign-in it sends. Force single
 // sign-on hides the password form on the role-neutral and mailbox-user screens; an identity
-// provider adds a hint up front. The operator's help text is sanitised.
+// provider adds a hint up front. The operator's help text is sanitised and, as on the classic
+// login page, behind "Show/Hide help panel". Texts with a classic counterpart are mailcow's own
+// (`login.*`, `start.help`; plan "Legacy form map").
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Role } from '@/api'
 import { useBranding } from '@/app/branding/public-config'
 import { CLASSIC_PASSWORD_RESET } from '@/app/navigation/classic-links'
+import { legacy, type LegacyRef } from '@/i18n'
+import LegacyText from '@/shared/components/LegacyText.vue'
 import SanitizedHtml from '@/shared/components/SanitizedHtml.vue'
+import { ChevronDownIcon } from '@/shared/icons'
 import { passkeysSupported } from '@/shared/platform/webauthn'
 
 import AppLinksSection from '../components/AppLinksSection.vue'
@@ -27,15 +32,15 @@ const props = defineProps<{ role?: Role | null }>()
 const { t } = useI18n()
 const { branding } = useBranding()
 const titleId = useId()
-const helpId = useId()
 
 const role = computed(() => props.role ?? null)
-const TITLES: Record<Role, string> = {
-  admin: 'auth.signIn.titleAdmin',
-  domainAdmin: 'auth.signIn.titleDomainAdmin',
-  mailboxUser: 'auth.signIn.titleMailboxUser',
+/** The card headings of the classic login pages; the role-neutral screen says "Login". */
+const TITLES: Record<Role, LegacyRef> = {
+  admin: legacy('login.login_admin'),
+  domainAdmin: legacy('login.login_dadmin'),
+  mailboxUser: legacy('login.login_user'),
 }
-const title = computed(() => t(role.value ? TITLES[role.value] : 'auth.signIn.title'))
+const title = computed(() => (role.value ? TITLES[role.value] : legacy('login.login')))
 const userScreen = computed(() => role.value === null || role.value === 'mailboxUser')
 const forceSso = computed(() => branding.value.loginPage.forceSingleSignOn && userScreen.value)
 
@@ -52,13 +57,13 @@ const conditional = useConditionalPasskey({
   <div class="flex flex-col gap-6">
     <SignInHeader />
     <section class="surface flex flex-col gap-5" :aria-labelledby="titleId">
-      <h1
+      <LegacyText
         :id="titleId"
+        :k="title.legacy"
+        as="h1"
         tabindex="-1"
         class="text-2xl font-semibold text-gray-900 focus:outline-none dark:text-white"
-      >
-        {{ title }}
-      </h1>
+      />
       <SignInNotice />
       <PasskeySignInButton
         v-if="passkeys"
@@ -86,22 +91,31 @@ const conditional = useConditionalPasskey({
           @submitting="conditional.stop()"
           @failed="conditional.start()"
         />
-        <a v-if="userScreen" :href="CLASSIC_PASSWORD_RESET" class="text-link self-start">
-          {{ t('auth.signIn.forgotPassword') }}
-        </a>
+        <LegacyText
+          v-if="userScreen"
+          k="login.forgot_password"
+          as="a"
+          :href="CLASSIC_PASSWORD_RESET"
+          class="text-link self-start"
+        />
       </template>
       <RoleLinks :role="role" />
     </section>
-    <section v-if="branding.loginHelpHtml" data-help class="surface" :aria-labelledby="helpId">
-      <h2 :id="helpId" class="font-semibold text-gray-900 dark:text-white">
-        {{ t('auth.signIn.help') }}
-      </h2>
+    <details v-if="branding.loginHelpHtml" data-help class="surface group">
+      <summary
+        class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-lg font-semibold text-gray-900 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white [&::-webkit-details-marker]:hidden"
+      >
+        <LegacyText k="start.help" />
+        <ChevronDownIcon
+          class="size-5 shrink-0 group-open:rotate-180 motion-safe:transition-transform"
+        />
+      </summary>
       <div
         class="mt-2 text-sm wrap-anywhere text-gray-700 dark:text-gray-300 [&_a]:underline [&_a]:underline-offset-2"
       >
         <SanitizedHtml :html="branding.loginHelpHtml" />
       </div>
-    </section>
+    </details>
     <AppLinksSection />
   </div>
 </template>

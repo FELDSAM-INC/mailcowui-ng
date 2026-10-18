@@ -2,9 +2,8 @@
 // here, under `enums.<kind>.<code>`; a later feature adds the labels of its own event types to the
 // locale files (npm run i18n:check requires one per contract value). A code this version does not
 // know is shown with a generic label and the code, never hidden.
-import { useI18n } from 'vue-i18n'
-
 import type { AuditActor, AuditEvent } from '@/api'
+import { hasMessage, text } from '@/i18n'
 
 const PREFIXES = {
   eventType: 'enums.auditEventType',
@@ -58,10 +57,9 @@ export function actorLabel(
 
 /** The labels in the language in use. */
 export function useAuditLabels() {
-  const composer = useI18n({ useScope: 'global' })
   const tr: LabelTranslator = {
-    t: (key, named) => (named ? composer.t(key, named) : composer.t(key)),
-    te: (key) => composer.te(key),
+    t: text,
+    te: hasMessage,
   }
   return {
     label: (kind: AuditLabelKind, code: string) => auditLabel(kind, code, tr),

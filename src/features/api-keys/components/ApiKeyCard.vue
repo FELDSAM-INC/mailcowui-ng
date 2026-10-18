@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import type { ApiKey } from '@/api'
+import { lt, text } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
 
 import ApiKeyStatusBadge from './ApiKeyStatusBadge.vue'
@@ -32,18 +33,18 @@ const titleId = useId()
     <dl class="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
       <dt class="font-medium text-gray-600 dark:text-gray-400">{{ t('apiKeys.fields.prefix') }}</dt>
       <dd class="font-mono wrap-anywhere text-gray-900 dark:text-white">{{ apiKey.prefix }}</dd>
-      <dt class="font-medium text-gray-600 dark:text-gray-400">{{ t('apiKeys.fields.owner') }}</dt>
+      <dt class="font-medium text-gray-600 dark:text-gray-400">{{ lt('mailbox.owner') }}</dt>
       <dd><OwnerSummary :owner="apiKey.owner" /></dd>
       <dt class="font-medium text-gray-600 dark:text-gray-400">{{ t('apiKeys.fields.access') }}</dt>
       <dd class="text-gray-900 dark:text-white">
-        {{ t(`enums.apiKeyAccessLevel.${apiKey.accessLevel}`) }}
+        {{ text(`enums.apiKeyAccessLevel.${apiKey.accessLevel}`) }}
       </dd>
       <dt class="font-medium text-gray-600 dark:text-gray-400">
         {{ t('apiKeys.fields.expires') }}
       </dt>
       <dd class="text-gray-900 dark:text-white">
         <DateTime v-if="apiKey.expiresAt" :value="apiKey.expiresAt" />
-        <template v-else>{{ t('apiKeys.neverExpires') }}</template>
+        <template v-else>{{ lt('user.expire_never') }}</template>
       </dd>
       <dt class="font-medium text-gray-600 dark:text-gray-400">
         {{ t('apiKeys.fields.lastUsed') }}

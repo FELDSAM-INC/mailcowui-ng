@@ -8,7 +8,8 @@ blob-report/
 package-lock.json
 contract/
 src/api/generated/
-src/i18n/legacy/
+src/i18n/snapshot/
+tests/fixtures/lang/
 specs/
 docs/
 .specify/

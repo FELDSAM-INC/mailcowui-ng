@@ -10,7 +10,7 @@ import { authRoutes } from '@/features/auth'
 import { homeRoutes } from '@/features/home'
 import { passkeysRoutes } from '@/features/passkeys'
 
-import { placeholderRouteSpecs } from '../navigation/catalogue'
+import { findEntry, placeholderRouteSpecs } from '../navigation/catalogue'
 
 import './route-kinds'
 
@@ -38,7 +38,7 @@ export function buildRoutes(): RouteRecordRaw[] {
         layout: 'shell',
         access: 'session',
         navEntry: spec.navEntry,
-        titleKey: `nav.${spec.navEntry}`,
+        titleKey: findEntry(spec.navEntry)?.labelKey,
       },
     })),
     {

@@ -101,14 +101,14 @@ describe('navigation (FR-043, FR-046)', () => {
     expect(labels).toContain('API keys')
     expect(labels).not.toContain('Spam filter')
     expect(nav.get('a[aria-current="page"]').text()).toBe('Domains')
-    expect(wrapper.find('button[aria-label="Open navigation"]').exists()).toBe(false)
+    expect(wrapper.find('button[aria-label="Toggle navigation"]').exists()).toBe(false)
     wrapper.unmount()
   })
 
   it('opens as a drawer from one header button below lg, closes with Escape and returns focus', async () => {
     const { wrapper } = await mountShell({ wide: false })
     expect(wrapper.find('nav[aria-label="Main navigation"]').exists()).toBe(false)
-    const button = wrapper.get('button[aria-label="Open navigation"]')
+    const button = wrapper.get('button[aria-label="Toggle navigation"]')
     expect(button.attributes('aria-expanded')).toBe('false')
     await button.trigger('click')
     await flushPromises()
@@ -125,7 +125,7 @@ describe('navigation (FR-043, FR-046)', () => {
 
   it('closes the drawer after a choice', async () => {
     const { wrapper, router } = await mountShell({ wide: false })
-    await wrapper.get('button[aria-label="Open navigation"]').trigger('click')
+    await wrapper.get('button[aria-label="Toggle navigation"]').trigger('click')
     await flushPromises()
     const link = [...document.querySelectorAll('[role="dialog"] a')].find(
       (a) => a.textContent?.trim() === 'Mailboxes',
@@ -181,7 +181,8 @@ describe('announcement (FR-048)', () => {
       })
       const banner = wrapper.get('[data-announcement]')
       expect(banner.text()).toContain(text)
-      expect(banner.get('.sr-only').text()).toBe('Important:')
+      // The classic announcement type name (`admin.ui_header_announcement_type_danger`).
+      expect(banner.get('.sr-only').text()).toBe('Very important:')
       expect(banner.get('svg').attributes('aria-hidden')).toBe('true')
       wrapper.unmount()
     },
@@ -218,7 +219,7 @@ describe('announcement (FR-048)', () => {
     })
     await vi.waitFor(() =>
       expect(again.wrapper.get('[data-announcement] button').text()).toBe(
-        'Warning – Show announcement',
+        'Important – Show announcement',
       ),
     )
     again.wrapper.unmount()

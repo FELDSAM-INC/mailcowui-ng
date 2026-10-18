@@ -8,6 +8,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { isApiProblem, queryKeys, type ApiProblem, type Passkey } from '@/api'
+import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -63,7 +64,7 @@ function removal(passkey: Passkey) {
     description: [t('passkeys.remove.body'), last ? t('passkeys.remove.last') : '']
       .filter(Boolean)
       .join(' '),
-    confirmLabel: t('passkeys.remove.confirm'),
+    confirmLabel: lt('user.remove'),
     destructive: true,
   }
 }

@@ -22,7 +22,7 @@ test('admin creates, inspects and revokes an API key owned by reseller', async (
   const owner = page.getByRole('combobox', { name: 'Owner' })
   await owner.fill('res')
   await page.getByRole('option', { name: /^reseller\b/ }).click()
-  await expect(page.getByRole('radio', { name: 'Read only' })).toBeChecked()
+  await expect(page.getByRole('radio', { name: 'Read-Only Access' })).toBeChecked()
   await page.getByRole('button', { name: 'Create API key' }).click()
 
   const dialog = page.getByRole('dialog', { name: 'Your new API key' })

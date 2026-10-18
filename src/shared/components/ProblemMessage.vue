@@ -6,6 +6,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem } from '@/api'
+import { hasMessage } from '@/i18n'
 import { problemMessageKey, useProblemMessages } from '@/i18n/problems'
 
 import { DangerIcon } from '../icons'
@@ -22,7 +23,7 @@ const message = computed(() => (props.problem ? problemMessage(props.problem) : 
 const showRequestId = computed(() => {
   const problem = props.problem
   if (!problem?.requestId) return false
-  const key = problemMessageKey(problem, (k) => i18n.te(k))
+  const key = problemMessageKey(problem, hasMessage)
   return key === 'problem.generic' || key.startsWith('problem.status.')
 })
 </script>

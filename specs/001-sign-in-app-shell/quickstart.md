@@ -25,7 +25,7 @@ npx playwright install chromium webkit  # browsers for the end-to-end projects
 npm run lint && npm run format:check    # ESLint (Vue, TypeScript, a11y, import rules) and Prettier
 npm run typecheck                       # vue-tsc --build, strict
 npm run contract:check                  # vendored contract checksum; generated files up to date
-npm run i18n:check                      # en-gb, cs-cz and sk-sk complete; contract enums covered
+npm run i18n:check                      # new strings complete in en-gb, cs-cz, sk-sk; legacy keys in the snapshot
 npm run licenses:check                  # production dependencies GPL-3.0-compatible
 npm run audit                           # npm audit gates
 npm run test:unit                       # Vitest with coverage thresholds
@@ -63,11 +63,14 @@ npm run typecheck && npm run test:unit && npm run test:e2e
 git diff contract/VERSION.json             # review the new pin
 ```
 
-### Refreshing the reused legacy translations
+### Refreshing the bundled en-gb snapshot of mailcow's translations
+
+The app loads mailcow's texts from the installation at runtime (research R15). The snapshot gives
+the `LegacyKey` types and the fallback; the cs-cz and sk-sk copies are mock fixtures.
 
 ```bash
-MAILCOW_REPO=../mailhosting node scripts/i18n/import-legacy.mjs --ref 2026-09a
-npm run i18n:check
+MAILCOW_REPO=../mailhosting npm run i18n:snapshot -- --ref 2026-09a
+npm run typecheck && npm run i18n:check
 ```
 
 ## Part B: Manual checks per user story (mock API)

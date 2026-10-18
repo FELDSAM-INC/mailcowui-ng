@@ -35,7 +35,7 @@ test('US7-AS4 FR-067 the detail shows every attribute and that keys cannot be ed
     'Prefix',
     'Owner',
     'Access',
-    'Allowed networks',
+    'Allow API access from these IPs/CIDR network notations',
     'Expires',
     'Status',
     'Created',
@@ -48,7 +48,7 @@ test('US7-AS4 FR-067 the detail shows every attribute and that keys cannot be ed
   await expect(main).toContainText('192.0.2.0/24')
   await expect(main).toContainText('2001:db8::/32')
   await expect(main).toContainText('192.0.2.44')
-  await expect(main).toContainText('Read only')
+  await expect(main).toContainText('Read-Only Access')
   await expect(main).toContainText('Active')
   await expect(main).toContainText(
     'Keys cannot be edited. To change the access, networks or expiry, create a new key and revoke this one.',

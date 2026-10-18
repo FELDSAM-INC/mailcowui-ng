@@ -648,77 +648,105 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
 
 ### R15. Internationalisation
 
-- **Decision**:
-  - **Setup**: vue-i18n 11 in Composition API mode (`legacy: false`), runtime-only. Messages are
-    precompiled to functions or AST by `@intlify/unplugin-vue-i18n`
-    (`runtimeOnly: true, compositionOnly: true, fullInstall: false`), so the app never compiles
-    messages at runtime (CSP, R18).
-  - **Locale identifiers** are mailcow's codes, so that server preferences map one to one:
-    `en-gb`, `cs-cz`, `sk-sk`. `toBcp47()` converts them to `en-GB`, `cs-CZ` and `sk-SK` for `Intl`
-    and for `<html lang>` (FR-088).
-  - **Messages**: two layers per locale, merged at build time.
-    - `src/i18n/legacy/<locale>.json` is generated and committed. It holds the reused legacy
-      translations under the app's own keys.
-    - `src/i18n/messages/<locale>.json` is written by hand and holds new strings.
+*Amended on 2026-10-18 for constitution 1.3.0 (owner rule: mailcow's translations one to one, in
+every language mailcow ships). The first version imported selected legacy keys at build time,
+stripped glyphs, refused HTML and offered English, Czech and Slovak only; all of that is replaced.*
 
-    A key in both layers is an error. `en-gb` is bundled as the fallback, and `cs-cz` and `sk-sk`
-    are lazy chunks loaded before they are applied. Typing comes from the `en-gb` schema
-    (`DefineLocaleMessage`), so `t('missing.key')` fails type checking.
-  - **Legacy reuse** (constitution IV, FR-086):
-    - `src/i18n/legacy-map.json` maps an app key to a legacy key, for example
-      `"auth.signIn.password": "login.password"`.
-    - `scripts/i18n/import-legacy.mjs` reads `data/web/lang/lang.{en-gb,cs-cz,sk-sk}.json` of the
-      **upstream baseline** with `git -C $MAILCOW_REPO show 2026-09a:<path>`. `MAILCOW_REPO`
-      defaults to `../mailhosting`, which carries the upstream tags.
-    - The script converts `%s` placeholders to `{0}`, escapes vue-i18n's special characters
-      (`{ } @ $ |`) as literal interpolations, and strips decorative leading and trailing glyphs
-      (`>`, `»`, `›` and whitespace; legacy writes "> Forgot Password?"). It refuses any mapped
-      value that contains HTML or the words "FIDO2" or "Touch ID".
-    - It writes the legacy layer, per locale, only for the keys that exist in that locale's legacy
-      file.
-    - **Partly translated legacy keys**: the upstream `sk-sk` file lacks 187 of 1,390 keys,
-      including `login.login_user`, `login.login_admin`, `login.login_dadmin` and
-      `login.forgot_password`. A mapped key must exist in `en-gb`. For a locale whose legacy file
-      lacks it, the hand-written layer of *that locale* supplies the value. A key defined in both
-      layers *for the same locale* is an error.
-    - Keys are mapped only where the meaning is unchanged. Texts that name the product or the
-      operator are never mapped (FR-086).
+- **Decision**:
+  - **Locales** (`src/i18n/locales.ts`): the 33 languages of `data/web/lang/lang.<code>.json`,
+    identified by mailcow's codes (`az-az` … `zh-tw`), so that server preferences map one to one.
+    `toBcp47()` converts them for `Intl` and `<html lang>` (FR-088): the region is upper-cased,
+    and mailcow's `gr-gr` (Greek) and `si-si` (Slovenian) become `el-GR` and `sl-SI`.
+  - **Two kinds of text**:
+    - **mailcow's own strings** (`src/i18n/legacy.ts`), for every element the classic interface
+      has. They are never copied into the app and never compiled.
+    - **New strings** (`src/i18n/messages/<locale>.json`), only for elements the classic interface
+      lacks, in en-gb, cs-cz and sk-sk. vue-i18n 11 in Composition API mode, runtime-only, with the
+      messages precompiled by `@intlify/unplugin-vue-i18n` (`runtimeOnly`, `compositionOnly`,
+      `fullInstall: false`, `dropMessageCompiler`), so nothing is compiled at runtime (CSP, R18).
+      en-gb is bundled; cs-cz and sk-sk are lazy chunks; every other locale falls back to en-gb.
+  - **Runtime loading**: at start-up and on every language change, `loadLegacy(locale)` fetches
+    the installation's `/lang/lang.en-gb.json` and `/lang/lang.<code>.json` from the same origin
+    (the one non-API request constitution I allows). The selected file is merged over en-gb as
+    `data/web/inc/prerequisites.inc.php` does (`array_merge_real`: section by section, a nested
+    group replaced as a whole), so a missing key shows English, as in the classic interface.
+    - The app therefore shows exactly that installation's texts: the FeldHost fork's wording and
+      additions, an operator's changes, the installed version's texts.
+    - `index.html` preloads `lang.en-gb.json` (`rel="preload" as="fetch"`), and the start sequence
+      prefetches the remembered language, so applying the language rarely waits.
+    - Each file is fetched once per page load (a failure is retried on the next load); the HTTP
+      cache revalidates it with mailcow's `ETag`. Overlapping switches apply the last one.
+    - Language and texts switch together: `applyLocale` awaits the new strings and the legacy
+      files, then sets the locale and `<html lang>`.
+  - **Bundled snapshot** (`src/i18n/snapshot/lang.en-gb.json`): a byte-for-byte copy of upstream
+    `data/web/lang/lang.en-gb.json` at `2026-09a`, refreshed by `npm run i18n:snapshot`
+    (`scripts/i18n/refresh-snapshot.mjs`, `git show <tag>:<path>` from `MAILCOW_REPO`, never a
+    fork's working tree). It is:
+    - the source of the `LegacyKey` type: TypeScript derives every `<section>.<key>` leaf from
+      the JSON's type at compile time, so `lt('login.nope')` fails type checking;
+    - the fallback when the installation's en-gb cannot be loaded (any error, a non-2xx answer, a
+      body that is not a JSON object), and for a key an older installation lacks;
+    - a lazy chunk (about 25 KB gzipped), loaded only in those cases. `budget:check` fails if it
+      ever enters the initial JavaScript.
+  - **Using a legacy key**:
+    - `<LegacyText k="login.forgot_password" />` in templates: plain values render as text in a
+      `<span>` (or the element named by `as`); values with markup (a tag or a character reference)
+      render through `SanitizedHtml` with the legacy profile (R17). Arguments are always text and
+      are HTML-escaped inside markup. A slot named like a DataTables placeholder (`#_MENU_`)
+      renders the caller's content in its place, as DataTables does with its page-size select.
+    - `lt('success.logged_in_as', username)` where a string is needed (attributes, titles,
+      announcements); reactive like `t`.
+    - `legacy('header.debug')` in tables of text references (`TextRef`: a new-string key or a
+      legacy reference), for example the navigation catalogue, route titles and classic links,
+      resolved by `resolveText()`.
+    - `LEGACY_TEXTS` (`src/i18n/legacy-messages.ts`) for keys built at runtime that the classic
+      interface has a text for: problem types and statuses (`problem.sign-in-failed` →
+      `danger.login_failed`) and enumeration values (`enums.apiKeyAccessLevel.readOnly` →
+      `admin.api_read_only`). `text(key)` and `hasMessage(key)` resolve them.
+  - **Formatter** (`src/i18n/legacy-format.ts`): plain substitution, CSP-safe. `%s` and `%d` in
+    order, positional `%1$s` and `%1$d` (`%d` truncates a number), and the DataTables
+    placeholders (`_START_`, `_END_`, `_TOTAL_`, `_MAX_`, `_MENU_` …) that the caller names. A
+    placeholder without an argument, `%` signs, braces (`{username}`, `{{link}}`), glyphs and
+    whitespace stay as the file has them. No value is trimmed, reworded or stripped.
+  - **Language names**: the server's `languages[].name`, the labels of the classic language menu
+    (`$AVAILABLE_LANGUAGES`, for example "Čeština (Czech)"), in the server's order. Without the
+    public configuration, mailcow's default menu at `2026-09a` (`src/i18n/default-languages.ts`,
+    a lazy chunk, 31 languages: upstream lists neither `az-az` nor `ca-es`).
   - **API problems and rule codes** (`src/i18n/problems.ts`, FR-075 and FR-076):
-    - `problem.<name>` for each `KnownProblemType`, where `<name>` is the last path segment.
+    - `problem.<name>` for each `KnownProblemType`, where `<name>` is the last path segment, or the
+      classic message of the same meaning through `LEGACY_TEXTS`.
     - An unknown `type` falls back to `problem.status.<status>`, then to `problem.generic`
-      (FR-077).
-    - Validation messages are `validation.<code>` with named parameters:
-      - `max` and `min` are formatted as numbers;
-      - `allowed` is formatted with `Intl.ListFormat`;
-      - `format` selects `validation.format.<format>`; an unknown format falls back to the plain
-        `validation.invalidFormat` message;
-      - `allowedRoles` becomes the translated role names.
-    - An unknown code falls back to `validation.invalid`.
-    - Field paths map to form fields by their dot path, for example `allowedNetworks.2` maps to the
-      third network entry.
-  - **Formatting** (`src/i18n/format.ts`, FR-087): cached `Intl.DateTimeFormat`, `NumberFormat`,
-    `RelativeTimeFormat` and `ListFormat` per locale, always in the device time zone. The
-    `RelativeTime` component renders `<time datetime>` with the relative text, a visually hidden
-    absolute time and a `title`. Detail views show absolute times.
+      (`danger.unknown`) (FR-077).
+    - Validation messages are `validation.<code>` with named parameters, formatted as before
+      (`max`, `min`, `allowed`, `format`, `allowedRoles`); an unknown code falls back to
+      `validation.invalid`.
+  - **Formatting** (`src/i18n/format.ts`, FR-087): cached `Intl` formatters per locale, always in
+    the device time zone, with the BCP 47 tag of `toBcp47()`.
   - **Language resolution** (FR-060, FR-061) in `src/app/preferences/locale.ts`:
-    - **Available** = the server's `languages` ∩ {`en-gb`, `cs-cz`, `sk-sk`}. If that set is
-      empty, the app uses `en-gb`, offers no choice and saves nothing. If it has one entry, no
+    - **Available** = the server's `languages` that mailcow ships, in the server's order. If that
+      set is empty, the app uses `en-gb`, offers no choice and saves nothing; with one entry, no
       choice is shown.
-    - **Before sign-in**, in order: the remembered `mailcowui-ng.locale` if available; the first
-      `navigator.languages` entry whose primary subtag matches an available locale; the server's
-      `defaultLanguage` if available; `en-gb`.
-    - **After sign-in**: the profile language, unless the user chose a language on the sign-in
-      screen during this visit (then it is `PATCH`ed). The applied language is always remembered on
-      the device.
-- **Rationale**: Mailcow codes avoid a mapping table at the API boundary. A generated legacy layer
-  makes provenance auditable and re-runnable, and keeps app keys semantic instead of tied to legacy
-  screen names. Precompilation keeps the runtime small and free of `eval`.
+    - **Before sign-in**: the remembered `mailcowui-ng.locale` if available; then, for each
+      `navigator.languages` entry in order, an available locale with the same language and region
+      (`pt-BR` → `pt-br`), else the first with the same language (`el` → `gr-gr`); then the
+      server's `defaultLanguage` if available; then `en-gb`.
+    - **After sign-in**: the profile language if available, unless the user chose one on the
+      sign-in screen during this visit (then it is `PATCH`ed). The applied language is remembered.
+  - **Tests**: the mock serves `/lang/` from the snapshot and the upstream cs-cz and sk-sk files
+    committed under `tests/fixtures/lang/` (other languages answer 404, as an installation without
+    that file would). Scenario behaviours `langUnavailable` and `langPatch` cover the snapshot
+    fallback and an installation's own wording or markup.
+- **Rationale**: The owner rule requires the human translations one to one, in every language,
+  including a fork's and an operator's wording, which only the installation's own files carry.
+  Loading them at runtime needs no app release for new mailcow texts. Legacy keys used directly
+  keep the provenance obvious and the type check exact. A tiny formatter avoids escaping legacy
+  values for vue-i18n's syntax, which would alter them.
 - **Alternatives considered**:
-  - Using legacy keys literally (`t('login.password')`): rejected. It scatters screen-named
-    legacy sections through new screens, and it cannot express the adapted texts that FR-086
-    requires. The map reuses the legacy keys' translations, which is what the constitution
-    intends.
-  - Loading all three locales eagerly: rejected for the initial payload budget.
+  - Bundling all 33 legacy files: rejected. It would ship stale upstream texts instead of the
+    installation's, lose a fork's wording, and cost about 900 KB of chunks.
+  - Compiling legacy values with vue-i18n: rejected. `{`, `}`, `@`, `$` and `|` would need
+    escaping, which changes the text, and runtime compilation breaks the CSP.
+  - The former build-time import (`legacy-map.json`): replaced by constitution 1.3.0.
 
 ### R16. Theming and branding
 
@@ -778,6 +806,12 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
       are dropped.
     - Images, `style`, `class` and every event handler are removed.
     - An `afterSanitizeAttributes` hook adds `rel="noopener noreferrer nofollow"` to links.
+  - **Legacy profile** (`sanitizeLegacyHtml`, amended for constitution 1.3.0): the markup in
+    mailcow's language values, rendered verbatim through `LegacyText`. A separate DOMPurify
+    instance with the tags those values use (`b strong i em br small code ul ol li p span div a`),
+    the attributes `href` and `target`, and links that are http(s), `mailto:` or relative (never
+    `//host` or another scheme). `target` survives only as `_blank`, and every link gets
+    `rel="noopener noreferrer"`. Classes, data attributes and styles are removed.
   - **Rendering**: `SanitizedHtml.vue` is the **only** place where `v-html` is allowed. ESLint
     `vue/no-v-html` is an error everywhere, with a single justified disable in that file.
   - **Tests**: the sanitiser has a table of injection vectors for SC-013, including `<script>`,
@@ -1191,26 +1225,28 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
 ### R27. Translation completeness, licences and dependency audit
 
 - **Decision**:
-  - `scripts/i18n/check.mjs` (`npm run i18n:check`) fails CI when any of these holds:
-    1. The merged key sets of `en-gb`, `cs-cz` and `sk-sk` differ, or a value is empty.
+  - `scripts/i18n/check.mjs` (`npm run i18n:check`) fails CI when any of these holds (amended for
+    constitution 1.3.0; the rules apply to the new strings only, mailcow's are verbatim):
+    1. The key sets of `en-gb`, `cs-cz` and `sk-sk` differ, or a value is empty.
     2. The placeholder sets of a key differ between locales.
-    3. A required key is missing for a contract enumeration value: `ValidationRuleCode`,
+    3. A required key is missing for a contract enumeration value (`ValidationRuleCode`,
        `AuditEventType`, `AuditFailureReason`, `AuditOutcome`, `AuditTarget.type`, `AuthMethod`,
-       `Role`, `PendingAction`, `SecondFactorType`, `ApiKeyStatus`, `ApiKeyAccessLevel`, `Theme`
-       and the announcement types, from the generated `--enum-values` arrays. The problem types
-       are every `/api/v2/problems/<name>` that occurs in `contract/openapi.json`, which covers all
-       20 of API 001, plus `knownProblemTypeValues` once a pin contains it (R7, SC-006).
-       - The `format` parameter of `invalidFormat` is not an enumeration in the contract (its
-         values are listed only in prose), so it cannot be checked.
-       - `validation.format.<format>` keys exist for the formats the app's forms can trigger:
-         `dateTime`, `ipNetwork`, `ipAddress`, `totpCode`, `yubicoOtp`.
-       - Any other format falls back to the plain `validation.invalidFormat` message.
-    4. A message contains "FIDO2", "Touch ID", or, in `en-gb`, the word "legacy" (FR-015, FR-090).
-    5. A key exists in both the legacy and the app layer for the same locale, or `legacy-map.json`
-       names a key missing from the `en-gb` legacy file. A key missing only from a `cs-cz` or
-       `sk-sk` legacy file must be supplied by that locale's app layer (R15).
+       `Role`, `ApiKeyStatus`, `ApiKeyAccessLevel`, `Theme`, the announcement types) or a problem
+       type of `contract/openapi.json` (R7, SC-006), unless `LEGACY_TEXTS` maps it to a classic
+       text; a key in `LEGACY_TEXTS` must not also be a new string, and its target must be in the
+       snapshot. Pending actions and second-factor types use legacy keys in typed tables, which
+       TypeScript checks.
+       - `validation.format.<format>` keys exist for the formats the app's forms can trigger;
+         any other format falls back to the plain `validation.invalidFormat` message.
+    4. A new string contains "FIDO2", "Touch ID", or, in `en-gb`, the word "legacy" (FR-015,
+       FR-090).
+    5. The source uses a legacy key (`lt('…')`, `legacy('…')`, `<LegacyText k="…">`) that is not a
+       text of the bundled en-gb snapshot. TypeScript checks the same through `LegacyKey`.
+    6. A new string is unused (keys built at runtime, such as `problem.*` and `enums.*`, excepted).
+    7. The source names a new-string key that does not exist.
 
-    Unused keys are reported as warnings.
+    It also prints, for review only, the new strings whose English text a legacy key already has
+    (normalised: no case, punctuation, markup or placeholders), as candidates for a legacy key.
   - `scripts/check-licenses.mjs` runs `npm ls --omit=dev --all --json` and fails when a production
     dependency's licence is not in the allowlist: MIT, ISC, BSD-2-Clause, BSD-3-Clause,
     Apache-2.0, MPL-2.0, 0BSD, or dual licences that contain one of them. It also checks the dev

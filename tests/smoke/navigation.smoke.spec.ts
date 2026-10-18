@@ -15,10 +15,9 @@ test('reseller sees its domains, a classic link for mailboxes and no access to A
     2,
   )
   await page.goto('mailboxes')
-  await expect(page.getByRole('main').getByRole('link', { name: 'Mail setup' })).toHaveAttribute(
-    'href',
-    '/domainadmin/mailbox',
-  )
+  await expect(
+    page.getByRole('main').getByRole('link', { name: 'E-Mail Configuration' }),
+  ).toHaveAttribute('href', '/domainadmin/mailbox')
   await page.goto('api-keys')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
   await signOut(page)
@@ -27,13 +26,15 @@ test('reseller sees its domains, a classic link for mailboxes and no access to A
 test('alice sees only the entries of a mailbox user', async ({ page }) => {
   await signIn(page, alice.username, alice.password)
   await page.getByLabel('Six-digit code').fill(await freshTotp(alice.totpSecret))
-  await page.getByRole('button', { name: 'Verify', exact: true }).first().click()
+  await page.getByRole('button', { name: 'Login', exact: true }).first().click()
   await expectHome(page, alice.username)
   const navigation = page.getByRole('navigation', { name: 'Main navigation' })
   const labels = (await navigation.getByRole('link').allInnerTexts()).map((label) => label.trim())
   for (const label of ['Domains', 'Mailboxes', 'API keys', 'Audit log', 'Administrators']) {
     expect(labels).not.toContain(label)
   }
-  expect(labels).toEqual(expect.arrayContaining(['Home', 'My account', 'Passkeys', 'Quarantine']))
+  expect(labels).toEqual(
+    expect.arrayContaining(['Home', 'User Settings', 'Passkeys', 'Quarantine']),
+  )
   await signOut(page)
 })

@@ -89,7 +89,7 @@ test.describe('the shell', () => {
     if (isNarrow(page)) {
       await expect(navigation).toHaveCount(0)
       await expectTouchTargets()
-      const menuButton = page.getByRole('button', { name: 'Open navigation' })
+      const menuButton = page.getByRole('button', { name: 'Toggle navigation' })
       await menuButton.click()
       const drawer = page.getByRole('dialog')
       await expect(drawer.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()

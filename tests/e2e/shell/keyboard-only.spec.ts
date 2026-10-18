@@ -73,7 +73,7 @@ test('US3 navigation with the keyboard', async ({ page, mockApi }) => {
   await page.goto('')
   await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
   if (isNarrow(page)) {
-    await tabTo(page, page.getByRole('button', { name: 'Open navigation' }))
+    await tabTo(page, page.getByRole('button', { name: 'Toggle navigation' }))
     await page.keyboard.press('Enter')
     await tabTo(page, page.getByRole('dialog').getByRole('link', { name: 'Mailboxes' }))
   } else {
@@ -117,7 +117,7 @@ test('US6 choosing a language with the keyboard', async ({ page, mockApi }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
   await tabTo(page, page.getByRole('button', { name: 'Account menu of admin' }))
   await page.keyboard.press('Enter')
-  await arrowTo(page, 'Čeština')
+  await arrowTo(page, 'Čeština (Czech)')
   await page.keyboard.press('Enter')
   await expect(page.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
 })

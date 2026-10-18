@@ -6,6 +6,7 @@ import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { apiKeyAccessLevelValues, apiKeyStatusValues } from '@/api'
+import { lt, text } from '@/i18n'
 import type { UseListState } from '@/shared/composables/useListState'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -81,7 +82,7 @@ const labelClass = 'text-sm font-medium text-gray-800 dark:text-gray-200'
     class="surface grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
   >
     <div class="flex flex-col gap-1.5">
-      <label :for="ids.status" :class="labelClass">{{ t('apiKeys.filters.status') }}</label>
+      <label :for="ids.status" :class="labelClass">{{ lt('mailbox.status') }}</label>
       <select
         :id="ids.status"
         :value="filters.status ?? ''"
@@ -90,7 +91,7 @@ const labelClass = 'text-sm font-medium text-gray-800 dark:text-gray-200'
       >
         <option value="">{{ t('apiKeys.filters.allStatuses') }}</option>
         <option v-for="status in apiKeyStatusValues" :key="status" :value="status">
-          {{ t(`enums.apiKeyStatus.${status}`) }}
+          {{ text(`enums.apiKeyStatus.${status}`) }}
         </option>
       </select>
     </div>
@@ -104,14 +105,14 @@ const labelClass = 'text-sm font-medium text-gray-800 dark:text-gray-200'
       >
         <option value="">{{ t('apiKeys.filters.allAccessLevels') }}</option>
         <option v-for="level in apiKeyAccessLevelValues" :key="level" :value="level">
-          {{ t(`enums.apiKeyAccessLevel.${level}`) }}
+          {{ text(`enums.apiKeyAccessLevel.${level}`) }}
         </option>
       </select>
     </div>
     <OwnerPicker
       :id="ids.owner"
       mode="filter"
-      :label="t('apiKeys.filters.owner')"
+      :label="lt('mailbox.owner')"
       :description="t('apiKeys.filters.ownerHint')"
       :model-value="filters.owner ?? null"
       @update:model-value="setOwner"

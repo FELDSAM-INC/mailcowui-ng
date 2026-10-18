@@ -10,9 +10,9 @@ function step(page: Page) {
   return {
     heading: page.getByRole('heading', { level: 1, name: 'Two-factor authentication' }),
     code: page.getByLabel('Six-digit code'),
-    verify: page.getByRole('button', { name: 'Verify', exact: true }),
+    verify: page.getByRole('button', { name: 'Login', exact: true }),
     otherMethods: page.getByRole('button', { name: 'Other methods' }),
-    yubiField: page.getByRole('textbox', { name: 'Yubico OTP', exact: true }),
+    yubiField: page.getByRole('textbox', { name: 'Authenticators', exact: true }),
     webauthn: page.getByRole('button', { name: 'Use your security key or passkey' }),
     cancel: page.getByRole('button', { name: 'Cancel' }),
   }
@@ -34,10 +34,9 @@ test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under 
   await mockApi.use('mailbox-all-factors')
   await openStep(page)
   const s = step(page)
-  await expect(page.getByRole('main')).toContainText('Signing in as alice@example.org.')
   await expect(page.getByRole('heading', { level: 2 })).toHaveText([
-    'Security key or passkey',
-    'Authenticator app (TOTP)',
+    'WebAuthn authentication',
+    'Time-based OTP (Google Authenticator, Authy, etc.)',
   ])
   await expect(s.yubiField).toHaveCount(0)
   await expect(s.otherMethods).toHaveAttribute('aria-expanded', 'false')
@@ -126,11 +125,11 @@ test('US1-AS9 FR-026 Cancel ends the pending sign-in and shows the sign-in scree
   await mockApi.use('mailbox-all-factors')
   await openStep(page)
   await step(page).cancel.click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   const ops = (await mockApi.requests()).map((r) => r.operationId)
   expect(ops).toContain('cancelPendingSignIn')
   await page.reload()
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
 })
 
 test('US1-AS10 FR-027 a Yubico outage keeps the step open and allows a retry or another method', async ({
@@ -144,18 +143,17 @@ test('US1-AS10 FR-027 a Yubico outage keeps the step open and allows a retry or 
   await s.otherMethods.click()
   await s.yubiField.fill(YUBI_OTP)
   await page
-    .getByRole('region', { name: 'Yubico OTP' })
-    .getByRole('button', { name: 'Verify' })
+    .getByRole('region', { name: 'Yubico OTP authentication' })
+    .getByRole('button', { name: 'Login' })
     .click()
-  await expect(page.getByRole('alert')).toContainText(
-    'The code could not be checked right now. Try again or choose another method.',
-  )
+  // The classic interface's message (`danger.temp_error`).
+  await expect(page.getByRole('alert')).toContainText('Temporary error')
   await expect(s.heading).toBeVisible()
   await expectAccessible()
   await s.code.fill('123456')
   await page
-    .getByRole('region', { name: 'Authenticator app (TOTP)' })
-    .getByRole('button', { name: 'Verify' })
+    .getByRole('region', { name: 'Time-based OTP (Google Authenticator, Authy, etc.)' })
+    .getByRole('button', { name: 'Login' })
     .click()
   await expect(
     page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
@@ -174,7 +172,7 @@ test('US1-AS11 FR-028 an account with only U2F entries is told to ask an adminis
       .getByRole('main')
       .getByText('Your second factors cannot be used here. Ask an administrator to reset them.'),
   ).toBeVisible()
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await expectAccessible()
 })
 
@@ -187,8 +185,8 @@ test('US1-AS13 FR-029 a reload resumes the step with the same methods and the re
   await page.reload()
   await expect(step(page).heading).toBeVisible()
   await expect(page.getByRole('heading', { level: 2 })).toHaveText([
-    'Security key or passkey',
-    'Authenticator app (TOTP)',
+    'WebAuthn authentication',
+    'Time-based OTP (Google Authenticator, Authy, etc.)',
   ])
   await expect(page.getByText(/Time left: 4:\d\d/)).toBeVisible()
 })
@@ -252,8 +250,8 @@ test('FR-022 FR-023 the code formats are checked before submitting', async ({
   await s.otherMethods.click()
   await s.yubiField.fill(YUBI_OTP.slice(1))
   await page
-    .getByRole('region', { name: 'Yubico OTP' })
-    .getByRole('button', { name: 'Verify' })
+    .getByRole('region', { name: 'Yubico OTP authentication' })
+    .getByRole('button', { name: 'Login' })
     .click()
   await expect(
     page.getByRole('main').getByText('Enter the 44 letters or digits your YubiKey types.'),
@@ -263,8 +261,8 @@ test('FR-022 FR-023 the code formats are checked before submitting', async ({
 
   await s.code.fill('123 456')
   await page
-    .getByRole('region', { name: 'Authenticator app (TOTP)' })
-    .getByRole('button', { name: 'Verify' })
+    .getByRole('region', { name: 'Time-based OTP (Google Authenticator, Authy, etc.)' })
+    .getByRole('button', { name: 'Login' })
     .click()
   await expect(
     page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),

@@ -77,6 +77,13 @@ export interface Behaviour {
   signInDelayMs: number
   /** The Yubico verification service is unreachable (FR-027). */
   yubicoOutage: boolean
+  /** The installation's `/lang/` files cannot be loaded: the app uses its bundled snapshot. */
+  langUnavailable: boolean
+  /**
+   * The installation's own wording, by language code and section, merged over the served files:
+   * a fork's or an operator's texts, or markup (`{ 'en-gb': { login: { login: '…' } } }`).
+   */
+  langPatch: Record<string, Record<string, Record<string, string>>>
 }
 
 /** A documented error answer injected for an operation, `times` times (default: always). */
@@ -163,6 +170,8 @@ export const defaultBehaviour = (): Behaviour => ({
   retryAfter: 120,
   signInDelayMs: 0,
   yubicoOutage: false,
+  langUnavailable: false,
+  langPatch: {},
 })
 
 export function findAccount(

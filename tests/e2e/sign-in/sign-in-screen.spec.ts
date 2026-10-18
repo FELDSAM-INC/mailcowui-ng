@@ -12,12 +12,15 @@ test.describe('the role-neutral sign-in screen', () => {
   }) => {
     await page.goto('')
     await expect(page).toHaveURL(/\/ng\/sign-in$/)
-    await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
-    await expect(page).toHaveTitle('Sign in – Example Mail')
+    await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
+    await expect(page).toHaveTitle('Login – Example Mail')
     const main = page.getByRole('main')
     await expect(main.locator('img[src*="/public-config/logos/light"]')).toBeVisible()
     await expect(main.getByText('Example Mail', { exact: true })).toBeVisible()
     await expect(page.getByText('Maintenance on Sunday 02:00–04:00 UTC.')).toBeVisible()
+    // The help text sits behind the classic "Show/Hide help panel" disclosure (`start.help`).
+    await expect(main.getByText('Need help? Write to')).toBeHidden()
+    await main.getByText('Show/Hide help panel').click()
     await expect(main.getByText('Need help? Write to')).toBeVisible()
     const apps = main.getByRole('region', { name: 'Apps' })
     await expect(apps.getByRole('link')).toHaveText(['Webmail', 'Helpdesk'])
@@ -48,8 +51,8 @@ test.describe('the role-neutral sign-in screen', () => {
   }) => {
     await mockApi.use('config-unavailable')
     await page.goto('sign-in')
-    await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
-    await expect(page).toHaveTitle('Sign in – localhost')
+    await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
+    await expect(page).toHaveTitle('Login – localhost')
     const main = page.getByRole('main')
     await expect(main.getByText('localhost', { exact: true })).toBeVisible()
     await expect(main.locator('img')).toHaveCount(0)
@@ -83,6 +86,7 @@ test.describe('the role-neutral sign-in screen', () => {
     await mockApi.use('help-html-malicious')
     await page.goto('sign-in')
     const main = page.getByRole('main')
+    await main.getByText('Show/Hide help panel').click()
     await expect(
       main.getByText('<img src=x onerror=alert(1)>Example', { exact: true }),
     ).toBeVisible()

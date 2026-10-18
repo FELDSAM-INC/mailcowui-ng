@@ -21,9 +21,10 @@ const preferenceRequests = async (mockApi: MockApi) =>
 
 /** A second browser on the same mock scenario: "another device". */
 async function otherDevice(browser: Browser, scenarioId: string, locale = 'en-GB') {
-  const context = await browser.newContext({ locale, baseURL: 'http://localhost:4173/ng/' })
+  const baseURL = test.info().project.use.baseURL ?? 'http://localhost:4173/ng/'
+  const context = await browser.newContext({ locale, baseURL })
   await context.addCookies([
-    { name: 'mock-scenario', value: scenarioId, domain: 'localhost', path: '/' },
+    { name: 'mock-scenario', value: scenarioId, domain: new URL(baseURL).hostname, path: '/' },
   ])
   return context
 }
@@ -52,7 +53,7 @@ test('US6-AS1 FR-059 FR-088 Czech applies at once to text, numbers and the docum
   const device = await otherDevice(browser, id)
   const other = await device.newPage()
   await other.goto('sign-in')
-  await expect(other.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(other.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await submitPassword(other, 'admin')
   await expect(other.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
   await device.close()
@@ -62,7 +63,7 @@ test('SC-012 a language change applies in under one second, measured in the page
   page,
 }) => {
   await page.goto('sign-in')
-  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await page.evaluate(() => {
     const timing = new Promise<number>((resolve) => {
       let start = 0
@@ -71,7 +72,7 @@ test('SC-012 a language change applies in under one second, measured in the page
         once: true,
       })
       const observer = new MutationObserver(() => {
-        if (start && document.querySelector('main h1')?.textContent?.includes('Přihlášení')) {
+        if (start && document.querySelector('main h1')?.textContent?.includes('Přihlásit')) {
           observer.disconnect()
           resolve(performance.now() - start)
         }
@@ -80,8 +81,8 @@ test('SC-012 a language change applies in under one second, measured in the page
     })
     ;(window as unknown as { __switch: Promise<number> }).__switch = timing
   })
-  await page.getByLabel('Language').selectOption({ label: 'Čeština' })
-  await expect(page.getByRole('heading', { level: 1, name: 'Přihlášení' })).toBeVisible()
+  await page.getByLabel('Language').selectOption({ label: 'Čeština (Czech)' })
+  await expect(page.getByRole('heading', { level: 1, name: 'Přihlásit' })).toBeVisible()
   const elapsed = await page.evaluate(
     () => (window as unknown as { __switch: Promise<number> }).__switch,
   )
@@ -134,8 +135,8 @@ test.describe('a Slovak browser', () => {
   })
 })
 
-test.describe('a German browser', () => {
-  test.use({ locale: 'de-DE' })
+test.describe('a French browser', () => {
+  test.use({ locale: 'fr-FR' })
 
   test('US6-AS5 FR-061 an unsupported browser language uses the server default, else English', async ({
     page,
@@ -147,7 +148,7 @@ test.describe('a German browser', () => {
     await mockApi.use('anonymous-default')
     await page.evaluate(() => localStorage.clear())
     await page.goto('sign-in')
-    await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   })
 })
 
@@ -200,11 +201,11 @@ test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; 
 }) => {
   await mockApi.use('admin-password')
   await page.goto('sign-in')
-  await page.getByLabel('Language').selectOption({ label: 'Slovenčina' })
+  await page.getByLabel('Language').selectOption({ label: 'Slovenčina (Slovak)' })
   await expect(page.getByRole('heading', { level: 1, name: 'Prihlásenie' })).toBeVisible()
   await page.locator('input[name="username"]').fill('admin')
   await page.locator('input[name="password"]').fill(MOCK_PASSWORD)
-  await page.getByRole('button', { name: 'Prihlásiť sa', exact: true }).click()
+  await page.getByRole('button', { name: 'Prihlásenie', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Dobrý deň, admin' })).toBeVisible()
   await expect
     .poll(async () => (await preferenceRequests(mockApi)).map((r) => r.body))
@@ -214,7 +215,7 @@ test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; 
   const device = await otherDevice(browser, scenario)
   const other = await device.newPage()
   await other.goto('sign-in')
-  await expect(other.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible()
+  await expect(other.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await submitPassword(other, 'admin')
   await expect(other.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
   await expect(other.locator('html')).toHaveClass(/dark/)
@@ -234,9 +235,9 @@ test('US6-AS9 FR-061 the language used is remembered on the device after sign-ou
   await expect(page.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
   await page.getByRole('button', { name: /^Nabídka účtu/ }).click()
   await page.getByRole('menuitem', { name: 'Odhlásit se' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Přihlášení' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Přihlásit' })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('heading', { level: 1, name: 'Přihlášení' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Přihlásit' })).toBeVisible()
 })
 
 test('Edge: no translated server language gives English, no choice and no saved language, while the theme is saved', async ({
@@ -272,7 +273,7 @@ test('FR-038 Edge: on the pending-actions screen language and theme apply on thi
   await mockApi.use('forced-password-change')
   await page.goto('')
   await expect(page.getByRole('heading', { level: 1, name: 'Actions required' })).toBeVisible()
-  await page.getByLabel('Language').selectOption({ label: 'Čeština' })
+  await page.getByLabel('Language').selectOption({ label: 'Čeština (Czech)' })
   await expect(page.locator('html')).toHaveAttribute('lang', 'cs-CZ')
   await page.getByLabel('Motiv').selectOption({ label: 'Tmavý' })
   await expect(page.locator('html')).toHaveClass(/dark/)

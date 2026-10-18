@@ -1,7 +1,7 @@
 // Operator HTML (help text, footer) is sanitised before display (FR-002, SC-013, research R17).
 import { describe, expect, it } from 'vitest'
 
-import { sanitizeHtml } from '@/shared/security/sanitize'
+import { sanitizeHtml, sanitizeLegacyHtml } from '@/shared/security/sanitize'
 
 function parse(html: string): HTMLElement {
   const root = document.createElement('div')
@@ -149,5 +149,94 @@ describe('defangForParsing (CSP reports while parsing)', () => {
       '<p data-removed-onclick="a()" data-removed-style="color:red" data-removed-onmouseover=b()>x</p><svg/data-removed-onload=c()>',
     )
     expect(defangForParsing('Turn on= the light <b>now</b>')).toBe('Turn on= the light <b>now</b>')
+  })
+})
+
+describe('sanitizeLegacyHtml: markup in mailcow language values (constitution IV 1.3.0)', () => {
+  it('keeps the formatting legacy values use', () => {
+    const input =
+      '<p><b>b</b><strong>s</strong><i>i</i><em>e</em><small>m</small><code>c</code>' +
+      '<span>sp</span><br></p><div>d</div><ul><li>one</li></ul><ol><li>two</li></ol>'
+    const root = parse(sanitizeLegacyHtml(input))
+    for (const tag of [
+      'p',
+      'b',
+      'strong',
+      'i',
+      'em',
+      'small',
+      'code',
+      'span',
+      'br',
+      'div',
+      'ul',
+      'ol',
+      'li',
+    ]) {
+      expect(root.querySelector(tag), tag).not.toBeNull()
+    }
+  })
+
+  it('decodes character references without changing the text', () => {
+    expect(parse(sanitizeLegacyHtml('&#10003;')).textContent).toBe('✓')
+    expect(parse(sanitizeLegacyHtml('&lt;domain&gt; &#8226; a')).textContent).toBe('<domain> • a')
+  })
+
+  it.each([
+    ['/api', '/api'],
+    ['https://docs.mailcow.email/', 'https://docs.mailcow.email/'],
+    ['mailto:postmaster@example.org', 'mailto:postmaster@example.org'],
+    ['#', '#'],
+    ['../edit', '../edit'],
+  ])('keeps the link %s with rel="noopener noreferrer"', (href, expected) => {
+    const link = parse(sanitizeLegacyHtml(`See <a href="${href}">here</a>`)).querySelector('a')
+    expect(link?.getAttribute('href')).toBe(expected)
+    expect(link?.getAttribute('rel')).toBe('noopener noreferrer')
+  })
+
+  it('keeps target="_blank" only, always with rel', () => {
+    const blank = parse(
+      sanitizeLegacyHtml('<a href="https://x.example" target="_blank">x</a>'),
+    ).querySelector('a')
+    expect(blank?.getAttribute('target')).toBe('_blank')
+    expect(blank?.getAttribute('rel')).toBe('noopener noreferrer')
+    const named = parse(
+      sanitizeLegacyHtml('<a href="https://x.example" target="other">x</a>'),
+    ).querySelector('a')
+    expect(named?.hasAttribute('target')).toBe(false)
+  })
+
+  it('removes classes, data attributes and the rest of what legacy markup carries', () => {
+    const root = parse(
+      sanitizeLegacyHtml(
+        '<span class="badge">x</span><a href="#" data-bs-toggle="popover" alt="y" lang="en">z</a>',
+      ),
+    )
+    for (const element of root.querySelectorAll('*')) {
+      for (const attribute of element.attributes) {
+        expect(attribute.name).toMatch(/^(href|rel|target)$/)
+      }
+    }
+  })
+
+  it.each([
+    ['javascript: href', '<a href="javascript:alert(1)">x</a>'],
+    ['protocol-relative link', '<a href="//evil.example">x</a>'],
+    ['data: href', '<a href="data:text/html,x">x</a>'],
+    ['script', '<b>x</b><script>alert(1)</script>'],
+    ['image', '<img src=x onerror=alert(1)>'],
+    ['style attribute', '<b style="color:red">x</b>'],
+    ['heading', '<h1>x</h1>'],
+  ])('neutralises %s', (_label, input) => {
+    const root = parse(sanitizeLegacyHtml(input))
+    expect(root.querySelector('script, img, h1, [style], [onerror]')).toBeNull()
+    for (const link of root.querySelectorAll('a[href]')) {
+      expect(link.getAttribute('href')).not.toMatch(/^(?:javascript:|data:|\/\/)/i)
+    }
+  })
+
+  it('does not change the operator profile', () => {
+    const link = parse(sanitizeHtml('<a href="/api" target="_blank">x</a>')).querySelector('a')
+    expect(link?.hasAttribute('href')).toBe(false)
   })
 })

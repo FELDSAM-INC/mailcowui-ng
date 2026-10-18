@@ -5,6 +5,7 @@ import { reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { AuditEvent } from '@/api'
+import { legacy, resolveText, type TextRef } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { ChevronDownIcon } from '@/shared/icons'
@@ -26,7 +27,16 @@ function toggle(id: string) {
   else expanded.add(id)
 }
 
-const COLUMNS = ['time', 'event', 'outcome', 'actor', 'address', 'method', 'reason'] as const
+/** Column headers; the time column is the classic log tables' (`admin.time`). */
+const COLUMNS: readonly { key: string; label: TextRef }[] = [
+  { key: 'time', label: legacy('admin.time') },
+  { key: 'event', label: 'auditLog.columns.event' },
+  { key: 'outcome', label: 'auditLog.columns.outcome' },
+  { key: 'actor', label: 'auditLog.columns.actor' },
+  { key: 'address', label: 'auditLog.columns.address' },
+  { key: 'method', label: 'auditLog.columns.method' },
+  { key: 'reason', label: 'auditLog.columns.reason' },
+]
 const detailsId = (id: string) => `audit-details-${id}`
 </script>
 
@@ -47,12 +57,12 @@ const detailsId = (id: string) => `audit-details-${id}`
         <TableRow>
           <TableCell
             v-for="column in COLUMNS"
-            :key="column"
+            :key="column.key"
             is-header
             scope="col"
             class="px-4 py-3 text-start font-medium text-gray-700 dark:text-gray-300"
           >
-            {{ t(`auditLog.columns.${column}`) }}
+            {{ resolveText(column.label, t) }}
           </TableCell>
           <TableCell is-header scope="col" class="px-4 py-3">
             <span class="sr-only">{{ t('auditLog.columns.details') }}</span>

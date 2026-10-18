@@ -19,7 +19,9 @@ async function mountPage(path: string, wide = true) {
     global: { plugins: [router] },
     attachTo: document.body,
   })
-  await vi.waitFor(() => expect(wrapper.text()).toMatch(/\d+–\d+ of \d+|No records/))
+  await vi.waitFor(() =>
+    expect(wrapper.text()).toMatch(/Showing \d+ to \d+ of \d+ entries|No matching records found/),
+  )
   await flushPromises()
   return { wrapper, router }
 }
@@ -30,7 +32,7 @@ const button = (wrapper: Awaited<ReturnType<typeof mountPage>>['wrapper'], name:
 describe('AuditLogPage', () => {
   it('shows 25 records in a table from md up, with the total', async () => {
     const { wrapper } = await mountPage('/audit-log')
-    expect(wrapper.text()).toContain('1–25 of 41')
+    expect(wrapper.text()).toContain('Showing 1 to 25 of 41 entries')
     expect(wrapper.findAll('tbody tr[data-record]')).toHaveLength(25)
     const toggle = wrapper.get('tbody tr[data-record] button')
     await toggle.trigger('click')
@@ -62,7 +64,8 @@ describe('AuditLogPage', () => {
 
   it('offers to clear filters that match nothing', async () => {
     const { wrapper, router } = await mountPage('/audit-log?actor=nobody')
-    expect(wrapper.text()).toContain('No records match these filters.')
+    // DataTables' texts of the classic log tables (`datatables.zeroRecords`).
+    expect(wrapper.text()).toContain('No matching records found')
     const clears = wrapper.findAll('button').filter((b) => b.text() === 'Clear filters')
     await clears[clears.length - 1]!.trigger('click')
     await flushPromises()

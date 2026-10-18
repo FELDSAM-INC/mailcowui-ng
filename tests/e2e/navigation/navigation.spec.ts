@@ -11,7 +11,7 @@ const ADMIN = [
   'Domains',
   'Mailboxes',
   'Aliases and resources',
-  'My account',
+  'User Settings',
   'Passkeys',
   'Quarantine',
   'Administrators',
@@ -29,12 +29,12 @@ const DOMAIN_ADMIN = [
   'Domains',
   'Mailboxes',
   'Aliases and resources',
-  'My account',
+  'User Settings',
   'Passkeys',
   'Quarantine',
   'DKIM, MTA-STS and DNS',
 ]
-const MAILBOX_USER = ['Home', 'My account', 'Passkeys', 'Quarantine']
+const MAILBOX_USER = ['Home', 'User Settings', 'Passkeys', 'Quarantine']
 
 const withEntry = (base: string[], label: string, after: string) => {
   const list = [...base]
@@ -90,7 +90,7 @@ test('US3-AS3 FR-044 a placeholder names its section, says it comes later and li
   const main = page.getByRole('main')
   await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
   await expect(main).toContainText('This section comes in a later version of the app.')
-  await expect(main.getByRole('link', { name: 'Mail setup' })).toHaveAttribute(
+  await expect(main.getByRole('link', { name: 'E-Mail Configuration' })).toHaveAttribute(
     'href',
     '/domainadmin/mailbox',
   )
@@ -102,17 +102,16 @@ test('US3-AS3 FR-044 a placeholder names its section, says it comes later and li
   await mockApi.use('admin-active')
   await page.goto('operations')
   await expect(page.getByRole('main').getByRole('link')).toHaveText([
-    'Information',
-    'Queue Manager',
+    'System › Information',
+    'E-Mail › Queue Manager',
   ])
-  await expect(page.getByRole('main').getByRole('link', { name: 'Queue Manager' })).toHaveAttribute(
-    'href',
-    '/admin/queue',
-  )
+  await expect(
+    page.getByRole('main').getByRole('link', { name: 'E-Mail Queue Manager' }),
+  ).toHaveAttribute('href', '/admin/queue')
 
   await mockApi.use('mailbox-no-spam-flags')
   await page.goto('account')
-  await expect(page.getByRole('main').getByRole('link', { name: 'User settings' })).toHaveAttribute(
+  await expect(page.getByRole('main').getByRole('link', { name: 'User Settings' })).toHaveAttribute(
     'href',
     '/user',
   )
@@ -155,7 +154,7 @@ test('US3-AS5 FR-046 the navigation at 360 px opens from one control, works by k
   test.skip(!isNarrow(page), 'the drawer exists below 1024 px')
   await mockApi.use('admin-active')
   await page.goto('domains')
-  const button = page.getByRole('button', { name: 'Open navigation' })
+  const button = page.getByRole('button', { name: 'Toggle navigation' })
   await button.focus()
   await page.keyboard.press('Enter')
   const drawer = page.getByRole('dialog')

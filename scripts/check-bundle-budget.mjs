@@ -1,6 +1,8 @@
 // Bundle budget (constitution VII, research R26): the initial JavaScript, i.e. the entry chunk
 // and its transitive static imports from dist/.vite/manifest.json, must stay at or below
-// 204,800 bytes gzipped. Every lazy chunk's gzipped size is printed as well.
+// 204,800 bytes gzipped. Every lazy chunk's gzipped size is printed as well. mailcow's bundled
+// en-gb snapshot must be a lazy chunk (constitution IV 1.3.0): it is loaded only when the
+// installation's `/lang/` cannot be.
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -52,6 +54,17 @@ console.log('\nLazy chunks:')
 for (const [file, chunk] of [...lazy].sort(([a], [b]) => a.localeCompare(b))) {
   const label = chunk.src ? ` (${chunk.src})` : chunk.name ? ` (${chunk.name})` : ''
   console.log(`  ${file.padEnd(48)} ${kb(gzipSize(file)).padStart(10)}${label}`)
+}
+
+const SNAPSHOT = 'src/i18n/snapshot/lang.en-gb.json'
+const snapshot = manifest[SNAPSHOT]
+if (!snapshot) {
+  console.error(`\n${SNAPSHOT} is not a chunk of its own: it must be a lazy import.`)
+  process.exit(1)
+}
+if (initial.has(snapshot.file)) {
+  console.error(`\n${SNAPSHOT} is part of the initial JavaScript: it must be a lazy import.`)
+  process.exit(1)
 }
 
 if (total > BUDGET) {

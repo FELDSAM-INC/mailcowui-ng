@@ -6,6 +6,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { text } from '@/i18n'
 import { DangerIcon, InfoIcon, WarningIcon } from '@/shared/icons'
 import { sessionStore } from '@/shared/platform/storage'
 
@@ -71,7 +72,9 @@ function expand() {
       <component :is="ICONS[announcement.type]" class="mt-2.5 size-5 shrink-0" />
       <p class="min-w-0 flex-1 py-2 break-words">
         <span class="sr-only">{{
-          t('shell.announcement.prefix', { type: t(`enums.announcementType.${announcement.type}`) })
+          t('shell.announcement.prefix', {
+            type: text(`enums.announcementType.${announcement.type}`),
+          })
         }}</span>
         {{ announcement.text }}
       </p>
@@ -103,7 +106,7 @@ function expand() {
     >
       <component :is="ICONS[announcement.type]" class="size-5 shrink-0" />
       <!-- The visible type is part of the accessible name (WCAG 2.5.3 label in name). -->
-      <span>{{ t(`enums.announcementType.${announcement.type}`) }}</span>
+      <span>{{ text(`enums.announcementType.${announcement.type}`) }}</span>
       <span class="sr-only">{{ ` – ${t('shell.announcement.expand')}` }}</span>
     </button>
   </div>

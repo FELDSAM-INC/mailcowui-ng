@@ -3,10 +3,10 @@
 // one generic message, keeps the username and moves focus to the password field. A deliberately
 // delayed answer keeps the busy state: requests have no client-side timeout.
 import { nextTick, ref, shallowRef, type Ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import { ApiProblem, isApiProblem, type Role } from '@/api'
 import { useSessionStore } from '@/app/session/store'
+import { lt } from '@/i18n'
 import { useProblemMessages } from '@/i18n/problems'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
@@ -29,7 +29,6 @@ function asProblem(error: unknown): ApiProblem {
 }
 
 export function usePasswordSignIn(options: PasswordSignInOptions) {
-  const { t } = useI18n()
   const { problemMessage } = useProblemMessages()
   const store = useSessionStore()
   const username = ref(store.keptUsername ?? '')
@@ -61,7 +60,7 @@ export function usePasswordSignIn(options: PasswordSignInOptions) {
     form.clear()
     pending.value = true
     options.onSubmit?.()
-    announce(t('auth.signIn.submitting'))
+    announce(lt('footer.loading'))
     const role = options.role()
     try {
       const session = await createSession({

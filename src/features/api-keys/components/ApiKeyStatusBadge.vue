@@ -1,13 +1,12 @@
 <script setup lang="ts">
 // A key's status in text with an icon, never by colour alone (FR-084).
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 import type { ApiKeyStatus } from '@/api'
+import { text } from '@/i18n'
 import { CheckIcon, CloseIcon, WarningIcon } from '@/shared/icons'
 
 const props = defineProps<{ status: ApiKeyStatus }>()
-const { t } = useI18n()
 
 const STYLES: Record<ApiKeyStatus, string> = {
   active:
@@ -27,6 +26,6 @@ const icon = computed(() => ICONS[props.status])
     class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm font-medium"
     :class="STYLES[status]"
   >
-    <component :is="icon" class="size-4" />{{ t(`enums.apiKeyStatus.${status}`) }}
+    <component :is="icon" class="size-4" />{{ text(`enums.apiKeyStatus.${status}`) }}
   </span>
 </template>

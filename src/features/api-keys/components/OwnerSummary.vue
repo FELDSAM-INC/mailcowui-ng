@@ -4,6 +4,7 @@
 import { useI18n } from 'vue-i18n'
 
 import type { ApiKeyOwner } from '@/api'
+import { text } from '@/i18n'
 import { WarningIcon } from '@/shared/icons'
 
 defineProps<{ owner: ApiKeyOwner }>()
@@ -15,7 +16,7 @@ const { t } = useI18n()
     <span class="wrap-anywhere">
       <span class="font-medium text-gray-900 dark:text-white">{{ owner.username }}</span>
       <span class="text-gray-600 dark:text-gray-400">
-        · {{ owner.role ? t(`roles.${owner.role}`) : t('apiKeys.owner.deleted') }}
+        · {{ owner.role ? text(`roles.${owner.role}`) : t('apiKeys.owner.deleted') }}
       </span>
     </span>
     <span

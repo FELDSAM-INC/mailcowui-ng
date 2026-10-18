@@ -12,6 +12,7 @@ import { onBeforeRouteLeave, RouterLink, useRouter } from 'vue-router'
 
 import type { ApiKeyAccessLevel } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
+import { lt, text } from '@/i18n'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
 import OneTimeSecretDialog from '@/shared/components/OneTimeSecretDialog.vue'
@@ -172,12 +173,12 @@ const hint = 'text-sm text-gray-600 dark:text-gray-400'
       </section>
 
       <section class="surface flex flex-col gap-3" :aria-labelledby="ids.headings.owner">
-        <h2 :id="ids.headings.owner" :class="sectionHeading">{{ t('apiKeys.form.owner') }}</h2>
+        <h2 :id="ids.headings.owner" :class="sectionHeading">{{ lt('mailbox.owner') }}</h2>
         <OwnerPicker
           :id="ids.owner"
           v-model="owner"
           mode="pick"
-          :label="t('apiKeys.form.owner')"
+          :label="lt('mailbox.owner')"
           :description="t('apiKeys.form.ownerHint')"
           :errors="form.errorsFor('ownerUsername')"
           required
@@ -201,7 +202,7 @@ const hint = 'text-sm text-gray-600 dark:text-gray-400'
               class="mt-0.5 size-5 shrink-0 accent-brand-500"
             />
             <span class="flex flex-col">
-              <span class="font-medium">{{ t(`enums.apiKeyAccessLevel.${level}`) }}</span>
+              <span class="font-medium">{{ text(`enums.apiKeyAccessLevel.${level}`) }}</span>
               <span :id="`${ids.access}-${level}-hint`" :class="hint">
                 {{ t(`apiKeys.form.accessHint.${level}`) }}
               </span>
@@ -223,7 +224,7 @@ const hint = 'text-sm text-gray-600 dark:text-gray-400'
 
       <section class="surface flex flex-col gap-3" :aria-labelledby="ids.headings.networks">
         <h2 :id="ids.headings.networks" :class="sectionHeading">
-          {{ t('apiKeys.form.networks') }}
+          {{ lt('admin.api_allow_from') }}
         </h2>
         <p :class="hint">{{ t('apiKeys.form.networksHint') }}</p>
         <NetworkListField
@@ -235,7 +236,7 @@ const hint = 'text-sm text-gray-600 dark:text-gray-400'
 
       <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <RouterLink :to="{ name: 'api-keys' }" :class="buttonVariants({ variant: 'outline' })">
-          {{ t('common.cancel') }}
+          {{ lt('footer.cancel') }}
         </RouterLink>
         <button
           type="submit"
@@ -243,7 +244,7 @@ const hint = 'text-sm text-gray-600 dark:text-gray-400'
           :disabled="request.pending.value"
           :aria-busy="request.pending.value ? 'true' : 'false'"
         >
-          {{ request.pending.value ? t('apiKeys.create.submitting') : t('apiKeys.create.submit') }}
+          {{ request.pending.value ? lt('footer.loading') : t('apiKeys.create.submit') }}
         </button>
       </div>
     </form>

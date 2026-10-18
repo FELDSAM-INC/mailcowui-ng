@@ -12,7 +12,7 @@ export function passwordForm(page: Page) {
   return {
     username: page.getByLabel('Username', { exact: true }),
     password: page.getByLabel('Password', { exact: true }),
-    submit: page.getByRole('button', { name: 'Sign in', exact: true }),
+    submit: page.getByRole('button', { name: 'Login', exact: true }),
   }
 }
 
@@ -43,7 +43,7 @@ export async function signInWithPassword(
 /** The main navigation, opening the drawer on narrow viewports. */
 export async function openNavigation(page: Page): Promise<Locator> {
   if (isNarrow(page)) {
-    await page.getByRole('button', { name: 'Open navigation' }).click()
+    await page.getByRole('button', { name: 'Toggle navigation' }).click()
     return page.getByRole('dialog').getByRole('navigation', { name: 'Main navigation' })
   }
   return page.getByRole('navigation', { name: 'Main navigation' })

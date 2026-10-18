@@ -12,12 +12,11 @@ import {
   AlertDialogTitle,
 } from 'reka-ui'
 import { computed, shallowRef, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { lt } from '@/i18n'
 
 import { confirmState, settleConfirm, type ConfirmRequest } from '../composables/useConfirm'
 import { buttonVariants } from '../ui/button'
 
-const { t } = useI18n()
 const open = computed(() => confirmState.value !== null)
 // The texts stay while the dialog closes.
 const shown = shallowRef<ConfirmRequest | null>(null)
@@ -63,7 +62,7 @@ function onCloseAutoFocus(event: Event) {
         </AlertDialogDescription>
         <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <AlertDialogCancel :class="buttonVariants({ variant: 'outline' })">
-            {{ shown?.cancelLabel ?? t('common.cancel') }}
+            {{ shown?.cancelLabel ?? lt('footer.cancel') }}
           </AlertDialogCancel>
           <button
             type="button"

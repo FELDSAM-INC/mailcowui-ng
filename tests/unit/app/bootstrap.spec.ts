@@ -68,7 +68,7 @@ describe('bootstrap order', () => {
     })
     await runBootstrap({ queryClient: createQueryClient({ retryDelay: 0 }) })
     const preferences = usePreferencesStore()
-    expect(preferences.availableLocales).toEqual(['en-gb', 'cs-cz', 'sk-sk'])
+    expect(preferences.availableLocales).toEqual(['cs-cz', 'de-de', 'en-gb', 'sk-sk'])
     expect(preferences.locale).toBe('cs-cz')
     expect(i18n.global.locale.value).toBe('cs-cz')
     expect(document.documentElement.classList.contains('dark')).toBe(true)
@@ -117,6 +117,9 @@ describe('API not ready', () => {
     const queryClient = createQueryClient({ retryDelay: 0 })
     expect(await runBootstrap({ queryClient })).toBe('ready')
     expect(queryClient.getQueryData(queryKeys.publicConfig())).toBeUndefined()
-    expect(usePreferencesStore().availableLocales).toEqual(['en-gb', 'cs-cz', 'sk-sk'])
+    // mailcow's default language menu, with its own labels.
+    const languages = usePreferencesStore().availableLanguages
+    expect(languages).toHaveLength(31)
+    expect(languages).toContainEqual({ code: 'cs-cz', name: 'Čeština (Czech)' })
   })
 })

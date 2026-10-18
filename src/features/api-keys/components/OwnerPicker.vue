@@ -10,6 +10,7 @@ import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { ApiKeyOwnerCandidate } from '@/api'
+import { text as textOf } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
 import { buttonVariants } from '@/shared/ui/button'
 import { API_KEY_OWNER_MAX_LENGTH } from '@/shared/validation/limits'
@@ -212,7 +213,7 @@ function onFocusOut(event: FocusEvent) {
         >
           <span class="font-medium wrap-anywhere">{{ candidate.username }}</span>
           <span class="text-sm text-gray-600 dark:text-gray-400">{{
-            t(`roles.${candidate.role}`)
+            textOf(`roles.${candidate.role}`)
           }}</span>
         </li>
       </ul>

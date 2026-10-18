@@ -6,6 +6,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { ApiProblem, isApiProblem } from '@/api'
+import { lt } from '@/i18n'
 import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
@@ -99,7 +100,7 @@ watch(
       >
         <template #empty>
           <div v-if="filtered" class="flex flex-col items-center gap-3">
-            <p>{{ t('auditLog.noMatch') }}</p>
+            <p>{{ lt('datatables.zeroRecords') }}</p>
             <button
               type="button"
               :class="buttonVariants({ variant: 'outline' })"
@@ -108,7 +109,7 @@ watch(
               {{ t('auditLog.filters.clear') }}
             </button>
           </div>
-          <p v-else>{{ t('auditLog.empty') }}</p>
+          <p v-else>{{ lt('datatables.emptyTable') }}</p>
         </template>
         <AuditEventList :events="events" />
       </ListState>

@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { ApiProblem } from '@/api'
+import { lt, text } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
 import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -102,15 +103,15 @@ const definition = 'mb-3 wrap-anywhere text-gray-900 sm:mb-0 dark:text-white'
           <dl
             class="grid grid-cols-1 gap-x-6 gap-y-1 text-sm sm:grid-cols-[minmax(8rem,auto)_1fr] sm:gap-y-3"
           >
-            <dt :class="term">{{ t('apiKeys.fields.status') }}</dt>
+            <dt :class="term">{{ lt('mailbox.status') }}</dt>
             <dd :class="definition"><ApiKeyStatusBadge :status="key.status" /></dd>
             <dt :class="term">{{ t('apiKeys.fields.prefix') }}</dt>
             <dd :class="definition" class="font-mono">{{ key.prefix }}</dd>
-            <dt :class="term">{{ t('apiKeys.fields.owner') }}</dt>
+            <dt :class="term">{{ lt('mailbox.owner') }}</dt>
             <dd :class="definition"><OwnerSummary :owner="key.owner" /></dd>
             <dt :class="term">{{ t('apiKeys.fields.access') }}</dt>
-            <dd :class="definition">{{ t(`enums.apiKeyAccessLevel.${key.accessLevel}`) }}</dd>
-            <dt :class="term">{{ t('apiKeys.fields.allowedNetworks') }}</dt>
+            <dd :class="definition">{{ text(`enums.apiKeyAccessLevel.${key.accessLevel}`) }}</dd>
+            <dt :class="term">{{ lt('admin.api_allow_from') }}</dt>
             <dd :class="definition">
               <ul v-if="key.allowedNetworks.length > 0" class="flex flex-col font-mono">
                 <li v-for="network in key.allowedNetworks" :key="network">{{ network }}</li>
@@ -120,7 +121,7 @@ const definition = 'mb-3 wrap-anywhere text-gray-900 sm:mb-0 dark:text-white'
             <dt :class="term">{{ t('apiKeys.fields.expires') }}</dt>
             <dd :class="definition">
               <DateTime v-if="key.expiresAt" :value="key.expiresAt" />
-              <template v-else>{{ t('apiKeys.neverExpires') }}</template>
+              <template v-else>{{ lt('user.expire_never') }}</template>
             </dd>
             <dt :class="term">{{ t('apiKeys.fields.created') }}</dt>
             <dd :class="definition"><DateTime :value="key.createdAt" /></dd>

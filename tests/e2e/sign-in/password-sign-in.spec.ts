@@ -36,7 +36,7 @@ test('US1-AS5 FR-018 a wrong password gives one generic message, keeps the usern
   await mockApi.use('admin-password')
   await signInWithPassword(page, 'admin', 'wrong password')
   const form = passwordForm(page)
-  const message = 'Sign-in failed. Check your details and try again.'
+  const message = 'Login failed'
   await expect(page.getByRole('alert')).toContainText(message)
   await expect(assertiveRegion(page)).toContainText(message)
   await expect(form.username).toHaveValue('admin')
@@ -92,7 +92,7 @@ test('FR-016 FR-081 the form works with password managers, allows pasting and ha
   })
   expect(pasteBlocked).toBe(false)
 
-  const toggle = page.getByRole('button', { name: 'Show password' })
+  const toggle = page.getByRole('button', { name: 'Toggle password visibility' })
   await expect(toggle).toHaveAttribute('aria-pressed', 'false')
   await form.password.fill('secret value')
   await toggle.focus()
@@ -114,10 +114,10 @@ test('FR-017 a deliberately delayed answer keeps the busy state, prevents a seco
   await form.username.fill('admin')
   await form.password.fill('Passw0rd!mock')
   await form.submit.click()
-  const busy = page.getByRole('button', { name: 'Signing in…' })
+  const busy = page.getByRole('button', { name: 'Please wait...' })
   await expect(busy).toBeDisabled()
   await expect(busy).toHaveAttribute('aria-busy', 'true')
-  await expect(politeRegion(page)).toContainText('Signing in…')
+  await expect(politeRegion(page)).toContainText('Please wait...')
   await busy.click({ force: true }).catch(() => undefined)
   await form.password.press('Enter').catch(() => undefined)
   await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()

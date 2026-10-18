@@ -1,6 +1,8 @@
 // Route metadata (data-model §5) and the route groups the guard and the session lifecycle use.
 import type { RouteLocationNormalizedGeneric, RouteRecordNameGeneric } from 'vue-router'
 
+import type { TextRef } from '@/i18n'
+
 import type { NavEntryId } from '../navigation/catalogue'
 
 declare module 'vue-router' {
@@ -19,8 +21,11 @@ declare module 'vue-router' {
     public?: boolean
     /** The catalogue entry whose access rule applies (FR-045). */
     navEntry?: NavEntryId
-    /** Translation key of the page name in the document title (FR-049). */
-    titleKey?: string
+    /**
+     * The page name in the document title (FR-049): a new string's key, or one of mailcow's own
+     * strings (`legacy('tfa.tfa')`).
+     */
+    titleKey?: TextRef
   }
 }
 

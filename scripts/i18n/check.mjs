@@ -1,13 +1,19 @@
-// Translation completeness check (constitution IV, SC-006, research R27). Fails on any rule of
-// research R27; reports unused keys as warnings.
+// Translation check (constitution IV 1.3.0, SC-006, research R27). Fails when a new string is
+// incomplete in en-gb, cs-cz or sk-sk, is unused, or breaks a rule of research R27, and when the
+// source uses a legacy key that the bundled en-gb snapshot lacks. It lists, for review only, the
+// new strings whose English text a legacy key already has.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import {
   checkMessages,
+  duplicateLegacyMeanings,
   enumValuesFromSchema,
   flatten,
+  legacyKeysInSource,
+  legacyTextsFromSource,
+  appKeysInSource,
   LOCALES,
   problemNamesFromContract,
   requiredKeys,
@@ -19,10 +25,7 @@ const readJson = (path) => (existsSync(path) ? JSON.parse(readFileSync(path, 'ut
 const app = Object.fromEntries(
   LOCALES.map((locale) => [locale, readJson(join(root, 'src/i18n/messages', `${locale}.json`))]),
 )
-const legacy = Object.fromEntries(
-  LOCALES.map((locale) => [locale, readJson(join(root, 'src/i18n/legacy', `${locale}.json`))]),
-)
-const legacyMap = readJson(join(root, 'src/i18n/legacy-map.json'))
+const snapshot = readJson(join(root, 'src/i18n/snapshot/lang.en-gb.json'))
 
 const enums = enumValuesFromSchema(readFileSync(join(root, 'src/api/generated/schema.ts'), 'utf8'))
 const problemNames = problemNamesFromContract(
@@ -30,7 +33,6 @@ const problemNames = problemNamesFromContract(
 )
 const required = requiredKeys({ enums, problemNames })
 
-// Keys used literally in the source, for the unused-key warnings.
 function sourceFiles(dir) {
   const files = []
   for (const name of readdirSync(dir)) {
@@ -41,17 +43,45 @@ function sourceFiles(dir) {
   }
   return files
 }
-const source = sourceFiles(join(root, 'src'))
-  .map((file) => readFileSync(file, 'utf8'))
-  .join('\n')
-const allKeys = new Set(
-  LOCALES.flatMap((l) => [...flatten(app[l]).keys(), ...flatten(legacy[l]).keys()]),
-)
+const files = sourceFiles(join(root, 'src'))
+const source = files.map((file) => readFileSync(file, 'utf8')).join('\n')
+
+// New strings used literally, or under a prefix built at runtime (`auditLog.columns.${column}`).
+const allKeys = new Set(LOCALES.flatMap((locale) => [...flatten(app[locale]).keys()]))
+const prefixes = [...source.matchAll(/[`'"]([A-Za-z0-9_.-]+)\.\$\{/g)].map((m) => `${m[1]}.`)
 const usedKeys = new Set(
-  [...allKeys].filter((key) => source.includes(`'${key}'`) || source.includes(`"${key}"`)),
+  [...allKeys].filter(
+    (key) =>
+      source.includes(`'${key}'`) ||
+      source.includes(`"${key}"`) ||
+      source.includes(`\`${key}\``) ||
+      prefixes.some((prefix) => key.startsWith(prefix)),
+  ),
 )
 
-const { errors, warnings } = checkMessages({ app, legacy, legacyMap, required, usedKeys })
+const legacyKeysUsed = legacyKeysInSource(source)
+const legacyTexts = legacyTextsFromSource(
+  readFileSync(join(root, 'src/i18n/legacy-messages.ts'), 'utf8'),
+)
+const appKeysUsed = appKeysInSource(source, Object.keys(app['en-gb']))
+const { errors, warnings } = checkMessages({
+  app,
+  required,
+  snapshot,
+  legacyKeysUsed,
+  legacyTexts,
+  appKeysUsed,
+  usedKeys,
+})
+
+const duplicates = duplicateLegacyMeanings(app['en-gb'], snapshot)
+if (duplicates.length > 0) {
+  console.log('Review: new strings whose English text a legacy key already has:')
+  for (const { key, value, legacyKeys } of duplicates) {
+    console.log(`  ${key} "${value}" ~ ${legacyKeys.join(', ')}`)
+  }
+  console.log('')
+}
 
 for (const warning of warnings) console.warn(`warning: ${warning}`)
 if (errors.length > 0) {
@@ -60,6 +90,9 @@ if (errors.length > 0) {
   process.exit(1)
 }
 console.log(
-  `Translations complete: ${allKeys.size} keys in ${LOCALES.join(', ')}; ` +
+  `Translations complete: ${allKeys.size} new strings in ${LOCALES.join(', ')}; ` +
+    `${legacyKeysUsed.length} legacy keys used and ${Object.keys(legacyTexts).length} in ` +
+    'LEGACY_TEXTS, all in the en-gb snapshot ' +
+    `(${relative(root, join(root, 'src/i18n/snapshot/lang.en-gb.json'))}); ` +
     `${required.length} contract keys (${problemNames.length} problem types) covered.`,
 )

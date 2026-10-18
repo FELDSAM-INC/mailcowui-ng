@@ -78,10 +78,10 @@ describe('applyProfileAfterSignIn', () => {
     expect(prefs.chosenOnSignIn).toEqual({ locale: false, theme: false })
   })
 
-  it('neither applies nor overwrites a profile language the app does not translate', async () => {
+  it('neither applies nor overwrites a profile language that mailcow does not ship', async () => {
     useScenario('admin-active')
-    const { prefs } = await setup('active', [...LANGUAGES, { code: 'de-de', name: 'Deutsch' }])
-    await applyProfileAfterSignIn(identity({ language: 'de-de', theme: 'system', etag: '"p"' }))
+    const { prefs } = await setup('active', [...LANGUAGES, { code: 'en-us', name: 'English (US)' }])
+    await applyProfileAfterSignIn(identity({ language: 'en-us', theme: 'system', etag: '"p"' }))
     expect(prefs.locale).toBe('en-gb')
     expect(saves()).toEqual([])
   })

@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import type { ApiKey } from '@/api'
+import { lt, text } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
@@ -56,7 +57,7 @@ const head = 'px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-g
                 class="inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-brand-500 dark:hover:text-white"
                 @click="emit('sort', column.key)"
               >
-                {{ t(`apiKeys.columns.${column.key}`) }}
+                {{ text(`apiKeys.columns.${column.key}`) }}
                 <ChevronDownIcon
                   class="size-4"
                   :class="[
@@ -66,7 +67,7 @@ const head = 'px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-g
                 />
               </button>
             </th>
-            <th v-else scope="col" :class="head">{{ t(`apiKeys.columns.${column.key}`) }}</th>
+            <th v-else scope="col" :class="head">{{ text(`apiKeys.columns.${column.key}`) }}</th>
           </template>
         </tr>
       </thead>
@@ -81,12 +82,12 @@ const head = 'px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-g
           </td>
           <td :class="cell" class="font-mono">{{ apiKey.prefix }}</td>
           <td :class="cell" class="max-w-[14rem]"><OwnerSummary :owner="apiKey.owner" /></td>
-          <td :class="cell">{{ t(`enums.apiKeyAccessLevel.${apiKey.accessLevel}`) }}</td>
+          <td :class="cell">{{ text(`enums.apiKeyAccessLevel.${apiKey.accessLevel}`) }}</td>
           <td :class="cell"><ApiKeyStatusBadge :status="apiKey.status" /></td>
           <td :class="cell"><DateTime :value="apiKey.createdAt" /></td>
           <td :class="cell">
             <DateTime v-if="apiKey.expiresAt" :value="apiKey.expiresAt" />
-            <template v-else>{{ t('apiKeys.neverExpires') }}</template>
+            <template v-else>{{ lt('user.expire_never') }}</template>
           </td>
           <td :class="cell"><LastUse :api-key="apiKey" /></td>
         </tr>

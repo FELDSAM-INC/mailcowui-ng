@@ -20,7 +20,7 @@ const props = defineProps<{ username: string }>()
 const { t } = useI18n()
 const { branding } = useBranding()
 const links = computed(() => signedInLinks(branding.value.appLinks, props.username))
-const label = computed(() => appsLabel(branding.value.appsLabel, t))
+const label = computed(() => appsLabel(branding.value.appsLabel))
 </script>
 
 <template>

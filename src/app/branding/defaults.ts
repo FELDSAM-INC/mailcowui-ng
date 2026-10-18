@@ -1,6 +1,7 @@
 // The neutral built-in defaults when the public configuration cannot be loaded (FR-003): the
-// server's host name as the product name, no logo, texts or links, every app language and no login
-// page options. No product or operator name exists in the source (constitution IV).
+// server's host name as the product name, no logo, texts or links, mailcow's default language menu
+// (applied by the start sequence) and no login page options. No product or operator name exists
+// in the source (constitution IV).
 import type { Branding } from './public-config'
 
 export function defaultBranding(hostname: string = window.location.hostname): Branding {

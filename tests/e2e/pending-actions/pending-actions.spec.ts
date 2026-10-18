@@ -22,7 +22,7 @@ test('US5-AS1 FR-039 @virtual-authenticator registering a passkey lifts second-f
   await expect(heading(page)).toBeVisible()
   await expect(page).toHaveURL(/\/ng\/pending-actions\?returnTo=(%2F|\/)quarantine$/)
   await expect(actions(page)).toHaveCount(1)
-  await expect(actions(page).first()).toContainText('Set up a second factor')
+  await expect(actions(page).first()).toContainText('Two-Factor Authentication Required')
   await expectAccessible()
   await expectNoHorizontalScroll()
   await expectTouchTargets()
@@ -43,7 +43,7 @@ test('US5-AS2 FR-040 a forced password change links to the classic sign-in, and 
   await page.goto('')
   await expect(heading(page)).toBeVisible()
   const item = actions(page).first()
-  await expect(item).toContainText('Change your password')
+  await expect(item).toContainText('Change password')
   await expect(
     item.getByRole('link', { name: 'Change your password in the classic interface' }),
   ).toHaveAttribute('href', '/')
@@ -82,8 +82,8 @@ test('US5-AS3 FR-041 with both actions the password change comes first and regis
   await webauthn.stubCredentials(SEEDED_CREDENTIALS.unknown)
   await page.goto('')
   await expect(actions(page).getByRole('heading', { level: 2 })).toHaveText([
-    'Change your password',
-    'Set up a second factor',
+    'Change password',
+    'Two-Factor Authentication Required',
   ])
   await expect(actions(page).nth(1)).toContainText(
     'You can register a passkey here once your password has been changed.',
@@ -128,7 +128,7 @@ test('US5-AS6 FR-036 the screen offers sign-out', async ({ page, mockApi }) => {
   await mockApi.use('forced-password-change')
   await page.goto('')
   await expect(heading(page)).toBeVisible()
-  await page.getByRole('button', { name: 'Sign out' }).click()
+  await page.getByRole('button', { name: 'Cancel and log out' }).click()
   await expect(page.getByRole('main').getByText('You have signed out.')).toBeVisible()
 })
 
@@ -144,7 +144,7 @@ test('US2-AS7 @virtual-authenticator a passkey sign-in of an account forced to c
   await page.goto('sign-in')
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click()
   await expect(heading(page)).toBeVisible()
-  await expect(actions(page).first()).toContainText('Change your password')
+  await expect(actions(page).first()).toContainText('Change password')
 })
 
 test('Edge: a reload resumes the pending-actions screen', async ({ page, mockApi }) => {
@@ -153,5 +153,5 @@ test('Edge: a reload resumes the pending-actions screen', async ({ page, mockApi
   await expect(heading(page)).toBeVisible()
   await page.reload()
   await expect(heading(page)).toBeVisible()
-  await expect(actions(page).first()).toContainText('Change your password')
+  await expect(actions(page).first()).toContainText('Change password')
 })

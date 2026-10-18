@@ -5,10 +5,8 @@
     "errorPrefix": "Chyba:",
     "mainNavigation": "Hlavná navigácia",
     "morePages": "Ďalšie strany",
-    "nextPage": "Ďalšia stránka",
-    "openNavigation": "Otvoriť navigáciu",
+    "openNavigation": "Prepnúť navigáciu",
     "pagination": "Stránkovanie",
-    "previousPage": "Predchádzajúca stránka",
     "skipToContent": "Preskočiť na hlavný obsah",
     "userMenu": "Ponuka účtu {username}"
   },
@@ -20,16 +18,13 @@
       "expiresAt": "Platnosť do",
       "lastUsedAt": "Naposledy použité",
       "name": "Názov",
-      "owner": "Vlastník",
-      "prefix": "Predpona",
-      "status": "Stav"
+      "prefix": "Predpona"
     },
     "create": {
       "action": "Vytvoriť kľúč API",
       "created": "Kľúč API bol vytvorený.",
       "intro": "Kľúč koná s rolou a oprávneniami svojho vlastníka. Jeho tajný údaj sa zobrazí len raz, hneď po vytvorení.",
       "submit": "Vytvoriť kľúč API",
-      "submitting": "Vytváranie…",
       "title": "Vytvoriť kľúč API"
     },
     "detail": {
@@ -56,26 +51,21 @@
     },
     "fields": {
       "access": "Prístup",
-      "allowedNetworks": "Povolené siete",
       "created": "Vytvorené",
       "createdBy": "Vytvoril",
       "expires": "Platnosť do",
       "lastUsed": "Naposledy použité",
-      "owner": "Vlastník",
       "prefix": "Predpona",
       "revoked": "Zrušené",
-      "revokedBy": "Zrušil",
-      "status": "Stav"
+      "revokedBy": "Zrušil"
     },
     "filters": {
       "access": "Prístup",
       "allAccessLevels": "Všetky úrovne prístupu",
       "allStatuses": "Všetky stavy",
       "clear": "Zrušiť filtre",
-      "owner": "Vlastník",
       "ownerHint": "Vyberte vlastníka alebo napíšte používateľské meno a stlačte Enter.",
       "sort": "Zoradiť podľa",
-      "status": "Stav",
       "title": "Filtre"
     },
     "form": {
@@ -87,9 +77,7 @@
       "expiry": "Platnosť",
       "name": "Názov",
       "nameHint": "Názov, podľa ktorého spoznáte, ktorý program kľúč používa.",
-      "networks": "Povolené siete",
       "networksHint": "Nechajte prázdne, ak chcete povoliť ľubovoľnú adresu. Inak zadajte adresy alebo siete IPv4 či IPv6, napríklad 192.0.2.0/24.",
-      "owner": "Vlastník",
       "ownerHint": "Kľúč koná s rolou a oprávneniami tohto účtu. Kľúč vlastnený správcom domény je obmedzený na domény a oprávnenia tohto správcu."
     },
     "intro": "Kľúče pre iné programy, ktoré používajú toto API, napríklad fakturačné systémy.",
@@ -100,7 +88,6 @@
       "limit": "Najviac {max} sietí.",
       "remove": "Odobrať sieť {number}"
     },
-    "neverExpires": "Nikdy",
     "neverUsed": "Nikdy nepoužité",
     "owner": {
       "deleted": "Zmazaný účet",
@@ -157,8 +144,7 @@
       "event": "Udalosť",
       "method": "Metóda",
       "outcome": "Výsledok",
-      "reason": "Dôvod",
-      "time": "Čas"
+      "reason": "Dôvod"
     },
     "description": "Prihlásenia, odhlásenia a zmeny prístupových kľúčov, predvolieb a API kľúčov, od najnovších.",
     "details": {
@@ -170,7 +156,6 @@
       "target": "Cieľ",
       "userAgent": "User agent"
     },
-    "empty": "Zatiaľ žiadne záznamy auditu.",
     "filters": {
       "actor": "Používateľ alebo API kľúč",
       "actorHelp": "Používateľské meno, aj také skúšané pri neúspešnom prihlásení, alebo ID API kľúča.",
@@ -194,7 +179,6 @@
       "title": "Filtre",
       "to": "Do"
     },
-    "noMatch": "Filtrom nezodpovedajú žiadne záznamy.",
     "notRecorded": "Nezaznamenané",
     "records": "Záznamy auditu",
     "resultCount": "Nájdené záznamy: {total}",
@@ -221,7 +205,7 @@
     "pendingActions": {
       "intro": "Skôr ako budete môcť pokračovať, musíte na svojom účte dokončiť tieto kroky.",
       "password": {
-        "body": "Musíte si zmeniť heslo. Táto aplikácia zatiaľ heslá meniť nevie: zmeňte ho v klasickom rozhraní a potom to tu skontrolujte znova.",
+        "body": "Táto aplikácia zatiaľ heslo zmeniť nevie: zmeňte ho v klasickom rozhraní a potom to tu skontrolujte znova.",
         "checkAgain": "Skontrolovať znova",
         "link": "Zmeniť heslo v klasickom rozhraní",
         "stillPending": "Zmena hesla stále čaká na dokončenie."
@@ -230,87 +214,56 @@
         "afterPassword": "Prístupový kľúč tu budete môcť zaregistrovať, keď si zmeníte heslo.",
         "classicLink": "Nastaviť druhý faktor v klasickom rozhraní",
         "register": "Zaregistrovať prístupový kľúč",
-        "required": "Váš účet musí mať druhý faktor. Prístupový kľúč sa počíta ako druhý faktor.",
+        "required": "Prístupový kľúč sa počíta ako druhý faktor.",
         "unsupported": "Toto zariadenie nemôže vytvárať prístupové kľúče. Druhý faktor si môžete nastaviť v klasickom rozhraní."
       },
       "title": "Je potrebné dokončiť kroky"
     },
     "secondFactor": {
-      "intro": "Prihlasujete sa ako {username}. Potvrďte prihlásenie jedným zo svojich druhých faktorov.",
       "oneMinute": "Na dokončenie prihlásenia zostáva jedna minúta.",
       "otherMethods": "Ďalšie metódy",
       "timeLeft": "Zostávajúci čas: {time}",
       "totp": {
-        "authenticators": "Autentifikátory",
         "code": "Šesťmiestny kód"
       },
-      "verify": "Overiť",
       "webauthn": {
         "start": "Použiť bezpečnostný kľúč alebo prístupový kľúč",
         "unsupported": "Toto zariadenie nemôže použiť bezpečnostný kľúč ani prístupový kľúč. Zvoľte inú metódu.",
         "waiting": "Čaká sa na bezpečnostný kľúč alebo prístupový kľúč…"
       },
       "yubiOtp": {
-        "field": "Yubico OTP",
-        "help": "Dotknite sa kľúča YubiKey, aby do tohto poľa napísal kód."
+        "placeholder": "Dotknite sa kľúča YubiKey"
       }
     },
     "signIn": {
       "anyRole": "Prihlásiť sa ľubovoľným účtom",
-      "forgotPassword": "Zabudli ste heslo?",
-      "help": "Pomocník",
       "idpHint": {
         "body": "Účty, ktoré sa prihlasujú cez poskytovateľa identity vašej organizácie, tu zatiaľ nemôžu použiť heslo.",
         "link": "Prihlásiť sa v klasickom rozhraní"
       },
-      "otherLogins": "Hľadáte inú prihlasovaciu stránku?",
-      "roleLinks": {
-        "admin": "Prihlásiť sa ako správca",
-        "domainAdmin": "Prihlásiť sa ako správca domény",
-        "mailboxUser": "Prihlásiť sa ako používateľ"
-      },
-      "showPassword": "Zobraziť heslo",
+      "showPassword": "Prepnúť viditeľnosť hesla",
       "sso": {
         "body": "Tento server používa jednotné prihlásenie. Zatiaľ je k dispozícii v klasickom rozhraní.",
-        "link": "Prihlásiť sa jednotným prihlásením v klasickom rozhraní",
-        "title": "Jednotné prihlásenie"
+        "link": "Prihlásiť sa jednotným prihlásením v klasickom rozhraní"
       },
-      "submit": "Prihlásiť sa",
-      "submitting": "Prihlasovanie…",
       "throttle": {
         "announce": "Príliš veľa pokusov. Znova to môžete skúsiť o {time}.",
         "countdown": "Znova to môžete skúsiť o {time}",
         "ended": "Teraz sa môžete znova skúsiť prihlásiť."
-      },
-      "title": "Prihlásenie",
-      "titleAdmin": "Prihlásenie správcu",
-      "titleDomainAdmin": "Prihlásenie správcu domény",
-      "titleMailboxUser": "Prihlásenie používateľa"
+      }
     }
   },
   "common": {
     "close": "Zavrieť",
     "documentTitle": "{page} – {site}",
     "goHome": "Prejsť na úvodnú obrazovku",
-    "next": "Ďalej",
     "opensInNewTab": "(otvorí sa na novej karte)",
-    "previous": "Predchádzajúce",
     "requestId": "ID požiadavky: {requestId}",
     "retry": "Skúsiť znova",
     "signOut": "Odhlásiť sa"
   },
   "enums": {
-    "announcementType": {
-      "danger": "Dôležité",
-      "info": "Informácia",
-      "warning": "Upozornenie"
-    },
-    "apiKeyAccessLevel": {
-      "readOnly": "Iba na čítanie",
-      "readWrite": "Čítanie a zápis"
-    },
     "apiKeyStatus": {
-      "active": "Aktívny",
       "expired": "Vypršaný",
       "revoked": "Zneplatnený"
     },
@@ -340,29 +293,16 @@
       "verificationUnavailable": "Overovacia služba je nedostupná"
     },
     "auditOutcome": {
-      "failure": "Neúspech",
-      "success": "Úspech"
+      "failure": "Neúspech"
     },
     "auditTargetType": {
-      "apiKey": "API kľúč",
       "passkey": "Prístupový kľúč",
       "preferences": "Predvoľby",
       "session": "Relácia"
     },
     "authMethod": {
-      "apiKey": "API kľúč",
       "passkey": "Prístupový kľúč",
-      "password": "Heslo",
       "passwordAndSecondFactor": "Heslo a druhý faktor"
-    },
-    "pendingAction": {
-      "passwordChange": "Zmeňte svoje heslo",
-      "secondFactorSetup": "Nastavte druhý faktor"
-    },
-    "secondFactorType": {
-      "totp": "Overovacia aplikácia (TOTP)",
-      "webauthn": "Bezpečnostný alebo prístupový kľúč",
-      "yubiOtp": "Yubico OTP"
     }
   },
   "forms": {
@@ -394,15 +334,10 @@
   },
   "lists": {
     "pagination": {
-      "current": "Strana {page} z {pages}",
-      "empty": "Žiadne položky",
-      "pageSize": "Na stránku",
-      "summary": "{from}–{to} z {total}"
+      "current": "Strana {page} z {pages}"
     }
   },
   "nav": {
-    "account": "Môj účet",
-    "administrators": "Administrátori",
     "aliases": "Aliasy a zdroje",
     "apiKeys": "API kľúče",
     "auditLog": "Protokol auditu",
@@ -412,7 +347,6 @@
     "operations": "Monitorovanie a prevádzka",
     "passkeys": "Prístupové kľúče",
     "routing": "Smerovanie a prepisovanie adries",
-    "spamFilter": "Spamový filter",
     "system": "Nastavenia systému"
   },
   "passkeys": {
@@ -437,9 +371,7 @@
     "otherHost": "Funguje iba na {host}",
     "registered": "Zaregistrovaný",
     "remove": {
-      "action": "Odstrániť",
       "body": "Už vás neprihlási, ani tu, ani v klasickom rozhraní.",
-      "confirm": "Odstrániť",
       "last": "Je to váš posledný prístupový kľúč. Prihlasovať sa budete aj naďalej heslom.",
       "title": "Odstrániť prístupový kľúč „{name}“?"
     },
@@ -458,18 +390,12 @@
     "classicHeading": "Zatiaľ použite klasické rozhranie",
     "note": "Klasické rozhranie má vlastnú reláciu, preto sa v ňom prihlasujete zvlášť.",
     "pages": {
-      "mailSetup": "Nastavenie pošty",
       "other": "Klasické rozhranie"
     }
   },
   "preferences": {
     "changedElsewhere": "Vaše predvoľby boli zmenené inde. Teraz sa zobrazuje uložené nastavenie; prípadne vyberte znova.",
     "language": "Jazyk",
-    "languages": {
-      "cs-cz": "Čeština",
-      "en-gb": "English",
-      "sk-sk": "Slovenčina"
-    },
     "notSaved": "Zmena nebola uložená. Platí predchádzajúce nastavenie.",
     "saved": "Uložené.",
     "theme": "Motív"
@@ -479,43 +405,33 @@
     "api-key-invalid": "API kľúč nie je platný.",
     "api-key-revoked": "API kľúč bol zneplatnený.",
     "api-key-source-not-allowed": "API kľúč nemožno použiť z tejto sieťovej adresy.",
-    "csrf-token-mismatch": "Reláciu sa nepodarilo overiť. Skúste to, prosím, znova.",
-    "forbidden": "Na túto akciu nemáte oprávnenie.",
-    "generic": "Niečo sa pokazilo. Skúste to, prosím, znova.",
     "insufficient-key-scope": "API kľúč túto akciu nepovoľuje.",
     "network": "Server je nedostupný. Skontrolujte pripojenie a skúste to znova.",
     "passkey-registration-failed": "Prístupový kľúč sa nepodarilo zaregistrovať. Skúste to, prosím, znova.",
     "pending-action-required": "Vo vašom účte je najprv potrebné dokončiť niektoré kroky.",
     "second-factor-failed": "Kód nebol prijatý. Začnite, prosím, prihlásenie znova.",
-    "second-factor-required": "Dokončite, prosím, druhý krok prihlásenia.",
     "second-factor-unavailable": "Vaše druhé faktory tu nemožno použiť. Požiadajte správcu o ich obnovenie.",
     "service-unavailable": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
     "session-required": "Táto akcia vyžaduje prihlásenie.",
     "sign-in-expired": "Časový limit prihlásenia vypršal. Začnite, prosím, znova.",
-    "sign-in-failed": "Prihlásenie zlyhalo. Skontrolujte údaje a skúste to znova.",
     "status": {
       "400": "Požiadavku sa nepodarilo spracovať.",
       "401": "Prihláste sa, prosím, znova.",
-      "403": "Na túto akciu nemáte oprávnenie.",
       "404": "Položka sa nenašla.",
       "409": "Akcia je v rozpore s aktuálnym stavom. Načítajte stránku znova a skúste to znova.",
       "412": "Položka bola medzitým zmenená inde. Bola znova načítaná, skúste to, prosím, znova.",
       "413": "Požiadavka je príliš veľká.",
       "422": "Niektoré hodnoty nie sú platné.",
       "429": "Príliš veľa požiadaviek. Pred ďalším pokusom chvíľu počkajte.",
-      "500": "Na serveri došlo k chybe. Skúste to, prosím, znova.",
       "502": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
       "503": "Služba je dočasne nedostupná. Skúste to, prosím, o chvíľu znova.",
       "504": "Server neodpovedal včas. Skúste to, prosím, znova."
     },
-    "temporary-verification-failure": "Kód sa teraz nepodarilo overiť. Skúste to znova alebo zvoľte inú metódu.",
     "too-many-requests": "Príliš veľa pokusov. Pred ďalším pokusom chvíľu počkajte.",
     "unauthenticated": "Vaša relácia skončila. Prihláste sa, prosím, znova.",
     "validation-failed": "Niektoré polia vyžadujú vašu pozornosť."
   },
   "roles": {
-    "admin": "Administrátor",
-    "domainAdmin": "Správca domény",
     "mailboxUser": "Používateľ schránky"
   },
   "secrets": {
@@ -546,17 +462,11 @@
       "expand": "Zobraziť oznámenie",
       "prefix": "{type}:"
     },
-    "signOutFailed": "Odhlásenie sa nepodarilo potvrdiť. Skontrolujte pripojenie a skúste to znova.",
-    "signingOut": "Odhlasovanie…",
-    "userMenu": {
-      "signedInAs": "Prihlásený(-á) ako"
-    }
+    "signOutFailed": "Odhlásenie sa nepodarilo potvrdiť. Skontrolujte pripojenie a skúste to znova."
   },
   "states": {
     "list": {
-      "empty": "Nie je čo zobraziť.",
-      "error": "Zoznam sa nepodarilo načítať.",
-      "loading": "Načítava sa…"
+      "error": "Zoznam sa nepodarilo načítať."
     },
     "noAccess": {
       "body": "Váš účet nemôže používať túto sekciu. Ak si myslíte, že ide o chybu, obráťte sa na správcu.",

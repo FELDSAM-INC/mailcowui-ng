@@ -1,11 +1,14 @@
 <script setup lang="ts">
 // The user menu (FR-042, FR-058): username and role, the language and theme choices as radio
-// items, Passkeys and Sign out. Sign-out is never confirmed (FR-036).
+// items, Passkeys and Sign out. Sign-out is never confirmed (FR-036). The languages are the
+// installation's language menu; "Logged in as %s" is the classic interface's text.
 import { useI18n } from 'vue-i18n'
 
 import { themeValues, type Identity, type Theme } from '@/api'
+import { lt, text } from '@/i18n'
 import { isAppLocale, toBcp47 } from '@/i18n/locales'
 import { ChevronDownIcon, PasskeyIcon, SignOutIcon, UserCircleIcon } from '@/shared/icons'
+import LegacyText from '@/shared/components/LegacyText.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,14 +50,13 @@ function onTheme(value: unknown) {
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="max-h-[80dvh] max-w-[calc(100vw-2rem)] overflow-y-auto">
       <DropdownMenuLabel class="px-3 py-2">
-        <span class="block text-xs text-gray-600 dark:text-gray-400">{{
-          t('shell.userMenu.signedInAs')
-        }}</span>
-        <span class="block font-medium break-all text-gray-900 dark:text-white">{{
-          identity.username
-        }}</span>
+        <LegacyText
+          k="success.logged_in_as"
+          :args="[identity.username]"
+          class="block font-medium break-all text-gray-900 dark:text-white"
+        />
         <span class="block text-sm text-gray-600 dark:text-gray-400">{{
-          t(`roles.${identity.role}`)
+          text(`roles.${identity.role}`)
         }}</span>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
@@ -65,14 +67,14 @@ function onTheme(value: unknown) {
         <!-- The choice applies on the item's select event: the radio group's value follows later. -->
         <DropdownMenuRadioGroup :model-value="prefs.locale">
           <DropdownMenuRadioItem
-            v-for="locale in prefs.availableLocales"
-            :key="locale"
-            :value="locale"
-            :lang="toBcp47(locale)"
+            v-for="language in prefs.availableLanguages"
+            :key="language.code"
+            :value="language.code"
+            :lang="toBcp47(language.code)"
             class="min-h-11"
-            @select="onLocale(locale)"
+            @select="onLocale(language.code)"
           >
-            {{ t(`preferences.languages.${locale}`) }}
+            {{ language.name }}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
@@ -98,7 +100,7 @@ function onTheme(value: unknown) {
       </DropdownMenuItem>
       <DropdownMenuItem class="min-h-11" :disabled="signingOut" @select="$emit('signOut')">
         <SignOutIcon />
-        {{ signingOut ? t('shell.signingOut') : t('common.signOut') }}
+        {{ signingOut ? lt('footer.loading') : t('common.signOut') }}
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

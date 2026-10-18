@@ -6,7 +6,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { ApiProblem, type FieldViolation } from '@/api'
-import { createAppI18n, loadLocale } from '@/i18n'
+import { createAppI18n, loadLocale, lt } from '@/i18n'
+import { LEGACY_TEXTS } from '@/i18n/legacy-messages'
 import {
   problemMessage,
   problemMessageKey,
@@ -19,25 +20,30 @@ import { problemNamesFromContract } from '../../../scripts/i18n/lib.mjs'
 
 const contractText = readFileSync('contract/openapi.json', 'utf8')
 
+/** A translator as `useText()` builds it: new strings, or mailcow's text through LEGACY_TEXTS. */
+function translatorOf(i18n: ReturnType<typeof createAppI18n>, locale: string): MessageTranslator {
+  return {
+    t: (key, named) => {
+      const classic = LEGACY_TEXTS[key]
+      if (classic) return lt(classic)
+      return named ? i18n.global.t(key, named) : i18n.global.t(key)
+    },
+    te: (key) => key in LEGACY_TEXTS || i18n.global.te(key, locale),
+    locale,
+  }
+}
+
 function translator(locale: 'en-gb' | 'cs-cz' | 'sk-sk' = 'en-gb'): MessageTranslator {
   const i18n = createAppI18n()
   i18n.global.locale.value = locale
-  return {
-    t: (key, named) => (named ? i18n.global.t(key, named) : i18n.global.t(key)),
-    te: (key) => i18n.global.te(key, locale),
-    locale,
-  }
+  return translatorOf(i18n, locale)
 }
 
 async function loaded(locale: 'cs-cz' | 'sk-sk'): Promise<MessageTranslator> {
   const i18n = createAppI18n()
   await loadLocale(i18n, locale)
   i18n.global.locale.value = locale
-  return {
-    t: (key, named) => (named ? i18n.global.t(key, named) : i18n.global.t(key)),
-    te: (key) => i18n.global.te(key, locale),
-    locale,
-  }
+  return translatorOf(i18n, locale)
 }
 
 const problemOf = (type: string, status = 400) =>
@@ -88,6 +94,23 @@ describe('problem messages', () => {
     expect(problemMessageKey(problemOf('https://elsewhere.example/x', 418), en.te)).toBe(
       'problem.generic',
     )
+  })
+
+  it("shows the classic interface's message where it has one of the same meaning", () => {
+    const en = translator()
+    expect(problemMessage(problemOf('/api/v2/problems/sign-in-failed', 401), en)).toBe(
+      'Login failed',
+    )
+    expect(problemMessage(problemOf('/api/v2/problems/csrf-token-mismatch', 419), en)).toBe(
+      'Form token invalid: Token mismatch',
+    )
+    expect(problemMessage(problemOf('about:blank', 403), en)).toBe(
+      'Access denied or invalid form data',
+    )
+    expect(problemMessage(problemOf('about:blank', 500), en)).toBe(
+      'An unexpected server error occurred. Please contact your administrator.',
+    )
+    expect(problemMessage(problemOf('about:blank', 419), en)).toBe('An unknown error occurred')
   })
 
   it('translates transport failures', () => {

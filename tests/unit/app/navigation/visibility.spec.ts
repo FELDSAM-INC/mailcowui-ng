@@ -77,9 +77,19 @@ describe('navigation catalogue', () => {
     expect(catalogue.map((entry) => entry.id)).toEqual(ORDER)
   })
 
-  it('names every entry by nav.<id> and gives it an icon and a section root', () => {
+  it('names every entry by its classic name or nav.<id>, with an icon and a section root', () => {
+    const classic: Record<string, string> = {
+      domains: 'mailbox.domains',
+      mailboxes: 'mailbox.mailboxes',
+      account: 'header.user_settings',
+      quarantine: 'header.quarantine',
+      spamFilter: 'user.spamfilter',
+      administrators: 'admin.admins',
+      syncJobs: 'mailbox.sync_jobs',
+    }
     for (const entry of catalogue) {
-      expect(entry.labelKey).toBe(`nav.${entry.id}`)
+      const legacyKey = classic[entry.id]
+      expect(entry.labelKey).toEqual(legacyKey ? { legacy: legacyKey } : `nav.${entry.id}`)
       expect(entry.icon).toBeTruthy()
       expect(entry.path).toMatch(/^\/[a-z-]*$/)
     }

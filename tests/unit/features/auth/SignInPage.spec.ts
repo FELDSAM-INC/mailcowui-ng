@@ -41,7 +41,7 @@ const roleLinkTexts = (wrapper: Awaited<ReturnType<typeof mountPage>>) =>
 describe('headings and role links (FR-005, FR-006)', () => {
   it('names the role in the heading of a role screen', async () => {
     useScenario('anonymous-default')
-    expect((await mountPage(null)).get('h1').text()).toBe('Sign in')
+    expect((await mountPage(null)).get('h1').text()).toBe('Login')
     expect((await mountPage('admin')).get('h1').text()).toBe('Administrator Login')
     expect((await mountPage('domainAdmin')).get('h1').text()).toBe('Domain-Administrator Login')
     expect((await mountPage('mailboxUser')).get('h1').text()).toBe('User Login')
@@ -100,8 +100,9 @@ describe('force single sign-on (FR-007) and the identity provider (FR-008)', () 
 describe('the reset link (FR-009) and app links (FR-001a)', () => {
   it('links "Forgot password?" on the neutral and mailbox-user screens only', async () => {
     useScenario('anonymous-default')
+    // Verbatim, with the classic page's leading "> " (constitution IV 1.3.0).
     expect((await mountPage(null)).find('a[href="/reset-password"]').text()).toBe(
-      'Forgot Password?',
+      '> Forgot Password?',
     )
     expect((await mountPage('mailboxUser')).find('a[href="/reset-password"]').exists()).toBe(true)
     expect((await mountPage('admin')).find('a[href="/reset-password"]').exists()).toBe(false)
@@ -129,6 +130,9 @@ describe('the reset link (FR-009) and app links (FR-001a)', () => {
     useScenario('help-html-malicious')
     const wrapper = await mountPage(null)
     const help = wrapper.get('[data-help]')
+    // Behind the classic "Show/Hide help panel" disclosure (`start.help`).
+    expect(help.element.tagName).toBe('DETAILS')
+    expect(help.get('summary').text()).toBe('Show/Hide help panel')
     expect(help.find('script').exists()).toBe(false)
     expect(help.find('a[href="https://example.org/help"]').exists()).toBe(true)
   })

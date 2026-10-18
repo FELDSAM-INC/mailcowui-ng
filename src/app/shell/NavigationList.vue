@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
 import type { Identity } from '@/api'
+import { resolveText } from '@/i18n'
 
 import type { NavigationEntry } from '../navigation/catalogue'
 import { visibleEntries } from '../navigation/visibility'
@@ -33,7 +34,7 @@ function isCurrent(entry: NavigationEntry): boolean {
           @click="$emit('navigate')"
         >
           <component :is="entry.icon" class="size-5 shrink-0" />
-          <span class="min-w-0 break-words">{{ t(entry.labelKey) }}</span>
+          <span class="min-w-0 break-words">{{ resolveText(entry.labelKey, t) }}</span>
         </RouterLink>
       </li>
     </ul>

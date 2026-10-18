@@ -92,7 +92,8 @@ describe('ListState (FR-089)', () => {
     const wrapper = mountWithApp(ListState, {
       props: { loading: true, empty: false, problem: null },
     })
-    expect(wrapper.get('[role="status"]').text()).toContain('Loading…')
+    // The classic interface's DataTables text (`datatables.loadingRecords`).
+    expect(wrapper.get('[role="status"]').text()).toContain('Loading...')
     expect(wrapper.find('[aria-busy="true"]').exists()).toBe(true)
   })
 
@@ -124,19 +125,21 @@ describe('ListState (FR-089)', () => {
 })
 
 describe('PaginationBar', () => {
-  it('shows the range and total, and page sizes 25, 50 and 100', () => {
-    const wrapper = mountWithApp(PaginationBar, { props: { total: 120, page: 2, size: 25 } })
-    expect(wrapper.text()).toContain('26–50 of 120')
+  it('shows the range and total, and page sizes 25, 50 and 100, in DataTables words', () => {
+    const wrapper = mountWithApp(PaginationBar, { props: { total: 1200, page: 2, size: 25 } })
+    expect(wrapper.text()).toContain('Showing 26 to 50 of 1,200 entries')
     const options = wrapper.findAll('select option').map((option) => option.text())
     expect(options).toEqual(['25', '50', '100'])
-    expect(wrapper.get('select').element.labels?.[0]?.textContent).toContain('Per page')
+    // "Show _MENU_ entries" with the select in the place of _MENU_, as the select's label.
+    const label = wrapper.get('select').element.labels?.[0]
+    expect(label?.textContent?.replace(/\s+/g, ' ')).toMatch(/^Show 25 ?50 ?100 entries$/)
     expect(wrapper.get('nav').attributes('aria-label')).toBe('Pagination')
   })
 
   it('moves between pages with buttons operable by keyboard', async () => {
     const wrapper = mountWithApp(PaginationBar, { props: { total: 120, page: 1, size: 50 } })
-    const previous = wrapper.get('button[aria-label="Previous page"]')
-    const next = wrapper.get('button[aria-label="Next page"]')
+    const previous = wrapper.get('button[aria-label="Previous"]')
+    const next = wrapper.get('button[aria-label="Next"]')
     expect(previous.attributes('disabled')).toBeDefined()
     expect(next.element.tagName).toBe('BUTTON')
     await next.trigger('click')
@@ -146,14 +149,14 @@ describe('PaginationBar', () => {
 
   it('disables next on the last page and changes the page size', async () => {
     const wrapper = mountWithApp(PaginationBar, { props: { total: 120, page: 3, size: 50 } })
-    expect(wrapper.get('button[aria-label="Next page"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('button[aria-label="Next"]').attributes('disabled')).toBeDefined()
     await wrapper.get('select').setValue('100')
     expect(wrapper.emitted('update:size')).toEqual([[100]])
   })
 
   it('reads well for an empty list', () => {
     const wrapper = mountWithApp(PaginationBar, { props: { total: 0, page: 1, size: 25 } })
-    expect(wrapper.text()).toContain('No entries')
+    expect(wrapper.text()).toContain('Showing 0 to 0 of 0 entries')
   })
 })
 

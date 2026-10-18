@@ -4,6 +4,7 @@
 import type { Component } from 'vue'
 
 import type { PermissionFlags, Role } from '@/api'
+import { legacy, type LegacyRef, type TextRef } from '@/i18n'
 import {
   ArchiveIcon,
   ArrowLeftRightIcon,
@@ -48,7 +49,8 @@ export type EntryAccess = boolean | { anyFlag: (keyof PermissionFlags)[] }
 
 export interface NavigationEntry {
   id: NavEntryId
-  labelKey: `nav.${NavEntryId}`
+  /** The entry's name: the classic interface's name of the section, or a new `nav.*` string. */
+  labelKey: TextRef
   icon: Component
   /** The section root: a stable app address that feature 014 maps classic addresses to. */
   path: string
@@ -66,6 +68,20 @@ const ADMIN: Record<Role, EntryAccess> = { admin: true, domainAdmin: false, mail
 
 const MAIL_SETUP = { admin: ['/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] } as const
 
+/**
+ * Sections that have a name in the classic interface use it (docs/conventions.md "Wording"); the
+ * others are new `nav.<id>` strings until their feature maps them.
+ */
+const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
+  domains: legacy('mailbox.domains'),
+  mailboxes: legacy('mailbox.mailboxes'),
+  account: legacy('header.user_settings'),
+  quarantine: legacy('header.quarantine'),
+  spamFilter: legacy('user.spamfilter'),
+  administrators: legacy('admin.admins'),
+  syncJobs: legacy('mailbox.sync_jobs'),
+}
+
 function entry(
   id: NavEntryId,
   path: string,
@@ -75,7 +91,8 @@ function entry(
   classic: NavigationEntry['classic'] = {},
   status: NavigationEntry['status'] = 'placeholder',
 ): NavigationEntry {
-  return { id, labelKey: `nav.${id}`, icon, path, access, deliveredBy, status, classic }
+  const labelKey = LEGACY_LABELS[id] ?? `nav.${id}`
+  return { id, labelKey, icon, path, access, deliveredBy, status, classic }
 }
 
 export const catalogue: readonly NavigationEntry[] = [

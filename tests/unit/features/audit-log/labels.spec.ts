@@ -5,15 +5,11 @@ import { describe, expect, it } from 'vitest'
 import type { AuditEvent } from '@/api'
 import AuditEventItem from '@/features/audit-log/components/AuditEventItem.vue'
 import { auditLabel, auditLabelKey } from '@/features/audit-log/labels'
-import { i18n } from '@/i18n'
+import { hasMessage, text } from '@/i18n'
 
 import { mountWithApp } from '../../support/mount'
 
-const tr = {
-  t: (key: string, named?: Record<string, unknown>) =>
-    named ? i18n.global.t(key, named) : i18n.global.t(key),
-  te: (key: string) => i18n.global.te(key),
-}
+const tr = { t: text, te: hasMessage }
 
 describe('auditLabel', () => {
   it('translates known codes of every kind', () => {
@@ -21,7 +17,10 @@ describe('auditLabel', () => {
     expect(auditLabel('failureReason', 'invalidCredentials', tr)).toBe('Wrong username or password')
     expect(auditLabel('authMethod', 'passkey', tr)).toBe('Passkey')
     expect(auditLabel('outcome', 'failure', tr)).toBe('Failure')
+    // Codes with a classic name show mailcow's text (LEGACY_TEXTS).
+    expect(auditLabel('outcome', 'success', tr)).toBe('Success')
     expect(auditLabel('targetType', 'apiKey', tr)).toBe('API key')
+    expect(auditLabel('authMethod', 'password', tr)).toBe('Password')
   })
 
   it('shows codes of later features with a generic label and the code', () => {

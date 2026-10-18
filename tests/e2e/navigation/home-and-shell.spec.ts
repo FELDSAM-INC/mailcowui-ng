@@ -53,16 +53,17 @@ test('FR-047 home shows all domains for an administrator and the mailbox for a m
     'Your mailbox: alice@example.org',
   )
   await expect(page.getByRole('region', { name: 'Sections' }).getByRole('link')).toHaveText([
-    'My account',
+    'User Settings',
     'Passkeys',
     'Quarantine',
   ])
 })
 
 for (const [scenario, type] of [
-  ['announcement-info', 'Information'],
-  ['announcement-warning', 'Warning'],
-  ['announcement-danger', 'Important'],
+  // The classic announcement type names (`admin.ui_header_announcement_type_*`).
+  ['announcement-info', 'Info'],
+  ['announcement-warning', 'Important'],
+  ['announcement-danger', 'Very important'],
 ] as const) {
   test(`US3-AS8 FR-048 FR-084 the ${scenario} is on every page with its type in text, and collapses for the visit`, async ({
     page,

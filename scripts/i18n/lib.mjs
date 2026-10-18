@@ -1,34 +1,8 @@
-// Shared logic of the translation tooling (research R15, R27). Pure functions only; the
-// command-line scripts import-legacy.mjs and check.mjs do the file and git access.
+// Shared logic of the translation tooling (constitution IV 1.3.0, research R15, R27). Pure
+// functions only; the command-line script check.mjs does the file access.
 
+/** The locales of the app's new strings. Every other locale falls back to en-gb. */
 export const LOCALES = ['en-gb', 'cs-cz', 'sk-sk']
-
-const DECORATIVE = /^[\s>»›]+|[\s>»›]+$/g
-const SPECIAL = /[{}@$|]/g
-
-/** Removes the decorative leading and trailing glyphs legacy uses ("> Forgot Password?"). */
-export function stripDecorations(value) {
-  return value.replace(DECORATIVE, '')
-}
-
-/** Escapes vue-i18n's special characters as literal interpolations, e.g. `{'@'}`. */
-export function escapeForVueI18n(value) {
-  return value.replace(SPECIAL, (char) => `{'${char}'}`)
-}
-
-/** Converts one legacy value into a vue-i18n message. */
-export function convertLegacyValue(value) {
-  let index = 0
-  return escapeForVueI18n(stripDecorations(value)).replace(/%s/g, () => `{${index++}}`)
-}
-
-/** Why a legacy value must not be reused, or null (FR-015, FR-086). */
-export function refusalReason(value) {
-  if (/<\/?[a-z][^>]*>|&[a-z]+;|&#\d+;/i.test(value)) return 'html'
-  if (/fido2/i.test(value)) return 'fido2'
-  if (/touch\s*id/i.test(value)) return 'touch-id'
-  return null
-}
 
 export function getPath(object, dotted) {
   let node = object
@@ -39,19 +13,6 @@ export function getPath(object, dotted) {
   return node
 }
 
-export function setPath(object, dotted, value) {
-  const parts = dotted.split('.')
-  let node = object
-  for (const part of parts.slice(0, -1)) {
-    if (node[part] === undefined) node[part] = {}
-    if (typeof node[part] !== 'object' || node[part] === null) {
-      throw new Error(`Key conflict at ${dotted}`)
-    }
-    node = node[part]
-  }
-  node[parts.at(-1)] = value
-}
-
 /** Flattens nested messages into a dotted-key map. */
 export function flatten(object, prefix = '', out = new Map()) {
   for (const [key, value] of Object.entries(object ?? {})) {
@@ -60,40 +21,6 @@ export function flatten(object, prefix = '', out = new Map()) {
     else out.set(dotted, value)
   }
   return out
-}
-
-/** Deep merge of two message trees; `b` wins. */
-export function merge(a, b) {
-  const out = structuredClone(a ?? {})
-  for (const [key, value] of flatten(b)) setPath(out, key, value)
-  return out
-}
-
-/**
- * Builds one locale's legacy layer from `legacy-map.json` and that locale's legacy file. Keys the
- * legacy file lacks are left out (and reported); a value with HTML or a banned name aborts.
- */
-export function buildLegacyLayer(legacyMap, legacySource) {
-  const layer = {}
-  const missing = []
-  const refused = []
-  for (const [appKey, legacyKey] of Object.entries(legacyMap)) {
-    const value = getPath(legacySource, legacyKey)
-    if (typeof value !== 'string') {
-      missing.push(appKey)
-      continue
-    }
-    const reason = refusalReason(value)
-    if (reason) {
-      refused.push(`${appKey} (${legacyKey}): ${reason}`)
-      continue
-    }
-    setPath(layer, appKey, convertLegacyValue(value))
-  }
-  if (refused.length > 0) {
-    throw new Error(`Refused legacy values:\n  ${refused.join('\n  ')}`)
-  }
-  return { layer, missing }
 }
 
 /** Named and list placeholders of a message, without literal interpolations. */
@@ -124,7 +51,9 @@ export function enumValuesFromSchema(schemaTs) {
 
 /**
  * Contract enumerations whose every value needs a translation (research R27, rule 3), with the
- * message namespace each one uses.
+ * message namespace each one uses. A value may instead be listed in `LEGACY_TEXTS`
+ * (`src/i18n/legacy-messages.ts`). Pending actions and second-factor types use legacy keys in typed
+ * tables, so TypeScript checks them.
  */
 export const ENUM_NAMESPACES = {
   validationRuleCodeValues: 'validation',
@@ -134,8 +63,6 @@ export const ENUM_NAMESPACES = {
   auditTargetTypeValues: 'enums.auditTargetType',
   authMethodValues: 'enums.authMethod',
   roleValues: 'roles',
-  pendingActionValues: 'enums.pendingAction',
-  secondFactorTypeValues: 'enums.secondFactorType',
   apiKeyStatusValues: 'enums.apiKeyStatus',
   apiKeyAccessLevelValues: 'enums.apiKeyAccessLevel',
   themeValues: 'themes',
@@ -158,44 +85,65 @@ export function requiredKeys({ enums, problemNames }) {
 }
 
 /** Message namespaces whose keys are built at runtime; never reported as unused. */
-export const DYNAMIC_NAMESPACES = ['problem.', 'validation.', 'enums.', 'roles.', 'themes.', 'nav.']
+export const DYNAMIC_NAMESPACES = ['problem.', 'validation.', 'enums.', 'roles.', 'themes.']
+
+const LEGACY_USES = [
+  // lt('section.key', …) and legacy('section.key', …)
+  /\b(?:lt|legacy)\(\s*(['"])([a-z0-9_]+(?:\.[A-Za-z0-9_-]+)+)\1/g,
+  // <LegacyText k="section.key"> and :k="'section.key'"
+  /<LegacyText\b[^>]*?\sk="([a-z0-9_]+(?:\.[A-Za-z0-9_-]+)+)"/g,
+  /<LegacyText\b[^>]*?\s:k="'([a-z0-9_]+(?:\.[A-Za-z0-9_-]+)+)'"/g,
+]
+
+/** The legacy keys a source text uses through `lt()`, `legacy()` and `<LegacyText k>`. */
+export function legacyKeysInSource(text) {
+  const keys = new Set()
+  for (const pattern of LEGACY_USES) {
+    for (const match of text.matchAll(pattern)) keys.add(match.at(-1))
+  }
+  return [...keys].sort()
+}
 
 /**
- * The completeness check of research R27. Returns errors (CI fails) and warnings (unused keys).
+ * String literals of a source text that name a new string: a quoted dotted key whose first part is
+ * one of the app's message namespaces (`'auth.signIn.showPassword'`).
  */
-export function checkMessages({ app, legacy, legacyMap, required, usedKeys }) {
+export function appKeysInSource(text, namespaces) {
+  const keys = new Set()
+  // Not a template attribute (`v-if="state.flag"`): its double quotes hold an expression.
+  for (const match of text.matchAll(
+    /(?<!=)(['"`])([A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)+)\1/g,
+  )) {
+    const key = match[2]
+    if (namespaces.includes(key.split('.')[0])) keys.add(key)
+  }
+  return [...keys].sort()
+}
+
+/** The `'app.key': 'legacy.key'` entries of `LEGACY_TEXTS` in `src/i18n/legacy-messages.ts`. */
+export function legacyTextsFromSource(text) {
+  const block = /LEGACY_TEXTS[^=]*=\s*\{([\s\S]*?)\n\}/.exec(text)?.[1] ?? ''
+  const entries = {}
+  for (const match of block.matchAll(/'([^']+)':\s*'([^']+)'/g)) entries[match[1]] = match[2]
+  return entries
+}
+
+/**
+ * The completeness check of research R27 (constitution IV 1.3.0). Returns errors (CI fails) and
+ * warnings.
+ */
+export function checkMessages({
+  app,
+  required,
+  snapshot,
+  legacyKeysUsed = [],
+  legacyTexts = {},
+  appKeysUsed = [],
+  usedKeys,
+}) {
   const errors = []
   const warnings = []
-  const flat = {}
-  for (const locale of LOCALES) {
-    const appFlat = flatten(app[locale])
-    const legacyFlat = flatten(legacy[locale])
-    // Rule 5: a key in both layers of the same locale.
-    for (const key of appFlat.keys()) {
-      if (legacyFlat.has(key)) {
-        errors.push(`${locale}: ${key} is defined in both the legacy and the app layer`)
-      }
-    }
-    flat[locale] = new Map([...legacyFlat, ...appFlat])
-  }
-
-  // Rule 5: legacy-map keys.
-  const enLegacy = flatten(legacy['en-gb'])
-  for (const appKey of Object.keys(legacyMap)) {
-    if (!enLegacy.has(appKey)) {
-      errors.push(`${appKey} is in legacy-map.json but missing from the en-gb legacy file`)
-      continue
-    }
-    for (const locale of LOCALES.slice(1)) {
-      const inLegacy = flatten(legacy[locale]).has(appKey)
-      const inApp = flatten(app[locale]).has(appKey)
-      if (!inLegacy && !inApp) {
-        errors.push(
-          `${locale}: ${appKey} is missing from the ${locale} legacy file and must be supplied by the ${locale} app layer`,
-        )
-      }
-    }
-  }
+  const flat = Object.fromEntries(LOCALES.map((locale) => [locale, flatten(app[locale])]))
 
   // Rule 1: equal key sets, no empty values.
   const allKeys = new Set(LOCALES.flatMap((locale) => [...flat[locale].keys()]))
@@ -219,14 +167,21 @@ export function checkMessages({ app, legacy, legacyMap, required, usedKeys }) {
     }
   }
 
-  // Rule 3: required keys.
+  // Rule 3: required keys, as new strings or through LEGACY_TEXTS (never both).
+  for (const [key, target] of Object.entries(legacyTexts)) {
+    if (allKeys.has(key)) errors.push(`${key} is in LEGACY_TEXTS and must not be a new string`)
+    if (typeof getPath(snapshot, target) !== 'string') {
+      errors.push(`LEGACY_TEXTS maps ${key} to ${target}, which the en-gb snapshot lacks`)
+    }
+  }
   for (const key of required) {
+    if (key in legacyTexts) continue
     for (const locale of LOCALES) {
       if (!flat[locale].has(key)) errors.push(`${locale}: required key ${key} is missing`)
     }
   }
 
-  // Rule 4: banned words.
+  // Rule 4: banned words in new strings (legacy texts are shown verbatim and never checked).
   for (const locale of LOCALES) {
     for (const [key, value] of flat[locale]) {
       if (typeof value !== 'string') continue
@@ -238,14 +193,69 @@ export function checkMessages({ app, legacy, legacyMap, required, usedKeys }) {
     }
   }
 
-  // Unused keys: warnings only.
+  // Rule 5: every legacy key the source uses is a text of the en-gb snapshot.
+  for (const key of legacyKeysUsed) {
+    if (typeof getPath(snapshot, key) !== 'string') {
+      errors.push(`${key} is used as a legacy key but is not a text of the en-gb snapshot`)
+    }
+  }
+
+  // Rule 7: every new-string key the source names exists (or comes from LEGACY_TEXTS). A group's
+  // name (`enums.authMethod`, completed at runtime) is not a key.
+  const groups = new Set(
+    [...allKeys, ...Object.keys(legacyTexts)].flatMap((key) =>
+      key
+        .split('.')
+        .slice(1)
+        .map((_, index, parts) => [key.split('.')[0], ...parts.slice(0, index)].join('.')),
+    ),
+  )
+  for (const key of appKeysUsed) {
+    if (!allKeys.has(key) && !(key in legacyTexts) && !groups.has(key)) {
+      errors.push(`${key} is used in the source but is not a new string in en-gb`)
+    }
+  }
+
+  // Rule 6: no unused new strings.
   if (usedKeys) {
     for (const key of [...allKeys].sort()) {
       if (usedKeys.has(key)) continue
       if (DYNAMIC_NAMESPACES.some((prefix) => key.startsWith(prefix))) continue
-      warnings.push(`${key} looks unused`)
+      errors.push(`${key} is unused`)
     }
   }
 
   return { errors, warnings }
+}
+
+/** Text for comparing meanings: no markup, placeholders, punctuation, glyphs or case. */
+function comparable(value) {
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z0-9#]+;/gi, ' ')
+    .replace(/\{[^}]*\}|%(?:\d+\$)?[sd]|_[A-Z]+_/g, ' ')
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+}
+
+/**
+ * New strings whose en-gb text a legacy key already has, for review (not a failure): the legacy
+ * key may be the one to use (constitution IV, "New strings are minimal").
+ */
+export function duplicateLegacyMeanings(appEn, snapshot) {
+  const legacy = new Map()
+  for (const [key, value] of flatten(snapshot)) {
+    if (typeof value !== 'string') continue
+    const text = comparable(value)
+    if (!text) continue
+    legacy.set(text, [...(legacy.get(text) ?? []), key])
+  }
+  const result = []
+  for (const [key, value] of flatten(appEn)) {
+    if (typeof value !== 'string') continue
+    const keys = legacy.get(comparable(value))
+    if (keys) result.push({ key, value, legacyKeys: keys.sort() })
+  }
+  return result.sort((a, b) => a.key.localeCompare(b.key))
 }

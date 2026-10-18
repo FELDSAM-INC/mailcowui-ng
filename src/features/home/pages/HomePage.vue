@@ -4,6 +4,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { text } from '@/i18n'
+
 import { useIdentityQuery } from '@/app/session/queries'
 import PageHeader from '@/shared/components/PageHeader.vue'
 
@@ -18,7 +20,7 @@ const title = computed(() =>
   identity.value ? t('home.greeting', { username: identity.value.username }) : t('home.title'),
 )
 const description = computed(() =>
-  identity.value ? t('home.role', { role: t(`roles.${identity.value.role}`) }) : undefined,
+  identity.value ? t('home.role', { role: text(`roles.${identity.value.role}`) }) : undefined,
 )
 </script>
 

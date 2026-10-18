@@ -81,9 +81,14 @@ the key checks). Features only use legacy keys and add the few new strings they 
   need no escaping.
 - **How a feature uses one**: by its legacy key, written as in the file, `<section>.<key>`, for
   example `edit.max_quota` or `success.mailbox_added` (a few sections nest deeper, such as
-  `datatables.paginate.next`). A legacy value is never copied into `src/i18n/messages/`. The exact
-  accessor is UI 001's. Plans written before 1.3.0 that say "map through
-  `src/i18n/legacy-map.json`" or "the legacy layer `src/i18n/legacy/`" mean this rule.
+  `datatables.paginate.next`). A legacy value is never copied into `src/i18n/messages/`. The
+  accessors are UI 001's (research R15): `<LegacyText k="…">` in templates (it also renders values
+  with markup and fills DataTables' `_MENU_` with a slot), `lt('…', …args)` where a string is
+  needed, `legacy('…')` in tables of text references (`TextRef`), and `LEGACY_TEXTS`
+  (`src/i18n/legacy-messages.ts`) for keys built at runtime, such as problem types and enumeration
+  values. `LegacyKey` types every key against the bundled snapshot. Plans written before 1.3.0
+  that say "map through `src/i18n/legacy-map.json`" or "the legacy layer `src/i18n/legacy/`" mean
+  this rule.
 - **Text the classic interface hard-codes**: some labels are written into the templates or
   `js/site/*.js` without a key (for example "Keycloak", "IP", "Location", "Pushover API"). They are
   new strings whose English text equals the legacy text. A product name hard-coded there (the fork's

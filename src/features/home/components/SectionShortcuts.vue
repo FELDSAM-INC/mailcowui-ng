@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import type { Identity } from '@/api'
+import { resolveText } from '@/i18n'
 import { visibleEntries } from '@/app/navigation/visibility'
 import { ChevronRightIcon } from '@/shared/icons'
 
@@ -27,7 +28,7 @@ const entries = computed(() => visibleEntries(props.identity).filter((e) => e.id
           class="surface flex min-h-11 items-center gap-3 p-4! font-medium text-gray-800 hover:border-brand-300 focus-visible:outline-2 focus-visible:outline-brand-500 sm:p-4! dark:text-gray-200 dark:hover:border-brand-500/40"
         >
           <component :is="entry.icon" class="size-5 shrink-0 text-gray-600 dark:text-gray-400" />
-          <span class="min-w-0 flex-1 wrap-anywhere">{{ t(entry.labelKey) }}</span>
+          <span class="min-w-0 flex-1 wrap-anywhere">{{ resolveText(entry.labelKey, t) }}</span>
           <ChevronRightIcon class="size-4 shrink-0 text-gray-500" />
         </RouterLink>
       </li>

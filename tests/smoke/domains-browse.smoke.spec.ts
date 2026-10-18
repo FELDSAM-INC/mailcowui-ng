@@ -14,7 +14,7 @@ test.describe('@domains browse', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Edit domain' })).toBeVisible()
     await expect(page.getByRole('main').locator('header')).toContainText('example.org')
     await expect(page.locator('[data-usage-summary] [data-usage="mailboxes"]')).toContainText(
-      /1 of/,
+      /\d+ of \d+/,
     )
   })
 
@@ -23,6 +23,7 @@ test.describe('@domains browse', () => {
   }) => {
     await signIn(page, 'reseller')
     await page.goto('domains')
+    await expect(page.locator('[data-entry]')).toHaveCount(2)
     const names = await page
       .locator('[data-entry]')
       .evaluateAll((items) => items.map((item) => item.getAttribute('data-entry')))

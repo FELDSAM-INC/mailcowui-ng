@@ -8,6 +8,8 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { lt } from '@/i18n'
+
 import FormField from './FormField.vue'
 import { CloseIcon, PlusIcon } from '../icons'
 import { buttonVariants } from '../ui/button'
@@ -183,7 +185,7 @@ function remove(tag: string) {
             @click="commit(draft)"
           >
             <PlusIcon />
-            {{ addLabel ?? t('domains.tags.add') }}
+            {{ addLabel ?? lt('add.add') }}
           </button>
           <div
             v-if="showList"

@@ -49,6 +49,8 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'domains.fields.dkimSelector': 'admin.dkim_domains_selector',
   'domains.fields.dkimKeySize': 'admin.dkim_key_length',
   'domains.fields.maxMailboxQuota': 'mailbox.max_quota',
+  'domains.relay.short.backupMx': 'edit.relay_domain',
+  'domains.relay.short.relayAllRecipients': 'edit.relay_all',
   // UI 002: the rate limit frames, by the frame's value.
   'domains.rateLimit.frame.second': 'ratelimit.second',
   'domains.rateLimit.frame.minute': 'ratelimit.minute',
@@ -65,6 +67,7 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'domains.sort.maxAliases': 'mailbox.max_aliases',
   'domains.sort.maxMailboxes': 'mailbox.max_mailboxes',
   'domains.sort.maxMailboxQuota': 'mailbox.mailbox_quota',
+  'domains.sort.domainQuota': 'edit.domain_quota',
   'domains.sort.createdAt': 'mailbox.created_on',
   'domains.sort.modifiedAt': 'mailbox.last_modified',
   'domainTemplates.sort.name': 'mailbox.template',

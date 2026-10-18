@@ -393,11 +393,9 @@
     },
     "filters": {
       "active": "Active state",
-      "activeOnly": "Active",
       "all": "All",
       "clear": "Clear all filters",
       "filterByTag": "Filter by tag {tag}",
-      "inactiveOnly": "Inactive",
       "localOnly": "Other domains",
       "relay": "Relay",
       "relayOnly": "Relay domains",
@@ -431,21 +429,17 @@
     },
     "relay": {
       "short": {
-        "backupMx": "Relay this domain",
-        "relayAllRecipients": "Relay all recipients",
         "relayUnknownOnly": "Relay non-existing mailboxes only"
       }
     },
     "sort": {
       "asc": "Ascending",
       "desc": "Descending",
-      "domainQuota": "Domain quota",
       "label": "Sort by",
       "order": "Order",
       "storageUsed": "Storage used"
     },
     "tags": {
-      "add": "Add",
       "remove": "Remove tag {tag}",
       "suggestions": "Suggested tags",
       "suggestionsLoading": "Loading suggestions…",
@@ -459,7 +453,6 @@
       "over": "Over the limit"
     },
     "values": {
-      "never": "Never",
       "no": "No",
       "none": "None",
       "rateLimit": "{value} {frame}",

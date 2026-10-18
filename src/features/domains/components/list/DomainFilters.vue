@@ -76,8 +76,8 @@ function onRelay(event: Event) {
             @change="onActive"
           >
             <option value="">{{ t('domains.filters.all') }}</option>
-            <option value="active">{{ t('domains.filters.activeOnly') }}</option>
-            <option value="inactive">{{ t('domains.filters.inactiveOnly') }}</option>
+            <option value="active">{{ lt('mailbox.active') }}</option>
+            <option value="inactive">{{ lt('mailbox.inactive') }}</option>
           </select>
         </div>
         <div class="flex flex-col gap-1.5">

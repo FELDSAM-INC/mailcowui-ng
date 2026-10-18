@@ -393,11 +393,9 @@
     },
     "filters": {
       "active": "Stav aktivace",
-      "activeOnly": "Aktivní",
       "all": "Vše",
       "clear": "Vymazat všechny filtry",
       "filterByTag": "Filtrovat podle štítku {tag}",
-      "inactiveOnly": "Neaktivní",
       "localOnly": "Ostatní domény",
       "relay": "Předávání",
       "relayOnly": "Předávané domény",
@@ -431,21 +429,17 @@
     },
     "relay": {
       "short": {
-        "backupMx": "Předávání domény",
-        "relayAllRecipients": "Předávání všech příjemců",
         "relayUnknownOnly": "Předávat jen neexistující schránky"
       }
     },
     "sort": {
       "asc": "Vzestupně",
       "desc": "Sestupně",
-      "domainQuota": "Kvóta domény",
       "label": "Řadit podle",
       "order": "Pořadí",
       "storageUsed": "Využité úložiště"
     },
     "tags": {
-      "add": "Přidat",
       "remove": "Odebrat štítek {tag}",
       "suggestions": "Navrhované štítky",
       "suggestionsLoading": "Načítají se návrhy…",
@@ -459,7 +453,6 @@
       "over": "Nad limitem"
     },
     "values": {
-      "never": "Nikdy",
       "no": "Ne",
       "none": "Žádné",
       "rateLimit": "{value} {frame}",

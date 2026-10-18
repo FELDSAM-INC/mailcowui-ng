@@ -2,7 +2,7 @@
 // rounded, quotas exact), rate limits with the classic frame labels, times in the device time zone.
 import { useI18n } from 'vue-i18n'
 
-import { text } from '@/i18n'
+import { lt, text } from '@/i18n'
 import type { DomainRateLimit } from '@/api'
 import { useFormat } from '@/i18n/format'
 
@@ -23,7 +23,7 @@ export function useDomainFormat() {
           })
         : t('domains.values.none'),
     yesNo: (value: boolean) => t(value ? 'domains.values.yes' : 'domains.values.no'),
-    time: (value: string | null) => (value ? fmt.dateTime(value) : t('domains.values.never')),
+    time: (value: string | null) => (value ? fmt.dateTime(value) : lt('user.never')),
     list: (values: readonly string[]) => fmt.list(values),
   }
 }

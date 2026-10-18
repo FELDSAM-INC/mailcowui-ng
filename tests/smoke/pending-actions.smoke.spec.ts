@@ -15,6 +15,6 @@ test('bob sees the pending password change and can sign out', async ({ page }) =
   await expect(
     page.getByRole('main').getByText('The password change is still pending.'),
   ).toBeVisible()
-  await page.getByRole('button', { name: 'Sign out' }).click()
+  await page.getByRole('button', { name: 'Cancel and log out' }).click()
   await expect(page.getByRole('main').getByText('You have signed out.')).toBeVisible()
 })

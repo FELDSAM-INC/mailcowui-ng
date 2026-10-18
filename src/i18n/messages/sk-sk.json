@@ -393,11 +393,9 @@
     },
     "filters": {
       "active": "Stav aktivácie",
-      "activeOnly": "Aktívne",
       "all": "Všetky",
       "clear": "Vymazať všetky filtre",
       "filterByTag": "Filtrovať podľa štítku {tag}",
-      "inactiveOnly": "Neaktívne",
       "localOnly": "Ostatné domény",
       "relay": "Preposielanie",
       "relayOnly": "Preposielané domény",
@@ -431,21 +429,17 @@
     },
     "relay": {
       "short": {
-        "backupMx": "Preposielať túto doménu",
-        "relayAllRecipients": "Preposielať všetkých príjemcov",
         "relayUnknownOnly": "Preposielať len neexistujúce schránky"
       }
     },
     "sort": {
       "asc": "Vzostupne",
       "desc": "Zostupne",
-      "domainQuota": "Kvóta domény",
       "label": "Zoradiť podľa",
       "order": "Poradie",
       "storageUsed": "Využité úložisko"
     },
     "tags": {
-      "add": "Pridať",
       "remove": "Odobrať štítok {tag}",
       "suggestions": "Navrhované štítky",
       "suggestionsLoading": "Načítavajú sa návrhy…",
@@ -459,7 +453,6 @@
       "over": "Nad limitom"
     },
     "values": {
-      "never": "Nikdy",
       "no": "Nie",
       "none": "Žiadne",
       "rateLimit": "{value} {frame}",

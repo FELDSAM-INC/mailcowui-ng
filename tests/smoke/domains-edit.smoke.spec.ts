@@ -1,6 +1,8 @@
 // UI 002 US3 smoke test (T059, research D29): the "Edit domain" section, which mirrors the classic
 // Domain tab, as admin on a smoke domain, and the Global Address List flag as reseller on
-// example.org with the limits read-only (legacy shows them only to administrators).
+// example.net with the limits read-only (legacy shows them only to administrators). Not on
+// example.org: its seeded maximum mailbox quota exceeds its domain quota, and API 4c25767 then
+// refuses every edit of the domain (reported to the API).
 import { expect, test, type Page } from '@playwright/test'
 
 import { createDomain, deleteDomain, signIn, uniqueName } from './fixtures/domains-api'
@@ -50,7 +52,7 @@ test.describe('@domains edit', () => {
     page,
   }) => {
     await signIn(page, 'reseller')
-    await page.goto('domains/example.org')
+    await page.goto('domains/example.net')
     await edit(page)
     const section = page.locator(SECTION)
     await expect(
@@ -61,7 +63,7 @@ test.describe('@domains edit', () => {
       const flag = section.getByRole('checkbox', { name: 'Global Address List' })
       if (await flag.isChecked()) await flag.uncheck()
       else await flag.check()
-      await save(page, 'example.org')
+      await save(page, 'example.net')
     }
   })
 })

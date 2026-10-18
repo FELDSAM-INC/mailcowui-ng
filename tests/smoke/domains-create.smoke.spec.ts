@@ -13,7 +13,7 @@ test.describe('@domains create', () => {
       await page.goto('domains/-/new')
       await page.getByRole('textbox', { name: 'Domain (required)' }).fill(name)
       // "Add domain only" with the groupware, "Add" without it, as legacy.
-      await page.getByRole('button', { name: /^Add( domain only)?$/ }).click()
+      await page.locator('[data-sticky-save] button[type="submit"]').click()
       await expect(page.getByRole('heading', { level: 1, name: 'Edit domain' })).toBeVisible()
       await expect(page.getByRole('main').locator('header')).toContainText(name)
       const report = page.locator('[data-creation-report]')

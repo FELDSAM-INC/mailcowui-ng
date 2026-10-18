@@ -74,6 +74,7 @@ export default withVueTs(
       'test-results/**',
       'blob-report/**',
       '.lighthouseci/**',
+      '.smoke/**',
       'contract/**',
       'node_modules/**',
       '**/*.d.mts',

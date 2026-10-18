@@ -5,6 +5,7 @@ playwright-report/
 test-results/
 blob-report/
 .lighthouseci/
+.smoke/
 package-lock.json
 contract/
 src/api/generated/

@@ -873,15 +873,15 @@ with the reason).
 | Saved table state | DataTables `stateSave` in browser storage | Improved: state restored on reload, back and shared links | FR-012 |
 | No filters in the UI (the API's `?tags=` is unused) | — | Improved: active, relay and tag filters | FR-010 |
 | Checkbox column, "Toggle all" | Selection on the page | Matched; selection mode on phones | FR-045 |
-| Quick actions Activate, Deactivate, Remove | One request with all items, page reload, no per-item result | Improved: per-domain outcome, retry, impact confirmation | FR-045 to FR-048 |
+| Quick actions Activate, Deactivate, Remove | One request with all items, page reload, no per-item result | Improved: still one request (the API's bulk operation), with a per-domain outcome, retry and an impact confirmation | FR-045 to FR-048 |
 | Quick actions Expand all, Collapse all | Toggle DataTables child rows | Dropped: cards and expandable entries replace collapsed rows | FR-007 |
 | Add domain button (admin) | Opens the add-domain modal | Matched | FR-018 |
 | Domain column with relay badge (Relay, Relay All, Relay Non-Local) and ASCII name | — | Matched | FR-006 |
 | Aliases "x / y", Mailboxes "x / y" | Text | Improved: text and bar, nearly-full marker | FR-006, FR-008 |
 | Quota "allocated / domain quota" | Text | Improved: text and bar | FR-006, FR-008 |
 | Statistics "messages / storage" | Text | Matched | FR-006 |
-| Default mailbox size, Max. size of a mailbox | Columns | Matched (wide screens, expandable on phones) | FR-007 |
-| RL (rate limit) | Column, "∞" when none | Matched, read-only | FR-007, FR-015 |
+| Default mailbox size, Max. size of a mailbox | Columns | Max. size of a mailbox matched (wide screens, expandable on phones); the default mailbox size dropped by owner decision (2026-10-18), with the API | FR-007 |
+| RL (rate limit) | Column, "∞" when none | Matched, read-only, headed "Rate limit" (`edit.ratelimit`) | FR-007, FR-015 |
 | Relay domain ✓/✗ | Column | Matched | FR-007 |
 | Domain administrators (admin), Created on, Last modified, Tags | Collapsed child-row fields | Matched; tags are also filters | FR-006, FR-007, FR-010 |
 | Active ✓/✗ | Icon only | Improved: text badge | FR-006, FR-076 |
@@ -893,19 +893,19 @@ with the reason).
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Extra-large modal with every field | One long form | Improved: own page with sections, steps on phones | FR-018 |
+| Extra-large modal with every field | One long form | Matched as one form on its own page, with the modal's fields, labels, help texts, order and groups | FR-018 |
 | Domain, Description | Text inputs | Matched, with name syntax check | FR-018, FR-020, FR-035 |
-| Template select | Default preselected, choosing fills the fields | Matched; asks before overwriting changed fields | FR-019 |
+| Template select | Default preselected, choosing fills the fields | Matched, without a confirmation (legacy has none) | FR-019 |
 | Tags | Tag box | Matched | FR-039 |
-| Max. aliases, Max. mailboxes, Default mailbox quota, Max. quota per mailbox (MiB), Total domain quota (MiB) | Number inputs, quotas in MiB | Improved: quota entry in MiB, GiB or TiB, cross-field checks before sending | FR-031, FR-032 |
-| Global Address List (hidden when SOGo is disabled), Active | Checkboxes | Matched: the GAL is hidden when the API reports the groupware disabled | FR-018, FR-024 |
+| Max. aliases, Max. mailboxes, Default mailbox quota, Max. quota per mailbox (MiB), Total domain quota (MiB) | Number inputs, quotas in MiB | Matched in MiB, with cross-field checks before sending; the default mailbox quota dropped by owner decision | FR-031, FR-032 |
+| Global Address List (hidden when SOGo is disabled), Active | Checkboxes | Matched: the Global Address List flag and the restart action are hidden when the API reports the groupware disabled | FR-018, FR-024 |
 | Rate limit value and frame | Number and select | Matched | FR-022 |
-| DKIM selector, DKIM key length | Input, select | Matched; explicit switch for "no DKIM key" | FR-021 |
-| Relay options with info texts | Three checkboxes, no consistency logic | Improved: kept consistent as the API normalises | FR-033 |
-| Buttons "Add domain only" and "Add domain and restart SOGo" | Two submit buttons | Matched as a restart switch on the review, off by default | FR-024 |
+| DKIM selector, DKIM key length | Input, select | Matched; an empty selector requests no key, as in legacy | FR-021 |
+| Relay options with info texts | Three checkboxes, no consistency logic | Matched: independent checkboxes; the API normalises the combination on save and the saved values are shown | FR-033 |
+| Buttons "Add domain only" and "Add domain and restart SOGo" | Two submit buttons | Matched: the same two buttons, one "Add" without the groupware | FR-024 |
 | Notice that SOGo must be restarted and DNS reviewed | Static text | Matched for the restart; DNS review belongs to UI feature 010 | FR-024 |
 | Cached form values | Inputs cached in the browser | Dropped: replaced by a confirmation before leaving | FR-028 |
-| Result messages (domain added, DKIM key already existed, SOGo restart failed) | Separate notifications | Improved: creation report with every step | FR-026 |
+| Result messages (domain added, DKIM key already existed, SOGo restart failed) | Separate notifications | Matched as legacy's alerts, one per outcome; new strings only for outcomes legacy cannot report | FR-026 |
 
 #### Edit domain page
 
@@ -916,10 +916,10 @@ with the reason).
 | Tags, removed one by one at once with a confirmation | Immediate deletion per tag | Improved: edited as a set and saved with the form | FR-039, FR-040 |
 | Relayhost select (with `domain_relayhost`) | Shown, but the value is never saved for domain administrators | Dropped as an editor: shown read-only; editing belongs to UI feature 009 | FR-015 |
 | Limits and quotas (admin) | Number inputs, usage checked only by the server | Improved: usage shown and checked before sending | FR-031, FR-032 |
-| Relay options with info texts (admin) | Checkboxes | Improved: kept consistent | FR-033 |
+| Relay options with info texts (admin) | Checkboxes | Matched: independent checkboxes | FR-033 |
 | GAL with info text | Checkbox | Matched, with a restart notice | FR-034 |
-| Active, disabled for domain administrators | Checkbox | Matched: read-only for domain administrators | FR-029 |
-| Save (one form for everything) | Last write wins | Improved: each section saved on its own; outdated saves are stopped without losing input | FR-029, FR-030, FR-037 |
+| Active, disabled for domain administrators | Checkbox | Matched: read-only for domain administrators; deactivating saves without a confirmation, as in legacy | FR-029 |
+| Save (one form per tab) | Last write wins | Improved: one section per legacy tab with its own save; outdated saves are stopped without losing input | FR-029, FR-030, FR-037 |
 | Created on, Last modified | Text | Matched | FR-015 |
 | DKIM TXT record | Shown under the form | Dropped: DKIM belongs to UI feature 010 | — |
 | Tabs Rate limit, Spam filter, Quota warning BCC, MTA-STS | Editors | Dropped: UI features 006 (rate limit, spam filter), 013 (quota warning BCC) and 010 (MTA-STS); the rate limit is shown read-only | FR-015 |
@@ -929,22 +929,22 @@ with the reason).
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Explanation and placeholder list | Static text | Improved: copy action per placeholder | FR-057 |
-| Exclude from footer | Multi-select of the domain's mailboxes, aliases and alias domains | Improved in validation (per-entry errors); the picker arrives with the mailbox and alias screens (UI features 003 and 004), whose list operations API 002 names for it | FR-058 |
+| Explanation and placeholder list | Static text | Matched, legacy's texts with their markup | FR-057 |
+| Exclude from footer | Multi-select of the domain's mailboxes, aliases and alias domains | Matched as a native multi-select from the mailbox, alias and alias domain lists, with search when there is more than one page; improved in validation (per-entry errors) | FR-058 |
 | Ignore footer on reply e-mails | Checkbox | Matched | FR-057 |
-| HTML footer, PLAIN footer | Text areas, no size limit | Matched, with a size indicator and the 1 MiB limit | FR-059, FR-060 |
+| HTML footer, PLAIN footer | Text areas, no size limit | Matched, with the API's size limit checked before sending | FR-059, FR-060 |
 | Save | Invalid exclusions silently skipped, last write wins | Improved: refused entries marked, outdated saves stopped | FR-058, FR-061 |
 
 #### Domain templates
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| Templates tab with count, refresh, toggle all, Remove selected, Add template | DataTables, client-side | Matched; bulk delete with per-item outcome | FR-049, FR-055 |
+| Templates tab with count, refresh, toggle all, Remove selected, Add template | DataTables, client-side | Matched; removing selected templates is one request with a per-item outcome | FR-049, FR-055 |
 | Expand all, Collapse all | Child rows | Dropped, as for domains | FR-050 |
 | Columns ID, Template, Max. aliases, Max. mailboxes, quotas, GAL, Relay domain, Relay all, Relay unknown, Active; collapsed Rate limit, Selector, Key length, Tags | — | Matched | FR-050 |
 | Default sort by ID, descending; client-side search on every column | — | Improved: default by name, search on the name, sort by name, ID and times | FR-049 |
 | Actions Edit, Remove (no Remove for Default) | — | Matched | FR-053, FR-055 |
-| Add template modal | One long form, values not validated | Improved: own page with sections and the domain field rules | FR-051, FR-052 |
+| Add template modal | One long form, values not validated | Matched as one form on its own page, with the domain field rules | FR-051, FR-052 |
 | Edit template page, renaming Default silently ignored | — | Improved: Default name read-only | FR-053, FR-054 |
 
 ### API Dependency

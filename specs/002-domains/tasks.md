@@ -1325,15 +1325,15 @@ API.
   and fix regressions until the initial JavaScript is unchanged and at most 204,800 bytes gzipped,
   and performance and accessibility are at least 0.9 on all three collections (SC-010,
   constitution VII).
-- [ ] T105 [P] Add the plan's three parity notes to the Legacy Parity tables of
+- [X] T105 [P] *(done: the Legacy Parity tables follow the 1:1 build; the Global Address List flag and the restart action are hidden without the groupware; deactivation saves without a confirmation, as in legacy, so that note is replaced; bulk results come from one request)* Add the plan's three parity notes to the Legacy Parity tables of
   `specs/002-domains/spec.md`:
   - the Global Address List flag and the restart switch are hidden when the groupware is disabled;
   - deactivation in the General section is confirmed;
   - bulk results come from one request.
-- [ ] T106 [P] Run `npm run i18n:check`. Remove the unused keys it reports from
+- [X] T106 [P] *(done: `npm run i18n:check` reports no unused key; new strings that repeat a classic text were replaced by its key where the meaning is the same, and `specs/002-domains/translation-review.md` lists the 181 new strings with Czech and Slovak and the reasons for the 11 kept duplicates)* Run `npm run i18n:check`. Remove the unused keys it reports from
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. List the new cs-cz and sk-sk strings of this feature
   for the owner's review (UI 001 plan, owner question 4).
-- [ ] T107 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with
+- [ ] T107 *(awaiting the owner: needs a mid-range Android phone, an iPhone and screen-reader passes on them)* Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with
   `npm run preview:mock` on the local network:
   - record the SC-001 timings (a template-based creation under 1 minute, and under 30 seconds with
     the name only) and the SC-010 first-page and search times;
@@ -1341,7 +1341,7 @@ API.
   - run the SC-011 moderated test if participants are available.
 
   Record everything in a "Validation log" section appended to `specs/002-domains/quickstart.md`.
-- [ ] T108 Run `quickstart.md` Part C against the mailcow-rest-v2 dev stack at the pinned commit:
+- [X] T108 *(done 2026-10-19 against the mailcow-rest-v2 dev stack at the pin 4c25767, `scripts/smoke/stack-up.sh` with `SMOKE_PROJECT=ui002-smoke`, ports 18580/18583, Playwright 1.64.1 on the host network: the whole smoke suite 26 passed, 0 failed, on two consecutive runs, among them the 13 `@domains`/`@domain-templates` tests; no smoke domain or template is left behind, and the stack's logs contain no `Passw0rd`. The run found an API defect, reported and being fixed in API wt/002f: a domain administrator's edit of example.org is refused with `mustNotExceed`, because the seed's maximum mailbox quota exceeds its domain quota and the API checked the unchanged quotas; the reseller test uses example.net until then. Two UI 001 smoke tests were updated for the runtime translations. Still open for the owner, because it needs a push: the CI `smoke` job through `workflow_dispatch`; quickstart Part D needs a mailcow host with API 002)* Run `quickstart.md` Part C against the mailcow-rest-v2 dev stack at the pinned commit:
   `scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep "@domains|@domain-templates"` and
   `scripts/smoke/stack-down.sh`. Trigger the CI `smoke` job through `workflow_dispatch`, and
   confirm that no smoke domain or template is left behind. Where a mailcow host with API 002 is

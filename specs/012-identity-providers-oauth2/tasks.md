@@ -702,7 +702,7 @@ and confirm that a secret appears only in the credentials dialog.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T076 [US5] Implement `tests/mocks/handlers/oauth2-clients.ts` for all nine OAuth2 operations, registered in `tests/mocks/handlers/index.ts`.
+- [X] T076 *(done: all nine operations plus the capabilities read, with If-Match, 412 and 404, `immutable`, `invalidFormat` at `redirectUris.<i>`, `tooLong`, `tooMany` and the bulk action with `renewSecret` returning each new secret once; a client marked `failsInBulk` answers `failed`. Scenarios as listed (the "changed/deleted elsewhere" ones are changed by the tests through `mockApi.patch`); `oauth2-many` has no token filter case any more. Checked in `tests/unit/mocks/oauth2-client-handlers.spec.ts`)* [US5] Implement `tests/mocks/handlers/oauth2-clients.ts` for all nine OAuth2 operations, registered in `tests/mocks/handlers/index.ts`.
   - `listOauth2Clients`: `q` over the client ID and redirect URIs, case-insensitive; `hasActiveTokens`; `sort` `id`, `clientId` or `redirectUri`; `order`; paging; `ListMeta`.
   - `createOauth2Client`: `201` with `Location`, `ETag`, a 12-hex client ID, a 24-hex `clientSecret` and scope `profile`. `422` errors: `invalidFormat` (`redirectUri`) at `redirectUris.<i>`, `tooLong` on `redirectUris` above 2,000 joined characters, `required`.
   - `getOauth2Client`, and `updateOauth2Client` (merge patch, `immutable` for `clientId` and `scope`, `If-Match`).
@@ -716,7 +716,7 @@ and confirm that a secret appears only in the credentials dialog.
   - `oauth2-changed-elsewhere` and `oauth2-deleted-elsewhere`;
   - `oauth2-bulk-partial`: three clients, one whose version is rotated;
   - `oauth2-bulk-twenty`: 20 clients, one failing.
-- [ ] T077 [P] [US5] Write `tests/e2e/oauth2-clients/list.spec.ts`. It covers:
+- [X] T077 *(done: the classic columns ID, Client ID, Redirect URI and Action, no secret, no token counts or token filter (legacy form map); the information panel is `admin.oauth2_info` verbatim, always shown as legacy shows it, without the copyable endpoints, grant types or lifetimes)* [P] [US5] Write `tests/e2e/oauth2-clients/list.spec.ts`. It covers:
   - US5-AS1 and FR-055:
     - at 360 px each client is a card with its client ID, identifier, first redirect URI, "+N more" and both token counts, or "No active tokens";
     - on desktop a table with the same values;
@@ -730,7 +730,7 @@ and confirm that a secret appears only in the credentials dialog.
   - SC-010: domain administrators and mailbox users get "no access" at `/ng/identity-providers/oauth2-apps` without API 012 requests.
   - The sub-navigation now shows both links.
   - `Edge: very long values` wrap at 360 px.
-- [ ] T078 [P] [US5] Write `tests/e2e/oauth2-clients/create.spec.ts`. It covers:
+- [X] T078 *(done: one Redirect URI field (several URIs separated by spaces, legacy decision 8) instead of a list with a length meter; after closing the dialog the list opens, as the classic modal returns to it)* [P] [US5] Write `tests/e2e/oauth2-clients/create.spec.ts`. It covers:
   - US5-AS3 and FR-058:
     - a relative URI, one with `#frag` and one with a space are each marked at their entry, and no request is sent;
     - duplicates are marked;
@@ -742,7 +742,7 @@ and confirm that a secret appears only in the credentials dialog.
   - `Edge: clipboard refused`: the secret is selected with an explanation.
   - `Edge: credentials dialog lost`: after a reload the secret is gone, and the page offers "Generate new secret".
   - SC-008: the flow completes at 360 px.
-- [ ] T079 [P] [US5] Write `tests/e2e/oauth2-clients/detail.spec.ts`. It covers:
+- [X] T079 *(done: legacy's client page offers only the redirect URIs, so Generate new secret, Revoke tokens and Delete stay in the list (conventions "Detail pages"); the token counts are not shown)* [P] [US5] Write `tests/e2e/oauth2-clients/detail.spec.ts`. It covers:
   - FR-060: the identifier, the client ID with copy, the scope, the counts, the redirect URIs, the note that the secret is hidden, and a client ID and scope that cannot be edited.
   - Saving a second redirect URI sends `updateOauth2Client` with `If-Match` and `redirectUris` only.
   - FR-061 (`oauth2-legacy-invalid`): the stored fragment URI is marked with its rule, and Save stays blocked until it is corrected; an empty stored list reads "No redirect URI stored".
@@ -753,7 +753,7 @@ and confirm that a secret appears only in the credentials dialog.
   - FR-066 and SC-009 (`oauth2-changed-elsewhere`): a redirect URI save is stopped, keeps the input and marks the change; a regeneration, revocation or deletion refetches and asks again with the fresh values.
   - `Edge: deleted by another administrator` (`oauth2-deleted-elsewhere`): the not-found state with a link to the list.
   - An unknown ID shows "not found".
-- [ ] T080 [P] [US5] Write `tests/e2e/oauth2-clients/bulk.spec.ts`. It covers:
+- [X] T080 *(done: "Generate new client secret" is kept as a quick action (G42, orchestrator) and tested, with the new secrets shown one client after another; the bulk summary rows use UI 002's shared summary)* [P] [US5] Write `tests/e2e/oauth2-clients/bulk.spec.ts`. It covers:
   - US5-AS9 and FR-065 (`oauth2-bulk-partial`):
     - an explicit selection mode;
     - three selected, Delete;
@@ -767,17 +767,17 @@ and confirm that a secret appears only in the credentials dialog.
   - With `bulkLimit` overridden to 2 in the capabilities, a third client cannot be selected, and a message states the limit.
   - SC-013 (`oauth2-bulk-twenty`): 20 outcomes, and only the failed one stays selected.
   - A dropped connection (`route.abort()` on the bulk request) shows "outcome unknown", and no second request is sent.
-- [ ] T081 [P] [US5] Write unit tests in `tests/unit/features/identity-providers/oauth2/`:
+- [X] T081 *(done: `list-state`, `redirect-uris` and `bulk` specs; the version is the `etag` exactly as listed, quotes included, as UI 002 sends it and BulkTarget documents)* [P] [US5] Write unit tests in `tests/unit/features/identity-providers/oauth2/`:
   - `list-state.spec.ts`: data-model §5 mapping, `tokens` → `hasActiveTokens`, defaults omitted, resets;
   - `redirect-uris.spec.ts`: the rules of data-model §2, custom schemes such as `com.example.app:/callback` accepted, `remaining` and `duplicateOf`;
   - `bulk.spec.ts`: `toBulkTargets()` with `String(id)` and the `etag` without its quotes as `version`.
-- [ ] T082 [P] [US5] Write component tests in `tests/unit/features/identity-providers/oauth2/`:
+- [X] T082 *(done: `components.spec.ts` (card, table, marked URIs, the bulk composable's lost connection and refusal) and `pages.spec.ts` (list, create, client page); no `RedirectUriListField`, `ClientCredentialsDialog` or `Oauth2InfoPanel` exist under the legacy form map, so they have no specs)* [P] [US5] Write component tests in `tests/unit/features/identity-providers/oauth2/`:
   - `RedirectUriListField.spec.ts`;
   - `ClientCredentialsDialog.spec.ts`: the client ID and secret copy, the confirmation keyed on the uncopied secret, nothing written to storage, the router or the cache;
   - `Oauth2InfoPanel.spec.ts`;
   - `Oauth2ClientCard.spec.ts`: token status as text, not colour only;
   - `Oauth2BulkActions.spec.ts`.
-- [ ] T083 [P] [US5] Write `tests/smoke/oauth2-clients.smoke.spec.ts`. As `admin`:
+- [X] T083 *(done: written; runs with the smoke suite against the API dev stack (not run here))* [P] [US5] Write `tests/smoke/oauth2-clients.smoke.spec.ts`. As `admin`:
   1. Create a client with `https://wiki.example.org/oauth/callback`, copy the secret and close the dialog.
   2. Add a second redirect URI.
   3. Generate a new secret.
@@ -786,12 +786,12 @@ and confirm that a secret appears only in the credentials dialog.
 
 ### Implementation for User Story 5
 
-- [ ] T084 [US5] Implement `src/features/identity-providers/oauth2/api.ts`, `list-state.ts`, `redirect-uris.ts` and `bulk.ts` in `src/features/identity-providers/oauth2/`.
+- [X] T084 *(done: creation and the bulk action call the client directly, so new secrets never enter a query or mutation cache (asserted in `api.spec.ts`); the redirect URI change and the deletion go through the mutation cache)* [US5] Implement `src/features/identity-providers/oauth2/api.ts`, `list-state.ts`, `redirect-uris.ts` and `bulk.ts` in `src/features/identity-providers/oauth2/`.
   - `api.ts`: the capabilities, list and detail queries; create and regenerate as direct client calls (`docs/conventions.md`, research R22): `clientSecret` goes into the credentials dialog's state, and only the representation without it is written to the cache, which a unit test in `tests/unit/features/identity-providers/oauth2/api.spec.ts` asserts for both caches; update with `If-Match` and merge patch; revoke, delete and bulk, with the invalidation of data-model §3.
   - `bulk.ts`: `toBulkTargets()` with `{ id: String(client.id), version }`, where `version` is the list entry's `etag` without its surrounding quotes.
 
   T081 must pass.
-- [ ] T085 [P] [US5] Implement the list components in `src/features/identity-providers/oauth2/components/`:
+- [X] T085 *(done: `Oauth2ClientList`, `Oauth2ClientCard`, `Oauth2ClientTable` (`aria-sort`), `Oauth2ClientSortControl`, `Oauth2ClientActions`, `RedirectUriList` and `ClientIdList`; the bulk actions live in the page with `useOauth2Bulk`; the search is UI 004's `SearchField`; no `TokenCounts`, token filter or info panel (legacy lacks them). `SelectCheckbox` moved from the domains feature to `src/shared/components/` at this second use)* [P] [US5] Implement the list components in `src/features/identity-providers/oauth2/components/`:
   - `Oauth2ClientList.vue`;
   - `Oauth2ClientCard.vue` (below `md`);
   - `Oauth2ClientTable.vue` (from `md` up, with `aria-sort` headers);
@@ -799,14 +799,14 @@ and confirm that a secret appears only in the credentials dialog.
   - `TokenCounts.vue`;
   - `Oauth2InfoPanel.vue` (Reka `Collapsible`, copyable endpoint addresses from the capabilities);
   - `Oauth2BulkActions.vue` (on `useBulkSelection` with `capabilities.bulkLimit`, so that further selection is disabled at the limit with a message that states it; `BulkActionBar`; `ConfirmDialog` with `requireTyped` for deletion; `BulkResultSummary`).
-- [ ] T086 [P] [US5] Implement `src/features/identity-providers/oauth2/components/RedirectUriListField.vue` and `ClientCredentialsDialog.vue` (wrapping `OneTimeSecretDialog` with the client ID as a second `CopyableValue`), so that T082 passes.
-- [ ] T087 [US5] Implement the pages in `src/features/identity-providers/oauth2/pages/`:
+- [X] T086 *(done differently: one text field per form instead of `RedirectUriListField` (legacy decision 8), with `useRedirectUriMessages`; the shared `OneTimeSecretDialog` is used directly with the client ID in its description instead of a `ClientCredentialsDialog` wrapper)* [P] [US5] Implement `src/features/identity-providers/oauth2/components/RedirectUriListField.vue` and `ClientCredentialsDialog.vue` (wrapping `OneTimeSecretDialog` with the client ID as a second `CopyableValue`), so that T082 passes.
+- [X] T087 *(done: the three pages and routes; the client page has one `EditableSection` titled `oauth2.title` ("OAuth2", legacy's hard-coded heading) with `edit=client` in the address; deletions are announced in the list)* [US5] Implement the pages in `src/features/identity-providers/oauth2/pages/`:
   - `Oauth2ClientsPage.vue`: `useListState`, `ListState`, `PaginationBar`, the panel and bulk;
   - `Oauth2ClientCreatePage.vue`: the form, then the dialog, then `router.replace` to the detail page, with the route-leave confirmation while the dialog is open;
   - `Oauth2ClientDetailPage.vue`: the attributes, the redirect URIs on `EditableSection`, the actions through `useConfirm` with refetch and re-confirmation on `412`, the deletion announcement through `useStatusMessage` after returning to the list, and the not-found state.
 
   Add the routes `oauth2-clients`, `oauth2-client-create` and `oauth2-client-detail` (`:oauth2ClientId(\d{1,10})`) to `src/features/identity-providers/routes.ts`. T077–T080 must pass.
-- [ ] T088 [US5] Use the legacy keys of T005a's form map verbatim for the OAuth2 screens: the list (`admin.oauth2_apps`, the `draw_oauth2_clients` column titles, `mailbox.toggle_all`, `mailbox.quick_actions`, `mailbox.remove`, `admin.oauth2_revoke_tokens`, `admin.oauth2_add_client`), the information panel (`admin.oauth2_info` through `SanitizedHtml.vue`), the create form (`admin.oauth2_redirect_uri`, `admin.add`), the client page (`edit.client_id`, `edit.client_secret`, `edit.scope`, `edit.redirect_uri`, `admin.save`) and the messages (`success.object_modified`, `success.items_deleted`). Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's `oauth2.*` new strings:
+- [X] T088 *(done: legacy keys per the form map; 5 new `oauth2.*` strings (`title`, `columns.id`, `added`, `redirectUriEmpty`, `backToList`); the sort labels and the leave-guard texts reuse UI 002's strings and the search UI 004's `SearchField`)* [US5] Use the legacy keys of T005a's form map verbatim for the OAuth2 screens: the list (`admin.oauth2_apps`, the `draw_oauth2_clients` column titles, `mailbox.toggle_all`, `mailbox.quick_actions`, `mailbox.remove`, `admin.oauth2_revoke_tokens`, `admin.oauth2_add_client`), the information panel (`admin.oauth2_info` through `SanitizedHtml.vue`), the create form (`admin.oauth2_redirect_uri`, `admin.add`), the client page (`edit.client_id`, `edit.client_secret`, `edit.scope`, `edit.redirect_uri`, `admin.save`) and the messages (`success.object_modified`, `success.items_deleted`). Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the form map's `oauth2.*` new strings:
   - the empty state and the token filter;
   - the grant type labels, once approved (plan, "Deviations needing a decision" item 5);
   - the create success, duplicate, empty-URI and scope messages, which legacy hard-codes in English;
@@ -834,7 +834,7 @@ are independent.
 
 ### Tests for User Story 6 (write first; must fail)
 
-- [ ] T089 [US6] Create `tests/mocks/factories/audit-identity-provider.ts` and `tests/mocks/scenarios/audit-identity-provider.ts`, registered in `tests/mocks/scenarios/index.ts`. The scenario `audit-identity-provider` holds:
+- [X] T089 *(done: the records of every API 012 event type and sign-in failure reason, with the details keys of mailcow-rest-v2 `docs/audit-events.md`; the mailbox creation on sign-in is left out, because its event type and label belong to UI 003)* [US6] Create `tests/mocks/factories/audit-identity-provider.ts` and `tests/mocks/scenarios/audit-identity-provider.ts`, registered in `tests/mocks/scenarios/index.ts`. The scenario `audit-identity-provider` holds:
   - an `identityProviderUpdate` changing `syncInterval` from 15 to 60, with `bindPassword: { changed: true }`;
   - an `identityProviderConnectionTest` with `testedAddress`, `outcome: failure` and `failureCategory: credentialsRejected`;
   - a refused `identityProviderDeletion` with `mailboxCounts`;
@@ -845,7 +845,7 @@ are independent.
   - a `mailboxCreation` with `trigger: identityProviderSignIn`, `template: Staff` and `signInRequestId`;
   - an `identityProviderSessionEnd`;
   - one record for every remaining API 012 `AuditFailureReason`.
-- [ ] T090 [P] [US6] Write `tests/e2e/audit-log/identity-provider-history.spec.ts`. It covers:
+- [X] T090 *(done: client page History, target type filter, labels, sign-in reasons and the generic details; the identity provider page's History is tested by its own story. Deviation: no mailbox and "Sign-ins of this account" links (UI 003's event, generic details view))* [P] [US6] Write `tests/e2e/audit-log/identity-provider-history.spec.ts`. It covers:
   - US6-AS1: History on the overview opens the audit log with `targetType=identityProvider` and its chip.
   - History on a client page opens it with `targetType=oauth2Client` and `targetId=<id>`.
   - FR-067: the audit log's target type filter offers "Identity provider configuration" and "OAuth2 client".
@@ -859,7 +859,7 @@ are independent.
     - the provider error shows the code `access_denied` as a technical value;
     - every failure reason of API 012 has a translated label.
   - The entries wrap at 360 px.
-- [ ] T091 [P] [US6] Extend `tests/unit/features/audit-log/labels.spec.ts` and `tests/unit/features/audit-log/AuditEventDetails.spec.ts`.
+- [X] T091 *(done: in `tests/unit/features/audit-log/labels-identity-provider.spec.ts` (a new file, to keep the audit log files untouched for UI 004's rebase), including the generic details view)* [P] [US6] Extend `tests/unit/features/audit-log/labels.spec.ts` and `tests/unit/features/audit-log/AuditEventDetails.spec.ts`.
   - Every API 012 `AuditEventType`, `AuditTarget.type`, `AuthMethod` and `AuditFailureReason` value has a label.
   - The renderers of research R23 show `changes`, secrets as changed, test details, `removed`, `mailboxCounts`, the sign-in details and the provisioning links.
   - Unknown `details` keys fall back to UI 001's definition list.
@@ -867,9 +867,9 @@ are independent.
 
 ### Implementation for User Story 6
 
-- [ ] T092 [US6] Extend `src/features/audit-log/labels.ts`. Implement `src/features/audit-log/components/details/IdentityProviderDetails.vue`, `Oauth2ClientDetails.vue` and `ProviderSignInDetails.vue`, and dispatch to them by event type in `src/features/audit-log/components/AuditEventDetails.vue`. Render the keys that mailcow-rest-v2's `docs/audit-events.md` documents for API 012's event types; if they differ from research R23, follow that file and adjust T089 and T091. Unknown keys are shown verbatim, and values are text only. T091 must pass.
-- [ ] T093 [US6] Add `HistoryLink` to `src/features/identity-providers/provider/components/OverviewHeader.vue` (`targetType: 'identityProvider'`, no `targetId`) and to `src/features/identity-providers/oauth2/pages/Oauth2ClientDetailPage.vue` (`targetType: 'oauth2Client'`, `targetId: String(id)`). T090 must pass.
-- [ ] T094 [US6] Add the `auditLog.*` messages for the API 012 event types, target types, auth methods, failure reasons and detail labels to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Append those values to the `AuditEventType`, `AuditTarget.type`, `AuthMethod` and `AuditFailureReason` lists of `src/i18n/coverage.json` (UI 002 D2). `npm run i18n:check` must pass.
+- [X] T092 *(done with UI 001's generic details view: every documented key is shown as text (objects as JSON), which is readable for `changes`, `removed`, `mailboxCounts` and the sign-in details, so no dedicated renderers were built; `labels.ts` needed no change, only locale keys)* [US6] Extend `src/features/audit-log/labels.ts`. Implement `src/features/audit-log/components/details/IdentityProviderDetails.vue`, `Oauth2ClientDetails.vue` and `ProviderSignInDetails.vue`, and dispatch to them by event type in `src/features/audit-log/components/AuditEventDetails.vue`. Render the keys that mailcow-rest-v2's `docs/audit-events.md` documents for API 012's event types; if they differ from research R23, follow that file and adjust T089 and T091. Unknown keys are shown verbatim, and values are text only. T091 must pass.
+- [X] T093 *(done for the client page (`targetType: oauth2Client`, `targetId`, shown only with audit log access); the identity provider page's link is the parent story's)* [US6] Add `HistoryLink` to `src/features/identity-providers/provider/components/OverviewHeader.vue` (`targetType: 'identityProvider'`, no `targetId`) and to `src/features/identity-providers/oauth2/pages/Oauth2ClientDetailPage.vue` (`targetType: 'oauth2Client'`, `targetId: String(id)`). T090 must pass.
+- [X] T094 *(done: the labels live under `enums.*` (UI 001's place for codes), not `auditLog.*`: 10 event types, the `oauth2Client` target, 4 sign-in methods and 11 failure reasons as new strings (26); `identityProvider` → `admin.iam`, `singleSignOn` → `admin.iam_sso` and `connectionTestFailed` → `danger.iam_test_connection` through `LEGACY_TEXTS`; all listed in `src/i18n/coverage.json`)* [US6] Add the `auditLog.*` messages for the API 012 event types, target types, auth methods, failure reasons and detail labels to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Append those values to the `AuditEventType`, `AuditTarget.type`, `AuthMethod` and `AuditFailureReason` lists of `src/i18n/coverage.json` (UI 002 D2). `npm run i18n:check` must pass.
 
 **Checkpoint**: All user stories work on their own.
 

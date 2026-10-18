@@ -12,12 +12,12 @@ routing.
 ## Prerequisites
 
 - Everything UI 001's quickstart lists.
-- UI features 002–008 implemented, so that the domain and mailbox detail pages, bulk selection,
-  typed confirmation, section editing and History exist (research R1).
+- UI features 002–008 implemented, so that the domain page, the mailbox layout, bulk selection,
+  typed confirmation, section editing, the leave guard and History exist (research R1).
 - The contract pinned at a commit that contains API 009 (`contract/VERSION.json`, see
   [contracts/README.md](./contracts/README.md)).
-- For Part C: the mailcow-rest-v2 dev stack with API 009 implemented, and its `routing` compose
-  profile (the `mailpit` SMTP target).
+- For Part C only: the mailcow-rest-v2 dev stack with API 009 implemented, and its `routing`
+  compose profile (the `mailpit` SMTP target). Parts A and B need only API 009's merged contract.
 
 ## Part A: Automated gates
 
@@ -25,7 +25,7 @@ routing.
 npm ci
 npm run lint && npm run format:check
 npm run typecheck
-npm run contract:check                  # the pin contains the 46 routing operations
+npm run contract:check                  # vendored contract checksum; generated files up to date
 npm run i18n:check                      # en-gb, cs-cz, sk-sk complete; routing enums; rich hints parse
 npm run test:unit                       # includes tests/unit/features/routing/** and the rich import
 npm run build && npm run budget:check   # initial JS unchanged; routing chunks listed
@@ -57,13 +57,13 @@ Check every screen at 360 px and on a desktop, in both themes.
 | US1 | `routing-admin-default` | Open relayhost 1 (password stored), save without typing; then "Remove password" and save | The field starts empty with "Password stored"; it stays stored; then "No password" (AS5, AS6) |
 | US1 | `routing-admin-default` | Delete relayhost 2 | The dialog names its two domains and three mailboxes and says their assignments will be cleared (AS7) |
 | US1 | `routing-admin-default` | Select three relayhosts, delete | The number must be typed; one result per entry (FR-016, FR-017) |
-| US2 | `routing-assignments` | Open `/ng/domains/example.org`, edit the Relayhost section (`?edit=relayhost`), choose relayhost 3, save | The section shows relayhost 3; its usage count includes the domain (US2-AS1) |
-| US2 | `routing-assignments` | Open `/ng/mailboxes/alice@example.org`, then its Relayhost section (`/ng/mailboxes/alice@example.org/relayhost`) | Own assignment (inactive, in words), the domain's relayhost, the effective one and the credentials note (AS3, AS4) |
+| US2 | `routing-assignments` | Open `/ng/domains/example.org` (on relayhost 1), edit the Relayhost section (`?edit=relayhost`), choose relayhost 4, save | The section shows relayhost 4; its usage count on the relayhost list includes the domain (US2-AS1) |
+| US2 | `routing-assignments` | Open the Relayhost sections of `alice@example.org`, `bob@example.org` and `dave@example.net` (`/ng/mailboxes/<address>/relayhost`) | alice: own relayhost 3 "inactive" in words, the domain's relayhost 1 effective (AS4); bob: relayhost 5 effective with the note that the domain relayhost's credentials are sent; dave: the note that no credentials are sent (FR-035) |
 | US2 | `routing-da-readonly` | Sign in as the domain administrator; open a domain and a mailbox | Both sections read-only with host and state; no Edit (AS2, SC-010) |
-| US3 | `routing-admin-default` | Add transports for `a.example, b.example; bad..example` to `[mx.partner.net]:25` with a password | Two created, `bad..example` stays with its reason; the confirmation named the transports sharing the next hop; afterwards they are named as changed (AS2–AS4) |
+| US3 | `routing-admin-default` | Add transports for `c.example, d.example; bad..example` to `[mx.partner.net]:25` (used by A and B with username `u1`) with username `u1` and a new password | The confirmation named A and B; two created and `bad..example` stays with its reason; afterwards A and B are named as changed (AS2–AS4) |
 | US3 | `routing-admin-default` | Add a transport to `[relay.net]:587`; then one with username `u2` for a next hop that has `u1`; then destination `*` | Interference names `relay.net` (AS6); the credentials explanation (AS5); the `*` warning (AS7) |
-| US4 | `routing-admin-default` | Test relayhost 1; then the transport whose script fails at login; then the "never answers" transport | Empty fields with the default addresses as placeholders (AS1); "Accepted", TLS used, login succeeded (AS3); "Not accepted", failed at Login, last reply (AS4); after 75 s "No result was received" with "Run again" (FR-045) |
-| US4 | `routing-admin-default` | Open the transcript at 360 px and copy it | Long lines wrap; `[redacted]` visible; copied text has `C:`/`S:` markers (AS7) |
+| US4 | `routing-tests` | Test relayhost 1; then the transport whose script fails at login; then the "never answers" transport | Empty fields with the default addresses as placeholders (AS1); "Accepted", TLS used, login succeeded (AS3); "Not accepted", failed at Login, last reply (AS4); after 75 s "No result was received" with "Run again" (FR-045) |
+| US4 | `routing-tests` | Open the transcript at 360 px and copy it | Long lines wrap; `[redacted]` visible; copied text has `C:`/`S:` markers (AS7) |
 | US5 | `routing-da-bcc` | Add a BCC map, search the local destination for `ali` | Mailboxes and aliases of the scope, labelled by kind, aliases with their mailboxes (AS2); two BCC addresses are refused with the alias hint (AS3) |
 | US5 | `routing-da-readonly` | Open BCC maps | Maps without add, edit, delete or selection, and the permission note (AS6) |
 | US6 | `routing-admin-default` | Add a TLS policy map; open the policy choice | Eight policies, each with an explanation (US6-AS2) |

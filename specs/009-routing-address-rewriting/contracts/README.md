@@ -97,9 +97,9 @@ Messages come from `problem.<name>` or the routing mapping, never from `title` o
 |---|---|---|---|
 | `/api/v2/problems/validation-failed` | 422 | every write and list | Field messages from `errors` (codes below); summary with focus (FR-013, FR-065) |
 | `/api/v2/problems/routing-entry-exists` | 409 | create and update of transports, BCC maps, recipient maps, TLS policy maps; bulk BCC type switch (`refused`) | Message at `field`, using the entry type's legacy `danger.*_exists` text, with a link to `conflictingId` |
-| `/api/v2/problems/next-hop-credentials-differ` | 409 | `createTransport`, `updateTransport` | Explanation at the username field naming `nextHop`, links to `transportIds` (US3-AS5) |
+| `/api/v2/problems/next-hop-credentials-differ` | 409 | `createTransport` (documented for creation only) | `danger.invalid_nexthop_authenticated` at the username field naming `nextHop`, links to `transportIds` (US3-AS5) |
 | `/api/v2/problems/next-hop-interferes` | 409 | `createTransport`, `updateTransport` | Explanation at the next hop field naming `nextHop`, links to `transportIds` (US3-AS6) |
-| `/api/v2/problems/permission-flag-required` | 403 | relayhost choices, assignment replacements, BCC writes and bulk | "Missing permission: {flags}" from `requiredFlags`; refresh identity; nothing shown as done (FR-003) |
+| `/api/v2/problems/permission-flag-required` | 403 | relayhost choices, assignment replacements, BCC writes and bulk | "Missing permission: {flags}" from `requiredFlags`, labelled with UI 007's legacy `acl.*` flag labels; neutral wording because `requiredFlagsMatch` is not declared (gap G34); refresh identity; nothing shown as done (FR-003) |
 | `/api/v2/problems/forbidden` | 403 | every operation | UI 001's "no permission" handling and identity refresh |
 | `/api/v2/problems/insufficient-key-scope`, `csrf-token-mismatch`, `pending-action-required` | 403 | every write | UI 001's handling (CSRF retry, restricted session); a key scope problem cannot occur in a browser session |
 | `/api/v2/problems/temporary-failure` | 503 | transports, BCC maps, recipient maps (lock), forwarding hosts (Redis, DNS) | Message with a retry enabled after `Retry-After`; in bulk results, the item's reason |
@@ -121,7 +121,7 @@ operation; they keep UI 001's shared translations and are not mocked here (resea
 | `notInList` | `allowed` | `policy` | `validation.notInList` |
 | `invalidFormat` | `format`: `nextHop`, `transportDestination`, `recipientMapDestination`, `tlsPolicyDestination`, `tlsPolicyParameters`, `domainName`, `email`, `ipNetwork` | host, next hop, destinations, parameters, test addresses, forwarding host | `validation.format.<format>` |
 | `invalidRegex` | — | MX-based transport `destination` | `validation.invalidRegex` |
-| `immutable` | — | read-only members | `validation.immutable` (cannot occur with changed-fields-only saves; translated anyway) |
+| `immutable` | — | read-only members | `validation.immutable` (cannot occur with changed-fields-only saves; translated anyway). `RelayhostPatch` names the code `readOnly` instead (gap G37); it falls back to `validation.invalid` until aligned |
 | `notFound` | — | `localDestination`, `relayhostId` | `validation.notFound` with routing wording ("not found in your domains" / "relayhost no longer exists") |
 | `notResolvable` | — | forwarding host `host` | `validation.notResolvable` |
 | `invalidCharacter` | `characters` | `username` | `validation.invalidCharacter` ("must not contain {characters}") |

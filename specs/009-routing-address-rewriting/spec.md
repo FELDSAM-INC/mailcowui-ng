@@ -118,6 +118,18 @@ The plan aligned this spec with the API 009 contract and `docs/conventions.md` (
 7. **Navigation**: as FR-002 says, every domain administrator sees the Routing section with BCC
    maps, read-only without the flag. UI 001's navigation catalogue row, which shows the section
    only with the BCC maps flag, is changed by this feature.
+8. **Shared next hop lookup, interim limitation**: the API's `nextHop` list filter does not
+   normalise its value as a stored next hop is normalised (a bare IP address is stored in brackets,
+   a Unicode host in ASCII). Until mailcow-rest-v2 closes this gap (plan, API gap list), the
+   confirmation of FR-041 before saving can miss the other transports when the next hop is typed as
+   a bare IP address or a Unicode host; the report after saving still names every transport whose
+   credentials changed. The app does not copy the server's normalisation (constitution I). Affects
+   FR-041.
+9. **Credential note on mailboxes**: the API reports which relayhost's credentials the mail server
+   sends for a mailbox (`credentialsRelayhost`). When both the mailbox's and the domain's relayhost
+   are active, the note says either that the domain relayhost's credentials are sent or, when the
+   domain's relayhost has no username, that no credentials are sent at all. This replaces "tries the
+   credentials of the domain's relayhost first". Affects FR-035 and the edge cases.
 
 ## Terminology
 
@@ -426,8 +438,9 @@ action.
   relayhost is activated and, for a mailbox, that the domain's relayhost applies meanwhile.
 - **Dangling assignment** (the relayhost no longer exists): shown as such with its stored identifier,
   replaceable and clearable.
-- **Both a domain and a mailbox relayhost apply**: the mailbox section notes that the mail server tries
-  the credentials of the domain's relayhost first.
+- **Both a domain and a mailbox relayhost apply**: the mailbox section notes that the mail server
+  connects to the mailbox's relayhost with the domain relayhost's credentials, or with none when the
+  domain's relayhost has no username.
 - **Domain administrator with only one relayhost flag**: the other section stays read-only.
 - **Clearing a username while a password is stored**: the form states that the password will be
   removed too. **Typing a password without a username**: the API's refusal is shown at the username
@@ -611,8 +624,10 @@ action.
   meanwhile).
 - **FR-034**: An assignment that refers to a relayhost that no longer exists MUST be shown as such, with
   its stored identifier and the note that it has no effect, and MUST be replaceable and clearable.
-- **FR-035**: When both the mailbox and its domain have a relayhost, the mailbox's section MUST note
-  that the mail server tries the credentials of the domain's relayhost first.
+- **FR-035**: When both the mailbox's and its domain's relayhost are active, the mailbox's section
+  MUST note which credentials the mail server sends when it connects to the mailbox's relayhost:
+  those of the domain's relayhost, or none when the domain's relayhost has no username.
+  (consistency change 9)
 - **FR-036**: When no relayhost exists, the choice MUST offer only "None / inherit" and, for
   administrators, a link to add a relayhost.
 
@@ -638,7 +653,8 @@ action.
   MUST name those transports and ask for confirmation that their credentials will change too. When a
   transport is saved onto a next hop used by other transports without credentials, the form MUST state
   that it will use that next hop's credentials. After a save, the app MUST name the other transports
-  whose credentials changed.
+  whose credentials changed. (Interim limitation for bare IP and Unicode next hops: consistency
+  change 8.)
 - **FR-042**: Administrators MUST be able to edit a transport's destination (one), next hop, MX-based,
   username, password and active state, and to activate, deactivate and delete transports.
 

@@ -49,7 +49,7 @@ on that bundle.
     | Mailbox layout `mailbox-detail` (`/mailboxes/:address`) with one child route per section, the section catalogue, `MailboxSectionNav.vue` and `ManagedSettingsGroup.vue`, key `['mailboxes','detail',address]` | `src/features/mailboxes/{routes.ts,sections.ts,pages/MailboxDetailPage.vue,components/display/}` | UI 003 R19, data-model §8 | the mailbox's Relayhost section as a child route (R9) |
     | `PasswordInput.vue` (show/hide toggle) and `CopyButton.vue` | `src/shared/components/password/`, `src/shared/components/` | UI 005 R7 | relay passwords (R7), the transcript copy action (R13) |
     | `AclReadOnlyNote.vue` ("Prohibited by ACL" with the permission's label) | `src/shared/components/` (promoted by UI 006) | UI 003, UI 006 | read-only BCC maps and Relayhost sections (R9, R14) |
-    | Flag labels `permissionFlags.<flag>` | `src/i18n/messages/*.json` | UI 005, UI 007 | permission messages (R19) |
+    | Domain administrator flag labels (legacy `acl.<column>` keys through the legacy map) | `src/i18n/legacy-map.json` | UI 007 R16, R17 | permission messages and read-only notes (R19) |
     | Translation coverage registry and `ENUM_NAMESPACES` | `src/i18n/coverage.json` (UI 002 D2, the canonical name in `docs/conventions.md`), `scripts/i18n/lib.mjs` | UI 002, UI 003 R2 | translation completeness (R21) |
     | Legacy map object entries `{ "from", "stripMarkup" }` | `src/i18n/legacy-map.json`, `scripts/i18n/import-legacy.mjs` | UI 002 D27 | the base of the rich hints (R20) |
 
@@ -104,7 +104,8 @@ on that bundle.
 ### R3. Routing capabilities instead of hard-coded limits
 
 - **Decision**: `GET /capabilities/routing` (`getRoutingCapabilities`) is read once per visit of the
-  section (query `['routing-capabilities']`, `staleTime` 5 minutes) and gives:
+  Routing section (query `['routing-capabilities']`, `staleTime` 5 minutes). The Relayhost sections
+  on the domain and mailbox pages use none of its values and do not read it. It gives:
   - `bulkLimit`: the selection limit (R5);
   - `pageSize.maximum`: page size options above it are not offered (the conventions' 25, 50 and 100
     stay the options);
@@ -116,12 +117,13 @@ on that bundle.
     - `maxLengths`: the form limits of hosts, next hops, usernames, passwords, transport
       destinations, recipient map destinations and TLS policy fields;
     - `tlsPolicies`: the policy choice (R15);
-    - `forwardingHostDnsLookupLimit`: named in the forwarding host hint.
+    - `forwardingHostDnsLookupLimit` is not used: the legacy hint does not name it.
 
-  Two limits are not in the capabilities read: the forwarding host `host` (255) and the test
-  `sender` and `recipient` (255). For these, `src/shared/validation/limits.ts` gains constants
-  that its unit test compares with the `maxLength` of `contract/openapi.json`, as UI 001 data-model
-  §6 does. This is recorded as a minor API gap in the plan.
+  Three field limits are not in the capabilities read: the forwarding host `host` and the test
+  `sender` and `recipient`. The UI sets no client-side maximum for them and shows the API's
+  `tooLong` violation at the field. It does not copy the schema's numbers into constants
+  (conventions: "The UI never hard-codes them"). The gap is recorded for mailcow-rest-v2 in the
+  plan.
 
   When the capabilities read fails, forms and selection show UI 001's error state with a retry;
   lists still load and work without selection.
@@ -179,7 +181,8 @@ on that bundle.
   - **Limit** (conventions "Shared building blocks"): `useBulkSelection` receives
     `capabilities.bulkLimit` from the routing capabilities read. Once the limit is reached, further
     selection is disabled with a message that states the limit ("{limit} is the limit of one
-    action", FR-016); "Select all on this page" selects up to the limit and says so. The selection
+    action", FR-016); "Select all on this page" behaves as UI 002's `useBulkSelection` defines it
+    (it refuses a page larger than the remaining capacity, with the same message). The selection
     never exceeds the page either, so with the page sizes 25, 50 and 100 and the default limit of
     100 the message appears only if the server's limit is smaller than the page size.
   - **Actions per list**, from the generated enumeration arrays: relayhosts, transports, recipient
@@ -194,7 +197,10 @@ on that bundle.
     entries and that their assignments will be cleared), and needs the number typed
     (`requireTyped`). Deactivation, single or bulk, needs one explicit confirmation. Activating a
     transport whose destination is `*` needs one explicit confirmation too, because it reroutes all
-    outbound mail (spec FR-039 hint). The safe choice is the default.
+    outbound mail (spec FR-039 hint). The same confirmations apply on the entry forms: saving an
+    edit that turns `active` from on to off, and saving (creating or editing) an active transport
+    for `*` (R6). The safe choice is the default. Changing a domain's relayhost assignment is not
+    confirmed: it is one explicit save of a section that shows its effect, and it is reversible.
   - **Results**: UI 002's `BulkResultSummary` lists one row per entry, named by the entry's main
     value from the page data, with `done`, `notFound`, `refused`, `outdated` or `failed`, and a
     translated reason from the item's `problem` (R19). Refused, outdated and failed entries stay
@@ -331,7 +337,9 @@ on that bundle.
     - **Domain**: UI 002's domain page lists its sections and opens one with `edit=<section>` (UI 002
       D4, D11); its data-model §9 reserves the place "after Groupware" for the relayhost. UI 009
       adds the section ID `relayhost` to the page's list and mounts `DomainRelayhostSection`
-      there through `defineAsyncComponent`, so that the page's chunk does not grow. The section
+      there through `defineAsyncComponent`, so that the page's chunk does not grow. Its position
+      follows the order of UI 002 data-model §9: after Groupware and UI 006's rate limit and spam
+      filter sections, before UI 010's DKIM and MTA-STS sections. The section
       uses UI 002's `EditableSection` (a read-only view, an Edit button for permitted users, the form
       full-screen with a sticky Save and Cancel below `md`, in place from `md` up, one section open at
       a time). The read-only relayhost row of the "Delivery" section is removed, as UI 002 planned,
@@ -341,8 +349,10 @@ on that bundle.
       `mailboxRelayhostRoute` (`path: 'relayhost'`, `name: 'mailbox-relayhost'`, lazy component
       `MailboxRelayhostSection`), which is listed among the layout's children in
       `src/features/mailboxes/routes.ts`, the same way UI 004 adds "Send as". UI 009 adds a
-      `relayhost` entry to `src/features/mailboxes/sections.ts` (label `edit.relayhost`, summary:
-      the effective relayhost or "Direct delivery"), which `MailboxSectionNav.vue` renders, and
+      `relayhost` entry to `src/features/mailboxes/sections.ts` (or the registry name and group
+      that T001 records; label `edit.relayhost`; summary from the mailbox representation UI 003
+      already loaded: the own assignment as "#{id}" or "None / inherit", with no extra request),
+      which `MailboxSectionNav.vue` renders, and
       fills the `to` of the relayhost entry of `ManagedSettingsGroup.vue` (UI 003 FR-040). Like UI
       003's other sections, it opens as its own page on phones, with a back link to the overview, and
       next to the section navigation from `lg` up. It has its own Save.
@@ -362,11 +372,15 @@ on that bundle.
     - the domain's assignment, read-only, with a link to the domain's Relayhost section;
     - the effective relayhost: "{host}, from the mailbox" or "from the domain" (`effectiveRelayhost.source`),
       or "Direct delivery";
-    - when `credentialsRelayhost.source` is `domain` while `effectiveRelayhost.source` is
-      `mailbox`, the note that the mail server connects to the mailbox's relayhost with the
-      credentials of the domain's relayhost (FR-035, more precise than the spec's "tries the
-      domain's first", because the contract reports it);
-    - the legacy hint `edit.mailbox_relayhost_info` (FR-030).
+    - when the mailbox's own and the domain's relayhost are both `active` (FR-035, spec consistency
+      change 9), a credentials note derived from `credentialsRelayhost`:
+      - `source: 'domain'`: "The mail server connects to {mailbox relayhost} with the credentials of
+        the domain's relayhost {domain relayhost}";
+      - `null`: "The mail server connects to {mailbox relayhost} without credentials, because the
+        domain's relayhost has no username", which is the case where the mailbox relayhost's own
+        credentials are silently not used;
+    - the legacy hint `edit.mailbox_relayhost_info` and a new sentence that the mailbox's relayhost
+      does not apply to its addresses in alias domains (FR-030; the legacy hint does not say it).
   - **Choice** (`RelayhostChoicePicker.vue`): a Reka `Combobox` without `ComboboxViewport` (UI 001
     R18), with a 300 ms debounced search and "Load more" over `useInfiniteQuery`, 25 per page.
     "None / inherit" is always the first option. Each option shows the host, `#{id}` and, in
@@ -403,7 +417,9 @@ on that bundle.
 - **Decision**:
   - **Several destinations** (FR-039, clarification 4): `logic/destinations.ts` splits the field on
     `/[\s,;]+/`, trims, drops empty items and removes case-insensitive duplicates, keeping the first
-    spelling and the order. `useTransportCreateBatch` sends one `POST /transports` per destination,
+    spelling and the order. When "destination is an MX regular expression" is checked, the field is
+    split on line breaks only, because a regular expression can contain commas, semicolons and
+    spaces (`mx[0-9]{1,2}\.example\.com`); the hint under the field says so. `useTransportCreateBatch` sends one `POST /transports` per destination,
     **one after another**, each with the same next hop, MX-based flag, active state and
     credentials. Sequential requests keep the order of the results and let the first request settle
     the next hop's credentials before the next one.
@@ -433,9 +449,10 @@ on that bundle.
       change too.
     - After the save, `meta.affectedTransports` names the other transports whose credentials
       changed (minus those created by the same batch), in the success message.
-    - `next-hop-credentials-differ` (`409`, `nextHop`, `transportIds`): "This next hop already has
-      different credentials. Create the transport without credentials, or change them on one of
-      these transports first." with links to the transports (US3-AS5).
+    - `next-hop-credentials-differ` (`409`, `nextHop`, `transportIds`; documented for creation):
+      the legacy `danger.invalid_nexthop_authenticated` ("Next hop exists with different
+      credentials, please update the existing credentials for this next hop first.") with links to
+      the transports (US3-AS5).
     - `next-hop-interferes` (`409`, `nextHop`, `transportIds`): "{nextHop} interferes with this next
       hop: the mail server would look up its credentials first." with links (US3-AS6).
   - **Lookup normalisation**: the lookup sends the trimmed input. The API compares without regard
@@ -443,7 +460,8 @@ on that bundle.
     address is stored in brackets, a Unicode host in ASCII). For such inputs the pre-save lookup can
     miss the other transports, and only the post-save report names them. The UI does not copy the
     server's normalisation (constitution I: no workaround); the plan records an API gap asking the
-    `nextHop` filter to normalise like a creation.
+    `nextHop` filter to normalise like a creation, and the spec records the interim limitation
+    (consistency change 8).
   - **Warnings**: the destination `*` warns that it applies to every recipient, including the hosted
     domains (FR-040). Active is preselected off, with the hint that an active `*` transport
     reroutes all outbound mail (FR-039).
@@ -675,9 +693,9 @@ on that bundle.
   | Problem | App behaviour |
   |---|---|
   | `409 routing-entry-exists` (`field`, `conflictingId`) | Message at the named field, using the legacy `danger.*_exists` text of that entry type, with a link to the existing entry (R14–R16; transport: `danger.transport_dest_exists`) |
-  | `409 next-hop-credentials-differ` (`nextHop`, `transportIds`) | R10; at the username field, with links |
+  | `409 next-hop-credentials-differ` (`nextHop`, `transportIds`), creation only | R10; at the username field, with links |
   | `409 next-hop-interferes` (`nextHop`, `transportIds`) | R10; at the next hop field, naming `nextHop`, with links |
-  | `403 permission-flag-required` (`requiredFlags`) | "Missing permission: {flags}" with the flags' translated labels (`permissionFlags.<flag>` of UI 005 and UI 007, mapped to the legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`); refresh the identity; nothing shown as done (FR-003, FR-066) |
+  | `403 permission-flag-required` (`requiredFlags`) | "Missing permission: {flags}" with the flags' labels from UI 007's legacy-mapped domain administrator flag labels (`acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`), the only label source; refresh the identity; nothing shown as done (FR-003, FR-066) |
   | `403 forbidden` | UI 001's global handling ("no permission", identity refresh) |
   | `412` (`about:blank`) | R6 |
   | `404` (`about:blank`) | "This entry no longer exists" with the way back to the list |
@@ -708,28 +726,41 @@ on that bundle.
 
 ### R20. Legacy hints with markup
 
-- **Decision**: Nine reused legacy keys contain markup: `admin.relayhosts_hint`,
-  `add.relayhost_wrapped_tls_info`, `admin.transports_hint`, `admin.lookup_mx`,
-  `admin.credentials_transport_warning`, `mailbox.bcc_info`, `add.bcc_dest_format`,
-  `mailbox.tls_policy_maps_info` and `mailbox.tls_policy_maps_enforced_tls`; `admin.transport_test_rcpt_info`
-  carries a `&#8226;` entity. UI 001's import refuses HTML (R15), and the spec requires the hints'
-  meaning and links with the app's own safe formatting (Assumptions). The decision:
+- **Decision**: Ten reused legacy keys carry markup or entities in at least one locale:
+  `admin.relayhosts_hint`, `add.relayhost_wrapped_tls_info`, `admin.transports_hint`,
+  `admin.lookup_mx`, `admin.credentials_transport_warning`, `mailbox.bcc_info`,
+  `add.bcc_dest_format`, `mailbox.tls_policy_maps_info`, `mailbox.tls_policy_maps_enforced_tls`
+  and `admin.transport_test_rcpt_info` (a `&#8226;` entity). The upstream `2026-09a` files were
+  checked: they use `<br>`, `<br/>`, `<b>`, `<code>`, `<a href … target="_blank">` and, in the
+  Slovak `mailbox.bcc_info`, `<i>` with plain line breaks instead of `<br>`. Their plain text also
+  contains `*`, `_` and backslashes (`"*" destination`, `smtp_tls_policy_maps`,
+  `.*\.google\.com`). UI 001's import refuses HTML (R15), and the spec requires the hints' meaning
+  and links with the app's own safe formatting (Assumptions). The decision:
   - **Import**: UI 002 D27 gave `src/i18n/legacy-map.json` an object form,
     `{ "from": "<key>", "stripMarkup": true }`, which removes markup. UI 009 adds a sibling option,
     `{ "from": "<key>", "rich": true }`. For such keys, `scripts/i18n/import-legacy.mjs` converts
     the legacy HTML of every locale into a small text notation and refuses anything else:
-    - `<br>`, `<br/>` and `<br />` with the line break that follows become a line break (`\n`);
-      other line breaks become a space;
+    - **escaping first**: outside the tags, the notation characters `\`, `*`, `_`, `` ` ``, `[`
+      and `]` are escaped with a backslash, and a `- ` at the start of a line becomes `\- `, so
+      that legacy text is never read as notation;
+    - `<br>`, `<br/>` and `<br />` become a line break, with or without a following line break in
+      the source (one line break, not two); a plain `\n` or `\r\n` in the source is kept as a line
+      break; two or more line breaks in a row become a paragraph break; other whitespace runs
+      become one space;
     - `&#8226;` at the start of a line becomes the list marker `- `;
-    - `<b>` and `<strong>` become `**…**`; unmatched closing tags (legacy's
-      `admin.transports_hint` has one) are dropped;
-    - `<code>` becomes `` `…` ``;
-    - `<a href="https?://…">text</a>` becomes `[text](url)`; any other scheme is refused;
+    - `<b>` and `<strong>` become `**…**`, `<i>` and `<em>` become `_…_`; an unmatched closing tag
+      (legacy's `admin.transports_hint` has one `</b>` too many) is dropped;
+    - `<code>…</code>` becomes `` `…` ``, with its content kept literally (no escaping inside); a
+      backtick inside is refused;
+    - `<a href="https?://…">text</a>` becomes `[text](url)`; on `<a>` only the attributes `href`,
+      `target` and `rel` are accepted, and `target` and `rel` are dropped, because the renderer
+      sets its own; any other scheme is refused;
     - the entities `&amp; &lt; &gt; &quot; &#39; &#8226;` are decoded;
     - every other tag or attribute is refused with an error naming the key and locale;
     - vue-i18n's special characters are escaped afterwards, as for every legacy value.
   - **Rendering**: `src/shared/components/RichText.vue` turns the notation into virtual nodes:
-    paragraphs and line breaks, `<ul>` for runs of `- ` lines, `<strong>`, `<code>`, and links
+    paragraphs and line breaks, `<ul>` for runs of `- ` lines, `<strong>`, `<em>`, `<code>`,
+    backslash escapes as the literal character, and links
     through UI 001's `safeHref` with `target="_blank"`, `rel="noopener noreferrer"`, an external
     link icon and the visually hidden words "(opens an external site)". It never uses `v-html`. A
     link that `safeHref` rejects renders as its text.
@@ -741,9 +772,9 @@ on that bundle.
   both. UI 002's `stripMarkup` suits its one-sentence hints, but this spec requires the hints'
   meaning and links preserved (Assumptions, FR-058): `admin.transports_hint` is a six-item list,
   and `mailbox.tls_policy_maps_info` carries the Postfix documentation link.
-- **Alternatives considered**: UI 002's `stripMarkup` for the nine hints: rejected, because it
+- **Alternatives considered**: UI 002's `stripMarkup` for these hints: rejected, because it
   flattens the bullet lists into one paragraph, leaves `&#8226;` undecoded and drops the link
-  that FR-058 requires. Hand-written replacements for the nine hints: rejected by constitution IV,
+  that FR-058 requires. Hand-written replacements for the ten hints: rejected by constitution IV,
   because their cs and sk translations exist. Rendering them through
   `SanitizedHtml`: rejected, because the spec says translation text is never interpreted as markup,
   and `SanitizedHtml` is reserved for operator HTML. vue-i18n component interpolation: rejected,
@@ -781,7 +812,7 @@ on that bundle.
       `routingConnectionTestResultLoginValues`, `routingConnectionTestResultHostSourceValues`,
       `routingConnectionTestResultTranscriptDirectionValues`, `relayhostReferenceStateValues`,
       `relayhostUsageEntryKindValues`, `forwardingHostCreationResultEntriesOutcomeValues`,
-      `routingPermissionFlagProblemRequiredFlagsValues`, the six bulk action arrays
+      `mailboxRelayhostAssignmentEffectiveRelayhostOneOf0SourceValues`, the six bulk action arrays
       (`relayhostBulkActionRequestActionValues`, `transportBulkActionRequestActionValues`,
       `bccMapBulkActionRequestActionValues`, `recipientMapBulkActionRequestActionValues`,
       `tlsPolicyMapBulkActionRequestActionValues`, `forwardingHostBulkActionRequestActionValues`)
@@ -809,7 +840,7 @@ on that bundle.
   - Every transport write invalidates all transport lists and details, because a credential change
     changes the version tags of the other transports of the next hop (API FR-008).
   - Relayhost deletion, relayhost bulk deletion and assignment changes invalidate the relayhost
-    assignments and the domain and mailbox detail queries, whose version tags include the
+    assignments and the domain and mailbox detail and list queries, whose version tags include the
     assignment (API FR-028). Without this, UI 002's and UI 003's next section save would be
     refused as outdated.
   - Relayhost edits (host, active state) invalidate the assignments, which show host and state.

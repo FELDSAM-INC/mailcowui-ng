@@ -58,7 +58,12 @@ None of these restates an API shape; each is derived from API data or app consta
 ### RoutingScreen (`src/features/routing/screens.ts`)
 
 The six screens in the order of FR-001. Each has `id`, `routeName`, `labelKey`, `introKeys` (the
-legacy explanatory texts of FR-008) and `roles`.
+legacy explanatory texts of FR-008), `roles` and `status` (`'pending'` until the story that builds
+the screen sets it to `'available'`, as UI 001 does with catalogue entries). The index page and the
+section navigation list only available screens the user may open. When a user may open none yet
+(for example a domain administrator before US5 is built), `/routing` renders UI 001's
+`PlaceholderPage` for the `routing` entry, with the classic interface links for the role, instead of
+an empty page.
 
 | id | route | label (legacy key) | intro keys | roles |
 |---|---|---|---|---|
@@ -114,7 +119,7 @@ that next hop's credentials" note (research R10).
 
 | Field | Type | Rule |
 |---|---|---|
-| `destinations` | `string[]` | split, trimmed, deduplicated (case-insensitive), order kept (`logic/destinations.ts`) |
+| `destinations` | `string[]` | split on line breaks, commas, semicolons and spaces, or on line breaks only when MX-based is checked; trimmed, deduplicated (case-insensitive), order kept (`logic/destinations.ts`) |
 | `results` | `{ destination, outcome: 'created' \| 'refused' \| 'outcomeUnknown' \| 'notSent', transport?, reasonKey?, conflictingId? }[]` | one per destination, in order |
 | `affectedOthers` | `TransportReference[]` | union of `meta.affectedTransports`, minus the batch's own creations |
 | `stoppedBy` | `ApiProblem \| null` | a refusal of a non-destination member, a next-hop conflict or a network failure |
@@ -130,7 +135,7 @@ permission:
 | `stateNote` | `inactive` → no effect until activated (mailbox: the domain's relayhost applies meanwhile); `dangling` → "no longer exists (#id), no effect" |
 | `domainAssigned` | mailbox only: `domainRelayhost` |
 | `effective` | mailbox only: `effectiveRelayhost` → `{ host, source }` or "Direct delivery" |
-| `credentialsNote` | mailbox only: true when `credentialsRelayhost?.source === 'domain'` and `effectiveRelayhost?.source === 'mailbox'` |
+| `credentialsNote` | mailbox only, when both `relayhost.state` and `domainRelayhost.state` are `active` (spec consistency change 9): `'domainCredentials'` when `credentialsRelayhost?.source === 'domain'`, `'noCredentials'` when `credentialsRelayhost` is `null`; otherwise `null` |
 | `editable` | `canEditDomainRelayhost` or `canEditMailboxRelayhost` |
 | `missingFlag` | `domainRelayhost` or `mailboxRelayhost` when a domain administrator lacks it |
 
@@ -171,7 +176,7 @@ Added to `src/api/query/keys.ts`. Default `staleTime` 30 s (UI 001 R9) unless st
 
 | Key | Operation | staleTime | Fetched when |
 |---|---|---|---|
-| `['routing-capabilities']` | `getRoutingCapabilities` | 5 min | on entering any routing page or a Relayhost section |
+| `['routing-capabilities']` | `getRoutingCapabilities` | 5 min | on entering any routing page (the Relayhost sections do not read it) |
 | `['relayhosts','list',RelayhostListParams]` | `listRelayhosts` | 30 s | relayhost list |
 | `['relayhosts','detail',relayhostId]` | `getRelayhost` | 30 s | relayhost edit and test pages |
 | `['relayhosts','usage',relayhostId,UsageParams]` | `listRelayhostUsage` | 30 s | usage view; deletion impact with `{kind, limit: 10}` |
@@ -201,10 +206,10 @@ setup task confirms the implemented names.
 |---|---|---|
 | `createRelayhost` | invalidate `['relayhosts']`, `['relayhost-choices']` | — |
 | `updateRelayhost` | write `['relayhosts','detail',id]`; invalidate the relayhost lists, picker and choices, and `['relayhost-assignments']` (host and state are shown there) | keep input; refetch detail; mark changed fields |
-| `deleteRelayhost` | remove the detail; invalidate `['relayhosts']`, `['relayhost-choices']`, `['relayhost-assignments']` and the `D` prefixes `['domains','detail']`, `['mailboxes','detail']` (cleared assignments change their tags) | refetch; confirm the deletion again |
+| `deleteRelayhost` | remove the detail; invalidate `['relayhosts']`, `['relayhost-choices']`, `['relayhost-assignments']` and the prefixes `['domains','detail']`, `['domains','list']`, `['mailboxes','detail']`, `['mailboxes','list']` (cleared assignments change the tags of details and list entries) | refetch; confirm the deletion again |
 | `applyRelayhostBulkAction` | as update, plus as delete when the action is `delete` | per item `outdated`: stays selected |
-| `replaceDomainRelayhostAssignment` | write the domain assignment; invalidate `['relayhost-assignments','mailbox']`, `['relayhosts','list']`, `['relayhosts','detail']`, `['relayhosts','usage']`, `D(domain)` | keep the choice; refetch; mark changed |
-| `replaceMailboxRelayhostAssignment` | write the mailbox assignment; invalidate `['relayhosts','list']`, `['relayhosts','detail']`, `['relayhosts','usage']`, `D(mailbox)` | keep the choice; refetch; mark changed |
+| `replaceDomainRelayhostAssignment` | write the domain assignment; invalidate `['relayhost-assignments','mailbox']`, `['relayhosts','list']`, `['relayhosts','detail']`, `['relayhosts','usage']`, `D(domain)` and `['domains','list']` | keep the choice; refetch; mark changed |
+| `replaceMailboxRelayhostAssignment` | write the mailbox assignment; invalidate `['relayhosts','list']`, `['relayhosts','detail']`, `['relayhosts','usage']`, `D(mailbox)` and `['mailboxes','list']` | keep the choice; refetch; mark changed |
 | `createTransport`, `updateTransport`, `deleteTransport`, `applyTransportBulkAction` | invalidate `['transports']` (other transports' tags change with shared credentials) | update: keep input, refetch, mark; delete: confirm again |
 | `createBccMap`, `updateBccMap`, `deleteBccMap`, `applyBccMapBulkAction` | invalidate `['bcc-maps']` | as above |
 | recipient map writes | invalidate `['recipient-maps']` | as above |
@@ -313,8 +318,9 @@ the address: they are parts of a form, not lists (FR-004 covers lists).
 ## 6. Client-side validation
 
 These checks run before submitting; the server's field errors are always shown too (FR-065).
-"Cap" means the value from `GET /capabilities/routing` (research R3); "contract" means a
-`src/shared/validation/limits.ts` constant tested against `contract/openapi.json`.
+"Cap" means the value from `GET /capabilities/routing` (research R3). Fields whose limit the
+capabilities read does not provide get no client-side maximum; the API's `tooLong` is shown at the
+field (gap G36).
 
 | Field | Rule | Message key |
 |---|---|---|
@@ -329,9 +335,9 @@ These checks run before submitting; the server's field errors are always shown t
 | Recipient map destinations | required; ≤ cap `maxLengths.recipientMapDestination` | `validation.required`, `validation.tooLong` |
 | TLS destination, parameters | destination required; each ≤ cap `maxLengths.tlsPolicyDestination` / `tlsPolicyParameters` | `validation.required`, `validation.tooLong` |
 | TLS policy | required; one of cap `tlsPolicies` | `validation.required` |
-| Forwarding host | required after trimming; ≤ contract `ForwardingHostCreateRequest.host` (255) | `validation.required`, `validation.tooLong` |
-| Test sender, recipient | optional; when given: ≤ contract 255, one `@` with text on both sides and no whitespace (US4-AS6) | `validation.format.email`, `validation.tooLong` |
-| List search `q` | ≤ contract `Search` 255 | `validation.tooLong` |
+| Forwarding host | required after trimming; no client-side maximum (API `tooLong`) | `validation.required`, `validation.tooLong` |
+| Test sender, recipient | optional; when given: one `@` with text on both sides and no whitespace (US4-AS6); no client-side maximum (API `tooLong`) | `validation.format.email`, `validation.tooLong` |
+| List search `q` | no client-side maximum (API `tooLong` on `q`, shown at the search field) | `validation.tooLong` |
 
 ## 7. State machines
 

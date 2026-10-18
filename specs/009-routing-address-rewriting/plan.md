@@ -48,7 +48,7 @@ The technical approach (details in [research.md](./research.md)):
   an async section after Groupware on UI 002's domain page (`edit=relayhost`), and a child route
   `relayhost` of UI 003's mailbox layout with an entry in its section catalogue. Administrators
   pick from `GET /relayhosts`, domain administrators from `GET /relayhost-choices` (R9).
-- **Text**: the legacy keys of the spec are reused, including nine hints with markup, which the
+- **Text**: the legacy keys of the spec are reused, including ten hints with markup, which the
   i18n import converts into a small notation that `RichText.vue` renders without `v-html` (R20).
 - **Tests**: stateful, contract-validated mock handlers for the eight API 009 modules (R23);
   end-to-end tests of every user story on 360 px and desktop with axe in both themes; unit and
@@ -115,14 +115,14 @@ and the sections load as async components (research R25). Lighthouse mobile scor
 
 | Principle | Gate | Status |
 |---|---|---|
-| I. The API contract is the only interface | All calls are operations of the pinned contract through the generated client; the bump is a deliberate task with typecheck and all tests (R1). Types are generated root types and operation parameter aliases (data-model §1). Gaps are recorded below and not worked around: the shared-next-hop lookup sends the input unnormalised (R10), and the permission message stays neutral without `requiredFlagsMatch` (R19). Errors are handled from `type`, extension members and `errors` (R19, contracts README). | PASS |
+| I. The API contract is the only interface | All calls are operations of the pinned contract through the generated client; the bump is a deliberate task with typecheck and all tests (R1). Types are generated root types and operation parameter aliases (data-model §1). Gaps are to be registered in mailcow-rest-v2's gap register first (G34–G37 below, checked by T001) and are not worked around: the shared-next-hop lookup sends the input unnormalised (R10), and the permission message stays neutral without `requiredFlagsMatch` (R19). Errors are handled from `type`, extension members and `errors` (R19, contracts README). | PASS |
 | II. Mobile-first | Every screen is designed and tested at 360 px first. Lists are cards below `md` and tables above (R4). Forms are their own pages with a sticky action bar (R6); the Relayhost sections open full-screen on phones (R9). Destructive actions are confirmed with their impact (R5, R8). Every list and picker has loading, empty and error states. The test summary fits 360 × 780 (R12); the transcript wraps (R13). | PASS |
 | III. Accessibility | axe in both themes on every screen and state (R24). Statuses in words (R4). Live announcements for saves, bulk results, result counts, test progress and summary. Pickers and dialogs are Reka components with focus handling (FR-071). The transcript direction is spoken, not only shown (R13). | PASS |
 | IV. i18n and branding | All text from en-gb, cs-cz and sk-sk messages. The spec's legacy keys are reused, including markup hints through the rich import (R20, R21). `i18n:check` covers the routing enumerations. Values from the API are shown untranslated (FR-073). No brand-specific text. | PASS |
 | V. Security in the browser | Passwords are write-only in the UI too: empty fields, status only, `new-password` autocomplete, cleared after every save attempt, never in cache, address, history state or storage (R7). API data is rendered as text; `RichText` renders only translation text from the repository, without `v-html` (R20). Hiding controls is a convenience: the API's refusals are handled (R19). | PASS |
 | VI. Test-first | `tasks.md` writes tests before implementation in every phase. End-to-end tests of every acceptance scenario on both viewports against the contract-validated mock (R23, R24). Unit tests cover unknown enumeration values that a mock may not send. Smoke tests against the real API. | PASS |
 | VII. Performance budgets | No new dependency; lazy routes; async sections; debounced searches; capabilities cached for 5 minutes; invalidation only of what a change affects (R22, R25). `budget:check` and Lighthouse run on a routing page. | PASS |
-| VIII. Simplicity | One feature directory. Generic `EntryList` and `CredentialFields` inside the feature because six and two of its screens use them; `RichText` in `src/shared/` because nine hints on six screens use it. Earlier features' shared blocks (`BulkActionBar`, `useLeaveGuard`, `PasswordInput`, `CopyButton`, `AclReadOnlyNote`, `ActiveFilterChips` and the others of R1) are reused, not rebuilt. | PASS |
+| VIII. Simplicity | One feature directory. Generic `EntryList` and `CredentialFields` inside the feature because six and two of its screens use them; `RichText` in `src/shared/` because ten hints on six screens use it. Earlier features' shared blocks (`BulkActionBar`, `useLeaveGuard`, `PasswordInput`, `CopyButton`, `AclReadOnlyNote`, `ActiveFilterChips` and the others of R1) are reused, not rebuilt. | PASS |
 | Technology constraints | The constitution's stack and TailAdmin primitives only; no new font, icon set or CDN request. Static build, unchanged deployment. | PASS |
 | Workflow and gates | All UI 001 CI gates apply unchanged; the smoke job runs the `@routing` specs with the `routing` profile. | PASS |
 | `docs/conventions.md` | Legacy names kept ("Sender-dependent transports"). List state in the address, page sizes 25/50/100, cards and tables, list states (R4). Bulk: explicit selection, current page only, per-item version tags, per-item results, failed items stay selected, "outcome unknown" (R5). Editing: changed fields plus version tag, input kept on `412`, changed values marked, no overwrite, refused deletion confirmed again (R6). Confirmations: impact preview, typed count for bulk deletion, explicit confirmation for deactivation (R5, R8). Write-only secrets (R7). History by target type and ID, audit labels (R18). Problems and rule codes translated (R19). Entry points into UI 002 and UI 003 through their section areas (R9). Limits from the capabilities read (R3). | PASS |
@@ -161,12 +161,20 @@ in the spec's "Consistency changes (plan)" clarification:
 7. **Navigation**: domain administrators always see the Routing section with BCC maps, as FR-002
    already says. UI 001's catalogue row ("BCC maps" flag) is changed in code by this feature; its
    spec table should be aligned by the next change to UI 001's spec.
+8. **Shared next hop lookup, interim limitation** (analysis C1, gap G35): until the API
+   normalises its `nextHop` filter, FR-041's pre-save confirmation can miss transports for bare IP
+   and Unicode next hops; the post-save report still names them.
+9. **Credential note on mailboxes** (analysis H2): FR-035's note follows the contract's
+   `credentialsRelayhost`: the domain relayhost's credentials, or none when the domain's relayhost
+   has no username, whenever both relayhosts are active.
 
 ## Dependencies
 
-- **API**: mailcow-rest-v2 feature 009 (contract and implementation), and API 001–003 for identity,
-  the audit log target filters and the domain and mailbox representations. UI 009 is implemented
-  after API 009 is released, so the smoke suite runs against a real implementation.
+- **API**: mailcow-rest-v2 feature 009, and API 001–003 for identity, the audit log target filters
+  and the domain and mailbox representations. As the constitution allows, the work starts once API
+  009's contract is merged (it is, at the baseline) and runs against the contract-validated mock.
+  Only the smoke tasks and the final contract pin wait for the API 009 implementation to be
+  released (T120 re-checks the pin then).
 - **UI**: UI 001 (foundation); UI 002 (domain page with its section list, bulk selection and action
   bar, typed confirmation, section editing, leave guard, History link, role-restricted routes,
   coverage manifest, legacy map object entries); UI 003 (mailbox layout with child-route sections,
@@ -190,40 +198,41 @@ in the spec's "Consistency changes (plan)" clarification:
   | Mock state and handlers of domains and mailboxes | `tests/mocks/scenarios/state.ts`, `tests/mocks/handlers/{domains,mailboxes}.ts` (UI 002, UI 003) | _to be recorded_ |
   | `PasswordInput`, `CopyButton` | `src/shared/components/password/PasswordInput.vue`, `src/shared/components/CopyButton.vue` (UI 005) | _to be recorded_ |
   | `AclReadOnlyNote` | `src/shared/components/AclReadOnlyNote.vue` (UI 003, promoted by UI 006) | _to be recorded_ |
-  | Flag labels | `permissionFlags.<flag>` (UI 005, UI 007) | _to be recorded_ |
+  | Domain administrator flag labels | legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost` through the legacy map (UI 007) | _to be recorded_ |
   | Coverage registry, `ENUM_NAMESPACES`, legacy map object entries | `src/i18n/coverage.json` (canonical), `scripts/i18n/lib.mjs`, `{ "from", "stripMarkup" }` (UI 002, UI 003) | _to be recorded_ |
 
 ## API dependency and gaps
 
-The pinned contract covers every requirement of the spec. Gaps and observations, none blocking:
+The pinned contract covers every requirement of the spec except the gaps below. Constitution I
+says a gap is specified in mailcow-rest-v2 first: each one is to be registered in
+`../mailcow-rest-v2/docs/api-gaps.md` with the next free numbers (proposed rows below; the
+register's last entry at planning time is G33). The planning agent cannot write to the API
+repository, so the orchestrator registers them, and T001 stops the implementation until they are
+registered. None blocks the UI work, and the UI never works around them.
 
-1. **`requiredFlagsMatch` is not declared** in `RoutingPermissionFlagProblem` (nor in any other
-   schema), although `docs/problems.md` and `docs/conventions.md` define it (`all` or `any`, `any`
-   for the relayhost choices). **Effect**: the UI cannot tell "all of" from "any of" without a
-   hand-written type, so it uses neutral wording ("Missing permission: A, B"), which is correct in
-   both cases (R19). **Proposed to mailcow-rest-v2**: add `requiredFlagsMatch: enum [all, any]` to
-   the schema.
-2. **The transport `nextHop` filter is not normalised** like a stored next hop (a bare IP address
-   is stored in brackets, a Unicode host in ASCII). **Effect**: for such inputs, the pre-save
-   lookup of transports sharing the next hop can miss them; the post-save
-   `meta.affectedTransports` still names them (R10). **Proposed**: normalise the filter value as
-   at creation.
-3. **Capabilities omit two field limits**: the forwarding host `host` and the connection test
-   `sender` and `recipient`. **Effect**: the UI takes them from the contract schema through
-   `limits.ts`, tested against the bundle (R3). **Proposed**: add them to
-   `RoutingCapabilities.administration.maxLengths`.
-4. **Documentation drift**: API 009's `contracts/README.md` points to
-   `api/modules/capabilities/routing/`, but the module is `api/modules/routing-capabilities/`.
-   The API spec's FR-087 lists "attribute not permitted", which no API 009 operation documents.
-   No UI effect.
-5. **Forwarding host creations are audited under the source**, updates and deletions under the
-   address (API data-model). Not a gap: the UI adds "History of this source" (R18).
+| Proposed row | API feature | Gap | Fix | UI meanwhile |
+|---|---|---|---|---|
+| G34 | 001/009 (shared) | `requiredFlagsMatch` (`all`, `any`) is defined in `docs/problems.md` and `docs/conventions.md` but declared in no schema, including `RoutingPermissionFlagProblem`. | Declare `requiredFlagsMatch: enum [all, any]` on every `permission-flag-required` problem schema. | Neutral wording "Missing permission: A, B", correct in both cases (R19) |
+| G35 | 009 | The `nextHop` filter of `GET /transports` is not normalised like a stored next hop (bare IP in brackets, Unicode host in ASCII). | Normalise the filter value as at creation. | The FR-041 pre-save confirmation can miss transports for such inputs; the post-save report names them (spec consistency change 8, R10) |
+| G36 | 009 | `RoutingCapabilities.administration.maxLengths` has no limit for the forwarding host `host` and the connection test `sender` and `recipient`. | Add `forwardingHost`, `testSender` and `testRecipient` (or one `testAddress`). | No client-side maximum on these fields; the API's `tooLong` is shown at the field (R3) |
+| G37 | 009 | `RelayhostPatch` says a changed read-only member is refused with `readOnly`, while `ValidationRuleCode` and the other patches use `immutable`. | Use `immutable` in `RelayhostPatch.yaml`. | Both codes are translated; changed-fields-only saves never send read-only members (R6) |
+
+Observations without a register entry:
+
+- **Documentation drift**: API 009's `contracts/README.md` points to
+  `api/modules/capabilities/routing/`, but the module is `api/modules/routing-capabilities/`. The
+  API spec's FR-087 lists "attribute not permitted", which no API 009 operation documents. No UI
+  effect.
+- **Forwarding host creations are audited under the source**, updates and deletions under the
+  address (API data-model). Not a gap: the UI adds "History of this source" (R18).
+- **Quotes in version tags** are already register entry G33 (UI 003); UI 009 strips them for
+  `BulkTarget.version` as UI 002 does (R5).
 
 ## Owner-level questions (defaults applied)
 
 1. **Review of the new Czech and Slovak strings** (about 400 per locale): reused legacy
    translations are reviewed upstream; new strings are written by the implementer. **Default**: the
-   owner reviews the list that T120 produces before the release, as for UI 001 (UI 001 owner
+   owner reviews the list that T118 produces before the release, as for UI 001 (UI 001 owner
    question 4).
 
 ## Parity notes added by the plan
@@ -260,12 +269,12 @@ New files of this feature, plus the existing files it changes (marked "changed")
 001's (UI 001 plan, "Project Structure").
 
 ```text
-.github/workflows/ci.yml                                  # changed: smoke job with the routing profile (T122)
+.github/workflows/ci.yml                                  # changed: smoke job with the routing profile (T120)
 contract/{openapi.yaml,openapi.json,VERSION.json}        # changed: bumped pin (T002)
 scripts/
-├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}            # changed: rich hints, routing enums (T004)
-├── smoke/stack-up.sh                                     # changed: SMOKE_COMPOSE_PROFILES (T074)
-└── run-lhci.mjs                                          # changed: routing collection (T118)
+├── i18n/{lib.mjs,import-legacy.mjs,check.mjs}            # changed: rich hints (T004), routing enums (T025)
+├── smoke/stack-up.sh                                     # changed: SMOKE_COMPOSE_PROFILES (T072)
+└── run-lhci.mjs                                          # changed: routing collection (T116)
 src/
 ├── api/
 │   ├── generated/schema.ts                               # regenerated
@@ -318,8 +327,7 @@ src/
 │   ├── mailboxes/components/display/ManagedSettingsGroup.vue   # changed (UI 003): relayhost `to`
 │   └── audit-log/labels.ts                               # changed: routing event and target labels
 ├── shared/
-│   ├── components/RichText.vue                           # new unless an earlier feature added it
-│   └── validation/limits.ts                              # changed: forwarding host and test address limits
+│   └── components/RichText.vue                           # new unless an earlier feature added it
 └── i18n/
     ├── messages/{en-gb,cs-cz,sk-sk}.json                 # changed: routing.*, validation.*, problem.*, auditLog.*
     ├── legacy/{en-gb,cs-cz,sk-sk}.json                   # regenerated

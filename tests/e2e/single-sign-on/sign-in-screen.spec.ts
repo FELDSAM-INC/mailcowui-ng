@@ -4,7 +4,11 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { passwordForm } from '../fixtures/flows'
-import { expect, test } from '../fixtures/test'
+import { expect as baseExpect, test } from '../fixtures/test'
+
+// Every round trip loads the app twice (before and after the provider); on a loaded machine the
+// second boot can take longer than the default 5 s, most of all on WebKit.
+const expect = baseExpect.configure({ timeout: 15_000 })
 
 const ssoButton = (page: Page) => page.getByRole('button', { name: 'Single Sign-On' })
 const passkeyButton = (page: Page) => page.getByRole('button', { name: 'Sign in with a passkey' })

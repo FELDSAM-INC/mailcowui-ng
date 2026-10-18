@@ -1,7 +1,11 @@
 // UI 012 T061: password sign-in of LDAP and Keycloak mailboxes through UI 001's form (US3,
 // FR-050, FR-051, FR-042).
 import { passwordForm, submitPassword } from '../fixtures/flows'
-import { expect, test } from '../fixtures/test'
+import { expect as baseExpect, test } from '../fixtures/test'
+
+// Every round trip loads the app twice (before and after the provider); on a loaded machine the
+// second boot can take longer than the default 5 s, most of all on WebKit.
+const expect = baseExpect.configure({ timeout: 15_000 })
 
 const UNREACHABLE =
   "Your organisation's sign-in service cannot be reached. Please try again in a few minutes."
@@ -84,7 +88,7 @@ test.describe('password sign-in through the identity provider', () => {
     await mockApi.use('ldap-throttled')
     await page.goto('sign-in')
     await submitPassword(page, 'carl@example.org')
-    await expect(page.getByText(/You can try again in/)).toBeVisible()
+    await expect(page.locator('form').getByText(/You can try again in/)).toBeVisible()
     await mockApi.use('ldap-password')
     await page.goto('sign-in')
     await submitPassword(page, 'carl@example.org', 'wrong')

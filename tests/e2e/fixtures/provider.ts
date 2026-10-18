@@ -13,7 +13,7 @@ export type ProviderAnswer =
   | { kind: 'error'; error: string; description?: string; withoutState?: boolean }
 
 export interface FakeProviderOptions {
-  /** `redirect` answers 302 at once; `page` shows "Approve" and "Cancel" links first. */
+  /** `redirect` returns to the app at once; `page` shows "Approve" and "Cancel" links first. */
   mode?: 'redirect' | 'page'
   answer?: ProviderAnswer
 }
@@ -84,7 +84,13 @@ export async function fakeProvider(
         })
         return
       }
-      await route.fulfill({ status: 302, headers: { location: approve } })
+      // WebKit cannot fulfil a route with a redirect status, so the page replaces itself at once
+      // (no history entry), as a provider that redirects does.
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/html',
+        body: `<!doctype html><html lang="en"><head><title>Example IdP</title><script>location.replace(${JSON.stringify(approve)})</script></head><body></body></html>`,
+      })
       return
     }
     await route.fulfill({ status: 404, body: 'not found' })

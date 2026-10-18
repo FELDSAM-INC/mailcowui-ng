@@ -1,7 +1,11 @@
 // UI 012 T045: the end of a single sign-on session (US2-AS8, FR-052) and the sign-out note
 // (US2-AS9, FR-053).
 import { signOutFromMenu } from '../fixtures/flows'
-import { expect, test } from '../fixtures/test'
+import { expect as baseExpect, test } from '../fixtures/test'
+
+// Every round trip loads the app twice (before and after the provider); on a loaded machine the
+// second boot can take longer than the default 5 s, most of all on WebKit.
+const expect = baseExpect.configure({ timeout: 15_000 })
 
 test.describe('the end of a single sign-on session', () => {
   test('US2-AS8 FR-052 the sign-in screen explains the end, offers single sign-on and returns to the page', async ({

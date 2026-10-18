@@ -4,7 +4,11 @@
 import type { Page } from '@playwright/test'
 
 import { submitPassword } from '../fixtures/flows'
-import { expect, test } from '../fixtures/test'
+import { expect as baseExpect, test } from '../fixtures/test'
+
+// Every round trip loads the app twice (before and after the provider); on a loaded machine the
+// second boot can take longer than the default 5 s, most of all on WebKit.
+const expect = baseExpect.configure({ timeout: 15_000 })
 
 const ssoButton = (page: Page) => page.getByRole('button', { name: 'Single Sign-On' })
 const outcome = (page: Page) => page.locator('[data-outcome]')
@@ -59,7 +63,7 @@ test.describe('the single sign-on round trip', () => {
     await expect(page.getByRole('main').getByRole('status')).toHaveText('Completing sign-in…')
     await expectAccessible()
     await expectNoHorizontalScroll()
-    await expect(page).toHaveURL(/\/ng\/passkeys$/, { timeout: 15_000 })
+    await expect(page).toHaveURL(/\/ng\/passkeys$/)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
     const [state] = provider.states()

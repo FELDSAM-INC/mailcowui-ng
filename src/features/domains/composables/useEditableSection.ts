@@ -12,7 +12,7 @@ import type { ClientErrors } from '../form-rules'
 import { buildPatch } from '../patch'
 import type { EditableAttribute } from '../permissions'
 import { useFieldDisplay } from '../section-format'
-import { useClientErrors } from './useClientErrors'
+import { useClientErrors } from '@/shared/composables/useClientErrors'
 import { useDomainSectionSave } from './useDomainSectionSave'
 
 export interface SectionProps {

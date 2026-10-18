@@ -27,7 +27,7 @@ import {
 } from '../template-form'
 import { formFieldIds, formLabel } from '../form-labels'
 import { templateOptions, updateTemplate } from '../templates-api'
-import { useClientErrors } from './useClientErrors'
+import { useClientErrors } from '@/shared/composables/useClientErrors'
 
 export function useTemplateEditForm(options: {
   template: () => DomainTemplate | undefined

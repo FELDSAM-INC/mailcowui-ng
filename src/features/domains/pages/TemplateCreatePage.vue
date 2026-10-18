@@ -22,7 +22,7 @@ import { buttonVariants } from '@/shared/ui/button'
 import { problemOf } from '../api'
 import { useDomainCapabilities } from '../capabilities'
 import DomainValueFields from '../components/fields/DomainValueFields.vue'
-import { useClientErrors } from '../composables/useClientErrors'
+import { useClientErrors } from '@/shared/composables/useClientErrors'
 import { SIZE_FIELDS } from '../field-labels'
 import { useDomainFormat } from '../format'
 import {

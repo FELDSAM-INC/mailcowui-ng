@@ -2,7 +2,7 @@
 // (data-model §6): limits, quotas and their order, tags, the rate limit and DKIM. Each rule gives
 // a translation key with display parameters; API errors are always shown as well (FR-032).
 import type { DomainCapabilities } from '@/api'
-import type { TextRef } from '@/i18n'
+import { add, type ClientErrors } from '@/shared/validation/client-errors'
 import {
   DKIM_SELECTOR_MAX_LENGTH,
   DOMAIN_LIMIT_MAX,
@@ -13,22 +13,12 @@ import {
 
 import { exceedsTagLimit } from '@/shared/utils/tag-set'
 
-export interface ClientError {
-  /** A new string's key, or one of mailcow's own messages (`legacy('danger.domain_invalid')`). */
-  key: TextRef
-  /** Display values; `field` holds the message key of another field's label (`text()`). */
-  params?: Record<string, string>
-}
-
-export type ClientErrors = Record<string, ClientError[]>
+// Promoted to `@/shared/validation/client-errors` (UI 003); re-exported for UI 002's callers.
+export { add, type ClientError, type ClientErrors } from '@/shared/validation/client-errors'
 
 export interface RuleFormat {
   quota(bytes: number): string
   count(value: number): string
-}
-
-export function add(errors: ClientErrors, path: string, error: ClientError): void {
-  ;(errors[path] ??= []).push(error)
 }
 
 /** A whole number from `min` to `max`, or the error for it. */

@@ -25,7 +25,7 @@ import {
   type FooterForm,
 } from '../footer'
 import { useDomainFormat } from '../format'
-import { useClientErrors } from './useClientErrors'
+import { useClientErrors } from '@/shared/composables/useClientErrors'
 
 const LABELS: Record<string, LegacyKey> = {
   excludedAddresses: 'edit.footer_exclude',

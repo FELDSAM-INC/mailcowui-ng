@@ -62,7 +62,7 @@ The technical approach (details in [research.md](./research.md)):
 **Primary Dependencies**: unchanged from UI 001 (R1 there). This feature adds none. It uses
 `openapi-fetch`'s `parseAs: 'blob'`, Reka UI `Dialog`, `AlertDialog`, `RadioGroup`, `Checkbox`,
 `Collapsible`, `DropdownMenu` and `Combobox` (without its viewport, 001-R18), and the native
-`Intl` and `TextEncoder`.
+`Intl` API.
 
 **Storage**: none on a server. In the browser: the in-memory query cache only. No new Pinia store
 and no new device-storage key (data-model §4, FR-085).
@@ -85,7 +85,8 @@ repository.
 **Performance Goals**:
 
 - SC-010: the first list page is visible within 2 s of opening when the API answers within 1 s,
-  and search results update within 1 s after the user stops typing (300 ms debounce).
+  and search results update within 1 s after the user stops typing (`SearchField` submits after a
+  500 ms pause).
 - SC-001: find and deliver a message in under 1 minute at 360 px.
 - Lighthouse mobile scores of at least 90 on `/ng/quarantine`. The initial JavaScript stays at most
   200 KB gzipped, because every route of this feature is lazy.
@@ -113,7 +114,7 @@ repository.
 
 | Principle | Gate | Status |
 |---|---|---|
-| I. The API contract is the only interface | Only operations of the pinned contract are used (contracts README), through `@/api`. The pin moves forward by `scripts/contract/bump.sh` with the bump rule of R1, then typecheck and the tests run. No hand-written API type: problem extension members are read through guards over the generated types. Gaps are recorded below and never worked around: list-entry history is not filtered client-side (R23). Errors are handled from `type` and `errors`, including `requiredFlags`, `requiredFlagsMatch`, `attributes`, `dependency`, `step`, `smtpResponse`, `size` and `limit` (R24). | PASS |
+| I. The API contract is the only interface | Only operations of the pinned contract are used (contracts README), through `@/api`. The pin moves forward by `scripts/contract/bump.sh` with the bump rule of R1, then typecheck and the tests run. No hand-written API type: problem extension members are read through guards over the generated types. Gaps are recorded below and never worked around: list-entry history is not filtered client-side, and audit `details` are not typed from the API's data model (R23). Errors are handled from `type` and `errors`, including `requiredFlags`, `requiredFlagsMatch`, `attributes`, `dependency`, `step`, `smtpResponse`, `size` and `limit` (R24). | PASS |
 | II. Mobile-first | Every screen is designed at 360 px first: cards below `md`, a full-screen filter panel, full-screen section forms, and a sticky action bar and bulk bar with scroll padding. Destructive actions are confirmed with their impact, and bulk deletions require typing the count (conventions). Every list and panel has loading, empty and error states. No horizontal scroll at 360 or 320 px, or at 400 % zoom (FR-072). | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe in both themes on every screen and state. Status is never colour alone: badges, the band, bars and outcomes carry text (FR-079). Sortable headers have `aria-sort`. Dialogs are Reka. Announcements go through `useAnnouncer`. 44 × 44 targets, including the selection checkboxes. Focus is never hidden behind the sticky bars (R13). | PASS |
 | IV. i18n and branding | All text is in en-gb, cs-cz and sk-sk. Legacy keys are reused, and marked-up legacy texts are carried over without markup through `stripMarkup`/`segment` mappings (R27). `i18n:check` covers the 006 enumerations (R2). Numbers, scores, sizes and dates use `Intl` in the user's locale (FR-081). Message data is never translated (FR-082). Nothing is brand-specific. | PASS |
@@ -228,22 +229,30 @@ The spec governs its own screens, but `docs/conventions.md` says: "Where a spec 
 contradicts another UI spec, this document applies, and the next change to that spec aligns it."
 The plan applies these decisions, and the analysis step aligned the spec text:
 
-1. **Bulk selection** (clarification 4, FR-033, US2-AS3, US2-AS4): the spec asked for a selection
-   that persists across pages, which contradicts the conventions and UI 003 FR-054. The selection
-   now covers the current page only and is cleared when the view changes. The limit comes from the
-   capabilities (R15).
-2. **Typed confirmation of bulk deletions** (FR-034, FR-050): the spec is silent, and the
+1. **Bulk selection** (clarification 4, FR-033, US2-AS3, US2-AS4, US2's independent test, the
+   parity row): the spec asked for a selection that persists across pages, which contradicts the
+   conventions and UI 003 FR-054. The selection now covers the current page only and is cleared
+   when the view changes. The limit comes from the capabilities, and US2-AS4 tests it with a
+   lowered limit (R15).
+2. **Bulk outcomes** (FR-035): the spec listed done, not found and failed, and kept only failed
+   items selected. It now lists all five outcomes of the contract, and keeps failed, refused and
+   outdated items selected, as the conventions say.
+3. **Typed confirmation of bulk deletions** (FR-034, FR-050): the spec was silent, and the
    conventions require typing the number of objects for a bulk deletion. This applies to bulk
    "Remove" and bulk "Learn as spam and delete" (both delete items permanently), and to the
    removal of several list entries. Bulk delivery keeps a single explicit confirmation.
-3. **Limits from the capabilities**: the spec's numbers (100 items, 0–5,000 with one decimal,
+4. **Limits from the capabilities**: the spec's numbers (100 items, 0–5,000 with one decimal,
    100 characters, 1–2,147,483,647, 1 MiB, 255 characters, 10 MiB) are the server defaults. The UI
-   reads them from `getQuarantineCapabilities` (R8).
-4. **API gaps 1 and 2 of the spec** are closed by API 006 (see above). FR-065 now shows the
-   counting period, and FR-063's fallback note still applies to templates saved in the classic
-   interface.
-5. **"Remove hash" in the rate-limited log** (FR-058) is delivered by UI 011 (its FR-039, "Reset rate
-   limit"), with the dialog this feature exports. This feature delivers the overview reset.
+   reads them from `getQuarantineCapabilities` (R8). The spec text keeps the defaults as examples.
+5. **API gaps of the spec**: gaps 1 and 2 are marked closed by API 006, and FR-065 now states the
+   counting period when the API reports it. FR-063's fallback note still applies to templates
+   saved in the classic interface. The plan's gaps 1 and 2 above are added as spec gaps 4 and 3.
+6. **History presentation** (FR-066): the spec asked for record details in the user's units and
+   language. Constitution I forbids relying on the undocumented `details` members, so FR-066 now
+   shows them as stored until the contract describes them, as UI 002 does (R23).
+7. **"Remove hash" in the rate-limited log** (FR-058) is delivered by UI 011 (its FR-039, "Reset rate
+   limit"), with the dialog this feature exports. This feature delivers the overview reset. The spec
+   text is unchanged, because the requirement is met once UI 011 ships.
 
 ## Owner-level questions (defaults applied)
 

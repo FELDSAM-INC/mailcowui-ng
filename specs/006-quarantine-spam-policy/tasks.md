@@ -275,6 +275,7 @@ sent, and that no markup is ever rendered (spec US1).
     - temporary failure: names the service, nothing changed, and a retry;
   - FR-031: controls disabled while sending, so a double click sends one request (checked through `mockApi.requests()`);
   - Edge: a dropped connection (`route.abort()`) gives "outcome unknown", one re-read of the item, and no second action request;
+  - FR-004 and Edge "permission withdrawn while working": the mock withdraws `quarantine` after the page loaded, so a delivery answers `403 permission-flag-required`. The message names "Quarantine actions", the identity is refreshed, and the action controls disappear with the notice shown;
   - FR-025: back to the list in its previous state, with the outcome announced;
   - FR-024 at 360 px: the action bar stays reachable without scrolling.
 - [ ] T044 [P] [US1] Write `tests/e2e/quarantine/downloads.spec.ts`. It covers:
@@ -401,6 +402,7 @@ connection, and compare the results with the mock (spec US2).
   - FR-035 with `quarantine-bulk-failures`: counts per outcome, the learning warning on a `done` row, and refused, failed and outdated rows staying selected;
   - US2-AS4: with `bulkLimit` 10, "Select all" disabled with the message, and the eleventh selection refused with the limit stated;
   - US2-AS5: a dropped connection gives "outcome unknown", the list refreshed, and exactly one bulk request recorded;
+  - SC-007: a page of 100 items, all selected and removed, gives 100 result rows whose outcomes match the mock's;
   - US2-AS6: no selection mode without `quarantine`, while details stay viewable;
   - research R15: a page, filter, sort or size change clears the selection with an announcement;
   - bulk "Remove" and "Learn as spam and delete" require typing the count, while bulk delivery needs one confirmation;
@@ -511,6 +513,7 @@ entries, at both widths, in Czech and English (spec US4).
   - US4-AS4: the "+0.1" explanation, then 10 and 10.1 shown;
   - US4-AS5: a confirmed reset shows the defaults in effect;
   - the edges: the fallback note; one stored value shown as custom;
+  - FR-069 and SC-008: a score changed elsewhere after the page loaded makes the save answer `412`; the typed values are kept, the newly saved values are marked, and the user saves again or discards. A refused reset is confirmed again;
   - read-only with "Prohibited by ACL" and "Spam score" without `spamScore`;
   - the band states its ranges in text.
 - [ ] T082 [P] [US4] Write `tests/e2e/spam-filter/policy-lists.spec.ts`. It covers:
@@ -520,8 +523,8 @@ entries, at both widths, in Czech and English (spec US4).
   - US4-AS9: three selected own entries removed with the typed count, giving two removed and one already gone, with "retry failed";
   - US4-AS10: no Spam filter entry without both flags, and the address shows "no access";
   - FR-045: the switch with counts at 360 px, side by side on desktop, and the switch kept in the address;
-  - FR-047: search, sort and paging with 40 entries, kept in the prefixed address parameters;
-  - the edges: wildcards only, and 101 characters, refused before sending;
+  - FR-047: search, sort and paging with 40 entries, kept in the prefixed address parameters; each list's loading, empty and error states with a retry;
+  - the edges: wildcards only, and 101 characters, refused before sending; an inherited entry removed by its owner meanwhile disappears after Refresh;
   - FR-051: the notes.
 - [ ] T083 [P] [US4] Write the unit tests:
   - `tests/unit/features/spam-filter/spam-score.spec.ts`: tenths; `validatePair` with capabilities; `equalRaisesReject`; `bandZones`, including 0, 5000 and equal values;
@@ -634,6 +637,8 @@ value, and reset existing and unknown buckets (spec US6).
   - US6-AS5: the invalid stored text with a warning, "Replace" and "Remove";
   - US6-AS7: read-only for a domain administrator without `ratelimit`; not offered to a mailbox user (no panel; the object pages show "no access");
   - the legacy mailbox explanation;
+  - FR-069 and SC-008: a limit changed elsewhere makes the save answer `412`; the input is kept, the new value is marked, and a refused removal is confirmed again;
+  - FR-070 and Edge "shared store unavailable": a `503` with `dependency: sharedStore` says nothing was changed and offers a retry with the input kept;
   - Edge: removing a limit that is not set reports done.
 - [ ] T099 [P] [US6] Write `tests/e2e/rate-limits/overview.spec.ts`. It covers:
   - US6-AS4: the mailboxes filter lists exactly 4, each linking to its mailbox's page;
@@ -641,6 +646,7 @@ value, and reset existing and unknown buckets (spec US6).
   - FR-056: search, sort, paging, cards and table, and the empty and error states;
   - FR-057: "Set a rate limit" for each kind through `DomainPicker` or `MailboxSearchPicker`, landing on the object's `#rate-limit` with focus;
   - Edge: `RL-bad` refused before sending, naming the expected form;
+  - a reset answered `503` (shared store) says nothing was changed and offers a retry;
   - the overview not in the section navigation for mailbox users, whose address shows "no access";
   - no reset action for domain administrators.
 - [ ] T100 [P] [US6] Write the unit tests:
@@ -752,7 +758,7 @@ the spam filter unreachable. As a domain administrator, confirm that it is not o
 
 ### Implementation for User Story 8
 
-- [ ] T120 [US8] Implement the statistics query in `src/features/spam-filter/api.ts` (key `['spam-policy','statistics']`), `src/features/quarantine/statistics.ts`, `src/features/quarantine/components/statistics/ActionStatisticsList.vue` and `src/features/quarantine/pages/SpamFilterStatisticsPage.vue`. Register the `quarantine-statistics` route (`meta.roles: ['admin']`, `meta.sectionNav` "Statistics") before `quarantine-item`.
+- [ ] T120 [US8] Implement the statistics query in `src/features/quarantine/api.ts` (key `['spam-policy','statistics']`; the quarantine feature never imports from `spam-filter` or `rate-limits`, research R4), `src/features/quarantine/statistics.ts`, `src/features/quarantine/components/statistics/ActionStatisticsList.vue` and `src/features/quarantine/pages/SpamFilterStatisticsPage.vue`. Register the `quarantine-statistics` route (`meta.roles: ['admin']`, `meta.sectionNav` "Statistics") before `quarantine-item`.
 - [ ] T121 [US8] Add the `quarantine.statistics.*` messages (actions, total, period lines, the reset note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US8 works on its own.
@@ -851,7 +857,7 @@ not reachable.
   - the SC-011 moderated test with at least 5 mailbox users.
 
   Write them in the "Validation log" of `specs/006-quarantine-spam-policy/quickstart.md`.
-- [ ] T140 Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @006`, `scripts/smoke/stack-down.sh`) against the dev stack with API 006 implemented, and trigger the CI `smoke` job through `workflow_dispatch`. Once it passes, the smoke suite counts as this feature's merge gate (plan, Complexity Tracking).
+- [ ] T140 Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @006`, `scripts/smoke/stack-down.sh`) against the dev stack with API 006 implemented, and trigger the CI `smoke` job through `workflow_dispatch`. Once it passes, the smoke suite counts as this feature's merge gate (plan, Complexity Tracking). Then run quickstart Part D on a mailcow host: the SC-006 value comparison of ten items with the classic quarantine, the round trips of step 3, and the `learnham` check of step 4. Record the results in the "Validation log" of `specs/006-quarantine-spam-policy/quickstart.md`.
 - [ ] T141 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this feature for the owner's review (plan, owner question 2).
 
 ---
@@ -901,8 +907,8 @@ not reachable.
   T088, T105, T114, T120.
 - `src/features/quarantine/routes.ts`: T053, T057, T076, T114, T120. Literal routes always stay
   before `quarantine-item`.
-- `src/features/quarantine/api.ts`: T032, T049, T065, T075, T111.
-- `src/features/spam-filter/api.ts`: T085, T094, T120.
+- `src/features/quarantine/api.ts`: T032, T049, T065, T075, T111, T120.
+- `src/features/spam-filter/api.ts`: T085, T094.
 - `src/features/spam-filter/pages/ObjectSpamFilterPage.vue`: T036, T077, T095, T103.
 - `src/features/quarantine/pages/QuarantineListPage.vue` and `components/QuarantineFilters.vue`:
   T052, T053, T067.

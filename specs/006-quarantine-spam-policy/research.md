@@ -125,7 +125,11 @@ This feature adds **no runtime dependency** (constitution VIII).
   - `src/features/rate-limits/`: the rate limit panel, the Rate limits overview, "Set a rate
     limit", and the bucket reset dialog, which UI 011 later reuses.
 
-  Cross-directory use goes through each `index.ts`, as 001-R3 requires.
+  Cross-directory use goes through each `index.ts`, as 001-R3 requires, and only in one
+  direction, so that no import cycle can form between the barrels: `rate-limits` imports from
+  `quarantine`; `spam-filter` imports from `quarantine` and `rate-limits`; `quarantine` imports
+  from neither. Links to other areas' pages use route names, never imports. That is why the
+  statistics query lives in `quarantine/api.ts` although its key root is `spam-policy`.
 - **Rationale**: One directory per API module keeps each `api.ts` small and its invalidation local.
   The shared object pages naturally belong to the spam filter area, because they are its
   addresses.

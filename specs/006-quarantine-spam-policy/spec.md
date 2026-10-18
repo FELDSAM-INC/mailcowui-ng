@@ -66,14 +66,17 @@ dashboard's spam filter chart and rate-limit reset."
   a delivery cannot be taken back either, and a virus-flagged message in the inbox is the riskiest
   outcome of this feature.)
 - Q: How does selecting several quarantine items work, and what happens afterwards? → A: As in the
-  mailbox list of UI feature 003: phones use an explicit selection mode; the selection persists
-  across pages, searches and filters until it is cleared or an action finishes; it is capped at 100
-  with a visible counter; "select all" selects the current page. Afterwards the app shows the number
-  of items per outcome and every item with its outcome; failed items stay selected for a retry. When
-  no response arrives, the outcome is reported as unknown, the list is refreshed, and the request is
-  never repeated automatically. (agent decision: API 006 FR-027 allows 100 items per request with
-  one result each; one selection pattern across the app; never repeating a release automatically
-  prevents a second delivery when a response is lost.)
+  mailbox list of UI feature 003: phones use an explicit selection mode; the selection holds only
+  items of the current page and is cleared, with an announcement, when the page, page size, search,
+  filters or sort change; it is capped at the bulk limit (100 by default) with a visible counter;
+  "select all" selects the current page. Afterwards the app shows the number of items per outcome
+  and every item with its outcome; failed, refused and outdated items stay selected for a retry.
+  When no response arrives, the outcome is reported as unknown, the list is refreshed, and the
+  request is never repeated automatically. (agent decision: API 006 FR-027 allows 100 items per
+  request with one result each; one selection pattern across the app, as `docs/conventions.md`
+  "Bulk actions" and UI feature 003 FR-054 define it, which the plan applied over an earlier
+  cross-page wording; never repeating a release automatically prevents a second delivery when a
+  response is lost.)
 - Q: How are attachments and the whole message offered for download, and is the legacy VirusTotal
   link kept? → A: Downloads are offered only to users the API permits (attachment details are
   present only for them) and are always saved as files, never opened inside the app. Before a
@@ -210,7 +213,7 @@ and clean up large amounts of quarantined mail. Bulk actions make that practical
 
 **Independent Test**: Against the mock API with 250 items across five domains, sign in as an
 administrator, as a domain administrator of two domains with and without the quarantine actions
-permission, at both widths. Use every filter, search and sort, select items across pages, run each
+permission, at both widths. Use every filter, search and sort, select the items of a page, run each
 bulk action with mocked partial failures, a whole-request refusal and a dropped connection, and
 compare the results shown with the mock responses.
 
@@ -222,11 +225,12 @@ compare the results shown with the mock responses.
 2. **Given** a list filtered to the action "Junk folder" and the virus state "High", sorted by score
    descending, on page 2, **When** the administrator reloads the page or shares its address,
    **Then** the same filters, sort and page are shown.
-3. **Given** 40 selected items across two pages, one of which was removed in the meantime, **When**
+3. **Given** 40 selected items on a page of 50, one of which was removed in the meantime, **When**
    the administrator delivers them with learning, **Then** the confirmation names the action and
    the 40 items, and afterwards the summary shows 39 done and 1 not found, with each item listed.
-4. **Given** a selection of 100 items, **When** the administrator tries to select another, **Then**
-   the app refuses and states the limit of 100.
+4. **Given** a server whose bulk limit is lower than the page size (for example 10) and 10 selected
+   items, **When** the administrator tries to select another, **Then** the app refuses and states
+   the limit of 10.
 5. **Given** a bulk removal whose connection drops before the response, **When** the app gives up
    waiting, **Then** it reports the outcome as unknown, refreshes the list and does not send the
    request again.
@@ -677,20 +681,24 @@ the filters and the presentation of each kind of record from the mock.
 - **FR-032**: Users permitted to act (FR-002) MUST be able to select items and apply one action to the
   selection: "Deliver to inbox" (with the learning switch of FR-026), "Learn as spam and delete" or
   "Remove". Users not permitted MUST NOT be offered selection.
-- **FR-033**: A selection MUST persist across pages, searches and filters until the user clears it or
-  an action finishes, and MUST NOT exceed 100 items. "Select all" MUST select the items of the
-  current page. The app MUST show the number selected and refuse further selections at the limit
-  with a message that states it. On small screens, selection MUST start with an explicit "select"
-  control, and each card MUST get a selection control of at least 44 × 44 CSS px.
+- **FR-033**: A selection MUST hold only items of the current page and MUST be cleared, with an
+  announcement, when the page, page size, search, filters or sort change (`docs/conventions.md`,
+  UI feature 003 FR-054). It MUST NOT exceed the bulk limit the API reports (100 by default, which
+  equals the largest page size). "Select all" MUST select the items of the current page. The app
+  MUST show the number selected and refuse further selections at the limit with a message that
+  states it. On small screens, selection MUST start with an explicit "select" control, and each
+  card MUST get a selection control of at least 44 × 44 CSS px.
 - **FR-034**: Every bulk action MUST be confirmed in a dialog that names the action, its effect and
   the number of items, and lists the selected items by subject and recipient. The dialog MUST be
-  marked destructive for learning as spam and removal. When the selection contains virus-flagged
-  items and the action is a delivery, the dialog MUST state their number and require the
-  acknowledgement of FR-026.
+  marked destructive for learning as spam and removal, and, because both remove items permanently,
+  MUST require typing the number of selected items (`docs/conventions.md`, "Confirmations"). When
+  the selection contains virus-flagged items and the action is a delivery, the dialog MUST state
+  their number and require the acknowledgement of FR-026.
 - **FR-035**: During a bulk action the app MUST show that it is in progress. Afterwards it MUST show
-  the number of items per outcome (done, not found, failed) and every item with its translated
-  outcome, including the step warnings of FR-029, and MUST announce the summary. Failed items MUST
-  stay selected; the others MUST be deselected. A whole-request refusal MUST be shown as one message
+  the number of items per outcome (done, not found, refused, outdated, failed) and every item with
+  its translated outcome, including the step warnings of FR-029, and MUST announce the summary.
+  Failed, refused and outdated items MUST stay selected; the others MUST be deselected. A
+  whole-request refusal MUST be shown as one message
   naming the reason, with the selection kept. When no response arrives, the app MUST report the
   outcome as unknown, refresh the list and MUST NOT repeat the request automatically.
 
@@ -757,8 +765,10 @@ the filters and the presentation of each kind of record from the mock.
 - **FR-049**: A conflict with an existing entry MUST be shown as "already on the Allowlist" or
   "already on the Denylist", naming the existing pattern, and nothing MUST be added.
 - **FR-050**: Users permitted to change the list MUST be able to remove one own entry after a
-  confirmation naming the pattern and the list, and to select several own entries and remove them
-  after one confirmation. The app MUST send one request per entry, continue after failures, and
+  confirmation naming the pattern and the list, and to select several own entries of the current
+  page and remove them after one confirmation that requires typing their number
+  (`docs/conventions.md`, "Confirmations"). The app MUST send one request per entry, continue after
+  failures, and
   report each result with a "retry failed" action. An entry already gone MUST be reported as already
   removed.
 - **FR-051**: The panel MUST state that changes apply within 1 minute, that mail from a
@@ -830,8 +840,10 @@ the filters and the presentation of each kind of record from the mock.
 - **FR-065**: The Statistics page MUST list the actions rejected, soft-rejected (including
   greylisted), subject rewritten, junk folder and no action, each with its count, its percentage of
   the total and a proportional bar, plus the total, all in text, and state that the counts run since
-  the spam filter's statistics were last reset. It MUST offer a refresh, show 0 % when the total is
-  zero, and show an error state with a retry when the spam filter cannot be reached.
+  the spam filter's statistics were last reset. When the API reports them, it MUST also state since
+  when the counts run and since when the spam filter has been running, and otherwise that the start
+  is unknown (API 006 FR-058). It MUST offer a refresh, show 0 % when the total is zero, and show an
+  error state with a retry when the spam filter cannot be reached.
 
 #### History
 
@@ -839,12 +851,16 @@ the filters and the presentation of each kind of record from the mock.
   filter and limits" page and from each Rate limits entry. History MUST open the audit log screen of
   UI feature 001 filtered to that target. That screen MUST gain the target types of this feature
   (quarantine item, quarantine settings, notification settings, spam score, list entry, rate limit,
-  rate-limit bucket) as filters, and MUST present their records: for item actions the queue
-  identifier, recipient, SMTP sender, action and each step's outcome; for other changes the old and
-  new values in the user's units and language; for the template only that it changed, with old and
-  new size; for list entries the owner, list and pattern; for bucket resets the identifier, whether
-  counters existed and the number of log entries removed; records of one bulk action recognisable as
-  such.
+  rate-limit bucket) as filters, and MUST present their records with translated event and target
+  labels, the actor, time, client address and outcome, and their details: for item actions the
+  queue identifier, recipient, SMTP sender, action and each step's outcome; for other changes the
+  old and new values; for the template only that it changed, with old and new size; for list
+  entries the owner, list and pattern; for bucket resets the identifier, whether counters existed
+  and the number of log entries removed; records of one bulk action recognisable as such. Until the
+  contract describes these detail members (API gap 3 below), the details are shown as stored,
+  through UI feature 001's generic details view as UI feature 002 does for its records, and their
+  presentation in the user's units and language follows with the contract change. Detail values
+  that come from a message are shown as isolated plain text (FR-083).
 
 #### Errors and feedback
 
@@ -951,7 +967,7 @@ this feature, with the reason).
 | Notified ✓/✗, Danger High/Neutral, action badges | Icons and coloured badges | Improved: text badges | FR-010, FR-079 |
 | Show item | Opens the detail modal | Improved: item page with its own address | FR-005, FR-018 |
 | Row "Remove" button only when the `login_as` flag is set | Inconsistent gating | Improved: offered by the quarantine actions permission | FR-002, FR-024 |
-| Toggle all, mass Deliver to inbox, Learn as spam and delete, Remove (top and bottom) | One request, toasts, no per-item result, no confirmation for delivery | Improved: selection across pages up to 100, confirmation, per-item results, retry | FR-032 to FR-035 |
+| Toggle all, mass Deliver to inbox, Learn as spam and delete, Remove (top and bottom) | One request, toasts, no per-item result, no confirmation for delivery | Improved: page selection up to the bulk limit, confirmation (typed count for deletions), per-item results, retry | FR-032 to FR-035 |
 | Expand all, Collapse all | DataTables child rows | Dropped: cards and expandable entries replace collapsed rows | FR-011 |
 
 #### Quarantine item modal
@@ -1066,11 +1082,20 @@ identifiers. The contract version is pinned in the plan, once the API 006 contra
 **Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
 wanted; until then the app behaves as stated):
 
-1. The spam filter statistics do not say since when they are counted. The page states only that
-   they run since the filter's statistics were last reset (FR-065).
-2. The notification template is neither validated nor previewable. An administrator can save a
-   template the notifier cannot use, which it then silently replaces with the default; the app can
-   only say so (FR-063).
+1. **Closed**: the spam filter statistics did not say since when they are counted. API 006 FR-058
+   now reports the start of the counting period and the spam filter's running time, and FR-065
+   shows them.
+2. **Closed**: the notification template was neither validated nor previewable. API 006 FR-070 now
+   refuses a template the notifier cannot use (rule `invalidTemplate`), which the app shows on the
+   template field. API 006 FR-071 also offers a text preview, which this feature does not use
+   (FR-063). A template saved in the classic interface can still be one the notifier replaces with
+   the default, so FR-063's note stays.
+3. The audit records' `details` are an open object in the contract. Their members are documented
+   only in the API's data model, so the app cannot rely on them (constitution I) and shows them as
+   stored (FR-066), as UI feature 002 does for its records.
+4. The audit records of allow and block list entries use the entry as their target, with the owner
+   only in the details. History therefore cannot be filtered to the list changes of one domain,
+   alias domain or mailbox; the app offers History per existing own entry instead (FR-066).
 
 ### Key Entities *(include if feature involves data)*
 

@@ -246,7 +246,7 @@ is normalised with `router.replace` (001-R20).
 
 | Param | Type | Default | Maps to |
 |---|---|---|---|
-| `q` | string ≤ 255 | — | `q` (debounced 300 ms) |
+| `q` | string ≤ 255 | — | `q` (through `SearchField`: Enter or a 500 ms pause) |
 | `recipient` | e-mail address ≤ 255 (admin, DA) | — | `recipient` |
 | `domain` | domain name ≤ 255 (admin, DA) | — | `domain` |
 | `action` | repeatable `rejected`, `junk`, `subjectRewritten`, `other` | — | `action` (exploded) |

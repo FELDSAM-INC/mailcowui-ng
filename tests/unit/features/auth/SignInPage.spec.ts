@@ -65,35 +65,70 @@ describe('headings and role links (FR-005, FR-006)', () => {
   })
 })
 
-describe('force single sign-on (FR-007) and the identity provider (FR-008)', () => {
-  it('hides the password form and the reset link on the neutral and mailbox-user screens', async () => {
-    useScenario('force-sso')
+describe('UI 012: single sign-on on the sign-in screens (FR-040 to FR-042, research R7)', () => {
+  const ssoButton = (wrapper: Awaited<ReturnType<typeof mountPage>>) =>
+    wrapper.findAll('button').find((button) => button.text() === 'Single Sign-On')
+  const follows = (first: Element, second: Element) =>
+    !!(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+  it('offers single sign-on below the password form, where the classic login page has it', async () => {
+    useScenario('sso-available')
     for (const role of [null, 'mailboxUser'] as const) {
       const wrapper = await mountPage(role)
-      expect(wrapper.find('input[autocomplete^="username"]').exists()).toBe(false)
-      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(false)
-      expect(wrapper.text()).toContain('This server uses single sign-on.')
-      expect(wrapper.get('[data-sso-notice] a').attributes('href')).toBe('/')
+      const button = ssoButton(wrapper)
+      expect(button, String(role)).toBeDefined()
+      const form = wrapper.get('form').element
+      const divider = wrapper.get('[data-other-logins]')
+      expect(divider.text()).toBe('or login with')
+      expect(follows(form, divider.element)).toBe(true)
+      expect(follows(divider.element, button!.element)).toBe(true)
+      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(true)
     }
   })
 
-  it('keeps the password form on the administrator and domain-administrator screens', async () => {
-    useScenario('force-sso')
+  it('never offers single sign-on on the administrator and domain-administrator screens', async () => {
+    useScenario('sso-force')
     for (const role of ['admin', 'domainAdmin'] as const) {
       const wrapper = await mountPage(role)
+      expect(ssoButton(wrapper)).toBeUndefined()
       expect(wrapper.find('input[autocomplete^="username"]').exists()).toBe(true)
-      expect(wrapper.find('[data-sso-notice]').exists()).toBe(false)
     }
   })
 
-  it('shows the identity-provider hint up front with the classic sign-in of the role', async () => {
+  it('shows only single sign-on when it is forced and offered', async () => {
+    useScenario('sso-force')
+    for (const role of [null, 'mailboxUser'] as const) {
+      const wrapper = await mountPage(role)
+      expect(ssoButton(wrapper)).toBeDefined()
+      expect(wrapper.find('input[autocomplete^="username"]').exists()).toBe(false)
+      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(false)
+      expect(wrapper.find('[data-other-logins]').exists()).toBe(false)
+      expect(wrapper.find('[data-role-links]').exists()).toBe(true)
+    }
+  })
+
+  it('ignores "force single sign-on" while single sign-on is not offered', async () => {
+    for (const name of ['force-sso', 'sso-force-ldap', 'sso-force-none']) {
+      useScenario(name)
+      const wrapper = await mountPage(null)
+      expect(ssoButton(wrapper), name).toBeUndefined()
+      expect(wrapper.find('input[autocomplete^="username"]').exists()).toBe(true)
+      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(true)
+    }
+  })
+
+  it('shows no identity-provider hint any more (FR-042)', async () => {
     useScenario('idp-configured')
-    expect((await mountPage(null)).get('[role="note"] a').attributes('href')).toBe('/')
-    expect((await mountPage('domainAdmin')).get('[role="note"] a').attributes('href')).toBe(
-      '/domainadmin',
-    )
-    useScenario('anonymous-default')
-    expect((await mountPage(null)).find('[role="note"]').exists()).toBe(false)
+    for (const role of [null, 'domainAdmin'] as const) {
+      expect((await mountPage(role)).find('[role="note"]').exists()).toBe(false)
+    }
+  })
+
+  it('forgets an address left behind by an abandoned round trip', async () => {
+    useScenario('sso-available')
+    sessionStorage.setItem('mailcowui-ng.sso-return-to', '/domains')
+    await mountPage(null)
+    expect(sessionStorage.getItem('mailcowui-ng.sso-return-to')).toBeNull()
   })
 })
 

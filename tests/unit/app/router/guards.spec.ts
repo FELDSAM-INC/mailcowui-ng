@@ -189,3 +189,22 @@ describe('meta.public (docs/conventions.md)', () => {
     },
   )
 })
+
+describe('UI 012: the single sign-on return page', () => {
+  const restricted = { accounts: { admin: { pendingActions: ['passwordChange'] } } }
+  it.each([
+    ['anonymous', 'anonymous-default', {}],
+    ['pendingSecondFactor', 'anonymous-default', pending],
+    ['restricted', 'admin-active', restricted],
+    ['active', 'admin-active', {}],
+  ] as [string, string, ScenarioOverrides][])(
+    'resolves /sso/return in the %s state without a redirect',
+    async (_state, name, overrides) => {
+      useScenario(name, overrides)
+      const { router } = setup()
+      await router.push('/sso/return')
+      expect(router.currentRoute.value.name).toBe('sso-return')
+      expect(router.currentRoute.value.meta).toMatchObject({ public: true, layout: 'auth' })
+    },
+  )
+})

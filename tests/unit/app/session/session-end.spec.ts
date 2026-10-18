@@ -252,3 +252,74 @@ describe('session wiring', () => {
     uninstall()
   })
 })
+
+describe('UI 012: the end of a single sign-on session (FR-052, FR-053)', () => {
+  const ssoEnded = () =>
+    ApiProblem.fromParts({
+      kind: 'problem',
+      status: 401,
+      type: '/api/v2/problems/identity-provider-session-ended',
+    })
+
+  it('ends the session with the single sign-on notice when a query reports it', async () => {
+    const ctx = await signedInAt('/domains?page=2')
+    const uninstall = installSession(ctx)
+    await ctx.queryClient
+      .fetchQuery({ queryKey: ['test', 'sso'], queryFn: () => Promise.reject(ssoEnded()) })
+      .catch(() => undefined)
+    await waitUntil(() => ctx.router.currentRoute.value.name === 'sign-in')
+    expect(useSessionStore().notice).toBe('ssoSessionEnded')
+    expect(ctx.router.currentRoute.value.query).toEqual({ returnTo: '/domains?page=2' })
+    uninstall()
+  })
+
+  it('ends the session with the single sign-on notice when a mutation reports it', async () => {
+    const ctx = await signedInAt('/domains')
+    const uninstall = installSession(ctx)
+    await ctx.queryClient
+      .getMutationCache()
+      .build(ctx.queryClient, { mutationFn: () => Promise.reject(ssoEnded()) })
+      .execute(undefined)
+      .catch(() => undefined)
+    await waitUntil(() => useSessionStore().notice === 'ssoSessionEnded')
+    uninstall()
+  })
+
+  it('ends the session with the single sign-on notice after a token replay reports it', async () => {
+    const ctx = await signedInAt('/domains')
+    const uninstall = installSession(ctx)
+    let calls = 0
+    server.use(
+      http.delete('*/api/v2/session', () => {
+        calls += 1
+        const body =
+          calls === 1
+            ? { type: '/api/v2/problems/csrf-token-mismatch', status: 403 }
+            : { type: '/api/v2/problems/identity-provider-session-ended', status: 401 }
+        return HttpResponse.json(
+          { ...body, title: 'x', requestId: 'a'.repeat(32) },
+          { status: body.status, headers: { 'Content-Type': 'application/problem+json' } },
+        )
+      }),
+    )
+    await signOut(ctx)
+    await waitUntil(() => useSessionStore().notice === 'ssoSessionEnded')
+    uninstall()
+  })
+
+  it('signs a single sign-on session out with the provider note, and a password session without', async () => {
+    useScenario('sso-signed-in')
+    const queryClient = createQueryClient({ retryDelay: 0 })
+    const router = createTestRouter()
+    installGuards(router, { queryClient })
+    const ctx: SessionContext = { queryClient, router, channel: createAppChannel() }
+    await router.push('/domains')
+    await queryClient.fetchQuery(identityQuery())
+    await signOut(ctx)
+    expect(useSessionStore().notice).toBe('signedOutSso')
+
+    const password = await signedInAt('/domains')
+    await signOut(password)
+    expect(useSessionStore().notice).toBe('signedOut')
+  })
+})

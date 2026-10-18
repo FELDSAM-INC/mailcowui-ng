@@ -115,6 +115,35 @@ legacy field the API does not offer, a legacy field the plan leaves out, a legac
 meaning no longer fits) is listed in the plan under "Deviations needing a decision". It is not
 built until the owner or orchestrator decides. It is never silently dropped or reworded.
 
+**Decisions on the deviations found in plans 002–014 (orchestrator, 2026-10-18).** These apply
+to every feature. A plan's "Deviations needing a decision" entry that matches one is settled by
+it.
+
+- **Follow the legacy form** for structure and controls:
+  - quotas in MiB with "0 = ∞", as legacy enters them, replacing UI 002's unit select and
+    "Unlimited" switch;
+  - durations in legacy's units;
+  - the password repeat field wherever legacy has one;
+  - legacy's tabs, groups and field order: a legacy tab becomes one section, never several, and
+    settings keep legacy's tab structure;
+  - legacy's controls: checkboxes, multi-selects, radio and goto options and textareas, as legacy
+    has them;
+  - no help text, explanation or section heading that legacy lacks.
+- **Legacy fields the API lacks** are API gaps, added to the API instead of dropped from the form:
+  `mailcow-rest-v2` `docs/api-gaps.md` G39–G42.
+- **Screens with no legacy counterpart** (rate-limit overview, MTA-STS overview, DKIM for domain
+  administrators, colours, mass-mail jobs) stay. Any field they share with a legacy form uses that
+  legacy key, and their remaining texts are new strings.
+- **A legacy text whose meaning no longer fits** the new behaviour is replaced by a new string,
+  only for that text. Its plan names the legacy key and the reason.
+- **Keys only the FeldHost fork has** are new strings until the upstream snapshot has them. On the
+  fork, the runtime files still supply the fork's own text.
+- **Legacy labels that include their help text** are shown verbatim. The accessible name is the
+  visible label.
+- **Two security deviations** wait for the owner: the haveibeenpwned check (a third-party request
+  from the browser) and showing stored OAuth2 client secrets in lists. Until the owner decides,
+  neither is built.
+
 ### New strings
 
 - New strings exist only for UI elements the classic interface does not have, for example bulk

@@ -25,5 +25,7 @@ export function installTitle(router: Router, sources: TitleSources): () => void 
   router.afterEach((_to, _from, failure) => {
     if (!failure) apply()
   })
-  return watch([...sources.dependencies, () => router.currentRoute.value], apply)
+  return watch([...sources.dependencies, () => router.currentRoute.value], apply, {
+    immediate: true,
+  })
 }

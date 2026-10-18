@@ -101,6 +101,9 @@ R26–R29).
   - `color-scheme` following `.dark`;
   - `scroll-padding-top` equal to the header height;
   - `motion-safe` transition defaults.
+
+  *Implementation note*: the dark variant is `@custom-variant dark (&:where(.dark, .dark *))`, Tailwind's documented class strategy, instead of TailAdmin's `&:is(.dark *)`. With `:is(.dark *)`, WebKit does not recompute inherited text colours when the class on `<html>` changes, which left light-theme text on dark backgrounds. The T048 axe checks found it on `mobile-webkit`.
+
 - [X] T011 Create the inline-SVG icon components in `src/shared/icons/` with a barrel `src/shared/icons/index.ts`. Each has `aria-hidden="true"` and `focusable="false"`. Icons come from TailAdmin `src/icons/layout` first, otherwise from Lucide, recorded in the Lucide section of `THIRD_PARTY_NOTICES.md`. Needed: menu, close, chevron-down, chevron-right, home, key, passkey (fingerprint), list (audit), user, sign-out, language, sun, moon, monitor, external-link, copy, check, info, warning, danger, eye, eye-off, plus one icon per navigation catalogue section of data-model §2.
 - [X] T012 Create `vitest.config.ts` (jsdom, `tests/setup/vitest.setup.ts`, v8 coverage with thresholds of 90 % lines for `src/api`, `src/app/session`, `src/app/router`, `src/app/navigation`, `src/shared/security` and `src/shared/platform/webauthn`, 80 % elsewhere in `src/`, R23). Also create:
   - `tests/setup/vitest.setup.ts`: a fresh Pinia, `QueryClient` and i18n with `en-gb` per test, plus mount helpers;
@@ -234,6 +237,8 @@ renders in:
   - `tests/e2e/fixtures/layout.ts`: `expectNoHorizontalScroll(page, { widths: [360, 320] })`, and `expectTouchTargets(page)` (≥ 44 × 44 px for visible buttons, inputs, selects and standalone links; links in running text exempt);
   - `tests/e2e/fixtures/webauthn.ts`: CDP virtual authenticator (ctap2, internal, resident key, user verification), `addCredential`, `withoutPasskeySupport()` (an init script deleting `PublicKeyCredential`), `stubCredentialsRejection(name)`, and `stubCredentials(credential)`. The last replaces `navigator.credentials.get` and `create` with a stub that resolves with a contract-valid fake credential from `tests/mocks/factories/webauthn.ts`, so tests that only need a submitted credential also run on WebKit (R24).
 
+  *Implementation note*: two fixes made while running the T048 checkpoint. `mockApi.use` sets the `mock-scenario` cookie with `path: /`: a cookie set from the app URL got the path `/ng/` and never reached `/api/v2`. `expectNoHorizontalScroll` waits two animation frames after each resize, so that media-query listeners (the navigation drawer) re-render before it measures.
+
 ### Tests for the core (write first; must fail)
 
 - [X] T030 [P] Write `tests/unit/api/client.spec.ts` and `tests/unit/api/query-client.spec.ts` (R7, R8, R9). `query-client.spec.ts` must check the `QueryClient` defaults: `staleTime` 30 s, `refetchOnWindowFocus` and `refetchOnReconnect` false, and no `refetchInterval`, which FR-033 depends on. It must also check the retry policy (once only after a network error or a non-problem 5xx, never after a 4xx, never for mutations), and that the `onError` hooks dispatch `unauthenticated`, `second-factor-required`, `pending-action-required` and `forbidden` to the session reactions. `client.spec.ts` must check:
@@ -330,7 +335,7 @@ renders in:
   - `AnnouncementBanner.vue` in both layouts (FR-048): shown only when `active` and `text` is set; the type given as an icon with a text alternative plus a visually hidden prefix; collapsible for the visit, keyed by a text hash in `sessionStorage`;
   - the user menu showing username, role, "Passkeys" and "Sign out" (FR-042);
   - the page title `"{page} – {pageTitle}"` (FR-049) and focus on the `<h1>` after navigation (FR-080).
-- [ ] T048 [P] Write `tests/e2e/shell/foundation.spec.ts`. It uses only routes that exist after Phase 2 (the generated placeholders and the catch-all):
+- [X] T048 [P] Write `tests/e2e/shell/foundation.spec.ts`. It uses only routes that exist after Phase 2 (the generated placeholders and the catch-all):
   - `Edge: API not ready`: with `route.abort()` on `/api/v2/**`, with an HTML 502 from `route.fulfill()`, and with the `bootstrap-500` scenario, the full-page message is shown, and its retry recovers once the routes are released;
   - `admin-active` opening `/ng/domains` renders the shell, the catalogue navigation, the drawer at 360 px and the placeholder, with no CSP violation, no horizontal scroll at 360 and 320 px, and no axe violation in either theme;
   - the not-found page for an unknown address, with a link home.
@@ -355,6 +360,9 @@ renders in:
   - `src/i18n/problems.ts`.
 
   Seed `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` with the shared namespaces `common`, `problem.*` (every `KnownProblemType`, `status.*`, `generic`), `validation.*` (every `ValidationRuleCode`, `format.*`, `invalid`), `roles.*`, `themes.*`, `states.*`, `nav.*` (every catalogue entry) and `a11y.*`. Create the initial `src/i18n/legacy-map.json`, and run `npm run i18n:import` to generate `src/i18n/legacy/*.json`. T031 must pass, and `npm run i18n:check` must pass.
+
+  *Implementation note*: `DefineLocaleMessage` gives key completion, but vue-i18n 11's `t()` accepts any string (its key parameter is `Key extends string`), so an unknown key is not a type error as research R15 assumed. Completeness and placeholders stay guarded by `npm run i18n:check` and the tests.
+
 - [X] T056 Implement `src/app/preferences/store.ts`, `src/app/preferences/theme.ts` and `src/app/preferences/locale.ts` (R15, R16), so that T032 passes.
 - [X] T057 Implement `src/app/branding/public-config.ts` (the query, logo per theme, and the plain-text fields), `src/app/branding/defaults.ts` (the FR-003 neutral defaults using `location.hostname`, with no product name in the source) and `src/app/branding/app-links.ts` (the `AppLinkView` of data-model §2: `safeHref`, `%u` replaced with `encodeURIComponent`, the login-page filter, and `appsLabel` falling back to `apps.defaultLabel`). The branding part of T040 must pass.
 - [X] T058 Implement `src/app/session/store.ts` (the data-model §4 fields), `src/app/session/queries.ts` (the `session` and `identity` queries), `src/app/session/session-end.ts`, `src/app/session/sign-out.ts` and `src/app/session/cross-tab.ts` (BroadcastChannel wiring, and the identity mismatch check), so that T041 passes.
@@ -368,6 +376,9 @@ renders in:
   - `src/app/router/title.ts`.
 
   T037 and T039 must pass.
+
+  *Implementation note*: until a later story registers `sign-in`, `sign-in-second-factor` or `pending-actions`, the guard lets a navigation that would go there proceed; redirects to "home" use the path `/`, which resolves to `placeholder-home` until US1 registers `home`. The session wiring (reactions, client signal, cross-tab, mirrors) is `src/app/session/index.ts`, with `context.ts` and `reroute.ts` beside it.
+
 - [X] T061 [P] Implement `src/shared/composables/useListState.ts`, `useVersionedSave.ts`, `useCountdown.ts`, `useAnnouncer.ts`, `useMediaQuery.ts`, `useConfirm.ts` and `useProblemForm.ts`, so that T042, T043 and T044 pass.
 - [X] T062 Implement `src/shared/components/SanitizedHtml.vue` (the only `v-html`, with a justified ESLint disable), `LiveAnnouncer.vue`, `ListState.vue`, `PaginationBar.vue` (on `src/shared/ui/pagination`), `ConfirmDialog.vue` (Reka `AlertDialog`), `FormField.vue`, `ErrorSummary.vue`, `ProblemMessage.vue`, `DateTime.vue`, `RelativeTime.vue` and `PageHeader.vue`, so that T045 and T046 pass.
 - [X] T063 Implement `src/app/states/NoAccessState.vue` (explanation and a link home), `src/app/states/NotFoundPage.vue`, `src/app/states/ServiceUnavailablePage.vue` (a retry that re-runs the bootstrap) and a minimal `src/app/states/PlaceholderPage.vue`. The placeholder shows the section name and "comes in a later version", and requests no data. US3 completes it.
@@ -380,7 +391,9 @@ renders in:
   - `src/app/shell/AnnouncementBanner.vue`, placed in both layouts (FR-048).
 
   T047 must pass.
-- [ ] T065 Implement `src/app/bootstrap.ts` (R11 order), `src/main.ts` (`createApp`, Pinia, Vue Query, i18n, router, bootstrap before mount) and `src/App.vue` (`<RouterView>`, `LiveAnnouncer`, and the `ConfirmDialog` host), so that T040 and T048 pass. Run `npm run build && npm run budget:check` to record the baseline size.
+- [X] T065 Implement `src/app/bootstrap.ts` (R11 order), `src/main.ts` (`createApp`, Pinia, Vue Query, i18n, router, bootstrap before mount) and `src/App.vue` (`<RouterView>`, `LiveAnnouncer`, and the `ConfirmDialog` host), so that T040 and T048 pass. Run `npm run build && npm run budget:check` to record the baseline size.
+
+  *Implementation note*: baseline after Phase 2: 147.8 KB gzipped initial JavaScript (entry 99.2 KB plus a shared chunk of 48.6 KB), budget 200 KB. The bootstrap also applies the server languages, the device settings and the profile preferences (`src/app/bootstrap.ts`).
 
 **Checkpoint**: The foundation is ready. All Phase 2 tests pass, and the app boots against the mock
 with the strict CSP. An active session opening a placeholder address, such as `/ng/domains`,

@@ -42,7 +42,11 @@ export function createMockApi(context: BrowserContext, appUrl: string): MockApi 
       const { id } = await control<{ id: string }>('POST', '/__mock/scenarios', { name, overrides })
       current = id
       used.push(id)
-      await context.addCookies([{ name: 'mock-scenario', value: id, url: appUrl }])
+      // Path `/`: a cookie set from the app URL would get the path `/ng/` and never reach
+      // `/api/v2`.
+      await context.addCookies([
+        { name: 'mock-scenario', value: id, domain: new URL(appUrl).hostname, path: '/' },
+      ])
       return id
     },
     async patch(changes) {

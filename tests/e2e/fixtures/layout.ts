@@ -9,6 +9,13 @@ export async function expectNoHorizontalScroll(
   const original = page.viewportSize()
   for (const width of options.widths ?? [360, 320]) {
     await page.setViewportSize({ width, height: original?.height ?? 780 })
+    // Let media-query listeners re-render the layout (for example the navigation drawer) first.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    )
     const metrics = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,

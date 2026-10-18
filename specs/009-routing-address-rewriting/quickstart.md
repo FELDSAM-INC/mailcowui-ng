@@ -57,8 +57,8 @@ Check every screen at 360 px and on a desktop, in both themes.
 | US1 | `routing-admin-default` | Open relayhost 1 (password stored), save without typing; then "Remove password" and save | The field starts empty with "Password stored"; it stays stored; then "No password" (AS5, AS6) |
 | US1 | `routing-admin-default` | Delete relayhost 2 | The dialog names its two domains and three mailboxes and says their assignments will be cleared (AS7) |
 | US1 | `routing-admin-default` | Select three relayhosts, delete | The number must be typed; one result per entry (FR-016, FR-017) |
-| US2 | `routing-assignments` | Open `/ng/domains/example.org`, Relayhost section, choose relayhost 3, save | The section shows relayhost 3; its usage count includes the domain (US2-AS1) |
-| US2 | `routing-assignments` | Open `/ng/mailboxes/alice@example.org` | Own assignment (inactive, in words), the domain's relayhost, the effective one and the credentials note (AS3, AS4) |
+| US2 | `routing-assignments` | Open `/ng/domains/example.org`, edit the Relayhost section (`?edit=relayhost`), choose relayhost 3, save | The section shows relayhost 3; its usage count includes the domain (US2-AS1) |
+| US2 | `routing-assignments` | Open `/ng/mailboxes/alice@example.org`, then its Relayhost section (`/ng/mailboxes/alice@example.org/relayhost`) | Own assignment (inactive, in words), the domain's relayhost, the effective one and the credentials note (AS3, AS4) |
 | US2 | `routing-da-readonly` | Sign in as the domain administrator; open a domain and a mailbox | Both sections read-only with host and state; no Edit (AS2, SC-010) |
 | US3 | `routing-admin-default` | Add transports for `a.example, b.example; bad..example` to `[mx.partner.net]:25` with a password | Two created, `bad..example` stays with its reason; the confirmation named the transports sharing the next hop; afterwards they are named as changed (AS2–AS4) |
 | US3 | `routing-admin-default` | Add a transport to `[relay.net]:587`; then one with username `u2` for a next hop that has `u1`; then destination `*` | Interference names `relay.net` (AS6); the credentials explanation (AS5); the `*` warning (AS7) |

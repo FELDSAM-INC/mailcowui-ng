@@ -44,9 +44,10 @@ The technical approach (details in [research.md](./research.md)):
 - **Connection test**: a mutation with no cache, a watchdog at the server's total timeout plus 15 s
   that aborts the request, a summary that fits a 360 × 780 screen, and a transcript with text
   direction markers and a copy action (R11–R13).
-- **Sections**: exported from the feature's `index.ts` and mounted as async components in UI 002's
-  and UI 003's detail pages; administrators pick from `GET /relayhosts`, domain administrators
-  from `GET /relayhost-choices` (R9).
+- **Sections**: exported from the feature's `index.ts` into the earlier screens' designated areas:
+  an async section after Groupware on UI 002's domain page (`edit=relayhost`), and a child route
+  `relayhost` of UI 003's mailbox layout with an entry in its section catalogue. Administrators
+  pick from `GET /relayhosts`, domain administrators from `GET /relayhost-choices` (R9).
 - **Text**: the legacy keys of the spec are reused, including nine hints with markup, which the
   i18n import converts into a small notation that `RichText.vue` renders without `v-html` (R20).
 - **Tests**: stateful, contract-validated mock handlers for the eight API 009 modules (R23);
@@ -117,7 +118,7 @@ and the sections load as async components (research R25). Lighthouse mobile scor
 | V. Security in the browser | Passwords are write-only in the UI too: empty fields, status only, `new-password` autocomplete, cleared after every save attempt, never in cache, address, history state or storage (R7). API data is rendered as text; `RichText` renders only translation text from the repository, without `v-html` (R20). Hiding controls is a convenience: the API's refusals are handled (R19). | PASS |
 | VI. Test-first | `tasks.md` writes tests before implementation in every phase. End-to-end tests of every acceptance scenario on both viewports against the contract-validated mock (R23, R24). Unit tests cover unknown enumeration values that a mock may not send. Smoke tests against the real API. | PASS |
 | VII. Performance budgets | No new dependency; lazy routes; async sections; debounced searches; capabilities cached for 5 minutes; invalidation only of what a change affects (R22, R25). `budget:check` and Lighthouse run on a routing page. | PASS |
-| VIII. Simplicity | One feature directory. Generic `EntryList` and `CredentialFields` inside the feature because six and two of its screens use them; `RichText` and `PasswordInput` in `src/shared/` because they have several uses. Earlier features' shared blocks are reused, not rebuilt (R1). | PASS |
+| VIII. Simplicity | One feature directory. Generic `EntryList` and `CredentialFields` inside the feature because six and two of its screens use them; `RichText` in `src/shared/` because nine hints on six screens use it. Earlier features' shared blocks (`BulkActionBar`, `useLeaveGuard`, `PasswordInput`, `CopyButton`, `AclReadOnlyNote`, `ActiveFilterChips` and the others of R1) are reused, not rebuilt. | PASS |
 | Technology constraints | The constitution's stack and TailAdmin primitives only; no new font, icon set or CDN request. Static build, unchanged deployment. | PASS |
 | Workflow and gates | All UI 001 CI gates apply unchanged; the smoke job runs the `@routing` specs with the `routing` profile. | PASS |
 | `docs/conventions.md` | Legacy names kept ("Sender-dependent transports"). List state in the address, page sizes 25/50/100, cards and tables, list states (R4). Bulk: explicit selection, current page only, per-item version tags, per-item results, failed items stay selected, "outcome unknown" (R5). Editing: changed fields plus version tag, input kept on `412`, changed values marked, no overwrite, refused deletion confirmed again (R6). Confirmations: impact preview, typed count for bulk deletion, explicit confirmation for deactivation (R5, R8). Write-only secrets (R7). History by target type and ID, audit labels (R18). Problems and rule codes translated (R19). Entry points into UI 002 and UI 003 through their section areas (R9). Limits from the capabilities read (R3). | PASS |
@@ -162,28 +163,31 @@ in the spec's "Consistency changes (plan)" clarification:
 - **API**: mailcow-rest-v2 feature 009 (contract and implementation), and API 001–003 for identity,
   the audit log target filters and the domain and mailbox representations. UI 009 is implemented
   after API 009 is released, so the smoke suite runs against a real implementation.
-- **UI**: UI 001 (foundation), UI 002 (domain detail page, bulk selection, typed confirmation,
-  section editing, History link, role-restricted routes), UI 003 (mailbox detail page) and UI 007
-  (manages the permission flags this feature reads). UI 004–006 and 008 add nothing this feature
-  needs, but their contract pins come first (pins are monotonic, R1).
+- **UI**: UI 001 (foundation); UI 002 (domain page with its section list, bulk selection and action
+  bar, typed confirmation, section editing, leave guard, History link, role-restricted routes,
+  coverage manifest, legacy map object entries); UI 003 (mailbox layout with child-route sections,
+  `ActiveFilterChips`, `AclReadOnlyNote`); UI 005 (`PasswordInput`, `CopyButton`, flag labels);
+  UI 006 (promotes `AclReadOnlyNote`); UI 007 (manages the permission flags this feature reads,
+  flag labels). UI 004 and UI 008 add nothing this feature needs, but their contract pins come
+  first (pins are monotonic, R1).
 - **Prerequisites table**: T001 fills it with the actual names before Phase 2.
 
-  | Prerequisite (research R1) | Expected location | Actual location (T001) |
+  | Prerequisite (research R1) | Location in the earlier plan | Actual location (T001) |
   |---|---|---|
-  | `useBulkSelection` | `src/shared/composables/useBulkSelection.ts` | _to be recorded_ |
-  | `BulkResultSummary` | `src/shared/components/BulkResultSummary.vue` | _to be recorded_ |
-  | `ConfirmDialog` `requireTyped` | `src/shared/components/ConfirmDialog.vue` | _to be recorded_ |
-  | `useVersionedSave` field diff | `src/shared/composables/useVersionedSave.ts` | _to be recorded_ |
-  | `EditableSection` | `src/shared/components/EditableSection.vue` | _to be recorded_ |
-  | `HistoryLink` and audit target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` | _to be recorded_ |
-  | Route roles inside an entry | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` | _to be recorded_ |
-  | Domain detail page and key | `src/features/domains/pages/DomainDetailPage.vue`, `['domains','detail',name]` | _to be recorded_ |
-  | Mailbox detail page and key | `src/features/mailboxes/pages/MailboxDetailPage.vue`, `['mailboxes','detail',address]` | _to be recorded_ |
-  | Domain and mailbox route names | `domain-detail`, `mailbox-detail` | _to be recorded_ |
-  | Mock state for domains and mailboxes | `tests/mocks/scenarios/state.ts`, `tests/mocks/handlers/{domains,mailboxes}.ts` | _to be recorded_ |
-  | Password input with show/hide | `src/shared/components/PasswordInput.vue` (or promote, R7) | _to be recorded_ |
-  | Rich legacy hints | `src/shared/components/RichText.vue` (or build, R20) | _to be recorded_ |
-  | Permission flag labels | `permissionFlags.<flag>` messages (UI 007) | _to be recorded_ |
+  | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary}.vue` (UI 002) | _to be recorded_ |
+  | `ConfirmDialog` with `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue` (UI 002) | _to be recorded_ |
+  | `useVersionedSave` with `changedSince`, `EditableSection` | `src/shared/composables/useVersionedSave.ts`, `src/shared/components/EditableSection.vue` (UI 002) | _to be recorded_ |
+  | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` (UI 002; UI 003 calls it `useUnsavedChangesGuard.ts`) | _to be recorded_ |
+  | `HistoryLink` and the audit target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` (UI 002) | _to be recorded_ |
+  | `ActiveFilterChips`, not-found state with a back link | `src/shared/components/ActiveFilterChips.vue` (UI 003), `NotFoundState` or `NotFoundPage` `backTo` (UI 002, UI 003) | _to be recorded_ |
+  | Route roles inside an entry | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` (UI 002) | _to be recorded_ |
+  | Domain page, section list, `edit=<section>`, key | `src/features/domains/pages/DomainDetailPage.vue`, route `domain-detail`, `['domains','detail',name]` (UI 002) | _to be recorded_ |
+  | Mailbox layout, child routes, section catalogue, managed settings, key | `src/features/mailboxes/{routes.ts,sections.ts,pages/MailboxDetailPage.vue,components/display/{MailboxSectionNav,ManagedSettingsGroup}.vue}`, route `mailbox-detail`, `['mailboxes','detail',address]` (UI 003) | _to be recorded_ |
+  | Mock state and handlers of domains and mailboxes | `tests/mocks/scenarios/state.ts`, `tests/mocks/handlers/{domains,mailboxes}.ts` (UI 002, UI 003) | _to be recorded_ |
+  | `PasswordInput`, `CopyButton` | `src/shared/components/password/PasswordInput.vue`, `src/shared/components/CopyButton.vue` (UI 005) | _to be recorded_ |
+  | `AclReadOnlyNote` | `src/shared/components/AclReadOnlyNote.vue` (UI 003, promoted by UI 006) | _to be recorded_ |
+  | Flag labels | `permissionFlags.<flag>` (UI 005, UI 007) | _to be recorded_ |
+  | Coverage manifest, `ENUM_NAMESPACES`, legacy map object entries | `src/i18n/coverage.json` or `enum-scope.json`, `scripts/i18n/lib.mjs`, `{ "from", "stripMarkup" }` (UI 002, UI 003) | _to be recorded_ |
 
 ## API dependency and gaps
 
@@ -304,17 +308,19 @@ src/
 │   │       ├── recipient-maps/{RecipientMapsPage,RecipientMapFormPage}.vue
 │   │       ├── tls-policy-maps/{TlsPolicyMapsPage,TlsPolicyMapFormPage}.vue
 │   │       └── forwarding-hosts/{ForwardingHostsPage,ForwardingHostCreatePage,ForwardingHostEditPage}.vue
-│   ├── domains/pages/DomainDetailPage.vue                # changed (UI 002): Relayhost section
-│   ├── mailboxes/pages/MailboxDetailPage.vue             # changed (UI 003): Relayhost section
-│   ├── audit-log/labels.ts                               # changed: routing event and target labels
-│   └── auth/components/PasswordForm.vue                  # changed only if PasswordInput is promoted (T037)
+│   ├── domains/pages/DomainDetailPage.vue                # changed (UI 002): `relayhost` section after Groupware
+│   ├── mailboxes/routes.ts                               # changed (UI 003): child route `mailbox-relayhost`
+│   ├── mailboxes/sections.ts                             # changed (UI 003): `relayhost` section entry
+│   ├── mailboxes/components/display/ManagedSettingsGroup.vue   # changed (UI 003): relayhost `to`
+│   └── audit-log/labels.ts                               # changed: routing event and target labels
 ├── shared/
-│   ├── components/{RichText,PasswordInput}.vue           # new unless an earlier feature added them
+│   ├── components/RichText.vue                           # new unless an earlier feature added it
 │   └── validation/limits.ts                              # changed: forwarding host and test address limits
 └── i18n/
     ├── messages/{en-gb,cs-cz,sk-sk}.json                 # changed: routing.*, validation.*, problem.*, auditLog.*
     ├── legacy/{en-gb,cs-cz,sk-sk}.json                   # regenerated
     ├── legacy-map.json                                   # changed: reused keys, rich entries
+    ├── coverage.json                                     # changed: API 009 values (or enum-scope.json)
     └── problems.ts                                       # changed: `because` parameter
 tests/
 ├── mocks/
@@ -339,9 +345,9 @@ tests/
 ```
 
 **Structure Decision**: one feature directory for the Routing section, organised by screen inside
-(R2). Building blocks that six or two of its screens share stay in the feature; `RichText` and
-`PasswordInput` go to `src/shared/` because other features use them. The sections are the
-feature's public surface for UI 002 and UI 003, through `index.ts`.
+(R2). Building blocks that six or two of its screens share stay in the feature; `RichText` goes
+to `src/shared/` because other features' hints can use it. The domain section and the mailbox
+child route are the feature's public surface for UI 002 and UI 003, through `index.ts`.
 
 ## Complexity Tracking
 

@@ -31,27 +31,36 @@ on that bundle.
     already at or after a commit whose 46 routing operations are byte-identical to the baseline's,
     UI 009 keeps it. It never moves the pin backwards and never pins "the latest commit" blindly
     (UI 001 R6).
-  - **Prerequisites** that UI 001 research R20 reserved for UI 002 and UI 003, which are
-    implemented before UI 009. UI 009 uses them and does not rebuild them:
+  - **Prerequisites** from earlier UI features, all implemented before UI 009. The table names
+    them as those features' plans do (UI 001 R20 reserved the first four; UI 002 to UI 006 added
+    the rest). UI 009 uses them and does not rebuild them:
 
-    | Building block | Reserved location (UI 001 R20) | Built by | Used here for |
+    | Building block | Location | Planned by | Used here for |
     |---|---|---|---|
-    | `useBulkSelection`, `BulkResultSummary.vue` | `src/shared/composables/`, `src/shared/components/` | UI 002 | every list's selection and per-item results (R5) |
-    | `ConfirmDialog` with `requireTyped` | `src/shared/components/ConfirmDialog.vue` | UI 002 | typed bulk deletion (R5) |
-    | `useVersionedSave` field diff, `EditableSection.vue` | `src/shared/composables/`, `src/shared/components/` | UI 002 | outdated saves with changed values marked (R6), the Relayhost sections (R9) |
-    | `HistoryLink.vue`, audit list state with `targetType` and `targetId` | `src/shared/components/`, `src/features/audit-log/list-state.ts` | UI 002 (first contract with target filters) | History (R18) |
-    | Domain and mailbox detail pages, their routes and query keys | `src/features/domains/`, `src/features/mailboxes/` | UI 002, UI 003 | the Relayhost sections (R9) |
-    | Role-restricted routes inside a catalogue entry (`route.meta.roles`) | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` | UI 002 (admin-only domain templates) | administrator-only routing screens (R2) |
+    | `useBulkSelection`, `BulkActionBar.vue`, `BulkResultSummary.vue` | `src/shared/composables/`, `src/shared/components/` | UI 001 R20, UI 002 D22 | every list's selection mode, action bar and per-item results (R5) |
+    | `ConfirmDialog` with `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue` | UI 001 R20, UI 002 D20 | typed bulk deletion, deletion impact (R5, R8) |
+    | `useVersionedSave` with `changedSince`, `EditableSection.vue` | `src/shared/composables/`, `src/shared/components/` | UI 001 R20, UI 002 D11 | outdated saves with changed values marked (R6), the domain's Relayhost section (R9) |
+    | `HistoryLink.vue`, audit list state with `targetType` and `targetId` | `src/shared/components/`, `src/features/audit-log/list-state.ts` | UI 001 R20, UI 002 D26 | History (R18) |
+    | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` | UI 002 D21 | unsaved changes in forms and sections (R6, R9) |
+    | `ActiveFilterChips.vue` | `src/shared/components/` | UI 003 R4 (promoted from the audit log) | active list filters (R4) |
+    | `NotFoundState` (or `NotFoundPage` with `backTo`) | `src/shared/components/` or `src/app/states/` | UI 002 data-model §5, UI 003 | "no longer exists" with the way back (R6) |
+    | Role-restricted routes inside a catalogue entry (`route.meta.roles`) | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` | UI 002 D4 | administrator-only routing screens (R2) |
+    | Domain page `domain-detail` (`/domains/:domain`), its section list with `edit=<section>`, key `['domains','detail',name]` | `src/features/domains/pages/DomainDetailPage.vue` | UI 002 D4, D11, data-model §9 | the domain's Relayhost section, "after Groupware", replacing the read-only relayhost row of "Delivery" (R9) |
+    | Mailbox layout `mailbox-detail` (`/mailboxes/:address`) with one child route per section, the section catalogue, `MailboxSectionNav.vue` and `ManagedSettingsGroup.vue`, key `['mailboxes','detail',address]` | `src/features/mailboxes/{routes.ts,sections.ts,pages/MailboxDetailPage.vue,components/display/}` | UI 003 R19, data-model §8 | the mailbox's Relayhost section as a child route (R9) |
+    | `PasswordInput.vue` (show/hide toggle) and `CopyButton.vue` | `src/shared/components/password/`, `src/shared/components/` | UI 005 R7 | relay passwords (R7), the transcript copy action (R13) |
+    | `AclReadOnlyNote.vue` ("Prohibited by ACL" with the permission's label) | `src/shared/components/` (promoted by UI 006) | UI 003, UI 006 | read-only BCC maps and Relayhost sections (R9, R14) |
+    | Flag labels `permissionFlags.<flag>` | `src/i18n/messages/*.json` | UI 005, UI 007 | permission messages (R19) |
+    | Enumeration coverage manifest and `ENUM_NAMESPACES` | `src/i18n/coverage.json` (UI 002 D2; `enum-scope.json` in UI 003 R2), `scripts/i18n/lib.mjs` | UI 002, UI 003 | translation completeness (R21) |
+    | Legacy map object entries `{ "from", "stripMarkup" }` | `src/i18n/legacy-map.json`, `scripts/i18n/import-legacy.mjs` | UI 002 D27 | the base of the rich hints (R20) |
 
-    The first setup task verifies each item and records the actual file names in the plan. Any
-    item that is missing is built at its reserved location, with the behaviour UI 001 R20 fixes,
-    tests first, before the foundational phase. The same task checks two blocks that an earlier
-    feature may already have created: a password input with a show/hide toggle (R7) and rich
-    legacy hints (R20).
+    The first setup task verifies each item against the implemented code and records the actual
+    names in the plan. Any item that is missing is built at its planned location with the behaviour
+    its plan fixes, tests first, before the foundational phase.
 - **Rationale**: The constitution makes a contract bump a deliberate change. The commit is the
-  identifier, because `info.version` stays `0.1.0` (UI 001 R6). Checking the prerequisites instead
-  of assuming their file names keeps the tasks executable even if UI 002 or UI 003 named something
-  differently, without letting UI 009 duplicate a shared building block.
+  identifier, because `info.version` stays `0.1.0` (UI 001 R6). The earlier plans fix the names,
+  but some still differ between plans (for example the coverage manifest's file name), so the
+  first task checks the implemented code instead of assuming, without letting UI 009 duplicate a
+  shared building block.
 - **Alternatives considered**: Pinning API 009's own contract commit `dd505ae`: rejected, because
   it lacks the shared enumeration values and the `KnownProblemType` registration that later
   commits added, and it may precede pins that UI 002–008 already made. Rebuilding bulk selection,
@@ -137,9 +146,10 @@ on that bundle.
     entry's actions. Selection checkboxes appear only in selection mode (R5).
   - **`ListToolbar.vue`**: the search field (debounced 300 ms, `router.replace`), one "Filters and
     sorting" control that opens a Reka `Collapsible` panel below `md` (FR-007) and shows the filters
-    inline from `md` up, the refresh action (FR-009), the "Select" toggle for permitted users, and
-    the add action for permitted users. Native `<select>` elements and checkbox groups are used, as
-    UI 001 R18 requires.
+    inline from `md` up, the active filters as UI 003's removable `ActiveFilterChips` with "Clear
+    all", the refresh action (FR-009), and the add action for permitted users. Selection mode
+    starts from UI 002's `BulkActionBar` ("Select"), shown only to permitted users. Native
+    `<select>` elements and checkbox groups are used, as UI 001 R18 requires.
   - **List state**: one `useListState` schema per list in `list-states/` (UI 001 R20), with the
     parameters of [data-model.md](./data-model.md#address-parameters-of-the-lists). Defaults are
     omitted from the address; changing a filter, the sort or the size resets the page and the
@@ -163,7 +173,8 @@ on that bundle.
 ### R5. Selection and bulk actions
 
 - **Decision**:
-  - **Selection mode** is explicit (conventions). It uses UI 002's `useBulkSelection`, so it covers
+  - **Selection mode** is explicit (conventions). It uses UI 002's `useBulkSelection` and
+    `BulkActionBar` (the count and the actions in a bar fixed at the bottom on phones), so it covers
     the current page only and clears when the page, search, filters, sort or size change.
   - **Limit**: at most `min(bulkLimit, current page size)` entries. "Select all on this page"
     selects up to that limit and says so; trying to select more shows "{limit} is the limit of one
@@ -172,8 +183,10 @@ on that bundle.
   - **Actions per list**, from the generated enumeration arrays: relayhosts, transports, recipient
     maps and TLS policy maps `activate`, `deactivate`, `delete`; BCC maps also `switchToSender` and
     `switchToRecipient`; forwarding hosts `enableSpamFilter`, `disableSpamFilter`, `delete`.
-  - **Targets** carry each entry's `etag` as listed: `{ id, version }`. Forwarding host targets use
-    the stored address as `id`, unencoded (`ForwardingHostBulkActionRequest`).
+  - **Targets** carry each entry's version as listed: `{ id, version }`, where `version` is the
+    entry's `etag` without its surrounding quotes, as `BulkTarget.version` requires (the same rule
+    as UI 002 D22). Forwarding host targets use the stored address as `id`, unencoded
+    (`ForwardingHostBulkActionRequest`).
   - **Confirmation** (conventions "Confirmations"): a bulk deletion names the number and lists the
     entries, states the consequences (for relayhosts, the summed usage counts of the selected
     entries and that their assignments will be cleared), and needs the number typed
@@ -201,25 +214,25 @@ on that bundle.
     per field, the legacy hints next to their fields, and a sticky action bar at the bottom of the
     viewport, so that Save is reachable without scrolling up.
   - **`useEntryForm`** (`composables/`) holds the entry as read, the form values, and the dirty
-    state. A save sends only the changed members (conventions), computed by `logic/changed-fields.ts`
+    state, on UI 001's `useProblemForm` and UI 002's `useVersionedSave` and `useLeaveGuard`. A save sends only the changed members (conventions), computed by `logic/changed-fields.ts`
     after trimming, with `If-Match` set to the `etag` that was read. Creation sends every filled
     member. Merge-patch bodies use `application/merge-patch+json`, which the generated client
     types require.
-  - **Outdated (`412`)**: `useVersionedSave` (with UI 002's field diff) keeps the input, refetches
-    the entry, marks each field whose stored value changed since it was read ("Changed meanwhile:
-    now {value}"), and the user saves again with the new version or chooses "Use current values".
-    There is no automatic merge and no "overwrite anyway" (conventions). A refused deletion is
-    confirmed again with the reloaded entry.
+  - **Outdated (`412`)**: `useVersionedSave` with UI 002's `changedSince` keeps the input,
+    refetches the entry, marks each field whose stored value changed since it was read with its new
+    value, and offers "Save again" (the fields that differ from the reloaded entry, with its
+    version tag) and "Discard my changes" (UI 002 D11). There is no automatic merge and no
+    "overwrite anyway" (conventions). A refused deletion is confirmed again with the reloaded entry.
   - **Refused saves** keep every value except passwords (R7), show field errors at their fields,
     list them in UI 001's `ErrorSummary` and move focus to it (FR-013).
   - **Not found** (`404`) on load or save shows "This entry no longer exists" with a link to the
-    list (spec edge case).
+    list (spec edge case), through UI 002's and UI 003's not-found state with its back link.
   - **After a successful save**, the app returns to the list with the address it came from, scrolls
     the saved entry into view, briefly marks it, and announces the success (FR-011). The
     forwarding host form is the exception (R17).
-  - **Unsaved changes**: `onBeforeRouteLeave` and `beforeunload` ask for confirmation while the
-    form is dirty (FR-012). A navigation that the app makes after a successful save skips the
-    check.
+  - **Unsaved changes**: UI 002's `useLeaveGuard` asks for confirmation on route changes and on
+    `beforeunload` while the form is dirty (FR-012). It is disarmed after a successful save, so the
+    app's own navigation back to the list is not interrupted.
 - **Rationale**: These are the conventions' editing rules with UI 001's and UI 002's primitives.
   Routing entries are small, so each entry page is one section with one save.
 - **Alternatives considered**: Dialogs for add and edit: rejected by constitution II and FR-011.
@@ -253,12 +266,15 @@ on that bundle.
     | username cleared, no password typed | `username: ""` (the API also removes the password) |
 
     Creation sends `username` and `password` only when filled.
-  - **Masking and autofill** (FR-028): the password uses UI 001's show/hide pattern, promoted from
-    `src/features/auth/components/PasswordForm.vue` to `src/shared/components/PasswordInput.vue`
-    unless an earlier feature already promoted it. It has `type="password"`,
-    `autocomplete="new-password"`, `autocapitalize="none"`, `spellcheck="false"`, and
-    `data-1p-ignore`, `data-lpignore="true"` and `data-bwignore` so that common password managers do
-    not offer the user's own sign-in. The username has `autocomplete="off"` and a name that is not
+  - **Masking and autofill** (FR-028): the password field is UI 005's
+    `src/shared/components/password/PasswordInput.vue` (show/hide toggle with `aria-pressed`, paste
+    allowed, `autocapitalize="none"`, `autocorrect="off"`, `spellcheck="false"`), with
+    `autocomplete="new-password"` and the attributes `data-1p-ignore`, `data-lpignore="true"` and
+    `data-bwignore`, so that common password managers do not offer the user's own sign-in. If the
+    component does not accept these attributes, they are passed through with `inheritAttrs`, not by
+    copying it. UI 003's and UI 007's `PasswordField` is not used: its generator and policy
+    checklist serve mailcow account passwords, while a relay password comes from the relay
+    provider and has no mailcow policy. The username has `autocomplete="off"` and a name that is not
     `username` (`relay-username`), because browsers fill fields named `username` next to a password
     field.
   - **Lifetime**: the typed password lives only in the form's local state. It is cleared after a
@@ -294,20 +310,34 @@ on that bundle.
 ### R9. Relayhost sections on the domain and mailbox screens
 
 - **Decision**:
-  - **Integration**: `src/features/routing/index.ts` exports `DomainRelayhostSection` and
-    `MailboxRelayhostSection`. UI 002's domain detail page and UI 003's mailbox detail page mount
-    them through `defineAsyncComponent`, so their route chunks do not grow, in their designated
-    section area, with the anchor `#relayhost` and an entry in the section index of wide screens
-    (conventions "Where features meet"). The read-only relayhost value that those pages show today
-    (UI 002's "Delivery" section, UI 003 FR-040) becomes a link to `#relayhost`.
-  - **Sections** use UI 002's `EditableSection` pattern: a read-only view, an Edit action for
-    permitted users, a form full-screen below `md` and in place from `md` up, and their own Save
-    and Cancel (spec clarification 2). They are shown to administrators and domain administrators,
-    never to mailbox users, who do not reach these pages.
+  - **Integration** through the designated action areas of the earlier screens (conventions "Where
+    features meet"). `src/features/routing/index.ts` exports both entry points; `routing` never
+    imports `domains` or `mailboxes`, so there is no import cycle.
+    - **Domain**: UI 002's domain page lists its sections and opens one with `edit=<section>` (UI 002
+      D4, D11); its data-model §9 reserves the place "after Groupware" for the relayhost. UI 009
+      adds the section ID `relayhost` to the page's list and mounts `DomainRelayhostSection`
+      there through `defineAsyncComponent`, so that the page's chunk does not grow. The section
+      uses UI 002's `EditableSection` (a read-only view, an Edit button for permitted users, the form
+      full-screen with a sticky Save and Cancel below `md`, in place from `md` up, one section open at
+      a time). The read-only relayhost row of the "Delivery" section is removed, as UI 002 planned,
+      and the section's summary links to it.
+    - **Mailbox**: UI 003's mailbox page is a layout with one child route per section (UI 003 R19,
+      data-model §8). `src/features/routing/index.ts` exports the child route record
+      `mailboxRelayhostRoute` (`path: 'relayhost'`, `name: 'mailbox-relayhost'`, lazy component
+      `MailboxRelayhostSection`), which is listed among the layout's children in
+      `src/features/mailboxes/routes.ts`, the same way UI 004 adds "Send as". UI 009 adds a
+      `relayhost` entry to `src/features/mailboxes/sections.ts` (label `edit.relayhost`, summary:
+      the effective relayhost or "Direct delivery"), which `MailboxSectionNav.vue` renders, and
+      fills the `to` of the relayhost entry of `ManagedSettingsGroup.vue` (UI 003 FR-040). Like UI
+      003's other sections, it opens as its own page on phones, with a back link to the overview, and
+      next to the section navigation from `lg` up. It has its own Save.
+    - Both are shown to administrators and domain administrators, never to mailbox users, who do not
+      reach these pages.
   - **Permission** (FR-029, FR-030): editable for administrators, and for domain administrators
     with `permissions.domainRelayhost` (domain section) or `permissions.mailboxRelayhost` (mailbox
-    section), read from `GET /me`. Otherwise the section is read-only with "Changing this needs the
-    permission {flag}" and requests no choices.
+    section), read from `GET /me`. Otherwise the section is read-only with UI 003's
+    `AclReadOnlyNote` naming the permission (`acl.domain_relayhost`, `acl.mailbox_relayhost`), and
+    requests no choices.
   - **Reading**: `getDomainRelayhostAssignment` and `getMailboxRelayhostAssignment`. A
     `RelayhostReference` is shown as its host and its state in words: "active", "inactive (no
     effect until it is activated)" or "no longer exists (#{id}, no effect)" (FR-031, FR-033,
@@ -336,9 +366,10 @@ on that bundle.
   - **Saving**: `PUT …/relayhost-assignment` with `{ relayhostId }` and `If-Match`. A `412` keeps
     the choice, reloads and marks the changed assignment (R6, US2-AS6). A
     `permission-flag-required` refusal names the flag and refreshes the identity (R19).
-  - **Effects on other screens**: the response replaces the assignment in the cache. The domain or
-    mailbox detail query is invalidated, because the assignment is part of its version tag (API
-    FR-028), so that the page's next section save sends the new tag. A domain change also
+  - **Effects on other screens**: the response replaces the assignment in the cache. UI 002's
+    `['domains','detail',name]` or UI 003's `['mailboxes','detail',address]` is invalidated, because
+    the assignment is part of its version tag (API FR-028), so that the page's next section save
+    sends the new tag. A domain change also
     invalidates every cached mailbox assignment, whose `domainRelayhost` and effective relayhost
     depend on it, and the relayhost lists and usage (FR-009). The full table is in
     [data-model.md](./data-model.md#invalidation-after-mutations).
@@ -502,9 +533,9 @@ on that bundle.
   - The text is shown exactly as returned, with `translate="no"`. The redaction marks
     (`[redacted]`) and `[message: N bytes]` lines are visible as given (US4-AS7). The text is
     rendered as text, never as HTML (FR-074).
-  - "Copy transcript" writes plain text through `src/shared/platform/clipboard.ts`: one line per
-    entry, prefixed `C: `, `S: ` or `* `, built by `logic/transcript.ts`. Success and refusal are
-    announced; a refusal selects the list's text for manual copying.
+  - "Copy transcript" is UI 005's `CopyButton.vue` (over `src/shared/platform/clipboard.ts`) with
+    plain text: one line per entry, prefixed `C: `, `S: ` or `* `, built by `logic/transcript.ts`.
+    Success and refusal are announced; a refusal selects the list's text for manual copying.
   - An empty transcript (the test stopped before connecting) shows "No dialogue took place".
 - **Rationale**: The contract returns `{ direction, text }` per line (at most 501 lines of 1,000
   characters), so the direction is data, not colour. The `C:` and `S:` markers are the usual
@@ -533,8 +564,8 @@ on that bundle.
     between addresses, the field shows `add.bcc_dest_format` (use an alias for several recipients)
     before saving; the API's `tooMany` (`max: 1`) shows the same message.
   - **Domain administrators without `bccMaps`** (FR-002, US5-AS6): no add action, no selection, no
-    entry actions except opening the entry read-only, and a note "Changing BCC maps needs the
-    permission BCC maps". The entry page shows the map read-only, with its creation and
+    entry actions except opening the entry read-only, and UI 003's `AclReadOnlyNote` naming the BCC
+    maps permission (`acl.bcc_maps`). The entry page shows the map read-only, with its creation and
     modification times (FR-050).
   - **Orphaned maps** (administrators): API 009 now reports `orphaned`. Such maps carry the words
     "Domain no longer exists", and the list offers an "Orphaned" filter for administrators. This
@@ -631,7 +662,7 @@ on that bundle.
   | `409 routing-entry-exists` (`field`, `conflictingId`) | Message at the named field, using the legacy `danger.*_exists` text of that entry type, with a link to the existing entry (R14–R16; transport: `danger.transport_dest_exists`) |
   | `409 next-hop-credentials-differ` (`nextHop`, `transportIds`) | R10; at the username field, with links |
   | `409 next-hop-interferes` (`nextHop`, `transportIds`) | R10; at the next hop field, naming `nextHop`, with links |
-  | `403 permission-flag-required` (`requiredFlags`) | "Missing permission: {flags}" with the flags' translated names (`acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`); refresh the identity; nothing shown as done (FR-003, FR-066) |
+  | `403 permission-flag-required` (`requiredFlags`) | "Missing permission: {flags}" with the flags' translated labels (`permissionFlags.<flag>` of UI 005 and UI 007, mapped to the legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`); refresh the identity; nothing shown as done (FR-003, FR-066) |
   | `403 forbidden` | UI 001's global handling ("no permission", identity refresh) |
   | `412` (`about:blank`) | R6 |
   | `404` (`about:blank`) | "This entry no longer exists" with the way back to the list |
@@ -668,9 +699,10 @@ on that bundle.
   `mailbox.tls_policy_maps_info` and `mailbox.tls_policy_maps_enforced_tls`; `admin.transport_test_rcpt_info`
   carries a `&#8226;` entity. UI 001's import refuses HTML (R15), and the spec requires the hints'
   meaning and links with the app's own safe formatting (Assumptions). The decision:
-  - **Import**: `src/i18n/legacy-map.json` accepts an object form, `{ "legacy": "<key>", "rich":
-    true }`. For such keys, `scripts/i18n/import-legacy.mjs` converts the legacy HTML of every
-    locale into a small text notation and refuses anything else:
+  - **Import**: UI 002 D27 gave `src/i18n/legacy-map.json` an object form,
+    `{ "from": "<key>", "stripMarkup": true }`, which removes markup. UI 009 adds a sibling option,
+    `{ "from": "<key>", "rich": true }`. For such keys, `scripts/i18n/import-legacy.mjs` converts
+    the legacy HTML of every locale into a small text notation and refuses anything else:
     - `<br>`, `<br/>` and `<br />` with the line break that follows become a line break (`\n`);
       other line breaks become a space;
     - `&#8226;` at the start of a line becomes the list marker `- `;
@@ -691,9 +723,13 @@ on that bundle.
   - The first setup task reuses an equivalent mechanism if an earlier feature already added one.
 - **Rationale**: Constitution IV reuses the legacy keys so that Czech and Slovak carry over;
   constitution V and UI 001 R17 forbid rendering translation text as HTML. A tiny notation keeps
-  both.
-- **Alternatives considered**: Hand-written replacements for the nine hints: rejected by
-  constitution IV, because their cs and sk translations exist. Rendering them through
+  both. UI 002's `stripMarkup` suits its one-sentence hints, but this spec requires the hints'
+  meaning and links preserved (Assumptions, FR-058): `admin.transports_hint` is a six-item list,
+  and `mailbox.tls_policy_maps_info` carries the Postfix documentation link.
+- **Alternatives considered**: UI 002's `stripMarkup` for the nine hints: rejected, because it
+  flattens the bullet lists into one paragraph, leaves `&#8226;` undecoded and drops the link
+  that FR-058 requires. Hand-written replacements for the nine hints: rejected by constitution IV,
+  because their cs and sk translations exist. Rendering them through
   `SanitizedHtml`: rejected, because the spec says translation text is never interpreted as markup,
   and `SanitizedHtml` is reserved for operator HTML. vue-i18n component interpolation: rejected,
   because the link texts are inside the legacy sentences and cannot be split into separate keys
@@ -712,18 +748,32 @@ on that bundle.
     upstream `en-gb`, `cs-cz` and `sk-sk` files at `2026-09a` (checked during planning), so no
     per-locale fallback is needed. The `%s` placeholders of the `success.*` and `danger.*` messages
     become `{0}` and `{1}` in order, as UI 001's import does, and the UI passes list parameters.
-  - **Enumerations**: `scripts/i18n/check.mjs` adds the arrays of this feature to its required set
-    (UI 001 R27, rule 3): `tlsPolicyValues`, `bccMapTypeValues`, `bccDestinationChoiceKindValues`,
-    `routingConnectionTestStepValues`, `routingConnectionTestResultFailureOneOf0ReasonValues`,
-    `routingConnectionTestResultLoginValues`, `routingConnectionTestResultHostSourceValues`,
-    `routingConnectionTestResultTranscriptDirectionValues`, `relayhostReferenceStateValues`,
-    `relayhostUsageEntryKindValues`, `forwardingHostCreationResultEntriesOutcomeValues`,
-    `routingPermissionFlagProblemRequiredFlagsValues` and the six bulk action arrays
-    (`relayhostBulkActionRequestActionValues`, `transportBulkActionRequestActionValues`,
-    `bccMapBulkActionRequestActionValues`, `recipientMapBulkActionRequestActionValues`,
-    `tlsPolicyMapBulkActionRequestActionValues`, `forwardingHostBulkActionRequestActionValues`).
-    These names were generated from the baseline bundle. TLS policies need two keys each (name and
-    explanation).
+  - **Enumerations** follow UI 002 D2 and UI 003 R2:
+    - the **open** shared enumerations get API 009's values appended to the coverage manifest
+      (`src/i18n/coverage.json`, or `enum-scope.json` if UI 003's name won): the 21 event types
+      `relayhostCreation` … `forwardingHostDeletion` of `AuditEventType`, the 8 `AuditTarget.type`
+      values `relayhost`, `domainRelayhostAssignment`, `mailboxRelayhostAssignment`, `transport`,
+      `bccMap`, `recipientMap`, `tlsPolicyMap`, `forwardingHost`, the `ValidationRuleCode` values
+      `invalidRegex`, `immutable`, `notResolvable` and `invalidCharacter`, and the problem types
+      `routing-entry-exists`, `next-hop-credentials-differ`, `next-hop-interferes`,
+      `permission-flag-required` and `temporary-failure`, each only if an earlier feature has not
+      already listed it;
+    - the **closed** enumerations that this feature renders are added to `ENUM_NAMESPACES` in
+      `scripts/i18n/lib.mjs`, so that every value needs a key `enums.<name>.<value>` in all three
+      locales: `tlsPolicyValues` (the one-line explanation; the policy name itself stays
+      untranslated), `bccMapTypeValues`, `bccDestinationChoiceKindValues`,
+      `routingConnectionTestStepValues`, `routingConnectionTestResultFailureOneOf0ReasonValues`,
+      `routingConnectionTestResultLoginValues`, `routingConnectionTestResultHostSourceValues`,
+      `routingConnectionTestResultTranscriptDirectionValues`, `relayhostReferenceStateValues`,
+      `relayhostUsageEntryKindValues`, `forwardingHostCreationResultEntriesOutcomeValues`,
+      `routingPermissionFlagProblemRequiredFlagsValues`, the six bulk action arrays
+      (`relayhostBulkActionRequestActionValues`, `transportBulkActionRequestActionValues`,
+      `bccMapBulkActionRequestActionValues`, `recipientMapBulkActionRequestActionValues`,
+      `tlsPolicyMapBulkActionRequestActionValues`, `forwardingHostBulkActionRequestActionValues`)
+      and the seven sort parameters (`componentsParametersRelayhostSortValues`,
+      `…RelayhostUsageSortValues`, `…TransportSortValues`, `…BccMapSortValues`,
+      `…RecipientMapSortValues`, `…TlsPolicyMapSortValues`, `…ForwardingHostSortValues`), as UI 002
+      did for its sort enumerations. These names were generated from the baseline bundle.
   - **Wording**: the screens keep the legacy names ("Sender-dependent transports", "Transport
     Maps"), and the relayhost screen's introduction says that sender-dependent transports are also
     called relayhosts (FR-001). User-facing text calls the legacy UI "the classic interface".

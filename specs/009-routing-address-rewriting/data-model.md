@@ -152,9 +152,10 @@ permission:
 Per collection: the action values (from the generated `*BulkActionRequestActionValues`), their
 label keys, whether they need confirmation (`delete`: typed count; `deactivate`: one explicit
 confirmation; `activate` on a selection that contains a `*` transport: one explicit confirmation),
-and `targetOf(entry) → { id, version: entry.etag }` (`id` is the numeric ID as a string, or the
-stored address for forwarding hosts). `selectionLimit(capabilities, pageSize) = min(bulkLimit,
-pageSize)`.
+and `targetOf(entry) → { id, version }`, where `version` is `entry.etag` without its surrounding
+quotes (`BulkTarget.version`, as UI 002 D22) and `id` is the numeric ID as a string, or the stored
+address, unencoded, for forwarding hosts. `selectionLimit(capabilities, pageSize) =
+min(bulkLimit, pageSize)`.
 
 ### ForwardingHostResults (`composables/useForwardingHostResults.ts`)
 
@@ -191,9 +192,9 @@ The connection test has no key: its mutation uses `gcTime: 0` and is reset when 
 
 ### Invalidation after mutations
 
-`D(x)` is UI 002's and UI 003's detail keys (`['domains','detail',domain]`,
-`['mailboxes','detail',address]`, or the names their key factories use, as verified by the first
-setup task).
+`D(x)` is UI 002's `['domains','detail',name]` (ASCII name) or UI 003's
+`['mailboxes','detail',address]` (lower-cased address), as their data models define them; the first
+setup task confirms the implemented names.
 
 | Mutation | On success | On 412 |
 |---|---|---|
@@ -252,9 +253,14 @@ administrators). Every component is a lazy chunk under `src/features/routing/pag
 | `routing-forwarding-host-create` | `/routing/forwarding-hosts/new` | admin | `routing.forwardingHosts.createTitle` | `forwarding-hosts/ForwardingHostCreatePage.vue` |
 | `routing-forwarding-host-edit` | `/routing/forwarding-hosts/:forwardingHostAddress` | admin | `routing.forwardingHosts.entryTitle` | `forwarding-hosts/ForwardingHostEditPage.vue` |
 
-The literal `new` segments are declared before the parameter routes. The Relayhost sections have
-no routes: they render inside UI 002's `/domains/:domain` and UI 003's `/mailboxes/:mailbox`
-pages, at the anchor `#relayhost` (research R9).
+The literal `new` segments are declared before the parameter routes.
+
+The Relayhost sections live in the earlier features' screens (research R9):
+
+| Screen | Address | How |
+|---|---|---|
+| UI 002 domain page `domain-detail` | `/domains/:domain?edit=relayhost` opens the section form | section ID `relayhost` added to the page's section list, after Groupware; `DomainRelayhostSection` mounted with `defineAsyncComponent` |
+| UI 003 mailbox layout `mailbox-detail` | `/mailboxes/:address/relayhost`, route `mailbox-relayhost` | child route record `mailboxRelayhostRoute` exported by `src/features/routing/index.ts` and listed in `src/features/mailboxes/routes.ts`; entry `relayhost` in `src/features/mailboxes/sections.ts`; `to` of the relayhost entry in `ManagedSettingsGroup.vue` |
 
 ### Address parameters of the lists
 
@@ -358,6 +364,9 @@ end ─► remove created from the field; keep refused; announce "n of m created
 ```
 
 ### Relayhost section (`components/sections/*RelayhostSection.vue`)
+
+On the domain page, "editing" is UI 002's `edit=relayhost` query state; on the mailbox page, the
+section is its own child route and "editing" is its form.
 
 ```text
 viewing ──Edit (permitted)──► editing ──Save──► saving ──200──► viewing (announce)

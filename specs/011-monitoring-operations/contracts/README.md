@@ -16,7 +16,7 @@ checks work as UI 001 defines them ([001 contracts/README.md](../../001-sign-in-
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` |
 | Bundle sha256 at this commit | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
 | Operations in the bundle | 376 |
-| Operations used by this feature | 44 (42 of API 011, `resetRateLimitBucket` of API 006 through UI 006, `listAuditEvents` through UI 001's audit log screen) |
+| Operations used by this feature | 44 (42 of API 011, `resetRateLimitBucket` of API 006 through UI 006's dialog, `listAuditEvents` through UI 001's audit log screen) |
 
 Task T002 runs `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9`, unless the
 repository already pins a later commit whose `api/` contains these 44 operations unchanged (an
@@ -70,7 +70,7 @@ generated (UI 001 plan gap 5 is closed).
 | `allowlistFail2BanBan` | POST `/fail2ban/active-bans/{network}/allowlist` | Lift and allowlist | FR-064, FR-065 |
 | `denylistFail2BanBan` | POST `/fail2ban/active-bans/{network}/denylist` | Denylist (confirmed) | FR-064, FR-065 |
 | `listFail2BanPermanentBans` | GET `/fail2ban/permanent-bans` | permanent bans | FR-066 |
-| `resetRateLimitBucket` | DELETE `/rate-limit-buckets/{bucketId}` | "Reset rate limit", through UI 006's mutation | FR-039 |
+| `resetRateLimitBucket` | DELETE `/rate-limit-buckets/{bucketId}` | "Reset rate limit", through UI 006's exported `ResetBucketDialog` | FR-039 |
 | `listAuditEvents` | GET `/audit-events` (`targetType`, `targetId`) | History, through UI 001's audit log screen; `details` shown as stored (plan API gap 8) | FR-075 |
 
 Every operation of API 011 is used. `If-Match` is optional in the contract for the ban settings,
@@ -113,4 +113,6 @@ validator accepts undeclared optional headers.
 `ContainerAction`, `LogSeverity`, `MailQueueName`, `MonitoringLogRetention.policy`,
 `InstallationUpdateStatus.status`, `ContainerActionResult.outcome`, `BulkItemOutcome`, and the 011
 values of `AuditEventType`, `AuditTarget.type` and `AuditFailureReason`. Each has translations in
-the three locales; `npm run i18n:check` enforces the named enumerations (research R19).
+the three locales. `npm run i18n:check` requires every value of the enumerations this feature
+introduces, and the listed values of the shared enumerations in UI 002's coverage manifest
+`src/i18n/coverage.json`, to which this feature appends its values (research R19).

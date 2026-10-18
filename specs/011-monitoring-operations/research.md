@@ -29,8 +29,12 @@ Playwright projects, smoke harness) are not repeated.
   | UI 002 (UI 001 R20 reserved) | `useBulkSelection.ts`, `BulkActionBar.vue`, `BulkResultSummary.vue` | queue selection, action bar and results |
   | UI 002 (UI 001 R20 reserved) | `EditableSection.vue` (driven by the `edit` address parameter) and `useVersionedSave`'s `changedSince` marking | ban service sections and rules (FR-067, FR-071, FR-072) |
   | UI 002 | `useLeaveGuard.ts`, `ConfirmDialog` with rich content, the `stripMarkup` mapping of the legacy importer, `formatBytes` in `src/i18n/format.ts` | unsaved-changes guard (FR-074), confirmations with warnings, legacy texts without markup, binary sizes |
-  | UI 006 | The rate-limit bucket reset mutation and its confirmation (UI 006 FR-058), exported through UI 006's feature `index.ts` (expected `src/features/spam-policy/index.ts`) | "Reset rate limit" (FR-039) |
-  | UI 006 | The proportional bar list of the Quarantine › Statistics panel | first use of the bar list that R13 promotes |
+  | UI 006 | `ResetBucketDialog` and its composable, exported from `src/features/rate-limits/index.ts` (UI 006 R20, FR-058), and the bucket identifier pattern in `src/shared/validation/limits.ts` | "Reset rate limit" (FR-039) |
+  | UI 006 | `src/features/quarantine/components/statistics/ActionStatisticsList.vue` (count, share and a decorative bar per action) | first use of the bar list that R13 promotes |
+  | UI 006 | `neutralise()` (`src/shared/security/plain-text.ts`) and `PlainText.vue` (bidi isolation, visible control markers, `pre-wrap`, `overflow-wrap: anywhere`), also in the audit log's generic details view; the `prefix` option of `useListState` | every untrusted text: log entries, Rspamd history, queued content, audit details (R11, R13, R15, R18); the two ban lists (R16) |
+  | UI 002 | The translation coverage manifest `src/i18n/coverage.json` | the values of shared enumerations this feature shows (R19) |
+  | UI 003 | `ActiveFilterChips.vue`, promoted to `src/shared/components/` | log filters (R11) |
+  | UI 008 | `src/features/sync-jobs/composables/useInactivity.ts` (UI 008 R7) | inactivity limit, promoted on this second use (R5) |
 
   Task T001 verifies that these exist at the named paths and records any different name in
   `plan.md`. A missing prerequisite stops the implementation: it is a dependency failure, and UI 011
@@ -163,10 +167,13 @@ Playwright projects, smoke harness) are not repeated.
       page component, so unmounting removes the observers and the timers.
     - **Pause** (FR-020): "Pause live updates" sets `paused`; "Resume" refetches at once and sets
       `running`. The manual "Refresh" works in every state.
-    - **Inactivity** (FR-021): `useInactivity.ts` listens (passive, throttled to once per second) to
+    - **Inactivity** (FR-021): `useInactivity` listens (passive, throttled to once per second) to
       `pointerdown`, `keydown`, `wheel`, `touchstart` and `scroll` on `window`. After the inactivity
       limit without one, the state becomes `inactive`, a notice with "Resume" appears, and nothing
-      polls. **Limit** = `min(15 min, Session.idleTimeout)` from UI 001's session store: polling
+      polls. UI 008 created this composable for its running-job refresh
+      (`src/features/sync-jobs/composables/useInactivity.ts`, UI 008 R7, with the same listeners and
+      limit); this is its second use, so UI 011 promotes it to
+      `src/shared/composables/useInactivity.ts` (constitution VIII) instead of writing another. **Limit** = `min(15 min, Session.idleTimeout)` from UI 001's session store: polling
       renews the server session (UI 001 R8, R12), so an unattended dashboard extends a session by at
       most one idle period beyond the last interaction, never indefinitely.
   - **Polling counts as session activity**: UI 001's activity middleware records every response,
@@ -397,15 +404,18 @@ Playwright projects, smoke harness) are not repeated.
     the address through `useListState` without paging; any change starts again from the newest (or
     oldest) entries.
   - **Filters** (FR-035): one search (`q`, debounced 300 ms, clearable), a time range (last hour,
-    24 hours, 7 days, custom) from the shared `time-range.ts` (promoted from the audit log, R19 of
-    UI 001's promotion rule), severity checkboxes for types with a severity, and the type-specific
-    text filters. The number of active filters is shown, chips remove them one by one
-    (`ActiveFilterChips`, promoted to `src/shared/components/` on this second use), and one action
-    clears all. The new count after a search or filter change is announced (FR-086).
+    24 hours, 7 days, custom) from the shared `time-range.ts` (promoted from the audit log on this
+    second use, UI 001 R20's promotion rule), severity checkboxes for types with a severity, and the
+    type-specific text filters. The number of active filters is shown, chips remove them one by one
+    (`ActiveFilterChips`, which UI 003 promoted to `src/shared/components/`), and one action clears
+    all. The new count after a search or filter change is announced (FR-086).
   - **Entries** (FR-032 to FR-034): cards below `md` (time, severity or type and source on the first
     line; main text below), a table per type from `md` up; details expand in place (Reka
-    `Collapsible`). Text is shown by interpolation only, with `white-space: pre-wrap` and
-    `overflow-wrap: anywhere`, so line breaks are kept and 2,000-character tokens wrap (SC-009).
+    `Collapsible`). Every log content (messages, names, addresses, URIs, request data, calls) is
+    shown through UI 006's `PlainText`, built on `neutralise()` (multi-line for messages, request
+    data and calls): text interpolation only, bidi isolation, control and bidi-override characters as
+    visible markers, `white-space: pre-wrap` and `overflow-wrap: anywhere`, so line breaks are kept
+    and 2,000-character tokens wrap (SC-009, conventions "Shared building blocks").
     Messages taller than four lines are clamped (`line-clamp-4`) with "Show all", offered only when
     the clamped element overflows (measured on mount and on breakpoint changes). "Copy" copies the
     entry's full content as `field: value` lines. Severity is the class name in text plus an icon.
@@ -435,11 +445,13 @@ Playwright projects, smoke harness) are not repeated.
 ### R12. Rate limit reset (reuse of UI 006)
 
 - **Decision**: Each rate limit entry offers "Show entries of this rate limit" (sets `q` to the
-  hash) and "Reset rate limit". The reset reuses UI 006's mutation for `resetRateLimitBucket`
-  (`DELETE /rate-limit-buckets/{bucketId}`) and its confirmation wording (UI 006 FR-058), passing
-  `rateLimitHash` as `bucketId`. It is offered only when the hash is not `null` and matches the
-  parameter's pattern `^RL[0-9A-Za-z=]+$` (at most 128 characters). `204` resets the log query
-  (refresh); `404` says that the rate limit was already reset; `503` says that nothing changed.
+  hash) and "Reset rate limit". The reset opens UI 006's exported `ResetBucketDialog` (from
+  `src/features/rate-limits/index.ts`), which explains the reset, sends `resetRateLimitBucket`
+  (`DELETE /rate-limit-buckets/{bucketId}`) and reports `204` ("reset") and `404` ("there was
+  nothing to reset"), with `rateLimitHash` as `bucketId`. It is offered only when the hash is not
+  `null` and matches UI 006's bucket identifier pattern in `src/shared/validation/limits.ts` (the
+  contract's `^RL[0-9A-Za-z=]+$`, at most 128 characters). After the dialog closes with a reset or a
+  `404`, the log query is reset (refresh); `503` says that nothing changed.
 - **Rationale**: One reset implementation for both entry points (UI 006 FR-058 names this log as
   one of them).
 - **Alternatives considered**: A second mutation in UI 011 was rejected (duplication).
@@ -456,16 +468,19 @@ Playwright projects, smoke harness) are not repeated.
     switch that renders a real `<table>` with the same counts and percentages; "No messages were
     scanned yet" when every count is zero. Bars are CSS with a dynamic `:style` width (CSSOM,
     allowed by UI 001 R18), so they need no chart code at all.
-    - The bar list is UI 006's Quarantine › Statistics pattern. On this second use it is promoted to
+    - The bar list is UI 006's Quarantine › Statistics pattern
+      (`src/features/quarantine/components/statistics/ActionStatisticsList.vue`: count, share and a
+      decorative `aria-hidden` bar per action). On this second use it is promoted to
       `src/shared/components/ProportionBarList.vue` (constitution VIII) with optional `summary` and
-      `tableAlternative` props; UI 006's panel keeps its behaviour.
+      `tableAlternative` props; UI 006's statistics page keeps its behaviour.
   - **History** (FR-047, FR-048): an ordinary paged list (25/50/100) with `useListState`: sort by
     time, score, size or scan time; filters by action (checkboxes from the statistics' action names;
     disabled with a reason when the statistics are unavailable), time range and score range
     (`inputmode="decimal"`); one search. Each entry shows the action in text, "12.4 of 15 required
     (below)" in text, senders, recipients and subject; details expand in place with the symbols in
     the API's order (name, signed score, options), client address, user or "none", size, scan times
-    and message ID. All as plain text.
+    and message ID. Senders, recipients, subjects, symbols and options render through UI 006's
+    `PlainText` (`neutralise()`).
   - **States** (FR-049): `503` says that the Rspamd controller is temporarily unreachable, with a
     retry, separately for the statistics and the history.
 - **Rationale**: Bars with text labels read without colour and fit 360 px, which the legacy
@@ -534,11 +549,12 @@ Playwright projects, smoke harness) are not repeated.
     (`['mail-queue', 'content', id]`) uses `staleTime: 0` and `gcTime: 0`, and closing the viewer
     removes it from the cache (`removeQueries`), so the content is discarded (clarification).
   - The viewer shows the queue ID, the audit notice ("Each view is recorded in the audit log"), and
-    the content in a `<pre>` with a fixed-width font, as text interpolation. Wrapping is on by default
-    with a "Wrap lines" switch.
+    the content in a fixed-width font through UI 006's multi-line `PlainText` (`neutralise()`), so
+    control and bidi characters in headers show as visible markers. Wrapping is on by default with a
+    "Wrap lines" switch.
   - **First view**: the first 262,144 UTF-16 code units (256 Ki characters, cut before a surrogate
-    pair if needed) are rendered; "Show the rest (3.2 MiB)" renders everything. "Copy" always copies
-    the complete string through `clipboard.ts`.
+    pair if needed) are neutralised and rendered; "Show the rest (3.2 MiB)" renders everything.
+    "Copy" always copies the complete, unmodified string through `clipboard.ts`.
   - From the viewer, deliver now, hold, release and delete (with its confirmation) act on that one
     message through the same bulk operation.
   - `404` shows "This message is no longer in the queue" with a way back to the queue and removes
@@ -665,7 +681,8 @@ Playwright projects, smoke harness) are not repeated.
     `newRules`, `network`, …) are documented only in the API's own research, not in the contract.
     Constitution I forbids relying on undocumented shapes, so the app presents them, like UI 002
     does for its records (UI 002 plan gap G1), through UI 001's generic details view, **as
-    stored**: keys and values as text. The generic view is made shape-agnostic where it is not yet:
+    stored**: keys and values as text (through UI 006's `PlainText`). The generic view is made
+    shape-agnostic where it is not yet:
     nested objects and arrays become nested definition lists, and any array longer than 10 items is
     collapsed behind "Show all <n>" (`src/features/audit-log/components/AuditEventDetails.vue`).
     That shows the state before and after, every queue ID with its result (collapsed when there are
@@ -712,9 +729,15 @@ Playwright projects, smoke harness) are not repeated.
     `src/i18n/messages/sk-sk.json` (UI 001 R15).
   - **Enumerations**: `scripts/i18n/check.mjs` adds `ContainerState`, `ContainerRole`,
     `ContainerAction`, `LogSeverity`, `MailQueueName` and `MonitoringLogRetention.policy` to its
-    required enumerations; the 011 values of `AuditEventType`, `AuditTarget.type`,
-    `AuditFailureReason`, `ValidationRuleCode` and the problem types are already required by the
-    existing rules once the pin contains them, and UI 011 gives them final wording.
+    fully required enumerations (every value needs a key), as UI 002 does for the enumerations a
+    feature introduces. The shared enumerations follow UI 002's coverage manifest
+    `src/i18n/coverage.json`: each story appends the values it shows, with their keys — the 17
+    `AuditEventType` values, 7 `AuditTarget.type` values and the failure reasons `serviceFailure`
+    and `rulesNotRestored` (US8); the validation codes `reserved`, `conflictsWith`, `mustNotExceed`,
+    `invalidRegex` and `missingCaptureGroup` (US5); and the problem types `container-protected`,
+    `container-not-running`, `container-action-failed`, `mail-service-not-running`,
+    `queue-action-failed`, `ban-rules-not-restored` and `ip-check-disabled`, plus `outcome-unknown`
+    and `temporary-failure` if not yet listed (US2, US4, US5, US7).
   - **Formatting**: sizes in binary units through UI 002's `formatBytes` in `src/i18n/format.ts`;
     UI 011 adds `formatRate` (bytes per second, binary units) and `formatUptime` (days, hours and
     minutes with `Intl.NumberFormat` unit style) there; percentages with `Intl.NumberFormat`

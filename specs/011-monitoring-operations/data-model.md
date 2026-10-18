@@ -36,7 +36,7 @@ Generated root types, imported from `@/api`.
 | `Fail2BanRules`, `Fail2BanRule`, `Fail2BanRulesReplaceRequest` | `getFail2BanRules`, `replaceFail2BanRules`, `resetFail2BanRules` | rules editor | `etag` → `If-Match` |
 | `Fail2BanActiveBan`, `Fail2BanBanActionResult` | `listFail2BanActiveBans`, `liftFail2BanBan`, `allowlistFail2BanBan`, `denylistFail2BanBan` | active bans | network percent-encoded in the path |
 | `Fail2BanPermanentBan` | `listFail2BanPermanentBans` | permanent bans | — |
-| — | `resetRateLimitBucket` (API 006) | "Reset rate limit" | through UI 006's mutation (R12) |
+| — | `resetRateLimitBucket` (API 006) | "Reset rate limit" | through UI 006's `ResetBucketDialog` (R12) |
 | `AuditEvent`, `AuditEventType`, `AuditTarget`, `AuditFailureReason` | `listAuditEvents` (UI 001's screen) | History | target filters (R18) |
 | `ListMeta`, `Problem`, `ValidationProblem`, `FieldViolation`, `ValidationRuleCode`, `KnownProblemType` | lists and errors | everywhere | `KnownProblemType` constants are generated at the pin (R1) |
 
@@ -165,7 +165,7 @@ empty lines dropped, duplicates kept once (case-insensitive for host names), `li
 | `rotateFail2BanBanListId` | write `['fail2ban','settings']` | `412`: refetch, confirm again |
 | `replaceFail2BanRules`, `resetFail2BanRules` | write `['fail2ban','rules']` | `412`: refetch, keep input; `504 ban-rules-not-restored`: offer reload; `504 outcome-unknown`: refetch |
 | `liftFail2BanBan`, `allowlistFail2BanBan`, `denylistFail2BanBan` | replace the ban in `['fail2ban','active-bans',…]` with `data.ban`; invalidate `['fail2ban','settings']` and, for denylisting, `['fail2ban','permanent-bans']`; start the pending-lift refresh | `404`: invalidate active bans, say the ban ended |
-| `resetRateLimitBucket` (UI 006) | `resetQueries(['logs','rate-limits'])` | `404`: "already reset"; same refresh |
+| `resetRateLimitBucket` (UI 006's `ResetBucketDialog`) | `resetQueries(['logs','rate-limits'])` | `404`: the dialog says there was nothing to reset; same refresh |
 
 ## 4. Client state
 
@@ -292,7 +292,7 @@ Checks run before sending; server field errors are always shown too (FR-076, FR-
 | Searches and text filters | ≤ 255 characters | `Search` schema `maxLength` | `validation.tooLong` |
 | Time range | `from ≤ to` | contract (inclusive range) | `operations.filters.rangeOrder` |
 | Score range | numbers; `minScore ≤ maxScore` | — | `operations.rspamd.filters.scoreOrder` |
-| Bucket ID for reset | `rateLimitHash` matches `^RL[0-9A-Za-z=]+$`, ≤ 128 | `RateLimitBucketId` parameter | action not offered otherwise |
+| Bucket ID for reset | `rateLimitHash` matches `^RL[0-9A-Za-z=]+$`, ≤ 128 (UI 006's pattern in `src/shared/validation/limits.ts`) | `RateLimitBucketId` parameter | action not offered otherwise |
 
 ## 7. State machines
 

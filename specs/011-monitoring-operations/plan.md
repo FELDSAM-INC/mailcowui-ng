@@ -119,13 +119,13 @@ for Android; the static image under `/ng/`.
 | II. Mobile-first | Every screen is designed at 360 px first: container and queue cards, log cards, a log type `<select>` instead of tabs, full-screen viewers and forms on phones, a sticky selection bar, a section index on the ban screen. Destructive actions are confirmed with what is affected (stop, restart, delete, delete all, denylist, rule reset, rotation, rate limit reset). Every collection has loading, empty and error states (FR-025, FR-043, FR-049, FR-062, FR-074). | PASS |
 | III. Accessibility (WCAG 2.2 AA) | axe on every screen and state in both themes; charts with text values, patterns, summaries and table alternatives; no blinking and no animation; silent automatic updates with one announcement per stopped container; keyboard reordering of rules; dialogs per UI 001 R21; tables with `aria-sort` (R7, R13, R20). | PASS |
 | IV. i18n and branding | All text in en-gb, cs-cz and sk-sk; legacy keys reused through `legacy-map.json`, HTML legacy texts imported without markup; Slovak gaps filled by hand; enumerations enforced by `i18n:check`; binary units and locale formats; product name from the branding (R19). | PASS |
-| V. Security in the browser | Release notes: raw HTML escaped, images as links, links `noopener noreferrer`, sanitised with a dedicated DOMPurify profile, rendered only in `SanitizedHtml`; no third-party request (R9). Log contents, queued content, rules and symbols are shown as text only. Queued content is discarded on close. No new storage. Controls follow the role; the API enforces it (FR-001, FR-003). | PASS |
+| V. Security in the browser | Release notes: raw HTML escaped, images as links, links `noopener noreferrer`, sanitised with a dedicated DOMPurify profile, rendered only in `SanitizedHtml`; no third-party request (R9). Log contents, queued content, Rspamd history, rules and audit details are shown as text only, through UI 006's `PlainText`/`neutralise()` (visible control and bidi markers). Queued content is discarded on close. No new storage. Controls follow the role; the API enforces it (FR-001, FR-003). | PASS |
 | VI. Test-first | `tasks.md` orders tests before implementation in every phase: unit and component tests, e2e tests of every acceptance scenario on both viewports against the contract-validated mock, and the smoke suite. Unknown enumeration values are unit-tested because the mock may not send them (R21). | PASS (smoke gate as UI 001 Complexity Tracking) |
 | VII. Performance budgets | Charts are an async chunk with a budget; `marked` only via dynamic import; routes lazy; per-chunk budgets and a dashboard Lighthouse collection; polling only while visible, running and interacted with; logs never refetch on their own; list data cached and invalidated after mutations (R5, R11, R22). | PASS |
-| VIII. Simplicity | One new dependency (`marked`), justified (R2); no chart library; shared parts promoted only on their second use (`time-range.ts`, `ActiveFilterChips.vue`, `ProportionBarList.vue`), single-use parts kept in the feature (`PurgeQueueDialog.vue`, `covers-address.ts`) (R11, R13, R14, R16). | PASS |
+| VIII. Simplicity | One new dependency (`marked`), justified (R2); no chart library; shared parts promoted only on their second use (`useInactivity.ts` from UI 008, `time-range.ts` from the audit log, `ProportionBarList.vue` from UI 006), single-use parts kept in the feature (`PurgeQueueDialog.vue`, `covers-address.ts`) (R5, R11, R13, R14, R16). | PASS |
 | Technology constraints | Stack unchanged. "Charts are lazy-loaded on their route": the SVG chart is an async component on the dashboard route only, the bars live in the Rspamd route chunk (R7, R13, R22). No TailAdmin chart demo is copied. | PASS |
 | Workflow and gates | The CI gates of UI 001 cover the feature; the budget script and Lighthouse runner are extended. Commits go to `main`. `marked` is MIT. | PASS |
-| `docs/conventions.md` | List state in the address; cards and tables; list states; confirmations; History via target filters; problem types and rule codes translated; controls hidden or read-only by permission; capabilities from the capabilities read. Where this spec decides otherwise for its own screens, the spec governs, as the conventions allow: logs load in steps of 50 without page numbers (FR-036), all containers on one screen (FR-008), the queue selection can cover all matching messages up to the API limit (FR-055) and carries no version tags (the contract forbids them), and the bulk queue deletion names the count instead of asking to type it (FR-056; owner question 1). | PASS |
+| `docs/conventions.md` | List state in the address; cards and tables; list states; confirmations; History via target filters; problem types and rule codes translated; controls hidden or read-only by permission; capabilities from the capabilities read. **Shared building blocks and canonical names**: UI 002's `BulkActionBar`, `useBulkSelection` (bulk limit from the capabilities), `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink`, `useLeaveGuard` and coverage manifest; UI 008's `useInactivity`; UI 006's `neutralise()`; no renamed copies. **Polling**: only condition-bound `refetchInterval` with visibility checks, a pause control and the `min(15 min, idle timeout)` inactivity limit (R5). **Contract pin**: forward only, with this feature's 44 operations checked against the baseline `3207925` (R1). Where this spec decides otherwise for its own screens, the spec governs, as the conventions allow: logs load in steps of 50 without page numbers (FR-036), all containers on one screen (FR-008), the queue selection can cover all matching messages up to the API limit (FR-055) and carries no version tags (the contract forbids them), and the bulk queue deletion names the count instead of asking to type it (FR-056; owner question 1). | PASS |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart
 introduce no violation. Decisions that touched gates:
@@ -148,9 +148,9 @@ implementation). Task T001 verifies these prerequisites (research R1 lists them 
   `PaginationBar`, `useConfirm`/`ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`,
   `ErrorSummary`, `ProblemMessage`, `DateTime`, `RelativeTime`, `useAnnouncer`/`LiveAnnouncer`,
   `useMediaQuery`, `useCountdown`, `SanitizedHtml`, `sanitize.ts`, `safe-url.ts`, `ip-network.ts`,
-  `clipboard.ts`, the audit log feature (`labels.ts`, `AuditEventDetails.vue`, `time-range.ts`,
-  `ActiveFilterChips.vue`), the mock server and validator, the e2e fixtures, the smoke harness, the
-  budget script and the Lighthouse runner.
+  `clipboard.ts`, the audit log feature (`labels.ts`, `AuditEventDetails.vue`, `time-range.ts`),
+  the mock server and validator, the e2e fixtures, the smoke harness, the budget script and the
+  Lighthouse runner.
 - **UI 002** (parts UI 001 R20 reserves for it, and its own shared additions, as its draft plan
   names them): `src/shared/components/HistoryLink.vue` with the `targetType`/`targetId` parameters
   and filters of the audit log, `src/shared/composables/useBulkSelection.ts`,
@@ -161,12 +161,20 @@ implementation). Task T001 verifies these prerequisites (research R1 lists them 
   `scripts/i18n/import-legacy.mjs`, and `formatBytes` in `src/i18n/format.ts`. UI 002 pins the same
   contract commit. UI 002 has no app-level status message host (its messages are inline), so UI 011
   creates one (R8).
-- **UI 006**: the rate-limit bucket reset mutation and confirmation (UI 006 FR-058), exported from
-  its feature `index.ts` (expected `src/features/spam-policy/index.ts`), its mock handler for
-  `resetRateLimitBucket`, and the proportional bar list of its Quarantine › Statistics panel.
-- **UI 003–005, 007–010**: nothing specific. If one of them already promoted `time-range.ts` or
-  `ActiveFilterChips.vue`, added a `prefix` option to `useListState`, a rate formatter or an
-  app-level status message host, UI 011 reuses it instead of adding its own.
+- **UI 002** also provides the translation coverage manifest `src/i18n/coverage.json`, to which
+  each story of UI 011 appends the shared-enumeration values it shows (R19).
+- **UI 006** (as its plan names them): `ResetBucketDialog` and its composable, exported from
+  `src/features/rate-limits/index.ts` (UI 006 FR-058), the bucket identifier pattern in
+  `src/shared/validation/limits.ts`, its mock handler for `resetRateLimitBucket`,
+  `src/features/quarantine/components/statistics/ActionStatisticsList.vue` (promoted by US6),
+  `neutralise()` in `src/shared/security/plain-text.ts` with `src/shared/components/PlainText.vue`
+  (for every untrusted text this feature shows), and the `prefix` option of `useListState`.
+- **UI 003**: `ActiveFilterChips.vue`, promoted to `src/shared/components/` (UI 003 T018).
+- **UI 008**: `src/features/sync-jobs/composables/useInactivity.ts` (UI 008 R7), which UI 011
+  promotes to `src/shared/composables/useInactivity.ts` on its second use, as UI 008 asks.
+- **UI 004, 005, 007, 009, 010**: nothing specific. If one of them already promoted `time-range.ts`,
+  added a rate formatter or an app-level status message host, UI 011 reuses it instead of adding its
+  own.
 - **API**: the API 011 contract (and, for the smoke suite, its implementation with
   `RESTV2_FAKE_OUTBOUND=y`), API 006's `resetRateLimitBucket`, API 002's audit target filters and
   API 001.
@@ -283,14 +291,15 @@ src/app/router/routes.ts                        # registers features/operations/
 src/styles/main.css                             # + --color-chart-1, --color-chart-2 tokens
 src/shared/security/sanitize.ts                 # + 'releaseNotes' profile (R9)
 src/shared/components/SanitizedHtml.vue         # + profile prop
-src/shared/components/ProportionBarList.vue     # promoted from UI 006 (R13)
-src/shared/components/ActiveFilterChips.vue     # promoted from the audit log (R11)
+src/shared/components/ProportionBarList.vue     # promoted from UI 006's ActionStatisticsList.vue (R13)
+src/shared/composables/useInactivity.ts         # promoted from UI 008's sync-jobs feature (R5)
 src/shared/filters/time-range.ts                # promoted from the audit log (R11)
 src/shared/composables/useListState.ts          # + key prefix option, if absent
 src/shared/icons/                               # + server, logs, queue, shield, play, stop, restart, pause, arrow-up, arrow-down
 src/i18n/format.ts                              # + formatRate, formatUptime (formatBytes from UI 002)
 src/i18n/messages/{en-gb,cs-cz,sk-sk}.json      # + operations.*, nav.groups.system, audit labels
 src/i18n/legacy-map.json, src/i18n/legacy/*.json
+src/i18n/coverage.json                          # + 011 audit, validation and problem values (R19)
 src/features/audit-log/labels.ts                # + 011 event types, targets, failure reasons
 src/features/audit-log/components/AuditEventDetails.vue  # nested values, long arrays collapsed (R18)
 src/features/operations/
@@ -298,7 +307,7 @@ src/features/operations/
 ├── routes.ts
 ├── capabilities.ts              # capabilities query and derived values (R4)
 ├── live/
-│   ├── useLiveUpdates.ts  useInactivity.ts  useHostClock.ts  useLiveSeries.ts  freshness.ts
+│   ├── useLiveUpdates.ts  useHostClock.ts  useLiveSeries.ts  freshness.ts
 │   └── components/{LiveUpdatesBar.vue,FreshnessIndicator.vue,SectionError.vue}
 ├── charts/
 │   ├── LiveLineChart.vue        # async chunk (R7)

@@ -36,6 +36,30 @@ fail before the implementation tasks that follow them. Every end-to-end spec:
 **Organization**: Tasks are grouped by user story (spec priorities P1 to P3), so that each story can
 be implemented and tested on its own once the foundation is in place.
 
+## Implementation notes (UI 003, 2026-10-19)
+
+The tasks below were written before the translations and forms rule (constitution IV 1.3.0) and the
+orchestrator's decisions of 2026-10-18. UI 003 is built in the legacy form, as the legacy form map in
+plan.md records; tasks that describe the earlier design are done in that form and say so:
+
+- **One form per legacy form, one section per legacy tab.** The add mailbox page is
+  #addMailboxModal on its own page (no collapsed groups, no address preview, no template-overwrite
+  confirmation, no "Add another"). The mailbox page is `edit/mailbox.twig`: the edit heading, the
+  usage figures with the list's keys, then the sections Mailbox, Custom attributes, Pushover
+  (read-only), ACL, Rate limit (read-only) and Rename, opened with UI 002's `?edit=` parameter.
+  Deletion stays in the list. Templates are one form each, as #addMailboxTemplateModal and
+  `edit/mailbox-templates.twig`, with the legacy mass removal (G39).
+- **Legacy controls**: quotas in MiB with "0 = ∞" and the "max." badge; the password repeat; the
+  haveibeenpwned check (shared `HibpCheck`); the policy listed as legacy lists it (no live marks);
+  protocols and ACL as multi-selects in legacy order; radio groups for tagged mail and quarantine;
+  the rename's "Create alias automatically" checkbox, checked. Added explanations of the spec are
+  not built (plan.md part 3, item 9).
+- **Shared pieces**: UI 003 owns `MailboxSearchPicker` (UI 004's `DomainPicker` with a mailbox
+  source) and `HibpCheck` (CSP `connect-src https://api.pwnedpasswords.com` in
+  `docker/nginx/security-headers.conf`, which the image and `vite preview` use; the dev server sets
+  no CSP). UI 004 owns `DomainPicker`, `ActiveFilterChips`, `SearchField`, `utf8.ts`, `LEGACY_ARGS`
+  and the form-context problem lookup; UI 003 uses them.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependency on an incomplete task)
@@ -58,7 +82,7 @@ messages are the form map's legacy keys wherever one has the same meaning.
 **Purpose**: The contract pin with API 003, the translation scope, the one new storage key and the
 new catalogue entry (research R1, R2; data-model §4, §5).
 
-- [ ] T001 Bump the contract (research R1, [contracts/README.md](./contracts/README.md)):
+- [X] T001 *(done: pinned at mailcow-rest-v2 main `33f1eea`, the same pin UI 004 landed on main; the review is in contracts/README.md)* Bump the contract (research R1, [contracts/README.md](./contracts/README.md)):
   - Run `scripts/contract/bump.sh <ref>`, where `<ref>` is API 003's release tag or the
     mailcow-rest-v2 commit that merges the API 003 implementation. While that implementation is not
     merged, `<ref>` is the baseline `32079252d55797d3da4e58ae661e9fb91c51c6f9`, and T131 moves the
@@ -75,7 +99,7 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   - Record the pinned ref in the "Implementation pin" row of `specs/003-mailboxes/contracts/README.md`.
   - `npm run typecheck`, `npm run test:unit` and `npm run test:e2e` must pass on the existing
     features.
-- [ ] T002 [P] Write `tests/unit/i18n/coverage-mailboxes.spec.ts` (research R2). It reads UI 002's
+- [X] T002 *(done: `coverage-mailboxes.spec.ts`; the closed enumerations use UI 002's `complete` section instead of `ENUM_NAMESPACES`)* [P] Write `tests/unit/i18n/coverage-mailboxes.spec.ts` (research R2). It reads UI 002's
   `src/i18n/coverage.json` and `scripts/i18n/lib.mjs`, and asserts:
   - the manifest lists every value of data-model §9 under `AuditEventType`, `AuditTarget.type`,
     `AuditFailureReason`, `ValidationRuleCode` and `problemTypes` (problem types by name, the last
@@ -84,11 +108,11 @@ new catalogue entry (research R1, R2; data-model §4, §5).
     `enums.<name>.<value>`.
 
   The test must fail.
-- [ ] T003 Append UI 003's values of data-model §9 to `src/i18n/coverage.json`, and add UI 003's
+- [X] T003 *(done: `partial` values and five `complete` entries (`mailboxes.status`, `.sort`, `.rename.step`, `.rename.outcome`, `.delete.blocker`))* Append UI 003's values of data-model §9 to `src/i18n/coverage.json`, and add UI 003's
   closed enumerations to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`, so that T002 passes. UI 002's
   registry mechanism is reused unchanged (`docs/conventions.md`, "Shared building blocks and
   canonical names"); no second registry is created.
-- [ ] T004 Add the enumeration labels that T003 makes required. A value whose option label exists in
+- [X] T004 *(done: legacy keys through `LEGACY_TEXTS` for statuses, sort fields and the mailbox target; other closed enumerations are typed tables of legacy keys in code, so they need no translation key; UI 004 already maps `problem.address-in-use` and `permission-flag-required` to legacy texts)* Add the enumeration labels that T003 makes required. A value whose option label exists in
   the legacy templates of plan.md "Translations and forms" (`templates/edit/mailbox.twig`,
   `templates/modals/mailbox.twig`, `js/site/mailbox.js`) uses that legacy key verbatim; only the
   others get new strings in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. T008a records the
@@ -110,16 +134,16 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   - the `validation.*` codes and the `problem.*` names of data-model §9 (`problemTypes`).
 
   `npm run i18n:check` must pass.
-- [ ] T005 [P] Extend `tests/unit/shared/platform/storage.spec.ts`. It covers:
+- [X] T005 *(done)* [P] Extend `tests/unit/shared/platform/storage.spec.ts`. It covers:
   - the key `mailcowui-ng.mailboxes.columns` is accepted, with a JSON array value of at most 20
     column ids;
   - every key not listed in data-model §4 of UI 001 or of UI 003 is still refused;
   - a throwing `localStorage` never breaks the caller.
 
   The test must fail.
-- [ ] T006 Add `mailcowui-ng.mailboxes.columns` to the allowlist in `src/shared/platform/storage.ts`,
+- [X] T006 *(done)* Add `mailcowui-ng.mailboxes.columns` to the allowlist in `src/shared/platform/storage.ts`,
   so that T005 passes.
-- [ ] T007 [P] Extend `tests/unit/app/navigation/visibility.spec.ts` with the `mailboxTemplates` row
+- [X] T007 *(done)* [P] Extend `tests/unit/app/navigation/visibility.spec.ts` with the `mailboxTemplates` row
   (data-model §5):
   - path `/mailbox-templates`;
   - admin ✓, domainAdmin ✓, mailboxUser —;
@@ -129,7 +153,7 @@ new catalogue entry (research R1, R2; data-model §4, §5).
   - its placeholder route exists while its status is `placeholder`.
 
   The test must fail.
-- [ ] T008 After T004 (both edit the message files), add the `mailboxTemplates` row to
+- [X] T008 *(done: Lucide `layout-template`; the label is `legacy('mailbox.mailbox_templates')` in the catalogue, so no `nav.mailboxTemplates` string)* After T004 (both edit the message files), add the `mailboxTemplates` row to
   `src/app/navigation/catalogue.ts` with
   `status: 'placeholder'`, so that T007 passes. Add an icon to `src/shared/icons/` (Lucide
   "layout-template", recorded in `THIRD_PARTY_NOTICES.md`) and `nav.mailboxTemplates` to
@@ -157,7 +181,7 @@ existing tests pass.
 
 ### Legacy form map
 
-- [ ] T008a Write the legacy form map for this feature's screens (screen → legacy template → field →
+- [X] T008a *(done: plan.md, Legacy form map parts 1–3)* Write the legacy form map for this feature's screens (screen → legacy template → field →
   legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new
   strings in the implementation.
   Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations
@@ -166,7 +190,7 @@ existing tests pass.
 
 ### Mock API base
 
-- [ ] T009 [P] Create the factories:
+- [X] T009 *(done: `mailbox.ts` (with `generateMailboxes` and `seedMailboxes`), `mailbox-template.ts`, `password-policy.ts`)* [P] Create the factories:
   - `tests/mocks/factories/mailbox.ts`: a deterministic generator with a seeded PRNG. It builds
     `Mailbox` objects that validate against the contract: `quota` a multiple of 1,048,576 or 0;
     `percentUsed` `null` for unlimited; `largestAllowedQuota` computed from the domain;
@@ -176,7 +200,7 @@ existing tests pass.
   - `tests/mocks/factories/mailbox-template.ts`: Default, with the legacy `init_db` values and an
     unlimited quota; "Small" (1 GiB, POP3 off, sync jobs on); and arbitrary templates.
   - `tests/mocks/factories/password-policy.ts`: the policy and its `etag`.
-- [ ] T010 Write `tests/unit/mocks/mailbox-handlers.spec.ts`. It runs against the handlers through
+- [X] T010 *(done: `tests/unit/mocks/mailbox-handlers.spec.ts`; `immutable` is outside `MailboxPatch`, so the validator refuses such a request before the handler)* Write `tests/unit/mocks/mailbox-handlers.spec.ts`. It runs against the handlers through
   `msw/node` with the contract validator, and covers:
   - `listMailboxes`:
     - administrators see all mailboxes; domain administrators see those of their domains;
@@ -215,7 +239,7 @@ existing tests pass.
   - every response passes the validator.
 
   The test must fail.
-- [ ] T011 Implement the mock base so that T010 passes:
+- [X] T011 *(done: the control changes follow UI 002's pattern (`mailboxes: {set, add, remove}`, `mailboxTemplates`, `passwordPolicy`, `mailboxCapabilities`, `mailboxFailures`, `mailboxCreationReport`); mailboxes behind UI 002's domain usage counts are materialised on first read; UI 002's `/mailboxes` stand-in is replaced)* Implement the mock base so that T010 passes:
   - Extend `tests/mocks/scenarios/state.ts` with `mailboxes`, `mailboxTemplates`, `passwordPolicy`,
     `mailboxCapabilities` and the per-target failure injection (the scenario model of UI 001 R22),
     and the `mailboxChange` and `mailboxDelete` control changes, applied through UI 001's
@@ -234,7 +258,7 @@ existing tests pass.
 
 ### Shared blocks from UI 002 (reuse or provide; research R4)
 
-- [ ] T012 [P] Write the tests of the promoted quota field (research R4; UI 002 D12). Move UI 002's
+- [X] T012 *(settled: no QuotaField exists after UI 002's rework, and quotas are MiB with "0 = ∞" (conventions); `formatDuration` of minutes moves to US4 with its first use)* [P] Write the tests of the promoted quota field (research R4; UI 002 D12). Move UI 002's
   existing tests along with the files; if UI 002 already promoted them, add only the missing cases.
   - `tests/unit/shared/components/QuotaField.spec.ts`:
     - an amount with a MiB, GiB or TiB unit, and `v-model` in bytes;
@@ -248,7 +272,7 @@ existing tests pass.
     (FR-073).
 
   The tests must fail where the behaviour is missing.
-- [ ] T013 [P] Write `tests/unit/shared/components/UsageMeter.spec.ts` and
+- [X] T013 *(done for TagSetInput (promoted with its tests); UsageMeter is not promoted: the mailbox list mirrors legacy's "In use (%)" bar with its percentage, a different element)* [P] Write `tests/unit/shared/components/UsageMeter.spec.ts` and
   `tests/unit/shared/components/TagSetInput.spec.ts`, moving UI 002's tests along (UI 002 D10, D13).
   Add only the missing cases if UI 002 already promoted them.
   - `UsageMeter`:
@@ -267,11 +291,11 @@ existing tests pass.
     - every chip has a labelled remove button of at least 44 × 44 px.
 
   The tests must fail where the behaviour is missing.
-- [ ] T014 [P] Move `tests/unit/features/audit-log/ActiveFilterChips.spec.ts`, if it exists, to
+- [X] T014 *(settled: UI 004 owns and moved ActiveFilterChips (coordinator, 2026-10-19))* [P] Move `tests/unit/features/audit-log/ActiveFilterChips.spec.ts`, if it exists, to
   `tests/unit/shared/components/ActiveFilterChips.spec.ts`, and cover removable chips, "Clear all"
   and the announcements. The test must fail while the component still lives in the audit-log
   feature.
-- [ ] T015 [P] Write `tests/unit/shared/composables/ui002-blocks.spec.ts`. It checks the behaviour of
+- [X] T015 *(covered by UI 002's existing tests of these blocks (bulk-components, useBulkSelection, EditableSection, useVersionedSave, useLeaveGuard, HistoryLink, confirm-extended); nothing missing for UI 003)* [P] Write `tests/unit/shared/composables/ui002-blocks.spec.ts`. It checks the behaviour of
   UI 002's shared blocks that UI 003 relies on, imported under their canonical names
   (`docs/conventions.md`), and adds cases only where UI 002's tests do not cover them yet:
   - `useBulkSelection`:
@@ -294,26 +318,26 @@ existing tests pass.
   - `NotFoundPage`: renders the back link it is given.
 
   The test must fail where the behaviour is missing.
-- [ ] T016 Promote the quota field so that T012 passes: move
+- [X] T016 *(settled with T012)* Promote the quota field so that T012 passes: move
   `src/features/domains/components/fields/QuotaField.vue` to `src/shared/components/QuotaField.vue`
   and the byte and unit conversion of `src/features/domains/quota.ts` to
   `src/shared/utils/quota-units.ts`, without changing their behaviour. Update UI 002's imports and
   keep its tests green. Add `formatDuration` to `src/i18n/format.ts`.
-- [ ] T017 Promote `src/features/domains/components/list/UsageMeter.vue` (with the level function
+- [X] T017 *(done for TagSetInput and `tag-set.ts`; also promoted at their second use: SelectCheckbox, LegacyRateLimitField, TemplateSelect, the bulk rows (`rowsFromBulkResult`, `unknownRows`), the client rule errors (`client-errors.ts`, `useClientErrors`), `runMutation` and `problemOf`)* Promote `src/features/domains/components/list/UsageMeter.vue` (with the level function
   of `src/features/domains/usage.ts`) to `src/shared/components/UsageMeter.vue`, adding the
   threshold props, and `src/features/domains/components/fields/TagSetInput.vue` (with
   `src/features/domains/tag-set.ts`) to `src/shared/components/TagSetInput.vue` and
   `src/shared/utils/tag-set.ts`, so that T013 passes. Update UI 002's imports and keep its tests
   green.
-- [ ] T018 Move `src/features/audit-log/components/ActiveFilterChips.vue` to
+- [X] T018 *(settled: done by UI 004)* Move `src/features/audit-log/components/ActiveFilterChips.vue` to
   `src/shared/components/ActiveFilterChips.vue` (the promotion path of UI 001 R20), update the
   audit log's and UI 002's imports, and keep their tests green, so that T014 passes. Only
   primitives that UI 001 copied are used: alert, badge, checkbox, collapsible, combobox, dialog,
   dropdown menu, radio group, switch and table.
-- [ ] T019 Extend UI 002's `src/shared/composables/useBulkSelection.ts` only where T015 fails: the
+- [X] T019 *(settled: not needed; retained outcomes are `keep()` of the retryable rows and versions are read from the refreshed entries at retry, as UI 002 does)* Extend UI 002's `src/shared/composables/useBulkSelection.ts` only where T015 fails: the
   retained-outcomes option and the version refresh. Never create a renamed copy of a UI 002 block.
   Keep UI 002's tests green.
-- [ ] T020 [P] Extend `tests/unit/shared/validation/limits.spec.ts`. Each new constant must equal
+- [X] T020 *(done)* [P] Extend `tests/unit/shared/validation/limits.spec.ts`. Each new constant must equal
   its value in `contract/openapi.json`:
   - `MAILBOX_DISPLAY_NAME_MAX` = `Mailbox.displayName.maxLength` (255);
   - `MAILBOX_PASSWORD_MAX` = `MailboxCreateRequest.password.maxLength` (255);
@@ -323,12 +347,12 @@ existing tests pass.
   - `MAILBOX_RECOVERY_EMAIL_MAX` = 255.
 
   The test must fail.
-- [ ] T021 Add these constants to `src/shared/validation/limits.ts`, each with a comment naming its
+- [X] T021 *(done)* Add these constants to `src/shared/validation/limits.ts`, each with a comment naming its
   schema path, so that T020 passes.
 
 ### Pure modules of the feature (tests first)
 
-- [ ] T022 [P] Write `TM/validation.spec.ts` (research R18, data-model §6). It covers:
+- [X] T022 *(done: legacy messages where legacy has one; the address preview and suffix are not built (legacy's add form has a separate domain field))* [P] Write `TM/validation.spec.ts` (research R18, data-model §6). It covers:
   - the local part: "Trimmed and lower-cased, then 1 to 64 ASCII letters, digits and
     ``! # $ % & ' * + / = ? ^ _ ` { | } ~ - .``, without a leading or trailing dot or two dots in a
     row";
@@ -345,7 +369,7 @@ existing tests pass.
   - the template name: trimmed, 1–255 characters.
 
   The test must fail.
-- [ ] T023 [P] Write `TM/acl.spec.ts` (research R11, FR-003, FR-041, FR-042, SC-010). It is table-driven:
+- [X] T023 *(done: gates, `canSetUnlimited`, `canBulkProtocols`, `canSeeRelayhost`, the legacy permission order and labels)* [P] Write `TM/acl.spec.ts` (research R11, FR-003, FR-041, FR-042, SC-010). It is table-driven:
   - administrators against every field;
   - domain administrators with each combination of `protocolAccess`, `sogoAccess`, `ratelimit`
     and `unlimitedQuota`, in the contexts `create`, `edit` (with an already-unlimited and a limited
@@ -358,7 +382,7 @@ existing tests pass.
   - `flagLabelKey(flag)` maps to the legacy `acl.*` keys.
 
   The test must fail.
-- [ ] T024 [P] Write `TM/quota.spec.ts` (research R9, R10; data-model §7.5). It covers the
+- [X] T024 *(done under the 1:1 rule: MiB with "0 = ∞", the prefill from the template capped at `maxNewMailboxQuota` (owner decision), legacy's quota messages; no below-usage warning (legacy has none))* [P] Write `TM/quota.spec.ts` (research R9, R10; data-model §7.5). It covers the
   pre-fill table:
   - Default template → `defaultNewMailboxQuota`;
   - a template with 0 and unlimited not allowed → `defaultNewMailboxQuota`;
@@ -374,7 +398,7 @@ existing tests pass.
   - `canOfferUnlimited(identity, context)`.
 
   The test must fail.
-- [ ] T025 [P] Write `TM/problems.spec.ts` (research R17, FR-068, SC-005). For every problem type and rule
+- [X] T025 *(done: `mailboxProblem` maps to legacy `danger.*` keys on fields; `renameReport`)* [P] Write `TM/problems.spec.ts` (research R17, FR-068, SC-005). For every problem type and rule
   code of [contracts/README.md](./contracts/README.md), it asserts the message key and parameters:
   - `address-in-use` per `holder`;
   - `mailbox-limit-reached` and `domain-alias-limit-reached` with `count` and `limit`;
@@ -390,7 +414,7 @@ existing tests pass.
   - the English `detail` is never used.
 
   The test must fail.
-- [ ] T026 [P] Write the password tests (research R8, SC-008):
+- [X] T026 *(done: generator with batched rejection sampling (SC-008 test of 960,000 passwords), legacy's policy list in legacy order, pre-hashed detection against `preHashedPasswordSchemes`)* [P] Write the password tests (research R8, SC-008):
   - `TM/password/generate.spec.ts`:
     - the length is `max(16, minLength)`, at most 255;
     - lower case, upper case and digits always present;
@@ -411,7 +435,7 @@ existing tests pass.
     `Passw0rd{x}` is not.
 
   The tests must fail.
-- [ ] T027 [P] Write `TM/auth-source.spec.ts` (research R9, FR-024). It covers:
+- [X] T027 *(done)* [P] Write `TM/auth-source.spec.ts` (research R9, FR-024). It covers:
   - the options are `capabilities.authSources`, plus the mailbox's current source when it is
     external and not listed;
   - only `mailcow` is offered when the capabilities fail;
@@ -422,20 +446,20 @@ existing tests pass.
   - switching to `mailcow` returns the "required if no password is stored" hint.
 
   The test must fail.
-- [ ] T028 [P] Implement `M/validation.ts` so that T022 passes.
-- [ ] T029 [P] Implement `M/acl.ts` so that T023 passes.
-- [ ] T030 [P] Implement `M/quota.ts` so that T024 passes.
-- [ ] T031 [P] Implement `M/problems.ts` so that T025 passes. Problem fields are typed from the
+- [X] T028 *(done)* [P] Implement `M/validation.ts` so that T022 passes.
+- [X] T029 *(done)* [P] Implement `M/acl.ts` so that T023 passes.
+- [X] T030 *(done)* [P] Implement `M/quota.ts` so that T024 passes.
+- [X] T031 *(done)* [P] Implement `M/problems.ts` so that T025 passes. Problem fields are typed from the
   generated problem schemas (`MailboxAddressInUseProblem`, `MailboxAttributeNotPermittedProblem` and
   the others), never restated.
-- [ ] T032 [P] Implement `M/password/generate.ts`, `M/password/policy-rules.ts` and
+- [X] T032 *(done)* [P] Implement `M/password/generate.ts`, `M/password/policy-rules.ts` and
   `M/password/pre-hashed.ts` so that T026 passes. The random source is
   `crypto.getRandomValues(new Uint32Array(n))`.
-- [ ] T033 [P] Implement `M/auth-source.ts` so that T027 passes.
+- [X] T033 *(done)* [P] Implement `M/auth-source.ts` so that T027 passes.
 
 ### Base queries and feature skeleton
 
-- [ ] T034 Write `TM/api.spec.ts`. It covers:
+- [X] T034 *(done: `TM/api.spec.ts`; all templates in one request at `maxPageSize`, as UI 002 does)* Write `TM/api.spec.ts`. It covers:
   - the query keys and options of data-model §3: list `staleTime` 30 s with `keepPreviousData`;
     capabilities 5 min; password policy `staleTime: 0` with `refetchOnMount: 'always'`; the tags
     `useInfiniteQuery` with 25 per page;
@@ -447,7 +471,7 @@ existing tests pass.
   - no request is made with a hand-written path; all go through the generated client.
 
   The test must fail.
-- [ ] T035 Implement the base data layer so that T034 passes:
+- [X] T035 *(done: `api.ts`, `templates-api.ts`, the capability, policy and tag suggestion composables, `index.ts`, an empty `routes.ts` registered)* Implement the base data layer so that T034 passes:
   - the roots `mailboxes`, `mailbox-templates` and `password-policy` in `src/api/query/keys.ts`;
   - `M/api.ts`: the list, detail, capabilities and tags queries, and the password policy query;
   - `M/templates-api.ts`: the list, all and detail queries;

@@ -517,7 +517,7 @@ Playwright projects, smoke harness) are not repeated.
     of 1,400 matching messages are selected; repeat the action for the rest" when more match.
   - **Actions** (FR-054 to FR-059): one `bulkMailQueueMessages` request per action. Deliver now, hold
     and release are not confirmed; delete asks for confirmation with the count and "cannot be
-    undone" (`useConfirm`). The result is shown with UI 002's `BulkResultSummary` (done, and the IDs
+    undone", with the count typed (`ConfirmDialog` with `requireTyped`). The result is shown with UI 002's `BulkResultSummary` (done, and the IDs
     "no longer in the queue" for `notFound`), announced, and the list is invalidated. Deliver now
     and flush add "Postfix accepted the request; delivery continues in the background"; flush adds
     "Held messages stay on hold". `504 outcome-unknown` says so and refreshes the list without

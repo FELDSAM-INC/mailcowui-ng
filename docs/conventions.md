@@ -127,8 +127,9 @@ it.
     `edit.mailbox_quota_def`, list column `mailbox_defquota`; API `defaultMailboxQuota`). The owner
     calls it an upstream leftover since templates carry the mailbox quota (2026-10-18). It is left
     off the domain create and edit forms, the domain template forms and the domain list. The new
-    mailbox form takes its quota from the mailbox template, never from the domain. The API lowers
-    an unsent default to the maximum, so a hidden field never blocks a save;
+    mailbox form takes its quota from the mailbox template, never from the domain. The API no
+    longer has the field at all; it keeps the upstream column valid for the classic interface
+    internally;
   - the password repeat field wherever legacy has one;
   - legacy's tabs, groups and field order: a legacy tab becomes one section, never several, and
     settings keep legacy's tab structure;

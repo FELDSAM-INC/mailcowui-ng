@@ -969,14 +969,16 @@ reload.
 
 **Purpose**: Cross-story verification, budgets, documentation and release readiness.
 
-- [ ] T144 [P] Write and pass `tests/e2e/shell/reflow-and-motion.spec.ts`. Every screen and dialog of this feature:
+- [X] T144 [P] Write and pass `tests/e2e/shell/reflow-and-motion.spec.ts`. Every screen and dialog of this feature:
   - has no horizontal scroll at 320 px and at the equivalent of 400 % zoom (320 CSS px on a 1280 px desktop);
   - works in landscape on the mobile projects;
   - never hides the focused element behind the sticky header (WCAG 2.4.11);
   - runs no transition under `prefers-reduced-motion: reduce` (FR-080, FR-083, FR-085, SC-005).
 
   Add `tests/e2e/shell/keyboard-only.spec.ts`: each user story's main path completed with the keyboard alone, with no pointer events and focus visible at every step (SC-004).
-- [ ] T145 [P] Write and pass `tests/e2e/shell/storage-and-secrets.spec.ts`. After the US1, US2, US4, US6 and US7 flows:
+
+  *Implementation note*: 17 screens and dialogs are checked at 320 px, in landscape (mobile) or at 320 CSS px (desktop, 400 % zoom), and for transitions under reduced motion; focus visibility under the sticky header is checked by tabbing through the three long lists. The keyboard-only spec covers the main path of each story, including the second factor.
+- [X] T145 [P] Write and pass `tests/e2e/shell/storage-and-secrets.spec.ts`. After the US1, US2, US4, US6 and US7 flows:
   - `localStorage` and `sessionStorage` hold only the keys of data-model §4;
   - no value contains a password, code, token, secret or username;
   - `history.state` holds no secret (constitution V, FR-066, FR-091);

@@ -18,6 +18,8 @@ export interface MockOauth2Client {
   activeRefreshTokens: number
   /** Changes with every stored change; the version tag is derived from it. */
   version: number
+  /** A bulk action answers `failed` for this client (a server error of one item). */
+  failsInBulk?: boolean
 }
 
 export const OAUTH2_CAPABILITIES: Oauth2ClientCapabilities = {
@@ -53,7 +55,7 @@ export function mockOauth2Client(overrides: Partial<MockOauth2Client> & { id: nu
 }
 
 export function oauth2ClientEtag(client: MockOauth2Client): string {
-  const { activeAccessTokens: _a, activeRefreshTokens: _r, ...stored } = client
+  const { activeAccessTokens: _a, activeRefreshTokens: _r, failsInBulk: _f, ...stored } = client
   return `"o${createHash('sha256').update(JSON.stringify(stored)).digest('hex').slice(0, 23)}"`
 }
 

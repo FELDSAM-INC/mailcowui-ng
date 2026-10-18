@@ -81,6 +81,39 @@ export const queryKeys = {
     log: (id: number) => ['sync-jobs', 'log', id] as const,
     capabilities: () => ['sync-jobs', 'capabilities'] as const,
   },
+  // UI 004 (data-model §3): the feature's capabilities, and one prefix per area.
+  capabilities: {
+    aliases: () => ['capabilities', 'aliases'] as const,
+  },
+  aliases: {
+    all: () => ['aliases'] as const,
+    lists: () => ['aliases', 'list'] as const,
+    list: (params: AliasListParams) => ['aliases', 'list', params] as const,
+    detail: (id: number) => ['aliases', 'detail', id] as const,
+  },
+  aliasDomains: {
+    all: () => ['alias-domains'] as const,
+    lists: () => ['alias-domains', 'list'] as const,
+    list: (params: AliasDomainListParams) => ['alias-domains', 'list', params] as const,
+    detail: (name: string) => ['alias-domains', 'detail', name] as const,
+    /** The alias-domain group of the alias list's domain filter (searched, paged). */
+    options: (q: string) => ['alias-domains', 'options', { q }] as const,
+  },
+  resources: {
+    all: () => ['resources'] as const,
+    lists: () => ['resources', 'list'] as const,
+    list: (params: ResourceListParams) => ['resources', 'list', params] as const,
+    detail: (address: string) => ['resources', 'detail', address] as const,
+  },
+  senderSettings: {
+    all: () => ['sender-settings'] as const,
+    detail: (mailbox: string) => ['sender-settings', 'detail', mailbox] as const,
+  },
+  senderPermissionCandidates: (params: {
+    mailbox: string
+    q: string
+    type: SenderPermissionCandidateParams['type']
+  }) => ['sender-permission-candidates', params] as const,
   domainTemplates: {
     all: () => ['domain-templates'] as const,
     lists: () => ['domain-templates', 'list'] as const,

@@ -15,6 +15,8 @@ import {
   type Identity,
 } from '@/api'
 
+import { clearAllDrafts } from '@/shared/composables/useFormDraft'
+
 import { sessionContext, type SessionContext } from './context'
 import { anonymousSession, cachedSession } from './queries'
 import { goToSignIn } from './session-end'
@@ -38,6 +40,8 @@ export async function signOut(ctx: SessionContext): Promise<SignOutResult> {
 
   const store = useSessionStore()
   const idleTimeout = cachedSession(ctx.queryClient)?.idleTimeout ?? store.idleTimeout
+  // UI 004 (research R10): a sign-out discards every kept form draft.
+  clearAllDrafts()
   ctx.queryClient.clear()
   ctx.queryClient.setQueryData(queryKeys.session(), anonymousSession(idleTimeout))
   store.reset()

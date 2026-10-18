@@ -3,6 +3,7 @@
 // sign-out there ends the session here. As a fallback, an identity refresh that reports another
 // account discards the previous account's data.
 import { onActivity, queryKeys, type Identity } from '@/api'
+import { setDraftOwner } from '@/shared/composables/useFormDraft'
 
 import type { SessionContext } from './context'
 import { identityQuery, isSignedIn, sessionQuery } from './queries'
@@ -38,6 +39,9 @@ export function watchIdentityChanges(ctx: SessionContext): () => void {
     }
     if (event.type !== 'updated' || event.action.type !== 'success') return
     const next = event.action.data as Identity
+    // UI 004 (research R10): the draft registry follows the signed-in account; another account's
+    // drafts are discarded.
+    setDraftOwner(next.username)
     const changed = known && (known.username !== next.username || known.role !== next.role)
     known = { username: next.username, role: next.role }
     if (!changed) return

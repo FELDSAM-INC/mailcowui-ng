@@ -201,13 +201,13 @@ accepts the new entry forms.
 
 ### Query keys and problem mapping
 
-- [ ] T010 [P] Write `tests/unit/api/query-keys-004.spec.ts`:
+- [X] T010 *(done: tests/unit/api/query-keys-004.spec.ts)* [P] Write `tests/unit/api/query-keys-004.spec.ts`:
   - the key shapes of data-model §3: `['capabilities','aliases']`; the `aliases`, `alias-domains`,
     `resources` and `sender-settings` list and detail keys; `['alias-domains','options',{q}]`;
     `['sender-permission-candidates',{mailbox,q,type}]`;
   - parameters typed from the generated operations;
   - prefix invalidation, so that `['aliases']` matches the list and the detail keys.
-- [ ] T011 Extend `src/api/query/keys.ts` so that T010 passes.
+- [X] T011 *(done: capabilities.aliases, aliases, aliasDomains (with options(q)), resources, senderSettings and senderPermissionCandidates in src/api/query/keys.ts)* Extend `src/api/query/keys.ts` so that T010 passes.
 - [X] T012 *(done: tests/unit/i18n/problems-004.spec.ts)* [P] Write `tests/unit/i18n/problems-004.spec.ts` (research R17, FR-068, SC-005):
   - **Form-context lookup order**: `<formKey>.errors.<field>.<code>.<param>.<value>`, then
     `<formKey>.errors.<field>.<code>`, then `validation.<code>.<param>.<value>`, then
@@ -333,7 +333,7 @@ accepts the new entry forms.
 
 ### New shared blocks (research R3, R8–R10)
 
-- [ ] T019 [P] Write `tests/unit/shared/validation/entry-list.spec.ts` and
+- [X] T019 [P] Write `tests/unit/shared/validation/entry-list.spec.ts` and
   `tests/unit/shared/composables/useSequentialCreate.spec.ts`:
   - `parseEntryList` (data-model §2):
     - splits on `,`, `;`, any whitespace and new lines, and trims;
@@ -348,9 +348,9 @@ accepts the new entry forms.
     - a network failure stops the run and marks the rest `notProcessed`;
     - the pending state and progress ("2 of 3") are exposed;
     - nothing is retried.
-- [ ] T020 Implement `src/shared/validation/entry-list.ts` and
+- [X] T020 *(done: src/shared/validation/entry-list.ts (parseEntryList, isCatchAll, joinEntries) and src/shared/composables/useSequentialCreate.ts (stopProblem exposes the refusal or network failure that stopped the run))* Implement `src/shared/validation/entry-list.ts` and
   `src/shared/composables/useSequentialCreate.ts` so that T019 passes.
-- [ ] T021 [P] Write `tests/unit/shared/components/EntryListField.spec.ts`:
+- [X] T021 [P] Write `tests/unit/shared/components/EntryListField.spec.ts`:
   - a labelled textarea with a hint, `autocapitalize="none"`, `autocorrect="off"` and
     `spellcheck="false"`;
   - the parsed entries listed as text, with an optional per-entry marker such as "Catch-all";
@@ -358,14 +358,14 @@ accepts the new entry forms.
     `aria-describedby`, and summarised;
   - a read-only mode;
   - wrapping of 254-character entries without horizontal overflow.
-- [ ] T022 Implement `src/shared/components/EntryListField.vue` on UI 001's `FormField` so that T021
+- [X] T022 *(done: EntryListField shows the marked entries (Catch-All) and the entries with errors under the textarea, not every parsed entry, because the classic form shows no parsed list (legacy form map); label and help are slots for legacy texts with markup)* Implement `src/shared/components/EntryListField.vue` on UI 001's `FormField` so that T021
   passes.
-- [ ] T023 [P] Write `tests/unit/shared/composables/useFormDraft.spec.ts` (data-model §4):
+- [X] T023 [P] Write `tests/unit/shared/composables/useFormDraft.spec.ts` (data-model §4):
   - the draft is saved under `fullPath#formId` when the form unmounts while the session ended;
   - it is restored only for the same username;
   - it is cleared by `clearAllDrafts()`, on account change, after a save and on discard;
   - nothing is written to `localStorage` or `sessionStorage`.
-- [ ] T024 Implement `src/shared/composables/useFormDraft.ts`, and call `clearAllDrafts()` and
+- [X] T024 *(done: markSessionEnded() in session-end.ts, clearAllDrafts() in sign-out.ts, setDraftOwner() on every identity read in cross-tab.ts (another account clears the drafts))* Implement `src/shared/composables/useFormDraft.ts`, and call `clearAllDrafts()` and
   `setDraftOwner()` from `src/app/session/sign-out.ts`, `src/app/session/session-end.ts` and
   `src/app/session/cross-tab.ts`, so that T023 passes.
 

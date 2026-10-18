@@ -4,6 +4,8 @@
 // anti-forgery token is fetched for the new anonymous session.
 import { clearCsrfToken, queryKeys, refreshCsrfToken } from '@/api'
 
+import { markSessionEnded } from '@/shared/composables/useFormDraft'
+
 import { acceptReturnTo } from '../router/return-to'
 import { isAuthFlowRoute } from '../router/route-kinds'
 import type { SessionContext } from './context'
@@ -32,6 +34,8 @@ async function run(ctx: SessionContext, options: EndSessionOptions): Promise<voi
   const session = cachedSession(ctx.queryClient)
   if (session?.state === 'anonymous') return
 
+  // UI 004 (research R10): forms that unmount now keep their input for the same account.
+  markSessionEnded()
   const store = useSessionStore()
   const current = ctx.router.currentRoute.value
   const returnTo = isAuthFlowRoute(current) ? null : acceptReturnTo(current.fullPath, ctx.router)

@@ -1205,7 +1205,7 @@ specification unless stated.
 temporary-alias domains in the mailbox context, and the connection profiles with the client
 configuration) were added to API feature 005 by orchestrator decision and are now API FR-080 to
 FR-083 (contract commit `3207925`). Gaps found while planning are listed in
-[plan.md](./plan.md#api-dependency-and-gaps): the bulk TLS version tag (G1) blocks only the bulk
+[plan.md](./plan.md#api-dependency-and-gaps): the bulk TLS version tag (AG1) blocks only the bulk
 TLS action; the others do not block this feature.
 
 ### Key Entities *(include if feature involves data)*

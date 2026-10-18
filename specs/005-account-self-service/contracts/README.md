@@ -18,9 +18,11 @@ operations it calls and how it reacts to their problem types.
 | Operations in the bundle | 376 (all features 001–013); UI 005 calls the ones listed below |
 | `KnownProblemType` | under `components.schemas` at the baseline, so `knownProblemTypeValues` is generated (closes UI 001's API gap 5) |
 
-**Pin rule** (research R2): the setup task runs `scripts/contract/bump.sh` with the baseline commit,
-or with a later commit when it is newer than the pin UI 002–004 left in `contract/VERSION.json` or
-contains the fix of API gap G1 or G2 (plan). It never pins an older commit than the current one.
+**Pin rule** (research R2, `docs/conventions.md` "Contract pins"): pins only move forward. The setup
+task runs `scripts/contract/bump.sh` with the baseline commit, or with a later commit when it is newer
+than the pin UI 002–004 left in `contract/VERSION.json` or contains the fix of API gap AG1 or AG2
+(plan). It diffs `api/` between the baseline and the chosen pin and checks every operation below for
+changes before accepting it.
 After the bump: `npm run typecheck`, `npm run test:unit`, `npm run test:e2e` and `npm run
 i18n:check`, translating every value the check reports (research R23).
 
@@ -89,7 +91,7 @@ Not called: `getOwnSecondFactor` and `getTemporaryAlias`.
 | `getCsrfToken`, `getSession`, `getIdentity` | 001 | bootstrap, guard, refetch after forced actions and the reset |
 | `createPasskeyRegistrationOptions`, `registerPasskey` | 001 | the passkey option of the forced second-factor setup (`usePasskeyRegistration`) |
 | `listAuditEvents` with `targetType`/`targetId` | 001 + 002 | History and the self-service labels |
-| `listMailboxes` | 003 | the mailbox picker of the filter form (through UI 003/004's picker) |
+| `listMailboxes` | 003 | `MailboxSearchPicker` in the filter form |
 
 ## Problem types and the app's response
 
@@ -111,7 +113,7 @@ handled by UI 001 keep 001's behaviour unless noted.
 | `groupware-disabled` | 403 | Explain; hide webmail, resets and the full profile; refetch capabilities (FR-088) |
 | `temporary-failure` | 503 | Name the `dependency` in plain words with "Try again" and the `Retry-After` countdown (FR-020) |
 | `temporary-verification-failure` | 503 | "The Yubico verification service is unavailable", retry (enrolment and reset) |
-| `second-factor-required` | 401 | Reset completion only: show the second-factor step with `methods` (`meta.sessionReactions: false`); elsewhere 001's behaviour |
+| `second-factor-required` | 401 | Reset completion only: show the second-factor step with `methods` (a `useSecretRequest` call with `sessionReactions: false`); elsewhere 001's behaviour |
 | `second-factor-failed` | 401 | Reset completion: stay on the factor step, retry while the link is valid |
 | `second-factor-unavailable` | 403 | Reset: "ask an administrator to reset your second factors" |
 | `too-many-requests` | 429 | Countdown from `retryAfter`, action disabled (wrong current passwords, reset requests, checks, completions) |

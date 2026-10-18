@@ -64,7 +64,7 @@ Start `npm run preview:mock`, open `http://localhost:4173/ng/` and choose a scen
 | US5 | `mailbox-webmail-redirect` | Sign in from the sign-in screen; sign out; open `/ng/account/filters` and sign in | Webmail opens in the same tab; the second time the filters page opens (US5-AS4) |
 | US6 | `temporary-aliases-many` | Generate "Shop" for one year; select two and "Expire in 1 week" with one failing | The new address with a copy button; per-alias results, the failed one stays selected (US6-AS2, AS3) |
 | US7 | `mailbox-account` | Tagging "In subject"; TLS switches; Pushover with a 29-character token; save, verify, remove | Saved on change and announced; warning always visible; token error; verdict announced; "not configured" (US7-AS1 to AS6) |
-| US7 | `mailbox-list-tls` (admin) | Mailbox list › select 30 › TLS enforcement › outbound on | "29 changed, 1 not found" (US7-AS7; needs API gap G1 closed) |
+| US7 | `mailbox-list-tls` (admin) | Mailbox list › select 30 › TLS enforcement › outbound on | "29 changed, 1 not found" (US7-AS7; needs API gap AG1 closed) |
 | US8 | `recent-logins` | Period 1 month; filter IMAP; clear | Older entries appear; "internal" labels; empty after clearing (US8-AS1 to AS4) |
 | US9 | `mailbox-account` | Mail app setup: copy values; download both profiles, the second with a new app password | Copy announced; POP3 note; downloads; the app password appears in App passwords (US9-AS1 to AS4) |
 | US10 | `filters-many` (admin) | Mail setup › Filters › create with a syntax error; check; fix; activate a second prefilter | Parser message on the script; the warning names the other prefilter (US10-AS1, AS2) |

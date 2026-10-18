@@ -16,15 +16,19 @@ description: "Task list for UI feature 005: account self-service"
 - UI features 001 to 004 are implemented (plan, "Dependencies on earlier features"). In particular:
   - UI 001's shell, guard, session reactions, pending-actions screen, second-factor step, passkeys,
     audit log and shared primitives;
-  - UI 002's bulk selection, per-item runner, `ConfirmDialog` typed confirmation, `EditableSection`,
-    `HistoryLink` and the audit target filters;
-  - UI 003's mailbox detail and list with their extension points (research R5), password generator
-    and byte formatter;
-  - UI 003's or UI 004's mailbox picker.
+  - UI 002's `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with
+    `requireTyped`, `EditableSection`, `HistoryLink` with the audit target filters, `useLeaveGuard`,
+    `formatBytes`, `src/i18n/coverage.json` and the `stripMarkup` import;
+  - UI 003's mailbox detail and list with their designated action areas (`sections.ts`, `routes.ts`,
+    `MailboxSectionNav.vue`, `ManagedSettingsGroup.vue`, `MailboxBulkActions.vue`, `bulk.ts`;
+    research R5), and its password field, hints, generator and policy rules;
+  - UI 004's `src/shared/validation/utf8.ts` and promoted `DomainPicker`.
+- Names follow `docs/conventions.md` ("Shared building blocks and canonical names"). Requests that
+  carry or return secrets never go through TanStack Query (research R13); no task adds polling.
 - The mailcow-rest-v2 feature 005 contract is merged (pin in contracts/README.md). The smoke tasks
   also need API 005 running in the API dev stack.
 - When a piece named in research R1 is missing, the task that first needs it creates it at that
-  path, never as a feature-local copy.
+  path, never as a renamed or feature-local copy.
 
 **Tests**: Mandatory (constitution VI, test-first). In every phase, tests are written first and must
 fail before the implementation tasks that follow them. Every end-to-end spec:
@@ -53,16 +57,15 @@ be implemented and tested on its own once the foundation is in place.
 **Purpose**: Pin the contract with API feature 005, extend the i18n tooling, the contract
 validator and the test helpers this feature needs (research R2, R23, R24).
 
-- [ ] T001 Bump the contract pin (research R2): run `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9`, or a later mailcow-rest-v2 commit when the pin in `contract/VERSION.json` is already newer or a later commit contains the fix of API gap G1 or G2. Never pin an older commit than the current one. This rewrites `contract/openapi.yaml`, `contract/openapi.json`, `contract/VERSION.json` and `src/api/generated/schema.ts`. Confirm that the bundle contains the 51 operations of `api/modules/self-service/` and `knownProblemTypeValues`. Run `npm run typecheck` and fix the type errors the bump causes in existing code. Record the pinned commit, sha256 and operation count in `specs/005-account-self-service/contracts/README.md` when they differ from the baseline.
+- [ ] T001 Bump the contract pin (research R2): run `scripts/contract/bump.sh 32079252d55797d3da4e58ae661e9fb91c51c6f9`, or a later mailcow-rest-v2 commit when the pin in `contract/VERSION.json` is already newer or a later commit contains the fix of API gap AG1 or AG2. Pins only move forward: never pin an older commit than the current one. Diff `api/` between the baseline and the chosen commit and check every operation listed in `specs/005-account-self-service/contracts/README.md` for changes before accepting it. This rewrites `contract/openapi.yaml`, `contract/openapi.json`, `contract/VERSION.json` and `src/api/generated/schema.ts`. Confirm that the bundle contains the 51 operations of `api/modules/self-service/` and `knownProblemTypeValues`. Run `npm run typecheck` and fix the type errors the bump causes in existing code. Record the pinned commit, sha256 and operation count in `specs/005-account-self-service/contracts/README.md` when they differ from the baseline.
 - [ ] T002 Extend `tests/unit/scripts/i18n-tools.spec.ts` with failing cases (research R23):
-  - a `legacy-map.json` entry `{ "key": "…", "html": "plain" }` is imported with `<br>` turned into a line break, `b strong i em u small code p` unwrapped, one `<a href="…">text</a>` turned into `{link}` with the anchor text written to the sibling key `<appKey>Link`;
-  - other tags, two anchors, and HTML in a plain (string) entry are refused;
+  - a UI 002 `stripMarkup` entry with `"linkSlot": true` (`{ "from": "tfa.api_register", "stripMarkup": true, "linkSlot": true }`) turns its single `<a href="…">text</a>` into `{link}` and writes the anchor text to the sibling key `<appKey>Link`; a second anchor is refused; without `linkSlot` UI 002's behaviour is unchanged;
   - a key whose `en-gb` value has plural choices must have exactly three choices in `cs-cz` and `sk-sk`;
-  - the check derives problem types from `knownProblemTypeValues` when present, and requires labels for the enumeration arrays `OwnSecondFactorType`, `AppPasswordProtocol`, `MailboxTaggedMailHandling` and `SieveFilterKind`.
+  - the enumerations this feature introduces into the UI are fully required (outside UI 002's coverage manifest): `OwnSecondFactorType`, `AppPasswordProtocol`, `MailboxTaggedMailHandling` and `SieveFilterKind`.
 - [ ] T003 Implement T002 in `scripts/i18n/lib.mjs`, `scripts/i18n/import-legacy.mjs` and `scripts/i18n/check.mjs`, so that T002 passes.
-- [ ] T004 Make `npm run i18n:check` pass at the new pin: add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, through `src/i18n/legacy-map.json` where a legacy text has the same meaning, every key the check now requires:
-  - `problem.<name>` for the feature 005 types `current-password-incorrect`, `password-managed-externally`, `password-reset-unavailable`, `invalid-reset-token`, `second-factor-enrolment-expired`, `second-factor-enrolment-failed`, `last-second-factor`, `second-factor-required-by-policy`, `push-notifications-not-configured`, `groupware-disabled`, and any other type of the pin not yet translated;
-  - `validation.<code>` for `preHashedPassword`, `sieveSyntax` and any other untranslated `ValidationRuleCode`, and `validation.format.{email,pushoverCredential,soundName,digits}`;
+- [ ] T004 Append the values this feature translates to UI 002's coverage manifest `src/i18n/coverage.json` (UI 002 D2), and add their keys to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, through `src/i18n/legacy-map.json` where a legacy text has the same meaning, so that `npm run i18n:check` passes at the new pin:
+  - `problem.<name>` for the feature 005 types `current-password-incorrect`, `password-managed-externally`, `password-reset-unavailable`, `invalid-reset-token`, `second-factor-enrolment-expired`, `second-factor-enrolment-failed`, `last-second-factor`, `second-factor-required-by-policy`, `push-notifications-not-configured` and `groupware-disabled` (and `temporary-failure`, `permission-flag-required` unless listed);
+  - `validation.<code>` for `preHashedPassword`, `sieveSyntax`, `secretRequired`, `mutuallyExclusive` and `invalidRegex` unless listed, and `validation.format.{email,pushoverCredential,soundName,digits}`;
   - `auditLog` labels for the 23 self-service `AuditEventType` values, the 12 self-service `AuditTarget.type` values and the 10 new `AuditFailureReason` values (research R22);
   - labels for every value of `OwnSecondFactorType`, `AppPasswordProtocol`, `MailboxTaggedMailHandling` and `SieveFilterKind`.
 
@@ -71,8 +74,8 @@ validator and the test helpers this feature needs (research R2, R23, R24).
 - [ ] T006 Implement T005 in `tests/mocks/contract/validator.ts`: non-JSON response bodies validated against their documented string schema, and every header the operation's response declares as `required` checked, so that T005 passes.
 - [ ] T007 [P] Write `tests/unit/support/totp.spec.ts` with the RFC 6238 SHA-1 test vectors (six digits, 30-second steps) and a ±1-step verification. The test must fail.
 - [ ] T008 Move `tests/smoke/fixtures/totp.ts` to `tests/support/totp.ts`, add `verifyTotp(secret, code, now, window = 1)`, and update the imports of UI 001's smoke specs, so that T007 passes (research R24).
-- [ ] T009 [P] Write `tests/unit/i18n/plural.spec.ts`: `cs-cz` and `sk-sk` choose the first form for 1, the second for 2–4 and the third for 0 and 5 or more; `en-gb` keeps vue-i18n's default. If UI 002 or 003 already ship these rules and their test, extend that test instead. The test must fail if the rules are missing.
-- [ ] T010 Register the `pluralRules` for `cs-cz` and `sk-sk` in `src/i18n/index.ts` (only if UI 002 or 003 did not), so that T009 passes.
+- [ ] T009 [P] Write `tests/unit/i18n/plural.spec.ts`: `cs-cz` and `sk-sk` choose the first form for 1, the second for 2–4 and the third for 0 and 5 or more; `en-gb` keeps vue-i18n's default. UI 002–004 do not ship these rules. The test must fail.
+- [ ] T010 Register the `pluralRules` for `cs-cz` and `sk-sk` in `src/i18n/index.ts`, so that T009 passes.
 
 **Checkpoint**: The new pin is vendored, `npm run typecheck`, `npm run contract:check`, `npm run
 i18n:check` and the existing unit and end-to-end suites pass.
@@ -120,10 +123,10 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - an unreadable capabilities read.
 
   Assert `ownVisibility` (`visible`, `hidden`, `replaced`, `unknown`) and `mailboxAccess` (`change`, `readOnly` with the flag, `hidden`) (FR-002 to FR-004, SC-009).
-- [ ] T015 [P] Write `tests/unit/shared/password/policy.spec.ts` and `tests/unit/shared/password/generate.spec.ts` (research R7):
+- [ ] T015 [P] Move UI 003's unit tests of `src/features/mailboxes/password/{policy-rules,generate}.ts` to `tests/unit/shared/password/policy-rules.spec.ts` and `tests/unit/shared/password/generate.spec.ts`, retargeted to `src/shared/password/`, and extend them (research R7):
   - policy: length counted in UTF-8 bytes (`ä` counts 2); letters `[A-Za-z]`, digits, special (any other character), mixed case; the minimum length always listed and class rules only when required; `missingCharacterClass` values `letter`, `digit`, `special`, `lowerAndUpper` and `tooShort` mapped to rules;
   - generator: at least 16 characters or the policy minimum when longer; at least one lower-case letter, upper-case letter and digit; a special character from the small set only when required; no `0 O 1 l I`; `crypto.getRandomValues` used (stubbed); every generated password meets the policy it was generated for.
-- [ ] T016 [P] Write `tests/unit/shared/components/password-fields.spec.ts` for `PasswordInput.vue`, `NewPasswordFields.vue` and `PasswordPolicyChecklist.vue` (FR-022 to FR-025):
+- [ ] T016 [P] Write `tests/unit/shared/components/password-fields.spec.ts` for `src/shared/components/password/PasswordField.vue` and `PasswordPolicyHints.vue` (UI 003's, moved; their UI 003 cases included) and the new `NewPasswordFields.vue` (FR-022 to FR-025):
   - the show/hide button has `aria-pressed` and a label;
   - `autocomplete`: `current-password` on the current field, `new-password` on both new fields, and a hidden read-only `username` field holding the account address;
   - the confirmation mismatch is reported before submit with legacy `danger.password_mismatch`;
@@ -132,10 +135,10 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - server errors `tooShort`, `missingCharacterClass` and `preHashedPassword` appear on the field and mark the matching rule;
   - submission is never blocked by the checklist.
 - [ ] T017 [P] Write `tests/unit/shared/components/secrets.spec.ts`. Move UI 001's `tests/unit/features/api-keys/ApiKeySecretDialog.spec.ts` cases into it, retargeted to `OneTimeSecretDialog.vue`, plus: the optional `username` above the secret; `grouped` rendering through `GroupedSecret.vue`; `CopyButton.vue` announcing success and failure; a failed copy keeping the value visible and selected (FR-111); `GroupedSecret.vue` rendering groups of four with visually hidden separators and copying the raw value (FR-113).
-- [ ] T018 [P] Write `tests/unit/shared/composables/useSecretMutation.spec.ts` (research R13): the sink receives the secret member, the mutation's `data` lacks it, `gcTime` is 0, and after resolution no entry of the query cache or the mutation cache contains the secret string.
+- [ ] T018 [P] Write `tests/unit/shared/composables/useSecretRequest.spec.ts` (research R13): the client is called directly; `pending`, `problem` and the result live in component state only; a problem is passed to `dispatchProblemReactions` with the given `sessionReactions` option; after a request carrying a password and returning a secret, no entry of the query cache or the mutation cache contains either. Write `tests/unit/shared/composables/usePerItemRunner.spec.ts` (research R15, data-model §2): requests sent one after another with each item's `If-Match`; `2xx` → done, `404` → notFound, `412` → outdated, `403` → refused with the problem, other statuses → failed, a network failure → "outcome unknown" without retry; progress announced; results in `BulkResultSummary`'s shape; items not done reported for re-selection.
 - [ ] T019 [P] Extend `tests/unit/api/client.spec.ts` and `tests/unit/api/query-client.spec.ts`:
   - `ApiProblem` exposes `requiredFlags`, `requiredFlagsMatch`, `dependency`, `attemptsRemaining` and `methods` from the problem body;
-  - a mutation with `meta: { sessionReactions: false }` that fails with `second-factor-required` does not trigger the session reaction;
+  - `dispatchProblemReactions(problem, { sessionReactions: false })` with `second-factor-required` does not trigger the session reaction, and the caches' `onError` hooks call the same dispatcher;
   - `permission-flag-required` invalidates `['identity']` and `['capabilities','self-service']` (research R6).
 - [ ] T020 [P] Extend `tests/unit/i18n/problems.spec.ts` (research R23):
   - `permission-flag-required` names the flag labels joined by `Intl.ListFormat`, as a conjunction for `all` and a disjunction for `any`;
@@ -158,8 +161,8 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - from `lg` up the section navigation stays visible beside the content.
 - [ ] T024 [P] Write `tests/unit/features/account/mailbox-context.spec.ts`:
   - `useAccountContext` resolves `own` (the identity's username) and `mailbox` (the route's address, lower-cased);
-  - the "Self-service" group registered in UI 003's detail lists only sections with registered routes;
-  - each section heading names the mailbox;
+  - the "Self-service" group added to UI 003's `sections.ts` and `MailboxSectionNav.vue` lists only sections whose routes are registered;
+  - `MailboxContextHeader.vue` names the mailbox in each section heading;
   - a `readOnly` section renders `ReadOnlyNotice` naming the flag;
   - groupware is hidden when disabled.
 - [ ] T025 [P] Write `tests/e2e/account/my-account-shell.spec.ts`:
@@ -170,24 +173,24 @@ section registry and visibility, the My account hub and the mailbox-context grou
 
 ### Core implementation
 
-- [ ] T026 [P] Implement `src/shared/validation/byte-length.ts`, `src/shared/password/policy.ts` and `src/shared/password/generate.ts`, so that T015 passes. If UI 003 implemented the generator or the policy hints in `src/features/mailboxes/`, move them here without behavioural change and update UI 003's imports.
-- [ ] T027 Implement `src/shared/components/password/PasswordInput.vue`, `NewPasswordFields.vue` and `PasswordPolicyChecklist.vue`, so that T016 passes. Promote the show/hide toggle of UI 001's `PasswordForm.vue` or UI 003's password field (whichever exists) into `PasswordInput.vue`, and switch those components to it without behavioural change.
+- [ ] T026 [P] Move UI 003's `src/features/mailboxes/password/generate.ts` and `policy-rules.ts` to `src/shared/password/` without behavioural change (byte lengths through UI 004's `utf8ByteLength` in `src/shared/validation/utf8.ts`), update UI 003's imports, and add what T015 extends, so that T015 and UI 003's tests pass.
+- [ ] T027 Move UI 003's `src/features/mailboxes/components/password/PasswordField.vue` and `PasswordPolicyHints.vue` to `src/shared/components/password/` (adding the `autocomplete` prop and a mode without the generator), update UI 003's imports, and create `src/shared/components/password/NewPasswordFields.vue`, so that T016 and UI 003's tests pass.
 - [ ] T028 [P] Promote `src/features/api-keys/components/ApiKeySecretDialog.vue` to `src/shared/components/OneTimeSecretDialog.vue` (001-R20; optional `username`, `grouped`, title and warning keys) and implement `src/shared/components/CopyButton.vue` and `src/shared/components/GroupedSecret.vue`. Switch `src/features/api-keys/pages/ApiKeyCreatePage.vue` to the shared dialog, delete the old component and its unit test (moved in T017). T017 and UI 001's API key end-to-end tests must pass.
-- [ ] T029 Implement `src/shared/composables/useSecretMutation.ts`, so that T018 passes, and use it for `createApiKey` in `src/features/api-keys/api.ts` (the `secret` handed to the dialog's sink).
-- [ ] T030 Extend `src/api/problem.ts` (the extension members, typed from the generated problem schemas), `src/api/query/client.ts` (the `meta.sessionReactions` opt-out; the `permission-flag-required` reaction, unless UI 003 added it) and `src/api/query/keys.ts` (the roots of data-model §3), so that T019 passes.
+- [ ] T029 Implement `src/shared/composables/useSecretRequest.ts` and `src/shared/composables/usePerItemRunner.ts` (on UI 002's `useBulkSelection` and `BulkResultSummary`), so that T018 passes. Switch `createApiKey` in `src/features/api-keys/api.ts` and `src/features/api-keys/pages/ApiKeyCreatePage.vue` to `useSecretRequest` (the secret passed straight to `OneTimeSecretDialog`, the list invalidated after success); UI 001's API key tests must pass.
+- [ ] T030 Extend `src/api/problem.ts` (the extension members, typed from the generated problem schemas), `src/api/query/client.ts` (the exported `dispatchProblemReactions(problem, { sessionReactions })` used by the caches' `onError`; the `permission-flag-required` reaction, unless UI 003 added it) and `src/api/query/keys.ts` (the roots of data-model §3), so that T019 passes.
 - [ ] T031 Extend `src/i18n/problems.ts` with the parameter handling of research R23, so that T020 passes.
 - [ ] T032 Implement `src/app/session/landing.ts` (`continueAfterSignIn()` and a hook registry), the `landingIntent` field in `src/app/session/store.ts`, and in `src/app/router/guards.ts` the `meta.public` rule and the intent changes. Then switch UI 001's landing call sites in `src/features/auth/composables/` (password and passkey sign-in), `src/features/auth/pages/SecondFactorPage.vue` and `src/features/auth/pages/PendingActionsPage.vue` to `continueAfterSignIn()`. T021, T022 and UI 001's sign-in tests must pass.
 - [ ] T033 Add the `filters` row to `src/app/navigation/catalogue.ts`: path `/filters`, label `nav.filters`, administrator ✓, domain administrator ✓, mailbox user —, delivered by 005, `status: 'placeholder'`, with classic links `/admin/mailbox` and `/domainadmin/mailbox`. Place it after `aliases`. T021 must pass.
 - [ ] T034 Implement `src/features/account/sections.ts` (data-model §2), `src/features/account/api/capabilities.ts` (`useSelfServiceCapabilities`, key `['capabilities','self-service']`, staleTime 5 min, usable signed out), and `src/features/account/composables/useAccountContext.ts` and `src/features/account/composables/useSectionAccess.ts`, so that T014 passes.
 - [ ] T035 Implement:
-  - `src/features/account/components/layout/AccountLayout.vue`, `SectionNav.vue`, `SectionCard.vue` and `ReadOnlyNotice.vue`;
+  - `src/features/account/components/layout/AccountLayout.vue`, `SectionNav.vue`, `SectionCard.vue`, `ReadOnlyNotice.vue` and `MailboxContextHeader.vue`;
   - `src/features/account/pages/AccountHomePage.vue`;
   - `src/features/account/routes.ts` with the `account` route (`meta.navEntry: 'account'`);
-  - `src/features/account/mailbox-routes.ts`, an empty list for now;
+  - `src/features/account/mailbox-routes.ts`, exporting `mailboxSelfServiceRoutes` and `mailboxSelfServiceSections` (empty for now);
   - `src/features/account/index.ts`.
 
   Register the routes in `src/app/router/routes.ts`, set the catalogue's `account` entry to `available`, add "My account" above "Passkeys" in `src/app/shell/UserMenu.vue`, and add the optional reason key to `src/app/states/NoAccessState.vue`. T023 must pass.
-- [ ] T036 Register the "Self-service" group of the mailbox context in UI 003's section registry (`src/features/mailboxes/detail-sections.ts`, or the extension point UI 003's plan named) from the `mailboxRoute` descriptors of `sections.ts`. Only sections with registered routes appear, and headings name the mailbox. T024 must pass.
+- [ ] T036 Add the "Self-service" group to UI 003's designated section list: spread `mailboxSelfServiceRoutes` into the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`, and `mailboxSelfServiceSections` into `src/features/mailboxes/sections.ts`, rendered by `src/features/mailboxes/components/display/MailboxSectionNav.vue` (UI 003 data-model §8). Only sections with registered routes appear. T024 must pass.
 - [ ] T037 Add the `account.hub.*`, `account.sections.*`, `account.readOnly.*`, `permissionFlags.*` (`appPasswds`, `spamAlias`, `filters`, `pushover`, `delimiterAction`, `tlsPolicy`, `easReset`, `sogoProfileReset`, `pwReset`), `nav.filters` and `selfService.dependency.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map legacy `mailbox.filters` and `login.mobileconfig_info` in `src/i18n/legacy-map.json`. Run `npm run i18n:import`; `npm run i18n:check` must pass, and T025 must pass.
 
 **Checkpoint**: The foundation is ready. My account opens for every role with an empty hub (no
@@ -245,7 +248,7 @@ address leads back to the screen.
 
 ### Implementation for User Story 1
 
-- [ ] T043 [US1] Implement `src/features/account/api/password.ts` (`useOwnPasswordPolicy`, `useChangeOwnPassword` with the invalidation of data-model §3) and `src/features/account/api/overview.ts` (`useOwnMailboxOverview`, key `['me','mailbox']`, staleTime 5 min). Export the password hooks from `src/features/account/index.ts` for the pending-actions screen.
+- [ ] T043 [US1] Implement `src/features/account/api/password.ts` (`useOwnPasswordPolicy`, and `changeOwnPassword()` through `useSecretRequest` with the invalidation of data-model §3) and `src/features/account/api/overview.ts` (`useOwnMailboxOverview`, key `['me','mailbox']`, staleTime 5 min). Export the password hooks from `src/features/account/index.ts` for the pending-actions screen.
 - [ ] T044 [US1] Implement `src/features/account/components/password/OwnPasswordForm.vue` and `ExternalPasswordNotice.vue`, and `src/features/account/pages/PasswordPage.vue`. Add the `account-password` route to `src/features/account/routes.ts`.
 - [ ] T045 [US1] Implement `src/features/auth/components/pending/ForcedPasswordChange.vue`, and change `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue` to the linear flow of research R8. Remove the classic link and "Check again" of the password action; continue through `continueAfterSignIn()` once no action is pending.
 - [ ] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` messages, including new plural keys for "{n} other sessions signed out" and "{n} app passwords keep working" (the latter replaces `user.change_password_hint_app_passwords`, starting from its legacy text), to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.pw_update_required`, `login.new_password`, `login.new_password_confirm`, `success.password_changed_success`, `danger.password_mismatch` and `danger.password_complexity` (the summary when the policy refuses a password) in `src/i18n/legacy-map.json`. Write the missing values: `user.pw_update_required` in cs-cz and sk-sk; `login.new_password`, `login.new_password_confirm` and `success.password_changed_success` in sk-sk. `npm run i18n:check` must pass.
@@ -333,13 +336,13 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
 
 ### Implementation for User Story 2
 
-- [ ] T053 [US2] Implement `src/features/account/api/second-factors.ts`: the list, enrolment, WebAuthn options, single and full removal with the invalidation of data-model §3 (and the `session`/`identity` refetch in a restricted session), and `startTotpEnrolment()` as a direct client call outside every cache.
+- [ ] T053 [US2] Implement `src/features/account/api/second-factors.ts`: the list query, the WebAuthn options and the single removal as TanStack operations, and `startTotpEnrolment()`, `enrolSecondFactor()` and `removeAllSecondFactors()` through `useSecretRequest` (they carry codes, keys or the current password), each with the invalidation of data-model §3 and the `session`/`identity` refetch in a restricted session.
 - [ ] T054 [US2] Implement `src/features/account/totp.ts` (`isOtpauthUri`), `src/features/account/qr-svg.ts` and `src/features/account/components/two-factor/QrCode.vue`, so that the qr-svg, QrCode and totp tests of T051 pass.
-- [ ] T055 [P] [US2] Implement `src/features/account/composables/useTotpEnrolment.ts` and `src/features/account/components/two-factor/TotpSetup.vue` (prop `requireCurrentPassword`, `GroupedSecret`, `CopyButton`, `QrCode`, `useCountdown`, leave confirmation), following research R10.
+- [ ] T055 [P] [US2] Implement `src/features/account/composables/useTotpEnrolment.ts` and `src/features/account/components/two-factor/TotpSetup.vue` (prop `requireCurrentPassword`, `GroupedSecret`, `CopyButton`, `QrCode`, `useCountdown`, UI 002's `useLeaveGuard`), following research R10.
 - [ ] T056 [P] [US2] Implement `src/features/account/composables/useSecurityKeyEnrolment.ts`, `src/features/account/components/two-factor/SecurityKeySetup.vue` and `src/features/account/components/two-factor/YubicoOtpSetup.vue` (prop `requireCurrentPassword`; the `tfa.api_register` link slot to `https://upgrade.yubico.com/getapikey/`), following research R11.
 - [ ] T057 [US2] Implement `src/features/account/components/two-factor/SecondFactorList.vue`, `SecondFactorItem.vue`, `AddSecondFactorMenu.vue` and `TurnOffTwoFactorDialog.vue`, plus `src/features/account/pages/TwoFactorPage.vue` and `src/features/account/pages/AddSecondFactorPage.vue`. Add the `account-two-factor` and `account-two-factor-add` routes to `src/features/account/routes.ts`. Export `TotpSetup`, `SecurityKeySetup` and `YubicoOtpSetup` from `src/features/account/index.ts`.
 - [ ] T058 [US2] Implement `src/features/auth/components/pending/ForcedSecondFactorSetup.vue` and integrate it into `src/features/auth/pages/PendingActionsPage.vue` (research R8): method order, the passkey through `usePasskeyRegistration`, inline enrolment without the password, then refetch and `continueAfterSignIn()`.
-- [ ] T059 [US2] Add the `account.twoFactor.*` and `auth.pendingActions.secondFactor.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: `tfa.tfa`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`, `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`, `tfa.api_register` (`html: plain`, link slot), `tfa.setup_title`, `tfa.setup_required`, `tfa.start_webauthn_validation`, `tfa.delete_tfa`, `danger.totp_verification_failed`, `danger.yotp_verification_failed`, `danger.webauthn_verification_failed` and `user.tfa_info`. Write the missing values (`tfa.setup_title` and `tfa.setup_required` in cs-cz and sk-sk; `user.tfa_info` in sk-sk). `npm run i18n:check` must pass.
+- [ ] T059 [US2] Add the `account.twoFactor.*` and `auth.pendingActions.secondFactor.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: `tfa.tfa`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`, `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`, `tfa.api_register` (`stripMarkup`, `linkSlot`), `tfa.setup_title`, `tfa.setup_required`, `tfa.start_webauthn_validation`, `tfa.delete_tfa`, `danger.totp_verification_failed`, `danger.yotp_verification_failed`, `danger.webauthn_verification_failed` and `user.tfa_info`. Write the missing values (`tfa.setup_title` and `tfa.setup_required` in cs-cz and sk-sk; `user.tfa_info` in sk-sk). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 and US2 work on their own; every forced restriction is resolved in the app
 (SC-002).
@@ -405,19 +408,19 @@ server.
   - SC-008: the token is not in storage, `history.state` or the console.
 - [ ] T064 [P] [US3] Write these unit tests:
   - `tests/unit/features/auth/reset-token.spec.ts`: `beforeEnter` moves the token from `?token=` or `#token=` into the holder and returns the route without query and hash with `replace: true`; the holder is read once and cleared;
-  - `tests/unit/features/auth/usePasswordReset.spec.ts`: the state machine of data-model §7, `meta.sessionReactions: false` on the completion, and the session-end clean-up without redirect;
+  - `tests/unit/features/auth/usePasswordReset.spec.ts`: the state machine of data-model §7, the token-carrying requests made through `useSecretRequest` (never TanStack Query), `sessionReactions: false` on the completion, and the session-end clean-up without redirect;
   - `tests/unit/features/auth/ForgotPasswordLink.spec.ts`: hidden while loading, on error and when unavailable;
   - `tests/unit/features/account/RecoveryEmailForm.spec.ts`.
 - [ ] T065 [P] [US3] Add to `tests/smoke/account-credentials.smoke.spec.ts` (serial, `@local-stack`): `alice@example.org` sets a recovery address and signs out; a reset is requested; the token is read from the dev database by `tests/smoke/fixtures/reset-token.ts` (`docker compose exec` on `$MAILCOW_REST_V2_DIR`); the link is opened and completed with a TOTP code; alice signs in with the new password and restores the old one in My account.
 
 ### Implementation for User Story 3
 
-- [ ] T066 [US3] Implement `src/features/account/api/recovery-email.ts`, `src/features/account/components/recovery/RecoveryEmailForm.vue` and `src/features/account/pages/RecoveryEmailPage.vue`. Add the `account-recovery-email` route to `src/features/account/routes.ts`.
-- [ ] T067 [US3] Implement `src/features/auth/reset-token.ts`, the reset mutations in `src/features/auth/api.ts` (with `meta.sessionReactions: false`) and `src/features/auth/composables/usePasswordReset.ts`.
+- [ ] T066 [US3] Implement `src/features/account/api/recovery-email.ts` (the read as a query, the replacement through `useSecretRequest` because it carries the current password), `src/features/account/components/recovery/RecoveryEmailForm.vue` and `src/features/account/pages/RecoveryEmailPage.vue`. Add the `account-recovery-email` route to `src/features/account/routes.ts`.
+- [ ] T067 [US3] Implement `src/features/auth/reset-token.ts`, the reset requests in `src/features/auth/api.ts` (`requestPasswordReset` as a mutation; the token check, the WebAuthn challenge and the completion through `useSecretRequest`, the completion with `sessionReactions: false`) and `src/features/auth/composables/usePasswordReset.ts`.
 - [ ] T068 [US3] Give `src/features/auth/components/TotpForm.vue`, `YubiOtpForm.vue`, `WebAuthnFactor.vue` and `OtherMethods.vue`, and `src/features/auth/composables/useSecondFactor.ts`, a `submit(proof)` callback and a challenge provider, so that the sign-in step and the reset page share them. UI 001's second-factor tests must still pass.
 - [ ] T069 [US3] Implement `src/features/auth/pages/PasswordResetRequestPage.vue`, `src/features/auth/pages/PasswordResetPage.vue` and `src/features/auth/components/ResetSignedInNotice.vue`. Add the `password-reset-request` and `password-reset` routes, with `meta.public` and the token-capturing `beforeEnter` (query or fragment), to `src/features/auth/routes.ts`.
 - [ ] T070 [US3] Implement `src/features/auth/components/ForgotPasswordLink.vue` and use it in `src/features/auth/pages/SignInPage.vue` in place of UI 001's classic `/reset-password` link. Remove the now unused reset constant from `src/app/navigation/classic-links.ts`, and update UI 001's FR-009 tests in `tests/e2e/sign-in/sign-in-screen.spec.ts` and `tests/unit/features/auth/SignInPage.spec.ts`.
-- [ ] T071 [US3] Add the `account.recoveryEmail.*` and `auth.passwordReset.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (the link text keeps UI 001's mapping of `login.forgot_password`). Map `login.reset_password`, `login.request_reset_password`, `login.invalid_pass_reset_token` (`html: plain`) and `user.password_reset_info` in `src/i18n/legacy-map.json`, and write their missing sk-sk values. `npm run i18n:check` must pass.
+- [ ] T071 [US3] Add the `account.recoveryEmail.*` and `auth.passwordReset.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (the link text keeps UI 001's mapping of `login.forgot_password`). Map `login.reset_password`, `login.request_reset_password`, `login.invalid_pass_reset_token` (`stripMarkup`) and `user.password_reset_info` in `src/i18n/legacy-map.json`, and write their missing sk-sk values. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories but app passwords work; a locked-out user recovers without the
 classic interface.
@@ -469,12 +472,12 @@ domain administrators with and without the flag.
   - US4-AS7 on `domain-admin-no-flags`: read-only list and detail without create, change or delete, and the notice naming the permission;
   - `domain-admin-account` (flag on) can manage;
   - Edge: a mailbox outside the scope shows "not found".
-- [ ] T075 [P] [US4] Write `tests/unit/features/account/AppPasswordForm.spec.ts`, `tests/unit/features/account/ProtocolCheckboxes.spec.ts`, `tests/unit/features/account/AppPasswordDetailPage.spec.ts` (regeneration through `useSecretMutation`, no secret in any cache) and `tests/unit/features/account/list-state.spec.ts` (the app password parameters of data-model §5).
+- [ ] T075 [P] [US4] Write `tests/unit/features/account/AppPasswordForm.spec.ts`, `tests/unit/features/account/ProtocolCheckboxes.spec.ts`, `tests/unit/features/account/AppPasswordDetailPage.spec.ts` (creation and regeneration through `useSecretRequest`, no secret in any cache) and `tests/unit/features/account/list-state.spec.ts` (the app password parameters of data-model §5).
 - [ ] T076 [P] [US4] Add to `tests/smoke/account.smoke.spec.ts`: alice creates the app password "Smoke" for IMAP and SMTP, sees it listed without a password, and deletes it. Create `tests/smoke/mailbox-self-service.smoke.spec.ts` (tagged `@005`): `admin` opens alice's app passwords in the mailbox context and sees the seeded entries.
 
 ### Implementation for User Story 4
 
-- [ ] T077 [US4] Implement `src/features/account/api/app-passwords.ts` (`useSecretMutation` for creation and regeneration; the invalidation of data-model §3) and the app password schema in `src/features/account/list-state.ts`.
+- [ ] T077 [US4] Implement `src/features/account/api/app-passwords.ts` (`useSecretRequest` for creation and regeneration, TanStack mutations for the other changes; the invalidation of data-model §3) and the app password schema in `src/features/account/list-state.ts`.
 - [ ] T078 [P] [US4] Implement `src/features/account/components/app-passwords/AppPasswordList.vue`, `AppPasswordCard.vue`, `AppPasswordTable.vue`, `AppPasswordFilters.vue`, `AppPasswordForm.vue` and `ProtocolCheckboxes.vue`.
 - [ ] T079 [US4] Implement `src/features/account/pages/AppPasswordsPage.vue`, `AppPasswordCreatePage.vue` and `AppPasswordDetailPage.vue` for both contexts. Add the routes `account-app-passwords`, `account-app-password-create` and `account-app-password-detail` to `src/features/account/routes.ts`, and `mailbox-app-passwords`, `mailbox-app-password-create` and `mailbox-app-password-detail` to `src/features/account/mailbox-routes.ts`.
 - [ ] T080 [US4] Add the `account.appPasswords.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `add.app_password`, `add.app_name`, `add.app_passwd_protocols`, `user.app_hint` and `success.app_passwd_added` in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
@@ -524,7 +527,7 @@ from a deep link.
 - [ ] T085 [US5] Implement `src/features/account/api/webmail.ts`, `src/features/account/composables/useWebmailHandOff.ts` and `src/features/account/components/overview/WebmailAction.vue` (research R20).
 - [ ] T086 [P] [US5] Implement `src/features/account/components/overview/MailboxOverview.vue`, `QuotaUsage.vue`, `ProtocolAccessList.vue`, `AddressLists.vue` and `MailboxHomeCard.vue`, and show the overview at the top of `src/features/account/pages/AccountHomePage.vue` for mailbox users. Sizes come from the byte formatter in `src/i18n/format.ts`; add `formatBytes` there if UI 002 or 003 did not.
 - [ ] T087 [US5] Implement `src/features/account/webmail-forwarding.ts`, register it as a landing hook in `src/app/session/landing.ts`, and show `MailboxHomeCard` for mailbox users in `src/features/home/pages/HomePage.vue`.
-- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.open_webmail_sso`, `user.direct_protocol_access` (`html: plain`) and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in) in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.open_webmail_sso`, `user.direct_protocol_access` (`stripMarkup`) and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in) in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -572,9 +575,9 @@ permanent with one failing, delete them. Repeat in the mailbox context.
 ### Implementation for User Story 6
 
 - [ ] T094 [US6] Implement `src/features/account/api/temporary-aliases.ts` (including `listTemporaryAliasDomains` with `limit: 1000`), `src/features/account/validity.ts`, and the alias schema in `src/features/account/list-state.ts`.
-- [ ] T095 [P] [US6] Implement `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`, `TemporaryAliasCard.vue`, `TemporaryAliasTable.vue`, `TemporaryAliasFilters.vue`, `GenerateAliasPanel.vue` and `ValiditySelect.vue`. Selection and outcomes use UI 002's `useBulkSelection`, per-item runner and `BulkResultSummary`.
-- [ ] T096 [US6] Implement `src/features/account/pages/TemporaryAliasesPage.vue` for both contexts. Add `account-temporary-aliases` to `src/features/account/routes.ts` and `mailbox-temporary-aliases` to `src/features/account/mailbox-routes.ts`. Link UI 003's FR-040 count of active temporary aliases to the section, through `src/features/mailboxes/detail-sections.ts`.
-- [ ] T097 [US6] Add the `account.temporaryAliases.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.spam_aliases_info` (`html: plain`) and the validity labels whose legacy meaning is unchanged (for example `user.expire_never`) in `src/i18n/legacy-map.json`, and write the missing sk-sk value of `user.spam_aliases_info`. `npm run i18n:check` must pass.
+- [ ] T095 [P] [US6] Implement `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`, `TemporaryAliasCard.vue`, `TemporaryAliasTable.vue`, `TemporaryAliasFilters.vue`, `GenerateAliasPanel.vue` and `ValiditySelect.vue`. Selection and outcomes use UI 002's `useBulkSelection`, `BulkActionBar` and `BulkResultSummary` with `usePerItemRunner` (T029).
+- [ ] T096 [US6] Implement `src/features/account/pages/TemporaryAliasesPage.vue` for both contexts. Add `account-temporary-aliases` to `src/features/account/routes.ts` and `mailbox-temporary-aliases` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entry for active temporary aliases in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
+- [ ] T097 [US6] Add the `account.temporaryAliases.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.spam_aliases_info` (`stripMarkup`) and the validity labels whose legacy meaning is unchanged (for example `user.expire_never`) in `src/i18n/legacy-map.json`, and write the missing sk-sk value of `user.spam_aliases_info`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US6 work on their own.
 
@@ -628,22 +631,22 @@ Turn each flag off and confirm the control is absent. As an administrator, enfor
   - an administrator changes tagging, TLS and Pushover of `anna@example.org` in the mailbox context;
   - on `domain-admin-no-flags`, Pushover is read-only with the notice;
   - UI 003's FR-040 summaries link to the sections;
-  - US7-AS7 on `mailbox-list-tls`: select 30 and enforce outbound TLS: "29 changed, 1 not found", the not-found mailbox stays selected, every target carries the listed version tag (`mockApi.requests()`), and an explicit confirmation precedes the request. This part depends on API gap G1 (T107).
+  - US7-AS7 on `mailbox-list-tls`: select 30 and enforce outbound TLS: "29 changed, 1 not found", the not-found mailbox stays selected, every target carries the listed version tag (`mockApi.requests()`), and an explicit confirmation precedes the request. This part depends on API gap AG1 (T107).
 - [ ] T102 [P] [US7] Write these unit tests:
   - `tests/unit/features/account/TaggedMailSetting.spec.ts` and `tests/unit/features/account/TlsPolicySetting.spec.ts`: the single-setting state machine of data-model §7;
   - `tests/unit/features/account/PushNotificationsForm.spec.ts`: write-only fields, senders parsed one per line, the stored custom sound added to the list, members omitted when empty;
   - `tests/unit/features/account/BulkTlsDialog.spec.ts`: at least one change, versions per item, the bulk limit from the capabilities.
-- [ ] T103 [P] [US7] Add to `tests/smoke/account.smoke.spec.ts`: alice switches tagged mail to "In subfolder" and back. Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` enforces outbound TLS on alice through the bulk action and turns it off again (skipped while API gap G1 is open).
+- [ ] T103 [P] [US7] Add to `tests/smoke/account.smoke.spec.ts`: alice switches tagged mail to "In subfolder" and back. Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` enforces outbound TLS on alice through the bulk action and turns it off again (skipped while API gap AG1 is open).
 
 ### Implementation for User Story 7
 
-- [ ] T104 [US7] Implement `src/features/account/api/mail-settings.ts` and `src/features/account/api/push-notifications.ts` (invalidation of data-model §3).
+- [ ] T104 [US7] Implement `src/features/account/api/mail-settings.ts` and `src/features/account/api/push-notifications.ts` (`replacePushNotificationSettings` through `useSecretRequest` because it carries the token and key; the rest as TanStack operations; invalidation of data-model §3).
 - [ ] T105 [P] [US7] Implement `src/features/account/components/mail-settings/TaggedMailSetting.vue` and `TlsPolicySetting.vue`, and `src/features/account/components/push/PushNotificationsForm.vue` and `WriteOnlySecretField.vue`.
-- [ ] T106 [US7] Implement `src/features/account/pages/MailSettingsPage.vue` (anchors `#tagged-mail`, `#tls-policy`) and `src/features/account/pages/PushNotificationsPage.vue` for both contexts. Add `account-mail-settings` and `account-push-notifications` to `src/features/account/routes.ts`, and `mailbox-mail-settings` and `mailbox-push-notifications` to `src/features/account/mailbox-routes.ts`. Link UI 003's FR-040 summaries of tagging, TLS and push notifications to them through `src/features/mailboxes/detail-sections.ts`.
-- [ ] T107 [US7] Implement `src/features/account/components/mail-settings/BulkTlsDialog.vue` and register the bulk TLS action in UI 003's mailbox list (`src/features/mailboxes/bulk-actions.ts`, or the extension point UI 003's plan named), with `applyMailboxMailSettingsBulkAction`, the listed version tag per target and `BulkResultSummary`. **Depends on API gap G1** being fixed in the pinned contract (plan). If it is still open at implementation time, leave this task open, do not omit the version tag, and register no action (owner question 2).
-- [ ] T108 [US7] Add the `account.mailSettings.*`, `account.push.*` and `account.bulkTls.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: the `user.*` tagging and TLS keys whose meaning is unchanged, `user.tls_policy_warning` (`html: plain`), `user.pushover_info` (`html: plain`, `{0}` the mailbox), the `edit.pushover_*` keys including `edit.pushover_vars` (`html: plain`), `danger.pushover_key`, `danger.pushover_token` and `danger.pushover_credentials_missing`. `npm run i18n:check` must pass.
+- [ ] T106 [US7] Implement `src/features/account/pages/MailSettingsPage.vue` (anchors `#tagged-mail`, `#tls-policy`) and `src/features/account/pages/PushNotificationsPage.vue` for both contexts. Add `account-mail-settings` and `account-push-notifications` to `src/features/account/routes.ts`, and `mailbox-mail-settings` and `mailbox-push-notifications` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entries for tagging, TLS and push notifications in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
+- [ ] T107 [US7] Implement `src/features/account/components/mail-settings/BulkTlsDialog.vue` and add the bulk TLS action to UI 003's bulk menu (`src/features/mailboxes/components/list/MailboxBulkActions.vue` and `src/features/mailboxes/bulk.ts`), with UI 002's `useBulkSelection` taking `bulkLimit` from the self-service capabilities, `applyMailboxMailSettingsBulkAction`, the listed version tag per target and `BulkResultSummary`. **Depends on API gap AG1** being fixed in the pinned contract (plan). If it is still open at implementation time, leave this task open, do not omit the version tag, and register no action (owner question 2).
+- [ ] T108 [US7] Add the `account.mailSettings.*`, `account.push.*` and `account.bulkTls.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: the `user.*` tagging and TLS keys whose meaning is unchanged, `user.tls_policy_warning` (`stripMarkup`), `user.pushover_info` (`stripMarkup`, `{0}` the mailbox), the `edit.pushover_*` keys including `edit.pushover_vars` (`stripMarkup`), `danger.pushover_key`, `danger.pushover_token` and `danger.pushover_credentials_missing`. `npm run i18n:check` must pass.
 
-**Checkpoint**: US1 to US7 work on their own (bulk TLS once G1 is fixed).
+**Checkpoint**: US1 to US7 work on their own (bulk TLS once AG1 is fixed).
 
 ---
 
@@ -720,14 +723,14 @@ with the scenario, copy each value, download each profile variant.
   - Edge: on `profile-flag-withdrawn` the refusal is explained and the option hidden;
   - Edge: an app password created by the request stays listed even when the download is cancelled.
 - [ ] T120 [P] [US9] Write these unit tests:
-  - `tests/unit/features/account/download.spec.ts`: an object URL created, a temporary `<a download>` clicked and removed, the URL revoked after one second, the file name from `Content-Disposition` with the fallback;
+  - `tests/unit/shared/platform/download.spec.ts`: an object URL created, a temporary `<a download>` clicked and removed, the URL revoked after one second, the file name from `Content-Disposition` with the fallback;
   - `tests/unit/features/account/useProfileDownload.spec.ts`: a direct client call with `parseAs: 'blob'`, nothing cached, the invalidations after the app-password variant, the problem mapping;
   - `tests/unit/features/account/ClientSetupGuide.spec.ts`: encryption labels, `null` services hidden, protocol notes.
 - [ ] T121 [P] [US9] Add to `tests/smoke/account.smoke.spec.ts`: alice downloads the e-mail profile (content type and `.mobileconfig` name), and the guide shows the IMAP host and ports.
 
 ### Implementation for User Story 9
 
-- [ ] T122 [US9] Implement `src/features/account/api/client-setup.ts`, `src/features/account/download.ts` and `src/features/account/composables/useProfileDownload.ts` (research R21).
+- [ ] T122 [US9] Implement `src/features/account/api/client-setup.ts`, `src/shared/platform/download.ts` (the canonical download helper of `docs/conventions.md`; reuse it if an earlier feature created it) and `src/features/account/composables/useProfileDownload.ts` (both profile requests through `useSecretRequest` with `parseAs: 'blob'`, research R21).
 - [ ] T123 [P] [US9] Implement `src/features/account/components/mail-apps/ClientSetupGuide.vue`, `ProtocolCard.vue` and `AppleProfileDownloads.vue`.
 - [ ] T124 [US9] Implement `src/features/account/pages/MailAppsPage.vue`, with the preselection read and removed from the address, and add the `account-mail-apps` route to `src/features/account/routes.ts`. Its section passes the `login.mobileconfig_info` reason to `NoAccessState` for other roles.
 - [ ] T125 [US9] Add the `account.mailApps.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.apple_connection_profile`, `user.apple_connection_profile_mailonly`, `user.apple_connection_profile_complete`, `user.apple_connection_profile_with_app_password`, `user.email`, `user.email_and_dav`, `user.with_app_password` and `user.client_configuration` in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
@@ -769,7 +772,7 @@ read filters and the active script.
   - US10-AS2: activating a second prefilter shows the warning naming "Spam to folder", and the list reflects the change;
   - US10-AS3: selecting filters and "Deactivate" reports a per-filter result when one fails;
   - FR-090: the filters, search and sort in the address;
-  - FR-091: creation with the mailbox picker;
+  - FR-091: creation with `MailboxSearchPicker`;
   - FR-092: the editor's attributes and its own scrolling at 360 px without page overflow;
   - FR-095: edit, switch kind and delete one and several (typed number);
   - FR-005 on `filters-domain-admin-no-flag`: read-only with the reason;
@@ -780,15 +783,15 @@ read filters and the active script.
   - US10-AS4 on `mailbox-no-active-script`: both filters read-only and "No active filter available";
   - FR-089: scripts on demand in a monospaced block with copy, and the active script with its name;
   - `active-script-unavailable` names the mail server with "Try again".
-- [ ] T129 [P] [US10] Write `tests/unit/features/filters/ScriptEditor.spec.ts` (the byte counter against `limits.sieveScriptMaxBytes`, attributes), `tests/unit/features/filters/ActivationWarning.spec.ts` (the named or general warning), `tests/unit/features/filters/FilterForm.spec.ts` and `tests/unit/features/filters/list-state.spec.ts`.
+- [ ] T129 [P] [US10] Write `tests/unit/features/filters/ScriptEditor.spec.ts` (the byte counter against `limits.sieveScriptMaxBytes`, attributes), `tests/unit/features/filters/ActivationWarning.spec.ts` (the named or general warning), `tests/unit/features/filters/FilterForm.spec.ts`, `tests/unit/features/filters/list-state.spec.ts` and `tests/unit/shared/components/MailboxSearchPicker.spec.ts` (debounced search, load more, empty and error states, keyboard, no `ComboboxViewport`).
 - [ ] T130 [P] [US10] Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` creates a postfilter for alice with an invalid script (the parser message appears), fixes and saves it, deactivates and deletes it; `reseller` lists the filters of its domains.
 
 ### Implementation for User Story 10
 
 - [ ] T131 [US10] Implement `src/features/filters/api.ts` (lists, CRUD, validation, active script, with the invalidation of data-model §3), `src/features/filters/list-state.ts` and `src/features/filters/index.ts`.
-- [ ] T132 [P] [US10] Implement `src/features/filters/components/FilterList.vue`, `FilterCard.vue`, `FilterTable.vue`, `FilterFilters.vue`, `FilterForm.vue`, `ScriptEditor.vue`, `ScriptBlock.vue`, `ActivationWarning.vue`, `ActiveScriptPanel.vue` and `FilterMailboxField.vue` (UI 003's or UI 004's mailbox picker). Selection and outcomes use UI 002's runner and summary.
+- [ ] T132 [P] [US10] Implement `src/features/filters/components/FilterList.vue`, `FilterCard.vue`, `FilterTable.vue`, `FilterFilters.vue`, `FilterForm.vue`, `ScriptEditor.vue`, `ScriptBlock.vue`, `ActivationWarning.vue`, `ActiveScriptPanel.vue` and `FilterMailboxField.vue`, and `src/shared/components/MailboxSearchPicker.vue` (canonical name; created here because no earlier-implemented feature has it, modelled on the promoted `DomainPicker`, research R19). Selection and outcomes use `useBulkSelection`, `BulkActionBar`, `usePerItemRunner` and `BulkResultSummary`.
 - [ ] T133 [US10] Implement `src/features/filters/pages/FiltersPage.vue`, `MailboxFiltersPage.vue` and `FilterFormPage.vue`, and `src/features/filters/routes.ts` (`filters`, `filter-create`, `filter-detail`). Register them in `src/app/router/routes.ts` and set the catalogue's `filters` entry to `available`. Add `mailbox-filters`, `mailbox-filter-create` and `mailbox-filter-detail` to `src/features/account/mailbox-routes.ts`. Implement `src/features/account/pages/OwnFiltersPage.vue` and add the `account-filters` route to `src/features/account/routes.ts`.
-- [ ] T134 [US10] Add the `filters.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: `mailbox.add_filter`, `mailbox.sieve_info` (`html: plain`), `mailbox.set_prefilter`, `mailbox.set_postfilter`, `add.sieve_desc`, `add.sieve_type`, `add.validate`, `add.activate_filter_warn`, `edit.validate_save`, `danger.sieve_error` (`{0}` the parser message) and `user.no_active_filter`. `npm run i18n:check` must pass.
+- [ ] T134 [US10] Add the `filters.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map in `src/i18n/legacy-map.json`: `mailbox.add_filter`, `mailbox.sieve_info` (`stripMarkup`), `mailbox.set_prefilter`, `mailbox.set_postfilter`, `add.sieve_desc`, `add.sieve_type`, `add.validate`, `add.activate_filter_warn`, `edit.validate_save`, `danger.sieve_error` (`{0}` the parser message) and `user.no_active_filter`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US10 work on their own.
 
@@ -813,12 +816,12 @@ disable webmail, and confirm the control is absent.
   - FR-088: a `groupware-disabled` refusal is explained;
   - SC-009 on `mailbox-no-reset-flags`: both resets absent;
   - an administrator resets both in the mailbox context.
-- [ ] T137 [P] [US11] Write `tests/unit/features/account/GroupwareResets.spec.ts`. If UI 002 did not add an acknowledgement option to `ConfirmDialog`, also write `tests/unit/shared/components/confirm-acknowledgement.spec.ts`: the confirm button is disabled until the box is ticked, the box is labelled, and focus behaves as in 001.
+- [ ] T137 [P] [US11] Write `tests/unit/features/account/GroupwareResets.spec.ts` and `tests/unit/shared/components/confirm-acknowledgement.spec.ts` (UI 002's `ConfirmDialog` has only `requireTyped`): the confirm button is disabled until the box is ticked, the box is labelled, and focus behaves as in 001.
 
 ### Implementation for User Story 11
 
-- [ ] T138 [US11] Implement `src/features/account/api/groupware.ts`, `src/features/account/components/groupware/GroupwareResets.vue` and `src/features/account/pages/DevicesPage.vue`. Add `requireAcknowledgement` to `src/shared/components/ConfirmDialog.vue` if UI 002 did not. Add `account-devices` to `src/features/account/routes.ts` and `mailbox-groupware` to `src/features/account/mailbox-routes.ts`.
-- [ ] T139 [US11] Add the `account.devices.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.eas_reset_help` (`html: plain`), `success.eas_reset` (`{0}` the mailbox), `success.sogo_profile_reset` (`{0}` the mailbox) and the legacy reset button labels whose meaning is unchanged in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
+- [ ] T138 [US11] Implement `src/features/account/api/groupware.ts`, `src/features/account/components/groupware/GroupwareResets.vue` and `src/features/account/pages/DevicesPage.vue`. Add `requireAcknowledgement` to UI 002's `src/shared/components/ConfirmDialog.vue`. Add `account-devices` to `src/features/account/routes.ts` and `mailbox-groupware` to `src/features/account/mailbox-routes.ts`.
+- [ ] T139 [US11] Add the `account.devices.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Map `user.eas_reset_help` (`stripMarkup`), `success.eas_reset` (`{0}` the mailbox), `success.sogo_profile_reset` (`{0}` the mailbox) and the legacy reset button labels whose meaning is unchanged in `src/i18n/legacy-map.json`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US11 work on their own.
 
@@ -847,7 +850,7 @@ types; use the History action of a mailbox's self-service group and of an app pa
 ### Implementation for User Story 12
 
 - [ ] T143 [US12] Extend `src/features/audit-log/labels.ts` (details formatting) and `src/features/audit-log/list-state.ts` (the self-service target types in the filter). Place `HistoryLink` (administrators only):
-  - on the self-service group, through `src/features/mailboxes/detail-sections.ts`;
+  - in `src/features/account/components/layout/MailboxContextHeader.vue`, so every mailbox-context section offers the mailbox's History;
   - in `src/features/account/pages/AppPasswordDetailPage.vue`;
   - on the items of `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`;
   - in `src/features/filters/pages/FilterFormPage.vue`.
@@ -888,8 +891,8 @@ types; use the History action of a mailbox's self-service group and of an app pa
   - VoiceOver and TalkBack passes.
 
   Record SC-001 to SC-004 and SC-011 to SC-013 in a "Validation log" section appended to `specs/005-account-self-service/quickstart.md`. If iOS does not open the profile installer from the blob download, record it and the Downloads fallback there (research R21).
-- [ ] T153 Run quickstart.md Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @005`, `scripts/smoke/stack-down.sh`) once API feature 005 runs in the dev stack. Confirm the status of API gaps G1 and G2 in the pinned contract and note it in the validation log.
-- [ ] T154 [P] In `docker/nginx/default.conf`, define the access log format of the `ng-mailcow` image with `$uri` instead of `$request_uri`, so that reset tokens of `/ng/reset-password?token=…` never reach its log (research R12, plan G7). Extend the CI `image` job's container check in `.github/workflows/ci.yml` to request `/ng/reset-password?token=TEST` and assert that the log line contains no `TEST`.
+- [ ] T153 Run quickstart.md Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @005`, `scripts/smoke/stack-down.sh`) once API feature 005 runs in the dev stack. Confirm the status of API gaps AG1 and AG2 in the pinned contract and note it in the validation log.
+- [ ] T154 [P] In `docker/nginx/default.conf`, define the access log format of the `ng-mailcow` image with `$uri` instead of `$request_uri`, so that reset tokens of `/ng/reset-password?token=…` never reach its log (research R12, plan AG7). Extend the CI `image` job's container check in `.github/workflows/ci.yml` to request `/ng/reset-password?token=TEST` and assert that the log line contains no `TEST`.
 
 ---
 
@@ -917,10 +920,10 @@ types; use the History action of a mailbox's self-service group and of an app pa
 | US1 | P1 | Foundational | MVP. Own password and the forced change on the pending-actions screen. |
 | US2 | P1 | Foundational; US1 for the `forced-both` case of T050 | The password step precedes the second-factor step. |
 | US3 | P1 | Foundational | Reuses UI 001's factor components (T068) and the shared password fields. |
-| US4 | P1 | Foundational | Uses `OneTimeSecretDialog` and `useSecretMutation` (T028, T029). |
+| US4 | P1 | Foundational | Uses `OneTimeSecretDialog` and `useSecretRequest` (T028, T029). |
 | US5 | P2 | Foundational | The overview handler comes from T012; section links appear when their routes exist. |
 | US6 | P2 | Foundational | UI 003's FR-040 link (T096). |
-| US7 | P2 | Foundational; API gap G1 for T107 | Bulk TLS needs the version tag fix. |
+| US7 | P2 | Foundational; API gap AG1 for T107 | Bulk TLS needs the version tag fix. |
 | US8 | P2 | Foundational | The app password link appears when US4's routes exist. |
 | US9 | P2 | Foundational; US4 for US9-AS4 | The created app password is checked in App passwords. |
 | US10 | P3 | Foundational | Flips the `filters` catalogue entry. |
@@ -934,7 +937,8 @@ Edits to these files must be serialised, even when stories run in parallel:
 - `src/features/account/routes.ts`, `src/features/account/mailbox-routes.ts` and
   `src/features/account/index.ts`: US1 to US11;
 - `src/features/account/list-state.ts`: US4, US6, US8;
-- `src/features/mailboxes/detail-sections.ts`: Foundational, US6, US7, US12;
+- UI 003's `src/features/mailboxes/routes.ts` and `sections.ts`: Foundational (T036);
+  `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`: US6, US7;
 - `src/features/account/pages/AccountHomePage.vue`: Foundational, US5;
 - `src/features/auth/pages/PendingActionsPage.vue`: Foundational (T032), US1, US2;
 - `src/features/auth/routes.ts`, `src/features/auth/api.ts`: US3;
@@ -962,7 +966,7 @@ Scenarios avoid conflicts through one module per story under `tests/mocks/scenar
 - Setup: T005, T007 and T009 in parallel with T002 after T001.
 - Foundational: T014–T025 (tests) all in parallel; T026 and T028 in parallel, then T027 and T029.
 - Stories: after Foundational, US1, US3, US4, US5, US6, US8, US10 and US11 can be staffed in
-  parallel. US2 needs US1 only for one test. US7's bulk TLS waits for G1. US9 and US12 follow the
+  parallel. US2 needs US1 only for one test. US7's bulk TLS waits for AG1. US9 and US12 follow the
   stories they depend on.
 - Within each story, every task marked [P].
 
@@ -1014,7 +1018,7 @@ Task: "T078 app-passwords components"
    account-blocking situation is resolved in the app, and users with second factors can set up mail
    clients.
 3. US5 (overview and webmail), US6 (temporary aliases), US7 (mail settings and Pushover; bulk TLS
-   once G1 is fixed), US8 (recent logins), US9 (mail app setup).
+   once AG1 is fixed), US8 (recent logins), US9 (mail app setup).
 4. US10 (filters), US11 (groupware resets), US12 (history).
 5. Polish: visibility matrix, secrets audit, reflow and keyboard, edge cases, budgets, parity,
    device validation and the smoke suite.

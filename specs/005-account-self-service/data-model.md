@@ -24,7 +24,7 @@ Generated root types, imported from `@/api` at the pin of [contracts/README.md](
 | Type | Operation(s) | Used by | Notes |
 |---|---|---|---|
 | `SelfServiceCapabilities` | `getSelfServiceCapabilities` | section visibility, limits, presets, "Forgot password?" | signed out: only `passwordReset`; sessions also get `account` |
-| `PasswordPolicy` | `getOwnPasswordPolicy`, `checkPasswordResetToken` | `PasswordPolicyChecklist` | length in UTF-8 bytes |
+| `PasswordPolicy` | `getOwnPasswordPolicy`, `checkPasswordResetToken` | `PasswordPolicyHints` | length in UTF-8 bytes |
 | `OwnPasswordChangeRequest`, `OwnPasswordChangeResult` | `changeOwnPassword` | own and forced password | `currentPassword` omitted in the forced change |
 | `OwnSecondFactor`, `OwnSecondFactorType` | `listOwnSecondFactors`, `deleteOwnSecondFactor` | two-factor section | no secret material |
 | `OwnTotpEnrolment`, `OwnTotpEnrolmentConfirmation` | `startOwnTotpEnrolment`, `enrolOwnSecondFactor` | `TotpSetup` | the enrolment is a secret: component state only |
@@ -40,11 +40,11 @@ Generated root types, imported from `@/api` at the pin of [contracts/README.md](
 | `PasswordResetTokenCheckRequest`, `PasswordResetTokenInfo` | `checkPasswordResetToken` | reset page | address, expiry, policy, methods |
 | `PasswordResetWebAuthnChallengeRequest`, `WebAuthnChallenge` | `createPasswordResetWebAuthnChallenge` | reset second factor | 001's assertion flow |
 | `PasswordResetCompletionRequest`, `PasswordResetCompleted`, `SecondFactorVerification`, `SecondFactorMethod` | `completePasswordReset` | reset page | `401 second-factor-required` carries `methods` |
-| `AppPassword`, `AppPasswordResult`, `AppPasswordCreateRequest`, `AppPasswordPatch`, `AppPasswordProtocol` | app password operations | app passwords | `generatedPassword` stripped by `useSecretMutation` |
+| `AppPassword`, `AppPasswordResult`, `AppPasswordCreateRequest`, `AppPasswordPatch`, `AppPasswordProtocol` | app password operations | app passwords | `generatedPassword` returned only to `useSecretRequest`'s caller |
 | `TemporaryAlias`, `TemporaryAliasCreateRequest`, `TemporaryAliasPatch`, `TemporaryAliasDomain` | temporary alias operations | temporary aliases | `TemporaryAliasPatch` is `lifetimeHours` or `permanent: true` |
 | `PushNotificationSettings`, `PushNotificationSettingsReplacement`, `PushNotificationVerification` | push notification operations | Pushover form | `tokenSet`, `userKeySet` |
 | `MailboxMailSettings`, `MailboxMailSettingsPatch`, `MailboxTaggedMailHandling` | `getMailboxMailSettings`, `updateMailboxMailSettings` | mail settings | `etag` covers the three settings only |
-| `MailboxMailSettingsBulkActionRequest`, `BulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `applyMailboxMailSettingsBulkAction` | bulk TLS (UI 003 list) | API gap G1 on `version` |
+| `MailboxMailSettingsBulkActionRequest`, `BulkTarget`, `BulkResult`, `BulkItemResult`, `BulkItemOutcome` | `applyMailboxMailSettingsBulkAction` | bulk TLS (UI 003 list) | API gap AG1 on `version` |
 | `RecentLogin` | `listRecentLogins`, `clearRecentLogins` | recent logins | `service` is an open string |
 | `SieveFilter`, `SieveFilterKind`, `SieveFilterCreateRequest`, `SieveFilterPatch`, `SieveScriptValidationRequest`, `SieveScriptValidationResult`, `ActiveSieveScript` | sieve operations | filters | script ≤ `sieveScriptMaxBytes` bytes |
 | `SelfServicePermissionFlagProblem`, `SelfServiceTemporaryFailureProblem`, `SecondFactorEnrolmentFailedProblem`, `PasswordResetSecondFactorRequiredProblem`, `PendingActionProblem`, `ValidationProblem` | every error | `ApiProblem` extension members (research R6) | `requiredFlags`, `requiredFlagsMatch`, `dependency`, `attemptsRemaining`, `methods` |
@@ -119,7 +119,7 @@ values within `minLifetimeHours` … `maxLifetimeHours`; the default is `default
 `IMAP`, `POP3`, `SMTP`, `SIEVE`, `EAS`, `DAV`, `SSO`, `SOGO`, `WEBUI` (contract description of
 `RecentLogin.service`); labels in `selfService.service.<code>`; an unknown code is displayed as sent.
 
-### PolicyRuleState (`src/shared/password/policy.ts`)
+### PolicyRuleState (`src/shared/password/policy-rules.ts`, UI 003's module moved)
 
 `evaluatePolicy(policy, password)` returns, in this order, `{ rule, met }` for `minLength` (always)
 and, when required, `letters`, `digits`, `special`, `mixedCase`. Length counts UTF-8 bytes; letters
@@ -141,7 +141,7 @@ the whole result `null` (research R10).
 `addressGeneration`; unknown values → `selfService.dependency.unknown`.
 `temporary-verification-failure` → "the Yubico verification service" in this feature's screens.
 
-### Per-item outcome (UI 002's runner, reused)
+### Per-item outcome (`usePerItemRunner`, `src/shared/composables/`, created by UI 005)
 
 Requests without an API bulk operation (temporary aliases, filters) map each response to the
 conventions' outcomes: `2xx` → `done`; `404` → `notFound`; `412` → `outdated`; `403` → `refused`
@@ -174,17 +174,20 @@ unknown" (never retried). Items not `done` stay selected.
 | `['sieve-filters','mailbox',<m>,params]` | `listMailboxSieveFilters` | 30 s | mailbox context, My account, activation warning | — |
 | `['sieve-filters','detail',<m>,id]` | `getSieveFilter` | 30 s | filter detail | — |
 
-Never cached: TOTP enrolments, WebAuthn options, reset token checks and completions, Apple profiles,
-webmail hand-offs and generated app passwords (research R13).
+Never cached, because they carry or return secrets and run through `useSecretRequest` outside
+TanStack Query (research R13, `docs/conventions.md`): password changes, recovery-address changes,
+second-factor enrolments, TOTP starts and full removals, the three reset steps that carry the token,
+app password creation and regeneration, Pushover replacement, and Apple profiles. Also never cached:
+WebAuthn options and webmail hand-offs.
 
-### Invalidation after mutations
+### Invalidation after mutations and secret requests
 
 | Mutation | On success | On 412 |
 |---|---|---|
 | `changeOwnPassword` | clear the fields; invalidate `['me','mailbox']`; in a restricted session refetch `session` and `identity`, then continue (§7) | — |
 | `enrolOwnSecondFactor`, `deleteOwnSecondFactor`, `removeAllOwnSecondFactors` | invalidate `['me','second-factors']` and `['capabilities','self-service']`; in a restricted session refetch `session` and `identity` | — |
 | `replaceOwnRecoveryEmail` | write `['me','recovery-email']` from the response; invalidate `['me','mailbox']` | keep the address input (not the password); refetch; "changed elsewhere" |
-| `createAppPassword`, `updateAppPassword`, `deleteAppPassword` (through `useSecretMutation`) | invalidate `…'app-passwords'` and `['me','mailbox']`; write the detail without `generatedPassword` | keep non-secret input; refetch; mark changed values (`EditableSection`); a refused deletion is confirmed again |
+| `createAppPassword`, `updateAppPassword`, `deleteAppPassword` (creation and regeneration through `useSecretRequest`) | invalidate `…'app-passwords'` and `['me','mailbox']`; write the detail without `generatedPassword` | keep non-secret input; refetch; mark changed values (`EditableSection`); a refused deletion is confirmed again |
 | `createOwnAppleProfileWithAppPassword` | invalidate `['self-service',<me>,'app-passwords']` and `['me','mailbox']` | — |
 | `createTemporaryAlias`, `updateTemporaryAlias`, `deleteTemporaryAlias` | invalidate `…'temporary-aliases'`, `['me','mailbox']`, UI 003's `['mailboxes','detail',<m>]` and `['mailboxes','list']` (active alias count) | per-item outcome `outdated`; the item stays selected |
 | `updateMailboxMailSettings` | write `…'mail-settings'`; invalidate UI 003's `['mailboxes','detail',<m>]` and `['mailboxes','list']` | refetch; apply the reloaded value; "changed elsewhere, choose again" |
@@ -213,7 +216,7 @@ webmail hand-offs and generated app passwords (research R13).
 | TOTP enrolment | `TotpSetup.vue` local `shallowRef` | until success, cancel, expiry, route leave or unmount |
 | generated app password | `OneTimeSecretDialog.vue` local state | until the dialog closes |
 | new password, codes, current password | form-local refs | cleared after submit, on session end and on unmount |
-| profile blob | local variable in `download.ts` | until the object URL is revoked (≈ 1 s) |
+| profile blob | local variable in `src/shared/platform/download.ts` | until the object URL is revoked (≈ 1 s) |
 
 ### Device storage and cross-tab messages
 
@@ -250,19 +253,20 @@ Base `/ng/`. Shell routes carry 001's `meta.navEntry`; My account routes also ca
 
 | Name | Path | Component |
 |---|---|---|
-| `mailbox-app-passwords` | `/mailboxes/:mailbox/app-passwords` | `pages/AppPasswordsPage.vue` (`context: 'mailbox'`) |
-| `mailbox-app-password-create` | `/mailboxes/:mailbox/app-passwords/new` | `pages/AppPasswordCreatePage.vue` |
-| `mailbox-app-password-detail` | `/mailboxes/:mailbox/app-passwords/:appPasswordId(\\d+)` | `pages/AppPasswordDetailPage.vue` |
-| `mailbox-temporary-aliases` | `/mailboxes/:mailbox/temporary-aliases` | `pages/TemporaryAliasesPage.vue` |
-| `mailbox-filters` | `/mailboxes/:mailbox/filters` | `@/features/filters` `MailboxFiltersPage.vue` |
-| `mailbox-filter-create` | `/mailboxes/:mailbox/filters/new` | `@/features/filters` `FilterFormPage.vue` |
-| `mailbox-filter-detail` | `/mailboxes/:mailbox/filters/:filterId(\\d+)` | `@/features/filters` `FilterFormPage.vue` |
-| `mailbox-push-notifications` | `/mailboxes/:mailbox/push-notifications` | `pages/PushNotificationsPage.vue` |
-| `mailbox-mail-settings` | `/mailboxes/:mailbox/mail-settings` | `pages/MailSettingsPage.vue` |
-| `mailbox-recent-logins` | `/mailboxes/:mailbox/recent-logins` | `pages/RecentLoginsPage.vue` |
-| `mailbox-groupware` | `/mailboxes/:mailbox/groupware` | `pages/DevicesPage.vue` (resets only) |
+| `mailbox-app-passwords` | `/mailboxes/:address/app-passwords` | `pages/AppPasswordsPage.vue` (`context: 'mailbox'`) |
+| `mailbox-app-password-create` | `/mailboxes/:address/app-passwords/new` | `pages/AppPasswordCreatePage.vue` |
+| `mailbox-app-password-detail` | `/mailboxes/:address/app-passwords/:appPasswordId(\\d+)` | `pages/AppPasswordDetailPage.vue` |
+| `mailbox-temporary-aliases` | `/mailboxes/:address/temporary-aliases` | `pages/TemporaryAliasesPage.vue` |
+| `mailbox-filters` | `/mailboxes/:address/filters` | `@/features/filters` `MailboxFiltersPage.vue` |
+| `mailbox-filter-create` | `/mailboxes/:address/filters/new` | `@/features/filters` `FilterFormPage.vue` |
+| `mailbox-filter-detail` | `/mailboxes/:address/filters/:filterId(\\d+)` | `@/features/filters` `FilterFormPage.vue` |
+| `mailbox-push-notifications` | `/mailboxes/:address/push-notifications` | `pages/PushNotificationsPage.vue` |
+| `mailbox-mail-settings` | `/mailboxes/:address/mail-settings` | `pages/MailSettingsPage.vue` |
+| `mailbox-recent-logins` | `/mailboxes/:address/recent-logins` | `pages/RecentLoginsPage.vue` |
+| `mailbox-groupware` | `/mailboxes/:address/groupware` | `pages/DevicesPage.vue` (resets only) |
 
-The `:mailbox` parameter name follows UI 003's detail route.
+`:address` is the parameter of UI 003's `mailbox-detail` route (`/mailboxes/:address([^/]+@[^/]+)`);
+the records are spread into its children in `src/features/mailboxes/routes.ts`.
 
 ### Mail setup › Filters (`src/features/filters/routes.ts`, nav entry `filters`)
 
@@ -401,4 +405,4 @@ stored ─change→ pending (control shows new value, busy) ─200→ stored(new
 ### One-time secret dialog
 
 Unchanged from 001-DM §7, now in `src/shared/components/OneTimeSecretDialog.vue`; the secret enters
-it from `useSecretMutation`'s sink, never from a cache.
+it from `useSecretRequest`'s result, never from a cache.

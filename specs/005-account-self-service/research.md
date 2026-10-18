@@ -26,12 +26,16 @@ point that UI 003's plan has to provide (R5).
   |---|---|---|
   | UI 001 | client, `ApiProblem`, query client and keys, session store and reactions, router guard, navigation catalogue, shell, `NoAccessState`, pending-actions screen, second-factor step components, `usePasskeyRegistration`, WebAuthn platform module, `useListState`, `ListState`, `PaginationBar`, `useConfirm`/`ConfirmDialog`, `useVersionedSave`, `useProblemForm`, `FormField`, `ErrorSummary`, `ProblemMessage`, `DateTime`, `RelativeTime`, `useAnnouncer`, `useCountdown`, `clipboard.ts`, `safeHref`, audit log screen | `src/api/`, `src/app/`, `src/features/{auth,passkeys,audit-log}/`, `src/shared/` |
   | UI 001 | `ApiKeySecretDialog.vue`, promoted here as planned (R13) | `src/features/api-keys/components/` → `src/shared/components/OneTimeSecretDialog.vue` |
-  | UI 002 | bulk selection and result summary, the per-item runner for actions without a bulk operation, typed confirmation and acknowledgement in `ConfirmDialog`, changed-value marking (`EditableSection`), `HistoryLink` with the audit target filters | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/BulkResultSummary.vue`, `src/shared/components/ConfirmDialog.vue`, `src/shared/components/EditableSection.vue`, `src/shared/components/HistoryLink.vue` |
-  | UI 002/003 | byte-size formatting (quotas), Czech and Slovak plural rules, the unsaved-changes guard | `src/i18n/format.ts`, `src/i18n/index.ts`, `src/shared/composables/useUnsavedChanges.ts` |
-  | UI 003 | mailbox detail screen with its section list, mailbox list with bulk selection, password generator and policy hints, mailbox picker | `src/features/mailboxes/` (extension points in R5) |
+  | UI 002 (D21, D22, D27, D2) | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary`, `ConfirmDialog` with `requireTyped`, `EditableSection` with changed-value marking, `HistoryLink` with the audit target filters, `useLeaveGuard`, `formatBytes`, the translation coverage manifest, the `stripMarkup` import of legacy texts | `src/shared/composables/{useBulkSelection,useLeaveGuard}.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary,ConfirmDialog,EditableSection,HistoryLink}.vue`, `src/i18n/format.ts`, `src/i18n/coverage.json`, `scripts/i18n/import-legacy.mjs` |
+  | UI 003 (R4, R19, data-model §8) | the mailbox detail with its section list (`sections.ts`, `MailboxSectionNav.vue`, child routes of `mailbox-detail` in `routes.ts`), the FR-040 entries (`ManagedSettingsGroup.vue`, optional `to`), the mailbox list's bulk menu (`MailboxBulkActions.vue`, `bulk.ts`), the password field, generator and policy hints (`PasswordField.vue`, `PasswordPolicyHints.vue`, `password/{generate,policy-rules}.ts`), promoted here at their second use | `src/features/mailboxes/` (R5), `src/features/mailboxes/password/`, `src/features/mailboxes/components/password/` |
+  | UI 004 (R2, R8) | `utf8ByteLength`, the promoted `DomainPicker` (the pattern of `MailboxSearchPicker`, R19) | `src/shared/validation/utf8.ts`, `src/shared/components/DomainPicker.vue` |
 
-  Where one of these does not exist at implementation time, the task that needs it creates it at
-  the named path with the behaviour 001-R20 describes, instead of a feature-local copy.
+  The names are the canonical ones of `docs/conventions.md` ("Shared building blocks and canonical
+  names"). Where one of these does not exist at implementation time, the task that needs it creates
+  it at the named path with the behaviour the earlier plan describes, never as a renamed or
+  feature-local copy. UI 005 itself is the first implemented feature that needs a per-item runner
+  for actions without a bulk operation (UI 002 and 003 use API bulk operations), a mailbox search
+  picker and Czech and Slovak plural rules, so it creates them (R15, R19, R23).
 - **Rationale**: Every capability of this feature is covered by the platform (WebAuthn, `Intl`,
   `DOMParser`, `TextEncoder`, `crypto.getRandomValues`, `Blob`) and by what UI 001 to 004 build.
   The QR code comes from the API (R10), so no QR library is needed.
@@ -50,12 +54,16 @@ point that UI 003's plan has to provide (R5).
     and sha256 `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` (verified while
     planning). It also lists `KnownProblemType` under `components.schemas`, which closes UI 001's
     API gap 5: `knownProblemTypeValues` is generated, and `i18n:check` uses it.
-  - **Rule**: the bump never goes back behind the pin that UI 002 to 004 recorded. When API gaps G1
-    or G2 (plan) are fixed in the contract, the bump takes the commit that contains the fix.
+  - **Rule** (`docs/conventions.md`, "Contract pins"): pins only move forward, so the bump never goes
+    behind the pin that UI 002 to 004 recorded. When API gaps AG1 or AG2 (plan) are fixed in the
+    contract, the bump takes the commit that contains the fix. Before accepting the pin, the task
+    diffs `api/` between the baseline and the pin and checks every operation UI 005 uses
+    ([contracts/README.md](./contracts/README.md)) for changes.
   - The bump runs `scripts/contract/bump.sh <commit>`, then `npm run typecheck`, the unit and
-    end-to-end suites, and `npm run i18n:check`. The translation check then reports every problem
-    type, rule code and enumeration value that the new pin adds. They are translated in the same
-    change (R23), so the gate never goes red.
+    end-to-end suites, and `npm run i18n:check`. The growing shared enumerations are scoped by UI
+    002's coverage manifest `src/i18n/coverage.json` (UI 002 D2): UI 005 appends the values it
+    translates (its problem types, rule codes, audit event and target types and failure reasons,
+    R23), and the enumerations it introduces are fully required.
 - **Rationale**: 001-R6: the commit is authoritative, because `info.version` stays `0.1.0`. A
   commit that already holds the later features' contracts is harmless: the app calls only the
   operations listed in [contracts/README.md](./contracts/README.md), and the mock rejects every
@@ -80,12 +88,15 @@ point that UI 003's plan has to provide (R5).
     `AuthLayout`, reusing the second-factor components of the sign-in step without promotion), the
     "Forgot password?" link, and the forced password change and forced second-factor setup on the
     pending-actions screen.
-  - **Shared promotions** (each has two or more uses, constitution VIII): `OneTimeSecretDialog.vue`
-    (API keys, app passwords), `CopyButton.vue` (secrets, TOTP key, aliases, setup guide, scripts),
-    `GroupedSecret.vue` (TOTP key, app password), the password fields
-    (`src/shared/components/password/`, used by the own, forced and reset forms and by UI 003),
-    `src/shared/password/{policy,generate}.ts`, `src/shared/validation/byte-length.ts` (password
-    policy, Sieve scripts), and `useSecretMutation.ts` (app passwords, API keys).
+  - **Shared promotions and new shared blocks** (each has two or more uses, constitution VIII):
+    `OneTimeSecretDialog.vue` (API keys, app passwords), `CopyButton.vue` (secrets, TOTP key, aliases,
+    setup guide, scripts), `GroupedSecret.vue` (TOTP key, app password), UI 003's `PasswordField.vue`
+    and `PasswordPolicyHints.vue` moved to `src/shared/components/password/` with the new
+    `NewPasswordFields.vue` (own, forced and reset forms, and UI 003), UI 003's
+    `password/{generate,policy-rules}.ts` moved to `src/shared/password/`, `useSecretRequest.ts`
+    (every secret-bearing request, R13), `usePerItemRunner.ts` (temporary aliases, filters, R15),
+    `MailboxSearchPicker.vue` (R19) and `src/shared/platform/download.ts` (R21). Byte lengths use
+    UI 004's `src/shared/validation/utf8.ts`.
 - **Rationale**: 001-R3's one-area-per-feature rule, with the catalogue entries `account` and
   `filters`. Sharing section components between contexts halves the code and keeps behaviour
   identical, which FR-003 and FR-004 expect. The reset pages belong to the sign-in flow and reuse
@@ -158,19 +169,19 @@ point that UI 003's plan has to provide (R5).
 ### R5. Mailbox context inside UI 003's mailbox detail
 
 - **Decision**:
-  - **Extension points UI 005 relies on** (to be provided by UI 003's plan; the tasks name the
-    expected files and adapt to the names UI 003 chooses, without changing behaviour):
-    1. a **section registry** of the mailbox detail screen (expected
-       `src/features/mailboxes/detail-sections.ts`), where later features add sections with a
-       group, a label, a summary and a child route under the detail route;
-    2. a **bulk action registry** of the mailbox list (expected
-       `src/features/mailboxes/bulk-actions.ts`), where later features add an action with its
-       dialog and runner;
-    3. the **FR-040 read-only summaries** of UI 003, which accept a link target once the managing
-       screen exists.
+  - **Designated action areas of UI 003** (UI 003 research R19 and data-model §8; named components,
+    no plug-in registry):
+    1. the section list: `src/features/mailboxes/sections.ts` and `MailboxSectionNav.vue`, with the
+       child routes of `mailbox-detail` (`/mailboxes/:address`) in `src/features/mailboxes/routes.ts`.
+       UI 005 adds a "Self-service" group whose entries and child routes come from
+       `@/features/account` (`mailboxSelfServiceSections`, `mailboxSelfServiceRoutes`, lazy
+       components), so that UI 003's files gain only the imports;
+    2. the mailbox list's bulk menu: `MailboxBulkActions.vue`, from `bulk.ts`, where UI 005 adds the
+       TLS action;
+    3. the FR-040 entries of `ManagedSettingsGroup.vue`, whose optional `to` UI 005 fills.
   - **Sections**: a "Self-service" group with App passwords, Temporary aliases, Filters, Push
     notifications, Mail settings, Recent logins and, when `groupware.enabled`, Groupware resets
-    (FR-003). Child routes are `/mailboxes/:mailbox/<section>` ([data-model.md](./data-model.md#5-route-map)),
+    (FR-003). Child routes are `/mailboxes/:address/<section>` ([data-model.md](./data-model.md#5-route-map)),
     guarded by the catalogue entry `mailboxes`. Each heading names the mailbox
     ("App passwords of anna@example.org").
   - **Access** (FR-004): `mailboxAccess` grants `change` to administrators always, and to domain
@@ -184,9 +195,10 @@ point that UI 003's plan has to provide (R5).
   - **UI 003 links**: the FR-040 summaries link to the matching sections (temporary aliases count,
     tagged-mail handling, TLS enforcement, push notifications active).
   - **Bulk TLS**: registered as a mailbox-list bulk action (R16).
-- **Rationale**: Conventions "Where features meet": a later feature adds its entry points to the
-  earlier screens' designated areas. Reusing UI 003's detail layout keeps the mailbox's summary and
-  navigation around the self-service sections.
+- **Rationale**: Conventions "Where features meet" and "Action areas in earlier screens": a later
+  feature adds its entry points to the earlier screens' designated areas when it is implemented.
+  Reusing UI 003's detail layout keeps the mailbox's summary and navigation around the self-service
+  sections.
 - **Alternatives considered**: A separate "Mailbox self-service" screen outside the detail was
   rejected by the clarification (FR-003). Impersonation-based access, as in legacy, belongs to UI 007.
 
@@ -200,9 +212,12 @@ point that UI 003's plan has to provide (R5).
     read-only in the mailbox context (FR-007, spec edge case "flag removed while a section is
     open"). The reaction is added to `src/api/query/client.ts` next to 001's `forbidden` reaction,
     unless UI 003 already added it.
-  - **Opting out of session reactions**: requests that legitimately answer a problem type that 001
-    treats globally declare `meta: { sessionReactions: false }` on the mutation, and the global
-    `onError` skips them. Only the password reset completion uses it: its `401
+  - **One dispatcher for the session reactions**: `src/api/query/client.ts` exports
+    `dispatchProblemReactions(problem, { sessionReactions })`, the function its query and mutation
+    caches' `onError` call. Requests that bypass TanStack Query because they carry secrets (R13) call
+    it too, through `useSecretRequest`, so `unauthenticated`, `pending-action-required`, `forbidden`
+    and `permission-flag-required` behave the same for them. The option `sessionReactions: false`
+    skips the session reactions; only the password reset completion uses it: its `401
     second-factor-required` asks for a second factor *for the reset*, not for a pending sign-in, and
     must not reroute to the sign-in step (001-R8).
   - **`ApiProblem` extension members**: `src/api/problem.ts` exposes `requiredFlags`,
@@ -227,29 +242,31 @@ point that UI 003's plan has to provide (R5).
 ### R7. Password forms, policy checklist and generator
 
 - **Decision**:
-  - **Shared fields** (`src/shared/components/password/`):
-    - `PasswordInput.vue`: a labelled input with a show/hide toggle button (`aria-pressed`), paste
-      allowed, `autocapitalize="none"`, `autocorrect="off"`, `spellcheck="false"`. It is promoted
-      from UI 001's or UI 003's toggle, whichever exists.
-    - `NewPasswordFields.vue`: new password and, when `confirm` is set, its confirmation
-      (`autocomplete="new-password"` on both), the policy checklist, "Generate" (fills both fields,
+  - **Shared fields** (`src/shared/components/password/`, promoted from UI 003 at their second
+    use, research R1):
+    - `PasswordField.vue` (UI 003): a labelled input with a show/hide toggle button
+      (`aria-pressed`), "generate" and "copy", paste allowed, `autocapitalize="none"`,
+      `autocorrect="off"`, `spellcheck="false"`. UI 005 adds an `autocomplete` prop and a mode
+      without the generator (for current-password and confirmation fields).
+    - `NewPasswordFields.vue` (new): new password and, when `confirm` is set, its confirmation
+      (`autocomplete="new-password"` on both), the policy hints, "Generate" (fills both fields,
       shows them in clear text and offers a copy button), and the mismatch check before submit
       (FR-023, legacy `danger.password_mismatch`).
-    - `PasswordPolicyChecklist.vue`: one list item per rule, each marked met or not met in text and
-      icon (FR-116), with a polite live region that announces only when the whole policy becomes
+    - `PasswordPolicyHints.vue` (UI 003): one list item per rule, each marked met or not met in text
+      and icon (FR-116), with a polite live region that announces only when the whole policy becomes
       met. It never blocks submission: the API decides (FR-022, as UI 003 decided).
     - Every password form also renders a read-only username field
       (`autocomplete="username"`, visually hidden but available to password managers) holding the
       account's address, so that password managers update the right entry (FR-024).
-  - **Policy evaluation** (`src/shared/password/policy.ts`): the contract's `PasswordPolicy` rules,
-    evaluated as the API evaluates them: length in **UTF-8 bytes** (`TextEncoder`, through
-    `src/shared/validation/byte-length.ts`), letters `[A-Za-z]`, digits `[0-9]`, special characters
+  - **Policy evaluation** (`src/shared/password/policy-rules.ts`, UI 003's module moved): the
+    contract's `PasswordPolicy` rules, evaluated as the API evaluates them: length in **UTF-8 bytes**
+    (`utf8ByteLength` of `src/shared/validation/utf8.ts`), letters `[A-Za-z]`, digits `[0-9]`, special characters
     (anything else), mixed case (`[a-z]` and `[A-Z]`). The minimum length is always shown; class
     rules only when required.
   - **Server errors** on `newPassword`: `tooShort` (`min`) and `missingCharacterClass`
     (`characterClass`: `letter`, `digit`, `special`, `lowerAndUpper`) are shown on the field and also
     mark the matching rule as unmet; `preHashedPassword` (`scheme`) gets its own message (FR-012).
-  - **Generator** (`src/shared/password/generate.ts`): UI 003's rules: at least 16 characters or the
+  - **Generator** (`src/shared/password/generate.ts`, UI 003's module moved): UI 003's rules: at least 16 characters or the
     policy's minimum when longer, at least one lower-case letter, one upper-case letter and one
     digit, a special character from a small set mail clients accept when the policy requires one,
     no look-alikes (`0 O 1 l I`), `crypto.getRandomValues` with rejection sampling and a
@@ -257,7 +274,8 @@ point that UI 003's plan has to provide (R5).
   - **Own password** (`/account/password`, FR-021 to FR-028): current password, new password twice,
     "Sign out my other sessions" ticked by default (`endOtherSessions`). Before the change, mailbox
     users see "Your {n} app passwords keep working" from the overview's `activeAppPasswords`
-    (FR-027). On `200` the app clears the fields and announces one message built from
+    (FR-027). The request runs through `useSecretRequest` (R13). On `200` the app clears the fields
+    and announces one message built from
     `sessionsEnded`, `activeAppPasswords` (mailbox users) and `mailServerCacheSeconds` ("Mail apps
     may accept the old password for up to 5 minutes"), with plural forms (FR-026, FR-119). The
     response renews the session cookie; the next write that meets `csrf-token-mismatch` is retried
@@ -352,7 +370,8 @@ point that UI 003's plan has to provide (R5).
     (`inputmode="numeric"`, `autocomplete="one-time-code"`, spaces stripped before the
     `^[0-9]{6}$` check). On wide screens the QR code sits beside the key; on phones it follows the
     actions, as FR-046 requires.
-  - **Confirmation**: `enrolOwnSecondFactor` with `{ type: 'totp', name, code, currentPassword? }`.
+  - **Confirmation**: `enrolOwnSecondFactor` with `{ type: 'totp', name, code, currentPassword? }`,
+    through `useSecretRequest` like every enrolment and removal request (R13).
     `second-factor-enrolment-failed` keeps the setup open with the same key, puts the error on the
     code field with "{n} attempts left" (`attemptsRemaining`) and the hint to check the phone's time
     (spec edge case). `second-factor-enrolment-expired`, `attemptsRemaining: 0` and the local
@@ -360,7 +379,8 @@ point that UI 003's plan has to provide (R5).
     "expired" state that offers to start again (FR-047). `current-password-incorrect` returns to the
     first step with the error on the password field.
   - **Discarding** (FR-048, FR-110): the enrolment ref is cleared on success, cancel, expiry, route
-    leave and unmount. Leaving with a started enrolment asks for confirmation (FR-015).
+    leave and unmount. Leaving with a started enrolment asks for confirmation through UI 002's
+    `useLeaveGuard` (FR-015).
   - **"Open in authenticator app"**: an `<a>` to `provisioningUri`, rendered only when it starts with
     `otpauth://totp/` (checked by `isOtpauthUri()` in `src/features/account/totp.ts`). 001's
     `safeHref` stays http(s)-only.
@@ -460,7 +480,7 @@ point that UI 003's plan has to provide (R5).
     history entry before the page renders. The browser's own list of visited addresses still records
     the e-mailed link itself, which no page can prevent; the token is single-use and expires after
     `tokenLifetimeMinutes`. The `ng-mailcow` image logs `$uri` without the query string, so its access
-    log never holds a token (API observation G7 recommends the `#token=` form, which never reaches a
+    log never holds a token (API observation AG7 recommends the `#token=` form, which never reaches a
     server log at all). The holder is read once by the page and
     cleared on completion, on "request a new link" and on unmount. The token is sent only in request
     bodies (`checkPasswordResetToken`, `createPasswordResetWebAuthnChallenge`,
@@ -485,7 +505,8 @@ point that UI 003's plan has to provide (R5).
        The proof is sent together with the password again. `second-factor-failed` keeps the step
        and allows another try while the link is valid (FR-040); `temporary-verification-failure`
        keeps it with a retry; `second-factor-unavailable` shows the "ask an administrator" state.
-       These mutations carry `meta.sessionReactions: false` (R6).
+       These requests carry the token and the password, so they run through `useSecretRequest`
+       (R13) with `sessionReactions: false` (R6).
     5. **Done** (FR-041): the app says that all sessions of the account were signed out and offers
        the sign-in screen; it never signs in. It then refetches `session`; when this browser's
        session is now `anonymous`, it runs 001's session-end clean-up **without** redirecting
@@ -523,20 +544,35 @@ point that UI 003's plan has to provide (R5).
     cleared on close; no history entry is pushed. New optional props: `username` (shown above the
     secret, FR-062), `grouped` (render through `GroupedSecret`) and the title and warning keys. API
     keys keep their current look.
-  - **`useSecretMutation`** (`src/shared/composables/useSecretMutation.ts`): wraps `useMutation`
-    with `gcTime: 0` and a `mutationFn` that hands the secret member (`generatedPassword`, or
-    `secret` for API keys) to a local sink and returns the response **without** it, so neither the
-    mutation cache nor the query cache ever holds a secret (FR-110). App password creation and
-    "Generate new password", and UI 001's API key creation, use it. TOTP enrolment data and Apple
-    profiles are not mutations of cached resources and are fetched with the client directly into
-    component state (R10, R21).
-  - A unit test asserts, after each secret flow, that no value of the query cache or the mutation
-    cache contains the secret.
-- **Rationale**: TanStack keeps a mutation's `data` in the mutation cache until `gcTime` (5 minutes
-  by default). Stripping the secret inside `mutationFn` is the only way to keep it out of every
-  cache while keeping the mutation's status handling.
-- **Alternatives considered**: `mutation.reset()` after reading the secret was rejected: the data is
-  still cached between resolution and the reset, and a forgotten reset leaks it.
+  - **Secret-bearing requests never touch TanStack Query** (`docs/conventions.md`, "Secrets in
+    requests or responses"). TanStack keeps a mutation's `variables` and `data` in the mutation
+    cache, so a password in a request is as exposed as a secret in a response.
+    `useSecretRequest` (`src/shared/composables/useSecretRequest.ts`) calls the client directly and
+    exposes `pending`, `problem` and `run()` as component state only. On a problem it calls
+    `dispatchProblemReactions()` (R6), so the session reactions still apply; after success the
+    caller invalidates the affected query keys itself (data-model §3). It is used for every request
+    that carries or returns a secret:
+    - `changeOwnPassword` (own and forced), `replaceOwnRecoveryEmail`, `enrolOwnSecondFactor`,
+      `startOwnTotpEnrolment`, `removeAllOwnSecondFactors`;
+    - `checkPasswordResetToken`, `createPasswordResetWebAuthnChallenge`, `completePasswordReset`;
+    - `createAppPassword` and `updateAppPassword` with `generatePassword: true`;
+    - `replacePushNotificationSettings`;
+    - `getOwnAppleProfile` and `createOwnAppleProfileWithAppPassword` (R21);
+    - UI 001's `createApiKey`, switched in the same change as the dialog promotion.
+
+    Requests without secrets (renames, protocols, active switches, deletions, mail settings,
+    aliases, filters, verification, resets, the webmail hand-off) stay TanStack mutations.
+  - **No drafts**: none of these forms saves a draft anywhere (conventions; UI 004's `useFormDraft`
+    is not used here).
+  - A unit test asserts, after each secret flow, that no entry of the query cache or the mutation
+    cache contains the secret or the submitted password.
+- **Rationale**: Calling the client directly is the only way to keep both the request and the
+  response out of every cache; routing problems through the same dispatcher keeps 001's session
+  behaviour.
+- **Alternatives considered**: A `useMutation` wrapper with `gcTime: 0` that strips the secret from
+  the result was rejected: the mutation cache still holds the request `variables` (passwords, codes,
+  tokens) and the data until garbage collection. `mutation.reset()` after reading was rejected for
+  the same reason.
 
 ### R14. App passwords
 
@@ -548,7 +584,7 @@ point that UI 003's plan has to provide (R5).
   - **Create** (`…/app-passwords/new`, FR-061 to FR-063): name (1–255 after trimming), the six
     protocols as checkboxes (IMAP, POP3, SMTP, Sieve, ActiveSync, CalDAV/CardDAV, all ticked), active
     switch (on). Unticking all protocols shows an inline warning that the app password then works
-    nowhere and still allows saving (spec edge case). `createAppPassword` without `password`; the
+    nowhere and still allows saving (spec edge case). `createAppPassword` (through `useSecretRequest`) without `password`; the
     `generatedPassword` goes to `OneTimeSecretDialog` with the mailbox address as username and
     `grouped` set; closing it replaces the route with the detail page.
   - **Detail** (`…/app-passwords/:appPasswordId`): rename and protocols as editable sections
@@ -583,8 +619,13 @@ point that UI 003's plan has to provide (R5).
   - **Selection mode** (FR-071, FR-072, FR-124): actions "Expire in …" (the presets, counted from now,
     `updateTemporaryAlias` with `lifetimeHours` or `permanent: true`) and "Delete" (a confirmation
     naming the aliases; typing the number when more than one, FR-017). There is no bulk operation,
-    so the actions run through UI 002's per-item runner, one request per alias with its listed
-    `etag` in `If-Match`. Outcomes: `2xx` done, `404` not found (the alias expired, spec edge case;
+    so the actions run through `usePerItemRunner` (`src/shared/composables/`, created here: temporary
+    aliases and filters are its two uses; UI 002 and 003 use API bulk operations), one request per
+    alias with its listed `etag` in `If-Match`, sent one after another. Selection and the bar are UI
+    002's `useBulkSelection` and `BulkActionBar`; results go to `BulkResultSummary`. Without an API
+    bulk operation there is no API bulk limit, so the selection is bounded by the current page (at
+    most 100); bulk TLS takes `bulkLimit` from the self-service capabilities (conventions "Bulk
+    limit"). Outcomes: `2xx` done, `404` not found (the alias expired, spec edge case;
     the list refreshes without it), `412` outdated, `403` refused with the reason, network failure
     "outcome unknown" without automatic retry. Items that did not succeed stay selected (FR-019).
   - Explanation: legacy `user.spam_aliases_info` (plain text, R23).
@@ -614,7 +655,7 @@ point that UI 003's plan has to provide (R5).
     `pushSendersMax` entries of ≤ 255 characters), sound (native select of
     `capabilities.pushoverSounds`, plus the stored value when it is not in that list), active, and
     under "Advanced settings" the sender pattern (≤ `pushSenderPatternMaxLength`), "Escalate high
-    priority mail" and "Only consider high priority mail". `replacePushNotificationSettings` sends
+    priority mail" and "Only consider high priority mail". `replacePushNotificationSettings` (through `useSecretRequest`) sends
     the whole form with `If-Match`; the token and key members are omitted when left empty. The help
     lists the placeholders of the contract and legacy `user.pushover_info` with the mailbox address
     and `edit.pushover_vars` (FR-079). "Verify credentials" announces Pushover's verdict and reason
@@ -626,12 +667,12 @@ point that UI 003's plan has to provide (R5).
     `applyMailboxMailSettingsBulkAction` with `action: setTlsEnforcement` and the selected mailboxes
     as `targets`, up to `capabilities.bulkLimit`. `BulkResultSummary` reports each result ("29
     changed, 1 not found"); items that did not succeed stay selected. Each target carries the
-    version tag listed for it; this depends on **API gap G1** (plan): the API compares `version` with
+    version tag listed for it; this depends on **API gap AG1** (plan): the API compares `version` with
     the mail-settings tag, which the mailbox list does not expose.
 - **Rationale**: FR-014 and FR-015 split controls into immediate and explicit saves; the Pushover
   form is a multi-field PUT that replaces the settings as a whole, so its active switch is part of
   the form (FR-077 lists it among the form's fields).
-- **Alternatives considered**: Omitting `version` in the bulk targets until G1 is fixed was rejected:
+- **Alternatives considered**: Omitting `version` in the bulk targets until AG1 is fixed was rejected:
   FR-019 and the conventions require it, and the UI does not work around contract gaps.
 
 ### R17. Recent logins
@@ -656,7 +697,7 @@ point that UI 003's plan has to provide (R5).
 - **Rationale**: The service is an open string in the contract; the documented codes give
   translatable labels and a usable filter. Unknown services still display.
 - **Alternatives considered**: Deriving the filter options from the loaded page was rejected: paging
-  would hide services. Asking the API for a service list is recorded as API observation G3 (plan),
+  would hide services. Asking the API for a service list is recorded as API observation AG3 (plan),
   not a blocker.
 
 ### R18. Groupware resets
@@ -667,7 +708,8 @@ point that UI 003's plan has to provide (R5).
   - "Reset SOGo profile" with a confirmation stating that settings, contacts, calendars and sharing
     are deleted irretrievably, whose confirm button stays disabled until "I understand that my
     contacts and calendars will be deleted" is ticked (FR-087, US11-AS2). This uses
-    `ConfirmDialog`'s acknowledgement option (UI 002), or adds `requireAcknowledgement` to it.
+    `requireAcknowledgement`, added here to UI 002's `ConfirmDialog` (UI 002 added only
+    `requireTyped`).
 
   Both are hidden when `groupware.enabled` is `false`, in both contexts; a `groupware-disabled`
   refusal is still explained (FR-088).
@@ -689,7 +731,7 @@ point that UI 003's plan has to provide (R5).
     button), and `getActiveSieveScript`: its name and script, or legacy `user.no_active_filter`
     when `script` is `null`; a `503` names the mail server.
   - **Form** (`…/filters/new`, `…/filters/:filterId`, FR-091 to FR-094): mailbox (a searchable choice
-    within scope from UI 003's/004's mailbox picker, preset and fixed in the mailbox context), kind
+    within scope from `MailboxSearchPicker`, preset and fixed in the mailbox context), kind
     (prefilter or postfilter, legacy `mailbox.set_prefilter`/`set_postfilter`), description (1–255),
     script (`ScriptEditor.vue`: a `<textarea>` with a monospaced font, `wrap="off"`,
     `autocapitalize="none"`, `autocorrect="off"`, `spellcheck="false"`, scrolling inside its own
@@ -704,8 +746,14 @@ point that UI 003's plan has to provide (R5).
     deactivates the active prefilter 'Spam to folder'"); otherwise it shows legacy
     `add.activate_filter_warn` as a general note.
   - **Selection mode** (FR-095): activate, deactivate, switch kind and delete for several filters,
-    one `updateSieveFilter`/`deleteSieveFilter` per filter with its listed `etag` through the
-    per-item runner; deletion of several needs the typed count.
+    one `updateSieveFilter`/`deleteSieveFilter` per filter with its listed `etag` through
+    `usePerItemRunner`; deletion of several needs the typed count.
+  - **`MailboxSearchPicker`** (`src/shared/components/MailboxSearchPicker.vue`, the canonical name of
+    `docs/conventions.md`): no earlier-implemented feature has a mailbox picker, so UI 005 creates it
+    under `src/shared/` (conventions "Ownership"; later features reuse it). It follows the promoted
+    `DomainPicker`: Reka `Combobox` without `ComboboxViewport`, a debounced `q`, `listMailboxes`
+    through `useInfiniteQuery` with UI 003's `['mailboxes','list',params]` key, 25 per page, "load
+    more", empty and error states.
   - **Read-only callers** (domain administrators without `filters`): lists and detail without
     actions, with the reason (FR-005). Mailbox users never see Mail setup › Filters.
   - Global filters and presets stay out (FR-096, UI 013).
@@ -781,7 +829,8 @@ point that UI 003's plan has to provide (R5).
     that they are for iPhone, iPad and Mac. Holders of `appPasswds` get "Include a new app password".
     - The download calls `getOwnAppleProfile` or `createOwnAppleProfileWithAppPassword` through the
       client with `parseAs: 'blob'` **directly** (no query, no mutation cache).
-    - `src/features/account/download.ts` creates an object URL, clicks a temporary
+    - `src/shared/platform/download.ts` (the canonical download helper of `docs/conventions.md`,
+      created here if no earlier feature did) creates an object URL, clicks a temporary
       `<a download="<filename>">` (the file name from `Content-Disposition`, fallback
       `profile.mobileconfig`), removes the element, and revokes the URL after one second, the time
       browsers need to start the download. No reference to the blob is kept.
@@ -828,7 +877,7 @@ point that UI 003's plan has to provide (R5).
     `{changed, oldSize, newSize}` are shown as text ("changed", "changed (120 → 240 bytes)").
 - **Rationale**: Conventions "History and audit": each feature adds labels for its event types.
 - **Alternatives considered**: Per-object filtering by `details` was rejected: the contract has no
-  such filter; recorded as observation G6 (plan).
+  such filter; recorded as observation AG6 (plan).
 
 ### R23. Internationalisation
 
@@ -839,13 +888,13 @@ point that UI 003's plan has to provide (R5).
     - **HTML in legacy values** (`tfa.api_register`, `login.invalid_pass_reset_token`,
       `mailbox.sieve_info`, `user.spam_aliases_info`, `user.tls_policy_warning`,
       `user.pushover_info`, `edit.pushover_vars`, `user.eas_reset_help`,
-      `user.direct_protocol_access`, `user.force_pw_update`): 001-R15's importer refuses HTML. A map
-      entry may now be an object `{ "key": "<legacy key>", "html": "plain" }`. The importer then
-      converts `<br>` to a line break, unwraps `b strong i em u small code p`, turns one
-      `<a …>text</a>` into the named placeholder `{link}` and writes the anchor text to the
-      sibling key `<appKey>Link`, and refuses any other tag. Components render `{link}` through
-      `<i18n-t>` with a URL from code, never from translations. Line breaks render as separate
-      paragraphs. No `v-html` is involved.
+      `user.direct_protocol_access`, `user.force_pw_update`): UI 002's importer (D27) accepts
+      `{ "from": "<legacy key>", "stripMarkup": true }`, removing the tags (`<br>` becomes a space)
+      and decoding entities. UI 005 adds one option for the only text whose anchor carries meaning,
+      `tfa.api_register`: with `"linkSlot": true`, the importer turns its single `<a …>text</a>` into
+      the named placeholder `{link}` and writes the anchor text to the sibling key `<appKey>Link`;
+      any second anchor is refused. Components render `{link}` through `<i18n-t>` with a URL from
+      code, never from translations. No `v-html` is involved.
     - **Missing in cs-cz**: `tfa.setup_title`, `tfa.setup_required`, `danger.tfa_removal_blocked`,
       `user.pw_update_required`. **Missing in sk-sk**: those four plus `login.reset_password`,
       `login.request_reset_password`, `login.new_password`, `login.new_password_confirm`,
@@ -863,7 +912,8 @@ point that UI 003's plan has to provide (R5).
   - **New namespaces**: `account.*`, `filters.*`, `auth.passwordReset.*`,
     `auth.pendingActions.passwordChange.*`, `auth.pendingActions.secondFactor.*`,
     `permissionFlags.*` (the nine flags), `selfService.dependency.*`, `selfService.service.*`, and
-    the `problem.*`, `validation.*` and `auditLog.*` keys required by the new pin.
+    and the `problem.*`, `validation.*` and `auditLog.*` keys of the values appended to
+    `src/i18n/coverage.json`.
   - **Problem messages with parameters** (`src/i18n/problems.ts`): `permission-flag-required` with
     the flag labels joined by `Intl.ListFormat` (conjunction or disjunction by
     `requiredFlagsMatch`); `temporary-failure` with the dependency; `second-factor-enrolment-failed`

@@ -30,6 +30,7 @@ import {
 } from '../factories/alias'
 import { aliasDomainEtag, aliasDomainValues } from '../factories/alias-domain'
 import { asciiName, mailboxAddresses, readableName } from '../factories/domain'
+import { addressOf } from '../factories/mailbox'
 import { resourceEtag } from '../factories/resource'
 import { rowsOf, senderSettingsEtag } from '../factories/sender-acl'
 import type {
@@ -58,17 +59,25 @@ export const findAliasDomain = (state: ScenarioState, name: string): MockAliasDo
 export const domainKey = (raw: string): string => asciiName(raw)
 
 /**
- * The mailboxes of a domain. UI 003's mailbox store is not available yet, so the mailboxes are UI
- * 002's domain addresses (`mailboxAddresses`, explicit or generated from the usage). This is the one
- * place that reads them.
+ * The mailboxes of a domain: UI 002's domain addresses (`mailboxAddresses`, explicit or generated
+ * from the usage) and UI 003's stored mailboxes. This is the one place that reads them.
  */
 export function mailboxesOf(state: ScenarioState, domainName: string): string[] {
   const domain = findDomain(state, domainName)
-  return domain ? mailboxAddresses(domain) : []
+  if (!domain) return []
+  // UI 003's stored mailboxes join UI 002's domain addresses, once each.
+  const stored = state.mailboxes.filter((mailbox) => mailbox.domain === domain.name).map(addressOf)
+  const seen = new Set<string>()
+  return [...mailboxAddresses(domain), ...stored].filter((address) => {
+    const key = address.toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 export function allMailboxes(state: ScenarioState): string[] {
-  return state.domains.flatMap((domain) => mailboxAddresses(domain))
+  return state.domains.flatMap((domain) => mailboxesOf(state, domain.name))
 }
 
 /** The stored address of a mailbox, compared ignoring letter case, or undefined. */

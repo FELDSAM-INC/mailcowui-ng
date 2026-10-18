@@ -246,6 +246,8 @@ comment naming the Lucide icon.
 | `src/shared/icons/MonitorIcon.vue` | Lucide `icons/monitor.svg` |
 | `src/shared/icons/ExternalLinkIcon.vue` | Lucide `icons/external-link.svg` |
 | `src/shared/icons/LayoutTemplateIcon.vue` | Lucide `icons/layout-template.svg` |
+| `src/shared/icons/LinkIcon.vue` | Lucide `icons/link-2.svg` (UI 004) |
+| `src/shared/icons/CalendarIcon.vue` | Lucide `icons/calendar-days.svg` (UI 004) |
 | `src/shared/icons/AtSignIcon.vue` | Lucide `icons/at-sign.svg` |
 | `src/shared/icons/ChevronDoubleLeftIcon.vue` | Lucide `icons/chevrons-left.svg` (UI 002) |
 | `src/shared/icons/ChevronDoubleRightIcon.vue` | Lucide `icons/chevrons-right.svg` (UI 002) |

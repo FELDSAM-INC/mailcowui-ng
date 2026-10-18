@@ -10,6 +10,12 @@
     "skipToContent": "Skip to main content",
     "userMenu": "Account menu of {username}"
   },
+  "aliases": {
+    "capabilities": {
+      "failed": "The server settings this form needs could not be loaded.",
+      "loading": "Loading the server settings…"
+    }
+  },
   "apiKeys": {
     "anyAddress": "Any address",
     "columns": {
@@ -571,7 +577,6 @@
     }
   },
   "nav": {
-    "aliases": "Aliases and resources",
     "apiKeys": "API keys",
     "auditLog": "Audit log",
     "dns": "DKIM, MTA-STS and DNS",

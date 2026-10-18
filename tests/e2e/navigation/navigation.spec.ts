@@ -14,7 +14,10 @@ const ADMIN = [
   'Mailboxes',
   // UI 003 adds the mailbox templates for administrators and domain administrators.
   'Mailbox Templates',
-  'Aliases and resources',
+  // UI 004 splits its entry into the classic "Aliases" tab dropdown's three entries.
+  'Aliases',
+  'Domain aliases',
+  'Resources',
   'User Settings',
   'Passkeys',
   'Quarantine',
@@ -33,7 +36,10 @@ const DOMAIN_ADMIN = [
   'Domains',
   'Mailboxes',
   'Mailbox Templates',
-  'Aliases and resources',
+  // UI 004 splits its entry into the classic "Aliases" tab dropdown's three entries.
+  'Aliases',
+  'Domain aliases',
+  'Resources',
   'User Settings',
   'Passkeys',
   'Quarantine',

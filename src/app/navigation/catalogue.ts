@@ -10,6 +10,7 @@ import {
   ArrowLeftRightIcon,
   AtSignIcon,
   BarChartIcon,
+  CalendarIcon,
   DatabaseIcon,
   FilterIcon,
   GearIcon,
@@ -18,6 +19,7 @@ import {
   KeyIcon,
   LayersIcon,
   LayoutTemplateIcon,
+  LinkIcon,
   ListIcon,
   LockIcon,
   MailIcon,
@@ -34,6 +36,8 @@ export type NavEntryId =
   | 'mailboxes'
   | 'mailboxTemplates'
   | 'aliases'
+  | 'aliasDomains'
+  | 'resources'
   | 'account'
   | 'passkeys'
   | 'quarantine'
@@ -81,6 +85,10 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   domainTemplates: legacy('mailbox.domain_templates'),
   mailboxes: legacy('mailbox.mailboxes'),
   mailboxTemplates: legacy('mailbox.mailbox_templates'),
+  // UI 004: the entries of the classic "Aliases" tab dropdown (research R4).
+  aliases: legacy('mailbox.aliases'),
+  aliasDomains: legacy('mailbox.domain_aliases'),
+  resources: legacy('mailbox.resources'),
   account: legacy('header.user_settings'),
   quarantine: legacy('header.quarantine'),
   spamFilter: legacy('user.spamfilter'),
@@ -116,6 +124,8 @@ export const catalogue: readonly NavigationEntry[] = [
   entry('mailboxes', '/mailboxes', MailIcon, MANAGERS, '003', MAIL_SETUP),
   entry('mailboxTemplates', '/mailbox-templates', LayoutTemplateIcon, MANAGERS, '003', MAIL_SETUP),
   entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP),
+  entry('aliasDomains', '/alias-domains', LinkIcon, MANAGERS, '004', MAIL_SETUP),
+  entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP),
   entry('account', '/account', UserCircleIcon, ALL, '005', {
     admin: ['/admin/system'],
     domainAdmin: ['/domainadmin/user'],

@@ -371,21 +371,21 @@ accepts the new entry forms.
 
 ### Capabilities, permissions and navigation
 
-- [ ] T025 [P] Write `tests/unit/features/aliases/permissions.spec.ts`. It is table-driven over every
+- [X] T025 [P] Write `tests/unit/features/aliases/permissions.spec.ts`. It is table-driven over every
   row of spec FR-002, for administrators, domain administrators with each flag on and off, and
   mailbox users (SC-007). It covers `externalDestinationsRestricted` with and without
   `externalDestinationsDisabled`.
-- [ ] T026 [P] Write `tests/unit/features/aliases/capabilities.spec.ts` and
+- [X] T026 [P] Write `tests/unit/features/aliases/capabilities.spec.ts` and
   `tests/unit/features/aliases/CapabilitiesGate.spec.ts`:
   - the key `['capabilities','aliases']` with `staleTime` 5 minutes and no focus refetch;
   - `defaultPageSize` and `maxPageSize` checked against the contract examples (25, 1000), so that
     research R5's page-size decision stays valid;
   - the gate renders a skeleton while loading, an error state with retry on failure (FR-071), and
     its slot with the capabilities.
-- [ ] T027 Implement `src/features/aliases/permissions.ts`, `src/features/aliases/capabilities.ts`,
+- [X] T027 *(done: feature004Permissions(identity, capabilities) in permissions.ts (the FR-002 rows as one record), aliasesCapabilitiesOptions/useAliasesCapabilities, CapabilitiesGate.vue and index.ts; the any-address row is the * option of the sender multi-select (legacy form map))* Implement `src/features/aliases/permissions.ts`, `src/features/aliases/capabilities.ts`,
   `src/features/aliases/components/CapabilitiesGate.vue` and `src/features/aliases/index.ts`, which
   exports them for the other areas. T025 and T026 must pass.
-- [ ] T028 [P] Extend `tests/unit/app/navigation/visibility.spec.ts`. UI 001's `aliases` row is
+- [X] T028 [P] Extend `tests/unit/app/navigation/visibility.spec.ts`. UI 001's `aliases` row is
   replaced by `aliases` (`/aliases`), `aliasDomains` (`/alias-domains`) and `resources`
   (`/resources`), each with:
   - admin ✓, domainAdmin ✓, mailboxUser —;
@@ -395,7 +395,7 @@ accepts the new entry forms.
 
   They sit consecutively where `aliases` was, after `mailboxTemplates`. No entry leads to "not
   found".
-- [ ] T029 Update `src/app/navigation/catalogue.ts` (rows and the `NavigationEntry` id union) and its
+- [X] T029 *(done: aliases (AtSignIcon), aliasDomains (new LinkIcon, Lucide link-2) and resources (new CalendarIcon, Lucide calendar-days) after mailboxes (UI 003's mailboxTemplates goes between on rebase); nav.aliases removed; the navigation e2e lists and the shell title test follow the legacy labels)* Update `src/app/navigation/catalogue.ts` (rows and the `NavigationEntry` id union) and its
   icons in `src/shared/icons/` so that T028 passes. The labels are the legacy keys
   `mailbox.aliases`, `mailbox.domain_aliases` and `mailbox.resources`, verbatim in every language
   (constitution IV 1.3.0).

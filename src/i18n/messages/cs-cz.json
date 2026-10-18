@@ -10,6 +10,12 @@
     "skipToContent": "Přeskočit na hlavní obsah",
     "userMenu": "Nabídka účtu {username}"
   },
+  "aliases": {
+    "capabilities": {
+      "failed": "Nastavení serveru, která tento formulář potřebuje, se nepodařilo načíst.",
+      "loading": "Načítání nastavení serveru…"
+    }
+  },
   "apiKeys": {
     "anyAddress": "Libovolná adresa",
     "columns": {
@@ -571,7 +577,6 @@
     }
   },
   "nav": {
-    "aliases": "Aliasy a zdroje",
     "apiKeys": "API klíče",
     "auditLog": "Protokol auditu",
     "dns": "DKIM, MTA-STS a DNS",

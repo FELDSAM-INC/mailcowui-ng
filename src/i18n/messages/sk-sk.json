@@ -10,6 +10,12 @@
     "skipToContent": "Preskočiť na hlavný obsah",
     "userMenu": "Ponuka účtu {username}"
   },
+  "aliases": {
+    "capabilities": {
+      "failed": "Nastavenia servera, ktoré tento formulár potrebuje, sa nepodarilo načítať.",
+      "loading": "Načítavajú sa nastavenia servera…"
+    }
+  },
   "apiKeys": {
     "anyAddress": "Ľubovoľná adresa",
     "columns": {
@@ -571,7 +577,6 @@
     }
   },
   "nav": {
-    "aliases": "Aliasy a zdroje",
     "apiKeys": "API kľúče",
     "auditLog": "Protokol auditu",
     "dns": "DKIM, MTA-STS a DNS",

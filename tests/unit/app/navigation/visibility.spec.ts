@@ -48,6 +48,8 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   mailboxes: { admin: true, domainAdmin: true, mailboxUser: false },
   mailboxTemplates: { admin: true, domainAdmin: true, mailboxUser: false },
   aliases: { admin: true, domainAdmin: true, mailboxUser: false },
+  aliasDomains: { admin: true, domainAdmin: true, mailboxUser: false },
+  resources: { admin: true, domainAdmin: true, mailboxUser: false },
   account: { admin: true, domainAdmin: true, mailboxUser: true },
   passkeys: { admin: true, domainAdmin: true, mailboxUser: true },
   quarantine: { admin: true, domainAdmin: true, mailboxUser: true },
@@ -75,7 +77,7 @@ function shown(rule: boolean | Flag[], granted: Flag[]): boolean {
 }
 
 describe('navigation catalogue', () => {
-  it('has the rows of data-model §2 (UI 002 adds domainTemplates, UI 003 mailboxTemplates) in navigation order', () => {
+  it('has the rows of data-model §2 (UI 002 adds domainTemplates, UI 003 mailboxTemplates, UI 004 splits aliases into aliases, aliasDomains and resources) in navigation order', () => {
     expect(catalogue.map((entry) => entry.id)).toEqual(ORDER)
   })
 
@@ -85,6 +87,9 @@ describe('navigation catalogue', () => {
       domainTemplates: 'mailbox.domain_templates',
       mailboxes: 'mailbox.mailboxes',
       mailboxTemplates: 'mailbox.mailbox_templates',
+      aliases: 'mailbox.aliases',
+      aliasDomains: 'mailbox.domain_aliases',
+      resources: 'mailbox.resources',
       account: 'header.user_settings',
       quarantine: 'header.quarantine',
       spamFilter: 'user.spamfilter',
@@ -183,5 +188,26 @@ describe('classic interface addresses (research R19)', () => {
     expect(classicSignIn(null)).toBe('/')
     expect(classicSignIn('domainAdmin')).toBe('/domainadmin')
     expect(CLASSIC_PASSWORD_RESET).toBe('/reset-password')
+  })
+})
+
+describe('UI 004 rows (T028, research R4)', () => {
+  it('replace the aliases row with three consecutive rows delivered by 004 with the classic links', () => {
+    const ids = catalogue.map((entry) => entry.id)
+    const at = ids.indexOf('aliases')
+    expect(ids.slice(at, at + 3)).toEqual(['aliases', 'aliasDomains', 'resources'])
+    for (const [id, path] of [
+      ['aliases', '/aliases'],
+      ['aliasDomains', '/alias-domains'],
+      ['resources', '/resources'],
+    ] as const) {
+      const entry = catalogue.find((item) => item.id === id)!
+      expect(entry.path).toBe(path)
+      expect(entry.deliveredBy).toBe('004')
+      expect(entry.classic).toEqual({
+        admin: ['/admin/mailbox'],
+        domainAdmin: ['/domainadmin/mailbox'],
+      })
+    }
   })
 })

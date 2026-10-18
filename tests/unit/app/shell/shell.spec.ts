@@ -267,7 +267,7 @@ describe('page title and focus (FR-049, FR-080)', () => {
     await router.push('/aliases')
     await flushPromises()
     await nextTick()
-    expect(document.title).toBe('Aliases and resources – Example Mail')
+    expect(document.title).toBe('Aliases – Example Mail')
     await vi.waitFor(() => expect(document.activeElement?.tagName).toBe('H1'))
     wrapper.unmount()
   })

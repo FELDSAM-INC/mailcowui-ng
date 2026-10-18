@@ -102,7 +102,7 @@ test.describe('the shell', () => {
       await expect(drawer).toHaveCount(0)
       await expect(menuButton).toBeFocused()
       await menuButton.click()
-      await page.getByRole('dialog').getByRole('link', { name: 'Aliases and resources' }).click()
+      await page.getByRole('dialog').getByRole('link', { name: 'Aliases', exact: true }).click()
       await expect(page.getByRole('dialog')).toHaveCount(0)
     } else {
       await expect(navigation).toBeVisible()
@@ -111,12 +111,12 @@ test.describe('the shell', () => {
         'page',
       )
       await expect(navigation.getByRole('link', { name: 'Spam filter' })).toHaveCount(0)
-      await navigation.getByRole('link', { name: 'Aliases and resources' }).click()
+      await navigation.getByRole('link', { name: 'Aliases', exact: true }).click()
     }
     await expect(
-      page.getByRole('heading', { level: 1, name: 'Aliases and resources' }),
+      page.getByRole('heading', { level: 1, name: 'Aliases', exact: true }),
     ).toBeFocused()
-    await expect(page).toHaveTitle('Aliases and resources – Example Mail')
+    await expect(page).toHaveTitle('Aliases – Example Mail')
 
     const userMenu = page.getByRole('button', { name: 'Account menu of admin' })
     await userMenu.click()

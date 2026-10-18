@@ -95,7 +95,6 @@
     },
     "ownerPicker": {
       "error": "Účty se nepodařilo načíst.",
-      "loadMore": "Načíst další",
       "noMatch": "Žádný správce ani správce domény neodpovídá.",
       "searching": "Hledání…"
     },
@@ -132,10 +131,7 @@
     "chips": {
       "actor": "Uživatel nebo klíč: {value}",
       "address": "Adresa: {value}",
-      "clearAll": "Zrušit všechny filtry",
       "custom": "{from} až {to}",
-      "label": "Aktivní filtry",
-      "remove": "Odebrat filtr: {filter}",
       "targetId": "Cíl: {id}"
     },
     "columns": {
@@ -285,6 +281,7 @@
       "unknown": "Výsledek neznámý"
     },
     "progress": "Zpracovává se {count} položek…",
+    "refreshList": "Obnovit seznam",
     "retry": "Zopakovat neúspěšné",
     "select": "Vybrat",
     "selectAll": "Vybrat vše na této stránce",
@@ -423,7 +420,6 @@
     },
     "list": {
       "actionsFor": "Akce pro {name}",
-      "clearSearch": "Vymazat hledání",
       "count": "Nalezené domény: {count}",
       "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
@@ -611,8 +607,16 @@
     "title": "Odejít bez uložení?"
   },
   "lists": {
+    "chips": {
+      "clearAll": "Zrušit všechny filtry",
+      "label": "Aktivní filtry",
+      "remove": "Odebrat filtr: {filter}"
+    },
     "pagination": {
       "current": "Stránka {page} z {pages}"
+    },
+    "search": {
+      "clear": "Vymazat hledání"
     }
   },
   "nav": {
@@ -663,6 +667,10 @@
     "renamed": "Přístupový klíč byl přejmenován.",
     "title": "Přístupové klíče",
     "unknown": "Neznámý přístupový klíč, zaregistrován {date}"
+  },
+  "pickers": {
+    "loadMore": "Načíst další",
+    "remove": "Odebrat {name}"
   },
   "placeholder": {
     "classicHeading": "Zatím použijte klasické rozhraní",

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 // The per-item result of a bulk action (conventions "Bulk actions", UI 001 R20, UI 002 research
 // D22, FR-046): one row per item with its translated outcome as text and icon, the item's problem,
-// the counts announced politely, and a retry of the failed, refused and outdated items.
+// the counts announced politely, and a retry of the failed, refused and outdated items. UI 004
+// (research D4): an `item` slot for extra content per row (the copies of an alias), a `message`
+// override for an item's problem text, and "Refresh the list" when an item changed in the meantime.
 import { computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -20,10 +22,16 @@ import {
   type BulkRowOutcome,
 } from './bulk-row'
 
-const props = withDefaults(defineProps<{ rows: readonly BulkRow[]; title?: string }>(), {
-  title: undefined,
-})
-const emit = defineEmits<{ retry: []; close: [] }>()
+const props = withDefaults(
+  defineProps<{
+    rows: readonly BulkRow[]
+    title?: string
+    /** UI 004: the text of an item's problem, when the feature has a more specific one. */
+    message?: (row: BulkRow) => string | null
+  }>(),
+  { title: undefined, message: undefined },
+)
+const emit = defineEmits<{ retry: []; close: []; refresh: [] }>()
 const { t, locale } = useI18n()
 const { problemMessage } = useProblemMessages()
 
@@ -50,6 +58,9 @@ const TONE: Record<BulkRowOutcome, string> = {
 }
 
 const retryable = computed(() => props.rows.some(isRetryable))
+const outdated = computed(() => props.rows.some((row) => row.outcome === 'outdated'))
+const problemText = (row: BulkRow) =>
+  props.message?.(row) ?? (row.problem ? problemMessage(row.problem) : null)
 
 const countText = computed(() => {
   const counts = outcomeCounts(props.rows)
@@ -90,9 +101,10 @@ watch(() => props.rows, announceCounts)
             {{ t(`bulk.outcome.${row.outcome}`) }}
           </span>
         </div>
-        <p v-if="row.problem" class="text-sm break-words text-gray-700 dark:text-gray-300">
-          {{ problemMessage(row.problem) }}
+        <p v-if="problemText(row)" class="text-sm break-words text-gray-700 dark:text-gray-300">
+          {{ problemText(row) }}
         </p>
+        <slot name="item" :row="row" />
       </li>
     </ul>
     <div class="mt-4 flex flex-wrap gap-2">
@@ -103,6 +115,14 @@ watch(() => props.rows, announceCounts)
         @click="emit('retry')"
       >
         {{ t('bulk.retry') }}
+      </button>
+      <button
+        v-if="outdated"
+        type="button"
+        :class="buttonVariants({ variant: 'outline' })"
+        @click="emit('refresh')"
+      >
+        {{ t('bulk.refreshList') }}
       </button>
       <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="emit('close')">
         {{ t('common.close') }}

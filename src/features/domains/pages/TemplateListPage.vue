@@ -185,7 +185,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
             v-if="search !== ''"
             type="button"
             :class="buttonVariants({ variant: 'outline', size: 'icon' })"
-            :aria-label="t('domains.list.clearSearch')"
+            :aria-label="t('lists.search.clear')"
             @click="clearSearch"
           >
             <CloseIcon />
@@ -251,7 +251,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
       <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearSearch">
-          {{ t('domains.list.clearSearch') }}
+          {{ t('lists.search.clear') }}
         </button>
       </div>
 

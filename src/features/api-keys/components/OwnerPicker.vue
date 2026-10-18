@@ -252,7 +252,7 @@ function onFocusOut(event: FocusEvent) {
         @mousedown.prevent
         @click="query.fetchNextPage()"
       >
-        {{ t('apiKeys.ownerPicker.loadMore') }}
+        {{ t('pickers.loadMore') }}
       </button>
     </div>
   </div>

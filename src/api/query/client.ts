@@ -14,7 +14,11 @@ export interface SessionReactions {
   secondFactorRequired(problem: ApiProblem): void
   /** `pending-action-required`: refresh session and identity, go to the pending-actions screen. */
   pendingActionRequired(problem: ApiProblem): void
-  /** `forbidden`: show "no permission" in context and refresh the identity (FR-045). */
+  /**
+   * `forbidden`: show "no permission" in context and refresh the identity (FR-045). UI 004
+   * (FR-004): `attribute-not-permitted` and `permission-flag-required` also come here, so that
+   * changed permission flags update the controls.
+   */
   forbidden(problem: ApiProblem): void
 }
 
@@ -34,7 +38,13 @@ export function reportSessionProblem(error: unknown): void {
   if (error.is('unauthenticated')) reactions.unauthenticated(error)
   else if (error.is('second-factor-required')) reactions.secondFactorRequired(error)
   else if (error.is('pending-action-required')) reactions.pendingActionRequired(error)
-  else if (error.is('forbidden')) reactions.forbidden(error)
+  else if (
+    error.is('forbidden') ||
+    error.is('attribute-not-permitted') ||
+    error.is('permission-flag-required')
+  ) {
+    reactions.forbidden(error)
+  }
 }
 
 /** Retry once after a network error or a non-problem 5xx; never after a 4xx or a problem. */

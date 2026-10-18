@@ -69,6 +69,29 @@ export function manyOf<const V extends string>(
   }
 }
 
+/**
+ * UI 004: a repeatable free-text parameter (domain names, addresses): trimmed, empty and longer
+ * values dropped, duplicates ignoring letter case kept once (the first spelling), at most `max`
+ * values, otherwise not set.
+ */
+export function manyText(options: { max: number; maxLength: number }): ParamSpec<string[]> {
+  return {
+    parse(raw) {
+      const seen = new Set<string>()
+      const values: string[] = []
+      for (const item of Array.isArray(raw) ? raw : [raw]) {
+        const value = typeof item === 'string' ? item.trim() : ''
+        if (!value || value.length > options.maxLength || seen.has(value.toLowerCase())) continue
+        seen.add(value.toLowerCase())
+        values.push(value)
+      }
+      return values.length <= options.max ? values : []
+    },
+    serialize: (value) => (value.length > 0 ? [...value] : undefined),
+    isSet: (value) => value.length > 0,
+  }
+}
+
 /** A custom parameter, for example an IP network or a time. */
 export function custom<T>(spec: ParamSpec<T>): ParamSpec<T> {
   return spec

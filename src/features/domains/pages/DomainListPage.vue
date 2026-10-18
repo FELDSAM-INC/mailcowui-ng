@@ -211,7 +211,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
             v-if="search !== ''"
             type="button"
             :class="buttonVariants({ variant: 'outline', size: 'icon' })"
-            :aria-label="t('domains.list.clearSearch')"
+            :aria-label="t('lists.search.clear')"
             @click="clearSearch"
           >
             <CloseIcon />

@@ -95,7 +95,6 @@
     },
     "ownerPicker": {
       "error": "The accounts could not be loaded.",
-      "loadMore": "Load more",
       "noMatch": "No administrators or domain administrators match.",
       "searching": "Searching…"
     },
@@ -132,10 +131,7 @@
     "chips": {
       "actor": "User or key: {value}",
       "address": "Address: {value}",
-      "clearAll": "Clear all filters",
       "custom": "{from} to {to}",
-      "label": "Active filters",
-      "remove": "Remove filter: {filter}",
       "targetId": "Target: {id}"
     },
     "columns": {
@@ -285,6 +281,7 @@
       "unknown": "Outcome unknown"
     },
     "progress": "Processing {count} items…",
+    "refreshList": "Refresh the list",
     "retry": "Retry the failed ones",
     "select": "Select",
     "selectAll": "Select all on this page",
@@ -423,7 +420,6 @@
     },
     "list": {
       "actionsFor": "Actions for {name}",
-      "clearSearch": "Clear search",
       "count": "Domains found: {count}",
       "details": "Details",
       "detailsOf": "Details of {name}",
@@ -611,8 +607,16 @@
     "title": "Leave without saving?"
   },
   "lists": {
+    "chips": {
+      "clearAll": "Clear all filters",
+      "label": "Active filters",
+      "remove": "Remove filter: {filter}"
+    },
     "pagination": {
       "current": "Page {page} of {pages}"
+    },
+    "search": {
+      "clear": "Clear search"
     }
   },
   "nav": {
@@ -663,6 +667,10 @@
     "renamed": "Passkey renamed.",
     "title": "Passkeys",
     "unknown": "Unknown passkey, registered {date}"
+  },
+  "pickers": {
+    "loadMore": "Load more",
+    "remove": "Remove {name}"
   },
   "placeholder": {
     "classicHeading": "Use the classic interface for now",

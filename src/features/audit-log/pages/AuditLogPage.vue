@@ -15,7 +15,7 @@ import { PAGE_SIZES, useListState, type PageSize } from '@/shared/composables/us
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useAuditEvents } from '../api'
-import ActiveFilterChips from '../components/ActiveFilterChips.vue'
+import AuditFilterChips from '../components/AuditFilterChips.vue'
 import AuditEventList from '../components/AuditEventList.vue'
 import AuditFilters from '../components/AuditFilters.vue'
 import { auditListSchema, type AuditFilterValues } from '../list-state'
@@ -87,7 +87,7 @@ watch(
       @apply="change"
       @clear="change(NO_FILTERS)"
     />
-    <ActiveFilterChips :filters="filters" @remove="change" @clear="change(NO_FILTERS)" />
+    <AuditFilterChips :filters="filters" @remove="change" @clear="change(NO_FILTERS)" />
     <div class="flex flex-col gap-4">
       <h2 class="sr-only">{{ t('auditLog.records') }}</h2>
       <ListState

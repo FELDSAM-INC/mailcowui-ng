@@ -95,7 +95,6 @@
     },
     "ownerPicker": {
       "error": "Účty sa nepodarilo načítať.",
-      "loadMore": "Načítať ďalšie",
       "noMatch": "Nezodpovedá žiadny správca ani správca domény.",
       "searching": "Hľadanie…"
     },
@@ -132,10 +131,7 @@
     "chips": {
       "actor": "Používateľ alebo kľúč: {value}",
       "address": "Adresa: {value}",
-      "clearAll": "Zrušiť všetky filtre",
       "custom": "{from} až {to}",
-      "label": "Aktívne filtre",
-      "remove": "Odobrať filter: {filter}",
       "targetId": "Cieľ: {id}"
     },
     "columns": {
@@ -285,6 +281,7 @@
       "unknown": "Výsledok neznámy"
     },
     "progress": "Spracúva sa {count} položiek…",
+    "refreshList": "Obnoviť zoznam",
     "retry": "Zopakovať neúspešné",
     "select": "Vybrať",
     "selectAll": "Vybrať všetko na tejto stránke",
@@ -423,7 +420,6 @@
     },
     "list": {
       "actionsFor": "Akcie pre {name}",
-      "clearSearch": "Vymazať hľadanie",
       "count": "Nájdené domény: {count}",
       "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
@@ -611,8 +607,16 @@
     "title": "Odísť bez uloženia?"
   },
   "lists": {
+    "chips": {
+      "clearAll": "Zrušiť všetky filtre",
+      "label": "Aktívne filtre",
+      "remove": "Odobrať filter: {filter}"
+    },
     "pagination": {
       "current": "Strana {page} z {pages}"
+    },
+    "search": {
+      "clear": "Vymazať hľadanie"
     }
   },
   "nav": {
@@ -663,6 +667,10 @@
     "renamed": "Prístupový kľúč bol premenovaný.",
     "title": "Prístupové kľúče",
     "unknown": "Neznámy prístupový kľúč, zaregistrovaný {date}"
+  },
+  "pickers": {
+    "loadMore": "Načítať ďalšie",
+    "remove": "Odobrať {name}"
   },
   "placeholder": {
     "classicHeading": "Zatiaľ použite klasické rozhranie",

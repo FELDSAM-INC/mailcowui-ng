@@ -21,3 +21,12 @@ export function canAccess(entryId: string, identity: Identity | null | undefined
   const item = findEntry(entryId)
   return !!item && !!identity && allowed(item, identity)
 }
+
+/**
+ * UI 004 (research D16, docs/conventions.md "Where features meet"): whether a link into another
+ * section may be shown: its entry is available in this version and the identity may open it.
+ */
+export function isEntryAvailable(entryId: string, identity: Identity | null | undefined): boolean {
+  const item = findEntry(entryId)
+  return !!item && item.status === 'available' && canAccess(entryId, identity)
+}

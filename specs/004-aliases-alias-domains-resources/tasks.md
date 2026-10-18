@@ -124,7 +124,7 @@ accepts the new entry forms.
 
 ### Dependencies on earlier features (research R2)
 
-- [ ] T006 Write `tests/unit/dependencies/feature-004-dependencies.spec.ts`. It imports each block of
+- [X] T006 *(done: tests/unit/dependencies/feature-004-dependencies.spec.ts, observed failing on main; D10 is UI 001's NotFoundPage with UI 002's back link (no NotFoundState); D11-D13 are covered by their own specs (T008, T009); D18 and the mailbox part of D20 wait for UI 003 (T075 adds them))* Write `tests/unit/dependencies/feature-004-dependencies.spec.ts`. It imports each block of
   research R2 and checks the behaviour UI 004 relies on:
   - D1 `useListState`: repeatable parameters and `onReset`.
   - D2 `useBulkSelection`:
@@ -156,7 +156,7 @@ accepts the new entry forms.
   - `utf8ByteLength()`.
 
   The test must fail for every block that is missing or lacks a listed behaviour.
-- [ ] T007 Fill the non-promotion gaps T006 reports, test first in the matching
+- [X] T007 *(done: useListState.manyText (repeatable free text), BulkResultSummary item slot, message override and "Refresh the list" (refresh event), D15 in client.ts, isEntryAvailable in visibility.ts, SearchField.vue and utf8.ts; ActiveFilterChips promoted to src/shared/components as a generic chips component (the audit log's chips moved to AuditFilterChips.vue); generic texts moved to lists.chips.*, lists.search.clear, pickers.*; early merge point for UI 003 (orchestrator))* Fill the non-promotion gaps T006 reports, test first in the matching
   `tests/unit/shared/**` spec, keeping every earlier feature's tests green:
   - D2's limit behaviour in `src/shared/composables/useBulkSelection.ts` (selection disabled at the
     limit, "Select all" capped);
@@ -167,7 +167,7 @@ accepts the new entry forms.
 
   If UI 002 or UI 003 changed a name or path, update the references in this feature's `plan.md`,
   `research.md` and `tasks.md` instead of creating a copy.
-- [ ] T008 [P] Promote `DomainPicker` (D11):
+- [X] T008 *(done: src/shared/components/DomainPicker.vue built directly as the shared, prop-driven picker (UI 003's feature copy does not exist yet; the orchestrator assigned the shared one to UI 004); tests/unit/shared/components/DomainPicker.spec.ts)* [P] Promote `DomainPicker` (D11):
   - Write `tests/unit/shared/components/DomainPicker.spec.ts`. It covers:
     - single and multiple modes;
     - a debounced server search, with "load more" in pages of 25;

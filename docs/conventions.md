@@ -129,7 +129,9 @@ it.
     off the domain create and edit forms, the domain template forms and the domain list. The new
     mailbox form takes its quota from the mailbox template, never from the domain. The API no
     longer has the field at all; it keeps the upstream column valid for the classic interface
-    internally;
+    internally. The mailbox form always sends a quota, prefilled from the chosen mailbox template
+    and capped at the domain's `usage.maxNewMailboxQuota`. Without one the template chain can give
+    0 (unlimited), which the API refuses for a domain administrator without `unlimitedQuota`;
   - the password repeat field wherever legacy has one;
   - legacy's tabs, groups and field order: a legacy tab becomes one section, never several, and
     settings keep legacy's tab structure;

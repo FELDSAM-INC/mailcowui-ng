@@ -110,11 +110,11 @@ English, Czech and Slovak."
   app shows one result per client; failed, refused and outdated clients stay selected for a retry,
   and a dropped connection is reported as "outcome unknown" and never retried automatically.
   Generating new secrets in bulk is not offered. The selection is cleared when the page, search,
-  filter, sort or page size changes. Until API 012 offers these bulk operations, the bulk actions
-  are not shown (API gap 4). (agent decision, aligned with `docs/conventions.md`: legacy offers the
-  quick actions, and the API conventions provide bulk operations wherever legacy has mass actions,
-  although API 012 FR-060 still excludes them; sending one request per client would work around the
-  API; each new secret must be shown and copied individually, which a bulk run cannot do safely.)
+  filter, sort or page size changes, and it never exceeds the bulk limit that the API reports.
+  (agent decision, aligned with `docs/conventions.md`: legacy offers the quick actions, and API 012
+  FR-060 and FR-061 provide bulk deletion and bulk token revocation for up to 100 clients with one
+  result per client; each new secret must be shown and copied individually, which a bulk run cannot
+  do safely.)
 - Q: How strong must the confirmations for destructive actions be? → A: Removing the configuration,
   changing the provider type, deleting a client, revoking a client's tokens and generating a new
   secret each need a confirmation dialog that names the item and states the consequences (token
@@ -125,6 +125,42 @@ English, Czech and Slovak."
   `docs/conventions.md` asks for the typed number in bulk deletions; the API refuses removal and
   type changes while mailboxes depend on the provider, so the remaining impact is limited and
   recoverable by re-entering settings or issuing a new secret.)
+
+### Session 2026-10-18 (plan: alignment with the API 012 contract)
+
+- Q: Which mailbox counts decide whether removal and a type change are possible? → A: The API
+  reports the number of mailboxes for each external source (Keycloak, generic OIDC, LDAP), counted
+  as its "in use" checks count them. Removal is unavailable while any of these counts is above zero.
+  A change to another type is unavailable while mailboxes use a source other than that type; since
+  the configured type is always another source, this holds whenever mailboxes use the configured
+  type. The overview shows every non-zero count with a link to those mailboxes. (plan decision: API
+  012 FR-006, FR-015 and FR-017 now report per-source counts, which closes a former API gap.)
+- Q: Does the overview show whether the synchronisation works? → A: Yes. For Keycloak and LDAP, the
+  Synchronisation section shows the status that the API derives from the scheduled-job log: whether
+  a job is enabled, running, waiting, overdue or unknown, the end of the last completed run, a
+  failure since then and the expected next run, together with the limits of that derivation
+  (FR-020). (plan decision: API 012 FR-062, which closes a former API gap.)
+- Q: What does the app do when the provider returns an error instead of a code? → A: It reports the
+  provider's error code and the state to the API, which consumes the state, cancels the pending
+  sign-in and records the refusal in the audit log. A return that cannot be reported that way (no
+  state, an error code the API would not accept, or a code without a state) makes the app cancel the
+  pending sign-in instead (FR-048). (plan decision: API 012 FR-063, which closes a former API gap.)
+- Q: Where do the defaults, the field limits and the return addresses come from before a
+  configuration or a client exists? → A: From the API's identity provider and OAuth2 capabilities
+  reads, which also report the OAuth2 endpoint paths, the token lifetimes, the accepted grant types
+  and the bulk limit (FR-011, FR-018, FR-027, FR-057, FR-065). (plan decision: API 012 FR-064 and
+  `docs/conventions.md`, "Capabilities and limits come from each API feature's capabilities read".)
+- Q: Can the audit log be filtered by sign-in method? → A: No. The API offers no such filter and its
+  conventions forbid feature-specific audit filters. Every sign-in record shows its method, and
+  administrators narrow the log by event type, outcome, actor and time. The filter is recorded as an
+  API gap (FR-067, gap 1). (plan decision: constitution I forbids working around the contract, for
+  example by filtering one page of results in the browser.)
+- Q: Which address does the provider return to, given that the server's return path is configurable?
+  → A: The app serves `/ng/sso/return`, the API's default return path. When the return addresses
+  that the API reports point to another path, the Return addresses section warns administrators that
+  single sign-on in this app fails until the server setting is corrected (FR-027, FR-045). (plan
+  decision: the static app cannot serve a path it does not know, and the setting exists on the API
+  side for development.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -218,8 +254,9 @@ messages, and that the code and state are gone from the page address.
    browser, **When** the app completes it, **Then** a message says that the sign-in must be started
    again and offers to start it.
 5. **Given** a return on which the provider reports that the user cancelled or refused, **When** the
-   return screen opens, **Then** the app cancels the pending sign-in, says that the sign-in was
-   cancelled at the provider and offers to try again, without showing the provider's own text.
+   return screen opens, **Then** the app reports the provider's error code to the API, which cancels
+   the pending sign-in, says that the sign-in was cancelled at the provider and offers to try again,
+   without showing the provider's own text.
 6. **Given** a user without a mailbox while automatic creation is off, **When** the app completes
    the sign-in, **Then** one generic message says that the sign-in did not succeed and suggests
    contacting the administrator, without revealing the reason.
@@ -296,8 +333,9 @@ with and without mailboxes in use, and remove the configuration.
 
 1. **Given** a stored configuration, **When** the overview opens, **Then** it shows the type,
    whether the configuration is complete, what users can do with it, the number of mailboxes that
-   use it with a link to those mailboxes, the last change, and one read-only section per group of
-   settings with its own Edit action.
+   use it (and of any other external source that still has mailboxes) with links to those
+   mailboxes, the last change, and one read-only section per group of settings with its own Edit
+   action.
 2. **Given** the "Connection and credentials" section in edit, **When** the administrator changes
    the LDAP hosts, the Keycloak server URL or the OIDC token endpoint, **Then** the secret field
    becomes required with an explanation before the form is submitted.
@@ -359,10 +397,10 @@ and confirm that a secret is visible only in the credentials dialog.
    whose client ID or redirect URIs contain "wiki" are listed, and a reload keeps the search.
 8. **Given** no clients, **When** the screen opens, **Then** an empty state explains what OAuth2
    apps are for and offers to add one.
-9. **Given** the API offers bulk operations and three selected clients of which one was changed
-   elsewhere, **When** the administrator deletes them, typing "3" to confirm, **Then** the app
-   reports a result per client (two deleted, one outdated) and the outdated client stays selected
-   for a retry. Generating new secrets is not offered as a bulk action.
+9. **Given** three selected clients of which one was changed elsewhere, **When** the administrator
+   deletes them, typing "3" to confirm, **Then** the app reports a result per client (two deleted,
+   one outdated) and the outdated client stays selected for a retry. Generating new secrets is not
+   offered as a bulk action.
 
 ---
 
@@ -376,7 +414,7 @@ audit log by single sign-on and finds the teacher's first sign-in with the templ
 
 **Independent Test**: With audit records of every event type, target type, sign-in method and
 failure reason of API feature 012 in the mock API, open the history from the overview and from a
-client page, apply the new filters, and confirm the entries shown.
+client page, apply the target, event type and outcome filters, and confirm the entries shown.
 
 **Acceptance Scenarios**:
 
@@ -387,8 +425,9 @@ client page, apply the new filters, and confirm the entries shown.
 3. **Given** a connection test record, **When** it is shown, **Then** it names the provider type,
    the tested address and the translated outcome.
 4. **Given** a failed single sign-on because no mapping matched, **When** the administrator filters
-   failed sign-ins by the single sign-on method, **Then** the entry shows the e-mail address from
-   the provider and the translated reason.
+   the audit log by failed sign-ins, **Then** the entry shows the single sign-on method, the e-mail
+   address from the provider and the translated reason. (The API offers no filter by sign-in method:
+   API gap 1.)
 
 ---
 
@@ -399,6 +438,15 @@ client page, apply the new filters, and confirm the entries shown.
 - **Configuration stored by legacy with empty required values**: the overview says that it is
   incomplete and marks the empty values "Not set".
 - **Mapping or default template pointing to a deleted template**: flagged "Template missing".
+- **Mailboxes of an external source other than the configured type** (left by legacy): the overview
+  shows their count with a link; removal stays unavailable, and so does a change to any type other
+  than theirs, until they are switched.
+- **Return addresses reported by the API that do not end in the app's return page**: the Return
+  addresses section warns that single sign-on in this app fails until the server's return path is
+  corrected.
+- **Synchronisation status unknown or overdue**: the section explains that the status comes from the
+  scheduled-job log, which keeps a limited number of entries, and that a failure the jobs do not log
+  shows only as an overdue run.
 - **No mailbox templates exist**: the mapping cannot get entries; the form says so and links to the
   mailbox templates of UI feature 003.
 - **Template list cannot be loaded while editing the mapping**: an error with retry; entered entries
@@ -474,8 +522,9 @@ client page, apply the new filters, and confirm the entries shown.
   - what users can do with it: single sign-on on the sign-in screen (Keycloak and generic OIDC, when
     complete), password sign-in against the directory (LDAP), password sign-in through Keycloak
     (when the mailpassword flow is on);
-  - the number of mailboxes that authenticate against the configured type, with a link to the
-    mailbox list of UI 003 filtered by that authentication source;
+  - the number of mailboxes that authenticate against the configured type, and the number for each
+    other external source that still has mailboxes, each with a link to the mailbox list of UI 003
+    filtered by that authentication source;
   - the time of the last change;
   - the sections of FR-006 with the stored values;
   - the actions Test connection, Change provider type, Remove and History.
@@ -511,22 +560,28 @@ client page, apply the new filters, and confirm the entries shown.
   mailpassword flow, user import and synchronisation; a generic OpenID Connect provider offers
   single sign-on without synchronisation; LDAP offers password sign-in against a directory, user
   import and synchronisation.
-- **FR-011**: The setup form MUST start with the API's defaults: automatic creation on; scopes
-  `openid profile email mailcow_template`; port 389; neither SSL nor StartTLS; username field
-  `mail`; sync interval 15 minutes; TLS certificate errors not ignored; mailpassword flow, user
-  import and periodic full synchronisation off; no mapping, no default template and no additional
-  return URLs.
+- **FR-011**: The setup form MUST start with the defaults that the API's identity provider
+  capabilities report, currently: automatic creation on; scopes `openid profile email
+  mailcow_template`; port 389; neither SSL nor StartTLS; username field `mail`; sync interval 15
+  minutes; TLS certificate errors not ignored; mailpassword flow, user import and periodic full
+  synchronisation off. The mapping, the default template and the additional return URLs start
+  empty.
 - **FR-012**: The review step MUST summarise every value, show secrets only as "entered", show the
   latest connection test result if there is one, list the return addresses to register, and offer
   Save. Saving MUST send the whole configuration. On success, the app MUST show the overview,
   announce that the identity provider was set up, and refresh the public configuration so that the
-  sign-in screens reflect it.
-- **FR-013**: "Change provider type" MUST be unavailable, with the reason and the link of FR-005,
-  while the configuration reports mailboxes that authenticate against the configured type. Otherwise
-  it MUST ask for confirmation, naming the current type and stating that its settings, including its
-  secret, will be removed when the new configuration is saved, and then open the setup flow at the
-  type step. The stored configuration MUST stay unchanged until the new one is saved, that save MUST
-  carry the version tag read, and leaving the flow MUST change nothing.
+  sign-in screens reflect it. When a first setup is answered as "updated" because another
+  configuration was stored in the meantime, the announcement MUST say that the existing
+  configuration was replaced (API gap 3).
+- **FR-013**: A change to a type MUST be treated as blocked while the configuration reports
+  mailboxes of any external source other than that type. "Change provider type" MUST be unavailable,
+  with the reason and the links of FR-005, while every other type is blocked, which is always the
+  case while mailboxes use the configured type. Otherwise it MUST ask for confirmation, naming the
+  current type and stating that its settings, including its secret, will be removed when the new
+  configuration is saved, and then open the setup flow at the type step, where the current type and
+  each blocked type are unavailable with their reason. The stored configuration MUST stay unchanged
+  until the new one is saved, that save MUST carry the version tag read, and leaving the flow MUST
+  change nothing.
 - **FR-014**: An "identity provider in use" conflict on a save, a type change or a removal MUST be
   shown as a translated message with the number of mailboxes the API reports and a link to the
   mailbox list of UI 003. Nothing is changed.
@@ -568,8 +623,10 @@ client page, apply the new filters, and confirm the entries shown.
   - sync interval: a whole number of minutes from 1 to 10,080;
   - secrets: 1 to 1,000 characters.
 
-  The API stays authoritative: its validation errors MUST be shown at the matching field or entry,
-  including "secret required" at the secret and "template not found" at the named mapping entry.
+  The numeric limits MUST come from the identity provider capabilities read, and the syntax rules
+  from the contract. The API stays authoritative: its validation errors MUST be shown at the
+  matching field or entry, including "secret required" at the secret and "template not found" at
+  the named mapping entry.
 - **FR-019**: LDAP hosts MUST be entered as a list of entries with add and remove actions.
   Connection security MUST be one choice of "None", "SSL" and "StartTLS". When SSL is chosen with
   port 389, the form MUST say that port 636 will be used; when StartTLS is chosen, it MUST say that
@@ -580,7 +637,13 @@ client page, apply the new filters, and confirm the entries shown.
   synchronisation re-applies the mapped template to existing mailboxes and never uses the default
   template, and that a job runs at most once per interval and picks up changes at its next run. Once
   UI feature 011 ships, it MUST link to that feature's scheduled-job log; until then it MUST show no
-  link and no placeholder.
+  link and no placeholder. For Keycloak and LDAP, the section MUST also show the synchronisation
+  status that the API reports: whether a job is disabled, running, waiting, overdue or unknown, the
+  end of the last completed run, the time of a failure logged since then, and when the next run is
+  expected, each conveyed by text and not by colour alone. It MUST explain that the status is
+  derived from the scheduled-job log, which keeps a limited number of entries, so that "unknown" can
+  mean that no run was logged recently and a failure that the jobs do not log shows only as an
+  overdue run.
 - **FR-021**: For Keycloak, the mailpassword flow MUST be explained as letting mailboxes sign in
   with a password whose hash Keycloak keeps in the user's `mailcow_password` attribute. The form
   MUST state that the mailpassword flow, user import and periodic synchronisation need a service
@@ -607,7 +670,10 @@ client page, apply the new filters, and confirm the entries shown.
 - **FR-027**: For Keycloak and generic OIDC, the Return addresses section MUST list the app's
   sign-in return addresses that the API reports, one for each of the server's host names, each with
   a copy action, and MUST explain that they must be registered at the provider as allowed redirect
-  addresses for single sign-on in this app, in addition to the classic interface's return URL.
+  addresses for single sign-on in this app, in addition to the classic interface's return URL. In
+  the setup flow, before anything is stored, the addresses MUST come from the capabilities read.
+  When a reported address does not end in the app's own return page (`/ng/sso/return`), the section
+  MUST warn that single sign-on in this app fails until the server's return path is corrected.
 - **FR-028**: The classic interface's return URL MUST be required, and the additional return URLs
   MUST be a list with add and remove actions, both explained as used by the classic interface.
 
@@ -659,8 +725,8 @@ client page, apply the new filters, and confirm the entries shown.
 
 #### Removal
 
-- **FR-039**: "Remove" MUST be unavailable, with the reason and the link of FR-005, while the
-  configuration reports mailboxes that authenticate against the configured type. Otherwise it MUST
+- **FR-039**: "Remove" MUST be unavailable, with the reason and the links of FR-005, while the
+  configuration reports any mailbox with an external authentication source. Otherwise it MUST
   ask for confirmation, naming the type and stating that single sign-on is no longer offered,
   password sign-in through the provider stops, synchronisation stops at its next run, and every
   setting including the secret is removed and cannot be restored. On success the app MUST show the
@@ -696,9 +762,9 @@ client page, apply the new filters, and confirm the entries shown.
 
 #### Return from the provider
 
-- **FR-045**: The app MUST serve the sign-in return address that the API registers for it. Opening
-  it MUST show a screen with the operator's branding and a "Completing sign-in" progress state that
-  is announced to screen readers.
+- **FR-045**: The app MUST serve the sign-in return address that the API registers for it,
+  `/ng/sso/return` (the API's default return path). Opening it MUST show a screen with the
+  operator's branding and a "Completing sign-in" progress state that is announced to screen readers.
 - **FR-046**: The app MUST read the code and the state, or the provider's error, from the page
   address once, remove them from the address and from the browser history entry before anything else
   happens, keep them only in memory, and submit the code and the state once to complete the sign-in.
@@ -713,8 +779,8 @@ client page, apply the new filters, and confirm the entries shown.
 
   | Outcome | Message | Actions |
   |---|---|---|
-  | The provider reports an error (for example the user cancelled or refused) | The sign-in was cancelled or refused at the organisation's sign-in page. The app first cancels the pending sign-in through the API. The provider's own text is not shown. | Try again, Back to sign-in |
-  | Sign-in state invalid | The sign-in expired or was already completed and must be started again. | Try again, Back to sign-in |
+  | The provider reports an error (for example the user cancelled or refused) | The sign-in was cancelled or refused at the organisation's sign-in page. The app first reports the provider's error code and the state to the API, which cancels the pending sign-in and records it; when they cannot be reported (no state, or an error code the API would not accept), the app cancels the pending sign-in instead. The message does not depend on the outcome of that request. The provider's own text is never shown or sent. | Try again, Back to sign-in |
+  | Sign-in state invalid, including a return with a code but no state, or a state but no code (the app then cancels the pending sign-in first) | The sign-in expired or was already completed and must be started again. | Try again, Back to sign-in |
   | Sign-in failed | Signing in with the organisation's account did not succeed; contact the administrator if it persists. No reason is given. | Try again, Back to sign-in |
   | Identity provider unavailable | The organisation's sign-in service is not reachable; try again in a few minutes. | Try again, Back to sign-in |
   | Single sign-on not available | Single sign-on is not offered on this server. The public configuration is refreshed. | Back to sign-in |
@@ -762,7 +828,9 @@ client page, apply the new filters, and confirm the entries shown.
   after each use, the `profile` scope, the required `state` parameter, that only mailbox users can
   authorise, that applications must name their redirect URI when several are registered, the
   consequences of a new secret and of revoking tokens, and the authorization, token and profile
-  addresses on the current host name with copy actions.
+  addresses on the current host name with copy actions. The endpoint paths, the scope, the grant
+  types the server accepts and the access and refresh token lifetimes MUST come from the OAuth2
+  capabilities read.
 
 #### OAuth2 client changes
 
@@ -796,13 +864,13 @@ client page, apply the new filters, and confirm the entries shown.
   and stating that the application stops working at once, that its tokens are removed and that this
   cannot be undone. On success the client MUST disappear from the list, the outcome MUST be
   announced, and from the client page the app MUST return to the list.
-- **FR-065**: When the API offers bulk operations for OAuth2 clients, administrators MUST be able to
-  select clients on the current page in an explicit selection mode and to revoke all tokens of, or
-  delete, the selected clients:
+- **FR-065**: Administrators MUST be able to select clients on the current page in an explicit
+  selection mode and to revoke all tokens of, or delete, the selected clients through the API's bulk
+  operation:
   - one confirmation MUST list the selected clients with their token counts and the consequences of
     FR-063 or FR-064, and a bulk deletion MUST require the number of selected clients to be typed;
-  - the app MUST send the API's bulk operation with each client's version tag as listed, within the
-    bulk limit the API reports;
+  - the app MUST send the API's bulk operation with each client's version tag as listed, and the
+    selection MUST NOT exceed the bulk limit that the OAuth2 capabilities report;
   - the app MUST show a summary with one result per client (done, not found, refused, outdated or
     failed), and failed, refused and outdated clients MUST stay selected so that they can be
     retried;
@@ -811,8 +879,7 @@ client page, apply the new filters, and confirm the entries shown.
   - generating new secrets MUST NOT be offered as a bulk action;
   - the selection MUST be cleared when the page, search, filter, sort or page size changes.
 
-  Until the API offers these bulk operations, the app MUST NOT offer bulk actions and MUST NOT
-  replace them with one request per client.
+  The app MUST NOT replace the bulk operation with one request per client.
 - **FR-066**: When an OAuth2 change is refused as outdated, the app MUST keep the entered redirect
   URIs and handle it as in FR-017. For a secret regeneration, a revocation or a deletion, it MUST
   show the current state of the client and ask again.
@@ -821,8 +888,10 @@ client page, apply the new filters, and confirm the entries shown.
 
 - **FR-067**: The overview and the client page MUST offer a History action that opens the audit log
   of UI 001 filtered to the identity provider configuration or to that client. That screen MUST gain
-  the target types "identity provider configuration" and "OAuth2 client" and the sign-in methods
-  "single sign-on", "directory password" and "provider password" as filters. Entries MUST show:
+  the target types "identity provider configuration" and "OAuth2 client" as filters, and labels for
+  the sign-in methods "single sign-on", "directory password" and "provider password" (each with and
+  without a second factor), which every sign-in record shows. The API offers no filter by sign-in
+  method (API gap 1), so the screen MUST NOT offer one. Entries MUST show:
   - changed settings with their old and new value, and secrets only as "changed";
   - connection tests with the provider type, the tested address and the translated outcome;
   - revocations and deletions of clients with the number of tokens and codes removed;
@@ -831,8 +900,9 @@ client page, apply the new filters, and confirm the entries shown.
     translated reason (sign-in state invalid, provider refused, identity provider unavailable, no
     e-mail address, mailbox not linked to the provider, automatic creation off, no matching mapping,
     creation failed, password not verifiable);
-  - mailboxes created or updated at sign-in with the template used, linking to the sign-in record
-    and to the mailbox.
+  - mailboxes created or updated at sign-in with the template used, linking to the mailbox and to
+    that account's sign-in records (the API offers no filter that leads to the one sign-in record:
+    API gap 2).
 
 #### Errors and feedback
 
@@ -920,7 +990,7 @@ this feature, with the reason).
 | Mailpassword Flow switch with info text | Switch | Matched | FR-021 |
 | Ignore SSL Errors switch | Switch | Improved: warning while on | FR-008 |
 | Auto-create users on login | Switch | Matched, with explanation | FR-032 |
-| Periodic Full Sync, Import Users, Sync / Import interval (min) | Switches and a number (values below 1 raised to 1) | Improved: range 1 to 10,080, readable interval, explanation, link to the job log | FR-018, FR-020 |
+| Periodic Full Sync, Import Users, Sync / Import interval (min) | Switches and a number (values below 1 raised to 1) | Improved: range 1 to 10,080, readable interval, explanation, synchronisation status, link to the job log | FR-018, FR-020 |
 | Generic OIDC: Authorization, Token and User info endpoints, Client Scopes with placeholder | Text inputs | Matched, checked before sending, default scopes prefilled | FR-011, FR-018 |
 | LDAP: Host (comma-separated, tooltip) | One text input | Improved: list of entries | FR-019 |
 | LDAP: Port, Use SSL, Use StartTLS (switches that clear each other, tooltips) | Two switches | Improved: one choice with visible hints on ports | FR-019 |
@@ -949,7 +1019,7 @@ this feature, with the reason).
 |---|---|---|---|
 | Information text (`admin.oauth2_info`, HTML) | Static text with endpoint paths | Improved: information panel with copyable endpoint addresses | FR-057 |
 | Table: ID, Client ID, Client secret, Redirect URI, actions | DataTables, client-side search, table state in browser storage; secret shown in clear | Improved: secret never listed; server-side search, sort, active-token filter and token counts; state in the page address | FR-054, FR-055 |
-| Toggle all, Quick actions Remove, Revoke all client tokens | One request for all selected items, no per-item result; only removal asks for confirmation | Improved: selection mode, confirmation for both (typed number for deletion), result per client, failed items kept for retry; offered once API 012 has bulk operations (API gap 4) | FR-065 |
+| Toggle all, Quick actions Remove, Revoke all client tokens | One request for all selected items, no per-item result; only removal asks for confirmation | Improved: selection mode, confirmation for both (typed number for deletion), result per client, failed items kept for retry | FR-065 |
 | Quick action Generate new client secret | New secrets for all selected clients, visible only later in the table | Dropped: each new secret must be shown once and copied individually; offered per client | FR-062 |
 | Add OAuth2 client button and modal (one Redirect URI field, cached form) | Any text accepted, even unusable URIs; the secret appears later in the table | Improved: several redirect URIs, checked; secret shown once in a dialog | FR-058, FR-059 |
 | Edit action and Remove action per row | Edit page; generic confirmation | Improved: client page with every action; removal shows impact | FR-060, FR-064 |
@@ -977,15 +1047,17 @@ this feature, with the reason).
 
 This feature depends on **mailcow REST API v2 feature 012, Identity providers and OAuth2 clients**
 (`mailcow-rest-v2/specs/012-identity-providers-oauth2/spec.md`), and on the sign-in, sessions,
-public configuration, error conventions and audit log of API feature 001, and the mailbox templates
-and mailbox list filters of API feature 003. At the time of writing the published contract (version
-0.1.0) contains only feature 001; the plan pins the contract version that adds feature 012.
+public configuration, error conventions and audit log of API feature 001, the audit target filters
+of API feature 002, and the mailbox templates and mailbox list filters of API feature 003. The plan
+pins the contract commit that contains feature 012 (`info.version` 0.1.0 does not identify it).
 
 | Behaviour relied on | API requirement |
 |---|---|
 | Administrator-only access; "forbidden" for other roles | API 012 FR-001 to FR-003 |
 | "Identity provider not configured" when nothing is stored; "not found" for clients | API 012 FR-004 |
-| Configuration representation: type, settings, secret status, missing-template flags, completeness, the app's return addresses, mailbox count, last change, version tag | API 012 FR-006 to FR-008 |
+| Configuration representation: type, settings, secret status, missing-template flags, completeness and missing settings, the app's return addresses, mailbox counts per external source, last change, version tag | API 012 FR-006 to FR-008 |
+| Synchronisation status of Keycloak and LDAP, derived from the scheduled-job log | API 012 FR-062 |
+| Capabilities: configured type, the app's return addresses before the first save, provider types and what each offers, defaults, field limits, provider time-out; OAuth2 endpoint paths, scope, grant types, token lifetimes, redirect URI length, bulk limit, page sizes | API 012 FR-064 |
 | Whole save and change of individual settings, "created" or "updated" with representation | API 012 FR-009 |
 | Field rules and normalisations | API 012 FR-010 to FR-013 |
 | Write-only secrets, kept when omitted, required again when the receiving address changes | API 012 FR-014 |
@@ -995,6 +1067,7 @@ and mailbox list filters of API feature 003. At the time of writing the publishe
 | Connection test of candidate settings with result categories | API 012 FR-019 |
 | Single sign-on availability in the public configuration; "force single sign-on" meaning | API 012 FR-020; API 001 FR-042 |
 | Start (authorization address), completion (code and state), cancellation, "sign-in state invalid", "identity provider unavailable", "single sign-on not available" | API 012 FR-021 to FR-023 |
+| Report of a provider-returned error with the state, which cancels the pending sign-in and is audited | API 012 FR-063 |
 | Single sign-on sessions without second factor or pending actions; identity reports the method | API 012 FR-024 |
 | "Identity provider session ended" | API 012 FR-026 |
 | Sign-out does not sign out at the provider | API 012 FR-027 |
@@ -1003,32 +1076,40 @@ and mailbox list filters of API feature 003. At the time of writing the publishe
 | Create with one-time secret; redirect URI rules; change; regenerate; revoke; delete | API 012 FR-043 to FR-048 |
 | Documented OAuth2 endpoint behaviour for the information panel | API 012 FR-049 |
 | Version tags and outdated refusal | API 012 FR-050, FR-051 |
-| Audit records, target types, sign-in methods, failure reasons and filters | API 012 FR-052 to FR-054; API 001 FR-045 to FR-047 |
+| Audit records, target types, sign-in methods and failure reasons; the generic target type and target identifier filters | API 012 FR-052 to FR-054; API 001 FR-045 to FR-047; API 002 FR-058 |
 | Problem types and validation rule codes | API 012 FR-057; API 001 FR-049, FR-055 |
-| Bulk revoke-tokens and delete operations for OAuth2 clients, with per-item version tags and results, and the bulk limit | API conventions (`docs/conventions.md`, "Bulk actions"); not yet in API 012, whose FR-060 excludes them (gap 4) |
+| Bulk revoke-tokens and delete operations for OAuth2 clients, with per-item version tags and results, and the bulk limit | API 012 FR-060, FR-061, FR-064 |
 | Mailbox templates list; mailbox list filter by authentication source | API 003 (mailbox templates, FR-013 there) |
 
 **Gaps in the API that this feature does not work around** (to be specified in mailcow-rest-v2 if
-wanted; until then the app behaves as stated):
+wanted; until then the app behaves as stated). The former gaps of this spec (mailbox counts of
+other external sources, synchronisation status, provider-returned errors and OAuth2 bulk actions)
+were closed by API 012 and are covered by FR-005, FR-013, FR-020, FR-039, FR-048 and FR-065.
 
-1. The configuration counts only the mailboxes of the configured type, but removal is refused while
-   any mailbox has an external source, and a type change while any mailbox has another external
-   source. The app cannot foresee a refusal caused by mailboxes of another external type and relies
-   on the "identity provider in use" conflict and its count (FR-014).
-2. The configuration does not report the synchronisation jobs' state (last run, outcome, next run).
-   The app explains the behaviour and links to the scheduled-job log of UI feature 011 (FR-020).
-3. A cancellation or refusal reported by the provider on return cannot be passed to the API, so it
-   is not audited as such; the app only cancels the pending sign-in (FR-048).
-4. API 012 FR-060 excludes batch operations, although the API conventions provide bulk operations
-   wherever legacy offers mass actions, as it does for OAuth2 clients (remove, revoke all tokens).
-   The app needs bulk revoke-tokens and bulk delete operations for OAuth2 clients, and the bulk
-   limit. Until API 012 is aligned, the app offers no bulk actions (FR-065).
+1. **No audit filter by sign-in method.** `GET /audit-events` cannot be narrowed to single sign-on,
+   directory password or provider password sign-ins, and API 012 FR-054 adds no filter because the
+   API conventions forbid feature-specific audit filters. A generic `authMethod` filter of API
+   feature 001's audit log would serve every feature. Until then the app shows the method on each
+   record and offers no method filter (FR-067, User Story 6 scenario 4).
+2. **No audit filter by request.** A mailbox created or updated at sign-in refers to its sign-in
+   record by request ID, but the audit log can be filtered neither by request ID nor read record by
+   record. Until a `requestId` filter exists, the app links to the mailbox and to that account's
+   sign-in records, filtered by actor and event type (FR-067).
+3. **No create-only precondition for the first setup.** `PUT /identity-provider` accepts `If-Match`
+   but no `If-None-Match: *`, so when two administrators set up a provider at the same time, the
+   later save replaces the earlier one. The app sends no precondition for a first setup and, when
+   the API answers "updated" instead of "created", tells the administrator that an existing
+   configuration was replaced (FR-012).
 
 ### Key Entities *(include if feature involves data)*
 
 - **Identity provider configuration**: the provider type, its settings grouped as in FR-006, secret
-  status, completeness, the mapping with missing-template flags, the app's return addresses, the
-  number of mailboxes using it, the last change and a version tag.
+  status, completeness with the missing settings, the mapping with missing-template flags, the app's
+  return addresses, the number of mailboxes per external source, the synchronisation status (Keycloak
+  and LDAP), the last change and a version tag.
+- **Identity provider capabilities**: whether and which configuration is stored, the app's return
+  addresses, what each provider type offers, the defaults, the field limits and the provider
+  time-out.
 - **Mapping entry**: an attribute value and a mailbox template name.
 - **Connection test result**: success, or a failure category with the provider's status code, plus
   the provider type, the tested address and the time. Held only on screen.
@@ -1074,9 +1155,8 @@ wanted; until then the app behaves as stated):
 - **SC-012**: In a moderated test with at least 5 administrators, at least 4 name the cause of a
   failed connection test (address, certificate, credentials or provider response) from its result
   alone, without help.
-- **SC-013**: Once the API offers bulk operations, a bulk action on 20 OAuth2 clients reports an
-  individual outcome for all 20, and only the clients that did not succeed stay selected for a
-  retry.
+- **SC-013**: A bulk action on 20 OAuth2 clients reports an individual outcome for all 20, and only
+  the clients that did not succeed stay selected for a retry.
 
 ## Assumptions
 
@@ -1090,6 +1170,8 @@ wanted; until then the app behaves as stated):
 - The API 012 contract, including the single sign-on availability in the public configuration and
   the path of the app's sign-in return address, is merged before this feature is planned. Until the
   API is implemented, the feature is built and tested against a mock generated from the contract.
+  UI 012 is implemented after UI features 001 to 011, and its smoke tests run once API 012 is
+  implemented.
 - The operator registers the app's return addresses at the provider (API 012 assumption). Until then
   single sign-on from the app fails on the provider's page.
 - This feature is consistent with UI 001 FR-007 and FR-008. Under "force single sign-on", the

@@ -68,16 +68,20 @@ from UI feature 001."
   following API 003 FR-024. Revealing the password replaces retyping it, which is the usual mobile
   practice.)
 - Q: Are the legacy multi-select actions (activate, deactivate, suspend two-factor authentication,
-  remove) kept? → A: Yes, for both lists. The app sends one request per selected account, shows
-  progress, and ends with a summary of each account's result. The own account is never part of a
-  multi-select remove or deactivate. (agent decision: legacy parity. API 007 FR-073 offers no batch
-  operations and expects one request per account.)
+  remove) kept? → A: Yes, for both lists. The app sends the API's bulk operation for the selected
+  accounts, each with the version tag it read, shows that the action is running, and ends with a
+  summary of each account's result. The own account is never part of a multi-select remove or
+  deactivate. (agent decision: legacy parity. Aligned by the plan: API 007 FR-075 and FR-076, an
+  orchestrator decision, replaced one request per account with bulk operations of up to 100
+  accounts, which `docs/conventions.md` requires the UI to use.)
 - Q: How are domain-administrator single sign-on tokens presented? → A: Two parts. A sign-in landing
   accepts a token from a link, removes it from the address bar and history, exchanges it for a
   session and opens the domain administrator's home. When the browser is already signed in, the
   landing first asks whether to continue as the link's account or stay as the current one, naming
   both. On a domain administrator's detail screen, an administrator can create a one-time sign-in
-  link, shown with its remaining validity and a copy control but no "open" control. (agent decision:
+  link, shown with its remaining validity and a copy control but no "open" control. (Aligned by the
+  plan: the link's account is named once the API can report it before the exchange; see API gaps.)
+  (agent decision:
   API 007 US5 lets billing panels redirect to the new web app, which needs a landing. API 007 FR-063
   would silently replace an existing session; asking first keeps a link from switching accounts
   unnoticed, which the API permits. Opening the link in the administrator's own browser would
@@ -295,8 +299,9 @@ administrator, for an active and for an inactive domain administrator.
 2. **Given** an expired, already used or malformed link, **When** it is opened, **Then** the sign-in
    screen shows "This sign-in link is invalid or has expired" and offers normal sign-in.
 3. **Given** a browser already signed in as another account, **When** a valid link is opened,
-   **Then** the app asks whether to continue as the link's domain administrator or stay signed in
-   as the current account, naming both, and acts only on the user's choice.
+   **Then** the app asks whether to continue with the link or stay signed in as the current
+   account, naming the current account (and the link's domain administrator once the API can
+   report it, see API gaps), and acts only on the user's choice.
 4. **Given** a domain administrator flagged for a forced password change, **When** they open a valid
    link, **Then** they are signed in to the restricted session that UI feature 001 handles.
 5. **Given** an administrator on an active domain administrator's detail screen, **When** they
@@ -311,14 +316,15 @@ administrator, for an active and for an inactive domain administrator.
 
 On a server whose operator allows administrators to open users' webmail, an administrator, or a
 reseller with "login as mailbox user", opens the webmail of a mailbox in their scope directly from
-the mailbox list, or from the mailbox user's home while acting as that user. The webmail opens in a
-new tab, and the app stays where it was.
+the mailbox list or the mailbox detail screen. The webmail opens in a new tab, and the app stays
+where it was. While acting as the user, webmail is not available, because the API refuses every
+webmail sign-in during an impersonation.
 
 **Why this priority**: The operator setting is off by default, and only some installations use it.
 
 **Independent Test**: Against the mock API, with the setting reported on and off, check where "Open
-webmail as" appears for an administrator, for domain administrators with and without the flag, and
-while acting, and check the refusal messages.
+webmail as" appears for an administrator and for domain administrators with and without the flag,
+check that webmail is unavailable while acting, and check the refusal messages.
 
 **Acceptance Scenarios**:
 
@@ -329,8 +335,9 @@ while acting, and check the refusal messages.
    webmail as" is offered.
 3. **Given** the setting on and a mailbox that cannot use webmail, **When** "Open webmail as" is
    chosen, **Then** the API's refusal is shown as a translated message.
-4. **Given** the setting on and an administrator acting as a mailbox user, **When** they use the
-   webmail control on that user's home, **Then** the user's webmail opens in a new tab.
+4. **Given** the setting on and an administrator acting as a mailbox user, **When** they look at the
+   webmail control on that user's home, **Then** it is unavailable with the reason "Not available
+   while acting as another user", and no "Open webmail as" is offered anywhere.
 
 ---
 
@@ -461,9 +468,12 @@ accounts.
 - **FR-009**: The list MUST support selecting several accounts, through a selection mode on phones
   and checkboxes on wide screens, and applying Activate, Deactivate, Suspend two-factor
   authentication or Remove to all of them. Remove MUST need one confirmation that lists the selected
-  accounts.
-- **FR-010**: A multi-select action MUST send one request per account, show progress, and end with a
-  summary of each account's translated result. Failed accounts MUST stay selected.
+  accounts and asks for their number to be typed (`docs/conventions.md`).
+- **FR-010**: A multi-select action MUST send the API's bulk operation for the selected accounts, each
+  with the version tag it read and at most the bulk limit the API reports. It MUST show that the
+  action is running, and end with a summary of each account's translated result. Failed, refused and
+  outdated accounts MUST stay selected. A dropped connection MUST be reported as "outcome unknown"
+  and never retried.
 
 #### Creating a domain administrator
 
@@ -483,7 +493,7 @@ accounts.
   "Generate", which fills the field with a random password that meets the policy, reveals it and
   offers to copy it. Passwords MUST NOT be kept anywhere after the form is left.
 - **FR-015**: The Permissions section of the creation form MUST start collapsed, with the server's
-  default flags selected and a note that the defaults apply. Expanding it MUST show the switches of
+  default flags (from the API's account capabilities) selected and a note that the defaults apply. Expanding it MUST show the switches of
   FR-028, and only flags that differ from the defaults need to be sent.
 - **FR-016**: Errors returned by the API MUST appear on the matching fields, using the
   machine-readable rule codes and their parameters to build translated messages (API feature 001,
@@ -641,8 +651,9 @@ accounts.
   a link that opens it. Refusals (webmail login on behalf disabled, mailbox cannot use webmail, not
   found) MUST be shown as translated messages, and no empty tab MAY remain open.
 - **FR-057**: While acting as a mailbox user, the webmail control on that user's home screen (UI
-  feature 005) MUST open the user's webmail in the same way when the setting is on, and MUST
-  otherwise be disabled with its reason.
+  feature 005) MUST be unavailable with the visible reason "Not available while acting as another
+  user", because the API refuses every webmail sign-in during an impersonation (API 007 FR-049 and
+  FR-054).
 
 #### One-time sign-in links
 
@@ -653,9 +664,10 @@ accounts.
   link prefetch.
 - **FR-060**: Without a session, a valid token MUST sign the domain administrator in and open their
   home screen, or the restricted session of UI feature 001 when the account has pending actions.
-  With an existing session, the landing MUST first ask whether to continue as the token's domain
-  administrator or to stay signed in as the current account, naming both, and MUST exchange the
-  token only after "Continue".
+  With an existing session, the landing MUST first ask whether to continue with the link or to stay
+  signed in as the current account, naming the current account and, once the API can report it
+  before the exchange, the token's domain administrator (see API gaps). It MUST exchange the token
+  only after "Continue".
 - **FR-061**: A refused token MUST lead to the sign-in screen with the translated message "This
   sign-in link is invalid or has expired", without saying why it was refused. Throttling MUST show
   UI feature 001's throttling message.
@@ -747,7 +759,7 @@ token), `sogo-auth.php` (webmail on a user's behalf).
 | After return, redirect to the mailbox page | Improved | FR-046 | Back to the origin screen with its state |
 | Nested dual login silently ignored | Improved | FR-040, FR-042 | Not offered while acting, API refusal translated |
 | Own password and second-factor forms usable while acting | Changed | FR-049 | The API refuses them while acting (API 007 FR-049) |
-| Webmail button on the user page while acting, disabled when admin webmail login is off | Matched | FR-057 | Follows the setting reported by the API |
+| Webmail button on the user page while acting, disabled when admin webmail login is off | Changed | FR-057 | Unavailable while acting, with its reason: the API refuses every webmail sign-in during an impersonation (API 007 FR-049) |
 | `?sso_token=` sign-in on the domain administrator page | Improved | FR-058 to FR-061 | Token removed from the address bar, no silent account switch |
 | `sso/domain-admin` token issuance (legacy: `/api/v1` only, no screen) | New | FR-062, FR-063 | Lets administrators test billing integrations |
 | Password "generate" link (`pwgen`) | Matched | FR-014 | Generated passwords meet the server policy |
@@ -775,9 +787,8 @@ a brand name or HTML are replaced by new keys with a product-name placeholder.
 ### API Dependency
 
 This feature depends on mailcow-rest-v2 feature 007, `specs/007-administrators-domain-admins/spec.md`
-(commit `c5f9dd3`). Its OpenAPI contract was not yet published when this specification was written;
-planning starts once it is merged, and every capability below MUST be confirmed against it
-(constitution I).
+(commit `c5f9dd3`). Its OpenAPI contract was published in commit `a13c370`. The plan pins commit
+`3207925` and confirmed every capability below against it (constitution I).
 
 | UI need | API feature 007 | Requirements |
 |---|---|---|
@@ -796,6 +807,8 @@ planning starts once it is merged, and every capability below MUST be confirmed 
 | Version tags on accounts and outdated refusals | FR-064, FR-065 | FR-066 |
 | Audit log filters by target and by impersonated account, and the impersonated account in records | FR-066 to FR-069 | FR-071 |
 | Problem types and rule codes for every message in FR-065 | FR-070 | FR-064, FR-065 |
+| Bulk actions on several accounts with per-item results and version tags | FR-075, FR-076 | FR-009, FR-010 |
+| Account capabilities: default permission flags, bulk limit, username length | FR-077 | FR-012, FR-015 |
 
 It also uses API feature 001 (identity, sessions, sign-out, anti-forgery token, error conventions,
 throttling, audit log), API feature 002 (the domain list for the picker and the domain links), API
@@ -805,12 +818,14 @@ becomes available with it).
 
 **API gaps** (to be specified in mailcow-rest-v2; the UI does not work around them):
 
-- API 007 FR-054 allows webmail login on a user's behalf from inside an impersonation of that
-  mailbox user, but does not say whether it is allowed while acting as a domain administrator. Until
-  it does, the UI does not offer "Open webmail as" while acting.
-- The creation form shows the default permission flags (FR-015). API 007 FR-037 documents the
-  defaults in prose only; the contract needs to declare them in machine-readable form (for example
-  as schema defaults or a read operation), so that the UI does not hard-code API data.
+- Resolved: webmail while acting. API 007 FR-049 and FR-054 refuse every webmail sign-in during an
+  impersonation, on behalf of a user and the impersonated mailbox's own. FR-057 follows.
+- Resolved: the default permission flags. API 007 FR-077 reports them through the account
+  capabilities read.
+- Open: naming the link's account on the landing (FR-060). The only operation that reads a token
+  consumes it and replaces the session (API 007 FR-060, FR-063), so the app cannot name the token's
+  account before the user chooses. Proposed to mailcow-rest-v2: a non-consuming token read counted
+  towards the same throttle. Until then the landing names the current account only.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -870,9 +885,8 @@ becomes available with it).
   screens that FR-049 makes unavailable while acting.
 - The API decides the effective permissions while acting (API 007 FR-046). The UI only follows the
   identity it reports.
-- The released contract declares the default permission flags in machine-readable form (see API
-  gaps), so that the creation form can show them. Until then the Permissions section of the creation
-  form cannot be built, and the rest of the form can.
+- The API's account capabilities report the default permission flags (API 007 FR-077), so that the
+  creation form can show them.
 - The one-time link's lifetime comes from the expiry in the API's issue response (30 seconds, fixed
   by API 007 because the legacy login enforces it). Billing panels that redirect to the new app use
   the landing address of FR-058, which this feature documents for operators. Panels that keep

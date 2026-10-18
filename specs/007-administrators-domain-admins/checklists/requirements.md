@@ -44,3 +44,7 @@
 - Two API gaps are recorded in the spec (webmail on a user's behalf while acting as a domain
   administrator; machine-readable default permission flags). Neither blocks planning of the other
   stories.
+- Re-checked during `/speckit-plan` on 2026-10-18 against the contract pinned at `3207925`: both
+  recorded API gaps are resolved by API 007 (FR-049/FR-054, FR-077), bulk actions use the API's bulk
+  operation, and one new gap (naming the one-time link's account before the exchange) is recorded.
+  The spec was aligned accordingly (plan, "Spec alignment made by this plan").

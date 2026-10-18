@@ -66,16 +66,21 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - Every listed value needs keys in all three locales.
     - A listed value that the pinned contract no longer has is an error, because it is stale.
     - A contract value that is not listed produces a warning. At runtime it shows the generic
-      label: `auditLog.unknown`, `validation.invalid`, or `problem.status.<status>` followed by
-      `problem.generic`.
+      label: UI 001's unknown-value label for audit enumerations, `validation.invalid`, or
+      `problem.status.<status>` followed by `problem.generic`.
     - **Closed** enumerations that the app renders as choices or values, such as `MailboxStatus`,
       `MailboxAuthSource`, `BulkItemOutcome` and `MailboxRenameStep.step`, stay fully required.
+      They are added to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`, under `enums.<name>.<value>`
+      as UI 001's implementation names them.
+  - The mechanism changes `requiredKeys()` in `scripts/i18n/lib.mjs` and its caller
+    `scripts/i18n/check.mjs`, which UI 001 implemented (T021).
   - The problem types come from `knownProblemTypeValues` from now on, instead of the bundle text
     (UI 001 analysis, LOW item 3).
   - Each UI feature appends the values of its API feature. UI 003 appends the values listed in
     data-model §9.
   - UI 002 bumps the pin first and meets the same problem. If UI 002 already scoped rule 3, T002
-    only appends UI 003's values. Otherwise T002 implements the scoping, test first.
+    and T003 only add UI 003's cases and values. Otherwise they implement the scoping, test first.
+    T004 adds the labels.
 - **Rationale**: This follows the conventions literally, keeps "missing keys fail CI" for
   everything the app renders by design, and avoids translating 300 labels of features that are not
   built yet. No user-facing text is ever untranslated: unknown values show translated generic
@@ -165,14 +170,14 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
     | Block | Path UI 003 uses | Task |
     |---|---|---|
-    | Quota entry in MiB, GiB or TiB, exact representation | `src/shared/components/QuotaInput.vue`, `src/shared/utils/binary-units.ts` | T008 |
-    | Binary size display in the locale | `formatBinarySize()` in `src/i18n/format.ts` | T008 |
-    | Usage bar with a text equivalent and thresholds | `src/shared/components/UsageBar.vue` | T009 |
-    | Tag set editor (case-insensitive set, limit, suggestions) | `src/shared/components/TagSetInput.vue` | T010 |
-    | Removable filter chips | `src/shared/components/ActiveFilterChips.vue` (promoted from `features/audit-log`, UI 001 R20) | T011 |
-    | Sticky bulk action bar | `src/shared/components/BulkActionBar.vue` | T012 |
-    | Unsaved-changes guard | `src/shared/composables/useUnsavedChangesGuard.ts` | T012 |
-    | Resource "not found" state with a way back | `src/shared/components/NotFoundState.vue` | T012 |
+    | Quota entry in MiB, GiB or TiB, exact representation | `src/shared/components/QuotaInput.vue`, `src/shared/utils/binary-units.ts` | T012, T016 |
+    | Binary size display in the locale | `formatBinarySize()` and `formatDuration()` in `src/i18n/format.ts` | T012, T016 |
+    | Usage bar with a text equivalent and thresholds | `src/shared/components/UsageBar.vue` | T013, T017 |
+    | Tag set editor (case-insensitive set, limit, suggestions) | `src/shared/components/TagSetInput.vue` | T013, T017 |
+    | Removable filter chips | `src/shared/components/ActiveFilterChips.vue` (promoted from `features/audit-log`, UI 001 R20) | T014, T018 |
+    | Sticky bulk action bar | `src/shared/components/BulkActionBar.vue` | T014, T018 |
+    | Unsaved-changes guard | `src/shared/composables/useUnsavedChangesGuard.ts` | T014, T018 |
+    | Resource "not found" state with a way back | `src/shared/components/NotFoundState.vue` | T014, T018 |
 
     Each task reuses the block when UI 002 put it at that path. Otherwise it moves it there from
     `src/features/domains/`, updating UI 002's imports and keeping UI 002's tests green, or creates
@@ -882,10 +887,10 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
 
 - **Decision**:
   - **Handlers** (UI 001 R22), each wrapped by the contract validator:
-    - `tests/mocks/handlers/mailboxes.ts`: the 10 mailbox operations, including the capabilities
-      and tags;
-    - `tests/mocks/handlers/mailbox-templates.ts`: 5 operations;
-    - `tests/mocks/handlers/password-policy.ts`: the read.
+    - one module per operation group, so that stories never edit the same handler file:
+      `mailboxes-read.ts` (list, get, capabilities, tags), `mailboxes-write.ts` (create, update),
+      `mailbox-deletion.ts` (preview, delete), `mailbox-bulk.ts`, `mailbox-rename.ts`,
+      `mailbox-templates.ts` (5 operations) and `password-policy.ts`, all in `tests/mocks/handlers/`.
 
     The domain operations are UI 002's `tests/mocks/handlers/domains.ts`. The scenarios of this
     feature seed domains through UI 002's domain factory.
@@ -905,7 +910,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - audit records for every mutation, so the History tests work.
   - **Failure injection**: by operation, and by target for bulk. It covers `503` per dependency,
     `504`, rename `500 incomplete` and `503` with steps.
-  - **Scenarios** (`tests/mocks/scenarios/mailboxes.ts`, registered in the index):
+  - **Scenarios** (`tests/mocks/scenarios/mailboxes/<story>.ts`, each registered in the index):
     - `mailboxes-10k`: 10,000 mailboxes in 500 domains, generated deterministically from a seeded
       generator when the scenario is created (US1's independent test, SC-001, SC-003);
     - the per-story scenarios listed in tasks.md.
@@ -915,7 +920,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - `scripts/run-lhci.mjs` gains a third collection: `/ng/mailboxes` with
       `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`. Lighthouse's performance score of at least 0.9
       on the mobile preset is the automated proxy for SC-003. The manual measurement on a phone
-      (T163) records the 2-second figure.
+      (T130) records the 2-second figure.
 - **Rationale**: Constitution VI and VII. Deterministic data makes the 10,000-mailbox tests
   repeatable.
 - **Alternatives considered**: Fixtures in JSON: rejected (UI 001 R22). A real dataset in the

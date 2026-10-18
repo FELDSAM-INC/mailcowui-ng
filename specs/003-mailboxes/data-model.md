@@ -189,8 +189,8 @@ use `gcTime: 0` and are reset when they settle (research R8).
 
 - **Pinia**: nothing new.
 - **Device storage**: one convenience key is added to the allowlist of
-  `src/shared/platform/storage.ts`. Its unit test and the storage audit end-to-end test (UI 001
-  T145) are extended to match.
+  `src/shared/platform/storage.ts` (T005, T006). UI 003's storage audit end-to-end test (T126)
+  checks it, next to UI 001's (UI 001 T145).
 
   | Storage | Key | Value | Purpose |
   |---|---|---|---|
@@ -230,7 +230,7 @@ The base is `/ng/`. Every component is lazy. "Access" is UI 001's catalogue chec
   - admin ✓, domainAdmin ✓, mailboxUser —;
   - delivered by 003;
   - classic links: `/admin/mailbox` and `/domainadmin/mailbox`;
-  - it starts as `placeholder` (T005) and becomes `available` in US7.
+  - it starts as `placeholder` (T008) and becomes `available` in US7 (T109).
 
   UI 001's table-driven visibility test covers the new row. `nav.mailboxTemplates` is translated.
 
@@ -398,14 +398,30 @@ Until a feature ships, nothing is rendered for it (conventions).
 | `ValidationRuleCode` | `notMultipleOf`, `missingCharacterClass`, `conflictsWith`, `unchanged`, `immutable`, plus `outOfRange`, `notEligible`, `tooMany` and `notInList` unless already listed |
 | `KnownProblemType` | `address-in-use`, `mailbox-limit-reached`, `mailbox-not-renamable`, `mailbox-rename-incomplete`, `outcome-unknown`, `mailbox-template-name-exists`, `mailbox-template-protected`, `domain-alias-limit-reached`, `permission-flag-required`, plus `attribute-not-permitted` and `temporary-failure` unless already listed |
 
+**Closed enumerations added to `ENUM_NAMESPACES`** (`scripts/i18n/lib.mjs`, fully required),
+each under `enums.<name>.<value>`: `mailboxStatusValues`, `mailboxAuthSourceValues`,
+`mailboxQuarantineNotificationValues`, `mailboxQuarantineCategoryValues`,
+`mailboxTaggedMailHandlingValues`, `mailboxRateLimitFrameValues`, `mailboxRateLimitSourceValues`,
+`mailboxBulkActionRequestActionValues`, `mailboxBulkActionRequestProtocolValues`,
+`mailboxRenameStepStepValues`, `mailboxRenameStepOutcomeValues`,
+`mailboxAddressInUseProblemHolderValues`, `mailboxCreationReportRateLimitValues`,
+`mailboxCreationReportTaggedMailHandlingValues`,
+`mailboxCreationReportGroupwareDirectoryUpdateValues`,
+`mailboxDeletionPreviewBlockersDependencyValues`,
+`mailboxCapabilitiesIdentityProviderTypeValues`, `componentsParametersMailboxSortValues`,
+`componentsParametersMailboxTemplateSortValues`, and `bulkItemOutcomeValues` unless UI 002 added
+it.
+
 **Message namespaces**:
 
 - `mailboxes.*`: list, filters, columns, create, sections, password, quota, tags, attributes,
   bulk, delete, rename, problem variants, managed settings;
 - `mailboxTemplates.*`;
 - `nav.mailboxTemplates`;
-- additions to `problem.*`, `validation.*` (formats `localPart`, `email`, `attributeName`;
-  `missingCharacterClass.<class>`; quota limits) and `auditLog.*` (event types, targets, failure
-  reasons, detail-key labels).
+- `enums.*`: the labels of the closed enumerations above, and the open values of the table above
+  (`enums.auditEventType.*`, `enums.auditTargetType.*`, `enums.auditFailureReason.*`);
+- additions to `problem.*` and `validation.*` (formats `localPart`, `email`, `attributeName`;
+  `missingCharacterClass.<class>`; quota limits);
+- `auditLog.details.*`: the labels of the detail keys of mailbox records (research R17).
 
 Legacy keys are mapped as research R3 lists.

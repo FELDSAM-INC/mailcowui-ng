@@ -59,14 +59,14 @@ npm run lhci
 ## Part B: Manual checks per user story (mock API)
 
 Start `npm run preview:mock` and open `http://localhost:4173/ng/`. Select a scenario with
-`npm run mock:scenario -- <name>`. The names are defined in `tests/mocks/scenarios/mailboxes.ts`.
+`npm run mock:scenario -- <name>`. The names are defined in `tests/mocks/scenarios/mailboxes/`.
 Check each screen at 360 px and on a desktop, in both themes.
 
 | Story | Scenario | Steps | Expected (spec reference) |
 |---|---|---|---|
 | US1 | `admin-mailboxes-10k` | Open Mailboxes. Search "anna". Filter by a domain and "inactive". Sort by "in use" descending. Page to 3. Reload. Add the "Last password change" column. | Cards at 360 px and a table on desktop. Total shown. Chips per filter and "Clear all". Unlimited mailboxes last. The address keeps every choice. The column persists after a reload, and the page size stays in the address (US1-AS1–AS7) |
 | US1 | `domain-admin-mailboxes` | Open `/ng/mailboxes/x@b.example`, a foreign domain | "Not found" with a link to the list (US1-AS8) |
-| US1 | `mailbox-user` | Open `/ng/mailboxes` | No navigation entry; "no access" (US1-AS11) |
+| US1 | `mailbox-user-active` | Open `/ng/mailboxes` | No navigation entry; "no access" (US1-AS11) |
 | US2 | `admin-create` | Add mailbox: type ` Anna.Smith `, choose `example.org`, keep Default, generate a password, enter 8 GiB, then 1 GiB, and create | Preview `anna.smith@example.org`; "max. 5 GiB"; an error at 8 GiB before submitting; the detail opens with the announcement and "Add another" (US2-AS1, AS2) |
 | US2 | `domain-admin-no-flags` | Add mailbox | No "Unlimited"; protocols read-only with "Prohibited by ACL"; the sync-jobs permission absent, with the note (US2-AS5, AS6) |
 | US2 | `admin-create-limits` | Choose the full domain, then the domain without quota left | "No mailboxes left"; the API refusal states count and limit; "Only unlimited mailboxes can be created" (US2-AS8, AS9) |
@@ -95,13 +95,18 @@ with random local parts (`smoke-<random>`) and delete them, and never change `al
 
 **Expected**: the smoke specs pass:
 
-- `mailboxes.smoke.spec.ts`: list, create with a generated password, detail, delete with a preview;
-  one case at 360 px;
-- `mailbox-sections.smoke.spec.ts`: general, sign-in, protocols, permissions, tags and attributes
-  saves, and the domain administrator's read-only protocols;
+- `mailboxes.smoke.spec.ts`: list, search and detail for `admin`; `reseller`'s scope; one case at
+  360 px;
+- `mailbox-create.smoke.spec.ts`: create with a generated password, the template "Small", and the
+  address-in-use refusal;
+- `mailbox-sections.smoke.spec.ts`: general, sign-in and protocol saves, and the domain
+  administrator's read-only protocols;
+- `mailbox-delete.smoke.spec.ts`: delete with the real preview;
+- `mailbox-permissions.smoke.spec.ts`: permission, tag and attribute saves;
 - `mailbox-bulk.smoke.spec.ts`: deactivate and activate two mailboxes;
 - `mailbox-templates.smoke.spec.ts`: create, edit and delete a template, with Default protected;
-- `mailbox-rename.smoke.spec.ts`: rename with the alias kept; the History link shows the rename.
+- `mailbox-rename.smoke.spec.ts`: rename with the alias kept;
+- `mailbox-history.smoke.spec.ts`: the History link shows a change.
 
 Also check that `docker compose -f $MAILCOW_REST_V2_DIR/compose.yaml logs app | grep -c <generated
 password>` prints `0`.
@@ -119,5 +124,5 @@ After UI 001's Part D, open `https://<MAILCOW_HOSTNAME>/ng/mailboxes` as an admi
 
 ## Validation log
 
-Filled in by T163: SC-001 to SC-003 timings on a mid-range Android phone and an iPhone, and a
+Filled in by T130: SC-001 to SC-003 timings on a mid-range Android phone and an iPhone, and a
 VoiceOver and TalkBack pass of every user story.

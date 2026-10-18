@@ -130,5 +130,6 @@ The plan's "API dependency and gaps" section has the details and the interim beh
 
 - **G1**: candidates and permissions lack `kind` (domain or alias domain, alias or mailbox).
 - **G2**: there is no readable form of destinations, copy addresses or external sender addresses.
-- **G3**: the members of 004 audit `details` are not documented.
+- **G3**: the members of 004 audit `details` are not documented. mailcow-rest-v2 already tracks this
+  as `docs/api-gaps.md` G3, fixed per feature in `docs/audit-events.md`.
 - **G4**: `reason` versus `kind` for `localDomain`.

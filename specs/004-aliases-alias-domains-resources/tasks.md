@@ -23,7 +23,7 @@ description: "Task list for UI feature 004: aliases, alias domains, resources an
 fail before the implementation tasks that follow them. Every end-to-end spec:
 - runs on `mobile-chromium` (360 px), `desktop-chromium` and `mobile-webkit`;
 - calls `expectAccessible` (axe, WCAG 2.2 AA, both themes) on every screen, dialog and state it
-  reaches;
+  reaches (SC-003);
 - calls `expectNoHorizontalScroll` (360 and 320 px) and `expectTouchTargets` on the mobile projects;
 - fails on any CSP violation or mock contract violation (UI 001 T029 fixtures);
 - names its spec reference in the test title (`US2-AS8 …`, `FR-060 …`, `Edge: …`).
@@ -88,7 +88,7 @@ tooling (research R1, R20).
   - Append this feature's values to `src/i18n/coverage.json`: the 10 event types, the 4 target
     types, the failure reasons, the rule codes and the problem types of data-model §8.
   - Add the closed enumerations of data-model §8 to `ENUM_NAMESPACES` in `scripts/i18n/lib.mjs`.
-  - Write their labels in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+  - Write their labels in `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (FR-067, SC-005):
     - `enums.<name>.<value>`;
     - `auditLog.eventTypes.*` and `auditLog.targets.*` under UI 001's naming;
     - the base `problem.<name>` messages.
@@ -118,8 +118,9 @@ accepts the new entry forms.
   - D1 `useListState`: repeatable parameters and `onReset`.
   - D2 `useBulkSelection`:
     - `toggle`, `selectPage`, `clear` and `keep`, and the reset through `onReset`;
-    - a `limit` option, where `selectPage` selects the first `limit` ids and reports that it capped,
-      and `toggle` refuses beyond `limit`.
+    - the bulk limit from the capabilities: once it is reached, further selection is disabled, with
+      a message that states the limit (conventions "Shared building blocks"). "Select all" selects
+      only the first `limit` entries of the page (spec FR-060).
   - D3 `BulkActionBar.vue`: the count, actions and Cancel.
   - D4 `BulkResultSummary.vue`: rows per outcome including `unknown`, a scoped `#item` slot, and a
     "Refresh the list" action shown when a row is `outdated`.
@@ -128,7 +129,7 @@ accepts the new entry forms.
   - D7 `HistoryLink.vue`: the resulting address. The audit log list state accepts `targetType` and
     `targetId`.
   - D8 `ActiveFilterChips.vue` in `src/shared/components/`.
-  - D9 the leave guard: `useLeaveGuard` or `useUnsavedChangesGuard`.
+  - D9 the leave guard `useLeaveGuard` (the canonical name in `docs/conventions.md`).
   - D10 `NotFoundState.vue`.
   - D14 `ApiProblem` exposes the extension members `holder`, `count`, `limit`, `requested`,
     `existingKind`, `attributes` and `requiredFlags`.
@@ -146,7 +147,8 @@ accepts the new entry forms.
   The test must fail for every block that is missing or lacks a listed behaviour.
 - [ ] T007 Fill the non-promotion gaps T006 reports, test first in the matching
   `tests/unit/shared/**` spec, keeping every earlier feature's tests green:
-  - D2's `limit` option in `src/shared/composables/useBulkSelection.ts`;
+  - D2's limit behaviour in `src/shared/composables/useBulkSelection.ts` (selection disabled at the
+    limit, "Select all" capped);
   - D4's `#item` slot and refresh action in `src/shared/components/BulkResultSummary.vue`;
   - D15 in `src/api/query/client.ts`;
   - D16 in `src/app/navigation/visibility.ts`;
@@ -161,7 +163,8 @@ accepts the new entry forms.
     - `sources` of domains and alias domains in two labelled groups;
     - `disabledReason(item)`, which renders the option disabled with its reason as text;
     - the readable and ASCII names;
-    - keyboard operation, and no `ComboboxViewport`.
+    - keyboard operation, and no `ComboboxViewport`;
+    - loading, "no match" and error-with-retry states.
   - Move `src/features/mailboxes/components/fields/DomainPicker.vue` to
     `src/shared/components/DomainPicker.vue`. Fetching goes through props, so shared code never
     imports a feature.
@@ -189,12 +192,12 @@ accepts the new entry forms.
 
 - [ ] T010 [P] Write `tests/unit/api/query-keys-004.spec.ts`:
   - the key shapes of data-model §3: `['capabilities','aliases']`; the `aliases`, `alias-domains`,
-    `resources` and `sender-settings` list and detail keys; `['aliases','domain-filter',{q}]`;
+    `resources` and `sender-settings` list and detail keys; `['alias-domains','options',{q}]`;
     `['sender-permission-candidates',{mailbox,q,type}]`;
   - parameters typed from the generated operations;
   - prefix invalidation, so that `['aliases']` matches the list and the detail keys.
 - [ ] T011 Extend `src/api/query/keys.ts` so that T010 passes.
-- [ ] T012 [P] Write `tests/unit/i18n/problems-004.spec.ts` (research R17):
+- [ ] T012 [P] Write `tests/unit/i18n/problems-004.spec.ts` (research R17, FR-068, SC-005):
   - **Form-context lookup order**: `<formKey>.errors.<field>.<code>.<param>.<value>`, then
     `<formKey>.errors.<field>.<code>`, then `validation.<code>.<param>.<value>`, then
     `validation.<code>`, then `validation.invalid`.
@@ -303,7 +306,8 @@ accepts the new entry forms.
 - [ ] T017 Implement `tests/mocks/handlers/aliases.ts`, `tests/mocks/handlers/alias-domains.ts`,
   `tests/mocks/handlers/resources.ts` and `tests/mocks/handlers/sender-settings.ts`. Together they
   cover the 23 operations, written with `openapi-msw` on T016's rules and wrapped by the validator.
-  Register them in `tests/mocks/handlers/index.ts`. T014 must pass.
+  Register them in `tests/mocks/handlers/index.ts`. A request that matches no contract operation
+  stays a recorded violation (FR-070). T014 must pass.
 - [ ] T018 Create `tests/mocks/scenarios/feature-004-base.ts` and register it in
   `tests/mocks/scenarios/index.ts`, with these scenarios:
   - `admin-004`: active admin, ten domains with alias domains, a few aliases, resources and sender
@@ -461,7 +465,9 @@ compare the values with the mock data.
     request in `mockApi.requests()`;
   - FR-001: the three navigation entries for administrators and domain administrators;
   - US3-AS7, detail part: an orphaned alias shows the warning to administrators, with no domain link;
-  - FR-008: loading and error states of the detail.
+  - FR-008: loading and error states of the detail;
+  - FR-069: with a cs-cz profile, the creation and modification times and the counts are formatted
+    in the user's locale.
 - [ ] T033 [P] [US1] Write these unit tests:
   - `tests/unit/features/aliases/list-state.spec.ts`: data-model §5. Defaults are omitted. The
     repeatable parameters work. `groupwareVisible` is ignored while the groupware is disabled or
@@ -489,7 +495,7 @@ compare the values with the mock data.
 - [ ] T035 [US1] Implement:
   - `src/features/aliases/api.ts`:
     - `useAliasList(params)` and `useAlias(id)`, with `placeholderData` from a cached list entry;
-    - the alias-domain source for the "Domain" filter, through `keys.aliasDomains`;
+    - the alias-domain source for the "Domain" filter, through `keys.aliasDomains.options(q)`;
   - `src/features/aliases/list-state.ts`;
   - `src/features/aliases/routes.ts`: `aliases`, and `alias-detail` at `/aliases/:aliasId(\\d+)`;
   - the routes exported from `src/features/aliases/index.ts`.
@@ -527,7 +533,7 @@ compare the values with the mock data.
   - `NotFoundState` on 404.
 
   Also implement `src/features/aliases/components/OrphanedAliasWarning.vue`.
-- [ ] T040 [US1] Add the `aliases.title`, `aliases.list.*`, `aliases.filters.*`, `aliases.sort.*`,
+- [ ] T040 [US1] (FR-067) Add the `aliases.title`, `aliases.list.*`, `aliases.filters.*`, `aliases.sort.*`,
   `aliases.badges.*`, `aliases.detail.*` and FR-017 hint messages to
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Add the `legacy-map.json` entries of data-model §8
   for the alias list and detail (`*` with `stripMarkup`, `‡` supplied in sk-sk). Run
@@ -581,7 +587,6 @@ page).
   - Edge, network failure during save: the input is kept and a retry offered;
   - Edge, network failure during a multi-address creation: results so far, the rest not processed
     and kept;
-  - Edge, temporary failure;
   - Edge, unknown error type: a `409` with an unknown `type` shows the generic message with the
     request ID;
   - Edge, session expires while the form is open: `mockApi.patch({ expireSession: true })`, sign in
@@ -669,11 +674,13 @@ with and without confirming.
   - US3-AS1;
   - US3-AS2, SC-006 and FR-027: "changed elsewhere" marks the new value, the input stays, "Save
     again" sends the new `If-Match`, and "Discard my changes" reloads. Nothing is overwritten;
-  - US3-AS3: the patch holds only `active`;
+  - US3-AS3: deactivating asks one confirmation naming the effect, and the patch then holds only
+    `active` (research R10);
   - US3-AS4: a special action is sent without destinations;
   - US3-AS6 and FR-028: no longer exists, back to the list;
   - US3-AS7: an orphaned alias accepts only an existing domain, with the message at the address;
-  - FR-022: only changed members and `If-Match` (`mockApi.requests()`);
+  - FR-022 and FR-026: only changed members, with `If-Match` carrying the version read
+    (`mockApi.requests()`);
   - FR-025: the leave guard;
   - FR-064: sections open full screen at 360 px through `?edit=`, and Back closes them;
   - Edge, long stored comment: editing the options saves;
@@ -718,10 +725,11 @@ with and without confirming.
   - `useFormDraft` per section;
   - Delete through `useConfirm` with the consequences of research R11;
   - the vanished handling;
-  - Delete in the orphaned warning.
+  - Delete in the orphaned warning;
+  - the deactivation confirmation when the Options section saves `active: false`.
 
-  Add "Edit", which opens the detail, and "Delete" to the menus of `AliasCard.vue` and
-  `AliasTable.vue` (FR-015).
+  Add "Edit" and "Delete" to the menus of `AliasCard.vue` and `AliasTable.vue` (FR-015). "Edit"
+  opens the detail with `edit=destination`.
 - [ ] T058 [US3] Add the `aliases.edit.*`, `aliases.delete.*` and `aliases.orphaned.*` messages to
   the three locales, and the `legacy-map.json` entries `success.alias_modified` and
   `success.alias_removed`. Run `npm run i18n:import`, then `npm run i18n:check`.
@@ -761,6 +769,8 @@ failed steps and every documented refusal.
   - FR-034: the search, the target and active filters, every sort key, all in the address;
   - FR-035: the rate limit or "None", read-only with the note;
   - US4-AS3 and FR-041: no add control and the permission note;
+  - FR-015: each card and row offers open, "Edit" (detail with `edit=general`) and "Delete", with a
+    menu trigger of at least 44 × 44 px on cards;
   - FR-008: the states;
   - FR-003: not found;
   - the domain administrator's scope;
@@ -787,7 +797,8 @@ failed steps and every documented refusal.
   - FR-025: the leave guard.
 - [ ] T062 [P] [US4] Write `tests/e2e/alias-domains/edit-delete.spec.ts`. It covers:
   - US4-AS7: a target change hitting the limit shows count and limit, and nothing changes;
-  - FR-039: target and active editable, the name read-only;
+  - FR-039: target and active editable, the name read-only. Deactivating asks one confirmation
+    (research R10);
   - the outdated flow (FR-027);
   - US4-AS8: the deletion confirmation states the 7 aliases, their send-as permissions, temporary
     aliases, BCC maps, spam lists, and that the DKIM key is kept;
@@ -807,7 +818,7 @@ failed steps and every documented refusal.
   - deactivate it;
   - delete it.
 
-  `reseller` without `aliasDomains` sees no add control.
+  `reseller` sees the add control exactly when its identity grants `aliasDomains`.
 
 ### Implementation for User Story 4
 
@@ -821,13 +832,14 @@ failed steps and every documented refusal.
 
   Register them in `src/app/router/routes.ts`, and set the catalogue's `aliasDomains` entry to
   `available`.
-- [ ] T066 [P] [US4] Implement `src/features/alias-domains/components/AliasDomainCard.vue`,
-  `AliasDomainTable.vue`, `AliasDomainList.vue`, `AliasDomainFilters.vue` (search, target
-  `DomainPicker`, active, sort) and `RelayWarning.vue`.
+- [ ] T066 [P] [US4] Implement `src/features/alias-domains/components/AliasDomainCard.vue` and
+  `AliasDomainTable.vue`, each with the open, "Edit" (`edit=general`) and "Delete" actions (FR-015).
+  Also implement `AliasDomainList.vue`, `AliasDomainFilters.vue` (search, target `DomainPicker`,
+  active, sort) and `RelayWarning.vue`.
 - [ ] T067 [P] [US4] Implement `src/features/alias-domains/components/TargetDomainField.vue`
   (`DomainPicker` with `disabledReason` for `backupMx`), `AliasDomainCreateResults.vue` (per name,
   with each created name's `CreationReport` collapsed) and `AliasDomainGeneralSection.vue`
-  (`EditableSection`).
+  (`EditableSection`, with the deactivation confirmation).
 - [ ] T068 [US4] Implement the pages in `src/features/alias-domains/pages/`:
   - `AliasDomainsPage.vue`: the add control or the permission note, and the states;
   - `AliasDomainCreatePage.vue`:
@@ -900,8 +912,8 @@ point at US1's detail.
     "any address";
   - US5-AS6: external addresses read-only with the permission note;
   - US5-AS8: "no longer exists", removable by administrators;
-  - US5-AS9: on 5,000 candidates, a search for "sales" with load more and the labels of plan API gap
-    G1;
+  - US5-AS9 and FR-050: on 5,000 candidates, a search for "sales" with load more and the labels of
+    plan API gap G1, then removing a changeable entry;
   - FR-052 and FR-053: the hints as plain text;
   - Edge, "any address" seen by a domain administrator: "Sender check is disabled", read-only, with
     no add control;
@@ -911,7 +923,9 @@ point at US1's detail.
   - FR-008: the states.
 - [ ] T072 [P] [US5] Write `tests/e2e/sender-settings/send-as-save.spec.ts`. It covers:
   - US5-AS2: "Allow sending as this alias", then save, puts `info@` among the explicit permissions;
-  - US5-AS3 and FR-051: the warning, then "Sender check is disabled", with `['*']` sent;
+  - US5-AS3 and FR-051: turning the switch on opens the confirmation with the warning, and
+    cancelling leaves it off. After confirming and saving, `['*']` is sent and the screen shows
+    "Sender check is disabled";
   - US5-AS7: a local-domain external entry is marked, nothing is saved, and every entry stays;
   - US5-AS10 and FR-055: the "not needed" notice;
   - FR-054: only changed sets are sent, as whole sets with `If-Match`, and the domain
@@ -929,15 +943,17 @@ point at US1's detail.
     - a 300 ms debounce and `useInfiniteQuery`;
     - type labels by contract `type`;
     - working-copy entries excluded;
-    - no `anyAddress`.
+    - no `anyAddress`;
+    - loading, "no match" and error-with-retry states.
   - `ExternalSenderAddressesSection.spec.ts`: read-only without the flag, and not sent unless
     changed.
-  - `AnyAddressSwitch.spec.ts`: administrators only, the warning, and the explicit list disabled
-    while on.
+  - `AnyAddressSwitch.spec.ts`: administrators only, the confirmation with the warning before the
+    switch turns on, and the explicit list disabled while on.
   - `ReceiveOnlySection.spec.ts`: the action, and the "allowed by an explicit permission" state.
 - [ ] T074 [P] [US5] Write `tests/smoke/sender-settings.smoke.spec.ts` (`@feature-004`), as `admin`:
   - open "Send as" of `alice@example.org`;
-  - grant an alias address found through the picker, save, and see it listed;
+  - grant an address candidate found through the picker (another seeded mailbox), save, and see it
+    listed;
   - remove it and save.
 
 ### Implementation for User Story 5
@@ -954,7 +970,8 @@ point at US1's detail.
   `tests/unit/features/mailboxes/components/display/MailboxSectionNav.spec.ts` with the entry.
 - [ ] T076 [P] [US5] Implement these components in `src/features/sender-settings/components/`:
   `AlwaysAllowedSection.vue`, `ReceiveOnlySection.vue`, `ExplicitPermissionsSection.vue`,
-  `PermissionCandidatePicker.vue` (Reka `Combobox` without a viewport), `AnyAddressSwitch.vue`,
+  `PermissionCandidatePicker.vue` (Reka `Combobox` without a viewport, with loading, "no match" and
+  error states), `AnyAddressSwitch.vue` (confirmation through `useConfirm`),
   `SenderCheckStatus.vue`, `ExternalSenderAddressesSection.vue` (`EntryListField`) and
   `SendAsHints.vue`. Texts with markup are rendered as plain text.
 - [ ] T077 [US5] Implement `src/features/sender-settings/pages/SendAsPage.vue`:
@@ -1009,15 +1026,16 @@ per-object results and the selection afterwards.
   - US6-AS2: hide, with three done, two not found, and the two still selected;
   - US6-AS5: "Select" at 360 px, 44 × 44 checkboxes, the bar staying visible, and leaving or paging
     clearing the selection with an announcement;
-  - US6-AS6: `bulk-limit-50` selects the first 50 with the explanation, and a 51st is refused;
+  - US6-AS6: `bulk-limit-50` selects the first 50 with the explanation, and the remaining checkboxes
+    are disabled with the message stating the limit;
   - US6-AS8: an outdated item reported and kept, and "Refresh the list" keeps the selection with new
     versions;
   - FR-056: selection is cleared on page, size, search, filter and sort changes;
   - FR-057: show and hide are absent on `groupware-disabled`;
   - FR-058: activate and show without confirmation; delete lists every address and needs the typed
     count;
-  - FR-059: the summary per outcome, and targets with `{ id, version }` without quotes
-    (`mockApi.requests()`);
+  - FR-059 and FR-026: the summary per outcome, and targets with `{ id, version }` from the list
+    entries, without quotes (`mockApi.requests()`);
   - FR-060;
   - SC-010: 100 results rendered;
   - Edge, network failure during a mass action: "outcome unknown", the list refreshed, the selection
@@ -1099,6 +1117,7 @@ shared D2–D5.
   - FR-042: description, address, translated kind, domain, booking badge and active state;
   - US7-AS5: the badges "Always free", "Soft limit" and "Hard limit (2)" with the legend;
   - FR-043: search, filters and every sort key, in the address;
+  - FR-015: each card and row offers open, "Edit" (detail with `edit=resource`) and "Delete";
   - FR-046: the detail, with the address and domain read-only;
   - FR-048: no "Send as" on a resource;
   - FR-003: not found;
@@ -1119,6 +1138,7 @@ shared D2–D5.
   - FR-025: the leave guard.
 - [ ] T093 [P] [US7] Write `tests/e2e/resources/edit-delete.spec.ts`. It covers:
   - US7-AS6: "the address stays the same";
+  - deactivating asks one confirmation (research R10);
   - US7-AS7: the deletion confirmation names the groupware data;
   - FR-046: the patch holds only changed members, with `bookingLimit` only for `limited`;
   - the outdated flow, and a deletion refused as outdated;
@@ -1152,11 +1172,12 @@ shared D2–D5.
   Register them in `src/app/router/routes.ts`, and set the catalogue's `resources` entry to
   `available`.
 - [ ] T098 [P] [US7] Implement `src/features/resources/components/BookingRuleBadge.vue`,
-  `BookingLegend.vue`, `ResourceCard.vue`, `ResourceTable.vue`, `ResourceList.vue` and
+  `BookingLegend.vue`, `ResourceCard.vue` and `ResourceTable.vue`, each with the open, "Edit"
+  (`edit=resource`) and "Delete" actions (FR-015). Also implement `ResourceList.vue` and
   `ResourceFilters.vue`.
 - [ ] T099 [P] [US7] Implement `src/features/resources/components/BookingRuleField.vue`,
   `AddressPreview.vue` (labelled, live, with the "no address" reason) and `ResourceSection.vue`
-  (`EditableSection`, with the address note).
+  (`EditableSection`, with the address note and the deactivation confirmation).
 - [ ] T100 [US7] Implement the pages in `src/features/resources/pages/`:
   - `ResourcesPage.vue`: the legend, the states and selection mode with `BulkActionBar`,
     `BulkResultSummary` and the typed count;
@@ -1190,15 +1211,20 @@ audit log is filtered by that object. As a domain administrator, check that the 
   records with the 10 feature 004 event types and the 4 target types, using contract values only, so
   that the validator accepts them (UI 001 R22).
 - [ ] T103 [P] [US8] Write `tests/e2e/history/feature-004-history.spec.ts`. It covers:
-  - US8-AS1: "History" on an alias, an alias domain, a resource and a "Send as" screen opens
+  - US8-AS1 and FR-061: "History" on an alias, an alias domain, a resource and a "Send as" screen opens
     `/ng/audit-log` with `targetType` `alias`, `aliasDomain`, `resource` or `mailboxSenderSettings`
     and the matching `targetId` (`String(id)`, the ASCII name, the address, the mailbox address);
     the entries show translated labels, and the old and new values are visible as text;
   - each target links back to its object;
   - US8-AS2: no "History" for domain administrators.
-- [ ] T104 [P] [US8] Write `tests/unit/features/audit-log/labels-004.spec.ts`: the 10 event labels,
-  the 4 target labels, the target links by route name per type, and the generic label for a value
-  outside the scope manifest.
+- [ ] T104 [P] [US8] Write `tests/unit/features/audit-log/labels-004.spec.ts`. It covers:
+  - the 10 event labels and the 4 target labels;
+  - the target links by route name per type;
+  - the generic label for a value outside the scope manifest;
+  - the documented 004 detail keys: `changes` with old and new values, `creationReport` lines,
+    `removed` counts, and `copiedFromAliasId` as a link, as `docs/audit-events.md` in mailcow-rest-v2
+    defines them at the pinned commit;
+  - unknown keys shown verbatim (research R19).
 
 ### Implementation for User Story 8
 
@@ -1207,9 +1233,14 @@ audit log is filtered by that object. As a domain administrator, check that the 
   `src/features/alias-domains/pages/AliasDomainDetailPage.vue`,
   `src/features/resources/pages/ResourceDetailPage.vue` and
   `src/features/sender-settings/pages/SendAsPage.vue` (research R19).
-- [ ] T106 [US8] Extend `src/features/audit-log/labels.ts` with the 004 target links: `alias-detail`,
-  `alias-domain-detail`, `resource-detail` and `mailbox-send-as`. The labels themselves come from
-  T005. Add any History-specific messages to the three locales, then run `npm run i18n:check`.
+- [ ] T106 [US8] Extend `src/features/audit-log/labels.ts` with:
+  - the 004 target links: `alias-detail`, `alias-domain-detail`, `resource-detail` and
+    `mailbox-send-as`;
+  - the presentation of the documented 004 detail keys (research R19).
+
+  If `docs/audit-events.md` lacks the 004 section at the pinned commit, keep the generic rendering
+  and report plan API gap G3 again. The event and target labels come from T005. Add the
+  History-specific messages to the three locales, then run `npm run i18n:check`.
 
 **Checkpoint**: All user stories work on their own.
 
@@ -1220,7 +1251,7 @@ audit log is filtered by that object. As a domain administrator, check that the 
 **Purpose**: Cross-story verification, budgets, parity, documentation and release readiness.
 
 - [ ] T107 [P] Write and pass `tests/e2e/shell/feature-004-reflow.spec.ts`. Every screen, dialog,
-  picker and selection mode of this feature:
+  picker and selection mode of this feature, with the long values of `aliases-long-values` (SC-004):
   - has no horizontal scroll at 320 px or at the equivalent of 400 % zoom (320 CSS px on a 1280 px
     desktop) (FR-066);
   - works in landscape on the mobile projects;
@@ -1248,7 +1279,9 @@ audit log is filtered by that object. As a domain administrator, check that the 
   - add the plan's parity notes 1–4 to "Legacy parity";
   - correct the "Translation reuse" claim that all keys exist in the three locales (the eight
     missing values, research R20), and note that `mailbox.alias_domain_alias_hint` is replaced;
-  - list API gaps G1–G4 under "API gaps".
+  - list API gaps G1–G4 under "API gaps";
+  - note under FR-005 and FR-071 that the page sizes follow the conventions and the API-wide list
+    defaults, so that lists work without the capabilities (research R5).
 - [ ] T114 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the production
   build served by `npm run preview:mock` on the local network and "Fast 4G" throttling. Record in
   the Validation log of `specs/004-aliases-alias-domains-resources/quickstart.md`:

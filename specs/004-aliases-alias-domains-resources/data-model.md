@@ -210,7 +210,7 @@ table-driven test covers every row of spec FR-002.
 | `['capabilities','aliases']` | `getAliasesCapabilities` | 5 min | first form, bulk bar or groupware-dependent list element | cleared with the cache on sign-out |
 | `['aliases','list',AliasListParams]` | `listAliases` | 30 s | alias list | params from the address (§5) |
 | `['aliases','detail',aliasId]` | `getAlias` | 30 s | alias detail | `placeholderData` from a cached list entry |
-| `['aliases','domain-filter',{q}]` | `listAliasDomains` | 30 s | the "Domain" filter picker's alias-domain group | `useInfiniteQuery`, 25 per page; uses the `alias-domains` list key factory |
+| `['alias-domains','options',{q}]` | `listAliasDomains` | 30 s | the alias-domain group of the alias list's "Domain" filter picker | `useInfiniteQuery`, 25 per page; built by `keys.aliasDomains.options(q)`, so alias domain mutations refresh it |
 | `['alias-domains','list',AliasDomainListParams]` | `listAliasDomains` | 30 s | alias domain list | — |
 | `['alias-domains','detail',name]` | `getAliasDomain` | 30 s | alias domain detail | ASCII name |
 | `['resources','list',ResourceListParams]` | `listResources` | 30 s | resource list | — |
@@ -228,9 +228,9 @@ table-driven test covers every row of spec FR-002.
 | `deleteAlias` | remove the detail; invalidate as `updateAlias` | refetch; confirm again | as `updateAlias` |
 | `copyAliasOverAliasDomains` | invalidate `['aliases','list']`, `['alias-domains']`, `['domains']`, `['sender-settings']` | refetch the alias; explain again | as `updateAlias` |
 | `applyAliasBulkAction` | invalidate `['aliases']`, `['alias-domains']`, `['domains']`, `['sender-settings']` | (per item `outdated`) | (per item `notFound`) |
-| `createAliasDomain` | write `['alias-domains','detail',name]` without `creationReport`; invalidate `['alias-domains','list']`, `['domains']`, `['sender-settings']`, `['sender-permission-candidates']` | — | — |
-| `updateAliasDomain` | write the detail; invalidate `['alias-domains','list']`, `['aliases']` (primary domains change), `['domains']`, `['sender-settings']` | keep input; refetch; mark | message; go to the list |
-| `deleteAliasDomain` | remove the detail; invalidate `['alias-domains','list']`, `['aliases']`, `['domains']`, `['sender-settings']`, `['sender-permission-candidates']` | refetch; confirm again | as above |
+| `createAliasDomain` | write `['alias-domains','detail',name]` without `creationReport`; invalidate `['alias-domains','list']`, `['alias-domains','options']`, `['domains']`, `['sender-settings']`, `['sender-permission-candidates']` | — | — |
+| `updateAliasDomain` | write the detail; invalidate `['alias-domains','list']`, `['alias-domains','options']`, `['aliases']` (primary domains change), `['domains']`, `['sender-settings']` | keep input; refetch; mark | message; go to the list |
+| `deleteAliasDomain` | remove the detail; invalidate `['alias-domains','list']`, `['alias-domains','options']`, `['aliases']`, `['domains']`, `['sender-settings']`, `['sender-permission-candidates']` | refetch; confirm again | as above |
 | `applyAliasDomainBulkAction` | invalidate `['alias-domains']`, `['aliases']`, `['domains']`, `['sender-settings']`, `['sender-permission-candidates']` | (per item) | (per item) |
 | `createResource` | write the detail; invalidate `['resources','list']`, `['domains']` | — | — |
 | `updateResource` | write the detail; invalidate `['resources','list']` | keep input; refetch; mark | message; go to the list |
@@ -284,7 +284,8 @@ Rules:
   request (FR-001, US1-AS10).
 - `edit=<section>` on the detail routes opens one section (research R10): `address`, `destination`,
   `options` or `comments` on `alias-detail`, `general` on `alias-domain-detail`, `resource` on
-  `resource-detail`. An unknown or non-editable section is removed with `router.replace`.
+  `resource-detail`. An unknown or non-editable section is removed with `router.replace`. The list
+  action "Edit" opens `edit=destination`, `edit=general` or `edit=resource`.
 - `:aliasDomain` is the ASCII name in every link the app builds. Other spellings are replaced by the
   canonical address once loaded (UI 002 D4).
 - The `mailbox-send-as` record is exported by `src/features/sender-settings/index.ts` and listed among

@@ -47,7 +47,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **What earlier bumps already settled**: UI 002 and UI 003 bump to pins past the baseline.
     - `knownProblemTypeValues` is generated, which closes UI 001's API gap 5.
     - `i18n:check` rule 3 is scoped to the values each feature translates, through a committed
-      manifest (UI 002 D2: `src/i18n/coverage.json`; UI 003 R2 calls it `enum-scope.json`).
+      manifest, `src/i18n/coverage.json` (UI 002 D2, the canonical registry in `docs/conventions.md`).
     - This feature appends its own values (data-model §8) and does not translate the values of
       later features.
   - Type errors in existing code after the bump are fixed in the bump task, without behaviour
@@ -71,14 +71,14 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   | ID | Block | Location | From | What UI 004 relies on, and what T008 adds if it is missing |
   |---|---|---|---|---|
   | D1 | `useListState` (repeatable parameters, `onReset`) | `src/shared/composables/useListState.ts` | 001 | address-backed list state |
-  | D2 | `useBulkSelection` | `src/shared/composables/useBulkSelection.ts` | 002 D22, reserved | `{ active, ids }`, `toggle`, `selectPage`, `clear`, `keep(ids)`, cleared through `onReset`. **Adds if missing**: a `limit` option where `selectPage` selects the first `limit` ids and reports that it capped, and `toggle` refuses beyond `limit` (FR-060). UI 003 R12 disables "Select all" instead, and UI 004's spec asks for a capped selection. |
+  | D2 | `useBulkSelection` | `src/shared/composables/useBulkSelection.ts` | 002 D22, reserved | `{ active, ids }`, `toggle`, `selectPage`, `clear`, `keep(ids)`, cleared through `onReset`. Takes the bulk limit from the capabilities: once it is reached, further selection is disabled, with a message that states the limit (conventions "Shared building blocks"). **Adds if missing**: "Select all" selects only the first `limit` entries of the page, as spec FR-060 asks, instead of being disabled. |
   | D3 | `BulkActionBar.vue` | `src/shared/components/` | 002 D22 | "Select", count, actions and Cancel in a bar fixed at the bottom on phones |
   | D4 | `BulkResultSummary.vue` | `src/shared/components/` | 002 D22, reserved | rows `{ id, label, outcome, problem }`, counts announced, the `unknown` outcome. **Adds if missing**: a scoped `#item` slot for per-item extra content (the copies of R12) and a "Refresh the list" action when a row is `outdated` (FR-059). |
   | D5 | `ConfirmDialog` with `requireTyped` and content | `src/shared/components/ConfirmDialog.vue`, `useConfirm.ts` | 001 + 002, reserved | the typed count, a list of objects, focus starting on Cancel |
   | D6 | `EditableSection.vue` and `changedSince()` of `useVersionedSave` | `src/shared/components/`, `src/shared/composables/` | 002 D11, reserved | per-section editing driven by the `edit` query parameter, one section at a time, full screen below `md`; "Save again" and "Discard my changes" after a 412 |
   | D7 | `HistoryLink.vue` and the audit log target filters | `src/shared/components/`, `src/features/audit-log/list-state.ts` | 002 D26, reserved | `/audit-log?targetType=…&targetId=…` |
   | D8 | `ActiveFilterChips.vue` | `src/shared/components/` | promoted by 003 (its T011) | removable chips and "Clear all" |
-  | D9 | Leave guard | `src/shared/composables/useLeaveGuard.ts` (UI 003 R4 names it `useUnsavedChangesGuard.ts`) | 002 D21 | asks through `useConfirm` before route changes and on `beforeunload` while dirty (FR-025) |
+  | D9 | Leave guard `useLeaveGuard` (canonical name, `docs/conventions.md`) | `src/shared/composables/useLeaveGuard.ts` | 002 D21 | asks through `useConfirm` before route changes and on `beforeunload` while dirty (FR-025) |
   | D10 | `NotFoundState.vue` | `src/shared/components/` | 003 R4 | the in-place "not found" state with a link back (FR-003) |
   | D11 | `DomainPicker.vue` (single or multiple) | `src/features/mailboxes/components/fields/DomainPicker.vue`, exported from `@/features/mailboxes` (UI 003 R4: "UI 004 promotes it") | 003 | **Promoted here** to `src/shared/components/DomainPicker.vue`, with props for the sources (domains, alias domains) and a `disabledReason(item)` callback for relay domains. UI 003's imports are updated. |
   | D12 | `DomainNameText.vue` | `src/features/domains/components/list/` | 002 | **Promoted here** to `src/shared/components/DomainNameText.vue`, for alias domain names and addresses: the readable text, plus the ASCII text when it differs |
@@ -88,7 +88,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   | D16 | `isEntryAvailable(id)` | `src/app/navigation/visibility.ts` | 003 R19 (FR-040 links) | **Adds if missing**: `true` when the catalogue entry is `available` and accessible |
   | D17 | Domain detail route `domain-detail`, `/domains/:domain` (ASCII name) | `src/features/domains/routes.ts` | 002 D4 | links from aliases and alias domains |
   | D18 | Mailbox detail layout `mailbox-detail`, `/mailboxes/:address([^/]+@[^/]+)`, with child routes, and the designated action area `MailboxSectionNav.vue`, which renders the entries of `sections.ts` whose route exists | `src/features/mailboxes/{routes.ts,sections.ts,components/display/MailboxSectionNav.vue}` | 003 R5, R19 | "Send as" becomes a child route and a `sections.ts` entry (R4) |
-  | D19 | Enumeration scope manifest and `stripMarkup` | `src/i18n/coverage.json` (`enum-scope.json` in UI 003), `scripts/i18n/` | 002 D2, D27; 003 R2 | this feature appends its values and uses `{ "from": …, "stripMarkup": true }` (R20) |
+  | D19 | Enumeration scope manifest and `stripMarkup` | `src/i18n/coverage.json` (canonical), `scripts/i18n/` | 002 D2, D27; 003 R2 | this feature appends its values and uses `{ "from": …, "stripMarkup": true }` (R20) |
   | D20 | Mock state, handlers and factories for domains and mailboxes | `tests/mocks/handlers/{domains,mailboxes}.ts`, `tests/mocks/factories/{domain,mailbox}.ts`, `tests/mocks/scenarios/state.ts` | 002 D28, 003 R20 | the 004 rules read domains (alias limits, relay state) and mailboxes (holders, sender settings) |
 
   New shared blocks of this feature, each with at least two uses here (R3):
@@ -130,7 +130,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - `alias-domains`, `resources` and `sender-settings` import these through `@/features/aliases`.
     `aliases` imports nothing from them, so there is no cycle. Where `aliases` needs alias-domain
     data, it calls the API itself with the shared query key factory: the alias-domain source of its
-    domain filter uses `keys.aliasDomains.list(…)`.
+    domain filter uses `keys.aliasDomains.options(q)` (`['alias-domains','options',{q}]`). Alias
+    domain mutations therefore refresh it.
   - Cross-area links use route names (`alias-detail`, `alias-domain-detail`, `domain-detail`,
     `mailbox-detail`, `mailbox-send-as`), never imports.
   - New shared code, each with at least two uses in this feature:
@@ -476,7 +477,10 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       Back closes an open section. An unknown or non-editable section is removed with
       `router.replace`.
     - A section opens full screen below `md` and in place above (FR-064).
-    - The list action "Edit" opens the detail screen, as UI 003 FR-013 does (plan parity note 4).
+    - The list action "Edit" opens the detail screen with its main section already open:
+      `edit=destination` for aliases (the most frequent change, spec US3), `edit=general` for alias
+      domains and `edit=resource` for resources. "Open" shows the detail without an open section
+      (FR-015, plan parity note 4).
   - **"Send as"** is the exception the spec makes: one save for the whole screen (FR-054, R15).
   - **Patch building** (`buildAliasPatch`, and its counterparts for alias domains and resources):
     - The patch holds only the members whose value differs from the version read (FR-022). Read-only
@@ -496,6 +500,13 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     - the section offers "Save again" (with the reloaded version tag) and "Discard my changes",
       and the announcement says so;
     - nothing is retried, and no "overwrite anyway" exists (conventions).
+  - **Deactivation** (conventions "Confirmations": deactivating is high-risk; UI 002 D11 does the
+    same): saving a section that turns `active` off asks one confirmation that names the effect.
+    - Alias: mail to the address is no longer accepted.
+    - Alias domain: mail to its addresses is no longer accepted.
+    - Resource: it disappears from the groupware and can no longer be booked.
+
+    Turning `active` on needs no confirmation.
   - **Refused deletion as outdated**: the confirmation opens again with the reloaded object.
   - **Vanished** (404 on refresh or save, FR-028; a domain administrator who lost the domain): the
     app says "This {object} no longer exists or is no longer available to you", announces it, and
@@ -511,6 +522,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     (`src/shared/composables/useFormDraft.ts`).
     - It keeps a form's unsaved input in a module-level `Map` keyed by the route's full path and the
       form ID. **Memory only**: it never writes to device storage.
+    - No form of this feature carries a secret (conventions "Secrets in requests or responses", which
+      forbid drafts of such forms), so every form may use it.
     - It saves when the form unmounts because the session ended, and restores on mount when the same
       username is signed in again in that tab.
     - It is cleared:
@@ -699,9 +712,12 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       `type=address&type=domain` and never lists `*` (US5-AS5).
     - Labels follow plan API gap G1.
     - Entries added in the working copy are excluded from the shown options.
+    - The list has loading, "no match" and error-with-retry states (constitution II).
   - **"Allow sending as any address"** (`AnyAddressSwitch`, administrators only, FR-051):
-    - Turning it on shows the warning that the sender check is disabled and the other explicit
-      permissions are replaced.
+    - Turning it on opens a `useConfirm` dialog with the warning that the sender check is disabled
+      and the other explicit permissions are replaced. Only confirming turns the switch on. This is
+      the conventions' "one explicit confirmation" for a high-risk change, carrying the spec's
+      warning.
     - While on, the explicit list is shown disabled with "Replaced by 'any address'", and the save
       sends `explicitPermissions: ['*']`.
     - Turning it off sends the list the user has.
@@ -743,7 +759,8 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
   - **Bulk limit** (FR-060): `limit = capabilities.bulkLimit`.
     - "Select all" selects the first `bulkLimit` entries and says "At most {limit} objects can be
       changed at once".
-    - Selecting more is refused with the same message.
+    - Once the limit is reached, further selection is disabled with the same message (conventions
+      "Shared building blocks").
     - The bar sits inside `CapabilitiesGate`.
   - **Actions** (FR-057), filtered by R6 and by `groupwareEnabled`:
     - aliases: activate, deactivate, show in groupware, hide in groupware, copy over alias domains,
@@ -871,12 +888,22 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
       four target types;
     - a target link: each of the four target types links back to its object screen by route name,
       for administrators.
-  - Details render through UI 001's generic definition list until plan API gap G3 is closed. The
-    old and new values are visible as text, which is what US8-AS1 checks.
+  - **Details**: the 004 detail keys that mailcow-rest-v2 documents in `docs/audit-events.md` (API
+    conventions "Audit record details", plan API gap G3) get translated labels.
+    - `changes` shows old and new values per field, with the field labels of the forms.
+    - `creationReport` uses the report lines of R13, and `removed` the counts.
+    - `copiedFromAliasId` links to the source alias.
+    - `bulkRequestId` is shown as text.
+    - Unknown keys are shown verbatim.
+
+    Without that documentation, UI 001's generic definition list stays, and the old and new values
+    are still visible as text (US8-AS1).
   - Domain administrators never see the link (FR-002, US8-AS2).
-- **Rationale**: Only contract fields (event type, target type, target ID) drive the presentation.
-- **Alternatives considered**: Rendering the undocumented `details` members specially: rejected by
-  constitution I until the contract documents them.
+- **Rationale**: The labels and links use contract fields (event type, target type, target ID). The
+  detail keys are labelled only once the API documents them, which is the cross-feature rule now in
+  the API conventions.
+- **Alternatives considered**: Labelling the members from API research R20 alone: rejected,
+  because research is not the published contract (constitution I).
 
 ### R20. Translations and the legacy import
 

@@ -103,6 +103,10 @@ tests to the existing project.
 - 44 × 44 px targets. Usable at 360 px and 320 px and at 400 % zoom.
 - Limits, the groupware state, the external-destination setting, the DKIM defaults and the bulk
   limit come from the capabilities read, never from constants (FR-071).
+- No polling and no `refetchInterval`: data refreshes after mutations and on the user's refresh
+  (conventions "Polling"). No secret passes through any request of this feature.
+- Shared blocks use the canonical names of `docs/conventions.md` ("Shared building blocks and
+  canonical names").
 
 **Scale/Scope**:
 
@@ -169,13 +173,19 @@ audit log with the `targetType` and `targetId` filters that API 002 added) and A
      "destinations stored by another tool are shown as stored", but not "addresses shown in
      readable form" for punycode destinations. The app does not ship its own punycode decoder
      (constitution VIII; it would reimplement a server rule).
-3. **G3: the `details` of feature 004 audit records are not in the contract.** `AuditEvent.details`
-   is a free-form object. Its 004 members (`changes`, `creationReport`, `removed`,
-   `copiedFromAliasId`, `groupwareUpdate`, `bulkRequestId`) are defined only in API research R20.
-   - **Proposed**: document the members per event type in the contract.
-   - **Until then**: History shows the 004 records with translated event and target labels, and a
-     link to the object. Their details are rendered by UI 001's generic definition list, so old
-     and new values are visible as text (US8-AS1).
+3. **G3: the `details` of feature 004 audit records.** `AuditEvent.details` is a free-form object.
+   Its 004 members (`changes`, `creationReport`, `removed`, `copiedFromAliasId`, `groupwareUpdate`,
+   `bulkRequestId`) are defined only in API research R20.
+   - mailcow-rest-v2 already tracks this as a cross-feature gap (`docs/api-gaps.md` G3, raised by
+     UI 010). Its fix: each API feature documents its detail keys in `docs/audit-events.md` when it
+     is implemented, and the `AuditEvent.details` description points there (API conventions "Audit
+     record details").
+   - API 004 is implemented before UI 004, so its section is expected to exist at implementation
+     time.
+   - **Behaviour**: US8 labels the documented 004 keys and shows unknown keys verbatim, as the API
+     conventions say. If the 004 section is still missing, History keeps UI 001's generic definition
+     list, where the old and new values are visible as text (US8-AS1). The gap is then reported
+     again.
 4. **G4: wording conflict for `localDomain`.** `MailboxSenderSettingsPatch` says that external
    sender addresses in local domains get `notEligible` with `reason: localDomain`. `ValidationRuleCode`,
    API data-model and API research say `kind: localDomain`.
@@ -212,8 +222,12 @@ The spec's parity tables are complete. The plan adds:
    The app layer of those locales supplies them (UI 001 R15).
 3. Destinations, copy addresses and external sender addresses are shown as stored (ASCII) until API
    gap G2 is closed.
-4. The list action "Edit" opens the detail screen, whose sections each have their own edit action
-   (conventions "Editing and conflicts"), as UI 003 FR-013 does for mailboxes (R10).
+4. The list action "Edit" opens the detail screen with its main section open for editing:
+   destinations for aliases, general for alias domains, the resource section for resources. Every
+   other section has its own edit action (conventions "Editing and conflicts", R10).
+5. Deactivating one alias, alias domain or resource from its section asks one confirmation naming
+   the effect (conventions "Confirmations"), and turning on "any address" asks one confirmation that
+   carries the spec's warning (R10, R15). Legacy saves both without asking.
 
 ## Project Structure
 

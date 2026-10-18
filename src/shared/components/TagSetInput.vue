@@ -4,15 +4,15 @@
 // trimmed, too long ones refused and case-only duplicates kept once. Optional suggestions follow
 // the ARIA 1.2 combobox pattern with a plain listbox (no Reka viewport, which the CSP blocks):
 // arrows move through them, Enter adds one, Escape closes them, and typing a tag keeps working
-// while they load or fail.
+// while they load or fail. Promoted from UI 002 at its second use (UI 003's mailbox forms).
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import FormField from '@/shared/components/FormField.vue'
-import { CloseIcon, PlusIcon } from '@/shared/icons'
-import { buttonVariants } from '@/shared/ui/button'
+import FormField from './FormField.vue'
+import { CloseIcon, PlusIcon } from '../icons'
+import { buttonVariants } from '../ui/button'
 
-import { addTags } from '../../tag-set'
+import { addTags } from '../utils/tag-set'
 
 const props = withDefaults(
   defineProps<{

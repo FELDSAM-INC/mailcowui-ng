@@ -11,7 +11,7 @@ import {
   RATE_LIMIT_MIN,
 } from '@/shared/validation/limits'
 
-import { exceedsTagLimit } from './tag-set'
+import { exceedsTagLimit } from '@/shared/utils/tag-set'
 
 export interface ClientError {
   /** A new string's key, or one of mailcow's own messages (`legacy('danger.domain_invalid')`). */

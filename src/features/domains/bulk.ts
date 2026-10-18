@@ -1,7 +1,10 @@
 // Bulk actions on domains (UI 002 research D22): targets with each entry's version tag, the
 // domains a deletion skips, and the per-item rows of the result summary.
-import { ApiProblem, type BulkResult, type BulkTarget } from '@/api'
+import type { BulkTarget } from '@/api'
 import type { BulkRow } from '@/shared/components/bulk-row'
+
+// Promoted to the shared bulk rows at their second use (UI 003); re-exported for UI 002's callers.
+export { rowsFromBulkResult, unknownRows } from '@/shared/components/bulk-row'
 
 export interface BulkEntry {
   name: string
@@ -28,44 +31,8 @@ export function partitionDeletable<T extends Pick<BulkEntry, 'usage'>>(
   return { deletable, skipped }
 }
 
-function labelOf(entries: readonly Pick<BulkEntry, 'name' | 'unicodeName'>[], id: string): string {
-  return entries.find((entry) => entry.name === id)?.unicodeName ?? id
-}
-
-/** One row per result, in request order, labelled by the readable name. */
-export function rowsFromBulkResult(
-  result: BulkResult,
-  entries: readonly Pick<BulkEntry, 'name' | 'unicodeName'>[],
-): BulkRow[] {
-  return result.results.map((item) => ({
-    id: item.id,
-    label: labelOf(entries, item.id),
-    outcome: item.outcome,
-    problem: item.problem
-      ? ApiProblem.fromParts({
-          kind: 'problem',
-          type: item.problem.type,
-          status: item.problem.status,
-          requestId: item.problem.requestId,
-          extensions: Object.fromEntries(
-            Object.entries(item.problem).filter(
-              ([key]) => !['type', 'title', 'status', 'detail', 'requestId'].includes(key),
-            ),
-          ),
-        })
-      : undefined,
-  }))
-}
-
 export function skippedRows(
   entries: readonly Pick<BulkEntry, 'name' | 'unicodeName'>[],
 ): BulkRow[] {
   return entries.map((entry) => ({ id: entry.name, label: entry.unicodeName, outcome: 'skipped' }))
-}
-
-/** A lost connection: the outcome of every target is unknown (conventions "Bulk actions"). */
-export function unknownRows(
-  entries: readonly Pick<BulkEntry, 'name' | 'unicodeName'>[],
-): BulkRow[] {
-  return entries.map((entry) => ({ id: entry.name, label: entry.unicodeName, outcome: 'unknown' }))
 }

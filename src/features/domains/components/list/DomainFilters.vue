@@ -12,7 +12,7 @@ import { DOMAIN_TAG_MAX_LENGTH } from '@/shared/validation/limits'
 
 import { useTagSuggestions } from '../../composables/useTagSuggestions'
 import type { DomainListFilters } from '../../list-state'
-import TagSetInput from '../fields/TagSetInput.vue'
+import TagSetInput from '@/shared/components/TagSetInput.vue'
 
 const props = defineProps<{
   active: DomainListFilters['active']

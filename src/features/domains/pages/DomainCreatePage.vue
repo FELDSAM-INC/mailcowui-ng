@@ -26,7 +26,7 @@ import { problemOf } from '../api'
 import { useDomainCapabilities } from '../capabilities'
 import DomainNameField from '../components/fields/DomainNameField.vue'
 import DomainValueFields from '../components/fields/DomainValueFields.vue'
-import TemplateSelect from '../components/fields/TemplateSelect.vue'
+import TemplateSelect from '@/shared/components/TemplateSelect.vue'
 import { useClientErrors } from '../composables/useClientErrors'
 import { useCreateDomain } from '../composables/useCreateDomain'
 import {

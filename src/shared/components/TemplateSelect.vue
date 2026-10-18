@@ -1,17 +1,25 @@
 <script setup lang="ts">
-// The template choice of the classic add domain form (FR-019, `js/site/mailbox.js`): the
-// templates by name, the Default template first.
-import type { DomainTemplate } from '@/api'
-import FormField from '@/shared/components/FormField.vue'
+// The template choice of the classic add domain and add mailbox forms (`js/site/mailbox.js`): the
+// templates by name, the Default template first. Promoted from UI 002 at its second use (UI 003).
+import FormField from './FormField.vue'
 
-import { orderTemplates } from '../../create-form'
+interface TemplateOption {
+  id: number
+  name: string
+  isDefault: boolean
+}
+
+const ordered = (templates: readonly TemplateOption[]) => [
+  ...templates.filter((item) => item.isDefault),
+  ...templates.filter((item) => !item.isDefault),
+]
 
 withDefaults(
   defineProps<{
     id: string
     label: string
     modelValue: number | null
-    templates: readonly Pick<DomainTemplate, 'id' | 'name' | 'isDefault'>[]
+    templates: readonly TemplateOption[]
     errors?: readonly string[]
   }>(),
   { errors: () => [] },
@@ -29,7 +37,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
         @change="emit('update:modelValue', Number(($event.target as HTMLSelectElement).value))"
       >
         <option
-          v-for="template in orderTemplates(templates)"
+          v-for="template in ordered(templates)"
           :key="template.id"
           :value="String(template.id)"
         >

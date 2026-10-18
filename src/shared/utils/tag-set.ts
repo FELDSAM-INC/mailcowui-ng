@@ -1,6 +1,6 @@
 // Tags edited as a set (UI 002 research D13, FR-039, FR-040, FR-058): trimmed, empty entries
 // ignored, too long ones refused, case-only duplicates kept once with the first spelling. The same
-// rules serve the footer exclusions.
+// rules serve the footer exclusions. Promoted from UI 002 at its second use (UI 003's mailbox tags).
 
 /** Adds the comma-separated entries of `input`; returns the new set and the refused entries. */
 export function addTags(

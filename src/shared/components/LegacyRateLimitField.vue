@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // The rate limit as the classic forms ask for it (`mailbox/rl-frame.twig`, owner rule 1:1): one
-// number, empty for none (the placeholder says "Disabled"), and the frame.
+// number, empty for none (the placeholder says "Disabled"), and the frame. Promoted from UI 002 at
+// its second use (UI 003's mailbox and template forms).
 import { useI18n } from 'vue-i18n'
 
 import { domainRateLimitFrameValues, type DomainRateLimit } from '@/api'

@@ -25,7 +25,7 @@ import { SEARCH_MAX_LENGTH } from '@/shared/validation/limits'
 
 import { problemOf } from '../api'
 import { useDomainCapabilities } from '../capabilities'
-import SelectCheckbox from '../components/list/SelectCheckbox.vue'
+import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import TemplateEntryActions from '../components/templates/TemplateEntryActions.vue'
 import TemplateList from '../components/templates/TemplateList.vue'
 import TemplateSortControl from '../components/templates/TemplateSortControl.vue'

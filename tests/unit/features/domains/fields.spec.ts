@@ -5,10 +5,10 @@ import { describe, expect, it } from 'vitest'
 import type { DomainTemplate } from '@/api'
 import DomainNameField from '@/features/domains/components/fields/DomainNameField.vue'
 import LimitField from '@/features/domains/components/fields/LimitField.vue'
-import LegacyRateLimitField from '@/features/domains/components/fields/LegacyRateLimitField.vue'
+import LegacyRateLimitField from '@/shared/components/LegacyRateLimitField.vue'
 import RelayOptionsField from '@/features/domains/components/fields/RelayOptionsField.vue'
-import TagSetInput from '@/features/domains/components/fields/TagSetInput.vue'
-import TemplateSelect from '@/features/domains/components/fields/TemplateSelect.vue'
+import TagSetInput from '@/shared/components/TagSetInput.vue'
+import TemplateSelect from '@/shared/components/TemplateSelect.vue'
 
 import { mountWithApp } from '../../support/mount'
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // A selection checkbox with a 44 × 44 px target (US5-AS4). At the bulk limit it is disabled and
-// described by the limit message.
+// described by the limit message. Promoted from UI 002 at its second use (UI 003's mailbox lists).
 defineProps<{ label: string; checked: boolean; disabled?: boolean; describedBy?: string }>()
 const emit = defineEmits<{ change: [checked: boolean] }>()
 </script>

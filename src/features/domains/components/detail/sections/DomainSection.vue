@@ -35,7 +35,7 @@ import { useDomainFormat } from '../../../format'
 import type { RelayOptions } from '../../../relay'
 import LimitField from '../../fields/LimitField.vue'
 import RelayOptionsField from '../../fields/RelayOptionsField.vue'
-import TagSetInput from '../../fields/TagSetInput.vue'
+import TagSetInput from '@/shared/components/TagSetInput.vue'
 import SectionProblem from '../SectionProblem.vue'
 import ValueList from '../ValueList.vue'
 

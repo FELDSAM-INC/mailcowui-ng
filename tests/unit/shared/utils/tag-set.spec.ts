@@ -1,7 +1,7 @@
 // Tags edited as a set (UI 002 T022, research D13, FR-039, FR-040).
 import { describe, expect, it } from 'vitest'
 
-import { addTags, exceedsTagLimit, removeTag, sameTagSet } from '@/features/domains/tag-set'
+import { addTags, exceedsTagLimit, removeTag, sameTagSet } from '@/shared/utils/tag-set'
 
 describe('tag sets', () => {
   it('trims, ignores empty entries and splits on commas', () => {

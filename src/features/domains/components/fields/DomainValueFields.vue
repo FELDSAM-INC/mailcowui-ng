@@ -21,10 +21,10 @@ import {
   type ValueForm,
 } from '../../form-labels'
 import type { DomainValues } from '../../create-form'
-import LegacyRateLimitField from './LegacyRateLimitField.vue'
+import LegacyRateLimitField from '@/shared/components/LegacyRateLimitField.vue'
 import LimitField from './LimitField.vue'
 import RelayOptionsField from './RelayOptionsField.vue'
-import TagSetInput from './TagSetInput.vue'
+import TagSetInput from '@/shared/components/TagSetInput.vue'
 
 type Values = DomainValues & { name?: string }
 

@@ -16,6 +16,7 @@ import { useMediaQuery } from '../composables/useMediaQuery'
 import { CheckIcon, InfoIcon, WarningIcon } from '../icons'
 import { buttonVariants } from '../ui/button'
 import type { SectionChange, SectionStatus } from './editable-section'
+import { useStickyBarFocus } from '../composables/useStickyBarFocus'
 
 const props = withDefaults(
   defineProps<{
@@ -70,6 +71,8 @@ function onSubmit(event: Event) {
   if (props.outdated?.length) emit('saveAgain')
   else emit('save')
 }
+
+useStickyBarFocus()
 </script>
 
 <template>

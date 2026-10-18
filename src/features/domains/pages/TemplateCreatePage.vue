@@ -33,6 +33,7 @@ import {
 } from '../template-form'
 import { formFieldIds, formLabel } from '../form-labels'
 import { createTemplate } from '../templates-api'
+import { useStickyBarFocus } from '@/shared/composables/useStickyBarFocus'
 
 const ID_PREFIX = 'template-add'
 
@@ -99,6 +100,8 @@ const retryable = computed(() => {
   const problem = form.formProblem.value
   return !!problem && (problem.kind !== 'problem' || (problem.status ?? 0) >= 500)
 })
+
+useStickyBarFocus()
 </script>
 
 <template>

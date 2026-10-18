@@ -26,6 +26,7 @@ import SectionProblem from '../components/detail/SectionProblem.vue'
 import DomainValueFields from '../components/fields/DomainValueFields.vue'
 import { useTemplateEditForm } from '../composables/useTemplateEditForm'
 import { useTemplate } from '../templates-api'
+import { useStickyBarFocus } from '@/shared/composables/useStickyBarFocus'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -45,6 +46,8 @@ const edit = useTemplateEditForm({
   idPrefix: 'template-edit',
 })
 useLeaveGuard(edit.dirty, { messageKey: 'leaveGuard.body' })
+
+useStickyBarFocus()
 </script>
 
 <template>

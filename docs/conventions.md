@@ -193,6 +193,13 @@ it.
   another legacy screen with the same meaning is used as it is.
 - They live in `src/i18n/messages/` and are written in English, Czech and Slovak for the owner to
   review. All other languages fall back to English.
+- A feature's own strings may live in `src/i18n/messages/<feature>/<locale>.json` instead, so that
+  the shell does not bundle them (constitution VII): register the three loaders in
+  `featureLoaders` (`src/i18n/index.ts`) and load them with the feature's routes through
+  `loadFeatureMessages('<feature>')`, as `src/features/domains/routes.ts` does; language changes
+  load them too. `i18n:check` checks them with the app's strings, and component tests load them in
+  `tests/setup/vitest.setup.ts`. Strings that other features or the shell use stay in the main
+  files.
 - **Never machine-translate**, in any language.
 - `i18n:check` fails when a new string is missing in en-gb, cs-cz or sk-sk, or when a legacy key
   the app uses is missing from the bundled `en-gb` snapshot.

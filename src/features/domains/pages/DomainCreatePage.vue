@@ -40,6 +40,7 @@ import { SIZE_FIELDS } from '../field-labels'
 import { formFieldIds, formLabel } from '../form-labels'
 import { useDomainFormat } from '../format'
 import { allTemplatesOptions } from '../templates-api'
+import { useStickyBarFocus } from '@/shared/composables/useStickyBarFocus'
 
 const ID_PREFIX = 'create'
 
@@ -141,6 +142,8 @@ const retryable = computed(() => {
     (problem.kind !== 'problem' || problem.is('temporary-failure') || (problem.status ?? 0) >= 500)
   )
 })
+
+useStickyBarFocus()
 </script>
 
 <template>

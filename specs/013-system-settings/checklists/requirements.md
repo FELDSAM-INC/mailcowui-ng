@@ -47,4 +47,9 @@
   FR-083); mass mail uses one explicit confirmation, as the conventions require (FR-084, SC-008);
   wording, list layout and History are aligned (FR-015, FR-039, FR-091, FR-103). 15 clarification
   bullets, no contradictions left, FR-001 to FR-109 contiguous. All items still pass.
+- Validation run 4 (plan and analyze, 2026-10-18): two plan-level clarifications resolve the
+  conflicts found while planning: the job refresh has a pause control and pauses after the app's
+  inactivity limit, as `docs/conventions.md` ("Polling") requires (UI 001 FR-033; FR-088, SC-009),
+  and mass mail failure reasons are translated only where the API reports a known reason (plan
+  API gap G1; FR-088, US10 AS-6, API Dependency). All items still pass.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`

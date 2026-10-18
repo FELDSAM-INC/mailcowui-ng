@@ -98,7 +98,8 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
   last update is shown, and progress is announced at most every 30 seconds and at the end. Leaving
   the page does not affect the delivery. (agent decision: API 013 offers no push channel; a 5-second
   interval keeps the display within the 10-second target of SC-009 while respecting constitution
-  VII; announcing every refresh would flood screen reader users.)
+  VII; announcing every refresh would flood screen reader users. Refined by the plan session below:
+  the refresh also pauses on request and after the app's inactivity limit.)
 - Q: Where do administrators and domain administrators set a domain's quota notification copies? →
   A: In a "Quota notification copies" section of the domain page of UI feature 002, for
   administrators and for the domain administrators of that domain, without a permission flag. The
@@ -146,6 +147,23 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
   History action filters by target type and target ID, and this feature adds labels and
   translations for its audit event types; limits and enabled features come from the capabilities
   read or the contract and are never hard-coded. (alignment with `docs/conventions.md`.)
+
+### Session 2026-10-18 (plan)
+
+- Q: How does the 5-second refresh of a running mass mail job respect UI feature 001's rule that
+  automatic requests must not keep an idle session alive (UI 001 FR-033)? → A: The refresh runs only
+  while the job runs, the page is visible, the administrator has not paused it with its pause
+  control, and the last interaction is younger than the app's inactivity limit (the lower of
+  15 minutes and the session's idle timeout). When that limit passes, the page says that automatic
+  refresh paused and offers "Resume"; it never resumes on its own, and a manual refresh always
+  works. SC-009 applies while the user is active. (agent decision, plan: the two UI specs conflicted;
+  `docs/conventions.md` ("Polling") sets this rule for every polling screen, as in UI 008 and
+  UI 011.)
+- Q: How are the failure reasons of mass mail recipients shown, now that the API reports Dovecot's
+  reply as free text without a stable code? → A: The reason `interrupted` gets its own translated
+  text; any other failure shows the translated "Delivery failed" with the mail server's reply quoted
+  as it is. A stable failure code is requested from mailcow-rest-v2 (plan, API gap G1). (agent
+  decision, plan: constitution I forbids guessing codes; the contract offers only free text.)
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -536,7 +554,8 @@ and inspect completed and cancelled jobs with every outcome, at 360 px and at de
    open. **When** they cancel and confirm, **Then** the job is shown as cancelled with the remaining
    recipients as skipped.
 6. **Given** a completed job, **When** the administrator filters its recipients by "failed", **Then**
-   each failed recipient is shown with the translated reason.
+   each failed recipient is shown with its reason: translated where the API reports a known reason,
+   otherwise the mail server's reply (FR-088).
 7. **Given** an exclusion of `ghost@example.org`, which is not a receiving mailbox, **When** the
    preview is requested and the API refuses it, **Then** that entry is marked with a translated error.
 8. **Given** no job yet, **When** the administrator opens the mass mail jobs, **Then** an empty state
@@ -1127,12 +1146,15 @@ that domain administrators are never offered it.
 - **FR-088**: A job page MUST show the sender, the subject, the selection, the creator, the creation,
   start and end times, the status and the numbers of delivered, failed, skipped and pending
   recipients as text and as a bar. While the job runs and the page is visible, these MUST be
-  refreshed every 5 seconds; the refresh MUST pause while the page is hidden, run once when it
-  becomes visible again and stop when the job ends, and the last update time MUST be shown. Leaving
-  the page MUST NOT affect the delivery. Its recipients MUST be listable page
-  by page, sorted by address, filtered by outcome and searchable by address, each with its outcome
-  and, for failures, the translated reason. The bodies MUST be viewable, the HTML body only through
-  the preview of FR-090.
+  refreshed every 5 seconds; the refresh MUST pause while the page is hidden and run once when it
+  becomes visible again, MUST offer a control that pauses and resumes it, MUST pause with a
+  "Resume" action once the last interaction is older than the app's inactivity limit (the lower of
+  15 minutes and the session's idle timeout) and not resume on its own, and MUST stop when the job
+  ends; the last update time MUST be shown. Leaving the page MUST NOT affect
+  the delivery. Its recipients MUST be listable page by page, sorted by address, filtered by outcome
+  and searchable by address, each with its outcome and, for failures, the reason: translated where
+  the API reports a known reason (`interrupted`), otherwise the mail server's reply, quoted (plan,
+  API gap G1). The bodies MUST be viewable, the HTML body only through the preview of FR-090.
 - **FR-089**: Cancelling a running job MUST ask for confirmation, stating that pending recipients
   will not receive the message and that recipients who already received it keep it. After
   cancellation the job MUST show as cancelled with the pending recipients as skipped. When the API
@@ -1418,7 +1440,10 @@ contract version is pinned in the plan once the API 013 contract has been merged
 settings capabilities read reports the logo limits, whether license verification is enabled, whether
 demo mode is on, the server's host name and the address of the Rspamd web interface (FR-032), and the
 recipient preview gains a search by address (FR-083). If the merged contract lacks any of them, the
-gap is specified in mailcow-rest-v2 first and the UI does not work around it.
+gap is specified in mailcow-rest-v2 first and the UI does not work around it. Planning found one
+gap in the merged contract: mass mail recipient failure reasons are free text without a stable code
+(plan, API gap G1). It is proposed to mailcow-rest-v2 before implementation; until it is closed,
+the app translates only the known reason `interrupted` and quotes other replies (FR-088).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1480,7 +1505,7 @@ gap is specified in mailcow-rest-v2 first and the UI does not work around it.
 - **SC-008**: In 100 % of mass mail tests, nothing is sent before the confirmation naming the
   recipient count has been accepted, and a changed count always leads to a new confirmation.
 - **SC-009**: The progress shown on a running mass mail job's page is never more than 10 seconds
-  behind the API's state while the page is visible.
+  behind the API's state while the page is visible and the user is active (FR-088).
 - **SC-010**: The preview of the help text and the footer matches what the sign-in screen shows for
   100 % of the test set, and in 100 % of the hostile e-mail templates no script runs and no remote
   resource is requested during a preview.

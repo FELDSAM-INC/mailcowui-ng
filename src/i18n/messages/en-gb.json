@@ -648,7 +648,8 @@
       "title": "Filters",
       "withCount": "Filters ({count})",
       "no": "No",
-      "yes": "Yes"
+      "yes": "Yes",
+      "apply": "Apply filters"
     },
     "id": "ID",
     "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",

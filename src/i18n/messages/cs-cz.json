@@ -648,7 +648,8 @@
       "title": "Filtry",
       "withCount": "Filtry ({count})",
       "no": "Ne",
-      "yes": "Ano"
+      "yes": "Ano",
+      "apply": "Použít filtry"
     },
     "id": "ID",
     "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé.",

@@ -648,7 +648,8 @@
       "title": "Filtre",
       "withCount": "Filtre ({count})",
       "no": "Nie",
-      "yes": "Áno"
+      "yes": "Áno",
+      "apply": "Použiť filtre"
     },
     "id": "ID",
     "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",

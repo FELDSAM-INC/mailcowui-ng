@@ -301,7 +301,10 @@
     "opensInNewTab": "(otvorí sa na novej karte)",
     "requestId": "ID požiadavky: {requestId}",
     "retry": "Skúsiť znova",
-    "signOut": "Odhlásiť sa"
+    "signOut": "Odhlásiť sa",
+    "copy": {
+      "refused": "Prehliadač kopírovanie nepovolil. Text je označený: skopírujte ho sami."
+    }
   },
   "domains": {
     "bulk": {

@@ -301,7 +301,10 @@
     "opensInNewTab": "(opens in a new tab)",
     "requestId": "Request ID: {requestId}",
     "retry": "Try again",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "copy": {
+      "refused": "The browser did not allow copying. The text is selected: copy it yourself."
+    }
   },
   "domains": {
     "bulk": {

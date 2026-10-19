@@ -8,7 +8,8 @@
 //   for the challenge they were given, so flows that only need a submitted credential also run on
 //   WebKit (the mock does not verify signatures).
 // Both stubs keep conditional requests pending (the user has not picked a passkey from the
-// autofill) and record every call, see installCredentialStub.
+// autofill) and record every call, see installCredentialStub. `rejectConditional(name)` settles
+// the pending conditional request as the browser does when the user dismisses its prompt.
 import { generateKeyPairSync, randomBytes } from 'node:crypto'
 
 import type { BrowserContext, CDPSession, Page } from '@playwright/test'
@@ -40,6 +41,8 @@ export interface WebAuthnTools {
   credentialCalls(target?: Page): Promise<string[]>
   /** Resolves the page's held conditional request (`conditional: 'release'`). */
   releaseConditional(target?: Page): Promise<void>
+  /** Rejects the page's pending conditional request with a named DOMException, as the browser does. */
+  rejectConditional(name: string, target?: Page): Promise<void>
 }
 
 export function createWebAuthnTools(page: Page, context: BrowserContext): WebAuthnTools {
@@ -124,6 +127,10 @@ export function createWebAuthnTools(page: Page, context: BrowserContext): WebAut
     async releaseConditional(target = page) {
       await target.evaluate(() => window.__mailcowuiNgReleaseConditional?.())
     },
+
+    async rejectConditional(name, target = page) {
+      await target.evaluate((errorName) => window.__mailcowuiNgRejectConditional?.(errorName), name)
+    },
   }
 }
 
@@ -133,6 +140,8 @@ declare global {
     __mailcowuiNgCredentialCalls?: string[]
     /** Resolves a held conditional request (stubCredentials with `conditional: 'release'`). */
     __mailcowuiNgReleaseConditional?: () => void
+    /** Rejects the pending conditional requests with a named DOMException. */
+    __mailcowuiNgRejectConditional?: (name: string) => void
   }
 }
 
@@ -150,6 +159,7 @@ interface StubInit {
  * lack PublicKeyCredential. A conditional request stays pending, as in a browser where the user
  * has not picked a passkey from the autofill, and rejects with AbortError when aborted; with
  * `conditional: 'release'` it resolves once the test calls `__mailcowuiNgReleaseConditional()`.
+ * `__mailcowuiNgRejectConditional(name)` rejects it as the browser does after a dismissed prompt.
  * Modal requests resolve with a contract-valid fake credential for the challenge they were given,
  * or reject with the named DOMException.
  */
@@ -219,6 +229,11 @@ function installCredentialStub(init: StubInit) {
   window.__mailcowuiNgCredentialCalls = calls
   const held: (() => void)[] = []
   window.__mailcowuiNgReleaseConditional = () => held.splice(0).forEach((release) => release())
+  const pending: ((error: DOMException) => void)[] = []
+  window.__mailcowuiNgRejectConditional = (name) => {
+    held.length = 0
+    pending.splice(0).forEach((reject) => reject(new DOMException('Stubbed rejection', name)))
+  }
 
   Object.defineProperty(navigator, 'credentials', {
     configurable: true,
@@ -229,6 +244,7 @@ function installCredentialStub(init: StubInit) {
         if (conditional) {
           return new Promise((resolve, reject) => {
             options.signal?.addEventListener('abort', () => reject(aborted()))
+            pending.push(reject)
             if (init.conditional === 'release' && init.mode === 'resolve') {
               held.push(() => resolve(assertion(options)))
             }

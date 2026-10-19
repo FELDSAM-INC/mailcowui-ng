@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { installGuards } from '@/app/router/guards'
 import { setSessionContext } from '@/app/session/context'
-import { usePasskeySignIn } from '@/features/auth/composables/usePasskeySignIn'
+import {
+  usePasskeySignIn,
+  type PasskeySignInOptions,
+} from '@/features/auth/composables/usePasskeySignIn'
 import { createAppChannel } from '@/shared/platform/broadcast'
 import { getAssertion } from '@/shared/platform/webauthn'
 
@@ -19,13 +22,16 @@ afterEach(() => {
   setSessionContext(null)
 })
 
-async function setup(role: 'admin' | 'domainAdmin' | 'mailboxUser' | null = null) {
+async function setup(
+  role: 'admin' | 'domainAdmin' | 'mailboxUser' | null = null,
+  hooks: Pick<PasskeySignInOptions, 'onStart' | 'onSettled'> = {},
+) {
   const router = createTestRouter()
   const queryClient = testPlugins().queryClient
   installGuards(router, { queryClient })
   setSessionContext({ queryClient, router, channel: createAppChannel('test') })
   await router.push('/sign-in')
-  const { result } = withSetup(() => usePasskeySignIn({ role: () => role }), { router })
+  const { result } = withSetup(() => usePasskeySignIn({ role: () => role, ...hooks }), { router })
   return { result, router }
 }
 
@@ -95,6 +101,21 @@ describe('usePasskeySignIn', () => {
     const { result } = await setup()
     await result.signIn()
     expect(await conditional).toMatchObject({ kind: 'aborted' })
+  })
+
+  it('lets the autofill request go before it requests a challenge, and resumes it after a dismissed prompt', async () => {
+    useScenario('anonymous-default')
+    const webauthn = installWebAuthn()
+    webauthn.get.mockRejectedValueOnce(new DOMException('cancelled', 'NotAllowedError'))
+    const challenges = () =>
+      mockState().requests.filter((r) => r.operationId === 'createPasskeyChallenge').length
+    const order: string[] = []
+    const { result } = await setup(null, {
+      onStart: () => order.push(`start after ${challenges()} challenges`),
+      onSettled: () => order.push(`settled after ${challenges()} challenges`),
+    })
+    await result.signIn()
+    expect(order).toEqual(['start after 0 challenges', 'settled after 1 challenges'])
   })
 
   it.each([

@@ -1,6 +1,7 @@
 // WebAuthn ceremonies with a single module-level AbortController (research R14): only one
 // request runs at a time, and every new ceremony aborts the previous one first, which browsers
-// require for conditional requests.
+// require for conditional requests. A ceremony the app aborted fails as `aborted`; one the browser
+// ended by itself never does (UI 001 fix: the autofill request restarts on that difference).
 import type {
   WebAuthnAuthenticationResponse,
   WebAuthnCreationOptions,
@@ -37,7 +38,12 @@ async function run<T>(
     try {
       credential = await request(controller.signal)
     } catch (error) {
-      throw new WebAuthnCeremonyError(classifyWebAuthnError(error, ceremony), error)
+      // `aborted` means the app aborted the ceremony (abortCeremony or a newer ceremony), so
+      // whoever aborted it restarts what it needs. An AbortError the browser raised by itself is
+      // a silent `cancelled`, like a dismissed prompt: nobody in the app aborted it.
+      const kind = classifyWebAuthnError(error, ceremony)
+      const byApp = controller.signal.aborted
+      throw new WebAuthnCeremonyError(kind === 'aborted' && !byApp ? 'cancelled' : kind, error)
     }
     if (credential === null || credential.type !== 'public-key') {
       throw new WebAuthnCeremonyError('unknown', credential)

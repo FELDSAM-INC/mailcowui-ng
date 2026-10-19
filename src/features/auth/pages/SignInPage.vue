@@ -60,7 +60,12 @@ const forceSso = computed(() => ssoOffered.value && branding.value.loginPage.for
 
 // Passkeys first (FR-010–FR-012): one action, plus the browser's autofill on the username field.
 const passkeys = passkeysSupported()
-const passkey = usePasskeySignIn({ role: () => role.value, onSettled: () => conditional.start() })
+// The passkey action aborts the autofill request first and resumes it when it did not sign in.
+const passkey = usePasskeySignIn({
+  role: () => role.value,
+  onStart: () => conditional.stop(),
+  onSettled: () => conditional.start(),
+})
 const conditional = useConditionalPasskey({
   role: () => role.value,
   onError: (error) => passkey.report(error),

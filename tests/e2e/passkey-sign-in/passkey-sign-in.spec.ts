@@ -4,6 +4,7 @@ import type { Page } from '@playwright/test'
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { expect, test } from '../fixtures/test'
 import { assertiveRegion, passwordForm } from '../fixtures/flows'
+import type { MockApi } from '../fixtures/mock-api'
 
 const passkeyButton = (page: Page) => page.getByRole('button', { name: 'Sign in with a passkey' })
 
@@ -80,12 +81,17 @@ test('US2-AS4 FR-013 a cancelled prompt returns without an error, and both optio
   await mockApi.use('passkey-user')
   await webauthn.stubCredentialsRejection('NotAllowedError')
   await page.goto('sign-in')
+  await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
   await passkeyButton(page).click()
   await expect(passkeyButton(page)).toBeEnabled()
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(passwordForm(page).submit).toBeEnabled()
   const ops = (await mockApi.requests()).map((r) => r.operationId)
   expect(ops).not.toContain('createSessionWithPasskey')
+  // The autofill request was aborted for the prompt and resumes after it (UI 001 fix).
+  await expect
+    .poll(() => webauthn.credentialCalls())
+    .toEqual(['get:conditional', 'get:modal', 'get:conditional'])
 })
 
 test('US2-AS5 FR-014 a passkey the server does not accept gives one generic message that suggests the password', async ({
@@ -180,6 +186,103 @@ test('US2-AS9 FR-012 choosing a passkey from the autofill signs in', async ({
   await expect(
     page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
   ).toBeVisible()
+})
+
+const operations = async (mockApi: MockApi) => (await mockApi.requests()).map((r) => r.operationId)
+
+/** What the iOS passkey sheet does to the page: it takes focus and visibility and gives them back. */
+async function passkeySheet(page: Page) {
+  await page.evaluate(() => {
+    const setVisibility = (state: DocumentVisibilityState) => {
+      Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: () => state === 'hidden',
+      })
+      document.dispatchEvent(new Event('visibilitychange'))
+    }
+    window.dispatchEvent(new Event('blur'))
+    setVisibility('hidden')
+    setVisibility('visible')
+    window.dispatchEvent(new Event('focus'))
+    window.dispatchEvent(new Event('online'))
+  })
+}
+
+/** A session refetch while signed out: another tab reports a changed session (research R12). */
+async function sessionChangedElsewhere(page: Page) {
+  await page.evaluate(() => {
+    const channel = new BroadcastChannel('mailcowui-ng')
+    channel.postMessage({ v: 1, type: 'session-changed' })
+    channel.close()
+  })
+}
+
+test('FR-012 the autofill request outlives focus changes and session refetches, and a passkey chosen afterwards signs in', async ({
+  page,
+  mockApi,
+  webauthn,
+}) => {
+  // UI 001 fix (owner's iPhone): the passkey sheet takes focus and visibility from the page, and
+  // the user's choice must still reach the request that was pending before.
+  await mockApi.use('passkey-user')
+  await webauthn.stubCredentials(SEEDED_CREDENTIALS.alice, { conditional: 'release' })
+  const count = async (operationId: string) =>
+    (await operations(mockApi)).filter((op) => op === operationId).length
+
+  // While the first challenge is on its way…
+  await mockApi.delay('createPasskeyChallenge', 1_500)
+  const challengeSent = page.waitForRequest((request) =>
+    request.url().endsWith('/api/v2/session/passkey-challenge'),
+  )
+  await page.goto('sign-in')
+  await challengeSent
+  await passkeySheet(page)
+  await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
+  await mockApi.delay('createPasskeyChallenge', 0)
+
+  // …and while the request is pending.
+  const sessionReads = await count('getSession')
+  // Typed input that a remount of the sign-in screen would lose.
+  await passwordForm(page).username.fill('someone')
+  await passkeySheet(page)
+  await sessionChangedElsewhere(page)
+  await expect.poll(() => count('getSession')).toBeGreaterThan(sessionReads)
+  await page.waitForLoadState('networkidle')
+
+  expect(await count('createPasskeyChallenge'), 'no new challenge on focus or refetch').toBe(1)
+  expect(await webauthn.credentialCalls()).toEqual(['get:conditional'])
+  await expect(passwordForm(page).username).toHaveValue('someone')
+
+  await webauthn.releaseConditional()
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
+  ).toBeVisible()
+  expect(await count('createSessionWithPasskey')).toBe(1)
+})
+
+test('FR-012 an autofill request the browser ends without a passkey is restarted, and a passkey chosen then signs in', async ({
+  page,
+  mockApi,
+  webauthn,
+}) => {
+  await mockApi.use('passkey-user')
+  await webauthn.stubCredentials(SEEDED_CREDENTIALS.alice, { conditional: 'release' })
+  await page.goto('sign-in')
+  await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
+  // The user dismissed the browser's passkey prompt.
+  await webauthn.rejectConditional('NotAllowedError')
+  await expect
+    .poll(() => webauthn.credentialCalls())
+    .toEqual(['get:conditional', 'get:conditional'])
+  await expect(page.getByRole('alert')).toHaveCount(0)
+  await webauthn.releaseConditional()
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
+  ).toBeVisible()
+  expect(
+    (await operations(mockApi)).filter((op) => op === 'createSessionWithPasskey'),
+  ).toHaveLength(1)
 })
 
 test('FR-007 UI 012 FR-041 force single sign-on keeps passkey sign-in on the role-neutral screen', async ({

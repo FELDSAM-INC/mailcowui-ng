@@ -595,17 +595,32 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     3. `navigator.credentials.get({ publicKey, signal })`.
     4. `POST /session/passkey-assertion` with `{ credential, role? }`.
 
-    A role-specific screen sends its role (FR-011).
+    A role-specific screen sends its role (FR-011). An attempt that does not sign in resumes the
+    conditional request.
   - **Passkey sign-in, conditional** (FR-012): the username field has
     `autocomplete="username webauthn"`. When the sign-in screen mounts and conditional mediation
     is available, the app fetches a challenge and starts
     `navigator.credentials.get({ mediation: 'conditional', publicKey, signal })`.
     - This never opens a dialog.
-    - The challenge expires after 5 minutes, so the conditional request is restarted 30 s before
-      `expiresAt` while the page is visible, and on `visibilitychange` to visible.
+    - *Amended on 2026-10-19 (owner's iPhone: a passkey picked from the autofill did nothing)*:
+      exactly one conditional request stays pending for as long as the sign-in screen is shown.
+      - It restarts only when it settles without a credential (the user dismissed the browser's
+        prompt, or the browser gave up or aborted it by itself), after an attempt the API refused,
+        and 30 s before `expiresAt` (the challenge lives 5 minutes; a lifetime under a minute is
+        renewed halfway, never sooner than 5 s after the start). When the request ends within
+        3 s of its start (refused at once, or a credential that came by itself and was refused),
+        the restart waits 1, 5, 15 and then 60 s. A restart that falls due while the page is
+        hidden runs on `visibilitychange` to visible.
+      - Focus, blur and visibility changes, reconnects, re-renders and session refetches never
+        abort or restart it: the iOS passkey sheet hides the page while the user picks, and a
+        restart then drops the choice. The first version restarted on every `visibilitychange`
+        before its first challenge had arrived, and left a request the browser had settled
+        without a successor, while iOS kept offering passkeys that did nothing.
+      - An expired or replaced challenge (`sign-in-expired`) restarts it silently, with "Choose
+        your passkey again."
     - These are anonymous requests and cannot keep a signed-in session alive.
-    - The request is aborted when the screen unmounts, when a modal ceremony starts and when the
-      password form is submitted.
+    - The request is aborted when the screen unmounts, before the modal ceremony requests its
+      challenge (it is resumed afterwards) and when the password form is submitted.
   - **Second-factor WebAuthn** (FR-021): `POST /session/pending-sign-in/webauthn-challenge`, then
     `get()`, then `POST /session/pending-sign-in/second-factor` with `{ type: 'webauthn', credential }`.
   - **Registration** (FR-053, FR-039): `POST /me/passkeys/registration-options`, then
@@ -617,7 +632,7 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     | Source | Meaning | App behaviour |
     |---|---|---|
     | `NotAllowedError` | cancelled, timed out, or no matching credential | Silent return. Both sign-in options stay (FR-013, US4 AS-8). |
-    | `AbortError` | the app aborted it | Ignored |
+    | `AbortError` | the app aborted it | Ignored (an `AbortError` the browser raised by itself counts as `NotAllowedError`) |
     | `InvalidStateError` (create) | the authenticator already holds a passkey for this account | "This device already has a passkey for your account" (US4 AS-9) |
     | `SecurityError` | wrong host name or insecure context | "Passkeys cannot be used at this address" |
     | `NotSupportedError`, `ConstraintError` | algorithm, discoverable credential or user verification not available | "This device cannot create or use a passkey of the required kind" |

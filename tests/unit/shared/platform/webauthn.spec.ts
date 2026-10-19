@@ -385,6 +385,14 @@ describe('ceremonies', () => {
     expect(() => abortCeremony()).not.toThrow()
   })
 
+  it('reports an AbortError the browser raised by itself as cancelled, not as aborted by the app', async () => {
+    const { get } = installWebAuthn()
+    get.mockRejectedValueOnce(new DOMException('The operation was aborted.', 'AbortError'))
+    await expect(getAssertion(requestJson, { mediation: 'conditional' })).rejects.toMatchObject({
+      kind: 'cancelled',
+    })
+  })
+
   it('classifies a rejected prompt', async () => {
     const { get, create } = installWebAuthn()
     get.mockRejectedValueOnce(new DOMException('cancelled', 'NotAllowedError'))

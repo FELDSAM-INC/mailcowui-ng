@@ -16,6 +16,11 @@ import { useThrottle } from './useThrottle'
 
 export interface PasskeySignInOptions {
   role: () => Role | null
+  /**
+   * Called before the challenge is requested: the autofill request is aborted first, which
+   * WebAuthn requires, and so that a challenge it is still fetching cannot abort this ceremony.
+   */
+  onStart?: () => void
   /** Called after every attempt that did not sign in (restarts the autofill request). */
   onSettled?: () => void
 }
@@ -60,11 +65,12 @@ export function usePasskeySignIn(options: PasskeySignInOptions) {
 
   async function signIn(): Promise<void> {
     if (pending.value || throttle.active.value) return
+    options.onStart?.()
     pending.value = true
     clear()
     let signedIn = false
     try {
-      // A new ceremony aborts the conditional one first (research R14).
+      // onStart has aborted the autofill request; getAssertion aborts any other ceremony (R14).
       const { challenge } = await createPasskeyChallenge()
       const credential = await getAssertion(challenge.publicKey)
       const role = options.role()

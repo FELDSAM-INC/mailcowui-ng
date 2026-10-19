@@ -1,21 +1,32 @@
 // Passkeys in the username autofill (FR-012, research R14). When the browser offers conditional
 // mediation, the sign-in screen requests a challenge and starts a conditional get(), which never
-// opens a dialog: the browser lists the passkeys when the username field is focused. The request
-// restarts 30 s before its challenge expires while the page is visible, and when the page becomes
-// visible again. It is aborted when the screen unmounts, when a modal ceremony starts (one
-// ceremony at a time) and when the password form is submitted. These are anonymous requests, so
-// they never keep a signed-in session alive (FR-033).
+// opens a dialog: the browser lists the passkeys at the username field. These are anonymous
+// requests, so they never keep a signed-in session alive (FR-033).
+//
+// One request stays pending for as long as the screen is shown (UI 001 fix, 2026-10-19). While
+// the user picks a passkey, iOS shows its passkey sheet and the page loses focus or visibility; a
+// request the app aborts or replaces at that moment drops the user's choice, and a request that
+// has settled leaves the field offering passkeys that do nothing. So:
+// - Focus, blur and visibility changes, reconnects, re-renders and session refetches never abort
+//   or restart it.
+// - It restarts when it settles without a credential (the user dismissed the browser's prompt, or
+//   the browser gave up or aborted it), after a refused attempt, and 30 s before its challenge
+//   expires. A request that fails at once is retried with a growing delay. A restart that falls
+//   due while the page is hidden runs when the page is visible again.
+// - It is aborted when the screen unmounts, before the passkey action's modal ceremony (which
+//   resumes it afterwards) and when the password form is submitted.
 //
 // The API keeps one passkey challenge per session: two pages on the sign-in screen take each
 // other's. The losing page gets `sign-in-expired`, restarts silently and asks the user to choose
 // the passkey again.
 import { onMounted, onScopeDispose, ref } from 'vue'
 
-import { isApiProblem, type Role } from '@/api'
+import { isApiProblem, type Role, type WebAuthnAuthenticationResponse } from '@/api'
 import {
   abortCeremony,
   conditionalMediationAvailable,
   getAssertion,
+  isCeremonyRunning,
   WebAuthnCeremonyError,
 } from '@/shared/platform/webauthn'
 
@@ -24,73 +35,162 @@ import { acceptSession, createPasskeyChallenge, createSessionWithPasskey } from 
 /** The request restarts this long before its challenge expires. */
 export const CONDITIONAL_RESTART_MARGIN_MS = 30_000
 
+/** A request that settles sooner than this after it started has failed at once. */
+export const CONDITIONAL_QUICK_FAILURE_MS = 3_000
+
+/** Delays before restarting after consecutive failures at once; the last one repeats. */
+export const CONDITIONAL_RETRY_DELAYS_MS = [1_000, 5_000, 15_000, 60_000] as const
+
+/** The shortest time a request runs before it is renewed for its challenge's expiry. */
+const MIN_RENEWAL_MS = 5_000
+
 export interface ConditionalPasskeyOptions {
   role: () => Role | null
   /** A failure to show: a refused passkey, throttling, a lost connection. */
   onError: (error: unknown) => void
 }
 
+/**
+ * - `idle`: no request (before the start, stopped, or left to another ceremony).
+ * - `starting`: the challenge is being requested.
+ * - `pending`: the conditional get() waits for the user.
+ * - `submitting`: the user picked a passkey and the assertion is on its way.
+ */
+type Phase = 'idle' | 'starting' | 'pending' | 'submitting'
+
 export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
   /** Set after a silent restart because the challenge was taken: "Choose your passkey again." */
   const chooseAgain = ref(false)
   const active = ref(false)
   let available = false
+  let disposed = false
   let stopped = true
+  let phase: Phase = 'idle'
   let generation = 0
+  /** Consecutive requests that failed at once. */
+  let failures = 0
+  /** When the next restart is due (before the challenge expires, or a retry), or null. */
   let restartAt: number | null = null
+  /** The restart timer fired while the page was hidden. */
+  let overdue = false
   let timer: ReturnType<typeof setTimeout> | null = null
 
-  function clearTimer() {
+  function cancelRestart() {
     if (timer !== null) clearTimeout(timer)
     timer = null
+    restartAt = null
+    overdue = false
   }
 
-  function schedule(expiresAt: string, skew: number) {
-    clearTimer()
-    const deadline = new Date(expiresAt).getTime() - skew - CONDITIONAL_RESTART_MARGIN_MS
-    restartAt = deadline
+  function restartLater(at: number) {
+    cancelRestart()
+    restartAt = at
     timer = setTimeout(
       () => {
-        if (document.visibilityState !== 'hidden') void run()
+        timer = null
+        overdue = true
+        restartIfDue()
       },
-      Math.max(0, deadline - Date.now()),
+      Math.max(0, at - Date.now()),
     )
   }
 
+  /**
+   * Runs a restart that has fallen due, once the page is visible. Visibility alone never restarts
+   * the request: without a due restart this does nothing.
+   */
+  function restartIfDue() {
+    if (stopped || restartAt === null || phase === 'submitting') return
+    if (!overdue && Date.now() < restartAt) return
+    if (document.visibilityState === 'hidden') return
+    // Another ceremony holds the authenticator; it resumes this request when it ends.
+    if (phase !== 'pending' && isCeremonyRunning()) return
+    void run()
+  }
+
+  /** The request settled without a credential: start the next one, later if it failed at once. */
+  function settled(startedAt: number) {
+    phase = 'idle'
+    if (Date.now() - startedAt >= CONDITIONAL_QUICK_FAILURE_MS) {
+      failures = 0
+      restartLater(Date.now())
+      return
+    }
+    failures += 1
+    const delays = CONDITIONAL_RETRY_DELAYS_MS
+    restartLater(Date.now() + delays[Math.min(failures, delays.length) - 1]!)
+  }
+
+  /** Leaves no request and schedules none: another ceremony took over, or passkeys cannot work. */
+  function rest() {
+    phase = 'idle'
+    cancelRestart()
+  }
+
   async function run(): Promise<void> {
-    if (!available) return
+    if (!available || disposed) return
     stopped = false
     const mine = ++generation
-    abortCeremony()
+    cancelRestart()
+    if (phase === 'pending') abortCeremony()
+    phase = 'starting'
     active.value = true
-    let picked = false
+    const startedAt = Date.now()
+    const isCurrent = () => mine === generation && !stopped
+
+    let challenge: Awaited<ReturnType<typeof createPasskeyChallenge>>
     try {
-      const { challenge, skew } = await createPasskeyChallenge()
-      if (stopped || mine !== generation) return
-      schedule(challenge.expiresAt, skew)
-      const credential = await getAssertion(challenge.publicKey, { mediation: 'conditional' })
-      if (mine !== generation) return
-      picked = true
-      clearTimer()
+      challenge = await createPasskeyChallenge()
+    } catch {
+      // Silent: the passkey action still works, and the request is retried.
+      if (isCurrent()) settled(startedAt)
+      return
+    }
+    if (!isCurrent()) return
+    const { expiresAt, publicKey } = challenge.challenge
+    // 30 s before the challenge expires; halfway through a shorter lifetime, and never in a loop.
+    const lifetime = new Date(expiresAt).getTime() - challenge.skew - Date.now()
+    const renewIn = Math.max(lifetime - CONDITIONAL_RESTART_MARGIN_MS, lifetime / 2)
+    restartLater(Date.now() + Math.max(renewIn, MIN_RENEWAL_MS))
+    phase = 'pending'
+
+    let credential: WebAuthnAuthenticationResponse
+    try {
+      credential = await getAssertion(publicKey, { mediation: 'conditional' })
+    } catch (error) {
+      if (!isCurrent()) return
+      if (error instanceof WebAuthnCeremonyError) {
+        // Aborted by the app, but not here: the passkey action's ceremony took over.
+        if (error.kind === 'aborted') return rest()
+        if (error.kind === 'insecure' || error.kind === 'unsupported') return rest()
+      }
+      settled(startedAt)
+      return
+    }
+    if (!isCurrent()) return
+    await submit(credential, isCurrent, startedAt)
+  }
+
+  async function submit(
+    credential: WebAuthnAuthenticationResponse,
+    isCurrent: () => boolean,
+    startedAt: number,
+  ) {
+    phase = 'submitting'
+    cancelRestart()
+    try {
       const role = options.role()
       const session = await createSessionWithPasskey({ credential, ...(role ? { role } : {}) })
       stop()
       await acceptSession(session)
     } catch (error) {
-      if (mine !== generation || stopped) return
-      // Before the user picked a passkey, failures stay silent: the request restarts with its
-      // timer or when the page becomes visible, and the passkey action still works. An aborted
-      // request is restarted by whoever aborted it.
-      if (!picked) {
-        if (!(error instanceof WebAuthnCeremonyError)) clearTimer()
-        return
-      }
-      if (isApiProblem(error) && error.is('sign-in-expired')) {
-        chooseAgain.value = true
-        return void run()
-      }
-      options.onError(error)
-      if (isApiProblem(error) && error.is('sign-in-failed')) void run()
+      if (!isCurrent()) return
+      // An expired or replaced challenge is nothing the user did wrong: restart silently. The
+      // restart is delayed too when the credential came at once (an authenticator answering by
+      // itself would otherwise loop).
+      if (isApiProblem(error) && error.is('sign-in-expired')) chooseAgain.value = true
+      else options.onError(error)
+      settled(startedAt)
     }
   }
 
@@ -99,28 +199,25 @@ export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
     void run()
   }
 
-  /** Aborts the conditional request (password submit, unmount). */
+  /** Aborts the conditional request (password submit, modal ceremony, unmount). */
   function stop(): void {
     stopped = true
     generation += 1
     active.value = false
-    clearTimer()
-    abortCeremony()
-  }
-
-  function onVisibility() {
-    if (document.visibilityState === 'hidden' || stopped) return
-    if (restartAt === null || Date.now() >= restartAt) void run()
+    cancelRestart()
+    if (phase === 'pending') abortCeremony()
+    phase = 'idle'
   }
 
   onMounted(async () => {
     available = await conditionalMediationAvailable()
     if (available) void run()
   })
-  document.addEventListener('visibilitychange', onVisibility)
+  document.addEventListener('visibilitychange', restartIfDue)
   onScopeDispose(() => {
-    document.removeEventListener('visibilitychange', onVisibility)
-    if (!stopped) stop()
+    disposed = true
+    document.removeEventListener('visibilitychange', restartIfDue)
+    stop()
   })
 
   return { active, chooseAgain, start, stop }

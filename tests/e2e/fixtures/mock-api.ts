@@ -23,6 +23,10 @@ export interface MockApi {
   patch(changes: ScenarioPatch): Promise<void>
   /** Requests the current scenario received, with secrets redacted. */
   requests(): Promise<RecordedRequest[]>
+  /** UI 011 (T015): the number of requests received so far, as a mark for `countRequests`. */
+  mark(): Promise<number>
+  /** UI 011 (T015): requests of an operation received after a mark (default: all). */
+  countRequests(operationId: string, sinceMark?: number): Promise<number>
   /** Contract violations of every scenario this test used. */
   violations(): Promise<Violation[]>
   readonly id: string | null
@@ -102,6 +106,13 @@ export function createMockApi(context: BrowserContext, appUrl: string): MockApi 
         `/__mock/scenarios/${current}/requests`,
       )
       return requests
+    },
+    async mark() {
+      return (await this.requests()).length
+    },
+    async countRequests(operationId, sinceMark = 0) {
+      const all = await this.requests()
+      return all.slice(sinceMark).filter((request) => request.operationId === operationId).length
     },
     mutateDomain(name, changes) {
       return this.patch({ domains: { set: { [name]: changes } } })

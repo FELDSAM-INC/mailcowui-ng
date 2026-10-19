@@ -92,7 +92,19 @@
       "fail2banBanLift",
       "fail2banBanAllowlisting",
       "fail2banBanDenylisting",
-      "fail2banBanListIdRotation"
+      "fail2banBanListIdRotation",
+      "quarantineItemRelease",
+      "quarantineItemSpamLearning",
+      "quarantineItemDeletion",
+      "quarantineSettingsUpdate",
+      "quarantineNotificationSettingsUpdate",
+      "spamScoreUpdate",
+      "spamScoreReset",
+      "spamPolicyEntryCreation",
+      "spamPolicyEntryRemoval",
+      "rateLimitUpdate",
+      "rateLimitRemoval",
+      "rateLimitBucketReset"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -127,7 +139,14 @@
       "fail2banSettings",
       "fail2banRules",
       "fail2banActiveBan",
-      "fail2banBanListId"
+      "fail2banBanListId",
+      "quarantineItem",
+      "quarantineSettings",
+      "quarantineNotificationSettings",
+      "spamScore",
+      "spamPolicyEntry",
+      "rateLimit",
+      "rateLimitBucket"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -208,7 +227,8 @@
       "invalidCharacter",
       "invalidRegex",
       "notResolvable",
-      "missingCaptureGroup"
+      "missingCaptureGroup",
+      "invalidTemplate"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -268,7 +288,11 @@
       "mail-service-not-running",
       "queue-action-failed",
       "ban-rules-not-restored",
-      "ip-check-disabled"
+      "ip-check-disabled",
+      "quarantine-item-busy",
+      "quarantine-delivery-refused",
+      "quarantine-message-too-large",
+      "spam-policy-entry-exists"
     ]
   },
   "complete": {
@@ -296,6 +320,23 @@
     "routing.connectionTest.step": "#/components/schemas/RoutingConnectionTestStep",
     "routing.connectionTest.reason": "#/components/schemas/RoutingConnectionTestResult/properties/failure/oneOf/0/properties/reason",
     "routing.connectionTest.login": "#/components/schemas/RoutingConnectionTestResult/properties/login",
-    "routing.connectionTest.direction": "#/components/schemas/RoutingConnectionTestResult/properties/transcript/items/properties/direction"
+    "routing.connectionTest.direction": "#/components/schemas/RoutingConnectionTestResult/properties/transcript/items/properties/direction",
+    "enums.quarantineItemAction": "#/components/schemas/QuarantineItemAction",
+    "enums.quarantineNotificationFrequency": "#/components/schemas/QuarantineNotificationFrequency",
+    "enums.quarantineNotificationCategory": "#/components/schemas/QuarantineNotificationCategory",
+    "enums.quarantineReleaseFormat": "#/components/schemas/QuarantineReleaseFormat",
+    "enums.quarantineReportAction": "#/components/schemas/QuarantineActionReport/properties/action",
+    "enums.quarantineReportDelivery": "#/components/schemas/QuarantineActionReport/properties/delivery",
+    "enums.quarantineReportLearning": "#/components/schemas/QuarantineActionReport/properties/learning",
+    "enums.quarantineReportFuzzy": "#/components/schemas/QuarantineActionReport/properties/fuzzy",
+    "enums.quarantineContentStatus": "#/components/schemas/QuarantineItemDetails/allOf/1/properties/contentStatus",
+    "enums.quarantineRecipientSource": "#/components/schemas/QuarantineRecipient/properties/source",
+    "enums.spamFilterDependency": "#/components/schemas/SpamFilterTemporaryFailureProblem/allOf/1/properties/dependency",
+    "enums.spamFilterStep": "#/components/schemas/SpamFilterTemporaryFailureProblem/allOf/1/properties/step",
+    "enums.spamPolicyList": "#/components/schemas/SpamPolicyList",
+    "enums.spamPolicyOwnerKind": "#/components/schemas/SpamPolicyOwner/properties/kind",
+    "enums.rateLimitObjectKind": "#/components/schemas/RateLimitObjectKind",
+    "enums.rateLimitFrame": "#/components/schemas/RateLimitValue/properties/frame",
+    "enums.rateLimitEffectiveSource": "#/components/schemas/RateLimit/properties/effectiveSource"
   }
 }

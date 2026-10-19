@@ -10,6 +10,9 @@ import { defineConfig, devices } from '@playwright/test'
 const mockPort = Number(process.env.MOCK_PORT ?? 4010)
 const previewPort = Number(process.env.PREVIEW_PORT ?? 4173)
 const baseURL = `http://localhost:${previewPort}/ng/`
+// UI 006: a build in another directory (PREVIEW_OUT_DIR), so that parallel runs in one checkout do
+// not share `dist/`.
+const previewOutDir = process.env.PREVIEW_OUT_DIR
 const smokeOnly = process.argv.some((arg) => arg === '--project=smoke' || arg === 'smoke')
 // scripts/smoke/stack-up.sh publishes the API dev stack on SMOKE_WEB_PORT and its Keycloak (with
 // SMOKE_IDP=1) on SMOKE_KEYCLOAK_PORT.
@@ -92,7 +95,7 @@ export default defineConfig({
           stdout: 'pipe',
         },
         {
-          command: `npm run preview -- --port ${previewPort} --strictPort`,
+          command: `npm run preview -- --port ${previewPort} --strictPort${previewOutDir ? ` --outDir ${previewOutDir}` : ''}`,
           url: baseURL,
           env: { MOCK_API_TARGET: `http://127.0.0.1:${mockPort}` },
           reuseExistingServer: !process.env.CI,

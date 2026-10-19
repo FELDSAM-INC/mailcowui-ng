@@ -25,6 +25,10 @@ import type enGbOperationsFail2ban from './messages/operations-fail2ban/en-gb.js
 import type enGbOperationsLogs from './messages/operations-logs/en-gb.json'
 import type enGbOperationsQueue from './messages/operations-queue/en-gb.json'
 import type enGbOperations from './messages/operations/en-gb.json'
+import type enGbQuarantineAdmin from './messages/quarantine-admin/en-gb.json'
+import type enGbQuarantine from './messages/quarantine/en-gb.json'
+import type enGbRateLimits from './messages/rate-limits/en-gb.json'
+import type enGbSpamFilter from './messages/spam-filter/en-gb.json'
 import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
 export type MessageSchema = typeof enGb &
@@ -40,7 +44,11 @@ export type MessageSchema = typeof enGb &
   typeof enGbOperations &
   typeof enGbOperationsLogs &
   typeof enGbOperationsQueue &
-  typeof enGbOperationsFail2ban
+  typeof enGbOperationsFail2ban &
+  typeof enGbQuarantine &
+  typeof enGbQuarantineAdmin &
+  typeof enGbSpamFilter &
+  typeof enGbRateLimits
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -166,6 +174,31 @@ const featureLoaders = {
     'en-gb': () => import('./messages/operations-fail2ban/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/operations-fail2ban/cs-cz.json').then((m) => m.default),
     'sk-sk': () => import('./messages/operations-fail2ban/sk-sk.json').then((m) => m.default),
+  },
+  // UI 006: the quarantine, spam policy and rate limit screens and the sections that the domain,
+  // alias domain and mailbox pages mount, loaded together; each area keeps its own files.
+  quarantine: {
+    'en-gb': () =>
+      mergeAll([
+        import('./messages/quarantine/en-gb.json'),
+        import('./messages/quarantine-admin/en-gb.json'),
+        import('./messages/spam-filter/en-gb.json'),
+        import('./messages/rate-limits/en-gb.json'),
+      ]),
+    'cs-cz': () =>
+      mergeAll([
+        import('./messages/quarantine/cs-cz.json'),
+        import('./messages/quarantine-admin/cs-cz.json'),
+        import('./messages/spam-filter/cs-cz.json'),
+        import('./messages/rate-limits/cs-cz.json'),
+      ]),
+    'sk-sk': () =>
+      mergeAll([
+        import('./messages/quarantine/sk-sk.json'),
+        import('./messages/quarantine-admin/sk-sk.json'),
+        import('./messages/spam-filter/sk-sk.json'),
+        import('./messages/rate-limits/sk-sk.json'),
+      ]),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

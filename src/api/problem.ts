@@ -6,6 +6,12 @@ import type {
   IdentityProviderInUseProblem,
   PendingAction,
   Problem,
+  QuarantineDeliveryRefusedProblem,
+  QuarantineMessageTooLargeProblem,
+  QuarantineNotificationAttributeNotPermittedProblem,
+  SpamFilterPermissionFlagProblem,
+  SpamFilterTemporaryFailureProblem,
+  SpamPolicyEntryExistsProblem,
   TooManyRequestsProblem,
 } from './generated/schema'
 
@@ -225,4 +231,87 @@ export function identityProviderInUseDetails(
       ldap: counts.ldap as number,
     },
   }
+}
+
+// UI 006 (research R24): the extension members of the quarantine, spam policy and rate limit
+// problems, read through guards over the generated types; null when the problem is another one or
+// its body lacks the members.
+
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === 'string')
+
+/** `permission-flag-required`: the flags and how they combine (`all` when absent). */
+export function requiredFlagsOf(problem: ApiProblem | null | undefined): {
+  requiredFlags: SpamFilterPermissionFlagProblem['requiredFlags']
+  requiredFlagsMatch: 'all' | 'any'
+} | null {
+  if (!problem?.is('permission-flag-required')) return null
+  const { requiredFlags, requiredFlagsMatch } = problem.extensions
+  if (!isStringArray(requiredFlags) || requiredFlags.length === 0) return null
+  return {
+    requiredFlags: requiredFlags,
+    requiredFlagsMatch: requiredFlagsMatch === 'any' ? 'any' : 'all',
+  }
+}
+
+/** `attribute-not-permitted` of the notification settings: the members and their flags. */
+export function notPermittedAttributesOf(
+  problem: ApiProblem | null | undefined,
+): Pick<QuarantineNotificationAttributeNotPermittedProblem, 'attributes' | 'requiredFlags'> | null {
+  if (!problem?.is('attribute-not-permitted')) return null
+  const { attributes, requiredFlags } = problem.extensions
+  if (!isStringArray(attributes)) return null
+  const flags =
+    requiredFlags && typeof requiredFlags === 'object' && !Array.isArray(requiredFlags)
+      ? (requiredFlags as Record<string, string>)
+      : {}
+  return {
+    attributes: attributes as QuarantineNotificationAttributeNotPermittedProblem['attributes'],
+    requiredFlags: flags as QuarantineNotificationAttributeNotPermittedProblem['requiredFlags'],
+  }
+}
+
+/** `temporary-failure`: the unavailable service and, when given, the step. */
+export function temporaryFailureOf(
+  problem: ApiProblem | null | undefined,
+): Pick<SpamFilterTemporaryFailureProblem, 'dependency' | 'step'> | null {
+  if (!problem?.is('temporary-failure')) return null
+  const { dependency, step } = problem.extensions
+  if (typeof dependency !== 'string') return null
+  return {
+    dependency: dependency as SpamFilterTemporaryFailureProblem['dependency'],
+    ...(typeof step === 'string'
+      ? { step: step as SpamFilterTemporaryFailureProblem['step'] }
+      : {}),
+  }
+}
+
+/** `quarantine-delivery-refused`: the mail server's code and answer. */
+export function deliveryRefusalOf(
+  problem: ApiProblem | null | undefined,
+): Pick<QuarantineDeliveryRefusedProblem, 'smtpCode' | 'smtpResponse'> | null {
+  if (!problem?.is('quarantine-delivery-refused')) return null
+  const { smtpCode, smtpResponse } = problem.extensions
+  if (typeof smtpCode !== 'number' || typeof smtpResponse !== 'string') return null
+  return { smtpCode, smtpResponse }
+}
+
+/** `quarantine-message-too-large`: the message size and the limit, in bytes. */
+export function messageTooLargeOf(
+  problem: ApiProblem | null | undefined,
+): Pick<QuarantineMessageTooLargeProblem, 'size' | 'limit'> | null {
+  if (!problem?.is('quarantine-message-too-large')) return null
+  const { size, limit } = problem.extensions
+  if (typeof size !== 'number' || typeof limit !== 'number') return null
+  return { size, limit }
+}
+
+/** `spam-policy-entry-exists`: the list that holds the pattern and the existing entry. */
+export function existingEntryOf(
+  problem: ApiProblem | null | undefined,
+): Pick<SpamPolicyEntryExistsProblem, 'list' | 'entryId'> | null {
+  if (!problem?.is('spam-policy-entry-exists')) return null
+  const { list, entryId } = problem.extensions
+  if ((list !== 'allow' && list !== 'block') || typeof entryId !== 'number') return null
+  return { list, entryId }
 }

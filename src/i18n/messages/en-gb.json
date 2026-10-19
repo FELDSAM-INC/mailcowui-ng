@@ -457,7 +457,19 @@
       "fail2banBanLift": "Network unbanned",
       "fail2banBanAllowlisting": "Network unbanned and allowlisted",
       "fail2banBanDenylisting": "Network denylisted",
-      "fail2banBanListIdRotation": "Banlist ID refreshed"
+      "fail2banBanListIdRotation": "Banlist ID refreshed",
+      "quarantineItemRelease": "Quarantine item released",
+      "quarantineItemSpamLearning": "Quarantine item learned as spam",
+      "quarantineItemDeletion": "Quarantine item removed",
+      "quarantineSettingsUpdate": "Quarantine settings changed",
+      "quarantineNotificationSettingsUpdate": "Quarantine notifications changed",
+      "spamScoreUpdate": "Spam score changed",
+      "spamScoreReset": "Spam score reset to server default",
+      "spamPolicyEntryCreation": "Allowlist or denylist entry added",
+      "spamPolicyEntryRemoval": "Allowlist or denylist entry removed",
+      "rateLimitUpdate": "Rate limit set",
+      "rateLimitRemoval": "Rate limit removed",
+      "rateLimitBucketReset": "Rate limit hash removed"
     },
     "auditFailureReason": {
       "accountInactive": "Account inactive",
@@ -518,7 +530,9 @@
       "mailQueue": "Mail queue",
       "mailQueueMessage": "Queued message",
       "fail2banActiveBan": "Active ban",
-      "fail2banBanListId": "Banlist ID"
+      "fail2banBanListId": "Banlist ID",
+      "spamPolicyEntry": "Allowlist or denylist entry",
+      "rateLimitBucket": "Rate limit hash"
     },
     "authMethod": {
       "directoryPassword": "Directory password",
@@ -532,6 +546,44 @@
       "group": "Group",
       "location": "Location",
       "thing": "Thing"
+    },
+    "quarantineItemAction": {
+      "other": "Other"
+    },
+    "quarantineReportDelivery": {
+      "done": "Delivered",
+      "notApplicable": "Not applicable"
+    },
+    "quarantineReportLearning": {
+      "done": "Learned",
+      "alreadyLearned": "Already learned",
+      "failed": "Failed",
+      "notRequested": "Not requested"
+    },
+    "quarantineReportFuzzy": {
+      "done": "Stored",
+      "skipped": "Skipped",
+      "failed": "Failed",
+      "notRequested": "Not requested"
+    },
+    "quarantineContentStatus": {
+      "available": "Available",
+      "tooLarge": "Too large",
+      "missing": "Missing"
+    },
+    "quarantineRecipientSource": {
+      "to": "TO",
+      "cc": "CC",
+      "bcc": "BCC",
+      "envelope": "SMTP"
+    },
+    "spamFilterDependency": {
+      "sharedStore": "Shared store",
+      "mailServer": "Mail server"
+    },
+    "spamFilterStep": {
+      "delivery": "Delivery",
+      "learning": "Learning"
     }
   },
   "forms": {
@@ -727,7 +779,18 @@
     "container-not-running": "The container is not running.",
     "container-action-failed": "Error: {serviceMessage}",
     "mail-service-not-running": "The Postfix container {container} is not running.",
-    "queue-action-failed": "Error: {serviceMessage}"
+    "queue-action-failed": "Error: {serviceMessage}",
+    "quarantine-item-busy": "Another action is in progress for this item. It is checked again in a few seconds.",
+    "quarantine-message-too-large": "Message size exceeds {limit}.",
+    "byParam": {
+      "temporary-failure": {
+        "dependency": {
+          "sharedStore": "Nothing was changed, because the server's shared store is temporarily unavailable. Please try again in a moment.",
+          "spamFilter": "Nothing was changed, because the spam filter is temporarily unavailable. Please try again in a moment.",
+          "mailServer": "Nothing was changed, because the mail server is temporarily unavailable. Please try again in a moment."
+        }
+      }
+    }
   },
   "roles": {
     "mailboxUser": "Mailbox user"
@@ -824,6 +887,14 @@
           "noStoredSecret": "Required: no secret is stored for this provider type yet.",
           "typeChanged": "Required: the provider type changes."
         }
+      },
+      "invalidTemplate": {
+        "reason": {
+          "syntax": "The template has a syntax error in line {line}.",
+          "security": "The template uses something that is not allowed, in line {line}.",
+          "render": "The template could not be rendered (line {line}).",
+          "timeout": "Rendering the template took too long."
+        }
       }
     },
     "conflictsWith": "This conflicts with {field}.",
@@ -880,7 +951,8 @@
     "invalidRegex": "This is not a valid regular expression.",
     "notResolvable": "This name resolves to no address.",
     "outOfRangeMinField": "Enter a value from {min} ({field}) to {max}.",
-    "missingCaptureGroup": "The rule needs a capture group for the client address."
+    "missingCaptureGroup": "The rule needs a capture group for the client address.",
+    "invalidTemplate": "This template cannot be used."
   },
   "domainTemplates": {
     "create": {

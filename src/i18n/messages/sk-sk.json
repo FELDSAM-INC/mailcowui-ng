@@ -457,7 +457,19 @@
       "fail2banBanLift": "Sieť odblokovaná",
       "fail2banBanAllowlisting": "Sieť odblokovaná a povolená",
       "fail2banBanDenylisting": "Sieť zakázaná",
-      "fail2banBanListIdRotation": "ID zoznamu blokovaní obnovené"
+      "fail2banBanListIdRotation": "ID zoznamu blokovaní obnovené",
+      "quarantineItemRelease": "Karanténna položka uvoľnená",
+      "quarantineItemSpamLearning": "Karanténna položka naučená ako spam",
+      "quarantineItemDeletion": "Karanténna položka odstránená",
+      "quarantineSettingsUpdate": "Nastavenia karantény zmenené",
+      "quarantineNotificationSettingsUpdate": "Karanténne notifikácie zmenené",
+      "spamScoreUpdate": "Spam hodnota zmenená",
+      "spamScoreReset": "Spam hodnota obnovená na predvolené hodnoty servera",
+      "spamPolicyEntryCreation": "Položka bielej alebo čiernej listiny pridaná",
+      "spamPolicyEntryRemoval": "Položka bielej alebo čiernej listiny odstránená",
+      "rateLimitUpdate": "Obmedzenie prenosu nastavené",
+      "rateLimitRemoval": "Obmedzenie prenosu odstránené",
+      "rateLimitBucketReset": "Hash obmedzenia prenosu odstránený"
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktívny",
@@ -518,7 +530,9 @@
       "mailQueue": "Fronta pošty",
       "mailQueueMessage": "Správa vo fronte",
       "fail2banActiveBan": "Aktívne blokovanie",
-      "fail2banBanListId": "ID zoznamu blokovaní"
+      "fail2banBanListId": "ID zoznamu blokovaní",
+      "spamPolicyEntry": "Položka bielej alebo čiernej listiny",
+      "rateLimitBucket": "Hash obmedzenia prenosu"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresára",
@@ -532,6 +546,44 @@
       "group": "Skupina",
       "location": "Miesto",
       "thing": "Vec"
+    },
+    "quarantineItemAction": {
+      "other": "Iná"
+    },
+    "quarantineReportDelivery": {
+      "done": "Doručené",
+      "notApplicable": "Nepoužije sa"
+    },
+    "quarantineReportLearning": {
+      "done": "Naučené",
+      "alreadyLearned": "Už naučené",
+      "failed": "Zlyhalo",
+      "notRequested": "Nevyžiadané"
+    },
+    "quarantineReportFuzzy": {
+      "done": "Uložené",
+      "skipped": "Preskočené",
+      "failed": "Zlyhalo",
+      "notRequested": "Nevyžiadané"
+    },
+    "quarantineContentStatus": {
+      "available": "K dispozícii",
+      "tooLarge": "Príliš veľká",
+      "missing": "Chýba"
+    },
+    "quarantineRecipientSource": {
+      "to": "TO",
+      "cc": "CC",
+      "bcc": "BCC",
+      "envelope": "SMTP"
+    },
+    "spamFilterDependency": {
+      "sharedStore": "Zdieľané úložisko",
+      "mailServer": "Poštový server"
+    },
+    "spamFilterStep": {
+      "delivery": "Doručenie",
+      "learning": "Učenie"
     }
   },
   "forms": {
@@ -727,7 +779,18 @@
     "container-not-running": "Kontajner nebeží.",
     "container-action-failed": "Chyba: {serviceMessage}",
     "mail-service-not-running": "Kontajner Postfixu {container} nebeží.",
-    "queue-action-failed": "Chyba: {serviceMessage}"
+    "queue-action-failed": "Chyba: {serviceMessage}",
+    "quarantine-item-busy": "S touto položkou práve prebieha iná akcia. O niekoľko sekúnd sa skontroluje znova.",
+    "quarantine-message-too-large": "Veľkosť správy prekračuje {limit}.",
+    "byParam": {
+      "temporary-failure": {
+        "dependency": {
+          "sharedStore": "Nič sa nezmenilo, pretože zdieľané úložisko servera je dočasne nedostupné. Skúste to prosím o chvíľu znova.",
+          "spamFilter": "Nič sa nezmenilo, pretože spam filter je dočasne nedostupný. Skúste to prosím o chvíľu znova.",
+          "mailServer": "Nič sa nezmenilo, pretože poštový server je dočasne nedostupný. Skúste to prosím o chvíľu znova."
+        }
+      }
+    }
   },
   "roles": {
     "mailboxUser": "Používateľ schránky"
@@ -824,6 +887,14 @@
           "noStoredSecret": "Povinné: pre tento typ poskytovateľa zatiaľ nie je uložený žiadny tajný údaj.",
           "typeChanged": "Povinné: mení sa typ poskytovateľa."
         }
+      },
+      "invalidTemplate": {
+        "reason": {
+          "syntax": "Šablóna obsahuje syntaktickú chybu v riadku {line}.",
+          "security": "Šablóna v riadku {line} používa niečo, čo nie je povolené.",
+          "render": "Šablónu sa nepodarilo vykresliť (riadok {line}).",
+          "timeout": "Vykreslenie šablóny trvalo príliš dlho."
+        }
       }
     },
     "conflictsWith": "Táto hodnota je v rozpore s poľom {field}.",
@@ -880,7 +951,8 @@
     "invalidRegex": "Toto nie je platný regulárny výraz.",
     "notResolvable": "Tento názov sa neprekladá na žiadnu adresu.",
     "outOfRangeMinField": "Zadajte hodnotu od {min} ({field}) do {max}.",
-    "missingCaptureGroup": "Pravidlo potrebuje zachytávaciu skupinu pre adresu klienta."
+    "missingCaptureGroup": "Pravidlo potrebuje zachytávaciu skupinu pre adresu klienta.",
+    "invalidTemplate": "Túto šablónu nemožno použiť."
   },
   "domainTemplates": {
     "create": {

@@ -18,8 +18,16 @@ export interface MessageTranslator {
   locale: string
 }
 
-/** UI 004: extension members whose value selects a more specific message (research R17). */
-const PROBLEM_DISCRIMINATORS = ['holder', 'existingKind'] as const
+/**
+ * UI 004: extension members whose value selects a more specific message (research R17). UI 006:
+ * `dependency` names the unavailable service of a `temporary-failure`.
+ */
+const PROBLEM_DISCRIMINATORS = ['holder', 'existingKind', 'dependency'] as const
+
+/** UI 006: extension members that are sizes in bytes, per problem name (research R24). */
+const SIZE_MEMBERS: Readonly<Record<string, readonly string[]>> = {
+  'quarantine-message-too-large': ['size', 'limit'],
+}
 
 /**
  * `problem.<name>.<member>.<value>` for a discriminating extension member (UI 004), then
@@ -32,8 +40,14 @@ export function problemMessageKey(problem: ApiProblem, te: (key: string) => bool
   if (name) {
     for (const member of PROBLEM_DISCRIMINATORS) {
       const value = problem.extensions[member]
-      const key = `problem.${name}.${member}.${String(value)}`
-      if (typeof value === 'string' && te(key)) return key
+      if (typeof value !== 'string') continue
+      // UI 006: `problem.byParam.<name>.<member>.<value>` where `problem.<name>` is itself a text.
+      for (const key of [
+        `problem.${name}.${member}.${value}`,
+        `problem.byParam.${name}.${member}.${value}`,
+      ]) {
+        if (te(key)) return key
+      }
     }
   }
   if (name && te(`problem.${name}`)) return `problem.${name}`
@@ -82,14 +96,28 @@ export function extensionParams(
 ): Record<string, string> {
   const locale = localeOf(tr)
   const named: Record<string, string> = { ...context.params }
+  const sizes = SIZE_MEMBERS[problem.problemName ?? ''] ?? []
+  // UI 006: `requiredFlagsMatch: any` means any one of the flags suffices ("or").
+  const flagJoin = problem.extensions.requiredFlagsMatch === 'any' ? 'disjunction' : 'conjunction'
   for (const [key, value] of Object.entries(problem.extensions)) {
-    if (typeof value === 'number') named[key] = formatNumber(value, locale)
-    else if (typeof value === 'string') named[key] = value
+    if (typeof value === 'number') {
+      named[key] = sizes.includes(key) ? formatBytes(value, locale) : formatNumber(value, locale)
+    } else if (typeof value === 'string') named[key] = value
     else if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
       const label =
         key === 'requiredFlags' ? flagLabel : (item: string) => context.labelFor?.(item) ?? item
-      named[key] = formatList(value.map(label), locale)
+      named[key] = formatList(
+        value.map(label),
+        locale,
+        key === 'requiredFlags' ? flagJoin : 'conjunction',
+      )
     }
+  }
+  // UI 006: a refused release names the mail server's answer as "<code> <answer>", as the
+  // classic `danger.release_send_failed` shows the mailer's error.
+  const { smtpCode, smtpResponse } = problem.extensions
+  if (typeof smtpCode === 'number' && typeof smtpResponse === 'string') {
+    named.smtpAnswer ??= `${smtpCode} ${smtpResponse}`
   }
   return named
 }
@@ -180,7 +208,11 @@ export function violationParams(
     else if (key === 'max' && bytesMax) named[key] = size(value, true)
     else named[key] = formatNumber(value, locale)
   }
-  if (typeof params.factor === 'number') named.factor = size(params.factor, true)
+  // UI 006: a fractional factor (0.1, the spam score step) is a number, not a size.
+  if (typeof params.factor === 'number') {
+    named.factor =
+      params.factor < 1 ? formatNumber(params.factor, locale) : size(params.factor, true)
+  }
   if (typeof params.field === 'string') {
     named.field = context.labelFor?.(params.field) ?? params.field
   }
@@ -195,6 +227,8 @@ export function violationParams(
     named.allowedRoles = formatList(roles, locale)
   }
   if (typeof params.expected === 'string') named.expected = params.expected
+  // UI 006: the template line of `invalidTemplate`.
+  if (typeof params.line === 'number') named.line = formatNumber(params.line, locale)
   // UI 008: the refused option and token of a custom parameter (`optionNotAllowed`,
   // `optionContainsSpace`), shown as the API names them.
   for (const key of ['option', 'token'] as const) {

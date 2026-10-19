@@ -38,6 +38,11 @@ declare module 'vue-router' {
      * place.
      */
     flags?: (keyof Identity['permissions'])[]
+    /**
+     * UI 006: the route is an entry of its section's navigation (`QuarantineSectionNav`), with its
+     * label and position. Only registered routes appear, so a page that is not built yet never does.
+     */
+    sectionNav?: { labelKey: TextRef; order: number }
   }
 }
 

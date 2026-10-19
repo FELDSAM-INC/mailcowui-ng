@@ -17,6 +17,9 @@ import { identityProviderRoutes } from '@/features/identity-providers'
 import { mailboxRoutes } from '@/features/mailboxes'
 import { operationsRoutes } from '@/features/operations'
 import { passkeysRoutes } from '@/features/passkeys'
+import { quarantineRoutes } from '@/features/quarantine'
+import { rateLimitRoutes } from '@/features/rate-limits'
+import { spamFilterRoutes } from '@/features/spam-filter'
 import { syncJobRoutes } from '@/features/sync-jobs'
 import { routingRoutes } from '@/features/routing'
 
@@ -44,6 +47,10 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...dnsRoutes,
   ...routingRoutes,
   ...operationsRoutes,
+  // UI 006
+  ...quarantineRoutes,
+  ...rateLimitRoutes,
+  ...spamFilterRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

@@ -557,6 +557,15 @@ export {
   type IdentityProviderInUseDetails,
   type ProblemKind,
 } from './problem'
+// UI 006 (research R24): the extension members of its problems.
+export {
+  deliveryRefusalOf,
+  existingEntryOf,
+  messageTooLargeOf,
+  notPermittedAttributesOf,
+  requiredFlagsOf,
+  temporaryFailureOf,
+} from './problem'
 export {
   createQueryClient,
   queryClient,

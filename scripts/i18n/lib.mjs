@@ -84,7 +84,13 @@ export const ENUM_NAMESPACES = {
  * Formats of the `invalidFormat` rule whose message (`validation.format.<format>`) is required. The
  * contract names them in prose only, so features list the ones their forms can receive.
  */
-export const REQUIRED_FORMATS = ['hostName']
+export const REQUIRED_FORMATS = ['hostName', 'email', 'domainName', 'senderPattern']
+
+/**
+ * UI 006 (research R2): the `reason` values of `invalidTemplate`, listed in the rule code's prose
+ * only, so they are required as a fixed list (`validation.byParam.invalidTemplate.reason.<reason>`).
+ */
+export const REQUIRED_TEMPLATE_REASONS = ['syntax', 'security', 'render', 'timeout']
 
 /** The keys that rule 3 requires, from the enumeration arrays and the problem type names. */
 export function requiredKeys({ enums, problemNames }) {
@@ -99,6 +105,9 @@ export function requiredKeys({ enums, problemNames }) {
   }
   for (const name of problems) keys.add(`problem.${name}`)
   for (const format of REQUIRED_FORMATS) keys.add(`validation.format.${format}`)
+  for (const reason of REQUIRED_TEMPLATE_REASONS) {
+    keys.add(`validation.byParam.invalidTemplate.reason.${reason}`)
+  }
   return [...keys].sort()
 }
 
@@ -357,6 +366,9 @@ export function checkCoverage({ coverage, enums, problemNames, contract }) {
   }
 
   for (const format of REQUIRED_FORMATS) required.add(`validation.format.${format}`)
+  for (const reason of REQUIRED_TEMPLATE_REASONS) {
+    required.add(`validation.byParam.invalidTemplate.reason.${reason}`)
+  }
 
   for (const [prefix, pointer] of Object.entries(coverage?.complete ?? {})) {
     const target = resolvePointer(contract, pointer)

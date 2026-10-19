@@ -5,6 +5,7 @@ export type Locale = 'en-gb' | 'cs-cz' | 'sk-sk'
 export const LOCALES: readonly Locale[]
 export const ENUM_NAMESPACES: Record<string, string>
 export const REQUIRED_FORMATS: readonly string[]
+export const REQUIRED_TEMPLATE_REASONS: readonly string[]
 export const DYNAMIC_NAMESPACES: readonly string[]
 
 export function getPath(object: unknown, dotted: string): unknown

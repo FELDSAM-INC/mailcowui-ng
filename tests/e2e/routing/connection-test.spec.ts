@@ -189,6 +189,11 @@ test.describe('connection test', () => {
     })
     await page.clock.install()
     await page.goto('routing/transports/22/test')
+    // The watchdog takes the server's time limits from the capabilities, read with the page.
+    await expect(page.getByLabel('"From:" address')).toHaveAttribute(
+      'placeholder',
+      'relay@example.org',
+    )
     await page.getByRole('button', { name: 'Run test' }).click()
     await expect(page.getByRole('button', { name: 'Please wait...' })).toBeDisabled()
     await page.clock.runFor(16_500)

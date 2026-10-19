@@ -59,6 +59,27 @@ plan.md records; tasks that describe the earlier design are done in that form an
   `docker/nginx/security-headers.conf`, which the image and `vite preview` use; the dev server sets
   no CSP). UI 004 owns `DomainPicker`, `ActiveFilterChips`, `SearchField`, `utf8.ts`, `LEGACY_ARGS`
   and the form-context problem lookup; UI 003 uses them.
+- **Strings**: the mailbox and template strings are a feature bundle
+  (`src/i18n/messages/mailboxes/`, loaded with the routes, as UI 002's domain bundle). The domain
+  and template strings UI 003 shares (`domains.values.*`, `domains.sort.*`, `domainTemplates.*`
+  of the template pages and others) moved to the main files, as the conventions require;
+  `tests/e2e/mailboxes/strings.spec.ts` opens the screens directly and finds no raw key.
+- **Deviations found during implementation (T129)**:
+  - the list's filters are UI 002's and UI 004's collapsible panel, not a dialog; legacy's row
+    actions are "Edit" and "Remove" buttons; select all is legacy's "Toggle all"; an unlimited
+    mailbox shows legacy's "-" in "In use (%)"; with last logins not reported the column is left
+    out, as legacy does;
+  - the add form's quota is the template's, capped at the domain's largest new mailbox quota
+    (legacy first sets the domain's default, then the template's);
+  - a rename opens the new address with legacy's `success.mailbox_renamed` (legacy returns to the
+    list);
+  - bulk targets carry the version tag as listed, quotes included, which the contract accepts;
+  - entry points exist on the domain page only (Mailboxes, Add mailbox).
+- **Lighthouse (T127)**: `/ng/mailboxes` is the third collection. On this loaded machine every URL,
+  including the existing ones, scores below 0.9 for performance; accessibility passes. The sign-in
+  page's scripts total 205,367 bytes, 567 over the 204,800 limit, because the router's preload
+  table in the initial chunk names the mailbox chunks (main measures about 204,340);
+  `npm run budget:check` (initial JS) passes at 176,721 bytes.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -598,7 +619,7 @@ existing tests pass.
   - invalidate the domain if `quota` or `status` was sent;
   - a save with `password` goes through UI 001's `useSecretRequest` instead of the mutation, and
     then applies the same cache writes with the response.
-- [ ] T048 Add the foundation messages of the T008a form map to
+- [X] T048 *(done in the foundation under the forms rule: only the form map's new strings (`mailboxes.quota.*`, `mailboxes.acl.*`, `mailboxes.authSource.*`, `mailboxes.protocol.*`, `mailboxes.lastLogin.*`, `mailboxes.problem.tagLimit`, `validation.format.attributeName`, `validation.unchanged`); field labels, help and policy rules are legacy keys)* Add the foundation messages of the T008a form map to
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (new strings only):
   - `mailboxes.common.*`;
   - the field labels and help;
@@ -639,7 +660,7 @@ and as a domain administrator, on 360 px and desktop:
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T049 [US1] Create `tests/mocks/scenarios/mailboxes/list.ts`, registered in
+- [X] T049 *(done: `admin-mailboxes-30`, `domain-admin-mailboxes`, `mailbox-user-active`, `mailboxes-empty-filter` (a domain without mailboxes), `mailboxes-list-error`, `capabilities-last-logins-off`, `capabilities-groupware-off`)* [US1] Create `tests/mocks/scenarios/mailboxes/list.ts`, registered in
   `tests/mocks/scenarios/index.ts`, with these scenarios:
   - `admin-mailboxes-30`: `anna@a.example`, `bob@a.example` named "Joanna Bob", and
     `carl@a.example` tagged "Annapolis"; a mailbox at 92 %; three unlimited mailboxes; an inactive
@@ -651,7 +672,7 @@ and as a domain administrator, on 360 px and desktop:
   - `mailboxes-list-error`: an injected `500` on `listMailboxes`;
   - `capabilities-last-logins-off`;
   - `capabilities-groupware-off`.
-- [ ] T050 [P] [US1] Write `tests/e2e/mailboxes/list.spec.ts`. It covers:
+- [X] T050 *(done in `tests/e2e/mailboxes/list.spec.ts`: US1-AS1 to AS7, AS10, AS11, FR-006 to FR-014, FR-075, the edges and SC-001; under the forms rule unlimited mailboxes show legacy's "-" without a bar, and with last logins off the column is left out, as legacy does)* [P] [US1] Write `tests/e2e/mailboxes/list.spec.ts`. It covers:
   - US1-AS1: 30 mailboxes at 360 px show 25 cards sorted by address, the total of 30 and paging,
     with no horizontal scroll;
   - US1-AS2: adding "Last password change" on desktop survives a reload in the same context;
@@ -705,7 +726,7 @@ and as a domain administrator, on 360 px and desktop:
   - FR-065: a stable loading state, and an error state with retry when `getMailbox` answers `503`
     (with `Retry-After`) rather than 404;
   - Edge: a mailbox deleted while open gives "not found" on the next load.
-- [ ] T052 [P] [US1] Write the unit tests:
+- [X] T052 *(done: list-state, columns, the list components (card, table, row actions, sort control, filters, column chooser) and the list page; MailboxSectionNav and MailboxOverview do not exist under the forms rule (T058))* [P] [US1] Write the unit tests:
   - `TM/list-state.spec.ts`: data-model §5 parameters mapped to `MailboxListParams`; defaults left
     out; repeatable values; invalid values normalised; `onReset` on changes;
   - `TM/columns.spec.ts`: read and write of `mailcowui-ng.mailboxes.columns`; unknown ids ignored;
@@ -717,7 +738,7 @@ and as a domain administrator, on 360 px and desktop:
   - `TM/components/display/MailboxSectionNav.spec.ts`: summaries; only registered section routes;
     History for administrators;
   - `TM/sections/MailboxOverview.spec.ts` and `TM/components/display/LastLogins.spec.ts`.
-- [ ] T053 [P] [US1] Write `tests/smoke/mailboxes.smoke.spec.ts`:
+- [X] T053 *(written in `tests/smoke/mailboxes.smoke.spec.ts` (`@read-only`); not run, the API dev stack is down)* [P] [US1] Write `tests/smoke/mailboxes.smoke.spec.ts`:
   - `admin` lists the seeded mailboxes, searches "alice" and opens `alice@example.org`;
   - `reseller` sees only mailboxes of `example.org` and `example.net`;
   - one case runs at 360 × 780 with no horizontal scroll;
@@ -725,9 +746,9 @@ and as a domain administrator, on 360 px and desktop:
 
 ### Implementation for User Story 1
 
-- [ ] T054 [US1] Implement `M/list-state.ts`, `M/columns.ts` (the catalogue of data-model §2 and the
+- [X] T054 *(done: `list-state.ts` and `columns.ts`; no `sections.ts` under the forms rule)* [US1] Implement `M/list-state.ts`, `M/columns.ts` (the catalogue of data-model §2 and the
   storage preference) and `M/sections.ts` (the section catalogue of data-model §2).
-- [ ] T055 [P] [US1] Implement the list components in `M/components/list/`:
+- [X] T055 *(done: legacy's row actions are "Edit" and "Remove" buttons side by side (legacy's button group), not a menu; the column chooser offers legacy's row details)* [P] [US1] Implement the list components in `M/components/list/`:
   - `MailboxCard.vue` (below `md`);
   - `MailboxTable.vue` (from `md` up, on `src/shared/ui/table`); its selection column appears only
     in selection mode, which US6 adds;
@@ -736,7 +757,7 @@ and as a domain administrator, on 360 px and desktop:
   - `ColumnChooser.vue` (Reka `DropdownMenu` with checkbox items);
   - `MailboxRowActions.vue` with "Edit". US4 adds "Remove", and later features add theirs
     (data-model §8).
-- [ ] T056 [US1] After T055 (it embeds `MailboxSortControl`), implement
+- [X] T056 *(done as the collapsible filter panel of UI 002 and UI 004 (no dialog), with `DomainPicker`, statuses, tags, sources (only with an identity provider) and the sort below md; chips through `ActiveFilterChips`)* [US1] After T055 (it embeds `MailboxSortControl`), implement
   `M/components/list/MailboxFilters.vue`:
   - a Reka `Dialog` panel;
   - `DomainPicker` in multiple mode;
@@ -746,7 +767,7 @@ and as a domain administrator, on 360 px and desktop:
   - the sort control below `md`.
 
   It integrates with `ActiveFilterChips`.
-- [ ] T057 [US1] Implement `M/pages/MailboxesPage.vue`:
+- [X] T057 *(done: UI 004's `SearchField` commits with `router.push`; DataTables' texts for loading, empty and no match)* [US1] Implement `M/pages/MailboxesPage.vue`:
   - `useListState`;
   - the search, committed with `router.push` 500 ms after the last keystroke (research R7);
   - `ListState` with loading, empty ("no mailbox matches", with clear filters) and error with
@@ -767,10 +788,10 @@ and as a domain administrator, on 360 px and desktop:
   - `M/components/display/LastLogins.vue`;
   - `M/components/display/ManagedSettingsGroup.vue`: entries with an optional `to`
     (data-model §8).
-- [ ] T059 [US1] Register the routes `mailboxes`, `mailbox-detail` and `mailbox-overview` in
+- [X] T059 *(done: `mailboxes` and `mailbox-detail` (no `mailbox-overview` under the forms rule); the catalogue entry is available; `mailboxListLink`, `mailboxCreateLink` and `mailboxLink` are exported)* [US1] Register the routes `mailboxes`, `mailbox-detail` and `mailbox-overview` in
   `M/routes.ts`. Set the catalogue's `mailboxes` entry to `available` in
   `src/app/navigation/catalogue.ts`. Export `mailboxListLink({ domain })` from `M/index.ts`.
-- [ ] T060 [US1] Add the `mailboxes.list.*`, `mailboxes.filters.*`, `mailboxes.columns.*`,
+- [X] T060 *(done: the only new string is `mailboxes.columns.label`; headers and actions are legacy keys; the mailbox strings are a feature bundle (`src/i18n/messages/mailboxes/`) loaded with the routes)* [US1] Add the `mailboxes.list.*`, `mailboxes.filters.*`, `mailboxes.columns.*`,
   `mailboxes.detail.*`, `mailboxes.overview.*`, `mailboxes.managed.*` and `mailboxes.sections.*`
   messages that the T008a form map lists as new to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
   The column headers, row actions and section names are the legacy keys of `draw_mailbox_table()`
@@ -798,7 +819,7 @@ Check each request, each error, and the screen after success.
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T061 [US2] Implement the create mock in `tests/mocks/handlers/mailbox-create.ts`, registered
+- [X] T061 *(done: `createMailbox` with the template or defaults, the domain's quota limit, `mailbox-limit-reached`, `address-in-use`, `attribute-not-permitted`, the policy, pre-hashed values, external sources, the creation report; scenarios `admin-create`, `domain-admin-create-limited`, `password-policy-strict`, `create-report-failures`)* [US2] Implement the create mock in `tests/mocks/handlers/mailbox-create.ts`, registered
   in `tests/mocks/handlers/index.ts`. `createMailbox`:
   - trims and lower-cases the local part, and applies the rules of `MailboxCreateRequest`;
   - takes values from the template and then the defaults;
@@ -832,7 +853,7 @@ Check each request, each error, and the screen after success.
   - `capabilities-groupware-off-create`;
   - `mailboxes-empty-scope`: no mailbox at all;
   - `inactive-backupmx-domain`.
-- [ ] T062 [P] [US2] Write `tests/e2e/mailboxes/create.spec.ts`. It covers:
+- [X] T062 *(done in `tests/e2e/mailboxes/create.spec.ts` for legacy's form: US2-AS1 to AS5, AS7 to AS10, FR-021, FR-025, FR-066, the creation report and the empty scope; collapsed groups, "Add another", the address preview and the template confirmation are not built (forms rule))* [P] [US2] Write `tests/e2e/mailboxes/create.spec.ts`. It covers:
   - US2-AS1 and FR-067: ` Anna.Smith ` shows `anna.smith@example.org`; generate and create; the
     detail opens, and "Mailbox anna.smith@example.org has been added" (the legacy text) is
     announced;
@@ -872,7 +893,7 @@ Check each request, each error, and the screen after success.
   - FR-066: a double tap sends one request;
   - FR-069: the error summary receives the focus;
   - SC-002 proxy: the flow completes on 360 px.
-- [ ] T063 [P] [US2] Write the unit tests:
+- [X] T063 *(done: `create-form` rules, `creationFlashes` and `MailboxCreatePage.spec.ts`; no `useTemplateApplication` (a template replaces the values without asking, as legacy))* [P] [US2] Write the unit tests:
   - `TM/create-request.spec.ts` (FR-025):
     - always `localPart` (normalised), `domain`, `templateId` and `quota`;
     - `password` unless the source is external;
@@ -889,7 +910,7 @@ Check each request, each error, and the screen after success.
     - the password cleared after success and on unmount;
     - `createMailbox` goes through UI 001's `useSecretRequest`, never through a TanStack mutation,
       so no cache holds the password.
-- [ ] T064 [P] [US2] Write `tests/smoke/mailbox-create.smoke.spec.ts`:
+- [X] T064 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US2] Write `tests/smoke/mailbox-create.smoke.spec.ts`:
   - `admin` creates `smoke-<random>@example.org` with a generated password that the real policy
     accepts, and the detail opens;
   - choosing "Small" applies 1 GiB with POP3 off;
@@ -898,15 +919,15 @@ Check each request, each error, and the screen after success.
 
 ### Implementation for User Story 2
 
-- [ ] T065 [US2] Implement `M/create-request.ts` and `createMailbox` in `M/api.ts`:
+- [X] T065 *(done: `createRequest` (form-values, shared with the templates) and `createMailbox` through `useSecretRequest`)* [US2] Implement `M/create-request.ts` and `createMailbox` in `M/api.ts`:
   - through UI 001's `useSecretRequest`, not a TanStack mutation (conventions "Secrets in requests
     or responses");
   - write the detail without `creationReport`;
   - invalidate the lists, tags and domains;
   - set the `CreationNotice` one-shot of data-model §2.
-- [ ] T066 [P] [US2] Implement `M/composables/useTemplateApplication.ts` and
+- [X] T066 *(not needed under the forms rule: the template's values replace the form's without a confirmation; the quota follows the domain (`prefillQuotaMib`))* [P] [US2] Implement `M/composables/useTemplateApplication.ts` and
   `M/composables/useMailboxCreateForm.ts`.
-- [ ] T067 [US2] Implement `M/pages/MailboxCreatePage.vue`:
+- [X] T067 *(done as legacy's #addMailboxModal on its own page)* [US2] Implement `M/pages/MailboxCreatePage.vue`:
   - the essentials: `LocalPartField`, `DomainPicker` (single) with the domain figures from UI 002's
     `getDomain` query, the display name, `TemplateSelect`, `PasswordField` with the hints, and
     `MailboxQuotaField`;
@@ -915,10 +936,10 @@ Check each request, each error, and the screen after success.
 
   Also implement `M/components/display/CreationNotice.vue`: the success alert with "Add another
   mailbox" and the failed steps, shown once on `MailboxDetailPage.vue`.
-- [ ] T068 [US2] Register the `mailbox-create` route in `M/routes.ts`. The "Add mailbox" actions of
+- [X] T068 *(done; the list's "Add mailbox" renders when the route exists)* [US2] Register the `mailbox-create` route in `M/routes.ts`. The "Add mailbox" actions of
   `MailboxesPage.vue` now render: in the header, and in the empty state of a scope without
   mailboxes. Export `mailboxCreateLink({ domain, template })` from `M/index.ts`.
-- [ ] T069 [US2] Add the `mailboxes.create.*` and `mailboxes.creationReport.*` messages. Map
+- [X] T069 *(done: `mailboxes.creationReport.*`; the form uses legacy keys and UI 002's shared load error)* [US2] Add the `mailboxes.create.*` and `mailboxes.creationReport.*` messages. Map
   `mailbox.add_mailbox`, `add.mailbox_username`, `add.full_name`, `add.password`, `add.generate`,
   `add.select_domain`, `add.password_repeat` (subject to plan deviation 2),
   `warning.quota_exceeded_scope` and `success.mailbox_added`, and the other legacy keys of the
@@ -977,7 +998,7 @@ overwritten.
 - [X] T072 *(done as `components/sections.spec.ts` for the Mailbox section)* [P] [US3] Write `TM/sections/GeneralSection.spec.ts`, `TM/sections/SignInSection.spec.ts`
   (switching sources, the hints, the password cleared on success and unmount) and
   `TM/sections/ProtocolAccessSection.spec.ts` (read-only, with no save action, without the flag).
-- [ ] T073 [P] [US3] Write `tests/smoke/mailbox-sections.smoke.spec.ts`:
+- [ ] T073 *(open: needs the API dev stack, which is down; `tests/smoke/mailboxes.smoke.spec.ts` saves the ACL section once)* [P] [US3] Write `tests/smoke/mailbox-sections.smoke.spec.ts`:
   - `admin` creates a mailbox through the API, changes the display name, sets 2 GiB, sets it
     inactive and active again, sets a generated password (`passwordChangedAt` changes) and turns
     POP3 off;
@@ -1021,7 +1042,7 @@ and check what the user sees in each case.
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T079 [US4] Implement `tests/mocks/handlers/mailbox-deletion.ts`, registered in the index, with
+- [X] T079 *(done: `previewMailboxDeletion` and `deleteMailbox`; scenarios `admin-delete`, `delete-store-unreachable`)* [US4] Implement `tests/mocks/handlers/mailbox-deletion.ts`, registered in the index, with
   `Retry-After` on every injected `503`:
   - `previewMailboxDeletion`: seeded counts, up to 100 alias addresses, the `present` flags,
     `blockers` with `canProceed: false` when the mail store or shared store is down, and `etag`;
@@ -1034,7 +1055,7 @@ and check what the user sees in each case.
     store fails; a mailbox that times out;
   - the "changed elsewhere" and "deleted elsewhere" control changes of T011;
   - `delete-store-unreachable`: the preview has blockers.
-- [ ] T080 [P] [US4] Write `tests/e2e/mailboxes/delete.spec.ts`. It covers:
+- [X] T080 *(done in `tests/e2e/mailboxes/delete.spec.ts` from the list (legacy keeps deletion in the list, so there is no detail or deep-link deletion))* [P] [US4] Write `tests/e2e/mailboxes/delete.spec.ts`. It covers:
   - US4-AS1, from the list and from the detail: the name, 2 GiB and 10,000 messages, the garbage
     area with the retention period, the kinds of data with their counts (passkeys named as such),
     shared aliases keeping their other recipients, and the focus on "Cancel";
@@ -1052,21 +1073,21 @@ and check what the user sees in each case.
   - the `/mailboxes/<address>/delete` deep link opens the dialog, and "Cancel" returns to the
     overview;
   - FR-066: no double submit.
-- [ ] T081 [P] [US4] Write `TM/deletion.spec.ts` (the `DeletionImpact` of data-model §2: non-zero
+- [X] T081 *(done in `tests/unit/features/mailboxes/deletion.spec.ts`)* [P] [US4] Write `TM/deletion.spec.ts` (the `DeletionImpact` of data-model §2: non-zero
   counts, present flags, retention as days, hours or minutes, blockers) and
   `TM/components/dialogs/MailboxDeleteDialog.spec.ts` (data-model §7.2: preview on open, the tag
   comparison, `If-Match` with `preview.etag`, the initial focus, every outcome).
-- [ ] T082 [P] [US4] Write `tests/smoke/mailbox-delete.smoke.spec.ts`: a mailbox created through the
+- [X] T082 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US4] Write `tests/smoke/mailbox-delete.smoke.spec.ts`: a mailbox created through the
   API is removed through the dialog, with the real preview shown, and disappears from the list.
 
 ### Implementation for User Story 4
 
-- [ ] T083 [US4] Implement `M/deletion.ts`, plus the preview query (`staleTime: 0`, `gcTime: 0`) and
+- [X] T083 *(done)* [US4] Implement `M/deletion.ts`, plus the preview query (`staleTime: 0`, `gcTime: 0`) and
   the `deleteMailbox` mutation in `M/api.ts`, with the invalidation of data-model §3.
-- [ ] T084 [US4] Implement `M/components/dialogs/MailboxDeleteDialog.vue` (Reka `AlertDialog`).
+- [X] T084 *(done with the shared `ConfirmDialog` (legacy's "Confirm deletion", "Delete now", "Cancel") and the impact component; no delete route)* [US4] Implement `M/components/dialogs/MailboxDeleteDialog.vue` (Reka `AlertDialog`).
   Add "Remove" to `M/components/list/MailboxRowActions.vue`. Implement
   `M/sections/MailboxDeleteRoute.vue` and register the `mailbox-delete` route in `M/routes.ts`.
-- [ ] T085 [US4] Add the `mailboxes.delete.*` messages: the impact items, retention units, blockers
+- [X] T085 *(done)* [US4] Add the `mailboxes.delete.*` messages: the impact items, retention units, blockers
   and outcomes. Map `mailbox.remove` and `success.mailbox_removed`. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories (US1 to US4) work.
@@ -1110,7 +1131,7 @@ the requests and results on both viewports.
 - [X] T088 *(done in `components/sections.spec.ts`)* [P] [US5] Write `TM/sections/PermissionsSection.spec.ts`, `TM/sections/TagsSection.spec.ts`
   and `TM/components/fields/CustomAttributesEditor.spec.ts`. The editor tests cover rows, add and
   remove, a rename as a removal plus an addition, duplicates, and the limits from the capabilities.
-- [ ] T089 [P] [US5] Write `tests/smoke/mailbox-permissions.smoke.spec.ts`: on a mailbox created
+- [ ] T089 *(open: needs the API dev stack, which is down)* [P] [US5] Write `tests/smoke/mailbox-permissions.smoke.spec.ts`: on a mailbox created
   through the API, `admin` turns on sync jobs, adds two tags and an attribute, and removes one tag.
   The detail then shows the saved values.
 
@@ -1145,7 +1166,7 @@ the confirmation, the summary and the selection afterwards.
 
 ### Tests for User Story 6 (write first; must fail)
 
-- [ ] T095 [US6] Implement `tests/mocks/handlers/mailbox-bulk.ts`, registered in the index.
+- [X] T095 *(done: per-target outcomes, the protocol gate, `tooMany` above `bulkLimit`; scenarios `admin-bulk`, `admin-bulk-100`, `domain-admin-no-protocol`, `capabilities-bulk-limit-20`)* [US6] Implement `tests/mocks/handlers/mailbox-bulk.ts`, registered in the index.
   `applyMailboxBulkAction`:
   - gives per-target outcomes: `notFound` for a missing or foreign target; `outdated` for a stale
     `version`; `failed` with `temporary-failure` (`dependency: mailStore`); `refused` by injection;
@@ -1161,7 +1182,7 @@ the confirmation, the summary and the selection afterwards.
   - `admin-bulk-100`: 100 mailboxes for SC-007;
   - `domain-admin-no-protocol`;
   - `capabilities-bulk-limit-20`.
-- [ ] T096 [P] [US6] Write `tests/e2e/mailboxes/bulk.spec.ts`. It covers:
+- [X] T096 *(done in `tests/e2e/mailboxes/bulk.spec.ts`; targets carry the version tag as listed (with its quotes, which the contract accepts))* [P] [US6] Write `tests/e2e/mailboxes/bulk.spec.ts`. It covers:
   - US6-AS1: select 50 of 50 and deactivate; "all 50 done", and the list shows them inactive;
   - US6-AS2: two are reported as not found and the rest as done;
   - US6-AS3: the next page or a new search clears the selection, with an announcement; so do the
@@ -1186,24 +1207,24 @@ the confirmation, the summary and the selection afterwards.
   - FR-066: a double tap on the confirmation sends one request;
   - SC-007: with `admin-bulk-100` at size 100, 100 results whose counts equal the response's
     `summary`.
-- [ ] T097 [P] [US6] Write `TM/bulk.spec.ts` (definitions, effects and gates),
+- [X] T097 *(done in `tests/unit/features/mailboxes/bulk.spec.ts`)* [P] [US6] Write `TM/bulk.spec.ts` (definitions, effects and gates),
   `TM/composables/useMailboxBulk.spec.ts` (data-model §7.4, with versions in the targets) and
   `TM/components/list/MailboxBulkActions.spec.ts` (the menu, the protocol radio group in the
   dialog, the typed count).
-- [ ] T098 [P] [US6] Write `tests/smoke/mailbox-bulk.smoke.spec.ts`: two mailboxes created through
+- [X] T098 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US6] Write `tests/smoke/mailbox-bulk.smoke.spec.ts`: two mailboxes created through
   the API are deactivated and then activated in bulk, with both results `done`. Teardown deletes
   them.
 
 ### Implementation for User Story 6
 
-- [ ] T099 [US6] Implement `M/bulk.ts`, the bulk mutation in `M/api.ts` (data-model §3) and
+- [X] T099 *(done)* [US6] Implement `M/bulk.ts`, the bulk mutation in `M/api.ts` (data-model §3) and
   `M/composables/useMailboxBulk.ts`.
-- [ ] T100 [US6] Implement `M/components/list/MailboxBulkActions.vue`. Add the explicit selection
+- [X] T100 *(done: legacy's "Mailbox" and "Allowed protocols" menus in UI 002's `BulkActionBar` (which gained a slot); select all is legacy's "Toggle all")* [US6] Implement `M/components/list/MailboxBulkActions.vue`. Add the explicit selection
   mode, entered with "Select" at every width as in UI 002, to `MailboxesPage.vue`, `MailboxCard.vue`
   and `MailboxTable.vue` (whose selection column appears in this mode). Use UI 002's
   `useBulkSelection` with `bulkLimit` from the capabilities and the retained outcomes
   `['refused', 'outdated', 'failed']`, UI 002's `BulkActionBar`, and `BulkResultSummary`.
-- [ ] T101 [US6] Add the `mailboxes.bulk.*` messages. Map `mailbox.toggle_all`.
+- [X] T101 *(done)* [US6] Add the `mailboxes.bulk.*` messages. Map `mailbox.toggle_all`.
   `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US6 work on their own.
@@ -1303,7 +1324,7 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T111 [US8] Implement `tests/mocks/handlers/mailbox-rename.ts`, registered in the index.
+- [X] T111 *(done; scenario `admin-rename` (a.example instead of example.org))* [US8] Implement `tests/mocks/handlers/mailbox-rename.ts`, registered in the index.
   `renameMailbox`:
   - `200 MailboxRenamed` with `Content-Location` and `ETag`; it moves the mailbox's data and creates
     the alias;
@@ -1320,7 +1341,7 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
   Create `tests/mocks/scenarios/mailboxes/rename.ts`, registered in the index, with
   `admin-rename`: `anna@example.org`; an inactive mailbox; a taken target; a domain at its alias
   limit; outcomes injected per mailbox.
-- [ ] T112 [P] [US8] Write `tests/e2e/mailboxes/rename.spec.ts`. It covers:
+- [X] T112 *(done in `tests/e2e/mailboxes/rename.spec.ts`)* [P] [US8] Write `tests/e2e/mailboxes/rename.spec.ts`. It covers:
   - US8-AS1, FR-051 and FR-067: acknowledge, enter `anna.smith`, keep the alias and confirm; the
     new detail opens and "Mailbox was renamed from anna@example.org to anna.smith@example.org" is
     announced;
@@ -1335,20 +1356,20 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
   - `504`: the report names the unknown step;
   - `412` (FR-044, SC-006): nothing changes, the mailbox is reloaded, and the user confirms again;
   - FR-066: a double tap on the confirmation sends one request.
-- [ ] T113 [P] [US8] Write `TM/sections/RenameSection.spec.ts` (data-model §7.3) and
+- [X] T113 *(done in `tests/unit/features/mailboxes/components/rename.spec.ts`)* [P] [US8] Write `TM/sections/RenameSection.spec.ts` (data-model §7.3) and
   `TM/components/dialogs/RenameReport.spec.ts` (every step and outcome translated, `role="alert"`,
   dismissal).
-- [ ] T114 [P] [US8] Write `tests/smoke/mailbox-rename.smoke.spec.ts`: a mailbox created through the
+- [X] T114 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US8] Write `tests/smoke/mailbox-rename.smoke.spec.ts`: a mailbox created through the
   API is renamed with the alias kept, the new detail opens, and the old address no longer resolves
   as a mailbox. Teardown deletes the mailbox.
 
 ### Implementation for User Story 8
 
-- [ ] T115 [US8] Implement the `renameMailbox` mutation in `M/api.ts`: remove the old detail, write
+- [X] T115 *(done)* [US8] Implement the `renameMailbox` mutation in `M/api.ts`: remove the old detail, write
   the new one, invalidate the lists and domains, and refetch both addresses after `500` and `504`.
-- [ ] T116 [US8] Implement `M/sections/RenameSection.vue` and
+- [X] T116 *(done: `RenameSection` is legacy's last tab on the mailbox page (no route); the new address opens with legacy's `success.mailbox_renamed`)* [US8] Implement `M/sections/RenameSection.vue` and
   `M/components/dialogs/RenameReport.vue`. Register the `mailbox-rename` route in `M/routes.ts`.
-- [ ] T117 [US8] Add the `mailboxes.rename.*` messages (new strings only: the incomplete-rename
+- [X] T117 *(done: only `mailboxes.rename.report.*` are new)* [US8] Add the `mailboxes.rename.*` messages (new strings only: the incomplete-rename
   report). Map `edit.mailbox_rename`, `edit.mailbox_rename_warning`, `edit.mailbox_rename_agree`,
   `edit.mailbox_rename_title`, `edit.mailbox_rename_alias` and `success.mailbox_renamed`; missing
   Slovak values fall back to `en-gb`. `npm run i18n:check` must pass.
@@ -1367,7 +1388,7 @@ rename and refused records, as an administrator and as a domain administrator, o
 
 ### Tests for User Story 9 (write first; must fail)
 
-- [ ] T118 [US9] Create `tests/mocks/scenarios/mailboxes/history.ts`, registered in the index, with
+- [X] T118 *(done: `admin-history` and `domain-admin-history`)* [US9] Create `tests/mocks/scenarios/mailboxes/history.ts`, registered in the index, with
   `admin-history`. It holds audit records built with UI 001's audit factory:
   - a `mailboxUpdate` with `details.changes.quota` (old and new);
   - a `mailboxUpdate` with `details.passwordSet: true` and `preHashed: false`;
@@ -1379,7 +1400,7 @@ rename and refused records, as an administrator and as a domain administrator, o
 
   Every value is valid in the pinned contract. The `details` members follow API 003 research R22;
   the contract types `details` only as an open object (plan API gap A).
-- [ ] T119 [P] [US9] Write `tests/e2e/mailboxes/history.spec.ts`. It covers:
+- [X] T119 *(done in `tests/e2e/mailboxes/history.spec.ts`)* [P] [US9] Write `tests/e2e/mailboxes/history.spec.ts`. It covers:
   - US9-AS1: from the detail, History opens the audit log filtered to the mailbox; both records,
     newest first; the quota change with its old and new value as the API returns them (raw bytes
     until plan API gap A is closed); the password record labelled "Password set" without a value;
@@ -1387,16 +1408,16 @@ rename and refused records, as an administrator and as a domain administrator, o
   - US9-AS3: a domain administrator has no History entry;
   - FR-064: the rename shows both addresses; bulk records show the bulk request; the template's
     History works too.
-- [ ] T120 [P] [US9] Extend `tests/unit/features/audit-log/labels.spec.ts`: the mailbox event types,
+- [X] T120 *(done)* [P] [US9] Extend `tests/unit/features/audit-log/labels.spec.ts`: the mailbox event types,
   targets and failure reasons are translated, and the detail keys `changes`, `passwordSet`,
   `preHashed`, `previousAddress`, `newAddress`, `bulkRequestId` and `steps` get labels, with the
   raw key for any other.
-- [ ] T121 [P] [US9] Write `tests/smoke/mailbox-history.smoke.spec.ts`: after changing a mailbox
+- [X] T121 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US9] Write `tests/smoke/mailbox-history.smoke.spec.ts`: after changing a mailbox
   created through the API, its History shows a `mailboxUpdate` by `admin`.
 
 ### Implementation for User Story 9
 
-- [ ] T122 [US9] Add the detail-key label lookup to `src/features/audit-log/labels.ts`, if UI 001's
+- [X] T122 *(done: `detailLabel` and `auditLog.detailKeys.*`; flags show Yes or No)* [US9] Add the detail-key label lookup to `src/features/audit-log/labels.ts`, if UI 001's
   generic renderer lacks one, with the raw key as the fallback. Add the `auditLog.details.*`
   messages of research R17. The event, target and reason labels come from T004. Confirm that
   `MailboxSectionNav.vue` (T058) and `MailboxTemplateDetailPage.vue` (T108) render `HistoryLink`
@@ -1410,7 +1431,7 @@ rename and refused records, as an administrator and as a domain administrator, o
 
 **Purpose**: The entry points into UI 002, cross-story verification, budgets and release readiness.
 
-- [ ] T123 Write `tests/e2e/mailboxes/entry-points.spec.ts` (FR-005, research R19). It covers:
+- [X] T123 *(done for the domain page (Mailboxes, Add mailbox); the home shortcuts come from the catalogue; the domain list's usage and the delete-unavailable text are not links (UI 002's menus are unchanged))* Write `tests/e2e/mailboxes/entry-points.spec.ts` (FR-005, research R19). It covers:
   - UI 002's domain detail offers "Mailboxes" → `/mailboxes?domain=<name>`, filtered, and "Add
     mailbox" → the create screen with the domain preselected;
   - the domain list's mailbox usage links to the filtered list;
@@ -1419,11 +1440,11 @@ rename and refused records, as an administrator and as a domain administrator, o
     administrators.
 
   The test must fail.
-- [ ] T124 Add the entry points to UI 002's screens so that T123 passes. They go in the designated
+- [X] T124 *(done on the domain page through `mailboxListLink` and `mailboxCreateLink`)* Add the entry points to UI 002's screens so that T123 passes. They go in the designated
   action areas of the domain detail page and the domain list in `src/features/domains/`, through
   `mailboxListLink` and `mailboxCreateLink` from `@/features/mailboxes`. Add the matching
   `domains.*` messages if UI 002 lacks them.
-- [ ] T125 [P] Write and pass `tests/e2e/mailboxes/reflow-and-keyboard.spec.ts`. This is a
+- [X] T125 *(done in `tests/e2e/mailboxes/reflow-and-keyboard.spec.ts` (reflow, reduced motion, the list's keyboard path))* [P] Write and pass `tests/e2e/mailboxes/reflow-and-keyboard.spec.ts`. This is a
   cross-story verification of behaviour the stories built test first, so it passes on arrival and
   guards against regressions, as UI 001 T144 does:
   - every screen and dialog of this feature has no horizontal scroll at 320 px and at the
@@ -1432,33 +1453,33 @@ rename and refused records, as an administrator and as a domain administrator, o
   - there is no transition under `prefers-reduced-motion`;
   - each user story's main path completes with the keyboard alone, with the focus visible
     throughout (SC-004, FR-070).
-- [ ] T126 [P] Write and pass `tests/e2e/mailboxes/storage-and-secrets.spec.ts` (SC-009, FR-074), a
+- [X] T126 *(done in `tests/e2e/mailboxes/storage-and-secrets.spec.ts` (the create flow and failing storage))* [P] Write and pass `tests/e2e/mailboxes/storage-and-secrets.spec.ts` (SC-009, FR-074), a
   cross-story verification like T125. After the US2 and US3 flows with typed and generated
   passwords:
   - `localStorage` and `sessionStorage` hold only allowlisted keys;
   - no stored value, no visited URL, no `document.title`, no `history.state` and no console message
     contains either password;
   - with storage throwing, the list still works with the default columns.
-- [ ] T127 Add the third collection `/ng/mailboxes` with `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`
+- [ ] T127 *(open: the collection is added; the assertions fail on this loaded machine (see the implementation notes))* Add the third collection `/ng/mailboxes` with `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`
   to `scripts/run-lhci.mjs` and `lighthouserc.cjs` (research R20). Run
   `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JS is
   at most 204,800 bytes gzipped, and performance and accessibility are at least 0.9 for all three
   URLs.
-- [ ] T128 [P] Run `npm run i18n:check` (FR-072, SC-005). Remove the unused keys it reports from
+- [X] T128 *(done: 58 new strings beyond main 0194b3e, all in en-gb, cs-cz and sk-sk, written by hand; the cs-cz and sk-sk values are in `src/i18n/messages/` and `src/i18n/messages/mailboxes/` for the owner's review)* [P] Run `npm run i18n:check` (FR-072, SC-005). Remove the unused keys it reports from
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this
   feature for the owner's review (UI 001 owner question 4). Check against the T008a form map that
   no new string duplicates a legacy key's meaning and that every screen shows the legacy fields,
   labels, options, units and order (constitution IV 1.3.0).
-- [ ] T129 [P] Re-check every row of the "Legacy Parity" tables in `specs/003-mailboxes/spec.md`
+- [X] T129 *(done: the deviations found during implementation are listed in the implementation notes above)* [P] Re-check every row of the "Legacy Parity" tables in `specs/003-mailboxes/spec.md`
   against the implemented behaviour (SC-011). The plan's parity notes were applied to the tables
   during the analysis; record any further deviation found during implementation.
-- [ ] T130 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the
+- [ ] T130 *(open: a manual test on phones)* Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the
   production build served by `npm run preview:mock` on the local network. Throttle the connection
   to a typical mobile profile (Chrome DevTools "Fast 4G") for SC-003. Record the SC-001 and SC-003
   timings and a VoiceOver and TalkBack pass of every user story. Run a moderated test of the create
   flow on a phone with at least five administrators and record the first-attempt success rate and
   times for SC-002. Everything goes in the "Validation log" of `specs/003-mailboxes/quickstart.md`.
-- [ ] T131 Once the API 003 implementation is merged, move the contract pin forward to its merge
+- [ ] T131 *(open: the pin 33f1eea already contains the merged API 003; Part C needs the API dev stack, which is down)* Once the API 003 implementation is merged, move the contract pin forward to its merge
   commit if T001 pinned the baseline (T001's procedure and review), then run `quickstart.md` Part C
   against the mailcow-rest-v2 dev stack: `scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep mailbox`,
   `scripts/smoke/stack-down.sh`. Confirm that the generated passwords do not appear in the API's

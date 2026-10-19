@@ -48,6 +48,14 @@ fail before the implementation tasks that follow them. Every end-to-end spec:
   DKIM section, alias MTA-STS section and "DNS" on its alias domain screens.
 - **Contract.** Pinned at mailcow-rest-v2 `e7efa73`; the DKIM bulk limit is
   `DnsCapabilities.dkim.bulkLimit`.
+- **Bundle (T109).** The DNS pages share the shell's modules in new combinations, and Rolldown
+  split them into more small initial chunks (29 scripts on the sign-in page). `vite.config.ts`
+  now keeps what the shell loads anyway in two chunk groups, `shell-ui` and `shell`, which may
+  only capture modules of the initial graph. The DKIM settings summary shows placeholders while
+  the capabilities load, so the key list does not shift (Lighthouse found a layout shift of 0.15).
+- **Publication turned off between loading and acting** (spec edge case, FR-045). The entry page
+  shows the refusal itself, because the refreshed capabilities remove "Publish DNS record again"
+  together with any message inside it.
 
 **Organization**: Tasks are grouped by user story (spec priorities P1 to P3), so that each story can
 be implemented and tested on its own once the foundation is in place.

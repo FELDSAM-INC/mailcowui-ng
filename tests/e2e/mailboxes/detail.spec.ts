@@ -58,7 +58,7 @@ test.describe('the mailbox page', () => {
     await expect(section).toContainText('Created on:')
     await expect(page.locator('#section-rateLimit')).toContainText('Disabled')
     await expect(page.getByRole('button', { name: 'Edit Rate limit' })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'History' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'History', exact: true })).toBeVisible()
     await expectAccessible()
     await expectNoHorizontalScroll()
     if (isNarrow(page)) await expectTouchTargets()

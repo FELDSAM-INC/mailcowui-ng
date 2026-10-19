@@ -66,6 +66,9 @@ test.describe('sync job bulk actions', () => {
     await expect(bar(page)).toContainText('1 selected')
     await expectTouchTargets()
     await expectNoHorizontalScroll(page, { widths: [360, 320] })
+    // The checked card was scrolled clear of the bulk bar (WCAG 2.4.11), which moves the search
+    // field under the sticky header, where it overlaps for axe's target check.
+    await page.evaluate(() => window.scrollTo(0, 0))
     await expectAccessible()
   })
 

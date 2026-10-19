@@ -9,8 +9,6 @@
       "deleteIntro": "Tieto domény sa odstránia. Nemožno to vrátiť späť.",
       "deleteTitle": "Odstrániť vybrané domény ({count})?",
       "impactItem": "aliasy: {aliases}, aliasy domény: {aliasDomains}, administrátori domény: {admins}",
-      "leaveRunning": "Akcia na serveri ďalej beží, ale jej výsledok sa nezobrazí.",
-      "leaveTitle": "Odísť, kým akcia beží?",
       "progress": "Spracúva sa domén: {count}…",
       "skippedIntro": "Preskočené, pretože stále obsahujú schránky alebo prostriedky:",
       "skippedItem": "{name}: schránky ({mailboxes}), prostriedky ({resources})"
@@ -82,7 +80,6 @@
       "messagesCount": "Správy: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "a ďalšie štítky ({count})",
-      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",
       "updating": "Aktualizuje sa…"
     },
     "outcome": {
@@ -96,10 +93,6 @@
       }
     },
     "sort": {
-      "asc": "Vzostupne",
-      "desc": "Zostupne",
-      "label": "Zoradiť podľa",
-      "order": "Poradie",
       "storageUsed": "Využité úložisko"
     },
     "usage": {
@@ -109,10 +102,7 @@
       "over": "Nad limitom"
     },
     "values": {
-      "no": "Nie",
-      "none": "Žiadne",
-      "rateLimit": "{value} {frame}",
-      "yes": "Áno"
+      "rateLimit": "{value} {frame}"
     }
   },
   "domainTemplates": {

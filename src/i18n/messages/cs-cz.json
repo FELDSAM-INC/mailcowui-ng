@@ -304,6 +304,19 @@
     "signOut": "Odhlásit se"
   },
   "domains": {
+    "bulk": {
+      "leaveRunning": "Akce na serveru dál běží, ale její výsledek se nezobrazí.",
+      "leaveTitle": "Odejít, dokud akce běží?"
+    },
+    "list": {
+      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé."
+    },
+    "sort": {
+      "asc": "Vzestupně",
+      "desc": "Sestupně",
+      "label": "Řadit podle",
+      "order": "Pořadí"
+    },
     "tags": {
       "remove": "Odebrat štítek {tag}",
       "suggestions": "Navrhované štítky",
@@ -314,6 +327,11 @@
     "rateLimit": {
       "frameLabel": "Časový úsek",
       "value": "Zprávy"
+    },
+    "values": {
+      "no": "Ne",
+      "none": "Žádné",
+      "yes": "Ano"
     }
   },
   "enums": {

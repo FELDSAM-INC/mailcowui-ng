@@ -9,8 +9,6 @@
       "deleteIntro": "These domains are deleted. This cannot be undone.",
       "deleteTitle": "Delete the selected domains ({count})?",
       "impactItem": "aliases: {aliases}, alias domains: {aliasDomains}, domain administrators: {admins}",
-      "leaveRunning": "The action keeps running on the server, but its result will not be shown.",
-      "leaveTitle": "Leave while the action runs?",
       "progress": "Processing {count} domains…",
       "skippedIntro": "Skipped, because they still have mailboxes or resources:",
       "skippedItem": "{name}: mailboxes ({mailboxes}), resources ({resources})"
@@ -82,7 +80,6 @@
       "messagesCount": "Messages: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "and {count} more tags",
-      "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
       "updating": "Updating…"
     },
     "outcome": {
@@ -96,10 +93,6 @@
       }
     },
     "sort": {
-      "asc": "Ascending",
-      "desc": "Descending",
-      "label": "Sort by",
-      "order": "Order",
       "storageUsed": "Storage used"
     },
     "usage": {
@@ -109,10 +102,7 @@
       "over": "Over the limit"
     },
     "values": {
-      "no": "No",
-      "none": "None",
-      "rateLimit": "{value} {frame}",
-      "yes": "Yes"
+      "rateLimit": "{value} {frame}"
     }
   },
   "domainTemplates": {

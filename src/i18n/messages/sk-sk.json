@@ -304,6 +304,19 @@
     "signOut": "Odhlásiť sa"
   },
   "domains": {
+    "bulk": {
+      "leaveRunning": "Akcia na serveri ďalej beží, ale jej výsledok sa nezobrazí.",
+      "leaveTitle": "Odísť, kým akcia beží?"
+    },
+    "list": {
+      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané."
+    },
+    "sort": {
+      "asc": "Vzostupne",
+      "desc": "Zostupne",
+      "label": "Zoradiť podľa",
+      "order": "Poradie"
+    },
     "tags": {
       "remove": "Odobrať štítok {tag}",
       "suggestions": "Navrhované štítky",
@@ -314,6 +327,11 @@
     "rateLimit": {
       "frameLabel": "Časový úsek",
       "value": "Správy"
+    },
+    "values": {
+      "no": "Nie",
+      "none": "Žiadne",
+      "yes": "Áno"
     }
   },
   "enums": {

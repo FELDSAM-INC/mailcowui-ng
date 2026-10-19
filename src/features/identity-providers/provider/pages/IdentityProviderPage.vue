@@ -176,6 +176,10 @@ async function save() {
     closeSection()
   } else if (outcome === 'removed') {
     showRemoved(t('problem.identity-provider-not-configured'))
+  } else if (outcome === 'outdated') {
+    // The notice of what changed elsewhere opens the form: bring its top into view.
+    await nextTick()
+    document.getElementById(`section-${SECTION}-title`)?.focus()
   }
 }
 

@@ -1,0 +1,47 @@
+{
+  "routing": {
+    "bulk": {
+      "leaveRunning": "The action keeps running on the server, but its result will not be shown.",
+      "leaveTitle": "Leave while the action runs?"
+    },
+    "common": {
+      "backToList": "Back to the list",
+      "id": "ID",
+      "loadFailed": "The entry could not be loaded.",
+      "refreshFailed": "The list could not be refreshed. The entries shown may be out of date.",
+      "test": "Test"
+    },
+    "credentials": {
+      "none": "No password is stored.",
+      "removalPending": "The password will be removed when you save.",
+      "remove": "Remove password",
+      "stored": "A password is stored.",
+      "undo": "Undo",
+      "usernameCleared": "Saving without a username also removes the stored password."
+    },
+    "filters": {
+      "any": "All",
+      "no": "No",
+      "title": "Filters and sorting",
+      "yes": "Yes"
+    },
+    "forwardingHosts": {
+      "disableSpamFilter": "Disable spam filter",
+      "enableSpamFilter": "Enable spam filter"
+    },
+    "relayhosts": {
+      "delete": {
+        "cleared": "Their sender-dependent transport becomes:",
+        "namesFailed": "The names could not be loaded.",
+        "showAll": "Show all"
+      },
+      "hostPlaceholder": "[0.0.0.0], [0.0.0.0]:25, host:25, host, [host]:25"
+    },
+    "sort": {
+      "asc": "Ascending",
+      "desc": "Descending",
+      "label": "Sort by",
+      "order": "Order"
+    }
+  }
+}

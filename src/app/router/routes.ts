@@ -17,6 +17,7 @@ import { identityProviderRoutes } from '@/features/identity-providers'
 import { mailboxRoutes } from '@/features/mailboxes'
 import { passkeysRoutes } from '@/features/passkeys'
 import { syncJobRoutes } from '@/features/sync-jobs'
+import { routingRoutes } from '@/features/routing'
 
 import { findEntry, placeholderRouteSpecs } from '../navigation/catalogue'
 
@@ -40,6 +41,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...syncJobRoutes,
   ...identityProviderRoutes,
   ...dnsRoutes,
+  ...routingRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

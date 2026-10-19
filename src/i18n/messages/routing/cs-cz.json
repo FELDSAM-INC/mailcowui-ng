@@ -1,0 +1,47 @@
+{
+  "routing": {
+    "bulk": {
+      "leaveRunning": "Akce na serveru dál běží, ale její výsledek se nezobrazí.",
+      "leaveTitle": "Odejít, dokud akce běží?"
+    },
+    "common": {
+      "backToList": "Zpět na seznam",
+      "id": "ID",
+      "loadFailed": "Položku se nepodařilo načíst.",
+      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené položky mohou být zastaralé.",
+      "test": "Test"
+    },
+    "credentials": {
+      "none": "Žádné heslo není uloženo.",
+      "removalPending": "Heslo bude odstraněno při uložení.",
+      "remove": "Odstranit heslo",
+      "stored": "Heslo je uloženo.",
+      "undo": "Zpět",
+      "usernameCleared": "Uložením bez uživatelského jména se odstraní i uložené heslo."
+    },
+    "filters": {
+      "any": "Vše",
+      "no": "Ne",
+      "title": "Filtry a řazení",
+      "yes": "Ano"
+    },
+    "forwardingHosts": {
+      "disableSpamFilter": "Vypnout filtr spamu",
+      "enableSpamFilter": "Zapnout filtr spamu"
+    },
+    "relayhosts": {
+      "delete": {
+        "cleared": "Jejich transport podle odesílatele bude:",
+        "namesFailed": "Názvy se nepodařilo načíst.",
+        "showAll": "Zobrazit vše"
+      },
+      "hostPlaceholder": "[0.0.0.0], [0.0.0.0]:25, host:25, host, [host]:25"
+    },
+    "sort": {
+      "asc": "Vzestupně",
+      "desc": "Sestupně",
+      "label": "Řadit podle",
+      "order": "Pořadí"
+    }
+  }
+}

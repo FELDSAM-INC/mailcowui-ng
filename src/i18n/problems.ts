@@ -105,7 +105,16 @@ export function problemMessage(
 }
 
 /** UI 004 (research R17): the parameters whose value selects a more specific message. */
-const DISCRIMINATING_PARAMS = ['kind', 'unit', 'field', 'format', 'resource', 'reason'] as const
+/** UI 009 (research R19): `because` (a username `required` because of a password). */
+const DISCRIMINATING_PARAMS = [
+  'kind',
+  'unit',
+  'field',
+  'format',
+  'resource',
+  'reason',
+  'because',
+] as const
 
 /** The field of a violation path, without entry indices: `destinations.2` → `destinations`. */
 export function fieldOfPath(path: string): string {

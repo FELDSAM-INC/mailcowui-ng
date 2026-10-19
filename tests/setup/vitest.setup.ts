@@ -26,6 +26,7 @@ beforeEach(async () => {
     loadFeatureMessages('identityProviders', i18n, 'en-gb'),
     loadFeatureMessages('aliases', i18n, 'en-gb'),
     loadFeatureMessages('dns', i18n, 'en-gb'),
+    loadFeatureMessages('routing', i18n, 'en-gb'),
   ])
 })
 

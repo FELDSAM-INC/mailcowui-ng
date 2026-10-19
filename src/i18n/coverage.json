@@ -149,7 +149,10 @@
       "encryptedPrivateKey",
       "unsupportedKeyType",
       "keyLengthOutOfRange",
-      "sameAsSource"
+      "sameAsSource",
+      "invalidCharacter",
+      "invalidRegex",
+      "notResolvable"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -199,7 +202,10 @@
       "dkim-key-exists",
       "dkim-private-key-export-disabled",
       "dkim-dns-publication-disabled",
-      "mta-sts-policy-exists"
+      "mta-sts-policy-exists",
+      "routing-entry-exists",
+      "next-hop-credentials-differ",
+      "next-hop-interferes"
     ]
   },
   "complete": {

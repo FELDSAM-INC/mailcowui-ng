@@ -195,6 +195,31 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'dns.mtaSts.form.errors.maxAge.outOfRange': 'danger.max_age_invalid',
   'dns.mtaSts.form.errors.mxHosts.invalidFormat': 'danger.mx_invalid',
   'dns.mtaSts.form.errors.version.notInList': 'danger.version_invalid',
+  // UI 009 (legacy form map part 2): the routing problems and the routing forms' field errors
+  // with the classic message of the same meaning; placeholders through LEGACY_ARGS below.
+  'enums.auditTargetType.bccMap': 'mailbox.bcc_map',
+  'enums.auditTargetType.recipientMap': 'mailbox.recipient_map',
+  'problem.routing-entry-exists': 'danger.object_exists',
+  'problem.next-hop-credentials-differ': 'danger.invalid_nexthop_authenticated',
+  'problem.next-hop-interferes': 'danger.next_hop_interferes',
+  'routing.relayhosts.form.errors.host.invalidFormat': 'danger.invalid_host',
+  'routing.transports.form.errors.nextHop.invalidFormat': 'danger.invalid_nexthop',
+  'routing.transports.form.errors.destination.invalidFormat': 'danger.invalid_destination',
+  'routing.transports.form.errors.destination.invalidRegex': 'danger.invalid_destination',
+  'routing.bccMaps.form.errors.bccDestination.required': 'danger.bcc_empty',
+  'routing.bccMaps.form.errors.bccDestination.invalidFormat': 'danger.bcc_must_be_email',
+  'routing.bccMaps.form.errors.bccDestination.tooMany': 'danger.bcc_must_be_email',
+  'routing.bccMaps.form.errors.localDestination.notFound': 'danger.access_denied',
+  'routing.recipientMaps.form.errors.originalDestination.invalidFormat':
+    'danger.invalid_recipient_map_old',
+  'routing.recipientMaps.form.errors.newDestination.invalidFormat':
+    'danger.invalid_recipient_map_new',
+  'routing.tlsPolicyMaps.form.errors.destination.invalidFormat':
+    'danger.tls_policy_map_dest_invalid',
+  'routing.tlsPolicyMaps.form.errors.parameters.invalidFormat':
+    'danger.tls_policy_map_parameter_invalid',
+  'routing.forwardingHosts.form.errors.host.notResolvable': 'danger.invalid_host',
+  'routing.forwardingHosts.form.errors.host.invalidFormat': 'danger.invalid_host',
 }
 
 /**
@@ -244,4 +269,17 @@ export const LEGACY_ARGS: Readonly<Partial<Record<string, readonly string[]>>> =
   'dns.mtaSts.form.errors.maxAge.outOfRange': ['domain'],
   'dns.mtaSts.form.errors.mxHosts.invalidFormat': ['entry'],
   'dns.mtaSts.form.errors.version.notInList': ['entry'],
+  // UI 009: `conflictingId` of the generic conflict; `nextHop` (the stored next hop) and the
+  // entered one of an interference; the value sent at a field.
+  'problem.routing-entry-exists': ['conflictingId'],
+  'problem.next-hop-interferes': ['nextHop', 'entered'],
+  'routing.relayhosts.form.errors.host.invalidFormat': ['entry'],
+  'routing.transports.form.errors.destination.invalidFormat': ['entry'],
+  'routing.transports.form.errors.destination.invalidRegex': ['entry'],
+  'routing.bccMaps.form.errors.bccDestination.invalidFormat': ['entry'],
+  'routing.bccMaps.form.errors.bccDestination.tooMany': ['entry'],
+  'routing.recipientMaps.form.errors.originalDestination.invalidFormat': ['entry'],
+  'routing.recipientMaps.form.errors.newDestination.invalidFormat': ['entry'],
+  'routing.forwardingHosts.form.errors.host.notResolvable': ['entry'],
+  'routing.forwardingHosts.form.errors.host.invalidFormat': ['entry'],
 }

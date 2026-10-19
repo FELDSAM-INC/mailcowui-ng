@@ -33,6 +33,28 @@ export type SyncJobListParams = NonNullable<operations['listSyncJobs']['paramete
 // UI 010 (data-model §3).
 export type DkimListParams = NonNullable<operations['listDkimKeys']['parameters']['query']>
 export type MtaStsListParams = NonNullable<operations['listMtaStsPolicies']['parameters']['query']>
+// UI 009 (data-model §1, §3).
+export type RelayhostListParams = NonNullable<operations['listRelayhosts']['parameters']['query']>
+export type RelayhostUsageParams = NonNullable<
+  operations['listRelayhostUsage']['parameters']['query']
+>
+export type RelayhostChoiceParams = NonNullable<
+  operations['listRelayhostChoices']['parameters']['query']
+>
+export type TransportListParams = NonNullable<operations['listTransports']['parameters']['query']>
+export type BccMapListParams = NonNullable<operations['listBccMaps']['parameters']['query']>
+export type BccDestinationChoiceParams = NonNullable<
+  operations['listBccDestinationChoices']['parameters']['query']
+>
+export type RecipientMapListParams = NonNullable<
+  operations['listRecipientMaps']['parameters']['query']
+>
+export type TlsPolicyMapListParams = NonNullable<
+  operations['listTlsPolicyMaps']['parameters']['query']
+>
+export type ForwardingHostListParams = NonNullable<
+  operations['listForwardingHosts']['parameters']['query']
+>
 
 export type Oauth2ClientListParams = NonNullable<
   operations['listOauth2Clients']['parameters']['query']
@@ -187,5 +209,63 @@ export const queryKeys = {
     result: (name: string) => ['dns-diagnostics', 'result', name] as const,
     rateLimit: () => ['dns-diagnostics', 'rate-limit'] as const,
     changed: (name: string) => ['dns-diagnostics', 'changed', name] as const,
+  },
+  // UI 009 (data-model §3): one root per routing collection.
+  routingCapabilities: () => ['routing-capabilities'] as const,
+  relayhosts: {
+    all: () => ['relayhosts'] as const,
+    lists: () => ['relayhosts', 'list'] as const,
+    list: (params: RelayhostListParams) => ['relayhosts', 'list', params] as const,
+    details: () => ['relayhosts', 'detail'] as const,
+    detail: (id: number) => ['relayhosts', 'detail', id] as const,
+    usages: () => ['relayhosts', 'usage'] as const,
+    usage: (id: number, params: RelayhostUsageParams) =>
+      ['relayhosts', 'usage', id, params] as const,
+  },
+  relayhostChoices: {
+    all: () => ['relayhost-choices'] as const,
+    search: (q: string) => ['relayhost-choices', { q }] as const,
+  },
+  relayhostAssignments: {
+    all: () => ['relayhost-assignments'] as const,
+    domains: () => ['relayhost-assignments', 'domain'] as const,
+    domain: (name: string) => ['relayhost-assignments', 'domain', name.toLowerCase()] as const,
+    mailboxes: () => ['relayhost-assignments', 'mailbox'] as const,
+    mailbox: (address: string) =>
+      ['relayhost-assignments', 'mailbox', address.toLowerCase()] as const,
+  },
+  transports: {
+    all: () => ['transports'] as const,
+    lists: () => ['transports', 'list'] as const,
+    list: (params: TransportListParams) => ['transports', 'list', params] as const,
+    detail: (id: number) => ['transports', 'detail', id] as const,
+  },
+  bccMaps: {
+    all: () => ['bcc-maps'] as const,
+    lists: () => ['bcc-maps', 'list'] as const,
+    list: (params: BccMapListParams) => ['bcc-maps', 'list', params] as const,
+    detail: (id: number) => ['bcc-maps', 'detail', id] as const,
+  },
+  bccDestinationChoices: {
+    all: () => ['bcc-destination-choices'] as const,
+    search: (params: Omit<BccDestinationChoiceParams, 'limit' | 'offset'>) =>
+      ['bcc-destination-choices', params] as const,
+  },
+  recipientMaps: {
+    all: () => ['recipient-maps'] as const,
+    lists: () => ['recipient-maps', 'list'] as const,
+    list: (params: RecipientMapListParams) => ['recipient-maps', 'list', params] as const,
+    detail: (id: number) => ['recipient-maps', 'detail', id] as const,
+  },
+  tlsPolicyMaps: {
+    all: () => ['tls-policy-maps'] as const,
+    lists: () => ['tls-policy-maps', 'list'] as const,
+    list: (params: TlsPolicyMapListParams) => ['tls-policy-maps', 'list', params] as const,
+    detail: (id: number) => ['tls-policy-maps', 'detail', id] as const,
+  },
+  forwardingHosts: {
+    all: () => ['forwarding-hosts'] as const,
+    lists: () => ['forwarding-hosts', 'list'] as const,
+    list: (params: ForwardingHostListParams) => ['forwarding-hosts', 'list', params] as const,
   },
 }

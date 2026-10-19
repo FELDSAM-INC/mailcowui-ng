@@ -98,6 +98,8 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   // UI 010 (legacy form map): the classic DKIM tab and the domain page's MTA-STS tab.
   dkimKeys: legacy('admin.dkim_keys'),
   mtaStsPolicies: legacy('edit.mta_sts'),
+  // UI 009: the classic Routing tab (legacy form map part 1c).
+  routing: legacy('admin.routing'),
 }
 
 function entry(
@@ -173,9 +175,10 @@ export const catalogue: readonly NavigationEntry[] = [
     'routing',
     '/routing',
     ArrowLeftRightIcon,
-    { admin: true, domainAdmin: { anyFlag: ['bccMaps'] }, mailboxUser: false },
+    MANAGERS,
     '009',
     { admin: ['/admin/system', '/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] },
+    'available',
   ),
   // UI 010 (research R2): DKIM keys (with the diagnostics) and the MTA-STS policies, under /dns.
   entry(

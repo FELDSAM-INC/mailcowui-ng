@@ -20,6 +20,7 @@ import type enGbDomains from './messages/domains/en-gb.json'
 import enGb from './messages/en-gb.json'
 import type enGbIdentityProviders from './messages/identity-providers/en-gb.json'
 import type enGbMailboxes from './messages/mailboxes/en-gb.json'
+import type enGbRouting from './messages/routing/en-gb.json'
 import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
 export type MessageSchema = typeof enGb &
@@ -30,7 +31,8 @@ export type MessageSchema = typeof enGb &
   typeof enGbAliases &
   typeof enGbDns &
   typeof enGbDnsDiagnostics &
-  typeof enGbDnsMtaSts
+  typeof enGbDnsMtaSts &
+  typeof enGbRouting
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -129,6 +131,11 @@ const featureLoaders = {
         import('./messages/dns-diagnostics/sk-sk.json'),
         import('./messages/dns-mta-sts/sk-sk.json'),
       ]),
+  },
+  routing: {
+    'en-gb': () => import('./messages/routing/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/routing/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/routing/sk-sk.json').then((m) => m.default),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

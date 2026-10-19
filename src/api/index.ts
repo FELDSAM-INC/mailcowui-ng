@@ -470,4 +470,13 @@ export {
   type SenderPermissionCandidateParams,
   type SyncJobListParams,
   type TemplateListParams,
+  type BccDestinationChoiceParams,
+  type BccMapListParams,
+  type ForwardingHostListParams,
+  type RecipientMapListParams,
+  type RelayhostChoiceParams,
+  type RelayhostListParams,
+  type RelayhostUsageParams,
+  type TlsPolicyMapListParams,
+  type TransportListParams,
 } from './query/keys'

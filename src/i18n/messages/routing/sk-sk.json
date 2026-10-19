@@ -1,0 +1,47 @@
+{
+  "routing": {
+    "bulk": {
+      "leaveRunning": "Akcia na serveri ďalej beží, ale jej výsledok sa nezobrazí.",
+      "leaveTitle": "Odísť, kým akcia beží?"
+    },
+    "common": {
+      "backToList": "Späť na zoznam",
+      "id": "ID",
+      "loadFailed": "Položku sa nepodarilo načítať.",
+      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené položky môžu byť zastarané.",
+      "test": "Test"
+    },
+    "credentials": {
+      "none": "Žiadne heslo nie je uložené.",
+      "removalPending": "Heslo bude odstránené pri uložení.",
+      "remove": "Odstrániť heslo",
+      "stored": "Heslo je uložené.",
+      "undo": "Späť",
+      "usernameCleared": "Uložením bez používateľského mena sa odstráni aj uložené heslo."
+    },
+    "filters": {
+      "any": "Všetko",
+      "no": "Nie",
+      "title": "Filtre a zoradenie",
+      "yes": "Áno"
+    },
+    "forwardingHosts": {
+      "disableSpamFilter": "Vypnúť spam filter",
+      "enableSpamFilter": "Zapnúť spam filter"
+    },
+    "relayhosts": {
+      "delete": {
+        "cleared": "Ich transportná mapa pre odosielanie bude:",
+        "namesFailed": "Názvy sa nepodarilo načítať.",
+        "showAll": "Zobraziť všetko"
+      },
+      "hostPlaceholder": "[0.0.0.0], [0.0.0.0]:25, host:25, host, [host]:25"
+    },
+    "sort": {
+      "asc": "Vzostupne",
+      "desc": "Zostupne",
+      "label": "Zoradiť podľa",
+      "order": "Poradie"
+    }
+  }
+}

@@ -72,8 +72,8 @@ export const relayhostScenarios: Record<string, ScenarioDefinition> = {
     setup: routingSetup(seedMany),
   },
   'routing-bulk-limit-10': {
-    description: 'The default routing data with a bulk limit of 10 (UI 009 FR-016).',
+    description: '120 relayhosts with a bulk limit of 10 (UI 009 FR-016).',
     overrides: { signedInAs: 'admin', routing: { capabilities: { bulkLimit: 10 } } },
-    setup: routingSetup(seedRelayhosts),
+    setup: routingSetup(seedMany),
   },
 }

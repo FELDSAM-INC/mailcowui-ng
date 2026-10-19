@@ -756,6 +756,11 @@
           "mailboxTemplate": "Tato šablona schránky neexistuje."
         }
       },
+      "required": {
+        "because": {
+          "password": "K heslu je potřeba uživatelské jméno."
+        }
+      },
       "secretRequired": {
         "reason": {
           "addressChanged": "Zadejte jej znovu: byl by odeslán na novou adresu.",
@@ -812,7 +817,10 @@
     "encryptedPrivateKey": "Klíč je chráněn heslem. Nejprve heslo odstraňte.",
     "unsupportedKeyType": "Podporovány jsou jen tyto typy klíčů: {allowed}.",
     "keyLengthOutOfRange": "Klíč musí mít {min} až {max} bitů.",
-    "sameAsSource": "Zvolte jiný název, než má zdroj."
+    "sameAsSource": "Zvolte jiný název, než má zdroj.",
+    "invalidCharacter": "Tato hodnota nesmí obsahovat {characters}.",
+    "invalidRegex": "Toto není platný regulární výraz.",
+    "notResolvable": "Tento název se nepřekládá na žádnou adresu."
   },
   "domainTemplates": {
     "create": {

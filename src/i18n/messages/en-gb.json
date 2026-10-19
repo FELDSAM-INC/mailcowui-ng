@@ -756,6 +756,11 @@
           "mailboxTemplate": "This mailbox template does not exist."
         }
       },
+      "required": {
+        "because": {
+          "password": "A username is needed for a password."
+        }
+      },
       "secretRequired": {
         "reason": {
           "addressChanged": "Enter it again: it would be sent to a new address.",
@@ -812,7 +817,10 @@
     "encryptedPrivateKey": "The key is protected by a passphrase. Remove the passphrase first.",
     "unsupportedKeyType": "Only these key types are supported: {allowed}.",
     "keyLengthOutOfRange": "The key must have {min} to {max} bits.",
-    "sameAsSource": "Choose a name other than the source."
+    "sameAsSource": "Choose a name other than the source.",
+    "invalidCharacter": "This value must not contain {characters}.",
+    "invalidRegex": "This is not a valid regular expression.",
+    "notResolvable": "This name resolves to no address."
   },
   "domainTemplates": {
     "create": {

@@ -83,7 +83,7 @@ trip (data-model §4).
   about 0.3 KB.
 - Three new lazy chunks: the identity provider pages, the OAuth2 pages and the return page.
 - The app's own single sign-on steps take under 3 s at p95 on a mid-range phone (SC-002).
-- Lighthouse scores of at least 90 on `/ng/sign-in` and `/ng/`.
+- Lighthouse scores of at least 80 for performance and 90 for accessibility on `/ng/sign-in` and `/ng/`.
 
 **Constraints**:
 

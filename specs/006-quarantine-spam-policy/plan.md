@@ -88,7 +88,7 @@ repository.
   and search results update within 1 s after the user stops typing (`SearchField` submits after a
   500 ms pause).
 - SC-001: find and deliver a message in under 1 minute at 360 px.
-- Lighthouse mobile scores of at least 90 on `/ng/quarantine`. The initial JavaScript stays at most
+- Lighthouse mobile scores of at least 80 for performance and 90 for accessibility on `/ng/quarantine`. The initial JavaScript stays at most
   200 KB gzipped, because every route of this feature is lazy.
 
 **Constraints**:

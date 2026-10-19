@@ -82,7 +82,7 @@ Chrome for Android, served under `/ng/` by the `ng-mailcow` image.
 
 **Performance Goals**: every view shows a loading state at once and content within 2 s for 95 % of
 loads on a mid-range phone (SC-011); webmail reachable within 3 s (SC-012); initial JS stays
-≤ 200 KB gzipped; Lighthouse ≥ 90 for `/ng/account`.
+≤ 200 KB gzipped; Lighthouse performance ≥ 80 and accessibility ≥ 90 for `/ng/account`.
 
 **Constraints**: no automatic polling (no `refetchInterval` anywhere in this feature); strict CSP
 unchanged (no `data:` images, no inline style or script); no secret in

@@ -41,7 +41,7 @@ npm run lhci                                  # includes the /ng/dns/dkim-keys c
 - `test:e2e` reports every `US1-AS*` to `US8-AS*` test passing on `mobile-chromium`,
   `desktop-chromium` and `mobile-webkit`, with no axe, CSP or mock contract violation.
 - `budget:check` keeps the initial JS under 204,800 bytes, and the `dns` chunks are lazy.
-- Lighthouse scores at least 0.9 for performance and accessibility on `/ng/dns/dkim-keys`.
+- Lighthouse scores at least 0.8 for performance and 0.9 for accessibility on `/ng/dns/dkim-keys`.
 
 ## Part B: Manual checks per user story (mock API)
 

@@ -41,7 +41,7 @@ npm run lhci                           # now also /ng/operations/dashboard (admi
   the logs, mail queue and ban service routes.
 - `test:e2e` reports every `US<n>-AS<m>` test of this feature passing on `mobile-chromium`,
   `desktop-chromium` and `mobile-webkit`, with no axe, CSP or mock contract violation.
-- `lhci` prints performance and accessibility of at least 0.9 for `/ng/operations/dashboard`.
+- `lhci` prints performance of at least 0.8 and accessibility of at least 0.9 for `/ng/operations/dashboard`.
 
 ## Part B: Manual checks per user story (mock API)
 

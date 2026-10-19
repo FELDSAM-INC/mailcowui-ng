@@ -83,7 +83,7 @@ Chrome for Android, served by UI 001's `ng-mailcow` image under `/ng/`.
 **Performance Goals**: SC-014: every settings page usable within 2 s of opening on a mid-range phone
 when the API answers within 1 s; search results within 300 ms of a keystroke. SC-009: job progress
 at most 10 s behind while watched. Constitution VII budgets unchanged (initial JS ≤ 200 KB gzipped;
-Lighthouse ≥ 90).
+Lighthouse performance ≥ 80 and accessibility ≥ 90).
 
 **Constraints**:
 

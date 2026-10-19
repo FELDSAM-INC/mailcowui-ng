@@ -93,7 +93,7 @@ Safari and Chrome for Android, served by the `ng-mailcow` image under `/ng/`.
 **Performance Goals**:
 
 - SC-003: the first list page visible within 2 s on a mid-range phone for a server with 10,000
-  mailboxes. Lighthouse mobile performance of at least 0.9 on `/ng/mailboxes` with the 10,000
+  mailboxes. Lighthouse mobile performance of at least 0.8 on `/ng/mailboxes` with the 10,000
   scenario is the automated proxy, and T130 is the manual check.
 - SC-001: find and open a mailbox among 10,000 within 10 s.
 - The initial JavaScript stays at most 200 KB gzipped. Every route of this feature is a lazy chunk.

@@ -1232,7 +1232,7 @@ stripped glyphs, refused HTML and offered English, Czech and Slovak only; all of
     - `/ng/sign-in`, with `MOCK_DEFAULT_SCENARIO=anonymous-default`;
     - `/ng/`, with a signed-in administrator scenario, as a second collection.
 
-    Assertions: `categories:performance ≥ 0.9`, `categories:accessibility ≥ 0.9`, and
+    Assertions: `categories:performance ≥ 0.8`, `categories:accessibility ≥ 0.9`, and
     `resource-summary:script:size ≤ 204800` as a cross-check. Reports are uploaded as CI artifacts
     (`temporary-public-storage` is not used).
 

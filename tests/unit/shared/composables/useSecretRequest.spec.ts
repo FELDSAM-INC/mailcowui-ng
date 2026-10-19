@@ -64,3 +64,52 @@ describe('useSecretRequest', () => {
     expect(result.result.value).toBeNull()
   })
 })
+
+describe('useSecretRequest (UI 005, research R6, R13)', () => {
+  it('skips the session reactions when asked (the password reset completion)', async () => {
+    const secondFactorRequired = vi.fn()
+    setSessionReactions({
+      unauthenticated: vi.fn(),
+      secondFactorRequired,
+      pendingActionRequired: vi.fn(),
+      forbidden: vi.fn(),
+    })
+    const problem = ApiProblem.fromParts({
+      kind: 'problem',
+      status: 401,
+      type: '/api/v2/problems/second-factor-required',
+    })
+    const quiet = withSetup(() =>
+      useSecretRequest(() => Promise.reject(problem), { sessionReactions: false }),
+    )
+    await quiet.result.run()
+    expect(quiet.result.problem.value).toBe(problem)
+    expect(secondFactorRequired).not.toHaveBeenCalled()
+    const loud = withSetup(() => useSecretRequest(() => Promise.reject(problem)))
+    await loud.result.run()
+    expect(secondFactorRequired).toHaveBeenCalledWith(problem)
+    setSessionReactions(null)
+  })
+
+  it('keeps passwords and secrets out of every query and mutation cache', async () => {
+    const { queryClient } = await import('@/api')
+    const { result } = withSetup(() =>
+      useSecretRequest((password: string) =>
+        Promise.resolve({ generatedPassword: `gen-${password}` }),
+      ),
+    )
+    await result.run('Marker-Password-9')
+    const cached = JSON.stringify([
+      queryClient
+        .getQueryCache()
+        .getAll()
+        .map((query) => query.state),
+      queryClient
+        .getMutationCache()
+        .getAll()
+        .map((mutation) => mutation.state),
+    ])
+    expect(cached).not.toContain('Marker-Password-9')
+    expect(result.result.value?.generatedPassword).toBe('gen-Marker-Password-9')
+  })
+})

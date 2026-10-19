@@ -224,3 +224,26 @@ describe('UI 012: the single sign-on return page', () => {
     },
   )
 })
+
+describe('UI 005: the landing intent (research R20, FR-100)', () => {
+  beforeEach(() => useScenario('anonymous-default'))
+
+  it('marks an anonymous navigation to an app address as requested', async () => {
+    const { router } = setup()
+    const store = useSessionStore()
+    store.landingIntent = 'default'
+    await router.push('/api-keys')
+    expect(router.currentRoute.value.name).toBe('sign-in')
+    expect(store.landingIntent).toBe('requested')
+  })
+
+  it('leaves it default for the home address and the sign-in screen', async () => {
+    const { router } = setup()
+    const store = useSessionStore()
+    store.landingIntent = 'default'
+    await router.push('/')
+    expect(store.landingIntent).toBe('default')
+    await router.push('/sign-in')
+    expect(store.landingIntent).toBe('default')
+  })
+})

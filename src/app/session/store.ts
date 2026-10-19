@@ -13,6 +13,13 @@ export type SessionNotice =
   | 'ssoSessionEnded'
   | 'signedOutSso'
 
+/**
+ * UI 005 (research R20): whether the sign-in started from an app address (`requested`: a bookmark,
+ * a link, a session end) or from the sign-in screen (`default`). Webmail forwarding happens only
+ * for `default`.
+ */
+export type LandingIntent = 'default' | 'requested'
+
 export const DEFAULT_IDLE_TIMEOUT = 10_800
 
 export const useSessionStore = defineStore('session', () => {
@@ -32,6 +39,8 @@ export const useSessionStore = defineStore('session', () => {
    * (research R13). Deadlines such as `PendingSignIn.expiresAt` count down against it.
    */
   const clockSkew = ref(0)
+  /** UI 005: read and reset by `continueAfterSignIn()` (memory only). */
+  const landingIntent = ref<LandingIntent>('default')
 
   function recordActivity(at: number) {
     if (at > lastActivityAt.value) lastActivityAt.value = at
@@ -49,6 +58,7 @@ export const useSessionStore = defineStore('session', () => {
     keptUsername.value = null
     returnTo.value = null
     idleWarningOpen.value = false
+    landingIntent.value = 'default'
   }
 
   return {
@@ -59,6 +69,7 @@ export const useSessionStore = defineStore('session', () => {
     idleTimeout,
     idleWarningOpen,
     clockSkew,
+    landingIntent,
     recordActivity,
     consumeNotice,
     reset,

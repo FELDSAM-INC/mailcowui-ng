@@ -41,10 +41,15 @@ export function routeForState(
 ): Target {
   if (to.meta.public) return true
   switch (state) {
-    case 'anonymous':
+    case 'anonymous': {
       // "Not found" shows signed out too; during a pending step or a restriction it does not.
       if (to.meta.access === 'anonymous' || to.name === 'not-found') return true
-      return sendTo(router, 'sign-in', carriedReturnTo(to, router))
+      const returnTo = carriedReturnTo(to, router)
+      // UI 005 (research R20): a sign-in that starts from an app address opens that address and
+      // is never forwarded to webmail.
+      if (returnTo && !isAuthFlowRoute(to)) useSessionStore().landingIntent = 'requested'
+      return sendTo(router, 'sign-in', returnTo)
+    }
     case 'pendingSecondFactor':
       if (to.name === 'sign-in-second-factor') return true
       return sendTo(router, 'sign-in-second-factor', carriedReturnTo(to, router))

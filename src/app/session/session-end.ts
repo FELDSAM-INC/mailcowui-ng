@@ -47,6 +47,8 @@ async function run(ctx: SessionContext, options: EndSessionOptions): Promise<voi
   )
   store.reset()
   store.returnTo = returnTo
+  // UI 005 (FR-100): signing in again after a session end is never forwarded to webmail.
+  store.landingIntent = 'requested'
   store.notice = options.notice ?? 'sessionEnded'
   if (options.broadcast) ctx.channel.post({ v: 1, type: 'signed-out' })
 

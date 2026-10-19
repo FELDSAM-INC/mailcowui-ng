@@ -18,8 +18,18 @@ export interface SecretRequest<A extends unknown[], R> {
   clear(): void
 }
 
+export interface SecretRequestOptions {
+  /**
+   * UI 005 (research R6): `false` keeps the session reactions out of it. Only the password reset
+   * completion uses it: its `401 second-factor-required` asks for a factor for the reset, not for
+   * a pending sign-in.
+   */
+  sessionReactions?: boolean
+}
+
 export function useSecretRequest<A extends unknown[], R>(
   request: (...args: A) => Promise<R>,
+  options: SecretRequestOptions = {},
 ): SecretRequest<A, R> {
   const pending = ref(false)
   const problem = shallowRef<ApiProblem | null>(null)
@@ -39,7 +49,7 @@ export function useSecretRequest<A extends unknown[], R>(
         ? error
         : ApiProblem.fromParts({ kind: 'network', cause: error })
       problem.value = failure
-      reportSessionProblem(failure)
+      if (options.sessionReactions !== false) reportSessionProblem(failure)
       return null
     } finally {
       pending.value = false

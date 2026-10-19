@@ -666,6 +666,12 @@ export { runMutation } from './query/mutation'
 export {
   queryKeys,
   type AliasDomainListParams,
+  type AppPasswordListParams,
+  type MailboxSieveFilterListParams,
+  type OwnSecondFactorListParams,
+  type RecentLoginListParams,
+  type SieveFilterListParams,
+  type TemporaryAliasListParams,
   type AliasListParams,
   type ApiKeyListParams,
   type ApiKeyOwnerCandidateParams,

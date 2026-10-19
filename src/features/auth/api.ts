@@ -27,6 +27,7 @@ import {
   isSignedIn,
   recordSessionClock,
 } from '@/app/session/queries'
+import { continueAfterSignIn } from '@/app/session/landing'
 import { rerouteCurrent } from '@/app/session/reroute'
 import { useSessionStore, type SessionNotice } from '@/app/session/store'
 import { computeSkew } from '@/shared/composables/useCountdown'
@@ -127,7 +128,9 @@ export async function acceptSingleSignOnSession(
   target: RouteLocationRaw,
 ): Promise<void> {
   await takeSignedInSession(session)
-  await sessionContext().router.replace(target)
+  // UI 005 (research R20): an active session lands through the landing hooks.
+  if (session.state === 'active') await continueAfterSignIn({ target })
+  else await sessionContext().router.replace(target)
 }
 
 /**
@@ -136,7 +139,10 @@ export async function acceptSingleSignOnSession(
  */
 export async function acceptSession(session: Session): Promise<void> {
   await takeSignedInSession(session)
-  await rerouteCurrent(sessionContext().router)
+  // UI 005 (research R20): an active session lands through `continueAfterSignIn()`, the guard
+  // routes every other state.
+  if (session.state === 'active') await continueAfterSignIn()
+  else await rerouteCurrent(sessionContext().router)
 }
 
 /**

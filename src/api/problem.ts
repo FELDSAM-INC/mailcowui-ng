@@ -4,7 +4,9 @@
 import type {
   FieldViolation,
   IdentityProviderInUseProblem,
+  PasswordResetSecondFactorRequiredProblem,
   PendingAction,
+  PermissionFlagRequiredProblem,
   Problem,
   QuarantineDeliveryRefusedProblem,
   QuarantineMessageTooLargeProblem,
@@ -12,6 +14,8 @@ import type {
   SpamFilterPermissionFlagProblem,
   SpamFilterTemporaryFailureProblem,
   SpamPolicyEntryExistsProblem,
+  SecondFactorEnrolmentFailedProblem,
+  SelfServiceTemporaryFailureProblem,
   TooManyRequestsProblem,
 } from './generated/schema'
 
@@ -96,6 +100,42 @@ export class ApiProblem extends Error {
   /** True when this is the problem type `/api/v2/problems/<name>`. */
   is(name: string): boolean {
     return this.kind === 'problem' && problemName(this.type) === name
+  }
+
+  // UI 005 (research R6): extension members of the self-service problems, typed from the
+  // generated problem schemas; empty values when the problem has none.
+
+  /** The flags a refused change needs (`permission-flag-required`). */
+  get requiredFlags(): PermissionFlagRequiredProblem['requiredFlags'] {
+    const value = this.extensions.requiredFlags
+    return Array.isArray(value) ? value.filter((flag) => typeof flag === 'string') : []
+  }
+
+  /** Whether all or any of `requiredFlags` allow the change; `all` when not given. */
+  get requiredFlagsMatch(): NonNullable<PermissionFlagRequiredProblem['requiredFlagsMatch']> {
+    return this.extensions.requiredFlagsMatch === 'any' ? 'any' : 'all'
+  }
+
+  /** The unavailable service of a `temporary-failure`. */
+  get dependency(): NonNullable<SelfServiceTemporaryFailureProblem['dependency']> | null {
+    const value = this.extensions.dependency
+    return typeof value === 'string' ? value : null
+  }
+
+  /** Wrong TOTP codes left before an enrolment is cancelled. */
+  get attemptsRemaining(): NonNullable<
+    SecondFactorEnrolmentFailedProblem['attemptsRemaining']
+  > | null {
+    const value = this.extensions.attemptsRemaining
+    return typeof value === 'number' ? value : null
+  }
+
+  /** The usable second factors of a password reset's `second-factor-required`. */
+  get methods(): PasswordResetSecondFactorRequiredProblem['methods'] {
+    const value = this.extensions.methods
+    return Array.isArray(value)
+      ? (value as PasswordResetSecondFactorRequiredProblem['methods'])
+      : []
   }
 }
 

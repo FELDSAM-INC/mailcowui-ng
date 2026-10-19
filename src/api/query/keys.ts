@@ -66,6 +66,25 @@ export type SpamPolicyEntryListParams = NonNullable<
 export type RateLimitListParams = NonNullable<operations['listRateLimits']['parameters']['query']>
 export type SpamPolicyOwnerKind = 'domain' | 'aliasDomain' | 'mailbox'
 export type RateLimitKind = SpamPolicyOwnerKind
+// UI 005 (data-model §3).
+export type OwnSecondFactorListParams = NonNullable<
+  operations['listOwnSecondFactors']['parameters']['query']
+>
+export type AppPasswordListParams = NonNullable<
+  operations['listAppPasswords']['parameters']['query']
+>
+export type TemporaryAliasListParams = NonNullable<
+  operations['listTemporaryAliases']['parameters']['query']
+>
+export type RecentLoginListParams = NonNullable<
+  operations['listRecentLogins']['parameters']['query']
+>
+export type SieveFilterListParams = NonNullable<
+  operations['listSieveFilters']['parameters']['query']
+>
+export type MailboxSieveFilterListParams = NonNullable<
+  operations['listMailboxSieveFilters']['parameters']['query']
+>
 
 export type Oauth2ClientListParams = NonNullable<
   operations['listOauth2Clients']['parameters']['query']
@@ -135,6 +154,58 @@ export const queryKeys = {
   // UI 004 (data-model §3): the feature's capabilities, and one prefix per area.
   capabilities: {
     aliases: () => ['capabilities', 'aliases'] as const,
+    // UI 005: read signed out on the sign-in screens and signed in everywhere else; the cache is
+    // cleared at every sign-in and sign-out, so the two answers never mix.
+    selfService: () => ['capabilities', 'self-service'] as const,
+  },
+  // UI 005 (data-model §3): the signed-in account's own objects. Requests that carry or return a
+  // secret never go through these caches (`useSecretRequest`).
+  me: {
+    all: () => ['me'] as const,
+    passwordPolicy: () => ['me', 'password-policy'] as const,
+    secondFactors: () => ['me', 'second-factors'] as const,
+    secondFactorList: (params: OwnSecondFactorListParams) =>
+      ['me', 'second-factors', params] as const,
+    recoveryEmail: () => ['me', 'recovery-email'] as const,
+    mailbox: () => ['me', 'mailbox'] as const,
+    clientConfiguration: () => ['me', 'client-configuration'] as const,
+  },
+  // UI 005: one mailbox's self-service objects, by its lower-case address.
+  selfService: {
+    all: () => ['self-service'] as const,
+    mailbox: (address: string) => ['self-service', address.toLowerCase()] as const,
+    appPasswords: (address: string) =>
+      ['self-service', address.toLowerCase(), 'app-passwords'] as const,
+    appPasswordList: (address: string, params: AppPasswordListParams) =>
+      ['self-service', address.toLowerCase(), 'app-passwords', 'list', params] as const,
+    appPassword: (address: string, id: number) =>
+      ['self-service', address.toLowerCase(), 'app-passwords', 'detail', id] as const,
+    temporaryAliases: (address: string) =>
+      ['self-service', address.toLowerCase(), 'temporary-aliases'] as const,
+    temporaryAliasList: (address: string, params: TemporaryAliasListParams) =>
+      ['self-service', address.toLowerCase(), 'temporary-aliases', 'list', params] as const,
+    temporaryAliasDomains: (address: string) =>
+      ['self-service', address.toLowerCase(), 'temporary-alias-domains'] as const,
+    pushNotifications: (address: string) =>
+      ['self-service', address.toLowerCase(), 'push-notifications'] as const,
+    mailSettings: (address: string) =>
+      ['self-service', address.toLowerCase(), 'mail-settings'] as const,
+    recentLogins: (address: string) =>
+      ['self-service', address.toLowerCase(), 'recent-logins'] as const,
+    recentLoginList: (address: string, params: RecentLoginListParams) =>
+      ['self-service', address.toLowerCase(), 'recent-logins', params] as const,
+    activeSieveScript: (address: string) =>
+      ['self-service', address.toLowerCase(), 'active-sieve-script'] as const,
+  },
+  // UI 005: Sieve filters of every mailbox in scope, of one mailbox, and one filter.
+  sieveFilters: {
+    all: () => ['sieve-filters'] as const,
+    list: (params: SieveFilterListParams) => ['sieve-filters', 'list', params] as const,
+    mailboxLists: (address: string) => ['sieve-filters', 'mailbox', address.toLowerCase()] as const,
+    mailbox: (address: string, params: MailboxSieveFilterListParams) =>
+      ['sieve-filters', 'mailbox', address.toLowerCase(), params] as const,
+    detail: (address: string, id: number) =>
+      ['sieve-filters', 'detail', address.toLowerCase(), id] as const,
   },
   aliases: {
     all: () => ['aliases'] as const,

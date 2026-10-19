@@ -33,7 +33,14 @@ export function installSession(ctx: SessionContext): () => void {
     unauthenticated: () => void endSession(ctx),
     secondFactorRequired: () => void refetchAndReroute(ctx, false),
     pendingActionRequired: () => void refetchAndReroute(ctx, true),
-    forbidden: () => void ctx.queryClient.invalidateQueries({ queryKey: queryKeys.identity() }),
+    forbidden: (problem) => {
+      void ctx.queryClient.invalidateQueries({ queryKey: queryKeys.identity() })
+      // UI 005 (research R6, FR-007): a withdrawn flag also changes what the self-service
+      // capabilities allow, so sections become hidden or read-only.
+      if (problem.is('permission-flag-required')) {
+        void ctx.queryClient.invalidateQueries({ queryKey: queryKeys.capabilities.selfService() })
+      }
+    },
     // UI 012 (FR-052): the provider ended the single sign-on session.
     identityProviderSessionEnded: () => void endSession(ctx, { notice: 'ssoSessionEnded' }),
   })

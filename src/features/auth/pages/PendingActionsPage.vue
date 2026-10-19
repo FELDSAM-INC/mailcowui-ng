@@ -10,7 +10,8 @@ import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, PendingAction } from '@/api'
 import { sessionContext } from '@/app/session/context'
-import { fetchSession, identityQuery, useSessionQuery } from '@/app/session/queries'
+import { continueAfterSignIn } from '@/app/session/landing'
+import { cachedSession, fetchSession, identityQuery, useSessionQuery } from '@/app/session/queries'
 import { rerouteCurrent } from '@/app/session/reroute'
 import { useSignOut } from '@/app/session/sign-out'
 import { usePasskeyRegistration } from '@/features/passkeys'
@@ -70,7 +71,11 @@ async function register() {
   const passkey = await registration.register()
   // The registration read the session and the identity again; the guard continues once the
   // restriction has lifted.
-  if (passkey) await rerouteCurrent(sessionContext().router)
+  if (!passkey) return
+  // UI 005 (research R20): an active session lands through the landing hooks.
+  const ctx = sessionContext()
+  if (cachedSession(ctx.queryClient)?.state === 'active') await continueAfterSignIn()
+  else await rerouteCurrent(ctx.router)
 }
 </script>
 

@@ -184,7 +184,7 @@ test.describe('editing a sync job', () => {
     await page.getByLabel('Username').fill('alice.old')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
-      page.getByText('Object imap.old-mail.example / alice.old already exists'),
+      page.getByRole('main').getByText('Object imap.old-mail.example / alice.old already exists'),
     ).toBeVisible()
     await page.getByRole('link', { name: 'Open the existing job' }).click()
     // The form still holds the unsaved input, so leaving asks first.

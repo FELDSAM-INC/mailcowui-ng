@@ -326,7 +326,7 @@ test.describe('creating a sync job', () => {
     await fillRequired(page, 'mail.previous.example', 'alice')
     await page.getByRole('button', { name: 'Add' }).click()
     await expect(
-      page.getByText('Object mail.previous.example / alice already exists'),
+      page.getByRole('main').getByText('Object mail.previous.example / alice already exists'),
     ).toBeVisible()
     await expect(field(page, 'remoteHost')).toHaveValue('mail.previous.example')
     await page.getByRole('link', { name: 'Open the existing job' }).click()

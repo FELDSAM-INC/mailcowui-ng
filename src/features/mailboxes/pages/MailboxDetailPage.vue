@@ -26,6 +26,8 @@ import { useConfirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
+import { MailboxSyncJobsLink } from '@/features/sync-jobs'
+
 import { useMailbox } from '../api'
 import MailboxUsage from '../components/display/MailboxUsage.vue'
 import AclSection from '../components/sections/AclSection.vue'
@@ -187,6 +189,8 @@ const subtitle = computed(() => {
             :target-id="mailbox.address"
             :allowed="historyAllowed"
           />
+          <!-- UI 008 (FR-004): the mailbox's sync jobs, for whoever may open them. -->
+          <MailboxSyncJobsLink :address="mailbox.address" />
         </template>
       </PageHeader>
       <p

@@ -46,6 +46,24 @@ describe('auditLabel', () => {
     }
   })
 
+  it('UI 010 T102 translates the DKIM and MTA-STS events and targets', () => {
+    for (const [type, label] of [
+      ['dkimKeyGeneration', 'DKIM key generated'],
+      ['dkimKeyImport', 'DKIM key imported'],
+      ['dkimKeyCopy', 'DKIM key copied'],
+      ['dkimKeyDeletion', 'DKIM key removed'],
+      ['dkimPrivateKeyExport', 'DKIM private key exported'],
+      ['dkimDnsPublication', 'DKIM record published'],
+      ['mtaStsPolicyCreation', 'MTA-STS policy added'],
+      ['mtaStsPolicyUpdate', 'MTA-STS policy changed'],
+    ]) {
+      expect(auditLabel('eventType', type!, tr)).toBe(label)
+    }
+    expect(auditLabel('targetType', 'dkimKey', tr)).toBe('DKIM key')
+    // The MTA-STS policy target uses the classic tab's name (LEGACY_TEXTS).
+    expect(auditLabel('targetType', 'mtaStsPolicy', tr)).toBe('MTA-STS')
+  })
+
   it('shows codes of later features with a generic label and the code', () => {
     expect(auditLabel('eventType', 'massMailJobCreation', tr)).toBe('Unknown (massMailJobCreation)')
     expect(auditLabel('failureReason', 'quotaExceeded', tr)).toBe('Unknown (quotaExceeded)')

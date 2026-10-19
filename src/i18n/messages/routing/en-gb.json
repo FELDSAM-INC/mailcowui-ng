@@ -11,6 +11,71 @@
       "refreshFailed": "The list could not be refreshed. The entries shown may be out of date.",
       "test": "Test"
     },
+    "connectionTest": {
+      "copy": "Copy transcript",
+      "copyRefused": "The browser did not allow copying. The transcript is selected: copy it yourself.",
+      "direction": {
+        "client": "Sent",
+        "info": "Note",
+        "server": "Received"
+      },
+      "duration": "({seconds} s)",
+      "failedAt": "Failed at: {step}",
+      "legend": "C: sent by the test · S: received from the server · *: note of the test",
+      "login": {
+        "failed": "Failed",
+        "notConfigured": "No username stored, no login",
+        "notReached": "Not reached",
+        "succeeded": "Succeeded"
+      },
+      "noDialogue": "No dialogue took place.",
+      "noReply": "No reply from the server",
+      "noResult": "No result was received. The test may still have sent a message.",
+      "notReached": "Not reached",
+      "reached": "Reached: {step}",
+      "reason": {
+        "connectionClosed": "The server closed the connection.",
+        "connectionFailed": "The connection failed.",
+        "connectionRefused": "The connection was refused.",
+        "dnsTemporaryFailure": "DNS could not be queried.",
+        "loginMechanismNotSupported": "The server offers neither PLAIN nor LOGIN.",
+        "loginNotOffered": "The server offers no login.",
+        "nameNotResolved": "The host has no address.",
+        "rejected": "The server rejected it.",
+        "timeout": "No answer in time.",
+        "tlsFailed": "The TLS handshake failed."
+      },
+      "reasonUnknown": "The test stopped ({reason}).",
+      "result": "Test result",
+      "server": "Server",
+      "state": {
+        "failed": "Failed",
+        "notConfigured": "Not configured",
+        "notOffered": "Not offered",
+        "notReached": "Not reached",
+        "passed": "Passed"
+      },
+      "step": {
+        "connect": "Connection",
+        "greeting": "Greeting",
+        "login": "Login",
+        "message": "Message",
+        "recipient": "Recipient",
+        "resolve": "Name resolution",
+        "sender": "Sender",
+        "tls": "TLS"
+      },
+      "time": "Time",
+      "title": "Transport",
+      "tlsNotUsed": "Not used",
+      "tlsUsed": "Used (STARTTLS)",
+      "transcript": "Transcript (server output, not translated)",
+      "verdict": {
+        "accepted": "Accepted",
+        "notAccepted": "Not accepted"
+      },
+      "viaMx": "(MX lookup of {nextHop})"
+    },
     "credentials": {
       "none": "No password is stored.",
       "removalPending": "The password will be removed when you save.",

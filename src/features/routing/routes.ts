@@ -72,6 +72,14 @@ export const routingRoutes: RouteRecordRaw[] = [
     legacy('admin.in_use_by'),
     { roles: ADMIN },
   ),
+  // US4: the connection test.
+  route(
+    '/routing/relayhosts/:relayhostId(\\d+)/test',
+    'routing-relayhost-test',
+    () => import('./pages/ConnectionTestPage.vue'),
+    'routing.connectionTest.title',
+    { roles: ADMIN, props: { kind: 'relayhost' } },
+  ),
   // US3: Transport Maps.
   route(
     '/routing/transports',
@@ -93,5 +101,12 @@ export const routingRoutes: RouteRecordRaw[] = [
     () => import('./pages/transports/TransportEditPage.vue'),
     legacy('edit.title'),
     { roles: ADMIN },
+  ),
+  route(
+    '/routing/transports/:transportId(\\d+)/test',
+    'routing-transport-test',
+    () => import('./pages/ConnectionTestPage.vue'),
+    'routing.connectionTest.title',
+    { roles: ADMIN, props: { kind: 'transport' } },
   ),
 ]

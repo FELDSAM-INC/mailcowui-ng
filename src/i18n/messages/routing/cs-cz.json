@@ -11,6 +11,71 @@
       "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené položky mohou být zastaralé.",
       "test": "Test"
     },
+    "connectionTest": {
+      "copy": "Kopírovat přepis",
+      "copyRefused": "Prohlížeč kopírování nepovolil. Přepis je označen: zkopírujte jej sami.",
+      "direction": {
+        "client": "Odesláno",
+        "info": "Poznámka",
+        "server": "Přijato"
+      },
+      "duration": "({seconds} s)",
+      "failedAt": "Selhalo při: {step}",
+      "legend": "C: odesláno testem · S: přijato od serveru · *: poznámka testu",
+      "login": {
+        "failed": "Neúspěšné",
+        "notConfigured": "Není uloženo uživatelské jméno, bez přihlášení",
+        "notReached": "Nedosaženo",
+        "succeeded": "Úspěšné"
+      },
+      "noDialogue": "Žádná komunikace neproběhla.",
+      "noReply": "Žádná odpověď serveru",
+      "noResult": "Nepřišel žádný výsledek. Test mohl zprávu přesto odeslat.",
+      "notReached": "Nedosaženo",
+      "reached": "Dosaženo: {step}",
+      "reason": {
+        "connectionClosed": "Server spojení ukončil.",
+        "connectionFailed": "Spojení se nezdařilo.",
+        "connectionRefused": "Spojení bylo odmítnuto.",
+        "dnsTemporaryFailure": "DNS se nepodařilo dotázat.",
+        "loginMechanismNotSupported": "Server nenabízí PLAIN ani LOGIN.",
+        "loginNotOffered": "Server nenabízí přihlášení.",
+        "nameNotResolved": "Host nemá žádnou adresu.",
+        "rejected": "Server to odmítl.",
+        "timeout": "Odpověď nepřišla včas.",
+        "tlsFailed": "Navázání TLS se nezdařilo."
+      },
+      "reasonUnknown": "Test se zastavil ({reason}).",
+      "result": "Výsledek testu",
+      "server": "Server",
+      "state": {
+        "failed": "Selhalo",
+        "notConfigured": "Nenastaveno",
+        "notOffered": "Nenabízeno",
+        "notReached": "Nedosaženo",
+        "passed": "Prošlo"
+      },
+      "step": {
+        "connect": "Spojení",
+        "greeting": "Pozdrav",
+        "login": "Přihlášení",
+        "message": "Zpráva",
+        "recipient": "Příjemce",
+        "resolve": "Překlad názvu",
+        "sender": "Odesílatel",
+        "tls": "TLS"
+      },
+      "time": "Čas",
+      "title": "Transport",
+      "tlsNotUsed": "Nepoužito",
+      "tlsUsed": "Použito (STARTTLS)",
+      "transcript": "Přepis (výstup serveru, nepřeloženo)",
+      "verdict": {
+        "accepted": "Přijato",
+        "notAccepted": "Nepřijato"
+      },
+      "viaMx": "(vyhledání MX pro {nextHop})"
+    },
     "credentials": {
       "none": "Žádné heslo není uloženo.",
       "removalPending": "Heslo bude odstraněno při uložení.",

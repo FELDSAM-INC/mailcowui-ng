@@ -229,6 +229,10 @@
     "dns.diagnostics.status": "#/components/schemas/DnsCheckStatus",
     "dns.diagnostics.messages": "#/components/schemas/DnsCheckMessageCode",
     "dns.diagnostics.scopes": "#/components/schemas/DnsCheck/properties/scope",
-    "dns.mtaSts.sort": "#/components/parameters/MtaStsPolicySort/schema"
+    "dns.mtaSts.sort": "#/components/parameters/MtaStsPolicySort/schema",
+    "routing.connectionTest.step": "#/components/schemas/RoutingConnectionTestStep",
+    "routing.connectionTest.reason": "#/components/schemas/RoutingConnectionTestResult/properties/failure/oneOf/0/properties/reason",
+    "routing.connectionTest.login": "#/components/schemas/RoutingConnectionTestResult/properties/login",
+    "routing.connectionTest.direction": "#/components/schemas/RoutingConnectionTestResult/properties/transcript/items/properties/direction"
   }
 }

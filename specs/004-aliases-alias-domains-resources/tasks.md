@@ -1278,29 +1278,29 @@ audit log is filtered by that object. As a domain administrator, check that the 
 - [X] T110 *(done: storage-and-secrets.spec.ts: alias form, section draft over a session expiry, sender fields; fixed UI 001's sign-in landing, which dropped the query of returnTo (an open section ?edit=, list filters))* [P] Extend `tests/e2e/shell/storage-and-secrets.spec.ts` with the US2, US3 and US5 flows,
   including a session expiry with a restored draft. `localStorage` and `sessionStorage` hold only
   UI 001's keys, and no form value appears in storage or `history.state`.
-- [ ] T111 Add the `/ng/aliases` collection (`MOCK_DEFAULT_SCENARIO=aliases-60`, active admin) to
+- [ ] T111 *(open: the /ng/aliases collection is added and `npm run budget:check` passes at 173.8 of 200 KB initial (main 171.6 KB, after moving UI 004's shared pieces out of the router's import graph and gating the add-domain-alias route by flag); `npm run lhci` still fails: performance is below 0.9 on every collection, main's own pages included (host load average 20-77 during the runs: main scored 0.58-0.8), and the sign-in page's scripts are 206,634 B against 204,800 B (main 204,356 B, 444 B of headroom; UI 004 adds three route modules, the shared list strings and the navigation icons). Needs a quiet host and an owner decision on the budget.)* Add the `/ng/aliases` collection (`MOCK_DEFAULT_SCENARIO=aliases-60`, active admin) to
   `scripts/run-lhci.mjs` (research R22). Run `npm run build && npm run budget:check && npm run lhci`,
   and fix regressions until the initial JavaScript is at most 204,800 bytes gzipped and performance
   and accessibility are at least 0.9 on every collection.
-- [ ] T112 Check parity coverage (SC-008): every Matched or Improved row of the spec's "Legacy
+- [X] T112 *(done: quickstart.md Validation log: 71 of 71 Matched or Improved rows covered (three test titles gained their FR ID))* Check parity coverage (SC-008): every Matched or Improved row of the spec's "Legacy
   parity" tables has at least one end-to-end test whose title carries one of the row's FR IDs. List
   the result per row in a "Validation log" section appended to
   `specs/004-aliases-alias-domains-resources/quickstart.md`, and add any missing test.
-- [ ] T113 [P] Align `specs/004-aliases-alias-domains-resources/spec.md` with the plan:
+- [X] T113 *(done: spec.md: decisions applied and the updated rows, parity notes 1-4, the form-map key check under Translation reuse, API gaps G1-G4 (all closed at 33f1eea), the page-size notes under FR-005 and FR-071)* [P] Align `specs/004-aliases-alias-domains-resources/spec.md` with the plan:
   - add the plan's parity notes 1–4 to "Legacy parity";
   - check that "Translation reuse" matches T005a's legacy form map (constitution IV 1.3.0);
   - list API gaps G1–G4 under "API gaps";
   - note under FR-005 and FR-071 that the page sizes follow the conventions and the API-wide list
     defaults, so that lists work without the capabilities (research R5).
-- [ ] T114 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the production
+- [ ] T114 *(open: needs a mid-range Android phone and an iPhone on the local network with VoiceOver and TalkBack; not available to the agent.)* Run `quickstart.md` Part B on a mid-range Android phone and an iPhone, with the production
   build served by `npm run preview:mock` on the local network and "Fast 4G" throttling. Record in
   the Validation log of `specs/004-aliases-alias-domains-resources/quickstart.md`:
   - the timings for SC-001, SC-002, SC-009 and SC-010, and the SC-011 identification results;
   - a VoiceOver and a TalkBack pass over every story.
-- [ ] T115 Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, then
+- [ ] T115 *(open: needs the mailcow-rest-v2 dev stack at the pin; not started, as other agents share the Docker host and its load was 20-77 during this work. The smoke specs are written: aliases-list, aliases-create, aliases-edit, aliases-bulk, alias-domains, resources, sender-settings.)* Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, then
   `npm run test:smoke -- --grep @feature-004`, then `scripts/smoke/stack-down.sh`) against the
   mailcow-rest-v2 dev stack at the pinned commit.
-- [ ] T116 [P] Run `npm run i18n:check`, remove the unused keys it reports from
+- [X] T116 *(done: i18n:check reports no unused key; 55 new strings per language (plus 20 UI 002 strings moved to lists.*/forms.rateLimit.*), listed for review in quickstart.md)* [P] Run `npm run i18n:check`, remove the unused keys it reports from
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, check that no new string duplicates a legacy key of
   the form map, and list this feature's new cs-cz and sk-sk strings for the owner's review (plan,
   owner question 2).

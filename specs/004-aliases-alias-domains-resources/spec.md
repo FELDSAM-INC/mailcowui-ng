@@ -567,7 +567,8 @@ absent.
 
 - **FR-005**: Each list MUST be paged by the server, MUST show the total number of matching objects,
   MUST start with the default page size from the capabilities (25) and MUST let the user choose 25,
-  50 or 100 entries per page.
+  50 or 100 entries per page. The page sizes follow the conventions and the API-wide list defaults,
+  so that the lists work while the capabilities are not read yet (plan research R5).
 - **FR-006**: The search text, filters, sort order, page and page size MUST be part of the screen's
   address, so that reloading, going back and sharing a link restore the same view.
 - **FR-007**: At viewport widths below 768 CSS px, entries MUST be shown as cards with no horizontal
@@ -868,7 +869,9 @@ absent.
   the page sizes, the field limits (comment bytes, destination length, description length, booking
   range), the rate limit time frames, the DKIM key sizes and the DKIM defaults from the capabilities
   read of API feature 004, never from fixed values. When the capabilities cannot be read, the forms
-  and mass actions that depend on them MUST show the error state with a retry action.
+  and mass actions that depend on them MUST show the error state with a retry action. The page sizes
+  are the exception: they follow the conventions and the API-wide list defaults, so that the lists
+  never wait for the capabilities (plan research R5).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -902,7 +905,28 @@ Legacy reference: FeldHost fork `~/Projects/mailhosting/data/web` (upstream tag 
 alias, alias domain and resource templates, `js/site/mailbox.js` and `js/site/edit.js` are identical
 to upstream apart from the default DKIM selector `feldhost` in the add alias domain dialog and the
 product name in one help text. Status: **Matched** (same capability), **Improved** (same capability,
-better), **Moved** (provided by another UI feature), **Dropped** (with reason).
+better), **Moved** (provided by another UI feature), **Dropped** (with reason), **Deferred** (not built
+until the owner decides).
+
+**Decisions applied (orchestrator, 2026-10-18 and 2026-10-19; plan "Legacy form map" part 3).** The
+forms mirror legacy one to one: the goto checkboxes, the sender multi-select and the booking select
+are legacy's controls; each legacy form is one section; deletion and "Expand alias over alias
+domains" stay in the lists; outcomes are legacy's alerts; no confirmation legacy lacks except the
+typed and bulk ones; "Allow to send as" and "External sender addresses" sit in UI 003's Mailbox
+section at their legacy positions. The rows below are updated to these decisions.
+
+**Parity notes from the plan.**
+
+1. `mailbox.alias_domain_alias_hint` is shown verbatim, with its markup, through the legacy
+   sanitiser (constitution IV 1.3.0).
+2. Eight values are missing from upstream `2026-09a` (`add.internal`, `edit.internal_info`,
+   `edit.sender_allowed` and `edit.sender_allowed_info` in sk-sk; `acl.alias_external_goto` and
+   `danger.external_goto_denied` in cs-cz and sk-sk). They fall back to `en-gb`, as in the classic
+   interface, and are never written by hand; the FeldHost fork's files contain them.
+3. Destinations, copy addresses and external sender addresses are shown in readable form from the
+   API's `…Unicode` members (API gap G2, closed).
+4. The list action "Edit" opens the detail screen with its one section open for editing
+   (`?edit=alias`, `?edit=general`, `?edit=resource`).
 
 ### Mail setup › Aliases tab (`mailbox/tab-mbox-aliases.twig`, `draw_alias_table()`)
 
@@ -938,10 +962,10 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 | Alias address/es text area, comma-separated, `@domain` for catch-all | Matched | FR-018, FR-019, FR-021 | Per-address results; refused entries stay for correction |
 | Help text naming the product ("mailcow domains only", fork: "FeldHost™ Mailhosting domains only") | Matched | FR-067 | `add.alias_address_info` verbatim, as the installation's file has it (constitution IV 1.3.0) |
 | Goto addresses text area | Matched | FR-018 | |
-| Mutually exclusive checkboxes "Silently discard", "Learn as spam", "Learn as ham" that disable the goto field | Improved | FR-018 | One single-choice control; pending a decision under constitution IV 1.3.0 (plan, "Deviations needing a decision" 2) |
+| Mutually exclusive checkboxes "Silently discard", "Learn as spam", "Learn as ham" that disable the goto field | Matched | FR-018 | Legacy's three checkboxes; the goto field keeps its text while disabled |
 | "Alias is visible in SOGo" (checked; hidden when the groupware is disabled) | Matched | FR-018, FR-071 | Hidden when the capabilities report the groupware disabled |
 | "Internal" (unchecked), "Allow to send as this alias" (checked), "Active" (checked) | Matched | FR-018 | Same defaults |
-| Comments only on the edit page | Improved | FR-018 | Comments can be set at creation |
+| Comments only on the edit page | Matched | FR-018, FR-022 | Comments are edited on the alias page, as in legacy |
 | Form input cached between openings of the dialog | Dropped | FR-025 | Replaced by the unsaved-changes guard |
 | Invalid destinations and addresses skipped with a message each, the rest saved | Improved | FR-021, FR-023 | Nothing saved for an invalid entry; each entry marked at its field |
 
@@ -949,11 +973,11 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 
 | Legacy element | Status | Requirements | Notes |
 |---|---|---|---|
-| Address, goto, special action checkboxes | Matched | FR-022 | Single-choice destination control |
+| Address, goto, special action checkboxes | Matched | FR-022 | One "Edit alias" section in legacy's order |
 | SOGo visible, internal, sending allowed, active | Matched | FR-022 | |
 | Private and public comment, at most 160 characters | Matched | FR-019, FR-022 | Limit from the capabilities, stated in bytes as the API counts |
 | Save | Improved | FR-022, FR-026, FR-027 | Only changed values, protected by the version tag |
-| No delete on the edit page | Improved | FR-016, FR-029 | Delete from the detail view |
+| No delete on the edit page | Matched | FR-015, FR-029 | Deletion from the list's entry menu, as in legacy |
 
 ### Mail setup › Domain aliases tab (`mailbox/tab-domain-aliases.twig`, `draw_aliasdomain_table()`)
 
@@ -962,12 +986,12 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 | "Domain aliases" entry in the "Aliases" tab dropdown | Improved | FR-001 | Own navigation entry, labelled `mailbox.domain_aliases` ("Domain aliases") |
 | Columns alias domain, target domain (link to edit domain), active | Matched | FR-033 | |
 | Badge "Alias domain inactive for relay domain" | Matched | FR-033, FR-063 | |
-| — | Improved | FR-033 | New: number of aliases, linked to the filtered alias list |
+| — | Deferred | FR-033 | The number of aliases with its link: not built until the owner decides (legacy shows none) |
 | Row actions edit, remove | Matched | FR-015, FR-029 | Confirmation states the cascade |
 | Row action DNS (DNS diagnostics dialog) | Moved | — | UI feature 010 (DNS diagnostics) |
 | Client-side search, sorting, paging | Improved | FR-034, FR-005 | Server-side, plus target and active filters |
 | Toggle all, quick actions activate, deactivate, remove | Matched | FR-056 to FR-059 | |
-| "Add domain alias" button gated by `alias_domains` | Matched | FR-002, FR-041 | Plus a note explaining the missing permission |
+| "Add domain alias" button gated by `alias_domains` | Matched | FR-002, FR-041 | Hidden without the permission, as legacy; the add address says "no access" (the explanatory note is deferred) |
 
 ### Add domain alias dialog (`#addAliasDomainModal`)
 
@@ -977,8 +1001,8 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 | Target domain select | Improved | FR-036, FR-011 | Searchable picker; relay domains not selectable, with reason |
 | Active (checked) | Matched | FR-036 | |
 | Rate limit value and frame | Matched | FR-036, FR-002 | Offered only when the user may set it |
-| DKIM selector (pre-filled `dkim`, fork `feldhost`) and key size (2048) | Improved | FR-036, FR-071 | Pre-filled from the server's defaults; explicit "Generate a DKIM key" switch instead of an emptied field |
-| One success or error message per step | Improved | FR-038 | Creation report with one line per follow-up step |
+| DKIM selector (pre-filled `dkim`, fork `feldhost`) and key size (2048) | Improved | FR-036, FR-071 | Pre-filled from the server's defaults; emptied, no key is generated, as in legacy |
+| One success or error message per step | Matched | FR-038 | Legacy's alert per outcome; new strings only for outcomes legacy cannot report |
 
 ### Edit alias domain page (`edit/aliasdomain.twig`)
 
@@ -1013,17 +1037,17 @@ better), **Moved** (provided by another UI feature), **Dropped** (with reason).
 
 | Legacy element | Status | Requirements | Notes |
 |---|---|---|---|
-| Fields inside the long Edit mailbox form | Improved | FR-048 | Own "Send as" screen, keeping the mailbox form short |
-| One multi-select mixing domains ("Disable sender check for domain %s (+ alias domains)"), `*`, addresses and aliases with "Alias (allowed)" / "Alias (blocked)" | Improved | FR-049, FR-050 | Separate sections for always allowed, receive-only and explicit entries; searchable paged picker |
-| Blocked aliases selectable to allow sending | Matched | FR-049 | "Allow sending as this alias" on each receive-only alias |
+| Fields inside the long Edit mailbox form | Matched | FR-048 | In UI 003's Mailbox section at their legacy positions, saved with it |
+| One multi-select mixing domains ("Disable sender check for domain %s (+ alias domains)"), `*`, addresses and aliases with "Alias (allowed)" / "Alias (blocked)" | Improved | FR-049, FR-050 | Legacy's multi-select with its labels and subtexts, searched and paged by the server |
+| Blocked aliases selectable to allow sending | Matched | FR-049 | Offered as "Alias (blocked)" options, as in legacy |
 | Administrator-set entries shown disabled for domain administrators | Matched | FR-049 | With the reason, as "not changeable by you" |
-| `*` option ("any address") | Improved | FR-051 | Separate administrator-only switch with a warning |
+| `*` option ("any address") | Matched | FR-051 | An option for administrators only, without an extra confirmation |
 | Badge "Sender check is disabled" | Matched | FR-049, FR-051 | |
 | Hint `sender_acl_info` about groupware delegation | Matched | FR-053 | |
-| External sender addresses text field, shown only with `extend_sender_acl` | Improved | FR-052 | List editor; read-only view without the permission |
+| External sender addresses text field, shown only with `extend_sender_acl` | Matched | FR-052 | Legacy's text field; hidden without the permission, as legacy |
 | Hint `extended_sender_acl_info` | Matched | FR-052 | |
 | — | Improved | FR-049 | New: stale entries marked "no longer exists" |
-| Saved with the whole mailbox form, invalid entries skipped, last write wins | Improved | FR-054, FR-027 | Own save with version tag and per-entry messages |
+| Saved with the whole mailbox form, invalid entries skipped, last write wins | Improved | FR-054, FR-027 | Saved with the Mailbox section, each changed set whole with its version tag, refused entries marked |
 
 ### Translation reuse
 
@@ -1058,6 +1082,9 @@ upstream cs-cz or sk-sk files and fall back to `en-gb`, as in the classic interf
 fork's files contain them. `mailbox.domain_aliases` and `mailbox.add_domain_alias` keep their legacy
 texts in every language. `add.alias_address_info` is shown as the installation's file has it ("mailcow
 domains only", fork: "FeldHost™ Mailhosting domains only").
+
+Checked against the legacy form map at implementation (T113): the forms also use `add.active`, `add.alias_domain_info`, `add.domain`, `add.select`, `add.target_address_info`, `admin.add`, `admin.refresh`, `datatables.search`, `datatables.info`, `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords`, `edit.alias`, `edit.target_address`, `edit.target_domain`, `edit.internal`, `edit.active`, `edit.kind`, `edit.resource`, `edit.save`, `edit.dont_check_sender_acl`, `edit.created_on`, `edit.last_modified`, `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel`, `mailbox.edit`, `mailbox.action`, `mailbox.active`, `mailbox.all_domains`, `mailbox.domain`, `mailbox.domains`, `mailbox.description`, `mailbox.kind`, `mailbox.multiple_bookings`, `mailbox.internal`, `mailbox.sogo_visible`, `mailbox.public_comment`, `mailbox.private_comment`, `mailbox.goto_spam`, `mailbox.goto_ham`, `mailbox.yes`, `mailbox.no`, `ratelimit.disabled`, `danger.access_denied`, `danger.alias_goto_identical`, `danger.comment_too_long`, `danger.domain_not_found`, `danger.domain_invalid`, `danger.domain_cannot_match_hostname`, `danger.targetd_not_found`, `danger.targetd_relay_domain`, `danger.rl_timeframe`, `danger.is_alias`, `danger.is_spam_alias`, `danger.sender_acl_invalid`, `danger.extended_sender_acl_denied`, `danger.dkim_domain_or_sel_invalid`, `success.rl_saved`, `success.dkim_added`, `success.domain_add_dkim_available` and `success.mailbox_modified`, each in
+the role the form map gives it.
 
 ## API dependency
 
@@ -1096,15 +1123,23 @@ This feature uses only these API capabilities. Items 1 to 7 come from mailcow-re
 9. **API feature 002**: the searchable domain list with each domain's relay state, for the domain
    pickers and filters.
 10. **UI features 002 and 003** (no further API operations): the domain screens linked from aliases
-    and alias domains, and the mailbox detail screen that links to "Send as".
+    and alias domains, and the mailbox detail screen whose Mailbox section holds "Allow to send as".
 
 ### API gaps
 
-None at API commit `8b59f80`. Three gaps found during the legacy analysis, against the first API
-draft, were closed by the capabilities read (API FR-068): whether the groupware is enabled, whether
-external destinations are disabled for everyone, and the default DKIM selector and key size. If the
-merged contract lacks any capability listed above, the gap is specified in mailcow-rest-v2 first and
-the UI does not work around it.
+The plan found four gaps against the planning commit `3207925`; all are closed at the implementation
+pin `33f1eea` (contracts/README.md):
+
+- **G1**: grantable entries and explicit permissions now carry `kind` (domain, alias domain, alias,
+  mailbox, any address), so the multi-select labels them as legacy does (FR-050).
+- **G2**: destinations, copy addresses and external sender addresses now have `…Unicode` twins.
+- **G3**: `docs/audit-events.md` documents the feature 004 detail keys; History presents them
+  (US8).
+- **G4**: the `localDomain` wording is aligned to `kind: localDomain`.
+
+Three earlier gaps were closed by the capabilities read (API FR-068): whether the groupware is
+enabled, whether external destinations are disabled for everyone, and the default DKIM selector and
+key size. A new gap is specified in mailcow-rest-v2 first; the UI does not work around it.
 
 ## Success Criteria *(mandatory)*
 

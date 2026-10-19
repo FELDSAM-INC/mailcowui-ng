@@ -14,7 +14,7 @@ const creations = async (mockApi: {
 }) => (await mockApi.requests()).filter((request) => request.operationId === 'createAlias')
 
 test.describe('alias creation', () => {
-  test('US2-AS1 FR-018 FR-021 one address opens the new alias, with the legacy defaults sent', async ({
+  test('US2-AS1 FR-018 FR-021 FR-067 one address opens the new alias, with the legacy defaults and help text', async ({
     page,
     mockApi,
     expectAccessible,

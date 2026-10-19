@@ -15,7 +15,7 @@ const add = (page: Page) => page.getByRole('button', { name: 'Add', exact: true 
 const selector = (page: Page) => page.getByRole('textbox', { name: 'Selector' })
 
 test.describe('domain aliases: creation', () => {
-  test("US4-AS1 FR-036 one name sends the form as shown and opens the new alias domain with legacy's alerts", async ({
+  test("US4-AS1 FR-036 FR-038 one name sends the form as shown and opens the new alias domain with legacy's alerts", async ({
     page,
     mockApi,
     expectAccessible,

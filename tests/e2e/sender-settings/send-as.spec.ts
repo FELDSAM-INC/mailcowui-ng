@@ -7,7 +7,7 @@ import { expect, test } from '../fixtures/test'
 import { choose, entry, MAILBOX_PAGE, openMailboxSection, options, picker } from './helpers'
 
 test.describe('send as', () => {
-  test('FR-048 FR-049 US5-AS1 the values in the Mailbox section and the multi-select in the form', async ({
+  test('FR-048 FR-049 FR-053 US5-AS1 the values in the Mailbox section, the multi-select in the form and its hint', async ({
     page,
     mockApi,
     expectAccessible,

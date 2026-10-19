@@ -8,6 +8,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 
 import { problemOf, type SyncJob } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
@@ -21,7 +22,7 @@ import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { SyncIcon } from '@/shared/icons'
+import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { syncJobListOptions } from '../api'
@@ -144,6 +145,12 @@ function reload() {
   void query.refetch()
 }
 
+/** "Create new sync job", with the list's owner filter as the preselected owner. */
+const createLocation = computed(() => ({
+  name: 'sync-job-create',
+  query: state.value.filters.mailbox ? { mailbox: state.value.filters.mailbox } : {},
+}))
+
 function openLog(id: number) {
   void list.setView('log', id)
 }
@@ -153,6 +160,10 @@ function openLog(id: number) {
   <section class="mx-auto flex w-full max-w-7xl flex-col gap-4" :data-list-state="listState">
     <PageHeader :title="resolveText(texts.title, t)">
       <template #actions>
+        <RouterLink :to="createLocation" :class="buttonVariants({ variant: 'default' })">
+          <PlusIcon />
+          {{ lt('user.create_syncjob') }}
+        </RouterLink>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="reload">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -234,6 +245,10 @@ function openLog(id: number) {
 
       <div v-else-if="empty" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
+        <RouterLink :to="createLocation" :class="buttonVariants({ variant: 'default' })">
+          <PlusIcon />
+          {{ lt('user.create_syncjob') }}
+        </RouterLink>
       </div>
 
       <template v-else>

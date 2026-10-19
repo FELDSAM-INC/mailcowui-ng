@@ -140,7 +140,15 @@ describe('SyncJobFilters', () => {
     await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     const labels = wrapper.findAll('label').map((label) => label.text())
-    expect(labels).toEqual(['Sort by', 'Order', 'Active', 'Status', 'Last run result'])
+    expect(labels).toEqual([
+      'Sort by',
+      'Order',
+      'Owner',
+      'Domain',
+      'Active',
+      'Status',
+      'Last run result',
+    ])
     await wrapper.get('#sync-job-filter-running').setValue('yes')
     expect(wrapper.emitted('update')).toEqual([[{ running: 'yes' }]])
     await wrapper.get('#sync-job-filter-result').setValue('none')

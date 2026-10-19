@@ -22,6 +22,8 @@ const props = defineProps<{
   role: Role
   editing: boolean
   caps?: SyncJobCapabilities
+  /** A message to show first, for example the outcome of the creation (FR-028). */
+  initialStatus?: string | null
 }>()
 const emit = defineEmits<{ edit: []; close: []; dirty: [value: boolean] }>()
 const { t } = useI18n()
@@ -37,6 +39,13 @@ const section = useSyncJobSection({
   idPrefix: 'syncjob',
 })
 watch(section.dirty, (value) => emit('dirty', value), { immediate: true })
+watch(
+  () => props.initialStatus,
+  (message) => {
+    if (message) section.status.value = { kind: 'success', message }
+  },
+  { immediate: true },
+)
 onBeforeUnmount(() => emit('dirty', false))
 const ready = computed(() => !!props.caps)
 </script>

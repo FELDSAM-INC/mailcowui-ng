@@ -26,6 +26,7 @@ import { useSyncJob, useSyncJobCapabilities } from '../api'
 import SyncJobRunStatus from '../components/SyncJobRunStatus.vue'
 import SyncJobSection from '../components/SyncJobSection.vue'
 import { parseJobId } from '../list-state'
+import { takeOutcome } from '../outcome'
 import { jobLabel } from '../presentation'
 
 const SECTION = 'syncjob'
@@ -108,6 +109,12 @@ onBeforeRouteUpdate(async (to, from) => {
 })
 
 const showOnlySection = computed(() => editing.value && !wide.value)
+
+// The outcome of a creation that opened this page (FR-028).
+const initialStatus = ref<string | null>(null)
+watch(id, (value) => (initialStatus.value = value === undefined ? null : takeOutcome(value)), {
+  immediate: true,
+})
 </script>
 
 <template>
@@ -155,6 +162,7 @@ const showOnlySection = computed(() => editing.value && !wide.value)
       :role="role"
       :editing="editing"
       :caps="capabilities.data.value"
+      :initial-status="initialStatus"
       @edit="openSection"
       @close="closeSection"
       @dirty="dirty = $event"

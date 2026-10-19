@@ -785,6 +785,9 @@
       "desc": "Descending",
       "label": "Sort by",
       "order": "Order"
+    },
+    "create": {
+      "loadFailed": "The form could not be loaded."
     }
   },
   "themes": {

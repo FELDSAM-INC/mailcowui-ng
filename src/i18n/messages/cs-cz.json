@@ -785,6 +785,9 @@
       "desc": "Sestupně",
       "label": "Řadit podle",
       "order": "Pořadí"
+    },
+    "create": {
+      "loadFailed": "Formulář se nepodařilo načíst."
     }
   },
   "themes": {

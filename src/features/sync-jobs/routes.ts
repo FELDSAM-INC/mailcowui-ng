@@ -16,6 +16,18 @@ export const syncJobRoutes: RouteRecordRaw[] = [
     },
   },
   {
+    // `?mailbox=<address>` preselects the owner for administrators and domain administrators.
+    path: '/sync-jobs/new',
+    name: 'sync-job-create',
+    component: () => import('./pages/SyncJobCreatePage.vue'),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'syncJobs',
+      titleKey: legacy('add.syncjob'),
+    },
+  },
+  {
     // The classic `/edit/syncjob/{id}` maps here (UI 014). Identifiers above the contract's
     // maximum render "not found" in place without a request.
     path: '/sync-jobs/:syncJobId([1-9][0-9]{0,9})',

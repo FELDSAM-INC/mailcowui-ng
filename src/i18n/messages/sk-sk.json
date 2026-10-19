@@ -785,6 +785,9 @@
       "desc": "Zostupne",
       "label": "Zoradiť podľa",
       "order": "Poradie"
+    },
+    "create": {
+      "loadFailed": "Formulár sa nepodarilo načítať."
     }
   },
   "themes": {

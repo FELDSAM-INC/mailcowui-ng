@@ -948,6 +948,11 @@ the filters and the presentation of each kind of record from the mock.
 
 ### Legacy Parity
 
+The legacy form map (plan.md, parts 1–3, 2026-10-19) refines several rows below: settled
+deviations follow the classic forms more closely than this table (for example the spam filter and
+rate limits as sections of the domain, alias domain and mailbox pages, and one settings section).
+Where they differ, the form map applies.
+
 Legacy reference: FeldHost fork of mailcow-dockerized (upstream tag `2026-09a`), `data/web/`
 `templates/quarantine.twig`, `templates/modals/quarantine.twig`, `templates/qhandler.twig`,
 `templates/user/Spamfilter.twig`, `templates/user/tab-user-settings.twig`,
@@ -992,6 +997,8 @@ this feature, with the reason).
 | Open quick release link, Open quick delete link | Opens the hash page in a new window | Improved: delivery without learning is the switch of "Deliver to inbox"; deletion is "Remove" | FR-026, FR-028 |
 | "Error loading quarantine item" (English only) | Generic | Improved: translated, specific reasons | FR-030, FR-067 |
 | Message over 10 MiB | Error message only | Improved: summary and filter results still shown | FR-020 |
+| Bidi and control characters in subjects, addresses, file names and text | Shown raw, so a file name or address can be spoofed | Improved: shown as visible markers (`U+202E`) inside isolated text (plan parity note 1) | FR-082, FR-083 |
+| Attachment and message downloads | Rely on the server's headers alone | Improved: always saved as files (`application/octet-stream`), never displayed (plan parity note 3) | FR-036 |
 
 #### Quick release and delete page (notification links)
 
@@ -1048,6 +1055,7 @@ this feature, with the reason).
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
 | Rspamd doughnut chart (`rspamd/actions`) | Colour-only chart | Improved: text list with percentages and bars on Quarantine › Statistics | FR-065 |
+| — | Counting period not shown | Improved: since when the counts run and since when the spam filter runs, when the spam filter reports them (plan parity note 2) | FR-065 |
 | Rate-limited log "Remove hash" with explanation | Per log entry | Matched in UI feature 011's log, plus reset by identifier | FR-058 |
 | Rate-limited log itself, Rspamd history | Tables | Dropped: UI feature 011 | — |
 

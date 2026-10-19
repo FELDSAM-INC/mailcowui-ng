@@ -34,6 +34,7 @@ import MailboxFilters from '../components/list/MailboxFilters.vue'
 import MailboxList from '../components/list/MailboxList.vue'
 import MailboxRowActions from '../components/list/MailboxRowActions.vue'
 import { useMailboxCapabilities } from '../composables/useMailboxCapabilities'
+import { useMailboxDeletion } from '../composables/useMailboxDeletion'
 import { useMailboxFieldDisplay } from '../field-display'
 import { statusLabelKey } from '../labels'
 import { NO_FILTERS, useMailboxListState, type MailboxListFilters } from '../list-state'
@@ -47,6 +48,10 @@ const capabilities = useMailboxCapabilities()
 const list = useMailboxListState()
 const state = computed(() => list.state.value)
 const canCreate = computed(() => router.hasRoute('mailbox-create'))
+
+// US4: deletion from the list, as in legacy; the success stays shown above the list.
+const success = ref<string | null>(null)
+const deletion = useMailboxDeletion({ onDeleted: (message) => (success.value = message) })
 
 const query = useQuery(
   computed(() => ({ ...mailboxListOptions(list.params.value), placeholderData: keepPreviousData })),
@@ -225,6 +230,13 @@ function refresh() {
 
     <template v-else>
       <p
+        v-if="success"
+        data-success
+        class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm wrap-anywhere text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-100"
+      >
+        {{ success }}
+      </p>
+      <p
         v-if="refreshFailed"
         role="alert"
         class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
@@ -264,7 +276,11 @@ function refresh() {
           @sort="(sort, order) => list.setSort(sort, order)"
         >
           <template #actions="{ mailbox }">
-            <MailboxRowActions :mailbox="mailbox" />
+            <MailboxRowActions
+              :mailbox="mailbox"
+              removable
+              @remove="(item) => deletion.start(item)"
+            />
           </template>
         </MailboxList>
         <PaginationBar

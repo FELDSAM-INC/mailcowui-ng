@@ -23,7 +23,7 @@ import {
 import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
 
 import type { Patch } from './patch'
-import type { Mailbox } from './types'
+import type { Mailbox, MailboxDeletionPreview } from './types'
 
 export interface MailboxPage {
   data: Mailbox[]
@@ -239,4 +239,56 @@ export async function updateMailboxWithPassword(
     onMailboxError(client, address, error)
     throw error
   }
+}
+
+// Deletion (US4, data-model §3, §7.2)
+
+/** A fresh deletion preview: read when the confirmation opens, never kept (FR-044). */
+export function deletionPreviewOptions(address: string) {
+  return queryOptions({
+    queryKey: queryKeys.mailboxes.deletionPreview(address),
+    queryFn: async (): Promise<MailboxDeletionPreview> =>
+      requireData(
+        await api.GET('/mailboxes/{mailbox}/deletion-preview', {
+          params: { path: { mailbox: address } },
+        }),
+      ).data,
+    staleTime: 0,
+    gcTime: 0,
+  })
+}
+
+export function fetchDeletionPreview(
+  client: QueryClient,
+  address: string,
+): Promise<MailboxDeletionPreview> {
+  return client.fetchQuery(deletionPreviewOptions(address))
+}
+
+/** Deletes a mailbox with the preview's version; the lists, domains and audit log follow. */
+export function deleteMailbox(client: QueryClient, address: string, ifMatch: string) {
+  return runMutation<void, void>(
+    client,
+    {
+      mutationFn: async () => {
+        // Problem answers are thrown by the client's middleware.
+        await api.DELETE('/mailboxes/{mailbox}', {
+          params: { path: { mailbox: address }, header: { 'If-Match': ifMatch } },
+        })
+      },
+      onSuccess: async () => {
+        forgetMailbox(client, address)
+        await Promise.all([
+          client.invalidateQueries({ queryKey: queryKeys.mailboxes.searches() }),
+          client.invalidateQueries({ queryKey: queryKeys.mailboxes.tagLists() }),
+          client.invalidateQueries({ queryKey: queryKeys.domains.all() }),
+          invalidateAudit(client),
+        ])
+      },
+      onError: (error) => {
+        if (isApiProblem(error) && error.status === 404) forgetMailbox(client, address)
+      },
+    },
+    undefined,
+  )
 }

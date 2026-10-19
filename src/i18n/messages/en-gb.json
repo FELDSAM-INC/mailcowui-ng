@@ -544,7 +544,38 @@
       "blocker": {
         "mailStore": "The mail store is unreachable.",
         "sharedStore": "The shared data store is unreachable."
-      }
+      },
+      "mail": "The mail ({size} in {count} messages) is moved to the garbage area and purged after {retention}.",
+      "removed": "Also removed:",
+      "count": {
+        "tags": "Tags: {count}",
+        "appPasswords": "App passwords: {count}",
+        "passkeys": "Passkeys: {count}",
+        "secondFactors": "Two-factor authentication methods: {count}",
+        "oauthGrants": "OAuth2 authorisations: {count}",
+        "senderPermissionsGranted": "Permissions for others to send as this mailbox: {count}",
+        "senderPermissionsHeld": "Permissions of this mailbox to send as others: {count}",
+        "syncJobs": "Sync jobs: {count}",
+        "sieveFilters": "Sieve filters: {count}",
+        "spamFilterSettings": "Spam filter settings: {count}",
+        "quarantineItems": "Quarantine items: {count}",
+        "bccMaps": "BCC maps: {count}",
+        "temporaryAliases": "Temporary aliases: {count}",
+        "recentLogins": "Recorded logins: {count}"
+      },
+      "present": {
+        "webmailData": "Webmail data: profile, folders, contacts, appointments and sharing",
+        "pushNotificationSettings": "Pushover settings",
+        "rateLimit": "Rate limit",
+        "taggedMailHandling": "Handling of tagged mail"
+      },
+      "exclusiveAliases": "Aliases deleted because this mailbox is their only recipient: {count}",
+      "sharedAliases": "Aliases that keep their other recipients: {count}",
+      "blocked": "{address} cannot be removed now:",
+      "checkAgain": "Check again",
+      "changed": "The mailbox was changed in the meantime. Check the impact again.",
+      "gone": "This mailbox no longer exists.",
+      "notDeletedTitle": "{name} was not removed"
     },
     "rename": {
       "step": {

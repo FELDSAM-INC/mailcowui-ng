@@ -35,6 +35,7 @@ import { oauth2ClientHandlers } from './oauth2-clients'
 import { singleSignOnHandlers } from './single-sign-on'
 import { langHandlers } from './lang'
 import { mailboxTemplateReadHandlers } from './mailbox-templates'
+import { mailboxDeletionHandlers } from './mailbox-deletion'
 import { mailboxUpdateHandlers } from './mailbox-update'
 import { mailboxReadHandlers } from './mailboxes-read'
 import { mtaStsHandlers } from './mta-sts'
@@ -58,6 +59,7 @@ export const areaHandlers: RequestHandler[] = [
   // UI 003: one module per operation group (research R20).
   ...mailboxReadHandlers,
   ...mailboxUpdateHandlers,
+  ...mailboxDeletionHandlers,
   ...mailboxTemplateReadHandlers,
   ...passwordPolicyHandlers,
   ...syncJobHandlers,

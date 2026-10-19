@@ -256,6 +256,18 @@ comment naming the Lucide icon.
 | `src/shared/icons/PlusIcon.vue` | Lucide `icons/plus.svg` (UI 002) |
 | `src/shared/icons/TrashIcon.vue` | Lucide `icons/trash-2.svg` (UI 002) |
 | `src/shared/icons/PencilIcon.vue` | Lucide `icons/pencil.svg` (UI 003, the mailbox list's "Edit") |
+| `src/shared/icons/ServerIcon.vue` | Lucide `icons/server.svg` (UI 011) |
+| `src/shared/icons/LogsIcon.vue` | Lucide `icons/scroll-text.svg` (UI 011) |
+| `src/shared/icons/QueueIcon.vue` | Lucide `icons/inbox.svg` (UI 011) |
+| `src/shared/icons/ShieldIcon.vue` | Lucide `icons/shield.svg` (UI 011) |
+| `src/shared/icons/PlayIcon.vue` | Lucide `icons/play.svg` (UI 011) |
+| `src/shared/icons/StopIcon.vue` | Lucide `icons/square.svg` (UI 011) |
+| `src/shared/icons/RestartIcon.vue` | Lucide `icons/rotate-cw.svg` (UI 011) |
+| `src/shared/icons/PauseIcon.vue` | Lucide `icons/pause.svg` (UI 011) |
+| `src/shared/icons/ArrowUpIcon.vue` | Lucide `icons/arrow-up.svg` (UI 011) |
+| `src/shared/icons/ArrowDownIcon.vue` | Lucide `icons/arrow-down.svg` (UI 011) |
+| `src/shared/icons/TrendUpIcon.vue` | Lucide `icons/trending-up.svg` (UI 011) |
+| `src/shared/icons/TrendDownIcon.vue` | Lucide `icons/trending-down.svg` (UI 011) |
 
 ### ISC licence
 

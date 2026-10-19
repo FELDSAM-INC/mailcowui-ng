@@ -1,7 +1,7 @@
 // The forwarding host data layer (research R17, data-model §3): the list, creation (`201` or
 // `200` with every stored address and its outcome), deletion by the stored address (percent-encoded
 // by the client's path serialiser) and bulk actions, each invalidating the `forwarding-hosts` root.
-import { queryOptions, type QueryClient } from '@tanstack/vue-query'
+import type { QueryClient } from '@tanstack/vue-query'
 
 import {
   api,
@@ -16,20 +16,12 @@ import {
   type ForwardingHostListParams,
 } from '@/api'
 
-import { invalidate, LIST_STALE_TIME, type Page } from './common'
+import { invalidate, type Page } from './common'
 
 export async function fetchForwardingHosts(
   params: ForwardingHostListParams,
 ): Promise<Page<ForwardingHost>> {
   return requireData(await api.GET('/forwarding-hosts', { params: { query: params } }))
-}
-
-export function forwardingHostListOptions(params: ForwardingHostListParams) {
-  return queryOptions({
-    queryKey: queryKeys.forwardingHosts.list(params),
-    queryFn: () => fetchForwardingHosts(params),
-    staleTime: LIST_STALE_TIME,
-  })
 }
 
 export function createForwardingHost(

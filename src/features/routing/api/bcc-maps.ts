@@ -25,14 +25,6 @@ export async function fetchBccMaps(params: BccMapListParams): Promise<Page<BccMa
   return requireData(await api.GET('/bcc-maps', { params: { query: params } }))
 }
 
-export function bccMapListOptions(params: BccMapListParams) {
-  return queryOptions({
-    queryKey: queryKeys.bccMaps.list(params),
-    queryFn: () => fetchBccMaps(params),
-    staleTime: LIST_STALE_TIME,
-  })
-}
-
 export async function fetchBccMap(id: number): Promise<BccMap> {
   return requireData(await api.GET('/bcc-maps/{bccMapId}', { params: { path: { bccMapId: id } } }))
     .data

@@ -1,8 +1,6 @@
-// The BCC map data layer (research R14, data-model §3): list, detail, create, update, delete and
-// bulk actions as mutations (no password), each invalidating the `recipient-maps` root; the local
-// destination choices for the picker.
-import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+// The recipient map data layer (research R14, data-model §3): list, detail, create, update, delete and
+// bulk actions as mutations, each invalidating the `recipient-maps` root.
+import { queryOptions, type QueryClient } from '@tanstack/vue-query'
 
 import {
   api,
@@ -25,14 +23,6 @@ export async function fetchRecipientMaps(
   return requireData(await api.GET('/recipient-maps', { params: { query: params } }))
 }
 
-export function recipientMapListOptions(params: RecipientMapListParams) {
-  return queryOptions({
-    queryKey: queryKeys.recipientMaps.list(params),
-    queryFn: () => fetchRecipientMaps(params),
-    staleTime: LIST_STALE_TIME,
-  })
-}
-
 export async function fetchRecipientMap(id: number): Promise<RecipientMap> {
   return requireData(
     await api.GET('/recipient-maps/{recipientMapId}', { params: { path: { recipientMapId: id } } }),
@@ -48,11 +38,6 @@ export function recipientMapOptions(client: QueryClient, id: number) {
     initialData: () => cached()?.entry,
     initialDataUpdatedAt: () => cached()?.updatedAt,
   })
-}
-
-export function useRecipientMap(id: MaybeRefOrGetter<number>) {
-  const client = useQueryClient()
-  return useQuery(computed(() => recipientMapOptions(client, toValue(id))))
 }
 
 function afterChange(client: QueryClient, map?: RecipientMap) {

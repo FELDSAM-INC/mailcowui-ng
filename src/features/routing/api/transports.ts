@@ -38,14 +38,6 @@ export async function fetchTransports(params: TransportListParams): Promise<Page
   return requireData(await api.GET('/transports', { params: { query: params } }))
 }
 
-export function transportListOptions(params: TransportListParams) {
-  return queryOptions({
-    queryKey: queryKeys.transports.list(params),
-    queryFn: () => fetchTransports(params),
-    staleTime: LIST_STALE_TIME,
-  })
-}
-
 export async function fetchTransport(id: number): Promise<Transport> {
   return requireData(
     await api.GET('/transports/{transportId}', { params: { path: { transportId: id } } }),

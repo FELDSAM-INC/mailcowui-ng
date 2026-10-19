@@ -1,8 +1,6 @@
-// The BCC map data layer (research R14, data-model §3): list, detail, create, update, delete and
-// bulk actions as mutations (no password), each invalidating the `tls-policy-maps` root; the local
-// destination choices for the picker.
-import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
-import { computed, toValue, type MaybeRefOrGetter } from 'vue'
+// The TLS policy map data layer (research R14, data-model §3): list, detail, create, update, delete and
+// bulk actions as mutations, each invalidating the `tls-policy-maps` root.
+import { queryOptions, type QueryClient } from '@tanstack/vue-query'
 
 import {
   api,
@@ -25,14 +23,6 @@ export async function fetchTlsPolicyMaps(
   return requireData(await api.GET('/tls-policy-maps', { params: { query: params } }))
 }
 
-export function tlsPolicyMapListOptions(params: TlsPolicyMapListParams) {
-  return queryOptions({
-    queryKey: queryKeys.tlsPolicyMaps.list(params),
-    queryFn: () => fetchTlsPolicyMaps(params),
-    staleTime: LIST_STALE_TIME,
-  })
-}
-
 export async function fetchTlsPolicyMap(id: number): Promise<TlsPolicyMap> {
   return requireData(
     await api.GET('/tls-policy-maps/{tlsPolicyMapId}', {
@@ -50,11 +40,6 @@ export function tlsPolicyMapOptions(client: QueryClient, id: number) {
     initialData: () => cached()?.entry,
     initialDataUpdatedAt: () => cached()?.updatedAt,
   })
-}
-
-export function useTlsPolicyMap(id: MaybeRefOrGetter<number>) {
-  const client = useQueryClient()
-  return useQuery(computed(() => tlsPolicyMapOptions(client, toValue(id))))
 }
 
 function afterChange(client: QueryClient, map?: TlsPolicyMap) {

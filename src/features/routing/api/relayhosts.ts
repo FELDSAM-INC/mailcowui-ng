@@ -34,14 +34,6 @@ export async function fetchRelayhosts(params: RelayhostListParams): Promise<Page
   return requireData(await api.GET('/relayhosts', { params: { query: params } }))
 }
 
-export function relayhostListOptions(params: RelayhostListParams) {
-  return queryOptions({
-    queryKey: queryKeys.relayhosts.list(params),
-    queryFn: () => fetchRelayhosts(params),
-    staleTime: LIST_STALE_TIME,
-  })
-}
-
 export async function fetchRelayhost(id: number): Promise<Relayhost> {
   return requireData(
     await api.GET('/relayhosts/{relayhostId}', { params: { path: { relayhostId: id } } }),

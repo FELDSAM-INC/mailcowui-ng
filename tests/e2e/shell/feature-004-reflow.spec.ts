@@ -17,7 +17,7 @@ interface Screen {
   scenario: string
   path: string
   /** The heading that shows the screen is ready, when it is not the page's level-1 heading. */
-  heading?: { level: number; name: string }
+  heading?: { level: number; name: string; exact?: boolean }
   list?: boolean
   /** Opens a dialog, a picker or a mode on the screen. */
   open?: (page: Page) => Promise<void>
@@ -149,13 +149,15 @@ const SCREENS: Screen[] = [
     name: 'the sender fields of the Mailbox section',
     scenario: 'sender-settings',
     path: 'mailboxes/anna@example.org?edit=mailbox',
-    heading: { level: 2, name: 'Mailbox' },
+    // UI 003's mailbox page also has "⚠️ Rename mailbox", so the section's name is exact.
+    heading: { level: 2, name: 'Edit mailbox', exact: true },
   },
   {
     name: 'the "Allow to send as" picker',
     scenario: 'sender-settings',
     path: 'mailboxes/anna@example.org?edit=mailbox',
-    heading: { level: 2, name: 'Mailbox' },
+    // UI 003's mailbox page also has "⚠️ Rename mailbox", so the section's name is exact.
+    heading: { level: 2, name: 'Edit mailbox', exact: true },
     open: openPicker('Allow to send as', 'info'),
   },
   {

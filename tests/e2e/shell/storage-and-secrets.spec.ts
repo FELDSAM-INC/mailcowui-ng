@@ -12,7 +12,8 @@ const LOCAL_KEYS = [
   'mailcowui-ng.theme',
   'mailcowui-ng.passkey-suggestion-dismissed',
 ]
-const SESSION_KEYS = ['mailcowui-ng.announcement-collapsed']
+// UI 012: the requested in-app path during a single sign-on round trip only.
+const SESSION_KEYS = ['mailcowui-ng.announcement-collapsed', 'mailcowui-ng.sso-return-to']
 
 async function expectCleanStorage(page: Page, forbidden: string[]) {
   const snapshot = await page.evaluate(() => ({
@@ -94,6 +95,44 @@ test('FR-066 FR-091 a passkey registration and an API key secret leave nothing i
   await page.goBack()
   await expect(page.getByText(secret)).toHaveCount(0)
   await expectCleanStorage(page, [secret, 'admin'])
+})
+
+test('UI 012 SC-003 FR-081 the identity provider secrets never reach storage, history or request headers', async ({
+  page,
+  mockApi,
+}) => {
+  const bindPassword = 'bind-secret-SC003'
+  const newPassword = 'bind-secret-renewed'
+  await mockApi.use('idp-none')
+  await page.goto('identity-providers/provider')
+  await page.locator('#idp-type').selectOption({ label: 'LDAP' })
+  await page.locator('#idp-hosts').fill('ldap1.example.org')
+  await page.locator('#idp-baseDn').fill('dc=example,dc=org')
+  await page.locator('#idp-bindDn').fill('cn=admin,dc=example,dc=org')
+  await page.locator('#idp-bindPassword').fill(bindPassword)
+  await page.getByRole('button', { name: 'Test Connection' }).click()
+  await expect(page.locator('[data-test-result]')).toBeVisible()
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+  await expect(page.locator('[data-page-status]')).toBeVisible()
+  await page.getByRole('button', { name: 'Edit LDAP' }).click()
+  await page.locator('#idp-hosts').fill('ldap2.example.org')
+  await page.locator('#idp-bindPassword').fill(newPassword)
+  await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+  await expect(page.locator('#section-provider').getByRole('status')).toBeVisible()
+  await expectCleanStorage(page, [bindPassword, newPassword])
+  expect(await page.locator('body').innerText()).not.toContain(bindPassword)
+  const requests = await mockApi.requests()
+  for (const request of requests) {
+    expect(JSON.stringify(request.headers)).not.toContain(bindPassword)
+    expect(request.path).not.toContain(bindPassword)
+  }
+  const withSecret = requests.filter((request) =>
+    JSON.stringify(request.body ?? '').includes(bindPassword),
+  )
+  expect(withSecret.map((request) => request.operationId).sort()).toEqual([
+    'saveIdentityProvider',
+    'testIdentityProviderConnection',
+  ])
 })
 
 test('Edge: with storage disabled the app still signs in and works', async ({ page, mockApi }) => {

@@ -1,9 +1,15 @@
 // UI 010 US2 smoke test against the API dev stack (T046): `admin` generates a key for example.net
 // from its entry and `reseller` from the domain page's DKIM section, each removed again.
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { deleteDkimKey } from './fixtures/dns-api'
 import { signIn } from './fixtures/domains-api'
+
+/** Signs the browser context in as another account, on a new session. */
+async function switchTo(page: Page, account: 'admin' | 'reseller') {
+  await page.context().clearCookies()
+  await signIn(page, account)
+}
 
 test.describe('@dns DKIM generation', () => {
   test('admin generates a key for example.net with the default selector', async ({ page }) => {
@@ -21,10 +27,9 @@ test.describe('@dns DKIM generation', () => {
   })
 
   test('reseller generates a key for example.net from the domain page', async ({ page }) => {
-    await signIn(page, 'reseller')
-    await signIn(page, 'admin')
+    await switchTo(page, 'admin')
     await deleteDkimKey(page, 'example.net')
-    await signIn(page, 'reseller')
+    await switchTo(page, 'reseller')
     try {
       await page.goto('domains/example.net')
       const section = page.locator('#section-dkim')
@@ -32,7 +37,7 @@ test.describe('@dns DKIM generation', () => {
       await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click()
       await expect(section).toContainText('Key valid')
     } finally {
-      await signIn(page, 'admin')
+      await switchTo(page, 'admin')
       await deleteDkimKey(page, 'example.net')
     }
   })

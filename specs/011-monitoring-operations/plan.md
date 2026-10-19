@@ -846,6 +846,10 @@ are the designated extension points of earlier features (conventions "Where feat
 
 ## Complexity Tracking
 
-No constitution principle is violated. The deviations from `docs/conventions.md` that the spec
-decides for its own screens are listed in the Constitution Check. The smoke suite's gate status is
-inherited from UI 001's Complexity Tracking.
+The deviations from `docs/conventions.md` that the spec decides for its own screens are listed
+in the Constitution Check. The smoke suite's gate status is inherited from UI 001's Complexity
+Tracking.
+
+| Exception | Reason and authorization | Alternative deferred |
+| --- | --- | --- |
+| Merge and deploy this monitoring checkpoint to maildev with T146 still open | On 2026-10-19 the owner explicitly requested "so, deploy to maildev" after reviewing the remaining failures: domains performance 76–78, aliases 74–75, and sign-in script transfer 208,974 bytes against 204,800. Functional validation passes (3,267 unit tests and 231 focused browser tests); accessibility passes throughout. This exception applies to this staging release. | Further performance tuning before staging deployment. The performance minimum of 80, accessibility minimum of 90 and size limits remain configured, and their failures remain recorded. |

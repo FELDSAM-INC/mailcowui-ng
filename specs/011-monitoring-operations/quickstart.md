@@ -221,3 +221,9 @@ merged, pushed or deployed. No further tuning or repeated benchmark was started.
 JSON/HTML reports plus assertion results are preserved in the API checkout under
 `storage/app/restart-2026-10-19/u011/policy-80-lighthouse.log` and
 `policy-80-lighthouse-reports/`. The policy itself is already on UI main and origin/main.
+
+**2026-10-19, staging release authorization**: after the remaining Lighthouse failures were
+reported, the owner explicitly requested "so, deploy to maildev". This authorizes merging and
+deploying the tested monitoring checkpoint with those failures recorded as follow-up work. It is
+a staging-release exception, documented in the plan's Complexity Tracking; the configured
+performance, accessibility and payload limits remain unchanged, and T146 is not marked passed.

@@ -23,27 +23,31 @@ const { t, locale } = useI18n()
       <p class="font-medium text-gray-900 dark:text-white">
         <DomainNameText :name="entry.name" :unicode-name="entry.displayName" />
       </p>
-      <dl class="mt-2 grid grid-cols-1 gap-1 text-sm">
+      <dl class="mt-2 grid grid-cols-1 gap-1 text-sm text-gray-700 dark:text-gray-300">
         <div class="flex flex-wrap gap-1">
-          <dt>{{ t('dns.dkim.filters.kind') }}:</dt>
-          <dd><DkimKindLabel :entry="entry" /></dd>
+          <dt class="text-gray-700 dark:text-gray-300">{{ t('dns.dkim.filters.kind') }}:</dt>
+          <dd class="text-gray-700 dark:text-gray-300"><DkimKindLabel :entry="entry" /></dd>
         </div>
         <div v-if="entry.key?.selector" class="flex flex-wrap gap-1">
-          <dt>{{ lt('admin.dkim_domains_selector') }}:</dt>
-          <dd class="font-mono break-all">{{ entry.key.selector }}</dd>
+          <dt class="text-gray-700 dark:text-gray-300">{{ lt('admin.dkim_domains_selector') }}:</dt>
+          <dd class="font-mono break-all text-gray-700 dark:text-gray-300">
+            {{ entry.key.selector }}
+          </dd>
         </div>
         <div v-if="entry.key?.keyLength" class="flex flex-wrap gap-1">
-          <dt>{{ lt('admin.dkim_key_length') }}:</dt>
-          <dd>{{ formatNumber(entry.key.keyLength, locale as AppLocale) }}</dd>
+          <dt class="text-gray-700 dark:text-gray-300">{{ lt('admin.dkim_key_length') }}:</dt>
+          <dd class="text-gray-700 dark:text-gray-300">
+            {{ formatNumber(entry.key.keyLength, locale as AppLocale) }}
+          </dd>
         </div>
       </dl>
     </div>
-    <ul class="list-disc ps-5">
-      <li v-if="entry.kind !== 'none'">
+    <ul class="list-disc ps-5 text-gray-700 dark:text-gray-300">
+      <li v-if="entry.kind !== 'none'" class="text-gray-700 dark:text-gray-300">
         {{ t('dns.dkim.delete.unsigned', { name: entry.displayName }) }}
       </li>
-      <li>{{ t('dns.dkim.delete.privateKey') }}</li>
-      <li>
+      <li class="text-gray-700 dark:text-gray-300">{{ t('dns.dkim.delete.privateKey') }}</li>
+      <li class="text-gray-700 dark:text-gray-300">
         {{ publication ? t('dns.dkim.delete.recordRemoved') : t('dns.dkim.delete.recordStays') }}
       </li>
     </ul>

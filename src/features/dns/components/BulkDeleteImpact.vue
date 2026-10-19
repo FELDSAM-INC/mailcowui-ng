@@ -24,20 +24,33 @@ const { t } = useI18n()
         <span class="font-medium break-all text-gray-900 dark:text-white">{{
           entry.displayName
         }}</span>
-        <span class="text-sm">
+        <span class="text-sm text-gray-700 dark:text-gray-300">
           {{ text(`dns.dkim.kinds.${entry.kind}`) }}
           <template v-if="entry.key?.selector">
-            · <span class="font-mono">{{ entry.key.selector }}</span></template
+            ·
+            <span class="font-mono text-gray-700 dark:text-gray-300">{{
+              entry.key.selector
+            }}</span></template
           >
         </span>
-        <span v-if="entry.kind !== 'none'" data-stops-signing class="text-sm font-medium">
+        <span
+          v-if="entry.kind !== 'none'"
+          data-stops-signing
+          class="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
           {{ t('dns.dkim.delete.stopsSigning') }}
         </span>
       </li>
     </ul>
-    <p>{{ t('dns.dkim.delete.privateKey') }}</p>
-    <p>{{ publication ? t('dns.dkim.delete.recordRemoved') : t('dns.dkim.delete.recordStays') }}</p>
-    <p v-if="skipped.length > 0" data-delete-skipped class="break-words">
+    <p class="text-gray-700 dark:text-gray-300">{{ t('dns.dkim.delete.privateKey') }}</p>
+    <p class="text-gray-700 dark:text-gray-300">
+      {{ publication ? t('dns.dkim.delete.recordRemoved') : t('dns.dkim.delete.recordStays') }}
+    </p>
+    <p
+      v-if="skipped.length > 0"
+      data-delete-skipped
+      class="break-words text-gray-700 dark:text-gray-300"
+    >
       {{
         t('dns.dkim.delete.skipped', {
           names: skipped.map((entry) => entry.displayName).join(', '),

@@ -65,3 +65,50 @@ test.describe('@operations logs', () => {
     await expect(entry.first()).toContainText('err')
   })
 })
+
+// T092: the fake container service answers `postqueue -j` with the recorded queue of API 011
+// (`tests/fixtures/monitoring/postqueue-j.txt`): 8 messages, 3 of them deferred to partner.example.
+test.describe('@operations mail queue', () => {
+  test('@read-only the mail queue lists the recorded queue and finds the deferred messages', async ({
+    page,
+  }) => {
+    await signIn(page, 'admin')
+    await page.goto('operations/mail-queue')
+    await expect(page.getByRole('heading', { level: 1, name: 'Queue Manager' })).toBeVisible()
+    await expect(page.locator('[data-queue-total]')).toHaveText('8')
+    await page.getByRole('searchbox', { name: 'Search:' }).fill('partner.example')
+    await expect(page.locator('[data-entry]')).toHaveCount(3)
+  })
+})
+
+// T107: the ban time in seconds (plan decision 1), saved with the version tag, read back after a
+// reload, and restored.
+test.describe('@operations fail2ban', () => {
+  async function setBanTime(page: Page, seconds: string) {
+    await page.getByRole('button', { name: 'Edit Fail2ban parameters' }).click()
+    await page.getByLabel('Ban time (s)', { exact: true }).fill(seconds)
+    const saved = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/v2/fail2ban/settings') &&
+        response.request().method() === 'PATCH',
+    )
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    const response = await saved
+    expect(response.status()).toBe(200)
+    expect(response.request().headers()['if-match']).toBeTruthy()
+  }
+
+  test('changing the ban time to 7200 s is kept after a reload and restored', async ({ page }) => {
+    await signIn(page, 'admin')
+    await page.goto('operations/fail2ban')
+    const banTime = page.locator('[data-value="banTime"]')
+    await expect(banTime).toBeVisible({ timeout: 15_000 })
+    const original = (await banTime.innerText()).replace(/\D/g, '')
+    await setBanTime(page, '7200')
+    await page.reload()
+    await expect(banTime).toHaveText('7,200')
+    await setBanTime(page, original)
+    await page.reload()
+    await expect(banTime).not.toHaveText('7,200')
+  })
+})

@@ -13,10 +13,12 @@ import { missingEntry } from './fixtures'
 describe('collectMissingNames', () => {
   it('pages through every missing name with the search and kind', async () => {
     const all = Array.from({ length: 2300 }, (_, index) => missingEntry(`m${index}.example`))
-    const fetchPage = vi.fn(async (params: { offset?: number; limit?: number }) => ({
-      data: all.slice(params.offset ?? 0, (params.offset ?? 0) + (params.limit ?? 25)),
-      meta: { total: all.length, limit: params.limit ?? 25, offset: params.offset ?? 0 },
-    }))
+    const fetchPage = vi.fn((params: { offset?: number; limit?: number }) =>
+      Promise.resolve({
+        data: all.slice(params.offset ?? 0, (params.offset ?? 0) + (params.limit ?? 25)),
+        meta: { total: all.length, limit: params.limit ?? 25, offset: params.offset ?? 0 },
+      }),
+    )
     const names = await collectMissingNames({ q: 'm', kind: 'domain' }, fetchPage)
     expect(names).toHaveLength(2300)
     expect(fetchPage).toHaveBeenCalledTimes(3)
@@ -35,10 +37,9 @@ describe('collectMissingNames', () => {
 
   it('leaves out unset filters and writes nothing to a query cache', async () => {
     const client = new QueryClient()
-    const fetchPage = vi.fn(async (_params: DkimListParams) => ({
-      data: [] as DkimKey[],
-      meta: { total: 0, limit: 1000, offset: 0 },
-    }))
+    const fetchPage = vi.fn((_params: DkimListParams) =>
+      Promise.resolve({ data: [] as DkimKey[], meta: { total: 0, limit: 1000, offset: 0 } }),
+    )
     expect(await collectMissingNames({}, fetchPage)).toEqual([])
     expect(fetchPage.mock.calls[0]![0]).toEqual({
       state: ['missing'],

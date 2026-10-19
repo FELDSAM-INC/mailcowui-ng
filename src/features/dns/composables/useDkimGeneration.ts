@@ -83,7 +83,7 @@ export function useDkimRun() {
 }
 
 /** One name: the dialog stays open with its input after a refusal. */
-export function useSingleGeneration(onDone: (result: DkimKeyChangeResult) => void) {
+export function useSingleGeneration(onDone: (result: DkimKeyChangeResult) => void | Promise<void>) {
   const client = useQueryClient()
   const open = ref(false)
   const pending = ref(false)
@@ -110,7 +110,7 @@ export function useSingleGeneration(onDone: (result: DkimKeyChangeResult) => voi
       })
       open.value = false
       announce(lt('success.dkim_added', result.name))
-      onDone(result)
+      void onDone(result)
     } catch (error) {
       problem.value = isApiProblem(error) ? error : null
     } finally {

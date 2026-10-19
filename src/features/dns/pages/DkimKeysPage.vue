@@ -166,7 +166,7 @@ function openGeneration(names: RunName[], skipped: RunName[]) {
   generateOpen.value = true
 }
 
-async function onBulk(id: string) {
+function onBulk(id: string) {
   if ((id as DkimBulkActionId) !== 'generate') return
   const { targets, skipped } = splitSelection(selectedEntries.value, 'generate')
   if (targets.length === 0) {

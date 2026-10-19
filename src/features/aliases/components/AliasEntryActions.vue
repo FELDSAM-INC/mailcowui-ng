@@ -1,8 +1,9 @@
 <script setup lang="ts">
 // The actions of an alias entry (FR-015), the classic table's action column (`draw_alias_table()`)
 // as a menu behind a 44 × 44 trigger: Edit (`mailbox.edit`), which opens the alias with its section
-// open, and Remove (`mailbox.remove`). Deletion lives only in the list, as in legacy. US6 adds
-// "Expand alias over alias domains" here.
+// open, "Expand alias over alias domains" (`mailbox.add_alias_expand`, US6) for an alias of a
+// primary domain, and Remove (`mailbox.remove`). Deletion and the expansion live only in the list,
+// as in legacy.
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -18,7 +19,7 @@ import {
 } from '@/shared/ui/dropdown-menu'
 
 const props = defineProps<{ alias: Alias }>()
-const emit = defineEmits<{ delete: [alias: Alias] }>()
+const emit = defineEmits<{ delete: [alias: Alias]; copy: [alias: Alias] }>()
 const { t } = useI18n()
 const router = useRouter()
 const root = ref<HTMLElement | null>(null)
@@ -31,12 +32,16 @@ function onEdit() {
   })
 }
 
-async function onDelete() {
+/** Legacy offers the expansion for aliases of a primary domain only (FR-031). */
+const canCopy = () => !props.alias.inAliasDomain && !props.alias.orphaned
+
+async function after(event: 'delete' | 'copy') {
   // Let the menu close and put the focus back on its trigger first, so the dialog returns it there.
   await nextTick()
   requestAnimationFrame(() => {
     root.value?.querySelector<HTMLElement>('button')?.focus()
-    emit('delete', props.alias)
+    if (event === 'delete') emit('delete', props.alias)
+    else emit('copy', props.alias)
   })
 }
 </script>
@@ -54,8 +59,10 @@ async function onDelete() {
         <DropdownMenuItem class="min-h-11" @select="onEdit">
           {{ lt('mailbox.edit') }}
         </DropdownMenuItem>
-        <slot />
-        <DropdownMenuItem class="min-h-11" @select="onDelete">
+        <DropdownMenuItem v-if="canCopy()" class="min-h-11" @select="after('copy')">
+          {{ lt('mailbox.add_alias_expand') }}
+        </DropdownMenuItem>
+        <DropdownMenuItem class="min-h-11" @select="after('delete')">
           <TrashIcon />
           {{ lt('mailbox.remove') }}
         </DropdownMenuItem>

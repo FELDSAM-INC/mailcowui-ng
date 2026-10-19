@@ -7,3 +7,7 @@ export { feature004Permissions, type Feature004Permissions } from './permissions
 export { aliasRoutes } from './routes'
 export { aliasDomainPickerSource, domainPickerSource } from './api'
 export { default as YesNoMark } from './components/YesNoMark.vue'
+// Mass actions, shared by the three UI 004 lists (research R16).
+export { type BulkActionConfig, type BulkConfirm } from './alias-bulk'
+export { useBulkRun } from './composables/useBulkRun'
+export { default as BulkConfirmContent } from './components/BulkConfirmContent.vue'

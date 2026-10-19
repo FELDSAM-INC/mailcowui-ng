@@ -11,8 +11,12 @@ import {
   requireData,
   runMutation,
   type Alias,
+  type AliasBulkActionRequest,
+  type AliasCopyOutcome,
+  type AliasCopyReport,
   type AliasCreateRequest,
   type AliasListParams,
+  type BulkResult,
   type AliasPatch,
   type ListMeta,
 } from '@/api'
@@ -184,6 +188,45 @@ export function deleteAlias(client: QueryClient, id: number, ifMatch: string): P
         client.removeQueries({ queryKey: queryKeys.aliases.detail(id), exact: true })
         invalidateAfterAliasChange(client)
       },
+    },
+    undefined,
+  )
+}
+
+/** A mass action (FR-057); a copy's outcomes per alias come back in `copies` (research R12). */
+export function applyAliasBulkAction(
+  client: QueryClient,
+  body: AliasBulkActionRequest,
+): Promise<{ result: BulkResult; extra?: Record<string, AliasCopyOutcome[]> }> {
+  return runMutation(
+    client,
+    {
+      mutationFn: async (request: AliasBulkActionRequest) => {
+        const answer = requireData(await api.POST('/aliases/bulk-actions', { body: request }))
+        return { result: answer.data, extra: answer.meta?.copies }
+      },
+      onSettled: () => invalidateAfterAliasChange(client),
+    },
+    body,
+  )
+}
+
+/** "Expand alias over alias domains" for one alias, with its version (FR-031, research R12). */
+export function copyAlias(
+  client: QueryClient,
+  id: number,
+  ifMatch: string,
+): Promise<AliasCopyReport> {
+  return runMutation(
+    client,
+    {
+      mutationFn: async () =>
+        requireData(
+          await api.POST('/aliases/{aliasId}/alias-domain-copies', {
+            params: { path: { aliasId: id }, header: { 'If-Match': ifMatch } },
+          }),
+        ).data,
+      onSuccess: () => invalidateAfterAliasChange(client),
     },
     undefined,
   )

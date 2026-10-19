@@ -23,8 +23,19 @@
     "gone": "Tento alias už neexistuje alebo už pre vás nie je dostupný.",
     "delete": {
       "impact": "Pošta na túto adresu sa prestane prijímať a odstránia sa oprávnenia iných schránok odosielať ako táto adresa.",
-      "impactCatchAll": "Ide o alias catch-all: spolu s ním sa odstránia oprávnenia odosielať ako ľubovoľná adresa domény {domain}.",
-      "changed": "Alias sa medzitým zmenil. Skontrolujte ho a potvrďte znova."
+      "impactCatchAll": "Ide o alias catch-all: spolu s ním sa odstránia oprávnenia odosielať ako ľubovoľná adresa domény {domain}."
+    },
+    "changed": "Alias sa medzitým zmenil. Skontrolujte ho a potvrďte znova.",
+    "bulk": {
+      "confirm": {
+        "deactivate": "Vybrané aliasy: {count}. Kým sú neaktívne, neprijímajú poštu.",
+        "hide": "Vybrané aliasy: {count}. Kým sú skryté, SOGo ich neponúka ako adresy odosielateľa."
+      },
+      "deleteImpact": "Pošta na tieto adresy sa prestane prijímať a odstránia sa oprávnenia iných schránok odosielať ako tieto adresy."
+    },
+    "copy": {
+      "explain": "V každej alias doméne domény aliasu sa vytvorí kópia aliasu, ak tam adresa ešte nie je použitá.",
+      "none": "Táto doména nemá žiadne alias domény, preto sa nič nevytvorilo."
     }
   },
   "aliasDomains": {
@@ -35,6 +46,12 @@
     "delete": {
       "impact": "Spolu s ňou sa odstránia: jej aliasy ({count}) a ich oprávnenia odosielať ako ony, jej dočasné aliasy, mapy BCC a zoznamy povolených a blokovaných odosielateľov spamového filtra. Kľúč DKIM zostane zachovaný.",
       "changed": "Alias doména sa medzitým zmenila. Skontrolujte ju a potvrďte znova."
+    },
+    "bulk": {
+      "confirm": {
+        "deactivate": "Vybrané alias domény: {count}. Kým sú neaktívne, ich adresy neprijímajú poštu."
+      },
+      "deleteImpact": "Spolu s nimi sa odstránia: ich aliasy ({count}) a ich oprávnenia odosielať ako ony, ich dočasné aliasy, mapy BCC a zoznamy povolených a blokovaných odosielateľov spamového filtra. Ich kľúče DKIM zostanú zachované."
     }
   }
 }

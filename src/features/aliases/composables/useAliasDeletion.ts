@@ -61,7 +61,7 @@ export function useAliasDeletion(report: (outcome: AliasOutcome) => void) {
           try {
             alias = await fetchAlias(alias.id)
             queryClient.setQueryData(queryKeys.aliases.detail(alias.id), alias)
-            notice = t('aliases.delete.changed')
+            notice = t('aliases.changed')
             continue
           } catch {
             return gone()

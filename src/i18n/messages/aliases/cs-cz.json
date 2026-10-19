@@ -23,8 +23,19 @@
     "gone": "Tento alias již neexistuje nebo pro vás již není dostupný.",
     "delete": {
       "impact": "Pošta na tuto adresu se přestane přijímat a odeberou se oprávnění jiných schránek odesílat jako tato adresa.",
-      "impactCatchAll": "Jde o alias catch-all: spolu s ním se odeberou oprávnění odesílat jako libovolná adresa domény {domain}.",
-      "changed": "Alias se mezitím změnil. Zkontrolujte jej a potvrďte znovu."
+      "impactCatchAll": "Jde o alias catch-all: spolu s ním se odeberou oprávnění odesílat jako libovolná adresa domény {domain}."
+    },
+    "changed": "Alias se mezitím změnil. Zkontrolujte jej a potvrďte znovu.",
+    "bulk": {
+      "confirm": {
+        "deactivate": "Vybrané aliasy: {count}. Dokud jsou neaktivní, nepřijímají poštu.",
+        "hide": "Vybrané aliasy: {count}. Dokud jsou skryté, SOGo je nenabízí jako adresy odesílatele."
+      },
+      "deleteImpact": "Pošta na tyto adresy se přestane přijímat a odeberou se oprávnění jiných schránek odesílat jako tyto adresy."
+    },
+    "copy": {
+      "explain": "V každém doménovém aliasu domény aliasu se vytvoří kopie aliasu, pokud tam adresa už není použita.",
+      "none": "Tato doména nemá žádné doménové aliasy, proto nebylo nic vytvořeno."
     }
   },
   "aliasDomains": {
@@ -35,6 +46,12 @@
     "delete": {
       "impact": "Spolu s ním se odstraní: jeho aliasy ({count}) a jejich oprávnění odesílat jako ně, jeho dočasné aliasy, mapy BCC a seznamy povolených a blokovaných odesílatelů spamového filtru. Klíč DKIM zůstane zachován.",
       "changed": "Doménový alias se mezitím změnil. Zkontrolujte jej a potvrďte znovu."
+    },
+    "bulk": {
+      "confirm": {
+        "deactivate": "Vybrané doménové aliasy: {count}. Dokud jsou neaktivní, jejich adresy nepřijímají poštu."
+      },
+      "deleteImpact": "Spolu s nimi se odstraní: jejich aliasy ({count}) a jejich oprávnění odesílat jako ně, jejich dočasné aliasy, mapy BCC a seznamy povolených a blokovaných odesílatelů spamového filtru. Jejich klíče DKIM zůstanou zachovány."
     }
   }
 }

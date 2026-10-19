@@ -1030,7 +1030,7 @@ per-object results and the selection afterwards.
   - a domain administrator without `aliasDomains` selecting alias domains;
   - temporary failures for two alias domain targets;
   - 100 aliases for SC-010.
-- [ ] T080 [P] [US6] Write `tests/e2e/aliases/bulk.spec.ts`. It covers:
+- [X] T080 *(done: tests/e2e/aliases/bulk.spec.ts; select all is legacy's mailbox.toggle_all; each result line is the single action's legacy message)* [P] [US6] Write `tests/e2e/aliases/bulk.spec.ts`. It covers:
   - US6-AS1: select all, deactivate after the confirmation naming the action, its effect and 30;
     30 done, the list shows them inactive, and the summary is announced;
   - US6-AS2: hide, with three done, two not found, and the two still selected;
@@ -1051,7 +1051,7 @@ per-object results and the selection afterwards.
   - Edge, network failure during a mass action: "outcome unknown", the list refreshed, the selection
     kept, and no second request;
   - Edge, capabilities cannot be read: the bar shows the error state with retry.
-- [ ] T081 [P] [US6] Write `tests/e2e/aliases/copy.spec.ts`. It covers:
+- [X] T081 *(done: tests/e2e/aliases/copy.spec.ts; the single copy is a list row action (mailbox.add_alias_expand), not on the alias page (plan part 3, item 8))* [P] [US6] Write `tests/e2e/aliases/copy.spec.ts`. It covers:
   - US6-AS4: from the detail, the explanation, then `sales@example.com` created with a link and
     `example.net` skipped "address in use";
   - FR-031: no action for an alias in an alias domain or an orphaned alias;
@@ -1059,29 +1059,29 @@ per-object results and the selection afterwards.
   - bulk copy: per-alias copies in the summary rows, and an alias in an alias domain `refused` with
     the translated reason (Edge, copying an alias that lives in an alias domain);
   - a single copy answered 412 reloads and explains again.
-- [ ] T082 [P] [US6] Write `tests/e2e/alias-domains/bulk.spec.ts`. It covers:
+- [X] T082 *(done: tests/e2e/alias-domains/bulk.spec.ts)* [P] [US6] Write `tests/e2e/alias-domains/bulk.spec.ts`. It covers:
   - US6-AS7: activate, deactivate and delete are offered without `aliasDomains`;
   - deactivate with its confirmation;
   - delete listing every name with the impact, and the typed count;
   - two targets `failed` with "try again shortly", kept selected.
-- [ ] T083 [P] [US6] Write these unit tests:
+- [X] T083 *(done: tests/unit/features/aliases/{alias-bulk,CopyResults}.spec.ts, tests/unit/features/alias-domains/alias-domain-bulk.spec.ts)* [P] [US6] Write these unit tests:
   - `tests/unit/features/aliases/alias-bulk.spec.ts`: the actions per permission and groupware
     state, the confirmation kinds of research R16, `toTargets` stripping quotes, and the retention
     of every non-`done` item;
   - `tests/unit/features/aliases/CopyResults.spec.ts`: created with a link, skipped reasons, failed,
     and the empty list;
   - `tests/unit/features/alias-domains/alias-domain-bulk.spec.ts`.
-- [ ] T084 [P] [US6] Write `tests/smoke/aliases-bulk.smoke.spec.ts` (`@feature-004`): create two
+- [X] T084 *(done: tests/smoke/aliases-bulk.smoke.spec.ts)* [P] [US6] Write `tests/smoke/aliases-bulk.smoke.spec.ts` (`@feature-004`): create two
   aliases, bulk-deactivate them, bulk-activate them, then bulk-delete them with the typed count.
 
 ### Implementation for User Story 6
 
-- [ ] T085 [US6] Implement `src/features/aliases/alias-bulk.ts` (data-model §2 `BulkActionConfig`).
+- [X] T085 *(done: alias-bulk.ts (BulkActionConfig, toTargets, unquote, retainedIds), applyAliasBulkAction and copyAlias in api.ts; the shared run logic is composables/useBulkRun.ts (used by the three UI 004 lists), and composables/useAliasCopy.ts for the single copy)* [US6] Implement `src/features/aliases/alias-bulk.ts` (data-model §2 `BulkActionConfig`).
   Add `useAliasBulkAction` and `useCopyAlias` (with `If-Match`) to `src/features/aliases/api.ts`,
   with the invalidation of data-model §3.
-- [ ] T086 [P] [US6] Implement `src/features/aliases/components/CopyOverAliasDomainsDialog.vue` (the
+- [X] T086 *(done: CopyResults.vue; the explanation is a useConfirm dialog with aliases.copy.explain (no separate dialog component); BulkConfirmContent.vue lists the selected objects)* [P] [US6] Implement `src/features/aliases/components/CopyOverAliasDomainsDialog.vue` (the
   FR-031 explanation) and `CopyResults.vue`.
-- [ ] T087 [US6] Add selection mode to `src/features/aliases/pages/AliasesPage.vue`,
+- [X] T087 *(done: selection mode on AliasesPage (useBulkSelection with bulkLimit, BulkActionBar inside CapabilitiesGate, confirmations with requireTyped, BulkResultSummary with CopyResults in #item, Refresh the list, lost connection keeps the selection); Expand in the row menu (AliasEntryActions), not on the alias page)* [US6] Add selection mode to `src/features/aliases/pages/AliasesPage.vue`,
   `components/AliasCard.vue` and `components/AliasTable.vue`:
   - `useBulkSelection` with `limit = bulkLimit`;
   - `BulkActionBar` inside `CapabilitiesGate`;
@@ -1090,11 +1090,11 @@ per-object results and the selection afterwards.
   - the connection-drop handling.
 
   Add "Copy over alias domains" to `src/features/aliases/pages/AliasDetailPage.vue`.
-- [ ] T088 [US6] Implement `src/features/alias-domains/alias-domain-bulk.ts` and
+- [X] T088 *(done: alias-domain-bulk.ts, applyAliasDomainBulkAction, selection mode on AliasDomainsPage)* [US6] Implement `src/features/alias-domains/alias-domain-bulk.ts` and
   `useAliasDomainBulkAction` in `src/features/alias-domains/api.ts`. Add selection mode to
   `src/features/alias-domains/pages/AliasDomainsPage.vue`, `components/AliasDomainCard.vue` and
   `components/AliasDomainTable.vue`.
-- [ ] T089 [US6] Use the legacy keys `mailbox.sogo_visible_y`, `mailbox.sogo_visible_n`,
+- [X] T089 *(done: legacy keys verbatim (mailbox.toggle_all, mailbox.activate, mailbox.deactivate, mailbox.sogo_visible_y/_n, mailbox.add_alias_expand, mailbox.remove, warning.is_not_primary_alias, success.* per row); new strings aliases.changed (renamed from aliases.delete.changed, also used by the copy), aliases.bulk.confirm.{deactivate,hide}, aliases.bulk.deleteImpact, aliases.copy.{explain,none}, aliasDomains.bulk.confirm.deactivate, aliasDomains.bulk.deleteImpact)* [US6] Use the legacy keys `mailbox.sogo_visible_y`, `mailbox.sogo_visible_n`,
   `mailbox.add_alias_expand`, `warning.is_not_primary_alias`, `mailbox.toggle_all`,
   `mailbox.activate`, `mailbox.deactivate` and `mailbox.remove` verbatim; each bulk result line uses
   the single action's legacy message. Add only the form map's new strings among `aliases.bulk.*`,

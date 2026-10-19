@@ -23,8 +23,19 @@
     "gone": "This alias no longer exists or is no longer available to you.",
     "delete": {
       "impact": "Mail to this address is no longer accepted, and the permissions of other mailboxes to send as this address are removed.",
-      "impactCatchAll": "This is a catch-all alias: the permissions to send as any address of {domain} are removed with it.",
-      "changed": "The alias changed in the meantime. Check it and confirm again."
+      "impactCatchAll": "This is a catch-all alias: the permissions to send as any address of {domain} are removed with it."
+    },
+    "changed": "The alias changed in the meantime. Check it and confirm again.",
+    "bulk": {
+      "confirm": {
+        "deactivate": "Selected aliases: {count}. While they are inactive, they no longer accept mail.",
+        "hide": "Selected aliases: {count}. While they are hidden, SOGo does not offer them as sender addresses."
+      },
+      "deleteImpact": "Mail to these addresses is no longer accepted, and the permissions of other mailboxes to send as them are removed."
+    },
+    "copy": {
+      "explain": "A copy of the alias is created in every alias domain of its domain, unless the address is already in use there.",
+      "none": "This domain has no alias domains, so nothing was created."
     }
   },
   "aliasDomains": {
@@ -35,6 +46,12 @@
     "delete": {
       "impact": "Deleted with it: its aliases ({count}) and their send-as permissions, its temporary aliases, its BCC maps and its spam allow and block lists. Its DKIM key is kept.",
       "changed": "The alias domain changed in the meantime. Check it and confirm again."
+    },
+    "bulk": {
+      "confirm": {
+        "deactivate": "Selected alias domains: {count}. While they are inactive, their addresses no longer accept mail."
+      },
+      "deleteImpact": "Deleted with them: their aliases ({count}) and their send-as permissions, their temporary aliases, BCC maps and spam allow and block lists. Their DKIM keys are kept."
     }
   }
 }

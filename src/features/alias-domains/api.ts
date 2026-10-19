@@ -13,6 +13,8 @@ import {
   requireData,
   runMutation,
   type AliasDomain,
+  type AliasDomainBulkActionRequest,
+  type BulkResult,
   type AliasDomainCreateRequest,
   type AliasDomainCreationReport,
   type AliasDomainListParams,
@@ -157,5 +159,22 @@ export function deleteAliasDomain(
       },
     },
     undefined,
+  )
+}
+
+/** A mass action on alias domains (FR-057). */
+export function applyAliasDomainBulkAction(
+  client: QueryClient,
+  body: AliasDomainBulkActionRequest,
+): Promise<{ result: BulkResult }> {
+  return runMutation(
+    client,
+    {
+      mutationFn: async (request: AliasDomainBulkActionRequest) => ({
+        result: requireData(await api.POST('/alias-domains/bulk-actions', { body: request })).data,
+      }),
+      onSettled: () => invalidateAfterAliasDomainChange(client),
+    },
+    body,
   )
 }

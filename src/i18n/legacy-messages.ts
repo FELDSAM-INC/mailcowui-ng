@@ -155,6 +155,9 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'mailboxes.sort.passwordChangedAt': 'mailbox.last_pw_change',
   'mailboxes.sort.createdAt': 'mailbox.created_on',
   'mailboxes.sort.modifiedAt': 'mailbox.last_modified',
+  // UI 003: the rename record's choice (API 003 `mailboxRename`), as the classic rename form's
+  // checkbox names it.
+  'auditLog.detailKeys.keepOldAddressAsAlias': 'edit.mailbox_rename_alias',
   // UI 003: rule codes with a classic message of the same meaning and no placeholder.
   'validation.missingCharacterClass': 'danger.password_complexity',
   // UI 008: the sync-job enumerations with a classic name, the owner left empty, and an existing

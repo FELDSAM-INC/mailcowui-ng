@@ -1,6 +1,7 @@
 // UI 003 US9 scenario (T118): the audit records API 003 writes for anna@a.example (a quota change,
-// a password set, a refused change, a bulk change), its rename from anna.old@a.example, and a
-// template change, next to the mailboxes of the mailbox page. Times are relative to the moment the
+// a password set, a refused change, a bulk change), its rename from anna.old@a.example (recorded
+// under the previous address, as API 003 does), and a template change, next to the mailboxes of the
+// mailbox page. Times are relative to the moment the
 // scenario is created, so the audit log's default range always finds them.
 import type { AuditEvent } from '@/api'
 
@@ -15,6 +16,7 @@ const MINUTE = 60_000
 const admin = { username: 'admin', role: 'admin' as const, apiKeyId: null }
 const reseller = { username: 'reseller', role: 'domainAdmin' as const, apiKeyId: null }
 const anna = { type: 'mailbox' as const, id: 'anna@a.example', name: 'anna@a.example' }
+const annaOld = { type: 'mailbox' as const, id: 'anna.old@a.example', name: 'anna.old@a.example' }
 
 export function mailboxHistoryRecords(now: number): AuditEvent[] {
   const at = (minutes: number) => new Date(now - minutes * MINUTE).toISOString()
@@ -54,10 +56,14 @@ export function mailboxHistoryRecords(now: number): AuditEvent[] {
     }),
     auditEvent({
       eventType: 'mailboxRename',
-      target: anna,
+      target: annaOld,
       occurredAt: at(40),
       actor: admin,
-      details: { previousAddress: 'anna.old@a.example', newAddress: 'anna@a.example' },
+      details: {
+        previousAddress: 'anna.old@a.example',
+        newAddress: 'anna@a.example',
+        keepOldAddressAsAlias: true,
+      },
     }),
     auditEvent({
       eventType: 'mailboxTemplateUpdate',

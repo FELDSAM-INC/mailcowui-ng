@@ -92,6 +92,7 @@ describe('detailLabel (UI 003 T120)', () => {
         'newAddress',
         'bulkRequestId',
         'steps',
+        'keepOldAddressAsAlias',
       ].map((key) => detailLabel(key, tr)),
     ).toEqual([
       'Changes',
@@ -101,6 +102,8 @@ describe('detailLabel (UI 003 T120)', () => {
       'New address',
       'Bulk request',
       'Steps',
+      // The rename's choice, with the classic text of its checkbox.
+      'Create alias automatically',
     ])
     expect(detailLabel('problemType', tr)).toBe('problemType')
   })

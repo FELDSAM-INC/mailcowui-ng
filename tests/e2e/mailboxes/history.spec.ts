@@ -1,6 +1,7 @@
 // UI 003 US9, the history of a mailbox (T119): History on the mailbox page opens UI 001's audit
-// log filtered to the mailbox, with the mailbox event labels and the detail members labelled; a
-// domain administrator, who may not open the audit log, is not offered it.
+// log filtered to the mailbox, with the mailbox event labels and the detail members labelled; the
+// rename is recorded under the previous address, as API 003 writes it; a domain administrator, who
+// may not open the audit log, is not offered it.
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
@@ -25,7 +26,7 @@ test.describe('mailbox history', () => {
     await expect(page).toHaveURL(
       /\/ng\/audit-log\?targetId=anna%40a\.example|targetId=anna@a\.example/,
     )
-    await expect(records(page)).toHaveCount(5)
+    await expect(records(page)).toHaveCount(4)
     await expect(records(page).first()).toContainText('Mailbox changed')
     const password = records(page).nth(2)
     await password.getByRole('button', { name: 'Show details' }).click()
@@ -35,7 +36,7 @@ test.describe('mailbox history', () => {
     await expectAccessible()
   })
 
-  test('US9-AS2 the refused change shows the failure and its reason; the rename both addresses', async ({
+  test('US9-AS2 the refused change shows the failure and its reason; the rename, under the previous address, both addresses', async ({
     page,
     mockApi,
   }) => {
@@ -44,11 +45,18 @@ test.describe('mailbox history', () => {
     const refused = records(page).nth(1)
     await expect(refused).toContainText('Failure')
     await expect(refused).toContainText('Change not permitted')
-    const rename = records(page).last()
+    await expect(records(page).filter({ hasText: 'Mailbox renamed' })).toHaveCount(0)
+    await page.goto('audit-log?targetType=mailbox&targetId=anna.old@a.example')
+    await expect(records(page)).toHaveCount(1)
+    const rename = records(page).first()
+    await expect(rename).toContainText('Mailbox renamed')
     await rename.getByRole('button', { name: 'Show details' }).click()
     const details = page.getByRole('region', { name: /Details of/ }).first()
     await expect(details).toContainText('Previous address')
     await expect(details).toContainText('anna.old@a.example')
+    await expect(details).toContainText('New address')
+    await expect(details).toContainText('anna@a.example')
+    await expect(details).toContainText('Create alias automatically')
   })
 
   test('US9-AS3 a domain administrator has no History on the mailbox page', async ({

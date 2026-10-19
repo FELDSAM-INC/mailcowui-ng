@@ -26,6 +26,8 @@ import { domainsFooterScenarios } from './domains-footer'
 import { domainsHistoryScenarios } from './domains-history'
 import { domainsListScenarios } from './domains-list'
 import { applyDnsOverrides, dnsScenarios, initialDnsState } from './dns'
+// UI 006
+import { applyQuarantineOverrides, initialQuarantineState, quarantineScenarios } from './quarantine'
 import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from './mailboxes/base'
 import { mailboxBulkScenarios } from './mailboxes/bulk'
 import { mailboxCreateScenarios } from './mailboxes/create'
@@ -136,6 +138,8 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...routingScenarios,
   // UI 011: one module per area under ./operations/ (T013).
   ...operationsScenarios,
+  // UI 006
+  ...quarantineScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -236,6 +240,7 @@ export function applyOverrides(
   if (overrides.dns) applyDnsOverrides(state, overrides.dns)
   applyRoutingOverrides(state, overrides.routing)
   if (overrides.operations) applyOperationsPatch(state, overrides.operations)
+  applyQuarantineOverrides(state, overrides)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -289,6 +294,7 @@ export function createScenarioState(
     ...initialDnsState(),
     ...initialRoutingState(),
     operations: initialOperationsState(),
+    ...initialQuarantineState(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

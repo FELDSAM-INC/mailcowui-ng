@@ -50,10 +50,13 @@ import { mtaStsHandlers } from './mta-sts'
 import { passkeyHandlers } from './passkeys'
 import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
+import { quarantineHandlers } from './quarantine'
+import { rateLimitHandlers } from './rate-limits'
 import { resourceHandlers } from './resources'
 import { senderSettingsHandlers } from './sender-settings'
 import { rateLimitBucketHandlers } from './rate-limit-buckets'
 import { rspamdHandlers } from './rspamd'
+import { spamPolicyHandlers } from './spam-policy'
 import { syncJobHandlers } from './sync-jobs'
 import { bccMapHandlers } from './bcc-maps'
 import { forwardingHostHandlers } from './forwarding-hosts'
@@ -115,6 +118,10 @@ export const areaHandlers: RequestHandler[] = [
   ...mailQueueHandlers,
   ...fail2banHandlers,
   ...rateLimitBucketHandlers,
+  // UI 006: one module per contract module (research R28).
+  ...quarantineHandlers,
+  ...spamPolicyHandlers,
+  ...rateLimitHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null
@@ -161,6 +168,8 @@ function injectedFailure(state: ScenarioState, match: OperationMatch): Response 
   }
   if (failure.pendingActions) extra.pendingActions = failure.pendingActions
   if (failure.errors) extra.errors = failure.errors
+  // UI 006: further extension members (`dependency`, `step`, `smtpResponse`, …).
+  if (failure.extra) Object.assign(extra, failure.extra)
   return problem(failure.status, failure.type ?? null, extra, headers)
 }
 

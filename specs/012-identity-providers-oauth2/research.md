@@ -896,10 +896,11 @@ decisions, then best practice. Each entry has a **Decision**, its **Rationale** 
       through the app, runs a failing and a passing test, and saves.
     - `provider-password.smoke.spec.ts` (`@idp`): `carl@example.org` signs in with the directory
       password.
-    - `single-sign-on.smoke.spec.ts` (`@sso`): runs only when `SMOKE_SSO_USERNAME` and
-      `SMOKE_SSO_PASSWORD` are set, because the dev stack's Keycloak realm needs the manual setup of
-      API quickstart Part B. It signs in through the real provider and asserts a clean address and
-      clean storage.
+    - `single-sign-on.smoke.spec.ts` (`@sso`): with `SMOKE_IDP=1` it stores the dev stack's Keycloak,
+      which imports mailcow-rest-v2's realm, and the browser reaches it and the port-less return
+      address through `--host-resolver-rules` (T101); on a mailcow host it runs with
+      `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD`. It signs in through the real provider and asserts
+      a clean address and clean storage.
     - `oauth2-clients.smoke.spec.ts`: create, copy, revoke and delete, plus a bulk revocation.
 - **Rationale**: These are the constitution's required layers. The opt-in for the single sign-on
   smoke test is recorded under the plan's Complexity Tracking.

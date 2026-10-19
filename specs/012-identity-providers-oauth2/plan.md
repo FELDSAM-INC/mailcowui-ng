@@ -68,8 +68,9 @@ trip (data-model §4).
   production build with the production CSP and the contract-validated mock. Every test runs axe in
   both themes, the reflow checks and the touch-target checks. A fake provider is routed with
   `page.route`, and `page.clock` drives the 90-second test limit.
-- Smoke tests against the mailcow-rest-v2 dev stack: OpenLDAP of the `idp` profile with
-  `SMOKE_IDP=1`; Keycloak only with `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD`.
+- Smoke tests against the mailcow-rest-v2 dev stack: OpenLDAP and Keycloak of the `idp` profile with
+  `SMOKE_IDP=1` (Keycloak with the API's realm import since T101; on a mailcow host with
+  `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD`).
 
 **Target Platform**: as UI 001: the two latest major versions of evergreen browsers, served under
 `/ng/` by the `ng-mailcow` image.
@@ -390,7 +391,8 @@ orchestrator assigns their numbers; this repository does not edit the API reposi
   UI 002 D1 records.
 - **Dev stack Keycloak**: the `idp` profile's Keycloak needs a manual realm setup (API quickstart
   Part B). A realm import file in the API repository would let the single sign-on smoke test run in
-  CI (owner question 2).
+  CI (owner question 2). *Settled at T101*: mailcow-rest-v2 imports `docker/keycloak/example-realm.json`
+  (`bae8f34`, API gap G21), and the smoke suite runs the test with `SMOKE_IDP=1`.
 
 ## Dependencies on earlier UI features
 
@@ -430,7 +432,8 @@ T002, test-first, at the listed path with the listed behaviour before any story 
 2. **Keycloak in CI for the single sign-on smoke test.** **Default**: the test is opt-in (it runs
    with `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` against a Keycloak set up as API quickstart
    Part B describes). It becomes a CI gate once mailcow-rest-v2 ships a Keycloak realm import for its
-   `idp` profile, which is proposed to that repository.
+   `idp` profile, which is proposed to that repository. *Settled at T101*: the realm import shipped
+   (`bae8f34`); the CI `smoke` job sets `SMOKE_IDP=1`.
 
 ## Parity notes added by the plan
 
@@ -567,4 +570,4 @@ stays in `src/app/session/` and `src/api/`, which own it since UI 001.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
-| The single sign-on smoke test (a constitution VI required layer) is written and runnable, but runs only when `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` are set, because the API dev stack's Keycloak realm is set up by hand (API quickstart Part B). | A real provider round trip cannot be scripted against a realm that does not exist. The LDAP and OAuth2 smoke tests run without manual setup. | Leaving the test out was rejected: VI requires the layer, and the test is ready for when a realm import exists (owner question 2). Mocking the provider in the smoke suite was rejected: that is the end-to-end suite's job. |
+| *Resolved at T101: with the API's realm import the test runs with `SMOKE_IDP=1`, in CI too.* The single sign-on smoke test (a constitution VI required layer) is written and runnable, but runs only when `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` are set, because the API dev stack's Keycloak realm is set up by hand (API quickstart Part B). | A real provider round trip cannot be scripted against a realm that does not exist. The LDAP and OAuth2 smoke tests run without manual setup. | Leaving the test out was rejected: VI requires the layer, and the test is ready for when a realm import exists (owner question 2). Mocking the provider in the smoke suite was rejected: that is the end-to-end suite's job. |

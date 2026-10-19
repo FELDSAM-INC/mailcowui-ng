@@ -90,22 +90,30 @@ that host automatically.
 ```bash
 export MAILCOW_REST_V2_DIR=../mailcow-rest-v2
 SMOKE_IDP=1 scripts/smoke/stack-up.sh        # also starts the API's idp profile (OpenLDAP, Keycloak)
-npm run test:smoke -- --grep "@idp|oauth2"   # LDAP setup, directory password sign-in, OAuth2 clients
-# Optional, after configuring Keycloak as API quickstart Part B describes:
-SMOKE_SSO_USERNAME=anna@example.org SMOKE_SSO_PASSWORD='…' npm run test:smoke -- --grep @sso
+SMOKE_IDP=1 npm run test:smoke                # the whole suite, with @idp, @sso and the OAuth2 test
 scripts/smoke/stack-down.sh
 ```
+
+Keycloak imports mailcow-rest-v2's realm (`docker/keycloak/example-realm.json`, API gap G21), so
+the single sign-on test needs no manual setup. The stack publishes Keycloak on
+`SMOKE_KEYCLOAK_PORT` (default 18481). The API sends the browser to `http://keycloak:8080` (its
+service name) and back to `http://localhost/ng/sso/return` (no port), so with `SMOKE_IDP=1` the smoke
+project maps both to the published ports (`--host-resolver-rules`, `playwright.config.ts`). On a
+mailcow host, `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` run the test against the stored
+configuration instead.
 
 **Expected**:
 
 - `identity-provider.smoke.spec.ts` passes: an LDAP setup with host `openldap`, a test with a wrong
   bind password reporting "credentials rejected", a passing test, and a save showing "complete".
-- `provider-password.smoke.spec.ts` passes: `carl@example.org` reaches home with the directory
-  password.
-- `oauth2-clients.smoke.spec.ts` passes: create, copy, revoke, delete and a bulk revocation.
-- With the Keycloak variables, `single-sign-on.smoke.spec.ts` lands on home through the real
-  provider, with no `code` or `state` in the address or storage.
-- Without them it is skipped with a message naming the variables (plan, Complexity Tracking).
+- `provider-password.smoke.spec.ts` passes: `carl@example.org` gets a mailbox from the mapped
+  template "Staff" and reaches home with the directory password; the mailbox and the configuration
+  are removed afterwards.
+- `oauth2-clients.smoke.spec.ts` passes: create, copy, edit, bulk secret renewal, bulk token
+  revocation and bulk removal.
+- `single-sign-on.smoke.spec.ts` stores the dev Keycloak, lands on home through the real provider
+  as `anna@example.org`, with no `code` or `state` in the address or storage, and removes the
+  mailbox and the configuration afterwards.
 
 ## Part D: On a mailcow host
 
@@ -124,3 +132,24 @@ scripts/smoke/stack-down.sh
 7. Do a screen-reader pass of US1, US2 and US5 with VoiceOver on iOS and TalkBack on Android.
 
 Record the results in a "Validation log" section appended to this file (T100).
+
+## Validation log
+
+### Part C, 2026-10-19 (T101)
+
+- mailcow-rest-v2 at the pinned `33f1eea` (`scripts/smoke/stack-up.sh` with `SMOKE_IDP=1`, a clone
+  of the API repository under `.smoke/api`), this app at the rebased `wt/012`, Playwright 1.64.1 in
+  `mcr.microsoft.com/playwright:v1.64.1-noble` on the host network, one worker.
+- Whole smoke suite, two consecutive rounds on the same stack: 37 passed, 0 failed, 0 skipped each
+  time, including both `@idp` tests, the OAuth2 test and `@sso` through the imported Keycloak realm.
+- The first run found three harness faults, now fixed:
+  - `configureDevLdap()` stored no attribute mapping, so carl's first sign-in had no template to
+    create his mailbox from ("Login failed", legacy's "no matching mapping"); it now maps
+    `title: staff` to "Staff" as API quickstart Part B does, and the test removes carl's mailbox and
+    the configuration afterwards, so that a second run starts clean;
+  - the OAuth2 test chained three quick actions on one selection, but clients an action is done for
+    leave the selection (FR-065); it selects them again before each action;
+  - the single sign-on test needed hand-made settings; it now stores the dev Keycloak itself.
+- Owner question 2 is settled: mailcow-rest-v2 ships the realm import (`bae8f34`), so the CI
+  `smoke` job sets `SMOKE_IDP=1` and the single sign-on test is part of the suite.
+

@@ -42,7 +42,7 @@ test.describe('API 012 history', () => {
     await records(page).nth(3).getByRole('button', { name: 'Show details' }).click()
     const details = page.getByRole('region', { name: /Details of/ }).first()
     await expect(details).toContainText('OAuth2 client')
-    await expect(details).toContainText('"accessTokens":12')
+    await expect(details).toContainText('accessTokens: 12')
     await expect(
       page.getByRole('button', { name: 'Remove filter: OAuth2 client', exact: true }),
     ).toBeVisible()
@@ -68,8 +68,9 @@ test.describe('API 012 history', () => {
     await expect(records(page).nth(2)).toContainText('Identity provider removed')
     await records(page).nth(0).getByRole('button', { name: 'Show details' }).click()
     const details = page.getByRole('region', { name: /Details of/ }).first()
-    await expect(details).toContainText('"syncInterval":{"old":15,"new":60}')
-    await expect(details).toContainText('"bindPassword":{"changed":true}')
+    // UI 004 (T106) shows each change as "path: old → new"; a secret only as changed.
+    await expect(details).toContainText('syncInterval: 15 → 60')
+    await expect(details).toContainText('bindPassword: {"changed":true}')
   })
 
   test('US6-AS4 sign-ins through the provider show their method and translated reason; no method filter', async ({

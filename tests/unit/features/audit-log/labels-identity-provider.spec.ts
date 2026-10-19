@@ -97,7 +97,8 @@ describe('API 012 audit labels', () => {
     } as unknown as AuditEvent
     const wrapper = mountWithApp(AuditEventDetails, { props: { event, variant: 'list' } })
     expect(wrapper.text()).toContain(`${lt('admin.iam')}: ldap`)
-    expect(wrapper.text()).toContain('"syncInterval":{"old":15,"new":60}')
-    expect(wrapper.text()).toContain('"bindPassword":{"changed":true}')
+    // UI 004 (T106) shows each change of `changes` as "path: old → new"; a secret only as changed.
+    expect(wrapper.text()).toContain('syncInterval: 15 → 60')
+    expect(wrapper.text()).toContain('bindPassword: {"changed":true}')
   })
 })

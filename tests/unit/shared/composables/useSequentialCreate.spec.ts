@@ -1,6 +1,8 @@
 // One request per entry (T019, UI 004 data-model §7, research R9): strictly one at a time, in
 // order; entry-level refusals continue and form-level ones stop; a network failure stops the run;
-// the progress is exposed and nothing is retried.
+// the progress is exposed and nothing is retried. UI 010 (T015, research R8): the entry in flight
+// when the connection drops (or a non-problem 5xx answers) ends `unknown`, and `stop()` lets the
+// current request finish and leaves the rest not processed.
 import { describe, expect, it, vi } from 'vitest'
 
 import { ApiProblem } from '@/api'
@@ -64,7 +66,7 @@ describe('useSequentialCreate', () => {
     expect(run.stopProblem.value?.is('validation-failed')).toBe(true)
   })
 
-  it('stops after a network failure: the entry and the rest are not processed, nothing is retried', async () => {
+  it('stops after a network failure: the entry in flight is unknown, the rest not processed, nothing is retried', async () => {
     const run = useSequentialCreate()
     const send = vi.fn((value: string) =>
       value === 'b@example.org' ? Promise.reject(network()) : Promise.resolve(value),
@@ -76,12 +78,47 @@ describe('useSequentialCreate', () => {
     )
     expect(results.map((result) => result.outcome)).toEqual([
       'created',
-      'notProcessed',
+      'unknown',
       'notProcessed',
     ])
+    expect(results[1]!.problem?.kind).toBe('network')
     expect(send).toHaveBeenCalledTimes(2)
     expect(run.status.value).toBe('stopped')
     expect(run.stopProblem.value?.kind).toBe('network')
+  })
+
+  it('treats a non-problem 5xx like a dropped connection', async () => {
+    const run = useSequentialCreate()
+    const unavailable = ApiProblem.fromParts({ kind: 'unavailable', status: 502 })
+    const results = await run.run(
+      parseEntryList('a b'),
+      (entry) => (entry.value === 'a' ? Promise.reject(unavailable) : Promise.resolve(entry.value)),
+      classify,
+    )
+    expect(results.map((result) => result.outcome)).toEqual(['unknown', 'notProcessed'])
+    expect(run.stopProblem.value?.kind).toBe('unavailable')
+  })
+
+  it('stop() lets the current request finish and leaves the rest not processed', async () => {
+    const run = useSequentialCreate<string>()
+    let release!: () => void
+    const send = vi.fn(async (value: string) => {
+      if (value === 'a') await new Promise<void>((resolve) => (release = resolve))
+      return value
+    })
+    const promise = run.run(parseEntryList('a b c'), (entry) => send(entry.value), classify)
+    await Promise.resolve()
+    run.stop()
+    release()
+    const results = await promise
+    expect(results.map((result) => result.outcome)).toEqual([
+      'created',
+      'notProcessed',
+      'notProcessed',
+    ])
+    expect(send).toHaveBeenCalledTimes(1)
+    expect(run.status.value).toBe('stopped')
+    expect(run.stopProblem.value).toBeNull()
   })
 
   it('exposes the pending state and the progress', async () => {

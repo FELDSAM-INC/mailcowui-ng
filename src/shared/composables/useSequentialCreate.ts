@@ -3,13 +3,16 @@
 // `notProcessed`. `classify` tells a refusal that concerns only its entry (the run continues) from
 // one that concerns the whole form (the run stops, the rest is not processed). A network failure
 // stops the run too. Nothing is retried; the progress is exposed for the pending announcement.
+// UI 010 (research R8, conventions "Bulk actions"): the entry in flight when the connection drops,
+// or when a non-problem 5xx answers, ends `unknown` (it may or may not have been created), and
+// `stop()` lets the current request finish and leaves the rest not processed.
 import { computed, ref, shallowRef } from 'vue'
 
 import { ApiProblem, isApiProblem } from '@/api'
 
 import type { ParsedEntry } from '../validation/entry-list'
 
-export type EntryOutcome = 'created' | 'refused' | 'notProcessed'
+export type EntryOutcome = 'created' | 'refused' | 'unknown' | 'notProcessed'
 
 export interface EntryResult<R> {
   entry: ParsedEntry
@@ -28,6 +31,7 @@ export function useSequentialCreate<R = unknown>() {
   const results = shallowRef<EntryResult<R>[]>([])
   /** The problem that stopped the run: a form-level refusal or a network failure. */
   const stopProblem = shallowRef<ApiProblem | null>(null)
+  let stopRequested = false
 
   async function run(
     entries: readonly ParsedEntry[],
@@ -37,6 +41,7 @@ export function useSequentialCreate<R = unknown>() {
     if (status.value === 'running') return results.value
     status.value = 'running'
     stopProblem.value = null
+    stopRequested = false
     total.value = entries.length
     const collected: EntryResult<R>[] = []
     const rest = (from: number) => {
@@ -44,6 +49,11 @@ export function useSequentialCreate<R = unknown>() {
     }
     try {
       for (const [position, entry] of entries.entries()) {
+        if (stopRequested) {
+          rest(position)
+          status.value = 'stopped'
+          return collected
+        }
         current.value = position + 1
         try {
           collected.push({ entry, outcome: 'created', data: await send(entry) })
@@ -51,9 +61,10 @@ export function useSequentialCreate<R = unknown>() {
           const problem = isApiProblem(error)
             ? error
             : ApiProblem.fromParts({ kind: 'problem', cause: error })
-          if (problem.kind === 'network') {
+          if (problem.kind === 'network' || problem.kind === 'unavailable') {
             stopProblem.value = problem
-            rest(position)
+            collected.push({ entry, outcome: 'unknown', problem })
+            rest(position + 1)
             status.value = 'stopped'
             return collected
           }
@@ -74,6 +85,11 @@ export function useSequentialCreate<R = unknown>() {
     }
   }
 
+  /** Stops after the request in flight; the remaining entries are not processed. */
+  function stop() {
+    if (status.value === 'running') stopRequested = true
+  }
+
   function reset() {
     status.value = 'idle'
     results.value = []
@@ -90,6 +106,7 @@ export function useSequentialCreate<R = unknown>() {
     stopProblem,
     running: computed(() => status.value === 'running'),
     run,
+    stop,
     reset,
   }
 }

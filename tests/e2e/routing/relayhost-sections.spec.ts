@@ -85,10 +85,14 @@ test.describe('relayhost assignments', () => {
     await expect(choice(page)).toHaveValue('ID 99')
     await choose(page, 'None / Inherit')
     await save(page)
-    const put = (await mockApi.requests()).find(
-      (item) => item.operationId === 'replaceMailboxRelayhostAssignment',
-    )!
-    expect(put.body).toEqual({ relayhostId: null })
+    await expect
+      .poll(
+        async () =>
+          (await mockApi.requests()).find(
+            (item) => item.operationId === 'replaceMailboxRelayhostAssignment',
+          )?.body,
+      )
+      .toEqual({ relayhostId: null })
   })
 
   test('US2-AS7 FR-036 without relayhosts only "None / Inherit" is offered', async ({

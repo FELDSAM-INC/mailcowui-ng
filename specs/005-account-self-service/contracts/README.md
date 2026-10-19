@@ -16,6 +16,7 @@ operations it calls and how it reacts to their problem types.
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` |
 | Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
 | Operations in the bundle | 376 (all features 001–013); UI 005 calls the ones listed below |
+| **Pinned commit (implementation, T001)** | `4be8653b963c5af9c3e0c91cfe3824a48317ff52` (mailcow-rest-v2 main, 2026-10-19), after API 005's implementation. Bundle sha256 `91e536d645dc6b71cd9d402d7102898ea9486b6938e3985a8631fe33fff774a1`, 379 operations. Changes to UI 005's operations since the baseline, all accepted: `Mailbox.mailSettingsVersion` (AG1 closed, G22), `listSieveFilters` gains `id` (AG2 closed, G23), `RecentLogin.service` lists its known values as an open enumeration (AG3, G24), `PendingAction` and the restricted-session description name API 005's routes (AG4), `OwnTotpEnrolment.qrCode` documents its SVG subset (AG5, G26), `Cache-Control` of the profile and hand-off responses is a pattern containing `no-store`, and `changeOwnPassword` reports UI 003's `tooShort`/`missingCharacterClass` codes. |
 | `KnownProblemType` | under `components.schemas` at the baseline, so `knownProblemTypeValues` is generated (closes UI 001's API gap 5) |
 
 **Pin rule** (research R2, `docs/conventions.md` "Contract pins"): pins only move forward. The setup

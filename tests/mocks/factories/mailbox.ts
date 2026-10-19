@@ -16,6 +16,7 @@ import type {
 
 import type { MockAccount, MockDomain, MockMailbox, ScenarioState } from '../scenarios/state'
 import { asciiName, GIB, MIB, normaliseTags, readableName } from './domain'
+import { mailSettingsEtag } from './mail-settings'
 
 export { GIB, MIB }
 
@@ -218,6 +219,7 @@ export function mailboxView(
     taggedMailHandling: mailbox.taggedMailHandling,
     tlsEnforceInbound: mailbox.tlsEnforceInbound,
     tlsEnforceOutbound: mailbox.tlsEnforceOutbound,
+    mailSettingsVersion: mailSettingsEtag(mailbox),
     quarantineNotification: mailbox.quarantineNotification,
     quarantineCategory: mailbox.quarantineCategory,
     rateLimit: ownLimit ? { ...ownLimit } : domainLimit ? { ...domainLimit } : null,

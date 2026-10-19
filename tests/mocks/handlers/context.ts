@@ -81,7 +81,13 @@ export function sessionAccount(state: ScenarioState): MockAccount | undefined {
  */
 export function requireAccount(
   state: ScenarioState,
-  options: { allowRestricted?: boolean } = {},
+  options: {
+    /**
+     * `true` allows every restricted session; a pending action (UI 005, API 005's route modes
+     * `includes,<action>`) allows the sessions restricted by that action only.
+     */
+    allowRestricted?: boolean | PendingAction
+  } = {},
 ): MockAccount | Response {
   if (state.session.state === 'pendingSecondFactor') return problem(401, 'second-factor-required')
   // UI 012 (FR-052): the provider refused to renew a single sign-on session; the session is gone.
@@ -91,7 +97,11 @@ export function requireAccount(
   }
   const account = sessionAccount(state)
   if (!account || !account.active) return problem(401, 'unauthenticated')
-  if (state.session.state === 'restricted' && !options.allowRestricted) {
+  const allowed =
+    options.allowRestricted === true ||
+    (typeof options.allowRestricted === 'string' &&
+      account.pendingActions.includes(options.allowRestricted))
+  if (state.session.state === 'restricted' && !allowed) {
     return problem(403, 'pending-action-required', {
       pendingActions: account.pendingActions satisfies PendingAction[],
     })

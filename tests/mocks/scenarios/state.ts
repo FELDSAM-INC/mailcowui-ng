@@ -62,6 +62,7 @@ import type { MockIdentityProvider } from '../factories/identity-provider'
 import type { MockOauth2Client } from '../factories/oauth2-client'
 import type { OperationsPatch, OperationsState } from './operations/state'
 import type { PublicConfigVariant } from './public-config'
+import type { MockSelfServiceState, SelfServicePatch } from './self-service/state'
 import type { SyncJobChanges, SyncJobState } from './sync-jobs'
 import type { MockRoutingState, RoutingOverrides } from './routing/state'
 
@@ -791,6 +792,8 @@ export interface ScenarioState {
   oauth2Capabilities: Oauth2ClientCapabilities
   /** UI 006: quarantine items, settings, spam scores, list entries, buckets and statistics. */
   quarantine: MockQuarantineState
+  /** UI 005: what only the self-service operations know (research R24). */
+  selfService: MockSelfServiceState
 }
 
 /** JSON overrides for a scenario, given by tests through `POST /__mock/scenarios`. */
@@ -853,6 +856,8 @@ export interface ScenarioOverrides {
   operations?: OperationsPatch
   /** UI 006: quarantine, spam policy and rate limit data and injections. */
   quarantine?: QuarantinePatch
+  /** UI 005: self-service data and switches. */
+  selfService?: SelfServicePatch
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

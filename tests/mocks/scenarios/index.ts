@@ -70,6 +70,8 @@ import { identityProviderScenarios } from './identity-provider'
 import { oauth2ClientScenarios } from './oauth2-clients'
 import { providerPasswordScenarios } from './provider-password'
 import { singleSignOnScenarios } from './single-sign-on'
+import { applySelfServiceOverrides, initialSelfServiceState } from './self-service/state'
+import { selfServiceScenarioGroups } from './self-service'
 import { initialIdentityProvider } from '../factories/identity-provider'
 import { OAUTH2_CAPABILITIES } from '../factories/oauth2-client'
 import {
@@ -146,6 +148,8 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...quarantineScenarios,
   ...quarantineAdminScenarios,
   ...spamFilterScenarios,
+  // UI 005: one module per story under ./self-service/.
+  ...selfServiceScenarioGroups,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -247,6 +251,7 @@ export function applyOverrides(
   applyRoutingOverrides(state, overrides.routing)
   if (overrides.operations) applyOperationsPatch(state, overrides.operations)
   applyQuarantineOverrides(state, overrides)
+  if (overrides.selfService) applySelfServiceOverrides(state, overrides.selfService)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -301,6 +306,7 @@ export function createScenarioState(
     ...initialRoutingState(),
     operations: initialOperationsState(),
     ...initialQuarantineState(),
+    ...initialSelfServiceState(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

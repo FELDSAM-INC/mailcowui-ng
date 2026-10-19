@@ -53,6 +53,7 @@ import { publicConfigHandlers } from './public-config'
 import { quarantineHandlers } from './quarantine'
 import { rateLimitHandlers } from './rate-limits'
 import { resourceHandlers } from './resources'
+import { selfServiceHandlers } from './self-service'
 import { senderSettingsHandlers } from './sender-settings'
 import { rateLimitBucketHandlers } from './rate-limit-buckets'
 import { rspamdHandlers } from './rspamd'
@@ -122,6 +123,8 @@ export const areaHandlers: RequestHandler[] = [
   ...quarantineHandlers,
   ...spamPolicyHandlers,
   ...rateLimitHandlers,
+  // UI 005: one module per area under ./self-service/.
+  ...selfServiceHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null
@@ -135,6 +138,11 @@ const REDACTED = new Set([
   'token',
   // UI 010: a DKIM import's private key never reaches the request log.
   'privateKey',
+  // UI 005: passwords, keys and tokens of the self-service operations.
+  'currentPassword',
+  'newPassword',
+  'secretKey',
+  'userKey',
 ])
 
 function redact(value: unknown): unknown {

@@ -98,19 +98,19 @@ section registry and visibility, the My account hub and the mailbox-context grou
 
 ### Test infrastructure
 
-- [ ] T011 Extend the scenario model in `tests/mocks/scenarios/state.ts` with the self-service state of data-model §1 (research R24):
+- [x] T011 Extend the scenario model in `tests/mocks/scenarios/state.ts` with the self-service state of data-model §1 (research R24):
   - per mailbox: recovery address, overview figures (quota, usage, messages, protocol access, aliases, send-as, catch-alls, `webmail.redirectAfterSignIn`, password-changed time), app passwords, temporary aliases and alias domains, push settings, mail settings, recent logins, Sieve filters and the active script;
   - per account: second-factor entries (type, name, active, usable, Yubico public ID, used for the current sign-in), `forceTfa`, the number of other sessions, the TOTP enrolment, the WebAuthn second-factor options and throttle counters;
   - server switches: groupware enabled, password reset available, reset tokens, and outages of the shared store, the mail store, Pushover and Yubico.
 
   Add the factories `tests/mocks/factories/{second-factor,app-password,temporary-alias,recent-login,sieve-filter,mailbox-overview,client-configuration,push-settings,qr-svg,apple-profile}.ts`. `qr-svg.ts` builds a BaconQrCode-style `data:image/svg+xml;base64,…` (an `svg` with one `rect`, nested `g` transforms and one `path`).
-- [ ] T012 Implement the baseline handlers with `openapi-msw`, wrapped by the validator:
+- [x] T012 Implement the baseline handlers with `openapi-msw`, wrapped by the validator:
   - `tests/mocks/handlers/self-service/index.ts`, registered in `tests/mocks/handlers/index.ts`;
   - `tests/mocks/handlers/self-service/capabilities.ts`: `getSelfServiceCapabilities` (signed out: only `passwordReset`; sessions: every member plus `account` with `secondFactorRequired`, `passwordChangeAvailable`, `secondFactorManagementAvailable`; documented `500` by failure injection);
   - `tests/mocks/handlers/self-service/overview.ts`: `getOwnMailboxOverview` (mailbox users with a full session; `forbidden` for other roles; `403 pending-action-required` in a restricted session).
 
   Extend UI 001's restricted-session handling in `tests/mocks/handlers/auth.ts` and `tests/mocks/handlers/identity.ts` with API 005's route modes (research R8): `includes,passwordChange` for `getOwnPasswordPolicy` and `changeOwnPassword`; `includes,secondFactorSetup` for `listOwnSecondFactors`, `enrolOwnSecondFactor`, `startOwnTotpEnrolment` and `createOwnSecondFactorWebAuthnOptions`; `allow` for `getSelfServiceCapabilities`; `403 pending-action-required` for every other self-service operation.
-- [ ] T013 Create `tests/mocks/scenarios/account.ts`, registered in `tests/mocks/scenarios/index.ts`, with the base scenarios:
+- [x] T013 Create `tests/mocks/scenarios/account.ts`, registered in `tests/mocks/scenarios/index.ts`, with the base scenarios:
   - `mailbox-account`: mailcow source, every user flag on, one TOTP and one security key entry, three active app passwords, aliases, recent logins, 1 GiB quota with 256 MiB used, webmail enabled;
   - `mailbox-account-no-flags`: every user flag off;
   - `mailbox-external-source`: Keycloak source, signed in with a passkey, `passwordChangeAvailable` and `secondFactorManagementAvailable` false;

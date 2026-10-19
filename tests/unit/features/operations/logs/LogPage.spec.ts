@@ -201,6 +201,28 @@ describe('LogPage', () => {
     wrapper.unmount()
   })
 
+  it('FR-043 a failed Refresh keeps the entries shown with a notice', async () => {
+    const { wrapper } = await mountLog('netfilter')
+    await settled(wrapper)
+    quickActions(wrapper).vm.$emit('more', 100)
+    await waitFor(() => expect(ids(wrapper).length).toBeGreaterThan(50))
+    const shown = ids(wrapper)
+    mockState().operations.inject.listNetfilterLog = {
+      status: 503,
+      problemType: 'temporary-failure',
+    }
+    const refresh = wrapper.findAll('button').find((button) => button.text() === 'Refresh')!
+    await refresh.trigger('click')
+    await waitFor(() => expect(wrapper.find('[data-update-failed]').exists()).toBe(true))
+    expect(ids(wrapper)).toEqual(shown)
+    expect(wrapper.find('[data-log-error]').exists()).toBe(false)
+    delete mockState().operations.inject.listNetfilterLog
+    await refresh.trigger('click')
+    await waitFor(() => expect(ids(wrapper)).toHaveLength(50))
+    expect(wrapper.find('[data-update-failed]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
   it('plan decision 6 Expand All and Collapse All open and close every entry', async () => {
     const { wrapper } = await mountLog('autodiscover')
     await settled(wrapper)

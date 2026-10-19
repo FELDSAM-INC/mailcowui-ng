@@ -6,9 +6,9 @@
 // The total is the first page's (with `before`, `meta.total` counts only the older entries). Logs
 // never refresh on their own (`staleTime` Infinity); Refresh starts again from the first page.
 import { useInfiniteQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
+import { computed, ref, toValue, watch, type MaybeRefOrGetter } from 'vue'
 
-import { api, problemOf, requireData, type ListMeta } from '@/api'
+import { api, problemOf, requireData, type ApiProblem, type ListMeta } from '@/api'
 
 import type { LogEntry, LogTypeDescriptor } from './log-types'
 import { operationsKeys } from '../query-keys'
@@ -111,6 +111,14 @@ export function useLogEntries(
     }),
   )
 
+  // A failed Refresh keeps every entry shown, with its problem (FR-043): the newest page is read
+  // first, and it replaces the shown pages only when it arrived.
+  const refreshing = ref(false)
+  const refreshProblem = ref<ApiProblem | null>(null)
+  watch(key, () => {
+    refreshProblem.value = null
+  })
+
   const pages = computed(() => result.data.value?.pages ?? [])
   const entries = computed(() => uniqueEntries(pages.value))
 
@@ -119,9 +127,9 @@ export function useLogEntries(
     /** All matching entries, from the first page. */
     total: computed(() => pages.value[0]?.meta.total ?? 0),
     loading: computed(() => result.isPending.value && result.fetchStatus.value !== 'idle'),
-    fetching: computed(() => result.isFetching.value),
+    fetching: computed(() => result.isFetching.value || refreshing.value),
     loadingMore: computed(() => result.isFetchingNextPage.value),
-    problem: computed(() => problemOf(result.error.value)),
+    problem: computed(() => refreshProblem.value ?? problemOf(result.error.value)),
     /** When the shown entries were loaded (epoch milliseconds). */
     loadedAt: computed(() => result.dataUpdatedAt.value),
     /** Adds up to `size` further entries; the number added, or null when loading failed. */
@@ -132,9 +140,24 @@ export function useLogEntries(
       if (outcome.isError) return null
       return entries.value.length - before
     },
-    /** Loads the newest (or oldest) entries again, dropping the older pages. */
-    refresh() {
-      return queryClient.resetQueries({ queryKey: key.value, exact: true })
+    /** Loads the newest (or oldest) entries again, dropping the older pages once they arrived. */
+    async refresh() {
+      const descriptor = toValue(type)
+      if (!descriptor || !result.data.value) {
+        await result.refetch()
+        return
+      }
+      refreshProblem.value = null
+      refreshing.value = true
+      const first: LogPageParam = { first: true, offset: 0 }
+      try {
+        const page = await fetchLogPage(descriptor, { ...toValue(query) }, first, FIRST_PAGE)
+        queryClient.setQueryData(key.value, { pages: [page], pageParams: [first] })
+      } catch (error) {
+        refreshProblem.value = problemOf(error)
+      } finally {
+        refreshing.value = false
+      }
     },
     retry: () => result.refetch(),
   }

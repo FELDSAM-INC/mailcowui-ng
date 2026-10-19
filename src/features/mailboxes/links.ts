@@ -9,3 +9,8 @@ export function mailboxListLink(options: { domain?: string } = {}): RouteLocatio
 export function mailboxLink(address: string): RouteLocationRaw {
   return { name: 'mailbox-detail', params: { address } }
 }
+
+/** The add mailbox form with a domain chosen. */
+export function mailboxCreateLink(options: { domain?: string } = {}): RouteLocationRaw {
+  return { name: 'mailbox-create', query: options.domain ? { domain: options.domain } : {} }
+}

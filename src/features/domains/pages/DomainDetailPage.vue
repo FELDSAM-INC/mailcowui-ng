@@ -11,13 +11,15 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteUpdate, RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { lt, type LegacyKey } from '@/i18n'
 import { isApiProblem, queryKeys, type DomainCreationReport } from '@/api'
 import { canAccess } from '@/app/navigation/visibility'
 import { CheckDnsAction, DomainDkimSection, DomainMtaStsSection } from '@/features/dns'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
+import { mailboxCreateLink, mailboxListLink } from '@/features/mailboxes'
+import { buttonVariants } from '@/shared/ui/button'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
@@ -215,6 +217,19 @@ watch(
       >
         <template #actions>
           <CheckDnsAction :name="domain.name" />
+          <!-- UI 003 (FR-005): the domain's mailboxes and a new mailbox in it. -->
+          <RouterLink
+            :to="mailboxListLink({ domain: domain.name })"
+            :class="buttonVariants({ variant: 'outline' })"
+          >
+            {{ lt('mailbox.mailboxes') }}
+          </RouterLink>
+          <RouterLink
+            :to="mailboxCreateLink({ domain: domain.name })"
+            :class="buttonVariants({ variant: 'outline' })"
+          >
+            {{ lt('mailbox.add_mailbox') }}
+          </RouterLink>
           <HistoryLink :target-id="domain.name" :allowed="historyAllowed" />
         </template>
       </PageHeader>

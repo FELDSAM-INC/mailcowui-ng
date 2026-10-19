@@ -17,7 +17,8 @@ export interface DomainNameOptions {
 /** The lower-case ASCII form of a typed name, or null when it cannot be one. */
 export function toAsciiDomain(input: string, options: DomainNameOptions = {}): string | null {
   let value = input.trim()
-  if (options.trailingDot && value.endsWith('.') && !value.endsWith('..')) value = value.slice(0, -1)
+  if (options.trailingDot && value.endsWith('.') && !value.endsWith('..'))
+    value = value.slice(0, -1)
   let prefix = ''
   if (options.wildcard && value.startsWith('*.')) {
     prefix = '*.'

@@ -76,11 +76,7 @@ describe('useSequentialCreate', () => {
       (entry) => send(entry.value),
       classify,
     )
-    expect(results.map((result) => result.outcome)).toEqual([
-      'created',
-      'unknown',
-      'notProcessed',
-    ])
+    expect(results.map((result) => result.outcome)).toEqual(['created', 'unknown', 'notProcessed'])
     expect(results[1]!.problem?.kind).toBe('network')
     expect(send).toHaveBeenCalledTimes(2)
     expect(run.status.value).toBe('stopped')

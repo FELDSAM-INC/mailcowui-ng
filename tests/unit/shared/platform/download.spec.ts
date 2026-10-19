@@ -19,11 +19,11 @@ describe('downloadText', () => {
     const revoke = vi.fn()
     vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke }))
     const clicks: { href: string; download: string; connected: boolean }[] = []
-    const click = vi
-      .spyOn(HTMLAnchorElement.prototype, 'click')
-      .mockImplementation(function (this: HTMLAnchorElement) {
-        clicks.push({ href: this.href, download: this.download, connected: this.isConnected })
-      })
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      clicks.push({ href: this.href, download: this.download, connected: this.isConnected })
+    })
     const text = '$ORIGIN example.org.\r\n@\tIN\tMX\t10 mail.example.org.\n'
 
     downloadText(text, 'example.org.txt', 'text/plain')

@@ -29,8 +29,7 @@ const element = ref<HTMLElement | null>(null)
         ref="element"
         data-record-value
         class="max-h-96 min-w-0 flex-1 overflow-y-auto rounded-lg bg-gray-50 p-2 font-mono text-sm whitespace-pre-wrap wrap-anywhere text-gray-900 dark:bg-gray-950 dark:text-white"
-        >{{ value }}</pre
-      >
+        >{{ value }}</pre>
       <code
         v-else
         ref="element"

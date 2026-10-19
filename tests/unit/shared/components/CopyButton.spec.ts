@@ -85,7 +85,9 @@ describe('CopyButton', () => {
   })
 
   it('selects the value in place with a message when the browser refuses', async () => {
-    stubClipboard({ writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')) })
+    stubClipboard({
+      writeText: () => Promise.reject(new DOMException('denied', 'NotAllowedError')),
+    })
     const wrapper = mountWithApp(Host, { props: { text: 'p=MIIB' }, attachTo: document.body })
     await wrapper.get('button').trigger('click')
     await flushPromises()

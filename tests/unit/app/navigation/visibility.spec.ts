@@ -148,8 +148,14 @@ describe('navigation catalogue', () => {
     expect(mtaSts?.path).toBe('/dns/mta-sts-policies')
     expect(dkim?.deliveredBy).toBe('010')
     expect(mtaSts?.deliveredBy).toBe('010')
-    expect(dkim?.classic).toEqual({ admin: ['/admin/system'], domainAdmin: ['/domainadmin/mailbox'] })
-    expect(mtaSts?.classic).toEqual({ admin: ['/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] })
+    expect(dkim?.classic).toEqual({
+      admin: ['/admin/system'],
+      domainAdmin: ['/domainadmin/mailbox'],
+    })
+    expect(mtaSts?.classic).toEqual({
+      admin: ['/admin/mailbox'],
+      domainAdmin: ['/domainadmin/mailbox'],
+    })
     expect(catalogue.some((item) => (item.id as string) === 'dns')).toBe(false)
   })
 

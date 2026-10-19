@@ -45,7 +45,11 @@ function created(name: string): DkimKeyChangeResult {
       missingParts: [],
     },
     etag: '"1"',
-    dnsPublication: { status: 'failed', recordName: null, reason: { code: 'timeout', detail: null } },
+    dnsPublication: {
+      status: 'failed',
+      recordName: null,
+      reason: { code: 'timeout', detail: null },
+    },
   }
 }
 
@@ -86,7 +90,9 @@ describe('RunResultList', () => {
     expect(items[0]!.text()).toContain('DKIM key a.example has been saved')
     expect(items[0]!.find('[data-publication-outcome]').exists()).toBe(true)
     expect(items[0]!.get('a').attributes('href')).toBe('/dns/dkim-keys/a.example')
-    expect(items[1]!.text()).toContain('A DKIM key for "b.example" exists and will not be overwritten')
+    expect(items[1]!.text()).toContain(
+      'A DKIM key for "b.example" exists and will not be overwritten',
+    )
     expect(items[2]!.text()).toContain('Outcome unknown')
     expect(items[3]!.text()).toContain('Not processed')
     expect(wrapper.text()).toContain('1 done')

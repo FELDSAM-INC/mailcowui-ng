@@ -33,15 +33,18 @@ describe('PublicationOutcome', () => {
     expect(wrapper.find('[data-publication-outcome]').exists()).toBe(false)
   })
 
-  it.each(dkimDnsPublicationStatusValues)('labels the status %s with text and an icon', (status) => {
-    const wrapper = mountOutcome(
-      outcome({ status, reason: status === 'failed' ? { code: 'timeout', detail: null } : null }),
-    )
-    const root = wrapper.get('[data-publication-outcome]')
-    expect(root.attributes('data-status')).toBe(status)
-    expect(root.text()).not.toContain('dns.publication')
-    expect(root.find('svg[aria-hidden="true"]').exists()).toBe(true)
-  })
+  it.each(dkimDnsPublicationStatusValues)(
+    'labels the status %s with text and an icon',
+    (status) => {
+      const wrapper = mountOutcome(
+        outcome({ status, reason: status === 'failed' ? { code: 'timeout', detail: null } : null }),
+      )
+      const root = wrapper.get('[data-publication-outcome]')
+      expect(root.attributes('data-status')).toBe(status)
+      expect(root.text()).not.toContain('dns.publication')
+      expect(root.find('svg[aria-hidden="true"]').exists()).toBe(true)
+    },
+  )
 
   it('says to publish manually for noZone and offers the action', () => {
     const wrapper = mountOutcome(outcome({ status: 'noZone' }))

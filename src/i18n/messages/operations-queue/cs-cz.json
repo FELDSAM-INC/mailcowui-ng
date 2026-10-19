@@ -1,1 +1,17 @@
-{}
+{
+  "operations": {
+    "queue": {
+      "qid": "QID",
+      "queue": "Fronta",
+      "moreRecipients": "+ {count} další",
+      "truncated": "Zobrazuje se jen prvních {max} zpráv. Vyprázdnění fronty a smazání všech zpráv se týká každé zprávy ve frontě.",
+      "purgeCount": "Ve frontě je {count} zpráv včetně podržených.",
+      "purgeAcknowledge": "Beru na vědomí, že všechny zprávy ve frontě včetně podržených budou trvale smazány",
+      "openContainer": "Zobrazit {container} na přehledu",
+      "viewerTitle": "ID {id}",
+      "viewAudited": "Každé zobrazení zprávy se zapisuje do protokolu auditu.",
+      "showRest": "Zobrazit zbytek ({size})",
+      "messageGone": "Tato zpráva už ve frontě není."
+    }
+  }
+}

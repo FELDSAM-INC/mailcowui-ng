@@ -1,1 +1,17 @@
-{}
+{
+  "operations": {
+    "queue": {
+      "qid": "QID",
+      "queue": "Queue",
+      "moreRecipients": "+ {count} more",
+      "truncated": "Only the first {max} messages are listed. Flushing the queue and deleting all messages affect every queued message.",
+      "purgeCount": "{count} messages are queued, including held ones.",
+      "purgeAcknowledge": "I understand that all queued messages, including held ones, are deleted permanently",
+      "openContainer": "Show {container} on the dashboard",
+      "viewerTitle": "ID {id}",
+      "viewAudited": "Each view of a message is recorded in the audit log.",
+      "showRest": "Show the rest ({size})",
+      "messageGone": "This message is no longer in the queue."
+    }
+  }
+}

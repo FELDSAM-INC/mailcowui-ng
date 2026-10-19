@@ -731,6 +731,7 @@
       "withCount": "Filters ({count})"
     },
     "form": {
+      "customParamsRestricted": "Only administrators may set custom parameters on this server.",
       "errors": {
         "customParameters": {
           "customParamsNotPermitted": "Only administrators may set custom parameters on this server.",
@@ -749,7 +750,8 @@
             }
           }
         }
-      }
+      },
+      "openExisting": "Open the existing job"
     },
     "list": {
       "actionsFor": "Actions for {name}",
@@ -774,6 +776,9 @@
     "result": {
       "failed": "Failed:",
       "succeeded": "Succeeded:"
+    },
+    "running": {
+      "note": "The run in progress is not interrupted and finishes on its own."
     },
     "sort": {
       "asc": "Ascending",

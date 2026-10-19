@@ -731,6 +731,7 @@
       "withCount": "Filtry ({count})"
     },
     "form": {
+      "customParamsRestricted": "Vlastní parametry smějí na tomto serveru nastavovat jen administrátoři.",
       "errors": {
         "customParameters": {
           "customParamsNotPermitted": "Vlastní parametry smějí na tomto serveru nastavovat jen administrátoři.",
@@ -749,7 +750,8 @@
             }
           }
         }
-      }
+      },
+      "openExisting": "Otevřít existující úlohu"
     },
     "list": {
       "actionsFor": "Akce pro {name}",
@@ -774,6 +776,9 @@
     "result": {
       "failed": "Neúspěšné:",
       "succeeded": "Úspěšné:"
+    },
+    "running": {
+      "note": "Probíhající běh se nepřeruší a dokončí se sám."
     },
     "sort": {
       "asc": "Vzestupně",

@@ -731,6 +731,7 @@
       "withCount": "Filtre ({count})"
     },
     "form": {
+      "customParamsRestricted": "Vlastné parametre smú na tomto serveri nastavovať len administrátori.",
       "errors": {
         "customParameters": {
           "customParamsNotPermitted": "Vlastné parametre smú na tomto serveri nastavovať len administrátori.",
@@ -749,7 +750,8 @@
             }
           }
         }
-      }
+      },
+      "openExisting": "Otvoriť existujúcu úlohu"
     },
     "list": {
       "actionsFor": "Akcie pre {name}",
@@ -774,6 +776,9 @@
     "result": {
       "failed": "Neúspešné:",
       "succeeded": "Úspešné:"
+    },
+    "running": {
+      "note": "Prebiehajúci beh sa nepreruší a dokončí sa sám."
     },
     "sort": {
       "asc": "Vzostupne",

@@ -3,8 +3,19 @@
 // through UI 004's `useSequentialCreate`. This module holds the row model of the results and the
 // classifier that tells a refusal of one name (the run continues) from one of the whole form (the
 // run stops).
-import type { ApiProblem, DkimKeyChangeResult } from '@/api'
-import type { EntryOutcome, RefusalScope } from '@/shared/composables/useSequentialCreate'
+import type {
+  ApiProblem,
+  DkimKey,
+  DkimKeyChangeResult,
+  DkimKeyKind,
+  DkimListParams,
+  ListMeta,
+} from '@/api'
+import type {
+  EntryOutcome,
+  EntryResult,
+  RefusalScope,
+} from '@/shared/composables/useSequentialCreate'
 
 export type RunOutcome = EntryOutcome | 'skipped'
 
@@ -35,4 +46,67 @@ export function dkimRunClassifier(problem: ApiProblem): RefusalScope {
     if (paths.every((path) => path === 'name' || path === 'target')) return 'entry'
   }
   return 'form'
+}
+
+/** A name to run on, with its readable form. */
+export interface RunName {
+  name: string
+  label: string
+}
+
+type PageFetcher = (params: DkimListParams) => Promise<{ data: DkimKey[]; meta: ListMeta }>
+
+const COLLECTION_PAGE = 1000
+
+/**
+ * "Generate keys for all names without a key" (FR-024): every missing name across all pages, with
+ * the current search and kind, in name order. A one-off read, never cached.
+ */
+export async function collectMissingNames(
+  filters: { q?: string; kind?: DkimKeyKind },
+  fetchPage: PageFetcher,
+): Promise<RunName[]> {
+  const names: RunName[] = []
+  for (let offset = 0; ; offset += COLLECTION_PAGE) {
+    const page = await fetchPage({
+      state: ['missing'],
+      ...(filters.q ? { q: filters.q } : {}),
+      ...(filters.kind ? { kind: filters.kind } : {}),
+      sort: 'name',
+      order: 'asc',
+      limit: COLLECTION_PAGE,
+      offset,
+    })
+    names.push(...page.data.map((entry) => ({ name: entry.name, label: entry.displayName })))
+    if (page.data.length === 0 || offset + COLLECTION_PAGE >= page.meta.total) return names
+  }
+}
+
+/** The first `max` names and the number of the others, for confirmations. */
+export function namePreview(
+  names: readonly RunName[],
+  max = 10,
+): { shown: string[]; more: number } {
+  return {
+    shown: names.slice(0, max).map((item) => item.label),
+    more: Math.max(0, names.length - max),
+  }
+}
+
+/** One row per runner result in order, then the names left out before sending. */
+export function runRows(
+  results: readonly EntryResult<DkimKeyChangeResult | undefined>[],
+  skipped: readonly RunName[],
+  labelOf: (name: string) => string,
+): RunRow[] {
+  return [
+    ...results.map((item) => ({
+      name: item.entry.value,
+      label: labelOf(item.entry.value),
+      outcome: item.outcome,
+      result: item.data,
+      problem: item.problem,
+    })),
+    ...skipped.map((item) => ({ name: item.name, label: item.label, outcome: 'skipped' as const })),
+  ]
 }

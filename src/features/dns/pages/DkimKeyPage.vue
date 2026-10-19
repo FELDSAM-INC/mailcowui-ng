@@ -3,7 +3,7 @@
 // with its copy buttons, "not signed" for a name without a key, the incomplete notice, and the
 // actions the role and the server allow (later stories add them). An unknown name, or one outside
 // the scope, shows the not-found page with a way back (FR-004).
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
@@ -12,6 +12,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import { buttonVariants } from '@/shared/ui/button'
 
 import { useDnsCapabilities } from '../api/capabilities'
 import { useDkimKey } from '../api/dkim'
@@ -19,6 +20,8 @@ import CheckDnsAction from '../components/CheckDnsAction.vue'
 import DkimKeyFacts from '../components/DkimKeyFacts.vue'
 import DkimRecord from '../components/DkimRecord.vue'
 import IncompleteKeyNotice from '../components/IncompleteKeyNotice.vue'
+import GenerateKeyDialog from '../components/GenerateKeyDialog.vue'
+import { useSingleGeneration } from '../composables/useDkimGeneration'
 import { useDnsRole } from '../composables/useDnsRole'
 import { dkimActions } from '../permissions'
 
@@ -38,6 +41,12 @@ const gone = computed(
 const actions = computed(() =>
   entry.value && role.value ? dkimActions(entry.value, role.value, capabilities.data.value) : null,
 )
+
+// US2: "Add ARC/DKIM key" for a name without a key; afterwards the record heading takes the focus.
+const generation = useSingleGeneration(async () => {
+  await nextTick()
+  document.querySelector<HTMLElement>('[data-dkim-record] h2')?.focus()
+})
 </script>
 
 <template>
@@ -76,6 +85,16 @@ const actions = computed(() =>
         </h1>
       </div>
       <div data-entry-actions class="flex flex-wrap gap-2">
+        <button
+          v-if="actions?.generate"
+          type="button"
+          data-generate
+          :class="buttonVariants({ variant: 'default' })"
+          :disabled="!capabilities.data.value"
+          @click="generation.start({ name: entry.name, label: entry.displayName })"
+        >
+          {{ lt('admin.dkim_add_key') }}
+        </button>
         <CheckDnsAction v-if="actions?.checkDns" :name="entry.name" />
       </div>
     </header>
@@ -100,5 +119,14 @@ const actions = computed(() =>
       </p>
       <DkimRecord v-else :entry="entry" />
     </section>
+    <GenerateKeyDialog
+      v-if="capabilities.data.value"
+      v-model:open="generation.open.value"
+      :names="generation.names.value"
+      :caps="capabilities.data.value"
+      :pending="generation.pending.value"
+      :problem="generation.problem.value"
+      @submit="generation.submit"
+    />
   </article>
 </template>

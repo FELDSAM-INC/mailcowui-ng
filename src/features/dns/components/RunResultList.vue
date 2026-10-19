@@ -38,7 +38,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ retry: [names: string[]] }>()
 const { t, locale } = useI18n()
-const { problemMessage } = useProblemMessages()
+const { problemMessage, violationMessageIn } = useProblemMessages()
 
 /** The shared bulk outcome labels (`bulk.outcome.*`); a created key is "done". */
 const OUTCOME_KEYS: Record<RunOutcome, string> = {
@@ -73,6 +73,14 @@ function message(row: RunRow): string | null {
       : lt('success.dkim_added', row.name)
   }
   if (row.outcome === 'refused' && row.problem) {
+    const [first] = row.problem.fieldErrors
+    if (first?.[1][0]) {
+      return violationMessageIn(first[1][0], {
+        formKey: 'dns.dkim.form',
+        path: first[0],
+        params: { name: row.name },
+      })
+    }
     return problemMessage(row.problem, { params: { name: row.name } })
   }
   if (row.outcome === 'unknown') return t('problem.outcome-unknown')

@@ -44,7 +44,11 @@
         "progress": "Hotovo {percent} %.",
         "finished": "Dokončeno: {counts}.",
         "status": "Zpracováno {done} z {total} názvů",
-        "progressLabel": "Průběh"
+        "progressLabel": "Průběh",
+        "stop": "Zastavit",
+        "leaveTitle": "Zastavit zpracování?",
+        "leaveBody": "Zbývající názvy nebudou zpracovány.",
+        "leave": "Zastavit a odejít"
       },
       "incomplete": "Neúplný",
       "kinds": {
@@ -106,6 +110,17 @@
       "section": {
         "open": "Podrobnosti DKIM klíče",
         "list": "DKIM klíče této domény a jejích doménových aliasů"
+      },
+      "generate": {
+        "namesMore": "a {count} dalších",
+        "skipped": "Tyto názvy už mají klíč a budou přeskočeny: {names}"
+      },
+      "allMissing": {
+        "body": "Klíče budou vygenerovány pro {count} názvů bez klíče.",
+        "filters": "Jen názvy, které odpovídají současnému hledání a filtru typu.",
+        "none": "Všechny názvy mají klíč.",
+        "continue": "Pokračovat",
+        "collecting": "Hledají se názvy bez klíče…"
       }
     }
   }

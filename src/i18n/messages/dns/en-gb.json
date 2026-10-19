@@ -44,7 +44,11 @@
         "progress": "{percent} % done.",
         "finished": "Finished: {counts}.",
         "status": "{done} of {total} names processed",
-        "progressLabel": "Progress"
+        "progressLabel": "Progress",
+        "stop": "Stop",
+        "leaveTitle": "Stop the run?",
+        "leaveBody": "The remaining names will not be processed.",
+        "leave": "Stop and leave"
       },
       "incomplete": "Incomplete",
       "kinds": {
@@ -106,6 +110,17 @@
       "section": {
         "open": "Details of the DKIM key",
         "list": "DKIM keys of this domain and its alias domains"
+      },
+      "generate": {
+        "namesMore": "and {count} others",
+        "skipped": "These already have a key and are skipped: {names}"
+      },
+      "allMissing": {
+        "body": "Keys will be generated for {count} names without a key.",
+        "filters": "Only names that match the current search and type filter.",
+        "none": "Every name has a key.",
+        "continue": "Continue",
+        "collecting": "Finding the names without a key…"
       }
     }
   }

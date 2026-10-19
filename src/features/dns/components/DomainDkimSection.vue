@@ -5,7 +5,7 @@
 // buttons, the link to the entry, "Add ARC/DKIM key" for a name without a key (US2) and, on the
 // domain page, the DKIM keys of the domain and its alias domains (FR-012). It reads the same detail
 // key as the entry page, so a change anywhere shows here at once (FR-089).
-import { computed } from 'vue'
+import { computed, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
@@ -16,10 +16,14 @@ import type { AppLocale } from '@/i18n/locales'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { buttonVariants } from '@/shared/ui/button'
 
+import { useDnsCapabilities } from '../api/capabilities'
 import { useDkimKey } from '../api/dkim'
+import { useSingleGeneration } from '../composables/useDkimGeneration'
 import { useDnsRole } from '../composables/useDnsRole'
+import { dkimActions } from '../permissions'
 import { dkimKeyLocation, dkimListLocation } from '../names'
 import DkimStateBadge from './DkimStateBadge.vue'
+import GenerateKeyDialog from './GenerateKeyDialog.vue'
 import IncompleteKeyNotice from './IncompleteKeyNotice.vue'
 import RecordValue from './RecordValue.vue'
 
@@ -29,6 +33,17 @@ const { role } = useDnsRole()
 const query = useDkimKey(() => props.name)
 const entry = computed(() => query.data.value)
 const key = computed(() => entry.value?.key ?? null)
+const capabilities = useDnsCapabilities()
+const canGenerate = computed(
+  () =>
+    !!entry.value &&
+    !!role.value &&
+    dkimActions(entry.value, role.value, capabilities.data.value).generate,
+)
+const generation = useSingleGeneration(async () => {
+  await nextTick()
+  document.querySelector<HTMLElement>('#section-dkim-title')?.focus()
+})
 /** Long labels wrap instead of widening the page at 320 px. */
 const LONG = 'h-auto min-h-11 max-w-full shrink whitespace-normal text-start'
 </script>
@@ -40,7 +55,11 @@ const LONG = 'h-auto min-h-11 max-w-full shrink whitespace-normal text-start'
     aria-labelledby="section-dkim-title"
     class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
   >
-    <h2 id="section-dkim-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+    <h2
+      id="section-dkim-title"
+      tabindex="-1"
+      class="text-lg font-semibold text-gray-900 focus:outline-none dark:text-white"
+    >
       {{ lt('admin.dkim_keys') }}
     </h2>
     <p v-if="query.isPending.value" class="mt-3 text-sm text-gray-600 dark:text-gray-400">
@@ -74,7 +93,16 @@ const LONG = 'h-auto min-h-11 max-w-full shrink whitespace-normal text-start'
         />
       </template>
       <div class="flex flex-wrap gap-2">
-        <slot name="actions" :entry="entry" />
+        <button
+          v-if="canGenerate"
+          type="button"
+          data-generate
+          :class="buttonVariants({ variant: 'default', class: LONG })"
+          :disabled="!capabilities.data.value"
+          @click="generation.start({ name: entry.name, label: entry.displayName })"
+        >
+          {{ lt('admin.dkim_add_key') }}
+        </button>
         <RouterLink
           :to="dkimKeyLocation(entry.name)"
           :class="buttonVariants({ variant: 'outline', class: LONG })"
@@ -90,5 +118,14 @@ const LONG = 'h-auto min-h-11 max-w-full shrink whitespace-normal text-start'
         </RouterLink>
       </div>
     </div>
+    <GenerateKeyDialog
+      v-if="capabilities.data.value"
+      v-model:open="generation.open.value"
+      :names="generation.names.value"
+      :caps="capabilities.data.value"
+      :pending="generation.pending.value"
+      :problem="generation.problem.value"
+      @submit="generation.submit"
+    />
   </section>
 </template>

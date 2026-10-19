@@ -1,7 +1,8 @@
 <script setup lang="ts">
 // A translated message for an API problem (FR-075, FR-077, FR-078). The API's English title and
 // detail are never shown. Unknown problems show the generic message with the request ID for
-// support; a retry action is offered when the caller can retry.
+// support; a retry action is offered when the caller can retry. UI 010: `params` fills the
+// placeholders the problem does not carry (the classic message's `%s`, for example a DKIM name).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -12,14 +13,20 @@ import { problemMessageKey, useProblemMessages } from '@/i18n/problems'
 import { DangerIcon } from '../icons'
 import { buttonVariants } from '../ui/button'
 
-const props = defineProps<{ problem: ApiProblem | null; retry?: boolean }>()
+const props = defineProps<{
+  problem: ApiProblem | null
+  retry?: boolean
+  params?: Record<string, string>
+}>()
 defineEmits<{ retry: [] }>()
 
 const i18n = useI18n()
 const t = i18n.t
 const { problemMessage } = useProblemMessages()
 
-const message = computed(() => (props.problem ? problemMessage(props.problem) : ''))
+const message = computed(() =>
+  props.problem ? problemMessage(props.problem, { params: props.params }) : '',
+)
 const showRequestId = computed(() => {
   const problem = props.problem
   if (!problem?.requestId) return false

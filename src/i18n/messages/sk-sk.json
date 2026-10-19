@@ -466,30 +466,6 @@
     },
     "title": "Domov"
   },
-  "identityProvider": {
-    "appReturnUrls": "Návratové adresy tejto aplikácie pre jednotné prihlásenie: povoľte ich u poskytovateľa tiež",
-    "changedElsewhere": "nový tajný údaj",
-    "copyRefused": "Prehliadač nepovolil kopírovanie. Adresa je označená: skopírujte ju sami.",
-    "secretStored": "Tajný údaj je uložený. Ponechajte pole prázdne, aby zostal zachovaný.",
-    "stored": "Uložené",
-    "test": {
-      "failure": {
-        "credentialsRejected": "Poskytovateľ odmietol prihlasovacie údaje.",
-        "timedOut": "Poskytovateľ neodpovedal včas.",
-        "tlsCertificateRejected": "TLS certifikát poskytovateľa nebol prijatý.",
-        "unexpectedResponse": "Poskytovateľ odpovedal neočakávane.",
-        "unreachable": "Poskytovateľ nie je dosiahnuteľný. Skontrolujte adresu a port."
-      },
-      "noResult": "Do {seconds} sekúnd neprišiel žiadny výsledok.",
-      "providerStatus": "Stav: {status}",
-      "running": "Testujem spojenie…"
-    },
-    "type": {
-      "genericOidc": "Generic-OIDC",
-      "keycloak": "Keycloak",
-      "ldap": "LDAP"
-    }
-  },
   "leaveGuard": {
     "body": "Vaše zmeny sa stratia.",
     "leave": "Odísť",
@@ -587,15 +563,6 @@
     "passkeys": "Prístupové kľúče",
     "routing": "Smerovanie a prepisovanie adries",
     "system": "Nastavenia systému"
-  },
-  "oauth2": {
-    "added": "Prístup klienta bol pridaný",
-    "backToList": "Späť na OAuth2 aplikácie",
-    "columns": {
-      "id": "ID"
-    },
-    "redirectUriEmpty": "URL na presmerovanie (callback) nesmie byť prázdna",
-    "title": "OAuth2"
   },
   "passkeys": {
     "add": {

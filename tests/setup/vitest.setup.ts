@@ -22,6 +22,7 @@ beforeEach(async () => {
     loadLegacy('en-gb'),
     loadFeatureMessages('domains', i18n, 'en-gb'),
     loadFeatureMessages('sync-jobs', i18n, 'en-gb'),
+    loadFeatureMessages('identityProviders', i18n, 'en-gb'),
   ])
 })
 

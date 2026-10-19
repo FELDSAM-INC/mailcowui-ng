@@ -14,9 +14,13 @@ import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
 import type enGbDomains from './messages/domains/en-gb.json'
 import enGb from './messages/en-gb.json'
+import type enGbIdentityProviders from './messages/identity-providers/en-gb.json'
 import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
-export type MessageSchema = typeof enGb & typeof enGbDomains & typeof enGbSyncJobs
+export type MessageSchema = typeof enGb &
+  typeof enGbDomains &
+  typeof enGbSyncJobs &
+  typeof enGbIdentityProviders
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -58,6 +62,12 @@ const featureLoaders = {
     'en-gb': () => import('./messages/sync-jobs/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/sync-jobs/cs-cz.json').then((m) => m.default),
     'sk-sk': () => import('./messages/sync-jobs/sk-sk.json').then((m) => m.default),
+  },
+  // UI 012: the identity provider and OAuth2 apps screens.
+  identityProviders: {
+    'en-gb': () => import('./messages/identity-providers/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/identity-providers/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/identity-providers/sk-sk.json').then((m) => m.default),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

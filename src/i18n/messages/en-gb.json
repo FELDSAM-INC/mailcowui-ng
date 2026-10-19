@@ -466,30 +466,6 @@
     },
     "title": "Home"
   },
-  "identityProvider": {
-    "appReturnUrls": "Redirect addresses of this app for single sign-on: allow them at the provider as well",
-    "changedElsewhere": "a new secret",
-    "copyRefused": "The browser did not allow copying. The address is selected: copy it yourself.",
-    "secretStored": "A secret is stored. Leave the field empty to keep it.",
-    "stored": "Stored",
-    "test": {
-      "failure": {
-        "credentialsRejected": "The provider rejected the credentials.",
-        "timedOut": "The provider did not answer in time.",
-        "tlsCertificateRejected": "The provider's TLS certificate was not accepted.",
-        "unexpectedResponse": "The provider gave an unexpected answer.",
-        "unreachable": "The provider could not be reached. Check the address and the port."
-      },
-      "noResult": "No result was received within {seconds} seconds.",
-      "providerStatus": "Status: {status}",
-      "running": "Testing the connection…"
-    },
-    "type": {
-      "genericOidc": "Generic-OIDC",
-      "keycloak": "Keycloak",
-      "ldap": "LDAP"
-    }
-  },
   "leaveGuard": {
     "body": "Your changes will be lost.",
     "leave": "Leave",
@@ -587,15 +563,6 @@
     "passkeys": "Passkeys",
     "routing": "Routing and rewriting",
     "system": "System settings"
-  },
-  "oauth2": {
-    "added": "Added client access",
-    "backToList": "Back to the OAuth2 apps",
-    "columns": {
-      "id": "ID"
-    },
-    "redirectUriEmpty": "Redirect/Callback URL cannot be empty",
-    "title": "OAuth2"
   },
   "passkeys": {
     "add": {

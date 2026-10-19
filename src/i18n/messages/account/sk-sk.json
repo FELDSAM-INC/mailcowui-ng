@@ -4,6 +4,35 @@
       "type": {
         "u2f": "Fido U2F",
         "hotp": "OTP založené na HMAC"
+      },
+      "totp": {
+        "qrAlt": "QR kód kľúča zobrazeného ako text",
+        "qrUnavailable": "QR kód nie je možné zobraziť. Použite „Otvoriť v overovacej aplikácii“ alebo zadajte kľúč.",
+        "openInApp": "Otvoriť v overovacej aplikácii",
+        "copyKey": "Skopírovať kľúč",
+        "attemptsLeft": "Zostáva {count} pokus. | Zostávajú {count} pokusy. | Zostáva {count} pokusov.",
+        "clockHint": "Skontrolujte, či sa čas v telefóne nastavuje automaticky."
+      },
+      "enrolment": {
+        "restart": "Začať znova"
+      },
+      "webauthn": {
+        "cancelled": "Požiadavka bola zrušená alebo jej vypršal čas.",
+        "alreadyEnrolled": "Tento bezpečnostný kľúč je už pridaný ako druhý faktor.",
+        "keyUnsupported": "Tento bezpečnostný kľúč nie je podporovaný.",
+        "touchKey": "Teraz sa dotknite svojho bezpečnostného kľúča.",
+        "waitingServer": "Čaká sa na server…",
+        "unsupported": "Prehliadač nie je podporovaný."
+      },
+      "yubico": {
+        "clientId": "Yubico API ID",
+        "secretKey": "Yubico API kľúč"
+      },
+      "unsupported": "Už nie je podporované",
+      "usedForSignIn": "Použité pri tomto prihlásení",
+      "passkeyPointer": "Prístupové kľúče umožňujú prihlásenie bez hesla a počítajú sa ako druhý faktor.",
+      "turnOff": {
+        "body": "Všetky druhé faktory budú odobrané. Vaše prístupové kľúče zostanú."
       }
     },
     "appPasswords": {

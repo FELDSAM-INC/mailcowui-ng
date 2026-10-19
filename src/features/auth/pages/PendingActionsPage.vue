@@ -25,6 +25,7 @@ import { buttonVariants } from '@/shared/ui/button'
 import { acceptSession } from '../api'
 import PendingActionItem from '../components/PendingActionItem.vue'
 import ForcedPasswordChange from '../components/pending/ForcedPasswordChange.vue'
+import ForcedSecondFactorSetup from '../components/pending/ForcedSecondFactorSetup.vue'
 
 const ORDER: Record<PendingAction, number> = { passwordChange: 0, secondFactorSetup: 1 }
 
@@ -36,9 +37,6 @@ const actions = computed(() =>
 )
 const role = computed(() => session.value?.role ?? null)
 const supported = passkeysSupported()
-const soleSetup = computed(
-  () => actions.value.length === 1 && actions.value[0] === 'secondFactorSetup',
-)
 const problem = shallowRef<ApiProblem | null>(null)
 const registration = usePasskeyRegistration()
 const { signOut, pending: signingOut, failed: signOutFailed } = useSignOut()
@@ -89,15 +87,18 @@ async function register() {
         :key="action"
         :action="action"
         :role="role"
-        :can-register="soleSetup"
-        :waits-for-password="action === 'secondFactorSetup' && !soleSetup"
-        :supported="supported"
-        :busy="registration.pending.value"
-        @register="register"
+        :waits-for-password="action === 'secondFactorSetup' && actions.includes('passwordChange')"
       >
         <ForcedPasswordChange
           v-if="action === 'passwordChange'"
           :username="session?.username ?? null"
+          @done="resolved"
+        />
+        <ForcedSecondFactorSetup
+          v-else
+          :passkeys="supported"
+          :busy="registration.pending.value"
+          @register="register"
           @done="resolved"
         />
       </PendingActionItem>

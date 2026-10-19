@@ -275,7 +275,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T047 [US2] Implement `tests/mocks/handlers/self-service/second-factors.ts`:
+- [x] T047 [US2] Implement `tests/mocks/handlers/self-service/second-factors.ts`:
   - `listOwnSecondFactors` (`sort`, `q`, paging);
   - `startOwnTotpEnrolment`: a 32-character base32 secret, an `otpauth://totp/` address, `qrCode` from the factory, `expiresAt` now + 600 s; a new start replaces the old one;
   - `enrolOwnSecondFactor`:
@@ -292,7 +292,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
   - an enrolment lifts `secondFactorSetup`.
 
   Create `tests/mocks/scenarios/two-factor.ts` (registered in the index) with `two-factor-empty`, `two-factor-two-active`, `two-factor-single-active`, `two-factor-required-by-policy`, `two-factor-inactive-and-unsupported` (an inactive TOTP and a `u2f` entry) and `yubico-outage-enrolment`. Extend UI 001's `forced-second-factor` and `forced-both`.
-- [ ] T048 [P] [US2] Write `tests/e2e/account/two-factor.spec.ts`. It covers:
+- [x] T048 [P] [US2] Write `tests/e2e/account/two-factor.spec.ts`. It covers:
   - US2-AS1: the empty state with the explanation and, for mailbox users, the app password note; "Add authenticator app", "Add security key" and "Other methods";
   - US2-AS6: removing one of two entries needs no password;
   - US2-AS7: the only active entry offers "Turn off two-factor authentication", which states that passkeys stay, asks for the current password and ends in the empty state;
@@ -304,7 +304,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
   - Edge: inactive entries listed as inactive;
   - Edge: an unsupported entry listed as "no longer supported", removable and not counted as the active entry;
   - Edge: a `second-factor-required-by-policy` or `last-second-factor` refusal after a change elsewhere refreshes and explains.
-- [ ] T049 [P] [US2] Write `tests/e2e/account/two-factor-enrolment.spec.ts`. It covers:
+- [x] T049 [P] [US2] Write `tests/e2e/account/two-factor-enrolment.spec.ts`. It covers:
   - US2-AS2: TOTP with the name, a code computed from the key shown on screen and the current password, for `admin-account`, `domain-admin-account` and `two-factor-empty` (a mailbox user); the entry appears and the key is gone;
   - US2-AS3: a wrong code keeps the same key with "attempts left"; an expiry (`mockApi.patch`) or five wrong codes offer "Start again";
   - US2-AS4: at 360 px "Open in authenticator app" and "Copy key" come before the QR code in document order;
@@ -321,7 +321,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
   - Edge: the clock hint on a wrong code;
   - Edge: a refused copy keeps the key visible and selectable;
   - FR-045: name limits and `current-password-incorrect`.
-- [ ] T050 [P] [US2] Write `tests/e2e/pending-actions/forced-second-factor.spec.ts`. It covers:
+- [x] T050 [P] [US2] Write `tests/e2e/pending-actions/forced-second-factor.spec.ts`. It covers:
   - US2-AS9: the setup explanation (legacy `tfa.setup_title`, `tfa.setup_required`) and every other address leads back;
   - FR-058: the order passkey, authenticator app, security key, then Yubico OTP under "Other methods", without current-password fields;
   - completing TOTP lands on home (or `returnTo`);
@@ -330,7 +330,7 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
   - FR-057: without passkey support the other methods replace the classic link;
   - `forced-both`: after the password, the methods appear (depends on T045);
   - Edge: a reload resumes the screen.
-- [ ] T051 [P] [US2] Write these unit tests:
+- [x] T051 [P] [US2] Write these unit tests:
   - `tests/unit/features/account/qr-svg.spec.ts`: the factory's SVG parses to the tree of data-model §2; `<script>`, `foreignObject`, `on*` attributes, `href`, `style`, a `url(…)` fill, a non-SVG or non-base64 data URI and a parser error each yield `null`;
   - `tests/unit/features/account/QrCode.spec.ts`: renders `svg` elements through `h()`, `role="img"` with the label, the fallback note for `null`;
   - `tests/unit/features/account/totp.spec.ts`: `isOtpauthUri`;
@@ -342,13 +342,13 @@ security key (virtual authenticator) and a Yubico OTP key; remove entries until 
 
 ### Implementation for User Story 2
 
-- [ ] T053 [US2] Implement `src/features/account/api/second-factors.ts`: the list query, the WebAuthn options and the single removal as TanStack operations, and `startTotpEnrolment()`, `enrolSecondFactor()` and `removeAllSecondFactors()` through `useSecretRequest` (they carry codes, keys or the current password), each with the invalidation of data-model §3 and the `session`/`identity` refetch in a restricted session.
-- [ ] T054 [US2] Implement `src/features/account/totp.ts` (`isOtpauthUri`), `src/features/account/qr-svg.ts` and `src/features/account/components/two-factor/QrCode.vue`, so that the qr-svg, QrCode and totp tests of T051 pass.
-- [ ] T055 [P] [US2] Implement `src/features/account/composables/useTotpEnrolment.ts` and `src/features/account/components/two-factor/TotpSetup.vue` (prop `requireCurrentPassword`, `GroupedSecret`, `CopyButton`, `QrCode`, `useCountdown`, UI 002's `useLeaveGuard`), following research R10.
-- [ ] T056 [P] [US2] Implement `src/features/account/composables/useSecurityKeyEnrolment.ts`, `src/features/account/components/two-factor/SecurityKeySetup.vue` and `src/features/account/components/two-factor/YubicoOtpSetup.vue` (prop `requireCurrentPassword`; the `tfa.api_register` link slot to `https://upgrade.yubico.com/getapikey/`), following research R11.
-- [ ] T057 [US2] Implement `src/features/account/components/two-factor/SecondFactorList.vue`, `SecondFactorItem.vue`, `AddSecondFactorMenu.vue` and `TurnOffTwoFactorDialog.vue`, plus `src/features/account/pages/TwoFactorPage.vue` and `src/features/account/pages/AddSecondFactorPage.vue`. Add the `account-two-factor` and `account-two-factor-add` routes to `src/features/account/routes.ts`. Export `TotpSetup`, `SecurityKeySetup` and `YubicoOtpSetup` from `src/features/account/index.ts`.
-- [ ] T058 [US2] Implement `src/features/auth/components/pending/ForcedSecondFactorSetup.vue` and integrate it into `src/features/auth/pages/PendingActionsPage.vue` (research R8): method order, the passkey through `usePasskeyRegistration`, inline enrolment without the password, then refetch and `continueAfterSignIn()`.
-- [ ] T059 [US2] Add the `account.twoFactor.*` and `auth.pendingActions.secondFactor.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `tfa.tfa`, `tfa.set_tfa`, `tfa.select`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`, `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`, `tfa.api_register` (HTML, through `SanitizedHtml.vue`), `tfa.setup_title`, `tfa.setup_required`, `tfa.start_webauthn_validation`, `tfa.delete_tfa`, `danger.totp_verification_failed`, `danger.yotp_verification_failed`, `danger.webauthn_verification_failed` and `user.tfa_info`. No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
+- [x] T053 [US2] Implement `src/features/account/api/second-factors.ts`: the list query, the WebAuthn options and the single removal as TanStack operations, and `startTotpEnrolment()`, `enrolSecondFactor()` and `removeAllSecondFactors()` through `useSecretRequest` (they carry codes, keys or the current password), each with the invalidation of data-model §3 and the `session`/`identity` refetch in a restricted session.
+- [x] T054 [US2] Implement `src/features/account/totp.ts` (`isOtpauthUri`), `src/features/account/qr-svg.ts` and `src/features/account/components/two-factor/QrCode.vue`, so that the qr-svg, QrCode and totp tests of T051 pass.
+- [x] T055 [P] [US2] Implement `src/features/account/composables/useTotpEnrolment.ts` and `src/features/account/components/two-factor/TotpSetup.vue` (prop `requireCurrentPassword`, `GroupedSecret`, `CopyButton`, `QrCode`, `useCountdown`, UI 002's `useLeaveGuard`), following research R10.
+- [x] T056 [P] [US2] Implement `src/features/account/composables/useSecurityKeyEnrolment.ts`, `src/features/account/components/two-factor/SecurityKeySetup.vue` and `src/features/account/components/two-factor/YubicoOtpSetup.vue` (prop `requireCurrentPassword`; the `tfa.api_register` link slot to `https://upgrade.yubico.com/getapikey/`), following research R11.
+- [x] T057 [US2] Implement `src/features/account/components/two-factor/SecondFactorList.vue`, `SecondFactorItem.vue`, `AddSecondFactorMenu.vue` and `TurnOffTwoFactorDialog.vue`, plus `src/features/account/pages/TwoFactorPage.vue` and `src/features/account/pages/AddSecondFactorPage.vue`. Add the `account-two-factor` and `account-two-factor-add` routes to `src/features/account/routes.ts`. Export `TotpSetup`, `SecurityKeySetup` and `YubicoOtpSetup` from `src/features/account/index.ts`.
+- [x] T058 [US2] Implement `src/features/auth/components/pending/ForcedSecondFactorSetup.vue` and integrate it into `src/features/auth/pages/PendingActionsPage.vue` (research R8): method order, the passkey through `usePasskeyRegistration`, inline enrolment without the password, then refetch and `continueAfterSignIn()`.
+- [x] T059 [US2] Add the `account.twoFactor.*` and `auth.pendingActions.secondFactor.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `tfa.tfa`, `tfa.set_tfa`, `tfa.select`, `tfa.totp`, `tfa.webauthn`, `tfa.yubi_otp`, `tfa.key_id`, `tfa.key_id_totp`, `tfa.scan_qr_code`, `tfa.enter_qr_code`, `tfa.confirm_totp_token`, `tfa.api_register` (HTML, through `SanitizedHtml.vue`), `tfa.setup_title`, `tfa.setup_required`, `tfa.start_webauthn_validation`, `tfa.delete_tfa`, `danger.totp_verification_failed`, `danger.yotp_verification_failed`, `danger.webauthn_verification_failed` and `user.tfa_info`. No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 and US2 work on their own; every forced restriction is resolved in the app
 (SC-002).

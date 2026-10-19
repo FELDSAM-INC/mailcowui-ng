@@ -4,6 +4,35 @@
       "type": {
         "u2f": "Fido U2F",
         "hotp": "HMAC-based OTP"
+      },
+      "totp": {
+        "qrAlt": "QR code of the key shown as text",
+        "qrUnavailable": "The QR code cannot be shown. Use “Open in authenticator app” or enter the key.",
+        "openInApp": "Open in authenticator app",
+        "copyKey": "Copy the key",
+        "attemptsLeft": "{count} attempt left. | {count} attempts left.",
+        "clockHint": "Check that the time on your phone is set automatically."
+      },
+      "enrolment": {
+        "restart": "Start again"
+      },
+      "webauthn": {
+        "cancelled": "The request was cancelled or timed out.",
+        "alreadyEnrolled": "This security key is already enrolled as a second factor.",
+        "keyUnsupported": "This security key is not supported.",
+        "touchKey": "Touch your security key now.",
+        "waitingServer": "Waiting for the server…",
+        "unsupported": "Browser not supported."
+      },
+      "yubico": {
+        "clientId": "Yubico API ID",
+        "secretKey": "Yubico API Key"
+      },
+      "unsupported": "No longer supported",
+      "usedForSignIn": "Used for this sign-in",
+      "passkeyPointer": "Passkeys let you sign in without a password and count as a second factor.",
+      "turnOff": {
+        "body": "All second factors are removed. Your passkeys stay."
       }
     },
     "appPasswords": {

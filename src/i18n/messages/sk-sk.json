@@ -223,10 +223,8 @@
       "intro": "Skôr ako budete môcť pokračovať, musíte na svojom účte dokončiť tieto kroky.",
       "secondFactor": {
         "afterPassword": "Druhý faktor tu nastavíte, keď bude nové heslo uložené.",
-        "classicLink": "Nastaviť druhý faktor v klasickom rozhraní",
         "register": "Zaregistrovať prístupový kľúč",
-        "required": "Prístupový kľúč sa počíta ako druhý faktor.",
-        "unsupported": "Toto zariadenie nemôže vytvárať prístupové kľúče. Druhý faktor si môžete nastaviť v klasickom rozhraní."
+        "required": "Prístupový kľúč sa počíta ako druhý faktor."
       },
       "title": "Je potrebné dokončiť kroky"
     },

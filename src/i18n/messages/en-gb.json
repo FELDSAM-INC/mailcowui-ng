@@ -223,10 +223,8 @@
       "intro": "Your account has actions to complete before you can continue.",
       "secondFactor": {
         "afterPassword": "You set up a second factor here once your new password is saved.",
-        "classicLink": "Set up a second factor in the classic interface",
         "register": "Register a passkey",
-        "required": "A passkey counts as a second factor.",
-        "unsupported": "This device cannot create passkeys. You can set up a second factor in the classic interface."
+        "required": "A passkey counts as a second factor."
       },
       "title": "Actions required"
     },

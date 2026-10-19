@@ -113,6 +113,8 @@ export interface MockAccountSelfService {
   signInFactorId: number | null
   /** Yubico public IDs by factor ID. */
   yubicoPublicIds: Record<number, string>
+  /** WebAuthn credential IDs (base64url) by factor ID, excluded from new registration options. */
+  webauthnCredentialIds: Record<number, string>
   /** The open TOTP enrolment: the base32 secret, its expiry (epoch ms) and attempts left. */
   totpEnrolment: { secret: string; expiresAt: number; attemptsLeft: number } | null
   /** The open WebAuthn options: challenge and expiry (epoch ms). */
@@ -229,6 +231,7 @@ export function emptyAccountSelfService(): MockAccountSelfService {
     extraFactors: [],
     signInFactorId: null,
     yubicoPublicIds: {},
+    webauthnCredentialIds: {},
     totpEnrolment: null,
     webauthnOptions: null,
     passwordFailures: 0,

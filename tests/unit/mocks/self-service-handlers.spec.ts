@@ -177,3 +177,100 @@ describe('the own password (T038)', () => {
     expect(problemName(external)).toBe('password-managed-externally')
   })
 })
+
+describe('the own second factors (T047)', () => {
+  const MOCK = 'Passw0rd!mock'
+
+  it('lists the entries with their states and the sign-in entry', async () => {
+    useScenario('account-two-factor-inactive-and-unsupported')
+    const answer = await call('GET', '/me/second-factors?sort=id')
+    expect(
+      answer.body.data.map((item: { id: number; active: boolean; usable: boolean }) => [
+        item.id,
+        item.active,
+        item.usable,
+      ]),
+    ).toEqual([
+      [21, true, true],
+      [23, false, true],
+      [24, true, false],
+    ])
+    expect(answer.body.data[0].usedForCurrentSignIn).toBe(true)
+  })
+
+  it('enrols a TOTP factor with a code of the shown secret, with five attempts', async () => {
+    const { totpCode } = await import('../../support/totp')
+    useScenario('account-two-factor-empty')
+    const started = await call('POST', '/me/second-factors/totp-enrolment')
+    expect(started.body.data.secret).toMatch(/^[A-Z2-7]{32}$/)
+    expect(started.body.data.qrCode).toMatch(/^data:image\/svg\+xml;base64,/)
+    const wrong = await call('POST', '/me/second-factors', {
+      body: { type: 'totp', name: 'Phone', code: '000000', currentPassword: MOCK },
+    })
+    expect(wrong.body.attemptsRemaining).toBe(4)
+    const right = await call('POST', '/me/second-factors', {
+      body: {
+        type: 'totp',
+        name: 'Phone',
+        code: totpCode(started.body.data.secret, Date.now()),
+        currentPassword: MOCK,
+      },
+    })
+    expect(right.status).toBe(201)
+    expect(right.body.data.type).toBe('totp')
+  })
+
+  it('refuses the only active entry, and anything under the policy', async () => {
+    useScenario('account-two-factor-single-active')
+    const only = await call('DELETE', '/me/second-factors/21')
+    expect([only.status, problemName(only)]).toEqual([409, 'last-second-factor'])
+    useScenario('account-two-factor-required-by-policy')
+    const policy = await call('DELETE', '/me/second-factors/22')
+    expect(problemName(policy)).toBe('second-factor-required-by-policy')
+    useScenario('account-two-factor-two-active')
+    expect((await call('DELETE', '/me/second-factors/22')).status).toBe(204)
+  })
+
+  it('removes all entries with the current password', async () => {
+    useScenario('account-two-factor-single-active')
+    const wrong = await call('POST', '/me/second-factors/removal', {
+      body: { currentPassword: 'nope' },
+    })
+    expect(problemName(wrong)).toBe('current-password-incorrect')
+    expect(
+      (await call('POST', '/me/second-factors/removal', { body: { currentPassword: MOCK } }))
+        .status,
+    ).toBe(204)
+    expect((await call('GET', '/me/second-factors')).body.data).toEqual([])
+  })
+
+  it('enrols without the password in a restricted session and lifts the restriction', async () => {
+    useScenario('forced-second-factor')
+    const yubico = await call('POST', '/me/second-factors', {
+      body: {
+        type: 'yubiOtp',
+        name: 'YubiKey',
+        clientId: '12345',
+        secretKey: 'secret',
+        otp: 'cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf',
+      },
+    })
+    expect(yubico.status).toBe(201)
+    expect((await call('GET', '/session')).body.data.state).toBe('active')
+  })
+
+  it('answers the Yubico outage with 503', async () => {
+    useScenario('account-yubico-outage-enrolment')
+    const answer = await call('POST', '/me/second-factors', {
+      body: {
+        type: 'yubiOtp',
+        name: 'YubiKey',
+        clientId: '12345',
+        secretKey: 'secret',
+        otp: 'cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf',
+        currentPassword: MOCK,
+      },
+    })
+    expect([answer.status, problemName(answer)]).toEqual([503, 'temporary-verification-failure'])
+  })
+})

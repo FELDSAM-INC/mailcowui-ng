@@ -92,10 +92,41 @@ describe('PendingActionsPage', () => {
     )
   })
 
-  it('offers passkey registration when second-factor setup is the only action', async () => {
+  it('offers the passkey first, then TOTP, WebAuthn and Yubico OTP (FR-058)', async () => {
     useScenario('forced-second-factor')
     installWebAuthn()
     const { wrapper } = await mountPage()
-    expect(wrapper.findAll('button').some((b) => b.text() === 'Register a passkey')).toBe(true)
+    const buttons = wrapper.findAll('[data-forced-second-factor] button').map((b) => b.text())
+    expect(buttons).toEqual([
+      'Register a passkey',
+      'Time-based OTP (Google Authenticator, Authy, etc.)',
+      'WebAuthn authentication',
+      'Yubico OTP authentication',
+    ])
+  })
+
+  it('offers the other methods in place of the classic link without passkeys (FR-057)', async () => {
+    useScenario('forced-second-factor')
+    installWebAuthn({ supported: false })
+    const { wrapper } = await mountPage()
+    expect(wrapper.text()).not.toContain('Register a passkey')
+    expect(wrapper.find('li a[href="/"]').exists()).toBe(false)
+    expect(wrapper.find('[data-method="yubiOtp"]').exists()).toBe(true)
+  })
+
+  it('lifts the restriction with a Yubico OTP key, without the current password', async () => {
+    useScenario('forced-second-factor')
+    installWebAuthn({ supported: false })
+    const { wrapper, router } = await mountPage()
+    await wrapper.get('[data-method="yubiOtp"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-yubico-setup]').exists()).toBe(true))
+    expect(wrapper.find('input[autocomplete="current-password"]').exists()).toBe(false)
+    const inputs = wrapper.findAll('[data-yubico-setup] input')
+    await inputs[0]!.setValue('YubiKey')
+    await inputs[1]!.setValue('12345')
+    await inputs[2]!.setValue('secret')
+    await inputs[3]!.setValue('cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf')
+    await wrapper.get('[data-yubico-setup]').trigger('submit')
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
   })
 })

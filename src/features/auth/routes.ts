@@ -1,11 +1,15 @@
 // Routes of the sign-in flow (data-model §5). Every component is lazy-loaded (constitution VII).
 import type { RouteRecordRaw } from 'vue-router'
 
-import { legacy, type TextRef } from '@/i18n'
+import { legacy, loadFeatureMessages, type TextRef } from '@/i18n'
 
 const SignInPage = () => import('./pages/SignInPage.vue')
 const SecondFactorPage = () => import('./pages/SecondFactorPage.vue')
-const PendingActionsPage = () => import('./pages/PendingActionsPage.vue')
+// UI 005 (research R8): the forced second-factor setup uses My account's enrolment, with its strings.
+const PendingActionsPage = () =>
+  Promise.all([import('./pages/PendingActionsPage.vue'), loadFeatureMessages('account')]).then(
+    ([module]) => module,
+  )
 const SingleSignOnReturnPage = () => import('./pages/SingleSignOnReturnPage.vue')
 
 const signIn = (path: string, name: string, role: string | null, titleKey: TextRef) =>

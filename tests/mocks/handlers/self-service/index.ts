@@ -5,9 +5,11 @@ import type { RequestHandler } from 'msw'
 import { capabilityHandlers } from './capabilities'
 import { overviewHandlers } from './overview'
 import { ownAccountHandlers } from './own-account'
+import { secondFactorHandlers } from './second-factors'
 
 export const selfServiceHandlers: RequestHandler[] = [
   ...capabilityHandlers,
   ...overviewHandlers,
   ...ownAccountHandlers,
+  ...secondFactorHandlers,
 ]

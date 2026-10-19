@@ -58,23 +58,8 @@ test('US5-AS3 FR-041 with both actions the password change comes first and regis
   await expectAccessible()
 })
 
-test('US5-AS4 FR-039 without passkey support second-factor setup points to the classic interface', async ({
-  page,
-  mockApi,
-  webauthn,
-  expectAccessible,
-}) => {
-  await mockApi.use('forced-second-factor')
-  await webauthn.withoutPasskeySupport()
-  await page.goto('')
-  const item = actions(page).first()
-  await expect(item).toContainText('This device cannot create passkeys.')
-  await expect(
-    item.getByRole('link', { name: 'Set up a second factor in the classic interface' }),
-  ).toHaveAttribute('href', '/')
-  await expect(page.getByRole('button', { name: 'Register a passkey' })).toHaveCount(0)
-  await expectAccessible()
-})
+// UI 005 (FR-057): without passkey support the other methods replace the classic link; see
+// tests/e2e/pending-actions/forced-second-factor.spec.ts.
 
 test('US5-AS5 FR-038 any other address shows the pending-actions screen', async ({
   page,

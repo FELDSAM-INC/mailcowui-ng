@@ -38,6 +38,18 @@ export const accountRoutes: RouteRecordRaw[] = [
         component: accountPage(() => import('./pages/PasswordPage.vue')),
         meta: { accountSection: 'password', titleKey: legacy('user.change_password') },
       },
+      {
+        path: 'two-factor',
+        name: 'account-two-factor',
+        component: accountPage(() => import('./pages/TwoFactorPage.vue')),
+        meta: { accountSection: 'twoFactor', titleKey: legacy('tfa.tfa') },
+      },
+      {
+        path: 'two-factor/add/:method(totp|webauthn|yubi-otp)',
+        name: 'account-two-factor-add',
+        component: accountPage(() => import('./pages/AddSecondFactorPage.vue')),
+        meta: { accountSection: 'twoFactor', titleKey: legacy('tfa.set_tfa') },
+      },
     ],
   },
 ]

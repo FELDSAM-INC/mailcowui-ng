@@ -37,6 +37,7 @@
     "@tanstack/vue-query": "5.104.4",
     "clsx": "2.1.1",
     "dompurify": "3.4.17",
+    "marked": "18.1.1",
     "openapi-fetch": "0.17.0",
     "pinia": "4.1.0",
     "reka-ui": "2.11.0",

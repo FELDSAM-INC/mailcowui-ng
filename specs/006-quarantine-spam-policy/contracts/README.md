@@ -19,10 +19,33 @@ Vendoring and client generation are unchanged from
 | API feature | 006: quarantine, spam policy and rate limits (spec `mailcow-rest-v2/specs/006-quarantine-spam-policy/spec.md`) |
 | Contract modules | `api/modules/quarantine/`, `api/modules/spam-policy/`, `api/modules/rate-limits/`, and the `Quarantine*`, `SpamPolicy*`, `SpamScore*`, `SpamFilter*` and `RateLimit*` components |
 | Contract version (`info.version`) | `0.1.0` (does not identify the contract, 001-R6) |
-| Baseline commit (authoritative) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
+| Baseline commit | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
+| **Pinned commit (T001, authoritative)** | `4be8653b963c5af9c3e0c91cfe3824a48317ff52` (API main with API 006 implemented and merged, 2026-10-19) |
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` (single file, not dereferenced) |
-| Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
-| Operations in the bundle | 376 (42 of them API 006) |
+| Bundle sha256 at the pin | `91e536d645dc6b71cd9d402d7102898ea9486b6938e3985a8631fe33fff774a1` |
+| Operations in the bundle | 379 (42 of them API 006) |
+
+The pin before T001 was `e7efa73` (UI 010), already later than the baseline. T001 moved it forward
+to API main, which carries the implemented API 006 that the smoke suite runs against. The diff of
+`api/modules/{quarantine,spam-policy,rate-limits}` and the 006 components between the baseline and
+the pin changes these points used here:
+
+- **List entry audit records are recorded on their owner** (API gap G15, closed by API commit
+  `bd333f6`): `spamPolicyEntryCreation` and `spamPolicyEntryRemoval` records have the target
+  `{type: domain | aliasDomain | mailbox, id: <owner>}` and the entry's `entryId`, `list` and
+  `pattern` in `details`. The plan's API gap 1 is closed: History of the lists is offered per owner
+  (`targetType=<kind>&targetId=<owner>`), not per entry (T126).
+- **Audit details are documented** (`AuditEvent.details` points to `docs/audit-events.md`, which
+  has API 006's section at the pin). The plan's API gap 2 is closed for API 006: T125 adds
+  translated labels for the documented keys; unknown keys stay verbatim.
+- `SpamFilterPermissionFlagProblem` now extends the shared `PermissionFlagRequiredProblem`
+  (`requiredFlags`, `requiredFlagsMatch`); the members used here are unchanged.
+- `RateLimitLogEntry.rateLimitHash` carries the bucket identifier pattern (`^RL[0-9A-Za-z=]+$`, at
+  most 128), the same as the `RateLimitBucketId` path parameter (UI 011 reuses the reset dialog).
+- `Mailbox.mailSettingsVersion` (API 005) is a new required read-only member; the mailbox mock
+  factory carries it.
+
+No operation, request schema, problem type or rule code used by this feature changed otherwise.
 
 **Bump rule** (research R1): the setup task runs `scripts/contract/bump.sh` with the **later** of
 this baseline and the commit UI 005 pinned. It never moves the pin backwards. If the kept commit is

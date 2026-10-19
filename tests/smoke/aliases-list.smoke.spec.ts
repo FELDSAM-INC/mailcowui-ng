@@ -36,9 +36,10 @@ test.describe('@feature-004 alias list', () => {
     await page.goto('aliases')
     await page.getByRole('button', { name: /^Filters/ }).click()
     await page.getByRole('combobox', { name: 'Target domain', exact: true }).click()
-    const options = await page.getByRole('option').allTextContents()
-    expect(options.length).toBeGreaterThan(0)
-    for (const option of options) {
+    // The picker's own options: the page's selects (page size, sort) have options too.
+    const options = page.getByRole('listbox', { name: 'Target domain' }).getByRole('option')
+    await expect(options.first()).toBeVisible()
+    for (const option of await options.allTextContents()) {
       expect((scope.domains ?? []).some((name) => option.includes(name))).toBe(true)
     }
   })

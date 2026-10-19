@@ -32,10 +32,41 @@ export async function mailboxesOf(page: Page, domain: string): Promise<string[]>
   return ((await response.json()) as { data: { address: string }[] }).data.map((m) => m.address)
 }
 
+/**
+ * The first domain in scope with at least `count` mailboxes, with those mailboxes. The seeded
+ * example.net, first by name, has one.
+ */
+export async function domainWithMailboxes(
+  page: Page,
+  count: number,
+): Promise<{ domain: Domain; mailboxes: string[] } | undefined> {
+  const response = await page.request.get('/api/v2/domains?limit=100&sort=name')
+  expect(response.ok(), 'GET /domains').toBe(true)
+  const domains = ((await response.json()) as { data: Domain[] }).data
+  for (const domain of domains.filter((item) => !item.backupMx && item.active)) {
+    const mailboxes = await mailboxesOf(page, domain.name)
+    if (mailboxes.length >= count) return { domain, mailboxes }
+  }
+  return undefined
+}
+
 export async function findAlias(page: Page, address: string): Promise<Alias | undefined> {
   const response = await page.request.get(`/api/v2/aliases?address=${encodeURIComponent(address)}`)
   if (!response.ok()) return undefined
   return ((await response.json()) as { data: Alias[] }).data[0]
+}
+
+/** Adds an alias that delivers to the given mailboxes, through the API. */
+export async function createAlias(
+  page: Page,
+  address: string,
+  destinations: string[],
+): Promise<void> {
+  const response = await page.request.post('/api/v2/aliases', {
+    headers: { 'X-CSRF-Token': await csrfToken(page) },
+    data: { address, destinations },
+  })
+  expect(response.status(), `POST /aliases ${address}`).toBe(201)
 }
 
 export async function deleteAlias(page: Page, address: string): Promise<void> {

@@ -84,6 +84,45 @@ SCREENS.push(
   },
 )
 
+// UI 012 US5: the OAuth2 apps screens and dialogs.
+SCREENS.push(
+  { name: 'the OAuth2 apps', scenario: 'oauth2-many', path: 'identity-providers/oauth2-apps' },
+  {
+    name: 'the OAuth2 client form',
+    scenario: 'oauth2-empty',
+    path: 'identity-providers/oauth2-apps/new',
+  },
+  {
+    name: 'an OAuth2 client',
+    scenario: 'oauth2-many',
+    path: 'identity-providers/oauth2-apps/1',
+  },
+  {
+    name: 'the new OAuth2 secret',
+    scenario: 'oauth2-empty',
+    path: 'identity-providers/oauth2-apps/new',
+    open: async (page) => {
+      await page
+        .getByRole('textbox', { name: /Redirect URI/ })
+        .fill('https://wiki.example.org/oauth/callback')
+      await page.getByRole('button', { name: 'Add', exact: true }).click()
+      await expect(page.getByRole('dialog', { name: 'Add OAuth2 client' })).toBeVisible()
+    },
+  },
+  {
+    name: 'the OAuth2 bulk results',
+    scenario: 'oauth2-bulk-partial',
+    path: 'identity-providers/oauth2-apps',
+    open: async (page) => {
+      await page.getByRole('button', { name: 'Select', exact: true }).click()
+      await page.getByRole('checkbox', { name: 'Select all on this page' }).first().check()
+      await page.getByRole('button', { name: 'Revoke all client tokens' }).click()
+      await page.getByRole('alertdialog').getByRole('button').last().click()
+      await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible()
+    },
+  },
+)
+
 async function openScreen(
   page: Page,
   screen: Screen,

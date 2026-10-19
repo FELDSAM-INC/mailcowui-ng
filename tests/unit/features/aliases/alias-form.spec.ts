@@ -89,6 +89,41 @@ describe('buildAliasPatch', () => {
     })
   })
 
+  it('never sends a read-only member, whatever changed', () => {
+    const form = {
+      ...editFormFrom(read),
+      address: ' team@example.org ',
+      destinationsText: 'carol@example.org',
+      internal: true,
+      senderAllowed: false,
+      groupwareVisible: false,
+      publicComment: 'p',
+      privateComment: 'q',
+      active: false,
+    }
+    const patch = buildAliasPatch(read, form, { groupwareEnabled: true })!
+    expect(Object.keys(patch).sort()).toEqual(
+      [
+        'active',
+        'address',
+        'destinationType',
+        'destinations',
+        'groupwareVisible',
+        'internal',
+        'privateComment',
+        'publicComment',
+        'senderAllowed',
+      ].sort(),
+    )
+    expect(patch.address).toBe('team@example.org')
+  })
+
+  it('keeps a stored comment over the limit out of a patch that does not change it', () => {
+    const long = alias({ privateComment: 'é'.repeat(150) })
+    const form = { ...editFormFrom(long), internal: true }
+    expect(buildAliasPatch(long, form, { groupwareEnabled: true })).toEqual({ internal: true })
+  })
+
   it('sends a changed address', () => {
     const form = { ...editFormFrom(read), address: 'team@example.org' }
     expect(buildAliasPatch(read, form, { groupwareEnabled: true })).toEqual({

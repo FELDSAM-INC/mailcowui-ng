@@ -105,6 +105,14 @@
     },
     "columns": {
       "label": "Sloupce"
+    },
+    "bulk": {
+      "deactivateTitle": "Deaktivovat vybrané schránky ({count})?",
+      "deactivateEffect": "Jejich uživatelé se už nepřihlásí a schránky nebudou přijímat poštu.",
+      "disableLoginTitle": "Zakázat přihlášení vybraným schránkám ({count})?",
+      "disableLoginEffect": "Jejich uživatelé se už nepřihlásí; příchozí pošta se dál přijímá.",
+      "disallowProtocolTitle": "Zakázat {protocol} vybraným schránkám ({count})?",
+      "disallowProtocolEffect": "Jejich uživatelé už nebudou moci používat {protocol}."
     }
   },
   "mailboxTemplates": {

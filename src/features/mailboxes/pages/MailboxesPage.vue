@@ -6,37 +6,48 @@
 // the entries shown announced after a search or filter change. The search commits with a new
 // history entry 500 ms after the last keystroke (research R7), so Back restores the previous list.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import type { MailboxAuthSource } from '@/api'
 import { lt, text } from '@/i18n'
 import { useFormat } from '@/i18n/format'
+import { useIdentityQuery } from '@/app/session/queries'
 import ActiveFilterChips from '@/shared/components/ActiveFilterChips.vue'
+import BulkActionBar from '@/shared/components/BulkActionBar.vue'
+import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
 import type { DomainPickerOption } from '@/shared/components/DomainPicker.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
+import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
+import { useBulkSelection } from '@/shared/composables/useBulkSelection'
+import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import type { PageSize } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { problemOf } from '@/api'
+import { canBulkProtocols } from '../acl'
 import { mailboxListOptions } from '../api'
 import { authSourceOptions } from '../auth-source'
+import type { MailboxBulkChoice } from '../bulk'
 import { COLUMNS, readColumns, writeColumns, type ColumnId } from '../columns'
 import ColumnChooser from '../components/list/ColumnChooser.vue'
+import MailboxBulkActions from '../components/list/MailboxBulkActions.vue'
 import MailboxFilters from '../components/list/MailboxFilters.vue'
 import MailboxList from '../components/list/MailboxList.vue'
 import MailboxRowActions from '../components/list/MailboxRowActions.vue'
+import { useMailboxBulk } from '../composables/useMailboxBulk'
 import { useMailboxCapabilities } from '../composables/useMailboxCapabilities'
 import { useMailboxDeletion } from '../composables/useMailboxDeletion'
 import { useMailboxFieldDisplay } from '../field-display'
 import { statusLabelKey } from '../labels'
+import { readableAddress } from '../types'
 import { NO_FILTERS, useMailboxListState, type MailboxListFilters } from '../list-state'
 
 const { t } = useI18n()
@@ -45,7 +56,16 @@ const fmt = useFormat()
 const display = useMailboxFieldDisplay()
 const wide = useMediaQuery('(min-width: 768px)')
 const capabilities = useMailboxCapabilities()
-const list = useMailboxListState()
+const identity = useIdentityQuery()
+// US6: an explicit selection mode on the current page, cleared (and announced) when the page,
+// search, filters, sort or size change.
+const selection = useBulkSelection({ limit: () => capabilities.data.value?.bulkLimit })
+const list = useMailboxListState({
+  onReset: () => {
+    if (selection.count.value > 0) announce(t('bulk.selected', { count: 0 }))
+    selection.clear()
+  },
+})
 const state = computed(() => list.state.value)
 const canCreate = computed(() => router.hasRoute('mailbox-create'))
 
@@ -58,6 +78,35 @@ const query = useQuery(
 )
 const mailboxes = computed(() => query.data.value?.data ?? [])
 const total = computed(() => query.data.value?.meta.total ?? 0)
+
+const bulk = useMailboxBulk({ selection, entries: () => mailboxes.value })
+const pageIds = computed(() => mailboxes.value.map((mailbox) => mailbox.address))
+const allSelected = computed(
+  () =>
+    pageIds.value.length > 0 &&
+    pageIds.value.every((id) => selection.isSelected(id) || !selection.canSelect(id)),
+)
+const limitMessage = computed(() =>
+  selection.limitReached.value && selection.limit.value !== null
+    ? t('bulk.limitReached', { max: fmt.number(selection.limit.value) })
+    : null,
+)
+function toggleAll(checked: boolean) {
+  if (checked) selection.selectPage(pageIds.value)
+  else selection.clear()
+}
+function toggleSelecting() {
+  if (selection.active.value) selection.leave()
+  else selection.enter()
+}
+/** Lets the menu close and return the focus to its trigger before the confirmation opens. */
+function runBulk(choice: MailboxBulkChoice) {
+  void nextTick(() => requestAnimationFrame(() => void bulk.run(choice)))
+}
+useLeaveGuard(() => bulk.phase.value === 'running', {
+  titleKey: 'domains.bulk.leaveTitle',
+  messageKey: 'domains.bulk.leaveRunning',
+})
 
 // Columns: legacy's visible ones, without the last logins when the server does not report them,
 // and the chosen row details.
@@ -173,6 +222,14 @@ function refresh() {
           <PlusIcon />
           {{ lt('mailbox.add_mailbox') }}
         </RouterLink>
+        <button
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -244,6 +301,24 @@ function refresh() {
         {{ t('domains.list.refreshFailed') }}
       </p>
 
+      <div
+        v-if="bulk.phase.value === 'running'"
+        data-bulk-progress
+        role="status"
+        class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+      >
+        <SyncIcon class="size-5 motion-safe:animate-spin" />
+        {{ t('bulk.progress', { count: bulk.running.value }) }}
+      </div>
+      <BulkResultSummary
+        v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
+        :rows="bulk.rows.value"
+        @retry="bulk.retry"
+        @close="bulk.close"
+        @refresh="refresh"
+      />
+      <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
+
       <div v-if="noMatches" data-empty="noMatch" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
         <button
@@ -268,13 +343,40 @@ function refresh() {
       </div>
 
       <template v-else>
+        <div v-if="selection.active.value && !wide" class="flex items-center gap-2">
+          <SelectCheckbox
+            :label="lt('mailbox.toggle_all')"
+            :checked="allSelected"
+            @change="toggleAll"
+          />
+          <span aria-hidden="true" class="text-sm text-gray-700 dark:text-gray-300">{{
+            lt('mailbox.toggle_all')
+          }}</span>
+        </div>
         <MailboxList
           :mailboxes="mailboxes"
           :columns="columns"
           :sort="state.sort ?? 'address'"
           :order="state.order ?? 'asc'"
+          :selectable="selection.active.value"
           @sort="(sort, order) => list.setSort(sort, order)"
         >
+          <template #select-all>
+            <SelectCheckbox
+              :label="lt('mailbox.toggle_all')"
+              :checked="allSelected"
+              @change="toggleAll"
+            />
+          </template>
+          <template #select="{ mailbox }">
+            <SelectCheckbox
+              :label="t('bulk.selectItem', { name: readableAddress(mailbox) })"
+              :checked="selection.isSelected(mailbox.address)"
+              :disabled="!selection.canSelect(mailbox.address)"
+              described-by="bulk-limit-message"
+              @change="selection.toggle(mailbox.address)"
+            />
+          </template>
           <template #actions="{ mailbox }">
             <MailboxRowActions
               :mailbox="mailbox"
@@ -293,5 +395,22 @@ function refresh() {
         />
       </template>
     </template>
+
+    <BulkActionBar
+      v-if="selection.active.value"
+      :count="selection.count.value"
+      :actions="[]"
+      :limit-message="limitMessage"
+      :busy="bulk.phase.value === 'running'"
+      @clear="selection.clear()"
+    >
+      <template #default="{ disabled }">
+        <MailboxBulkActions
+          :disabled="disabled"
+          :protocols="canBulkProtocols(identity.data.value)"
+          @run="runBulk"
+        />
+      </template>
+    </BulkActionBar>
   </section>
 </template>

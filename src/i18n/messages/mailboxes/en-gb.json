@@ -105,6 +105,14 @@
     },
     "columns": {
       "label": "Columns"
+    },
+    "bulk": {
+      "deactivateTitle": "Deactivate the selected mailboxes ({count})?",
+      "deactivateEffect": "Their users can no longer sign in, and the mailboxes receive no mail.",
+      "disableLoginTitle": "Disallow login for the selected mailboxes ({count})?",
+      "disableLoginEffect": "Their users can no longer sign in; incoming mail is still accepted.",
+      "disallowProtocolTitle": "Disallow {protocol} for the selected mailboxes ({count})?",
+      "disallowProtocolEffect": "Their users can no longer use {protocol}."
     }
   },
   "mailboxTemplates": {

@@ -2,7 +2,8 @@
 // The action bar of a selection (UI 002 research D22, FR-045, US5-AS4): names the number of
 // selected items, offers the actions, and states the bulk limit when it is reached. It sticks to
 // the bottom of the viewport on small screens, so the actions stay reachable (FR-069). UI 004: the
-// focused entry is kept clear of the bar (WCAG 2.4.11, `useStickyBarFocus`).
+// focused entry is kept clear of the bar (WCAG 2.4.11, `useStickyBarFocus`). UI 003: the default
+// slot adds controls after the action buttons, for example grouped action menus.
 import { useI18n } from 'vue-i18n'
 
 import { useStickyBarFocus } from '../composables/useStickyBarFocus'
@@ -51,6 +52,7 @@ useStickyBarFocus()
       >
         {{ action.label }}
       </button>
+      <slot :disabled="count === 0 || busy" />
       <button
         type="button"
         :class="buttonVariants({ variant: 'ghost' })"

@@ -10,6 +10,8 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import {
   api,
   isApiProblem,
+  type BulkResult,
+  type MailboxBulkActionRequest,
   queryKeys,
   requireData,
   runMutation,
@@ -344,5 +346,52 @@ export function renameMailbox(
       },
     },
     body,
+  )
+}
+
+// Bulk actions (US6, data-model §3)
+
+/**
+ * One bulk request; whatever its outcome, the lists, searches, domains (status and deletions move
+ * their figures) and audit log are refreshed, and the details of deleted or missing mailboxes are
+ * removed. A lost connection refreshes the lists too, so the user sees what happened.
+ */
+export function applyMailboxBulk(
+  client: QueryClient,
+  request: MailboxBulkActionRequest,
+): Promise<BulkResult> {
+  const refresh = () =>
+    Promise.all([
+      client.invalidateQueries({ queryKey: queryKeys.mailboxes.lists() }),
+      client.invalidateQueries({ queryKey: queryKeys.mailboxes.searches() }),
+      client.invalidateQueries({ queryKey: queryKeys.domains.all() }),
+      request.action === 'delete'
+        ? client.invalidateQueries({ queryKey: queryKeys.mailboxes.tagLists() })
+        : Promise.resolve(),
+      invalidateAudit(client),
+    ])
+  return runMutation<BulkResult, MailboxBulkActionRequest>(
+    client,
+    {
+      mutationFn: async (body) =>
+        requireData(await api.POST('/mailboxes/bulk-actions', { body })).data,
+      onSuccess: async (result) => {
+        for (const item of result.results) {
+          if (
+            item.outcome === 'notFound' ||
+            (item.outcome === 'done' && request.action === 'delete')
+          ) {
+            client.removeQueries({ queryKey: queryKeys.mailboxes.detail(item.id.toLowerCase()) })
+          } else if (item.outcome === 'done') {
+            void client.invalidateQueries({ queryKey: queryKeys.mailboxes.detail(item.id) })
+          }
+        }
+        await refresh()
+      },
+      onError: async (error) => {
+        if (isApiProblem(error) && error.kind === 'network') await refresh()
+      },
+    },
+    request,
   )
 }

@@ -206,29 +206,188 @@ edit page). Every mailcow language is supported; legacy values are loaded at run
 installation and shown verbatim (HTML through `SanitizedHtml.vue`); a missing key falls back to
 `en-gb`, never to a hand-written value.
 
-**Legacy form map**: written into this section by T004a before any screen is built.
+**Legacy form map** (T004a, 2026-10-19). Paths are relative to `../mailhosting/data/web/`. The
+screens use only these legacy keys and the new strings of part 1d. `lang.<key>` in
+`js/site/admin.js` is `lang_admin`, in `js/site/mailbox.js` `lang_mailbox`.
 
-**Deviations needing a decision** (not built until the owner or orchestrator decides):
+*Part 1a: the six lists.* Each list has the legacy card's heading, its hint (HTML through
+`SanitizedHtml.vue` with `<LegacyText>`), the columns and per-entry buttons of its DataTables
+definition, and legacy's quick actions as the bulk actions of selection mode. Search, filters,
+sort, paging and refresh are the app's list improvements (conventions "Lists"); their texts are
+legacy's `datatables.*` (`datatables.search`, `datatables.zeroRecords`, `datatables.emptyTable`,
+`datatables.loadingRecords`, `datatables.info`, `datatables.lengthMenu`) and the column headers.
 
-1. **Navigation grouping**: legacy spreads these screens over System › Routing (relayhosts,
-   transports), System › Configuration › Forwarding hosts, Mail setup › Address rewriting (BCC and
-   recipient maps) and Mail setup › TLS policy maps; the plan groups all six under one Routing
-   entry (UI 001's catalogue, FR-001).
-2. **Test addresses**: legacy prefills the recipient with `null@hosted.mailcow.de` (value and
-   placeholder) and shows the placeholder `relay@example.org` for the sender; the plan leaves both
-   empty with the server's defaults as placeholders (parity note 2).
-3. **Test dialog title**: legacy's hard-coded "Transport"; the plan replaces it with a new string.
-4. **Edit page heading**: legacy's relayhost and transport edit pages are headed `edit.resource`
-   ("Resource", a legacy slip); verbatim use would show "Resource".
-5. **Added explanatory texts** (new strings beyond the legacy forms): "also called relayhosts"
-   (FR-001), the port 465 warning, the `*` transport warning, the TLS policy explanations (legacy
-   shows only the raw values), the BCC type explanations, the spam and sub-address explanation, and
-   the credential lookup note of the mailbox section.
-6. **Dropped legacy columns and option text**: the leading ID column of the BCC, recipient and TLS
-   policy map tables (spec Legacy Parity), and the username in a domain administrator's relayhost
-   options ("ID n: host (username)"; API FR-023 withholds it).
-7. **Write-only relay passwords**: legacy's edit pages show the stored password in its field; the
-   plan shows only its status (conventions "Secrets"; listed for completeness).
+| Screen (route) | Legacy source | Heading, hint, add action | Columns (in order) | Per-entry actions | Bulk actions |
+|---|---|---|---|---|---|
+| Sender-dependent transports (`routing-relayhosts`) | `templates/admin/tab-routing.twig` (first card), `draw_relayhosts()` and `process_table_data()` in `admin.js` | `admin.relayhosts`; `admin.relayhosts_hint`; `admin.add_relayhost` | ID (hard-coded, new string `routing.common.id`), `admin.host`, `admin.username`, `admin.in_use_by` (the counts as `mailbox.domains: n` and `mailbox.mailboxes: n`, linking to the usage view), `admin.active` (`admin.yes`/`admin.no` glyphs), `admin.action` | "Test" (hard-coded, new string `routing.common.test`), `admin.edit`, `admin.remove`, History | `mailbox.activate`, `mailbox.deactivate`, `admin.remove` |
+| Relayhost usage (`routing-relayhost-usage`) | the `admin.in_use_by` cell of the same table (`used_by_domains`, `used_by_mailboxes`) | `admin.in_use_by` with the host as description | `mailbox.kind` (`mailbox.domain`, `mailbox.mailbox`), the name (no header text in legacy: the kind's label is the column header `mailbox.domain` / `mailbox.mailbox`, so the column is headed `mailbox.kind` and the name links to the domain or mailbox page) | — | — |
+| Transport Maps (`routing-transports`) | `tab-routing.twig` (second card), `draw_transport_maps()` | `admin.transport_maps`; `admin.transports_hint`; `admin.add_transport` | ID, `admin.destination` (MX-based ones marked with `admin.is_mx_based` in text instead of the tooltip icon), `admin.nexthop`, `admin.username` (without the colour square), `admin.active`, `admin.action` | "Test", `admin.edit`, `admin.remove`, History | `mailbox.activate`, `mailbox.deactivate`, `admin.remove` |
+| Outgoing TLS policy map overrides (`routing-tls-policy-maps`) | `templates/mailbox/tab-tls-policy.twig`, `draw_tls_policy_table()` in `mailbox.js` | `mailbox.tls_policy_maps_long`; `mailbox.tls_policy_maps_info`; `mailbox.add_tls_policy_map` | ID, `mailbox.tls_map_dest`, `mailbox.tls_map_policy` (bold, raw value), `mailbox.tls_map_parameters` (`-` when empty), `mailbox.active`, `mailbox.action` | `mailbox.edit`, `mailbox.remove`, History | `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove` |
+| Recipient maps (`routing-recipient-maps`) | `templates/mailbox/tab-bcc.twig` (second card), `draw_recipient_map_table()` | `mailbox.recipient_maps`; `mailbox.recipient_map_info`; `mailbox.add_recipient_map_entry` | ID, `mailbox.recipient_map_old`, `mailbox.recipient_map_new`, `mailbox.active`, `mailbox.action` | `mailbox.edit`, `mailbox.remove`, History | `mailbox.activate`, `mailbox.deactivate`, `mailbox.remove` |
+| BCC maps (`routing-bcc-maps`) | `tab-bcc.twig` (first card), `draw_bcc_table()` | `mailbox.bcc_maps`; `mailbox.bcc_info`; `mailbox.add_bcc_entry` | ID, `mailbox.bcc_type` (`mailbox.bcc_sender_map` / `mailbox.bcc_rcpt_map` as text), `mailbox.bcc_local_dest`, `mailbox.bcc_destinations`, `mailbox.domain` (administrators: plus the new string `routing.bccMaps.orphaned` on orphaned maps), `mailbox.active`, `mailbox.action` | `mailbox.edit`, `mailbox.remove` (with `bccMaps` or as administrator), History (administrators) | `mailbox.activate`, `mailbox.deactivate`, `mailbox.bcc_to_sender`, `mailbox.bcc_to_rcpt`, `mailbox.remove` (with `bccMaps` or as administrator) |
+| Forwarding Hosts (`routing-forwarding-hosts`) | `templates/admin/tab-config-fwdhosts.twig`, `draw_fwd_hosts()` | `admin.forwarding_hosts`; `admin.forwarding_hosts_hint`; `admin.add_forwarding_host` | `admin.host`, `admin.source` (a button that filters by that source), `admin.spamfilter` (`admin.yes`/`admin.no`), `admin.action` | `admin.remove`, History | "Enable spam filter", "Disable spam filter" (hard-coded English, new strings), `admin.remove` |
+
+Filters use the column headers as labels (`admin.active`, `admin.in_use_by`, `admin.is_mx_based`,
+`admin.nexthop`, `mailbox.bcc_type`, `mailbox.domain`, `mailbox.tls_map_policy`,
+`admin.spamfilter`, `admin.source`, `mailbox.kind`) and legacy option labels where legacy has them
+(`admin.active`/`admin.inactive`, `mailbox.bcc_sender_map`/`mailbox.bcc_rcpt_map`, the raw policy
+values, `mailbox.domain`/`mailbox.mailbox`). The sort choices are the column headers.
+
+*Part 1b: the add and edit pages.* Each page is its legacy form on its own page (constitution II).
+Add pages are headed by the add action's label; edit pages by legacy's edit card header
+`edit.title` with the entry as description and legacy's `edit.previous` back link, as UI 002's
+template page. The add action is `admin.add`, the edit action `edit.save`, and Cancel
+`footer.cancel` (the app's sticky action bar).
+
+| Page | Legacy source | Fields in order (label; help; placeholder; control) |
+|---|---|---|
+| Add relayhost (`routing-relayhost-create`) | `tab-routing.twig` add form | hint `admin.add_relayhost_hint`; `admin.host` (placeholder `[0.0.0.0], [0.0.0.0]:25, host:25, host, [host]:25`, hard-coded, new string `routing.relayhosts.hostPlaceholder`); `admin.username`; `admin.password` (password input). No active control: legacy creates active relayhosts |
+| Edit relayhost (`routing-relayhost-edit`) | `templates/edit/relayhost.twig` | `add.hostname` with `add.relayhost_wrapped_tls_info`; `add.username`; `add.password` with the haveibeenpwned check (`data-hibp`) and the write-only status (part 1d); `edit.active` checkbox |
+| Add transport (`routing-transport-create`) | `tab-routing.twig` add form | hint `admin.add_transports_hint`; `admin.destination` (placeholder `admin.transport_dest_format`, text input split as legacy splits it); `admin.nexthop` (placeholder `host:25, host, [host]:25, [0.0.0.0]:25`, new string `routing.transports.nextHopPlaceholder`); `admin.username`; `admin.password`; checkbox `admin.lookup_mx` (HTML label); checkbox `admin.active` (unchecked); `admin.credentials_transport_warning` |
+| Edit transport (`routing-transport-edit`) | `templates/edit/transport.twig` | `add.destination`; `edit.nexthop` (placeholder `[0.0.0.0], [0.0.0.0]:25, host:25, host, [host]:25`, the relayhost placeholder string); `add.username`; `add.password` with haveibeenpwned and the write-only status; checkbox `edit.lookup_mx` (HTML label); checkbox `edit.active` |
+| Connection test (`routing-relayhost-test`, `routing-transport-test`) | `testTransportModal` in `templates/modals/admin.twig`, `#test_transport` in `admin.js`, `inc/ajax/transport_check.php` | heading "Transport" (hard-coded, new string `routing.connectionTest.title`) with the host or next hop as description; `admin.relay_from` (empty, placeholder `connectionTest.defaultSender`); `admin.relay_rcpt` (prefilled and placeholder `connectionTest.defaultRecipient`) with `admin.transport_test_rcpt_info`; `admin.relay_run` (secondary button, `footer.loading` while running); the result below a rule |
+| Add BCC map (`routing-bcc-map-create`) | `addBCCModalAdmin` in `templates/modals/mailbox.twig` | `mailbox.bcc_local_dest` (searchable picker grouped as legacy: `mailbox.domains`, `mailbox.domain_aliases`, `mailbox.mailboxes`; the mailboxes an alias delivers to as the option's second line, where legacy uses the mailbox as group label); `mailbox.bcc_map_type` (select: `mailbox.bcc_sender_map`, `mailbox.bcc_rcpt_map`); `mailbox.bcc_destination` with `add.bcc_dest_format`; checkbox `add.active` (checked) |
+| Edit BCC map (`routing-bcc-map-edit`) | `templates/edit/bcc.twig` | `mailbox.bcc_destination` with `edit.bcc_dest_format`; `mailbox.bcc_map_type` (select); checkbox `edit.active`. The local destination and domain are the page's description. Without `bccMaps` a domain administrator sees the values as text, without controls |
+| Add recipient map (`routing-recipient-map-create`) | `addRecipientMapModalAdmin` | `mailbox.recipient_map_old` with `mailbox.recipient_map_old_info`; `mailbox.recipient_map_new` with `mailbox.recipient_map_new_info`; checkbox `add.active` (checked) |
+| Edit recipient map (`routing-recipient-map-edit`) | `templates/edit/recipient_map.twig` | the same two fields with their info texts; checkbox `edit.active` |
+| Add TLS policy map (`routing-tls-policy-map-create`) | `addTLSPolicyMapAdmin` | `mailbox.tls_map_dest` with `mailbox.tls_map_dest_info`; `mailbox.tls_map_policy` (select of the raw values, in the order of `capabilities.administration.tlsPolicies`); `mailbox.tls_map_parameters` with `mailbox.tls_map_parameters_info`; checkbox `add.active` (checked) |
+| Edit TLS policy map (`routing-tls-policy-map-edit`) | `templates/edit/tls_policy_map.twig` | the same fields; checkbox `edit.active` |
+| Add forwarding host (`routing-forwarding-host-create`) | `tab-config-fwdhosts.twig` add form | hint `admin.forwarding_hosts_add_hint`; `admin.host` (placeholder `example.org`, hard-coded, new string `routing.forwardingHosts.hostPlaceholder`); select labelled `user.spamfilter` (legacy's `title`) with `admin.active` (default) and `admin.inactive` |
+| Relayhost of a domain (Domain section of `domain-detail`) | `templates/edit/domain.twig` (shown with `acl.domain_relayhost`) | `edit.relayhost`: a searchable choice (legacy `data-live-search`) of `ID n: host (username)` (inactive ones with `admin.inactive` as second line instead of legacy's red background) and `edit.none_inherit`, at legacy's position after the tags |
+| Relayhost of a mailbox (Mailbox section of `mailbox-detail`) | `templates/edit/mailbox.twig` (shown with `acl.mailbox_relayhost`) | the same choice with `edit.mailbox_relayhost_info`, at legacy's position (UI 003 already shows it read-only there) |
+
+*Part 1c: navigation.* The catalogue entry is labelled `admin.routing`. The index page and the
+section navigation list the screens by their legacy tab labels: `admin.relayhosts`,
+`admin.transport_maps`, `mailbox.tls_policy_maps`, `mailbox.recipient_maps`, `mailbox.bcc_maps`,
+`admin.forwarding_hosts`.
+
+*Part 1d: new strings* (en-gb, cs-cz, sk-sk; elements legacy lacks or hard-codes):
+
+- hard-coded legacy texts: `routing.common.id` ("ID"), `routing.common.test` ("Test"),
+  `routing.connectionTest.title` ("Transport"), `routing.forwardingHosts.enableSpamFilter`,
+  `routing.forwardingHosts.disableSpamFilter`, the three placeholders above;
+- list controls: `routing.filters.*` (title, "All", "Yes", "No") and `routing.sort.*`;
+- write-only passwords (conventions "Secrets"): the stored and not-stored status, "Remove
+  password", its pending note with "Undo", and the note that clearing the username removes the
+  stored password; the field's placeholder is legacy's `edit.unchanged_if_empty`;
+- outcomes legacy cannot report (conventions "Outcomes"): the other transports whose shared
+  credentials changed, forwarding host addresses that were already listed (updated), the
+  relayhost deletion impact (the cleared assignments, "Show all", names not loaded), orphaned BCC
+  maps;
+- the connection test result (the API returns a structured result where legacy prints the raw
+  dialogue in colours): verdict, step, failure reasons, login states, server and source, TLS,
+  time, the transcript title, legend, direction words, copy texts and "no result";
+- "History of this source" on the forwarding host list, and the audit log labels of API 009's
+  event and target types (conventions "History and audit");
+- `validation.byParam.required.because.password`, `validation.invalidCharacter`,
+  `validation.invalidRegex`, `validation.notResolvable`, the `validation.format.*` of the routing
+  formats and the `problem.*` of the routing problem types where no legacy message applies.
+
+**Part 2: messages** (`inc/functions.transports.inc.php`, `functions.address_rewriting.inc.php`,
+`functions.tls_policy_maps.inc.php`, `functions.fwdhost.inc.php`). One alert or announcement per
+outcome, as legacy returns them. "Form key" rows go through UI 004's form-context lookup
+(`LEGACY_TEXTS` with `LEGACY_ARGS`).
+
+| API outcome | Legacy key | Placeholders |
+|---|---|---|
+| `createRelayhost` 201 | `success.relayhost_added` | the stored host |
+| `updateRelayhost` 200 (edit page, bulk activate and deactivate) | `success.object_modified` | the host |
+| `deleteRelayhost` 204, bulk `delete` done | `success.relayhost_removed` | the ID |
+| `invalidFormat` (`nextHop`) on the relayhost `host` (form key) | `danger.invalid_host` | the value sent |
+| `createTransport` 201 (per destination) | `success.relayhost_added` (legacy's message for transports) | the destination |
+| `updateTransport` 200 | `success.object_modified` | the destination |
+| `deleteTransport` 204 | `success.relayhost_removed` | the ID |
+| `invalidFormat` (`nextHop`) on `nextHop` (form key) | `danger.invalid_nexthop` | — |
+| `invalidFormat` (`transportDestination`) or `invalidRegex` on `destination` (form key) | `danger.invalid_destination` | the value sent |
+| `409 routing-entry-exists` with `field: destination` (transport) | `danger.transport_dest_exists` | the destination |
+| `409 next-hop-credentials-differ` | `danger.invalid_nexthop_authenticated` | — |
+| `409 next-hop-interferes` | `danger.next_hop_interferes` | `nextHop` (the stored next hop), the entered next hop |
+| `createBccMap` 201 | `success.bcc_saved` | — |
+| `updateBccMap` 200 | `success.bcc_edited` | the BCC destination |
+| `deleteBccMap` 204 | `success.bcc_deleted` | the ID |
+| `required` on `bccDestination` (form key) | `danger.bcc_empty` | — |
+| `invalidFormat` (`email`) or `tooMany` on `bccDestination` (form key) | `danger.bcc_must_be_email` | the value sent |
+| `409 routing-entry-exists` (BCC map; bulk type switch `refused`) | `danger.bcc_exists` | the local destination, the type value as legacy fills it (`sender` / `rcpt`) |
+| `notFound` on `localDestination` (form key) | `danger.access_denied` | — |
+| `createRecipientMap` 201, `updateRecipientMap` 200 | `success.recipient_map_entry_saved` | the stored original recipient |
+| `deleteRecipientMap` 204 | `success.recipient_map_entry_deleted` | the ID |
+| `invalidFormat` on `originalDestination` / `newDestination` (form keys) | `danger.invalid_recipient_map_old` / `danger.invalid_recipient_map_new` | the value sent |
+| `409 routing-entry-exists` (recipient map) | `danger.recipient_map_entry_exists` | the original recipient |
+| `createTlsPolicyMap` 201, `updateTlsPolicyMap` 200 | `success.tls_policy_map_entry_saved` | the stored destination |
+| `deleteTlsPolicyMap` 204 | `success.tls_policy_map_entry_deleted` | the ID |
+| `invalidFormat` on `destination` / `parameters` (form keys) | `danger.tls_policy_map_dest_invalid` / `danger.tls_policy_map_parameter_invalid` | — |
+| `409 routing-entry-exists` (TLS policy map) | `danger.tls_policy_map_entry_exists` | the destination |
+| `createForwardingHost` 201 or 200 | `success.forwarding_host_added` | the added addresses, joined by `, ` as legacy joins them |
+| `deleteForwardingHost` 204, bulk `delete` done | `success.forwarding_host_removed` | the address |
+| bulk `enableSpamFilter` / `disableSpamFilter` done | `success.object_modified` | the address |
+| `notResolvable` or `invalidFormat` on the forwarding host `host` (form key) | `danger.invalid_host` | the value sent |
+| `replaceDomainRelayhostAssignment` 200 (with or without other changes of the section) | `success.domain_modified` | the domain |
+| `replaceMailboxRelayhostAssignment` 200 | `success.mailbox_modified` | the address |
+| `403 permission-flag-required` | `danger.access_denied` (UI 004's mapping) | — |
+| `409 routing-entry-exists` elsewhere | `danger.object_exists` | `conflictingId` |
+| `503 temporary-failure`, `412`, `404`, other | UI 001's and UI 002's shared `problem.*` and `sections.*` strings | — |
+
+**Part 3: deviations and the decisions taken** (orchestrator brief of 2026-10-19: "decide by the
+constitution, the conventions and the plan, and record your decisions"; the conventions' decisions
+on deviations of 2026-10-18 apply):
+
+1. **Navigation grouping**: kept. The six screens stay under UI 001's one Routing entry (labelled
+   `admin.routing`), each with its legacy tab label; domain administrators see the entry with BCC
+   maps only, as legacy shows them the BCC tab.
+2. **Test addresses**: legacy is followed. The recipient is prefilled with the server's default
+   recipient and shows it as placeholder; the sender is empty with the default sender as
+   placeholder. Both values come from the routing capabilities (the classic interface hard-codes
+   the same upstream defaults). Plan parity note 2 and spec clarification 5 are superseded.
+3. **Test dialog title**: legacy's hard-coded "Transport" is a new string with the same English
+   text (conventions "Text the classic interface hard-codes").
+4. **Edit page heading**: legacy's relayhost and transport edit pages show `edit.title` in the card
+   header and `edit.resource` ("Resource") as inner heading. The pages use `edit.title` with the
+   entry as description, as every edit page does (UI 002); `edit.resource` names a different
+   mailcow object and is left out (conventions: a text whose meaning does not fit is not used).
+5. **Added explanatory texts**: not built (conventions: "no help text, explanation or section
+   heading that legacy lacks"): "also called relayhosts", the port 465 warning, the `*` warning,
+   the TLS policy explanations, the BCC type explanations, the spam and sub-address explanation,
+   the mailbox section's effective relayhost, domain relayhost and credentials note, the
+   alias-domain sentence, the direct-connection note of the test, the inactive-entry note of the
+   test, "Whole domain", and the shared-next-hop notice and confirmation before a save (legacy shows
+   only `admin.credentials_transport_warning`). The other transports whose credentials changed are
+   named after a save, an outcome legacy cannot report.
+6. **Dropped legacy columns and option text**: legacy is followed: the ID column stays on every
+   list that has it, and domain administrators see the username in the relayhost choice (G41
+   closed). Two parity improvements replace colour-only marks that the app cannot copy (WCAG
+   1.4.1): MX-based destinations are marked with `admin.is_mx_based` in text, and legacy's
+   colour square per next hop is left out (the next hop column and filter show the sharing).
+7. **Write-only relay passwords**: kept (conventions "Secrets"): the edit field starts empty with
+   legacy's `edit.unchanged_if_empty` as placeholder, says whether a password is stored, and
+   offers "Remove password"; lists show no password column, as legacy.
+8. **Per-entry actions and confirmations**: legacy's buttons (Test, Edit, Remove; Edit, Remove;
+   Remove) plus History. Activation and deactivation are legacy's quick actions in selection mode
+   and the edit form's checkbox, without the spec's per-card switch and without a confirmation
+   (conventions "No confirmation legacy lacks", as UI 002 decided); a single deletion is confirmed
+   with `#ConfirmDeleteModal`'s texts and the relayhost's usage as impact; a bulk deletion needs
+   the count typed.
+9. **Forwarding host entry page**: not built. Legacy has no edit page for forwarding hosts; the
+   spam filter changes through legacy's two quick actions (FR-063 through selection), and the
+   entry offers Remove and History. `getForwardingHost` and `updateForwardingHost` are not used.
+10. **Several transport destinations**: legacy's single-line field is kept and split as legacy
+    splits it (spaces, commas, semicolons, line breaks); an MX-based pattern is split on
+    whitespace only, because a regular expression may contain commas and semicolons. One request
+    per destination, one outcome each, as legacy reports one alert per destination.
+11. **Relayhost choice order**: "None / Inherit" is the first option, not legacy's last, because
+    the choices are searched and paged on the server instead of loaded at once.
+12. **Relayhost assignments in their legacy positions**: the choice is a field of UI 002's Domain
+    section and UI 003's Mailbox section, saved with the section's Save through the assignment
+    operation (`PUT …/relayhost-assignment` with its own `If-Match`, after the section's own
+    patch), with legacy's single success message. Without the flag the field is hidden, as legacy
+    hides it, instead of the spec's read-only view with "Prohibited by ACL".
+13. **Relayhost usage view**: kept as the paged form of legacy's `admin.in_use_by` cell (the API
+    gives counts and a paged list instead of joined names).
+14. **Connection test result**: the verdict, the step reached or failed with its reason, the last
+    reply, the server, TLS, login and addresses, then the transcript (legacy's coloured dialogue,
+    in text with direction markers). The eight-step list is kept as data in words. No
+    explanation is added.
+
+The original list of deviations (plan, 2026-10-18) is settled by part 3 above.
 
 ## Consistency changes to the spec
 
@@ -276,25 +435,34 @@ in the spec's "Consistency changes (plan)" clarification:
   UI 006 (promotes `AclReadOnlyNote`); UI 007 (manages the permission flags this feature reads,
   flag labels). UI 004 and UI 008 add nothing this feature needs, but their contract pins come
   first (pins are monotonic, R1).
-- **Prerequisites table**: T001 fills it with the actual names before Phase 2.
+- **Prerequisites table** (filled by T001 on 2026-10-19 against UI `main` f02acc5):
 
   | Prerequisite (research R1) | Location in the earlier plan | Actual location (T001) |
   |---|---|---|
-  | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary}.vue` (UI 002) | _to be recorded_ |
-  | `ConfirmDialog` with `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue` (UI 002) | _to be recorded_ |
-  | `useVersionedSave` with `changedSince`, `EditableSection` | `src/shared/composables/useVersionedSave.ts`, `src/shared/components/EditableSection.vue` (UI 002) | _to be recorded_ |
-  | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` (UI 002, canonical name) | _to be recorded_ |
-  | `HistoryLink` and the audit target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` (UI 002) | _to be recorded_ |
-  | `ActiveFilterChips`, not-found state with a back link | `src/shared/components/ActiveFilterChips.vue` (UI 003), `NotFoundState` or `NotFoundPage` `backTo` (UI 002, UI 003) | _to be recorded_ |
-  | Route roles inside an entry | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` (UI 002) | _to be recorded_ |
-  | Domain page, section list, `edit=<section>`, key | `src/features/domains/pages/DomainDetailPage.vue`, route `domain-detail`, `['domains','detail',name]` (UI 002) | _to be recorded_ |
-  | Mailbox layout, child routes, section catalogue, managed settings, key | `src/features/mailboxes/{routes.ts,sections.ts,pages/MailboxDetailPage.vue,components/display/{MailboxSectionNav,ManagedSettingsGroup}.vue}`, route `mailbox-detail`, `['mailboxes','detail',address]` (UI 003) | _to be recorded_ |
-  | Mock state and handlers of domains and mailboxes | `tests/mocks/scenarios/state.ts`, `tests/mocks/handlers/{domains,mailboxes}.ts` (UI 002, UI 003) | _to be recorded_ |
-  | `PasswordInput`, `CopyButton` | `src/shared/components/password/PasswordInput.vue`, `src/shared/components/CopyButton.vue` (UI 005) | _to be recorded_ |
-  | `AclReadOnlyNote` | `src/shared/components/AclReadOnlyNote.vue` (UI 003, promoted by UI 006) | _to be recorded_ |
-  | Domain administrator flag labels | legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`, used verbatim (UI 007) | _to be recorded_ |
-  | Coverage registry, `ENUM_NAMESPACES` | `src/i18n/coverage.json` (canonical), `scripts/i18n/lib.mjs` (UI 002, UI 003) | _to be recorded_ |
-  | Legacy translation layer and `SanitizedHtml.vue` allowlist | UI 001 (constitution IV 1.3.0) | _to be recorded_ |
+  | `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` | `src/shared/composables/useBulkSelection.ts`, `src/shared/components/{BulkActionBar,BulkResultSummary}.vue` (UI 002) | as planned, plus `src/shared/components/bulk-row.ts` (`rowsFromBulkResult`, `unknownRows`, `isRetryable`); the selection is cleared through `useListState`'s `onReset` |
+  | `ConfirmDialog` with `requireTyped` and rich content | `src/shared/components/ConfirmDialog.vue` (UI 002) | as planned, driven by `confirm()` of `src/shared/composables/useConfirm.ts` (`requireTyped`, `content`, `alertOnly`) |
+  | `useVersionedSave` with `changedSince`, `EditableSection` | `src/shared/composables/useVersionedSave.ts`, `src/shared/components/EditableSection.vue` (UI 002) | as planned; the section types are in `src/shared/components/editable-section.ts` |
+  | `useLeaveGuard` | `src/shared/composables/useLeaveGuard.ts` (UI 002, canonical name) | as planned (`disarm()`, `titleKey`, `messageKey`) |
+  | `HistoryLink` and the audit target filters | `src/shared/components/HistoryLink.vue`, `src/features/audit-log/list-state.ts` (UI 002) | as planned (`targetType`, `targetId`, `allowed`, `label`) |
+  | `ActiveFilterChips`, not-found state with a back link | `src/shared/components/ActiveFilterChips.vue` (UI 003), `NotFoundState` or `NotFoundPage` `backTo` (UI 002, UI 003) | `src/shared/components/ActiveFilterChips.vue` (promoted by UI 004); `src/app/states/NotFoundPage.vue` with `backTo` and `backLabel` |
+  | Route roles inside an entry | `src/app/navigation/visibility.ts`, `src/app/layouts/ShellLayout.vue` (UI 002) | as planned: `meta.roles`; `ShellLayout` renders `NoAccessState` in place and mounts no route component |
+  | Domain page, section list, `edit=<section>`, key | `src/features/domains/pages/DomainDetailPage.vue`, route `domain-detail`, `['domains','detail',name]` (UI 002) | as planned, but under the forms rule the page has legacy's tabs as sections: the relayhost is a read-only row of the **Domain** section (`components/detail/sections/DomainSection.vue`, legacy `edit/domain.twig` #dedit), shown to administrators and with `domainRelayhost`; there is no "Delivery" section |
+  | Mailbox layout, child routes, section catalogue, managed settings, key | `src/features/mailboxes/{routes.ts,sections.ts,pages/MailboxDetailPage.vue,components/display/{MailboxSectionNav,ManagedSettingsGroup}.vue}`, route `mailbox-detail`, `['mailboxes','detail',address]` (UI 003) | under the forms rule UI 003 built legacy's tabs as sections opened by `?edit=` (no child routes, no `sections.ts`, no `MailboxSectionNav`, no `ManagedSettingsGroup`); the relayhost is a read-only row (`ID n`) of the **Mailbox** section (`components/sections/MailboxSection.vue` on `composables/useMailboxSection.ts`), shown to administrators and with `mailboxRelayhost` (`canSeeRelayhost` in `acl.ts`) |
+  | Mock state and handlers of domains and mailboxes | `tests/mocks/scenarios/state.ts`, `tests/mocks/handlers/{domains,mailboxes}.ts` (UI 002, UI 003) | `tests/mocks/scenarios/state.ts` (`MockDomain.relayhost`, `MockMailbox.relayhostId`), `tests/mocks/handlers/{domains,mailboxes-read,mailbox-update}.ts`, `tests/mocks/factories/{domain,mailbox}.ts` (`domainEtag`, `mailboxEtag`) |
+  | `PasswordInput`, `CopyButton` | `src/shared/components/password/PasswordInput.vue`, `src/shared/components/CopyButton.vue` (UI 005) | not built (UI 005 is not implemented). Legacy's relay password fields have no show/hide control, so `CredentialFields` uses a plain password input; the transcript copy uses `src/shared/platform/clipboard.ts` directly |
+  | `AclReadOnlyNote` | `src/shared/components/AclReadOnlyNote.vue` (UI 003, promoted by UI 006) | `src/features/mailboxes/components/fields/AclReadOnlyNote.vue` (not promoted). Not needed: legacy hides the relayhost selects without the flag (`{% if acl.domain_relayhost == '1' %}`) and disables the BCC write controls (`data-acl`), so the app hides them |
+  | Domain administrator flag labels | legacy `acl.bcc_maps`, `acl.domain_relayhost`, `acl.mailbox_relayhost`, used verbatim (UI 007) | `flagLabel()` in `src/i18n/problems.ts` (UI 004: `acl.<snake_case>`); `problem.permission-flag-required` shows legacy's `danger.access_denied` through `LEGACY_TEXTS` |
+  | Coverage registry, `ENUM_NAMESPACES` | `src/i18n/coverage.json` (canonical), `scripts/i18n/lib.mjs` (UI 002, UI 003) | as planned; `coverage.json` has `partial` (open enumerations) and `complete` (closed enumerations by JSON pointer), which UI 003 uses instead of `ENUM_NAMESPACES` |
+  | Legacy translation layer and `SanitizedHtml.vue` allowlist | UI 001 (constitution IV 1.3.0) | `src/i18n/legacy.ts` (`lt`, `legacyRaw`), `src/i18n/text.ts` (`legacy()`), `src/i18n/legacy-messages.ts` (`LEGACY_TEXTS`, `LEGACY_ARGS`, the form-context lookup `<formKey>.errors.<field>.<code>`), `src/shared/components/LegacyText.vue`, `SanitizedHtml.vue` with the `legacy` profile (`b`, `strong`, `i`, `em`, `br`, `small`, `code`, `ul`, `ol`, `li`, `p`, `span`, `div`, `a` with `href` and `target`) |
+  | Server-searched picker (added by T001) | — | `src/shared/components/DomainPicker.vue` (UI 004): reused for the relayhost choice and the BCC local destination, with one additive option member (`detail`) for the second line |
+  | Other shared pieces (added by T001) | — | `HibpCheck.vue`, `useSecretRequest.ts`, `useStickyBarFocus.ts`, `useCountdown.ts`, `useMediaQuery.ts`, `useAnnouncer.ts`, `useProblemForm.ts`, `useClientErrors.ts`, `SelectCheckbox.vue`, `SearchField.vue`, `PaginationBar.vue` (legacy `datatables.*` texts), `PageHeader.vue`, `ErrorSummary.vue`, `ProblemMessage.vue`, `FormField.vue`, `ValueList.vue`; `runMutation`, `problemOf`, `requireData`, `reportSessionProblem` from `@/api` |
+
+  API gaps G34–G37 are registered in `../mailcow-rest-v2/docs/api-gaps.md`, and all four are closed
+  at the pin `e7efa73`: `requiredFlagsMatch` (G34), the normalised `nextHop` filter (G35),
+  `maxLengths.forwardingHost`, `testSender` and `testRecipient` (G36) and `immutable` in
+  `RelayhostPatch` (G37). G41 (the username in `RelayhostChoice` for every caller who may read the
+  choices) is closed too, so both roles use `GET /relayhost-choices` and see legacy's
+  `ID n: host (username)`.
 
 ## API dependency and gaps
 

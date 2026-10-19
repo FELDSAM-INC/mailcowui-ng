@@ -13,9 +13,9 @@ not duplicate the contract.
 | API repository | `FELDSAM-INC/mailcow-rest-v2` |
 | API feature | 009 – routing and address rewriting (relayhosts, relayhost assignments, transports, connection tests, BCC maps, recipient maps, TLS policy maps, forwarding hosts, routing capabilities) |
 | Contract version (`info.version`) | `0.1.0` (does not identify a contract, UI 001 R6) |
-| Planning baseline (commit) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
-| Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` (`@redocly/cli@2.64.1 bundle`) |
-| Operations in the bundle | 376, including the 46 of API 009 |
+| Pinned commit (T002, 2026-10-19) | `e7efa732101e28f4f165f8e089ee6994d115b932` (mailcow-rest-v2 `main`, "Walk through the quickstart of feature 010 and record the gates"; planning baseline `32079252d55797d3da4e58ae661e9fb91c51c6f9`) |
+| Bundle sha256 at the pin | `da783ad914587a8cb7a1db917e6c0f826675044122dfd466f0934c3ecbfc09aa` (`@redocly/cli@2.64.1 bundle`) |
+| Operations in the bundle | 379, including the 46 of API 009 |
 | API 009 modules last changed | `dd505ae` ("Plan feature 009 and author its contract") |
 
 The contract bump task (T002 in [tasks.md](../tasks.md)) pins the commit that the API 009
@@ -23,6 +23,15 @@ implementation was released against, or its release tag, with `scripts/contract/
 are monotonic: if UI 002–008 already pinned a commit at or after one whose 46 routing operations
 are identical to the baseline's, that pin is kept (research R1). The task records the final commit
 and sha256 here, replacing the baseline rows.
+
+**Changes since the baseline** (T002 review of `git diff 3207925 e7efa73 -- api/modules/{relayhosts,relayhost-assignments,transports,bcc-maps,recipient-maps,tls-policy-maps,forwarding-hosts,routing-capabilities} api/components`):
+the routing gaps are closed (G34 `requiredFlagsMatch` through `PermissionFlagRequiredProblem`; G35
+the normalised `nextHop` filter; G36 `maxLengths.forwardingHost`, `testSender`, `testRecipient`;
+G37 `immutable` in `RelayhostPatch`) and G41 adds `username` to `RelayhostChoice` for every caller
+who may read the choices. The patches of transports, recipient maps, TLS policy maps and
+forwarding hosts name their read-only members. No operation was removed or renamed. Under the
+forms rule (plan, legacy form map part 3, decision 9) `getForwardingHost` and
+`updateForwardingHost` are not called: legacy has no forwarding host edit page.
 
 ## Operations used by this feature
 

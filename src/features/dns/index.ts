@@ -7,12 +7,17 @@ import { defineAsyncComponent } from 'vue'
 import { loadFeatureMessages } from '@/i18n'
 
 export { dnsRoutes } from './routes'
-/** "DNS": the diagnostics of a name, as a menu item or a button (props `name`, `variant`). */
-export { default as CheckDnsAction } from './components/CheckDnsAction.vue'
 
 function withMessages<T>(load: () => Promise<T>) {
   return () => Promise.all([load(), loadFeatureMessages('dns')]).then(([module]) => module)
 }
+
+/**
+ * "DNS": the diagnostics of a name, as a menu item or a button (props `name`, `variant`). Lazy, so
+ * that the router's import of this file keeps the menu primitives out of the initial bundle; its
+ * label is a main string, so it needs no feature strings.
+ */
+export const CheckDnsAction = defineAsyncComponent(() => import('./components/CheckDnsAction.vue'))
 
 /** The DKIM section of a domain or alias domain page (props `name`, `kind`). */
 export const DomainDkimSection = defineAsyncComponent(

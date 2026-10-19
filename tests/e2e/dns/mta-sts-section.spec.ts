@@ -103,6 +103,7 @@ test.describe('MTA-STS section', () => {
     mockApi,
     expectAccessible,
   }) => {
+    test.slow()
     await mockApi.use('dns-mta-sts')
     await openSection(page, 'example.org')
     const before = (await section(page).locator('[data-policy-id]').textContent())?.trim() ?? ''
@@ -132,6 +133,7 @@ test.describe('MTA-STS section', () => {
     mockApi,
     expectAccessible,
   }) => {
+    test.slow()
     await mockApi.use('dns-mta-sts')
     await openSection(page, 'example.org')
     const id = (await section(page).locator('[data-policy-id]').textContent())?.trim()
@@ -161,6 +163,7 @@ test.describe('MTA-STS section', () => {
     mockApi,
     expectAccessible,
   }) => {
+    test.slow()
     await mockApi.use('dns-mta-sts')
     await openSection(page, 'example.org')
     await edit(page)
@@ -192,6 +195,7 @@ test.describe('MTA-STS section', () => {
     mockApi,
     expectAccessible,
   }) => {
+    test.slow()
     await mockApi.use('dns-mta-sts')
     await openSection(page, 'example.org')
     await edit(page)

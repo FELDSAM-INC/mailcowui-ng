@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
 import { expectNoHorizontalScroll } from '../e2e/fixtures/layout'
 import { admin, alice, reseller, unknownUsername } from './fixtures/accounts'
 import { expectHome, signIn, signOut } from './fixtures/flows'
-import { freshTotp } from './fixtures/totp'
+import { freshTotp } from '../support/totp'
 
 const CSP =
   "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://api.pwnedpasswords.com; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'"

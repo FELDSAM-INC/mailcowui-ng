@@ -2,7 +2,7 @@
 // one the pinned contract allows, so tests can never pass on data the API could never return.
 import { describe, expect, it } from 'vitest'
 
-import { contractValidator, type RequestInfo } from '../../mocks/contract/validator'
+import { contractValidator, readResponse, type RequestInfo } from '../../mocks/contract/validator'
 
 const validator = contractValidator()
 const origin = 'http://localhost'
@@ -338,5 +338,75 @@ describe('monitoring operations (UI 011)', () => {
       ).violations
     expect(send({ id: 'ABC123' })).toEqual([])
     expect(send({ id: 'ABC123', version: '"v1"' }).join('\n')).toMatch(/version/)
+  })
+})
+
+describe('UI 005: non-JSON bodies and required headers (T005, research R24)', () => {
+  const plist = '<?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict/></plist>'
+  const profileHeaders = (extra: Record<string, string> = {}) =>
+    new Headers({
+      'Content-Type': 'application/x-apple-aspen-config',
+      'Content-Disposition': 'attachment; filename="mailcow UI.mobileconfig"',
+      'Cache-Control': 'no-store, private',
+      ...extra,
+    })
+
+  it('validates the Apple profile as a string body', async () => {
+    const match = matchOf('GET', '/me/mailbox/apple-profile')
+    const read = await readResponse(new Response(plist, { status: 200, headers: profileHeaders() }))
+    expect(read.body).toBe(plist)
+    expect(validator.validateResponse(match, read)).toEqual([])
+    const empty = await readResponse(new Response('', { status: 200, headers: profileHeaders() }))
+    expect(validator.validateResponse(match, empty).join('\n')).toMatch(/missing response body/)
+  })
+
+  it('rejects a profile without Content-Disposition or Cache-Control', () => {
+    const match = matchOf('GET', '/me/mailbox/apple-profile')
+    const withoutDisposition = profileHeaders()
+    withoutDisposition.delete('Content-Disposition')
+    expect(
+      validator
+        .validateResponse(match, { status: 200, headers: withoutDisposition, body: plist })
+        .join('\n'),
+    ).toMatch(/Content-Disposition/)
+    const cached = validator.validateResponse(match, {
+      status: 200,
+      headers: profileHeaders({ 'Cache-Control': 'max-age=60' }),
+      body: plist,
+    })
+    expect(cached.join('\n')).toMatch(/Cache-Control/)
+  })
+
+  it('rejects a webmail hand-off without Set-Cookie', () => {
+    const match = matchOf('POST', '/me/webmail-handoff')
+    const body = { data: { url: '/SOGo/so/' } }
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, private',
+    })
+    expect(validator.validateResponse(match, { status: 200, headers, body }).join('\n')).toMatch(
+      /Set-Cookie/,
+    )
+  })
+
+  it('validates a merge-patch request body of updateAppPassword against AppPasswordPatch', () => {
+    const path = '/mailboxes/anna@example.org/app-passwords/3'
+    const valid = validator.validateRequest(
+      request('PATCH', path, {
+        headers: { 'X-CSRF-Token': 't', 'If-Match': '"1"' },
+        body: { name: 'Phone' },
+        contentType: 'application/merge-patch+json',
+      }),
+    )
+    expect(valid.match?.operationId).toBe('updateAppPassword')
+    expect(valid.violations).toEqual([])
+    const invalid = validator.validateRequest(
+      request('PATCH', path, {
+        headers: { 'X-CSRF-Token': 't', 'If-Match': '"1"' },
+        body: { name: 'Phone', unknown: true },
+        contentType: 'application/merge-patch+json',
+      }),
+    )
+    expect(invalid.violations.join('\n')).toMatch(/body/)
   })
 })

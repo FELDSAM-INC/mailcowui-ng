@@ -70,6 +70,15 @@ function isJsonContentType(contentType: string): boolean {
   return contentType === 'application/json' || contentType.endsWith('+json')
 }
 
+/** Bodies checked for their content type only (logos, downloads of messages and attachments). */
+function isBinaryContentType(contentType: string): boolean {
+  return (
+    /^(image|audio|video)\//.test(contentType) ||
+    contentType === 'application/octet-stream' ||
+    contentType === 'message/rfc822'
+  )
+}
+
 function mediaType(headers: Headers): string | null {
   const value = headers.get('content-type')
   return value ? (value.split(';')[0] ?? '').trim().toLowerCase() : null
@@ -302,7 +311,9 @@ export class ContractValidator {
     }
     if (!hasBody) {
       violations.push(`${prefix}: missing response body`)
-    } else if (isJsonContentType(contentType)) {
+    } else if (isJsonContentType(contentType) || !isBinaryContentType(contentType)) {
+      // UI 005 (research R24): text bodies of other types (the Apple profile's plist) are
+      // validated against their documented string schema too.
       violations.push(
         ...this.validateSchema(`${pointer}/content/${escapePointer(contentType)}/schema`, response.body, `${prefix} body`),
       )
@@ -402,7 +413,7 @@ export async function readRequest(request: Request): Promise<RequestInfo> {
 /** Reads a fetch Response into a ResponseInfo without consuming it. */
 export async function readResponse(response: Response): Promise<ResponseInfo> {
   const contentType = mediaType(response.headers)
-  if (contentType && !isJsonContentType(contentType) && !contentType.startsWith('text/')) {
+  if (contentType && isBinaryContentType(contentType)) {
     // Binary or image bodies (logos) are checked for their content type only.
     return { status: response.status, headers: response.headers, body: response.body ? '(binary)' : undefined }
   }

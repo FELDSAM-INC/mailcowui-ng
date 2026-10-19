@@ -71,12 +71,12 @@ validator and the test helpers this feature needs (research R2, R23, R24).
   - labels for every value of `OwnSecondFactorType`, `AppPasswordProtocol`, `MailboxTaggedMailHandling` and `SieveFilterKind`.
 
   Legacy messages used verbatim here: `danger.last_key`, `danger.tfa_removal_blocked`, `danger.password_reset_na`, `danger.invalid_reset_token`, `danger.reset_token_limit_exceeded`. Keys missing from an upstream cs-cz or sk-sk file fall back to `en-gb`; no hand-written value is added for them.
-- [ ] T005 [P] Extend `tests/unit/mocks/validator.spec.ts` with failing cases: an `application/x-apple-aspen-config` response of `getOwnAppleProfile` is validated as a string body; a missing `Content-Disposition` or `Cache-Control` on it is rejected; a `createWebmailHandOff` response without `Set-Cookie` is rejected; an `application/merge-patch+json` request body of `updateAppPassword` is validated against `AppPasswordPatch`.
-- [ ] T006 Implement T005 in `tests/mocks/contract/validator.ts`: non-JSON response bodies validated against their documented string schema, and every header the operation's response declares as `required` checked, so that T005 passes.
-- [ ] T007 [P] Write `tests/unit/support/totp.spec.ts` with the RFC 6238 SHA-1 test vectors (six digits, 30-second steps) and a ±1-step verification. The test must fail.
-- [ ] T008 Move `tests/smoke/fixtures/totp.ts` to `tests/support/totp.ts`, add `verifyTotp(secret, code, now, window = 1)`, and update the imports of UI 001's smoke specs, so that T007 passes (research R24).
-- [ ] T009 [P] Write `tests/unit/i18n/plural.spec.ts`: `cs-cz` and `sk-sk` choose the first form for 1, the second for 2–4 and the third for 0 and 5 or more; `en-gb` keeps vue-i18n's default. UI 002–004 do not ship these rules. The test must fail.
-- [ ] T010 Register the `pluralRules` for `cs-cz` and `sk-sk` in `src/i18n/index.ts`, so that T009 passes.
+- [x] T005 [P] Extend `tests/unit/mocks/validator.spec.ts` with failing cases: an `application/x-apple-aspen-config` response of `getOwnAppleProfile` is validated as a string body; a missing `Content-Disposition` or `Cache-Control` on it is rejected; a `createWebmailHandOff` response without `Set-Cookie` is rejected; an `application/merge-patch+json` request body of `updateAppPassword` is validated against `AppPasswordPatch`.
+- [x] T006 Implement T005 in `tests/mocks/contract/validator.ts`: non-JSON response bodies validated against their documented string schema, and every header the operation's response declares as `required` checked, so that T005 passes.
+- [x] T007 [P] Write `tests/unit/support/totp.spec.ts` with the RFC 6238 SHA-1 test vectors (six digits, 30-second steps) and a ±1-step verification. The test must fail.
+- [x] T008 Move `tests/smoke/fixtures/totp.ts` to `tests/support/totp.ts`, add `verifyTotp(secret, code, now, window = 1)`, and update the imports of UI 001's smoke specs, so that T007 passes (research R24).
+- [x] T009 [P] Write `tests/unit/i18n/plural.spec.ts`: `cs-cz` and `sk-sk` choose the first form for 1, the second for 2–4 and the third for 0 and 5 or more; `en-gb` keeps vue-i18n's default. UI 002–004 do not ship these rules. The test must fail.
+- [x] T010 Register the `pluralRules` for `cs-cz` and `sk-sk` in `src/i18n/index.ts`, so that T009 passes.
 
 **Checkpoint**: The new pin is vendored, `npm run typecheck`, `npm run contract:check`, `npm run
 i18n:check` and the existing unit and end-to-end suites pass.

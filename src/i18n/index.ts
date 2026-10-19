@@ -55,6 +55,19 @@ declare module 'vue-i18n' {
   export interface DefineLocaleMessage extends MessageSchema {}
 }
 
+/**
+ * Czech and Slovak plural forms of the app's new strings (UI 005 research R23, FR-119): the first
+ * form for 1, the second for 2 to 4, the third for 0 and 5 or more. Messages with fewer forms
+ * choose "one" or "other". `npm run i18n:check` requires three forms in cs-cz and sk-sk.
+ */
+export function slavicPlural(choice: number, choicesLength: number): number {
+  const n = Math.abs(choice)
+  if (choicesLength < 2) return 0
+  if (n === 1) return 0
+  if (choicesLength === 2) return 1
+  return n >= 2 && n <= 4 ? 1 : 2
+}
+
 export function createAppI18n() {
   return createI18n({
     legacy: false,
@@ -63,6 +76,7 @@ export function createAppI18n() {
     fallbackLocale: DEFAULT_LOCALE,
     missingWarn: false,
     fallbackWarn: false,
+    pluralRules: { 'cs-cz': slavicPlural, 'sk-sk': slavicPlural },
     // The features' strings are merged in when their routes load (`loadFeatureMessages`).
     // A copy, so that merging them never changes the imported module (one instance per test).
     messages: { [DEFAULT_LOCALE]: structuredClone(enGb) as MessageSchema },

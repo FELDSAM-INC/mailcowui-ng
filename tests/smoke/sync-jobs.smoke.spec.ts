@@ -8,7 +8,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { alice, SMOKE_DEFAULT_PASSWORD } from './fixtures/accounts'
 import { signIn as apiSignIn } from './fixtures/domains-api'
 import { expectHome, signIn } from './fixtures/flows'
-import { freshTotp } from './fixtures/totp'
+import { freshTotp } from '../support/totp'
 
 // Signing in as alice waits for a TOTP step that no earlier test used (fixtures/totp.ts), up to 30 s.
 test.describe.configure({ mode: 'serial', timeout: 120_000 })

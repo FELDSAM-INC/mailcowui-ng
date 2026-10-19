@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test'
 
 import { alice, reseller } from './fixtures/accounts'
 import { expectHome, signIn, signOut } from './fixtures/flows'
-import { freshTotp } from './fixtures/totp'
+import { freshTotp } from '../support/totp'
 
 test('reseller sees its domains, a classic link for the quarantine and no access to API keys', async ({
   page,

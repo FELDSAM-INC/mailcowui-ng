@@ -26,5 +26,15 @@
       "impactCatchAll": "This is a catch-all alias: the permissions to send as any address of {domain} are removed with it.",
       "changed": "The alias changed in the meantime. Check it and confirm again."
     }
+  },
+  "aliasDomains": {
+    "gone": "This alias domain no longer exists or is no longer available to you.",
+    "outcome": {
+      "groupwareFailed": "The groupware directory could not be updated for {0}. It is updated again with the next change; if this persists, ask the server administrator."
+    },
+    "delete": {
+      "impact": "Deleted with it: its aliases ({count}) and their send-as permissions, its temporary aliases, its BCC maps and its spam allow and block lists. Its DKIM key is kept.",
+      "changed": "The alias domain changed in the meantime. Check it and confirm again."
+    }
   }
 }

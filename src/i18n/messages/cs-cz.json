@@ -324,6 +324,11 @@
       "suggestionsUnavailable": "Návrhy nejsou k dispozici",
       "tooLong": "Štítky mohou mít nejvýše {max} znaků."
     },
+    "outcome": {
+      "rateLimitFailed": "Limit odesílání pro {0} se nepodařilo uložit.",
+      "dkimDnsNoZone": "Pro {0} nebyla nalezena zóna DNS: zveřejněte záznam DKIM u poskytovatele DNS domény.",
+      "dkimDnsFailed": "Záznam DKIM pro {0} se nepodařilo zveřejnit v DNS."
+    },
     "values": {
       "no": "Ne",
       "none": "Žádné",

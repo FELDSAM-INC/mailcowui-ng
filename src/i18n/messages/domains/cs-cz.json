@@ -76,11 +76,7 @@
       "moreTags": "+{count}",
       "moreTagsLabel": "a další štítky ({count})"
     },
-    "outcome": {
-      "dkimDnsFailed": "Záznam DKIM pro {0} se nepodařilo zveřejnit v DNS.",
-      "dkimDnsNoZone": "Pro {0} nebyla nalezena zóna DNS: zveřejněte záznam DKIM u poskytovatele DNS domény.",
-      "rateLimitFailed": "Limit odesílání pro {0} se nepodařilo uložit."
-    },
+    "outcome": {},
     "relay": {
       "short": {
         "relayUnknownOnly": "Předávat jen neexistující schránky"

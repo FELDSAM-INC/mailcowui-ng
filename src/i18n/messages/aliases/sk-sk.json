@@ -26,5 +26,15 @@
       "impactCatchAll": "Ide o alias catch-all: spolu s ním sa odstránia oprávnenia odosielať ako ľubovoľná adresa domény {domain}.",
       "changed": "Alias sa medzitým zmenil. Skontrolujte ho a potvrďte znova."
     }
+  },
+  "aliasDomains": {
+    "gone": "Táto alias doména už neexistuje alebo už pre vás nie je dostupná.",
+    "outcome": {
+      "groupwareFailed": "Adresár groupwaru sa pre {0} nepodarilo aktualizovať. Aktualizuje sa znova pri ďalšej zmene; ak problémy pretrvávajú, obráťte sa na správcu servera."
+    },
+    "delete": {
+      "impact": "Spolu s ňou sa odstránia: jej aliasy ({count}) a ich oprávnenia odosielať ako ony, jej dočasné aliasy, mapy BCC a zoznamy povolených a blokovaných odosielateľov spamového filtra. Kľúč DKIM zostane zachovaný.",
+      "changed": "Alias doména sa medzitým zmenila. Skontrolujte ju a potvrďte znova."
+    }
   }
 }

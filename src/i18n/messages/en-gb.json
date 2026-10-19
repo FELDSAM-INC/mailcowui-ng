@@ -324,6 +324,11 @@
       "suggestionsUnavailable": "Suggestions unavailable",
       "tooLong": "Tags may have at most {max} characters."
     },
+    "outcome": {
+      "rateLimitFailed": "The rate limit of {0} could not be saved.",
+      "dkimDnsNoZone": "No DNS zone found for {0}: publish the DKIM record at the domain's DNS provider.",
+      "dkimDnsFailed": "The DKIM record of {0} could not be published in DNS."
+    },
     "values": {
       "no": "No",
       "none": "None",

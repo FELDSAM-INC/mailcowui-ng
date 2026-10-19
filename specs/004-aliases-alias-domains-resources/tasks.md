@@ -772,7 +772,7 @@ failed steps and every documented refusal.
   - an existing domain and an existing alias domain name;
   - the server host name;
   - `alias-domains-store-down`: `sharedStoreDown`.
-- [ ] T060 [P] [US4] Write `tests/e2e/alias-domains/list-detail.spec.ts`. It covers:
+- [X] T060 *(done: tests/e2e/alias-domains/list-detail.spec.ts; per the legacy form map: no alias count column or link (FR-033) and no permission note (FR-041) until the owner decides; the rate limit read-only without a note; the store-down error state uses UI 002's problem.temporary-failure)* [P] [US4] Write `tests/e2e/alias-domains/list-detail.spec.ts`. It covers:
   - FR-033: name forms, target link, active state, alias count linking to `/aliases?domain=<name>`;
   - US4-AS9: the relay warning as text;
   - FR-034: the search, the target and active filters, every sort key, all in the address;
@@ -786,7 +786,7 @@ failed steps and every documented refusal.
   - Edge, temporary failure: `alias-domains-store-down` gives the error state with "try again
     shortly";
   - Edge, alias domain whose target became a relay domain: still editable.
-- [ ] T061 [P] [US4] Write `tests/e2e/alias-domains/create.spec.ts`. It covers:
+- [X] T061 *(done: tests/e2e/alias-domains/create.spec.ts; outcomes as legacy's alerts instead of a four-step report (docs/conventions.md "Outcomes"); legacy's prefilled selector instead of a DKIM switch (plan part 3, item 6); no-access state without a note)* [P] [US4] Write `tests/e2e/alias-domains/create.spec.ts`. It covers:
   - US4-AS1: the report lists four steps;
   - US4-AS2: a failed DKIM step is a warning, while the alias domain shows as created;
   - US4-AS4: no rate limit fields without `ratelimit`;
@@ -804,7 +804,7 @@ failed steps and every documented refusal.
   - Edge, temporary failure;
   - Edge, capabilities cannot be read;
   - FR-025: the leave guard.
-- [ ] T062 [P] [US4] Write `tests/e2e/alias-domains/edit-delete.spec.ts`. It covers:
+- [X] T062 *(done: tests/e2e/alias-domains/edit-delete.spec.ts; deactivating without a confirmation (plan part 3, item 7); the limit message is legacy's danger.max_alias_exceeded without count and limit (not built until the owner decides))* [P] [US4] Write `tests/e2e/alias-domains/edit-delete.spec.ts`. It covers:
   - US4-AS7: a target change hitting the limit shows count and limit, and nothing changes;
   - FR-039: target and active editable, the name read-only. Deactivating asks one confirmation
     (research R10);
@@ -814,7 +814,7 @@ failed steps and every documented refusal.
   - a deletion refused as outdated confirms again;
   - `503` on delete;
   - vanished.
-- [ ] T063 [P] [US4] Write these unit tests:
+- [X] T063 *(done: tests/unit/features/alias-domains/{list-state,alias-domain-form,creation-report,components}.spec.ts (AliasDomainCard and TargetDomainField in components.spec.ts))* [P] [US4] Write these unit tests:
   - `tests/unit/features/alias-domains/list-state.spec.ts`;
   - `alias-domain-form.spec.ts`: `toCreateRequest` and `buildAliasDomainPatch` (data-model §2),
     the DKIM switch, an omitted rate limit, and the classifier of research R9 for names;
@@ -822,7 +822,7 @@ failed steps and every documented refusal.
     available;
   - `AliasDomainCard.spec.ts`;
   - `TargetDomainField.spec.ts`: relay domains disabled with the reason.
-- [ ] T064 [P] [US4] Write `tests/smoke/alias-domains.smoke.spec.ts` (`@feature-004`), as `admin`:
+- [X] T064 *(done: tests/smoke/alias-domains.smoke.spec.ts (the reseller flag check is covered by the mocked e2e))* [P] [US4] Write `tests/smoke/alias-domains.smoke.spec.ts` (`@feature-004`), as `admin`:
   - create `smoke-<timestamp>.example` for a seeded domain with DKIM off, and read the report;
   - deactivate it;
   - delete it.
@@ -831,7 +831,7 @@ failed steps and every documented refusal.
 
 ### Implementation for User Story 4
 
-- [ ] T065 [US4] Implement:
+- [X] T065 *(done: api.ts (report split off before caching), list-state.ts, alias-domain-form.ts, creation-report.ts (legacy alerts), flash.ts, routes.ts with the canonical ASCII replace, index.ts; routes registered and the catalogue entry available)* [US4] Implement:
   - `src/features/alias-domains/api.ts`: list, detail, create (the report stripped before caching),
     update and delete, with data-model §3;
   - `list-state.ts`, `alias-domain-form.ts` and `creation-report.ts`;
@@ -841,15 +841,15 @@ failed steps and every documented refusal.
 
   Register them in `src/app/router/routes.ts`, and set the catalogue's `aliasDomains` entry to
   `available`.
-- [ ] T066 [P] [US4] Implement `src/features/alias-domains/components/AliasDomainCard.vue` and
+- [X] T066 *(done: AliasDomainCard, AliasDomainTable, AliasDomainList, AliasDomainFilters, AliasDomainSortControl, RelayWarning, TargetDomainText; the menu (AliasDomainEntryActions) has Edit (edit=general) and Remove)* [P] [US4] Implement `src/features/alias-domains/components/AliasDomainCard.vue` and
   `AliasDomainTable.vue`, each with the open, "Edit" (`edit=general`) and "Delete" actions (FR-015).
   Also implement `AliasDomainList.vue`, `AliasDomainFilters.vue` (search, target `DomainPicker`,
   active, sort) and `RelayWarning.vue`.
-- [ ] T067 [P] [US4] Implement `src/features/alias-domains/components/TargetDomainField.vue`
+- [X] T067 *(done: TargetDomainField (DomainPicker, relay disabled with danger.targetd_relay_domain), AliasDomainCreateResults (per name, each created name with its legacy alerts through the shared CreationReport), AliasDomainGeneralSection (EditableSection, no deactivation confirmation))* [P] [US4] Implement `src/features/alias-domains/components/TargetDomainField.vue`
   (`DomainPicker` with `disabledReason` for `backupMx`), `AliasDomainCreateResults.vue` (per name,
   with each created name's `CreationReport` collapsed) and `AliasDomainGeneralSection.vue`
   (`EditableSection`, with the deactivation confirmation).
-- [ ] T068 [US4] Implement the pages in `src/features/alias-domains/pages/`:
+- [X] T068 *(done: AliasDomainsPage, AliasDomainCreatePage (CapabilitiesGate, NoAccessState without aliasDomains, DkimFields, LegacyRateLimitField with frames only with ratelimit, useSequentialCreate, leave guard, useFormDraft, useStickyBarFocus), AliasDomainDetailPage (one section, read-only rate limit, no delete, not found); deletion with its impact in the list (useAliasDomainDeletion))* [US4] Implement the pages in `src/features/alias-domains/pages/`:
   - `AliasDomainsPage.vue`: the add control or the permission note, and the states;
   - `AliasDomainCreatePage.vue`:
     - `CapabilitiesGate`;
@@ -866,7 +866,7 @@ failed steps and every documented refusal.
     - the alias count link;
     - Delete with the impact of research R11;
     - `NotFoundState`.
-- [ ] T069 [US4] Use the legacy keys of T005a's form map for alias domains verbatim:
+- [X] T069 *(done: legacy keys verbatim; new strings aliasDomains.gone, aliasDomains.outcome.groupwareFailed, aliasDomains.delete.impact, aliasDomains.delete.changed in the aliases bundle; UI 002's domains.outcome.{rateLimitFailed,dkimDnsNoZone,dkimDnsFailed} moved back to the main bundle as another feature now uses them)* [US4] Use the legacy keys of T005a's form map for alias domains verbatim:
   - `mailbox.add_domain_alias` (its English text "Add domain alias" as legacy has it);
   - `edit.edit_alias_domain`;
   - `mailbox.alias_domain_backupmx`;

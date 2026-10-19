@@ -40,7 +40,7 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
         >
           <RouterLink
             :to="{ name: 'sync-job-detail', params: { syncJobId: job.id } }"
-            class="inline-flex min-h-11 items-center underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
+            class="flex min-h-11 w-full min-w-0 items-center wrap-anywhere underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
           >
             {{ jobLabel(job) }}
           </RouterLink>

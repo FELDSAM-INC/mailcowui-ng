@@ -41,7 +41,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     expect((request!.body as { targets: { version: string }[] }).targets[0]!.version).toMatch(/^sj/)
 
     await select(page, 'alice@mail.previous.example:993')
-    await bar(page).getByRole('button', { name: 'Activate' }).click()
+    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(entry(page, 2).locator('[data-active]')).toContainText('✓')
   })
@@ -87,7 +87,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
     await mockApi.patch({ syncJobs: { changeElsewhere: { id: 2, intervalMinutes: 45 } } })
-    await bar(page).getByRole('button', { name: 'Activate' }).click()
+    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('Changed in the meantime')
     await expect(
@@ -120,7 +120,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
     await page.route('**/api/v2/sync-jobs/bulk-actions', (route) => route.abort())
-    await bar(page).getByRole('button', { name: 'Activate' }).click()
+    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('Outcome unknown')
     await expect(
       page.getByRole('checkbox', { name: 'Select alice@mail.previous.example:993' }),

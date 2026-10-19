@@ -2,7 +2,7 @@
 // removed) and the bulk limit, the confirmation of deactivating and of removing (with the typed
 // count), per-job rows with failed jobs kept selected, a lost connection as "outcome unknown" with
 // the selection cleared, and the single removal with If-Match and a new confirmation after 412.
-import { QueryClient } from '@tanstack/vue-query'
+import { type QueryClient } from '@tanstack/vue-query'
 import { flushPromises } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'

@@ -241,11 +241,7 @@ export const forwardingHostHandlers = [
     if (stale) return response.untyped(stale)
     const body = (await request.json()) as Record<string, unknown> & { spamFilter?: boolean }
     const errors: Violations = {}
-    checkReadOnly(errors, body, forwardingHostView(host), [
-      'address',
-      'source',
-      'etag',
-    ])
+    checkReadOnly(errors, body, forwardingHostView(host), ['address', 'source', 'etag'])
     if (Object.keys(errors).length > 0) return response.untyped(validationFailed(errors))
     if (body.spamFilter !== undefined) host.spamFilter = body.spamFilter
     const data = forwardingHostView(host)

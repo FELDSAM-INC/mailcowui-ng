@@ -186,12 +186,7 @@ export const recipientMapHandlers = [
       active?: boolean
     }
     const errors: Violations = {}
-    checkReadOnly(errors, body, recipientMapView(map), [
-      'id',
-      'createdAt',
-      'modifiedAt',
-      'etag',
-    ])
+    checkReadOnly(errors, body, recipientMapView(map), ['id', 'createdAt', 'modifiedAt', 'etag'])
     const original =
       body.originalDestination !== undefined
         ? check(errors, 'originalDestination', body.originalDestination)

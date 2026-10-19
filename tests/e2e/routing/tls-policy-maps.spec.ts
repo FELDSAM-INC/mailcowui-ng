@@ -67,7 +67,9 @@ test.describe('TLS policy maps', () => {
     await policy.selectOption('dane-only')
     await page.getByRole('button', { name: 'Add', exact: true }).click()
     await expect(page).toHaveURL(/routing\/tls-policy-maps$/)
-    await expect(polite(page)).toContainText('TLS policy map entry "xn--bcher-kva.example" has been saved')
+    await expect(polite(page)).toContainText(
+      'TLS policy map entry "xn--bcher-kva.example" has been saved',
+    )
   })
 
   test('US6-AS3 invalid values and a duplicate destination are refused at their fields', async ({
@@ -79,8 +81,12 @@ test.describe('TLS policy maps', () => {
     await page.getByLabel('Destination').fill('example.org:25')
     await page.getByLabel('Parameters').fill('broken')
     await page.getByRole('button', { name: 'Add', exact: true }).click()
-    await expect(page.locator('#tls-form-destination-error')).toContainText('Policy destination is invalid')
-    await expect(page.locator('#tls-form-parameters-error')).toContainText('Policy parameter is invalid')
+    await expect(page.locator('#tls-form-destination-error')).toContainText(
+      'Policy destination is invalid',
+    )
+    await expect(page.locator('#tls-form-parameters-error')).toContainText(
+      'Policy parameter is invalid',
+    )
     await page.getByLabel('Destination').fill('may.example')
     await page.getByLabel('Parameters').fill('')
     await page.getByRole('button', { name: 'Add', exact: true }).click()

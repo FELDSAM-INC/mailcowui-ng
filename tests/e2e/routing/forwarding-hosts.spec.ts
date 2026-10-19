@@ -99,7 +99,10 @@ test.describe('forwarding hosts', () => {
     await expect(page.getByRole('region', { name: 'Results' })).toContainText(
       'Changes to object 192.0.2.0/24 have been saved',
     )
-    await page.getByRole('region', { name: 'Results' }).getByRole('button', { name: 'Close' }).click()
+    await page
+      .getByRole('region', { name: 'Results' })
+      .getByRole('button', { name: 'Close' })
+      .click()
     await page.getByRole('button', { name: 'Done selecting' }).click()
     await entry(page, '203.0.113.9').getByRole('button', { name: 'Remove: 203.0.113.9' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()

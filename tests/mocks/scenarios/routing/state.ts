@@ -139,7 +139,7 @@ function changeById<T extends { id: number }>(
   if (!changes) return items
   let next = [...items]
   for (const added of changes.add ?? []) {
-    const id = (added.id) ?? Math.max(0, ...next.map((item) => item.id)) + 1
+    const id = added.id ?? Math.max(0, ...next.map((item) => item.id)) + 1
     next.push(build({ ...(added as Partial<T>), id }))
   }
   for (const [id, change] of Object.entries(changes.set ?? {})) {

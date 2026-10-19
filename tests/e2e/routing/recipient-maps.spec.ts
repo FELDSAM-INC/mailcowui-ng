@@ -24,7 +24,9 @@ test.describe('recipient maps', () => {
         await expect(page.getByRole('columnheader', { name: header })).toBeVisible()
       }
     }
-    await expect(page.locator('[data-screen-intro]')).toContainText('replace the destination address')
+    await expect(page.locator('[data-screen-intro]')).toContainText(
+      'replace the destination address',
+    )
     await expectAccessible()
     await expectTouchTargets()
     await expectNoHorizontalScroll()
@@ -43,7 +45,9 @@ test.describe('recipient maps', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/recipient-maps/new')
     await expect(page.getByRole('heading', { level: 1, name: 'Add recipient map' })).toBeVisible()
-    await expect(page.getByText("A recipient maps original destination must be a valid")).toBeVisible()
+    await expect(
+      page.getByText('A recipient maps original destination must be a valid'),
+    ).toBeVisible()
     await expect(page.getByLabel('Active')).toBeChecked()
     await expectAccessible()
     await page.getByLabel('Original recipient').fill('not valid')

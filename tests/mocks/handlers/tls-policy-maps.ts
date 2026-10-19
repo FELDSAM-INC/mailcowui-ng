@@ -225,12 +225,7 @@ export const tlsPolicyMapHandlers = [
       active?: boolean
     }
     const errors: Violations = {}
-    checkReadOnly(errors, body, tlsPolicyMapView(map), [
-      'id',
-      'createdAt',
-      'modifiedAt',
-      'etag',
-    ])
+    checkReadOnly(errors, body, tlsPolicyMapView(map), ['id', 'createdAt', 'modifiedAt', 'etag'])
     const values = checkValues(errors, state, body)
     if (Object.keys(errors).length > 0) return response.untyped(validationFailed(errors))
     const existing = values.destination ? taken(state, values.destination, map.id) : undefined

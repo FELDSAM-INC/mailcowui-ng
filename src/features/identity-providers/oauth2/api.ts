@@ -2,21 +2,15 @@
 // through the query client; creation and bulk actions call the generated client directly, because
 // their answers carry secrets, which never enter a TanStack Query cache (docs/conventions.md
 // "Secrets"). Only the representation without the secret is written to the cache.
-import {
-  queryOptions,
-  useQuery,
-  useQueryClient,
-  type MutationOptions,
-  type QueryClient,
-} from '@tanstack/vue-query'
+import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import {
-  ApiProblem,
   api,
   isApiProblem,
   queryKeys,
   requireData,
+  runMutation,
   type ListMeta,
   type Oauth2Client,
   type Oauth2ClientBulkActionRequest,
@@ -28,20 +22,6 @@ import {
 export interface Oauth2ClientPage {
   data: Oauth2Client[]
   meta: ListMeta
-}
-
-export function problemOf(error: unknown): ApiProblem | null {
-  if (!error) return null
-  return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'problem', cause: error })
-}
-
-/** Runs a mutation through the client's mutation cache (its default options and reactions). */
-function runMutation<TData, TVariables>(
-  client: QueryClient,
-  options: MutationOptions<TData, ApiProblem, TVariables>,
-  variables: TVariables,
-): Promise<TData> {
-  return client.getMutationCache().build(client, options).execute(variables)
 }
 
 export function oauth2CapabilitiesOptions() {

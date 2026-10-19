@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { lt } from '@/i18n'
-import { isApiProblem, type Oauth2Client } from '@/api'
+import { isApiProblem, problemOf, type Oauth2Client } from '@/api'
 import { canAccess } from '@/app/navigation/visibility'
 import { useIdentityQuery } from '@/app/session/queries'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
@@ -33,7 +33,6 @@ import { useProblemMessages } from '@/i18n/problems'
 import SectionNav from '../../components/SectionNav.vue'
 import {
   oauth2ClientOptions,
-  problemOf,
   updateOauth2RedirectUris,
   useOauth2Capabilities,
   useOauth2Client,

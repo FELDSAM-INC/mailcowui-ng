@@ -1,8 +1,12 @@
 // Bulk actions on OAuth2 clients (FR-065, docs/conventions.md "Bulk actions"): targets with each
 // entry's version tag as listed, one result row per client labelled with its client ID, and the
 // new secrets of a `renewSecret` action (gap G42), which exist only in component state.
-import { ApiProblem, type Oauth2Client, type Oauth2ClientBulkResult } from '@/api'
-import type { BulkRow } from '@/shared/components/bulk-row'
+import type { Oauth2Client, Oauth2ClientBulkResult } from '@/api'
+import {
+  rowsFromBulkResult,
+  unknownRows as unknownBulkRows,
+  type BulkRow,
+} from '@/shared/components/bulk-row'
 
 type Entry = Pick<Oauth2Client, 'id' | 'clientId' | 'etag'>
 
@@ -14,32 +18,20 @@ export function toBulkTargets(entries: readonly Entry[]): { id: string; version:
 const labelOf = (entries: readonly Pick<Entry, 'id' | 'clientId'>[], id: string) =>
   entries.find((entry) => String(entry.id) === id)?.clientId ?? id
 
+/** The shared bulk rows' entries: the identifier, labelled with the client ID. */
+const asEntries = (entries: readonly Pick<Entry, 'id' | 'clientId'>[]) =>
+  entries.map((entry) => ({ name: String(entry.id), unicodeName: entry.clientId }))
+
 export function rowsFromOauth2BulkResult(
   result: Oauth2ClientBulkResult,
   entries: readonly Pick<Entry, 'id' | 'clientId'>[],
 ): BulkRow[] {
-  return result.results.map((item) => ({
-    id: item.id,
-    label: labelOf(entries, item.id),
-    outcome: item.outcome,
-    problem: item.problem
-      ? ApiProblem.fromParts({
-          kind: 'problem',
-          type: item.problem.type,
-          status: item.problem.status,
-          requestId: item.problem.requestId,
-        })
-      : undefined,
-  }))
+  return rowsFromBulkResult(result, asEntries(entries))
 }
 
 /** A lost connection: the outcome of every client is unknown. */
 export function unknownRows(entries: readonly Pick<Entry, 'id' | 'clientId'>[]): BulkRow[] {
-  return entries.map((entry) => ({
-    id: String(entry.id),
-    label: entry.clientId,
-    outcome: 'unknown',
-  }))
+  return unknownBulkRows(asEntries(entries))
 }
 
 export interface NewSecret {

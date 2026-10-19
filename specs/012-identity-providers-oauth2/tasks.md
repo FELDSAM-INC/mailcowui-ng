@@ -791,7 +791,7 @@ and confirm that a secret appears only in the credentials dialog.
   - `bulk.ts`: `toBulkTargets()` with `{ id: String(client.id), version }`, where `version` is the list entry's `etag` without its surrounding quotes.
 
   T081 must pass.
-- [X] T085 *(done: `Oauth2ClientList`, `Oauth2ClientCard`, `Oauth2ClientTable` (`aria-sort`), `Oauth2ClientSortControl`, `Oauth2ClientActions`, `RedirectUriList` and `ClientIdList`; the bulk actions live in the page with `useOauth2Bulk`; the search is UI 004's `SearchField`; no `TokenCounts`, token filter or info panel (legacy lacks them). `SelectCheckbox` moved from the domains feature to `src/shared/components/` at this second use)* [P] [US5] Implement the list components in `src/features/identity-providers/oauth2/components/`:
+- [X] T085 *(done: `Oauth2ClientList`, `Oauth2ClientCard`, `Oauth2ClientTable` (`aria-sort`), `Oauth2ClientSortControl`, `Oauth2ClientActions`, `RedirectUriList` and `ClientIdList`; the bulk actions live in the page with `useOauth2Bulk`; the search is UI 004's `SearchField`; no `TokenCounts`, token filter or info panel (legacy lacks them); the selection uses the shared `SelectCheckbox`, the rows the shared `bulk-row` helpers and the changes the shared `runMutation`/`problemOf` (promoted by UI 003))* [P] [US5] Implement the list components in `src/features/identity-providers/oauth2/components/`:
   - `Oauth2ClientList.vue`;
   - `Oauth2ClientCard.vue` (below `md`);
   - `Oauth2ClientTable.vue` (from `md` up, with `aria-sort` headers);

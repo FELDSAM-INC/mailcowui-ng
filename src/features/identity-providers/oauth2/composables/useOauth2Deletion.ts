@@ -8,11 +8,11 @@ import { ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
-import { queryKeys, type ApiProblem, type Oauth2Client } from '@/api'
+import { problemOf, queryKeys, type ApiProblem, type Oauth2Client } from '@/api'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { confirm } from '@/shared/composables/useConfirm'
 
-import { deleteOauth2Client, fetchOauth2Client, problemOf } from '../api'
+import { deleteOauth2Client, fetchOauth2Client } from '../api'
 import ClientIdList from '../components/ClientIdList.vue'
 
 export function useOauth2Deletion() {

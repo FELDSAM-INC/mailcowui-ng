@@ -11,13 +11,19 @@ import { computed, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { lt, type LegacyKey } from '@/i18n'
-import { queryKeys, reportSessionProblem, type ApiProblem, type Oauth2Client } from '@/api'
+import {
+  problemOf,
+  queryKeys,
+  reportSessionProblem,
+  type ApiProblem,
+  type Oauth2Client,
+} from '@/api'
 import { isRetryable, type BulkRow } from '@/shared/components/bulk-row'
 import { announce } from '@/shared/composables/useAnnouncer'
 import type { BulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
 
-import { bulkOauth2Clients, problemOf } from '../api'
+import { bulkOauth2Clients } from '../api'
 import {
   newSecretsOf,
   rowsFromOauth2BulkResult,

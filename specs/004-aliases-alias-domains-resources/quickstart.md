@@ -44,8 +44,8 @@ npm run lhci             # + /ng/aliases (scenario aliases-60): performance and 
   There is no axe, CSP or mock contract violation.
 - `budget:check` lists the chunks of `AliasesPage`, `AliasCreatePage`, `AliasDetailPage`,
   `AliasDomainsPage`, `AliasDomainCreatePage`, `AliasDomainDetailPage`, `ResourcesPage`,
-  `ResourceCreatePage`, `ResourceDetailPage` and `SendAsPage`. The initial size is unchanged within
-  a few hundred bytes (three catalogue rows).
+  `ResourceCreatePage` and `ResourceDetailPage` ("Allow to send as" is part of UI 003's mailbox
+  page). The initial size stays within the budget; the Validation log (T111) has the figures.
 
 ### Legacy texts
 
@@ -293,3 +293,32 @@ legacy's "Filters" tab).
 The dev seed (`DevelopmentSeeder`) adds mailboxes without the alias row that mailcow creates for
 each mailbox, so "Allow to send as" offers no mailbox addresses there; the send-as test grants a
 new alias address instead, which is what legacy's list holds.
+
+### Budgets and Lighthouse (T111), 2026-10-19
+
+The sign-in page's scripts were over Lighthouse's 204,800 B assertion (206,634 B, 23 requests), with
+`main` itself 444 B under it. Every request carries the security headers (about 700 B on HTTP/1.1),
+and modules that lazy routes share with the shell had become a dozen small initial chunks. The build
+now keeps every module the entry loads statically in the entry chunk (`vite.config.ts`, group
+`shell` with rolldown's `$initial` tag; it generalises UI 012's list of seven modules). A
+`modulePreload.resolveDependencies` filter for already loaded chunks was tried and dropped: it saved
+96 B on top of that.
+
+| Measure | Before | After (rebased on 681bfdb) | `main` 681bfdb |
+|---|---|---|---|
+| `npm run budget:check`, initial JS | 178,843 B | 175,851 B | 177,222 B |
+| Sign-in page scripts (Lighthouse) | 23 requests, 206,634 B | 11 requests, 196,150 B | 201,405 B |
+
+`npm run lhci`, three runs each, branch and `main` one after the other at a load average of about 30
+(Lighthouse benchmark index 1,279-2,061 within one run), median scores:
+
+| Page | Performance (branch) | Performance (`main`) | Accessibility (branch) |
+|---|---|---|---|
+| `/ng/sign-in` | 0.91 | 0.88 | 1.00 |
+| `/ng/` | 0.82 | 0.82 | 1.00 |
+| `/ng/domains` | 0.70 | 0.67 | 0.99 |
+| `/ng/aliases` | 0.68 | — | 0.99 |
+
+The script size and accessibility assertions pass everywhere. Performance below 0.9 comes from total
+blocking time on the shared host and is the same for `main`'s own pages; T111 stays open until a
+run on a quiet host.

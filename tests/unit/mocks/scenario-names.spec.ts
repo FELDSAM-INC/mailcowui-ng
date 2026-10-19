@@ -15,17 +15,24 @@ const files = readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter(
 
 describe('mock scenarios', () => {
   it('defines each scenario name in one module only', async () => {
-    const owners = new Map<string, string[]>()
+    // A module that gathers other modules' groups (UI 009's `routing/index.ts`) passes on the same
+    // definitions; only different definitions under one name replace each other.
+    const owners = new Map<string, Map<unknown, string[]>>()
     for (const file of files) {
       const module = (await import(join(dir, file))) as Record<string, unknown>
       for (const [name, group] of Object.entries(module)) {
         if (!name.endsWith('Scenarios') || typeof group !== 'object' || group === null) continue
-        for (const scenario of Object.keys(group)) {
-          owners.set(scenario, [...(owners.get(scenario) ?? []), file])
+        for (const [scenario, definition] of Object.entries(group)) {
+          const definitions = owners.get(scenario) ?? new Map<unknown, string[]>()
+          definitions.set(definition, [...(definitions.get(definition) ?? []), file])
+          owners.set(scenario, definitions)
         }
       }
     }
     expect(owners.size).toBe(Object.keys(scenarios).length)
-    expect(Object.fromEntries([...owners].filter(([, modules]) => modules.length > 1))).toEqual({})
+    const conflicts = [...owners]
+      .filter(([, definitions]) => definitions.size > 1)
+      .map(([scenario, definitions]) => [scenario, [...definitions.values()].flat()])
+    expect(Object.fromEntries(conflicts)).toEqual({})
   })
 })

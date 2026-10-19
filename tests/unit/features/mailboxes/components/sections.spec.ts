@@ -14,6 +14,7 @@ import ManagedSections from '@/features/mailboxes/components/sections/ManagedSec
 import { permissionFlags } from '../../../../mocks/scenarios/accounts'
 import { mockState, useScenario } from '../../../../mocks/node'
 import { mountWithApp } from '../../../support/mount'
+import { createTestRouter } from '../../../support/router'
 
 const identity = (role: Identity['role'], flags: Partial<Identity['permissions']> = {}) =>
   ({
@@ -25,6 +26,9 @@ const identity = (role: Identity['role'], flags: Partial<Identity['permissions']
     pendingActions: [],
   }) as unknown as Identity
 
+// The relayhost field's History link (UI 009 US9) asks the router for the audit log route.
+const withRouter = () => ({ plugins: [createTestRouter()] })
+
 async function load(address = 'anna@a.example') {
   useScenario('admin-edit')
   return fetchMailbox(address)
@@ -35,6 +39,7 @@ describe('MailboxSection', () => {
     const mailbox = await load()
     const wrapper = mountWithApp(MailboxSection, {
       props: { mailbox, identity: identity('admin') },
+      global: withRouter(),
     })
     await flushPromises()
     const labels = wrapper.findAll('dt').map((item) => item.text())
@@ -70,6 +75,7 @@ describe('MailboxSection', () => {
         editing: true,
         identity: identity('domainAdmin', { protocolAccess: false, sogoAccess: true }),
       },
+      global: withRouter(),
     })
     await flushPromises()
     expect(wrapper.find('#section-mailbox-password').exists()).toBe(true)
@@ -89,6 +95,7 @@ describe('MailboxSection', () => {
         identity: identity('admin'),
         capabilities: { ...mockState().mailboxCapabilities, groupwareEnabled: false },
       },
+      global: withRouter(),
     })
     await flushPromises()
     expect(wrapper.find('#section-mailbox-password').exists()).toBe(false)

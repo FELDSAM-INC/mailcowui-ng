@@ -39,7 +39,9 @@ async function mountList(wide: boolean, props: Record<string, unknown> = {}) {
   setMatchMedia(wide)
   const router = createTestRouter()
   const wrapper = mountWithApp(EntryList, {
-    // EntryList is generic; the test rows stand in for its entries.
+    // EntryList is generic; the test rows stand in for its entries. vue-tsc types its props for
+    // `unknown` entries, which ESLint's type information does not see.
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     props: {
       entries: rows,
       columns,
@@ -52,6 +54,7 @@ async function mountList(wide: boolean, props: Record<string, unknown> = {}) {
       order: 'asc',
       ...props,
     } as never,
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     slots: { actions: ({ entry }: { entry: Row }) => h('button', `act ${entry.id}`) } as never,
     global: { plugins: [router] },
   })

@@ -80,7 +80,9 @@ describe('DomainSection', () => {
     const domain = await domainFixture()
     const wrapper = mountSection(DomainSection, domain, { identity: adminIdentity })
     // UI 009: the relayhost choice is an async component that reads the assignment.
-    await vi.waitFor(() => expect(wrapper.find('input#section-domain-relayhost').exists()).toBe(true))
+    await vi.waitFor(() =>
+      expect(wrapper.find('input#section-domain-relayhost').exists()).toBe(true),
+    )
     const found = labels(wrapper)
     const order = [
       'Domain',

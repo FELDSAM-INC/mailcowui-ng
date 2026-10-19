@@ -29,7 +29,7 @@ function setup(send: (patch: Record<string, unknown>, ifMatch: string) => Promis
   const { result } = withSetup(() =>
     useEntryForm<Entry, Form>({
       entry: () => entry.value,
-      refetch: async () => latest,
+      refetch: () => Promise.resolve(latest),
       toForm: (item) => ({ host: item.host, active: item.active, password: '' }),
       makePatch: (opened, form) => ({
         ...changedMembers(opened, { host: form.host, active: form.active }, ['host', 'active']),
@@ -53,12 +53,14 @@ function setup(send: (patch: Record<string, unknown>, ifMatch: string) => Promis
 
 describe('useEntryForm', () => {
   it('sends only the changed members with the version tag and clears the password', async () => {
-    const send = vi.fn(async (patch: Record<string, unknown>) => ({
-      id: 1,
-      host: String(patch.host ?? 'a.example'),
-      active: true,
-      etag: '"v3"',
-    }))
+    const send = vi.fn((patch: Record<string, unknown>) =>
+      Promise.resolve({
+        id: 1,
+        host: typeof patch.host === 'string' ? patch.host : 'a.example',
+        active: true,
+        etag: '"v3"',
+      }),
+    )
     const { result, saved } = setup(send)
     expect(await result.save()).toBe('unchanged')
     result.values.value!.host = ' c.example '
@@ -73,10 +75,10 @@ describe('useEntryForm', () => {
 
   it('keeps the input after a 412, lists the changes, saves again or discards', async () => {
     let calls = 0
-    const send = vi.fn(async (_patch: Record<string, unknown>, ifMatch: string) => {
+    const send = vi.fn((_patch: Record<string, unknown>, ifMatch: string) => {
       calls += 1
-      if (calls === 1) throw ApiProblem.fromParts({ kind: 'problem', status: 412 })
-      return { id: 1, host: 'c.example', active: false, etag: ifMatch }
+      if (calls === 1) return Promise.reject(ApiProblem.fromParts({ kind: 'problem', status: 412 }))
+      return Promise.resolve({ id: 1, host: 'c.example', active: false, etag: ifMatch })
     })
     const { result } = setup(send)
     result.values.value!.active = false

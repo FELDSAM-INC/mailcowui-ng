@@ -153,7 +153,8 @@ test.describe('alias list: mass actions', () => {
     expect(box!.width).toBeGreaterThanOrEqual(44)
     expect(box!.height).toBeGreaterThanOrEqual(44)
     await entry(page, first).getByRole('checkbox').click()
-    await page.mouse.wheel(0, 3000)
+    // A scroll as script: mobile WebKit has no mouse wheel.
+    await page.evaluate(() => window.scrollBy(0, 3000))
     await expect(bar(page)).toBeInViewport()
     await expect(bar(page)).toContainText('1 selected')
     await page.getByRole('button', { name: /next/i }).first().click()

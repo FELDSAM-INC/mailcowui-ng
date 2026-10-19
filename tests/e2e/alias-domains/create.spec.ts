@@ -186,7 +186,9 @@ test.describe('domain aliases: creation', () => {
     await chooseTarget(page, AD.target)
     await mockApi.patch({ sharedStoreDown: true })
     await add(page).click()
-    await expect(page.getByText('temporarily unavailable', { exact: false })).toBeVisible()
+    await expect(
+      page.getByRole('main').getByText('temporarily unavailable', { exact: false }),
+    ).toBeVisible()
     await expect(names(page)).toHaveValue('later.example')
   })
 

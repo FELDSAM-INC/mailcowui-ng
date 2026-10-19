@@ -2,13 +2,16 @@
 // and its transitive static imports from dist/.vite/manifest.json, must stay at or below
 // 204,800 bytes gzipped. Every lazy chunk's gzipped size is printed as well. mailcow's bundled
 // en-gb snapshot must be a lazy chunk (constitution IV 1.3.0): it is loaded only when the
-// installation's `/lang/` cannot be.
+// installation's `/lang/` cannot be. UI 011 (research R22) adds per-chunk budgets from
+// `scripts/bundle-budgets.json` (`bundle-budget-lib.mjs`): size limits, and chunks that only
+// dynamic imports may reach.
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gzipSync } from 'node:zlib'
 
-const BUDGET = 204_800
+import { checkBudgets, INITIAL_BUDGET as BUDGET } from './bundle-budget-lib.mjs'
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const dist = join(root, 'dist')
 const manifestPath = join(dist, '.vite/manifest.json')
@@ -67,8 +70,14 @@ if (initial.has(snapshot.file)) {
   process.exit(1)
 }
 
-if (total > BUDGET) {
-  console.error(`\nInitial JavaScript is ${total} bytes gzipped, above the budget of ${BUDGET}.`)
+const budgets = JSON.parse(readFileSync(join(root, 'scripts/bundle-budgets.json'), 'utf8'))
+const checked = checkBudgets({ manifest, gzipSize, budgets })
+console.log('\nPer-chunk budgets (scripts/bundle-budgets.json):')
+for (const notice of checked.notices) console.log(`  notice: ${notice}`)
+for (const budget of budgets.chunks ?? []) console.log(`  ${budget.name} <= ${budget.maxGzipBytes} bytes`)
+for (const name of budgets.dynamicOnly ?? []) console.log(`  ${name}: dynamic imports only`)
+if (checked.errors.length > 0) {
+  for (const error of checked.errors) console.error(`\n${error}`)
   process.exit(1)
 }
 console.log(`\nWithin budget: ${total} of ${BUDGET} bytes gzipped.`)

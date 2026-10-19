@@ -1,0 +1,8 @@
+{
+  "chunks": [
+    { "name": "LiveLineChart", "maxGzipBytes": 6144 },
+    { "name": "DashboardPage", "maxGzipBytes": 46080 }
+  ],
+  "dynamicOnly": ["marked", "render-release-notes"],
+  "forbidStaticFrom": ["LogPage", "MailQueuePage", "Fail2banPage"]
+}

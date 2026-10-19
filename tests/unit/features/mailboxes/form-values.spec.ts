@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createRequest,
   templateBody,
+  templatePatch,
   valuesFrom,
   type TemplateSource,
 } from '@/features/mailboxes/form-values'
@@ -86,6 +87,68 @@ describe('templateBody', () => {
       tlsEnforceOutbound: false,
       rateLimit: { value: 10, frame: 'hour' },
     })
+  })
+})
+
+describe('templatePatch (US7-AS3)', () => {
+  const unchanged = { quota: 1024 * MIB, rateLimit: null }
+
+  it('is empty when nothing changed, the name compared trimmed', () => {
+    expect(
+      templatePatch({ ...template, name: 'Small' }, ' Small ', valuesFrom(template), unchanged),
+    ).toEqual({})
+  })
+
+  it('sends only the changed members, nested ones and tags as a set, and null to remove the rate limit', () => {
+    const stored = { ...template, name: 'Small', rateLimit: { value: 5, frame: 'minute' as const } }
+    const values = {
+      ...valuesFrom(stored),
+      tags: ['staff', 'Office'],
+      protocols: [
+        'imap' as const,
+        'pop3' as const,
+        'smtp' as const,
+        'sieve' as const,
+        'dav' as const,
+      ],
+      permissions: valuesFrom(stored).permissions.filter((key) => key !== 'syncjobs'),
+      status: 'inactive' as const,
+      quarantineCategory: 'all' as const,
+      tlsEnforceOutbound: true,
+      forcePasswordChange: true,
+    }
+    expect(templatePatch(stored, 'Mini', values, { quota: 0, rateLimit: null })).toEqual({
+      name: 'Mini',
+      quota: 0,
+      status: 'inactive',
+      forcePasswordChange: true,
+      protocolAccess: { pop3: true, activeSync: false },
+      userPermissions: { syncjobs: false },
+      tags: ['staff', 'Office'],
+      quarantineCategory: 'all',
+      tlsEnforceOutbound: true,
+      rateLimit: null,
+    })
+    expect(
+      templatePatch(stored, 'Small', valuesFrom(stored), {
+        quota: 1024 * MIB,
+        rateLimit: { value: 5, frame: 'minute' },
+      }),
+    ).toEqual({})
+  })
+
+  it('leaves tags out when they differ only in letter case', () => {
+    expect(
+      templatePatch(
+        { ...template, name: 'Small' },
+        'Small',
+        {
+          ...valuesFrom(template),
+          tags: ['STAFF'],
+        },
+        unchanged,
+      ),
+    ).toEqual({})
   })
 })
 

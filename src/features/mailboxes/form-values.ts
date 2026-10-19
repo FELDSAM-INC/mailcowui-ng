@@ -1,12 +1,14 @@
 // The values of the classic add mailbox and mailbox template forms (#addMailboxModal,
 // #addMailboxTemplateModal, `edit/mailbox-templates.twig`): read from a template or the built-in
 // defaults (`MailboxCapabilities.templateDefaults`, G32), sent in full for a template (the stored
-// template is what the form showed), and for a new mailbox only where they differ from the chosen
-// template, with the local part, domain, template, quota and password always (FR-025).
+// template is what the form showed), for a new mailbox only where they differ from the chosen
+// template, with the local part, domain, template, quota and password always (FR-025), and for an
+// edited template only where they differ from the stored version.
 import type {
   MailboxCreateRequest,
   MailboxRateLimit,
   MailboxTemplateDefaults,
+  MailboxTemplatePatch,
   MailboxUserPermissions,
   Writable,
 } from '@/api'
@@ -116,6 +118,53 @@ export interface CreateEssentials {
 const sameRateLimit = (a: MailboxRateLimit | null, b: MailboxRateLimit | null) =>
   a === b || (!!a && !!b && a.value === b.value && a.frame === b.frame)
 
+type ValuesPatch = Omit<Writable<MailboxTemplatePatch>, 'name' | 'quota'>
+
+/** The values that differ from a template: nested members one by one, tags as a set. */
+function changedValues(
+  base: TemplateSource,
+  values: MailboxValues,
+  checked: CheckedValues,
+): ValuesPatch {
+  const patch: ValuesPatch = {}
+  if (values.status !== base.status) patch.status = values.status
+  if (values.forcePasswordChange !== base.forcePasswordChange) {
+    patch.forcePasswordChange = values.forcePasswordChange
+  }
+  if (values.forceSecondFactorSetup !== base.forceSecondFactorSetup) {
+    patch.forceSecondFactorSetup = values.forceSecondFactorSetup
+  }
+  if (values.webmailRedirect !== base.webmailRedirect) {
+    patch.webmailRedirect = values.webmailRedirect
+  }
+  const protocols = protocolsPatch(base.protocolAccess, values.protocols)
+  if (protocols) patch.protocolAccess = protocols
+  const permissions: Partial<MailboxUserPermissions> = {}
+  for (const key of values.presentPermissions) {
+    const value = values.permissions.includes(key)
+    if (base.userPermissions[key] !== value) permissions[key] = value
+  }
+  if (Object.keys(permissions).length > 0) patch.userPermissions = permissions
+  if (!sameTagSet(values.tags, base.tags)) patch.tags = [...values.tags]
+  if (values.taggedMailHandling !== base.taggedMailHandling) {
+    patch.taggedMailHandling = values.taggedMailHandling
+  }
+  if (values.quarantineNotification !== base.quarantineNotification) {
+    patch.quarantineNotification = values.quarantineNotification
+  }
+  if (values.quarantineCategory !== base.quarantineCategory) {
+    patch.quarantineCategory = values.quarantineCategory
+  }
+  if (values.tlsEnforceInbound !== base.tlsEnforceInbound) {
+    patch.tlsEnforceInbound = values.tlsEnforceInbound
+  }
+  if (values.tlsEnforceOutbound !== base.tlsEnforceOutbound) {
+    patch.tlsEnforceOutbound = values.tlsEnforceOutbound
+  }
+  if (!sameRateLimit(checked.rateLimit, base.rateLimit)) patch.rateLimit = checked.rateLimit
+  return patch
+}
+
 /** The create request: the essentials and only the values that differ from the template. */
 export function createRequest(
   essentials: CreateEssentials,
@@ -132,40 +181,18 @@ export function createRequest(
   }
   const displayName = essentials.displayName.trim()
   if (displayName !== '') request.displayName = displayName
-  if (values.status !== template.status) request.status = values.status
-  if (values.forcePasswordChange !== template.forcePasswordChange) {
-    request.forcePasswordChange = values.forcePasswordChange
-  }
-  if (values.forceSecondFactorSetup !== template.forceSecondFactorSetup) {
-    request.forceSecondFactorSetup = values.forceSecondFactorSetup
-  }
-  if (values.webmailRedirect !== template.webmailRedirect) {
-    request.webmailRedirect = values.webmailRedirect
-  }
-  const protocols = protocolsPatch(template.protocolAccess, values.protocols)
-  if (protocols) request.protocolAccess = protocols
-  const permissions: Partial<MailboxUserPermissions> = {}
-  for (const key of values.presentPermissions) {
-    const value = values.permissions.includes(key)
-    if (template.userPermissions[key] !== value) permissions[key] = value
-  }
-  if (Object.keys(permissions).length > 0) request.userPermissions = permissions
-  if (!sameTagSet(values.tags, template.tags)) request.tags = [...values.tags]
-  if (values.taggedMailHandling !== template.taggedMailHandling) {
-    request.taggedMailHandling = values.taggedMailHandling
-  }
-  if (values.quarantineNotification !== template.quarantineNotification) {
-    request.quarantineNotification = values.quarantineNotification
-  }
-  if (values.quarantineCategory !== template.quarantineCategory) {
-    request.quarantineCategory = values.quarantineCategory
-  }
-  if (values.tlsEnforceInbound !== template.tlsEnforceInbound) {
-    request.tlsEnforceInbound = values.tlsEnforceInbound
-  }
-  if (values.tlsEnforceOutbound !== template.tlsEnforceOutbound) {
-    request.tlsEnforceOutbound = values.tlsEnforceOutbound
-  }
-  if (!sameRateLimit(checked.rateLimit, template.rateLimit)) request.rateLimit = checked.rateLimit
-  return request
+  return { ...request, ...changedValues(template, values, checked) }
+}
+
+/** The merge patch of a template's edit form: only the members changed against the stored version. */
+export function templatePatch(
+  stored: TemplateSource & { name: string },
+  name: string,
+  values: MailboxValues,
+  checked: CheckedValues,
+): Writable<MailboxTemplatePatch> {
+  const patch: Writable<MailboxTemplatePatch> = {}
+  if (name.trim() !== stored.name) patch.name = name.trim()
+  if (checked.quota !== stored.quota) patch.quota = checked.quota
+  return { ...patch, ...changedValues(stored, values, checked) }
 }

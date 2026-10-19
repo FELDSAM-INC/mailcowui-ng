@@ -106,5 +106,22 @@
     "columns": {
       "label": "Stĺpce"
     }
+  },
+  "mailboxTemplates": {
+    "delete": {
+      "keepValues": "Schránky vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Schránky vytvorené z týchto šablón si svoje hodnoty ponechajú."
+    },
+    "detail": {
+      "backToList": "Späť na šablóny schránok"
+    },
+    "column": {
+      "smtp": "SMTP",
+      "imap": "IMAP",
+      "pop3": "POP3",
+      "sieve": "SIEVE",
+      "activeSync": "EAS",
+      "dav": "DAV",
+      "webmailRedirect": "SOGO"
+    }
   }
 }

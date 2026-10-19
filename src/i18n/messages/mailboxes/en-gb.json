@@ -106,5 +106,22 @@
     "columns": {
       "label": "Columns"
     }
+  },
+  "mailboxTemplates": {
+    "delete": {
+      "keepValues": "Mailboxes created from this template keep their values. | Mailboxes created from these templates keep their values."
+    },
+    "detail": {
+      "backToList": "Back to the mailbox templates"
+    },
+    "column": {
+      "smtp": "SMTP",
+      "imap": "IMAP",
+      "pop3": "POP3",
+      "sieve": "SIEVE",
+      "activeSync": "EAS",
+      "dav": "DAV",
+      "webmailRedirect": "SOGO"
+    }
   }
 }

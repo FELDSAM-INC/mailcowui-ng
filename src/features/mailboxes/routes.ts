@@ -32,4 +32,38 @@ export const mailboxRoutes: RouteRecordRaw[] = [
       titleKey: legacy('edit.mailbox'),
     },
   },
+  {
+    path: '/mailbox-templates',
+    name: 'mailbox-templates',
+    component: page(() => import('./pages/templates/MailboxTemplatesPage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxTemplates',
+      titleKey: legacy('mailbox.mailbox_templates'),
+    },
+  },
+  {
+    path: '/mailbox-templates/new',
+    name: 'mailbox-template-create',
+    component: page(() => import('./pages/templates/MailboxTemplateCreatePage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxTemplates',
+      roles: ['admin'],
+      titleKey: legacy('mailbox.add_template'),
+    },
+  },
+  {
+    path: '/mailbox-templates/:templateId(\\d+)',
+    name: 'mailbox-template-detail',
+    component: page(() => import('./pages/templates/MailboxTemplateDetailPage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxTemplates',
+      titleKey: legacy('edit.title'),
+    },
+  },
 ]

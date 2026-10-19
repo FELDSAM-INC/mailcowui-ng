@@ -1040,6 +1040,28 @@ this feature, with the reason).
 | Scope (disabled) | Read-only `profile` | Matched | FR-060 |
 | Redirect/Callback URL, Save | One text field; last write wins | Improved: list of URIs, checked, version tag | FR-058, FR-060, FR-061, FR-066 |
 
+#### Parity at implementation (legacy form map, 2026-10-19)
+
+The rows above were written before the owner rule of 2026-10-18. The implementation follows the
+legacy form map in plan.md ("Decisions at implementation" and "Legacy form map (T005a)"), which
+settles them as follows; where a row above says otherwise, this table applies.
+
+| Legacy element | Status at implementation |
+|---|---|
+| The Identity Provider tab with its provider select and one form per type | Matched: one screen with legacy's description, select and fields in legacy's order; a stored configuration is shown read-only in one section whose Edit opens the same form (improvement: its own save, version tag, outdated handling) |
+| Client Secret and Bind Password, prefilled in legacy | Improved: write-only, never shown; "Stored" in the read-only view; an empty field keeps the stored secret, which must be entered again for another type or a new address; saved sign-ins are kept out of the field (plan parity note 2) |
+| Redirect Url rows | Matched, plus the app's own return addresses with copy buttons (kept because single sign-on in this app needs them) |
+| Attribute Mapping and Default Template | Matched: plain selects, the tooltip shown as visible help; duplicates and missing templates are reported at the entry |
+| LDAP Host (one comma-separated field) and Use SSL / Use StartTLS (two switches) | Matched: as legacy, with the help texts visible |
+| Test Connection | Matched: legacy's "Connection successful" or "Connection failed", improved by the failure category and a 90-second limit |
+| Save, Remove, `danger.authsource_in_use` | Matched: legacy's messages (`success.object_modified`, `success.item_deleted`, `danger.authsource_in_use`) and legacy's confirmation for Remove |
+| Overview header, mailbox counts per source, TLS warning, synchronisation status, readable interval, type explanations, setup steps | Not built: panels and texts legacy lacks (conventions, "Detail pages" and "no help text, explanation or section heading that legacy lacks") |
+| OAuth2 information text | Matched: `admin.oauth2_info` verbatim; no further grant types, lifetimes or copyable endpoints (plan parity note 1) |
+| OAuth2 list columns, row actions and quick actions | Matched: ID, Client ID, Redirect URI, Action; Edit and Remove per row; Remove, Revoke all client tokens and Generate new client secret for the selection; no secret column (owner), no token counts or token filter (legacy lacks them) |
+| Generate new client secret (quick action) | Kept (orchestrator): each new secret shown once, one client after another, in the one-time secret dialog |
+| Add OAuth2 client and the client page | Matched: one Redirect URI field (several URIs separated by spaces, as legacy stores them); the client page edits the redirect URIs only; regeneration, revocation and deletion stay in the list, as in legacy |
+| Single Sign-On button | Matched: below the password form and "Forgot password?", under legacy's `login.other_logins`; with "force single sign-on" the form, the link and the divider are hidden and the passkey action stays |
+
 #### Not replaced by this feature
 
 | Legacy element | Reason |

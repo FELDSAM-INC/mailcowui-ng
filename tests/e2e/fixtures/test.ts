@@ -1,6 +1,8 @@
 // The end-to-end `test` (research R24). Every test automatically gets its own mock scenario
 // (`anonymous-default` until it calls `mockApi.use`) and fails on any mock contract violation or
-// CSP violation. `expectAccessible`, the layout checks and the WebAuthn tools are fixtures too.
+// CSP violation. `expectAccessible`, the layout checks and the WebAuthn tools are fixtures too; a
+// test that uses the WebAuthn tools also fails on an uncaught error or unhandled rejection in the
+// page and on a WebAuthn call made while an autofill request was still pending (UI 001 fix).
 import { test as base, expect, type Page } from '@playwright/test'
 
 import { expectAccessible as axeCheck, type AccessibleOptions } from './a11y'
@@ -40,7 +42,15 @@ export const test = base.extend<Fixtures>({
     { auto: true },
   ],
   webauthn: async ({ page, context }, use) => {
-    await use(createWebAuthnTools(page, context))
+    const errors: string[] = []
+    page.on('pageerror', (error) => errors.push(`${error.name}: ${error.message}`))
+    const tools = createWebAuthnTools(page, context)
+    await use(tools)
+    expect(errors, 'uncaught errors and unhandled rejections in the page').toEqual([])
+    if (!page.isClosed()) {
+      const overlapping = await tools.overlappingCalls().catch(() => 0)
+      expect(overlapping, 'WebAuthn calls while an autofill request was pending').toBe(0)
+    }
   },
   expectAccessible: async ({ page }, use) => {
     await use((target = page, options) => axeCheck(target, options))

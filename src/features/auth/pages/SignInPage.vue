@@ -8,7 +8,7 @@
 // password form and "Forgot password?" below the classic "or login with"; "force single sign-on"
 // then hides the password form and the reset link (the passkey stays). Forcing it while it is not
 // offered changes nothing. The administrator screens never offer it.
-import { computed, defineAsyncComponent, onMounted, shallowRef, useId } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onScopeDispose, shallowRef, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, Role } from '@/api'
@@ -75,6 +75,29 @@ const conditional = useConditionalPasskey({
 const ssoProblem = shallowRef<ApiProblem | null>(null)
 // An address left behind by an abandoned round trip never steers a later return (research R4).
 onMounted(() => sessionStore.remove('mailcowui-ng.sso-return-to'))
+
+// A single sign-on start stops the autofill request before the page is left. When the start is
+// refused, or the browser brings the page back from its back-forward cache on the way back from
+// the provider, the screen is shown again and the request resumes (UI 001 fix).
+let leftForSso = false
+function ssoStarting() {
+  leftForSso = true
+  conditional.stop()
+}
+function resumeAfterSso() {
+  if (!leftForSso) return
+  leftForSso = false
+  conditional.start()
+}
+function ssoProblemChanged(problem: ApiProblem | null) {
+  ssoProblem.value = problem
+  if (problem) resumeAfterSso()
+}
+const onPageShow = (event: PageTransitionEvent) => {
+  if (event.persisted) resumeAfterSso()
+}
+window.addEventListener('pageshow', onPageShow)
+onScopeDispose(() => window.removeEventListener('pageshow', onPageShow))
 </script>
 
 <template>
@@ -119,8 +142,8 @@ onMounted(() => sessionStore.remove('mailcowui-ng.sso-return-to'))
       <SingleSignOnSection
         v-if="ssoOffered"
         :divider="!forceSso || passkeys"
-        @starting="conditional.stop()"
-        @problem="ssoProblem = $event"
+        @starting="ssoStarting"
+        @problem="ssoProblemChanged"
       />
       <ProblemMessage v-else :problem="ssoProblem" />
       <RoleLinks :role="role" />

@@ -92,6 +92,7 @@ test('US2-AS4 FR-013 a cancelled prompt returns without an error, and both optio
   await expect
     .poll(() => webauthn.credentialCalls())
     .toEqual(['get:conditional', 'get:modal', 'get:conditional'])
+  expect(await webauthn.pendingConditional()).toBe(1)
 })
 
 test('US2-AS5 FR-014 a passkey the server does not accept gives one generic message that suggests the password', async ({
@@ -252,6 +253,7 @@ test('FR-012 the autofill request outlives focus changes and session refetches, 
 
   expect(await count('createPasskeyChallenge'), 'no new challenge on focus or refetch').toBe(1)
   expect(await webauthn.credentialCalls()).toEqual(['get:conditional'])
+  expect(await webauthn.pendingConditional(), 'the first request is still pending').toBe(1)
   await expect(passwordForm(page).username).toHaveValue('someone')
 
   await webauthn.releaseConditional()
@@ -259,6 +261,10 @@ test('FR-012 the autofill request outlives focus changes and session refetches, 
     page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
   ).toBeVisible()
   expect(await count('createSessionWithPasskey')).toBe(1)
+  // Signed in: no autofill request is left, and none starts.
+  expect(await webauthn.pendingConditional()).toBe(0)
+  expect(await webauthn.credentialCalls()).toEqual(['get:conditional'])
+  expect(await count('createPasskeyChallenge')).toBe(1)
 })
 
 test('FR-012 an autofill request the browser ends without a passkey is restarted, and a passkey chosen then signs in', async ({
@@ -275,6 +281,7 @@ test('FR-012 an autofill request the browser ends without a passkey is restarted
   await expect
     .poll(() => webauthn.credentialCalls())
     .toEqual(['get:conditional', 'get:conditional'])
+  expect(await webauthn.pendingConditional()).toBe(1)
   await expect(page.getByRole('alert')).toHaveCount(0)
   await webauthn.releaseConditional()
   await expect(
@@ -283,6 +290,80 @@ test('FR-012 an autofill request the browser ends without a passkey is restarted
   expect(
     (await operations(mockApi)).filter((op) => op === 'createSessionWithPasskey'),
   ).toHaveLength(1)
+})
+
+test('FR-011 FR-012 the passkey action takes over from the autofill request, and none is left after signing in', async ({
+  page,
+  mockApi,
+  webauthn,
+}) => {
+  await mockApi.use('passkey-user')
+  await webauthn.stubCredentials(SEEDED_CREDENTIALS.alice)
+  await page.goto('sign-in')
+  await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
+  expect(await webauthn.pendingConditional()).toBe(1)
+  await passkeyButton(page).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
+  ).toBeVisible()
+  // The autofill request was aborted before the prompt (the fixture checks that no call overlapped
+  // it) and was not resumed after the sign-in.
+  expect(await webauthn.credentialCalls()).toEqual(['get:conditional', 'get:modal'])
+  expect(await webauthn.pendingConditional()).toBe(0)
+  const ops = await operations(mockApi)
+  expect(ops.filter((op) => op === 'createPasskeyChallenge')).toHaveLength(2)
+  expect(ops.filter((op) => op === 'createSessionWithPasskey')).toHaveLength(1)
+})
+
+test('FR-012 the passkey action pressed while the autofill challenge is on its way runs alone, and the autofill request resumes after it', async ({
+  page,
+  mockApi,
+  webauthn,
+}) => {
+  await mockApi.use('passkey-user')
+  await webauthn.stubCredentialsRejection('NotAllowedError')
+  await mockApi.delay('createPasskeyChallenge', 5_000)
+  const challengeSent = page.waitForRequest((request) =>
+    request.url().endsWith('/api/v2/session/passkey-challenge'),
+  )
+  await page.goto('sign-in')
+  await challengeSent
+  await passkeyButton(page).click()
+  // The action's own challenge may still get the delay: it reaches the mock at about this time.
+  await mockApi.delay('createPasskeyChallenge', 0)
+  await expect
+    .poll(() => webauthn.credentialCalls(), { timeout: 15_000 })
+    .toEqual(['get:modal', 'get:conditional'])
+  // The late autofill challenge started nothing.
+  await expect
+    .poll(async () => (await operations(mockApi)).filter((op) => op === 'createPasskeyChallenge'), {
+      timeout: 15_000,
+    })
+    .toHaveLength(3)
+  expect(await webauthn.credentialCalls()).toEqual(['get:modal', 'get:conditional'])
+  expect(await webauthn.pendingConditional()).toBe(1)
+  await expect(page.getByRole('alert')).toHaveCount(0)
+})
+
+test('FR-012 UI 012 a refused single sign-on start resumes the autofill request', async ({
+  page,
+  mockApi,
+  webauthn,
+}) => {
+  await mockApi.use('sso-not-available-on-start')
+  await webauthn.stubCredentials(SEEDED_CREDENTIALS.alice, { conditional: 'release' })
+  await page.goto('sign-in')
+  await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
+  await page.getByRole('button', { name: 'Single Sign-On' }).click()
+  await expect
+    .poll(() => webauthn.credentialCalls())
+    .toEqual(['get:conditional', 'get:conditional'])
+  expect(await webauthn.pendingConditional()).toBe(1)
+  // A passkey chosen now reaches the API (this scenario's accounts do not include its owner).
+  await webauthn.releaseConditional()
+  await expect
+    .poll(async () => (await operations(mockApi)).filter((op) => op === 'createSessionWithPasskey'))
+    .toHaveLength(1)
 })
 
 test('FR-007 UI 012 FR-041 force single sign-on keeps passkey sign-in on the role-neutral screen', async ({

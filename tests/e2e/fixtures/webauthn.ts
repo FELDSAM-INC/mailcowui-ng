@@ -10,6 +10,9 @@
 // Both stubs keep conditional requests pending (the user has not picked a passkey from the
 // autofill) and record every call, see installCredentialStub. `rejectConditional(name)` settles
 // the pending conditional request as the browser does when the user dismisses its prompt.
+// `pendingConditional()` counts the conditional requests still pending, and `overlappingCalls()`
+// the calls made while one was: the app aborts its autofill request before any other ceremony
+// (research R14), so the `webauthn` fixture expects none after every test.
 import { generateKeyPairSync, randomBytes } from 'node:crypto'
 
 import type { BrowserContext, CDPSession, Page } from '@playwright/test'
@@ -43,6 +46,10 @@ export interface WebAuthnTools {
   releaseConditional(target?: Page): Promise<void>
   /** Rejects the page's pending conditional request with a named DOMException, as the browser does. */
   rejectConditional(name: string, target?: Page): Promise<void>
+  /** The page's conditional requests that are still pending (neither settled nor aborted). */
+  pendingConditional(target?: Page): Promise<number>
+  /** The page's credential calls made while a conditional request was still pending. */
+  overlappingCalls(target?: Page): Promise<number>
 }
 
 export function createWebAuthnTools(page: Page, context: BrowserContext): WebAuthnTools {
@@ -131,6 +138,14 @@ export function createWebAuthnTools(page: Page, context: BrowserContext): WebAut
     async rejectConditional(name, target = page) {
       await target.evaluate((errorName) => window.__mailcowuiNgRejectConditional?.(errorName), name)
     },
+
+    async pendingConditional(target = page) {
+      return target.evaluate(() => window.__mailcowuiNgCredentialState?.().pendingConditional ?? 0)
+    },
+
+    async overlappingCalls(target = page) {
+      return target.evaluate(() => window.__mailcowuiNgCredentialState?.().overlapping ?? 0)
+    },
   }
 }
 
@@ -142,6 +157,8 @@ declare global {
     __mailcowuiNgReleaseConditional?: () => void
     /** Rejects the pending conditional requests with a named DOMException. */
     __mailcowuiNgRejectConditional?: (name: string) => void
+    /** Conditional requests still pending, and calls made while one was. */
+    __mailcowuiNgCredentialState?: () => { pendingConditional: number; overlapping: number }
   }
 }
 
@@ -160,7 +177,8 @@ interface StubInit {
  * has not picked a passkey from the autofill, and rejects with AbortError when aborted; with
  * `conditional: 'release'` it resolves once the test calls `__mailcowuiNgReleaseConditional()`.
  * `__mailcowuiNgRejectConditional(name)` rejects it as the browser does after a dismissed prompt.
- * Modal requests resolve with a contract-valid fake credential for the challenge they were given,
+ * A conditional request counts as pending until it settles or its signal aborts (synchronously, as
+ * in a browser); a call made meanwhile counts as overlapping. Modal requests resolve with a contract-valid fake credential for the challenge they were given,
  * or reject with the named DOMException.
  */
 function installCredentialStub(init: StubInit) {
@@ -234,19 +252,37 @@ function installCredentialStub(init: StubInit) {
     held.length = 0
     pending.splice(0).forEach((reject) => reject(new DOMException('Stubbed rejection', name)))
   }
+  let pendingConditional = 0
+  let overlapping = 0
+  window.__mailcowuiNgCredentialState = () => ({ pendingConditional, overlapping })
+  const record = (call: string) => {
+    if (pendingConditional > 0) overlapping += 1
+    calls.push(call)
+  }
 
   Object.defineProperty(navigator, 'credentials', {
     configurable: true,
     value: {
       get: (options: CredentialRequestOptions) => {
         const conditional = options.mediation === 'conditional'
-        calls.push(conditional ? 'get:conditional' : 'get:modal')
+        record(conditional ? 'get:conditional' : 'get:modal')
         if (conditional) {
           return new Promise((resolve, reject) => {
-            options.signal?.addEventListener('abort', () => reject(aborted()))
-            pending.push(reject)
+            pendingConditional += 1
+            let open = true
+            const settle =
+              <T>(done: (value: T) => void) =>
+              (value: T) => {
+                if (!open) return
+                open = false
+                pendingConditional -= 1
+                done(value)
+              }
+            const fail = settle(reject)
+            options.signal?.addEventListener('abort', () => fail(aborted()))
+            pending.push(fail)
             if (init.conditional === 'release' && init.mode === 'resolve') {
-              held.push(() => resolve(assertion(options)))
+              held.push(() => settle(resolve)(assertion(options)))
             }
           })
         }
@@ -256,7 +292,7 @@ function installCredentialStub(init: StubInit) {
         return Promise.resolve(assertion(options))
       },
       create: (options: CredentialCreationOptions) => {
-        calls.push('create')
+        record('create')
         if (init.mode === 'reject') {
           return Promise.reject(new DOMException('Stubbed rejection', init.errorName))
         }

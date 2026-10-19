@@ -4,12 +4,14 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { queryKeys, type Role } from '@/api'
 import { useSessionStore } from '@/app/session/store'
+import * as authApi from '@/features/auth/api'
 import SignInPage from '@/features/auth/pages/SignInPage.vue'
 
-import { useScenario } from '../../../mocks/node'
+import { mockState, useScenario } from '../../../mocks/node'
 import { publicConfig } from '../../../mocks/scenarios/public-config'
 import { mountWithApp, testPlugins } from '../../support/mount'
 import { createTestRouter } from '../../support/router'
+import { installWebAuthn } from '../../support/webauthn-stub'
 
 async function mountPage(role: Role | null = null) {
   testPlugins().queryClient.clear()
@@ -207,5 +209,140 @@ describe('notices from the session store', () => {
     expect((wrapper.get('input[autocomplete^="username"]').element as HTMLInputElement).value).toBe(
       'alice@example.org',
     )
+  })
+})
+
+describe('the passkey action and the autofill request (FR-012, UI 001 fix)', () => {
+  /**
+   * A device with passkeys. Conditional requests stay pending until they are aborted; the passkey
+   * action's prompt is dismissed. The log lists the challenge requests and every get() call with
+   * the conditional requests still pending at that moment.
+   */
+  function deviceWithPasskeys() {
+    const webauthn = installWebAuthn()
+    const log: string[] = []
+    let pending = 0
+    const createChallenge = authApi.createPasskeyChallenge
+    vi.spyOn(authApi, 'createPasskeyChallenge').mockImplementation(() => {
+      log.push('challenge')
+      return createChallenge()
+    })
+    webauthn.get.mockImplementation((options?: CredentialRequestOptions) => {
+      if (options?.mediation !== 'conditional') {
+        log.push(`modal get (${pending} pending)`)
+        return Promise.reject(new DOMException('The user dismissed the prompt.', 'NotAllowedError'))
+      }
+      log.push(`conditional get (${pending} pending)`)
+      pending += 1
+      return new Promise((_, reject) => {
+        options.signal?.addEventListener('abort', () => {
+          pending -= 1
+          log.push('conditional aborted')
+          reject(new DOMException('aborted', 'AbortError'))
+        })
+      })
+    })
+    return { log, pending: () => pending }
+  }
+
+  const passkeyButton = (wrapper: Awaited<ReturnType<typeof mountPage>>) =>
+    wrapper.findAll('button').find((button) => button.text() === 'Sign in with a passkey')!
+  const ssoButton = (wrapper: Awaited<ReturnType<typeof mountPage>>) =>
+    wrapper.findAll('button').find((button) => button.text() === 'Single Sign-On')!
+
+  it('aborts the autofill request before the passkey action requests its challenge, resumes it after a dismissed prompt and aborts it when the screen goes', async () => {
+    useScenario('anonymous-default')
+    const device = deviceWithPasskeys()
+    const wrapper = await mountPage(null)
+    await vi.waitFor(() => expect(device.pending()).toBe(1))
+    await passkeyButton(wrapper).trigger('click')
+    await vi.waitFor(() => expect(device.log).toHaveLength(7))
+    expect(device.log).toEqual([
+      'challenge',
+      'conditional get (0 pending)',
+      'conditional aborted',
+      'challenge',
+      'modal get (0 pending)',
+      'challenge',
+      'conditional get (0 pending)',
+    ])
+    expect(device.pending()).toBe(1)
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    wrapper.unmount()
+    expect(device.pending()).toBe(0)
+  })
+
+  it('drops an autofill challenge still on its way when the passkey action starts', async () => {
+    useScenario('anonymous-default')
+    mockState().delays.createPasskeyChallenge = 2_000
+    const device = deviceWithPasskeys()
+    const wrapper = await mountPage(null)
+    await vi.waitFor(() => expect(device.log).toEqual(['challenge']))
+    await passkeyButton(wrapper).trigger('click')
+    mockState().delays.createPasskeyChallenge = 0
+    // The autofill challenge arrives late and starts nothing; the action's prompt runs alone.
+    await vi.waitFor(
+      () =>
+        expect(
+          mockState().requests.filter((r) => r.operationId === 'createPasskeyChallenge'),
+        ).toHaveLength(3),
+      { timeout: 5_000 },
+    )
+    await flushPromises()
+    expect(device.log).toEqual([
+      'challenge',
+      'challenge',
+      'modal get (0 pending)',
+      'challenge',
+      'conditional get (0 pending)',
+    ])
+    expect(device.pending()).toBe(1)
+    wrapper.unmount()
+    expect(device.pending()).toBe(0)
+  })
+
+  it('resumes the autofill request when a single sign-on start is refused (UI 012)', async () => {
+    useScenario('sso-not-available-on-start')
+    const device = deviceWithPasskeys()
+    const wrapper = await mountPage(null)
+    await vi.waitFor(() => expect(device.pending()).toBe(1))
+    await ssoButton(wrapper).trigger('click')
+    await vi.waitFor(() => expect(device.log).toHaveLength(5))
+    expect(device.log).toEqual([
+      'challenge',
+      'conditional get (0 pending)',
+      'conditional aborted',
+      'challenge',
+      'conditional get (0 pending)',
+    ])
+    expect(device.pending()).toBe(1)
+    wrapper.unmount()
+  })
+
+  it('resumes the autofill request when the browser brings the page back from its back-forward cache after a single sign-on start (UI 012)', async () => {
+    useScenario('sso-available')
+    // jsdom cannot open the provider's page and reports that as an error.
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const device = deviceWithPasskeys()
+    const wrapper = await mountPage(null)
+    await vi.waitFor(() => expect(device.pending()).toBe(1))
+    await ssoButton(wrapper).trigger('click')
+    await vi.waitFor(() =>
+      expect(mockState().requests.map((r) => r.operationId)).toContain('startSingleSignOn'),
+    )
+    await flushPromises()
+    expect(device.pending()).toBe(0)
+    // A page shown normally is not a page brought back.
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: false }))
+    await flushPromises()
+    expect(device.log).toEqual(['challenge', 'conditional get (0 pending)', 'conditional aborted'])
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+    await vi.waitFor(() => expect(device.pending()).toBe(1))
+    expect(device.log.slice(3)).toEqual(['challenge', 'conditional get (0 pending)'])
+    wrapper.unmount()
+    // Gone with the screen: a later restore starts nothing.
+    window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true }))
+    await flushPromises()
+    expect(device.log).toHaveLength(6)
   })
 })

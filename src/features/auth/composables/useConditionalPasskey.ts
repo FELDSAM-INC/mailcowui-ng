@@ -13,8 +13,9 @@
 //   the browser gave up or aborted it), after a refused attempt, and 30 s before its challenge
 //   expires. A request that fails at once is retried with a growing delay. A restart that falls
 //   due while the page is hidden runs when the page is visible again.
-// - It is aborted when the screen unmounts, before the passkey action's modal ceremony (which
-//   resumes it afterwards) and when the password form is submitted.
+// - It is aborted when the screen unmounts, before the passkey action's modal ceremony and a
+//   single sign-on start (which resume it when they do not sign in or leave the page), and when
+//   the password form is submitted. It never takes the authenticator from another ceremony.
 //
 // The API keeps one passkey challenge per session: two pages on the sign-in screen take each
 // other's. The losing page gets `sign-in-expired`, restarts silently and asks the user to choose
@@ -64,7 +65,8 @@ export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
   const active = ref(false)
   let available = false
   let disposed = false
-  let stopped = true
+  /** Set by stop() and cleared by start(): the screen's owner has taken the request away. */
+  let stopped = false
   let phase: Phase = 'idle'
   let generation = 0
   /** Consecutive requests that failed at once. */
@@ -124,12 +126,12 @@ export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
   /** Leaves no request and schedules none: another ceremony took over, or passkeys cannot work. */
   function rest() {
     phase = 'idle'
+    active.value = false
     cancelRestart()
   }
 
   async function run(): Promise<void> {
-    if (!available || disposed) return
-    stopped = false
+    if (!available || disposed || stopped) return
     const mine = ++generation
     cancelRestart()
     if (phase === 'pending') abortCeremony()
@@ -147,6 +149,9 @@ export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
       return
     }
     if (!isCurrent()) return
+    // Never take the authenticator from another ceremony: whoever started it without stopping
+    // this request first resumes it when that ceremony ends.
+    if (isCeremonyRunning()) return rest()
     const { expiresAt, publicKey } = challenge.challenge
     // 30 s before the challenge expires; halfway through a shorter lifetime, and never in a loop.
     const lifetime = new Date(expiresAt).getTime() - challenge.skew - Date.now()
@@ -196,10 +201,11 @@ export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
 
   /** Starts (or restarts) the conditional request, when the browser offers it. */
   function start(): void {
+    stopped = false
     void run()
   }
 
-  /** Aborts the conditional request (password submit, modal ceremony, unmount). */
+  /** Aborts the conditional request (password submit, modal ceremony, single sign-on, unmount). */
   function stop(): void {
     stopped = true
     generation += 1
@@ -211,7 +217,8 @@ export function useConditionalPasskey(options: ConditionalPasskeyOptions) {
 
   onMounted(async () => {
     available = await conditionalMediationAvailable()
-    if (available) void run()
+    // Unless the passkey action or a password submit stopped it while the browser answered.
+    if (available && !stopped) void run()
   })
   document.addEventListener('visibilitychange', restartIfDue)
   onScopeDispose(() => {

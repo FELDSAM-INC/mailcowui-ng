@@ -4,7 +4,7 @@
 // prompt. UI 001 fix (2026-10-19, iOS autofill): one request stays pending while the screen is
 // shown. Focus, visibility, reconnects and session refetches never abort or restart it; it restarts
 // when the browser settles it without a credential, with a growing delay when that happens at once.
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest'
 
 import { installGuards } from '@/app/router/guards'
 import { setSessionContext } from '@/app/session/context'
@@ -409,6 +409,136 @@ describe('one pending request while the sign-in screen is shown (UI 001 fix, iOS
     result.start()
     await vi.waitFor(() => expect(held).toHaveLength(3))
   })
+
+  it('never takes the authenticator from a ceremony that started while its challenge was on its way', async () => {
+    mockState().delays.createPasskeyChallenge = 1_000
+    const { result } = await mountConditional()
+    await vi.waitFor(() => expect(result.active.value).toBe(true))
+    // Another ceremony starts without stopping the autofill request first.
+    const modal = getAssertion({
+      challenge: 'Y2hhbGxlbmdl',
+      rpId: 'localhost',
+      allowCredentials: [],
+      userVerification: 'required',
+      timeout: 1,
+    }).catch((error: unknown) => error)
+    await vi.waitFor(() => expect(held).toHaveLength(1))
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect(challenges()).toBe(1)
+    expect(webauthn.get).toHaveBeenCalledTimes(1)
+    expect(webauthn.get.mock.calls[0]?.[0]?.mediation).toBeUndefined()
+    expect(signals[0]?.aborted).toBe(false)
+    // When that ceremony ends, its owner resumes the autofill request.
+    held[0]!.reject(new DOMException('cancelled', 'NotAllowedError'))
+    expect(await modal).toMatchObject({ kind: 'cancelled' })
+    result.start()
+    await vi.waitFor(() => expect(held).toHaveLength(2))
+    expect(webauthn.get.mock.calls[1]?.[0]?.mediation).toBe('conditional')
+  })
+
+  it('does not start when it was stopped before the browser said whether it offers autofill', async () => {
+    webauthn = installWebAuthn()
+    pendingGet()
+    const answers: ((available: boolean) => void)[] = []
+    const check = webauthn.PublicKeyCredential!.isConditionalMediationAvailable as Mock
+    check.mockImplementation(() => new Promise<boolean>((resolve) => answers.push(resolve)))
+    const router = createTestRouter()
+    await router.push('/sign-in')
+    const { result, unmount } = withSetup(
+      () => useConditionalPasskey({ role: () => null, onError: vi.fn() }),
+      { router },
+    )
+    mounted.push(unmount)
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    // The passkey action (or a password submit) came first.
+    result.stop()
+    answers[0]!(true)
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(webauthn.get).not.toHaveBeenCalled()
+    expect(challenges()).toBe(0)
+    // Its owner resumes it: one request, not one for the start and one for the answer.
+    result.start()
+    await vi.waitFor(() => expect(held).toHaveLength(1))
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(webauthn.get).toHaveBeenCalledTimes(1)
+    expect(challenges()).toBe(1)
+  })
+
+  it('starts once when it was resumed before the browser said whether it offers autofill', async () => {
+    webauthn = installWebAuthn()
+    pendingGet()
+    const answers: ((available: boolean) => void)[] = []
+    const check = webauthn.PublicKeyCredential!.isConditionalMediationAvailable as Mock
+    check.mockImplementation(() => new Promise<boolean>((resolve) => answers.push(resolve)))
+    const router = createTestRouter()
+    await router.push('/sign-in')
+    const { result, unmount } = withSetup(
+      () => useConditionalPasskey({ role: () => null, onError: vi.fn() }),
+      { router },
+    )
+    mounted.push(unmount)
+    await vi.waitFor(() => expect(answers).toHaveLength(1))
+    result.stop()
+    result.start()
+    answers[0]!(true)
+    await vi.waitFor(() => expect(held).toHaveLength(1))
+    await vi.advanceTimersByTimeAsync(2_000)
+    expect(webauthn.get).toHaveBeenCalledTimes(1)
+    expect(challenges()).toBe(1)
+  })
+
+  it.each([
+    ['its challenge is on its way', 'starting'],
+    ['its request is pending', 'pending'],
+    ['a retry is due', 'retrying'],
+    ['a renewal is due while the page is hidden', 'hidden'],
+  ] as const)(
+    'leaves no request, timer or listener behind when the screen unmounts while %s',
+    async (_, phase) => {
+      if (phase === 'starting') mockState().delays.createPasskeyChallenge = 1_000
+      const timersBefore = vi.getTimerCount()
+      const added = vi.spyOn(document, 'addEventListener')
+      const removed = vi.spyOn(document, 'removeEventListener')
+      const { result, unmount } = await mountConditional()
+      mounted.pop()
+      if (phase === 'retrying') {
+        webauthn.get.mockRejectedValueOnce(new DOMException('Not now.', 'NotAllowedError'))
+      }
+      await vi.waitFor(() => expect(result.active.value).toBe(true))
+      if (phase === 'pending' || phase === 'hidden') {
+        await vi.waitFor(() => expect(held).toHaveLength(1))
+      }
+      if (phase === 'retrying') await vi.waitFor(() => expect(webauthn.get).toHaveBeenCalled())
+      if (phase === 'hidden') {
+        setVisibility('hidden')
+        await vi.advanceTimersByTimeAsync(280_000)
+      }
+      const calls = webauthn.get.mock.calls.length
+      const requested = challenges()
+
+      unmount()
+      if (phase === 'pending' || phase === 'hidden') expect(signals[0]?.aborted).toBe(true)
+      await vi.advanceTimersByTimeAsync(600_000)
+      setVisibility('hidden')
+      setVisibility('visible')
+      window.dispatchEvent(new Event('focus'))
+      await vi.advanceTimersByTimeAsync(600_000)
+
+      // In flight at the unmount, and nothing after it.
+      expect(webauthn.get).toHaveBeenCalledTimes(calls)
+      expect(challenges()).toBe(phase === 'starting' ? 1 : requested)
+      expect(result.active.value).toBe(false)
+      expect(vi.getTimerCount()).toBe(timersBefore)
+      const listeners = (spy: typeof added) =>
+        spy.mock.calls
+          .filter(([type]) => type === 'visibilitychange')
+          .map(([, listener]) => listener)
+      expect(listeners(added).length).toBeGreaterThan(0)
+      expect(listeners(removed)).toEqual(listeners(added))
+      added.mockRestore()
+      removed.mockRestore()
+    },
+  )
 
   it('does not start a request after the screen unmounted before the browser answered', async () => {
     webauthn = installWebAuthn()

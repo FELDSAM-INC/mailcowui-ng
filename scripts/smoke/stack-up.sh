@@ -59,6 +59,13 @@ compose run --rm app sh -c \
 compose run --rm app php artisan key:generate --force
 compose run --rm app scripts/dev/reset-dev-database.sh
 
+# UI 011 (T077, API 011 quickstart Part B): a Postfix log line for the logs smoke test, which
+# searches it case-insensitively (`ALICE@example.org`).
+compose exec -T redis redis-cli -a "${REDISPASS:-devredispass}" --no-auth-warning -n 0 \
+  LPUSH POSTFIX_MAILLOG \
+  "{\"time\":\"$(date +%s)\",\"priority\":\"err\",\"program\":\"postfix/smtp\",\"message\":\"to=<alice@example.org> bounced\"}" \
+  >/dev/null
+
 # 2. This repository's image.
 docker build -t "$image" -f "$root/docker/Dockerfile" "$root"
 

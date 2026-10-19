@@ -50,3 +50,18 @@ test.describe('@operations dashboard', () => {
     await expect(mysql.locator('[data-action]')).toHaveText(['Restart'])
   })
 })
+
+// T077: `scripts/smoke/stack-up.sh` pushes the Postfix line of the API 011 quickstart (Part B) into
+// the dev stack's Redis: "to=<alice@example.org> bounced" with the priority "err".
+test.describe('@operations logs', () => {
+  test('@read-only a Postfix line pushed into Redis is found by a case-insensitive search', async ({
+    page,
+  }) => {
+    await signIn(page, 'admin')
+    await page.goto('operations/logs/postfix?q=ALICE%40example.org')
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    const entry = page.locator('[data-entry]').filter({ hasText: 'to=<alice@example.org> bounced' })
+    await expect(entry.first()).toBeVisible()
+    await expect(entry.first()).toContainText('err')
+  })
+})

@@ -34,7 +34,6 @@
       "gone": "This domain no longer exists.",
       "intro": "Deleting the domain cannot be undone.",
       "noAdmins": "No domain administrator is assigned.",
-      "notDeleted": "Nothing was deleted.",
       "notDeletedTitle": "{name} was not deleted",
       "showAliases": "Show the aliases",
       "title": "Delete {name}?",
@@ -89,9 +88,6 @@
       "nearlyFull": "Nearly full",
       "of": "{used} of {limit}",
       "over": "Over the limit"
-    },
-    "values": {
-      "rateLimit": "{value} {frame}"
     }
   },
   "domainTemplates": {

@@ -34,7 +34,6 @@
       "gone": "Táto doména už neexistuje.",
       "intro": "Odstránenie domény nemožno vrátiť späť.",
       "noAdmins": "Doména nemá priradeného administrátora.",
-      "notDeleted": "Nič sa neodstránilo.",
       "notDeletedTitle": "Doména {name} nebola odstránená",
       "showAliases": "Zobraziť aliasy",
       "title": "Odstrániť doménu {name}?",
@@ -89,9 +88,6 @@
       "nearlyFull": "Takmer plné",
       "of": "{used} z {limit}",
       "over": "Nad limitom"
-    },
-    "values": {
-      "rateLimit": "{value} {frame}"
     }
   },
   "domainTemplates": {

@@ -21,6 +21,7 @@ beforeEach(async () => {
   await Promise.all([
     loadLegacy('en-gb'),
     loadFeatureMessages('domains', i18n, 'en-gb'),
+    loadFeatureMessages('mailboxes', i18n, 'en-gb'),
     loadFeatureMessages('sync-jobs', i18n, 'en-gb'),
     loadFeatureMessages('identityProviders', i18n, 'en-gb'),
     loadFeatureMessages('aliases', i18n, 'en-gb'),

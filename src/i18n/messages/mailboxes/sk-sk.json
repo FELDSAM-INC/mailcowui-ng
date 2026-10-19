@@ -1,0 +1,103 @@
+{
+  "mailboxes": {
+    "delete": {
+      "blocker": {
+        "mailStore": "Úložisko pošty je nedostupné.",
+        "sharedStore": "Zdieľané úložisko údajov je nedostupné."
+      },
+      "mail": "Pošta ({size}, počet správ: {count}) sa presunie do koša a potom sa natrvalo vymaže. Doba uchovania v koši: {retention}.",
+      "removed": "Odstráni sa aj:",
+      "count": {
+        "tags": "Štítky: {count}",
+        "appPasswords": "Heslá aplikácií: {count}",
+        "passkeys": "Prístupové kľúče: {count}",
+        "secondFactors": "Metódy dvojúrovňovej autentifikácie: {count}",
+        "oauthGrants": "Autorizácie OAuth2: {count}",
+        "senderPermissionsGranted": "Oprávnenia iných odosielať ako táto schránka: {count}",
+        "senderPermissionsHeld": "Oprávnenia tejto schránky odosielať ako iní: {count}",
+        "syncJobs": "Synchronizačné úlohy: {count}",
+        "sieveFilters": "Filtre Sieve: {count}",
+        "spamFilterSettings": "Nastavenia spam filtra: {count}",
+        "quarantineItems": "Položky v karanténe: {count}",
+        "bccMaps": "Skryté kópie: {count}",
+        "temporaryAliases": "Dočasné aliasy: {count}",
+        "recentLogins": "Zaznamenané prihlásenia: {count}"
+      },
+      "present": {
+        "webmailData": "Dáta webmailu: profil, priečinky, kontakty, udalosti a zdieľanie",
+        "pushNotificationSettings": "Nastavenia Pushover",
+        "rateLimit": "Obmedzenie prenosu",
+        "taggedMailHandling": "Zaobchádzanie s označenou poštou"
+      },
+      "exclusiveAliases": "Aliasy, ktoré sa vymažú, pretože táto schránka je ich jediným príjemcom: {count}",
+      "sharedAliases": "Aliasy, ktoré si ponechajú ostatných príjemcov: {count}",
+      "blocked": "Schránku {address} teraz nie je možné odstrániť:",
+      "checkAgain": "Skontrolovať znova",
+      "changed": "Schránka sa medzitým zmenila. Skontrolujte dopad znova.",
+      "gone": "Táto schránka už neexistuje.",
+      "notDeletedTitle": "Schránka {name} nebola odstránená"
+    },
+    "rename": {
+      "step": {
+        "sharedFolderPermissionsRemoval": "Odobratie oprávnení k zdieľaným priečinkom",
+        "sharedStoreMove": "Presun limitu odosielania a spracovania označenej pošty",
+        "database": "Úprava databázy",
+        "mailStoreMove": "Presun pošty",
+        "webmailRename": "Premenovanie údajov webmailu",
+        "sharedFolderPermissionsRecreation": "Obnovenie oprávnení k zdieľaným priečinkom"
+      },
+      "outcome": {
+        "done": "Hotovo",
+        "undone": "Vrátené späť",
+        "notDone": "Nevykonané",
+        "failed": "Zlyhalo",
+        "unknown": "Neznáme",
+        "undoFailed": "Vrátenie späť zlyhalo",
+        "skipped": "Preskočené"
+      }
+    },
+    "sort": {
+      "quotaUsed": "Využité miesto"
+    },
+    "attributes": {
+      "duplicate": "Tento názov už má iný atribút."
+    },
+    "problem": {
+      "tagLimit": "Povolených je najviac {max} štítkov."
+    },
+    "authSource": {
+      "keycloak": "Keycloak",
+      "genericOidc": "Generic-OIDC",
+      "ldap": "LDAP"
+    },
+    "detail": {
+      "backToList": "Späť na schránky",
+      "loadFailed": "Schránku sa nepodarilo načítať.",
+      "gone": "Táto schránka už neexistuje alebo už pre vás nie je dostupná."
+    },
+    "quota": {
+      "max": "max. {max} MiB",
+      "unlimitedHint": "0 = ∞"
+    },
+    "acl": {
+      "label": "ACL"
+    },
+    "protocol": {
+      "imap": "IMAP",
+      "pop3": "POP3",
+      "smtp": "SMTP",
+      "sieve": "Sieve",
+      "activeSync": "ActiveSync",
+      "dav": "CalDAV/CardDAV"
+    },
+    "lastLogin": {
+      "imap": "IMAP {'@'} {time}",
+      "pop3": "POP3 {'@'} {time}",
+      "smtp": "SMTP {'@'} {time}",
+      "sso": "SSO {'@'} {time}"
+    },
+    "columns": {
+      "label": "Stĺpce"
+    }
+  }
+}

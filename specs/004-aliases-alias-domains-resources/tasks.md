@@ -1244,7 +1244,7 @@ audit log is filtered by that object. As a domain administrator, check that the 
   `src/features/alias-domains/pages/AliasDomainDetailPage.vue`,
   `src/features/resources/pages/ResourceDetailPage.vue` and
   `src/features/sender-settings/pages/SendAsPage.vue` (research R19).
-- [X] T106 *(done: labels.ts: auditTargetLink (alias-detail, alias-domain-detail, resource-detail, mailbox-detail for sender settings; none for deletions) and auditDetailRows (changes old → new, removed and creationReport entries, copiedFromAliasId as a link, other keys verbatim), used by AuditEventDetails; docs/audit-events.md has the 004 section at the pinned commit; no new strings)* [US8] Extend `src/features/audit-log/labels.ts` with:
+- [X] T106 *(done: labels.ts: auditTargetLink (alias-detail, alias-domain-detail, resource-detail, mailbox-detail for sender settings; none for deletions) and auditDetailRows (changes old → new, removed and creationReport entries, copiedFromAliasId as a link, other keys verbatim; for every event type, so UI 012's identity provider and OAuth2 events show their changes and revoked counts the same way, and its tests were aligned after the rebase), used by AuditEventDetails; docs/audit-events.md has the 004 section at the pinned commit; no new strings)* [US8] Extend `src/features/audit-log/labels.ts` with:
   - the 004 target links: `alias-detail`, `alias-domain-detail`, `resource-detail` and
     `mailbox-send-as`;
   - the presentation of the documented 004 detail keys (research R19).

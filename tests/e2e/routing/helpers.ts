@@ -20,12 +20,14 @@ export async function entryIds(page: Page): Promise<string[]> {
   )
 }
 
-/** Waits until the list has settled: results, an empty state or an error, but no loading state. */
+/**
+ * Waits until the list has settled: results, an empty state or an error, but no loading state,
+ * and no entries of the previous query shown while the current one loads (`data-list-stale`).
+ */
 export async function listReady(page: Page): Promise<void> {
-  await expect(page.locator('[data-list-state]')).toHaveAttribute(
-    'data-list-state',
-    /^(?!loading$)/,
-  )
+  const list = page.locator('[data-list-state]')
+  await expect(list).toHaveAttribute('data-list-state', /^(?!loading$)/)
+  await expect(list).not.toHaveAttribute('data-list-stale')
 }
 
 /** Opens the filter panel when it is collapsed (below md). */

@@ -51,7 +51,7 @@ test.describe('BCC maps', () => {
     await page.getByLabel('BCC type', { exact: true }).selectOption('sender')
     await expect(page).toHaveURL(/type=sender/)
     await listReady(page)
-    expect(await entryIds(page)).toEqual(['2', '4'])
+    await expect.poll(() => entryIds(page)).toEqual(['2', '4'])
     await page.reload()
     await listReady(page)
     expect(await entryIds(page)).toEqual(['2', '4'])

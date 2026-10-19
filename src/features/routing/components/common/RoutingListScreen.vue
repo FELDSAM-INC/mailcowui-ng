@@ -106,6 +106,7 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
   <section
     class="mx-auto flex w-full max-w-7xl flex-col gap-4"
     :data-list-state="c.listState.value"
+    :data-list-stale="c.query.isPlaceholderData.value ? '' : undefined"
     :data-screen="screen"
   >
     <PageHeader :title="lt(info.titleKey)">

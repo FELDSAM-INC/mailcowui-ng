@@ -156,7 +156,9 @@ test.describe('relayhost assignments', () => {
       },
     })
     await save(page)
-    await expect(page.getByText('Access denied or invalid form data')).toBeVisible()
+    await expect(
+      page.locator('#section-domain').getByText('Access denied or invalid form data'),
+    ).toBeVisible()
   })
 
   test('FR-012 leaving the section with a changed relayhost asks first', async ({

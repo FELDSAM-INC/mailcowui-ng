@@ -22,7 +22,7 @@ test.describe('mailbox history', () => {
   }) => {
     await mockApi.use('admin-history')
     await page.goto('mailboxes/anna@a.example')
-    await page.getByRole('link', { name: 'History' }).click()
+    await page.getByRole('link', { name: 'History', exact: true }).click()
     await expect(page).toHaveURL(
       /\/ng\/audit-log\?targetId=anna%40a\.example|targetId=anna@a\.example/,
     )
@@ -66,6 +66,6 @@ test.describe('mailbox history', () => {
     await mockApi.use('domain-admin-history')
     await page.goto('mailboxes/anna@a.example')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit mailbox' })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'History' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'History', exact: true })).toHaveCount(0)
   })
 })

@@ -81,7 +81,7 @@ test.describe('@mailboxes', () => {
           .locator('section[id^="section-"]')
           .getByText(`Changes to mailbox ${renamed}@${DOMAIN} have been saved`),
       ).toBeVisible()
-      await page.getByRole('link', { name: 'History' }).click()
+      await page.getByRole('link', { name: 'History', exact: true }).click()
       await expect(page.getByText('Mailbox changed').first()).toBeVisible()
       await page.goto(`audit-log?targetType=mailbox&targetId=${local}@${DOMAIN}`)
       await expect(page.getByText('Mailbox renamed').first()).toBeVisible()

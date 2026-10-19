@@ -36,10 +36,15 @@ else
   git -C "$api_dir" worktree add --detach "$work" "$ref"
 fi
 
+# SMOKE_COMPOSE_PROFILES starts optional services of the API stack (COMPOSE_PROFILES), such as
+# `routing` for the SMTP test target of UI 009's connection tests (mailpit).
+profiles="${SMOKE_COMPOSE_PROFILES:-}"
+
 compose() {
   (cd "$work" && RESTV2_WEB_PORT="$port" RESTV2_WEB_TLS_PORT="$tls_port" \
     RESTV2_KEYCLOAK_PORT="$keycloak_port" \
-    RESTV2_UID="$(id -u)" RESTV2_GID="$(id -g)" docker compose -p "$project" "$@")
+    RESTV2_UID="$(id -u)" RESTV2_GID="$(id -g)" COMPOSE_PROFILES="$profiles" \
+    docker compose -p "$project" "$@")
 }
 
 # 1. The API dev stack and the setup commands of the API quickstart (Part A, steps 1-2), then the

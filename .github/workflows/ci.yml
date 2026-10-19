@@ -147,6 +147,8 @@ jobs:
       # UI 012: the API's idp profile (OpenLDAP, and Keycloak with its realm import) for the @idp
       # and @sso smoke tests.
       SMOKE_IDP: '1'
+      # UI 009: the API stack's SMTP test target (mailpit) for the routing connection tests.
+      SMOKE_COMPOSE_PROFILES: routing
     defaults:
       run:
         working-directory: ui

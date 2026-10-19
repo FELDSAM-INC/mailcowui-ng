@@ -22,6 +22,7 @@ import AppsMenu from '../shell/AppsMenu.vue'
 import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'
 import SkipLink from '../shell/SkipLink.vue'
+import StatusMessageHost from '../shell/StatusMessageHost.vue'
 import UserMenu from '../shell/UserMenu.vue'
 import NoAccessState from '../states/NoAccessState.vue'
 
@@ -99,6 +100,7 @@ const preferences = usePreferencesStore()
             <CloseIcon class="size-5" />
           </button>
         </div>
+        <StatusMessageHost class="mb-6" />
         <RouterView v-if="allowed" />
         <NoAccessState v-else />
       </main>

@@ -30,7 +30,7 @@ const category = computed(() =>
 )
 const status = computed(() =>
   props.result?.failureCategory === 'unexpectedResponse' && props.result.providerStatus !== null
-    ? t('identityProvider.test.providerStatus', { status: String(props.result.providerStatus) })
+    ? `${lt('mailbox.status')}: ${props.result.providerStatus}`
     : null,
 )
 </script>

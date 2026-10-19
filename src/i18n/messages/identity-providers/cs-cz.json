@@ -14,7 +14,6 @@
         "unreachable": "Poskytovatel není dosažitelný. Zkontrolujte adresu a port."
       },
       "noResult": "Do {seconds} sekund nepřišel žádný výsledek.",
-      "providerStatus": "Stav: {status}",
       "running": "Testuji spojení…"
     },
     "type": {

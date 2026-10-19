@@ -14,7 +14,6 @@
         "unreachable": "The provider could not be reached. Check the address and the port."
       },
       "noResult": "No result was received within {seconds} seconds.",
-      "providerStatus": "Status: {status}",
       "running": "Testing the connection…"
     },
     "type": {

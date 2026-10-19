@@ -17,6 +17,16 @@ async function setVisibility(page: Page, state: 'visible' | 'hidden') {
   }, state)
 }
 
+/**
+ * Waits until the list has applied the last response. TanStack Query restarts the refetch interval
+ * on every query update, so the next 30 s count from here, not from the request.
+ */
+async function applied(page: Page) {
+  await expect(
+    page.getByRole('button', { name: 'Refresh', exact: true }).locator('svg'),
+  ).not.toHaveClass(/animate-spin/)
+}
+
 async function open(page: Page, mockApi: MockApi, overrides = {}) {
   await page.clock.install()
   await mockApi.use('sync-jobs-running', overrides)
@@ -33,6 +43,7 @@ test.describe('sync job automatic refresh', () => {
     const start = await listCalls(mockApi)
     await page.clock.runFor(30_500)
     await expect.poll(() => listCalls(mockApi)).toBe(start + 1)
+    await applied(page)
     await mockApi.patch({
       syncJobs: { finishRun: { id: 2, lastResult: 'succeeded', exitStatus: 'EX_OK' } },
     })
@@ -79,6 +90,7 @@ test.describe('sync job automatic refresh', () => {
     await expectAccessible()
     await page.getByRole('button', { name: 'Resume automatic refresh' }).click()
     await expect.poll(() => listCalls(mockApi)).toBe(start + 1)
+    await applied(page)
     await page.clock.runFor(30_500)
     await expect.poll(() => listCalls(mockApi)).toBe(start + 2)
   })
@@ -127,6 +139,7 @@ test.describe('sync job automatic refresh', () => {
     const start = await listCalls(mockApi)
     await page.clock.runFor(30_500)
     await expect.poll(() => listCalls(mockApi)).toBe(start + 1)
+    await applied(page)
     await page.clock.runFor(30_000)
     await expect.poll(() => listCalls(mockApi)).toBe(start + 2)
     await expect(page.locator('[data-live="polite"]')).toHaveText('')

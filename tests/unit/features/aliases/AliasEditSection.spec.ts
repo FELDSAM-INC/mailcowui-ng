@@ -3,7 +3,7 @@
 // option only with the groupware, the external notice, only changed members on save, the marks
 // after a 412, comments checked only when changed, and the deletion impact of the list.
 import { flushPromises } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 
@@ -71,6 +71,14 @@ async function mountSection(value: Alias, options: Options = {}) {
   return { wrapper, events }
 }
 
+/** Submits the form and waits until the save has settled. */
+async function submit(wrapper: Awaited<ReturnType<typeof mountSection>>['wrapper']) {
+  await wrapper.get('form').trigger('submit')
+  await flushPromises()
+  await vi.waitFor(() => expect(wrapper.text()).not.toContain('Saving…'))
+  await flushPromises()
+}
+
 beforeEach(async () => {
   resetTestPlugins()
   await loadLegacy('en-gb')
@@ -132,14 +140,13 @@ describe('AliasEditSection', () => {
     allowed.wrapper.unmount()
   })
 
-  it('saves only the changed members and closes with legacy\'s message', async () => {
+  it("saves only the changed members and closes with legacy's message", async () => {
     useScenario('aliases-edit')
     const read = await readAlias(EDIT_ALIAS_004.sales)
     const { wrapper, events } = await mountSection(read)
     await wrapper.get('#alias-edit-publicComment').setValue('Sales team')
     expect(events.some((event) => event.name === 'dirty' && event.args[0] === true)).toBe(true)
-    await wrapper.get('form').trigger('submit')
-    await flushPromises()
+    await submit(wrapper)
     const stored = mockState().aliases.find((item) => item.id === EDIT_ALIAS_004.sales)!
     expect(stored.publicComment).toBe('Sales team')
     expect(events.map((event) => event.name)).toContain('close')
@@ -153,8 +160,7 @@ describe('AliasEditSection', () => {
     const { wrapper } = await mountSection(read)
     await wrapper.get('#alias-edit-privateComment').setValue('mine')
     mockState().aliases.find((item) => item.id === EDIT_ALIAS_004.sales)!.active = false
-    await wrapper.get('form').trigger('submit')
-    await flushPromises()
+    await submit(wrapper)
     expect(wrapper.get('[data-outdated]').text()).toContain('Active: now saved as No')
     expect(wrapper.get<HTMLInputElement>('#alias-edit-privateComment').element.value).toBe('mine')
     wrapper.unmount()
@@ -165,15 +171,13 @@ describe('AliasEditSection', () => {
     const read = await readAlias(EDIT_ALIAS_004.notes)
     const { wrapper, events } = await mountSection(read)
     await wrapper.get('#alias-edit-privateComment').setValue('é'.repeat(81))
-    await wrapper.get('form').trigger('submit')
-    await flushPromises()
+    await submit(wrapper)
     expect(wrapper.text()).toContain('Comment too long, max 160 chars allowed')
     expect(events.map((event) => event.name)).not.toContain('close')
 
     await wrapper.get('#alias-edit-privateComment').setValue(read.privateComment)
     await wrapper.get('#alias-edit-internal').setValue(true)
-    await wrapper.get('form').trigger('submit')
-    await flushPromises()
+    await submit(wrapper)
     expect(mockState().aliases.find((item) => item.id === EDIT_ALIAS_004.notes)!.internal).toBe(
       true,
     )
@@ -187,8 +191,7 @@ describe('AliasEditSection', () => {
     await wrapper.get('#alias-edit-publicComment').setValue('x')
     const state = mockState()
     state.aliases = state.aliases.filter((item) => item.id !== EDIT_ALIAS_004.sales)
-    await wrapper.get('form').trigger('submit')
-    await flushPromises()
+    await submit(wrapper)
     expect(events.map((event) => event.name)).toContain('gone')
     wrapper.unmount()
   })
@@ -202,7 +205,11 @@ describe('AliasDeleteImpact', () => {
     expect(regular.text()).not.toContain('catch-all')
     const catchAll = mountWithApp(AliasDeleteImpact, {
       props: {
-        alias: aliasFixture({ address: '@example.org', addressUnicode: '@example.org', kind: 'catchAll' }),
+        alias: aliasFixture({
+          address: '@example.org',
+          addressUnicode: '@example.org',
+          kind: 'catchAll',
+        }),
       },
     })
     expect(catchAll.text()).toContain('catch-all')

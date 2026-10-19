@@ -3,8 +3,9 @@
 // `draw_alias_table()`): legacy's title, refresh and hint, the server's search, filters and sort in
 // the address, cards below md and a table from md up, the list states and DataTables' texts, and the
 // result count announced after a search or filter change. The groupware elements appear once the
-// capabilities say the groupware is enabled; the list never waits for them (research R5). Later
-// stories add "Add alias" (US2), the entry actions (US3) and selection mode (US6).
+// capabilities say the groupware is enabled; the list never waits for them (research R5). "Add
+// alias" (US2), the entry menu with Edit and Remove (US3; deletion only here, as in legacy) and
+// legacy's outcome alerts; selection mode comes with US6.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,6 +20,7 @@ import ActiveFilterChips from '@/shared/components/ActiveFilterChips.vue'
 import type { FilterChip } from '@/shared/components/filter-chip'
 import type { DomainPickerOption } from '@/shared/components/DomainPicker.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
+import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -31,9 +33,12 @@ import { buttonVariants } from '@/shared/ui/button'
 
 import { aliasListOptions } from '../api'
 import { useAliasesCapabilities } from '../capabilities'
+import AliasEntryActions from '../components/AliasEntryActions.vue'
 import AliasFilters from '../components/AliasFilters.vue'
 import AliasList from '../components/AliasList.vue'
 import AliasSortControl from '../components/AliasSortControl.vue'
+import { useAliasDeletion, type AliasOutcome } from '../composables/useAliasDeletion'
+import { takeAliasListFlash } from '../flash'
 import { toAliasParams, useAliasListState, type AliasListFilters } from '../list-state'
 import { feature004Permissions } from '../permissions'
 
@@ -45,6 +50,17 @@ const groupwareEnabled = computed(() => capabilities.data.value?.groupwareEnable
 const permissions = computed(() =>
   feature004Permissions(identity.data.value, capabilities.data.value),
 )
+
+/** Legacy's alert for the last outcome: a deletion, or an alias that vanished (FR-028, FR-030). */
+const outcome = ref<(AliasOutcome & { id: number }) | null>(null)
+let outcomes = 0
+function report(next: AliasOutcome) {
+  outcomes += 1
+  outcome.value = { ...next, id: outcomes }
+}
+const flashed = takeAliasListFlash()
+if (flashed) report(flashed)
+const deletion = useAliasDeletion(report)
 
 const list = useAliasListState()
 const state = computed(() => list.state.value)
@@ -205,6 +221,14 @@ function refresh() {
       </template>
     </PageHeader>
 
+    <OutcomeAlert
+      v-if="outcome"
+      :key="outcome.id"
+      :kind="outcome.kind"
+      :message="outcome.message"
+      @dismiss="outcome = null"
+    />
+
     <LegacyText
       k="mailbox.alias_domain_alias_hint"
       as="p"
@@ -305,7 +329,11 @@ function refresh() {
           :groupware-enabled="groupwareEnabled"
           :can-see-orphaned="permissions.canSeeOrphaned"
           @sort="(sort, order) => list.setSort(sort, order)"
-        />
+        >
+          <template v-if="permissions.canManageAliases" #actions="{ alias }">
+            <AliasEntryActions :alias="alias" @delete="deletion.start" />
+          </template>
+        </AliasList>
         <PaginationBar
           :total="total"
           :page="state.page"

@@ -679,7 +679,7 @@ with and without confirming.
 
   Changes and deletions behind the app's back use `PATCH /__mock/scenarios/:id`
   (`changeElsewhere`, `deleteElsewhere`).
-- [ ] T051 [P] [US3] Write `tests/e2e/aliases/edit.spec.ts`. It covers:
+- [X] T051 *(done: tests/e2e/aliases/edit.spec.ts; one section ?edit=alias (legacy form map), US3-AS3 replaced by legacy's behaviour: deactivating saves at once with only active, no confirmation (plan part 3, item 7))* [P] [US3] Write `tests/e2e/aliases/edit.spec.ts`. It covers:
   - US3-AS1;
   - US3-AS2, SC-006 and FR-027: "changed elsewhere" marks the new value, the input stays, "Save
     again" sends the new `If-Match`, and "Discard my changes" reloads. Nothing is overwritten;
@@ -698,7 +698,7 @@ with and without confirming.
   - Edge, groupware disabled: the option is never sent;
   - Edge, domain administrator loses the domain: a 404 on save, the message, back to the list;
   - Edge, network failure during save.
-- [ ] T052 [P] [US3] Write `tests/e2e/aliases/delete.spec.ts`. It covers:
+- [X] T052 *(done: tests/e2e/aliases/delete.spec.ts; legacy's #ConfirmDeleteModal texts (footer.confirm_delete, footer.delete_these_items, footer.delete_now), outcome as legacy's alert; the alias page has no deletion (plan part 3, item 8))* [P] [US3] Write `tests/e2e/aliases/delete.spec.ts`. It covers:
   - US3-AS5: the confirmation names the address and the consequences; focus starts on Cancel; Cancel
     returns focus to Delete; confirming removes the alias from the list;
   - FR-029: the catch-all sentence;
@@ -707,7 +707,7 @@ with and without confirming.
   - a deletion refused as outdated confirms again with the reloaded alias (FR-027);
   - an alias deleted elsewhere;
   - US3-AS7: deleting an orphaned alias.
-- [ ] T053 [P] [US3] Write these unit tests:
+- [X] T053 *(done: alias-patch cases added to tests/unit/features/aliases/alias-form.spec.ts (where buildAliasPatch was already tested); AliasEditSection.spec.ts for the one section and AliasDeleteImpact)* [P] [US3] Write these unit tests:
   - `tests/unit/features/aliases/alias-patch.spec.ts` (`buildAliasPatch`, data-model §2):
     - only differing members, and never read-only members;
     - destinations only when the choice or the list changed;
@@ -718,18 +718,18 @@ with and without confirming.
     - marks after a 412;
     - the groupware option absent while disabled;
     - the external notice in the destination section.
-- [ ] T054 [P] [US3] Write `tests/smoke/aliases-edit.smoke.spec.ts` (`@feature-004`): create an
+- [X] T054 *(done: tests/smoke/aliases-edit.smoke.spec.ts)* [P] [US3] Write `tests/smoke/aliases-edit.smoke.spec.ts` (`@feature-004`): create an
   alias, change its destination, then delete it after confirming.
 
 ### Implementation for User Story 3
 
-- [ ] T055 [US3] Add `buildAliasPatch` to `src/features/aliases/alias-form.ts`. Add `useUpdateAlias`
+- [X] T055 *(done: buildAliasPatch (US2) reused; updateAlias/deleteAlias through runMutation; useVersionedSave in AliasEditSection, useAliasDeletion (412 confirms again, 404 gone) in composables/)* [US3] Add `buildAliasPatch` to `src/features/aliases/alias-form.ts`. Add `useUpdateAlias`
   and `useDeleteAlias` to `src/features/aliases/api.ts`, through `useVersionedSave`, with the 412
   and 404 handling and the invalidation of data-model §3.
-- [ ] T056 [P] [US3] Implement `src/features/aliases/components/AliasAddressSection.vue`,
+- [X] T056 *(done: one AliasEditSection.vue instead of four sections (legacy form map: edit/alias.twig is one form), reusing DestinationField and AliasOptionsFields; comments checked only when changed, legacy's maxlength)* [P] [US3] Implement `src/features/aliases/components/AliasAddressSection.vue`,
   `AliasDestinationSection.vue`, `AliasOptionsSection.vue` and `AliasCommentsSection.vue` on
   `EditableSection`, reusing US2's field components. Comments are checked only when changed.
-- [ ] T057 [US3] Integrate them into `src/features/aliases/pages/AliasDetailPage.vue`:
+- [X] T057 *(done: ?edit=alias with the leave guard, full screen below md, useFormDraft, vanished alias back to the list (list flash); Delete only in the list menu (AliasEntryActions: Edit, Remove), no Delete in the orphaned warning and no deactivation confirmation (plan part 3, items 7 and 8))* [US3] Integrate them into `src/features/aliases/pages/AliasDetailPage.vue`:
   - the `edit` query parameter;
   - `useFormDraft` per section;
   - Delete through `useConfirm` with the consequences of research R11;
@@ -739,7 +739,7 @@ with and without confirming.
 
   Add "Edit" and "Delete" to the menus of `AliasCard.vue` and `AliasTable.vue` (FR-015). "Edit"
   opens the detail with `edit=destination`.
-- [ ] T058 [US3] Use `success.alias_modified`, `success.alias_removed` and the other legacy keys of
+- [X] T058 *(done: legacy keys success.alias_modified, success.alias_removed, footer.*; new strings aliases.gone, aliases.delete.impact, aliases.delete.impactCatchAll, aliases.delete.changed; the alias strings now load with the alias routes (src/i18n/messages/aliases/, loadFeatureMessages))* [US3] Use `success.alias_modified`, `success.alias_removed` and the other legacy keys of
   T005a's form map verbatim. Add only the form map's new strings among `aliases.edit.*`,
   `aliases.delete.*` and `aliases.orphaned.*` to the three locales. Run `npm run i18n:check`.
 

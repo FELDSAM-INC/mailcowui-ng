@@ -26,6 +26,7 @@ import { useFormDraft } from '@/shared/composables/useFormDraft'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { useSequentialCreate, type EntryResult } from '@/shared/composables/useSequentialCreate'
+import { useStickyBarFocus } from '@/shared/composables/useStickyBarFocus'
 import { buttonVariants } from '@/shared/ui/button'
 import { isCatchAll, joinEntries, parseEntryList } from '@/shared/validation/entry-list'
 
@@ -51,6 +52,8 @@ const router = useRouter()
 const queryClient = useQueryClient()
 const identity = useIdentityQuery()
 const { problemMessage, violationMessageIn } = useProblemMessages()
+
+useStickyBarFocus()
 
 const form = ref<AliasCreateForm>(createFormDefaults())
 const run = useSequentialCreate<Alias>()

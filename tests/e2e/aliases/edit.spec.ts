@@ -20,8 +20,7 @@ const section = (page: Page) => page.locator('#section-alias')
 const saveButton = (page: Page) => section(page).getByRole('button', { name: 'Save changes' })
 const addressField = (page: Page) =>
   section(page).getByRole('textbox', { name: 'Edit alias', exact: true })
-const gotoField = (page: Page) =>
-  section(page).getByRole('textbox', { name: /^Goto address\/es/ })
+const gotoField = (page: Page) => section(page).getByRole('textbox', { name: /^Goto address\/es/ })
 const status = (page: Page) => section(page).locator('[role="status"]').first()
 
 /** Opens the alias page with its section open, and returns the alias as read. */
@@ -59,7 +58,9 @@ test.describe('alias page: editing', () => {
 
     await gotoField(page).fill(MAILBOX_004.bob)
     await saveButton(page).click()
-    await expect(status(page)).toHaveText('Changes to alias address sales@example.org have been saved')
+    await expect(status(page)).toHaveText(
+      'Changes to alias address sales@example.org have been saved',
+    )
     const [request] = await updates(mockApi)
     expect(request!.headers['if-match']).toBe(data.etag)
     expect(request!.body).toEqual({ destinationType: 'addresses', destinations: [MAILBOX_004.bob] })
@@ -74,7 +75,9 @@ test.describe('alias page: editing', () => {
     await mockApi.use('aliases-edit')
     const read = await openEdit(page, EDIT_ALIAS_004.sales)
     await section(page).getByRole('textbox', { name: 'Public comment' }).fill('Sales team')
-    await mockApi.patch({ changeElsewhere: { alias: { [EDIT_ALIAS_004.sales]: { active: false } } } })
+    await mockApi.patch({
+      changeElsewhere: { alias: { [EDIT_ALIAS_004.sales]: { active: false } } },
+    })
     await saveButton(page).click()
     const notice = section(page).locator('[data-outdated]')
     await expect(notice).toContainText('Changed elsewhere')
@@ -85,7 +88,9 @@ test.describe('alias page: editing', () => {
     expect(await updates(mockApi)).toHaveLength(1)
 
     await section(page).getByRole('button', { name: 'Save again' }).click()
-    await expect(status(page)).toHaveText('Changes to alias address sales@example.org have been saved')
+    await expect(status(page)).toHaveText(
+      'Changes to alias address sales@example.org have been saved',
+    )
     const [first, second] = await updates(mockApi)
     expect(first!.headers['if-match']).toBe(read.etag)
     expect(second!.headers['if-match']).not.toBe(read.etag)
@@ -178,7 +183,9 @@ test.describe('alias page: editing', () => {
     )
     await addressField(page).fill('lost@example.org')
     await saveButton(page).click()
-    await expect(status(page)).toHaveText('Changes to alias address lost@example.org have been saved')
+    await expect(status(page)).toHaveText(
+      'Changes to alias address lost@example.org have been saved',
+    )
     const last = (await updates(mockApi)).at(-1)!
     expect(last.body).toEqual({ address: 'lost@example.org', internal: true })
     await expect(page.locator('[data-orphaned-warning]')).toHaveCount(0)
@@ -225,7 +232,9 @@ test.describe('alias page: editing', () => {
     await openEdit(page, EDIT_ALIAS_004.notes)
     await section(page).getByRole('checkbox', { name: 'Internal', exact: true }).click()
     await saveButton(page).click()
-    await expect(status(page)).toHaveText('Changes to alias address notes@example.org have been saved')
+    await expect(status(page)).toHaveText(
+      'Changes to alias address notes@example.org have been saved',
+    )
     expect((await updates(mockApi))[0]!.body).toEqual({ internal: true })
   })
 
@@ -288,12 +297,18 @@ test.describe('alias page: editing', () => {
       route.request().method() === 'PATCH' ? route.abort() : route.fallback(),
     )
     await saveButton(page).click()
-    await expect(section(page).getByText('The server could not be reached.', { exact: false })).toBeVisible()
+    await expect(
+      section(page).getByText('The server could not be reached.', { exact: false }),
+    ).toBeVisible()
     await expect(section(page).getByRole('textbox', { name: 'Public comment' })).toHaveValue(
       'offline',
     )
     await page.unroute('**/api/v2/aliases/*')
-    await section(page).getByRole('button', { name: /try again/i }).click()
-    await expect(status(page)).toHaveText('Changes to alias address sales@example.org have been saved')
+    await section(page)
+      .getByRole('button', { name: /try again/i })
+      .click()
+    await expect(status(page)).toHaveText(
+      'Changes to alias address sales@example.org have been saved',
+    )
   })
 })

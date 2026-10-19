@@ -3,37 +3,44 @@
 // "Detail pages"): legacy's edit heading with the address, the data the classic list shows (ID,
 // domain, target domain, the Catch-All badge) and the orphaned warning, then the "Edit alias" form
 // as one section. Deletion and "Expand alias over alias domains" stay in the list, as in legacy.
-// An alias that does not exist or lies outside the scope shows "not found" with a way back (FR-003).
-import { computed, ref } from 'vue'
+// The section opens with `?edit=alias`, so it has its own link and Back closes it; below md it
+// takes the screen (FR-064). Leaving it with changes asks first (FR-025). An alias that does not
+// exist or lies outside the scope shows "not found" with a way back (FR-003); one that vanishes
+// while open, on a save or a refresh, sends the user back to the list with a message (FR-028).
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRoute } from 'vue-router'
+import { onBeforeRouteUpdate, RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { isApiProblem, problemOf } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import { isEntryAvailable } from '@/app/navigation/visibility'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
-import EditableSection from '@/shared/components/EditableSection.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import { useConfirm } from '@/shared/composables/useConfirm'
+import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
+import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
 import { useAlias } from '../api'
 import { useAliasesCapabilities } from '../capabilities'
 import AliasBadges from '../components/AliasBadges.vue'
-import AliasValues from '../components/AliasValues.vue'
+import AliasEditSection from '../components/AliasEditSection.vue'
 import OrphanedAliasWarning from '../components/OrphanedAliasWarning.vue'
-import { takeAliasFlash } from '../flash'
+import { setAliasListFlash, takeAliasFlash } from '../flash'
 import { feature004Permissions } from '../permissions'
 
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
+const confirm = useConfirm()
+const wide = useMediaQuery('(min-width: 768px)')
 const identity = useIdentityQuery()
 const capabilities = useAliasesCapabilities()
 const permissions = computed(() =>
   feature004Permissions(identity.data.value, capabilities.data.value),
 )
-const groupwareEnabled = computed(() => capabilities.data.value?.groupwareEnabled)
 
 const id = computed(() => Number(route.params.aliasId))
 /** The outcome of the creation that opened this page (legacy's `success.alias_added`). */
@@ -43,6 +50,64 @@ const alias = computed(() => query.data.value)
 const notFound = computed(
   () => !alias.value && isApiProblem(query.error.value) && query.error.value.status === 404,
 )
+
+// The section: `?edit=alias` opens it (one section, as legacy's one form).
+const editing = computed(() => route.query.edit === 'alias' && !!alias.value)
+const dirty = ref(false)
+watch(
+  [() => route.query.edit, () => !!alias.value],
+  ([value, loaded]) => {
+    if (value === undefined || !loaded || value === 'alias') return
+    const next = { ...route.query }
+    delete next.edit
+    void router.replace({ query: next, hash: route.hash })
+  },
+  { immediate: true },
+)
+
+function openSection() {
+  void router.push({ query: { ...route.query, edit: 'alias' }, hash: route.hash })
+}
+
+function closeSection() {
+  const next = { ...route.query }
+  delete next.edit
+  const previous = router.options.history.state.back
+  const target = router.resolve({ query: next, hash: route.hash }).fullPath
+  if (previous === target) router.back()
+  else void router.replace({ query: next, hash: route.hash })
+}
+
+const guard = useLeaveGuard(dirty, { messageKey: 'leaveGuard.body' })
+onBeforeRouteUpdate(async (to, from) => {
+  if (to.path !== from.path || !dirty.value || to.query.edit === from.query.edit) return true
+  const leave = await confirm({
+    title: t('leaveGuard.title'),
+    description: t('leaveGuard.body'),
+    confirmLabel: t('leaveGuard.leave'),
+    cancelLabel: t('leaveGuard.stay'),
+    destructive: true,
+  })
+  if (leave) dirty.value = false
+  return leave
+})
+
+/** The alias no longer exists or left the scope: back to the list, which says so (FR-028). */
+function vanished() {
+  dirty.value = false
+  guard.disarm()
+  setAliasListFlash('danger', t('aliases.gone'))
+  void router.replace({ name: 'aliases' })
+}
+watch(
+  () => !!alias.value && isApiProblem(query.error.value) && query.error.value.status === 404,
+  (gone) => {
+    if (gone) vanished()
+  },
+)
+
+/** Below md the open section takes the screen. */
+const showOnly = computed(() => !wide.value && editing.value)
 const linkDomains = computed(
   () => isEntryAvailable('domains', identity.data.value) && !alias.value?.orphaned,
 )
@@ -98,50 +163,52 @@ const LINK =
     <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="query.refetch()" />
   </section>
   <article v-else class="mx-auto flex w-full max-w-5xl flex-col gap-4">
-    <PageHeader :title="lt('edit.alias')" :description="subtitle">
-      <template #actions><slot name="header-actions" :alias="alias" /></template>
-    </PageHeader>
-    <OutcomeAlert v-if="flash" :message="flash" @dismiss="flash = null" />
-    <OrphanedAliasWarning v-if="permissions.canSeeOrphaned && alias.orphaned" />
-    <section
-      :aria-label="lt('edit.alias')"
-      class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
-      data-alias-summary
-    >
-      <dl class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(10rem,auto)_1fr] md:gap-x-6">
-        <dt :class="DT">{{ t('lists.id') }}</dt>
-        <dd :class="DD">{{ alias.id }}</dd>
-        <dt :class="DT">{{ lt('mailbox.domain') }}</dt>
-        <dd :class="DD" data-field="domain">
-          <RouterLink v-if="domainLink" :to="domainLink" :class="LINK">{{
-            alias.domainUnicode
-          }}</RouterLink>
-          <span v-else class="break-all">{{ alias.domainUnicode }}</span>
-        </dd>
-        <template v-if="alias.inAliasDomain">
-          <dt :class="DT">{{ lt('mailbox.target_domain') }}</dt>
-          <dd :class="DD" data-field="primaryDomain">
-            <RouterLink
-              v-if="linkDomains"
-              :to="{ name: 'domain-detail', params: { domain: alias.primaryDomain } }"
-              :class="LINK"
-              >{{ alias.primaryDomainUnicode }}</RouterLink
-            >
-            <span v-else class="break-all">{{ alias.primaryDomainUnicode }}</span>
-          </dd>
-        </template>
-      </dl>
-      <AliasBadges class="mt-3" :alias="alias" :can-see-orphaned="permissions.canSeeOrphaned" />
-    </section>
-    <slot name="sections" :alias="alias" :groupware-enabled="groupwareEnabled">
-      <EditableSection
-        section-id="alias"
-        :title="lt('edit.alias')"
-        :editable="false"
-        :editing="false"
+    <template v-if="!showOnly">
+      <PageHeader :title="lt('edit.alias')" :description="subtitle">
+        <template #actions><slot name="header-actions" :alias="alias" /></template>
+      </PageHeader>
+      <OutcomeAlert v-if="flash" :message="flash" @dismiss="flash = null" />
+      <OrphanedAliasWarning v-if="permissions.canSeeOrphaned && alias.orphaned" />
+      <section
+        :aria-label="lt('edit.alias')"
+        class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
+        data-alias-summary
       >
-        <AliasValues :alias="alias" :groupware-enabled="groupwareEnabled" />
-      </EditableSection>
-    </slot>
+        <dl class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(10rem,auto)_1fr] md:gap-x-6">
+          <dt :class="DT">{{ t('lists.id') }}</dt>
+          <dd :class="DD">{{ alias.id }}</dd>
+          <dt :class="DT">{{ lt('mailbox.domain') }}</dt>
+          <dd :class="DD" data-field="domain">
+            <RouterLink v-if="domainLink" :to="domainLink" :class="LINK">{{
+              alias.domainUnicode
+            }}</RouterLink>
+            <span v-else class="break-all">{{ alias.domainUnicode }}</span>
+          </dd>
+          <template v-if="alias.inAliasDomain">
+            <dt :class="DT">{{ lt('mailbox.target_domain') }}</dt>
+            <dd :class="DD" data-field="primaryDomain">
+              <RouterLink
+                v-if="linkDomains"
+                :to="{ name: 'domain-detail', params: { domain: alias.primaryDomain } }"
+                :class="LINK"
+                >{{ alias.primaryDomainUnicode }}</RouterLink
+              >
+              <span v-else class="break-all">{{ alias.primaryDomainUnicode }}</span>
+            </dd>
+          </template>
+        </dl>
+        <AliasBadges class="mt-3" :alias="alias" :can-see-orphaned="permissions.canSeeOrphaned" />
+      </section>
+    </template>
+    <AliasEditSection
+      :alias="alias"
+      :editing="editing"
+      :capabilities="capabilities.data.value"
+      :identity="identity.data.value"
+      @edit="openSection"
+      @close="closeSection"
+      @dirty="dirty = $event"
+      @gone="vanished"
+    />
   </article>
 </template>

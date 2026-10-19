@@ -1233,7 +1233,10 @@ stripped glyphs, refused HTML and offered English, Czech and Slovak only; all of
     - `/ng/`, with a signed-in administrator scenario, as a second collection.
 
     Assertions: `categories:performance ≥ 0.8`, `categories:accessibility ≥ 0.9`, and
-    `resource-summary:script:size ≤ 204800` as a cross-check. Reports are uploaded as CI artifacts
+    `resource-summary:script:size ≤ 215040` (210 KiB) as a shell-page transfer cross-check. The
+    owner approved this small allowance on 2026-10-20 after sign-in transferred 208,974 bytes.
+    It includes route scripts and transfer overhead; the manifest-based initial bundle budget
+    remains 204,800 bytes gzipped (200 KiB). Reports are uploaded as CI artifacts
     (`temporary-public-storage` is not used).
 
     The two collections need different default scenarios, and `lighthouserc.cjs` cannot restart

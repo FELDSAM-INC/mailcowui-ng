@@ -12,9 +12,9 @@ module.exports = {
       },
     },
     // Constitution VII: performance >= 0.8, accessibility >= 0.9, initial payload <= 200 KB.
-    // On the shell's own pages every script is initial, so their total is held to the budget; a
-    // feature page adds its lazily loaded route on top (UI 002 T104), and `npm run budget:check`
-    // holds the initial payload of the build.
+    // Owner decision (2026-10-20): shell-page script transfer may reach 210 KiB, including lazy
+    // route scripts and transfer overhead. `npm run budget:check` still caps the entry and its
+    // static imports at 200 KiB gzipped. Feature pages retain their separate chunk budgets.
     assert: {
       assertMatrix: [
         {
@@ -22,7 +22,7 @@ module.exports = {
           assertions: {
             'categories:performance': ['error', { minScore: 0.8 }],
             'categories:accessibility': ['error', { minScore: 0.9 }],
-            'resource-summary:script:size': ['error', { maxNumericValue: 204800 }],
+            'resource-summary:script:size': ['error', { maxNumericValue: 215040 }],
           },
         },
         {

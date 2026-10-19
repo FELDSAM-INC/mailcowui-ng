@@ -240,3 +240,11 @@ No credentials were submitted. API readiness reports database, schema, Redis and
 healthy. Logs are in the API checkout's `storage/app/restart-2026-10-19/u011/` as
 `deploy-maildev.log` and `deploy-maildev-browser.log`. These deployment checks do not replace the
 remaining real-phone and authenticated feature-parity checks (T149 and T150 Part D).
+
+**2026-10-20, shell-page transfer allowance**: the owner asked to adjust the remaining sign-in
+size warning. The Lighthouse script-transfer limit for sign-in and home is now **215,040 bytes
+(210 KiB)**; the manifest-based initial bundle remains capped at **204,800 bytes gzipped**.
+Re-evaluating the saved reports clears the sign-in transfer failure at **208,974 bytes**, without
+rerunning the browser measurements. Domains and aliases still miss the performance minimum of
+80; their follow-up status and the staging-release exception remain recorded above. No
+application files changed, so this CI/docs update does not require redeployment.

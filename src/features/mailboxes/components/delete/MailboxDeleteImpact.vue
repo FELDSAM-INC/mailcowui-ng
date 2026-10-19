@@ -67,11 +67,22 @@ const retention = computed(() =>
       :data-impact="group"
     >
       <p>{{ t(`mailboxes.delete.${group}`, { count: fmt.number(impact[group].count) }) }}</p>
-      <ul class="flex max-h-32 list-disc flex-col gap-0.5 overflow-y-auto ps-5">
-        <li v-for="address in impact[group].addresses" :key="address" class="wrap-anywhere">
-          {{ address }}
-        </li>
-      </ul>
+      <div
+        role="region"
+        tabindex="0"
+        :aria-label="t(`mailboxes.delete.${group}`, { count: fmt.number(impact[group].count) })"
+        class="max-h-32 overflow-y-auto rounded-lg focus-visible:outline-2 focus-visible:outline-brand-500"
+      >
+        <ul class="flex list-disc flex-col gap-0.5 ps-5 text-gray-700 dark:text-gray-300">
+          <li
+            v-for="address in impact[group].addresses"
+            :key="address"
+            class="wrap-anywhere text-gray-700 dark:text-gray-300"
+          >
+            {{ address }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>

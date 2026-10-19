@@ -9,10 +9,11 @@ import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
-import { PauseIcon, PlayIcon, RestartIcon, WarningIcon } from '@/shared/icons'
+import { WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import type { LiveState } from '../useLiveUpdates'
+import { PauseIcon, PlayIcon, RestartIcon } from '../../icons'
 
 const props = defineProps<{
   state: LiveState

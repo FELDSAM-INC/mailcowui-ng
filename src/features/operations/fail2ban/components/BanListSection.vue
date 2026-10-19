@@ -24,7 +24,7 @@ import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { confirm } from '@/shared/composables/useConfirm'
 import { useVersionedSave } from '@/shared/composables/useVersionedSave'
-import { CopyIcon, RestartIcon } from '@/shared/icons'
+import { CopyIcon } from '@/shared/icons'
 import { copyText } from '@/shared/platform/clipboard'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -41,6 +41,7 @@ import {
 } from '../api'
 import { coversAddress } from '../covers-address'
 import ActiveBanItem from './ActiveBanItem.vue'
+import { RestartIcon } from '../../icons'
 
 const props = defineProps<{
   settings: Fail2BanSettings

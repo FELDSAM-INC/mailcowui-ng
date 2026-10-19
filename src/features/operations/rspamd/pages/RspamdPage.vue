@@ -19,7 +19,6 @@ import SearchField from '@/shared/components/SearchField.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import type { PageSize, SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { RestartIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import LogQuickActions from '../../logs/components/LogQuickActions.vue'
@@ -28,6 +27,7 @@ import { useRspamdHistory, useRspamdStatistics } from '../api'
 import RspamdActionsChart from '../components/RspamdActionsChart.vue'
 import RspamdHistoryList from '../components/RspamdHistoryList.vue'
 import { RSPAMD_SORTS, useRspamdListState, type RspamdSort } from '../list-state'
+import { RestartIcon } from '../../icons'
 
 const { t, locale } = useI18n()
 const wide = useMediaQuery('(min-width: 768px)')

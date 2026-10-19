@@ -10,20 +10,14 @@ import { useI18n } from 'vue-i18n'
 import { lt } from '@/i18n'
 import type { AppLocale } from '@/i18n/locales'
 import PlainText from '@/shared/components/PlainText.vue'
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  DangerIcon,
-  InfoIcon,
-  TrashIcon,
-  WarningIcon,
-} from '@/shared/icons'
+import { DangerIcon, InfoIcon, TrashIcon, WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 import { RATE_LIMIT_BUCKET_ID_PATTERN } from '@/shared/validation/limits'
 
 import { formatLogTime } from '../log-time'
 import type { LogCell, Message } from '../log-types'
 import LogBadge from './LogBadge.vue'
+import { ArrowDownIcon, ArrowUpIcon } from '../../icons'
 
 const props = defineProps<{ cell: LogCell }>()
 defineEmits<{ reset: [hash: string] }>()

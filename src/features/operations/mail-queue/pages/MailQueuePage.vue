@@ -25,7 +25,7 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { RestartIcon, TrashIcon, WarningIcon } from '@/shared/icons'
+import { TrashIcon, WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useMonitoringCapabilities } from '../../capabilities'
@@ -39,6 +39,7 @@ import QueueMessageCard from '../components/QueueMessageCard.vue'
 import QueueMessageTable from '../components/QueueMessageTable.vue'
 import { useQueueActions } from '../composables/useQueueActions'
 import { MAIL_QUEUE_SORTS, useMailQueueListState, type MailQueueSort } from '../list-state'
+import { RestartIcon } from '../../icons'
 
 const props = defineProps<{ queueId?: string }>()
 

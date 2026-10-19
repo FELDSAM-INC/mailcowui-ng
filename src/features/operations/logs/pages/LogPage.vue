@@ -20,7 +20,7 @@ import SearchField from '@/shared/components/SearchField.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { RestartIcon, WarningIcon } from '@/shared/icons'
+import { WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useLogEntries } from '../api'
@@ -30,6 +30,7 @@ import LogsIntro from '../components/LogsIntro.vue'
 import { useLogListState } from '../list-state'
 import { findLogType } from '../log-types'
 import { useRateLimitReset } from '../useRateLimitReset'
+import { RestartIcon } from '../../icons'
 
 const props = defineProps<{ logType: string }>()
 const { t, locale } = useI18n()

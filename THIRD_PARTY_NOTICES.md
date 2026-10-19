@@ -260,12 +260,12 @@ comment naming the Lucide icon.
 | `src/shared/icons/LogsIcon.vue` | Lucide `icons/scroll-text.svg` (UI 011) |
 | `src/shared/icons/QueueIcon.vue` | Lucide `icons/inbox.svg` (UI 011) |
 | `src/shared/icons/ShieldIcon.vue` | Lucide `icons/shield.svg` (UI 011) |
-| `src/shared/icons/PlayIcon.vue` | Lucide `icons/play.svg` (UI 011) |
-| `src/shared/icons/StopIcon.vue` | Lucide `icons/square.svg` (UI 011) |
-| `src/shared/icons/RestartIcon.vue` | Lucide `icons/rotate-cw.svg` (UI 011) |
-| `src/shared/icons/PauseIcon.vue` | Lucide `icons/pause.svg` (UI 011) |
-| `src/shared/icons/ArrowUpIcon.vue` | Lucide `icons/arrow-up.svg` (UI 011) |
-| `src/shared/icons/ArrowDownIcon.vue` | Lucide `icons/arrow-down.svg` (UI 011) |
+| `src/features/operations/icons/PlayIcon.vue` | Lucide `icons/play.svg` (UI 011) |
+| `src/features/operations/icons/StopIcon.vue` | Lucide `icons/square.svg` (UI 011) |
+| `src/features/operations/icons/RestartIcon.vue` | Lucide `icons/rotate-cw.svg` (UI 011) |
+| `src/features/operations/icons/PauseIcon.vue` | Lucide `icons/pause.svg` (UI 011) |
+| `src/features/operations/icons/ArrowUpIcon.vue` | Lucide `icons/arrow-up.svg` (UI 011) |
+| `src/features/operations/icons/ArrowDownIcon.vue` | Lucide `icons/arrow-down.svg` (UI 011) |
 
 ### ISC licence
 

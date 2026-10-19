@@ -30,10 +30,11 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { confirm } from '@/shared/composables/useConfirm'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { useVersionedSave } from '@/shared/composables/useVersionedSave'
-import { ChevronDownIcon, PlusIcon, RestartIcon, WarningIcon } from '@/shared/icons'
+import { ChevronDownIcon, PlusIcon, WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { fetchRules, replaceRules, resetRules, writeRules } from '../api'
+import { RestartIcon } from '../../icons'
 
 const props = defineProps<{
   rules: Fail2BanRules

@@ -8,10 +8,11 @@ import { useI18n } from 'vue-i18n'
 
 import type { Container, ContainerAction } from '@/api'
 import { text } from '@/i18n'
-import { PlayIcon, RestartIcon, StopIcon, WarningIcon } from '@/shared/icons'
+import { WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useContainerAction } from '../composables/useContainerAction'
+import { PlayIcon, RestartIcon, StopIcon } from '../../icons'
 
 const props = withDefaults(
   defineProps<{

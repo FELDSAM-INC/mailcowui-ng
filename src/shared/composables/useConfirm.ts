@@ -27,6 +27,11 @@ export interface ConfirmRequest {
   content?: { component: Component; props?: Record<string, unknown> }
   /** Information only: one action (`confirmLabel`) that closes the dialog and resolves false. */
   alertOnly?: boolean
+  /**
+   * UI 006 (FR-026, FR-034): a high-risk action. The confirm action stays disabled until this
+   * checkbox is ticked (for example "I understand that this message contains a virus").
+   */
+  acknowledge?: { label: string }
 }
 
 /** Whether a typed value matches one accepted value. */

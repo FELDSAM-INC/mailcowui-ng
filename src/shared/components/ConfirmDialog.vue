@@ -32,6 +32,8 @@ const open = computed(() => confirmState.value !== null)
 const shown = shallowRef<ConfirmRequest | null>(null)
 const typed = ref('')
 const typedId = useId()
+// UI 006: the acknowledgement of a high-risk action.
+const acknowledged = ref(false)
 let returnFocus: HTMLElement | null = null
 
 watch(
@@ -40,6 +42,7 @@ watch(
     if (!request) return
     shown.value = request
     typed.value = ''
+    acknowledged.value = false
     returnFocus = request.returnFocus
   },
   { immediate: true },
@@ -47,6 +50,7 @@ watch(
 
 const confirmDisabled = computed(() => {
   const rule = shown.value?.requireTyped
+  if (shown.value?.acknowledge && !acknowledged.value) return true
   return !!rule && !matchesTyped(typed.value, rule)
 })
 
@@ -88,6 +92,14 @@ function onCloseAutoFocus(event: Event) {
           v-if="shown?.content"
           v-bind="shown.content.props ?? {}"
         />
+        <label
+          v-if="shown?.acknowledge"
+          data-acknowledge
+          class="inline-flex min-h-11 items-center gap-3 font-medium text-gray-800 dark:text-gray-200"
+        >
+          <input v-model="acknowledged" type="checkbox" class="size-5 shrink-0 accent-brand-500" />
+          <span class="min-w-0">{{ shown.acknowledge.label }}</span>
+        </label>
         <div v-if="shown?.requireTyped" class="flex flex-col gap-1.5">
           <label :for="typedId" class="font-medium text-gray-800 dark:text-gray-200">
             {{ t(shown.requireTyped.labelKey, shown.requireTyped.labelParams ?? {}) }}

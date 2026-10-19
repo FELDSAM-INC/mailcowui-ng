@@ -39,12 +39,22 @@ import type {
   PermissionFlags,
   Preferences,
   PublicConfig,
+  QuarantineCapabilities,
+  QuarantineItemAction,
+  QuarantineRecipient,
+  QuarantineReleaseFormat,
+  QuarantineSymbol,
+  RateLimitValue,
   ResourceBookingRule,
   ResourceKind,
   Role,
   Scope,
   SecondFactorMethod,
   SessionState,
+  SpamFilterTemporaryFailureProblem,
+  SpamPolicyList,
+  SpamPolicyOwner,
+  SpamScore,
 } from '@/api'
 
 import { type ViolationRecorder } from '../contract/validator'
@@ -167,6 +177,8 @@ export interface InjectedFailure {
   pendingActions?: PendingAction[]
   /** Field violations of an injected `422 validation-failed`. */
   errors?: Record<string, { code: string; message: string; params?: Record<string, unknown> }[]>
+  /** UI 006: further extension members of the problem (`dependency`, `step`, `smtpResponse`, …). */
+  extra?: Record<string, unknown>
 }
 
 export interface RecordedRequest {
@@ -537,6 +549,182 @@ export interface DnsPatch {
   failingBulkTargets?: string[]
 }
 
+// ---------------------------------------------------------------------------------------------
+// UI 006: quarantine, spam policy and rate limits (research R28). Rate limits live on the stored
+// domains, alias domains and mailboxes (`rateLimit`), and notification settings on the mailboxes
+// (`quarantineNotification`, `quarantineCategory`), so that UI 002-004 show every change.
+
+/** One attachment of a mock quarantine item; `data` is its decoded content (UTF-8 text). */
+export interface MockQuarantineAttachment {
+  fileName: string
+  contentType: string
+  data: string
+}
+
+/** The parsed content of a mock item, as `getQuarantineItem` returns it once it is available. */
+export interface MockQuarantineContent {
+  from: string
+  subject: string
+  recipients: QuarantineRecipient[]
+  textPlain: string | null
+  textFromHtml: string
+  parserFallback: boolean
+  attachments: MockQuarantineAttachment[]
+}
+
+/**
+ * What the next action on an item answers (UI 006 T039): failed or repeated learning steps, a busy
+ * item (`409 quarantine-item-busy`, after which the item is gone or available again), a refused
+ * delivery and a temporary failure.
+ */
+export interface QuarantineItemInjection {
+  learning?: 'failed' | 'alreadyLearned'
+  fuzzy?: 'failed' | 'skipped'
+  /** Answers `409 quarantine-item-busy` once; the other request then removed the item, or not. */
+  busy?: { then: 'gone' | 'available'; retryAfter?: number }
+  /** Answers `409 quarantine-delivery-refused` to releases. */
+  deliveryRefused?: { smtpCode?: number; smtpResponse?: string }
+  /** Answers `503 temporary-failure` to every action (and bulk item) on the item. */
+  temporaryFailure?: Pick<SpamFilterTemporaryFailureProblem, 'dependency' | 'step'>
+  /** The item changed since it was listed: `If-Match` and bulk versions no longer match. */
+  outdated?: boolean
+  /**
+   * The item was removed after it was listed (another user, the age cleanup): it stays in the list
+   * the client already has, but reads and actions answer `404`.
+   */
+  removedElsewhere?: boolean
+}
+
+/** A stored quarantine item (mailcow's `quarantine` row plus its parsed message). */
+export interface MockQuarantineItem {
+  id: number
+  queueId: string
+  subject: string
+  sender: string
+  recipient: string
+  score: number | null
+  action: QuarantineItemAction
+  filterAction: string
+  virus: boolean
+  notified: boolean
+  arrivedAt: string
+  sourceAddress: string | null
+  authenticatedSender: string | null
+  symbols: QuarantineSymbol[]
+  fuzzyHashes: string[]
+  /** Stored size in bytes; above the capabilities' `contentSizeLimit` the item is `tooLarge`. */
+  size: number
+  /** The parsed message; null when the stored message is missing (`contentStatus: missing`). */
+  content: MockQuarantineContent | null
+  inject?: QuarantineItemInjection
+}
+
+/** The stored quarantine settings; null means unset (the default applies). */
+export interface MockQuarantineSettings {
+  retentionPerMailbox: number | null
+  maxMessageSize: number | null
+  notificationScoreLimit: number | null
+  maxAgeDays: number | null
+  excludedDomains: string[]
+  releaseFormat: QuarantineReleaseFormat | null
+  notificationSender: string | null
+  notificationSubject: string | null
+  copyRecipient: string | null
+  redirectRecipient: string | null
+  notificationTemplate: string | null
+}
+
+/** Custom spam score values of a mailbox; one of them may be missing (written by another tool). */
+export interface MockSpamScore {
+  junkScore: number | null
+  rejectScore: number | null
+}
+
+/** A stored allow or block list entry (`filterconf`). */
+export interface MockSpamPolicyEntry {
+  id: number
+  list: SpamPolicyList
+  ownerKind: SpamPolicyOwner['kind']
+  /** ASCII domain name or lower-case mailbox username. */
+  owner: string
+  pattern: string
+  createdAt: string
+}
+
+/** The action counts of `getSpamFilterActionStatistics`. */
+export interface MockSpamStatistics {
+  rejected: number
+  softRejected: number
+  subjectRewritten: number
+  movedToJunk: number
+  noAction: number
+  countedSince: string | null
+  spamFilterRunningSince: string | null
+}
+
+export interface MockQuarantineState {
+  capabilities: QuarantineCapabilities
+  settings: MockQuarantineSettings
+  items: MockQuarantineItem[]
+  /** The highest item ID handed out. */
+  lastItemId: number
+  /** Custom spam scores by lower-case mailbox. */
+  spamScores: Record<string, MockSpamScore>
+  /** The server defaults of `getMailboxSpamScore`. */
+  spamScoreDefaults: SpamScore['defaults']
+  entries: MockSpamPolicyEntry[]
+  lastEntryId: number
+  /** Stored rate limit texts that do not match the legacy format, by `<kind>:<object>`. */
+  invalidRateLimits: Record<string, string>
+  /** Rate-limit buckets with counters or log entries (`resetRateLimitBucket` answers 204). */
+  buckets: string[]
+  /** The statistics, or `unavailable` for `503 temporary-failure` (`dependency: spamFilter`). */
+  statistics: MockSpamStatistics | 'unavailable'
+  /** Lower-case mailboxes that have no stored quarantine category (`category: null`). */
+  noCategory: string[]
+}
+
+/** Item changes of a `QuarantinePatch`: added items are completed by `mockQuarantineItem`. */
+export interface QuarantineItemChanges {
+  /** Replaces every item. */
+  replace?: (Partial<MockQuarantineItem> & { recipient: string })[]
+  add?: (Partial<MockQuarantineItem> & { recipient: string })[]
+  /** Changes stored items by ID (an `inject` of null removes the injection). */
+  set?: Record<
+    string,
+    Partial<Omit<MockQuarantineItem, 'inject'>> & {
+      inject?: QuarantineItemInjection | null
+    }
+  >
+  remove?: number[]
+}
+
+/**
+ * UI 006 overrides and runtime patches (`{ quarantine: … }`), all JSON. Rate limits are set on the
+ * stored objects by kind (null removes one); `invalidRateLimits` stores texts in another format.
+ */
+export interface QuarantinePatch {
+  capabilities?: Partial<Omit<QuarantineCapabilities, 'settings'>> & {
+    settings?: Partial<QuarantineCapabilities['settings']>
+  }
+  settings?: Partial<MockQuarantineSettings>
+  items?: QuarantineItemChanges
+  spamScores?: Record<string, MockSpamScore | null>
+  spamScoreDefaults?: Partial<SpamScore['defaults']>
+  entries?: {
+    replace?: (Partial<MockSpamPolicyEntry> &
+      Pick<MockSpamPolicyEntry, 'list' | 'ownerKind' | 'owner' | 'pattern'>)[]
+    add?: (Partial<MockSpamPolicyEntry> &
+      Pick<MockSpamPolicyEntry, 'list' | 'ownerKind' | 'owner' | 'pattern'>)[]
+    remove?: number[]
+  }
+  rateLimits?: Partial<Record<SpamPolicyOwner['kind'], Record<string, RateLimitValue | null>>>
+  invalidRateLimits?: Record<string, string | null>
+  buckets?: string[]
+  statistics?: MockSpamStatistics | 'unavailable'
+  noCategory?: string[]
+}
+
 export interface ScenarioState {
   id: string
   name: string
@@ -601,6 +789,8 @@ export interface ScenarioState {
   singleSignOn: MockSingleSignOn
   oauth2Clients: MockOauth2Client[]
   oauth2Capabilities: Oauth2ClientCapabilities
+  /** UI 006: quarantine items, settings, spam scores, list entries, buckets and statistics. */
+  quarantine: MockQuarantineState
 }
 
 /** JSON overrides for a scenario, given by tests through `POST /__mock/scenarios`. */
@@ -661,6 +851,8 @@ export interface ScenarioOverrides {
   routing?: RoutingOverrides
   /** UI 011: monitoring capabilities, host clock, lags, injections and area data (T013). */
   operations?: OperationsPatch
+  /** UI 006: quarantine, spam policy and rate limit data and injections. */
+  quarantine?: QuarantinePatch
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

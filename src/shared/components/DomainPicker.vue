@@ -28,6 +28,11 @@ export interface DomainPickerOption {
   relay?: boolean
   /** UI 004: a short note shown under the option, for example legacy's "Alias (blocked)". */
   note?: string
+  /**
+   * UI 009: the option's second line instead of the ASCII name, for options whose value is not a
+   * name (a relayhost's ID, "inactive"; the mailboxes an alias delivers to); null for none.
+   */
+  detail?: string | null
 }
 
 export interface DomainPickerPage {
@@ -383,9 +388,11 @@ function retry() {
             >
               <span class="font-medium wrap-anywhere">{{ entry.nameUnicode }}</span>
               <span
-                v-if="entry.nameUnicode !== entry.name"
+                v-if="
+                  entry.detail !== undefined ? !!entry.detail : entry.nameUnicode !== entry.name
+                "
                 class="text-sm wrap-anywhere text-gray-600 dark:text-gray-400"
-                >{{ entry.name }}</span
+                >{{ entry.detail !== undefined ? entry.detail : entry.name }}</span
               >
               <span v-if="entry.note" class="text-sm text-gray-600 dark:text-gray-400">{{
                 entry.note

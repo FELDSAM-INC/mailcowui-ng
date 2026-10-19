@@ -12,3 +12,21 @@ export interface SectionStatus {
   kind: 'success' | 'info' | 'error'
   message: string
 }
+
+/**
+ * UI 009: a field of a section that is saved through its own operation with its own version tag,
+ * after the section's patch (the relayhost assignment of the domain and mailbox sections). The
+ * section asks it whether it changed, saves it, lists what changed meanwhile, and discards it.
+ */
+export interface SectionCompanion {
+  /** The section opened: read the stored value. */
+  open(): void
+  dirty(): boolean
+  save(): Promise<'saved' | 'unchanged' | 'outdated' | 'failed'>
+  /** What changed meanwhile after an outdated save. */
+  outdated(): SectionChange[]
+  /** "Discard my changes": take the stored value again. */
+  discard(): void
+  /** The refusal of the last save, shown as the section's status (the field may be hidden). */
+  failure(): string | null
+}

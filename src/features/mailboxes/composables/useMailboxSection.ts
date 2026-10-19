@@ -18,7 +18,7 @@ import { computed, ref, shallowRef, watch, type Ref } from 'vue'
 import { ApiProblem, queryKeys, type Identity, type MailboxCapabilities } from '@/api'
 import { lt, resolveText } from '@/i18n'
 import { useI18n } from 'vue-i18n'
-import type { SectionStatus } from '@/shared/components/editable-section'
+import type { SectionCompanion, SectionStatus } from '@/shared/components/editable-section'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useClientErrors } from '@/shared/composables/useClientErrors'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
@@ -55,6 +55,8 @@ export interface MailboxSectionSpec<F> {
   validate?: (form: F, base: Mailbox) => ClientErrors
   /** The element ID of a field's control, for focusing field errors. */
   fieldId?: (path: string) => string | null
+  /** UI 009: a field saved through its own operation after the patch (the relayhost). */
+  companion?: SectionCompanion
 }
 
 export function useMailboxSection<F>(
@@ -121,6 +123,7 @@ export function useMailboxSection<F>(
       problem.value = null
       problemForm.clear()
       versioned.discard()
+      spec.companion?.open()
       setStatus(null)
     },
     { immediate: true },
@@ -130,7 +133,8 @@ export function useMailboxSection<F>(
     () =>
       !!props.editing &&
       !!base.value &&
-      JSON.stringify(form.value) !== JSON.stringify(spec.toForm(opened)),
+      (JSON.stringify(form.value) !== JSON.stringify(spec.toForm(opened)) ||
+        !!spec.companion?.dirty()),
   )
   watch(dirty, (value) => emit('dirty', value), { immediate: true })
 
@@ -168,6 +172,24 @@ export function useMailboxSection<F>(
     if (!base.value || pending.value) return
     for (const field of refused.value) delete (patch as Record<string, unknown>)[field]
     if (Object.keys(patch).length === 0) {
+      // UI 009: only the companion (the relayhost) changed; it saves on its own.
+      if (spec.companion?.dirty()) {
+        pending.value = true
+        try {
+          const outcome = await spec.companion.save()
+          if (outcome !== 'saved') {
+            const failure = spec.companion.failure()
+            if (failure) setStatus({ kind: 'error', message: failure })
+            return
+          }
+          setStatus({
+            kind: 'success',
+            message: lt('success.mailbox_modified', base.value.address),
+          })
+        } finally {
+          pending.value = false
+        }
+      }
       emit('dirty', false)
       emit('close')
       return
@@ -183,6 +205,14 @@ export function useMailboxSection<F>(
         opened = result.result
         outdatedFields.value = null
         form.value = spec.toForm(result.result)
+        // UI 009: the companion saves after the patch; its refusal keeps the section open.
+        const companion = await spec.companion?.save()
+        if (companion === 'outdated' || companion === 'failed') {
+          const failure = spec.companion?.failure()
+          if (failure) setStatus({ kind: 'error', message: failure })
+          emit('saved', result.result)
+          return
+        }
         setStatus({
           kind: 'success',
           message: lt('success.mailbox_modified', result.result.address),
@@ -228,6 +258,7 @@ export function useMailboxSection<F>(
 
   /** "Discard my changes" after a 412: the form takes the reloaded values. */
   function discard() {
+    spec.companion?.discard()
     const latest = versioned.discard() ?? base.value
     if (!latest) return
     base.value = latest
@@ -246,7 +277,13 @@ export function useMailboxSection<F>(
     canEdit,
     refused,
     problemForm,
-    outdated: computed(() => display.changes(outdatedFields.value)),
+    outdated: computed(() => {
+      const all = [
+        ...(display.changes(outdatedFields.value) ?? []),
+        ...(spec.companion?.outdated() ?? []),
+      ]
+      return all.length > 0 ? all : null
+    }),
     errorsFor: (path: string) => problemForm.errorsFor(path),
     save,
     saveAgain,

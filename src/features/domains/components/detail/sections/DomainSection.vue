@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // The "Edit domain" tab of the classic domain page (`templates/edit/domain.twig` #dedit) as one
 // section with its own save (owner rule 1:1, docs/conventions.md "Detail pages"): domain,
-// description (read-only without the `domain_desc` permission), tags, the relayhost (read-only
-// until UI 009 makes it editable, shown with the `domain_relayhost` permission), then, for
+// description (read-only without the `domain_desc` permission), tags, the relayhost (UI 009's
+// choice, shown with the `domain_relayhost` permission and saved with the section), then, for
 // administrators only, the limits, the quotas in MiB and the relay options, then the Global Address
 // List, active (administrators only) and the creation and modification times. The default mailbox
 // quota is left out (owner decision, docs/conventions.md "Follow the legacy form"). The client rules of
@@ -10,6 +10,7 @@
 import { computed } from 'vue'
 import { lt } from '@/i18n'
 import type { Domain, Identity } from '@/api'
+import { RelayhostAssignmentField, useRelayhostAssignment } from '@/features/routing'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
@@ -143,8 +144,19 @@ function validate(form: DomainForm, base: Domain): ClientErrors {
   return errors
 }
 
+const showRelayhost = computed(
+  () => props.identity?.role === 'admin' || !!props.identity?.permissions.domainRelayhost,
+)
+// UI 009: the relayhost is saved through its own operation after the section's patch.
+const relayhostField = useRelayhostAssignment({
+  kind: 'domain',
+  name: () => props.domain.name,
+  enabled: () => showRelayhost.value,
+})
+
 const s = useEditableSection(props, emit, {
   id: 'domain',
+  companion: relayhostField.companion,
   fields: [
     'description',
     'tags',
@@ -175,9 +187,6 @@ const s = useEditableSection(props, emit, {
 
 /** Administrators: the limits, quotas and relay options are theirs alone, as in legacy. */
 const admin = computed(() => s.canEdit('maxAliases') || props.identity?.role === 'admin')
-const showRelayhost = computed(
-  () => props.identity?.role === 'admin' || !!props.identity?.permissions.domainRelayhost,
-)
 const relayhost = computed(() =>
   props.domain.relayhost
     ? props.domain.relayhost.hostname
@@ -311,9 +320,10 @@ const LIMITS = [
         :suggestions-state="suggestions.state.value"
         @search="suggestions.search"
       />
-      <ValueList
+      <RelayhostAssignmentField
         v-if="showRelayhost"
-        :items="[{ key: 'relayhost', label: lt('edit.relayhost'), value: relayhost }]"
+        id="section-domain-relayhost"
+        :field="relayhostField"
       />
       <template v-if="admin">
         <LimitField

@@ -76,6 +76,8 @@ describe('DomainSection', () => {
   it('shows the classic fields in legacy order to an administrator', async () => {
     const domain = await domainFixture()
     const wrapper = mountSection(DomainSection, domain, { identity: adminIdentity })
+    // UI 009: the relayhost choice is an async component that reads the assignment.
+    await vi.waitFor(() => expect(wrapper.find('input#section-domain-relayhost').exists()).toBe(true))
     const found = labels(wrapper)
     const order = [
       'Domain',
@@ -95,7 +97,12 @@ describe('DomainSection', () => {
     expect(positions, JSON.stringify(found)).not.toContain(-1)
     expect([...positions].sort((a, b) => a - b)).toEqual(positions)
     expect(wrapper.get('input#section-domain-domainQuota').element).toHaveProperty('value', '51200')
-    expect(wrapper.text()).toContain('None / Inherit')
+    await vi.waitFor(() =>
+      expect(wrapper.get('input#section-domain-relayhost').element).toHaveProperty(
+        'value',
+        'None / Inherit',
+      ),
+    )
   })
 
   it('shows a domain administrator no limits, quotas or relay options, and the rest as legacy does', async () => {

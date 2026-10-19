@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // The "Mailbox" tab of the classic mailbox page (`templates/edit/mailbox.twig` #medit) as one
 // section with its own save (owner rule 1:1, legacy form map): the identity provider, full name,
-// tags, quota in MiB with its "max." badge and "0 = ∞"; the sender-dependent transports, read-only
-// until UI 009 (administrators and `mailboxRelayhost`); the tagged mail handling, quarantine
+// tags, quota in MiB with its "max." badge and "0 = ∞"; the sender-dependent transports (UI 009's
+// choice for administrators and `mailboxRelayhost`, saved with the section); the tagged mail handling, quarantine
 // notification and category and encryption policy, read-only until UI 005 and UI 006; for the
 // built-in source the password with its repeat, check and policy, and the recovery e-mail; the
 // allowed protocols; then the status, forced password change, forced 2FA enrollment and SOGo access
@@ -13,6 +13,7 @@ import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useBranding } from '@/app/branding/public-config'
+import { RelayhostAssignmentField, useRelayhostAssignment } from '@/features/routing'
 import { ExternalSenderField, SenderAclField, useSenderSettings } from '@/features/sender-settings'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
@@ -138,8 +139,16 @@ function validate(form: Form, base: MailboxSectionProps['mailbox']): ClientError
   return errors
 }
 
+// UI 009: the relayhost is saved through its own operation after the section's patch.
+const relayhostField = useRelayhostAssignment({
+  kind: 'mailbox',
+  name: () => props.mailbox.address,
+  enabled: () => canSeeRelayhost(props.identity),
+})
+
 const s = useMailboxSection<Form>(props, emit as never, {
   id: 'mailbox',
+  companion: relayhostField.companion,
   fields: FIELDS,
   toForm,
   validate,
@@ -349,9 +358,11 @@ const times = computed(() => [
         :errors="s.errorsFor('quota')"
       />
       <SenderAclField :state="senders" />
-      <ValueList
+      <RelayhostAssignmentField
         v-if="canSeeRelayhost(identity)"
-        :items="[{ key: 'relayhost', label: lt('edit.relayhost'), value: relayhost }]"
+        id="section-mailbox-relayhost"
+        :field="relayhostField"
+        hint="edit.mailbox_relayhost_info"
       />
       <LegacyRadioGroup
         id-prefix="section-mailbox-taggedMail"

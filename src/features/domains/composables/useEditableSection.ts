@@ -5,7 +5,7 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import { lt } from '@/i18n'
 import type { Domain, DomainCapabilities, DomainPatch } from '@/api'
-import type { SectionStatus } from '@/shared/components/editable-section'
+import type { SectionCompanion, SectionStatus } from '@/shared/components/editable-section'
 import { announce } from '@/shared/composables/useAnnouncer'
 
 import type { ClientErrors } from '../form-rules'
@@ -42,6 +42,8 @@ export interface SectionSpec<F> {
   confirm?: (form: F, base: Domain) => Promise<boolean>
   /** Extra text after "saved", for example the groupware restart notice. */
   savedNote?: (before: Domain, saved: Domain) => string | undefined
+  /** UI 009: a field saved through its own operation after the patch (the relayhost). */
+  companion?: SectionCompanion
 }
 
 export function useEditableSection<F>(
@@ -79,6 +81,7 @@ export function useEditableSection<F>(
       section.open()
       opened = section.base.value ?? props.domain
       form.value = spec.toForm(opened)
+      spec.companion?.open()
       setStatus(null)
     },
     { immediate: true },
@@ -88,7 +91,8 @@ export function useEditableSection<F>(
     () =>
       !!props.editing &&
       !!section.base.value &&
-      JSON.stringify(form.value) !== JSON.stringify(spec.toForm(opened)),
+      (JSON.stringify(form.value) !== JSON.stringify(spec.toForm(opened)) ||
+        !!spec.companion?.dirty()),
   )
   watch(dirty, (value) => emit('dirty', value), { immediate: true })
 
@@ -102,8 +106,28 @@ export function useEditableSection<F>(
     ) as DomainPatch
   }
 
+  /** UI 009: the companion saves after the patch; its own refusal keeps the section open. */
+  async function withCompanion(outcome: string): Promise<string> {
+    if (!spec.companion || (outcome !== 'saved' && outcome !== 'unchanged')) return outcome
+    const companion = await spec.companion.save()
+    if (companion === 'outdated' || companion === 'failed') {
+      if (outcome === 'saved' && section.base.value) {
+        opened = section.base.value
+        emit('saved', section.base.value)
+      }
+      const failure = spec.companion.failure()
+      if (failure) setStatus({ kind: 'error', message: failure })
+      return 'companion'
+    }
+    return companion === 'saved' && outcome === 'unchanged' ? 'companionSaved' : outcome
+  }
+
   function finish(outcome: string, before: Domain) {
-    if (outcome === 'saved' && section.base.value) {
+    if (outcome === 'companionSaved') {
+      setStatus({ kind: 'success', message: lt('success.domain_modified', before.name) })
+      emit('dirty', false)
+      emit('close')
+    } else if (outcome === 'saved' && section.base.value) {
       const saved = section.base.value
       opened = saved
       form.value = spec.toForm(saved)
@@ -130,16 +154,20 @@ export function useEditableSection<F>(
       return
     }
     if (spec.confirm && !(await spec.confirm(form.value, base))) return
-    finish(await section.save(makePatch), base)
+    finish(await withCompanion(await section.save(makePatch)), base)
   }
 
   async function saveAgain() {
     const base = section.base.value
     if (!base) return
-    finish(await section.saveAgain(makePatch), base)
+    const outcome = section.outdatedFields.value
+      ? await section.saveAgain(makePatch)
+      : await section.save(makePatch)
+    finish(await withCompanion(outcome), base)
   }
 
   function discard() {
+    spec.companion?.discard()
     const latest = section.discard()
     if (latest) {
       opened = latest
@@ -155,7 +183,11 @@ export function useEditableSection<F>(
     canEdit,
     canSave,
     dirty,
-    outdated: computed(() => display.changes(section.outdatedFields.value)),
+    outdated: computed(() => {
+      const changes = display.changes(section.outdatedFields.value) ?? []
+      const all = [...changes, ...(spec.companion?.outdated() ?? [])]
+      return all.length > 0 ? all : null
+    }),
     errorsFor: (path: string) => section.form.errorsFor(path),
     save,
     saveAgain,

@@ -1221,14 +1221,14 @@ audit log is filtered by that object. As a domain administrator, check that the 
 - [X] T102 *(done: scenario module with exported constants, built with the mock (50b3536))* [US8] Create `tests/mocks/scenarios/history-004.ts` and register it. It seeds audit
   records with the 10 feature 004 event types and the 4 target types, using contract values only, so
   that the validator accepts them (UI 001 R22).
-- [ ] T103 [P] [US8] Write `tests/e2e/history/feature-004-history.spec.ts`. It covers:
+- [X] T103 *(done: tests/e2e/history/feature-004-history.spec.ts; history-004 scenarios now seed the UI 003 mailboxes so that the mailbox page opens)* [P] [US8] Write `tests/e2e/history/feature-004-history.spec.ts`. It covers:
   - US8-AS1 and FR-061: "History" on an alias, an alias domain, a resource and a "Send as" screen opens
     `/ng/audit-log` with `targetType` `alias`, `aliasDomain`, `resource` or `mailboxSenderSettings`
     and the matching `targetId` (`String(id)`, the ASCII name, the address, the mailbox address);
     the entries show translated labels, and the old and new values are visible as text;
   - each target links back to its object;
   - US8-AS2: no "History" for domain administrators.
-- [ ] T104 [P] [US8] Write `tests/unit/features/audit-log/labels-004.spec.ts`. It covers:
+- [X] T104 *(done: tests/unit/features/audit-log/labels-004.spec.ts)* [P] [US8] Write `tests/unit/features/audit-log/labels-004.spec.ts`. It covers:
   - the 10 event labels and the 4 target labels;
   - the target links by route name per type;
   - the generic label for a value outside the scope manifest;
@@ -1239,12 +1239,12 @@ audit log is filtered by that object. As a domain administrator, check that the 
 
 ### Implementation for User Story 8
 
-- [ ] T105 [US8] Add `HistoryLink`, shown only when `canSeeHistory` holds, to
+- [X] T105 *(done: HistoryLink (admins, canSeeHistory) on the alias, domain alias and resource pages; for sender settings in the Mailbox section header of UI 003's page (no Send as page exists), labelled "History: Allow to send as" from history.link and edit.sender_acl; HistoryLink renders nothing without a router)* [US8] Add `HistoryLink`, shown only when `canSeeHistory` holds, to
   `src/features/aliases/pages/AliasDetailPage.vue`,
   `src/features/alias-domains/pages/AliasDomainDetailPage.vue`,
   `src/features/resources/pages/ResourceDetailPage.vue` and
   `src/features/sender-settings/pages/SendAsPage.vue` (research R19).
-- [ ] T106 [US8] Extend `src/features/audit-log/labels.ts` with:
+- [X] T106 *(done: labels.ts: auditTargetLink (alias-detail, alias-domain-detail, resource-detail, mailbox-detail for sender settings; none for deletions) and auditDetailRows (changes old → new, removed and creationReport entries, copiedFromAliasId as a link, other keys verbatim), used by AuditEventDetails; docs/audit-events.md has the 004 section at the pinned commit; no new strings)* [US8] Extend `src/features/audit-log/labels.ts` with:
   - the 004 target links: `alias-detail`, `alias-domain-detail`, `resource-detail` and
     `mailbox-send-as`;
   - the presentation of the documented 004 detail keys (research R19).

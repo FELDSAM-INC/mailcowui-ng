@@ -19,6 +19,7 @@ import { useFormat } from '@/i18n/format'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import TagSetInput from '@/shared/components/TagSetInput.vue'
@@ -292,6 +293,15 @@ const times = computed(() => [
     @save-again="both.saveAgain"
     @discard="both.discard"
   >
+    <template #header-actions>
+      <!-- UI 004 US8: the history of "Allow to send as" and the external sender addresses. -->
+      <HistoryLink
+        target-type="mailboxSenderSettings"
+        :target-id="mailbox.address"
+        :label="`${t('history.link')}: ${lt('edit.sender_acl')}`"
+        :allowed="senders.permissions.value.canSeeHistory"
+      />
+    </template>
     <ValueList :items="items" />
     <p class="mt-3 text-sm text-gray-600 italic dark:text-gray-400">
       <span v-for="line in times" :key="line" class="block">{{ line }}</span>

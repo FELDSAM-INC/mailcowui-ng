@@ -16,6 +16,7 @@ import { useIdentityQuery } from '@/app/session/queries'
 import { isEntryAvailable } from '@/app/navigation/visibility'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -165,7 +166,13 @@ const LINK =
   <article v-else class="mx-auto flex w-full max-w-5xl flex-col gap-4">
     <template v-if="!showOnly">
       <PageHeader :title="lt('edit.alias')" :description="subtitle">
-        <template #actions><slot name="header-actions" :alias="alias" /></template>
+        <template #actions>
+          <HistoryLink
+            target-type="alias"
+            :target-id="String(alias.id)"
+            :allowed="permissions.canSeeHistory"
+          />
+        </template>
       </PageHeader>
       <OutcomeAlert v-if="flash" :message="flash" @dismiss="flash = null" />
       <OrphanedAliasWarning v-if="permissions.canSeeOrphaned && alias.orphaned" />

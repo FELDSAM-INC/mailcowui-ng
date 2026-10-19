@@ -5,14 +5,9 @@
 import type { AuditEvent } from '@/api'
 
 import { auditEvent } from '../factories/audit-event'
-import {
-  ALIAS_004,
-  DOMAIN_ADMIN_004,
-  MAILBOX_004,
-  RESOURCE_004,
-  setupWorld004,
-} from './feature-004-base'
+import { ALIAS_004, DOMAIN_ADMIN_004, MAILBOX_004, RESOURCE_004 } from './feature-004-base'
 import type { ScenarioDefinition } from './index'
+import { setupSenderWorld } from './sender-settings'
 
 const MINUTE = 60_000
 
@@ -135,7 +130,8 @@ export const history004Scenarios: Record<string, ScenarioDefinition> = {
       'An administrator in the base world with audit records of the 10 feature 004 event types (HISTORY_004 targets) (UI 004 US8).',
     overrides: { signedInAs: 'admin' },
     setup: (state) => {
-      setupWorld004(state)
+      // With the UI 003 mailboxes, so that the mailbox page with "Allow to send as" opens.
+      setupSenderWorld(state)
       state.auditEvents = feature004HistoryRecords(state.now())
     },
   },
@@ -144,7 +140,8 @@ export const history004Scenarios: Record<string, ScenarioDefinition> = {
       'The same records as the domain administrator, who has no History control (US8-AS2).',
     overrides: { signedInAs: DOMAIN_ADMIN_004 },
     setup: (state) => {
-      setupWorld004(state)
+      // With the UI 003 mailboxes, so that the mailbox page with "Allow to send as" opens.
+      setupSenderWorld(state)
       state.auditEvents = feature004HistoryRecords(state.now())
     },
   },

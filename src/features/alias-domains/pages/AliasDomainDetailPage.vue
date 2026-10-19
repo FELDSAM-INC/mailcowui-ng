@@ -19,6 +19,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { feature004Permissions } from '@/features/aliases'
 import { lt, type LegacyKey } from '@/i18n'
 import CreationReport from '@/shared/components/CreationReport.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -165,7 +166,13 @@ const subtitle = computed(() => {
   <article v-else class="mx-auto flex w-full max-w-5xl flex-col gap-4">
     <template v-if="!showOnly">
       <PageHeader :title="lt('edit.edit_alias_domain')" :description="subtitle">
-        <template #actions><slot name="header-actions" :alias-domain="aliasDomain" /></template>
+        <template #actions>
+          <HistoryLink
+            target-type="aliasDomain"
+            :target-id="aliasDomain.name"
+            :allowed="permissions.canSeeHistory"
+          />
+        </template>
       </PageHeader>
       <CreationReport v-if="alerts" :alerts="alerts" @dismiss="alerts = null" />
     </template>

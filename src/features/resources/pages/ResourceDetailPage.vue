@@ -16,6 +16,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { feature004Permissions, useAliasesCapabilities } from '@/features/aliases'
 import { lt } from '@/i18n'
 import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -133,7 +134,13 @@ const DD = 'min-w-0 break-all text-gray-900 dark:text-white'
   <article v-else class="mx-auto flex w-full max-w-5xl flex-col gap-4">
     <template v-if="!showOnly">
       <PageHeader :title="lt('edit.resource')" :description="resource.addressUnicode">
-        <template #actions><slot name="header-actions" :resource="resource" /></template>
+        <template #actions>
+          <HistoryLink
+            target-type="resource"
+            :target-id="resource.address"
+            :allowed="permissions.canSeeHistory"
+          />
+        </template>
       </PageHeader>
       <OutcomeAlert v-if="flash" :message="flash" @dismiss="flash = null" />
       <section

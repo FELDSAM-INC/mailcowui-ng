@@ -1,21 +1,28 @@
 <script setup lang="ts">
 // The expandable part of an audit record (FR-072): the target, the user agent, the request ID and
 // the other non-secret details, all rendered as text in a definition list. Cards use the
-// collapsible variant (Reka Collapsible); the table renders the list in a row of its own.
+// collapsible variant (Reka Collapsible); the table renders the list in a row of its own. UI 004
+// links the target back to its object and shows the documented detail keys as lines of text
+// (`auditTargetLink`, `auditDetailRows`).
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink, useRouter } from 'vue-router'
 
 import type { AuditEvent } from '@/api'
 import { ChevronDownIcon } from '@/shared/icons'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 
-import { useAuditLabels } from '../labels'
+import { auditDetailRows, auditTargetLink, useAuditLabels, type AuditLink } from '../labels'
 
 const props = withDefaults(defineProps<{ event: AuditEvent; variant?: 'collapsible' | 'list' }>(), {
   variant: 'collapsible',
 })
 const { t } = useI18n()
+const router = useRouter()
 const { label } = useAuditLabels()
+/** Only links to screens that exist (conventions "Where features meet"). */
+const usable = (link: AuditLink | null | undefined) =>
+  link && router?.hasRoute(link.name) ? link : undefined
 const open = ref(false)
 
 const regionLabel = computed(() =>
@@ -32,24 +39,31 @@ const target = computed(() => {
   return type
 })
 
-function text(value: unknown): string {
-  if (Array.isArray(value)) return value.map((item) => text(item)).join(', ')
-  if (value !== null && typeof value === 'object') return JSON.stringify(value)
-  return String(value)
+interface Row {
+  key: string
+  term: string
+  lines: string[]
+  link?: AuditLink
 }
 
-const rows = computed(() => [
-  { key: 'target', term: t('auditLog.details.target'), value: target.value },
+const rows = computed<Row[]>(() => [
+  {
+    key: 'target',
+    term: t('auditLog.details.target'),
+    lines: [target.value],
+    link: usable(auditTargetLink(props.event)),
+  },
   {
     key: 'userAgent',
     term: t('auditLog.details.userAgent'),
-    value: props.event.userAgent ?? t('auditLog.details.none'),
+    lines: [props.event.userAgent ?? t('auditLog.details.none')],
   },
-  { key: 'requestId', term: t('auditLog.details.requestId'), value: props.event.requestId },
-  ...Object.entries(props.event.details).map(([key, value]) => ({
-    key: `detail-${key}`,
-    term: key,
-    value: text(value),
+  { key: 'requestId', term: t('auditLog.details.requestId'), lines: [props.event.requestId] },
+  ...auditDetailRows(props.event).map((row) => ({
+    key: `detail-${row.key}`,
+    term: row.key,
+    lines: row.lines,
+    link: usable(row.link),
   })),
 ])
 </script>
@@ -59,7 +73,16 @@ const rows = computed(() => [
     <dl class="grid gap-x-4 gap-y-2 text-sm sm:grid-cols-[minmax(8rem,auto)_1fr]">
       <template v-for="row in rows" :key="row.key">
         <dt class="font-medium text-gray-800 dark:text-gray-200">{{ row.term }}</dt>
-        <dd class="min-w-0 wrap-anywhere text-gray-700 dark:text-gray-300">{{ row.value }}</dd>
+        <dd class="min-w-0 wrap-anywhere text-gray-700 dark:text-gray-300">
+          <RouterLink
+            v-if="row.link"
+            :to="row.link"
+            class="text-brand-600 underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+            >{{ row.lines.join(' ') }}</RouterLink
+          >
+          <template v-else-if="row.lines.length === 1">{{ row.lines[0] }}</template>
+          <span v-for="line in row.lines" v-else :key="line" class="block">{{ line }}</span>
+        </dd>
       </template>
     </dl>
   </section>

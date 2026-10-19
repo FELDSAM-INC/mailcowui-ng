@@ -17,7 +17,8 @@ const props = withDefaults(
 )
 const { t } = useI18n()
 const router = useRouter()
-const available = computed(() => props.allowed && router.hasRoute('audit-log'))
+// Without a router (a component mounted on its own) there is nowhere to link to.
+const available = computed(() => props.allowed && !!router?.hasRoute('audit-log'))
 const to = computed(() => ({
   name: 'audit-log',
   query: {

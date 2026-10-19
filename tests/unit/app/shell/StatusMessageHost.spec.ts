@@ -1,5 +1,5 @@
-// UI 011 (research R8, FR-078, T022): app-level status messages stay in a status region until
-// dismissed (never on a timer), stack, and move the focus sensibly when dismissed.
+// UI 011 (research R8, FR-078, T022): app-level status messages stay until dismissed (never on a
+// timer), stack, and move the focus sensibly when dismissed; the shell's status region holds them.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
@@ -24,7 +24,7 @@ describe('StatusMessageHost', () => {
     pushStatusMessage({ text: 'sogo-mailcow: OK', tone: 'success' })
     pushStatusMessage({ text: 'Error: refused', tone: 'danger' })
     await nextTick()
-    expect(wrapper.attributes('role')).toBe('status')
+    expect(wrapper.attributes('data-status-list')).toBeDefined()
     expect(wrapper.findAll('[data-status-message]').map((item) => item.text())).toEqual([
       'sogo-mailcow: OK',
       'Error: refused',

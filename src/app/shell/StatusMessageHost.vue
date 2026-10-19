@@ -1,7 +1,9 @@
 <script setup lang="ts">
-// The app-level status messages (UI 011 research R8, FR-078): a status region in the shell that
-// lists the messages of `useStatusMessage()` until each is dismissed. Dismissing moves the focus to
-// the next message, or to the main content when none is left.
+// The app-level status messages (UI 011 research R8, FR-078): the messages of `useStatusMessage()`,
+// each until it is dismissed. The shell layout holds the status region (always present, so that a
+// message added to it is announced) and loads this list only once there is a message (research
+// R22: the shell's initial payload). Dismissing moves the focus to the next message, or to the
+// main content when none is left.
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -34,7 +36,7 @@ async function close(id: number, index: number) {
 </script>
 
 <template>
-  <div ref="list" role="status" data-status-messages class="flex flex-col gap-3 empty:hidden">
+  <div ref="list" data-status-list class="flex flex-col gap-3">
     <div
       v-for="(message, index) in messages"
       :key="message.id"

@@ -3,11 +3,12 @@
 // header, the navigation (a static list from lg, a drawer below), the announcement, the main
 // content and the operator's footer. A section the catalogue denies renders NoAccessState in
 // place of the route component, so no section data is requested (FR-045).
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+import { useStatusMessage } from '@/shared/composables/useStatusMessage'
 import { CloseIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -19,10 +20,8 @@ import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
 import AppsMenu from '../shell/AppsMenu.vue'
-import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'
 import SkipLink from '../shell/SkipLink.vue'
-import StatusMessageHost from '../shell/StatusMessageHost.vue'
 import UserMenu from '../shell/UserMenu.vue'
 import NoAccessState from '../states/NoAccessState.vue'
 
@@ -34,11 +33,22 @@ const identity = computed(() => identityQuery.data.value)
 const allowed = computed(() => routeAccess(route, identity.value) === 'allowed')
 
 const drawerOpen = ref(false)
+// The drawer (a Reka Dialog) loads with its first opening, so pages that never open it, and the
+// sign-in screens, do not carry it (constitution VII, UI 011 research R22).
+const NavigationDrawer = defineAsyncComponent(() => import('../shell/NavigationDrawer.vue'))
+const drawerUsed = ref(false)
+watch(drawerOpen, (open) => {
+  if (open) drawerUsed.value = true
+})
 const header = ref<{ menuButton: HTMLButtonElement | null } | null>(null)
 const menuButton = computed(() => header.value?.menuButton ?? null)
 
 const { signOut, retry, pending: signingOut, failed: signOutFailed } = useSignOut()
 const preferences = usePreferencesStore()
+
+// UI 011 (research R8, R22): app-level status messages, listed by a component loaded with the first.
+const StatusMessageHost = defineAsyncComponent(() => import('../shell/StatusMessageHost.vue'))
+const statusMessages = useStatusMessage().messages
 </script>
 
 <template>
@@ -61,7 +71,7 @@ const preferences = usePreferencesStore()
       </template>
     </AppHeader>
     <NavigationDrawer
-      v-if="!wide"
+      v-if="!wide && drawerUsed"
       v-model:open="drawerOpen"
       :identity="identity"
       :return-focus="menuButton"
@@ -100,7 +110,14 @@ const preferences = usePreferencesStore()
             <CloseIcon class="size-5" />
           </button>
         </div>
-        <StatusMessageHost class="mb-6" />
+        <div
+          role="status"
+          data-status-messages
+          class="empty:hidden"
+          :class="statusMessages.length ? 'mb-6' : ''"
+        >
+          <StatusMessageHost v-if="statusMessages.length" />
+        </div>
         <RouterView v-if="allowed" />
         <NoAccessState v-else />
       </main>

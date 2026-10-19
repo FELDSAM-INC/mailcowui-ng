@@ -18,10 +18,11 @@ import { isApiProblem, problemOf, queryKeys } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import { canAccess } from '@/app/navigation/visibility'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
-import { lt, type LegacyKey } from '@/i18n'
+import { lt, resolveText, type LegacyKey } from '@/i18n'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import { announce } from '@/shared/composables/useAnnouncer'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
@@ -34,7 +35,9 @@ import AclSection from '../components/sections/AclSection.vue'
 import AttributesSection from '../components/sections/AttributesSection.vue'
 import MailboxSection from '../components/sections/MailboxSection.vue'
 import ManagedSections from '../components/sections/ManagedSections.vue'
+import RenameSection from '../components/sections/RenameSection.vue'
 import { useMailboxCapabilities } from '../composables/useMailboxCapabilities'
+import { takeMailboxFlash, type MailboxFlash } from '../flash'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -56,6 +59,17 @@ const notFound = computed(
 )
 const gone = computed(
   () => !!mailbox.value && isApiProblem(query.error.value) && query.error.value.status === 404,
+)
+
+// The outcome an action left for this address (a rename, a creation), shown once and announced.
+const flashes = ref<MailboxFlash[]>([])
+watch(
+  address,
+  (value) => {
+    flashes.value = takeMailboxFlash(value)
+    for (const flash of flashes.value) announce(resolveText(flash.text, t))
+  },
+  { immediate: true },
 )
 
 const SECTION_TITLES: Record<string, LegacyKey> = {
@@ -200,6 +214,22 @@ const subtitle = computed(() => {
       >
         {{ t('mailboxes.detail.gone') }}
       </p>
+      <p
+        v-for="(flash, index) in flashes"
+        :key="index"
+        :role="flash.kind === 'success' ? 'status' : 'alert'"
+        :data-flash="flash.kind"
+        class="rounded-xl border p-3 text-sm wrap-anywhere"
+        :class="
+          flash.kind === 'success'
+            ? 'border-green-200 bg-green-50 text-green-900 dark:border-green-900 dark:bg-green-950 dark:text-green-100'
+            : flash.kind === 'warning'
+              ? 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100'
+              : 'border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950 dark:text-red-100'
+        "
+      >
+        {{ resolveText(flash.text, t) }}
+      </p>
       <MailboxUsage :mailbox="mailbox" :capabilities="capabilities" />
     </template>
     <MailboxSection
@@ -225,5 +255,6 @@ const subtitle = computed(() => {
       @dirty="dirty = $event"
     />
     <ManagedSections v-if="!showOnly" :mailbox="mailbox" section="rateLimit" />
+    <RenameSection v-if="!showOnly" :mailbox="mailbox" @dirty="dirty = $event" />
   </article>
 </template>

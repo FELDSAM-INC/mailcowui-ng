@@ -54,6 +54,13 @@
         "unknown": "Neznámé",
         "undoFailed": "Vrácení zpět selhalo",
         "skipped": "Přeskočeno"
+      },
+      "report": {
+        "title": "Přejmenování nebylo dokončeno",
+        "previous": "Původní adresa: {address}",
+        "next": "Nová adresa: {address}",
+        "steps": "Kroky",
+        "unknownStep": "Neznámý výsledek: {step}"
       }
     },
     "sort": {

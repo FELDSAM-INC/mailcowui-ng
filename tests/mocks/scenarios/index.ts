@@ -30,6 +30,7 @@ import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from
 import { mailboxDeleteScenarios } from './mailboxes/delete'
 import { mailboxEditScenarios } from './mailboxes/edit'
 import { mailboxListScenarios } from './mailboxes/list'
+import { mailboxRenameScenarios } from './mailboxes/rename'
 import {
   applyFeature004Overrides,
   feature004BaseScenarios,
@@ -102,6 +103,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...mailboxEditScenarios,
   ...mailboxListScenarios,
   ...mailboxDeleteScenarios,
+  ...mailboxRenameScenarios,
   ...syncJobScenarios,
   // UI 012
   ...identityProviderScenarios,

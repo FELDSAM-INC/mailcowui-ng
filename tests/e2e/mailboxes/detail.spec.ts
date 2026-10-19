@@ -50,6 +50,7 @@ test.describe('the mailbox page', () => {
       'Pushover',
       'ACL (Permission)',
       'Rate limit',
+      '⚠️ Rename mailbox',
     ])
     const section = page.locator('#section-mailbox')
     await expect(section).toContainText('Sender-dependent transports')

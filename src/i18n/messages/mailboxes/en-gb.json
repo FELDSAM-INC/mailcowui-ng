@@ -54,6 +54,13 @@
         "unknown": "Unknown",
         "undoFailed": "Undo failed",
         "skipped": "Skipped"
+      },
+      "report": {
+        "title": "The rename did not finish",
+        "previous": "Previous address: {address}",
+        "next": "New address: {address}",
+        "steps": "Steps",
+        "unknownStep": "Unknown outcome: {step}"
       }
     },
     "sort": {

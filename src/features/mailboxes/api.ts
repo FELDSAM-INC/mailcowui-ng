@@ -16,6 +16,7 @@ import {
   type ListMeta,
   type MailboxCapabilities,
   type MailboxListParams,
+  type MailboxRenameRequest,
   type MailboxTagParams,
   type PasswordPolicy,
 } from '@/api'
@@ -23,7 +24,7 @@ import {
 import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
 
 import type { Patch } from './patch'
-import type { Mailbox, MailboxDeletionPreview } from './types'
+import type { Mailbox, MailboxDeletionPreview, MailboxRenamed } from './types'
 
 export interface MailboxPage {
   data: Mailbox[]
@@ -290,5 +291,58 @@ export function deleteMailbox(client: QueryClient, address: string, ifMatch: str
       },
     },
     undefined,
+  )
+}
+
+// Rename (US8, data-model §3)
+
+/**
+ * Renames a mailbox with its version: the old detail is removed, the new one written, and the
+ * lists, searches, domains and audit log refreshed. After an incomplete or unknown outcome both
+ * addresses are read again.
+ */
+export function renameMailbox(
+  client: QueryClient,
+  address: string,
+  body: MailboxRenameRequest,
+  ifMatch: string,
+): Promise<MailboxRenamed> {
+  const refresh = () =>
+    Promise.all([
+      client.invalidateQueries({ queryKey: queryKeys.mailboxes.lists() }),
+      client.invalidateQueries({ queryKey: queryKeys.mailboxes.searches() }),
+      client.invalidateQueries({ queryKey: queryKeys.domains.all() }),
+      invalidateAudit(client),
+    ])
+  return runMutation<MailboxRenamed, MailboxRenameRequest>(
+    client,
+    {
+      mutationFn: async (request) =>
+        requireData(
+          await api.POST('/mailboxes/{mailbox}/rename', {
+            params: { path: { mailbox: address }, header: { 'If-Match': ifMatch } },
+            body: request,
+          }),
+        ).data,
+      onSuccess: async (renamed) => {
+        client.removeQueries({ queryKey: queryKeys.mailboxes.detail(address) })
+        const { previousAddress: _previous, oldAddressKeptAsAlias: _alias, ...mailbox } = renamed
+        writeMailbox(client, mailbox)
+        await refresh()
+      },
+      onError: async (error) => {
+        if (!isApiProblem(error)) return
+        if (error.status === 404) forgetMailbox(client, address)
+        if (error.status === 500 || error.status === 504) {
+          const next = `${body.newLocalPart.trim().toLowerCase()}@${address.split('@')[1] ?? ''}`
+          await Promise.all([
+            client.invalidateQueries({ queryKey: queryKeys.mailboxes.detail(address) }),
+            client.invalidateQueries({ queryKey: queryKeys.mailboxes.detail(next) }),
+            refresh(),
+          ])
+        }
+      },
+    },
+    body,
   )
 }

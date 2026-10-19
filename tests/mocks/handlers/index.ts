@@ -36,6 +36,7 @@ import { singleSignOnHandlers } from './single-sign-on'
 import { langHandlers } from './lang'
 import { mailboxTemplateReadHandlers } from './mailbox-templates'
 import { mailboxDeletionHandlers } from './mailbox-deletion'
+import { mailboxRenameHandlers } from './mailbox-rename'
 import { mailboxUpdateHandlers } from './mailbox-update'
 import { mailboxReadHandlers } from './mailboxes-read'
 import { mtaStsHandlers } from './mta-sts'
@@ -60,6 +61,7 @@ export const areaHandlers: RequestHandler[] = [
   ...mailboxReadHandlers,
   ...mailboxUpdateHandlers,
   ...mailboxDeletionHandlers,
+  ...mailboxRenameHandlers,
   ...mailboxTemplateReadHandlers,
   ...passwordPolicyHandlers,
   ...syncJobHandlers,

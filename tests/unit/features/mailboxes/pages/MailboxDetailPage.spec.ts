@@ -43,6 +43,7 @@ describe('MailboxDetailPage', () => {
       'section-pushover',
       'section-acl',
       'section-rateLimit',
+      'section-rename',
     ])
     expect(wrapper.findAll('a').some((link) => link.text() === 'History')).toBe(true)
   })

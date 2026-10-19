@@ -97,7 +97,7 @@ describe('DnsDiagnosticsPage', () => {
     mockState().dns.rateLimit.remaining = 0
     await wrapper.get('[data-run-again]').trigger('click')
     await vi.waitFor(() => expect(wrapper.find('[data-run-blocked]').exists()).toBe(true))
-    expect(wrapper.get('[data-run-again]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-run-again]').attributes('aria-disabled')).toBe('true')
     expect(wrapper.find('[data-diagnostics-summary]').exists()).toBe(true)
     wrapper.unmount()
   })

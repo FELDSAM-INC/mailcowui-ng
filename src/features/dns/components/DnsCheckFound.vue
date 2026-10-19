@@ -14,7 +14,7 @@ const { t } = useI18n()
     <p v-if="found.length === 0" class="text-gray-700 dark:text-gray-300">
       {{ t('dns.diagnostics.noRecord') }}
     </p>
-    <ul v-else class="flex flex-col gap-1">
+    <ul v-else :aria-label="t('dns.diagnostics.found')" class="flex flex-col gap-1">
       <li v-for="(value, index) in found" :key="index">
         <code class="font-mono wrap-anywhere">{{ visibleText(value) }}</code>
       </li>

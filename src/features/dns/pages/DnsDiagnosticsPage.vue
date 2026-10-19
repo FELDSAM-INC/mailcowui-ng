@@ -173,7 +173,8 @@ const LONG = 'h-auto min-h-11 max-w-full shrink whitespace-normal text-start'
         <button
           type="button"
           :class="buttonVariants({ variant: 'outline', class: LONG })"
-          :disabled="running"
+          class="aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
+          :aria-disabled="running ? 'true' : undefined"
           @click="runAgain"
         >
           {{ t('dns.diagnostics.run.again') }}

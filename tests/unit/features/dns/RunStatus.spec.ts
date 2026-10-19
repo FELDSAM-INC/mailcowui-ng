@@ -30,7 +30,9 @@ describe('RunStatus', () => {
   it('shows the running state and blocks a second run', () => {
     const wrapper = mountWithApp(RunStatus, { props: { ...base, running: true } })
     expect(wrapper.get('[role="status"]').text()).toContain('can take up to 30 seconds')
-    expect(wrapper.get('[data-run-again]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-run-again]').attributes('aria-disabled')).toBe('true')
+    void wrapper.get('[data-run-again]').trigger('click')
+    expect(wrapper.emitted('runAgain')).toBeUndefined()
   })
 
   it('explains a timeout and keeps the previous result', async () => {
@@ -68,12 +70,12 @@ describe('RunStatus', () => {
     })
     expect(wrapper.text()).toContain('Too many attempts')
     expect(wrapper.text()).toContain('Available again in 20 seconds')
-    expect(wrapper.get('[data-run-again]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-run-again]').attributes('aria-disabled')).toBe('true')
     vi.advanceTimersByTime(21_000)
     await flushPromises()
     vi.advanceTimersByTime(100)
     expect(liveMessages.polite.value).toBe('Checking DNS is available again.')
-    expect(wrapper.get('[data-run-again]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.get('[data-run-again]').attributes('aria-disabled')).toBeUndefined()
   })
 
   it('names the runs left from three down', () => {

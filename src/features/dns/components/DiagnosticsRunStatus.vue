@@ -51,6 +51,13 @@ const remainingNotice = computed(
   () => !blocked.value && showRemaining(props.rateLimit, Date.now() + 0 * expiredAt.value),
 )
 
+/** Unavailable while a run is going or none is left; it keeps the focus (aria-disabled). */
+const unavailable = computed(() => props.running || blocked.value)
+
+function onRunAgain() {
+  if (!unavailable.value) emit('runAgain')
+}
+
 const errorText = computed(() => {
   const error = props.error
   if (!error) return null
@@ -101,8 +108,9 @@ const errorText = computed(() => {
         type="button"
         data-run-again
         :class="buttonVariants({ variant: 'outline' })"
-        :disabled="running || blocked"
-        @click="emit('runAgain')"
+        class="aria-disabled:cursor-not-allowed aria-disabled:opacity-60"
+        :aria-disabled="unavailable ? 'true' : undefined"
+        @click="onRunAgain"
       >
         <SyncIcon />
         {{ t('dns.diagnostics.run.again') }}

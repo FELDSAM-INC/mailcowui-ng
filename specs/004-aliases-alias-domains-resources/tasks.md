@@ -1261,21 +1261,21 @@ audit log is filtered by that object. As a domain administrator, check that the 
 
 **Purpose**: Cross-story verification, budgets, parity, documentation and release readiness.
 
-- [ ] T107 [P] Write and pass `tests/e2e/shell/feature-004-reflow.spec.ts`. Every screen, dialog,
+- [X] T107 *(done: tests/e2e/shell/feature-004-reflow.spec.ts (21 screens, dialogs, pickers and selection mode); the bulk action bar now joins the sticky-bar focus guard (data-bulk-bar in useStickyBarFocus and the scroll padding))* [P] Write and pass `tests/e2e/shell/feature-004-reflow.spec.ts`. Every screen, dialog,
   picker and selection mode of this feature, with the long values of `aliases-long-values` (SC-004):
   - has no horizontal scroll at 320 px or at the equivalent of 400 % zoom (320 CSS px on a 1280 px
     desktop) (FR-066);
   - works in landscape on the mobile projects;
   - never hides the focused element behind the sticky header or the bulk bar;
   - runs no transition under `prefers-reduced-motion: reduce`.
-- [ ] T108 [P] Write and pass `tests/e2e/shell/feature-004-keyboard.spec.ts`: each story's main path
+- [X] T108 *(done: tests/e2e/shell/feature-004-keyboard.spec.ts; EditableSection now gives the focus to its heading when it closes with the focus in its form (it fell back to the page))* [P] Write and pass `tests/e2e/shell/feature-004-keyboard.spec.ts`: each story's main path
   with the keyboard alone, including the domain and candidate pickers, the radio groups, selection
   mode, the typed confirmation and section editing. Focus moves into dialogs, returns to the trigger
   and stays visible at every step (FR-062).
-- [ ] T109 [P] Write and pass `tests/e2e/shell/feature-004-permissions-matrix.spec.ts` (SC-007). For
+- [X] T109 *(done: tests/e2e/shell/feature-004-permissions-matrix.spec.ts (administrator, domain administrator without flags, with all flags and with each single flag; * and external sender addresses))* [P] Write and pass `tests/e2e/shell/feature-004-permissions-matrix.spec.ts` (SC-007). For
   `admin-004`, `domain-admin-004`, `domain-admin-004-all-flags` and each single-flag variant, every
   control of spec FR-002 is present exactly when permitted, on each screen.
-- [ ] T110 [P] Extend `tests/e2e/shell/storage-and-secrets.spec.ts` with the US2, US3 and US5 flows,
+- [X] T110 *(done: storage-and-secrets.spec.ts: alias form, section draft over a session expiry, sender fields; fixed UI 001's sign-in landing, which dropped the query of returnTo (an open section ?edit=, list filters))* [P] Extend `tests/e2e/shell/storage-and-secrets.spec.ts` with the US2, US3 and US5 flows,
   including a session expiry with a restored draft. `localStorage` and `sessionStorage` hold only
   UI 001's keys, and no form value appears in storage or `history.state`.
 - [ ] T111 Add the `/ng/aliases` collection (`MOCK_DEFAULT_SCENARIO=aliases-60`, active admin) to

@@ -57,7 +57,10 @@ export function routeForState(
       const target =
         acceptReturnTo(to.query.returnTo, router) ?? acceptReturnTo(store.returnTo, router)
       store.returnTo = null
-      return { path: target ?? '/', replace: true }
+      // A path with a query (an open section `?edit=…`, list filters) keeps it: `{ path }` would
+      // drop everything after the `?` (UI 004 T110).
+      const { path, query, hash } = router.resolve(target ?? '/')
+      return { path, query, hash, replace: true }
     }
   }
 }

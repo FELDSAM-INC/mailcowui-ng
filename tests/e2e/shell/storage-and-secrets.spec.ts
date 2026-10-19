@@ -209,3 +209,34 @@ test('Edge: with storage disabled the app still signs in and works', async ({ pa
     page.locator('[data-announcement]').getByRole('button', { name: /Show announcement/ }),
   ).toBeVisible()
 })
+
+// UI 004 T110: the alias forms, the "Edit alias" section and the sender fields keep their input in
+// memory only (research R10): nothing reaches storage or the history state, and a session expiry
+// gives the section's input back after a new sign-in in the same tab.
+test('UI 004 US2 US3 US5 forms leave no value in storage or history, and a section draft survives a session expiry', async ({
+  page,
+  mockApi,
+}) => {
+  await mockApi.use('aliases-edit')
+  await page.goto('aliases/new')
+  await page.getByLabel('Alias address/es').fill('stored-nowhere@example.org')
+  await page.getByLabel('Goto addresses').fill('bob@example.org')
+  await expectCleanStorage(page, ['stored-nowhere@example.org'])
+
+  await page.goto('aliases/1?edit=alias')
+  const comment = page.locator('#section-alias').getByRole('textbox', { name: 'Public comment' })
+  await comment.fill('draft-comment-123')
+  await expectCleanStorage(page, ['draft-comment-123'])
+  await mockApi.patch({ expireSession: true })
+  await page.locator('#section-alias').getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByLabel('Username', { exact: true })).toBeVisible()
+  await submitPassword(page, 'admin')
+  await expect(page).toHaveURL(/\/ng\/aliases\/1\?edit=alias$/)
+  await expect(comment).toHaveValue('draft-comment-123')
+  await expectCleanStorage(page, ['draft-comment-123'])
+
+  await mockApi.use('sender-settings')
+  await page.goto('mailboxes/anna@example.org?edit=mailbox')
+  await page.getByLabel('External sender addresses').fill('secret-sender@mailer.example')
+  await expectCleanStorage(page, ['secret-sender@mailer.example'])
+})

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 // The action bar of a selection (UI 002 research D22, FR-045, US5-AS4): names the number of
 // selected items, offers the actions, and states the bulk limit when it is reached. It sticks to
-// the bottom of the viewport on small screens, so the actions stay reachable (FR-069).
+// the bottom of the viewport on small screens, so the actions stay reachable (FR-069). UI 004: the
+// focused entry is kept clear of the bar (WCAG 2.4.11, `useStickyBarFocus`).
 import { useI18n } from 'vue-i18n'
 
+import { useStickyBarFocus } from '../composables/useStickyBarFocus'
 import { buttonVariants } from '../ui/button'
 
 export interface BulkAction {
@@ -25,10 +27,12 @@ withDefaults(
 )
 const emit = defineEmits<{ action: [id: string]; clear: [] }>()
 const { t } = useI18n()
+useStickyBarFocus()
 </script>
 
 <template>
   <div
+    data-bulk-bar
     role="region"
     :aria-label="t('bulk.actions')"
     class="sticky bottom-0 z-20 -mx-4 flex flex-col gap-2 border-t border-gray-200 bg-white px-4 py-3 shadow-theme-lg sm:mx-0 sm:rounded-xl sm:border dark:border-gray-800 dark:bg-gray-900"

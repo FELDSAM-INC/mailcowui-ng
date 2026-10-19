@@ -4,7 +4,8 @@
 // scrolled by the part of the focused element that the bar covers.
 import { onBeforeUnmount, onMounted } from 'vue'
 
-export const STICKY_BAR_SELECTOR = '[data-sticky-save], [data-section-actions].sticky'
+// UI 004 adds the bulk action bar (`data-bulk-bar`), which sticks to the bottom of the lists.
+export const STICKY_BAR_SELECTOR = '[data-sticky-save], [data-section-actions].sticky, [data-bulk-bar]'
 
 let users = 0
 

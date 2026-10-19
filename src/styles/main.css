@@ -188,7 +188,7 @@
 
   /* A sticky action bar at the bottom of a form or an edited section (UI 002): focused fields
      stay above it, even when its buttons wrap on a phone (WCAG 2.4.11). */
-  :root:has([data-sticky-save], [data-section-actions].sticky) {
+  :root:has([data-sticky-save], [data-section-actions].sticky, [data-bulk-bar]) {
     scroll-padding-bottom: 8.5rem;
   }
 

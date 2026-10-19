@@ -47,6 +47,7 @@ const emit = defineEmits<{ edit: []; cancel: []; save: []; saveAgain: []; discar
 const { t } = useI18n()
 const wide = useMediaQuery('(min-width: 768px)')
 const heading = ref<HTMLElement | null>(null)
+const root = ref<HTMLElement | null>(null)
 const headingId = computed(() => `section-${props.sectionId}-title`)
 const reasonId = computed(() => `section-${props.sectionId}-reason`)
 const layout = computed(() => (props.editing && !wide.value ? 'full' : 'inline'))
@@ -54,9 +55,13 @@ const layout = computed(() => (props.editing && !wide.value ? 'full' : 'inline')
 watch(
   () => props.editing,
   async (editing) => {
-    if (!editing) return
+    const hadFocus = !editing && root.value?.contains(document.activeElement)
     await nextTick()
-    heading.value?.focus()
+    // Opening moves the focus to the heading; closing does too when the focus was in the form,
+    // which is gone now, so that it never falls back to the page (UI 004, FR-062).
+    if (editing || (hadFocus && !root.value?.contains(document.activeElement))) {
+      heading.value?.focus()
+    }
   },
 )
 
@@ -78,6 +83,7 @@ useStickyBarFocus()
 <template>
   <section
     :id="`section-${sectionId}`"
+    ref="root"
     :aria-labelledby="headingId"
     :data-layout="layout"
     class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"

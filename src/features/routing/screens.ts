@@ -39,7 +39,7 @@ export const ROUTING_SCREENS: readonly RoutingScreen[] = [
     titleKey: 'admin.transport_maps',
     hintKey: 'admin.transports_hint',
     roles: ADMIN,
-    status: 'pending',
+    status: 'available',
   },
   {
     id: 'tlsPolicyMaps',

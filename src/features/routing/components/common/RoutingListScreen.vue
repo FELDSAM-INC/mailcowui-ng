@@ -259,7 +259,7 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
               <RouterLink
                 v-if="column.key === (primary ?? columns[0]?.key) && editTo?.(entry)"
                 :to="editTo(entry)!"
-                class="inline-flex min-h-11 min-w-0 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+                class="inline-flex min-h-11 min-w-11 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
               >
                 {{ column.text?.(entry) }}
               </RouterLink>

@@ -42,6 +42,10 @@
       "desc": "Descending",
       "label": "Sort by",
       "order": "Order"
+    },
+    "transports": {
+      "affected": "The credentials of these transports changed too: {destinations}",
+      "nextHopPlaceholder": "host:25, host, [host]:25, [0.0.0.0]:25"
     }
   }
 }

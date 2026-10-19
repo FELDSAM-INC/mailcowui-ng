@@ -48,7 +48,7 @@ function sortBy(column: EntryColumn<T>) {
 }
 
 const LINK =
-  'inline-flex min-h-11 min-w-0 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white'
+  'inline-flex min-h-11 min-w-11 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white'
 </script>
 
 <template>
@@ -80,7 +80,7 @@ const LINK =
             <button
               v-if="column.sort"
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column)"
             >
               {{ column.label }}

@@ -72,4 +72,26 @@ export const routingRoutes: RouteRecordRaw[] = [
     legacy('admin.in_use_by'),
     { roles: ADMIN },
   ),
+  // US3: Transport Maps.
+  route(
+    '/routing/transports',
+    'routing-transports',
+    () => import('./pages/transports/TransportsPage.vue'),
+    legacy('admin.transport_maps'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/transports/new',
+    'routing-transport-create',
+    () => import('./pages/transports/TransportCreatePage.vue'),
+    legacy('admin.add_transport'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/transports/:transportId(\\d+)',
+    'routing-transport-edit',
+    () => import('./pages/transports/TransportEditPage.vue'),
+    legacy('edit.title'),
+    { roles: ADMIN },
+  ),
 ]

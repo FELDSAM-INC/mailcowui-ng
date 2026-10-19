@@ -343,17 +343,16 @@ the owner. Each item names the plan deviation (1–9) or the draft item (D1–D2
     `useInactivity` is already shared (UI 008). `time-range.ts` and the `prefix` option of
     `useListState` are not needed (items 14 and 18).
 
-27. **Start-up payload** (T146, constitution VII): main's sign-in page loads 202,096 bytes of
+27. **Start-up payload** (T146, constitution VII): main's sign-in page loads 196,789 bytes of
     scripts against Lighthouse's 204,800 limit, so this feature keeps its share of the start-up
     modules small. Its query keys (`src/features/operations/query-keys.ts`), the rate and uptime
     formats (`src/features/operations/format.ts`) and its six screen-only icons
     (`src/features/operations/icons/`) stay in the feature (constitution VIII: shared after a
     second use); the release notes sanitiser registers itself when the renderer loads
-    (`src/shared/security/release-notes.ts`); the shell loads the navigation drawer with its first
-    opening and the status message list with the first message; and the formatters, the status
-    messages and Reka's dialog primitives are bundled with the shell's start-up modules. The
-    sign-in page then loads 202,290 bytes of scripts, and the initial JavaScript is 178,904 bytes
-    (main: 177,252).
+    (`src/shared/security/release-notes.ts`); and the shell loads the status message list with the
+    first message, inside a status region that is always present. The sign-in page then loads
+    199,421 bytes of scripts, and the initial JavaScript is 178,352 bytes (main at `f0c9011`:
+    175,871).
 
 ### Legacy form map (T010a)
 

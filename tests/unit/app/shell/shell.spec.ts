@@ -112,10 +112,8 @@ describe('navigation (FR-043, FR-046)', () => {
     expect(button.attributes('aria-expanded')).toBe('false')
     await button.trigger('click')
     await flushPromises()
-    // UI 011: the drawer loads with its first opening.
-    await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).not.toBeNull())
     const dialog = document.querySelector('[role="dialog"]') as HTMLElement
-    await vi.waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
+    expect(dialog).not.toBeNull()
     expect(dialog.querySelector('nav[aria-label="Main navigation"]')).not.toBeNull()
     expect(dialog.contains(document.activeElement)).toBe(true)
     dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
@@ -129,7 +127,6 @@ describe('navigation (FR-043, FR-046)', () => {
     const { wrapper, router } = await mountShell({ wide: false })
     await wrapper.get('button[aria-label="Toggle navigation"]').trigger('click')
     await flushPromises()
-    await vi.waitFor(() => expect(document.querySelector('[role="dialog"] a')).not.toBeNull())
     const link = [...document.querySelectorAll('[role="dialog"] a')].find(
       (a) => a.textContent?.trim() === 'Mailboxes',
     ) as HTMLAnchorElement

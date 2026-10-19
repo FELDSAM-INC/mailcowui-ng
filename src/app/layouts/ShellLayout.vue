@@ -3,7 +3,7 @@
 // header, the navigation (a static list from lg, a drawer below), the announcement, the main
 // content and the operator's footer. A section the catalogue denies renders NoAccessState in
 // place of the route component, so no section data is requested (FR-045).
-import { computed, defineAsyncComponent, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
@@ -20,6 +20,7 @@ import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
 import AppsMenu from '../shell/AppsMenu.vue'
+import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'
 import SkipLink from '../shell/SkipLink.vue'
 import UserMenu from '../shell/UserMenu.vue'
@@ -33,13 +34,6 @@ const identity = computed(() => identityQuery.data.value)
 const allowed = computed(() => routeAccess(route, identity.value) === 'allowed')
 
 const drawerOpen = ref(false)
-// The drawer (a Reka Dialog) loads with its first opening, so pages that never open it, and the
-// sign-in screens, do not carry it (constitution VII, UI 011 research R22).
-const NavigationDrawer = defineAsyncComponent(() => import('../shell/NavigationDrawer.vue'))
-const drawerUsed = ref(false)
-watch(drawerOpen, (open) => {
-  if (open) drawerUsed.value = true
-})
 const header = ref<{ menuButton: HTMLButtonElement | null } | null>(null)
 const menuButton = computed(() => header.value?.menuButton ?? null)
 
@@ -71,7 +65,7 @@ const statusMessages = useStatusMessage().messages
       </template>
     </AppHeader>
     <NavigationDrawer
-      v-if="!wide && drawerUsed"
+      v-if="!wide"
       v-model:open="drawerOpen"
       :identity="identity"
       :return-focus="menuButton"

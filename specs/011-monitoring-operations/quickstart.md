@@ -227,3 +227,16 @@ reported, the owner explicitly requested "so, deploy to maildev". This authorize
 deploying the tested monitoring checkpoint with those failures recorded as follow-up work. It is
 a staging-release exception, documented in the plan's Complexity Tracking; the configured
 performance, accessibility and payload limits remain unchanged, and T146 is not marked passed.
+
+**2026-10-19, deployed to maildev**: the authorized checkpoint was fast-forwarded into UI main
+and pushed, then `scripts/deploy/push-to-mailcow.sh root@maildev.feldhost.cz /root/mailhosting`
+built and installed **`mailcowui-ng:5e3c1e89`**. Only `ng-mailcow` was recreated. Compose validation
+passed, the container is healthy, and `/ng/` responds HTTP 200 with the required CSP. The previous
+image, `mailcowui-ng:990830e7`, is retained on the host for rollback. API `b3dc2ab` was not replaced.
+
+A Chromium check of the real administrator sign-in page at 360 px passed: HTTP 200, visible
+username and password fields, enabled submit button, no JavaScript errors and no CSP violations.
+No credentials were submitted. API readiness reports database, schema, Redis and migrations all
+healthy. Logs are in the API checkout's `storage/app/restart-2026-10-19/u011/` as
+`deploy-maildev.log` and `deploy-maildev-browser.log`. These deployment checks do not replace the
+remaining real-phone and authenticated feature-parity checks (T149 and T150 Part D).

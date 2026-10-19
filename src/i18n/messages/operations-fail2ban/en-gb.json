@@ -1,1 +1,19 @@
-{}
+{
+  "operations": {
+    "fail2ban": {
+      "notRunning": "The ban service is not running. Saved changes take effect, and queued unbans are processed, once it runs.",
+      "ownAddress": "This entry covers your own address {address}. You could lock yourself out.",
+      "line": "Line {line}",
+      "ruleId": "ID",
+      "ruleRegexp": "RegExp",
+      "banlistUrl": "Banlist url",
+      "rotate": "Refresh banlist ID",
+      "rotateBody": "The current banlist URL stops working at once.",
+      "remaining": "{hours}h {minutes}m {seconds}s",
+      "allowlist": "allowlist",
+      "denylist": "denylist",
+      "denylistTitle": "Denylist {network}?",
+      "banEnded": "This ban has already ended."
+    }
+  }
+}

@@ -1,1 +1,19 @@
-{}
+{
+  "operations": {
+    "fail2ban": {
+      "notRunning": "Služba blokovania nebeží. Uložené zmeny sa prejavia a čakajúce odblokovania sa spracujú, keď bude bežať.",
+      "ownAddress": "Táto položka pokrýva aj vašu vlastnú adresu {address}. Mohli by ste sa zablokovať.",
+      "line": "Riadok {line}",
+      "ruleId": "ID",
+      "ruleRegexp": "RegExp",
+      "banlistUrl": "Adresa zoznamu blokovaní",
+      "rotate": "Obnoviť ID zoznamu blokovaní",
+      "rotateBody": "Súčasná adresa zoznamu blokovaní okamžite prestane fungovať.",
+      "remaining": "{hours}h {minutes}m {seconds}s",
+      "allowlist": "na zoznam povolených",
+      "denylist": "na zoznam zakázaných",
+      "denylistTitle": "Pridať {network} na zoznam zakázaných?",
+      "banEnded": "Toto blokovanie už skončilo."
+    }
+  }
+}

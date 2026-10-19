@@ -179,7 +179,15 @@ export const catalogue: readonly NavigationEntry[] = [
     { admin: ['/admin/system'], domainAdmin: ['/domainadmin/mailbox'] },
     'available',
   ),
-  entry('mtaStsPolicies', '/dns/mta-sts-policies', LockIcon, MANAGERS, '010', MAIL_SETUP),
+  entry(
+    'mtaStsPolicies',
+    '/dns/mta-sts-policies',
+    LockIcon,
+    MANAGERS,
+    '010',
+    MAIL_SETUP,
+    'available',
+  ),
   entry('operations', '/operations', BarChartIcon, ADMIN, '011', {
     admin: ['/admin/dashboard', '/admin/queue'],
   }),

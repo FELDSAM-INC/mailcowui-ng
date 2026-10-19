@@ -71,3 +71,24 @@ export function activationChange(
   if (was && !after.active) return 'deactivated'
   return null
 }
+
+/**
+ * "Save again" after an outdated save (FR-049): the user's changes since the form was opened, on
+ * top of the policy saved in the meantime. Values the user left alone take the new saved value.
+ */
+export function mergeFormChanges(
+  opened: MtaStsFormValues,
+  latest: MtaStsPolicy,
+  form: MtaStsFormValues,
+): MtaStsFormValues {
+  const saved = formFromPolicy(latest)
+  const pick = <K extends keyof MtaStsFormValues>(key: K) =>
+    form[key] !== opened[key] ? form[key] : saved[key]
+  return {
+    version: pick('version'),
+    mode: pick('mode'),
+    maxAge: pick('maxAge'),
+    mx: pick('mx'),
+    active: pick('active'),
+  }
+}

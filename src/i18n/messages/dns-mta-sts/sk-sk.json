@@ -1,1 +1,34 @@
-{ "dns": {} }
+{
+  "dns": {
+    "mtaSts": {
+      "sort": {
+        "policyId": "Identifikátor politiky"
+      },
+      "none": "Pre túto doménu nie je nastavená žiadna MTA-STS politika.",
+      "loadFailed": "MTA-STS politiku sa nepodarilo načítať.",
+      "policyUrl": "Adresa politiky",
+      "policyText": "Text politiky",
+      "copyName": "Kopírovať názov {record}",
+      "copyValue": "Kopírovať hodnotu {record}",
+      "copyPolicyText": "Kopírovať text politiky pre {domain}",
+      "updateRecord": "Aktualizujte tento záznam",
+      "idChanged": "Identifikátor politiky sa zmenil z {previous} na {current}. Aktualizujte v DNS TXT záznam _mta-sts.{domain} na novú hodnotu.",
+      "certificateNotice": "Server si certifikát pre mta-sts.{domain} a názvy mta-sts. jej alias domén vyžiada pri ďalšom behu certifikačnej služby, čo môže trvať až jeden deň. Oba DNS záznamy musia byť zverejnené.",
+      "deactivate": {
+        "title": "Deaktivovať MTA-STS politiku?",
+        "body": "Politika domény {domain} sa prestane zverejňovať. Odosielatelia, ktorí ju majú vo vyrovnávacej pamäti, ju budú uplatňovať až po dobu jej maximálnej platnosti. Certifikát pre jej názvy mta-sts. sa už nebude vyžadovať.",
+        "confirm": "Deaktivovať"
+      },
+      "mxLength": "{used} z {max} znakov",
+      "duplicateDropped": "{host} je uvedený dvakrát a ponechá sa len raz.",
+      "alias": {
+        "body": "Alias doména {aliasDomain} zverejňuje MTA-STS politiku svojej cieľovej domény {targetDomain}.",
+        "link": "MTA-STS politika domény {targetDomain}"
+      },
+      "list": {
+        "count": "Politík: {count}",
+        "empty": "Zatiaľ nie je nastavená žiadna MTA-STS politika. Politiky sa nastavujú na stránke domény."
+      }
+    }
+  }
+}

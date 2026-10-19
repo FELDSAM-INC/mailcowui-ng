@@ -1,1 +1,34 @@
-{ "dns": {} }
+{
+  "dns": {
+    "mtaSts": {
+      "sort": {
+        "policyId": "Policy identifier"
+      },
+      "none": "No MTA-STS policy is set up for this domain.",
+      "loadFailed": "The MTA-STS policy could not be loaded.",
+      "policyUrl": "Policy address",
+      "policyText": "Policy text",
+      "copyName": "Copy name of {record}",
+      "copyValue": "Copy value of {record}",
+      "copyPolicyText": "Copy policy text of {domain}",
+      "updateRecord": "Update this record",
+      "idChanged": "The policy identifier changed from {previous} to {current}. Update the TXT record _mta-sts.{domain} in DNS to the new value.",
+      "certificateNotice": "The server requests the certificate for mta-sts.{domain} and the mta-sts. names of its alias domains at the next run of the certificate service, which can take up to one day. Both DNS records must be published.",
+      "deactivate": {
+        "title": "Deactivate the MTA-STS policy?",
+        "body": "The policy of {domain} will no longer be published. Senders that cached it keep applying it for up to its max age. The certificate for its mta-sts. names will no longer be requested.",
+        "confirm": "Deactivate"
+      },
+      "mxLength": "{used} of {max} characters",
+      "duplicateDropped": "{host} is listed twice and is kept once.",
+      "alias": {
+        "body": "The alias domain {aliasDomain} publishes the MTA-STS policy of its target domain {targetDomain}.",
+        "link": "MTA-STS policy of {targetDomain}"
+      },
+      "list": {
+        "count": "{count} policies",
+        "empty": "No MTA-STS policy is set up yet. Policies are set up on the page of a domain."
+      }
+    }
+  }
+}

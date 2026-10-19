@@ -161,8 +161,9 @@ test('US8 filtering the audit log with the keyboard', async ({ page, mockApi }) 
   const form = page.getByRole('form', { name: 'Filters' })
   await tabTo(page, form.getByRole('checkbox', { name: 'Sign-in' }))
   await page.keyboard.press('Space')
-  // Every labelled event and target type is a checkbox on the way.
-  await tabTo(page, form.getByRole('button', { name: 'Apply filters' }), 150)
+  // Every labelled event and target type is a checkbox on the way (UI 009 adds 21 and 8, UI 006
+  // 12 and 7).
+  await tabTo(page, form.getByRole('button', { name: 'Apply filters' }), 200)
   await page.keyboard.press('Enter')
   await expect(page.getByRole('region', { name: 'Active filters' })).toContainText('Sign-in')
 })

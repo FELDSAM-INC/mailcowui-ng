@@ -324,8 +324,7 @@
     },
     "list": {
       "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
-      "details": "Details",
-      "updating": "Updating…"
+      "details": "Details"
     },
     "delete": {
       "notDeleted": "Nothing was deleted."
@@ -831,9 +830,6 @@
     "edit": {
       "defaultName": "The Default template cannot be renamed.",
       "gone": "This template no longer exists."
-    },
-    "fields": {
-      "id": "ID"
     },
     "list": {
       "count": "Templates found: {count}",

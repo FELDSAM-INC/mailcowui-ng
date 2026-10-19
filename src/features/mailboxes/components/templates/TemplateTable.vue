@@ -63,7 +63,7 @@ function toggle(id: number) {
 }
 
 const SORTABLE: readonly { key: 'id' | 'name'; label: TextRef }[] = [
-  { key: 'id', label: 'domainTemplates.fields.id' },
+  { key: 'id', label: 'lists.id' },
   { key: 'name', label: legacy('mailbox.template') },
 ]
 const columnCount = computed(

@@ -324,8 +324,7 @@
     },
     "list": {
       "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",
-      "details": "Podrobnosti",
-      "updating": "Aktualizuje sa…"
+      "details": "Podrobnosti"
     },
     "delete": {
       "notDeleted": "Nič sa neodstránilo."
@@ -831,9 +830,6 @@
     "edit": {
       "defaultName": "Predvolenú šablónu nemožno premenovať.",
       "gone": "Táto šablóna už neexistuje."
-    },
-    "fields": {
-      "id": "ID"
     },
     "list": {
       "count": "Nájdené šablóny: {count}",

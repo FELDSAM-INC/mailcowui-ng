@@ -324,8 +324,7 @@
     },
     "list": {
       "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé.",
-      "details": "Podrobnosti",
-      "updating": "Aktualizuje se…"
+      "details": "Podrobnosti"
     },
     "delete": {
       "notDeleted": "Nic nebylo smazáno."
@@ -831,9 +830,6 @@
     "edit": {
       "defaultName": "Výchozí šablonu nelze přejmenovat.",
       "gone": "Tato šablona už neexistuje."
-    },
-    "fields": {
-      "id": "ID"
     },
     "list": {
       "count": "Nalezené šablony: {count}",

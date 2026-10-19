@@ -23,7 +23,7 @@ const display = useTemplateDisplay()
 const expanded = ref(false)
 const id = computed(() => `template-card-${props.template.id}`)
 const values = computed(() => [
-  { key: 'id', label: t('domainTemplates.fields.id'), value: String(props.template.id) },
+  { key: 'id', label: t('lists.id'), value: String(props.template.id) },
   { key: 'quota', label: lt('mailbox.domain_quota'), value: display.quota(props.template.quota) },
   {
     key: 'tlsEnforceInbound',

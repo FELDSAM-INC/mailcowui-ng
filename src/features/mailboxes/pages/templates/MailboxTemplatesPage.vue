@@ -233,7 +233,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
         <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
           {{ countText }}
           <span v-if="query.isPlaceholderData.value" class="ms-2 text-gray-600 dark:text-gray-400">
-            {{ t('domains.list.updating') }}
+            {{ t('lists.updating') }}
           </span>
         </p>
         <div v-if="selection.active.value && !wideList" class="flex items-center gap-2">

@@ -680,15 +680,18 @@ and `draw_sync_job_table` in `js/site/mailbox.js` and `js/site/user.js`.
 | Domain administrator without the sync-jobs flag: tab shown, buttons disabled | FR-001, FR-003 | Changed | API 008 refuses every sync-job operation without the flag, so the entry follows the identity flag for every non-admin role (see Clarifications) |
 | Table columns ID, owner, server (`user@host:port`), last run, last run result, log link, active, status; excludes and interval in the collapsed row | FR-005, FR-015 | Improved | Key facts on the card, everything else on the details screen |
 | User table: also username, encryption, excludes, interval | FR-005, FR-015 | Matched | On the details screen |
-| "Waiting" shown both for an idle job and for a job that never ran; inactive jobs also "Waiting" | FR-005, FR-006 | Improved | "Never" for the last run; separate running, waiting and inactive states |
+| "Waiting" shown both for an idle job and for a job that never ran; inactive jobs also "Waiting" | FR-005, FR-006 | Matched | Legacy's `mailbox.waiting` for every job without a last run; "Never" is pending a decision (plan, "Legacy form map, part 3", item 1) |
+| A job whose last run was cleared by "Schedule next" reads "Waiting" in the last-run column | FR-005, FR-036 | Matched | Plan parity note 1 proposes "Cleared, runs on the next cycle"; pending a decision, legacy's `mailbox.waiting` is shown |
 | Last run as a raw server timestamp | FR-051 | Improved | Locale formatting |
 | Result icon coloured green or red plus translated exit status, "Check log" for unknown | FR-006, FR-007 | Improved | Same texts, not colour-only, direct link to the log |
+| A success whose exit code is not recognised: success icon with "Check log" | FR-007 | Matched | Plan parity note 2 proposes "Success"; pending a decision, legacy's `mailbox.syncjob_check_log` is shown |
 | "Refresh" button | FR-014 | Improved | Plus automatic refresh while a job runs |
-| "Toggle all" and "Actions" menu: Schedule next (administrator tab only), Activate, Deactivate, Remove | FR-036, FR-037 | Improved | Selection mode on phones, one bulk request with per-job versions and a per-job summary; "Schedule next" for every permitted role |
+| "Toggle all" and "Actions" menu: Schedule next (administrator tab only), Activate, Deactivate, Remove | FR-036, FR-037 | Improved | Selection mode on phones, one bulk request with per-job versions and a per-job summary; "Schedule next" for administrators and domain administrators, as the two tabs offer it (plan, "Legacy form map, part 3", item 4) |
+| Deactivating from the "Actions" menu takes effect at once | FR-036, FR-037 | Changed | One explicit confirmation that lists the jobs (plan parity note 4, conventions "Confirmations") |
 | "Expand all" / "Collapse all" (DataTables row collapse) | FR-008 | Dropped | Cards and the details screen replace collapsed rows |
 | Per-row Edit and Remove buttons | FR-015, FR-036, FR-039 | Matched | Card/row actions and details screen |
 | Sort and paging remembered in browser storage (`stateSave`) | FR-010 | Improved | Kept in the address instead, so links and back navigation work |
-| Add sync job modal (administrator): mailbox select with live search and all fields in one list | FR-016–FR-024 | Improved | Sections, advanced options collapsed on phones, server-side mailbox search |
+| Add sync job modal (administrator): mailbox select with live search and all fields in one list | FR-016–FR-024 | Improved | One form in legacy's order (the collapsible sections are not built: plan, "Legacy form map, part 3", item 7), server-side mailbox search |
 | Add sync job modal (user): no mailbox select | FR-020 | Matched | Own mailbox shown as target |
 | Default port 143 with default encryption SSL | FR-019 | Improved | Port follows encryption (see Clarifications) |
 | User modal: simulate (dry run) on by default; administrator modal: off | FR-018 | Changed | Off for every role (see Clarifications) |
@@ -698,8 +701,9 @@ and `draw_sync_job_table` in `js/site/mailbox.js` and `js/site/user.js`.
 | imapsync option names next to the checkbox labels | FR-025 | Matched | Secondary text |
 | Range hints under numeric fields | FR-021 | Matched | Plus pre-submission checks |
 | Validation failures reported as "Access denied or invalid form data" in a toast | FR-022, FR-023 | Improved | Field-level, translated errors |
-| Edit sync job page: password field empty, target not editable | FR-016, FR-020, FR-026, FR-029, FR-030 | Improved | Sections with their own save on the details screen, explicit "saved, leave empty to keep" hint, change detection with marked values, unsaved-changes guard |
+| Edit sync job page: password field empty, target not editable | FR-016, FR-020, FR-026, FR-029, FR-030 | Improved | One section with its own save on the details screen (legacy's single form), explicit "saved, leave empty to keep" hint, change detection with marked values, unsaved-changes guard |
 | Log modal: editable textarea, untranslated title "Log", "-" when empty | FR-041–FR-046 | Improved | Read-only, translated, copy, wrap toggle, distinct empty states |
+| Log modal opened from the list and closed only with its button | FR-041, FR-046 | Improved | The open log is part of the address (`?log=<id>`), so it can be linked, and Back closes it on phones (plan parity note 3) |
 | Success messages such as "Deleted syncjob ID %s" | FR-028, FR-037, FR-040 | Matched | Announced confirmations and multi-job summaries |
 | Delete without naming the affected jobs | FR-039 | Improved | The confirmation lists the jobs; several jobs need their number typed |
 

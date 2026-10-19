@@ -225,7 +225,7 @@ domain administrators), `templates/user/Syncjobs.twig` (mailbox users), `draw_sy
 |---|---|
 | page title | `add.syncjob` |
 | notice above the form | `add.syncjob_hint` |
-| owner (administrators and domain administrators only), placeholder | `add.username`, `add.select` (`MailboxSearchPicker`; no mailbox in scope: new string `syncJobs.form.noMailboxes`) |
+| owner (administrators and domain administrators only), placeholder | `add.username`, `add.select` (UI 003's `MailboxSearchPicker`; no mailbox in scope: its `datatables.zeroRecords`, so no new string) |
 | host / port with its range | `add.hostname` / `add.port` and "min-max" from the capabilities (legacy's hard-coded ranges, numbers only) |
 | remote username / password | `add.username` / `add.password`; reveal toggle `auth.signIn.showPassword` (UI 001) |
 | encryption | `add.enc_method`, options `enums.syncJobEncryption.*`, the capabilities' `encryptions` |
@@ -282,7 +282,7 @@ its own edit and save (conventions "Detail pages").
 | `409 sync-job-exists` | `danger.object_exists` ("host / user" as typed, as legacy fills it); "Open the existing job" (`syncJobs.form.openExisting`) links to `syncJobId` (FR-023) |
 | owner left empty (client) | `danger.no_user_defined` |
 | `403 permission-flag-required` | `danger.access_denied` (legacy's answer without the `syncjobs` ACL), through `LEGACY_TEXTS`; the identity is refreshed and "not permitted" replaces the screen |
-| rule codes legacy reports without a translation ("bad option", "bad character SPACE") or as the generic `danger.access_denied` | new strings `validation.invalidRegex`, `validation.optionNotAllowed` ({option}), `validation.optionContainsSpace` ({token}), `validation.customParamsNotPermitted`, `validation.format.hostName`, `syncJobs.errors.notEligible` ({kind}, `syncJobs.errors.kind.*`) |
+| rule codes legacy reports without a translation ("bad option", "bad character SPACE") or as the generic `danger.access_denied` | new strings in the form context of UI 004's problem lookup (`syncJobs.form.errors.<field>.<code>`): `exclude.invalidRegex`, `customParameters.optionNotAllowed` ({option}), `customParameters.optionContainsSpace` ({token}), `customParameters.customParamsNotPermitted`, `mailbox.notEligible.kind.{resource,alias,aliasDomainAddress}`; and the shared `validation.format.hostName` |
 | `required`, `tooLong`, `outOfRange` and the other common rules | UI 001's `validation.*` |
 | outdated (412), gone (404), network | UI 001's and UI 002's generic texts, plus "This sync job no longer exists." (`syncJobs.detail.gone`) |
 
@@ -478,3 +478,35 @@ feature area that other code reaches only through `index.ts`; shared building bl
 
 No constitution violation needs justification. The one deviation from a UI 001 rule, the list's
 condition-bound `refetchInterval`, is required by FR-014 and justified in research R7.
+
+## Implementation notes
+
+Recorded while implementing (tasks T001 to T079); they supersede the structure above where they
+differ.
+
+- **Files**: the form is one component (`SyncJobFormFields.vue`, legacy order) with
+  `field-labels.ts` (the add modal's and the edit page's keys) instead of the seven section
+  components; the job page has one `SyncJobSection.vue` driven by `useSyncJobSection.ts`;
+  `SyncJobValues.vue` is its read mode. `useInactivity` lives in `src/shared/composables/` (owned
+  here, for UI 011). `MailboxSearchPicker`, `SelectCheckbox`, the client errors and the bulk-row
+  helpers (UI 003) and `DomainPicker`, `SearchField`, `ActiveFilterChips` and the problem lookup
+  (UI 004) are used as they are (T007 and T008 superseded).
+- **Strings**: the feature's strings live in `src/i18n/messages/sync-jobs/<locale>.json` and load
+  with the routes (`loadFeatureMessages('sync-jobs')`, UI 002's convention), with the two enum
+  groups only this feature uses (`enums.syncJobEncryption`, `enums.syncJobLastResult`). The audit
+  event and target labels and `validation.format.hostName` stay in the shared files.
+- **Shared changes** (each with its own unit test):
+  - `useListState`: `views`, parameters that never reset the page (`?log=<id>`), with `setView`.
+  - `useInactivity` (new): `useInactivity({ limit })` returns `idle`, `lastActivity` and `reset()`;
+    `inactivityLimit(idleTimeoutSeconds)` is min(15 minutes, the session's idle lifetime).
+  - `neutralise()` (new, `src/shared/security/plain-text.ts`, as UI 006's plan describes): control
+    and bidi characters as visible markers, single- or multi-line.
+  - `FormField.vue`: a `label` slot, for labels with markup (the imapsync option in `<code>`).
+  - `useLeaveGuard`: lets the authentication screens through, so that the end of a session reaches
+    sign-in with unsaved changes.
+  - `violationParams` (`src/i18n/problems.ts`): also passes the `option` and `token` parameters.
+  - `scripts/i18n`: the three sync job enum namespaces and the `hostName` format are checked.
+- **Problem lookup**: the owner left empty is `danger.no_user_defined` and `sync-job-exists` is
+  `danger.object_exists` with "host / user" (`LEGACY_TEXTS`, `LEGACY_ARGS`).
+- **Initial bundle**: +0.9 KB gzipped against main (the three route records, the string loaders and
+  the `LEGACY_TEXTS` entries); the strings themselves are lazy (quickstart, validation log).

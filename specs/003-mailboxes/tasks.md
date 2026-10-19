@@ -1220,7 +1220,7 @@ an administrator, and open them as a domain administrator, on both viewports.
 
 ### Tests for User Story 7 (write first; must fail)
 
-- [ ] T102 [US7] Extend `tests/mocks/handlers/mailbox-templates.ts` with `createMailboxTemplate`,
+- [X] T102 *(done: the three writes and the bulk removal (G39, `applyMailboxTemplateBulkAction`) with `tests/unit/mocks/mailbox-template-handlers.spec.ts`; the list error scenario is `mailbox-templates-list-error`, as UI 002 already has `templates-list-error`; more than 100 targets are refused by the contract validator (`maxItems`))* [US7] Extend `tests/mocks/handlers/mailbox-templates.ts` with `createMailboxTemplate`,
   `updateMailboxTemplate` and `deleteMailboxTemplate`:
   - the defaults for omitted values;
   - `mailbox-template-name-exists`, compared case-insensitively;
@@ -1233,7 +1233,7 @@ an administrator, and open them as a domain administrator, on both viewports.
   `admin-templates` (Default, Small, Staff), `domain-admin-templates`, `templates-list-error` (an
   injected `500` on `listMailboxTemplates`) and `capabilities-groupware-off-templates`. An empty
   template list cannot occur, because Default always exists.
-- [ ] T103 [P] [US7] Write `tests/e2e/mailboxes/templates.spec.ts`. It covers:
+- [X] T103 *(done, plus the classic mass removal with the count typed (G39); 14 tests on all three projects)* [P] [US7] Write `tests/e2e/mailboxes/templates.spec.ts`. It covers:
   - US7-AS1: cards and a table with the FR-058 columns;
   - US7-AS2 and FR-059: "Students" created unchanged has exactly the shown defaults, asserted on
     the request body;
@@ -1255,7 +1255,7 @@ an administrator, and open them as a domain administrator, on both viewports.
     offered in the template form;
   - FR-066: a double tap on Save or Delete sends one request;
   - administrators get the template's History link.
-- [ ] T104 [P] [US7] Write the unit tests:
+- [X] T104 *(done as `templates/list-state.spec.ts`, `templatePatch` in `form-values.spec.ts`, `components/templates.spec.ts` (value fields, card, table, details, actions), `pages/templates.spec.ts` and `templates/deletion.spec.ts`; the built-in defaults are the capabilities' `templateDefaults` (G32), so there is no `built-in-defaults.ts`)* [P] [US7] Write the unit tests:
   - `TM/templates/list-state.spec.ts`;
   - `TM/templates/built-in-defaults.spec.ts`: typed as `MailboxTemplateCreateRequest`, with every
     value of research R14;
@@ -1263,27 +1263,27 @@ an administrator, and open them as a domain administrator, on both viewports.
     its changes;
   - `TM/components/templates/TemplateCard.spec.ts`: the one-line protocol summary and the forced
     flags as text.
-- [ ] T105 [P] [US7] Write `tests/smoke/mailbox-templates.smoke.spec.ts`: `admin` creates
+- [X] T105 *(done; written and listed, not run against the API dev stack)* [P] [US7] Write `tests/smoke/mailbox-templates.smoke.spec.ts`: `admin` creates
   `smoke-<random>`, changes its quota, sees that Default cannot be deleted, and deletes the new
   template. `reseller` reads the list.
 
 ### Implementation for User Story 7
 
-- [ ] T106 [US7] Implement the mutations in `M/templates-api.ts`, plus `M/templates/list-state.ts`,
+- [X] T106 *(done under the forms rule: mutations with the bulk removal in `templates-api.ts`, `templates/list-state.ts`, `templatePatch` beside `templateBody` in `form-values.ts`, `templates/template-form.ts` and `templates/useTemplateEditForm.ts`)* [US7] Implement the mutations in `M/templates-api.ts`, plus `M/templates/list-state.ts`,
   `M/templates/built-in-defaults.ts` and `M/templates/useTemplateForm.ts`.
-- [ ] T107 [P] [US7] Implement `M/components/templates/TemplateCard.vue`, `TemplateTable.vue` and
+- [X] T107 *(done under the forms rule: `TemplateCard`, `TemplateTable`, `TemplateList`, `TemplateEntryDetails`, `TemplateEntryActions` and `TemplateSortControl` with the classic columns; the groups are the shared `components/fields/MailboxValueFields.vue` in legacy order, for the add mailbox form too)* [P] [US7] Implement `M/components/templates/TemplateCard.vue`, `TemplateTable.vue` and
   `TemplateValuesGroups.vue`. The groups reuse the shared fields of T043–T045.
-- [ ] T108 [US7] Implement `M/pages/templates/MailboxTemplatesPage.vue`,
+- [X] T108 *(done under the forms rule: one form with "Save changes" as legacy's edit page, no `EditableSection` groups; single removal in the list entry and the classic mass removal)* [US7] Implement `M/pages/templates/MailboxTemplatesPage.vue`,
   `MailboxTemplateCreatePage.vue` (administrators only, through `meta.roles`) and
   `MailboxTemplateDetailPage.vue`:
   - `EditableSection` for each group;
   - Default's name read-only, and no delete for Default;
   - delete through `useConfirm` with `If-Match`;
   - `HistoryLink` for administrators.
-- [ ] T109 [US7] Register the three template routes in `M/routes.ts`, the create route with UI 002's
+- [X] T109 *(done)* [US7] Register the three template routes in `M/routes.ts`, the create route with UI 002's
   `meta.roles: ['admin']`. Set the catalogue's
   `mailboxTemplates` entry to `available` in `src/app/navigation/catalogue.ts`.
-- [ ] T110 [US7] Add the `mailboxTemplates.*` messages. Map `mailbox.mailbox_templates`,
+- [X] T110 *(done: 9 new strings (`mailboxTemplates.delete.keepValues`, `mailboxTemplates.detail.backToList` and the 7 hard-coded protocol column headers); the rest reuses legacy keys and UI 002's `domainTemplates.*`)* [US7] Add the `mailboxTemplates.*` messages. Map `mailbox.mailbox_templates`,
   `mailbox.add_template`, `mailbox.template`, `success.template_added`,
   `success.template_modified` and `success.template_removed` (with the template's ID, as legacy
   passes it). `npm run i18n:check` must pass.

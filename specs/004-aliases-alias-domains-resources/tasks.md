@@ -1297,7 +1297,7 @@ audit log is filtered by that object. As a domain administrator, check that the 
   the Validation log of `specs/004-aliases-alias-domains-resources/quickstart.md`:
   - the timings for SC-001, SC-002, SC-009 and SC-010, and the SC-011 identification results;
   - a VoiceOver and a TalkBack pass over every story.
-- [ ] T115 *(open: needs the mailcow-rest-v2 dev stack at the pin; not started, as other agents share the Docker host and its load was 20-77 during this work. The smoke specs are written: aliases-list, aliases-create, aliases-edit, aliases-bulk, alias-domains, resources, sender-settings.)* Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, then
+- [X] T115 *(done: 9 of 9 `@feature-004` smoke tests pass against the API dev stack at the pin 33f1eea, 2026-10-19 (quickstart.md Validation log). The first run found three test faults, fixed in the specs: a non-exact "Activate" that also matched "Deactivate", the page's select options counted as the picker's, and a send-as test that skipped, as the first domain by name has one mailbox; it now grants a new alias address, because the dev seed has no alias rows for its mailboxes.)* Run `quickstart.md` Part C (`scripts/smoke/stack-up.sh`, then
   `npm run test:smoke -- --grep @feature-004`, then `scripts/smoke/stack-down.sh`) against the
   mailcow-rest-v2 dev stack at the pinned commit.
 - [X] T116 *(done: i18n:check reports no unused key; 55 new strings per language (plus 20 UI 002 strings moved to lists.*/forms.rateLimit.*), listed for review in quickstart.md)* [P] Run `npm run i18n:check`, remove the unused keys it reports from

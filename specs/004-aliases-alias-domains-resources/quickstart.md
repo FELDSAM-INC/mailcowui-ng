@@ -274,3 +274,22 @@ legacy's "Filters" tab).
 | `resources.form.preview` | Address (preview): {address} | Adresa (náhled): {address} | Adresa (náhľad): {address} |
 | `resources.form.noAddress` | No address can be derived: the description needs between 1 and 64 letters A–Z or digits. | Adresu nelze odvodit: popis musí obsahovat 1 až 64 písmen A–Z nebo číslic. | Adresu nemožno odvodiť: popis musí obsahovať 1 až 64 písmen A–Z alebo číslic. |
 | `resources.form.addressKept` | The address does not change when the description changes. | Adresa se při změně popisu nemění. | Adresa sa pri zmene popisu nemení. |
+
+### Smoke suite against the API dev stack (T115, Part C), 2026-10-19
+
+`scripts/smoke/stack-up.sh` with the API at the pin `33f1eea` (Compose project `ui004-smoke`), then
+`npm run test:smoke -- --grep @feature-004` and `scripts/smoke/stack-down.sh`: 9 of 9 passed.
+
+| Spec | Result |
+|---|---|
+| `aliases-list.smoke.spec.ts` | admin filters by a domain from the picker; reseller's picker holds example.net and example.org only; no horizontal scroll at 360 × 780 |
+| `aliases-create.smoke.spec.ts` | one alias with two destinations, then three addresses with the repeated one refused, removed through the list |
+| `aliases-edit.smoke.spec.ts` | "Silently discard mail" saved in the Edit alias section, then deleted after confirming |
+| `aliases-bulk.smoke.spec.ts` | two aliases deactivated, activated and deleted with the typed count |
+| `alias-domains.smoke.spec.ts` | added with the selector emptied (no DKIM key) and its report, deactivated, deleted |
+| `resources.smoke.spec.ts` | added with the previewed address, "Multiple bookings" limited to 2, deleted |
+| `sender-settings.smoke.spec.ts` | an alias address granted to alice@example.org in the Mailbox section, then revoked |
+
+The dev seed (`DevelopmentSeeder`) adds mailboxes without the alias row that mailcow creates for
+each mailbox, so "Allow to send as" offers no mailbox addresses there; the send-as test grants a
+new alias address instead, which is what legacy's list holds.

@@ -89,7 +89,12 @@ const STORED_KEYS = [
 
 /** A strong, quoted version tag of the stored settings and tags (never of the usage). */
 export function domainEtag(domain: MockDomain): string {
-  const stored = Object.fromEntries(STORED_KEYS.map((key) => [key, domain[key]]))
+  const stored: Record<string, unknown> = Object.fromEntries(
+    STORED_KEYS.map((key) => [key, domain[key]]),
+  )
+  // UI 009: the relayhost assignment is part of the version tag (API FR-028); unset, the tag is
+  // the one UI 002's scenarios always had.
+  if (domain.relayhost) stored.relayhost = domain.relayhost.id
   return `"${createHash('sha256').update(JSON.stringify(stored)).digest('hex').slice(0, 24)}"`
 }
 

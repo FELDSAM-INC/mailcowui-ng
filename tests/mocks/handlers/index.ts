@@ -48,6 +48,14 @@ import { publicConfigHandlers } from './public-config'
 import { resourceHandlers } from './resources'
 import { senderSettingsHandlers } from './sender-settings'
 import { syncJobHandlers } from './sync-jobs'
+import { bccMapHandlers } from './bcc-maps'
+import { forwardingHostHandlers } from './forwarding-hosts'
+import { recipientMapHandlers } from './recipient-maps'
+import { relayhostAssignmentHandlers } from './relayhost-assignments'
+import { relayhostHandlers } from './relayhosts'
+import { routingCapabilityHandlers } from './routing-capabilities'
+import { tlsPolicyMapHandlers } from './tls-policy-maps'
+import { transportHandlers } from './transports'
 
 /** The typed handlers of every area. Stories add their modules here. */
 export const areaHandlers: RequestHandler[] = [
@@ -83,6 +91,15 @@ export const areaHandlers: RequestHandler[] = [
   ...dkimHandlers,
   ...mtaStsHandlers,
   ...dnsDiagnosticsHandlers,
+  // UI 009: one module per contract module (research R23).
+  ...routingCapabilityHandlers,
+  ...relayhostHandlers,
+  ...relayhostAssignmentHandlers,
+  ...transportHandlers,
+  ...bccMapHandlers,
+  ...recipientMapHandlers,
+  ...tlsPolicyMapHandlers,
+  ...forwardingHostHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

@@ -49,6 +49,8 @@ import { bulk004Scenarios } from './bulk-004'
 import { resourceScenarios } from './resources'
 import { history004Scenarios } from './history-004'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
+import { routingScenarios } from './routing'
+import { applyRoutingOverrides, initialRoutingState } from './routing/state'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
 import { passkeyScenarios } from './passkeys'
@@ -130,6 +132,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...resourceScenarios,
   ...history004Scenarios,
   ...dnsScenarios,
+  ...routingScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -228,6 +231,7 @@ export function applyOverrides(
   applyIdentityProviderOverrides(state, overrides)
   applyFeature004Overrides(state, overrides)
   if (overrides.dns) applyDnsOverrides(state, overrides.dns)
+  applyRoutingOverrides(state, overrides.routing)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -279,6 +283,7 @@ export function createScenarioState(
     oauth2Capabilities: { ...OAUTH2_CAPABILITIES },
     ...initialState004(),
     ...initialDnsState(),
+    ...initialRoutingState(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

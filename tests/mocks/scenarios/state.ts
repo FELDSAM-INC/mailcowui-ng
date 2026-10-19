@@ -52,6 +52,7 @@ import type { MockIdentityProvider } from '../factories/identity-provider'
 import type { MockOauth2Client } from '../factories/oauth2-client'
 import type { PublicConfigVariant } from './public-config'
 import type { SyncJobChanges, SyncJobState } from './sync-jobs'
+import type { MockRoutingState, RoutingOverrides } from './routing/state'
 
 /** A second-factor method with the value the mock accepts for it. */
 export interface MockSecondFactor extends SecondFactorMethod {
@@ -580,6 +581,8 @@ export interface ScenarioState {
   sharedStoreDown: boolean
   /** UI 010: DKIM keys, DNS capabilities, MTA-STS policies and diagnostics. */
   dns: MockDnsState
+  /** UI 009: relayhosts, transports, maps, forwarding hosts, DNS and connection test scripts. */
+  routing: MockRoutingState
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -651,6 +654,8 @@ export interface ScenarioOverrides {
   flags?: Record<string, Partial<PermissionFlags>>
   /** UI 010: DNS data and injections. */
   dns?: DnsPatch
+  /** UI 009: routing data and switches (research R23). */
+  routing?: RoutingOverrides
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

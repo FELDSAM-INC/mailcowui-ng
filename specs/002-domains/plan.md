@@ -373,8 +373,8 @@ Decided by the orchestrator (2026-10-18) and applied: one form per legacy form a
 legacy tab; quotas in MiB; no stepper, review or template-overwrite confirmation; legacy's edit
 heading with the name and no badges; deletion only in the list; usage figures and domain
 administrators kept display-only with the list's keys; outcomes as legacy's alerts; relayhost and
-rate limit read-only in their legacy positions; template multiple deletion waits for gap G40
-(T087a). Relay options are independent checkboxes as in legacy (the API normalises them on save),
+rate limit read-only in their legacy positions; removing selected templates uses the API's bulk
+operation of gap G40 (T087a). Relay options are independent checkboxes as in legacy (the API normalises them on save),
 so the automatic switching and its notice of the first build are gone.
 
 Closed with the runtime legacy texts (UI main d128215): the domain list and the bulk actions use the

@@ -286,6 +286,30 @@ describe('contract limits (data-model §6)', () => {
     ],
   ]
 
+  // UI 011 (T026): the largest page, the rate limit bucket identifier and the ban parameters.
+  const parameter = (name: string, ...path: string[]) =>
+    pointer(['/components/parameters', name, ...path].join('/'))
+  const f2b = (...path: string[]) => schemaValue('Fail2BanSettingsPatch', 'properties', ...path)
+  cases.push(
+    ['LIST_LIMIT_MAX', parameter('Limit', 'schema', 'maximum')],
+    ['RATE_LIMIT_BUCKET_ID_MAX_LENGTH', parameter('RateLimitBucketId', 'schema', 'maxLength')],
+    ['F2B_BAN_TIME_MIN', f2b('banTime', 'minimum')],
+    ['F2B_BAN_TIME_MIN', f2b('maxBanTime', 'minimum')],
+    ['F2B_NUMBER_MAX', f2b('banTime', 'maximum')],
+    ['F2B_NUMBER_MAX', f2b('maxBanTime', 'maximum')],
+    ['F2B_NUMBER_MAX', f2b('maxAttempts', 'maximum')],
+    ['F2B_NUMBER_MAX', f2b('retryWindow', 'maximum')],
+    ['F2B_ATTEMPTS_MIN', f2b('maxAttempts', 'minimum')],
+    ['F2B_ATTEMPTS_MIN', f2b('retryWindow', 'minimum')],
+    ['F2B_PREFIX_MIN', f2b('ipv4PrefixLength', 'minimum')],
+    ['F2B_PREFIX_MIN', f2b('ipv6PrefixLength', 'minimum')],
+    ['F2B_IPV4_PREFIX_MAX', f2b('ipv4PrefixLength', 'maximum')],
+    ['F2B_IPV6_PREFIX_MAX', f2b('ipv6PrefixLength', 'maximum')],
+    ['F2B_LIST_ENTRY_MAX_LENGTH', f2b('allowlist', 'items', 'maxLength')],
+    ['F2B_LIST_ENTRY_MAX_LENGTH', f2b('denylist', 'items', 'maxLength')],
+  )
+  patterns.push(['RATE_LIMIT_BUCKET_ID_PATTERN', parameter('RateLimitBucketId', 'schema', 'pattern')])
+
   it.each(patterns)('%s has the contract pattern', (name, expected) => {
     expect(typeof expected).toBe('string')
     expect((limits[name] as RegExp).source).toBe(new RegExp(expected as string).source)

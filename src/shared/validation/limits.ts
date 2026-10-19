@@ -158,3 +158,34 @@ export const MTA_STS_MX_HOSTS_MAX_ITEMS = 128
 
 /** MtaStsPolicyCreateRequest.properties.mxHosts.items.maxLength */
 export const MTA_STS_MX_HOST_MAX_LENGTH = 255
+// UI 011 (T026, T041; research R8, R12; plan "Decisions at implementation" item 26).
+
+/** components.parameters.Limit maximum: the largest page of every list, used to list all containers */
+export const LIST_LIMIT_MAX = 1000
+
+/** components.parameters.RateLimitBucketId pattern (UI 006's bucket identifier) */
+export const RATE_LIMIT_BUCKET_ID_PATTERN = /^RL[0-9A-Za-z=]+$/
+
+/** components.parameters.RateLimitBucketId maxLength */
+export const RATE_LIMIT_BUCKET_ID_MAX_LENGTH = 128
+
+/** Fail2BanSettingsPatch banTime and maxBanTime minimum (seconds) */
+export const F2B_BAN_TIME_MIN = 60
+
+/** Fail2BanSettingsPatch banTime, maxBanTime, maxAttempts and retryWindow maximum */
+export const F2B_NUMBER_MAX = 2_147_483_647
+
+/** Fail2BanSettingsPatch maxAttempts and retryWindow minimum */
+export const F2B_ATTEMPTS_MIN = 1
+
+/** Fail2BanSettingsPatch ipv4PrefixLength and ipv6PrefixLength minimum */
+export const F2B_PREFIX_MIN = 8
+
+/** Fail2BanSettingsPatch ipv4PrefixLength maximum */
+export const F2B_IPV4_PREFIX_MAX = 32
+
+/** Fail2BanSettingsPatch ipv6PrefixLength maximum */
+export const F2B_IPV6_PREFIX_MAX = 128
+
+/** Fail2BanSettingsPatch allowlist.items.maxLength (and denylist) */
+export const F2B_LIST_ENTRY_MAX_LENGTH = 253

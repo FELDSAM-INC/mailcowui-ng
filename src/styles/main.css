@@ -91,6 +91,11 @@
   --color-brand-900: #262e89;
   --color-brand-950: #161950;
 
+  /* UI 011 (FR-083): the two series of the live charts, at least 3:1 on the card surface in both
+     themes (WCAG 1.4.11); the dark values are set on :root.dark below. */
+  --color-chart-1: #465fff;
+  --color-chart-2: #c4320a;
+
   --color-gray-25: #fcfcfd;
   --color-gray-50: #f9fafb;
   --color-gray-100: #f2f4f7;
@@ -194,6 +199,8 @@
 
   :root.dark {
     color-scheme: dark;
+    --color-chart-1: #7592ff;
+    --color-chart-2: #fd853a;
   }
 
   button:not(:disabled),

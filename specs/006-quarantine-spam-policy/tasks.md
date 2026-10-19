@@ -91,13 +91,13 @@ smoke stack, Lighthouse, query keys) that every story uses.
   - If the kept commit is later than the baseline, run `git -C ../mailcow-rest-v2 diff 32079252..<ref> -- api/modules/quarantine api/modules/spam-policy api/modules/rate-limits api/components` and update `specs/006-quarantine-spam-policy/contracts/README.md` for any change to an operation, schema, problem type or rule code used here.
   - Record the pinned commit, the bundle sha256 and the operation count in that README's "Pinned contract" table.
   - Run `npm run typecheck`. The 006 root types (`QuarantineItem`, `QuarantineCapabilities`, `SpamPolicyEntry`, `RateLimit` and so on) and `knownProblemTypeValues` must be exported from `src/api/generated/schema.ts`.
-- [ ] T002 [P] Write `tests/unit/scripts/i18n-tools-006.spec.ts` against fixture message sets. It covers (no `segment` or `stripMarkup` mapping: constitution IV 1.3.0, research R27):
+- [x] T002 [P] Write `tests/unit/scripts/i18n-tools-006.spec.ts` against fixture message sets. It covers (no `segment` or `stripMarkup` mapping: constitution IV 1.3.0, research R27):
   - every legacy key this feature uses (the legacy form map, T009a) exists in the bundled `en-gb` snapshot;
   - the check requires a key for every value of the closed 006 enumerations of research R2, read from `contract/openapi.json` (for example `QuarantineActionReport.learning` and `SpamFilterTemporaryFailureProblem.dependency`), plus the fixed `invalidTemplate` reasons `syntax`, `security`, `render` and `timeout`;
   - a 006 value appended to `src/i18n/coverage.json` (P13) without keys fails the check.
 
   The test must fail.
-- [ ] T003 Implement T002 in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`. Reuse UI 002's coverage mechanism (P13) and UI 001's legacy-key check, and add only the closed-enumeration pointers (if UI 002 already reads inline enumerations, add the 006 pointers to its list). Append the 006 open-enumeration values of research R2 to `src/i18n/coverage.json`. The check fails until the story tasks add the keys; that is expected.
+- [x] T003 Implement T002 in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`. Reuse UI 002's coverage mechanism (P13) and UI 001's legacy-key check, and add only the closed-enumeration pointers (if UI 002 already reads inline enumerations, add the 006 pointers to its list). Append the 006 open-enumeration values of research R2 to `src/i18n/coverage.json`. The check fails until the story tasks add the keys; that is expected.
 - [x] T004 [P] Extend `tests/unit/mocks/validator.spec.ts` (only if P21 is absent). The validator must:
   - accept a `downloadQuarantineAttachment` `200` with an `application/octet-stream` body and the four required headers (`Content-Disposition`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy`, `Cache-Control`);
   - reject the same response without `Content-Disposition`, and a `downloadQuarantineMessage` `200` declared as `text/html`;
@@ -131,7 +131,7 @@ mock baseline.
 
 ### Prerequisites from earlier features
 
-- [ ] T010 Write `tests/unit/dependencies/feature-006-dependencies.spec.ts`. It imports each block of plan rows P01–P21, P24 and P25 and checks the behaviour listed there. The canonical names of the UI conventions ("Shared building blocks and canonical names") apply: `useLeaveGuard`, `BulkActionBar`, `useBulkSelection`, `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink` and `src/i18n/coverage.json`. Examples:
+- [x] T010 Write `tests/unit/dependencies/feature-006-dependencies.spec.ts`. It imports each block of plan rows P01–P21, P24 and P25 and checks the behaviour listed there. The canonical names of the UI conventions ("Shared building blocks and canonical names") apply: `useLeaveGuard`, `BulkActionBar`, `useBulkSelection`, `BulkResultSummary`, `ConfirmDialog`, `EditableSection`, `HistoryLink` and `src/i18n/coverage.json`. Examples:
   - `useBulkSelection` honours `limit`, `targets()` returns `{ id, version }`, and `retain(results, keep)` keeps the predicate's rows;
   - `BulkResultSummary` renders an `#item` slot;
   - `ConfirmDialog` supports `requireTyped`;
@@ -146,46 +146,46 @@ mock baseline.
 
   Run it and record every failure.
 - [ ] T011 Fill every gap that T010 found, as the plan's prerequisite section prescribes. Build a missing block at its listed location, promote a block kept in its first feature (updating that feature's imports and keeping its tests green), or extend a block without changing its behaviour. If a block exists under another path or name, update the references in `plan.md`, `research.md` and this file instead of copying it. P24 (`FilterPanel`) is created here if absent, as a full-screen Reka `Dialog` below `md` and an inline panel from `md` up, with "Apply" and "Clear all", test first in `tests/unit/shared/components/FilterPanel.spec.ts`. T010 must pass, except for P01's prefix (T022, T035), P21 (T004, T005) and P25 (T029).
-- [ ] T012 Promote `src/features/mailboxes/components/fields/AclReadOnlyNote.vue` to `src/shared/components/AclReadOnlyNote.vue` (P15, research R7). Move its unit test to `tests/unit/shared/components/AclReadOnlyNote.spec.ts`, update UI 003's imports, and keep UI 003's tests green. Its props stay: the flag name (a `PermissionFlags` key), shown as "Prohibited by ACL" (`acl.prohibited`) plus the flag's legacy label.
+- [x] T012 Promote `src/features/mailboxes/components/fields/AclReadOnlyNote.vue` to `src/shared/components/AclReadOnlyNote.vue` (P15, research R7). Move its unit test to `tests/unit/shared/components/AclReadOnlyNote.spec.ts`, update UI 003's imports, and keep UI 003's tests green. Its props stay: the flag name (a `PermissionFlags` key), shown as "Prohibited by ACL" (`acl.prohibited`) plus the flag's legacy label.
 
 ### Tests for the foundation (write first; must fail)
 
-- [ ] T013 [P] Write `tests/unit/shared/security/plain-text.spec.ts` (research R9, data-model §2 "PlainText segments"). It covers:
+- [x] T013 [P] Write `tests/unit/shared/security/plain-text.spec.ts` (research R9, data-model §2 "PlainText segments"). It covers:
   - every row of the neutralisation table in single-line and multi-line mode;
   - CR LF and lone CR becoming LF in multi-line text;
   - the marker code point format (`U+202E`, `U+0000`);
   - right-to-left prose keeping its LRM and RLM marks in multi-line mode;
   - every vector of `tests/mocks/factories/hostile-messages.ts` (T025): the output has only `text` and `marker` segments, and every bidi or control character becomes a marker.
-- [ ] T014 [P] Write `tests/unit/shared/components/PlainText.spec.ts`. It covers:
+- [x] T014 [P] Write `tests/unit/shared/components/PlainText.spec.ts`. It covers:
   - a single-line value renders in one `<bdi>`, and a multi-line value in a block with `dir="auto"` and the plain-text class;
   - markers render as text spans with the code point;
   - for every hostile vector, the mounted DOM contains no element other than the component's own `bdi`, `div` and `span` (no `script`, `img`, `a`, `style`, `svg` or `iframe`), and no attribute comes from the data.
-- [ ] T015 [P] Write `tests/unit/shared/platform/download.spec.ts` (research R10). It covers:
+- [x] T015 [P] Write `tests/unit/shared/platform/download.spec.ts` (research R10). It covers:
   - `Content-Disposition` parsing: RFC 8187 `filename*=UTF-8''%C5%BElu%C5%A5ou%C4%8Dk%C3%BD.pdf` is preferred over `filename`, a `charset'lang'value` form, a quoted `filename`, and a missing header falling back to the given name;
   - sanitising: `../../evil.exe`, a control character, `invoice<U+202E>fdp.exe`, a leading dot, trailing dots and spaces, and a 300-character name cut to 200;
   - the blob saved with type `application/octet-stream` whatever the response type;
   - a temporary `<a download>` is clicked and removed, and the object URL is revoked after 1 s (fake timers);
   - nothing is written to `localStorage`, `sessionStorage` or IndexedDB;
   - a problem response rejects with an `ApiProblem` and saves nothing.
-- [ ] T016 [P] Write `tests/unit/i18n/parse.spec.ts` (research R18). It covers:
+- [x] T016 [P] Write `tests/unit/i18n/parse.spec.ts` (research R18). It covers:
   - `parseLocaleDecimal`: `6,5` and `6.5` in cs-cz and sk-sk give 65 tenths; `6.5` in en-gb gives 65; `6,5` in en-gb is refused; `12` gives 120; `0` gives 0;
   - refusals: `1 000`, `1,000.5`, `-1`, `1e3`, `6,55` (two fraction digits), an empty value (except where optional) and two separators, each with its reason code;
   - `parseLocaleInteger`: digits only, and leading and trailing whitespace ignored.
-- [ ] T017 [P] Write `tests/unit/shared/components/LocaleNumberField.spec.ts`. It covers:
+- [x] T017 [P] Write `tests/unit/shared/components/LocaleNumberField.spec.ts`. It covers:
   - `type="text"` with `inputmode="decimal"` (or `numeric` for whole numbers), and autocorrect and autocapitalize off;
   - the stored value is shown in the locale without grouping;
   - typing emits parsed tenths or an integer, and an invalid entry shows the field error through `FormField` with `aria-invalid`;
   - the label is associated with the field.
-- [ ] T018 [P] Write `tests/unit/features/quarantine/permissions.spec.ts`, table-driven over every row of data-model §2 "Abilities" (SC-005):
+- [x] T018 [P] Write `tests/unit/features/quarantine/permissions.spec.ts`, table-driven over every row of data-model §2 "Abilities" (SC-005):
   - an administrator;
   - a domain administrator with and without each of `quarantine`, `spamPolicy` and `ratelimit`;
   - a mailbox user with and without each of `quarantine`, `quarantineAttachments`, `quarantineNotification`, `quarantineCategory`, `spamScore` and `spamPolicy`;
   - own and foreign mailboxes for the mailbox-scoped functions.
 
   `missingFlag` names the flag for every `false` caused by a flag.
-- [ ] T019 [P] Write `tests/unit/features/quarantine/capabilities.spec.ts`. `useQuarantineCapabilities()` reads `getQuarantineCapabilities` once under `['quarantine','capabilities']` with `staleTime` 10 minutes, exposes loading and error states with a retry, and is shared by two consumers without a second request (research R8).
-- [ ] T020 [P] Extend `tests/unit/shared/validation/limits.spec.ts`: the bucket identifier pattern and maximum length in `src/shared/validation/limits.ts` equal the `RateLimitBucketId` parameter schema in `contract/openapi.json` (`^RL[0-9A-Za-z=]+$`, `maxLength` 128).
-- [ ] T021 [P] Write `tests/unit/i18n/problems-006.spec.ts` (research R24). It covers:
+- [x] T019 [P] Write `tests/unit/features/quarantine/capabilities.spec.ts`. `useQuarantineCapabilities()` reads `getQuarantineCapabilities` once under `['quarantine','capabilities']` with `staleTime` 10 minutes, exposes loading and error states with a retry, and is shared by two consumers without a second request (research R8).
+- [x] T020 [P] Extend `tests/unit/shared/validation/limits.spec.ts`: the bucket identifier pattern and maximum length in `src/shared/validation/limits.ts` equal the `RateLimitBucketId` parameter schema in `contract/openapi.json` (`^RL[0-9A-Za-z=]+$`, `maxLength` 128).
+- [x] T021 [P] Write `tests/unit/i18n/problems-006.spec.ts` (research R24). It covers:
   - `quarantine-item-busy`;
   - `quarantine-delivery-refused` with `smtpCode` and `smtpResponse`;
   - `quarantine-message-too-large` with `size` and `limit` formatted as binary sizes;
@@ -196,15 +196,15 @@ mock baseline.
   - `attribute-not-permitted` with `attributes` mapped to field labels;
   - validation messages for `invalidFormat` with `format` `email`, `domainName` and `senderPattern`; `notMultipleOf` with `factor` 0.1 and 1048576; `mustNotExceed` with `field` and `value`; `tooLong` with `unit: bytes`; `tooMany` with `max`; and `invalidTemplate` with each `reason` and `line`;
   - an unknown `reason` falls back to the generic `invalidTemplate` message.
-- [ ] T022 [P] Write `tests/unit/shared/composables/useListState-prefix.spec.ts` (only if P01's prefix is absent). Two `useListState` instances with the prefixes `allow` and `block` on one route keep separate `q`, `sort`, `order`, `page` and `size` under prefixed keys, reset only their own page, and leave the unprefixed parameters alone.
-- [ ] T023 [P] Write `tests/unit/features/spam-filter/ObjectSpamFilterPage.spec.ts` for the page skeleton. It covers:
+- [x] T022 [P] Write `tests/unit/shared/composables/useListState-prefix.spec.ts` (only if P01's prefix is absent). Two `useListState` instances with the prefixes `allow` and `block` on one route keep separate `q`, `sort`, `order`, `page` and `size` under prefixed keys, reset only their own page, and leave the unprefixed parameters alone.
+- [x] T023 (adjusted by D9: no object page; its checks moved to the section tests) [P] Write `tests/unit/features/spam-filter/ObjectSpamFilterPage.spec.ts` for the page skeleton. It covers:
   - the three kinds (`domain`, `aliasDomain`, `mailbox`) from the route;
   - the header with the object name in `PlainText` and a way back to the host detail page;
   - a `404` reported by any child panel renders `NotFoundPage` in place;
   - the `#notifications`, `#spam-score`, `#lists` and `#rate-limit` fragments focus and scroll to their panel when it is present;
   - a mailbox page offers administrators and domain administrators the link "Quarantine of this mailbox" to `/quarantine?recipient=<mailbox>` (FR-007);
   - `ObjectHistoryMenu` renders only for administrators (`canSeeHistory`).
-- [ ] T024 [P] Write `tests/unit/features/quarantine/QuarantineSectionNav.spec.ts`. The navigation lists only the registered routes with `meta.sectionNav`, in `order`, filtered by `meta.roles` against the identity's role, and marks the current one with `aria-current="page"`. A route that is not registered never appears.
+- [x] T024 [P] Write `tests/unit/features/quarantine/QuarantineSectionNav.spec.ts`. The navigation lists only the registered routes with `meta.sectionNav`, in `order`, filtered by `meta.roles` against the identity's role, and marks the current one with `aria-current="page"`. A route that is not registered never appears.
 
 ### Mock baseline and fixtures
 
@@ -225,23 +225,23 @@ mock baseline.
 
 ### Implementation of the foundation
 
-- [ ] T028 [P] Implement `src/shared/security/plain-text.ts` (`neutralise`) and `src/shared/components/PlainText.vue` (`multiline` prop; `<bdi>` or a block with `dir="auto"`), plus the classes in `src/styles/main.css`: the plain-text block (`white-space: pre-wrap`, `overflow-wrap: anywhere`, `unicode-bidi: plaintext`) and the muted marker style. T013 and T014 must pass.
-- [ ] T029 [P] Promote UI 005's `src/features/account/download.ts` to `src/shared/platform/download.ts` (P25, research R10), keeping its behaviour (object URL, temporary `<a download>`, revocation after 1 s, never `data:` URLs), updating UI 005's imports and moving its test. Then add `saveApiFile`, `parseContentDisposition` and `sanitiseFileName` as data-model §2 "Download target" describes. If UI 005 shipped no helper, create the module at that path. T015 and UI 005's download tests must pass.
-- [ ] T030 [P] Implement `src/i18n/parse.ts` and `src/shared/components/LocaleNumberField.vue`. T016 and T017 must pass.
-- [ ] T031 [P] Implement `src/features/quarantine/permissions.ts`, the pure functions of data-model §2. T018 must pass.
-- [ ] T032 Implement `src/features/quarantine/capabilities.ts` (`useQuarantineCapabilities`), the first query of `src/features/quarantine/api.ts`, and export the composable and `permissions.ts` from `src/features/quarantine/index.ts`. T019 must pass.
-- [ ] T033 [P] Add the bucket identifier pattern and maximum length to `src/shared/validation/limits.ts`, with a comment naming the contract parameter. T020 must pass.
-- [ ] T034 Extend `src/api/problem.ts` with type guards over the generated `SpamFilterPermissionFlagProblem`, `QuarantineNotificationAttributeNotPermittedProblem`, `SpamFilterTemporaryFailureProblem`, `QuarantineDeliveryRefusedProblem`, `QuarantineMessageTooLargeProblem` and `SpamPolicyEntryExistsProblem` (through `ApiProblem.extensions`, P12). Extend `src/i18n/problems.ts` with the parameter formatting of research R24. T021 must pass once T038 adds the messages.
-- [ ] T035 Add the optional key prefix to `src/shared/composables/useListState.ts` (only if P01's prefix is absent), with no change for existing callers. T022 must pass.
-- [ ] T036 Create the route skeletons:
+- [x] T028 [P] Implement `src/shared/security/plain-text.ts` (`neutralise`) and `src/shared/components/PlainText.vue` (`multiline` prop; `<bdi>` or a block with `dir="auto"`), plus the classes in `src/styles/main.css`: the plain-text block (`white-space: pre-wrap`, `overflow-wrap: anywhere`, `unicode-bidi: plaintext`) and the muted marker style. T013 and T014 must pass.
+- [x] T029 [P] Promote UI 005's `src/features/account/download.ts` to `src/shared/platform/download.ts` (P25, research R10), keeping its behaviour (object URL, temporary `<a download>`, revocation after 1 s, never `data:` URLs), updating UI 005's imports and moving its test. Then add `saveApiFile`, `parseContentDisposition` and `sanitiseFileName` as data-model §2 "Download target" describes. If UI 005 shipped no helper, create the module at that path. T015 and UI 005's download tests must pass.
+- [x] T030 [P] Implement `src/i18n/parse.ts` and `src/shared/components/LocaleNumberField.vue`. T016 and T017 must pass.
+- [x] T031 [P] Implement `src/features/quarantine/permissions.ts`, the pure functions of data-model §2. T018 must pass.
+- [x] T032 Implement `src/features/quarantine/capabilities.ts` (`useQuarantineCapabilities`), the first query of `src/features/quarantine/api.ts`, and export the composable and `permissions.ts` from `src/features/quarantine/index.ts`. T019 must pass.
+- [x] T033 [P] Add the bucket identifier pattern and maximum length to `src/shared/validation/limits.ts`, with a comment naming the contract parameter. T020 must pass.
+- [x] T034 Extend `src/api/problem.ts` with type guards over the generated `SpamFilterPermissionFlagProblem`, `QuarantineNotificationAttributeNotPermittedProblem`, `SpamFilterTemporaryFailureProblem`, `QuarantineDeliveryRefusedProblem`, `QuarantineMessageTooLargeProblem` and `SpamPolicyEntryExistsProblem` (through `ApiProblem.extensions`, P12). Extend `src/i18n/problems.ts` with the parameter formatting of research R24. T021 must pass once T038 adds the messages.
+- [x] T035 Add the optional key prefix to `src/shared/composables/useListState.ts` (only if P01's prefix is absent), with no change for existing callers. T022 must pass.
+- [x] T036 (adjusted by D9: the route modules are registered; no object routes) Create the route skeletons:
   - `src/features/quarantine/routes.ts` (empty, filled by the stories);
   - `src/features/spam-filter/{routes.ts,index.ts,owner.ts}`: `owner.ts` maps each kind to its operations, its route and its group labels (data-model §2 "PolicyOwner");
   - `src/features/spam-filter/pages/ObjectSpamFilterPage.vue`, with named panel slots filled by the stories;
   - `src/features/spam-filter/components/ObjectPageHeader.vue` and `src/features/spam-filter/components/ObjectHistoryMenu.vue`.
 
   Register `spam-filter-domain` (`/domains/:domain/spam-filter`, `meta.navEntry: 'domains'`), `spam-filter-alias-domain` (`/alias-domains/:aliasDomain/spam-filter`, `meta.navEntry: 'aliasDomains'`) and `spam-filter-mailbox` (`/mailboxes/:mailbox/spam-filter`, `meta.navEntry: 'mailboxes'`), each with `meta.roles: ['admin', 'domainAdmin']` and the title key `spamFilter.object.title`, in `src/app/router/routes.ts` (data-model §5). T023 must pass.
-- [ ] T037 Implement `src/features/quarantine/components/QuarantineSectionNav.vue` and the `meta.sectionNav` (`labelKey`, `order`) typing in `src/app/router/routes.ts`. T024 must pass.
-- [ ] T038 Add the foundation's messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+- [x] T037 Implement `src/features/quarantine/components/QuarantineSectionNav.vue` and the `meta.sectionNav` (`labelKey`, `order`) typing in `src/app/router/routes.ts`. T024 must pass.
+- [x] T038 Add the foundation's messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   - the PlainText marker's accessible text;
   - the `LocaleNumberField` reasons (`spamFilter.score.notANumber` and the integer reasons);
   - download errors;

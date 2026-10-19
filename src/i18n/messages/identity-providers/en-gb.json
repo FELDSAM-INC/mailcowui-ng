@@ -3,6 +3,13 @@
     "appReturnUrls": "Redirect addresses of this app for single sign-on: allow them at the provider as well",
     "changedElsewhere": "a new secret",
     "copyRefused": "The browser did not allow copying. The address is selected: copy it yourself.",
+    "form": {
+      "errors": {
+        "hosts": {
+          "invalidFormat": "Enter a valid host name or IP address."
+        }
+      }
+    },
     "secretStored": "A secret is stored. Leave the field empty to keep it.",
     "stored": "Stored",
     "test": {

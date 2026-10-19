@@ -199,6 +199,8 @@ export function useProviderEditor(options: ProviderEditorOptions) {
 
   const problemForm = useProblemForm({
     fieldId: (path) => (form.value ? fieldIdOf(form.value.type, path) : null),
+    // LDAP hosts take IPv6 addresses too; the generic `hostName` message is the sync jobs' one.
+    formKey: 'identityProvider.form',
     labelFor: (field) => (FIELD_LABELS[field] ? lt(FIELD_LABELS[field]) : field),
   })
   const versioned = useVersionedSave<IdentityProviderConfig>({

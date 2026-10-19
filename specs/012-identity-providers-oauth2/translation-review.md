@@ -11,6 +11,11 @@ hard-coded option texts. Removed with the classic-interface notices of UI 001:
 The feature's own strings (`identityProvider.*`, `oauth2.*`) are in
 `src/i18n/messages/identity-providers/`, loaded with its routes; the others are in the main files.
 
+UI 008 landed first with the generic `validation.format.hostName` ("Enter a host name or an IPv4
+address.", sync jobs refuse IPv6). LDAP hosts also take IPv6 addresses, so the provider form has its
+own message for that rule, `identityProvider.form.errors.hosts.invalidFormat` (form context of UI 004
+research R17), for the browser's check and the server's.
+
 | Key | en-gb | cs-cz | sk-sk |
 |---|---|---|---|
 | `auth.notice.signedOutSso` | You have signed out of this app. You are still signed in at your organisation's sign-in service; on a shared device, sign out there too. | Odhlásili jste se z této aplikace. U přihlašovací služby vaší organizace jste stále přihlášeni; na sdíleném zařízení se odhlaste i tam. | Odhlásili ste sa z tejto aplikácie. V prihlasovacej službe vašej organizácie ste stále prihlásení; na zdieľanom zariadení sa odhláste aj tam. |
@@ -57,6 +62,7 @@ The feature's own strings (`identityProvider.*`, `oauth2.*`) are in
 | `identityProvider.test.noResult` | No result was received within {seconds} seconds. | Do {seconds} sekund nepřišel žádný výsledek. | Do {seconds} sekúnd neprišiel žiadny výsledok. |
 | `identityProvider.test.running` | Testing the connection… | Testuji spojení… | Testujem spojenie… |
 | `identityProvider.type.genericOidc` | Generic-OIDC | Generic-OIDC | Generic-OIDC |
+| `identityProvider.form.errors.hosts.invalidFormat` | Enter a valid host name or IP address. | Zadejte platný název hostitele nebo IP adresu. | Zadajte platný názov hostiteľa alebo IP adresu. |
 | `identityProvider.type.keycloak` | Keycloak | Keycloak | Keycloak |
 | `identityProvider.type.ldap` | LDAP | LDAP | LDAP |
 | `oauth2.added` | Added client access | Přístup klienta byl přidán | Prístup klienta bol pridaný |
@@ -74,7 +80,6 @@ The feature's own strings (`identityProvider.*`, `oauth2.*`) are in
 | `validation.byParam.secretRequired.reason.noStoredSecret` | Required: no secret is stored for this provider type yet. | Povinné: pro tento typ poskytovatele zatím není uložen žádný tajný údaj. | Povinné: pre tento typ poskytovateľa zatiaľ nie je uložený žiadny tajný údaj. |
 | `validation.byParam.secretRequired.reason.typeChanged` | Required: the provider type changes. | Povinné: mění se typ poskytovatele. | Povinné: mení sa typ poskytovateľa. |
 | `validation.duplicate` | This value is entered more than once. | Tato hodnota je zadána vícekrát. | Táto hodnota je zadaná viackrát. |
-| `validation.format.hostName` | Enter a valid host name or IP address. | Zadejte platný název hostitele nebo IP adresu. | Zadajte platný názov hostiteľa alebo IP adresu. |
 | `validation.format.httpUrl` | Enter an absolute address starting with http:// or https://. | Zadejte úplnou adresu začínající http:// nebo https://. | Zadajte úplnú adresu začínajúcu http:// alebo https://. |
 | `validation.format.keycloakRealm` | Enter the realm name without a slash. | Zadejte název realmu bez lomítka. | Zadajte názov realmu bez lomky. |
 | `validation.format.keycloakVersion` | Enter a version of up to four numbers separated by dots, for example 26.0.7. | Zadejte verzi z nejvýše čtyř čísel oddělených tečkami, například 26.0.7. | Zadajte verziu z najviac štyroch čísel oddelených bodkami, napríklad 26.0.7. |

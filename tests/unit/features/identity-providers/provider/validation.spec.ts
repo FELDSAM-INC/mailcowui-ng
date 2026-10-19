@@ -124,7 +124,7 @@ describe('validateForm', () => {
     expect(keys(errors, 'attributeField')).toEqual(['validation.required'])
     form.hosts = 'ldap_1.example.org'
     expect(keys(validateForm(form, { limits, secret: null }), 'hosts')).toEqual([
-      'validation.format.hostName',
+      'identityProvider.form.errors.hosts.invalidFormat',
     ])
     form.hosts = ' , '
     expect(keys(validateForm(form, { limits, secret: null }), 'hosts')).toEqual([

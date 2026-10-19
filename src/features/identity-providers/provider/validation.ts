@@ -156,7 +156,8 @@ export function validateForm(form: ProviderForm, ctx: ValidationContext): RuleEr
       if (hosts.length === 0) add('hosts', 'validation.required')
       else if (hosts.length > limits.ldapHostsMaxEntries) {
         add('hosts', 'validation.tooMany', { max: limits.ldapHostsMaxEntries })
-      } else if (!hosts.every(isLdapHost)) add('hosts', 'validation.format.hostName')
+      } else if (!hosts.every(isLdapHost))
+        add('hosts', 'identityProvider.form.errors.hosts.invalidFormat')
       range('port', form.port, LDAP_PORT_MIN, LDAP_PORT_MAX)
       if (required('baseDn', form.baseDn)) {
         maxLength('baseDn', form.baseDn, limits.distinguishedNameMaxLength)

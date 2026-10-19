@@ -3,6 +3,13 @@
     "appReturnUrls": "Návratové adresy tejto aplikácie pre jednotné prihlásenie: povoľte ich u poskytovateľa tiež",
     "changedElsewhere": "nový tajný údaj",
     "copyRefused": "Prehliadač nepovolil kopírovanie. Adresa je označená: skopírujte ju sami.",
+    "form": {
+      "errors": {
+        "hosts": {
+          "invalidFormat": "Zadajte platný názov hostiteľa alebo IP adresu."
+        }
+      }
+    },
     "secretStored": "Tajný údaj je uložený. Ponechajte pole prázdne, aby zostal zachovaný.",
     "stored": "Uložené",
     "test": {

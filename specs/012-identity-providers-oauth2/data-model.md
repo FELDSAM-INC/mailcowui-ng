@@ -314,7 +314,7 @@ against `contract/openapi.json`.
 | `version` | required; `^[0-9]+(\.[0-9]+){0,3}$`; ≤ 64 | Contract | `validation.format.keycloakVersion` |
 | OIDC endpoints (3) | required; absolute `http(s)` URL; ≤ `urlMaxLength` | Cap. | as `serverUrl` |
 | `scopes` | 1 to `scopesMaxEntries` names separated by single spaces; no `"`, `\` or other whitespace | Cap. | `validation.format.scopeList` |
-| LDAP `hosts` | 1 to `ldapHostsMaxEntries` entries; each `isLdapHost()` and ≤ 253 | Cap., Contract | `validation.tooMany`, `validation.format.hostName` |
+| LDAP `hosts` | 1 to `ldapHostsMaxEntries` entries; each `isLdapHost()` and ≤ 253 | Cap., Contract | `validation.tooMany`, `identityProvider.form.errors.hosts.invalidFormat` (not UI 008's IPv4-only `validation.format.hostName`) |
 | `port` | integer 1–65,535 | Contract | `validation.outOfRange` |
 | `baseDn`, `bindDn` | 1 to `distinguishedNameMaxLength` characters | Cap. | `validation.required`, `validation.tooLong` |
 | `usernameField` | `^[A-Za-z][A-Za-z0-9-]*$`; ≤ 255 | Contract | `validation.format.ldapAttribute` |

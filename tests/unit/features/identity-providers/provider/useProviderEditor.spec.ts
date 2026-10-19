@@ -6,6 +6,7 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, type Ref } from 'vue'
 
+import { ApiProblem } from '@/api'
 import {
   capabilitiesOptions,
   configurationOptions,
@@ -103,6 +104,27 @@ describe('useProviderEditor', () => {
     editor.form.value!.bindPassword = 'secret'
     expect(await editor.save()).toBe('saved')
     expect(mockState().identityProvider.stored?.type).toBe('ldap')
+  })
+
+  it('tells an invalid LDAP host that IP addresses of both versions are allowed', async () => {
+    // Sync jobs share the format `hostName` with host names and IPv4 only; LDAP hosts take IPv6 too.
+    const { editor } = await editorFor('idp-ldap')
+    const message = 'Enter a valid host name or IP address.'
+    editor.form.value!.hosts = 'ldap_1.example.org'
+    expect(await editor.save()).toBe('invalid')
+    expect(editor.problemForm.errorsFor('hosts')).toEqual([message])
+    editor.problemForm.clear()
+    await editor.problemForm.setProblem(
+      ApiProblem.fromParts({
+        kind: 'problem',
+        status: 422,
+        type: '/api/v2/problems/validation-failed',
+        fieldErrors: new Map([
+          ['hosts', [{ code: 'invalidFormat', params: { format: 'hostName' }, message: '' }]],
+        ]),
+      }),
+    )
+    expect(editor.problemForm.errorsFor('hosts')).toEqual([message])
   })
 
   it('says when the configuration was removed elsewhere, and when nothing changed', async () => {

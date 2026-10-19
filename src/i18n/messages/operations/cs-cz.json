@@ -1,0 +1,25 @@
+{
+  "operations": {
+    "enums": {
+      "containerAction": {
+        "start": "Spustit",
+        "stop": "Zastavit"
+      }
+    },
+    "live": {
+      "pause": "Pozastavit průběžné aktualizace",
+      "resume": "Obnovit průběžné aktualizace",
+      "paused": "Průběžné aktualizace jsou pozastaveny od {time}.",
+      "inactive": "Průběžné aktualizace byly pozastaveny, protože jste delší dobu nebyli aktivní.",
+      "unavailable": "Průběžné aktualizace jsou vypnuté, protože se nepodařilo načíst nastavení monitorování.",
+      "failed": "Aktualizace se nezdařila. Zobrazené hodnoty nemusí být aktuální.",
+      "containerStopped": "{name} už neběží."
+    },
+    "notRecorded": "Akce byla provedena, ale do protokolu auditu se nezapsal žádný záznam.",
+    "copy": "Kopírovat",
+    "copyRefused": "Kopírování zde není dostupné. Text vyberte a zkopírujte ručně.",
+    "dashboard": {
+      "sectionError": "Tuto část se nepodařilo načíst."
+    }
+  }
+}

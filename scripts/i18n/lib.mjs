@@ -76,6 +76,8 @@ export const ENUM_NAMESPACES = {
   syncJobEncryptionValues: 'enums.syncJobEncryption',
   syncJobLastResultValues: 'enums.syncJobLastResult',
   syncJobBulkActionValues: 'enums.syncJobBulkAction',
+  // UI 011: the container actions, the only monitoring enumeration its screens show as words.
+  containerActionValues: 'operations.enums.containerAction',
 }
 
 /**

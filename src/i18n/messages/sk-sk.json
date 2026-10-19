@@ -151,7 +151,8 @@
       "requestId": "ID požiadavky",
       "show": "Zobraziť podrobnosti",
       "target": "Cieľ",
-      "userAgent": "User agent"
+      "userAgent": "User agent",
+      "showAll": "Zobraziť všetkých {count}"
     },
     "filters": {
       "actor": "Používateľ alebo API kľúč",
@@ -438,7 +439,24 @@
       "forwardingHostCreation": "Preposielací server pridaný",
       "forwardingHostUpdate": "Preposielací server zmenený",
       "forwardingHostDeletion": "Preposielací server odstránený",
-      "relayhostAssignmentUpdate": "Priradenie transportu závislého na odosielateľovi zmenené"
+      "relayhostAssignmentUpdate": "Priradenie transportu závislého na odosielateľovi zmenené",
+      "containerStart": "Kontajner spustený",
+      "containerStop": "Kontajner zastavený",
+      "containerRestart": "Kontajner reštartovaný",
+      "mailQueueDelivery": "Vyžiadané doručenie správ vo fronte",
+      "mailQueueHold": "Správy vo fronte podržané",
+      "mailQueueRelease": "Správy vo fronte uvoľnené",
+      "mailQueueDeletion": "Správy vo fronte zmazané",
+      "mailQueueFlush": "Fronta pošty vyprázdnená",
+      "mailQueuePurge": "Všetky správy vo fronte zmazané",
+      "mailQueueMessageView": "Zobrazená správa vo fronte",
+      "fail2banSettingsUpdate": "Parametre Fail2banu zmenené",
+      "fail2banRulesReplacement": "Regex filtre Fail2banu zmenené",
+      "fail2banRulesReset": "Regex filtre Fail2banu obnovené na predvolené",
+      "fail2banBanLift": "Sieť odblokovaná",
+      "fail2banBanAllowlisting": "Sieť odblokovaná a povolená",
+      "fail2banBanDenylisting": "Sieť zakázaná",
+      "fail2banBanListIdRotation": "ID zoznamu blokovaní obnovené"
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktívny",
@@ -473,7 +491,9 @@
       "verificationUnavailable": "Overovacia služba je nedostupná",
       "versionOutdated": "Medzitým zmenené",
       "outcomeUnknown": "Výsledok neznámy",
-      "partiallyCompleted": "Dokončené len čiastočne"
+      "partiallyCompleted": "Dokončené len čiastočne",
+      "serviceFailure": "Služba kontajnerov alebo Postfix ohlásili chybu",
+      "rulesNotRestored": "Predvolené regex filtre sa včas neobnovili"
     },
     "auditOutcome": {
       "failure": "Neúspech"
@@ -492,7 +512,12 @@
       "tlsPolicyMap": "Mapa TLS pravidiel",
       "forwardingHost": "Preposielací server",
       "domainRelayhostAssignment": "Transport závislý na odosielateľovi pre doménu",
-      "mailboxRelayhostAssignment": "Transport závislý na odosielateľovi pre schránku"
+      "mailboxRelayhostAssignment": "Transport závislý na odosielateľovi pre schránku",
+      "container": "Kontajner",
+      "mailQueue": "Fronta pošty",
+      "mailQueueMessage": "Správa vo fronte",
+      "fail2banActiveBan": "Aktívne blokovanie",
+      "fail2banBanListId": "ID zoznamu blokovaní"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresára",
@@ -588,7 +613,6 @@
     "auditLog": "Protokol auditu",
     "home": "Úvod",
     "identityProviders": "Poskytovatelia identít a OAuth2",
-    "operations": "Monitorovanie a prevádzka",
     "passkeys": "Prístupové kľúče",
     "routing": "Smerovanie a prepisovanie adries",
     "system": "Nastavenia systému"
@@ -697,7 +721,12 @@
     "mailbox-template-protected": "Predvolenú šablónu nemožno premenovať ani odstrániť.",
     "dkim-private-key-export-disabled": "Export súkromných kľúčov je na tomto serveri vypnutý. Prevádzkovateľ ho môže zapnúť.",
     "dkim-dns-publication-disabled": "Zverejňovanie v DNS je na tomto serveri vypnuté.",
-    "mta-sts-policy-exists": "Táto doména už má MTA-STS politiku."
+    "mta-sts-policy-exists": "Táto doména už má MTA-STS politiku.",
+    "container-protected": "Tento kontajner je chránený a v tejto aplikácii ho nemožno zastaviť.",
+    "container-not-running": "Kontajner nebeží.",
+    "container-action-failed": "Chyba: {serviceMessage}",
+    "mail-service-not-running": "Kontajner Postfixu {container} nebeží.",
+    "queue-action-failed": "Chyba: {serviceMessage}"
   },
   "roles": {
     "mailboxUser": "Používateľ schránky"
@@ -819,7 +848,8 @@
       "webauthnCredential": "Odpoveď bezpečnostného alebo prístupového kľúča nie je platná.",
       "yubicoOtp": "Zadajte 44 písmen alebo číslic, ktoré napíše váš YubiKey.",
       "attributeName": "Použite názov bez medzier.",
-      "mxHost": "Zadajte názov hostiteľa, napríklad mail.example.org alebo *.example.org."
+      "mxHost": "Zadajte názov hostiteľa, napríklad mail.example.org alebo *.example.org.",
+      "logCursor": "Toto miesto v zázname už neplatí. Obnovte záznam."
     },
     "immutable": "Túto hodnotu nemožno zmeniť.",
     "invalid": "Táto hodnota nie je platná.",
@@ -847,7 +877,9 @@
     "sameAsSource": "Zvoľte iný názov, než má zdroj.",
     "invalidCharacter": "Táto hodnota nesmie obsahovať {characters}.",
     "invalidRegex": "Toto nie je platný regulárny výraz.",
-    "notResolvable": "Tento názov sa neprekladá na žiadnu adresu."
+    "notResolvable": "Tento názov sa neprekladá na žiadnu adresu.",
+    "outOfRangeMinField": "Zadajte hodnotu od {min} ({field}) do {max}.",
+    "missingCaptureGroup": "Pravidlo potrebuje zachytávaciu skupinu pre adresu klienta."
   },
   "domainTemplates": {
     "create": {

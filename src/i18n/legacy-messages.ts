@@ -220,6 +220,14 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
     'danger.tls_policy_map_parameter_invalid',
   'routing.forwardingHosts.form.errors.host.notResolvable': 'danger.invalid_host',
   'routing.forwardingHosts.form.errors.host.invalidFormat': 'danger.invalid_host',
+  // UI 011 (plan "Legacy form map (T010a)"): the navigation group, the restart action, the
+  // problems legacy reports with its own text, and the two ban service audit targets.
+  'nav.groups.system': 'header.mailcow_system',
+  'operations.enums.containerAction.restart': 'debug.restart_container',
+  'problem.ip-check-disabled': 'admin.ip_check_disabled',
+  'problem.ban-rules-not-restored': 'danger.reset_f2b_regex',
+  'enums.auditTargetType.fail2banSettings': 'admin.f2b_parameters',
+  'enums.auditTargetType.fail2banRules': 'admin.f2b_filter',
 }
 
 /**

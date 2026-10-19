@@ -27,6 +27,10 @@ beforeEach(async () => {
     loadFeatureMessages('aliases', i18n, 'en-gb'),
     loadFeatureMessages('dns', i18n, 'en-gb'),
     loadFeatureMessages('routing', i18n, 'en-gb'),
+    loadFeatureMessages('operations', i18n, 'en-gb'),
+    loadFeatureMessages('operationsLogs', i18n, 'en-gb'),
+    loadFeatureMessages('operationsQueue', i18n, 'en-gb'),
+    loadFeatureMessages('operationsFail2ban', i18n, 'en-gb'),
   ])
 })
 

@@ -1,0 +1,25 @@
+{
+  "operations": {
+    "enums": {
+      "containerAction": {
+        "start": "Spustiť",
+        "stop": "Zastaviť"
+      }
+    },
+    "live": {
+      "pause": "Pozastaviť priebežné aktualizácie",
+      "resume": "Obnoviť priebežné aktualizácie",
+      "paused": "Priebežné aktualizácie sú pozastavené od {time}.",
+      "inactive": "Priebežné aktualizácie boli pozastavené, pretože ste dlhší čas neboli aktívni.",
+      "unavailable": "Priebežné aktualizácie sú vypnuté, pretože sa nepodarilo načítať nastavenia monitorovania.",
+      "failed": "Aktualizácia zlyhala. Zobrazené hodnoty nemusia byť aktuálne.",
+      "containerStopped": "{name} už nebeží."
+    },
+    "notRecorded": "Akcia bola vykonaná, ale do protokolu auditu sa nezapísal žiadny záznam.",
+    "copy": "Kopírovať",
+    "copyRefused": "Kopírovanie tu nie je dostupné. Text vyberte a skopírujte ručne.",
+    "dashboard": {
+      "sectionError": "Túto časť sa nepodarilo načítať."
+    }
+  }
+}

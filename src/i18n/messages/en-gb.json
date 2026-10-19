@@ -151,7 +151,8 @@
       "requestId": "Request ID",
       "show": "Show details",
       "target": "Target",
-      "userAgent": "User agent"
+      "userAgent": "User agent",
+      "showAll": "Show all {count}"
     },
     "filters": {
       "actor": "User or API key",
@@ -438,7 +439,24 @@
       "forwardingHostCreation": "Forwarding host added",
       "forwardingHostUpdate": "Forwarding host changed",
       "forwardingHostDeletion": "Forwarding host removed",
-      "relayhostAssignmentUpdate": "Sender-dependent transport assignment changed"
+      "relayhostAssignmentUpdate": "Sender-dependent transport assignment changed",
+      "containerStart": "Container started",
+      "containerStop": "Container stopped",
+      "containerRestart": "Container restarted",
+      "mailQueueDelivery": "Delivery of queued messages requested",
+      "mailQueueHold": "Queued messages held",
+      "mailQueueRelease": "Queued messages released",
+      "mailQueueDeletion": "Queued messages deleted",
+      "mailQueueFlush": "Mail queue flushed",
+      "mailQueuePurge": "All queued messages deleted",
+      "mailQueueMessageView": "Queued message viewed",
+      "fail2banSettingsUpdate": "Fail2ban parameters changed",
+      "fail2banRulesReplacement": "Fail2ban regex filters changed",
+      "fail2banRulesReset": "Fail2ban regex filters reset",
+      "fail2banBanLift": "Network unbanned",
+      "fail2banBanAllowlisting": "Network unbanned and allowlisted",
+      "fail2banBanDenylisting": "Network denylisted",
+      "fail2banBanListIdRotation": "Banlist ID refreshed"
     },
     "auditFailureReason": {
       "accountInactive": "Account inactive",
@@ -473,7 +491,9 @@
       "verificationUnavailable": "Verification service unavailable",
       "versionOutdated": "Changed in the meantime",
       "outcomeUnknown": "Outcome unknown",
-      "partiallyCompleted": "Partly completed"
+      "partiallyCompleted": "Partly completed",
+      "serviceFailure": "The container service or Postfix reported an error",
+      "rulesNotRestored": "Default regex filters were not restored in time"
     },
     "auditOutcome": {
       "failure": "Failure"
@@ -492,7 +512,12 @@
       "tlsPolicyMap": "TLS policy map",
       "forwardingHost": "Forwarding host",
       "domainRelayhostAssignment": "Sender-dependent transport of a domain",
-      "mailboxRelayhostAssignment": "Sender-dependent transport of a mailbox"
+      "mailboxRelayhostAssignment": "Sender-dependent transport of a mailbox",
+      "container": "Container",
+      "mailQueue": "Mail queue",
+      "mailQueueMessage": "Queued message",
+      "fail2banActiveBan": "Active ban",
+      "fail2banBanListId": "Banlist ID"
     },
     "authMethod": {
       "directoryPassword": "Directory password",
@@ -588,7 +613,6 @@
     "auditLog": "Audit log",
     "home": "Home",
     "identityProviders": "Identity providers and OAuth2",
-    "operations": "Monitoring and operations",
     "passkeys": "Passkeys",
     "routing": "Routing and rewriting",
     "system": "System settings"
@@ -697,7 +721,12 @@
     "mailbox-template-protected": "The Default template cannot be renamed or deleted.",
     "dkim-private-key-export-disabled": "Private key export is turned off on this server. The operator can turn it on.",
     "dkim-dns-publication-disabled": "DNS publication is turned off on this server.",
-    "mta-sts-policy-exists": "This domain already has an MTA-STS policy."
+    "mta-sts-policy-exists": "This domain already has an MTA-STS policy.",
+    "container-protected": "This container is protected and cannot be stopped from this app.",
+    "container-not-running": "The container is not running.",
+    "container-action-failed": "Error: {serviceMessage}",
+    "mail-service-not-running": "The Postfix container {container} is not running.",
+    "queue-action-failed": "Error: {serviceMessage}"
   },
   "roles": {
     "mailboxUser": "Mailbox user"
@@ -819,7 +848,8 @@
       "webauthnCredential": "The response of the security key or passkey is not valid.",
       "yubicoOtp": "Enter the 44 letters or digits your YubiKey types.",
       "attributeName": "Use a name without spaces.",
-      "mxHost": "Enter a host name, for example mail.example.org or *.example.org."
+      "mxHost": "Enter a host name, for example mail.example.org or *.example.org.",
+      "logCursor": "This position in the log is no longer valid. Refresh the log."
     },
     "immutable": "This value cannot be changed.",
     "invalid": "This value is not valid.",
@@ -847,7 +877,9 @@
     "sameAsSource": "Choose a name other than the source.",
     "invalidCharacter": "This value must not contain {characters}.",
     "invalidRegex": "This is not a valid regular expression.",
-    "notResolvable": "This name resolves to no address."
+    "notResolvable": "This name resolves to no address.",
+    "outOfRangeMinField": "Enter a value from {min} ({field}) to {max}.",
+    "missingCaptureGroup": "The rule needs a capture group for the client address."
   },
   "domainTemplates": {
     "create": {

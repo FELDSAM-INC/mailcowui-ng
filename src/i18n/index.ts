@@ -21,6 +21,10 @@ import enGb from './messages/en-gb.json'
 import type enGbIdentityProviders from './messages/identity-providers/en-gb.json'
 import type enGbMailboxes from './messages/mailboxes/en-gb.json'
 import type enGbRouting from './messages/routing/en-gb.json'
+import type enGbOperationsFail2ban from './messages/operations-fail2ban/en-gb.json'
+import type enGbOperationsLogs from './messages/operations-logs/en-gb.json'
+import type enGbOperationsQueue from './messages/operations-queue/en-gb.json'
+import type enGbOperations from './messages/operations/en-gb.json'
 import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
 export type MessageSchema = typeof enGb &
@@ -32,7 +36,11 @@ export type MessageSchema = typeof enGb &
   typeof enGbDns &
   typeof enGbDnsDiagnostics &
   typeof enGbDnsMtaSts &
-  typeof enGbRouting
+  typeof enGbRouting &
+  typeof enGbOperations &
+  typeof enGbOperationsLogs &
+  typeof enGbOperationsQueue &
+  typeof enGbOperationsFail2ban
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -136,6 +144,28 @@ const featureLoaders = {
     'en-gb': () => import('./messages/routing/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/routing/cs-cz.json').then((m) => m.default),
     'sk-sk': () => import('./messages/routing/sk-sk.json').then((m) => m.default),
+  },
+  // UI 011: the operations screens; `operations` is shared by all of them, the others belong to
+  // one screen each (logs with Rspamd, the mail queue, Fail2ban).
+  operations: {
+    'en-gb': () => import('./messages/operations/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/operations/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/operations/sk-sk.json').then((m) => m.default),
+  },
+  operationsLogs: {
+    'en-gb': () => import('./messages/operations-logs/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/operations-logs/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/operations-logs/sk-sk.json').then((m) => m.default),
+  },
+  operationsQueue: {
+    'en-gb': () => import('./messages/operations-queue/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/operations-queue/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/operations-queue/sk-sk.json').then((m) => m.default),
+  },
+  operationsFail2ban: {
+    'en-gb': () => import('./messages/operations-fail2ban/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/operations-fail2ban/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/operations-fail2ban/sk-sk.json').then((m) => m.default),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

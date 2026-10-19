@@ -1,0 +1,25 @@
+{
+  "operations": {
+    "enums": {
+      "containerAction": {
+        "start": "Start",
+        "stop": "Stop"
+      }
+    },
+    "live": {
+      "pause": "Pause live updates",
+      "resume": "Resume live updates",
+      "paused": "Live updates paused since {time}.",
+      "inactive": "Live updates were paused because there was no activity.",
+      "unavailable": "Live updates are off because the monitoring settings could not be read.",
+      "failed": "Updating failed. The values shown may be out of date.",
+      "containerStopped": "{name} is no longer running."
+    },
+    "notRecorded": "The action was carried out, but no audit record was written.",
+    "copy": "Copy",
+    "copyRefused": "Copying is not available here. Select the text to copy it.",
+    "dashboard": {
+      "sectionError": "This section could not be loaded."
+    }
+  }
+}

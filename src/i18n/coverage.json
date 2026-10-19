@@ -75,7 +75,24 @@
       "tlsPolicyMapDeletion",
       "forwardingHostCreation",
       "forwardingHostUpdate",
-      "forwardingHostDeletion"
+      "forwardingHostDeletion",
+      "containerStart",
+      "containerStop",
+      "containerRestart",
+      "mailQueueDelivery",
+      "mailQueueHold",
+      "mailQueueRelease",
+      "mailQueueDeletion",
+      "mailQueueFlush",
+      "mailQueuePurge",
+      "mailQueueMessageView",
+      "fail2banSettingsUpdate",
+      "fail2banRulesReplacement",
+      "fail2banRulesReset",
+      "fail2banBanLift",
+      "fail2banBanAllowlisting",
+      "fail2banBanDenylisting",
+      "fail2banBanListIdRotation"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -103,7 +120,14 @@
       "bccMap",
       "recipientMap",
       "tlsPolicyMap",
-      "forwardingHost"
+      "forwardingHost",
+      "container",
+      "mailQueue",
+      "mailQueueMessage",
+      "fail2banSettings",
+      "fail2banRules",
+      "fail2banActiveBan",
+      "fail2banBanListId"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -139,7 +163,9 @@
       "noMatchingMapping",
       "mailboxCreationFailed",
       "passwordNotVerifiable",
-      "connectionTestFailed"
+      "connectionTestFailed",
+      "serviceFailure",
+      "rulesNotRestored"
     ],
     "AuthMethod": [
       "password",
@@ -181,7 +207,8 @@
       "sameAsSource",
       "invalidCharacter",
       "invalidRegex",
-      "notResolvable"
+      "notResolvable",
+      "missingCaptureGroup"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -234,7 +261,14 @@
       "mta-sts-policy-exists",
       "routing-entry-exists",
       "next-hop-credentials-differ",
-      "next-hop-interferes"
+      "next-hop-interferes",
+      "container-protected",
+      "container-not-running",
+      "container-action-failed",
+      "mail-service-not-running",
+      "queue-action-failed",
+      "ban-rules-not-restored",
+      "ip-check-disabled"
     ]
   },
   "complete": {

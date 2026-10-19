@@ -189,3 +189,35 @@ restored). The restart's History entry is covered by the mock end-to-end tests
 no Android phone, no iPhone and no screen reader, and the feature is not deployed to a mailcow host
 before it is merged. They remain for the owner after the merge (staging host), with SC-001, SC-002
 and SC-011 timed and a VoiceOver and TalkBack pass of every story.
+
+**2026-10-19, owner-amended performance gate**: UI main `a9333d85` lowers the Lighthouse mobile
+performance minimum to **80**, with accessibility still **90**. Constitution **2.0.0**, all
+normative feature requirements and the CI assertions agree. The mobile settings, three runs per
+URL and 204,800-byte initial JavaScript budget are unchanged. Historical results above retain
+their original thresholds. The policy was merged into this branch as `8f016219`; application
+code remains identical to the tested `8a87b7af` build.
+
+One complete run collected all eight URLs three times, with no concurrent build or test workload:
+
+| Route | Performance, three-run range | Accessibility |
+| --- | --- | --- |
+| Sign-in | 87–89 | 100 |
+| Home | 81–82 | 100 |
+| Domains | 76–78 | 99 |
+| Aliases | 74–75 | 99 |
+| DKIM keys | 80–84 | 100 |
+| Mailboxes | 80–84 | 99 |
+| Relayhosts | 78–81 | 99 |
+| Monitoring dashboard | 83–84 | 100 |
+
+The existing Lighthouse assertion aggregation passes six performance checks, including relayhosts;
+domains and aliases fail the new minimum of 80. All accessibility checks pass. Sign-in also fails
+the separate script-transfer assertion: **208,974 bytes**, against **204,800**. This measures all
+scripts transferred on that page; the manifest-based initial JavaScript check still passes at
+**186,760 bytes gzipped**. Neither size limit was changed by the owner decision.
+
+The command exited 1 on these three assertions. **T146 remains open**, and monitoring was not
+merged, pushed or deployed. No further tuning or repeated benchmark was started. Log and all 24
+JSON/HTML reports plus assertion results are preserved in the API checkout under
+`storage/app/restart-2026-10-19/u011/policy-80-lighthouse.log` and
+`policy-80-lighthouse-reports/`. The policy itself is already on UI main and origin/main.

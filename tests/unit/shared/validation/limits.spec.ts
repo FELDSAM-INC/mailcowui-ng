@@ -243,6 +243,11 @@ describe('contract limits (data-model §6)', () => {
       'MTA_STS_MX_HOST_MAX_LENGTH',
       schemaValue('MtaStsPolicyCreateRequest', 'properties', 'mxHosts', 'items', 'maxLength'),
     ],
+    // UI 006 (T020): the bucket identifier of resetRateLimitBucket.
+    [
+      'RATE_LIMIT_BUCKET_ID_MAX_LENGTH',
+      pointer('/components/parameters/RateLimitBucketId/schema/maxLength'),
+    ],
   ]
 
   // UI 012 (T006): syntax rules of the contract, compared as pattern sources.
@@ -283,6 +288,11 @@ describe('contract limits (data-model §6)', () => {
     [
       'OAUTH_ERROR_CODE_PATTERN',
       schemaValue('SingleSignOnProviderErrorRequest', 'properties', 'error', 'pattern'),
+    ],
+    // UI 006 (T020): the bucket identifier of resetRateLimitBucket.
+    [
+      'RATE_LIMIT_BUCKET_ID_PATTERN',
+      pointer('/components/parameters/RateLimitBucketId/schema/pattern'),
     ],
   ]
 
@@ -341,6 +351,9 @@ describe('contract limits (data-model §6)', () => {
     expect(limits.SSO_CODE_MAX_LENGTH).toBe(4096)
     expect(limits.SSO_STATE_MAX_LENGTH).toBe(512)
     expect(limits.REDIRECT_URI_MAX_LENGTH).toBe(2000)
+    expect(limits.RATE_LIMIT_BUCKET_ID_MAX_LENGTH).toBe(128)
+    expect(limits.RATE_LIMIT_BUCKET_ID_PATTERN.test('RLabc=')).toBe(true)
+    expect(limits.RATE_LIMIT_BUCKET_ID_PATTERN.test('RL-bad')).toBe(false)
   })
 
   it('tests every exported limit', () => {

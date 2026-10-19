@@ -5,6 +5,9 @@
 // returns to the first page and calls `onReset` (for bulk selection). Nothing goes to storage.
 // UI 008 adds view parameters (`views`): values such as the open log (`log=<id>`) that live in the
 // address next to the list state but never reset the page or the selection.
+// UI 006 adds a key prefix (research R19): two lists on one page (the Allowlist and the Denylist)
+// keep their state under `allowQ`, `allowPage`, `blockQ` and so on, and each instance leaves the
+// other's parameters alone.
 import { computed, watch, type ComputedRef } from 'vue'
 import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 
@@ -124,13 +127,23 @@ export interface ListState<F, S extends string> {
   size: PageSize
 }
 
+type Naming = (key: string) => string
+const plain: Naming = (key) => key
+
+/** UI 006: `q` → `allowQ` for the prefix `allow`. */
+export function prefixed(prefix: string | undefined): Naming {
+  if (!prefix) return plain
+  return (key) => `${prefix}${key.charAt(0).toUpperCase()}${key.slice(1)}`
+}
+
 function parseViews<V extends Record<string, unknown>>(
   specs: { [K in keyof V]: ParamSpec<V[K]> } | undefined,
   query: LocationQuery,
+  name: Naming = plain,
 ): V {
   const views = {} as V
   for (const key of Object.keys(specs ?? {}) as (keyof V & string)[]) {
-    views[key] = specs![key].parse(query[key])
+    views[key] = specs![key].parse(query[name(key)])
   }
   return views
 }
@@ -139,24 +152,24 @@ function parseState<
   F extends Record<string, unknown>,
   S extends string,
   V extends Record<string, unknown>,
->(schema: ListSchema<F, S, V>, query: LocationQuery): ListState<F, S> {
+>(schema: ListSchema<F, S, V>, query: LocationQuery, name: Naming = plain): ListState<F, S> {
   const filters = {} as F
   for (const key of Object.keys(schema.filters) as (keyof F & string)[]) {
-    filters[key] = schema.filters[key].parse(query[key])
+    filters[key] = schema.filters[key].parse(query[name(key)])
   }
   let sort: S | undefined
   let order: SortOrder | undefined
   if (schema.sort) {
-    const rawSort = first(query.sort)
+    const rawSort = first(query[name('sort')])
     sort = (schema.sort.values as readonly string[]).includes(rawSort ?? '')
       ? (rawSort as S)
       : schema.sort.default
-    const rawOrder = first(query.order)
+    const rawOrder = first(query[name('order')])
     order = rawOrder === 'asc' || rawOrder === 'desc' ? rawOrder : schema.sort.defaultOrder(sort)
   }
-  const rawPage = first(query.page)
+  const rawPage = first(query[name('page')])
   const page = rawPage && /^[1-9][0-9]{0,8}$/.test(rawPage) ? Number(rawPage) : 1
-  const rawSize = Number(first(query.size))
+  const rawSize = Number(first(query[name('size')]))
   const size = (PAGE_SIZES as readonly number[]).includes(rawSize) ? (rawSize as PageSize) : 25
   return { filters, sort, order, page, size }
 }
@@ -165,25 +178,56 @@ function toQuery<
   F extends Record<string, unknown>,
   S extends string,
   V extends Record<string, unknown>,
->(schema: ListSchema<F, S, V>, state: ListState<F, S>, views: V): LocationQueryRaw {
+>(
+  schema: ListSchema<F, S, V>,
+  state: ListState<F, S>,
+  views: V,
+  name: Naming = plain,
+): LocationQueryRaw {
   const query: LocationQueryRaw = {}
   for (const key of Object.keys(schema.filters) as (keyof F & string)[]) {
     const value = schema.filters[key].serialize(state.filters[key])
-    if (value !== undefined) query[key] = value
+    if (value !== undefined) query[name(key)] = value
   }
   if (schema.sort && state.sort) {
-    if (state.sort !== schema.sort.default) query.sort = state.sort
+    if (state.sort !== schema.sort.default) query[name('sort')] = state.sort
     if (state.order && state.order !== schema.sort.defaultOrder(state.sort)) {
-      query.order = state.order
+      query[name('order')] = state.order
     }
   }
-  if (state.page > 1) query.page = String(state.page)
-  if (state.size !== 25) query.size = String(state.size)
+  if (state.page > 1) query[name('page')] = String(state.page)
+  if (state.size !== 25) query[name('size')] = String(state.size)
   for (const key of Object.keys(schema.views ?? {}) as (keyof V & string)[]) {
     const value = schema.views![key].serialize(views[key])
-    if (value !== undefined) query[key] = value
+    if (value !== undefined) query[name(key)] = value
   }
   return query
+}
+
+/** UI 006: the address keys an instance owns; with a prefix, every other key is kept as it is. */
+function ownedKeys<
+  F extends Record<string, unknown>,
+  S extends string,
+  V extends Record<string, unknown>,
+>(schema: ListSchema<F, S, V>, name: Naming): Set<string> {
+  return new Set(
+    [
+      ...Object.keys(schema.filters),
+      ...Object.keys(schema.views ?? {}),
+      ...(schema.sort ? ['sort', 'order'] : []),
+      'page',
+      'size',
+    ].map(name),
+  )
+}
+
+function withForeign(
+  query: LocationQuery,
+  owned: Set<string>,
+  own: LocationQueryRaw,
+): LocationQueryRaw {
+  const foreign = Object.fromEntries(Object.entries(query).filter(([key]) => !owned.has(key)))
+  return { ...foreign, ...own }
 }
 
 function sameQuery(a: LocationQuery, b: LocationQueryRaw): boolean {
@@ -199,6 +243,11 @@ function sameQuery(a: LocationQuery, b: LocationQueryRaw): boolean {
 export interface ListStateOptions {
   /** Called when the visible set changes: filters, sort, page size or page (bulk selection). */
   onReset?: () => void
+  /**
+   * UI 006: a key prefix (`allow` → `allowQ`, `allowPage`) for one of several lists on a page.
+   * With a prefix, the address keys of other lists are kept.
+   */
+  prefix?: string
 }
 
 export interface UseListState<F, S extends string, V = Record<never, never>> {
@@ -233,15 +282,28 @@ export function useListState<
 >(schema: ListSchema<F, S, V>, options: ListStateOptions = {}): UseListState<F, S, V> {
   const route = useRoute()
   const router = useRouter()
+  const name = prefixed(options.prefix)
+  const owned = ownedKeys(schema, name)
+  /** The address for this instance's state: alone, or with the other lists' keys kept. */
+  const address = (query: LocationQuery, own: LocationQueryRaw): LocationQueryRaw =>
+    options.prefix ? withForeign(query, owned, own) : own
 
-  const state = computed(() => parseState(schema, route.query))
-  const views = computed(() => parseViews<V>(schema.views, route.query))
+  const state = computed(() => parseState(schema, route.query, name))
+  const views = computed(() => parseViews<V>(schema.views, route.query, name))
 
   // Normalise the address: invalid values and defaults are removed without a history entry.
   watch(
     () => route.query,
     (query) => {
-      const normal = toQuery(schema, parseState(schema, query), parseViews<V>(schema.views, query))
+      const normal = address(
+        query,
+        toQuery(
+          schema,
+          parseState(schema, query, name),
+          parseViews<V>(schema.views, query, name),
+          name,
+        ),
+      )
       if (!sameQuery(query, normal)) void router.replace({ query: normal, hash: route.hash })
     },
     { immediate: true },
@@ -249,7 +311,10 @@ export function useListState<
 
   async function navigate(next: ListState<F, S>, mode: 'push' | 'replace', reset: boolean) {
     if (reset) options.onReset?.()
-    const location = { query: toQuery(schema, next, views.value), hash: route.hash }
+    const location = {
+      query: address(route.query, toQuery(schema, next, views.value, name)),
+      hash: route.hash,
+    }
     await (mode === 'push' ? router.push(location) : router.replace(location))
   }
 
@@ -304,7 +369,10 @@ export function useListState<
     },
     async setView(key, value, opts = {}) {
       const location = {
-        query: toQuery(schema, current(), { ...views.value, [key]: value }),
+        query: address(
+          route.query,
+          toQuery(schema, current(), { ...views.value, [key]: value }, name),
+        ),
         hash: route.hash,
       }
       await (opts.replace ? router.replace(location) : router.push(location))

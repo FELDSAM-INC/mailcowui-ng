@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import type { PermissionFlags } from '@/api'
 import FormField from '@/shared/components/FormField.vue'
 
-import AclReadOnlyNote from './AclReadOnlyNote.vue'
+import AclReadOnlyNote from '@/shared/components/AclReadOnlyNote.vue'
 
 const props = withDefaults(
   defineProps<{

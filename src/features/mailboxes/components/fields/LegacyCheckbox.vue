@@ -7,7 +7,7 @@ import type { PermissionFlags } from '@/api'
 import { lt, type LegacyArg, type LegacyKey } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
 
-import AclReadOnlyNote from './AclReadOnlyNote.vue'
+import AclReadOnlyNote from '@/shared/components/AclReadOnlyNote.vue'
 
 const props = withDefaults(
   defineProps<{

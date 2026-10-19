@@ -8,7 +8,8 @@
     "openNavigation": "Přepnout navigaci",
     "pagination": "Stránkování",
     "skipToContent": "Přeskočit na hlavní obsah",
-    "userMenu": "Nabídka účtu {username}"
+    "userMenu": "Nabídka účtu {username}",
+    "controlCharacter": "Řídicí znak"
   },
   "apiKeys": {
     "anyAddress": "Libovolná adresa",

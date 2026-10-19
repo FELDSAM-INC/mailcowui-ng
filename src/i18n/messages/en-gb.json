@@ -8,7 +8,8 @@
     "openNavigation": "Toggle navigation",
     "pagination": "Pagination",
     "skipToContent": "Skip to main content",
-    "userMenu": "Account menu of {username}"
+    "userMenu": "Account menu of {username}",
+    "controlCharacter": "Control character"
   },
   "apiKeys": {
     "anyAddress": "Any address",

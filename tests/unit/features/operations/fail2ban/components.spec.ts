@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import { queryKeys, type Fail2BanActiveBan, type Fail2BanRules, type Fail2BanSettings } from '@/api'
+import { type Fail2BanActiveBan, type Fail2BanRules, type Fail2BanSettings } from '@/api'
 import ActiveBanItem from '@/features/operations/fail2ban/components/ActiveBanItem.vue'
 import BanListSection from '@/features/operations/fail2ban/components/BanListSection.vue'
 import ParametersSection from '@/features/operations/fail2ban/components/ParametersSection.vue'
@@ -18,6 +18,7 @@ import { mockState, useScenario } from '../../../../mocks/node'
 import { defaultMonitoringCapabilities } from '../../../../mocks/scenarios/operations/state'
 import { installMatchMedia } from '../../../support/media'
 import { mountWithApp, testPlugins } from '../../../support/mount'
+import { operationsKeys } from '@/features/operations/query-keys'
 
 const router = () =>
   createRouter({
@@ -52,7 +53,7 @@ async function signedIn(scenario = 'ops-fail2ban') {
 async function openParameters(scenario = 'ops-fail2ban') {
   await signedIn(scenario)
   const settings = await readSettings()
-  testPlugins().queryClient.setQueryData(queryKeys.fail2ban.settings(), settings)
+  testPlugins().queryClient.setQueryData(operationsKeys.fail2ban.settings(), settings)
   const wrapper = mountWithApp(ParametersSection, {
     props: { settings, capabilities, editing: false },
     attachTo: document.body,
@@ -172,7 +173,7 @@ describe('RulesSection', () => {
   async function openRules(scenario = 'ops-fail2ban') {
     await signedIn(scenario)
     const rules = await readRules()
-    testPlugins().queryClient.setQueryData(queryKeys.fail2ban.rules(), rules)
+    testPlugins().queryClient.setQueryData(operationsKeys.fail2ban.rules(), rules)
     const wrapper = mountWithApp(RulesSection, {
       props: { rules, capabilities },
       attachTo: document.body,
@@ -273,7 +274,7 @@ describe('BanListSection', () => {
   async function openBanList(scenario = 'ops-fail2ban') {
     await signedIn(scenario)
     const settings = await readSettings()
-    testPlugins().queryClient.setQueryData(queryKeys.fail2ban.settings(), settings)
+    testPlugins().queryClient.setQueryData(operationsKeys.fail2ban.settings(), settings)
     const wrapper = mountWithApp(BanListSection, {
       props: { settings, capabilities },
       attachTo: document.body,

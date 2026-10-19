@@ -10,7 +10,6 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { useSessionStore } from '@/app/session/store'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
-import { queryKeys } from '@/api'
 import { lt } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 
@@ -24,6 +23,7 @@ import ContainerCard from '../components/ContainerCard.vue'
 import HostSection from '../components/HostSection.vue'
 import { useStoppedAnnouncer } from '../composables/useStoppedAnnouncer'
 import { LIVE_CONTEXT } from '../live-context'
+import { operationsKeys } from '../../query-keys'
 
 const props = defineProps<{ expand?: string }>()
 const route = useRoute()
@@ -60,7 +60,7 @@ useStoppedAnnouncer(() => containers.data.value)
 const failed = computed(() =>
   [host, storage, containers].some((query) => query.isError.value && query.data.value),
 )
-const fetchingLive = useIsFetching({ queryKey: queryKeys.monitoring.live() })
+const fetchingLive = useIsFetching({ queryKey: operationsKeys.monitoring.live() })
 const refreshing = computed(() => fetchingLive.value > 0)
 
 function refresh() {

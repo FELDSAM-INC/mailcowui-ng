@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h, nextTick, ref } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
-import { queryKeys, type MailQueueMessage } from '@/api'
+import { type MailQueueMessage } from '@/api'
 import MailServiceStopped from '@/features/operations/mail-queue/components/MailServiceStopped.vue'
 import MessageContentViewer from '@/features/operations/mail-queue/components/MessageContentViewer.vue'
 import PurgeQueueDialog from '@/features/operations/mail-queue/components/PurgeQueueDialog.vue'
@@ -19,6 +19,7 @@ import { liveMessages } from '@/shared/composables/useAnnouncer'
 import { mockState, useScenario } from '../../../../mocks/node'
 import { installMatchMedia } from '../../../support/media'
 import { mountWithApp, testPlugins } from '../../../support/mount'
+import { operationsKeys } from '@/features/operations/query-keys'
 
 const settle = (check: () => void) => vi.waitFor(check, { timeout: 5000 })
 
@@ -218,7 +219,7 @@ describe('MessageContentViewer', () => {
     await settle(() => expect(liveMessages.polite.value).toBe('Text copied to clipboard!'))
     wrapper.unmount()
     expect(
-      testPlugins().queryClient.getQueryData(queryKeys.mailQueue.content('4F2A1B3C9D')),
+      testPlugins().queryClient.getQueryData(operationsKeys.mailQueue.content('4F2A1B3C9D')),
     ).toBeUndefined()
   })
 

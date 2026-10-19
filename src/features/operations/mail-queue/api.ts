@@ -8,7 +8,6 @@ import { queryOptions, type QueryClient } from '@tanstack/vue-query'
 import {
   api,
   isAuditRecorded,
-  queryKeys,
   requireData,
   type BulkResult,
   type MailQueueActionResult,
@@ -18,6 +17,7 @@ import {
   type MailQueueMessage,
   type MailQueueMessageContent,
 } from '@/api'
+import { operationsKeys } from '../query-keys'
 
 export interface MailQueuePage {
   data: MailQueueMessage[]
@@ -34,7 +34,7 @@ export interface Recorded<T> {
 
 export function mailQueueListOptions(params: MailQueueListParams) {
   return queryOptions({
-    queryKey: queryKeys.mailQueue.list(params),
+    queryKey: operationsKeys.mailQueue.list(params),
     queryFn: async (): Promise<MailQueuePage> =>
       requireData(await api.GET('/mail-queue/messages', { params: { query: params } })),
     staleTime: 30_000,
@@ -44,7 +44,7 @@ export function mailQueueListOptions(params: MailQueueListParams) {
 /** The queue's size, read when the delete-all dialog opens (FR-058). */
 export function mailQueueCountsOptions() {
   return queryOptions({
-    queryKey: queryKeys.mailQueue.counts(),
+    queryKey: operationsKeys.mailQueue.counts(),
     queryFn: async (): Promise<MailQueueListMeta['queueCounts']> =>
       requireData(await api.GET('/mail-queue/messages', { params: { query: { limit: 1 } } })).meta
         .queueCounts,
@@ -56,7 +56,7 @@ export function mailQueueCountsOptions() {
 /** A message's content, never kept after the viewer closes (clarification, FR-061). */
 export function mailQueueContentOptions(queueId: string) {
   return queryOptions({
-    queryKey: queryKeys.mailQueue.content(queueId),
+    queryKey: operationsKeys.mailQueue.content(queueId),
     queryFn: async (): Promise<MailQueueMessageContent> =>
       requireData(
         await api.GET('/mail-queue/messages/{queueId}/content', {
@@ -91,12 +91,12 @@ export async function purgeMailQueue(): Promise<Recorded<MailQueueActionResult>>
 
 /** After any action (and after an unknown outcome): the list and the counts are read again. */
 export function refreshQueue(client: QueryClient): Promise<void> {
-  return client.invalidateQueries({ queryKey: queryKeys.mailQueue.lists() })
+  return client.invalidateQueries({ queryKey: operationsKeys.mailQueue.lists() })
 }
 
 /** A message that left the queue: drop it from every cached list page (edge case). */
 export function forgetQueuedMessage(client: QueryClient, queueId: string): void {
-  client.setQueriesData<MailQueuePage>({ queryKey: queryKeys.mailQueue.lists() }, (page) =>
+  client.setQueriesData<MailQueuePage>({ queryKey: operationsKeys.mailQueue.lists() }, (page) =>
     page ? { ...page, data: page.data.filter((message) => message.id !== queueId) } : page,
   )
 }

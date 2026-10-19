@@ -6,7 +6,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import { nextTick } from 'vue'
 
-import { queryKeys, type Container } from '@/api'
+import { type Container } from '@/api'
 import { containersOptions } from '@/features/operations/dashboard/api'
 import { useContainerAction } from '@/features/operations/dashboard/composables/useContainerAction'
 import { confirmState, settleConfirm } from '@/shared/composables/useConfirm'
@@ -15,6 +15,7 @@ import { clearStatusMessages, useStatusMessage } from '@/shared/composables/useS
 import { mockState, useScenario } from '../../../../mocks/node'
 import { withSetup } from '../../../support/composable'
 import { testPlugins } from '../../../support/mount'
+import { operationsKeys } from '@/features/operations/query-keys'
 
 afterEach(() => {
   settleConfirm(false)
@@ -29,7 +30,7 @@ async function setup(name: string, scenario = 'ops-container-actions') {
     useContainerAction(
       () =>
         queryClient
-          .getQueryData<Container[]>(queryKeys.monitoring.containers())!
+          .getQueryData<Container[]>(operationsKeys.monitoring.containers())!
           .find((item) => item.name === name) ?? list.find((item) => item.name === name)!,
     ),
   )
@@ -55,7 +56,7 @@ describe('useContainerAction', () => {
     expect(result.pending.value).toBe(true)
     await run
     expect(result.outcome.value).toMatchObject({ tone: 'success', text: 'OK' })
-    const list = queryClient.getQueryData<Container[]>(queryKeys.monitoring.containers())!
+    const list = queryClient.getQueryData<Container[]>(operationsKeys.monitoring.containers())!
     expect(list.find((item) => item.name === 'sogo-mailcow')!.running).toBe(true)
   })
 
@@ -130,7 +131,9 @@ describe('useContainerAction', () => {
     settleConfirm(true)
     await run
     expect(result.outcome.value?.text).toBe('This item could not be found.')
-    expect(queryClient.getQueryState(queryKeys.monitoring.containers())?.isInvalidated).toBe(true)
+    expect(queryClient.getQueryState(operationsKeys.monitoring.containers())?.isInvalidated).toBe(
+      true,
+    )
   })
 
   it('shows the outcome as a status message when the card is gone', async () => {

@@ -8,7 +8,6 @@ import { queryOptions, type QueryClient } from '@tanstack/vue-query'
 import {
   api,
   isAuditRecorded,
-  queryKeys,
   requireData,
   type Fail2BanActiveBan,
   type Fail2BanActiveBanListParams,
@@ -21,6 +20,7 @@ import {
   type ListMeta,
 } from '@/api'
 import { LIST_LIMIT_MAX } from '@/shared/validation/limits'
+import { operationsKeys } from '../query-keys'
 
 export interface Recorded<T> {
   result: T
@@ -47,7 +47,7 @@ export const PERMANENT_BAN_PARAMS: Fail2BanPermanentBanListParams = {
 
 export function settingsOptions() {
   return queryOptions({
-    queryKey: queryKeys.fail2ban.settings(),
+    queryKey: operationsKeys.fail2ban.settings(),
     queryFn: async (): Promise<Fail2BanSettings> =>
       requireData(await api.GET('/fail2ban/settings')).data,
     staleTime: 30_000,
@@ -56,7 +56,7 @@ export function settingsOptions() {
 
 export function rulesOptions() {
   return queryOptions({
-    queryKey: queryKeys.fail2ban.rules(),
+    queryKey: operationsKeys.fail2ban.rules(),
     queryFn: async (): Promise<Fail2BanRules> => requireData(await api.GET('/fail2ban/rules')).data,
     staleTime: 30_000,
   })
@@ -64,7 +64,7 @@ export function rulesOptions() {
 
 export function activeBansOptions() {
   return queryOptions({
-    queryKey: queryKeys.fail2ban.activeBans(ACTIVE_BAN_PARAMS),
+    queryKey: operationsKeys.fail2ban.activeBans(ACTIVE_BAN_PARAMS),
     queryFn: async (): Promise<BanPage<Fail2BanActiveBan>> =>
       requireData(await api.GET('/fail2ban/active-bans', { params: { query: ACTIVE_BAN_PARAMS } })),
     staleTime: 30_000,
@@ -73,7 +73,7 @@ export function activeBansOptions() {
 
 export function permanentBansOptions() {
   return queryOptions({
-    queryKey: queryKeys.fail2ban.permanentBans(PERMANENT_BAN_PARAMS),
+    queryKey: operationsKeys.fail2ban.permanentBans(PERMANENT_BAN_PARAMS),
     queryFn: async (): Promise<BanPage<Fail2BanPermanentBan>> =>
       requireData(
         await api.GET('/fail2ban/permanent-bans', { params: { query: PERMANENT_BAN_PARAMS } }),
@@ -144,17 +144,17 @@ export async function banAction(
 }
 
 export function writeSettings(client: QueryClient, settings: Fail2BanSettings): void {
-  client.setQueryData(queryKeys.fail2ban.settings(), settings)
+  client.setQueryData(operationsKeys.fail2ban.settings(), settings)
 }
 
 export function writeRules(client: QueryClient, rules: Fail2BanRules): void {
-  client.setQueryData(queryKeys.fail2ban.rules(), rules)
+  client.setQueryData(operationsKeys.fail2ban.rules(), rules)
 }
 
 /** After a ban action: the ban as returned, and the lists it changed read again. */
 export function applyBanResult(client: QueryClient, result: Fail2BanBanActionResult): void {
   client.setQueriesData<BanPage<Fail2BanActiveBan>>(
-    { queryKey: queryKeys.fail2ban.activeBanLists() },
+    { queryKey: operationsKeys.fail2ban.activeBanLists() },
     (page) =>
       page
         ? {
@@ -164,11 +164,11 @@ export function applyBanResult(client: QueryClient, result: Fail2BanBanActionRes
         : page,
   )
   if (result.action !== 'lift') {
-    void client.invalidateQueries({ queryKey: queryKeys.fail2ban.settings() })
-    void client.invalidateQueries({ queryKey: queryKeys.fail2ban.permanentBanLists() })
+    void client.invalidateQueries({ queryKey: operationsKeys.fail2ban.settings() })
+    void client.invalidateQueries({ queryKey: operationsKeys.fail2ban.permanentBanLists() })
   }
 }
 
 export function refreshBans(client: QueryClient): Promise<void> {
-  return client.invalidateQueries({ queryKey: queryKeys.fail2ban.activeBanLists() })
+  return client.invalidateQueries({ queryKey: operationsKeys.fail2ban.activeBanLists() })
 }

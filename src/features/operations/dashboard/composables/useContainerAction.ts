@@ -12,7 +12,6 @@ import { useI18n } from 'vue-i18n'
 
 import {
   problemOf,
-  queryKeys,
   runMutation,
   type ApiProblem,
   type Container,
@@ -26,6 +25,7 @@ import { pushStatusMessage, type StatusTone } from '@/shared/composables/useStat
 
 import { fetchContainer, sendContainerAction, writeContainer } from '../api'
 import RestartNotice from '../components/RestartNotice.vue'
+import { operationsKeys } from '../../query-keys'
 
 export interface ActionOutcome {
   tone: StatusTone
@@ -172,7 +172,7 @@ export function useContainerAction(container: () => Container) {
         await readAgain(name)
       } else if (problem.status === 404) {
         report(name, problemOutcome(problem))
-        await client.invalidateQueries({ queryKey: queryKeys.monitoring.containers() })
+        await client.invalidateQueries({ queryKey: operationsKeys.monitoring.containers() })
       } else {
         report(name, problemOutcome(problem))
         // The service refused: its message is in the outcome ("Error: …"); show the state.

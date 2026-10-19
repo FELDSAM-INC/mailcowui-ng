@@ -8,9 +8,10 @@
 import { useInfiniteQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { api, problemOf, queryKeys, requireData, type ListMeta } from '@/api'
+import { api, problemOf, requireData, type ListMeta } from '@/api'
 
 import type { LogEntry, LogTypeDescriptor } from './log-types'
+import { operationsKeys } from '../query-keys'
 
 export const FIRST_PAGE = 50
 
@@ -82,7 +83,7 @@ export function useLogEntries(
   const nextSize = ref(100)
   const key = computed(() => {
     const current = toValue(query)
-    return queryKeys.logs.list(toValue(type)?.slug ?? '', {
+    return operationsKeys.logs.list(toValue(type)?.slug ?? '', {
       q: current.q ?? '',
       order: current.order,
     })

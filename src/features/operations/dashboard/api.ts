@@ -10,7 +10,6 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import {
   api,
   isAuditRecorded,
-  queryKeys,
   requireData,
   type Container,
   type ContainerAction,
@@ -23,6 +22,7 @@ import {
   type PublicAddresses,
 } from '@/api'
 import { LIST_LIMIT_MAX } from '@/shared/validation/limits'
+import { operationsKeys } from '../query-keys'
 
 /** The polling interval of a live query: milliseconds, or false. */
 export type Interval = () => number | false
@@ -37,7 +37,7 @@ const live = (interval: Interval) => ({
 export function useHostOverview(interval: Interval) {
   return useQuery(
     computed(() => ({
-      queryKey: queryKeys.monitoring.host(),
+      queryKey: operationsKeys.monitoring.host(),
       queryFn: async (): Promise<HostOverview> => requireData(await api.GET('/host')).data,
       ...live(interval),
     })),
@@ -47,7 +47,7 @@ export function useHostOverview(interval: Interval) {
 export function useMailStorage(interval: Interval) {
   return useQuery(
     computed(() => ({
-      queryKey: queryKeys.monitoring.mailStorage(),
+      queryKey: operationsKeys.monitoring.mailStorage(),
       queryFn: async (): Promise<MailStorageUsage> =>
         requireData(await api.GET('/host/mail-storage')).data,
       ...live(interval),
@@ -57,7 +57,7 @@ export function useMailStorage(interval: Interval) {
 
 export function containersOptions() {
   return queryOptions({
-    queryKey: queryKeys.monitoring.containers(),
+    queryKey: operationsKeys.monitoring.containers(),
     queryFn: async (): Promise<Container[]> =>
       requireData(
         await api.GET('/containers', {
@@ -87,7 +87,7 @@ export function useResourceUsage(
 ) {
   return useQuery(
     computed(() => ({
-      queryKey: queryKeys.monitoring.resourceUsage(toValue(name)),
+      queryKey: operationsKeys.monitoring.resourceUsage(toValue(name)),
       queryFn: async (): Promise<ContainerResourceUsage> =>
         requireData(
           await api.GET('/containers/{containerName}/resource-usage', {
@@ -103,7 +103,7 @@ export function useResourceUsage(
 
 export function useInstallationVersion() {
   return useQuery({
-    queryKey: queryKeys.monitoring.installation(),
+    queryKey: operationsKeys.monitoring.installation(),
     queryFn: async (): Promise<InstallationVersion> =>
       requireData(await api.GET('/installation')).data,
     staleTime: Infinity,
@@ -113,7 +113,7 @@ export function useInstallationVersion() {
 
 export function useUpdateStatus() {
   return useQuery({
-    queryKey: queryKeys.monitoring.updateStatus(),
+    queryKey: operationsKeys.monitoring.updateStatus(),
     queryFn: async (): Promise<InstallationUpdateStatus> =>
       requireData(await api.GET('/installation/update-status')).data,
     staleTime: Infinity,
@@ -125,7 +125,7 @@ export function useUpdateStatus() {
 /** The public addresses, read only on "Show public IP" and forgotten with the dashboard. */
 export function usePublicAddresses() {
   return useQuery({
-    queryKey: queryKeys.monitoring.publicAddresses(),
+    queryKey: operationsKeys.monitoring.publicAddresses(),
     queryFn: async (): Promise<PublicAddresses> =>
       requireData(await api.GET('/host/public-addresses')).data,
     enabled: false,
@@ -162,7 +162,7 @@ export async function sendContainerAction(
 
 /** Writes a container read after an action into the cached list (or adds nothing if absent). */
 export function writeContainer(client: QueryClient, container: Container): void {
-  client.setQueryData<Container[]>(queryKeys.monitoring.containers(), (list) =>
+  client.setQueryData<Container[]>(operationsKeys.monitoring.containers(), (list) =>
     list?.map((item) => (item.name === container.name ? container : item)),
   )
 }

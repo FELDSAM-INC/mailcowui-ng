@@ -18,7 +18,7 @@ import {
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { isApiProblem, problemOf, queryKeys } from '@/api'
+import { isApiProblem, problemOf } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import PlainText from '@/shared/components/PlainText.vue'
@@ -31,6 +31,7 @@ import { buttonVariants } from '@/shared/ui/button'
 
 import { forgetQueuedMessage, mailQueueContentOptions } from '../api'
 import { firstView } from '../content'
+import { operationsKeys } from '../../query-keys'
 
 const props = defineProps<{ queueId: string }>()
 const emit = defineEmits<{ close: [] }>()
@@ -65,7 +66,7 @@ async function copy() {
 }
 
 onBeforeUnmount(() => {
-  client.removeQueries({ queryKey: queryKeys.mailQueue.content(props.queueId) })
+  client.removeQueries({ queryKey: operationsKeys.mailQueue.content(props.queueId) })
 })
 
 const CONTENT_WIDE =

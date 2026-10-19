@@ -10,10 +10,11 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, readonly, ref, watch } from 'vue'
 
-import { queryKeys, type MonitoringCapabilities } from '@/api'
+import { type MonitoringCapabilities } from '@/api'
 import { inactivityLimit, useInactivity } from '@/shared/composables/useInactivity'
 
 import { intervalSeconds, type LiveKind } from '../capabilities'
+import { operationsKeys } from '../query-keys'
 
 export type LiveState = 'running' | 'hidden' | 'paused' | 'inactive' | 'unavailable'
 
@@ -54,7 +55,10 @@ export function useLiveUpdates(options: LiveUpdatesOptions) {
   )
 
   function refreshNow() {
-    return queryClient.refetchQueries({ queryKey: queryKeys.monitoring.live(), type: 'active' })
+    return queryClient.refetchQueries({
+      queryKey: operationsKeys.monitoring.live(),
+      type: 'active',
+    })
   }
 
   function onVisibility() {

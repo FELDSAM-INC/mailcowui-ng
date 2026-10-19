@@ -5,13 +5,13 @@ import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import {
   api,
-  queryKeys,
   requireData,
   type ListMeta,
   type RspamdHistoryEntry,
   type RspamdHistoryParams,
   type RspamdStatistics,
 } from '@/api'
+import { operationsKeys } from '../query-keys'
 
 export interface RspamdHistoryPage {
   data: RspamdHistoryEntry[]
@@ -20,7 +20,7 @@ export interface RspamdHistoryPage {
 
 export function useRspamdStatistics() {
   return useQuery({
-    queryKey: queryKeys.rspamd.statistics(),
+    queryKey: operationsKeys.rspamd.statistics(),
     queryFn: async (): Promise<RspamdStatistics> =>
       requireData(await api.GET('/rspamd/statistics')).data,
     staleTime: Infinity,
@@ -33,7 +33,7 @@ export function useRspamdHistory(params: MaybeRefOrGetter<RspamdHistoryParams>) 
     computed(() => {
       const query = toValue(params)
       return {
-        queryKey: queryKeys.rspamd.history(query),
+        queryKey: operationsKeys.rspamd.history(query),
         queryFn: async (): Promise<RspamdHistoryPage> =>
           requireData(await api.GET('/rspamd/history', { params: { query } })),
         staleTime: 30_000,

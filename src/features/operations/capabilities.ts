@@ -6,7 +6,8 @@
 import { queryOptions, useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
-import { api, queryKeys, requireData, type MonitoringCapabilities } from '@/api'
+import { api, requireData, type MonitoringCapabilities } from '@/api'
+import { operationsKeys } from './query-keys'
 
 /** The kinds of live data that poll. */
 export type LiveKind = 'host' | 'containers' | 'resourceUsage' | 'mailStorage'
@@ -15,7 +16,7 @@ export const CAPABILITIES_STALE_MS = 5 * 60_000
 
 export function monitoringCapabilitiesOptions() {
   return queryOptions({
-    queryKey: queryKeys.monitoring.capabilities(),
+    queryKey: operationsKeys.monitoring.capabilities(),
     queryFn: async (): Promise<MonitoringCapabilities> =>
       requireData(await api.GET('/capabilities/monitoring')).data,
     staleTime: CAPABILITIES_STALE_MS,

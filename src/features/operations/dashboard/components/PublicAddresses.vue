@@ -7,12 +7,13 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 
-import { problemOf, queryKeys } from '@/api'
+import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { usePublicAddresses } from '../api'
+import { operationsKeys } from '../../query-keys'
 
 const props = defineProps<{ ipCheckEnabled: boolean | null }>()
 const client = useQueryClient()
@@ -25,7 +26,7 @@ const failed = computed(() => query.isError.value && !refused.value)
 async function show() {
   const result = await query.refetch()
   if (problemOf(result.error)?.is('ip-check-disabled')) {
-    await client.invalidateQueries({ queryKey: queryKeys.monitoring.capabilities() })
+    await client.invalidateQueries({ queryKey: operationsKeys.monitoring.capabilities() })
   }
 }
 </script>

@@ -7,7 +7,7 @@ import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 
 import { confirm } from './useConfirm'
-import { sessionEnded } from './useFormDraft'
+import { sessionEnded } from './draft-registry'
 
 export interface LeaveGuardTexts {
   /** Translation key of the question's explanation. */

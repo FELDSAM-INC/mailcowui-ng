@@ -11,12 +11,13 @@ import type { Alias } from '@/api'
 import { lt, legacy, resolveText, type TextRef } from '@/i18n'
 import type { SortOrder } from '@/shared/composables/useListState'
 
+import { YesNoMark } from '@/features/aliases-common'
+
 import type { AliasSort } from '../list-state'
 import AddressText from './AddressText.vue'
 import AliasBadges from './AliasBadges.vue'
 import AliasDomainText from './AliasDomainText.vue'
 import DestinationSummary from './DestinationSummary.vue'
-import YesNoMark from './YesNoMark.vue'
 
 const props = withDefaults(
   defineProps<{

@@ -12,7 +12,7 @@ import { isRetryable, type BulkRow } from '@/shared/components/bulk-row'
 import { announce } from '@/shared/composables/useAnnouncer'
 import type { BulkSelection } from '@/shared/composables/useBulkSelection'
 
-import { retainedIds, toTargets } from '../alias-bulk'
+import { retainedIds, toTargets } from '../bulk'
 
 export interface BulkRunOptions<E extends { etag: string }, A extends string, X> {
   selection: BulkSelection

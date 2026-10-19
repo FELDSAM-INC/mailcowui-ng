@@ -24,13 +24,13 @@ import { useConfirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
+import { feature004Permissions, useAliasesCapabilities } from '@/features/aliases-common'
+
 import { useAlias } from '../api'
-import { useAliasesCapabilities } from '../capabilities'
 import AliasBadges from '../components/AliasBadges.vue'
 import AliasEditSection from '../components/AliasEditSection.vue'
 import OrphanedAliasWarning from '../components/OrphanedAliasWarning.vue'
 import { setAliasListFlash, takeAliasFlash } from '../flash'
-import { feature004Permissions } from '../permissions'
 
 const { t } = useI18n()
 const route = useRoute()

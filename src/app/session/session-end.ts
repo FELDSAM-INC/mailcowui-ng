@@ -4,7 +4,7 @@
 // anti-forgery token is fetched for the new anonymous session.
 import { clearCsrfToken, queryKeys, refreshCsrfToken } from '@/api'
 
-import { markSessionEnded } from '@/shared/composables/useFormDraft'
+import { markSessionEnded } from '@/shared/composables/draft-registry'
 
 import { acceptReturnTo } from '../router/return-to'
 import { isAuthFlowRoute } from '../router/route-kinds'

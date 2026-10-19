@@ -9,11 +9,12 @@ import { RouterLink } from 'vue-router'
 import type { Alias } from '@/api'
 import { lt } from '@/i18n'
 
+import { YesNoMark } from '@/features/aliases-common'
+
 import AddressText from './AddressText.vue'
 import AliasBadges from './AliasBadges.vue'
 import AliasDomainText from './AliasDomainText.vue'
 import DestinationSummary from './DestinationSummary.vue'
-import YesNoMark from './YesNoMark.vue'
 
 const props = defineProps<{
   alias: Alias

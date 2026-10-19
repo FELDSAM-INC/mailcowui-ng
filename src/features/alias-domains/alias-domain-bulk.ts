@@ -1,7 +1,7 @@
 // The domain alias mass actions (research R16, US6-AS7): activate, deactivate (one confirmation)
 // and delete (the typed count), with legacy's labels. None of them needs `aliasDomains`.
 import type { AliasDomainBulkActionRequest } from '@/api'
-import type { BulkActionConfig } from '@/features/aliases'
+import type { BulkActionConfig } from '@/features/aliases-common'
 
 export type AliasDomainBulkAction = AliasDomainBulkActionRequest['action']
 

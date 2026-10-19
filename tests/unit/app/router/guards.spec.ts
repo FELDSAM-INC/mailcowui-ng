@@ -149,6 +149,22 @@ describe('active', () => {
   })
 })
 
+describe('routeAccess with permission flags (UI 004)', () => {
+  const route = (flags?: ('aliasDomains' | 'ratelimit')[]) =>
+    ({ meta: { navEntry: 'aliasDomains', flags } }) as never
+  const who = (role: Identity['role'], permissions: Partial<Identity['permissions']> = {}) =>
+    ({ role, permissions, scope: { type: 'allDomains' } }) as unknown as Identity
+
+  it('lets administrators in, and domain administrators only with every flag', () => {
+    expect(routeAccess(route(['aliasDomains']), who('admin'))).toBe('allowed')
+    expect(routeAccess(route(['aliasDomains']), who('domainAdmin'))).toBe('denied')
+    expect(routeAccess(route(['aliasDomains']), who('domainAdmin', { aliasDomains: true }))).toBe(
+      'allowed',
+    )
+    expect(routeAccess(route(), who('domainAdmin'))).toBe('allowed')
+  })
+})
+
 describe('after a sign-in (FR-030)', () => {
   it('follows the new session state on the next navigation', async () => {
     useScenario('anonymous-default')

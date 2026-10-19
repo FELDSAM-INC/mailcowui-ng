@@ -5,7 +5,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { domainPickerSource } from '@/features/aliases'
+import { domainPickerSource } from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import DomainPicker, { type DomainPickerOption } from '@/shared/components/DomainPicker.vue'
 import { FilterIcon } from '@/shared/icons'

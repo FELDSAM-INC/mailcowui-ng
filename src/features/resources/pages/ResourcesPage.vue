@@ -18,7 +18,7 @@ import {
   feature004Permissions,
   useAliasesCapabilities,
   useBulkRun,
-} from '@/features/aliases'
+} from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import { useProblemMessages } from '@/i18n/problems'

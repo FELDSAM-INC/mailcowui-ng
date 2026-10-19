@@ -175,7 +175,7 @@ test.describe('domain aliases: creation', () => {
   test('without "aliasDomains" the add page says "no access"', async ({ page, mockApi }) => {
     await mockApi.use('alias-domains-da-no-flags')
     await page.goto('alias-domains/-/new')
-    await expect(page.locator('[data-no-access]')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
     await expect(names(page)).toHaveCount(0)
   })
 

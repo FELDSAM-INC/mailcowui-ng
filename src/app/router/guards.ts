@@ -74,6 +74,10 @@ export function routeAccess(
   if (entry && !canAccess(entry, identity)) return 'denied'
   const roles = route.meta.roles
   if (roles && (!identity || !roles.includes(identity.role))) return 'denied'
+  const flags = route.meta.flags
+  if (flags && identity?.role !== 'admin' && !flags.every((flag) => identity?.permissions[flag])) {
+    return 'denied'
+  }
   return 'allowed'
 }
 

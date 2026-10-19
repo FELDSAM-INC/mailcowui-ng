@@ -21,7 +21,7 @@ import {
   type MailboxSenderSettings,
   type MailboxSenderSettingsPatch,
 } from '@/api'
-import { feature004Permissions } from '@/features/aliases'
+import { feature004Permissions } from '@/features/aliases-common'
 import { lt, text } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import type { SectionChange, SectionStatus } from '@/shared/components/editable-section'

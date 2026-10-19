@@ -42,9 +42,10 @@ import { sanitizeLegacyHtml } from '@/shared/security/sanitize'
 import { utf8ByteLength } from '@/shared/validation/utf8'
 import { parseEntryList } from '@/shared/validation/entry-list'
 
+import { feature004Permissions } from '@/features/aliases-common'
+
 import { buildAliasPatch, editFormFrom, type AliasEditForm } from '../alias-form'
 import { fetchAlias, updateAlias } from '../api'
-import { feature004Permissions } from '../permissions'
 import AliasOptionsFields from './AliasOptionsFields.vue'
 import AliasValues from './AliasValues.vue'
 import DestinationField from './DestinationField.vue'

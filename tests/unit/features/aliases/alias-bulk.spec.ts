@@ -3,8 +3,8 @@
 // unquoted versions, and every item not done kept selected.
 import { describe, expect, it } from 'vitest'
 
-import { aliasBulkActions, retainedIds, toTargets, unquote } from '@/features/aliases/alias-bulk'
-import { feature004Permissions } from '@/features/aliases/permissions'
+import { aliasBulkActions } from '@/features/aliases/alias-bulk'
+import { feature004Permissions, retainedIds, toTargets, unquote } from '@/features/aliases-common'
 import type { BulkRow } from '@/shared/components/bulk-row'
 
 import { alias } from './alias-fixture'

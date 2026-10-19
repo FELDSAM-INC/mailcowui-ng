@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import { problemOf, type AliasCapabilities } from '@/api'
-import { CapabilitiesGate, domainPickerSource } from '@/features/aliases'
+import { CapabilitiesGate, domainPickerSource } from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import DomainPicker from '@/shared/components/DomainPicker.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'

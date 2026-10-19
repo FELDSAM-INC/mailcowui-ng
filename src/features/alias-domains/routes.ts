@@ -29,6 +29,8 @@ export const aliasDomainRoutes: RouteRecordRaw[] = [
       layout: 'shell',
       access: 'session',
       navEntry: 'aliasDomains',
+      // Adding needs "Add alias domains" (FR-041); legacy hides the control otherwise.
+      flags: ['aliasDomains'],
       titleKey: legacy('mailbox.add_domain_alias'),
     },
   },

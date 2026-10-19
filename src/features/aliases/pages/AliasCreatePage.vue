@@ -36,13 +36,13 @@ import {
   toCreateRequest,
   type AliasCreateForm,
 } from '../alias-form'
+import { CapabilitiesGate, feature004Permissions } from '@/features/aliases-common'
+
 import { createAlias } from '../api'
-import CapabilitiesGate from '../components/CapabilitiesGate.vue'
 import AliasCreateResults from '../components/AliasCreateResults.vue'
 import AliasOptionsFields from '../components/AliasOptionsFields.vue'
 import DestinationField from '../components/DestinationField.vue'
 import { setAliasFlash } from '../flash'
-import { feature004Permissions } from '../permissions'
 
 const ADDRESSES_ID = 'alias-addresses'
 const GOTO_ID = 'alias-goto'

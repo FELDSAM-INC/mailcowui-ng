@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { AliasCapabilities, Identity, PermissionFlags } from '@/api'
-import { feature004Permissions } from '@/features/aliases'
+import { feature004Permissions } from '@/features/aliases-common'
 
 function identity(role: Identity['role'], flags: Partial<PermissionFlags> = {}): Identity {
   return {

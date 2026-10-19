@@ -15,7 +15,7 @@ import MessageText from '@/shared/components/MessageText.vue'
 import { FilterIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
-import { aliasDomainPickerSource, domainPickerSource } from '../api'
+import { aliasDomainPickerSource, domainPickerSource } from '@/features/aliases-common'
 import type { AliasListFilters } from '../list-state'
 
 const props = defineProps<{

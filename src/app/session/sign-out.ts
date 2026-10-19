@@ -15,7 +15,7 @@ import {
   type Identity,
 } from '@/api'
 
-import { clearAllDrafts } from '@/shared/composables/useFormDraft'
+import { clearAllDrafts } from '@/shared/composables/draft-registry'
 
 import { sessionContext, type SessionContext } from './context'
 import { anonymousSession, cachedSession } from './queries'

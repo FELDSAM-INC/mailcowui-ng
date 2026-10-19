@@ -20,7 +20,6 @@ import {
   type AliasPatch,
   type ListMeta,
 } from '@/api'
-import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
 
 import type { AliasCreateBody } from './alias-form'
 
@@ -69,55 +68,6 @@ export function aliasOptions(client: QueryClient, id: number) {
 export function useAlias(id: MaybeRefOrGetter<number>) {
   const client = useQueryClient()
   return useQuery(computed(() => ({ ...aliasOptions(client, toValue(id)), retry: false })))
-}
-
-const PICKER_PAGE = { sort: 'name', order: 'asc' } as const
-
-/**
- * The domains of the caller's scope for the domain pickers (FR-011), under UI 002's `domains` key,
- * so that domain mutations refresh them. Each option says whether it is a relay domain.
- */
-export function domainPickerSource(label?: string): DomainPickerSource {
-  return {
-    id: 'domains',
-    label,
-    queryKey: (q) => [...queryKeys.domains.lists(), 'picker', { q }],
-    fetchPage: async ({ q, offset, limit }) => {
-      const page = requireData(
-        await api.GET('/domains', {
-          params: { query: { ...PICKER_PAGE, limit, offset, ...(q ? { q } : {}) } },
-        }),
-      )
-      return {
-        items: page.data.map((domain) => ({
-          name: domain.name,
-          nameUnicode: domain.unicodeName,
-          relay: domain.backupMx,
-        })),
-        total: page.meta.total,
-      }
-    },
-  }
-}
-
-/** The alias domains of the caller's scope, for the "Domain" filter (data-model §3). */
-export function aliasDomainPickerSource(label?: string): DomainPickerSource {
-  return {
-    id: 'aliasDomains',
-    label,
-    queryKey: (q) => queryKeys.aliasDomains.options(q),
-    fetchPage: async ({ q, offset, limit }) => {
-      const page = requireData(
-        await api.GET('/alias-domains', {
-          params: { query: { ...PICKER_PAGE, limit, offset, ...(q ? { q } : {}) } },
-        }),
-      )
-      return {
-        items: page.data.map((item) => ({ name: item.name, nameUnicode: item.nameUnicode })),
-        total: page.meta.total,
-      }
-    },
-  }
 }
 
 // Mutations (data-model §3).

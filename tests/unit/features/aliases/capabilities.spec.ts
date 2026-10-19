@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { defineComponent, h } from 'vue'
 
 import { queryKeys, type AliasCapabilities } from '@/api'
-import { aliasesCapabilitiesOptions, CapabilitiesGate } from '@/features/aliases'
+import { aliasesCapabilitiesOptions, CapabilitiesGate } from '@/features/aliases-common'
 
 import contract from '../../../../contract/openapi.json'
 import { server } from '../../../mocks/node'

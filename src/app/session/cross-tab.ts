@@ -3,7 +3,7 @@
 // sign-out there ends the session here. As a fallback, an identity refresh that reports another
 // account discards the previous account's data.
 import { onActivity, queryKeys, type Identity } from '@/api'
-import { setDraftOwner } from '@/shared/composables/useFormDraft'
+import { setDraftOwner } from '@/shared/composables/draft-registry'
 
 import type { SessionContext } from './context'
 import { identityQuery, isSignedIn, sessionQuery } from './queries'

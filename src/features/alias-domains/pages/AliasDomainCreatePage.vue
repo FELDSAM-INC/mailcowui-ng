@@ -3,8 +3,8 @@
 // form, in its order and with its texts: alias domains (textarea with its help), target domain
 // (relay domains disabled with legacy's reason), active, then the rate limit (only with
 // `ratelimit`), the DKIM selector prefilled with the server default (emptied, no key, as in legacy)
-// and the key length, "Add". It waits for the capabilities (FR-071). Without `aliasDomains` it says
-// "no access". Every name is one request, one after another (research R9): one created name opens
+// and the key length, "Add". It waits for the capabilities (FR-071). Without `aliasDomains` the shell
+// says "no access" in its place (the route's `meta.flags`). Every name is one request, one after another (research R9): one created name opens
 // the new alias domain with legacy's alerts; several show a result per name, and the refused and
 // unprocessed ones stay in the field. Refusals use legacy's messages at their fields. The input
 // survives a session expiry in this tab (research R10), and leaving with input asks first.
@@ -14,9 +14,12 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
 import type { ApiProblem } from '@/api'
-import NoAccessState from '@/app/states/NoAccessState.vue'
 import { useIdentityQuery } from '@/app/session/queries'
-import { CapabilitiesGate, feature004Permissions, useAliasesCapabilities } from '@/features/aliases'
+import {
+  CapabilitiesGate,
+  feature004Permissions,
+  useAliasesCapabilities,
+} from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import { useProblemMessages } from '@/i18n/problems'
 import DkimFields from '@/shared/components/DkimFields.vue'
@@ -210,8 +213,7 @@ const retryable = computed(() => problems.formProblem.value?.kind === 'network')
 </script>
 
 <template>
-  <NoAccessState v-if="identity.data.value && !permissions.canAddAliasDomain" data-no-access />
-  <section v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
+  <section class="mx-auto flex w-full max-w-3xl flex-col gap-4">
     <PageHeader :title="lt('mailbox.add_domain_alias')" />
     <CapabilitiesGate v-slot="{ capabilities }">
       <AliasDomainCreateResults

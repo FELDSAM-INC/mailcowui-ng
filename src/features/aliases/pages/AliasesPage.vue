@@ -40,22 +40,25 @@ import type { PageSize } from '@/shared/composables/useListState'
 import { CloseIcon, PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
+import {
+  BulkConfirmContent,
+  CapabilitiesGate,
+  feature004Permissions,
+  useAliasesCapabilities,
+  useBulkRun,
+} from '@/features/aliases-common'
+
 import { aliasBulkActions, type AliasBulkAction } from '../alias-bulk'
 import { aliasListOptions, applyAliasBulkAction } from '../api'
-import { useAliasesCapabilities } from '../capabilities'
 import AliasEntryActions from '../components/AliasEntryActions.vue'
-import BulkConfirmContent from '../components/BulkConfirmContent.vue'
-import CapabilitiesGate from '../components/CapabilitiesGate.vue'
 import CopyResults from '../components/CopyResults.vue'
 import AliasFilters from '../components/AliasFilters.vue'
 import AliasList from '../components/AliasList.vue'
 import AliasSortControl from '../components/AliasSortControl.vue'
 import { useAliasCopy } from '../composables/useAliasCopy'
 import { useAliasDeletion, type AliasOutcome } from '../composables/useAliasDeletion'
-import { useBulkRun } from '../composables/useBulkRun'
 import { takeAliasListFlash } from '../flash'
 import { toAliasParams, useAliasListState, type AliasListFilters } from '../list-state'
-import { feature004Permissions } from '../permissions'
 
 const { t, locale } = useI18n()
 const { problemMessage } = useProblemMessages()

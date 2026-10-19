@@ -6,7 +6,7 @@
 import type { LegacyKey } from '@/i18n'
 import { lt } from '@/i18n'
 import DomainPicker, { type DomainPickerOption } from '@/shared/components/DomainPicker.vue'
-import { domainPickerSource } from '@/features/aliases'
+import { domainPickerSource } from '@/features/aliases-common'
 
 withDefaults(
   defineProps<{

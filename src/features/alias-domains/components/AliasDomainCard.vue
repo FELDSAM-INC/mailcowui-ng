@@ -6,7 +6,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import type { AliasDomain } from '@/api'
-import { YesNoMark } from '@/features/aliases'
+import { YesNoMark } from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
 

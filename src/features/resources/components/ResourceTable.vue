@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import type { Resource } from '@/api'
-import { YesNoMark } from '@/features/aliases'
+import { YesNoMark } from '@/features/aliases-common'
 import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import MessageText from '@/shared/components/MessageText.vue'
 import type { SortOrder } from '@/shared/composables/useListState'

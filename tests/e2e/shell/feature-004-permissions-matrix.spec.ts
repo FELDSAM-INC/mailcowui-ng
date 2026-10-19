@@ -79,7 +79,7 @@ for (const who of WHO) {
         has('ratelimit') ? 1 : 0,
       )
     } else {
-      await expect(page.locator('[data-no-access]')).toBeVisible()
+      await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
     }
 
     // Resources: everyone may add.

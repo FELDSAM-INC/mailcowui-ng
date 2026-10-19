@@ -20,7 +20,7 @@ import {
   type Resource,
   type ResourcePatch,
 } from '@/api'
-import { YesNoMark } from '@/features/aliases'
+import { YesNoMark } from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import type { SectionChange, SectionStatus } from '@/shared/components/editable-section'

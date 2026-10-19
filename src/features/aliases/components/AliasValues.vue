@@ -6,9 +6,10 @@ import type { Alias } from '@/api'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
 
+import { YesNoMark } from '@/features/aliases-common'
+
 import AddressText from './AddressText.vue'
 import DestinationSummary from './DestinationSummary.vue'
-import YesNoMark from './YesNoMark.vue'
 
 defineProps<{ alias: Alias; groupwareEnabled: boolean | undefined }>()
 const DT = 'text-sm text-gray-600 dark:text-gray-400'

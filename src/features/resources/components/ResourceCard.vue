@@ -6,7 +6,7 @@ import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import type { Resource } from '@/api'
-import { YesNoMark } from '@/features/aliases'
+import { YesNoMark } from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import MessageText from '@/shared/components/MessageText.vue'
 

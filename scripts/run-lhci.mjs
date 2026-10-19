@@ -18,6 +18,8 @@ const collections = [
   { url: `http://127.0.0.1:${previewPort}/ng/`, scenario: 'admin-active' },
   // UI 002 (T104): the domain list as an administrator, 25 of 60 domains.
   { url: `http://127.0.0.1:${previewPort}/ng/domains`, scenario: 'domains-60' },
+  // UI 004 T111: the alias list with 60 aliases, as an active administrator.
+  { url: `http://127.0.0.1:${previewPort}/ng/aliases`, scenario: 'aliases-60' },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

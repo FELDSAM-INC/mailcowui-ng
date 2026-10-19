@@ -1,7 +1,7 @@
 // Route metadata (data-model §5) and the route groups the guard and the session lifecycle use.
 import type { RouteLocationNormalizedGeneric, RouteRecordNameGeneric } from 'vue-router'
 
-import type { Role } from '@/api'
+import type { Identity, Role } from '@/api'
 import type { TextRef } from '@/i18n'
 
 import type { NavEntryId } from '../navigation/catalogue'
@@ -32,6 +32,12 @@ declare module 'vue-router' {
      * for example creating a domain. Other roles get "no access" in place.
      */
     roles?: Role[]
+    /**
+     * UI 004: the permission flags a domain administrator needs for the route, for example adding
+     * an alias domain (`aliasDomains`). Administrators always may; without a flag, "no access" in
+     * place.
+     */
+    flags?: (keyof Identity['permissions'])[]
   }
 }
 

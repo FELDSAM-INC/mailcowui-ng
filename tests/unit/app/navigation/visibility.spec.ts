@@ -61,7 +61,10 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   // UI 010 (research R2): the row `dns` is split into two entries (FR-001).
   dkimKeys: { admin: true, domainAdmin: true, mailboxUser: false },
   mtaStsPolicies: { admin: true, domainAdmin: true, mailboxUser: false },
-  operations: { admin: true, domainAdmin: false, mailboxUser: false },
+  dashboard: { admin: true, domainAdmin: false, mailboxUser: false },
+  logs: { admin: true, domainAdmin: false, mailboxUser: false },
+  mailQueue: { admin: true, domainAdmin: false, mailboxUser: false },
+  fail2ban: { admin: true, domainAdmin: false, mailboxUser: false },
   identityProviders: { admin: true, domainAdmin: false, mailboxUser: false },
   system: { admin: true, domainAdmin: false, mailboxUser: false },
   apiKeys: { admin: true, domainAdmin: false, mailboxUser: false },
@@ -101,6 +104,10 @@ describe('navigation catalogue', () => {
       routing: 'admin.routing',
       dkimKeys: 'admin.dkim_keys',
       mtaStsPolicies: 'edit.mta_sts',
+      dashboard: 'debug.system_containers',
+      logs: 'debug.logs',
+      mailQueue: 'queue.queue_manager',
+      fail2ban: 'admin.f2b_parameters',
     }
     for (const entry of catalogue) {
       const legacyKey = classic[entry.id]
@@ -108,6 +115,7 @@ describe('navigation catalogue', () => {
       expect(entry.icon).toBeTruthy()
       // UI 010: the DNS entries live under /dns (research R2).
       expect(entry.path).toMatch(/^\/[a-z-]*(\/[a-z-]+)?$/)
+      expect(entry.path).toMatch(/^\/([a-z0-9-]+(\/[a-z0-9-]+)?)?$/)
     }
     expect(new Set(catalogue.map((entry) => entry.path)).size).toBe(catalogue.length)
   })
@@ -130,6 +138,10 @@ describe('navigation catalogue', () => {
       'aliases',
       'aliasDomains',
       'resources',
+      'dashboard',
+      'logs',
+      'mailQueue',
+      'fail2ban',
     ])
     const delivered = catalogue.filter((entry) => entry.deliveredBy !== '001')
     for (const entry of delivered) {
@@ -165,6 +177,23 @@ describe('navigation catalogue', () => {
       domainAdmin: ['/domainadmin/mailbox'],
     })
     expect(catalogue.some((item) => (item.id as string) === 'dns')).toBe(false)
+  it('groups the four operations screens of UI 011 under "System", administrators only', () => {
+    const system = catalogue.filter((entry) => entry.group === 'system')
+    expect(system.map((entry) => [entry.id, entry.path, entry.deliveredBy])).toEqual([
+      ['dashboard', '/operations/dashboard', '011'],
+      ['logs', '/operations/logs', '011'],
+      ['mailQueue', '/operations/mail-queue', '011'],
+      ['fail2ban', '/operations/fail2ban', '011'],
+    ])
+    const ids = catalogue.map((entry) => entry.id)
+    const first = ids.indexOf('dashboard')
+    expect(ids.slice(first, first + 4)).toEqual(['dashboard', 'logs', 'mailQueue', 'fail2ban'])
+    expect(system.map((entry) => entry.classic.admin)).toEqual([
+      ['/admin/dashboard'],
+      ['/admin/dashboard'],
+      ['/admin/queue'],
+      ['/admin/system'],
+    ])
   })
 
   it('links every placeholder to the classic interface for each role that sees it', () => {

@@ -113,14 +113,14 @@ test('US3-AS3 FR-044 a placeholder names its section, says it comes later and li
   await expectTouchTargets()
 
   await mockApi.use('admin-active')
-  await page.goto('operations')
+  await page.goto('routing')
   await expect(page.getByRole('main').getByRole('link')).toHaveText([
-    'System › Information',
-    'E-Mail › Queue Manager',
+    'System › Configuration',
+    'E-Mail › Configuration',
   ])
   await expect(
-    page.getByRole('main').getByRole('link', { name: 'E-Mail Queue Manager' }),
-  ).toHaveAttribute('href', '/admin/queue')
+    page.getByRole('main').getByRole('link', { name: 'E-Mail Configuration' }),
+  ).toHaveAttribute('href', '/admin/mailbox')
 
   await mockApi.use('mailbox-no-spam-flags')
   await page.goto('account')

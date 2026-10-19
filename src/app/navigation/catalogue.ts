@@ -9,7 +9,6 @@ import {
   ArchiveIcon,
   ArrowLeftRightIcon,
   AtSignIcon,
-  BarChartIcon,
   CalendarIcon,
   DatabaseIcon,
   FilterIcon,
@@ -22,8 +21,12 @@ import {
   LinkIcon,
   ListIcon,
   LockIcon,
+  LogsIcon,
   MailIcon,
   PasskeyIcon,
+  QueueIcon,
+  ServerIcon,
+  ShieldIcon,
   SyncIcon,
   UserCircleIcon,
   UsersIcon,
@@ -47,7 +50,10 @@ export type NavEntryId =
   | 'routing'
   | 'dkimKeys'
   | 'mtaStsPolicies'
-  | 'operations'
+  | 'dashboard'
+  | 'logs'
+  | 'mailQueue'
+  | 'fail2ban'
   | 'identityProviders'
   | 'system'
   | 'apiKeys'
@@ -69,6 +75,11 @@ export interface NavigationEntry {
   status: 'available' | 'placeholder'
   /** The classic interface pages a placeholder links to, per role (research R19). */
   classic: Readonly<Partial<Record<Role, readonly string[]>>>
+  /**
+   * UI 011 (research R3): consecutive entries of one group are listed under the group's heading
+   * (`nav.groups.<group>`).
+   */
+  group?: 'system'
 }
 
 const ALL: Record<Role, EntryAccess> = { admin: true, domainAdmin: true, mailboxUser: true }
@@ -76,6 +87,9 @@ const MANAGERS: Record<Role, EntryAccess> = { admin: true, domainAdmin: true, ma
 const ADMIN: Record<Role, EntryAccess> = { admin: true, domainAdmin: false, mailboxUser: false }
 
 const MAIL_SETUP = { admin: ['/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] } as const
+const DASHBOARD = { admin: ['/admin/dashboard'] } as const
+const QUEUE = { admin: ['/admin/queue'] } as const
+const SYSTEM = { admin: ['/admin/system'] } as const
 
 /**
  * Sections that have a name in the classic interface use it (docs/conventions.md "Wording"); the
@@ -100,6 +114,12 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   mtaStsPolicies: legacy('edit.mta_sts'),
   // UI 009: the classic Routing tab (legacy form map part 1c).
   routing: legacy('admin.routing'),
+  // UI 011 (plan "Legacy form map (T010a)"): the dashboard's tab, the log dropdown, the queue's
+  // menu entry and the Fail2ban panel's title.
+  dashboard: legacy('debug.system_containers'),
+  logs: legacy('debug.logs'),
+  mailQueue: legacy('queue.queue_manager'),
+  fail2ban: legacy('admin.f2b_parameters'),
 }
 
 function entry(
@@ -113,6 +133,10 @@ function entry(
 ): NavigationEntry {
   const labelKey = LEGACY_LABELS[id] ?? `nav.${id}`
   return { id, labelKey, icon, path, access, deliveredBy, status, classic }
+}
+
+function system(item: NavigationEntry): NavigationEntry {
+  return { ...item, group: 'system' }
 }
 
 export const catalogue: readonly NavigationEntry[] = [
@@ -199,9 +223,13 @@ export const catalogue: readonly NavigationEntry[] = [
     MAIL_SETUP,
     'available',
   ),
-  entry('operations', '/operations', BarChartIcon, ADMIN, '011', {
-    admin: ['/admin/dashboard', '/admin/queue'],
-  }),
+  // UI 011 (research R3): the "System" group of the operations screens.
+  system(
+    entry('dashboard', '/operations/dashboard', ServerIcon, ADMIN, '011', DASHBOARD, 'available'),
+  ),
+  system(entry('logs', '/operations/logs', LogsIcon, ADMIN, '011', DASHBOARD, 'available')),
+  system(entry('mailQueue', '/operations/mail-queue', QueueIcon, ADMIN, '011', QUEUE, 'available')),
+  system(entry('fail2ban', '/operations/fail2ban', ShieldIcon, ADMIN, '011', SYSTEM, 'available')),
   entry(
     'identityProviders',
     '/identity-providers',

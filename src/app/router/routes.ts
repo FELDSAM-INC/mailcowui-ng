@@ -15,6 +15,7 @@ import { domainRoutes } from '@/features/domains'
 import { homeRoutes } from '@/features/home'
 import { identityProviderRoutes } from '@/features/identity-providers'
 import { mailboxRoutes } from '@/features/mailboxes'
+import { operationsRoutes } from '@/features/operations'
 import { passkeysRoutes } from '@/features/passkeys'
 import { syncJobRoutes } from '@/features/sync-jobs'
 import { routingRoutes } from '@/features/routing'
@@ -42,6 +43,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...identityProviderRoutes,
   ...dnsRoutes,
   ...routingRoutes,
+  ...operationsRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

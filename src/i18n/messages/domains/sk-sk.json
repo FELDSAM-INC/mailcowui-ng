@@ -58,29 +58,23 @@
     },
     "filters": {
       "active": "Stav aktivácie",
-      "all": "Všetky",
-      "clear": "Vymazať všetky filtre",
       "filterByTag": "Filtrovať podľa štítku {tag}",
       "localOnly": "Ostatné domény",
       "relay": "Preposielanie",
       "relayOnly": "Preposielané domény",
-      "tagsHint": "Zobrazí domény s ktorýmkoľvek z týchto štítkov.",
-      "title": "Filtre",
-      "withCount": "Filtre ({count})"
+      "tagsHint": "Zobrazí domény s ktorýmkoľvek z týchto štítkov."
     },
     "footer": {
       "aliasDomainSubtext": "Alias-Domain",
       "aliasSubtext": "Alias"
     },
     "list": {
-      "actionsFor": "Akcie pre {name}",
       "count": "Nájdené domény: {count}",
       "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
       "messagesCount": "Správy: {count}",
       "moreTags": "+{count}",
-      "moreTagsLabel": "a ďalšie štítky ({count})",
-      "updating": "Aktualizuje sa…"
+      "moreTagsLabel": "a ďalšie štítky ({count})"
     },
     "outcome": {
       "dkimDnsFailed": "Záznam DKIM pre {0} sa nepodarilo zverejniť v DNS.",
@@ -123,9 +117,6 @@
     "edit": {
       "defaultName": "Predvolenú šablónu nemožno premenovať.",
       "gone": "Táto šablóna už neexistuje."
-    },
-    "fields": {
-      "id": "ID"
     },
     "list": {
       "count": "Nájdené šablóny: {count}",

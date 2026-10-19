@@ -58,29 +58,23 @@
     },
     "filters": {
       "active": "Active state",
-      "all": "All",
-      "clear": "Clear all filters",
       "filterByTag": "Filter by tag {tag}",
       "localOnly": "Other domains",
       "relay": "Relay",
       "relayOnly": "Relay domains",
-      "tagsHint": "Shows domains with any of these tags.",
-      "title": "Filters",
-      "withCount": "Filters ({count})"
+      "tagsHint": "Shows domains with any of these tags."
     },
     "footer": {
       "aliasDomainSubtext": "Alias-Domain",
       "aliasSubtext": "Alias"
     },
     "list": {
-      "actionsFor": "Actions for {name}",
       "count": "Domains found: {count}",
       "details": "Details",
       "detailsOf": "Details of {name}",
       "messagesCount": "Messages: {count}",
       "moreTags": "+{count}",
-      "moreTagsLabel": "and {count} more tags",
-      "updating": "Updating…"
+      "moreTagsLabel": "and {count} more tags"
     },
     "outcome": {
       "dkimDnsFailed": "The DKIM record of {0} could not be published in DNS.",
@@ -123,9 +117,6 @@
     "edit": {
       "defaultName": "The Default template cannot be renamed.",
       "gone": "This template no longer exists."
-    },
-    "fields": {
-      "id": "ID"
     },
     "list": {
       "count": "Templates found: {count}",

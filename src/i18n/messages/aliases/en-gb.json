@@ -1,0 +1,30 @@
+{
+  "aliases": {
+    "capabilities": {
+      "failed": "The server settings this form needs could not be loaded.",
+      "loading": "Loading the server settings…"
+    },
+    "create": {
+      "progress": "Adding {current} of {total}…"
+    },
+    "filters": {
+      "destinationType": "Destination"
+    },
+    "form": {
+      "externalNotice": "Only addresses of domains hosted on this server can be added as goto addresses."
+    },
+    "list": {
+      "moreDestinations": "+{count} more"
+    },
+    "orphaned": {
+      "badge": "Orphaned",
+      "warning": "The domain of this alias no longer exists. The alias can be removed from the list. A change is saved only together with an address in an existing domain."
+    },
+    "gone": "This alias no longer exists or is no longer available to you.",
+    "delete": {
+      "impact": "Mail to this address is no longer accepted, and the permissions of other mailboxes to send as this address are removed.",
+      "impactCatchAll": "This is a catch-all alias: the permissions to send as any address of {domain} are removed with it.",
+      "changed": "The alias changed in the meantime. Check it and confirm again."
+    }
+  }
+}

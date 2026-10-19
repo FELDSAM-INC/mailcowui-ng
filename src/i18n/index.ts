@@ -12,6 +12,7 @@ import { legacyRaw, lt } from './legacy'
 import { formatLegacy, type LegacyArg } from './legacy-format'
 import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
+import type enGbAliases from './messages/aliases/en-gb.json'
 import type enGbDomains from './messages/domains/en-gb.json'
 import enGb from './messages/en-gb.json'
 import type enGbIdentityProviders from './messages/identity-providers/en-gb.json'
@@ -20,7 +21,8 @@ import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 export type MessageSchema = typeof enGb &
   typeof enGbDomains &
   typeof enGbSyncJobs &
-  typeof enGbIdentityProviders
+  typeof enGbIdentityProviders &
+  typeof enGbAliases
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -68,6 +70,13 @@ const featureLoaders = {
     'en-gb': () => import('./messages/identity-providers/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/identity-providers/cs-cz.json').then((m) => m.default),
     'sk-sk': () => import('./messages/identity-providers/sk-sk.json').then((m) => m.default),
+  },
+  // UI 004: the alias, alias domain and resource screens ("Allow to send as" stays in the app's
+  // strings, as UI 003's mailbox page shows it).
+  aliases: {
+    'en-gb': () => import('./messages/aliases/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/aliases/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/aliases/sk-sk.json').then((m) => m.default),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

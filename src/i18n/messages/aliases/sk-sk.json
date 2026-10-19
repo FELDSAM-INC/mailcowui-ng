@@ -1,0 +1,30 @@
+{
+  "aliases": {
+    "capabilities": {
+      "failed": "Nastavenia servera, ktoré tento formulár potrebuje, sa nepodarilo načítať.",
+      "loading": "Načítavajú sa nastavenia servera…"
+    },
+    "create": {
+      "progress": "Pridáva sa {current} z {total}…"
+    },
+    "filters": {
+      "destinationType": "Cieľ"
+    },
+    "form": {
+      "externalNotice": "Ako cieľové adresy možno pridať len adresy domén hostovaných na tomto serveri."
+    },
+    "list": {
+      "moreDestinations": "+{count} ďalšie"
+    },
+    "orphaned": {
+      "badge": "Osirelý",
+      "warning": "Doména tohto aliasu už neexistuje. Alias možno odstrániť zo zoznamu. Zmenu možno uložiť len spolu s adresou v existujúcej doméne."
+    },
+    "gone": "Tento alias už neexistuje alebo už pre vás nie je dostupný.",
+    "delete": {
+      "impact": "Pošta na túto adresu sa prestane prijímať a odstránia sa oprávnenia iných schránok odosielať ako táto adresa.",
+      "impactCatchAll": "Ide o alias catch-all: spolu s ním sa odstránia oprávnenia odosielať ako ľubovoľná adresa domény {domain}.",
+      "changed": "Alias sa medzitým zmenil. Skontrolujte ho a potvrďte znova."
+    }
+  }
+}

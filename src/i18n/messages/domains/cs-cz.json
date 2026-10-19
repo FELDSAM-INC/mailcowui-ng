@@ -58,29 +58,23 @@
     },
     "filters": {
       "active": "Stav aktivace",
-      "all": "Vše",
-      "clear": "Vymazat všechny filtry",
       "filterByTag": "Filtrovat podle štítku {tag}",
       "localOnly": "Ostatní domény",
       "relay": "Předávání",
       "relayOnly": "Předávané domény",
-      "tagsHint": "Zobrazí domény s kterýmkoli z těchto štítků.",
-      "title": "Filtry",
-      "withCount": "Filtry ({count})"
+      "tagsHint": "Zobrazí domény s kterýmkoli z těchto štítků."
     },
     "footer": {
       "aliasDomainSubtext": "Alias-Domain",
       "aliasSubtext": "Alias"
     },
     "list": {
-      "actionsFor": "Akce pro {name}",
       "count": "Nalezené domény: {count}",
       "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
       "messagesCount": "Zprávy: {count}",
       "moreTags": "+{count}",
-      "moreTagsLabel": "a další štítky ({count})",
-      "updating": "Aktualizuje se…"
+      "moreTagsLabel": "a další štítky ({count})"
     },
     "outcome": {
       "dkimDnsFailed": "Záznam DKIM pro {0} se nepodařilo zveřejnit v DNS.",
@@ -123,9 +117,6 @@
     "edit": {
       "defaultName": "Výchozí šablonu nelze přejmenovat.",
       "gone": "Tato šablona už neexistuje."
-    },
-    "fields": {
-      "id": "ID"
     },
     "list": {
       "count": "Nalezené šablony: {count}",

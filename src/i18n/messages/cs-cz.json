@@ -10,34 +10,6 @@
     "skipToContent": "Přeskočit na hlavní obsah",
     "userMenu": "Nabídka účtu {username}"
   },
-  "aliases": {
-    "capabilities": {
-      "failed": "Nastavení serveru, která tento formulář potřebuje, se nepodařilo načíst.",
-      "loading": "Načítání nastavení serveru…"
-    },
-    "create": {
-      "progress": "Přidávání {current} z {total}…"
-    },
-    "filters": {
-      "destinationType": "Cíl"
-    },
-    "form": {
-      "externalNotice": "Jako cílové adresy lze přidat jen adresy domén hostovaných na tomto serveru."
-    },
-    "list": {
-      "moreDestinations": "+{count} další"
-    },
-    "orphaned": {
-      "badge": "Osiřelý",
-      "warning": "Doména tohoto aliasu už neexistuje. Alias lze odebrat ze seznamu. Změnu lze uložit jen spolu s adresou v existující doméně."
-    },
-    "gone": "Tento alias již neexistuje nebo pro vás již není dostupný.",
-    "delete": {
-      "impact": "Pošta na tuto adresu se přestane přijímat a odeberou se oprávnění jiných schránek odesílat jako tato adresa.",
-      "impactCatchAll": "Jde o alias catch-all: spolu s ním se odeberou oprávnění odesílat jako libovolná adresa domény {domain}.",
-      "changed": "Alias se mezitím změnil. Zkontrolujte jej a potvrďte znovu."
-    }
-  },
   "apiKeys": {
     "anyAddress": "Libovolná adresa",
     "columns": {

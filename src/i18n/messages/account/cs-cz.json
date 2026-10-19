@@ -18,6 +18,9 @@
       "protocolShort": {
         "dav": "DAV"
       }
+    },
+    "sections": {
+      "mailApps": "Nastavení poštovních aplikací"
     }
   },
   "filters": {

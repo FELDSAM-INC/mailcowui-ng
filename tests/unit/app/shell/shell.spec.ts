@@ -247,7 +247,8 @@ describe('user menu (FR-042)', () => {
     const items = [...menu.querySelectorAll('[role="menuitem"]')].map((item) =>
       item.textContent?.trim(),
     )
-    expect(items).toEqual(['Passkeys', 'Sign out'])
+    // UI 005 (FR-001): My account, legacy's "User Settings", above Passkeys.
+    expect(items).toEqual(['User Settings', 'Passkeys', 'Sign out'])
     wrapper.unmount()
   })
 })

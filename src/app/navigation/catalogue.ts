@@ -169,11 +169,15 @@ export const catalogue: readonly NavigationEntry[] = [
   entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   // UI 005 (research R4): domain administrators without the filters flag read the list.
   entry('filters', '/filters', FilterIcon, MANAGERS, '005', MAIL_SETUP),
-  entry('account', '/account', UserCircleIcon, ALL, '005', {
-    admin: ['/admin/system'],
-    domainAdmin: ['/domainadmin/user'],
-    mailboxUser: ['/user'],
-  }),
+  entry(
+    'account',
+    '/account',
+    UserCircleIcon,
+    ALL,
+    '005',
+    { admin: ['/admin/system'], domainAdmin: ['/domainadmin/user'], mailboxUser: ['/user'] },
+    'available',
+  ),
   entry('passkeys', '/passkeys', PasskeyIcon, ALL, '001', {}, 'available'),
   entry('quarantine', '/quarantine', ArchiveIcon, ALL, '006', {
     admin: ['/quarantine'],

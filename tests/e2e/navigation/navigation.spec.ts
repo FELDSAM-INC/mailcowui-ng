@@ -127,11 +127,12 @@ test('US3-AS3 FR-044 a placeholder names its section, says it comes later and li
     page.getByRole('main').getByRole('link', { name: 'System Configuration' }),
   ).toHaveAttribute('href', '/admin/system')
 
+  // UI 005 made My account available, so Quarantine is the mailbox user's placeholder here.
   await mockApi.use('mailbox-no-spam-flags')
-  await page.goto('account')
-  await expect(page.getByRole('main').getByRole('link', { name: 'User Settings' })).toHaveAttribute(
+  await page.goto('quarantine')
+  await expect(page.getByRole('main').getByRole('link', { name: 'Quarantine' })).toHaveAttribute(
     'href',
-    '/user',
+    '/quarantine',
   )
   const ops = (await mockApi.requests()).map((r) => r.operationId)
   expect(

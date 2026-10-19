@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The user menu (FR-042, FR-058): username and role, the language and theme choices as radio
-// items, Passkeys and Sign out. Sign-out is never confirmed (FR-036). The languages are the
+// items, My account (UI 005), Passkeys and Sign out. Sign-out is never confirmed (FR-036). The languages are the
 // installation's language menu; "Logged in as %s" is the classic interface's text.
 import { useI18n } from 'vue-i18n'
 
@@ -94,6 +94,11 @@ function onTheme(value: unknown) {
         </DropdownMenuRadioItem>
       </DropdownMenuRadioGroup>
       <DropdownMenuSeparator />
+      <!-- UI 005 (FR-001): My account, legacy's "User Settings". -->
+      <DropdownMenuItem to="/account" class="min-h-11">
+        <UserCircleIcon />
+        {{ lt('header.user_settings') }}
+      </DropdownMenuItem>
       <DropdownMenuItem to="/passkeys" class="min-h-11">
         <PasskeyIcon />
         {{ t('nav.passkeys') }}

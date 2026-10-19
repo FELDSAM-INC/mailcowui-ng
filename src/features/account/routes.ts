@@ -1,0 +1,37 @@
+// The routes of My account (UI 005 data-model §5). Every page is lazy-loaded together with the
+// feature's own strings. The section routes are children of the hub's layout, so the section
+// navigation stays beside them from `lg` up; each names its section (`meta.accountSection`), and
+// the layout shows "no access" in place when the account may not use it.
+import type { RouteRecordRaw } from 'vue-router'
+
+import { legacy, loadFeatureMessages } from '@/i18n'
+
+import type { AccountSectionId } from './sections'
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    /** UI 005: the My account section of the route. */
+    accountSection?: AccountSectionId
+  }
+}
+
+/** A page and the account strings, loaded together. */
+export function accountPage<T>(load: () => Promise<T>): () => Promise<T> {
+  return () => Promise.all([load(), loadFeatureMessages('account')]).then(([module]) => module)
+}
+
+export const accountRoutes: RouteRecordRaw[] = [
+  {
+    path: '/account',
+    component: accountPage(() => import('./components/layout/AccountLayout.vue')),
+    meta: { layout: 'shell', access: 'session', navEntry: 'account' },
+    children: [
+      {
+        path: '',
+        name: 'account',
+        component: accountPage(() => import('./pages/AccountHomePage.vue')),
+        meta: { titleKey: legacy('header.user_settings') },
+      },
+    ],
+  },
+]

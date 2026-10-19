@@ -22,7 +22,12 @@ test.describe('@domains history', () => {
       await expect(page.locator('[data-live="polite"]')).toContainText(
         `Changes to domain ${name} have been saved`,
       )
-      await page.getByRole('link', { name: 'History' }).click()
+      // The domain's own History, in the page header: UI 010's MTA-STS section has one as well.
+      await page
+        .getByRole('main')
+        .locator('header', { has: page.getByRole('heading', { level: 1 }) })
+        .getByRole('link', { name: 'History' })
+        .click()
       await expect(page).toHaveURL(new RegExp(`/audit-log\\?targetId=${name.replace('.', '\\.')}`))
       const records = page.getByRole('main')
       await expect(records).toContainText('Domain added')

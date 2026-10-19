@@ -23,7 +23,12 @@ test.describe('history', () => {
   }) => {
     await mockApi.use('audit-domain-records')
     await page.goto('domains/example.org')
-    await page.getByRole('link', { name: 'History' }).click()
+    // The domain's own History, in the page header: UI 010's MTA-STS section has one as well.
+    await page
+      .getByRole('main')
+      .locator('header', { has: page.getByRole('heading', { level: 1 }) })
+      .getByRole('link', { name: 'History' })
+      .click()
     await expect(page).toHaveURL(/\/ng\/audit-log\?targetId=example\.org$/)
     await expect(page.getByRole('heading', { level: 1, name: 'Audit log' })).toBeVisible()
     await expect(summary(page)).toHaveText('Showing 1 to 4 of 4 entries')

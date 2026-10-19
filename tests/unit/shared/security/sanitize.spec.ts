@@ -243,7 +243,7 @@ describe('sanitizeLegacyHtml: markup in mailcow language values (constitution IV
 
 describe('sanitizeReleaseNotes (UI 011, FR-028, T128)', () => {
   it('keeps the Markdown formatting tags with href and align', async () => {
-    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const { sanitizeReleaseNotes } = await import('@/shared/security/release-notes')
     const root = parse(
       sanitizeReleaseNotes(
         '<h2>T</h2><p><strong>b</strong> <em>e</em> <del>d</del></p><ul><li>x</li></ul><ol><li>y</li></ol><blockquote>q</blockquote><pre><code>c</code></pre><table><thead><tr><th align="left">h</th></tr></thead><tbody><tr><td align="right">v</td></tr></tbody></table><hr>',
@@ -273,7 +273,7 @@ describe('sanitizeReleaseNotes (UI 011, FR-028, T128)', () => {
   })
 
   it('removes images, styles, classes, handlers, frames, forms, svg and unsafe links', async () => {
-    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const { sanitizeReleaseNotes } = await import('@/shared/security/release-notes')
     const output = sanitizeReleaseNotes(
       '<img src="https://x.example/a.png"><p class="c" style="color:red" onclick="x()">p</p><iframe src="https://x.example"></iframe><form><input></form><svg onload="x()"></svg><a href="javascript:alert(1)">j</a><a href="/rel">r</a>',
       '(opens in a new tab)',
@@ -289,7 +289,7 @@ describe('sanitizeReleaseNotes (UI 011, FR-028, T128)', () => {
   })
 
   it('opens links in a new window without access to the app and says so', async () => {
-    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const { sanitizeReleaseNotes } = await import('@/shared/security/release-notes')
     const root = parse(
       sanitizeReleaseNotes('<a href="https://example.org/r">release</a>', '(opens in a new tab)'),
     )
@@ -300,7 +300,7 @@ describe('sanitizeReleaseNotes (UI 011, FR-028, T128)', () => {
   })
 
   it('neutralises the injection vectors of the operator profile', async () => {
-    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const { sanitizeReleaseNotes } = await import('@/shared/security/release-notes')
     for (const input of [
       '<p>Hi</p><script>alert(1)</script>',
       '<img src=x onerror="alert(1)">',

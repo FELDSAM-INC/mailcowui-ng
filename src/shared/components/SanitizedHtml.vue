@@ -5,9 +5,7 @@
 // (`profile="releaseNotes"`, UI 011). Plain text never comes here.
 import { computed } from 'vue'
 
-import { text } from '@/i18n'
-
-import { sanitizeHtml, sanitizeLegacyHtml, sanitizeReleaseNotes } from '../security/sanitize'
+import { registeredSanitizer, sanitizeHtml, sanitizeLegacyHtml } from '../security/sanitize'
 
 const props = withDefaults(
   defineProps<{
@@ -21,7 +19,9 @@ const props = withDefaults(
 const safe = computed(() => {
   if (!props.html) return ''
   if (props.profile === 'releaseNotes') {
-    return sanitizeReleaseNotes(props.html, text('common.opensInNewTab'))
+    // Registered by `security/release-notes.ts` when the release-notes renderer loads; until then
+    // the strict operator profile applies.
+    return (registeredSanitizer('releaseNotes') ?? sanitizeHtml)(props.html)
   }
   return props.profile === 'legacy' ? sanitizeLegacyHtml(props.html) : sanitizeHtml(props.html)
 })

@@ -4,6 +4,8 @@
 // loaded), and a link keeps only an http(s) or mailto target (any other link is its text). The
 // result is sanitised again by `SanitizedHtml` with the `releaseNotes` profile.
 import { escapeHtml } from '@/i18n/legacy-format'
+// Registers the release notes profile of `SanitizedHtml` (it lives in this lazy chunk).
+import '@/shared/security/release-notes'
 
 export interface ReleaseNotesTexts {
   image: (description: string) => string

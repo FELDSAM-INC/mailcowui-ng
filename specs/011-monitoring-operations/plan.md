@@ -691,6 +691,25 @@ features 006 (reset only), 002 (audit target filters) and 001.
    it names the action it sent. **Proposed**: declare `step` in a `MonitoringOutcomeUnknownProblem`
    schema.
 
+**Status at implementation (2026-10-19, T151; pin `4be8653`)**: gaps 3 to 9 were reported to
+mailcow-rest-v2 as G6 to G11 (and the audit details under G3) and all were accepted:
+
+- 3 (G6): `LogBefore` now states that `before` always selects older entries and `order` only sorts
+  them; oldest first therefore keeps paging with `offset` ("+ 100"/"+ 1000" add newer entries).
+- 4 (G7): `Fail2BanSettingsPatch` carries `minimum`/`maximum`; the UI reads its limits from
+  `src/shared/validation/limits.ts`, checked against those keywords.
+- 5 (G8): `Audit-Recorded` is declared on the shared `BulkResultResponse`.
+- 6 (G9): with `before`, `meta.total` counts the remaining older entries; the UI shows the first
+  page's total.
+- 7 (G10): `rateLimitHash` carries the bucket pattern since `4be8653` (another stored text is
+  `null`); the UI still offers the reset only for a matching hash.
+- 8 (G3): the API documents the detail keys of its 17 event types in its `docs/audit-events.md`,
+  which `AuditEvent.details` points to; the contract still leaves `details` open, so the History
+  shows them as stored.
+- 9 (G11): `MonitoringOutcomeUnknownProblem` declares `step`; the UI still names the action it sent.
+
+Gap 1 is moot after decision 18 (no "Select all matching"), and gap 2 stays declined.
+
 ## Owner-level questions
 
 None open. The former question on the queue deletion confirmation was decided by the orchestrator:

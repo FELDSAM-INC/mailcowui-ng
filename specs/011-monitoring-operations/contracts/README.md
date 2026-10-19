@@ -12,7 +12,7 @@ checks work as UI 001 defines them ([001 contracts/README.md](../../001-sign-in-
 | API repository | `FELDSAM-INC/mailcow-rest-v2` |
 | API features relied on | 011 Monitoring and operations; 006 (rate-limit bucket reset only); 002 (audit target filters); 001 (identity, errors, audit log) |
 | Contract version (`info.version`) | `0.1.0` (does not identify a contract, UI 001 R6) |
-| Pinned commit (authoritative) | `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components"), the newest commit that changed `api/` when this plan was written |
+| Pinned commit (authoritative) | planned `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18); pinned at implementation (T002, 2026-10-19) at `4be8653b963c5af9c3e0c91cfe3824a48317ff52` (API main with API 006), bundle sha256 `91e536d645dc6b71cd9d402d7102898ea9486b6938e3985a8631fe33fff774a1`. Its changes to this feature's operations close plan gaps 3 to 7 and 9 and change no operation's request or response shape |
 | Bundle | `@redocly/cli@2.64.1 bundle api/openapi.yaml` |
 | Bundle sha256 at this commit | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` |
 | Operations in the bundle | 376 |

@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { FieldViolation } from '@/api'
-import { fieldMessageKey } from '@/features/sync-jobs/field-messages'
+import { FORM_MESSAGE_KEYS, fieldMessageKey } from '@/features/sync-jobs/field-messages'
 import { text } from '@/i18n'
 import { violationMessage } from '@/i18n/problems'
 import { hasMessage } from '@/i18n'
@@ -59,5 +59,9 @@ describe('fieldMessageKey', () => {
     )
     expect(fieldMessageKey('remoteHost', v('tooLong', { max: 255 }))).toBe('validation.tooLong')
     expect(fieldMessageKey('mailbox', v('immutable'))).toBe('validation.immutable')
+  })
+
+  it('has a text for every rule the forms name', () => {
+    for (const key of FORM_MESSAGE_KEYS) expect(hasMessage(key)).toBe(true)
   })
 })

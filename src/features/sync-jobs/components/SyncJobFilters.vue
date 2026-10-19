@@ -2,7 +2,9 @@
 // The list's filters (FR-009), kept in the feature as UI 002 and UI 003 keep theirs (UI 006 creates
 // the shared panel): active state, status and last result for every role, with the classic column
 // keys as labels and their values as options. On phones a sort choice offers the table's sorts
-// (FR-011). The search field lives on the page.
+// (FR-011). Administrators and domain administrators also filter by owner (the shared
+// `MailboxSearchPicker`) and by domain (the shared `DomainPicker`). The search field lives on the
+// page.
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -10,7 +12,11 @@ import type { Role } from '@/api'
 import { legacy, resolveText, text, type TextRef } from '@/i18n'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
+import DomainPicker from '@/shared/components/DomainPicker.vue'
+import MailboxSearchPicker from '@/shared/components/MailboxSearchPicker.vue'
 import { buttonVariants } from '@/shared/ui/button'
+
+import { domainSource } from '../domain-source'
 
 import { SYNC_JOB_SORTS, type SyncJobListFilters, type SyncJobSort } from '../list-state'
 import { listTexts } from '../presentation'
@@ -50,6 +56,11 @@ const sorts = computed(() =>
 
 const SELECT =
   'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white'
+
+/** A single picker's value as a filter value. */
+function single(value: string | null | readonly string[]): string | undefined {
+  return typeof value === 'string' && value !== '' ? value : undefined
+}
 
 function value(event: Event): string | undefined {
   return (event.target as HTMLSelectElement).value || undefined
@@ -113,7 +124,21 @@ function value(event: Event): string | undefined {
       :id="panelId"
       class="grid grid-cols-1 gap-3 rounded-2xl border border-gray-200 bg-white p-4 sm:grid-cols-2 lg:grid-cols-3 dark:border-gray-800 dark:bg-gray-900"
     >
-      <slot name="pickers" />
+      <template v-if="role !== 'mailboxUser'">
+        <MailboxSearchPicker
+          id="sync-job-filter-mailbox"
+          :label="label(legacy('mailbox.owner'))"
+          :model-value="filters.mailbox ?? null"
+          @update:model-value="(value) => emit('update', { mailbox: single(value) })"
+        />
+        <DomainPicker
+          id="sync-job-filter-domain"
+          :label="label(legacy('mailbox.domain'))"
+          :sources="[domainSource]"
+          :model-value="filters.domain ?? null"
+          @update:model-value="(value) => emit('update', { domain: single(value) })"
+        />
+      </template>
       <div class="flex flex-col gap-1.5">
         <label
           for="sync-job-filter-active"

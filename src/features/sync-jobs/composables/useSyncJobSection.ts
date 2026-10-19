@@ -15,16 +15,23 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, shallowRef, watch, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { queryKeys, type ApiProblem, type SyncJob, type SyncJobCapabilities } from '@/api'
-import { lt, resolveText, text } from '@/i18n'
+import {
+  problemOf,
+  queryKeys,
+  type ApiProblem,
+  type SyncJob,
+  type SyncJobCapabilities,
+} from '@/api'
+import { lt, resolveText } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import { legacyRaw } from '@/i18n/legacy'
 import type { SectionChange, SectionStatus } from '@/shared/components/editable-section'
 import { announce } from '@/shared/composables/useAnnouncer'
+import { useClientErrors } from '@/shared/composables/useClientErrors'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { changedSince, useVersionedSave } from '@/shared/composables/useVersionedSave'
 
-import { problemOf, syncJobOptions, updateSyncJob } from '../api'
+import { syncJobOptions, updateSyncJob } from '../api'
 import { fieldLabel } from '../field-labels'
 import { SYNC_JOB_FORM_KEY } from '../field-messages'
 import {
@@ -33,7 +40,6 @@ import {
   FIELD_ORDER,
   patchFor,
   toFormValues,
-  type ClientErrors,
   type FormField,
   type SyncJobFormValues,
 } from '../form-model'
@@ -44,25 +50,6 @@ const COMPARED = FIELD_ORDER.filter((field) => field !== 'remotePassword')
 /** A legacy value without its character references (`&#10003;` → ✓), for plain text. */
 export function plainLegacy(value: string): string {
   return value.replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
-}
-
-/** Client errors as messages: new strings or mailcow's texts, numbers in the user's locale. */
-export function useClientMessages() {
-  const { t } = useI18n()
-  const fmt = useFormat()
-  return (errors: ClientErrors): Record<string, string[]> =>
-    Object.fromEntries(
-      Object.entries(errors).map(([path, list]) => [
-        path,
-        (list ?? []).map((error) => {
-          if (typeof error.key !== 'string') return resolveText(error.key, t)
-          const params = Object.fromEntries(
-            Object.entries(error.params ?? {}).map(([key, value]) => [key, fmt.number(value)]),
-          )
-          return text(error.key, params)
-        }),
-      ]),
-    )
 }
 
 export interface SectionOptions {
@@ -78,7 +65,7 @@ export function useSyncJobSection(options: SectionOptions) {
   const { t } = useI18n()
   const fmt = useFormat()
   const queryClient = useQueryClient()
-  const clientMessages = useClientMessages()
+  const clientMessages = useClientErrors()
   const base = shallowRef<SyncJob>(options.job())
   /** The version the form was opened with: the patch holds the user's changes against it. */
   const opened = shallowRef<SyncJob>(base.value)
@@ -166,11 +153,16 @@ export function useSyncJobSection(options: SectionOptions) {
     const against = base.value
     const caps = options.caps()
     if (!caps) return
-    const errors = checkValues(form.value, caps, {
-      mode: 'edit',
-      needsMailbox: false,
-      customParamsAllowed: customParamsAllowed.value,
-    })
+    const errors = checkValues(
+      form.value,
+      caps,
+      {
+        mode: 'edit',
+        needsMailbox: false,
+        customParamsAllowed: customParamsAllowed.value,
+      },
+      (value) => fmt.number(value),
+    )
     if (Object.keys(errors).length > 0) {
       await problemForm.setClientMessages(clientMessages(errors))
       return

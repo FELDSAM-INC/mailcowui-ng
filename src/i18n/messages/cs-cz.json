@@ -728,7 +728,8 @@
       "any": "Libovolné",
       "clear": "Vymazat filtry",
       "title": "Filtry",
-      "withCount": "Filtry ({count})"
+      "withCount": "Filtry ({count})",
+      "chip": "{filter}: {value}"
     },
     "form": {
       "customParamsRestricted": "Vlastní parametry smějí na tomto serveru nastavovat jen administrátoři.",
@@ -756,7 +757,6 @@
     "list": {
       "actionsFor": "Akce pro {name}",
       "clearAll": "Vymazat hledání a filtry",
-      "clearSearch": "Vymazat hledání",
       "count": "Nalezené synchronizační úlohy: {count}",
       "detailsOf": "Podrobnosti o {name}",
       "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené synchronizační úlohy nemusí být aktuální."

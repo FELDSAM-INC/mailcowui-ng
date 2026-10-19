@@ -10,10 +10,10 @@ import type {
   SyncJobEncryption,
   SyncJobRange,
 } from '@/api'
-import type { TextRef } from '@/i18n'
+import { legacy } from '@/i18n'
+import type { ClientErrors } from '@/shared/validation/client-errors'
 
 import type { SyncJobCreateBody, SyncJobPatchBody } from './api'
-import { formErrorKey } from './field-messages'
 
 type Config = Required<Omit<SyncJobCreateRequest, 'mailbox' | 'remotePassword'>>
 
@@ -266,14 +266,6 @@ export function patchFor(
   return patch
 }
 
-/** A client-side error: a new string or one of mailcow's messages, with its parameters. */
-export interface ClientError {
-  key: TextRef
-  params?: Record<string, number>
-}
-
-export type ClientErrors = Partial<Record<keyof SyncJobFormValues, ClientError[]>>
-
 /**
  * The checks before sending (FR-021, data-model §6): required fields, lengths and whole numbers
  * within the capabilities' ranges. Host format, the pattern and the custom options are left to the
@@ -283,13 +275,15 @@ export function checkValues(
   values: SyncJobFormValues,
   caps: SyncJobCapabilities,
   options: { mode: 'create' | 'edit'; needsMailbox: boolean; customParamsAllowed?: boolean },
+  /** Formats a number for display in the user's locale. */
+  format: (value: number) => string = String,
 ): ClientErrors {
   const errors: ClientErrors = {}
-  const add = (field: keyof SyncJobFormValues, error: ClientError) => {
+  const add = (field: keyof SyncJobFormValues, error: ClientErrors[string][number]) => {
     ;(errors[field] ??= []).push(error)
   }
   if (options.needsMailbox && values.mailbox.trim() === '') {
-    add('mailbox', { key: formErrorKey('mailbox', 'required') })
+    add('mailbox', { key: legacy('danger.no_user_defined') })
   }
   const required: TextField[] = ['remoteHost', 'remoteUser']
   if (options.mode === 'create') required.push('remotePassword')
@@ -300,8 +294,9 @@ export function checkValues(
     if (field === 'customParameters' && options.customParamsAllowed === false) continue
     const value = field === 'remoteHost' ? values[field].trim() : values[field]
     const max = maxLengthOf(caps, field)
-    if (!errors[field] && value.length > max)
-      add(field, { key: 'validation.tooLong', params: { max } })
+    if (!errors[field] && value.length > max) {
+      add(field, { key: 'validation.tooLong', params: { max: format(max) } })
+    }
   }
   for (const field of NUMBER_FIELDS) {
     const text = values[field]
@@ -314,7 +309,7 @@ export function checkValues(
     if (value === null || value < range.minimum || value > range.maximum) {
       add(field, {
         key: 'validation.outOfRange',
-        params: { min: range.minimum, max: range.maximum },
+        params: { min: format(range.minimum), max: format(range.maximum) },
       })
     }
   }

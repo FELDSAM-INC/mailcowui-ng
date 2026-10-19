@@ -6,24 +6,25 @@
 // listed job runs; the match count announced after a search or filter change. Later stories add the
 // create action (US2), selection mode (US4), the log viewer (US5) and deletion (US6).
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { SyncJob } from '@/api'
+import { problemOf, type SyncJob } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import { useSessionStore } from '@/app/session/store'
-import { lt, resolveText } from '@/i18n'
+import { legacy, lt, resolveText, text, type TextRef } from '@/i18n'
 import { useFormat } from '@/i18n/format'
+import ActiveFilterChips, { type FilterChip } from '@/shared/components/ActiveFilterChips.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SearchField from '@/shared/components/SearchField.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { CloseIcon, SyncIcon } from '@/shared/icons'
+import { SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
-import { SEARCH_MAX_LENGTH } from '@/shared/validation/limits'
 
-import { problemOf, syncJobListOptions } from '../api'
+import { syncJobListOptions } from '../api'
 import AutoRefreshControl from '../components/AutoRefreshControl.vue'
 import SyncJobFilters from '../components/SyncJobFilters.vue'
 import SyncJobList from '../components/SyncJobList.vue'
@@ -31,8 +32,6 @@ import SyncJobRowActions from '../components/SyncJobRowActions.vue'
 import { useRunningRefresh } from '../composables/useRunningRefresh'
 import { useSyncJobListState, type SyncJobListFilters } from '../list-state'
 import { listTexts } from '../presentation'
-
-const SEARCH_DEBOUNCE_MS = 300
 
 const { t } = useI18n()
 const fmt = useFormat()
@@ -69,28 +68,9 @@ watch(jobs, (value) => (pageJobs.value = value), { immediate: true })
 const total = computed(() => query.data.value?.meta.total ?? 0)
 const countText = computed(() => t('syncJobs.list.count', { count: fmt.number(total.value) }))
 
-// Search: typing is debounced and written with router.replace (UI 001 R20).
-const search = ref(state.value.filters.q ?? '')
-let timer: ReturnType<typeof setTimeout> | undefined
-watch(
-  () => state.value.filters.q,
-  (q) => {
-    if ((q ?? '') !== search.value.trim()) search.value = q ?? ''
-  },
-)
-function onSearch(event: Event) {
-  search.value = (event.target as HTMLInputElement).value
-  clearTimeout(timer)
-  timer = setTimeout(() => {
-    void list.setFilter('q', search.value.trim() || undefined, { typing: true })
-  }, SEARCH_DEBOUNCE_MS)
+function onSearch(q: string) {
+  void list.setFilter('q', q || undefined, { typing: true })
 }
-function clearSearch() {
-  clearTimeout(timer)
-  search.value = ''
-  void list.setFilter('q', undefined)
-}
-onBeforeUnmount(() => clearTimeout(timer))
 
 const NO_FILTERS: Partial<SyncJobListFilters> = {
   mailbox: undefined,
@@ -100,10 +80,37 @@ const NO_FILTERS: Partial<SyncJobListFilters> = {
   result: undefined,
 }
 function clearAll() {
-  clearTimeout(timer)
-  search.value = ''
   void list.setFilters({ q: undefined, ...NO_FILTERS })
 }
+
+// The active filters as removable chips (shared `ActiveFilterChips`).
+const label = (ref: TextRef) => resolveText(ref, t)
+const chips = computed<FilterChip[]>(() => {
+  const { mailbox, domain, active, running, result } = state.value.filters
+  const chip = (key: keyof SyncJobListFilters, filter: TextRef, value: string): FilterChip => ({
+    key,
+    label: t('syncJobs.filters.chip', { filter: label(filter), value }),
+  })
+  return [
+    ...(mailbox ? [chip('mailbox', texts.owner, mailbox)] : []),
+    ...(domain ? [chip('domain', legacy('mailbox.domain'), domain)] : []),
+    ...(active
+      ? [chip('active', texts.active, lt(active === 'yes' ? 'mailbox.active' : 'mailbox.inactive'))]
+      : []),
+    ...(running
+      ? [chip('running', texts.status, label(running === 'yes' ? texts.running : texts.waiting))]
+      : []),
+    ...(result
+      ? [
+          chip(
+            'result',
+            texts.result,
+            text(`enums.syncJobLastResult.${result === 'none' ? 'unknown' : result}`),
+          ),
+        ]
+      : []),
+  ]
+})
 
 // FR-009: the match count is announced after a search or filter change, without moving focus.
 const filterKey = computed(() => JSON.stringify(state.value.filters))
@@ -150,34 +157,12 @@ function openLog(id: number) {
     </PageHeader>
 
     <div class="flex flex-col gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label for="sync-job-search" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ lt('datatables.search') }}
-        </label>
-        <div class="flex gap-2">
-          <input
-            id="sync-job-search"
-            type="search"
-            :value="search"
-            :maxlength="SEARCH_MAX_LENGTH"
-            autocomplete="off"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            @input="onSearch"
-          />
-          <button
-            v-if="search !== ''"
-            type="button"
-            :class="buttonVariants({ variant: 'outline', size: 'icon' })"
-            :aria-label="t('syncJobs.list.clearSearch')"
-            @click="clearSearch"
-          >
-            <CloseIcon />
-          </button>
-        </div>
-      </div>
+      <SearchField
+        id="sync-job-search"
+        :label="lt('datatables.search')"
+        :model-value="state.filters.q ?? ''"
+        @search="onSearch"
+      />
       <SyncJobFilters
         :role="role"
         :filters="state.filters"
@@ -188,6 +173,11 @@ function openLog(id: number) {
         @update="(change) => list.setFilters(change)"
         @clear="list.setFilters(NO_FILTERS)"
         @sort="(sort, order) => list.setSort(sort, order)"
+      />
+      <ActiveFilterChips
+        :chips="chips"
+        @remove="(key) => list.setFilter(key as keyof SyncJobListFilters, undefined)"
+        @clear="list.setFilters(NO_FILTERS)"
       />
     </div>
 

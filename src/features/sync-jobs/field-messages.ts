@@ -15,7 +15,14 @@ export function fieldMessageKey(path: string, violation: FieldViolation): string
   return violationMessageKey(violation, hasMessage, { formKey: SYNC_JOB_FORM_KEY, path })
 }
 
-/** The form's own message key of a rule on a field, for client checks that read the same text. */
-export function formErrorKey(field: string, code: string): string {
-  return `syncJobs.form.errors.${field}.${code}`
-}
+/** The rules the sync-job forms have their own message for (new strings or `LEGACY_TEXTS`). */
+export const FORM_MESSAGE_KEYS = [
+  'syncJobs.form.errors.exclude.invalidRegex',
+  'syncJobs.form.errors.customParameters.optionNotAllowed',
+  'syncJobs.form.errors.customParameters.optionContainsSpace',
+  'syncJobs.form.errors.customParameters.customParamsNotPermitted',
+  'syncJobs.form.errors.mailbox.required',
+  'syncJobs.form.errors.mailbox.notEligible.kind.resource',
+  'syncJobs.form.errors.mailbox.notEligible.kind.alias',
+  'syncJobs.form.errors.mailbox.notEligible.kind.aliasDomainAddress',
+] as const

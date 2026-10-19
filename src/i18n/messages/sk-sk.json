@@ -728,7 +728,8 @@
       "any": "Ľubovoľné",
       "clear": "Vymazať filtre",
       "title": "Filtre",
-      "withCount": "Filtre ({count})"
+      "withCount": "Filtre ({count})",
+      "chip": "{filter}: {value}"
     },
     "form": {
       "customParamsRestricted": "Vlastné parametre smú na tomto serveri nastavovať len administrátori.",
@@ -756,7 +757,6 @@
     "list": {
       "actionsFor": "Akcie pre {name}",
       "clearAll": "Vymazať hľadanie a filtre",
-      "clearSearch": "Vymazať hľadanie",
       "count": "Nájdené synchronizačné úlohy: {count}",
       "detailsOf": "Podrobnosti o {name}",
       "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené synchronizačné úlohy nemusia byť aktuálne."

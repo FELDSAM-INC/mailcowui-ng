@@ -202,7 +202,7 @@ describe('client checks', () => {
       narrow,
       { mode: 'create', needsMailbox: true },
     )
-    expect(errors.mailbox).toEqual([{ key: 'syncJobs.form.errors.mailbox.required' }])
+    expect(errors.mailbox).toEqual([{ key: { legacy: 'danger.no_user_defined' } }])
     expect(errors.remoteHost).toEqual([{ key: 'validation.required' }])
     expect(errors.remotePassword).toEqual([{ key: 'validation.required' }])
     expect(errors.remotePort).toEqual([{ key: 'validation.required' }])
@@ -219,15 +219,15 @@ describe('client checks', () => {
       narrow,
       { mode: 'create', needsMailbox: true },
     )
-    expect(errors.remoteHost).toEqual([{ key: 'validation.tooLong', params: { max: 10 } }])
+    expect(errors.remoteHost).toEqual([{ key: 'validation.tooLong', params: { max: '10' } }])
     expect(errors.intervalMinutes).toEqual([
-      { key: 'validation.outOfRange', params: { min: 5, max: 60 } },
+      { key: 'validation.outOfRange', params: { min: '5', max: '60' } },
     ])
-    expect(errors.customParameters).toEqual([{ key: 'validation.tooLong', params: { max: 8 } }])
+    expect(errors.customParameters).toEqual([{ key: 'validation.tooLong', params: { max: '8' } }])
     expect(
       checkValues({ ...filled, maxAgeDays: '1.5' }, narrow, { mode: 'create', needsMailbox: true })
         .maxAgeDays,
-    ).toEqual([{ key: 'validation.outOfRange', params: { min: 0, max: 32000 } }])
+    ).toEqual([{ key: 'validation.outOfRange', params: { min: '0', max: '32000' } }])
   })
 
   it('accepts an empty password on edit and skips the owner', () => {

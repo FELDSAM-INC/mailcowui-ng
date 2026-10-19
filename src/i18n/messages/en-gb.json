@@ -728,7 +728,8 @@
       "any": "Any",
       "clear": "Clear filters",
       "title": "Filters",
-      "withCount": "Filters ({count})"
+      "withCount": "Filters ({count})",
+      "chip": "{filter}: {value}"
     },
     "form": {
       "customParamsRestricted": "Only administrators may set custom parameters on this server.",
@@ -756,7 +757,6 @@
     "list": {
       "actionsFor": "Actions for {name}",
       "clearAll": "Clear search and filters",
-      "clearSearch": "Clear search",
       "count": "Sync jobs found: {count}",
       "detailsOf": "Details of {name}",
       "refreshFailed": "The list could not be refreshed. The sync jobs shown may be out of date."

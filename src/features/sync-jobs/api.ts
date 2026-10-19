@@ -4,21 +4,15 @@
 // write the jobs they get back into the caches, invalidate the lists and the audit log, and forget
 // jobs that are gone. Request bodies are built by the caller from component state and never
 // stored, so a typed remote password never enters a cache entry (FR-033).
-import {
-  queryOptions,
-  useQuery,
-  useQueryClient,
-  type MutationOptions,
-  type QueryClient,
-} from '@tanstack/vue-query'
+import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
 import {
-  ApiProblem,
   api,
   isApiProblem,
   queryKeys,
   requireData,
+  runMutation,
   type BulkResult,
   type ListMeta,
   type SyncJob,
@@ -37,20 +31,6 @@ export interface SyncJobPage {
 }
 
 const MERGE_PATCH = { 'Content-Type': 'application/merge-patch+json' }
-
-/** A query or mutation error as a problem (the client turns every failure into ApiProblem). */
-export function problemOf(error: unknown): ApiProblem | null {
-  if (!error) return null
-  return isApiProblem(error) ? error : ApiProblem.fromParts({ kind: 'problem', cause: error })
-}
-
-function runMutation<TData, TVariables>(
-  client: QueryClient,
-  options: MutationOptions<TData, ApiProblem, TVariables>,
-  variables: TVariables,
-): Promise<TData> {
-  return client.getMutationCache().build(client, options).execute(variables)
-}
 
 // Queries
 

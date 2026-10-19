@@ -2,7 +2,9 @@
 // "Publish DNS record again" (US7, research R16, FR-045; administrators, while the server
 // publishes records): sends the key's version tag, shows the outcome and keeps it for the entry
 // page; publication turned off meanwhile shows the reason and refreshes the capabilities, which
-// removes the action; a key changed elsewhere (412) is read again and offered once more.
+// removes the action; a key changed elsewhere (412) is read again and offered once more. A page
+// that removes the action passes `showRefusal: false` and shows the emitted refusal itself, so the
+// reason stays after the action is gone (spec edge case "turned off between loading and acting").
 import { useQueryClient } from '@tanstack/vue-query'
 import { ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,10 +19,14 @@ import { refreshCapabilitiesOn } from '../api/capabilities'
 import { fetchDkimKey, publishRecord } from '../api/dkim'
 import PublicationOutcome from './PublicationOutcome.vue'
 
-const props = withDefaults(defineProps<{ entry: DkimKey; showOutcome?: boolean }>(), {
-  showOutcome: true,
-})
-const emit = defineEmits<{ published: [outcome: DkimDnsPublicationOutcome] }>()
+const props = withDefaults(
+  defineProps<{ entry: DkimKey; showOutcome?: boolean; showRefusal?: boolean }>(),
+  { showOutcome: true, showRefusal: true },
+)
+const emit = defineEmits<{
+  published: [outcome: DkimDnsPublicationOutcome]
+  refused: [problem: ApiProblem]
+}>()
 const { t } = useI18n()
 const client = useQueryClient()
 const pending = ref(false)
@@ -45,8 +51,9 @@ async function publish() {
       version = (await fetchDkimKey(props.entry.name).catch(() => props.entry)).etag
       outdated.value = true
     } else {
-      problem.value = isApiProblem(error) ? error : null
-      refreshCapabilitiesOn(error, client)
+      const refused = refreshCapabilitiesOn(error, client) && isApiProblem(error)
+      if (refused) emit('refused', error)
+      problem.value = isApiProblem(error) && !(refused && !props.showRefusal) ? error : null
     }
   } finally {
     pending.value = false

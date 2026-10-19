@@ -41,5 +41,16 @@ describe('PublishAgainAction', () => {
     await wrapper.get('button').trigger('click')
     await vi.waitFor(() => expect(wrapper.text()).toContain('DNS publication is turned off'))
     expect(queryClient.getQueryState(queryKeys.dns.capabilities())?.isInvalidated).toBe(true)
+    expect(wrapper.emitted('refused')?.[0]?.[0]).toMatchObject({ status: 403 })
+  })
+
+  it('leaves the refusal to the page when asked, which keeps it after the action is gone', async () => {
+    const state = useScenario('dns-admin-fork')
+    const entry = await entryOf('example.org')
+    state.dns.capabilities.dkim.dnsPublicationEnabled = false
+    const wrapper = mountWithApp(PublishAgainAction, { props: { entry, showRefusal: false } })
+    await wrapper.get('button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.emitted('refused')).toHaveLength(1))
+    expect(wrapper.text()).not.toContain('DNS publication is turned off')
   })
 })

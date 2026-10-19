@@ -6,11 +6,17 @@
 // that it is turned off (US6), "Publish DNS record again" (US7), History (US8) and "DNS" (US3). An
 // unknown name, or one outside the scope, shows the not-found page with a way back (FR-004).
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, nextTick, onBeforeUnmount } from 'vue'
+import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
-import { isApiProblem, problemOf, queryKeys, type DkimDnsPublicationOutcome } from '@/api'
+import {
+  isApiProblem,
+  problemOf,
+  queryKeys,
+  type ApiProblem,
+  type DkimDnsPublicationOutcome,
+} from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
@@ -74,6 +80,11 @@ function dismissOutcome() {
   queryClient.removeQueries({ queryKey: outcomeKey.value, exact: true })
 }
 onBeforeUnmount(dismissOutcome)
+
+// US7: publication turned off between loading and acting. The refusal is shown here, not in the
+// action, because the refreshed capabilities remove the action and the reason must stay.
+const publicationRefusal = shallowRef<ApiProblem | null>(null)
+watch(name, () => (publicationRefusal.value = null))
 
 // US2: "Add ARC/DKIM key" for a name without a key; afterwards the record heading takes the focus.
 const generation = useSingleGeneration(async () => {
@@ -143,7 +154,14 @@ const generation = useSingleGeneration(async () => {
           {{ lt('admin.duplicate') }}
         </RouterLink>
         <ExportPrivateKeyAction v-if="actions?.export" :entry="entry" />
-        <PublishAgainAction v-if="actions?.publishAgain" :entry="entry" :show-outcome="false" />
+        <PublishAgainAction
+          v-if="actions?.publishAgain"
+          :entry="entry"
+          :show-outcome="false"
+          :show-refusal="false"
+          @refused="(problem) => (publicationRefusal = problem)"
+          @published="publicationRefusal = null"
+        />
         <HistoryLink v-if="actions?.history" target-type="dkimKey" :target-id="entry.name" />
         <button
           v-if="actions?.delete"
@@ -192,6 +210,11 @@ const generation = useSingleGeneration(async () => {
       :problem="keyActions.problem.value"
       :params="{ name: entry.name }"
     />
+    <ProblemMessage
+      v-if="publicationRefusal"
+      data-publication-refused
+      :problem="publicationRefusal"
+    />
     <p
       v-if="actions?.exportOffNote"
       data-export-off
@@ -216,7 +239,14 @@ const generation = useSingleGeneration(async () => {
         :enabled="capabilities.data.value.dkim.dnsPublicationEnabled"
       >
         <template #action>
-          <PublishAgainAction v-if="actions?.publishAgain" :entry="entry" :show-outcome="false" />
+          <PublishAgainAction
+            v-if="actions?.publishAgain"
+            :entry="entry"
+            :show-outcome="false"
+            :show-refusal="false"
+            @refused="(problem) => (publicationRefusal = problem)"
+            @published="publicationRefusal = null"
+          />
         </template>
       </PublicationOutcome>
     </div>

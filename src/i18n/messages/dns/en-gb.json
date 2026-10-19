@@ -36,7 +36,11 @@
         "staleRecordRemovalFailed": "An old record could not be removed from the zone.",
         "unknown": "The DNS server reported an unexpected problem."
       },
-      "detail": "Technical detail"
+      "detail": "Technical detail",
+      "publishAgain": {
+        "action": "Publish DNS record again",
+        "outdated": "The key was changed elsewhere and has been reloaded. Publish again to send the current record."
+      }
     },
     "dkim": {
       "run": {
@@ -121,6 +125,31 @@
         "none": "Every name has a key.",
         "continue": "Continue",
         "collecting": "Finding the names without a key…"
+      },
+      "import": {
+        "keyHint": "RSA PKCS#8 or PKCS#1, {min} to {max} bits",
+        "chooseFile": "Choose a file"
+      },
+      "delete": {
+        "unsigned": "Mail of {name} is no longer signed from the next message on.",
+        "stopsSigning": "Its mail is no longer signed.",
+        "privateKey": "The private key is deleted permanently.",
+        "recordStays": "The DNS record stays in the DNS zone; remove it there yourself.",
+        "recordRemoved": "The DNS record is removed from the DNS zone; the outcome is recorded in the history.",
+        "skipped": "Without a key, skipped: {names}"
+      },
+      "replace": {
+        "title": "Replace with a new key",
+        "submit": "Replace",
+        "hint": "Choose a selector other than {selector}, so that the old and the new record can be published side by side while DNS updates.",
+        "action": "Replace with a new key",
+        "confirm": "The key {selector} ({length} bits) and its private key are replaced in one step, so mail stays signed. The published DNS record must then carry the new value.",
+        "updateRecord": "Update the DNS record with the new value."
+      },
+      "export": {
+        "confirm": "The private key lets its holder sign mail for {name}. The export is recorded in the history.",
+        "action": "Show the private key",
+        "off": "Private key export is turned off on this server."
       }
     }
   }

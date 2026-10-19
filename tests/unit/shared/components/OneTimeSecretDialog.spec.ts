@@ -146,3 +146,51 @@ describe('OneTimeSecretDialog', () => {
     expect(find('[role="dialog"]')).toBeNull()
   })
 })
+
+// UI 010 (T091, research R12): a multi-line secret (a private key) with a download that counts as
+// secured, as a copy does.
+describe('OneTimeSecretDialog with a download', () => {
+  it('shows a multi-line secret, downloads it and then closes without asking', async () => {
+    const pem = '-----BEGIN PRIVATE KEY-----\nMIIE\n-----END PRIVATE KEY-----\n'
+    const secret = ref<string | null>(pem)
+    const closed = vi.fn(() => {
+      secret.value = null
+    })
+    const created: Blob[] = []
+    vi.stubGlobal(
+      'URL',
+      Object.assign(URL, {
+        createObjectURL: (blob: Blob) => {
+          created.push(blob)
+          return 'blob:x'
+        },
+        revokeObjectURL: () => undefined,
+      }),
+    )
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => undefined)
+    const Host = defineComponent({
+      setup: () => () =>
+        h(OneTimeSecretDialog, {
+          secret: secret.value,
+          title: 'Private key',
+          multiline: true,
+          download: { fileName: 'dkim.example.org.pem', mediaType: 'application/x-pem-file' },
+          onClose: closed,
+        }),
+    })
+    mountWithApp(Host, { attachTo: document.body })
+    await vi.waitFor(() => expect(document.querySelector('[role="dialog"]')).not.toBeNull())
+    const field = document.querySelector<HTMLTextAreaElement>('[role="dialog"] textarea')!
+    expect(field.value).toBe(pem)
+    expect(field.readOnly).toBe(true)
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
+    buttons.find((b) => b.textContent?.includes('Download'))!.click()
+    await flushPromises()
+    expect(await created[0]!.text()).toBe(pem)
+    buttons.find((b) => b.textContent?.trim() === 'Close')!.click()
+    await flushPromises()
+    expect(confirmState.value).toBeNull()
+    expect(closed).toHaveBeenCalledTimes(1)
+    void testPlugins
+  })
+})

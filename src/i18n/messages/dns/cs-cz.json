@@ -36,7 +36,11 @@
         "staleRecordRemovalFailed": "Starý záznam se nepodařilo ze zóny odebrat.",
         "unknown": "Server DNS ohlásil neočekávaný problém."
       },
-      "detail": "Technické podrobnosti"
+      "detail": "Technické podrobnosti",
+      "publishAgain": {
+        "action": "Znovu zveřejnit DNS záznam",
+        "outdated": "Klíč byl mezitím změněn jinde a byl znovu načten. Zveřejněte znovu, aby se odeslal aktuální záznam."
+      }
     },
     "dkim": {
       "run": {
@@ -121,6 +125,31 @@
         "none": "Všechny názvy mají klíč.",
         "continue": "Pokračovat",
         "collecting": "Hledají se názvy bez klíče…"
+      },
+      "import": {
+        "keyHint": "RSA PKCS#8 nebo PKCS#1, {min} až {max} bitů",
+        "chooseFile": "Vybrat soubor"
+      },
+      "delete": {
+        "unsigned": "Pošta pro {name} nebude od další zprávy podepisována.",
+        "stopsSigning": "Jeho pošta už nebude podepisována.",
+        "privateKey": "Soukromý klíč bude trvale smazán.",
+        "recordStays": "DNS záznam v zóně DNS zůstane; odstraňte jej tam sami.",
+        "recordRemoved": "DNS záznam bude odebrán ze zóny DNS; výsledek se zaznamená do historie.",
+        "skipped": "Bez klíče, přeskočeno: {names}"
+      },
+      "replace": {
+        "title": "Nahradit novým klíčem",
+        "submit": "Nahradit",
+        "hint": "Zvolte jiný selektor než {selector}, aby mohl být starý a nový záznam zveřejněn souběžně, dokud se DNS neaktualizuje.",
+        "action": "Nahradit novým klíčem",
+        "confirm": "Klíč {selector} ({length} bitů) i jeho soukromý klíč budou nahrazeny v jednom kroku, takže pošta zůstane podepisována. Zveřejněný DNS záznam pak musí obsahovat novou hodnotu.",
+        "updateRecord": "Aktualizujte DNS záznam novou hodnotou."
+      },
+      "export": {
+        "confirm": "Soukromý klíč umožní svému držiteli podepisovat poštu za {name}. Export se zaznamená do historie.",
+        "action": "Zobrazit soukromý klíč",
+        "off": "Export soukromých klíčů je na tomto serveru vypnutý."
       }
     }
   }

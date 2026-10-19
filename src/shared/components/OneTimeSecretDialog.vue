@@ -5,7 +5,8 @@
 // confirmation first (`requestClose`, also used by the page's route-leave guard). The secret lives
 // only in the caller's state and this dialog's props: never in storage, the router or a query
 // cache, and the dialog pushes no history entry. Created by UI 001 (API keys); UI 005, 010 and
-// 012 reuse it.
+// 012 reuse it. UI 010 (research R12): `multiline` shows the secret in a read-only text area (a
+// private key), and `download` offers it as a file, which counts as saved, as a copy does.
 import {
   DialogContent,
   DialogDescription,
@@ -21,6 +22,7 @@ import { CopyIcon, WarningIcon } from '../icons'
 import { announce } from '../composables/useAnnouncer'
 import { confirm } from '../composables/useConfirm'
 import { copyText } from '../platform/clipboard'
+import { downloadText } from '../platform/download'
 import { buttonVariants } from '../ui/button'
 
 const props = defineProps<{
@@ -28,13 +30,17 @@ const props = defineProps<{
   secret: string | null
   title: string
   description?: string
+  /** Shows the secret in a multi-line, read-only text area. */
+  multiline?: boolean
+  /** Offers the secret as a file; a download counts as saved. */
+  download?: { fileName: string; mediaType: string }
 }>()
 const emit = defineEmits<{ close: [] }>()
 
 const { t } = useI18n()
 const fieldId = useId()
 const warningId = useId()
-const input = useTemplateRef<HTMLInputElement>('input')
+const input = useTemplateRef<HTMLInputElement | HTMLTextAreaElement>('input')
 const copied = ref(false)
 const outcome = ref<'copied' | 'refused' | null>(null)
 let closing = false
@@ -62,6 +68,12 @@ async function copy() {
     input.value?.select()
     announce(t('secrets.copyRefused'), { assertive: true })
   }
+}
+
+function save() {
+  if (!props.secret || !props.download) return
+  downloadText(props.secret, props.download.fileName, props.download.mediaType)
+  copied.value = true
 }
 
 /** Closes the dialog, asking first when the secret was not copied. Resolves true once closed. */
@@ -123,8 +135,21 @@ defineExpose({ requestClose })
           <label :for="fieldId" class="text-sm font-medium text-gray-800 dark:text-gray-200">
             {{ t('secrets.label') }}
           </label>
-          <div class="flex flex-col gap-2 sm:flex-row">
+          <div class="flex flex-col gap-2" :class="multiline ? '' : 'sm:flex-row'">
+            <textarea
+              v-if="multiline"
+              :id="fieldId"
+              ref="input"
+              :value="secret ?? ''"
+              readonly
+              rows="8"
+              autocomplete="off"
+              spellcheck="false"
+              :aria-describedby="warningId"
+              class="form-control min-w-0 flex-1 font-mono text-xs break-all"
+            />
             <input
+              v-else
               :id="fieldId"
               ref="input"
               :value="secret ?? ''"
@@ -134,10 +159,20 @@ defineExpose({ requestClose })
               :aria-describedby="warningId"
               class="form-control min-w-0 flex-1 font-mono text-sm"
             />
-            <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="copy">
-              <CopyIcon class="size-5" />
-              {{ t('secrets.copy') }}
-            </button>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="copy">
+                <CopyIcon class="size-5" />
+                {{ t('secrets.copy') }}
+              </button>
+              <button
+                v-if="download"
+                type="button"
+                :class="buttonVariants({ variant: 'outline' })"
+                @click="save"
+              >
+                {{ t('secrets.download') }}
+              </button>
+            </div>
           </div>
         </div>
         <p v-if="outcome === 'copied'" role="status" class="text-sm font-medium">

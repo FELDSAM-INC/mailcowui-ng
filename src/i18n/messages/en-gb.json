@@ -737,7 +737,8 @@
     "copy": "Copy",
     "copyRefused": "The browser did not allow copying. The secret is selected: copy it yourself.",
     "label": "Secret",
-    "warning": "This secret is shown only once. It cannot be shown again."
+    "warning": "This secret is shown only once. It cannot be shown again.",
+    "download": "Download"
   },
   "sections": {
     "discard": "Discard my changes",

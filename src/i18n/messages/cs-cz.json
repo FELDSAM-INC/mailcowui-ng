@@ -737,7 +737,8 @@
     "copy": "Kopírovat",
     "copyRefused": "Prohlížeč kopírování nepovolil. Tajný údaj je označen: zkopírujte jej sami.",
     "label": "Tajný údaj",
-    "warning": "Tento tajný údaj se zobrazí jen jednou. Znovu jej zobrazit nelze."
+    "warning": "Tento tajný údaj se zobrazí jen jednou. Znovu jej zobrazit nelze.",
+    "download": "Stáhnout"
   },
   "sections": {
     "discard": "Zahodit mé změny",

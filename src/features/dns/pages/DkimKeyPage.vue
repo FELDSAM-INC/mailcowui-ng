@@ -1,18 +1,22 @@
 <script setup lang="ts">
 // A DKIM entry (US1, FR-016 to FR-020): its readable name as the heading, the facts, the DNS record
 // with its copy buttons, "not signed" for a name without a key, the incomplete notice, and the
-// actions the role and the server allow (later stories add them). An unknown name, or one outside
-// the scope, shows the not-found page with a way back (FR-004).
+// actions the role and the server allow (FR-002): "Add ARC/DKIM key" (US2), "Replace with a new
+// key", import with overwrite, "Duplicate" and "Remove" (US5), the private key export or the note
+// that it is turned off (US6), "Publish DNS record again" (US7), History (US8) and "DNS" (US3). An
+// unknown name, or one outside the scope, shows the not-found page with a way back (FR-004).
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 
 import { isApiProblem, problemOf, queryKeys, type DkimDnsPublicationOutcome } from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import { CheckIcon, InfoIcon, TrashIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useDnsCapabilities } from '../api/capabilities'
@@ -20,11 +24,16 @@ import { useDkimKey } from '../api/dkim'
 import CheckDnsAction from '../components/CheckDnsAction.vue'
 import DkimKeyFacts from '../components/DkimKeyFacts.vue'
 import DkimRecord from '../components/DkimRecord.vue'
+import ExportPrivateKeyAction from '../components/ExportPrivateKeyAction.vue'
 import IncompleteKeyNotice from '../components/IncompleteKeyNotice.vue'
+import PublishAgainAction from '../components/PublishAgainAction.vue'
+import ReplaceKeyDialog from '../components/ReplaceKeyDialog.vue'
 import PublicationOutcome from '../components/PublicationOutcome.vue'
 import GenerateKeyDialog from '../components/GenerateKeyDialog.vue'
 import { useSingleGeneration } from '../composables/useDkimGeneration'
 import { useDnsRole } from '../composables/useDnsRole'
+import { useKeyActions } from '../composables/useKeyActions'
+import { dkimCopyLocation, dkimImportLocation } from '../names'
 import { dkimActions } from '../permissions'
 
 const { t } = useI18n()
@@ -43,6 +52,12 @@ const gone = computed(
 const actions = computed(() =>
   entry.value && role.value ? dkimActions(entry.value, role.value, capabilities.data.value) : null,
 )
+
+// US5: replacement and deletion, with their outcome as an inline status.
+const keyActions = useKeyActions({
+  entry,
+  publication: () => capabilities.data.value?.dkim.dnsPublicationEnabled ?? false,
+})
 
 // The publication outcome of the last change of this name (US2, US5, US7), shown once.
 const queryClient = useQueryClient()
@@ -104,6 +119,44 @@ const generation = useSingleGeneration(async () => {
       </div>
       <div data-entry-actions class="flex flex-wrap gap-2">
         <button
+          v-if="actions?.replace"
+          type="button"
+          data-replace
+          :class="buttonVariants({ variant: 'outline' })"
+          :disabled="!capabilities.data.value || keyActions.pending.value"
+          @click="keyActions.replaceOpen.value = true"
+        >
+          {{ t('dns.dkim.replace.action') }}
+        </button>
+        <RouterLink
+          v-if="actions?.importOverwrite"
+          :to="dkimImportLocation(entry.name)"
+          :class="buttonVariants({ variant: 'outline' })"
+        >
+          {{ lt('admin.import_private_key') }}
+        </RouterLink>
+        <RouterLink
+          v-if="actions?.copyKey"
+          :to="dkimCopyLocation(entry.name)"
+          :class="buttonVariants({ variant: 'outline' })"
+        >
+          {{ lt('admin.duplicate') }}
+        </RouterLink>
+        <ExportPrivateKeyAction v-if="actions?.export" :entry="entry" />
+        <PublishAgainAction v-if="actions?.publishAgain" :entry="entry" :show-outcome="false" />
+        <HistoryLink v-if="actions?.history" target-type="dkimKey" :target-id="entry.name" />
+        <button
+          v-if="actions?.delete"
+          type="button"
+          data-delete
+          :class="buttonVariants({ variant: 'destructive' })"
+          :disabled="keyActions.pending.value"
+          @click="keyActions.remove"
+        >
+          <TrashIcon />
+          {{ lt('admin.remove') }}
+        </button>
+        <button
           v-if="actions?.generate"
           type="button"
           data-generate
@@ -116,6 +169,36 @@ const generation = useSingleGeneration(async () => {
         <CheckDnsAction v-if="actions?.checkDns" :name="entry.name" />
       </div>
     </header>
+    <div
+      v-if="keyActions.status.value"
+      :role="keyActions.status.value.kind === 'error' ? 'alert' : 'status'"
+      data-entry-status
+      class="flex gap-2 rounded-xl border p-3 text-sm"
+      :class="
+        keyActions.status.value.kind === 'error'
+          ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200'
+          : 'border-green-200 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200'
+      "
+    >
+      <CheckIcon v-if="keyActions.status.value.kind === 'success'" class="mt-0.5 size-4 shrink-0" />
+      <InfoIcon v-else class="mt-0.5 size-4 shrink-0" />
+      <div class="flex flex-col gap-1">
+        <p class="break-words">{{ keyActions.status.value.message }}</p>
+        <p v-if="keyActions.updateRecordNote.value">{{ t('dns.dkim.replace.updateRecord') }}</p>
+      </div>
+    </div>
+    <ProblemMessage
+      v-if="keyActions.problem.value"
+      :problem="keyActions.problem.value"
+      :params="{ name: entry.name }"
+    />
+    <p
+      v-if="actions?.exportOffNote"
+      data-export-off
+      class="text-sm text-gray-700 dark:text-gray-300"
+    >
+      {{ t('dns.dkim.export.off') }}
+    </p>
     <p
       v-if="gone"
       role="alert"
@@ -132,7 +215,9 @@ const generation = useSingleGeneration(async () => {
         :outcome="outcome.data.value"
         :enabled="capabilities.data.value.dkim.dnsPublicationEnabled"
       >
-        <template #action><slot name="publish-again" /></template>
+        <template #action>
+          <PublishAgainAction v-if="actions?.publishAgain" :entry="entry" :show-outcome="false" />
+        </template>
       </PublicationOutcome>
     </div>
     <section
@@ -149,6 +234,14 @@ const generation = useSingleGeneration(async () => {
       </p>
       <DkimRecord v-else :entry="entry" />
     </section>
+    <ReplaceKeyDialog
+      v-if="capabilities.data.value && entry.key"
+      v-model:open="keyActions.replaceOpen.value"
+      :entry="entry"
+      :caps="capabilities.data.value"
+      :pending="keyActions.pending.value"
+      @submit="keyActions.replace"
+    />
     <GenerateKeyDialog
       v-if="capabilities.data.value"
       v-model:open="generation.open.value"

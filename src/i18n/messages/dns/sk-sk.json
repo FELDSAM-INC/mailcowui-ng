@@ -36,7 +36,11 @@
         "staleRecordRemovalFailed": "Starý záznam sa nepodarilo zo zóny odstrániť.",
         "unknown": "Server DNS ohlásil neočakávaný problém."
       },
-      "detail": "Technické podrobnosti"
+      "detail": "Technické podrobnosti",
+      "publishAgain": {
+        "action": "Znova zverejniť DNS záznam",
+        "outdated": "Kľúč bol medzitým zmenený inde a bol znova načítaný. Zverejnite znova, aby sa odoslal aktuálny záznam."
+      }
     },
     "dkim": {
       "run": {
@@ -121,6 +125,31 @@
         "none": "Všetky názvy majú kľúč.",
         "continue": "Pokračovať",
         "collecting": "Hľadajú sa názvy bez kľúča…"
+      },
+      "import": {
+        "keyHint": "RSA PKCS#8 alebo PKCS#1, {min} až {max} bitov",
+        "chooseFile": "Vybrať súbor"
+      },
+      "delete": {
+        "unsigned": "Pošta pre {name} nebude od ďalšej správy podpisovaná.",
+        "stopsSigning": "Jeho pošta už nebude podpisovaná.",
+        "privateKey": "Súkromný kľúč bude natrvalo vymazaný.",
+        "recordStays": "DNS záznam v zóne DNS zostane; odstráňte ho tam sami.",
+        "recordRemoved": "DNS záznam bude odstránený zo zóny DNS; výsledok sa zaznamená do histórie.",
+        "skipped": "Bez kľúča, preskočené: {names}"
+      },
+      "replace": {
+        "title": "Nahradiť novým kľúčom",
+        "submit": "Nahradiť",
+        "hint": "Zvoľte iný selektor ako {selector}, aby mohol byť starý a nový záznam zverejnený súbežne, kým sa DNS neaktualizuje.",
+        "action": "Nahradiť novým kľúčom",
+        "confirm": "Kľúč {selector} ({length} bitov) aj jeho súkromný kľúč budú nahradené v jednom kroku, takže pošta zostane podpisovaná. Zverejnený DNS záznam potom musí obsahovať novú hodnotu.",
+        "updateRecord": "Aktualizujte DNS záznam novou hodnotou."
+      },
+      "export": {
+        "confirm": "Súkromný kľúč umožní svojmu držiteľovi podpisovať poštu za {name}. Export sa zaznamená do histórie.",
+        "action": "Zobraziť súkromný kľúč",
+        "off": "Export súkromných kľúčov je na tomto serveri vypnutý."
       }
     }
   }

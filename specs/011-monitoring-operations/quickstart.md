@@ -148,6 +148,33 @@ time **190 ms**. The best sign-in run has no layout shift, LCP **3.2 s**, and bl
 **120 ms**; its largest element is the announcement text after application startup. These are
 measured symptoms, not an established root cause or a completed fix.
 
+**2026-10-19, bounded performance follow-up**: the dashboard now keeps its overview rows and
+CPU/memory area in place while values load. The first route downloads during the existing
+authenticated bootstrap. Repeated number/list/relative-time formatting no longer resolves the
+device time zone; calendar formatting still does. Repeated short legacy HTML translations reuse
+sanitized strings in a bounded cache, with unchanged sanitization rules. Regression tests were
+observed failing before the fixes.
+
+An isolated diagnostic of the layout and route-loading changes reduced dashboard CLS from
+**0.294 to 0.0225**, with performance **86**; sign-in scored **88**. These individual diagnostics
+do not pass T146 and do not measure the final patch. Following the owner's concern about the
+effort spent on slow-mobile optimization, further bootstrap, lazy-menu and bundler experiments
+were removed. No performance threshold was changed, and further score tuning stopped. The
+discarded experiments are archived locally in the API checkout's
+`storage/app/restart-2026-10-19/u011/perf-experiments-before-trim.{tgz,patch}`.
+
+The final retained patch passes **3,267 unit tests in 369 files**, with **88.98% line coverage**
+(`u011/final-unit.log`). This includes the dashboard loading-state regression, formatting and
+sanitizer regressions, existing hostile-content cases, and bootstrap tests.
+Lint, type checking, formatting, i18n, contract consistency, licenses, the production build and
+bundle budgets pass. Initial JavaScript is **186,760 bytes gzipped** (limit 204,800). No dependency
+or lockfile changed, so the recorded dependency audit remains applicable.
+The focused production-build browser run passes **231 tests** across mobile Chromium, desktop
+Chromium and mobile WebKit: dashboard and delayed loading, shell bootstrap, password sign-in,
+sign-in screens, SSO round trips, preferences and legacy translations including hostile markup.
+The log is `u011/final-browser.log`; artifacts are in `u011/final-browser-results/`. The retained
+fixes remain a local checkpoint while T146 is open; they have not been pushed or deployed.
+
 **2026-10-19, Part C (T150)**: the smoke suite ran against a local mailcow-rest-v2 dev stack at
 `4be8653` with `RESTV2_FAKE_OUTBOUND=y` (Compose project `ui011-smoke`, port 18680; the API checked
 out as a clone in `.smoke/api`, not as a worktree). `tests/smoke/operations.smoke.spec.ts`: 6 passed

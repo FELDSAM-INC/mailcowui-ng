@@ -31,6 +31,26 @@ async function mountHost(props: Record<string, unknown> = {}) {
 }
 
 describe('HostSection', () => {
+  it('keeps the overview rows and chart space while values are loading without inventing measurements', async () => {
+    const wrapper = await mountHost({ overview: undefined })
+    expect(wrapper.findAll('dt').map((term) => term.text())).toEqual([
+      'Hostname',
+      'Architecture',
+      'IPs',
+      'Version',
+      'System Time',
+      'Timezone',
+      'Uptime',
+      'Disk usage',
+    ])
+    expect(wrapper.findAll('h3').map((heading) => heading.text())).toEqual(['CPU', 'Memory'])
+    expect(wrapper.get('[data-cpu]').text()).not.toMatch(/0|%|Cores/)
+    expect(wrapper.get('[data-memory]').text()).not.toMatch(/0|%|GiB/)
+    await wrapper.setProps({ overview })
+    expect(wrapper.get('[data-hostname]').text()).toBe('mail.example.org')
+    expect(wrapper.get('[data-cpu]').text()).toContain('4 Cores')
+  })
+
   it('lists the rows in legacy order', async () => {
     const wrapper = await mountHost()
     expect(wrapper.findAll('dt').map((term) => term.text())).toEqual([

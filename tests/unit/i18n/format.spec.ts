@@ -1,6 +1,6 @@
 // Locale formatting (FR-087, research R15): dates, numbers, relative times and lists per locale,
 // always in the device time zone.
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { formatDateTime, formatList, formatNumber, formatRelativeTime } from '@/i18n/format'
 
@@ -42,6 +42,16 @@ describe('dates and times', () => {
 })
 
 describe('numbers', () => {
+  it('does not resolve the device time zone for time-zone-independent formats', () => {
+    const dates = vi.spyOn(Intl, 'DateTimeFormat')
+    for (let row = 0; row < 25; row += 1) {
+      formatNumber(row, 'en-gb')
+      formatList(['a', 'b'], 'en-gb')
+      formatRelativeTime(INSTANT, 'en-gb', Date.parse(INSTANT))
+    }
+    expect(dates).not.toHaveBeenCalled()
+  })
+
   it('formats per locale', () => {
     expect(formatNumber(1234567.5, 'en-gb')).toBe('1,234,567.5')
     expect(formatNumber(1234567.5, 'cs-cz')).toMatch(/^1\s234\s567,5$/)

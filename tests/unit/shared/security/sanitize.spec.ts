@@ -1,5 +1,5 @@
 // Operator HTML (help text, footer) is sanitised before display (FR-002, SC-013, research R17).
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { sanitizeHtml, sanitizeLegacyHtml } from '@/shared/security/sanitize'
 
@@ -312,5 +312,26 @@ describe('sanitizeReleaseNotes (UI 011, FR-028, T128)', () => {
       expect(output).not.toMatch(/<script|onerror|javascript:|data:/i)
       expect(parse(output).querySelector('img, script, style')).toBeNull()
     }
+  })
+})
+
+// Repeated legacy glyphs (the same yes/no entity in every table row) need only one parse.
+describe('legacy sanitization cache', () => {
+  it('reuses sanitized strings without reparsing identical short translations', () => {
+    const parser = vi.spyOn(DOMParser.prototype, 'parseFromString')
+    const input = '<b>Repeated legacy badge &#10003;</b>'
+    for (let row = 0; row < 25; row += 1) {
+      expect(sanitizeLegacyHtml(input)).toBe('<b>Repeated legacy badge ✓</b>')
+    }
+    expect(parser).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not retain an unbounded set of short values', () => {
+    const first = '<b>Evicted legacy badge</b>'
+    sanitizeLegacyHtml(first)
+    for (let row = 0; row < 200; row += 1) sanitizeLegacyHtml(`<b>Other badge ${row}</b>`)
+    const parser = vi.spyOn(DOMParser.prototype, 'parseFromString')
+    expect(sanitizeLegacyHtml(first)).toBe(first)
+    expect(parser).toHaveBeenCalledTimes(1)
   })
 })

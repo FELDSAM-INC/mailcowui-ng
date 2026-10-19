@@ -17,12 +17,10 @@ const DATE_OPTIONS: Record<DateStyle, Intl.DateTimeFormatOptions> = {
 const cache = new Map<string, unknown>()
 
 function cached<T>(key: string, create: () => T): T {
-  // The device time zone can change while the app runs; it is part of the key.
-  const zoned = `${key}|${Intl.DateTimeFormat().resolvedOptions().timeZone}`
-  let value = cache.get(zoned) as T | undefined
+  let value = cache.get(key) as T | undefined
   if (value === undefined) {
     value = create()
-    cache.set(zoned, value)
+    cache.set(key, value)
   }
   return value
 }
@@ -38,8 +36,11 @@ export function formatDateTime(
 ): string {
   const date = toDate(value)
   if (Number.isNaN(date.getTime())) return ''
+  // Only calendar dates depend on the device time zone. Resolving it constructs an Intl
+  // formatter, so doing this for every number in a list defeats the formatter cache.
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
   return cached(
-    `date|${locale}|${style}`,
+    `date|${locale}|${style}|${zone}`,
     () => new Intl.DateTimeFormat(toBcp47(locale), DATE_OPTIONS[style]),
   ).format(date)
 }

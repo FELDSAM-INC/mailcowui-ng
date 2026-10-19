@@ -86,9 +86,21 @@ legacyPurify.addHook('afterSanitizeAttributes', (node) => {
   else node.removeAttribute('target')
 })
 
+// Tables repeat the same small HTML translations (especially the yes/no entities). Cache only
+// strings, after sanitizing with this fixed profile; cap both their count and input length.
+const legacyCache = new Map<string, string>()
+const LEGACY_CACHE_LIMIT = 128
+const LEGACY_CACHE_INPUT_LIMIT = 512
+
 /** Markup of a mailcow language value: its formatting kept, everything else removed. */
 export function sanitizeLegacyHtml(html: string): string {
-  return legacyPurify.sanitize(defangForParsing(html), {
+  const previous = legacyCache.get(html)
+  if (previous !== undefined) {
+    legacyCache.delete(html)
+    legacyCache.set(html, previous)
+    return previous
+  }
+  const sanitized = legacyPurify.sanitize(defangForParsing(html), {
     ALLOWED_TAGS: LEGACY_TAGS,
     ALLOWED_ATTR: ['href', 'target'],
     ALLOWED_URI_REGEXP: LEGACY_URI,
@@ -96,6 +108,14 @@ export function sanitizeLegacyHtml(html: string): string {
     ALLOW_ARIA_ATTR: false,
     RETURN_TRUSTED_TYPE: false,
   })
+  if (html.length <= LEGACY_CACHE_INPUT_LIMIT) {
+    if (legacyCache.size >= LEGACY_CACHE_LIMIT) {
+      const oldest = legacyCache.keys().next().value
+      if (oldest !== undefined) legacyCache.delete(oldest)
+    }
+    legacyCache.set(html, sanitized)
+  }
+  return sanitized
 }
 
 export function sanitizeHtml(html: string): string {

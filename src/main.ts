@@ -6,6 +6,7 @@ import { captureSingleSignOnReturn } from '@/features/auth'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import { loadRouteLocation } from 'vue-router'
 
 import { queryClient } from '@/api'
 
@@ -29,6 +30,8 @@ async function start() {
   installFocusManagement(router)
   installSession({ queryClient, router, channel: createAppChannel() })
 
+  // Download the first route while bootstrap authenticates the session. Guards still run before mount.
+  void loadRouteLocation(router.resolve(router.options.history.location)).catch(() => undefined)
   await runBootstrap({ queryClient })
   app.use(router)
   // After a failed bootstrap the first navigation waits for the retry (ServiceUnavailablePage).

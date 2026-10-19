@@ -17,6 +17,38 @@ function recordAssets(page: Page): string[] {
 }
 
 test.describe('lazy chart and Markdown chunks @operations', () => {
+  test('the container list stays in place when a delayed host overview arrives', async ({
+    page,
+    mockApi,
+  }) => {
+    await mockApi.use('admin-operations')
+    let release!: () => void
+    const held = new Promise<void>((resolve) => (release = resolve))
+    await page.route('**/api/v2/host', async (route) => {
+      await held
+      await route.continue()
+    })
+    try {
+      await openDashboard(page)
+      await expect(page.locator('[data-containers] li')).toHaveCount(20)
+      await expect(page.locator('[data-update-status="updateAvailable"]')).toBeVisible()
+      await expect(page.getByRole('progressbar', { name: 'Disk usage' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Show public IP' })).toBeVisible()
+      const list = page.locator('[data-containers]')
+      const before = await list.evaluate((element) => element.getBoundingClientRect().top + scrollY)
+      release()
+      await expect(page.locator('[data-hostname]')).toHaveText('mail.example.org')
+      await expect(page.locator('[data-cpu]')).toContainText('4 Cores')
+      const after = await list.evaluate((element) => element.getBoundingClientRect().top + scrollY)
+      expect(
+        Math.abs(after - before),
+        'container list movement after the overview loads',
+      ).toBeLessThan(4)
+    } finally {
+      release()
+    }
+  })
+
   for (const [name, path, heading] of [
     ['logs', 'operations/logs/postfix', 'Postfix'],
     ['mail queue', 'operations/mail-queue', 'Queue Manager'],

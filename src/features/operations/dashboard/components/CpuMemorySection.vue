@@ -12,8 +12,8 @@ import { useFormat } from '@/i18n/format'
 import { LiveLineChart } from '../../charts'
 import type { ChartSample } from '../../charts/scale'
 
-const props = defineProps<{
-  overview: HostOverview
+defineProps<{
+  overview: HostOverview | undefined
   cpuSamples: readonly ChartSample[]
   memorySamples: readonly ChartSample[]
 }>()
@@ -32,9 +32,16 @@ const memory = computed(() => lt('debug.memory'))
       <h3 id="ops-cpu-heading" class="text-lg font-semibold text-gray-900 dark:text-white">
         {{ cpu }}
       </h3>
-      <p data-cpu class="tabular-nums">
-        {{ fmt.number(props.overview.cpu.cores) }} {{ lt('debug.cores') }} @
-        {{ percent(props.overview.cpu.usagePercent) }}
+      <p data-cpu class="min-h-6 tabular-nums">
+        <template v-if="overview">
+          {{ fmt.number(overview.cpu.cores) }} {{ lt('debug.cores') }} @
+          {{ percent(overview.cpu.usagePercent) }}
+        </template>
+        <span
+          v-else
+          class="block h-6 w-40 rounded bg-gray-100 motion-safe:animate-pulse dark:bg-gray-800"
+          aria-hidden="true"
+        />
       </p>
       <div class="min-h-28">
         <LiveLineChart
@@ -49,9 +56,16 @@ const memory = computed(() => lt('debug.memory'))
       <h3 id="ops-memory-heading" class="text-lg font-semibold text-gray-900 dark:text-white">
         {{ memory }}
       </h3>
-      <p data-memory class="tabular-nums">
-        {{ fmt.bytes(props.overview.memory.totalBytes) }} @
-        {{ percent(props.overview.memory.usagePercent) }}
+      <p data-memory class="min-h-6 tabular-nums">
+        <template v-if="overview">
+          {{ fmt.bytes(overview.memory.totalBytes) }} @
+          {{ percent(overview.memory.usagePercent) }}
+        </template>
+        <span
+          v-else
+          class="block h-6 w-40 rounded bg-gray-100 motion-safe:animate-pulse dark:bg-gray-800"
+          aria-hidden="true"
+        />
       </p>
       <div class="min-h-28">
         <LiveLineChart

@@ -54,6 +54,8 @@ const hostTime = computed(() => {
 
 const TERM = 'text-gray-600 dark:text-gray-400'
 const VALUE = 'min-w-0 wrap-anywhere text-gray-900 dark:text-white'
+const LOADING =
+  'block h-6 w-40 max-w-full rounded bg-gray-100 motion-safe:animate-pulse dark:bg-gray-800'
 </script>
 
 <template>
@@ -75,24 +77,23 @@ const VALUE = 'min-w-0 wrap-anywhere text-gray-900 dark:text-white'
     />
     <dl
       class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[minmax(8rem,auto)_minmax(0,1fr)] sm:gap-y-3"
+      :aria-busy="(!overview && !overviewFailed) || undefined"
     >
-      <template v-if="overview">
+      <template v-if="overview || !overviewFailed">
         <dt :class="TERM">{{ lt('edit.hostname') }}</dt>
-        <dd :class="VALUE" class="mb-2 font-semibold sm:mb-0" data-hostname>
-          {{ overview.hostName }}
+        <dd
+          :class="VALUE"
+          class="mb-2 font-semibold sm:mb-0"
+          :data-hostname="overview ? '' : undefined"
+        >
+          <template v-if="overview">{{ overview.hostName }}</template>
+          <span v-else :class="LOADING" aria-hidden="true" />
         </dd>
         <dt :class="TERM">{{ lt('debug.architecture') }}</dt>
-        <dd :class="VALUE" class="mb-2 sm:mb-0" data-architecture>{{ overview.architecture }}</dd>
-      </template>
-      <template v-else-if="!overviewFailed">
-        <dt
-          class="h-5 w-24 rounded bg-gray-100 motion-safe:animate-pulse dark:bg-gray-800"
-          aria-hidden="true"
-        />
-        <dd
-          class="mb-2 h-5 w-40 rounded bg-gray-100 motion-safe:animate-pulse sm:mb-0 dark:bg-gray-800"
-          aria-hidden="true"
-        />
+        <dd :class="VALUE" class="mb-2 sm:mb-0" data-architecture>
+          <template v-if="overview">{{ overview.architecture }}</template>
+          <span v-else :class="LOADING" aria-hidden="true" />
+        </dd>
       </template>
       <dt :class="TERM">{{ t('operations.dashboard.ips') }}</dt>
       <dd :class="VALUE" class="mb-2 sm:mb-0">
@@ -100,16 +101,21 @@ const VALUE = 'min-w-0 wrap-anywhere text-gray-900 dark:text-white'
       </dd>
       <dt :class="TERM">{{ t('operations.dashboard.version') }}</dt>
       <dd :class="VALUE" class="mb-2 sm:mb-0"><VersionLine /></dd>
-      <template v-if="overview">
+      <template v-if="overview || !overviewFailed">
         <dt :class="TERM">{{ lt('debug.current_time') }}</dt>
         <dd :class="VALUE" class="mb-2 tabular-nums sm:mb-0" data-host-time>
-          <time :datetime="overview.currentTime">{{ hostTime }}</time>
+          <time v-if="overview" :datetime="overview.currentTime">{{ hostTime }}</time>
+          <span v-else :class="LOADING" aria-hidden="true" />
         </dd>
         <dt :class="TERM">{{ lt('debug.timezone') }}</dt>
-        <dd :class="VALUE" class="mb-2 sm:mb-0" data-time-zone>{{ overview.timeZone }}</dd>
+        <dd :class="VALUE" class="mb-2 sm:mb-0" data-time-zone>
+          <template v-if="overview">{{ overview.timeZone }}</template>
+          <span v-else :class="LOADING" aria-hidden="true" />
+        </dd>
         <dt :class="TERM">{{ lt('debug.uptime') }}</dt>
         <dd :class="VALUE" class="mb-2 sm:mb-0" data-uptime>
-          {{ opsFmt.uptime(overview.uptimeSeconds) }}
+          <template v-if="overview">{{ opsFmt.uptime(overview.uptimeSeconds) }}</template>
+          <span v-else :class="LOADING" aria-hidden="true" />
         </dd>
       </template>
       <dt :class="TERM">{{ lt('debug.disk_usage') }}</dt>
@@ -118,7 +124,7 @@ const VALUE = 'min-w-0 wrap-anywhere text-gray-900 dark:text-white'
       </dd>
     </dl>
     <CpuMemorySection
-      v-if="overview"
+      v-if="overview || !overviewFailed"
       :overview="overview"
       :cpu-samples="cpuSamples"
       :memory-samples="memorySamples"

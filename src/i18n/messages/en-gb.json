@@ -183,7 +183,16 @@
     "records": "Audit records",
     "resultCount": "Records found: {total}",
     "title": "Audit log",
-    "unknown": "Unknown ({code})"
+    "unknown": "Unknown ({code})",
+    "detailKeys": {
+      "changes": "Changes",
+      "passwordSet": "Password set",
+      "preHashed": "Pre-hashed password",
+      "previousAddress": "Previous address",
+      "newAddress": "New address",
+      "bulkRequestId": "Bulk request",
+      "steps": "Steps"
+    }
   },
   "auth": {
     "notice": {

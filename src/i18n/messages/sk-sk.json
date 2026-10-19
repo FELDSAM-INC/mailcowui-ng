@@ -183,7 +183,16 @@
     "records": "Záznamy auditu",
     "resultCount": "Nájdené záznamy: {total}",
     "title": "Protokol auditu",
-    "unknown": "Neznáme ({code})"
+    "unknown": "Neznáme ({code})",
+    "detailKeys": {
+      "changes": "Zmeny",
+      "passwordSet": "Heslo nastavené",
+      "preHashed": "Vopred zahašované heslo",
+      "previousAddress": "Pôvodná adresa",
+      "newAddress": "Nová adresa",
+      "bulkRequestId": "Hromadná požiadavka",
+      "steps": "Kroky"
+    }
   },
   "auth": {
     "notice": {

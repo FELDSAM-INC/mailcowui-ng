@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest'
 
 import type { AuditEvent } from '@/api'
 import AuditEventItem from '@/features/audit-log/components/AuditEventItem.vue'
-import { auditLabel, auditLabelKey } from '@/features/audit-log/labels'
+import {
+  auditDetailRows,
+  auditLabel,
+  auditLabelKey,
+  detailLabel,
+} from '@/features/audit-log/labels'
 import { hasMessage, text } from '@/i18n'
 
 import { mountWithApp } from '../../support/mount'
@@ -73,6 +78,59 @@ describe('auditLabel', () => {
   it('keys every kind in one place', () => {
     expect(auditLabelKey('eventType', 'signIn')).toBe('enums.auditEventType.signIn')
     expect(auditLabelKey('failureReason', 'throttled')).toBe('enums.auditFailureReason.throttled')
+  })
+})
+
+describe('detailLabel (UI 003 T120)', () => {
+  it('labels the mailbox detail members and keeps any other member’s name', () => {
+    expect(
+      [
+        'changes',
+        'passwordSet',
+        'preHashed',
+        'previousAddress',
+        'newAddress',
+        'bulkRequestId',
+        'steps',
+      ].map((key) => detailLabel(key, tr)),
+    ).toEqual([
+      'Changes',
+      'Password set',
+      'Pre-hashed password',
+      'Previous address',
+      'New address',
+      'Bulk request',
+      'Steps',
+    ])
+    expect(detailLabel('problemType', tr)).toBe('problemType')
+  })
+
+  it('shows the labels and Yes or No for flags in the record details', () => {
+    const event = {
+      id: '01JB3K4M5N6P7Q8R9S0TVWXYZB',
+      occurredAt: '2026-10-18T10:00:00Z',
+      eventType: 'mailboxUpdate',
+      outcome: 'success',
+      actor: { username: 'admin', role: 'admin', apiKeyId: null },
+      target: { type: 'mailbox', id: 'anna@a.example', name: 'anna@a.example' },
+      clientAddress: '192.0.2.1',
+      userAgent: null,
+      authMethod: null,
+      failureReason: null,
+      requestId: '0123456789abcdef0123456789abcdef',
+      details: { passwordSet: true, preHashed: false },
+    } as unknown as AuditEvent
+    const wrapper = mountWithApp(AuditEventItem, { props: { event } })
+    expect(wrapper.text()).toContain('Mailbox changed')
+    const yesNo = (value: boolean) => (value ? 'Yes' : 'No')
+    expect(auditDetailRows(event, yesNo).map((row) => [row.key, row.lines])).toEqual([
+      ['passwordSet', ['Yes']],
+      ['preHashed', ['No']],
+    ])
+    // Flags inside a change read the same way; without a formatter they stay as stored.
+    const change = { ...event, details: { changes: { active: { old: true, new: false } } } }
+    expect(auditDetailRows(change, yesNo)[0]?.lines).toEqual(['active: Yes → No'])
+    expect(auditDetailRows(change)[0]?.lines).toEqual(['active: true → false'])
   })
 })
 

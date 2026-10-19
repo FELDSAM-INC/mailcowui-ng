@@ -30,6 +30,7 @@ import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from
 import { mailboxBulkScenarios } from './mailboxes/bulk'
 import { mailboxDeleteScenarios } from './mailboxes/delete'
 import { mailboxEditScenarios } from './mailboxes/edit'
+import { mailboxHistoryScenarios } from './mailboxes/history'
 import { mailboxListScenarios } from './mailboxes/list'
 import { mailboxRenameScenarios } from './mailboxes/rename'
 import { mailboxTemplateScenarios } from './mailboxes/templates'
@@ -107,6 +108,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...mailboxDeleteScenarios,
   ...mailboxRenameScenarios,
   ...mailboxBulkScenarios,
+  ...mailboxHistoryScenarios,
   ...mailboxTemplateScenarios,
   ...syncJobScenarios,
   // UI 012

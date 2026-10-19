@@ -19,7 +19,9 @@ const props = withDefaults(defineProps<{ event: AuditEvent; variant?: 'collapsib
 })
 const { t } = useI18n()
 const router = useRouter()
-const { label } = useAuditLabels()
+const { label, detail } = useAuditLabels()
+/** Flags read Yes or No (UI 003). */
+const flag = (value: boolean) => t(value ? 'domains.values.yes' : 'domains.values.no')
 /** Only links to screens that exist (conventions "Where features meet"). */
 const usable = (link: AuditLink | null | undefined) =>
   link && router?.hasRoute(link.name) ? link : undefined
@@ -59,9 +61,9 @@ const rows = computed<Row[]>(() => [
     lines: [props.event.userAgent ?? t('auditLog.details.none')],
   },
   { key: 'requestId', term: t('auditLog.details.requestId'), lines: [props.event.requestId] },
-  ...auditDetailRows(props.event).map((row) => ({
+  ...auditDetailRows(props.event, flag).map((row) => ({
     key: `detail-${row.key}`,
-    term: row.key,
+    term: detail(row.key),
     lines: row.lines,
     link: usable(row.link),
   })),

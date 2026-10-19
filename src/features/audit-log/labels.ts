@@ -61,6 +61,15 @@ export function actorLabel(
   return outcome === 'failure' ? tr.t('auditLog.actor.attempted', { username }) : username
 }
 
+/**
+ * The label of a detail member (UI 003: `changes`, `passwordSet`, `previousAddress` and the others
+ * of `auditLog.detailKeys`), or the member's own name for any other.
+ */
+export function detailLabel(key: string, tr: LabelTranslator): string {
+  const name = `auditLog.detailKeys.${key}`
+  return tr.te(name) ? tr.t(name) : key
+}
+
 /** The labels in the language in use. */
 export function useAuditLabels() {
   const tr: LabelTranslator = {
@@ -69,6 +78,7 @@ export function useAuditLabels() {
   }
   return {
     label: (kind: AuditLabelKind, code: string) => auditLabel(kind, code, tr),
+    detail: (key: string) => detailLabel(key, tr),
     actor: (event: AuditEvent) => actorLabel(event.actor, event.outcome, tr),
     method: (event: AuditEvent) =>
       event.authMethod
@@ -103,8 +113,12 @@ export interface AuditDetailRow {
   link?: AuditLink
 }
 
-function detailText(value: unknown): string {
-  if (Array.isArray(value)) return value.map((item) => detailText(item)).join(', ')
+/** Formats a flag; UI 003 passes Yes or No in the user's language. */
+export type FlagText = (value: boolean) => string
+
+function detailText(value: unknown, flag: FlagText = String): string {
+  if (typeof value === 'boolean') return flag(value)
+  if (Array.isArray(value)) return value.map((item) => detailText(item, flag)).join(', ')
   if (value !== null && typeof value === 'object') return JSON.stringify(value)
   return String(value)
 }
@@ -115,24 +129,24 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 /**
  * The details of an event as text: `changes` one line per changed value with its old and new
  * value, `removed` and `creationReport` one line per entry, `copiedFromAliasId` as a link to that
- * alias; every other key verbatim (research R19).
+ * alias; every other key verbatim (research R19). Flags go through `flag` (UI 003: Yes or No).
  */
-export function auditDetailRows(event: AuditEvent): AuditDetailRow[] {
+export function auditDetailRows(event: AuditEvent, flag: FlagText = String): AuditDetailRow[] {
   return Object.entries(event.details).map(([key, value]) => {
     if (key === 'changes' && isRecord(value)) {
       return {
         key,
         lines: Object.entries(value).map(([path, change]) =>
           isRecord(change) && 'old' in change && 'new' in change
-            ? `${path}: ${detailText(change.old)} → ${detailText(change.new)}`
-            : `${path}: ${detailText(change)}`,
+            ? `${path}: ${detailText(change.old, flag)} → ${detailText(change.new, flag)}`
+            : `${path}: ${detailText(change, flag)}`,
         ),
       }
     }
     if ((key === 'removed' || key === 'creationReport') && isRecord(value)) {
       return {
         key,
-        lines: Object.entries(value).map(([name, item]) => `${name}: ${detailText(item)}`),
+        lines: Object.entries(value).map(([name, item]) => `${name}: ${detailText(item, flag)}`),
       }
     }
     if (key === 'copiedFromAliasId' && (typeof value === 'number' || typeof value === 'string')) {
@@ -142,6 +156,6 @@ export function auditDetailRows(event: AuditEvent): AuditDetailRow[] {
         link: { name: 'alias-detail', params: { aliasId: String(value) } },
       }
     }
-    return { key, lines: [detailText(value)] }
+    return { key, lines: [detailText(value, flag)] }
   })
 }

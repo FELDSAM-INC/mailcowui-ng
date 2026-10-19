@@ -604,6 +604,9 @@
       "pop3": "POP3 {'@'} {time}",
       "smtp": "SMTP {'@'} {time}",
       "sso": "SSO {'@'} {time}"
+    },
+    "columns": {
+      "label": "Sloupce"
     }
   },
   "nav": {

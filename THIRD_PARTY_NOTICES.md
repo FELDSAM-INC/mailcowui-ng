@@ -255,6 +255,7 @@ comment naming the Lucide icon.
 | `src/shared/icons/TagIcon.vue` | Lucide `icons/tag.svg` (UI 002) |
 | `src/shared/icons/PlusIcon.vue` | Lucide `icons/plus.svg` (UI 002) |
 | `src/shared/icons/TrashIcon.vue` | Lucide `icons/trash-2.svg` (UI 002) |
+| `src/shared/icons/PencilIcon.vue` | Lucide `icons/pencil.svg` (UI 003, the mailbox list's "Edit") |
 
 ### ISC licence
 

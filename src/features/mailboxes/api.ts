@@ -20,6 +20,8 @@ import {
   type PasswordPolicy,
 } from '@/api'
 
+import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
+
 import type { Patch } from './patch'
 import type { Mailbox } from './types'
 
@@ -42,6 +44,28 @@ export function mailboxListOptions(params: MailboxListParams) {
     queryFn: () => fetchMailboxes(params),
     staleTime: 30_000,
   })
+}
+
+/**
+ * The domains of the caller's scope for a domain picker (the list's domain filter, the new
+ * mailbox's domain): searched by the server, sorted by name. `relay` marks relayed domains.
+ */
+export function domainPickerSource(): DomainPickerSource {
+  return {
+    id: 'domains',
+    queryKey: (q) => [...queryKeys.domains.lists(), 'picker', { q }],
+    fetchPage: async ({ q, offset, limit }) => {
+      const page = requireData(
+        await api.GET('/domains', {
+          params: { query: { sort: 'name', order: 'asc', limit, offset, ...(q ? { q } : {}) } },
+        }),
+      )
+      return {
+        items: page.data.map((domain) => ({ name: domain.name, nameUnicode: domain.unicodeName })),
+        total: page.meta.total,
+      }
+    },
+  }
 }
 
 export async function fetchMailbox(address: string): Promise<Mailbox> {

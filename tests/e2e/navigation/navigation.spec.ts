@@ -100,11 +100,11 @@ test('US3-AS3 FR-044 a placeholder names its section, says it comes later and li
   expectNoHorizontalScroll,
   expectTouchTargets,
 }) => {
-  // Domains became available with UI 002, so Mailboxes is the placeholder section here.
+  // Domains and Mailboxes became available with UI 002 and UI 003, so DNS is the placeholder here.
   await mockApi.use('domain-admin-two-domains')
-  await page.goto('mailboxes')
+  await page.goto('dns')
   const main = page.getByRole('main')
-  await expect(page.getByRole('heading', { level: 1, name: 'Mailboxes' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'DKIM, MTA-STS and DNS' })).toBeVisible()
   await expect(main).toContainText('This section comes in a later version of the app.')
   await expect(main.getByRole('link', { name: 'E-Mail Configuration' })).toHaveAttribute(
     'href',

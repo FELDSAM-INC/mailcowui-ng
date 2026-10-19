@@ -29,3 +29,7 @@ export const PROTOCOL_ORDER: readonly Protocol[] = [
   'activeSync',
   'dav',
 ]
+
+/** The address as people read it: the local part at the readable domain name. */
+export const readableAddress = (mailbox: Pick<Mailbox, 'localPart' | 'domainUnicode'>) =>
+  `${mailbox.localPart}@${mailbox.domainUnicode}`

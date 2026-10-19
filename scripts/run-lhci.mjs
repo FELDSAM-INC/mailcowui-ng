@@ -29,6 +29,13 @@ const collections = [
     url: `http://127.0.0.1:${previewPort}/ng/routing/relayhosts`,
     scenario: 'routing-relayhosts-many',
   },
+  // UI 011 (research R22): the dashboard with its charts, polling every 60 s so that Lighthouse's
+  // network-idle detection is not defeated. Skipped while the mock lacks the scenario.
+  {
+    url: `http://127.0.0.1:${previewPort}/ng/operations/dashboard`,
+    scenario: 'admin-operations-lighthouse',
+    optional: true,
+  },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {
@@ -45,9 +52,11 @@ function start(command, args, env) {
   return child
 }
 
-async function waitFor(url, timeoutMs = 30_000) {
+async function waitFor(url, timeoutMs = 30_000, child = undefined) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
+    // The mock server exits at once when it does not know its default scenario.
+    if (child && child.exitCode !== null) throw new Error(`exited with ${child.exitCode}`)
     try {
       const response = await fetch(url)
       if (response.ok) return
@@ -77,7 +86,7 @@ function stop(child) {
 }
 
 let first = true
-for (const { url, scenario } of collections) {
+for (const { url, scenario, optional } of collections) {
   const mock = start(bin('tsx'), ['--tsconfig', 'tsconfig.vitest.json', 'tests/mocks/server.ts'], {
     MOCK_PORT: String(mockPort),
     MOCK_DEFAULT_SCENARIO: scenario,
@@ -89,7 +98,13 @@ for (const { url, scenario } of collections) {
     { MOCK_API_TARGET: `http://127.0.0.1:${mockPort}` },
   )
   try {
-    await waitFor(`http://127.0.0.1:${mockPort}/__mock/health`)
+    try {
+      await waitFor(`http://127.0.0.1:${mockPort}/__mock/health`, 30_000, mock)
+    } catch (error) {
+      if (!optional) throw error
+      console.log(`\nLighthouse: skipped ${url}: the mock has no scenario ${scenario} yet.`)
+      continue
+    }
     await waitFor(`http://127.0.0.1:${previewPort}/ng/`)
     const args = ['collect', `--config=${config}`, `--url=${url}`]
     if (process.env.CHROME_PATH) args.push(`--chromePath=${process.env.CHROME_PATH}`)

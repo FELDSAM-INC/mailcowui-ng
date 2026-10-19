@@ -52,6 +52,7 @@ import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
 import { resourceHandlers } from './resources'
 import { senderSettingsHandlers } from './sender-settings'
+import { rateLimitBucketHandlers } from './rate-limit-buckets'
 import { rspamdHandlers } from './rspamd'
 import { syncJobHandlers } from './sync-jobs'
 import { bccMapHandlers } from './bcc-maps'
@@ -113,6 +114,7 @@ export const areaHandlers: RequestHandler[] = [
   ...rspamdHandlers,
   ...mailQueueHandlers,
   ...fail2banHandlers,
+  ...rateLimitBucketHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

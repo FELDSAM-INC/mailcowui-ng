@@ -126,9 +126,23 @@ Record here, after implementation (tasks T076, T078 and T079):
   an unused TOTP step.
 - **Devices (T078)**: not run. No mid-range Android phone or iPhone was available to the
   implementing agent, so SC-001, SC-002, SC-007 on a phone and the VoiceOver and TalkBack passes are
-  still open. The automated stand-ins passed: the end-to-end suite on the two mobile projects
-  (360 px Chromium with touch, WebKit), axe in both themes, and `log-performance.spec.ts` with 4×
-  CPU throttling.
+  still open. The automated stand-ins are the end-to-end suite on the two mobile projects (360 px
+  Chromium with touch, WebKit) with axe in both themes, and `log-performance.spec.ts` with 4× CPU
+  throttling (see the end-to-end results below for its sensitivity to machine load).
+- **End-to-end** (`npm run test:e2e`, three projects, in the pinned Playwright image), on a machine
+  shared with other builds (load average 20 to 50 on 8 cores):
+  - The whole suite (1469 tests, three workers) on main `f02acc5`: 1396 passed, 12 skipped and 61
+    failed, nearly all timeouts. With one worker, 48 of the 61 passed; the rest were main's known
+    navigation catalogue failure (fixed on main in `0194b3e`), one audit log timeout, the log
+    performance budget, and a sync job test that found the "already exists" message in the live
+    region as well (fixed: the locator is scoped to the page).
+  - After the rebase onto `0194b3e`, the navigation, sync job and audit log specs (438 tests, two
+    workers): 424 passed, 10 skipped, 4 failed. Three were a race in the automatic refresh tests:
+    TanStack Query restarts the interval when a response is applied, so the clock now advances only
+    after that (fixed; 18 repeated runs on the three projects passed). The fourth is the log budget.
+  - `log-performance.spec.ts` opened the 5 MB log in about 1 s during implementation. Under a load
+    average above 40 it took 3.7 to 3.9 s against the 3 s budget (one of four runs passed). This is
+    the machine, not a regression, but it should be checked again on a quiet machine or in CI.
 
 ## Strings for review
 

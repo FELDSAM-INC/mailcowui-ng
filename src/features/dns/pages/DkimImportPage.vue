@@ -12,7 +12,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
-import { isApiProblem, type ApiProblem, type DkimKey } from '@/api'
+import { isApiProblem, problemOf, type DkimKey } from '@/api'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
@@ -189,7 +189,7 @@ async function submit(event: Event) {
       existing.value = current?.key ? current : null
       continue
     }
-    await form.setProblem(problem as ApiProblem | null)
+    await form.setProblem(problem)
     return
   }
 }
@@ -344,7 +344,7 @@ const INPUT =
     <div v-else class="flex flex-col gap-3">
       <p role="alert">{{ t('dns.capabilities.loadFailed') }}</p>
       <ProblemMessage
-        :problem="capabilities.error.value as ApiProblem | null"
+        :problem="problemOf(capabilities.error.value)"
         retry
         @retry="capabilities.refetch()"
       />

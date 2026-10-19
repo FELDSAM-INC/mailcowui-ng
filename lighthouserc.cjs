@@ -40,6 +40,14 @@ module.exports = {
             'categories:accessibility': ['error', { minScore: 0.9 }],
           },
         },
+        {
+          // UI 009 T116.
+          matchingUrlPattern: '/ng/routing/relayhosts',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.9 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
+          },
+        },
       ],
     },
     upload: {

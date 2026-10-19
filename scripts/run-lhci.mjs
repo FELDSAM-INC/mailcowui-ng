@@ -24,6 +24,11 @@ const collections = [
   { url: `http://127.0.0.1:${previewPort}/ng/dns/dkim-keys`, scenario: 'dns-many' },
   // UI 003 (T127): the mailbox list as an administrator, 25 of 10,000 mailboxes.
   { url: `http://127.0.0.1:${previewPort}/ng/mailboxes`, scenario: 'admin-mailboxes-10k' },
+  // UI 009 (T116): the relayhost list as an administrator, 25 of 120 relayhosts.
+  {
+    url: `http://127.0.0.1:${previewPort}/ng/routing/relayhosts`,
+    scenario: 'routing-relayhosts-many',
+  },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

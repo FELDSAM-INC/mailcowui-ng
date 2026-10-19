@@ -153,3 +153,16 @@ Record the results in a "Validation log" section appended to this file (T100).
 - Owner question 2 is settled: mailcow-rest-v2 ships the realm import (`bae8f34`), so the CI
   `smoke` job sets `SMOKE_IDP=1` and the single sign-on test is part of the suite.
 
+
+### Gates after the rebase onto main `79948fc` (UI 008), 2026-10-19
+
+- `lint`, `typecheck`, `i18n:check` (738 new strings, all in en-gb, cs-cz and sk-sk),
+  `contract:check` and `build` pass.
+- `budget:check`: 177,222 of 204,800 bytes of initial JavaScript, gzipped (172.2 KB before the
+  rebase; UI 008 adds the rest).
+- `test:unit`: 189 files, 1,859 tests passed.
+- `test:e2e` (three projects, two workers, in the Playwright image, at load average 35–57 on the
+  shared machine): 1,844 passed, 18 skipped (the viewport-bound skips), 9 failed, all timeouts in
+  other features' screens; all 9 passed on the rerun of the failed tests.
+- The rebase met UI 008's `validation.format.hostName` ("host name or IPv4 address"); LDAP hosts
+  now use their own message (see `translation-review.md`).

@@ -2,7 +2,13 @@
   "dns": {
     "common": {
       "gone": "Tato položka již neexistuje.",
-      "retryIn": "Zkuste to znovu za {time}."
+      "retryIn": "Zkuste to znovu za {time}.",
+      "sort": {
+        "label": "Řadit podle",
+        "order": "Pořadí",
+        "asc": "Vzestupně",
+        "desc": "Sestupně"
+      }
     },
     "capabilities": {
       "loadFailed": "Nastavení DNS serveru se nepodařilo načíst."
@@ -39,6 +45,67 @@
         "finished": "Dokončeno: {counts}.",
         "status": "Zpracováno {done} z {total} názvů",
         "progressLabel": "Průběh"
+      },
+      "incomplete": "Neúplný",
+      "kinds": {
+        "none": "Bez domény"
+      },
+      "missingParts": {
+        "publicKey": "veřejný klíč",
+        "selector": "selektor",
+        "privateKey": "soukromý klíč"
+      },
+      "filters": {
+        "title": "Filtry",
+        "withCount": "Filtry ({count})",
+        "kind": "Typ",
+        "all": "Vše",
+        "complete": "Úplnost",
+        "completeOnly": "Úplné klíče",
+        "incompleteOnly": "Neúplné klíče",
+        "selectorChip": "Selektor {selector}",
+        "domainChip": "Doména {domain} s jejími doménovými aliasy",
+        "bySelector": "Zobrazit jen klíče se selektorem {selector}"
+      },
+      "list": {
+        "count": "Položek: {count}",
+        "updating": "Aktualizace…",
+        "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky nemusí být aktuální.",
+        "actions": "Akce"
+      },
+      "settings": {
+        "title": "Nastavení serveru",
+        "defaultSelector": "Výchozí selektor",
+        "defaultKeySize": "Výchozí délka klíče (v bitech)",
+        "export": "Export soukromých klíčů",
+        "on": "Zapnuto",
+        "off": "Vypnuto"
+      },
+      "record": {
+        "title": "DNS záznam",
+        "hostLabel": "Název hostitele v zóně",
+        "value": "Hodnota",
+        "form": "Podoba hodnoty",
+        "single": "Jeden text",
+        "split": "Rozdělit na části po 255 znacích",
+        "copyName": "Kopírovat název záznamu pro {name}",
+        "copyHost": "Kopírovat název hostitele pro {name}",
+        "copyValue": "Kopírovat hodnotu záznamu pro {name}",
+        "none": "Dokud klíč není úplný, nelze zveřejnit žádný záznam."
+      },
+      "entry": {
+        "notSigned": "Tento název nemá DKIM klíč. Jeho pošta není podepisována.",
+        "loadFailed": "DKIM klíč se nepodařilo načíst."
+      },
+      "incompleteNotice": {
+        "title": "Tento klíč je neúplný",
+        "body": "Nepoužívá se k podepisování. Chybí: {parts}.",
+        "adviceAdmin": "Odeberte jej, importujte úplný klíč s přepsáním, nebo jej nahraďte novým klíčem.",
+        "adviceDomainAdmin": "Požádejte administrátora o opravu."
+      },
+      "section": {
+        "open": "Podrobnosti DKIM klíče",
+        "list": "DKIM klíče této domény a jejích doménových aliasů"
       }
     }
   }

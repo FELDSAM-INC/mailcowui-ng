@@ -16,6 +16,7 @@ import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 import { lt, type LegacyKey } from '@/i18n'
 import { isApiProblem, queryKeys, type DomainCreationReport } from '@/api'
 import { canAccess } from '@/app/navigation/visibility'
+import { DomainDkimSection } from '@/features/dns'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -233,6 +234,8 @@ watch(
       @close="closeSection"
       @dirty="dirty = $event"
     />
+    <!-- UI 010: the DKIM block legacy shows below the "Edit domain" form. -->
+    <DomainDkimSection v-if="!showOnly" :name="domain.name" kind="domain" />
     <RateLimitSection v-if="!showOnly" :domain="domain" />
     <FooterSection
       v-if="visible('footer')"

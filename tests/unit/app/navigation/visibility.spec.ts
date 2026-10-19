@@ -112,12 +112,13 @@ describe('navigation catalogue', () => {
 
   it('starts every row as a placeholder until its story makes it available', () => {
     // Rows that later features have delivered so far (UI 002 US1: domains; US6: templates;
-    // UI 008: sync jobs; UI 012: identity providers and OAuth2; UI 004 US1: aliases; US4: domain
-    // aliases; US7: resources).
+    // UI 008: sync jobs; UI 010: DKIM keys; UI 012: identity providers and OAuth2; UI 004 US1:
+    // aliases; US4: domain aliases; US7: resources).
     const available = new Set<NavEntryId>([
       'domains',
       'domainTemplates',
       'syncJobs',
+      'dkimKeys',
       'identityProviders',
       'aliases',
       'aliasDomains',

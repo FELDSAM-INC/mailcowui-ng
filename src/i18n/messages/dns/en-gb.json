@@ -2,7 +2,13 @@
   "dns": {
     "common": {
       "gone": "This entry no longer exists.",
-      "retryIn": "Try again in {time}."
+      "retryIn": "Try again in {time}.",
+      "sort": {
+        "label": "Sort by",
+        "order": "Order",
+        "asc": "Ascending",
+        "desc": "Descending"
+      }
     },
     "capabilities": {
       "loadFailed": "The DNS settings of the server could not be loaded."
@@ -39,6 +45,67 @@
         "finished": "Finished: {counts}.",
         "status": "{done} of {total} names processed",
         "progressLabel": "Progress"
+      },
+      "incomplete": "Incomplete",
+      "kinds": {
+        "none": "No domain"
+      },
+      "missingParts": {
+        "publicKey": "public key",
+        "selector": "selector",
+        "privateKey": "private key"
+      },
+      "filters": {
+        "title": "Filters",
+        "withCount": "Filters ({count})",
+        "kind": "Type",
+        "all": "All",
+        "complete": "Completeness",
+        "completeOnly": "Complete keys",
+        "incompleteOnly": "Incomplete keys",
+        "selectorChip": "Selector {selector}",
+        "domainChip": "Domain {domain} with its alias domains",
+        "bySelector": "Show only keys with selector {selector}"
+      },
+      "list": {
+        "count": "{count} entries",
+        "updating": "Updating…",
+        "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
+        "actions": "Actions"
+      },
+      "settings": {
+        "title": "Server settings",
+        "defaultSelector": "Default selector",
+        "defaultKeySize": "Default key length (bits)",
+        "export": "Private key export",
+        "on": "On",
+        "off": "Off"
+      },
+      "record": {
+        "title": "DNS record",
+        "hostLabel": "Host label",
+        "value": "Value",
+        "form": "Form of the value",
+        "single": "One text",
+        "split": "Split into 255-character pieces",
+        "copyName": "Copy record name of {name}",
+        "copyHost": "Copy host label of {name}",
+        "copyValue": "Copy record value of {name}",
+        "none": "No record can be published until the key is complete."
+      },
+      "entry": {
+        "notSigned": "This name has no DKIM key. Its mail is not signed.",
+        "loadFailed": "The DKIM key could not be loaded."
+      },
+      "incompleteNotice": {
+        "title": "This key is incomplete",
+        "body": "It is not used for signing. Missing: {parts}.",
+        "adviceAdmin": "Remove it, import a complete key with overwrite, or replace it with a new key.",
+        "adviceDomainAdmin": "Ask an administrator to repair it."
+      },
+      "section": {
+        "open": "Details of the DKIM key",
+        "list": "DKIM keys of this domain and its alias domains"
       }
     }
   }

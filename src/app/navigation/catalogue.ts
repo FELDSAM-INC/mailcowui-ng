@@ -170,10 +170,15 @@ export const catalogue: readonly NavigationEntry[] = [
     { admin: ['/admin/system', '/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] },
   ),
   // UI 010 (research R2): DKIM keys (with the diagnostics) and the MTA-STS policies, under /dns.
-  entry('dkimKeys', '/dns/dkim-keys', DatabaseIcon, MANAGERS, '010', {
-    admin: ['/admin/system'],
-    domainAdmin: ['/domainadmin/mailbox'],
-  }),
+  entry(
+    'dkimKeys',
+    '/dns/dkim-keys',
+    DatabaseIcon,
+    MANAGERS,
+    '010',
+    { admin: ['/admin/system'], domainAdmin: ['/domainadmin/mailbox'] },
+    'available',
+  ),
   entry('mtaStsPolicies', '/dns/mta-sts-policies', LockIcon, MANAGERS, '010', MAIL_SETUP),
   entry('operations', '/operations', BarChartIcon, ADMIN, '011', {
     admin: ['/admin/dashboard', '/admin/queue'],

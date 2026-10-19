@@ -626,6 +626,12 @@
     "rateLimit": {
       "frame": "Time frame",
       "value": "Messages"
+    },
+    "passwordRules": {
+      "met": "met",
+      "notMet": "not met",
+      "allMet": "The password meets every rule.",
+      "copyGenerated": "Copy the generated password"
     }
   },
   "hibp": {

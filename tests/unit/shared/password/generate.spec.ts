@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest'
 
 import type { PasswordPolicy } from '@/api'
 
-import { generatePassword, LOOK_ALIKES, SPECIAL } from '@/features/mailboxes/password/generate'
-import { meetsPolicy } from '@/features/mailboxes/password/policy-rules'
+import { generatePassword, LOOK_ALIKES, SPECIAL } from '@/shared/password/generate'
+import { meetsPolicy } from '@/shared/password/policy-rules'
 
 type Policy = Omit<PasswordPolicy, 'etag'>
 

@@ -12,8 +12,8 @@ import HibpCheck from '@/shared/components/HibpCheck.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import { MAILBOX_PASSWORD_MAX } from '@/shared/validation/limits'
 
-import { generatePassword } from '../../password/generate'
-import { policyRules, type PolicyValues } from '../../password/policy-rules'
+import { generatePassword } from '@/shared/password/generate'
+import { policyRules, type PolicyValues } from '@/shared/password/policy-rules'
 
 const props = withDefaults(
   defineProps<{

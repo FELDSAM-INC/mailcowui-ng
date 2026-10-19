@@ -626,6 +626,12 @@
     "rateLimit": {
       "frame": "Časový úsek",
       "value": "Správy"
+    },
+    "passwordRules": {
+      "met": "splnené",
+      "notMet": "nesplnené",
+      "allMet": "Heslo spĺňa všetky pravidlá.",
+      "copyGenerated": "Skopírovať vygenerované heslo"
     }
   },
   "hibp": {

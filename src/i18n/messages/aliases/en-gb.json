@@ -53,5 +53,23 @@
       },
       "deleteImpact": "Deleted with them: their aliases ({count}) and their send-as permissions, their temporary aliases, BCC maps and spam allow and block lists. Their DKIM keys are kept."
     }
+  },
+  "resources": {
+    "gone": "This resource no longer exists or is no longer available to you.",
+    "changed": "The resource changed in the meantime. Check it and confirm again.",
+    "delete": {
+      "impact": "Its calendar, its bookings and its sharing settings in the groupware are deleted."
+    },
+    "bulk": {
+      "confirm": {
+        "deactivate": "Selected resources: {count}. While they are inactive, they cannot be booked."
+      },
+      "deleteImpact": "Their calendars, bookings and sharing settings in the groupware are deleted."
+    },
+    "form": {
+      "preview": "Address (preview): {address}",
+      "noAddress": "No address can be derived: the description needs between 1 and 64 letters A–Z or digits.",
+      "addressKept": "The address does not change when the description changes."
+    }
   }
 }

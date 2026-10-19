@@ -53,5 +53,23 @@
       },
       "deleteImpact": "Spolu s nimi sa odstránia: ich aliasy ({count}) a ich oprávnenia odosielať ako ony, ich dočasné aliasy, mapy BCC a zoznamy povolených a blokovaných odosielateľov spamového filtra. Ich kľúče DKIM zostanú zachované."
     }
+  },
+  "resources": {
+    "gone": "Tento zdroj už neexistuje alebo už pre vás nie je dostupný.",
+    "changed": "Zdroj sa medzitým zmenil. Skontrolujte ho a potvrďte znova.",
+    "delete": {
+      "impact": "Odstráni sa jeho kalendár, rezervácie a nastavenia zdieľania v groupwari."
+    },
+    "bulk": {
+      "confirm": {
+        "deactivate": "Vybrané zdroje: {count}. Kým sú neaktívne, nemožno ich rezervovať."
+      },
+      "deleteImpact": "Odstránia sa ich kalendáre, rezervácie a nastavenia zdieľania v groupwari."
+    },
+    "form": {
+      "preview": "Adresa (náhľad): {address}",
+      "noAddress": "Adresu nemožno odvodiť: popis musí obsahovať 1 až 64 písmen A–Z alebo číslic.",
+      "addressKept": "Adresa sa pri zmene popisu nemení."
+    }
   }
 }

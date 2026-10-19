@@ -125,7 +125,7 @@ export const catalogue: readonly NavigationEntry[] = [
   entry('mailboxTemplates', '/mailbox-templates', LayoutTemplateIcon, MANAGERS, '003', MAIL_SETUP),
   entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   entry('aliasDomains', '/alias-domains', LinkIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
-  entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP),
+  entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   entry('account', '/account', UserCircleIcon, ALL, '005', {
     admin: ['/admin/system'],
     domainAdmin: ['/domainadmin/user'],

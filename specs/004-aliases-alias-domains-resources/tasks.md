@@ -1124,7 +1124,7 @@ shared D2–D5.
   - five resources for a bulk deletion;
   - a resource changed and one deleted elsewhere;
   - the `resourceDescriptionMaxLength` and `resourceBookingLimit` capabilities.
-- [ ] T091 [P] [US7] Write `tests/e2e/resources/list-detail.spec.ts`. It covers:
+- [X] T091 *(done: tests/e2e/resources/list-detail.spec.ts; the page has no delete (plan part 3, item 8))* [P] [US7] Write `tests/e2e/resources/list-detail.spec.ts`. It covers:
   - FR-042: description, address, translated kind, domain, booking badge and active state;
   - US7-AS5: the badges "Always free", "Soft limit" and "Hard limit (2)" with the legend;
   - FR-043: search, filters and every sort key, in the address;
@@ -1134,7 +1134,7 @@ shared D2–D5.
   - FR-003: not found;
   - FR-008: the states;
   - the domain administrator's scope.
-- [ ] T092 [P] [US7] Write `tests/e2e/resources/create.spec.ts`. It covers:
+- [X] T092 *(done: tests/e2e/resources/create.spec.ts; legacy's multiple bookings select with the number field)* [P] [US7] Write `tests/e2e/resources/create.spec.ts`. It covers:
   - US7-AS1: the preview `MeetingRoom1@example.org`, labelled as a preview, and the server's address
     after saving;
   - US7-AS2: `address-in-use` at the description;
@@ -1147,32 +1147,32 @@ shared D2–D5.
   - Edge, resource description with letters outside A–Z: "Raum Süd" → `RaumSd@…`;
   - Edge, capabilities cannot be read;
   - FR-025: the leave guard.
-- [ ] T093 [P] [US7] Write `tests/e2e/resources/edit-delete.spec.ts`. It covers:
+- [X] T093 *(done: tests/e2e/resources/edit-delete.spec.ts; deactivating without a confirmation (plan part 3, item 7); deletion from the list)* [P] [US7] Write `tests/e2e/resources/edit-delete.spec.ts`. It covers:
   - US7-AS6: "the address stays the same";
   - deactivating asks one confirmation (research R10);
   - US7-AS7: the deletion confirmation names the groupware data;
   - FR-046: the patch holds only changed members, with `bookingLimit` only for `limited`;
   - the outdated flow, and a deletion refused as outdated;
   - vanished.
-- [ ] T094 [P] [US7] Write `tests/e2e/resources/bulk.spec.ts`. It covers:
+- [X] T094 *(done: tests/e2e/resources/bulk.spec.ts)* [P] [US7] Write `tests/e2e/resources/bulk.spec.ts`. It covers:
   - US6-AS3: five selected; the confirmation lists their names and the consequences, and nothing
     happens until "5" is typed;
   - activate and deactivate (FR-057, FR-058).
-- [ ] T095 [P] [US7] Write these unit tests:
+- [X] T095 *(done: tests/unit/features/resources/{address-preview,booking,resource-form,components}.spec.ts (ResourceCard and resource-bulk in components.spec.ts))* [P] [US7] Write these unit tests:
   - `tests/unit/features/resources/address-preview.spec.ts`: the documented rule, including case
     kept, `RaumSd`, "!!!", more than 64 characters, and the readable domain;
   - `booking.spec.ts`: the rule and limit mapping, badge text, and the range from the capabilities;
   - `resource-form.spec.ts`: `toCreateRequest` and `buildResourcePatch`;
   - `ResourceCard.spec.ts`;
   - `resource-bulk.spec.ts`.
-- [ ] T096 [P] [US7] Write `tests/smoke/resources.smoke.spec.ts` (`@feature-004`), as `admin`:
+- [X] T096 *(done: tests/smoke/resources.smoke.spec.ts)* [P] [US7] Write `tests/smoke/resources.smoke.spec.ts` (`@feature-004`), as `admin`:
   - create "Smoke Room <timestamp>" with the previewed address;
   - change its booking rule to a hard limit of 2;
   - delete it.
 
 ### Implementation for User Story 7
 
-- [ ] T097 [US7] Implement:
+- [X] T097 *(done: api.ts, list-state.ts, address-preview.ts, booking.ts, resource-form.ts, resource-bulk.ts, flash.ts, routes.ts, index.ts; registered, catalogue entry available)* [US7] Implement:
   - `src/features/resources/api.ts`: list, detail, create, update, delete and bulk, with
     data-model §3;
   - `list-state.ts`, `address-preview.ts`, `booking.ts`, `resource-form.ts` and `resource-bulk.ts`;
@@ -1182,20 +1182,20 @@ shared D2–D5.
 
   Register them in `src/app/router/routes.ts`, and set the catalogue's `resources` entry to
   `available`.
-- [ ] T098 [P] [US7] Implement `src/features/resources/components/BookingRuleBadge.vue`,
+- [X] T098 *(done: BookingRuleBadge, BookingLegend, ResourceCard, ResourceTable, ResourceList, ResourceFilters, ResourceSortControl, ResourceEntryActions (Edit with edit=resource, Remove))* [P] [US7] Implement `src/features/resources/components/BookingRuleBadge.vue`,
   `BookingLegend.vue`, `ResourceCard.vue` and `ResourceTable.vue`, each with the open, "Edit"
   (`edit=resource`) and "Delete" actions (FR-015). Also implement `ResourceList.vue` and
   `ResourceFilters.vue`.
-- [ ] T099 [P] [US7] Implement `src/features/resources/components/BookingRuleField.vue`,
+- [X] T099 *(done: BookingRuleField (legacy's select, not radios, with the number field), KindSelect, AddressPreview, ResourceSection (the address note from the form map, no deactivation confirmation))* [P] [US7] Implement `src/features/resources/components/BookingRuleField.vue`,
   `AddressPreview.vue` (labelled, live, with the "no address" reason) and `ResourceSection.vue`
   (`EditableSection`, with the address note and the deactivation confirmation).
-- [ ] T100 [US7] Implement the pages in `src/features/resources/pages/`:
+- [X] T100 *(done: ResourcesPage (legend, states, selection mode via the shared useBulkRun), ResourceCreatePage (CapabilitiesGate, preview blocking submit, leave guard, useFormDraft), ResourceDetailPage (one section, no delete, not found))* [US7] Implement the pages in `src/features/resources/pages/`:
   - `ResourcesPage.vue`: the legend, the states and selection mode with `BulkActionBar`,
     `BulkResultSummary` and the typed count;
   - `ResourceCreatePage.vue`: `CapabilitiesGate`, the preview blocking submit, the leave guard and
     `useFormDraft`;
   - `ResourceDetailPage.vue`: the section, Delete with the consequences, and `NotFoundState`.
-- [ ] T101 [US7] Use the legacy keys of T005a's form map for resources verbatim:
+- [X] T101 *(done: legacy keys verbatim; kinds use the existing enums.resourceKind.*; new strings resources.{gone,changed,delete.impact,bulk.confirm.deactivate,bulk.deleteImpact,form.preview,form.noAddress,form.addressKept} (cs/sk use legacy's "zdroj"))* [US7] Use the legacy keys of T005a's form map for resources verbatim:
   `mailbox.add_resource`, the booking texts, `add.kind`, `add.multiple_bookings`, `add.description`,
   `success.resource_added`, `success.resource_modified` (legacy's own text), `success.resource_removed`,
   `danger.resource_invalid` and `danger.description_invalid`. Add only the form map's new

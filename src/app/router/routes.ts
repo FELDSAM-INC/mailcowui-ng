@@ -6,6 +6,7 @@ import type { RouteRecordRaw } from 'vue-router'
 
 import { aliasDomainRoutes } from '@/features/alias-domains'
 import { aliasRoutes } from '@/features/aliases'
+import { resourceRoutes } from '@/features/resources'
 import { apiKeysRoutes } from '@/features/api-keys'
 import { auditLogRoutes } from '@/features/audit-log'
 import { authRoutes } from '@/features/auth'
@@ -33,6 +34,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...domainRoutes,
   ...aliasRoutes,
   ...aliasDomainRoutes,
+  ...resourceRoutes,
   ...mailboxRoutes,
   ...syncJobRoutes,
   ...identityProviderRoutes,

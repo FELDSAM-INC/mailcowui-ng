@@ -23,7 +23,8 @@ const ADMIN = [
   'Quarantine',
   'Administrators',
   'Sync jobs',
-  'Routing and rewriting',
+  // UI 009 names the entry with the classic Routing tab's label.
+  'Routing',
   // UI 010 splits its row into two entries (FR-001).
   'ARC/DKIM keys',
   'MTA-STS',
@@ -45,6 +46,8 @@ const DOMAIN_ADMIN = [
   'User Settings',
   'Passkeys',
   'Quarantine',
+  // UI 009: domain administrators always see the BCC maps (read-only without the flag).
+  'Routing',
   // UI 010 splits its row into two entries (FR-001).
   'ARC/DKIM keys',
   'MTA-STS',
@@ -67,14 +70,7 @@ async function navigationLabels(page: Page): Promise<string[]> {
 const CASES: [string, string[]][] = [
   ['admin-active', ADMIN],
   ['domain-admin-no-syncjobs', DOMAIN_ADMIN],
-  [
-    'domain-admin-bcc',
-    withEntry(
-      withEntry(DOMAIN_ADMIN, 'Sync jobs', 'Quarantine'),
-      'Routing and rewriting',
-      'Sync jobs',
-    ),
-  ],
+  ['domain-admin-bcc', withEntry(DOMAIN_ADMIN, 'Sync jobs', 'Quarantine')],
   ['mailbox-no-spam-flags', MAILBOX_USER],
   ['mailbox-spam-score', withEntry(MAILBOX_USER, 'Spam filter', 'Quarantine')],
   ['mailbox-spam-policy', withEntry(MAILBOX_USER, 'Spam filter', 'Quarantine')],

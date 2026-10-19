@@ -56,7 +56,8 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   spamFilter: { admin: false, domainAdmin: false, mailboxUser: ['spamScore', 'spamPolicy'] },
   administrators: { admin: true, domainAdmin: false, mailboxUser: false },
   syncJobs: { admin: true, domainAdmin: ['syncjobs'], mailboxUser: ['syncjobs'] },
-  routing: { admin: true, domainAdmin: ['bccMaps'], mailboxUser: false },
+  // UI 009: domain administrators see the BCC maps read-only without the flag (US5-AS6).
+  routing: { admin: true, domainAdmin: true, mailboxUser: false },
   // UI 010 (research R2): the row `dns` is split into two entries (FR-001).
   dkimKeys: { admin: true, domainAdmin: true, mailboxUser: false },
   mtaStsPolicies: { admin: true, domainAdmin: true, mailboxUser: false },
@@ -97,6 +98,7 @@ describe('navigation catalogue', () => {
       spamFilter: 'user.spamfilter',
       administrators: 'admin.admins',
       syncJobs: 'mailbox.sync_jobs',
+      routing: 'admin.routing',
       dkimKeys: 'admin.dkim_keys',
       mtaStsPolicies: 'edit.mta_sts',
     }
@@ -112,15 +114,16 @@ describe('navigation catalogue', () => {
 
   it('starts every row as a placeholder until its story makes it available', () => {
     // Rows that later features have delivered so far (UI 002 US1: domains; US6: templates;
-    // UI 003 US1: mailboxes; US7: mailbox templates; UI 008: sync jobs; UI 010: DKIM keys and
-    // MTA-STS policies; UI 012: identity providers and OAuth2; UI 004 US1: aliases; US4: domain
-    // aliases; US7: resources).
+    // UI 003 US1: mailboxes; US7: mailbox templates; UI 008: sync jobs; UI 009: routing; UI 010:
+    // DKIM keys and MTA-STS policies; UI 012: identity providers and OAuth2; UI 004 US1: aliases;
+    // US4: domain aliases; US7: resources).
     const available = new Set<NavEntryId>([
       'domains',
       'domainTemplates',
       'mailboxes',
       'mailboxTemplates',
       'syncJobs',
+      'routing',
       'dkimKeys',
       'mtaStsPolicies',
       'identityProviders',

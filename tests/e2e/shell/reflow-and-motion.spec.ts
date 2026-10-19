@@ -39,7 +39,7 @@ const SCREENS: Screen[] = [
   },
   { name: 'the pending actions', scenario: 'forced-both', path: '' },
   { name: 'home', scenario: 'domain-admin-two-domains', path: '' },
-  { name: 'a placeholder', scenario: 'admin-active', path: 'routing' },
+  { name: 'a placeholder', scenario: 'admin-active', path: 'operations' },
   { name: '"no access"', scenario: 'domain-admin-two-domains', path: 'api-keys' },
   { name: '"not found"', scenario: 'admin-active', path: 'no/such/page' },
   { name: 'the passkeys', scenario: 'user-with-passkeys', path: 'passkeys' },

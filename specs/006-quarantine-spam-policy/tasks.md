@@ -424,7 +424,7 @@ connection, and compare the results with the mock (spec US2).
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T059 [US2] Extend `tests/mocks/handlers/quarantine.ts` with `applyQuarantineBulkAction`:
+- [x] T059 [US2] Extend `tests/mocks/handlers/quarantine.ts` with `applyQuarantineBulkAction`:
   - more targets than `bulkLimit` gives `422` (`targets`: `tooMany`, `max`);
   - a missing flag gives a whole-request `403 permission-flag-required`;
   - duplicate targets are processed once;
@@ -444,10 +444,10 @@ connection, and compare the results with the mock (spec US2).
   - an administrator's domain filter through `DomainPicker`;
   - sorting by each of the 10 keys;
   - no recipient column or filter for mailbox users.
-- [ ] T061 [P] [US2] Write `tests/e2e/quarantine/bulk.spec.ts`. It covers:
+- [x] T061 [P] [US2] Write `tests/e2e/quarantine/bulk.spec.ts`. It covers:
   - US2-AS3: 40 items selected on a 50-item page; delivery with learning; the confirmation names the action and 40 and lists subjects and recipients; the summary shows 39 done and 1 not found, with rows;
   - FR-035 with `quarantine-bulk-failures`: counts per outcome, the learning warning on a `done` row, and refused, failed and outdated rows staying selected;
-  - US2-AS4: with `bulkLimit` 10, "Select all" disabled with the message, and the eleventh selection refused with the limit stated;
+  - US2-AS4 (shared selection convention): with `bulkLimit` 10, "Select all" selects the first ten visible items, with the limit stated, and the eleventh selection is refused;
   - US2-AS5: a dropped connection gives "outcome unknown", the list refreshed, and exactly one bulk request recorded;
   - SC-007: a page of 100 items, all selected and removed, gives 100 result rows whose outcomes match the mock's;
   - US2-AS6: no selection mode without `quarantine`, while details stay viewable;
@@ -460,7 +460,7 @@ connection, and compare the results with the mock (spec US2).
   - US2-AS7 with `page.clock`: "another action is in progress for this item", one re-read after 5 s, and the item then gone (back to the list) or available again;
   - US2-AS8: an administrator selects bob's address and lands on `/ng/mailboxes/bob@example.org/spam-filter`;
   - Edge: the recipient of an item for a resource or a deleted mailbox is shown without a link (FR-006).
-- [ ] T063 [P] [US2] Write the unit tests in `tests/unit/features/quarantine/`:
+- [x] T063 [P] [US2] Write the unit tests in `tests/unit/features/quarantine/`:
   - `useQuarantineBulk.spec.ts`: targets with `version` from `etag`; `retain` keeps refused, failed and outdated; the unknown outcome never resends; a whole-request refusal keeps the selection;
   - `QuarantineBulkConfirm.spec.ts`: typed count for the destructive actions; virus count and acknowledgement; `PlainText` lists;
   - `QuarantineBulkResultRow.spec.ts`: the report warnings in `BulkResultSummary`'s `#item` slot.
@@ -470,16 +470,22 @@ connection, and compare the results with the mock (spec US2).
 
 ### Implementation for User Story 2
 
-- [ ] T065 [US2] Add the `applyQuarantineBulkAction` mutation to `src/features/quarantine/api.ts` (removing the details of `done` items and invalidating the list), and implement `src/features/quarantine/composables/useQuarantineBulk.ts` on `useBulkSelection` with `limit: capabilities.bulkLimit`.
-- [ ] T066 [P] [US2] Implement `src/features/quarantine/components/QuarantineBulkConfirm.vue` (on `ConfirmDialog` with `requireTyped` for removal and learning) and `src/features/quarantine/components/QuarantineBulkResultRow.vue`. Add the selection checkboxes and the selection-mode tap behaviour to `QuarantineItemCard.vue`, `QuarantineItemRow.vue` and `QuarantineItemList.vue`.
-- [ ] T067 [US2] Extend `src/features/quarantine/pages/QuarantineListPage.vue` and `src/features/quarantine/components/QuarantineFilters.vue`:
+- [x] T065 [US2] Add the `applyQuarantineBulkAction` mutation to `src/features/quarantine/api.ts` (removing the details of `done` items and invalidating the list), and implement `src/features/quarantine/composables/useQuarantineBulk.ts` on `useBulkSelection` with `limit: capabilities.bulkLimit`.
+- [x] T066 [P] [US2] Implement `src/features/quarantine/components/QuarantineBulkConfirm.vue` (on `ConfirmDialog` with `requireTyped` for removal and learning) and `src/features/quarantine/components/QuarantineBulkResultRow.vue`. Add the selection checkboxes and the selection-mode tap behaviour to `QuarantineItemCard.vue`, `QuarantineItemRow.vue` and `QuarantineItemList.vue`.
+  - Continuation (2026-10-20): bulk components live under `components/bulk/`; the responsive
+    `components/list/QuarantineItemList.vue` provides the card and row selection slots. Each uses
+    the shared 44 px `SelectCheckbox`. A retry refreshes the list and confirms again, and only
+    targets previously failed/refused/outdated IDs that are still selected.
+- [x] T067 [US2] Extend `src/features/quarantine/pages/QuarantineListPage.vue` and `src/features/quarantine/components/QuarantineFilters.vue`:
   - `BulkActionBar` and selection mode, only when `canActOnItems`;
   - the three bulk actions with `BulkResultSummary`;
   - the recipient filter (`type="email"`);
   - the domain filter (`identity.scope.domains` for domain administrators, `DomainPicker` for administrators);
   - the recipient column for administrators and domain administrators.
 - [ ] T068 [US2] Add the recipient link to `src/features/quarantine/components/ItemSummary.vue`: for administrators and domain administrators, query `getMailbox` (UI 003's key) and link to `spam-filter-mailbox` only on `200`; otherwise show the address as `PlainText`.
-- [ ] T069 [US2] Add the form map's new `quarantine.bulk.*` strings (limit, typed count, virus count, summary and the per-row warnings), the domain filter label and the busy texts to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Per-item lines use the legacy outcome messages and the recipient filter uses `quarantine.rcpt`. `npm run i18n:check` must pass.
+- [x] T069 [US2] Add the form map's new `quarantine.bulk.*` strings (limit, typed count, virus count, summary and the per-row warnings), the domain filter label and the busy texts to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Per-item lines use the legacy outcome messages and the recipient filter uses `quarantine.rcpt`. `npm run i18n:check` must pass.
+  - Continuation (2026-10-20): reuse `bulk.*`, legacy action/outcome labels, and the saved
+    `quarantineUi.bulk.virusCount`; no new translation text. The unused-key failure is resolved.
 
 **Checkpoint**: US1 and US2 work on their own. All P1 stories are done.
 

@@ -164,3 +164,48 @@ Logs are under the API checkout's ignored `storage/app/restart-2026-10-19/u006/r
 This is a checkpoint of the list work, not completion of US1 or UI 006: bulk actions, remaining
 item/download/hostile-content coverage, integration entry points, smoke, performance and the
 real-device/live-host checks remain pending. The branch has not been rebased, merged or deployed.
+
+**2026-10-20, quarantine bulk actions (local `wt/006`)**: the list now offers explicit selection
+mode and the server's bulk limit. Select all takes the first permitted number on the current page;
+page, size, search, filter, sort and browser-history changes clear the selection. Both layouts use
+44 px selection controls and the shared sticky action bar.
+
+Deliver to inbox, release without learning, learn as spam and delete, and removal use one request
+with each listed version tag. Every action is confirmed with subjects and recipients; deletions
+require the typed count, and virus deliveries require acknowledgement of the virus count. Results
+show each message's outcome and learning warnings. Failed, refused and outdated targets remain
+selected. A retry refreshes and confirms again, and cannot accidentally include newly selected
+messages. A lost response refreshes the list, reports unknown outcomes and sends no retry. A
+whole-request refusal preserves the selection.
+
+Validation of this slice:
+
+- Test-first failures covered the missing bulk modules/page controls and a retry that incorrectly
+  included a newly selected message. The quarantine feature suites now pass **94 tests in 13
+  files**. The existing contract-validated quarantine mock-handler suite passes **21 tests**;
+  the confirmation component's five tests also passed after the final theme-color change.
+- Type checking, changed-file ESLint, formatting, production build and bundle budget pass. The
+  initial JavaScript is **188,897 bytes gzipped**, below 204,800. No Lighthouse measurement was
+  needed for this local slice.
+- The full translation gate passes: the dialog uses the already translated
+  `quarantineUi.bulk.virusCount`, resolving the previous unused-key failure. No new strings were
+  introduced.
+- All **45 distinct browser checks** (nine bulk scenarios and six existing list scenarios, across
+  mobile Chromium, desktop Chromium and mobile WebKit) pass across the initial run and focused
+  follow-ups. Coverage includes 40 selected messages with one already removed, 100 deletions and
+  result rows, mixed outcomes, typed counts, virus acknowledgements, unknown outcomes, whole
+  refusals, selection resets, both-theme axe, touch targets, reflow and CSP. The first run passed
+  37/42: three failures were an incorrect fixture-subject expectation, and two exposed inherited
+  text colors in a WebKit dark-theme dialog. Explicit theme colors fixed the latter. The second
+  run passed 29/30; its remaining test advanced before the debounced search finished and used an
+  absent fixture phrase. Waiting for each URL/list transition with a matching phrase passed in
+  all three projects (3/3). No retry count or timeout was increased.
+
+Logs and browser failure artifacts are under the API checkout's ignored
+`storage/app/restart-2026-10-20/u006/`; no test containers remain running.
+
+This remains a local checkpoint. Remaining item/download/hostile-content coverage, scope and
+recipient integration, smoke tests and the feature's final integration/release checks are still
+open. T060, T062 and T064 are not completed by the bulk slice. The owner's performance minimum of
+80 and shell script-transfer allowance of 210 KiB are already on UI main; preserve those policies
+when this older worktree is eventually integrated.

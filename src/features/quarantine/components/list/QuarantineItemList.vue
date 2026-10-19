@@ -21,6 +21,7 @@ const props = defineProps<{
   order: SortOrder
   canRemove: boolean
   busy: boolean
+  selectable?: boolean
 }>()
 const emit = defineEmits<{
   sort: [sort: QuarantineSort, order: SortOrder]
@@ -67,6 +68,9 @@ function sortBy(field: QuarantineSort) {
   >
     <thead>
       <tr class="border-b border-gray-200 dark:border-gray-800">
+        <th v-if="selectable" scope="col" class="w-11">
+          <span class="sr-only">{{ t('bulk.select') }}</span>
+        </th>
         <th
           v-for="field in columns"
           :key="field"
@@ -94,6 +98,7 @@ function sortBy(field: QuarantineSort) {
         :data-quarantine-item="item.id"
         class="border-b border-gray-200 align-top dark:border-gray-800"
       >
+        <td v-if="selectable"><slot name="select" :item="item" /></td>
         <td
           v-for="field in columns"
           :key="field"
@@ -145,6 +150,10 @@ function sortBy(field: QuarantineSort) {
       :data-quarantine-item="item.id"
       class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
     >
+      <div v-if="selectable" class="flex items-center gap-2">
+        <slot name="select" :item="item" />
+        <span aria-hidden="true">{{ t('bulk.select') }}</span>
+      </div>
       <!-- eslint-disable-next-line vuejs-accessibility/heading-has-content -- PlainText provides the link's visible, accessible subject. -->
       <h2 class="font-semibold">
         <RouterLink

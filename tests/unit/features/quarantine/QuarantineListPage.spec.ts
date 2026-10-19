@@ -5,6 +5,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { api } from '@/api'
 import * as confirmations from '@/features/quarantine/confirmations'
+import * as bulkConfirmations from '@/features/quarantine/bulk-confirmations'
 import QuarantineListPage from '@/features/quarantine/pages/QuarantineListPage.vue'
 
 import { mockState, useScenario } from '../../../mocks/node'
@@ -38,6 +39,42 @@ async function open(scenario = 'quarantine-mailbox-user', query = '') {
 }
 
 describe('QuarantineListPage', () => {
+  it('selects only the allowed first ten items and clears them when the page changes', async () => {
+    const { wrapper } = await open('quarantine-low-bulk-limit')
+    await wrapper.get('[data-select-mode]').trigger('click')
+    await wrapper.get('[data-select-all] input').setValue(true)
+    expect(wrapper.get('[data-bulk-bar]').text()).toContain('10 selected')
+    expect(wrapper.get('#quarantine-bulk-limit').text()).toContain('at most 10')
+    expect(wrapper.findAll('[data-quarantine-item] input:checked')).toHaveLength(10)
+    expect(wrapper.findAll('[data-quarantine-item] input:disabled')).toHaveLength(15)
+    await wrapper.get('button[aria-label="Next"]').trigger('click')
+    await settle()
+    expect(wrapper.get('[data-bulk-bar]').text()).toContain('0 selected')
+  })
+
+  it('hides selection mode when the account cannot act on messages', async () => {
+    const { wrapper } = await open('quarantine-user-no-actions')
+    expect(wrapper.find('[data-select-mode]').exists()).toBe(false)
+  })
+
+  it('shows per-message results and retains failed selections after a bulk action', async () => {
+    vi.spyOn(bulkConfirmations, 'askQuarantineBulk').mockResolvedValue(true)
+    const { wrapper } = await open('quarantine-bulk-failures', '?size=50')
+    await wrapper.get('[data-select-mode]').trigger('click')
+    for (const id of [150, 149, 148, 147, 146, 145, 144]) {
+      await wrapper.get(`[data-quarantine-item="${id}"] input`).setValue(true)
+    }
+    const release = wrapper
+      .findAll('[data-bulk-bar] button')
+      .find((button) => button.text() === 'Deliver to inbox')!
+    await release.trigger('click')
+    await settle()
+    expect(wrapper.get('[data-bulk-results]').text()).toContain('1 not found')
+    expect(wrapper.get('[data-bulk-results]').text()).toContain('2 done')
+    expect(wrapper.get('[data-bulk-bar]').text()).toContain('4 selected')
+    expect(wrapper.get('[data-bulk-results] [data-alert="danger"]').text()).not.toBe('')
+  })
+
   it('shows the newest 25 own items, status, details and pagination', async () => {
     const { wrapper, router } = await open()
     const cards = wrapper.findAll('[data-quarantine-item]')

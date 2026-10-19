@@ -73,6 +73,7 @@ test('US1 list: empty, inactive and read-only quarantine remain usable', async (
   await mockApi.use('quarantine-user-no-actions')
   await page.reload()
   await expect(page.locator('#quarantine-actions-acl')).toBeVisible()
+  await expect(page.locator('[data-select-mode]')).toHaveCount(0)
   await expect(page.locator('[data-quarantine-item] button')).toHaveCount(0)
   await expect(
     page.locator('[data-quarantine-item]').first().getByRole('link').first(),

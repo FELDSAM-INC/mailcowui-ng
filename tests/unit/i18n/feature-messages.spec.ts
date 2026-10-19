@@ -34,4 +34,19 @@ describe('loadFeatureMessages', () => {
     expect(i18n.global.te('domains.list.actionsFor', 'sk-sk')).toBe(true)
     expect(i18n.global.te('domains.list.actionsFor', 'en-gb')).toBe(true)
   })
+
+  // UI 008: the sync job strings and their two enum groups are loaded with the sync job routes.
+  it('adds the sync job strings and keeps the shared enum and validation strings', async () => {
+    const i18n = createAppI18n()
+    expect(i18n.global.te('syncJobs.log.title', 'en-gb')).toBe(false)
+    expect(i18n.global.te('enums.syncJobEncryption.ssl', 'en-gb')).toBe(false)
+    expect(i18n.global.te('enums.auditEventType.syncJobCreation', 'en-gb')).toBe(true)
+    expect(i18n.global.te('validation.format.hostName', 'en-gb')).toBe(true)
+    await loadFeatureMessages('sync-jobs', i18n, 'en-gb')
+    expect(i18n.global.te('syncJobs.log.title', 'en-gb')).toBe(true)
+    expect(i18n.global.te('enums.syncJobEncryption.ssl', 'en-gb')).toBe(true)
+    expect(i18n.global.te('enums.auditEventType.syncJobCreation', 'en-gb')).toBe(true)
+    await loadLocale(i18n, 'cs-cz')
+    expect(i18n.global.te('syncJobs.log.title', 'cs-cz')).toBe(true)
+  })
 })

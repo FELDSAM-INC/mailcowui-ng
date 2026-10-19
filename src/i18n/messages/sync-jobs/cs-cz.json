@@ -1,0 +1,111 @@
+{
+  "syncJobs": {
+    "columns": {
+      "id": "ID",
+      "log": "Záznam",
+      "minutes": "(min)",
+      "server": "Server"
+    },
+    "detail": {
+      "backToList": "Zpět na synchronizační úlohy",
+      "gone": "Tato synchronizační úloha již neexistuje.",
+      "loadFailed": "Synchronizační úlohu se nepodařilo načíst.",
+      "loading": "Načítání synchronizační úlohy…"
+    },
+    "filters": {
+      "any": "Libovolné",
+      "clear": "Vymazat filtry",
+      "title": "Filtry",
+      "withCount": "Filtry ({count})",
+      "chip": "{filter}: {value}"
+    },
+    "form": {
+      "customParamsRestricted": "Vlastní parametry smějí na tomto serveru nastavovat jen administrátoři.",
+      "errors": {
+        "customParameters": {
+          "customParamsNotPermitted": "Vlastní parametry smějí na tomto serveru nastavovat jen administrátoři.",
+          "optionContainsSpace": "Zapište „{token}“ jako --volba=hodnota, bez mezer.",
+          "optionNotAllowed": "Volba --{option} není na tomto serveru povolena."
+        },
+        "exclude": {
+          "invalidRegex": "Toto není platný regulární výraz."
+        },
+        "mailbox": {
+          "notEligible": {
+            "kind": {
+              "alias": "Tato adresa je alias a nemůže přijímat synchronizovanou poštu.",
+              "aliasDomainAddress": "Tato adresa patří k aliasové doméně a nemůže přijímat synchronizovanou poštu.",
+              "resource": "Tato adresa je prostředek a nemůže přijímat synchronizovanou poštu."
+            }
+          }
+        }
+      },
+      "openExisting": "Otevřít existující úlohu"
+    },
+    "list": {
+      "actionsFor": "Akce pro {name}",
+      "clearAll": "Vymazat hledání a filtry",
+      "count": "Nalezené synchronizační úlohy: {count}",
+      "detailsOf": "Podrobnosti o {name}",
+      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené synchronizační úlohy nemusí být aktuální."
+    },
+    "password": {
+      "keep": "Ponecháte-li pole prázdné, heslo zůstane zachováno.",
+      "none": "Žádné heslo není uloženo.",
+      "saved": "Heslo je uloženo."
+    },
+    "refresh": {
+      "inactive": "Automatické obnovování bylo pozastaveno, protože jste byli neaktivní.",
+      "pause": "Pozastavit automatické obnovování",
+      "paused": "Automatické obnovování je pozastaveno.",
+      "resume": "Obnovit automatické obnovování",
+      "running": "Dokud běží synchronizační úloha, tento seznam se obnovuje každých 30 sekund."
+    },
+    "result": {
+      "failed": "Neúspěšné:",
+      "succeeded": "Úspěšné:"
+    },
+    "running": {
+      "note": "Probíhající běh se nepřeruší a dokončí se sám."
+    },
+    "sort": {
+      "asc": "Vzestupně",
+      "desc": "Sestupně",
+      "label": "Řadit podle",
+      "order": "Pořadí"
+    },
+    "create": {
+      "loadFailed": "Formulář se nepodařilo načíst."
+    },
+    "bulk": {
+      "deactivateTitle": "Deaktivovat synchronizační úlohy ({count})?",
+      "deactivateNote": "Nespustí se, dokud je znovu neaktivujete.",
+      "listLabel": "Vybrané synchronizační úlohy"
+    },
+    "delete": {
+      "mailKept": "Již zkopírovaná pošta ve schránce zůstane."
+    },
+    "log": {
+      "title": "Záznam",
+      "region": "Záznam úlohy {name}",
+      "copy": "Kopírovat",
+      "copied": "Záznam byl zkopírován.",
+      "copyRefused": "Kopírování není k dispozici. Označte text a zkopírujte ho.",
+      "wrap": "Zalamovat řádky",
+      "never": "Zatím žádný záznam.",
+      "noOutput": "Běh nevytvořil žádný výstup.",
+      "running": "Právě probíhá běh. Toto je záznam předchozího běhu."
+    }
+  },
+  "enums": {
+    "syncJobEncryption": {
+      "plain": "PLAIN",
+      "ssl": "SSL",
+      "starttls": "STARTTLS"
+    },
+    "syncJobLastResult": {
+      "failed": "Neúspěšné",
+      "unknown": "Bez výsledku"
+    }
+  }
+}

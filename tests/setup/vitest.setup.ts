@@ -18,7 +18,11 @@ beforeEach(async () => {
   const { pinia } = resetTestPlugins()
   setActivePinia(pinia)
   // Components are mounted without their routes, so the feature strings are loaded here.
-  await Promise.all([loadLegacy('en-gb'), loadFeatureMessages('domains', i18n, 'en-gb')])
+  await Promise.all([
+    loadLegacy('en-gb'),
+    loadFeatureMessages('domains', i18n, 'en-gb'),
+    loadFeatureMessages('sync-jobs', i18n, 'en-gb'),
+  ])
 })
 
 afterEach(() => {

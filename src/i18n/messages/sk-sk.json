@@ -404,15 +404,6 @@
       "group": "Skupina",
       "location": "Miesto",
       "thing": "Vec"
-    },
-    "syncJobEncryption": {
-      "plain": "PLAIN",
-      "ssl": "SSL",
-      "starttls": "STARTTLS"
-    },
-    "syncJobLastResult": {
-      "failed": "Neúspešné",
-      "unknown": "Bez výsledku"
     }
   },
   "forms": {
@@ -709,104 +700,6 @@
     "serviceUnavailable": {
       "body": "Server je momentálne nedostupný. Skúste to, prosím, o chvíľu znova.",
       "title": "Služba je dočasne nedostupná"
-    }
-  },
-  "syncJobs": {
-    "columns": {
-      "id": "ID",
-      "log": "Záznam",
-      "minutes": "(min)",
-      "server": "Server"
-    },
-    "detail": {
-      "backToList": "Späť na synchronizačné úlohy",
-      "gone": "Táto synchronizačná úloha už neexistuje.",
-      "loadFailed": "Synchronizačnú úlohu sa nepodarilo načítať.",
-      "loading": "Načítava sa synchronizačná úloha…"
-    },
-    "filters": {
-      "any": "Ľubovoľné",
-      "clear": "Vymazať filtre",
-      "title": "Filtre",
-      "withCount": "Filtre ({count})",
-      "chip": "{filter}: {value}"
-    },
-    "form": {
-      "customParamsRestricted": "Vlastné parametre smú na tomto serveri nastavovať len administrátori.",
-      "errors": {
-        "customParameters": {
-          "customParamsNotPermitted": "Vlastné parametre smú na tomto serveri nastavovať len administrátori.",
-          "optionContainsSpace": "Zapíšte „{token}“ ako --voľba=hodnota, bez medzier.",
-          "optionNotAllowed": "Voľba --{option} nie je na tomto serveri povolená."
-        },
-        "exclude": {
-          "invalidRegex": "Toto nie je platný regulárny výraz."
-        },
-        "mailbox": {
-          "notEligible": {
-            "kind": {
-              "alias": "Táto adresa je alias a nemôže prijímať synchronizovanú poštu.",
-              "aliasDomainAddress": "Táto adresa patrí k aliasovej doméne a nemôže prijímať synchronizovanú poštu.",
-              "resource": "Táto adresa je prostriedok a nemôže prijímať synchronizovanú poštu."
-            }
-          }
-        }
-      },
-      "openExisting": "Otvoriť existujúcu úlohu"
-    },
-    "list": {
-      "actionsFor": "Akcie pre {name}",
-      "clearAll": "Vymazať hľadanie a filtre",
-      "count": "Nájdené synchronizačné úlohy: {count}",
-      "detailsOf": "Podrobnosti o {name}",
-      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené synchronizačné úlohy nemusia byť aktuálne."
-    },
-    "password": {
-      "keep": "Ak pole necháte prázdne, heslo zostane zachované.",
-      "none": "Žiadne heslo nie je uložené.",
-      "saved": "Heslo je uložené."
-    },
-    "refresh": {
-      "inactive": "Automatické obnovovanie bolo pozastavené, pretože ste boli neaktívni.",
-      "pause": "Pozastaviť automatické obnovovanie",
-      "paused": "Automatické obnovovanie je pozastavené.",
-      "resume": "Pokračovať v automatickom obnovovaní",
-      "running": "Kým beží synchronizačná úloha, tento zoznam sa obnovuje každých 30 sekúnd."
-    },
-    "result": {
-      "failed": "Neúspešné:",
-      "succeeded": "Úspešné:"
-    },
-    "running": {
-      "note": "Prebiehajúci beh sa nepreruší a dokončí sa sám."
-    },
-    "sort": {
-      "asc": "Vzostupne",
-      "desc": "Zostupne",
-      "label": "Zoradiť podľa",
-      "order": "Poradie"
-    },
-    "create": {
-      "loadFailed": "Formulár sa nepodarilo načítať."
-    },
-    "bulk": {
-      "deactivateTitle": "Deaktivovať synchronizačné úlohy ({count})?",
-      "deactivateNote": "Nespustia sa, kým ich znova neaktivujete.",
-      "listLabel": "Vybrané synchronizačné úlohy"
-    },
-    "delete": {
-      "mailKept": "Už skopírovaná pošta v schránke zostane."
-    },
-    "log": {
-      "title": "Záznam",
-      "region": "Záznam úlohy {name}",
-      "copy": "Kopírovať",
-      "copied": "Záznam bol skopírovaný.",
-      "copyRefused": "Kopírovanie nie je k dispozícii. Označte text a skopírujte ho.",
-      "wrap": "Zalamovať riadky",
-      "never": "Zatiaľ žiadny záznam.",
-      "noOutput": "Beh nevytvoril žiadny výstup.",
-      "running": "Práve prebieha beh. Toto je záznam predchádzajúceho behu."
     }
   },
   "themes": {

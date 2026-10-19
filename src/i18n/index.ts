@@ -14,8 +14,9 @@ import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
 import type enGbDomains from './messages/domains/en-gb.json'
 import enGb from './messages/en-gb.json'
+import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
-export type MessageSchema = typeof enGb & typeof enGbDomains
+export type MessageSchema = typeof enGb & typeof enGbDomains & typeof enGbSyncJobs
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -52,6 +53,11 @@ const featureLoaders = {
     'en-gb': () => import('./messages/domains/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/domains/cs-cz.json').then((m) => m.default),
     'sk-sk': () => import('./messages/domains/sk-sk.json').then((m) => m.default),
+  },
+  'sync-jobs': {
+    'en-gb': () => import('./messages/sync-jobs/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/sync-jobs/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/sync-jobs/sk-sk.json').then((m) => m.default),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

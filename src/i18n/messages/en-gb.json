@@ -404,15 +404,6 @@
       "group": "Group",
       "location": "Location",
       "thing": "Thing"
-    },
-    "syncJobEncryption": {
-      "plain": "PLAIN",
-      "ssl": "SSL",
-      "starttls": "STARTTLS"
-    },
-    "syncJobLastResult": {
-      "failed": "Failed",
-      "unknown": "No result"
     }
   },
   "forms": {
@@ -709,104 +700,6 @@
     "serviceUnavailable": {
       "body": "The server cannot be reached right now. Please try again in a moment.",
       "title": "Service temporarily unavailable"
-    }
-  },
-  "syncJobs": {
-    "columns": {
-      "id": "ID",
-      "log": "Log",
-      "minutes": "(min)",
-      "server": "Server"
-    },
-    "detail": {
-      "backToList": "Back to the sync jobs",
-      "gone": "This sync job no longer exists.",
-      "loadFailed": "The sync job could not be loaded.",
-      "loading": "Loading the sync job…"
-    },
-    "filters": {
-      "any": "Any",
-      "clear": "Clear filters",
-      "title": "Filters",
-      "withCount": "Filters ({count})",
-      "chip": "{filter}: {value}"
-    },
-    "form": {
-      "customParamsRestricted": "Only administrators may set custom parameters on this server.",
-      "errors": {
-        "customParameters": {
-          "customParamsNotPermitted": "Only administrators may set custom parameters on this server.",
-          "optionContainsSpace": "Write “{token}” as --option=value, without spaces.",
-          "optionNotAllowed": "The option --{option} is not allowed on this server."
-        },
-        "exclude": {
-          "invalidRegex": "This is not a valid regular expression."
-        },
-        "mailbox": {
-          "notEligible": {
-            "kind": {
-              "alias": "This address is an alias and cannot receive synced mail.",
-              "aliasDomainAddress": "This address belongs to an alias domain and cannot receive synced mail.",
-              "resource": "This address is a resource and cannot receive synced mail."
-            }
-          }
-        }
-      },
-      "openExisting": "Open the existing job"
-    },
-    "list": {
-      "actionsFor": "Actions for {name}",
-      "clearAll": "Clear search and filters",
-      "count": "Sync jobs found: {count}",
-      "detailsOf": "Details of {name}",
-      "refreshFailed": "The list could not be refreshed. The sync jobs shown may be out of date."
-    },
-    "password": {
-      "keep": "Leave the field empty to keep it.",
-      "none": "No password is saved.",
-      "saved": "A password is saved."
-    },
-    "refresh": {
-      "inactive": "Automatic refresh paused because you have been inactive.",
-      "pause": "Pause automatic refresh",
-      "paused": "Automatic refresh is paused.",
-      "resume": "Resume automatic refresh",
-      "running": "While a sync job is running, this list refreshes every 30 seconds."
-    },
-    "result": {
-      "failed": "Failed:",
-      "succeeded": "Succeeded:"
-    },
-    "running": {
-      "note": "The run in progress is not interrupted and finishes on its own."
-    },
-    "sort": {
-      "asc": "Ascending",
-      "desc": "Descending",
-      "label": "Sort by",
-      "order": "Order"
-    },
-    "create": {
-      "loadFailed": "The form could not be loaded."
-    },
-    "bulk": {
-      "deactivateTitle": "Deactivate {count} sync jobs?",
-      "deactivateNote": "They do not run until they are activated again.",
-      "listLabel": "Selected sync jobs"
-    },
-    "delete": {
-      "mailKept": "Mail that was already copied stays in the mailbox."
-    },
-    "log": {
-      "title": "Log",
-      "region": "Log of {name}",
-      "copy": "Copy",
-      "copied": "The log was copied.",
-      "copyRefused": "Copying is not available. Select the text to copy it.",
-      "wrap": "Wrap lines",
-      "never": "No log yet.",
-      "noOutput": "The run produced no output.",
-      "running": "A run is in progress. This is the log of the previous run."
     }
   },
   "themes": {

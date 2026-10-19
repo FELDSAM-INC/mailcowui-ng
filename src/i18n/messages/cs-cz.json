@@ -314,7 +314,9 @@
       "leaveTitle": "Odejít, dokud akce běží?"
     },
     "list": {
-      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé."
+      "refreshFailed": "Seznam se nepodařilo obnovit. Zobrazené výsledky mohou být zastaralé.",
+      "details": "Podrobnosti",
+      "updating": "Aktualizuje se…"
     },
     "delete": {
       "notDeleted": "Nic nebylo smazáno."
@@ -332,6 +334,7 @@
       "suggestionsUnavailable": "Návrhy nejsou k dispozici",
       "tooLong": "Štítky mohou mít nejvýše {max} znaků."
     },
+    "rateLimit": {},
     "outcome": {
       "rateLimitFailed": "Limit odesílání pro {0} se nepodařilo uložit.",
       "dkimDnsNoZone": "Pro {0} nebyla nalezena zóna DNS: zveřejněte záznam DKIM u poskytovatele DNS domény.",
@@ -802,6 +805,34 @@
     "unsupportedKeyType": "Podporovány jsou jen tyto typy klíčů: {allowed}.",
     "keyLengthOutOfRange": "Klíč musí mít {min} až {max} bitů.",
     "sameAsSource": "Zvolte jiný název, než má zdroj."
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "Formulář se nepodařilo načíst."
+    },
+    "default": "Výchozí",
+    "delete": {
+      "changed": "Šablona se mezitím změnila. Zkontrolujte ji a potvrďte znovu.",
+      "notDeletedTitle": "{name} nebyla smazána"
+    },
+    "detail": {
+      "loadFailed": "Šablonu se nepodařilo načíst.",
+      "loading": "Načítání šablony…"
+    },
+    "edit": {
+      "defaultName": "Výchozí šablonu nelze přejmenovat.",
+      "gone": "Tato šablona už neexistuje."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Nalezené šablony: {count}",
+      "detailsOf": "Podrobnosti {name}"
+    },
+    "sort": {
+      "id": "ID"
+    }
   },
   "senderSettings": {
     "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",

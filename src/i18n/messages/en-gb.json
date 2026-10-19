@@ -314,7 +314,9 @@
       "leaveTitle": "Leave while the action runs?"
     },
     "list": {
-      "refreshFailed": "The list could not be refreshed. The results shown may be out of date."
+      "refreshFailed": "The list could not be refreshed. The results shown may be out of date.",
+      "details": "Details",
+      "updating": "Updating…"
     },
     "delete": {
       "notDeleted": "Nothing was deleted."
@@ -332,6 +334,7 @@
       "suggestionsUnavailable": "Suggestions unavailable",
       "tooLong": "Tags may have at most {max} characters."
     },
+    "rateLimit": {},
     "outcome": {
       "rateLimitFailed": "The rate limit of {0} could not be saved.",
       "dkimDnsNoZone": "No DNS zone found for {0}: publish the DKIM record at the domain's DNS provider.",
@@ -802,6 +805,34 @@
     "unsupportedKeyType": "Only these key types are supported: {allowed}.",
     "keyLengthOutOfRange": "The key must have {min} to {max} bits.",
     "sameAsSource": "Choose a name other than the source."
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "The form could not be loaded."
+    },
+    "default": "Default",
+    "delete": {
+      "changed": "The template changed in the meantime. Check it and confirm again.",
+      "notDeletedTitle": "{name} was not deleted"
+    },
+    "detail": {
+      "loadFailed": "The template could not be loaded.",
+      "loading": "Loading the template…"
+    },
+    "edit": {
+      "defaultName": "The Default template cannot be renamed.",
+      "gone": "This template no longer exists."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Templates found: {count}",
+      "detailsOf": "Details of {name}"
+    },
+    "sort": {
+      "id": "ID"
+    }
   },
   "senderSettings": {
     "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",

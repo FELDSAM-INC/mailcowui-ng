@@ -69,12 +69,12 @@
     },
     "list": {
       "count": "Nalezené domény: {count}",
-      "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
       "messagesCount": "Zprávy: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "a další štítky ({count})"
     },
+    "outcome": {},
     "relay": {
       "short": {
         "relayUnknownOnly": "Předávat jen neexistující schránky"
@@ -91,30 +91,11 @@
     }
   },
   "domainTemplates": {
-    "create": {
-      "loadFailed": "Formulář se nepodařilo načíst."
-    },
-    "default": "Výchozí",
     "delete": {
-      "changed": "Šablona se mezitím změnila. Zkontrolujte ji a potvrďte znovu.",
-      "keepValues": "Domény vytvořené z této šablony si své hodnoty ponechají. | Domény vytvořené z těchto šablon si své hodnoty ponechají.",
-      "notDeletedTitle": "{name} nebyla smazána"
+      "keepValues": "Domény vytvořené z této šablony si své hodnoty ponechají. | Domény vytvořené z těchto šablon si své hodnoty ponechají."
     },
     "detail": {
-      "backToList": "Zpět na šablony domén",
-      "loadFailed": "Šablonu se nepodařilo načíst.",
-      "loading": "Načítání šablony…"
-    },
-    "edit": {
-      "defaultName": "Výchozí šablonu nelze přejmenovat.",
-      "gone": "Tato šablona už neexistuje."
-    },
-    "list": {
-      "count": "Nalezené šablony: {count}",
-      "detailsOf": "Podrobnosti {name}"
-    },
-    "sort": {
-      "id": "ID"
+      "backToList": "Zpět na šablony domén"
     }
   }
 }

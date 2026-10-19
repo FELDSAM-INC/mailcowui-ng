@@ -69,12 +69,12 @@
     },
     "list": {
       "count": "Domains found: {count}",
-      "details": "Details",
       "detailsOf": "Details of {name}",
       "messagesCount": "Messages: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "and {count} more tags"
     },
+    "outcome": {},
     "relay": {
       "short": {
         "relayUnknownOnly": "Relay non-existing mailboxes only"
@@ -91,30 +91,11 @@
     }
   },
   "domainTemplates": {
-    "create": {
-      "loadFailed": "The form could not be loaded."
-    },
-    "default": "Default",
     "delete": {
-      "changed": "The template changed in the meantime. Check it and confirm again.",
-      "keepValues": "Domains created from this template keep their values. | Domains created from these templates keep their values.",
-      "notDeletedTitle": "{name} was not deleted"
+      "keepValues": "Domains created from this template keep their values. | Domains created from these templates keep their values."
     },
     "detail": {
-      "backToList": "Back to the domain templates",
-      "loadFailed": "The template could not be loaded.",
-      "loading": "Loading the template…"
-    },
-    "edit": {
-      "defaultName": "The Default template cannot be renamed.",
-      "gone": "This template no longer exists."
-    },
-    "list": {
-      "count": "Templates found: {count}",
-      "detailsOf": "Details of {name}"
-    },
-    "sort": {
-      "id": "ID"
+      "backToList": "Back to the domain templates"
     }
   }
 }

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 // The sort control of the mailbox template list (FR-058): name, ID, creation and modification
-// time, and the order, on every width (UI 002's labels).
+// time, and the order, on every width (UI 002's labels, legacy's where it has them).
 import { useI18n } from 'vue-i18n'
 
 import { componentsParametersMailboxTemplateSortValues } from '@/api'
+import { text } from '@/i18n'
 import type { SortOrder } from '@/shared/composables/useListState'
 
 import type { TemplateSort } from '../../templates/list-state'
@@ -32,7 +33,7 @@ const { t } = useI18n()
           :key="key"
           :value="key"
         >
-          {{ t(`domainTemplates.sort.${key}`) }}
+          {{ text(`domainTemplates.sort.${key}`) }}
         </option>
       </select>
     </div>

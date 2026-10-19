@@ -314,7 +314,9 @@
       "leaveTitle": "Odísť, kým akcia beží?"
     },
     "list": {
-      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané."
+      "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky môžu byť zastarané.",
+      "details": "Podrobnosti",
+      "updating": "Aktualizuje sa…"
     },
     "delete": {
       "notDeleted": "Nič sa neodstránilo."
@@ -332,6 +334,7 @@
       "suggestionsUnavailable": "Návrhy nie sú k dispozícii",
       "tooLong": "Štítky môžu mať najviac {max} znakov."
     },
+    "rateLimit": {},
     "outcome": {
       "rateLimitFailed": "Limit odosielania pre {0} sa nepodarilo uložiť.",
       "dkimDnsNoZone": "Pre {0} sa nenašla zóna DNS: zverejnite záznam DKIM u poskytovateľa DNS domény.",
@@ -802,6 +805,34 @@
     "unsupportedKeyType": "Podporované sú len tieto typy kľúčov: {allowed}.",
     "keyLengthOutOfRange": "Kľúč musí mať {min} až {max} bitov.",
     "sameAsSource": "Zvoľte iný názov, než má zdroj."
+  },
+  "domainTemplates": {
+    "create": {
+      "loadFailed": "Formulár sa nepodarilo načítať."
+    },
+    "default": "Predvolená",
+    "delete": {
+      "changed": "Šablóna sa medzitým zmenila. Skontrolujte ju a potvrďte znova.",
+      "notDeletedTitle": "{name} nebola odstránená"
+    },
+    "detail": {
+      "loadFailed": "Šablónu sa nepodarilo načítať.",
+      "loading": "Načítava sa šablóna…"
+    },
+    "edit": {
+      "defaultName": "Predvolenú šablónu nemožno premenovať.",
+      "gone": "Táto šablóna už neexistuje."
+    },
+    "fields": {
+      "id": "ID"
+    },
+    "list": {
+      "count": "Nájdené šablóny: {count}",
+      "detailsOf": "Podrobnosti {name}"
+    },
+    "sort": {
+      "id": "ID"
+    }
   },
   "senderSettings": {
     "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",

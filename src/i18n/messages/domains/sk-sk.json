@@ -69,12 +69,12 @@
     },
     "list": {
       "count": "Nájdené domény: {count}",
-      "details": "Podrobnosti",
       "detailsOf": "Podrobnosti domény {name}",
       "messagesCount": "Správy: {count}",
       "moreTags": "+{count}",
       "moreTagsLabel": "a ďalšie štítky ({count})"
     },
+    "outcome": {},
     "relay": {
       "short": {
         "relayUnknownOnly": "Preposielať len neexistujúce schránky"
@@ -91,30 +91,11 @@
     }
   },
   "domainTemplates": {
-    "create": {
-      "loadFailed": "Formulár sa nepodarilo načítať."
-    },
-    "default": "Predvolená",
     "delete": {
-      "changed": "Šablóna sa medzitým zmenila. Skontrolujte ju a potvrďte znova.",
-      "keepValues": "Domény vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú.",
-      "notDeletedTitle": "{name} nebola odstránená"
+      "keepValues": "Domény vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú."
     },
     "detail": {
-      "backToList": "Späť na šablóny domén",
-      "loadFailed": "Šablónu sa nepodarilo načítať.",
-      "loading": "Načítava sa šablóna…"
-    },
-    "edit": {
-      "defaultName": "Predvolenú šablónu nemožno premenovať.",
-      "gone": "Táto šablóna už neexistuje."
-    },
-    "list": {
-      "count": "Nájdené šablóny: {count}",
-      "detailsOf": "Podrobnosti {name}"
-    },
-    "sort": {
-      "id": "ID"
+      "backToList": "Späť na šablóny domén"
     }
   }
 }

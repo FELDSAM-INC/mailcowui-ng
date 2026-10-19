@@ -28,7 +28,11 @@ const ADMIN = [
   // UI 010 splits its row into two entries (FR-001).
   'ARC/DKIM keys',
   'MTA-STS',
-  'Monitoring and operations',
+  // UI 011: the "System" group.
+  'System & Containers',
+  'Logs',
+  'Queue Manager',
+  'Fail2ban parameters',
   'Identity providers and OAuth2',
   'System settings',
   'API keys',

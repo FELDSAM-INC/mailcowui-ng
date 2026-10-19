@@ -152,7 +152,7 @@ tasks.
   `quarantinetable`: columns `qid`, `sender`, `subj`, `rspamd_result`, `rcpt`, `danger`,
   `spam_score`, `notified`, `received`, `action`; badges `high_danger`, `neutral_danger`,
   `rejected`, `junk_folder`, `rewrite_subject`; row actions `show_item`, `remove`). Entry:
-  `quarantine.php`.
+  `data/web/quarantine.php`.
 - **Quarantine item page** (`/quarantine/:itemId`): `templates/modals/quarantine.twig` (`qitem`,
   `rspamd_result`, `spam_score`, `subj`, `recipients`, `sender_header`, `sender`,
   `text_plain_content`, `text_from_html_content`, `atts`, `check_hash`, actions `deliver_inbox`,
@@ -219,31 +219,536 @@ marked-up values such as `quarantine.qinfo`, `user.spamfilter_wl_desc` and the
 `admin.quarantine_*` labels with their `<br><small>` help go whole through `SanitizedHtml.vue`, and
 are never split or stripped. A missing key falls back to `en-gb`, never to a hand-written value.
 
-**Legacy form map**: written into this section by task T009a, before any screen is built.
+**Legacy form map**: below (T009a, 2026-10-19), in three parts. Legacy keys are read at runtime
+from the installation's `/lang/` files through UI 001's accessors: `<LegacyText k>` and `lt()` in
+the screens, `legacy()` in route titles and column tables, and `LEGACY_TEXTS`
+(`src/i18n/legacy-messages.ts`, with `LEGACY_ARGS` for the placeholders) for keys built at runtime:
+enumeration values, sort fields, problem types, rule codes and audit labels. Values marked "markup"
+render whole through `<LegacyText>` and `SanitizedHtml.vue`. Texts that the classic templates or
+scripts hard-code are new strings whose English equals legacy's (marked "hard-coded"). New strings
+use `quarantineUi.*` for the quarantine screens (`quarantine` is a legacy section, so the app adds
+no key under it), `spamFilter.*` and `rateLimits.*`, plus the app's shared `problem.*`,
+`validation.*`, `enums.*` and `auditLog.*`. No new-string namespace equals a legacy section name.
+Strings that UI 001–004 already have (`bulk.*`, `lists.*`, `history.link`, `problem.*`,
+`validation.*`) are reused as they are. Part 3 applies the orchestrator's decisions of 2026-10-18.
+Where it settles a deviation, it overrides the paragraphs above, research R12–R22 and the spec
+requirements it names, and the tasks follow it.
 
-**Deviations needing a decision**:
+**Deviations needing a decision**: see "Legacy form map, part 3". It keeps the eight deviations
+listed here before T009a, under the same numbers, and adds the ones the map found (9 to 23).
 
-1. **Rate limits overview** (FR-056, FR-057): a screen with no legacy counterpart. Its texts would
-   be new strings except the legacy `edit.ratelimit`, `ratelimit.*` and `admin.reset_limit`
-   labels.
-2. **"Remove limit"** (FR-052 to FR-054): legacy removes a rate limit by an empty value (placeholder
-   `ratelimit.disabled`) and Save. The planned explicit action with a confirmation is a new element.
-3. **Quick release and quick delete links** (`quarantine.quick_release_link`,
-   `quarantine.quick_delete_link` in the item modal) are dropped and replaced by a learning switch
-   on "Deliver to inbox" (FR-026, FR-028), which needs new strings.
-4. **"Not set" notification category** (FR-040, US3): not a legacy option.
-5. **Spam score input**: legacy has one two-handle slider labelled `user.spamfilter_behavior` with
-   the green, yellow and red explanations. Two number fields need labels and a server-default note
-   that legacy lacks.
-6. **Conflict and format messages** (FR-049, US4-AS6, US4-AS7): legacy says
-   `danger.policy_list_from_exists` ("A record with given name exists") and
-   `danger.policy_list_from_invalid` ("Record has invalid format"). The plan now uses these legacy
-   messages. Naming the list that holds the pattern, and listing the allowed characters, would be
-   new strings on top.
-7. **Expand all / Collapse all** (`datatables.expand_all`, `datatables.collapse_all`) are dropped,
-   because cards replace collapsed table rows.
-8. **Statistics as a text list** instead of legacy's colour chart: the action labels come from the
-   API values as in legacy, and the shares, totals and period lines are new strings.
+### Legacy form map, part 1: fields and elements
+
+Paths are under `../mailhosting/data/web/`. In `js/site/*.js`, `lang.<key>` is the page's section:
+`lang_quarantine` on `templates/quarantine.twig`, `lang_user` on the user pages, and `lang_admin`
+on `templates/dashboard.twig`; `js/site/edit.js` names `lang_user` explicitly. Rows marked "D<n>"
+depend on deviation n of part 3.
+
+**1. Quarantine list** (`/quarantine`) ← `templates/quarantine.twig`, `js/site/quarantine.js`
+`draw_quarantine_table()`; entry point `data/web/quarantine.php`.
+
+| Element | Legacy key |
+|---|---|
+| page title / navigation entry (UI 001 catalogue) | `quarantine.quarantine` / `header.quarantine` |
+| count badge, refresh | the number only, as legacy's `table-lines` badge; `quarantine.refresh` |
+| status notice, quarantine inactive | `quarantine.disabled_by_config` |
+| status notice, quarantine active | `quarantine.settings_info` (markup `<br>`; two `%s`: `retentionPerMailbox`, and `maxMessageSize` ÷ 1,048,576 in MiB, both from `getQuarantineSettings`, as legacy fills them from `retention_size` and `max_size`) |
+| explanation | `quarantine.qinfo` (markup), whole, behind a disclosure labelled `quarantine.info` (D18) |
+| search, loading, empty, no match | `datatables.search`, `datatables.loadingRecords`, `datatables.emptyTable`, `datatables.zeroRecords` (with `lists.filters.clear`) |
+| paging, page size, count (`PaginationBar`) | `datatables.info` (`_START_`, `_END_`, `_TOTAL_`), `datatables.infoEmpty`, `datatables.lengthMenu` (`_MENU_`: 25, 50, 100), `datatables.paginate.first`, `datatables.paginate.previous`, `datatables.paginate.next`, `datatables.paginate.last` |
+| columns, in legacy order | "ID" (hard-coded; the app's `lists.id`), `quarantine.qid`, `quarantine.sender`, `quarantine.subj`, `quarantine.rspamd_result`, `quarantine.rcpt` (administrators and domain administrators), `quarantine.danger`, `quarantine.spam_score`, `quarantine.notified`, `quarantine.received`, `quarantine.action` (row actions; legacy hides this header on small screens) |
+| empty subject, no score | "-", as legacy's item modal shows an empty subject (D19); a `null` score is "-", as legacy |
+| action badge | `quarantine.rejected` (`rejected`), `quarantine.junk_folder` (`junk`), `quarantine.rewrite_subject` (`subjectRewritten`); for `other` the stored `filterAction` as data (legacy shows no badge; D17) |
+| virus badge | `quarantine.high_danger` (virus found), `quarantine.neutral_danger` |
+| notified | "✔" or "✖" (legacy's `&#10004;` and `&#10006;`), with `lists.filters.yes` or `lists.filters.no` for assistive technology |
+| row actions | `quarantine.show_item`, `quarantine.remove` |
+| card details disclosure (phones) | `quarantineUi.list.details` |
+| selection mode | UI 002's `bulk.select`, `bulk.exitSelection`, `bulk.selected`, `bulk.selectItem`, `bulk.limitReached`; "select all on the page" is `quarantine.toggle_all` |
+| bulk menu, items in legacy order | `quarantine.quick_actions`: `quarantine.deliver_inbox`, `quarantine.learn_spam_delete`, `quarantine.remove` (legacy's `datatables.expand_all` and `datatables.collapse_all` are dropped, D7) |
+| no "Quarantine actions" permission | `acl.prohibited` + `acl.quarantine` (`AclReadOnlyNote`), instead of a written notice (D12) |
+| filter panel (legacy has none) | `lists.filters.title`, `lists.filters.withCount`, `lists.filters.clear`, `lists.chips.*`, and "Apply" `lists.filters.apply` (new shared string, if `FilterPanel` is created here, P24) |
+| filters and their options | action `quarantine.rspamd_result` (the badge keys, and `enums.quarantineItemAction.other`); virus `quarantine.danger` (`quarantine.high_danger`, `quarantine.neutral_danger`); notified `quarantine.notified` (`lists.filters.yes`, `lists.filters.no`); arrival `quarantine.received` with `quarantineUi.filters.receivedFrom` and `quarantineUi.filters.receivedTo`; score `quarantine.spam_score` with `quarantineUi.filters.scoreMin` and `quarantineUi.filters.scoreMax`; recipient `quarantine.rcpt`; domain `mailbox.domain` |
+| sort control (phones) and sort fields | `lists.sort.label`, `lists.sort.order`, `lists.sort.asc`, `lists.sort.desc`; fields as their column keys through `LEGACY_TEXTS` (`quarantineUi.sort.<field>`): `arrivedAt` `quarantine.received`, `queueId` `quarantine.qid`, `score` `quarantine.spam_score`, `sender` `quarantine.sender`, `recipient` `quarantine.rcpt`, `subject` `quarantine.subj`, `action` `quarantine.rspamd_result`, `virus` `quarantine.danger`, `notified` `quarantine.notified`; `id` is `lists.id` |
+
+**2. Quarantine item** (`/quarantine/:itemId`) ← `templates/modals/quarantine.twig`
+`#qidDetailModal`, filled by `js/site/quarantine.js` (`.show_qid_info`) and
+`inc/ajax/qitem_details.php`.
+The fields keep legacy's order and headings, without the plan's group headings (D20).
+
+| Element | Legacy key |
+|---|---|
+| page title, with the subject as the object's name | `quarantine.qitem` |
+| back link, load error | `lists.backToList`; `quarantineUi.item.loadError` ("Error loading quarantine item", hard-coded in `js/site/quarantine.js`) with UI 001's retry |
+| filter result | `quarantine.rspamd_result`; `quarantine.spam_score` with the score and the action badge (legacy's "<score> - <label>"); symbols as "name (score)" with the signed score, their options listed under each symbol (legacy: tooltip) |
+| subject | `quarantine.subj` |
+| recipients | `quarantine.recipients`; each "address (TYPE)" with `enums.quarantineRecipientSource.*` = "TO", "CC", "BCC", "SMTP" (hard-coded: legacy upper-cases the header name, and calls the envelope recipient `smtp`) |
+| From header, SMTP sender | `quarantine.sender_header`, `quarantine.sender` |
+| fields the API adds, after the sender (D17) | `quarantine.received`, `quarantine.danger` (the list's badges), `quarantine.notified`, "ID" (`lists.id`), `quarantine.qid`, `admin.message_size`, `quarantineUi.item.sourceAddress` ("IP address", hard-coded in `js/site/dashboard.js` for the same stored IP), `admin.authed_user` (administrators; the rate-limited log's label for the same Rspamd user) |
+| fuzzy hashes | `quarantineUi.item.fuzzyHashes` ("Fuzzy Hashes", hard-coded in the template); "-" when none; UI 001's copy control |
+| content | `quarantine.text_plain_content`, `quarantine.text_from_html_content`; a missing part is "-" as legacy; parser fallback `quarantineUi.item.parserFallback` ("Parser failed, assuming HTML", hard-coded in `inc/ajax/qitem_details.php`); too large `problem.quarantine-message-too-large`; long parts `quarantineUi.item.showFullText`, `quarantineUi.item.showLess` |
+| attachments (only when `content.attachments` is present, legacy's `quarantine_attachments` ACL) | `quarantine.atts`; per file: the file name (download), its type in parentheses, `debug.size`, `quarantineUi.item.sha256` with a copy control, `quarantine.check_hash`; "-" when none |
+| actions, in legacy order | `quarantine.quick_actions` (phones: the action bar with the same labels): `quarantine.deliver_inbox`, `quarantine.learn_spam_delete`, `quarantine.download_eml`, `quarantine.remove`; `quarantine.quick_release_link` and `quarantine.quick_delete_link` are dropped (D3) |
+| actions the flags deny | `acl.prohibited` + `acl.quarantine`; downloads of a mailbox user also `acl.quarantine_attachments` |
+| recipient | links to UI 003's mailbox page when `getMailbox` answers `200`; no text |
+
+**Item actions and their confirmations** (`templates/modals/footer.twig` `#ConfirmDeleteModal`,
+`js/build/011-api.js`):
+
+| Action | Legacy | Texts |
+|---|---|---|
+| Remove, one item (row or item page) | `#ConfirmDeleteModal` with the item ID | `footer.confirm_delete`, `footer.delete_these_items`, the item (ID, subject and sender as `PlainText`), `footer.delete_now`, `footer.cancel` |
+| Deliver to inbox, one item | sent at once; always learns as ham | D3 (open) |
+| Learn as spam and delete, one item | sent at once | sent at once (D13) |
+| Download (.eml), attachment download | opened at once | saved at once; virus warning D13 (open part) |
+| Deliver to inbox, bulk | sent at once | bulk confirmation (conventions): title `quarantine.deliver_inbox`, the items (subject, recipient), `bulk.selected`, buttons `quarantine.deliver_inbox` and `footer.cancel`; learning choice and virus line D3 |
+| Learn as spam and delete, bulk | sent at once | title `quarantine.learn_spam_delete`, the items, `bulk.confirm.typeCount`, buttons `quarantine.learn_spam_delete` and `footer.cancel` |
+| Remove, bulk | `#ConfirmDeleteModal` | `footer.confirm_delete`, `footer.delete_these_items`, the items, `bulk.confirm.typeCount`, `footer.delete_now`, `footer.cancel` |
+| bulk result | one toast per item | `BulkResultSummary` (`bulk.summary.title`, `bulk.summary.announce`, `bulk.count.*`, `bulk.outcome.*`, `bulk.retry`); each item's line as part 2; a bulk delivery with every item done: `success.items_released` |
+
+**3. Quarantine notifications of a mailbox** ← `templates/user/tab-user-settings.twig` (mailbox
+user: after the encryption policy) and `templates/edit/mailbox.twig` `#medit` (administrators and
+domain administrators: after the tagged mail handling, before the encryption policy). They stay in
+these legacy positions (D9, D10).
+
+| Element | Legacy key |
+|---|---|
+| frequency (radio group, legacy order) | `user.quarantine_notification`: `user.never`, `user.hourly`, `user.daily`, `user.weekly`; help `user.quarantine_notification_info` |
+| category | `user.quarantine_category`: `user.q_reject`, `user.q_add_header`, `user.q_all`; help `user.quarantine_category_info`; a mailbox without a stored category has no option selected, as legacy (D4) |
+| save | the host section's save: `edit.save` in the mailbox page's "Mailbox" section; the mailbox user's host page has its own (D10) |
+| read-only | `acl.prohibited` + `acl.quarantine_notification`, `acl.prohibited` + `acl.quarantine_category` |
+| History (administrators) | `history.link` (`quarantineNotificationSettings`, the mailbox) |
+
+No new strings: "Not set" and the effect note are not built (D4, D12).
+
+**4. Mailbox list bulk actions** (UI 003's list) ← `templates/mailbox/tab-mailboxes.twig` (the
+mass-action menu) and `js/build/011-api.js` (`edit_selected`, no confirmation).
+
+| Element | Legacy key |
+|---|---|
+| menu group (one group for both settings, as legacy) | header `mailbox.quarantine_notification`; items in legacy order `user.hourly`, `user.daily`, `user.weekly`, `user.never`, a divider, then `user.q_reject`, `user.q_add_header`, `user.q_all` (D21) |
+| bulk confirmation (conventions) | title `mailbox.quarantine_notification` for a frequency, `mailbox.quarantine_category` for a category; the chosen option's label; `bulk.selected`; buttons `quarantine.confirm` and `footer.cancel` |
+| result | UI 003's `BulkResultSummary`; per mailbox as part 2 |
+
+**5. Spam filter** (`/spam-filter`, mailbox users) ← `templates/user/Spamfilter.twig` and
+`js/site/user.js` (`noUiSlider`, `draw_wl_policy_mailbox_table()`,
+`draw_bl_policy_mailbox_table()`).
+
+| Element | Legacy key |
+|---|---|
+| page title, navigation entry | `user.spamfilter` |
+| score heading | `user.spamfilter_behavior` |
+| score control | D5 (open): legacy's two-handle slider, or the plan's two fields `spamFilter.score.junkScore` ("Junk folder from") and `spamFilter.score.rejectScore` ("Reject from") |
+| zones, in legacy order, each with its range | `user.spamfilter_green` with "< {junk}", `user.spamfilter_yellow` with "{junk} - {reject}", `user.spamfilter_red` with "> {reject}"; the range formats are hard-coded in `js/site/user.js`: `spamFilter.score.rangeBelow`, `spamFilter.score.rangeBetween`, `spamFilter.score.rangeAbove` |
+| server defaults (fields the API adds, D17) | `user.spamfilter_default_score` with both values; `spamFilter.score.usingDefaults` when the mailbox has no custom values; `spamFilter.score.fallback` when `defaults.fallback` is set |
+| save, reset | `user.save_changes`; `user.spam_score_reset`, without a confirmation (D13) |
+| read-only | `acl.prohibited` + `acl.spam_score` |
+| lists, in legacy order | `user.spamfilter_wl` + `user.spamfilter_wl_desc` (markup), then `user.spamfilter_bl` + `user.spamfilter_bl_desc` (markup); on phones the switch uses the two headings and each list's count |
+| add | placeholder "*@example.org" (hard-coded: `spamFilter.lists.patternPlaceholder`), button `user.spamfilter_table_add` |
+| search, loading, empty, no match, paging | the `datatables.*` keys of screen 1 |
+| columns, in legacy order | "ID" (hard-coded, `lists.id`), `user.spamfilter_table_rule`, "Scope" (hard-coded: `spamFilter.lists.scope`), then `user.created_on` (a field the API adds, D17) |
+| inherited rows (read-only, after the own rows) | `user.spamfilter_table_domain_policy`, legacy's title of their disabled checkbox, shown as text (D16) |
+| sort | `lists.sort.*`; fields `user.spamfilter_table_rule` (pattern), `user.created_on` |
+| selection and removal | `mailbox.toggle_all`, `mailbox.remove` (legacy's `mailbox.quick_actions` menu holds only expand and collapse, D7); confirmation `footer.confirm_delete`, `footer.delete_these_items` (the patterns), `footer.delete_now`, `footer.cancel`, and `bulk.confirm.typeCount` for several entries; results as screen 1 |
+| read-only | `acl.prohibited` + `acl.spam_policy` |
+
+**6. Spam filter and rate limits of domains, alias domains and mailboxes** — in the legacy
+positions on the pages of UI 002, UI 004 and UI 003, not on separate pages (D9).
+
+- **Domain page** (`/domains/:domain`) ← `templates/edit/domain.twig`, tabs in legacy order
+  `edit.domain`, `edit.ratelimit` (`#dratelimit`), `edit.spam_filter` (`#dspamfilter`),
+  `edit.quota_warning_bcc`, `edit.mta_sts`, `edit.domain_footer`; tables `js/site/edit.js`
+  (`draw_wl_policy_domain_table()`, `draw_bl_policy_domain_table()`, `lang_user`).
+- **Alias domain page** (`/alias-domains/:aliasDomain`) ← `templates/edit/aliasdomain.twig`: the
+  edit form, then the rate limit form, then DKIM.
+- **Mailbox page** (`/mailboxes/:address`) ← `templates/edit/mailbox.twig`, tabs `edit.mailbox`,
+  `edit.custom_attributes`, `edit.pushover`, `edit.acl`, `edit.ratelimit` (`#mrl`), rename.
+
+| Element | Legacy key |
+|---|---|
+| domain: "Rate limit" section (UI 002's read-only section becomes editable) | title and label `edit.ratelimit`; value with placeholder `ratelimit.disabled`; frame select from `templates/mailbox/rl-frame.twig`: `ratelimit.second`, `ratelimit.minute`, `ratelimit.hour`, `ratelimit.day`; save `admin.save` |
+| alias domain: rate limit form, below the edit form | label `acl.ratelimit`; value and frame as above; save `admin.save` |
+| mailbox: "Rate limit" section | title `edit.ratelimit`; label `acl.ratelimit`; value and frame as above; save `edit.save`; help `edit.mbox_rl_info` |
+| rate limit read-only display | "<value> <frame label>" (for example "10 msgs / hour") or `ratelimit.disabled` |
+| removing a limit | an empty value and the save, as legacy (D2); no new string |
+| stored value in an invalid format (the API reports it, D17) | `rateLimits.invalidStoredValue` with the stored text |
+| mailbox: the limit in effect (the API adds it, D17) | `rateLimits.effective.title` with the limit and its source label (`enums.rateLimitEffectiveSource.*`: `mailbox.mailbox`, `mailbox.domain`; none: `ratelimit.disabled`) |
+| rate limit read-only reason | `acl.prohibited` + `acl.ratelimit` |
+| domain: "Spam filter" section, after "Rate limit" | title `edit.spam_filter`; the lists of screen 5 (the domain tab has no `mailbox.quick_actions` menu: `mailbox.toggle_all` and `mailbox.remove`); inherited rows are the domain's mailboxes' entries, marked `user.spamfilter_table_domain_policy` as legacy marks them (D16) |
+| alias domain: "Spam filter" section, after the rate limit (no legacy counterpart, D22) | `edit.spam_filter` and the domain tab's keys |
+| mailbox: quarantine notification and category | screen 3, editable in the "Mailbox" section, where UI 003 shows them read-only until now |
+| mailbox: "Spam filter" section after "Rate limit", for administrators and domain administrators (no legacy counterpart, D22) | title `user.spamfilter`; the score of screen 5 (`user.spamfilter_behavior`, the zones, `user.spamfilter_default_score`, `user.save_changes`, `user.spam_score_reset`) and its lists (inherited rows are the domain's entries, `user.spamfilter_table_domain_policy`) |
+| mailbox: link to its quarantine (FR-007) | `header.quarantine` |
+| History (administrators) | `history.link` on the rate limit, the spam score, the notification settings and each own list entry |
+
+**7. Rate limits overview** (`/quarantine/rate-limits`) — no legacy counterpart (D1).
+
+| Element | Legacy key |
+|---|---|
+| title, section navigation entry | `rateLimits.title` ("Rate limits"; legacy's "Ratelimits" card is the log of UI 011) |
+| search, loading, empty, no match, paging | the `datatables.*` keys of screen 1 |
+| kind filter | `mailbox.kind`, with `lists.filters.all` and `enums.rateLimitObjectKind.*` (`mailbox.domain`, `add.alias_domain`, `mailbox.mailbox`) |
+| columns | `rateLimits.list.object`, `mailbox.kind`, `edit.ratelimit` (the read-only display of screen 6; an invalid stored value with `rateLimits.invalidStoredValue`) |
+| sort | `lists.sort.*`; fields `rateLimits.list.object`, `mailbox.kind` |
+| entry actions | `mailbox.edit` (opens the object page's rate limit), `history.link` |
+| "Set a rate limit" | button and dialog title `rateLimits.set.title`; kind `mailbox.kind` with the kind labels; object picker labelled with the chosen kind, placeholder `tfa.select`; buttons `mailbox.edit` and `footer.cancel` |
+| bucket reset | button and dialog title `admin.reset_limit`; text `admin.hash_remove_info` (markup, whole; D23); field `rateLimits.bucket.hash` ("Hash", hard-coded column of the rate-limited log); then legacy's confirmation of "Remove hash": `footer.confirm_delete`, `footer.delete_these_items` (the hash), `footer.delete_now`, `footer.cancel` |
+| read-only | `acl.prohibited` + `acl.ratelimit` |
+
+**8. Quarantine settings** (`/quarantine/settings`) ← `templates/admin/tab-config-quarantine.twig`
+(System › Configuration › Quarantine). One section in legacy order with legacy's dividers, one save
+(D11). The column "Plan section" shows where the plan put each field before T009a.
+
+| # | Element | Legacy key | Plan section |
+|---|---|---|---|
+| | section title | `admin.quarantine` | |
+| | quarantine inactive | `quarantine.disabled_by_config` (legacy shows nothing when active) | page top |
+| 1 | retention per mailbox (placeholder 0) | `admin.quarantine_retention_size` (markup) | Storage and limits |
+| 2 | maximum size in MiB (placeholder 0) | `admin.quarantine_max_size` (markup) | Storage and limits |
+| 3 | notification score limit (placeholder 9999.0, locale-formatted) | `admin.quarantine_max_score` (markup) | Notification e-mail |
+| 4 | maximum age in days | `admin.quarantine_max_age` (markup) | Storage and limits |
+| | divider | | |
+| 5 | redirect recipient | `admin.quarantine_redirect` (markup) | Notification e-mail |
+| 6 | copy (BCC) recipient | `admin.quarantine_bcc` (markup) | Notification e-mail |
+| | divider | | |
+| 7 | sender (placeholder: the value that applies, `quarantine@localhost` from the API) | `admin.quarantine_notification_sender` | Notification e-mail |
+| 8 | subject (placeholder: the value that applies, from the API) | `admin.quarantine_notification_subject` | Notification e-mail |
+| | divider | | |
+| 9 | release format (select, title `tfa.select`) | `admin.quarantine_release_format`: `admin.quarantine_release_format_raw` (`original`), `admin.quarantine_release_format_att` (`attachment`) | Release |
+| 10 | excluded domains (searchable multi-select, placeholder `tfa.select`) | `admin.quarantine_exclude_domains`; a stored entry that no longer exists: `quarantineUi.settings.missingDomain` (D17) | Storage and limits |
+| | divider | | |
+| 11 | template (collapsed, opened by its label, as legacy's legend; monospace, never rendered) | `admin.quarantine_notification_html` (markup; its help "Leave empty to restore default template" is the restore, D14) | Template |
+| | save | `admin.save` | each section |
+| | History | `history.link` (`quarantineSettings`) | |
+
+Legacy order inside the plan's four sections, for reference: Storage and limits 1, 2, 4, 10;
+Release 9; Notification e-mail 3, 5, 6, 7, 8 (FR-059 listed 3, 7, 8, 6, 5); Template 11.
+
+**9. Statistics** (`/quarantine/statistics`) ← the Rspamd tab of `templates/dashboard.twig` and
+`rspamd_pie_graph()` in `js/site/dashboard.js`, which labels each slice with Rspamd's action name
+and its share ("reject 12%"), untranslated in every language.
+
+| Element | Legacy key |
+|---|---|
+| title, section navigation entry | `mailbox.stats` |
+| refresh | `admin.refresh` |
+| chart heading | `debug.chart_this_server`, only if the chart is kept (D8) |
+| rows, in legacy order (hard-coded Rspamd names) | `quarantineUi.statistics.actions.rejected` ("reject"), `quarantineUi.statistics.actions.softRejected` ("soft reject", greylisting included as legacy adds it), `quarantineUi.statistics.actions.subjectRewritten` ("rewrite subject"), `quarantineUi.statistics.actions.movedToJunk` ("add header"), `quarantineUi.statistics.actions.noAction` ("no action"); Czech and Slovak keep the Rspamd names, as legacy shows them in every language |
+| columns and total | `quarantine.action`, `quarantineUi.statistics.count`, `quarantineUi.statistics.share` (percentage, `Intl`), `quarantineUi.statistics.total` |
+| counting period (fields the API adds, D17) | `quarantineUi.statistics.countedSince`, `quarantineUi.statistics.countedSinceUnknown`, `quarantineUi.statistics.runningSince` |
+| spam filter unreachable | `problem.service-unavailable` with UI 001's retry |
+
+**10. History** (UI 001's audit log; no legacy counterpart, conventions "History and audit"). The
+app's keys are `enums.auditEventType.*`, `enums.auditTargetType.*` and `auditLog.detailKeys.*`
+(`src/features/audit-log/labels.ts`).
+
+| Element | Legacy key, or new string |
+|---|---|
+| event types (new strings) | `quarantineItemRelease` "Quarantine item released", `quarantineItemSpamLearning` "Quarantine item learned as spam", `quarantineItemDeletion` "Quarantine item removed", `quarantineSettingsUpdate` "Quarantine settings changed", `quarantineNotificationSettingsUpdate` "Quarantine notifications changed", `spamScoreUpdate` "Spam score changed", `spamScoreReset` "Spam score reset to server default", `spamPolicyEntryCreation` "Allowlist or denylist entry added", `spamPolicyEntryRemoval` "Allowlist or denylist entry removed", `rateLimitUpdate` "Rate limit set", `rateLimitRemoval` "Rate limit removed", `rateLimitBucketReset` "Rate limit hash removed" |
+| target types | `quarantineItem` `quarantine.qitem`, `quarantineSettings` `admin.quarantine`, `quarantineNotificationSettings` `user.quarantine_notification`, `spamScore` `acl.spam_score`, `rateLimit` `edit.ratelimit` (all through `LEGACY_TEXTS`); new: `spamPolicyEntry` "Allowlist or denylist entry", `rateLimitBucket` "Rate limit hash" |
+| detail keys of API 006 (`docs/audit-events.md`, T125) | `queueId` `quarantine.qid`, `recipient` `mailbox.recipient`, `sender` `mailbox.sender`, `action` `mailbox.action`, `pattern` `user.spamfilter_table_rule`, `kind` `mailbox.kind` (through `LEGACY_TEXTS`); new: `list` "List", `entryId` "Entry ID", `old` "Old value", `new` "New value", `countersExisted` "Counters existed", `logEntriesRemoved` "Log entries removed"; `steps`, `changes` and `bulkRequestId` exist |
+
+**11. Quarantine section navigation** (`QuarantineSectionNav`; legacy has one page per screen).
+
+| Entry | Legacy key, or new string |
+|---|---|
+| landmark label | `quarantineUi.nav.label` ("Quarantine sections") |
+| list | `quarantine.quarantine` |
+| notifications (mailbox users, only while D10's interim applies) | `user.quarantine_notification` |
+| rate limits | `rateLimits.title` |
+| settings | `header.mailcow_config` (the legacy menu that leads to the settings; the page's heading is `admin.quarantine`) |
+| statistics | `mailbox.stats` |
+
+The route titles of data-model §5 use these keys instead of the `quarantine.*` new-string keys
+written there before T009a.
+
+**Enumeration labels** (`enums.<enumeration>.<value>`, namespaces as `scripts/i18n/lib.mjs`
+derives them; legacy keys through `LEGACY_TEXTS`):
+
+| Enumeration | Labels |
+|---|---|
+| `QuarantineItemAction` | `rejected` `quarantine.rejected`, `junk` `quarantine.junk_folder`, `subjectRewritten` `quarantine.rewrite_subject`, `other` new "Other" |
+| `QuarantineNotificationFrequency` | `user.never`, `user.hourly`, `user.daily`, `user.weekly` |
+| `QuarantineNotificationCategory` | `rejected` `user.q_reject`, `junk` `user.q_add_header`, `all` `user.q_all` |
+| `QuarantineReleaseFormat` | `original` `admin.quarantine_release_format_raw`, `attachment` `admin.quarantine_release_format_att` |
+| `SpamPolicyList` | `allow` `user.spamfilter_wl`, `block` `user.spamfilter_bl` |
+| `SpamPolicyOwner.kind`, `RateLimitObjectKind` | `domain` `mailbox.domain`, `aliasDomain` `add.alias_domain`, `mailbox` `mailbox.mailbox` |
+| `RateLimitValue.frame` | `ratelimit.second`, `ratelimit.minute`, `ratelimit.hour`, `ratelimit.day` |
+| `RateLimit.effectiveSource` | `mailbox` `mailbox.mailbox`, `domain` `mailbox.domain`, `none` `ratelimit.disabled` |
+| `QuarantineActionReport.action` | `release` `quarantine.deliver_inbox`, `releaseWithoutLearning` `quarantine.release`, `learnAsSpam` `quarantine.learn_spam_delete` |
+| `QuarantineActionReport.delivery`, `.learning`, `.fuzzy` (History details only, D15) | new: delivery "Delivered", "Not applicable"; learning "Learned", "Already learned", "Failed", "Not requested"; fuzzy "Stored", "Skipped", "Failed", "Not requested" |
+| `QuarantineItemDetails.contentStatus` | new: "Available", "Too large", "Missing" |
+| `QuarantineRecipient.source` | new, hard-coded: "TO", "CC", "BCC", "SMTP" |
+| `SpamFilterTemporaryFailureProblem.dependency`, `.step` | `spamFilter` `user.spamfilter`; new: `sharedStore` "Shared store", `mailServer` "Mail server", `delivery` "Delivery", `learning` "Learning" |
+
+**New strings** (en-gb, cs-cz and sk-sk; reason: no legacy element, unless "hard-coded"):
+
+| Key | English |
+|---|---|
+| `quarantineUi.list.details` | Details |
+| `quarantineUi.filters.receivedFrom` / `receivedTo` | From / To |
+| `quarantineUi.filters.scoreMin` / `scoreMax` | Minimum score / Maximum score |
+| `quarantineUi.item.loadError` (hard-coded) | Error loading quarantine item |
+| `quarantineUi.item.sourceAddress` (hard-coded) | IP address |
+| `quarantineUi.item.fuzzyHashes` (hard-coded) | Fuzzy Hashes |
+| `quarantineUi.item.parserFallback` (hard-coded) | Parser failed, assuming HTML |
+| `quarantineUi.item.showFullText` / `showLess` | Show full text / Show less |
+| `quarantineUi.item.sha256` | SHA-256 |
+| `quarantineUi.settings.missingDomain` | no longer exists |
+| `quarantineUi.statistics.actions.*` (hard-coded) | reject / soft reject / rewrite subject / add header / no action |
+| `quarantineUi.statistics.count` / `share` / `total` | Count / Share / Total |
+| `quarantineUi.statistics.countedSince` / `countedSinceUnknown` / `runningSince` | Counted since {date} / Counting start unknown / Spam filter running since {date} |
+| `quarantineUi.nav.label` | Quarantine sections |
+| `spamFilter.score.rangeBelow` / `rangeBetween` / `rangeAbove` (hard-coded) | < {junk} / {junk} - {reject} / > {reject} |
+| `spamFilter.score.usingDefaults` | The server defaults apply. |
+| `spamFilter.score.fallback` | The spam filter could not be asked for its defaults; these are the built-in values. |
+| `spamFilter.lists.patternPlaceholder` (hard-coded) | *@example.org |
+| `spamFilter.lists.scope` (hard-coded) | Scope |
+| `rateLimits.title` | Rate limits |
+| `rateLimits.list.object` | Object |
+| `rateLimits.set.title` | Set a rate limit |
+| `rateLimits.bucket.hash` (hard-coded) | Hash |
+| `rateLimits.invalidStoredValue` | The stored rate limit "{value}" has an invalid format. Save a new value or empty the field. |
+| `rateLimits.effective.title` | In effect: {limit} ({source}) |
+| `problem.quarantine-item-busy` | Another action is in progress for this item. It is checked again in a few seconds. |
+| `problem.quarantine-message-too-large` (hard-coded in `inc/ajax/qitem_details.php`) | Message size exceeds {limit}. |
+| `problem.temporary-failure.dependency.sharedStore` / `.spamFilter` / `.mailServer` | Nothing was changed, because the server's shared store / the spam filter / the mail server is temporarily unavailable. Please try again in a moment. |
+| `validation.byParam.invalidTemplate.reason.syntax` / `.security` / `.render` / `.timeout` | The template has a syntax error in line {line}. / The template uses something that is not allowed, in line {line}. / The template could not be rendered (line {line}). / Rendering the template took too long. |
+| `lists.filters.apply` (shared, if `FilterPanel` is created here) | Apply filters |
+| the enumeration and History labels above | as listed there |
+| D3, D5 and D13 (only if the owner keeps them) | `quarantineUi.deliver.learn` "Also teach the spam filter that this is not spam"; `quarantineUi.deliver.virusAcknowledge` "I understand that this message contains a virus"; `quarantineUi.bulk.virusCount` "{count} of the selected items contain a virus."; `spamFilter.score.junkScore` "Junk folder from", `spamFilter.score.rejectScore` "Reject from"; `quarantineUi.download.virusWarning` "This message contains a virus. The file may harm your device." |
+
+### Legacy form map, part 2: messages
+
+One alert per outcome, with the key legacy returns (`inc/functions.quarantine.inc.php`,
+`functions.policy.inc.php`, `functions.ratelimit.inc.php`, `functions.mailbox.inc.php`), formatted
+as `alertbox_log_parser()` does. Placeholder values that come from a message or a server answer are
+inserted as plain text, never as markup. Field errors show on the field and in the summary.
+
+| API outcome | Legacy key (placeholders: source) |
+|---|---|
+| `releaseQuarantineItem` 200, `learnAsHam: true` | `success.item_released` (1 `%s`: the item `id`), then from `report`: learning `done` or `alreadyLearned` → `success.learned_ham` (1 `%s`: the item `id`; legacy says it also after "already learned"); learning `failed` → `danger.ham_learn_error` (1 `%s`: `learningError`, the spam filter's answer, as legacy passes Rspamd's `error`); fuzzy `failed` → `warning.fuzzy_learn_error` (1 `%s`: `fuzzyError`); fuzzy `done` or `skipped` → nothing (legacy reports neither) |
+| `releaseQuarantineItem` 200, `learnAsHam: false` | `success.item_released` (1 `%s`: the item `id`; legacy's quick release passes its hash, which the app never sees) |
+| `learnQuarantineItemAsSpam` 200 | `success.qlearn_spam` (1 `%s`: the item `id`); fuzzy `failed` → `warning.fuzzy_learn_error` (1 `%s`: `fuzzyError`) |
+| `deleteQuarantineItem` 204 | `success.item_deleted` (1 `%s`: the item `id`) |
+| bulk item `done` | the single action's keys, from the item's `report`; a deletion `success.item_deleted` |
+| bulk delivery with every item `done` | summary `success.items_released` (no placeholder); otherwise UI 002's `bulk.count.*` |
+| bulk item `notFound`, `refused`, `outdated`, `failed` | `bulk.outcome.*` with the item problem's message from the rows below |
+| `quarantine-delivery-refused` (single or bulk item) | `danger.release_send_failed` (1 `%s`: the mail server's answer, `smtpCode` and `smtpResponse` joined by a space; legacy passes the mailer's error text) |
+| `quarantine-item-busy` | `problem.quarantine-item-busy` (new), then one re-read of the item |
+| `quarantine-message-too-large` (download) | `problem.quarantine-message-too-large` (new; `{limit}` = `limit` as a binary size) |
+| `temporary-failure`, by `dependency` | `problem.temporary-failure.dependency.sharedStore`, `.spamFilter`, `.mailServer` (new; `dependency` joins `PROBLEM_DISCRIMINATORS`). Legacy's `danger.redis_error`, `danger.spam_learn_error` and `danger.ham_learn_error` need the component's error text, which the problem does not carry. A spam filter that cannot learn as spam answers `503` and keeps the item, so `danger.spam_learn_error` is not used. Statistics: `problem.service-unavailable` |
+| `404` (item, entry) | `problem.status.404` and back to the list; bulk `bulk.outcome.notFound` (legacy answers `danger.access_denied`, whose meaning does not fit) |
+| `412` | UI 002's outdated handling (`problem.status.412`); bulk `bulk.outcome.outdated` |
+| `permission-flag-required`, `forbidden` | `danger.access_denied` (no placeholder; UI 001 and UI 004 map it); the controls become read-only with `acl.prohibited` and the flag's `acl.*` label (`flagLabel`) |
+| `attribute-not-permitted` (notification settings) | UI 001's `problem.attribute-not-permitted` with `acl.quarantine_notification` or `acl.quarantine_category` as the attribute labels |
+| no response | `problem.outcome-unknown` |
+| `updateMailboxQuarantineNotificationSettings` 200 | `success.mailbox_modified` (1 `%s`: the mailbox username) |
+| `applyQuarantineNotificationBulkAction`, item `done` | `success.mailbox_modified` (1 `%s`: the target mailbox) |
+| `category` `notInList` | `danger.quarantine_category_invalid` (no placeholder), through `quarantineUi.notifications.errors.category.notInList`; `frequency` `notInList`: `validation.notInList` (legacy answers `danger.access_denied`) |
+| `setMailboxSpamScore` 200, `resetMailboxSpamScore` 200 | `success.mailbox_modified` (1 `%s`: the mailbox username; on `/spam-filter` the signed-in mailbox) |
+| score `outOfRange`, `notMultipleOf` (0.1), `mustNotExceed` | `validation.outOfRange`, `validation.notMultipleOf`, `validation.mustNotExceed` (field: the reject label, value) — legacy has none |
+| list entry created 201 | owner `domain` → `success.domain_modified` (1 `%s`: the domain, `owner.name`); `aliasDomain` → `success.aliasd_modified` (1 `%s`: the alias domain); `mailbox` → `success.mailbox_modified` (1 `%s`: the mailbox) |
+| list entry removed 204 | owner `domain` or `aliasDomain` → `success.item_deleted` (1 `%s`: the entry `id`); `mailbox` → `success.items_deleted` (1 `%s`: the entry `id`; legacy joins the request's IDs, here one per request) |
+| `spam-policy-entry-exists` | `danger.policy_list_from_exists` (no placeholder) |
+| pattern `invalidFormat` `senderPattern` (client or API) | `danger.policy_list_from_invalid` (no placeholder), through `validation.format.senderPattern`; `tooLong`: `validation.tooLong` |
+| `set…RateLimit` 200, `remove…RateLimit` 204 | `success.rl_saved` (1 `%s`: `RateLimit.object`, the domain, alias domain or mailbox username as legacy passes `$object`; legacy says it also when an empty value removes the limit) |
+| `frame` `notInList` | `danger.rl_timeframe` (no placeholder), through `rateLimits.form.errors.frame.notInList`; value `outOfRange`: `validation.outOfRange` (legacy has none) |
+| `resetRateLimitBucket` 204 / 404 | `success.hash_deleted` / `warning.hash_not_found` (no placeholders) |
+| bucket identifier not in the form `RL…` (client) | `validation.invalidFormat` (legacy answers `danger.access_denied`) |
+| `updateQuarantineSettings` 200 | `success.saved_settings` (no placeholder) |
+| settings rule codes | `outOfRange` → `validation.outOfRange`; `notMultipleOf` 1048576 → `validation.notMultipleOf` (factor as a size, "1 MiB"); `invalidFormat` `email` → `validation.format.email` (legacy silently empties the field); `invalidFormat` `domainName` → `validation.format.domainName`; excluded domain `notFound` → `quarantineUi.settings.missingDomain`; `tooLong` → `validation.tooLong`, with `unit: bytes` → `validation.tooLongBytes`; `invalidTemplate` → `validation.byParam.invalidTemplate.reason.*` (`{line}`); `notInList` → `validation.notInList` |
+| bulk `targets` `tooMany` | `bulk.limitReached` (`{max}`) |
+
+### Legacy form map, part 3: deviations
+
+Status: **Settled** by `docs/conventions.md` (named), or **Open** (needs the owner or the
+orchestrator; nothing of it is built until decided). The first eight are those listed before T009a.
+
+1. **Rate limits overview** (FR-056, FR-057). **Settled** ("Screens with no legacy counterpart
+   … stay"): built, with the legacy keys of screen 7 and new strings for the rest.
+2. **"Remove limit"** (FR-052 to FR-054). **Settled** ("Follow the legacy form": legacy's
+   controls; "No confirmation legacy lacks"): emptying the value and saving removes the limit, as in
+   legacy. The app then sends `remove<Kind>RateLimit` with `If-Match` and says `success.rl_saved`.
+   No explicit action, no dialog and no effect text (FR-054 and R20's dialog are not built).
+3. **Quick release and quick delete links; the learning switch; the confirmation of a single
+   delivery; the virus acknowledgement; bulk delivery without learning** (FR-026, FR-028, FR-032,
+   FR-034). **Open.** Legacy's "Deliver to inbox" releases at once and always learns as ham.
+   "Open quick release link" opens the `qhandler` page, which releases without learning after its
+   `quarantine.confirm` button, under the heading `quarantine.release`. "Open quick delete link" is
+   the same as Remove. The conventions allow confirmations legacy lacks only for typed and bulk
+   confirmations.
+   - Option A, the plan: one "Deliver to inbox" dialog with the learning switch and the virus
+     acknowledgement (new strings in part 1). Its confirmation is one legacy lacks.
+   - Option B, closest to legacy: "Deliver to inbox" at once with learning, as legacy; a second
+     action "Release" (`quarantine.release`), confirmed as the `qhandler` page confirms it (the item
+     summary and `quarantine.confirm`), releases without learning. No switch and no new string,
+     except the virus acknowledgement if kept.
+   - Bulk: legacy can only deliver with learning. Without learning in bulk follows A (the switch)
+     or is dropped (B).
+4. **"Not set" notification category** (FR-039, US3). **Settled** ("Follow the legacy form":
+   radio options as legacy has them): no option is selected, as legacy's button group shows it.
+   There is no "Not set" text.
+5. **Spam score input** (FR-042, FR-043, R17, R18). **Open.** The conventions' "legacy's controls
+   … as legacy has them" points to legacy's two-handle slider (`noUiSlider`, 0 to 5,000, with the
+   ranges "< x", "x - y" and "> y" in the zone list). The plan's two decimal fields need the labels
+   `spamFilter.score.junkScore` and `spamFilter.score.rejectScore`. The zones, their range texts and
+   `user.spamfilter_default_score` apply either way. The note that equal values raise the reject
+   value by 0.1 is not built (12).
+6. **Conflict and format messages** (FR-049, US4-AS6, US4-AS7). **Settled** ("Outcomes" and "no
+   help text … legacy lacks"): `danger.policy_list_from_exists` and
+   `danger.policy_list_from_invalid` only. Naming the list and listing the allowed characters are
+   not built.
+7. **Expand all / Collapse all** (`datatables.expand_all`, `datatables.collapse_all`).
+   **Settled** ("The app's design system and layout stay"; lists become cards below the tablet
+   breakpoint): dropped.
+8. **Statistics as a text list** instead of legacy's doughnut chart (FR-065). **Open.** The plan's
+   list with bars avoids a chart library (constitution VIII) and gives text equivalents (FR-079).
+   The row labels are legacy's Rspamd names (screen 9) either way. `debug.chart_this_server`
+   ("Chart (this server)") fits only a chart, so a list has no heading of its own.
+9. **Separate "Spam filter and limits" pages** (FR-005, FR-006, FR-007, data-model §5 routes
+   `spam-filter-domain`, `spam-filter-alias-domain`, `spam-filter-mailbox`). **Settled**
+   ("Detail pages": "A field another feature edits is shown read-only in its legacy position until
+   that feature lands, then becomes editable there"; "a legacy tab becomes one section, never
+   several"). UI 002's domain "Rate limit" section and UI 003's mailbox "Rate limit" section and
+   quarantine fields are already in place, read-only, waiting for this feature. So:
+   - the domain page gets an editable "Rate limit" and a new "Spam filter" section after it, in
+     legacy tab order;
+   - the alias domain page gets an editable rate limit form below its edit form, and a "Spam filter"
+     section (22);
+   - the mailbox page gets editable notification fields in its "Mailbox" section, an editable "Rate
+     limit" section, and a "Spam filter" section after it for administrators and domain
+     administrators (22).
+
+   `ObjectSpamFilterPage` and its three routes are not built. The overview's entries, the item's
+   recipient and FR-006's links open these pages at the section. The new string "Spam filter and
+   limits" is not needed.
+10. **The mailbox user's Notifications page** (`/quarantine/notifications`, FR-001, FR-039).
+    **Settled in principle** ("a legacy tab becomes one section, never several"; "Where features
+    meet"): legacy shows the two settings in the user's "Settings" tab
+    (`templates/user/tab-user-settings.twig`), after the encryption policy. UI 005 plans that tab
+    as `/account/mail-settings` and leaves these rows to UI 006, so this feature adds them there,
+    and the Quarantine section has no "Notifications" entry. **Open** only for the interim: if
+    UI 005's page does not exist when this feature is built, the orchestrator decides whether
+    `/quarantine/notifications` hosts them meanwhile (title `user.quarantine_notification`, save
+    `user.save_changes`).
+11. **Quarantine settings in four sections, release format as radios** (FR-059, FR-060, R21).
+    **Settled** ("legacy's tabs, groups and field order: a legacy tab becomes one section, never
+    several"; "legacy's controls"): one section `admin.quarantine`, with the fields in legacy order
+    and legacy's dividers (screen 8), the release format as a select, and one save of the changed
+    members with `If-Match`. Because the save is versioned, R21's objection (last write wins) no
+    longer applies.
+12. **Explanations legacy lacks.** **Settled** ("no help text, explanation or section heading
+    that legacy lacks"; UI 003 deviation 9). Not built:
+    - the notification effect note (FR-040);
+    - the equal-values note (FR-043);
+    - the pattern help and the normalised-pattern preview (FR-048), and the panel notes (FR-051);
+    - the "active" line and its reason on the settings page (FR-059: only
+      `quarantine.disabled_by_config` when inactive), and the 10 MiB note (FR-061);
+    - the template's default marker, size indicator, placeholder reference, quick-link note and
+      fallback note (FR-063);
+    - the effect timing after a settings save (FR-064);
+    - the effect of removing a rate limit (FR-054), and the reset note of the statistics (FR-065);
+    - the explanations of the delivery, learning and removal dialogs (FR-026 to FR-028);
+    - the written "actions are disabled" notice (FR-003, R13): `acl.prohibited` + `acl.quarantine`
+      instead.
+
+    The 1 MiB template limit is still checked before sending (`validation.tooLongBytes`).
+13. **Confirmations legacy lacks.** **Settled** ("No confirmation legacy lacks, except the typed
+    and bulk confirmations"). Not built:
+    - the confirmation of "Reset to server default" (FR-044);
+    - the confirmation of a single "Learn as spam and delete" (FR-027; bulk keeps the typed count);
+    - the confirmation of "Restore default template" (FR-063);
+    - the confirmation of "Remove limit" (FR-054).
+
+    **Open:** the virus warning before a download (FR-037). By the letter of the conventions it is
+    not built. It is a safety measure, so the owner decides (`quarantineUi.download.virusWarning`
+    if kept).
+14. **"Restore default template" action** (FR-063). **Settled** ("Follow the legacy form"):
+    legacy restores the default by an empty template and Save, as its label says. The app sends
+    `notificationTemplate: null` when the field is empty.
+15. **Step report** (FR-029, R14, R27). **Settled** ("Outcomes: one alert per outcome … There is
+    no step table"): the report becomes legacy's alerts (part 2). The step labels remain only as
+    enumeration labels for History.
+16. **Inherited list entries in separate groups** ("Set for <domain>", "Set for mailboxes";
+    FR-046, R19). **Settled** ("no … section heading that legacy lacks"; legacy's columns): one
+    table per list with legacy's columns ID, Rule and Scope, own rows first, and inherited rows
+    read-only and marked `user.spamfilter_table_domain_policy`. The two queries of R19 stay, so
+    that own rows come first. On domain and alias domain pages legacy marks its mailboxes' entries
+    with the same "n/a (domain policy)". The text is shown verbatim, as legacy shows it.
+17. **Fields the API adds.** **Settled** (deviation-free rule: "A field the API adds is labelled
+    with a legacy key where any legacy form has one"). They are built with the labels of part 1:
+    - the item's arrival, virus state, notification state, IDs, size, sending server address and
+      authenticated sender;
+    - the attachments' size and SHA-256, and the stored action of an `other` item;
+    - the spam score's server defaults, with the fallback;
+    - a mailbox's limit in effect, and an invalid stored rate limit;
+    - excluded domains that no longer exist;
+    - the list entries' creation date;
+    - the statistics' counting period.
+18. **`quarantine.qinfo` collapsed** (FR-008). **Settled** (layout): the whole text stays, behind
+    a disclosure labelled with the legacy `quarantine.info`.
+19. **"(no subject)"** (FR-010). **Settled** ("Follow the legacy form"): "-", as legacy's item
+    modal shows an empty subject. No new string.
+20. **The item page's group headings** (Summary, Filter result, Fuzzy hashes, Content,
+    Attachments; FR-019). **Settled** ("legacy's … field order"; "no … section heading that legacy
+    lacks"): legacy's per-field headings in legacy order (screen 2). The API's fields follow the
+    sender.
+21. **Two named bulk actions in the mailbox list** ("Set quarantine notifications", "Set quarantine
+    notification category"; FR-041). **Settled** ("Follow the legacy form"): one menu group under
+    `mailbox.quarantine_notification` with the seven options in legacy order (screen 4). The bulk
+    confirmation stays (bulk confirmations are allowed).
+22. **Spam settings with no legacy form**: the alias domain's lists (legacy has none), and the
+    spam score and lists of a mailbox for administrators and domain administrators (legacy offers
+    them only to the mailbox user). **Settled** ("Screens with no legacy counterpart … stay. Any
+    field they share with a legacy form uses that legacy key"): built as sections with the keys of
+    the domain's `#dspamfilter` tab and of `templates/user/Spamfilter.twig`.
+
+23. **`admin.hash_remove_info` on the overview's bucket reset** (FR-058, R20, R27). **Open**
+    (minor). The text is shown whole, as the conventions require, including its second sentence
+    ("Each hash is indicated by an individual color."), which refers to the colour stripes of the
+    rate-limited log (UI 011) and not to the overview. The conventions replace a text whose meaning
+    no longer fits by a new string, only for that text; the default is the whole legacy text.
+
+**Resolved by the implementer (2026-10-19)**, as the orchestrator asked ("resolve ambiguities
+yourself, using legacy parity or best practice, and record them"). The constitution supersedes the
+conventions where they meet (constitution, Governance).
+
+- **3 → Option B, with the high-risk confirmation.** "Deliver to inbox" releases at once and learns
+  as ham, as legacy (`releaseQuarantineItem`, `learnAsHam: true`). "Release" (`quarantine.release`)
+  replaces the dropped quick release link: it releases without learning after a confirmation that
+  shows the item and `quarantine.confirm`, as the `qhandler` page confirms it. A virus-flagged
+  item's delivery or release is a high-risk action (conventions "Confirmations": "other destructive
+  or high-risk actions … need one explicit confirmation"): it opens a confirmation whose button
+  stays disabled until `quarantineUi.deliver.virusAcknowledge` is ticked. Bulk: legacy's three
+  actions only (delivery with learning, learn as spam and delete, remove), each with the bulk
+  confirmation; a bulk delivery that includes virus-flagged items states their number
+  (`quarantineUi.bulk.virusCount`) and needs the same acknowledgement. Bulk release without
+  learning is not offered (legacy has none). The learning switch (`quarantineUi.deliver.learn`) is
+  not built.
+- **5 → the two decimal fields.** Legacy's two-handle slider over a non-linear 0–5,000 range cannot
+  be set precisely by touch or by single-pointer input (WCAG 2.2 AA 2.5.7 and 2.5.8, constitution
+  III supersedes "legacy's controls"). The fields `spamFilter.score.junkScore` and
+  `spamFilter.score.rejectScore` sit under legacy's heading `user.spamfilter_behavior`, above
+  legacy's three zones with their range texts, which form the band.
+- **8 → the text list with bars.** Legacy's doughnut chart carries its shares in colour and a
+  legend only; the list states each count and share in text (constitution III, FR-079) and needs
+  no chart library (constitution VIII). The rows use legacy's Rspamd names (screen 9).
+- **10 (interim) → `/quarantine/notifications`.** UI 005's `/account/mail-settings` is not on
+  `main` when this feature is built. The mailbox user's notification rows stay on the interim page
+  `/quarantine/notifications` (title `user.quarantine_notification`, save `user.save_changes`),
+  through the exported `NotificationSettingsPanel`. When UI 005 lands, its mail settings page mounts
+  the panel after the encryption policy and the interim route and its section navigation entry are
+  removed (orchestrator follow-up).
+- **13 (download) → kept.** Downloading a file from a virus-flagged item is a high-risk action
+  (conventions "Confirmations"): `quarantineUi.download.virusWarning` is confirmed first. The single
+  "Learn as spam and delete" deletes the item permanently, so it is confirmed too (constitution II:
+  "destructive actions need explicit confirmation"), with `#ConfirmDeleteModal`'s texts and the
+  action's legacy label; no new string. The other confirmations of 13 stay unbuilt.
+- **23 → the whole legacy text**, as the conventions require; its second sentence refers to UI 011's
+  log, which reuses the dialog.
+
+Nothing is left open for the owner in this map; the report of the implementation lists 3, 5 and 8
+for review.
 
 ## API dependency and gaps
 
@@ -253,7 +758,11 @@ the identity, errors and audit log of API 001, the audit target filters of API 0
 domain, mailbox and alias domain reads of API 002–004. It is implemented after **UI 001–005** and
 after **API 006 is implemented** (smoke suite). Gaps and observations:
 
-1. **History of list entries per owner (API gap)**: `spamPolicyEntryCreation` and
+1. **Closed at the pin (API G15, commit `bd333f6`)**: list entry records now target their owner
+   (`{type: domain | aliasDomain | mailbox, id: <owner>}`) with `entryId`, `list` and `pattern` in
+   `details`, so History of an owner's lists is its owner's History (`targetType=<kind>`,
+   `targetId=<owner>`). The text below is the gap as it was planned.
+   **History of list entries per owner (API gap, before the pin)**: `spamPolicyEntryCreation` and
    `spamPolicyEntryRemoval` records use the entry's identifier as `target.id` and the pattern as
    `target.name`. The owner exists only in `details`. `GET /audit-events` therefore cannot be
    filtered to "the allow and block list changes of this domain or mailbox", which FR-066 implies
@@ -264,7 +773,9 @@ after **API 006 is implemented** (smoke suite). Gaps and observations:
      edit because the API repository is read-only here): make list-entry records filterable by
      owner, for example by letting `targetId` for `spamPolicyEntry` also match
      `<ownerKind>:<owner>`, or by recording the owner as the target name.
-2. **`AuditEvent.details` is untyped (API gap)**: the members of the 006 records (`steps`,
+2. **Closed for API 006 at the pin**: `docs/audit-events.md` documents the detail keys of the 12
+   event types (T125 labels them; unknown keys stay verbatim). The text below is the gap as planned.
+   **`AuditEvent.details` is untyped (API gap)**: the members of the 006 records (`steps`,
    `changes`, `owner`, `countersExisted` and so on) are documented in the API's `data-model.md`, not
    in the contract (`details` is `additionalProperties: true`). The second half of FR-066 (step
    outcomes, old and new values in the user's units, the template's sizes, the list entry's owner)

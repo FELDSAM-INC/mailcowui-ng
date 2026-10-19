@@ -45,12 +45,49 @@ actions, which US3 tests.
 
 ---
 
+## Task adjustments after the legacy form map (T009a, 2026-10-19)
+
+The legacy form map (plan.md, parts 1–3) applies the conventions' "Translations and forms" rules,
+which override the tasks below where they differ. The tasks keep their numbers; read them with
+these changes:
+
+- **No "Spam filter and limits" pages (D9).** T023, T036 (the object routes, `ObjectSpamFilterPage`,
+  `ObjectPageHeader`, `ObjectHistoryMenu`), T077, T092, T095 and T103's mounting become: the
+  feature exports editable sections that the host pages render in legacy tab order: the domain page
+  gets "Rate limit" (replacing UI 002's read-only section) and "Spam filter" after it; the alias
+  domain page gets its rate limit form and a "Spam filter" section; the mailbox page gets the
+  "Rate limit" section (replacing UI 003's read-only one), a "Spam filter" section (spam score and
+  lists) for administrators and domain administrators, and editable notification fields in its
+  "Mailbox" section. Links (overview entries, the item's recipient, Phase 12) open the host page
+  at the section's fragment. `owner.ts` stays (kind → operations, host route, fragment).
+- **Rate limits (D2):** removal is an empty value and Save (`LegacyRateLimitField`), no "Remove
+  limit" action or dialog (T098's removal steps, T100's `RemoveLimitDialog` are not built).
+- **Quarantine settings (D11, D14):** one section in legacy order with one save; the template is
+  restored by an empty field and Save; no size indicator, placeholder reference or notes (D12).
+  T112/T113 build one `QuarantineSettingsSection` instead of four.
+- **Item actions (D3 resolved, D13, D15):** "Deliver to inbox" sends at once with learning;
+  "Release" (without learning) and virus-flagged deliveries are confirmed; single "Learn as spam and
+  delete" and "Remove" are confirmed with `#ConfirmDeleteModal`'s texts; outcomes are legacy's
+  alerts (part 2), not a step table. Bulk keeps its confirmations (typed count for deletions).
+- **Lists (D16, D6, D12):** one table per list (ID, Rule, Scope, created), own rows first, inherited
+  rows read-only with `user.spamfilter_table_domain_policy`; legacy messages only; no pattern help,
+  preview or panel notes.
+- **Notifications (D4, D10, D12, D21):** no "Not set" text and no effect note; the mailbox user's
+  rows stay on the interim `/quarantine/notifications`; the mailbox list gets one menu group in
+  legacy order.
+- **History:** list entries are recorded on their owner (API G15 closed at the pin), so History of
+  the lists is the owner's History; the per-entry History link of T126 is replaced by it. T125 adds
+  labels for API 006's documented detail keys.
+- **Key namespaces:** new strings use `quarantineUi.*` (not `quarantine.*`, a legacy section),
+  `spamFilter.*` and `rateLimits.*`; feature strings live in `src/i18n/messages/{quarantine,
+  quarantine-admin,spam-filter,rate-limits}/` and load through `loadFeatureMessages('quarantine')`.
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Pin a contract that contains API 006, and extend the tooling (i18n, mock validator,
 smoke stack, Lighthouse, query keys) that every story uses.
 
-- [ ] T001 Bump the contract (research R1). Run `scripts/contract/bump.sh <ref>` with the **later** of `32079252d55797d3da4e58ae661e9fb91c51c6f9` and the commit in `contract/VERSION.json` (UI 005's pin); never move the pin backwards.
+- [x] T001 Bump the contract (research R1). Run `scripts/contract/bump.sh <ref>` with the **later** of `32079252d55797d3da4e58ae661e9fb91c51c6f9` and the commit in `contract/VERSION.json` (UI 005's pin); never move the pin backwards.
   - If the kept commit is later than the baseline, run `git -C ../mailcow-rest-v2 diff 32079252..<ref> -- api/modules/quarantine api/modules/spam-policy api/modules/rate-limits api/components` and update `specs/006-quarantine-spam-policy/contracts/README.md` for any change to an operation, schema, problem type or rule code used here.
   - Record the pinned commit, the bundle sha256 and the operation count in that README's "Pinned contract" table.
   - Run `npm run typecheck`. The 006 root types (`QuarantineItem`, `QuarantineCapabilities`, `SpamPolicyEntry`, `RateLimit` and so on) and `knownProblemTypeValues` must be exported from `src/api/generated/schema.ts`.
@@ -61,17 +98,17 @@ smoke stack, Lighthouse, query keys) that every story uses.
 
   The test must fail.
 - [ ] T003 Implement T002 in `scripts/i18n/lib.mjs` and `scripts/i18n/check.mjs`. Reuse UI 002's coverage mechanism (P13) and UI 001's legacy-key check, and add only the closed-enumeration pointers (if UI 002 already reads inline enumerations, add the 006 pointers to its list). Append the 006 open-enumeration values of research R2 to `src/i18n/coverage.json`. The check fails until the story tasks add the keys; that is expected.
-- [ ] T004 [P] Extend `tests/unit/mocks/validator.spec.ts` (only if P21 is absent). The validator must:
+- [x] T004 [P] Extend `tests/unit/mocks/validator.spec.ts` (only if P21 is absent). The validator must:
   - accept a `downloadQuarantineAttachment` `200` with an `application/octet-stream` body and the four required headers (`Content-Disposition`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy`, `Cache-Control`);
   - reject the same response without `Content-Disposition`, and a `downloadQuarantineMessage` `200` declared as `text/html`;
   - accept a `409` problem with `Retry-After` for `quarantine-item-busy`.
 
   The test must fail.
-- [ ] T005 Implement binary bodies in `tests/mocks/contract/validator.ts` (P21): for `contentMediaType` string schemas, check the declared content type and the required headers, and skip JSON schema validation. T004 must pass.
-- [ ] T006 [P] Add `<meta name="format-detection" content="telephone=no, date=no, email=no, address=no">` to `index.html`, so that iOS never turns message text into links (research R9, FR-083).
-- [ ] T007 [P] Extend `scripts/smoke/stack-up.sh`: start the API stack with `--profile mail` (mailpit), export `RESTV2_RELEASE_SMTP_HOST=mailpit` and `RESTV2_RELEASE_SMTP_PORT=1025` for the API container, wait for `http://localhost:8025`, and run the API's `reset-dev-database.sh`, which seeds the API 006 data (research R28). `scripts/smoke/stack-down.sh` also removes the mailpit container.
-- [ ] T008 [P] Add a `/ng/quarantine` collection with `MOCK_DEFAULT_SCENARIO=quarantine-mailbox-user` to `scripts/run-lhci.mjs` (SC-010). The scenario is created in T040.
-- [ ] T009 [P] Add the query key roots of data-model §3 to `src/api/query/keys.ts`: `quarantine` (`capabilities`, `settings`, `list`, `detail`, `notification-settings`), `spam-policy` (`spam-score`, `entries`, `statistics`) and `rate-limits` (`list`, `detail`). Type the parameter objects as aliases of `NonNullable<operations['…']['parameters']['query']>`, never by hand.
+- [x] T005 Implement binary bodies in `tests/mocks/contract/validator.ts` (P21): for `contentMediaType` string schemas, check the declared content type and the required headers, and skip JSON schema validation. T004 must pass.
+- [x] T006 [P] Add `<meta name="format-detection" content="telephone=no, date=no, email=no, address=no">` to `index.html`, so that iOS never turns message text into links (research R9, FR-083).
+- [x] T007 [P] Extend `scripts/smoke/stack-up.sh`: start the API stack with `--profile mail` (mailpit), export `RESTV2_RELEASE_SMTP_HOST=mailpit` and `RESTV2_RELEASE_SMTP_PORT=1025` for the API container, wait for `http://localhost:8025`, and run the API's `reset-dev-database.sh`, which seeds the API 006 data (research R28). `scripts/smoke/stack-down.sh` also removes the mailpit container.
+- [x] T008 [P] Add a `/ng/quarantine` collection with `MOCK_DEFAULT_SCENARIO=quarantine-mailbox-user` to `scripts/run-lhci.mjs` (SC-010). The scenario is created in T040.
+- [x] T009 [P] Add the query key roots of data-model §3 to `src/api/query/keys.ts`: `quarantine` (`capabilities`, `settings`, `list`, `detail`, `notification-settings`), `spam-policy` (`spam-score`, `entries`, `statistics`) and `rate-limits` (`list`, `detail`). Type the parameter objects as aliases of `NonNullable<operations['…']['parameters']['query']>`, never by hand.
 
 **Checkpoint**: `npm run typecheck` and `npm run contract:check` pass on the new pin. The mock
 validator handles binary bodies.
@@ -89,7 +126,7 @@ mock baseline.
 
 ### Legacy form map
 
-- [ ] T009a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+- [x] T009a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
   Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Prerequisites from earlier features

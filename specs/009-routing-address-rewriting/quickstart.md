@@ -111,6 +111,51 @@ After deploying as in UI 001's quickstart Part D, open `https://<MAILCOW_HOSTNAM
 Appended by the polish tasks: SC-001 timing on a phone, screen-reader passes (VoiceOver, TalkBack),
 and the SC-008 measurement of the BCC picker with 10,000 choices.
 
+### 2026-10-19: results (T114–T120), on `wt/009` rebased onto main `a13d46a`
+
+- **Gates**: `lint`, `format:check`, `typecheck`, `i18n:check`, `contract:check` (pin `e7efa73`,
+  the same as main's), `build` and `budget:check` pass. `test:unit`: 318 files, 2,914 tests
+  passed, global line coverage 87.99 %. The routing feature's own coverage (`src/features/routing/`)
+  is 83.3 % of lines, 82.8 % of statements, 72.5 % of branches and 77.7 % of functions.
+- **Bundle (T116)**: 183,828 of 204,800 bytes of initial JavaScript, gzipped, against 179,732 for
+  main `a13d46a` built the same way (+4,096 bytes). The start-up bundle holds the 22 route records
+  with their preload lists, the routing query keys, the legacy messages of the routing problems
+  and field errors, the routing enumerations, the 31 strings in the main message files and the
+  relayhost field's state, which UI 002's Domain and UI 003's Mailbox sections reach through the
+  feature's index. Two changes took about 1 KB off: the relayhost field loads its requests when a
+  section opens and no longer pulls in the screen list, and the connection test runs through the
+  shared mutation helper, so `useMutation` (the app's only user of TanStack's mutation observer)
+  is not bundled. The routing pages and the feature's strings are lazy chunks.
+- **Lighthouse (T116)**: `npm run lhci` in the Playwright image's Chromium at a load average of
+  about 10 on the shared machine, on the rebase onto `f0c9011`. Accessibility is 0.99–1 on every collection, and the scripts of
+  `/ng/sign-in` are 201,875 bytes (assertion 204,800). Performance is below 0.9 on every
+  collection, and equally on main's build measured right after (sign-in 0.87–0.90, `/ng/`
+  0.78–0.79, `/ng/domains` 0.67–0.71, `/ng/aliases` 0.66–0.72); `/ng/routing/relayhosts` reads
+  0.72–0.76, in the range of the other lists. The performance assertion is to be confirmed on a
+  quiet machine or in CI.
+- **Smoke (T120)**: the API's routing modules are unchanged between the pin `e7efa73` and
+  mailcow-rest-v2 main `b4058c3`. The smoke stack ran at `b4058c3` (`SMOKE_API_REF`), because the
+  API does not boot at `e7efa73`: `AppServiceProvider` imports `SyncJobAuditTargets` twice, which
+  PHP refuses, fixed by `443a688`. With `SMOKE_COMPOSE_PROFILES=routing` (mailpit) as its own
+  Compose project (`SMOKE_PROJECT=ui009-smoke`, `SMOKE_WEB_PORT=18980`): the ten `@routing` tests
+  passed, including the connection test against mailpit ("Accepted", `[redacted]` in the
+  transcript), and the whole suite without the `@idp` and `@sso` tests (which need the `idp`
+  profile) passed, 43 of 43. Three smoke tests were fixed on the way (the identity comes from
+  `GET /me`, and the stored password reads "A password is stored."). No smoke password appears
+  in the logs of the API, nginx and app containers or in the API's `storage/logs`.
+- **End-to-end (T114, T115)**, three projects, two workers, in the Playwright image: on `a13d46a`,
+  the routing specs with the navigation, shell, audit log and the domain and mailbox detail, edit
+  and History specs: 1,122 passed, 2 skipped, 1 failed (an audit log field check that passed in 6
+  of 6 reruns). Full suites earlier on the day: 2,321 passed and 2 failed on `c2c7fe8` (a request
+  read before it was recorded, and a page load timeout, both fixed or passing on rerun), and
+  1,642 of 3,473 passed without failure on `d716050` before the run was stopped for the rebase.
+  The machine's load average was 10–60 throughout.
+- **Devices (T119)**: not run. No mid-range Android phone or iPhone was available to the
+  implementing agent, so SC-001 and SC-008 on a phone and the VoiceOver and TalkBack passes are
+  still open. The automated stand-ins are the end-to-end suite on the two mobile projects (360 px
+  Chromium with touch, WebKit) with axe in both themes, `reflow-and-keyboard.spec.ts` and the
+  keyboard-only paths of every story.
+
 ### 2026-10-19: new strings for the owner's review (T118)
 
 `npm run i18n:check` passes: no unused or missing keys. UI 009 adds 115 new strings in en-gb, cs-cz

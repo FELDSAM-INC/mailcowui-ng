@@ -557,7 +557,7 @@ applies to those.
 - [X] T117 [P] Add the plan's three parity notes (orphaned BCC maps, test address placeholders, legacy hints with HTML shown verbatim) to the "Legacy Parity" table of `specs/009-routing-address-rewriting/spec.md`, and confirm that every legacy element of the table is matched, improved or dropped with a reason and covered by a requirement (SC-005).
 - [X] T118 [P] Run `npm run i18n:check` (SC-006), remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this feature for the owner's review (plan, owner question 1) in `specs/009-routing-address-rewriting/quickstart.md`, section "Validation log".
 - [ ] T119 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone with `npm run preview:mock` on the local network: record the SC-001 timing (add a relayhost, assign it, run a test in under 3 minutes at 360 px), the SC-008 timings (first list page; BCC picker on `routing-bcc-many-choices`), and a VoiceOver and TalkBack pass of every user story, in the "Validation log" section of `specs/009-routing-address-rewriting/quickstart.md`.
-- [ ] T120 Once the API 009 implementation is released: re-run T002's pin check against the released commit or tag (pins only move forward), then run `quickstart.md` Part C (`SMOKE_COMPOSE_PROFILES=routing scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @routing`, `scripts/smoke/stack-down.sh`), check that the API's log holds none of the smoke passwords (`docker compose -f $MAILCOW_REST_V2_DIR/compose.yaml logs app | grep -c <smoke password>` prints `0`), and set `SMOKE_COMPOSE_PROFILES: routing` for the `smoke` job in `.github/workflows/ci.yml`.
+- [X] T120 Once the API 009 implementation is released: re-run T002's pin check against the released commit or tag (pins only move forward), then run `quickstart.md` Part C (`SMOKE_COMPOSE_PROFILES=routing scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @routing`, `scripts/smoke/stack-down.sh`), check that the API's log holds none of the smoke passwords (`docker compose -f $MAILCOW_REST_V2_DIR/compose.yaml logs app | grep -c <smoke password>` prints `0`), and set `SMOKE_COMPOSE_PROFILES: routing` for the `smoke` job in `.github/workflows/ci.yml`.
 
 ---
 
@@ -742,9 +742,19 @@ marks above mean "done as the decisions require"; the differences are:
 - **Forwarding hosts (decision 9)**: no entry page; the spam filter changes through the two quick
   actions.
 - **T013, T022**: superseded by constitution IV 1.3.0, as written.
-- **After the rebase onto main `79948fc`**: the mailbox section tests mount a router for the
-  relayhost field's History link; `credential-secrecy.spec.ts` reads the request bodies that
-  Chromium does not expose from the mock's record; the sticky-bar check of
-  `reflow-and-keyboard.spec.ts` ignores the desktop navigation beside the action bar; T015's
-  `routing-shell.spec.ts` and the smoke specs of T072 and T098 were added.
+- **After the rebases onto main (`79948fc`, `681bfdb`, `f0c9011`, `d716050`, `a13d46a`)**: the
+  mailbox section tests mount a router for the relayhost field's History link;
+  `credential-secrecy.spec.ts` reads the request bodies that Chromium does not expose from the
+  mock's record; the sticky-bar check of `reflow-and-keyboard.spec.ts` ignores the desktop
+  navigation beside the action bar; the routing lists mark entries of a previous query
+  (`data-list-stale`) for the tests to wait on; T015's `routing-shell.spec.ts` and the smoke specs
+  of T072 and T098 were added; the relayhost field loads its requests when a section opens and the
+  connection test no longer uses `useMutation`, which takes about 1 KB off the start-up bundle;
+  UI 004's scenario name check accepts the definitions that `routing/index.ts` passes on.
+- **T116** stays open: the collection is added, the budget and accessibility pass, but on the
+  shared machine performance stays below 0.9 on every collection, main's included (quickstart
+  "Validation log"). It is to be confirmed on a quiet machine or in CI.
+- **T119** stays open: no phones were available (quickstart "Validation log").
+- **T120**: the smoke suite ran against mailcow-rest-v2 `b4058c3`, because the API does not boot at
+  the pin `e7efa73` (fixed by `443a688`); the routing contract is the same at both.
 

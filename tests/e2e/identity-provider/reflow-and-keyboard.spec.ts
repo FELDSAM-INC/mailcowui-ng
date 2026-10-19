@@ -66,6 +66,24 @@ const SCREENS: Screen[] = [
   },
 ]
 
+// UI 012 US2: the sign-in screens with single sign-on and the return page's outcomes.
+SCREENS.push(
+  { name: 'the sign-in screen with single sign-on', scenario: 'sso-available', path: 'sign-in' },
+  {
+    name: 'the forced single sign-on screen',
+    scenario: 'sso-force',
+    path: 'sign-in/mailbox-user',
+  },
+  {
+    name: 'the return page with an expired sign-in',
+    scenario: 'sso-available',
+    path: 'sso/return?code=old-code&state=foreign-state',
+    open: async (page) => {
+      await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible()
+    },
+  },
+)
+
 async function openScreen(
   page: Page,
   screen: Screen,

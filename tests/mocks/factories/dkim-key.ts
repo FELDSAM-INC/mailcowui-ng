@@ -1,5 +1,6 @@
-// DKIM key factory (UI 010 research R24): real RSA key pairs from node:crypto, memoised per size
-// and pool slot so that 4,096-bit keys are generated once per process, and the contract `DkimKey`
+// DKIM key factory (UI 010 research R24): real RSA key pairs from node:crypto up to 2,048 bits,
+// memoised per size and pool slot (larger keys are synthetic, see `rsaKeyPair`), and the contract
+// `DkimKey`
 // the handlers answer with. The record is derived as the API documents it: name
 // `<selector>._domainkey.<name>`, value `v=DKIM1;k=rsa;t=s;s=email;p=<public key>`, split into
 // pieces of at most 255 characters. The private key never leaves the mock except through the
@@ -51,12 +52,37 @@ function writeCached(id: string, pair: KeyPair): void {
   }
 }
 
+/** Deterministic bytes of the given length, standing in for a large key's DER public key. */
+function syntheticBytes(seed: string, length: number): Buffer {
+  const chunks: Buffer[] = []
+  for (let counter = 0; chunks.length * 32 < length; counter += 1) {
+    chunks.push(createHash('sha256').update(`${seed}:${counter}`).digest())
+  }
+  return Buffer.concat(chunks).subarray(0, length)
+}
+
 /**
- * A memoised RSA key pair: base64 DER SPKI public key and PKCS#8 PEM private key. Sizes above
- * 2,048 bits have one pair; smaller ones rotate through a small pool.
+ * A memoised RSA key pair: base64 DER SPKI public key and PKCS#8 PEM private key; sizes up to 2,048
+ * bits rotate through a small pool. Keys above 2,048 bits are not generated: on a loaded machine a
+ * 4,096-bit key takes long enough to stall the mock server for every test. Their public key is
+ * deterministic data of the length a real one has (the screens only show it), and their private
+ * key is a 2,048-bit PEM; imports are checked with the real PEM fixtures instead.
  */
 export function rsaKeyPair(size: number, slot = 0): KeyPair {
-  const id = `rsa-${size}-${size > 2048 ? 0 : slot % POOL}`
+  if (size > 2048) {
+    const id = `rsa-${size}`
+    let pair = pairs.get(id)
+    if (!pair) {
+      const base = rsaKeyPair(2048, 0)
+      pair = {
+        publicKey: syntheticBytes(id, 294 + (size - 2048) / 8).toString('base64'),
+        privateKeyPem: base.privateKeyPem,
+      }
+      pairs.set(id, pair)
+    }
+    return pair
+  }
+  const id = `rsa-${size}-${slot % POOL}`
   let pair = pairs.get(id) ?? readCached(id)
   if (!pair) {
     const { publicKey, privateKey } = generateKeyPairSync('rsa', {

@@ -130,3 +130,34 @@ Task T139 appends here:
 - SC-010 timings;
 - a VoiceOver and TalkBack pass through US1, US2, US4 and US7 (SC-003);
 - the SC-011 moderated test with at least 5 mailbox users.
+
+**2026-10-19, resumed list implementation (local `wt/006`)**: the saved branch could not build
+because its registered `QuarantineListPage.vue` did not exist. The page now renders the caller's
+items as cards or a table, with legacy labels, inert message text, URL search/filter/sort/page
+state, draft filters, status information, count announcements, error recovery, and single removal
+with confirmation and `If-Match`. The existing item page receives the Show item links.
+
+Validation of this slice:
+
+- The first saved-feature unit run passed 108 tests but could not load the rate-limit section
+  suite because of the missing page. After the page was added, those 14 rate-limit section tests
+  passed. The nine new page/filter unit tests pass, including ignored mailbox-user scope filters,
+  hostile text, empty/no-match states, pagination, draft application and invalid filter ranges.
+- Type checking, the production build and lint of the new files pass. No new translation was
+  introduced. The full translation gate still fails on the saved, unused
+  `quarantineUi.bulk.virusCount` key; the bulk UI that uses it remains unfinished.
+- The first three-browser list run passed 12 checks and failed the same tap-target check in each
+  project for a subject containing only `-`. A minimum width fixed that link in both layouts;
+  all three affected checks pass after rebuilding. The passing paths cover paging and page size,
+  filters and reload, empty/inactive/read-only states, retry after a failed read, and confirmed
+  removal with a single versioned request. Accessibility in both themes, horizontal reflow,
+  touch targets, the production CSP and the hostile-content request guard are included.
+- The additional administrator recipient-filter and sort/reload test passes in all three browser
+  projects. Desktop `aria-sort`, mobile sort controls, both-theme accessibility and reflow are
+  covered. All six list scenarios now pass across the three projects (18 checks across the
+  initial run and focused follow-ups).
+
+Logs are under the API checkout's ignored `storage/app/restart-2026-10-19/u006/resume-*.log`.
+This is a checkpoint of the list work, not completion of US1 or UI 006: bulk actions, remaining
+item/download/hostile-content coverage, integration entry points, smoke, performance and the
+real-device/live-host checks remain pending. The branch has not been rebased, merged or deployed.

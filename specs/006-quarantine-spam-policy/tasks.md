@@ -370,10 +370,15 @@ sent, and that no markup is ever rendered (spec US1).
   - `ActionBadge.vue`, `VirusBadge.vue` and `NotifiedBadge.vue` (text badges, FR-079);
   - `QuarantineItemCard.vue` (subject heading through `PlainText`, details disclosure for the remaining FR-010 values) and `QuarantineItemRow.vue`;
   - `QuarantineItemList.vue`: cards below `md`, and a table from `md` with header cells, `aria-sort`, and queue and item IDs as the subject cell's second line.
-- [ ] T053 [US1] Implement `src/features/quarantine/pages/QuarantineListPage.vue`:
+- [x] T053 [US1] Implement `src/features/quarantine/pages/QuarantineListPage.vue`:
   - `useListState`, `SearchField`, `ListState`, `PaginationBar`, Refresh and the count announcement;
   - the `quarantine` route in `src/features/quarantine/routes.ts`, with `meta.sectionNav` "Items", registered in `src/app/router/routes.ts`;
   - the catalogue entry `quarantine` set to `available` in `src/app/navigation/catalogue.ts`, with UI 001's visibility test table updated.
+  - Resume validation (2026-10-19): the missing page now connects the saved list state and API to
+    search, draft filters, sort, paging, refresh, count announcements and confirmed single removal.
+    Cards and table cells share `components/list/QuarantineItemValue.vue`; the responsive list is
+    `components/list/QuarantineItemList.vue`. Nine page/filter unit tests pass. The browser checks
+    and their limits are recorded in the quickstart validation log. Bulk selection remains T065–T067.
 - [ ] T054 [P] [US1] Implement the item sections in `src/features/quarantine/components/`:
   - `ItemSummary.vue`: recipients with their header and envelope marked, size, sending server, IDs, notification state, and `authenticatedSender` for administrators;
   - `FilterResult.vue`: score, badge, virus state, and symbols with `Intl` `signDisplay: 'exceptZero'` and their options listed;

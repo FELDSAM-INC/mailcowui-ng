@@ -97,3 +97,20 @@ fake container service shows "Restarted" and appears in the container's History.
 4. On a phone: restart a container in two interactions after opening its card (SC-001); find why a
    message is stuck in under a minute (SC-002). Record the timings and a VoiceOver/TalkBack pass in a
    "Validation log" section appended to this file.
+
+## Validation log
+
+**2026-10-19, Part C (T150)**: the smoke suite ran against a local mailcow-rest-v2 dev stack at
+`4be8653` with `RESTV2_FAKE_OUTBOUND=y` (Compose project `ui011-smoke`, port 18680; the API checked
+out as a clone in `.smoke/api`, not as a worktree). `tests/smoke/operations.smoke.spec.ts`: 6 passed
+(dashboard figures and every container, no horizontal scroll at 360 px, SOGo restarted through the
+fake container service with legacy's "OK" and no Stop on the database card, the Postfix line pushed
+into Redis found by a case-insensitive search, the recorded queue of 8 messages with 3 deferred to
+partner.example, and the ban time changed to 7,200 s with `If-Match`, read back after a reload and
+restored). The restart's History entry is covered by the mock end-to-end tests
+(`tests/e2e/operations/history.spec.ts`), not by the smoke suite.
+
+**Part B on real phones (T149) and Part D on a mailcow host (T150)**: not run. This environment has
+no Android phone, no iPhone and no screen reader, and the feature is not deployed to a mailcow host
+before it is merged. They remain for the owner after the merge (staging host), with SC-001, SC-002
+and SC-011 timed and a VoiceOver and TalkBack pass of every story.

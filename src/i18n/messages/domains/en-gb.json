@@ -90,10 +90,6 @@
       "dkimDnsNoZone": "No DNS zone found for {0}: publish the DKIM record at the domain's DNS provider.",
       "rateLimitFailed": "The rate limit of {0} could not be saved."
     },
-    "rateLimit": {
-      "frameLabel": "Time frame",
-      "value": "Messages"
-    },
     "relay": {
       "short": {
         "relayUnknownOnly": "Relay non-existing mailboxes only"
@@ -105,13 +101,6 @@
       "label": "Sort by",
       "order": "Order",
       "storageUsed": "Storage used"
-    },
-    "tags": {
-      "remove": "Remove tag {tag}",
-      "suggestions": "Suggested tags",
-      "suggestionsLoading": "Loading suggestions…",
-      "suggestionsUnavailable": "Suggestions unavailable",
-      "tooLong": "Tags may have at most {max} characters."
     },
     "usage": {
       "left": "{count} left",

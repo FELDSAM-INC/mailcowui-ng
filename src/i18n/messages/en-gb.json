@@ -302,6 +302,19 @@
     "retry": "Try again",
     "signOut": "Sign out"
   },
+  "domains": {
+    "tags": {
+      "remove": "Remove tag {tag}",
+      "suggestions": "Suggested tags",
+      "suggestionsLoading": "Loading suggestions…",
+      "suggestionsUnavailable": "Suggestions unavailable",
+      "tooLong": "Tags may have at most {max} characters."
+    },
+    "rateLimit": {
+      "frameLabel": "Time frame",
+      "value": "Messages"
+    }
+  },
   "enums": {
     "aliasKind": {
       "regular": "Regular"
@@ -394,6 +407,9 @@
     },
     "required": "required"
   },
+  "hibp": {
+    "error": "API error"
+  },
   "history": {
     "link": "History"
   },
@@ -435,6 +451,73 @@
     },
     "search": {
       "clear": "Clear search"
+    }
+  },
+  "mailboxes": {
+    "delete": {
+      "blocker": {
+        "mailStore": "The mail store is unreachable.",
+        "sharedStore": "The shared data store is unreachable."
+      }
+    },
+    "rename": {
+      "step": {
+        "sharedFolderPermissionsRemoval": "Removing the shared folder permissions",
+        "sharedStoreMove": "Moving the rate limit and the tagged mail handling",
+        "database": "Updating the database",
+        "mailStoreMove": "Moving the mail",
+        "webmailRename": "Renaming the webmail data",
+        "sharedFolderPermissionsRecreation": "Restoring the shared folder permissions"
+      },
+      "outcome": {
+        "done": "Done",
+        "undone": "Undone",
+        "notDone": "Not done",
+        "failed": "Failed",
+        "unknown": "Unknown",
+        "undoFailed": "Undo failed",
+        "skipped": "Skipped"
+      }
+    },
+    "sort": {
+      "quotaUsed": "Storage used"
+    },
+    "attributes": {
+      "duplicate": "Another attribute already has this name."
+    },
+    "problem": {
+      "tagLimit": "At most {max} tags are allowed."
+    },
+    "authSource": {
+      "keycloak": "Keycloak",
+      "genericOidc": "Generic-OIDC",
+      "ldap": "LDAP"
+    },
+    "detail": {
+      "backToList": "Back to the mailboxes",
+      "loadFailed": "The mailbox could not be loaded.",
+      "gone": "This mailbox no longer exists or is no longer available to you."
+    },
+    "quota": {
+      "max": "max. {max} MiB",
+      "unlimitedHint": "0 = ∞"
+    },
+    "acl": {
+      "label": "ACL"
+    },
+    "protocol": {
+      "imap": "IMAP",
+      "pop3": "POP3",
+      "smtp": "SMTP",
+      "sieve": "Sieve",
+      "activeSync": "ActiveSync",
+      "dav": "CalDAV/CardDAV"
+    },
+    "lastLogin": {
+      "imap": "IMAP {'@'} {time}",
+      "pop3": "POP3 {'@'} {time}",
+      "smtp": "SMTP {'@'} {time}",
+      "sso": "SSO {'@'} {time}"
     }
   },
   "nav": {
@@ -653,75 +736,5 @@
     "tooMany": "Enter at most {max} entries.",
     "tooShort": "Enter at least {min} characters.",
     "unchanged": "The new value is the same as the current one."
-  },
-  "mailboxes": {
-    "delete": {
-      "blocker": {
-        "mailStore": "The mail store is unreachable.",
-        "sharedStore": "The shared data store is unreachable."
-      }
-    },
-    "rename": {
-      "step": {
-        "sharedFolderPermissionsRemoval": "Removing the shared folder permissions",
-        "sharedStoreMove": "Moving the rate limit and the tagged mail handling",
-        "database": "Updating the database",
-        "mailStoreMove": "Moving the mail",
-        "webmailRename": "Renaming the webmail data",
-        "sharedFolderPermissionsRecreation": "Restoring the shared folder permissions"
-      },
-      "outcome": {
-        "done": "Done",
-        "undone": "Undone",
-        "notDone": "Not done",
-        "failed": "Failed",
-        "unknown": "Unknown",
-        "undoFailed": "Undo failed",
-        "skipped": "Skipped"
-      }
-    },
-    "sort": {
-      "quotaUsed": "Storage used"
-    },
-    "attributes": {
-      "duplicate": "Another attribute already has this name."
-    },
-    "problem": {
-      "tagLimit": "At most {max} tags are allowed."
-    },
-    "authSource": {
-      "keycloak": "Keycloak",
-      "genericOidc": "Generic-OIDC",
-      "ldap": "LDAP"
-    },
-    "detail": {
-      "backToList": "Back to the mailboxes",
-      "loadFailed": "The mailbox could not be loaded.",
-      "gone": "This mailbox no longer exists or is no longer available to you."
-    },
-    "quota": {
-      "max": "max. {max} MiB",
-      "unlimitedHint": "0 = ∞"
-    },
-    "acl": {
-      "label": "ACL"
-    },
-    "protocol": {
-      "imap": "IMAP",
-      "pop3": "POP3",
-      "smtp": "SMTP",
-      "sieve": "Sieve",
-      "activeSync": "ActiveSync",
-      "dav": "CalDAV/CardDAV"
-    },
-    "lastLogin": {
-      "imap": "IMAP {'@'} {time}",
-      "pop3": "POP3 {'@'} {time}",
-      "smtp": "SMTP {'@'} {time}",
-      "sso": "SSO {'@'} {time}"
-    }
-  },
-  "hibp": {
-    "error": "API error"
   }
 }

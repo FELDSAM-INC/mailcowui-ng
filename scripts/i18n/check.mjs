@@ -28,13 +28,23 @@ const messagesDir = join(root, 'src/i18n/messages')
 const featureDirs = readdirSync(messagesDir).filter((name) =>
   statSync(join(messagesDir, name)).isDirectory(),
 )
+/** Merges feature messages into the app's, group by group, as `mergeLocaleMessage` does. */
+function deepMerge(target, source) {
+  for (const [key, value] of Object.entries(source)) {
+    const current = target[key]
+    target[key] =
+      current && typeof current === 'object' && value && typeof value === 'object'
+        ? deepMerge({ ...current }, value)
+        : value
+  }
+  return target
+}
 const app = Object.fromEntries(
   LOCALES.map((locale) => [
     locale,
-    Object.assign(
-      {},
+    featureDirs.reduce(
+      (messages, dir) => deepMerge(messages, readJson(join(messagesDir, dir, `${locale}.json`))),
       readJson(join(messagesDir, `${locale}.json`)),
-      ...featureDirs.map((dir) => readJson(join(messagesDir, dir, `${locale}.json`))),
     ),
   ]),
 )

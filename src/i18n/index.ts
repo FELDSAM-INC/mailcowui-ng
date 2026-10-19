@@ -31,7 +31,8 @@ export function createAppI18n() {
     missingWarn: false,
     fallbackWarn: false,
     // The features' strings are merged in when their routes load (`loadFeatureMessages`).
-    messages: { [DEFAULT_LOCALE]: enGb as MessageSchema },
+    // A copy, so that merging them never changes the imported module (one instance per test).
+    messages: { [DEFAULT_LOCALE]: structuredClone(enGb) as MessageSchema },
   })
 }
 

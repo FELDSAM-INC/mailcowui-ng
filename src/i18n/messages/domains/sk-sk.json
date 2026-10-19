@@ -90,10 +90,6 @@
       "dkimDnsNoZone": "Pre {0} sa nenašla zóna DNS: zverejnite záznam DKIM u poskytovateľa DNS domény.",
       "rateLimitFailed": "Limit odosielania pre {0} sa nepodarilo uložiť."
     },
-    "rateLimit": {
-      "frameLabel": "Časový úsek",
-      "value": "Správy"
-    },
     "relay": {
       "short": {
         "relayUnknownOnly": "Preposielať len neexistujúce schránky"
@@ -105,13 +101,6 @@
       "label": "Zoradiť podľa",
       "order": "Poradie",
       "storageUsed": "Využité úložisko"
-    },
-    "tags": {
-      "remove": "Odobrať štítok {tag}",
-      "suggestions": "Navrhované štítky",
-      "suggestionsLoading": "Načítavajú sa návrhy…",
-      "suggestionsUnavailable": "Návrhy nie sú k dispozícii",
-      "tooLong": "Štítky môžu mať najviac {max} znakov."
     },
     "usage": {
       "left": "Zostáva: {count}",

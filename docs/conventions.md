@@ -198,8 +198,9 @@ it.
   `featureLoaders` (`src/i18n/index.ts`) and load them with the feature's routes through
   `loadFeatureMessages('<feature>')`, as `src/features/domains/routes.ts` does; language changes
   load them too. `i18n:check` checks them with the app's strings, and component tests load them in
-  `tests/setup/vitest.setup.ts`. Strings that other features or the shell use stay in the main
-  files.
+  `tests/setup/vitest.setup.ts`. Strings that other features or shared components use stay in the
+  main files, even under the feature's namespace (the shared tag input's `domains.tags.*`, the
+  rate limit field's `domains.rateLimit.*`); groups are merged key by key.
 - **Never machine-translate**, in any language.
 - `i18n:check` fails when a new string is missing in en-gb, cs-cz or sk-sk, or when a legacy key
   the app uses is missing from the bundled `en-gb` snapshot.

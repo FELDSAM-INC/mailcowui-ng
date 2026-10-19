@@ -302,6 +302,19 @@
     "retry": "Skúsiť znova",
     "signOut": "Odhlásiť sa"
   },
+  "domains": {
+    "tags": {
+      "remove": "Odobrať štítok {tag}",
+      "suggestions": "Navrhované štítky",
+      "suggestionsLoading": "Načítavajú sa návrhy…",
+      "suggestionsUnavailable": "Návrhy nie sú k dispozícii",
+      "tooLong": "Štítky môžu mať najviac {max} znakov."
+    },
+    "rateLimit": {
+      "frameLabel": "Časový úsek",
+      "value": "Správy"
+    }
+  },
   "enums": {
     "aliasKind": {
       "regular": "Bežný"
@@ -394,6 +407,9 @@
     },
     "required": "povinné"
   },
+  "hibp": {
+    "error": "Chyba API"
+  },
   "history": {
     "link": "História"
   },
@@ -435,6 +451,73 @@
     },
     "search": {
       "clear": "Vymazať hľadanie"
+    }
+  },
+  "mailboxes": {
+    "delete": {
+      "blocker": {
+        "mailStore": "Úložisko pošty je nedostupné.",
+        "sharedStore": "Zdieľané úložisko údajov je nedostupné."
+      }
+    },
+    "rename": {
+      "step": {
+        "sharedFolderPermissionsRemoval": "Odobratie oprávnení k zdieľaným priečinkom",
+        "sharedStoreMove": "Presun limitu odosielania a spracovania označenej pošty",
+        "database": "Úprava databázy",
+        "mailStoreMove": "Presun pošty",
+        "webmailRename": "Premenovanie údajov webmailu",
+        "sharedFolderPermissionsRecreation": "Obnovenie oprávnení k zdieľaným priečinkom"
+      },
+      "outcome": {
+        "done": "Hotovo",
+        "undone": "Vrátené späť",
+        "notDone": "Nevykonané",
+        "failed": "Zlyhalo",
+        "unknown": "Neznáme",
+        "undoFailed": "Vrátenie späť zlyhalo",
+        "skipped": "Preskočené"
+      }
+    },
+    "sort": {
+      "quotaUsed": "Využité miesto"
+    },
+    "attributes": {
+      "duplicate": "Tento názov už má iný atribút."
+    },
+    "problem": {
+      "tagLimit": "Povolených je najviac {max} štítkov."
+    },
+    "authSource": {
+      "keycloak": "Keycloak",
+      "genericOidc": "Generic-OIDC",
+      "ldap": "LDAP"
+    },
+    "detail": {
+      "backToList": "Späť na schránky",
+      "loadFailed": "Schránku sa nepodarilo načítať.",
+      "gone": "Táto schránka už neexistuje alebo už pre vás nie je dostupná."
+    },
+    "quota": {
+      "max": "max. {max} MiB",
+      "unlimitedHint": "0 = ∞"
+    },
+    "acl": {
+      "label": "ACL"
+    },
+    "protocol": {
+      "imap": "IMAP",
+      "pop3": "POP3",
+      "smtp": "SMTP",
+      "sieve": "Sieve",
+      "activeSync": "ActiveSync",
+      "dav": "CalDAV/CardDAV"
+    },
+    "lastLogin": {
+      "imap": "IMAP {'@'} {time}",
+      "pop3": "POP3 {'@'} {time}",
+      "smtp": "SMTP {'@'} {time}",
+      "sso": "SSO {'@'} {time}"
     }
   },
   "nav": {
@@ -653,75 +736,5 @@
     "tooMany": "Zadajte najviac {max} položiek.",
     "tooShort": "Zadajte aspoň {min} znakov.",
     "unchanged": "Nová hodnota je rovnaká ako súčasná."
-  },
-  "mailboxes": {
-    "delete": {
-      "blocker": {
-        "mailStore": "Úložisko pošty je nedostupné.",
-        "sharedStore": "Zdieľané úložisko údajov je nedostupné."
-      }
-    },
-    "rename": {
-      "step": {
-        "sharedFolderPermissionsRemoval": "Odobratie oprávnení k zdieľaným priečinkom",
-        "sharedStoreMove": "Presun limitu odosielania a spracovania označenej pošty",
-        "database": "Úprava databázy",
-        "mailStoreMove": "Presun pošty",
-        "webmailRename": "Premenovanie údajov webmailu",
-        "sharedFolderPermissionsRecreation": "Obnovenie oprávnení k zdieľaným priečinkom"
-      },
-      "outcome": {
-        "done": "Hotovo",
-        "undone": "Vrátené späť",
-        "notDone": "Nevykonané",
-        "failed": "Zlyhalo",
-        "unknown": "Neznáme",
-        "undoFailed": "Vrátenie späť zlyhalo",
-        "skipped": "Preskočené"
-      }
-    },
-    "sort": {
-      "quotaUsed": "Využité miesto"
-    },
-    "attributes": {
-      "duplicate": "Tento názov už má iný atribút."
-    },
-    "problem": {
-      "tagLimit": "Povolených je najviac {max} štítkov."
-    },
-    "authSource": {
-      "keycloak": "Keycloak",
-      "genericOidc": "Generic-OIDC",
-      "ldap": "LDAP"
-    },
-    "detail": {
-      "backToList": "Späť na schránky",
-      "loadFailed": "Schránku sa nepodarilo načítať.",
-      "gone": "Táto schránka už neexistuje alebo už pre vás nie je dostupná."
-    },
-    "quota": {
-      "max": "max. {max} MiB",
-      "unlimitedHint": "0 = ∞"
-    },
-    "acl": {
-      "label": "ACL"
-    },
-    "protocol": {
-      "imap": "IMAP",
-      "pop3": "POP3",
-      "smtp": "SMTP",
-      "sieve": "Sieve",
-      "activeSync": "ActiveSync",
-      "dav": "CalDAV/CardDAV"
-    },
-    "lastLogin": {
-      "imap": "IMAP {'@'} {time}",
-      "pop3": "POP3 {'@'} {time}",
-      "smtp": "SMTP {'@'} {time}",
-      "sso": "SSO {'@'} {time}"
-    }
-  },
-  "hibp": {
-    "error": "Chyba API"
   }
 }

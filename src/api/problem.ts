@@ -35,6 +35,11 @@ export interface ApiProblemParts {
    * `attribute-not-permitted` or `mailboxes` and `resources` of `domain-not-empty`.
    */
   extensions?: Record<string, unknown>
+  /**
+   * UI 011 (research R17): false only when the response carries `Audit-Recorded: false`, an
+   * action carried out without its audit record.
+   */
+  auditRecorded?: boolean
   /** English title and detail, kept for logs only and never shown (FR-075). */
   title?: string
   detail?: string
@@ -51,6 +56,7 @@ export class ApiProblem extends Error {
   readonly pendingActions: PendingAction[]
   readonly serverDate: Date | null
   readonly extensions: Readonly<Record<string, unknown>>
+  readonly auditRecorded: boolean
   readonly title: string | undefined
   readonly detail: string | undefined
 
@@ -67,6 +73,7 @@ export class ApiProblem extends Error {
     this.pendingActions = parts.pendingActions ?? []
     this.serverDate = parts.serverDate ?? null
     this.extensions = parts.extensions ?? {}
+    this.auditRecorded = parts.auditRecorded ?? true
     this.title = parts.title
     this.detail = parts.detail
   }
@@ -108,6 +115,14 @@ function retryAfterOf(body: Record<string, unknown>, response: Response): number
   return Number.isFinite(header) && header > 0 ? header : null
 }
 
+/**
+ * UI 011 (research R17): whether an answer's action has its audit record. The API sends
+ * `Audit-Recorded: false` only when the action was carried out but its record could not be written.
+ */
+export function isAuditRecorded(response: Response | null | undefined): boolean {
+  return response?.headers.get('audit-recorded')?.trim().toLowerCase() !== 'false'
+}
+
 /** The members every problem may carry; anything else is an extension member. */
 const STANDARD_MEMBERS = new Set([
   'type',
@@ -124,11 +139,13 @@ const STANDARD_MEMBERS = new Set([
 /** Reads an error response (status 400 or more) into an ApiProblem. */
 export async function problemFromResponse(response: Response): Promise<ApiProblem> {
   const serverDate = serverDateOf(response)
+  const auditRecorded = isAuditRecorded(response)
   if (!isProblemContentType(response)) {
     return ApiProblem.fromParts({
       kind: response.status >= 500 ? 'unavailable' : 'problem',
       status: response.status,
       serverDate,
+      auditRecorded,
     })
   }
   let body: Record<string, unknown>
@@ -158,6 +175,7 @@ export async function problemFromResponse(response: Response): Promise<ApiProble
       ? (body.pendingActions as PendingAction[])
       : [],
     serverDate,
+    auditRecorded,
     title: typeof body.title === 'string' ? body.title : undefined,
     detail: typeof body.detail === 'string' ? body.detail : undefined,
   })

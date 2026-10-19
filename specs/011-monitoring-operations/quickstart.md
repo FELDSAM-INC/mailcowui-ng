@@ -100,6 +100,54 @@ fake container service shows "Restarted" and appears in the container's History.
 
 ## Validation log
 
+**2026-10-19, resumed integration onto UI main `990830e7`**: the monitoring branch was rebased
+once, keeping both routing and operations routes, translations, mocks, smoke cleanup and Lighthouse
+collections. Type checking, ESLint, formatting, contract consistency, translations, license checks,
+the production build and bundle budgets pass. Initial JavaScript is **186,459 bytes gzipped**
+(limit 204,800). The runtime audit reports no vulnerabilities; the configured development audit
+gate passes with 21 advisories below its critical threshold (2 low, 4 moderate, 15 high).
+
+The full unit run passes **3,263 tests in 369 files**, with **88.97% line coverage**. The affected
+browser integration run (operations, routing, navigation, shell, audit log and API keys, three
+browser projects) finished with 1,449 passed, 11 skipped and four failures. Three failures were
+the same outdated placeholder test: routing is now available, so the test uses System settings.
+The fourth was a chart test advancing the fake clock before its preceding polling response had
+finished. It now waits for each response. Those tests, together with the repaired API-key heading
+assertion, pass **18 focused runs** (three tests, three projects, repeated twice). The API-key
+assertion is scoped to the main content because the navigation also has a System heading.
+
+The earlier audit-log empty-filter failure did not reproduce in the initial focused run, ten
+additional mobile repetitions, or the integrated three-browser run. Its cause remains unproven;
+no production change was made for it. Local logs are in the API checkout's ignored
+`storage/app/restart-2026-10-19/u011/resume-*.log` files. These are local checks; no remote CI or
+deployment was triggered by this resumption.
+
+**2026-10-19, quiet-machine Lighthouse (T146): failed.** All eight collections ran three times,
+including `admin-operations-lighthouse`; nothing was skipped. Browser, unit and build workloads
+had finished before this run. The initial-script size and accessibility assertions pass, but
+every route misses the required performance score of 90:
+
+| Route | Performance, three-run range | Accessibility |
+| --- | --- | --- |
+| Sign-in | 85–89 | 100 |
+| Home | 82–84 | 100 |
+| Domains | 75–78 | 99 |
+| Aliases | 72–74 | 99 |
+| DKIM keys | 80–84 | 100 |
+| Mailboxes | 81–82 | 99 |
+| Relayhosts | 80–81 | 99 |
+| Monitoring dashboard | 68–71 | 100 |
+
+The run exited 1 on the performance assertions. It is not treated as a pass or attributed to
+test contention. JSON/HTML reports and assertion results are preserved in the API
+checkout at `storage/app/restart-2026-10-19/u011/resume-lighthouse-reports/`; the command log is
+`resume-lighthouse.log`. **T146 stays open and UI main stays at `990830e7`.** The next performance
+work should use these measured reports; the thresholds and throttling were not relaxed.
+The best dashboard run has cumulative layout shift **0.294**, LCP **3.3 s**, and total blocking
+time **190 ms**. The best sign-in run has no layout shift, LCP **3.2 s**, and blocking time
+**120 ms**; its largest element is the announcement text after application startup. These are
+measured symptoms, not an established root cause or a completed fix.
+
 **2026-10-19, Part C (T150)**: the smoke suite ran against a local mailcow-rest-v2 dev stack at
 `4be8653` with `RESTV2_FAKE_OUTBOUND=y` (Compose project `ui011-smoke`, port 18680; the API checked
 out as a clone in `.smoke/api`, not as a worktree). `tests/smoke/operations.smoke.spec.ts`: 6 passed

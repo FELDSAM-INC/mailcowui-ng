@@ -111,11 +111,23 @@ test.describe('dashboard @operations', () => {
     await host.getByRole('button', { name: 'Show the values as a table' }).first().click()
     await expect(host.getByRole('table').first().locator('thead th')).toHaveText(['Time', 'CPU'])
 
+    const resourceResponse = () =>
+      page.waitForResponse((response) =>
+        response.url().endsWith('/containers/dovecot-mailcow/resource-usage'),
+      )
+    const initialResource = resourceResponse()
     const dovecot = await expand(page, 'dovecot-mailcow')
+    await (await initialResource).finished()
     await expect(dovecot.locator('figcaption')).toHaveText(['Disk I/O', 'Net I/O'])
     await expect(dovecot.locator('[data-live-chart]').first()).toContainText('Loading...')
-    await page.clock.runFor(5_500)
-    await page.clock.runFor(5_500)
+    // Advancing again while a fetch is in flight skips the next poll: TanStack schedules it
+    // after that response. The first sample has no rates, so wait for two completed polls.
+    for (let sample = 0; sample < 2; sample++) {
+      const response = resourceResponse()
+      await page.clock.runFor(5_500)
+      await (await response).finished()
+      await page.clock.runFor(1)
+    }
     await expect(dovecot.getByRole('img', { name: 'Disk I/O' })).toBeVisible()
     await expect(dovecot.locator('[data-legend]').first()).toContainText('Read')
     await expect(dovecot.locator('[data-current]').first()).toContainText('/s')

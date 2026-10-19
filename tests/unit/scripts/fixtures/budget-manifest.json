@@ -5,7 +5,12 @@
     "src": "index.html",
     "isEntry": true,
     "imports": ["_vendor-b2.js"],
-    "dynamicImports": ["src/features/operations/dashboard/pages/DashboardPage.vue", "src/features/operations/logs/pages/LogPage.vue", "src/features/operations/mail-queue/pages/MailQueuePage.vue", "src/features/operations/fail2ban/pages/Fail2banPage.vue"]
+    "dynamicImports": [
+      "src/features/operations/dashboard/pages/DashboardPage.vue",
+      "src/features/operations/logs/pages/LogPage.vue",
+      "src/features/operations/mail-queue/pages/MailQueuePage.vue",
+      "src/features/operations/fail2ban/pages/Fail2banPage.vue"
+    ]
   },
   "_vendor-b2.js": { "file": "assets/vendor-b2.js", "name": "vendor" },
   "src/features/operations/dashboard/pages/DashboardPage.vue": {
@@ -14,7 +19,10 @@
     "src": "src/features/operations/dashboard/pages/DashboardPage.vue",
     "isDynamicEntry": true,
     "imports": ["_vendor-b2.js"],
-    "dynamicImports": ["src/features/operations/charts/LiveLineChart.vue", "src/features/operations/dashboard/release-notes/render-release-notes.ts"]
+    "dynamicImports": [
+      "src/features/operations/charts/LiveLineChart.vue",
+      "src/features/operations/dashboard/release-notes/render-release-notes.ts"
+    ]
   },
   "src/features/operations/charts/LiveLineChart.vue": {
     "file": "assets/LiveLineChart-d4.js",

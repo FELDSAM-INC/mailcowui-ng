@@ -64,7 +64,7 @@ test('US7-AS10 FR-065 read-only and never-expires are preselected, the owner is 
   )
   await expect(main).toContainText('A read-only key cannot change anything.')
   await expect(main).toContainText('Leave empty to allow any address.')
-  await expect(page.getByRole('heading', { level: 2 })).toHaveText([
+  await expect(main.getByRole('heading', { level: 2 })).toHaveText([
     'Name',
     'Owner',
     'Access',

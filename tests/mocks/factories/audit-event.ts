@@ -129,8 +129,14 @@ export function operationsAuditEvents(): AuditEvent[] {
     queue('mailQueueHold', 2),
     queue('mailQueueRelease', 2),
     queue('mailQueueDelivery', 1),
-    auditEvent({ eventType: 'mailQueueFlush', target: { type: 'mailQueue', id: null, name: null } }),
-    auditEvent({ eventType: 'mailQueuePurge', target: { type: 'mailQueue', id: null, name: null } }),
+    auditEvent({
+      eventType: 'mailQueueFlush',
+      target: { type: 'mailQueue', id: null, name: null },
+    }),
+    auditEvent({
+      eventType: 'mailQueuePurge',
+      target: { type: 'mailQueue', id: null, name: null },
+    }),
     auditEvent({
       eventType: 'mailQueueMessageView',
       target: { type: 'mailQueueMessage', id: '4F2A1B', name: null },

@@ -16,8 +16,7 @@ import {
 } from '../../../scripts/bundle-budget-lib.mjs'
 
 const fixtures = join(process.cwd(), 'tests/unit/scripts/fixtures')
-const load = <T>(name: string): T =>
-  JSON.parse(readFileSync(join(fixtures, name), 'utf8')) as T
+const load = <T>(name: string): T => JSON.parse(readFileSync(join(fixtures, name), 'utf8')) as T
 
 const baseManifest = () => load<Manifest>('budget-manifest.json')
 const config = () => load<BudgetConfig>('budget-config.json')
@@ -69,8 +68,9 @@ describe('per-chunk bundle budgets', () => {
     manifest['src/features/operations/logs/pages/LogPage.vue']!.imports = [
       'src/features/operations/dashboard/release-notes/render-release-notes.ts',
     ]
-    manifest['src/features/operations/dashboard/release-notes/render-release-notes.ts']!.imports =
-      ['node_modules/marked/lib/marked.esm.js']
+    manifest['src/features/operations/dashboard/release-notes/render-release-notes.ts']!.imports = [
+      'node_modules/marked/lib/marked.esm.js',
+    ]
     const result = checkBudgets({ manifest, gzipSize: sizes(), budgets: config() })
     expect(result.errors).toEqual(
       expect.arrayContaining([

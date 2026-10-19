@@ -74,7 +74,8 @@ const budgets = JSON.parse(readFileSync(join(root, 'scripts/bundle-budgets.json'
 const checked = checkBudgets({ manifest, gzipSize, budgets })
 console.log('\nPer-chunk budgets (scripts/bundle-budgets.json):')
 for (const notice of checked.notices) console.log(`  notice: ${notice}`)
-for (const budget of budgets.chunks ?? []) console.log(`  ${budget.name} <= ${budget.maxGzipBytes} bytes`)
+for (const budget of budgets.chunks ?? [])
+  console.log(`  ${budget.name} <= ${budget.maxGzipBytes} bytes`)
 for (const name of budgets.dynamicOnly ?? []) console.log(`  ${name}: dynamic imports only`)
 if (checked.errors.length > 0) {
   for (const error of checked.errors) console.error(`\n${error}`)

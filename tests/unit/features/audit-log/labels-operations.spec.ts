@@ -9,7 +9,9 @@ import { hasMessage, text } from '@/i18n'
 const tr = { t: text, te: hasMessage }
 
 const EVENTS = auditEventTypeValues.filter((value) => /^(container|mailQueue|fail2ban)/.test(value))
-const TARGETS = auditTargetTypeValues.filter((value) => /^(container|mailQueue|fail2ban)/.test(value))
+const TARGETS = auditTargetTypeValues.filter((value) =>
+  /^(container|mailQueue|fail2ban)/.test(value),
+)
 
 describe('UI 011 audit labels', () => {
   it('translates every event type of the feature', () => {

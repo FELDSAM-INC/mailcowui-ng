@@ -308,7 +308,10 @@ describe('contract limits (data-model §6)', () => {
     ['F2B_LIST_ENTRY_MAX_LENGTH', f2b('allowlist', 'items', 'maxLength')],
     ['F2B_LIST_ENTRY_MAX_LENGTH', f2b('denylist', 'items', 'maxLength')],
   )
-  patterns.push(['RATE_LIMIT_BUCKET_ID_PATTERN', parameter('RateLimitBucketId', 'schema', 'pattern')])
+  patterns.push([
+    'RATE_LIMIT_BUCKET_ID_PATTERN',
+    parameter('RateLimitBucketId', 'schema', 'pattern'),
+  ])
 
   it.each(patterns)('%s has the contract pattern', (name, expected) => {
     expect(typeof expected).toBe('string')

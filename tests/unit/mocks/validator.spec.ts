@@ -323,8 +323,7 @@ describe('monitoring operations (UI 011)', () => {
     )
     expect(result.violations).toEqual([])
     expect(
-      validator.match('POST', '/fail2ban/active-bans/2001%3Adb8%3A%3A%2F64/allowlist')
-        ?.operationId,
+      validator.match('POST', '/fail2ban/active-bans/2001%3Adb8%3A%3A%2F64/allowlist')?.operationId,
     ).toBe('allowlistFail2BanBan')
   })
 

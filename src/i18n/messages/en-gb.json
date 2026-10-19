@@ -885,6 +885,32 @@
       "keycloak": "Keycloak",
       "genericOidc": "Generic-OIDC",
       "ldap": "LDAP"
+    },
+    "detail": {
+      "backToList": "Back to the mailboxes",
+      "loadFailed": "The mailbox could not be loaded.",
+      "gone": "This mailbox no longer exists or is no longer available to you."
+    },
+    "quota": {
+      "max": "max. {max} MiB",
+      "unlimitedHint": "0 = ∞"
+    },
+    "acl": {
+      "label": "ACL"
+    },
+    "protocol": {
+      "imap": "IMAP",
+      "pop3": "POP3",
+      "smtp": "SMTP",
+      "sieve": "Sieve",
+      "activeSync": "ActiveSync",
+      "dav": "CalDAV/CardDAV"
+    },
+    "lastLogin": {
+      "imap": "IMAP {'@'} {time}",
+      "pop3": "POP3 {'@'} {time}",
+      "smtp": "SMTP {'@'} {time}",
+      "sso": "SSO {'@'} {time}"
     }
   },
   "hibp": {

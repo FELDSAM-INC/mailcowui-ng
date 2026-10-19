@@ -26,6 +26,7 @@ import { domainsFooterScenarios } from './domains-footer'
 import { domainsHistoryScenarios } from './domains-history'
 import { domainsListScenarios } from './domains-list'
 import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from './mailboxes/base'
+import { mailboxEditScenarios } from './mailboxes/edit'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { navigationScenarios } from './navigation'
 import { passkeySignInScenarios } from './passkey-sign-in'
@@ -74,6 +75,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...domainsFooterScenarios,
   ...domainsHistoryScenarios,
   ...mailboxBaseScenarios,
+  ...mailboxEditScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

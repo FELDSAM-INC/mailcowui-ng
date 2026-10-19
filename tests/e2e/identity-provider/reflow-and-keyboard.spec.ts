@@ -243,3 +243,67 @@ test('SC-004 FR-073 an LDAP setup works with the keyboard alone, with visible fo
   await page.keyboard.press('Enter')
   await expect(page.locator('[data-page-status]')).toContainText(/have been saved/)
 })
+
+test('SC-004 a single sign-on round trip works with the keyboard alone', async ({
+  page,
+  mockApi,
+  fakeProvider,
+}) => {
+  test.slow()
+  await mockApi.use('sso-available')
+  await fakeProvider()
+  await page.goto('sign-in')
+  const button = page.getByRole('button', { name: 'Single Sign-On' })
+  await button.focus()
+  await expect(button).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 15_000 })
+  await expect(page).not.toHaveURL(/sign-in|sso\/return/, { timeout: 15_000 })
+})
+
+test('SC-004 creating an OAuth2 client and revoking its tokens work with the keyboard alone', async ({
+  page,
+  mockApi,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: () => Promise.resolve() },
+    })
+  })
+  await mockApi.use('oauth2-empty')
+  await page.goto('identity-providers/oauth2-apps')
+  const add = page.getByRole('link', { name: 'Add OAuth2 client' }).first()
+  await add.focus()
+  await page.keyboard.press('Enter')
+  const field = page.getByRole('textbox', { name: /Redirect URI/ })
+  await field.focus()
+  await page.keyboard.type('https://wiki.example.org/oauth/callback')
+  await page.keyboard.press('Enter')
+  const dialog = page.getByRole('dialog', { name: 'Add OAuth2 client' })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Copy' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(dialog.getByText('Copied to the clipboard.')).toBeVisible()
+  await dialog.getByRole('button', { name: 'Close' }).last().focus()
+  await page.keyboard.press('Enter')
+  await expect(dialog).toHaveCount(0)
+  await expect(page).toHaveURL(/\/ng\/identity-providers\/oauth2-apps$/)
+
+  const select = page.getByRole('button', { name: 'Select', exact: true })
+  await select.focus()
+  await page.keyboard.press('Enter')
+  const checkbox = page.getByRole('checkbox', { name: /^Select [0-9a-f]{12}$/ }).first()
+  await checkbox.focus()
+  await page.keyboard.press('Space')
+  await expect(checkbox).toBeChecked()
+  const revoke = page
+    .getByRole('region', { name: 'Bulk actions' })
+    .getByRole('button', { name: 'Revoke all client tokens' })
+  await revoke.focus()
+  await page.keyboard.press('Enter')
+  const confirmation = page.getByRole('alertdialog')
+  await confirmation.getByRole('button', { name: 'Revoke all client tokens' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('region', { name: 'Results' })).toBeVisible()
+})

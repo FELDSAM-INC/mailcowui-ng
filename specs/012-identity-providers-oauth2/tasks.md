@@ -880,13 +880,13 @@ are independent.
 **Purpose**: Cross-story verification, budgets, translations, parity notes and validation on real
 devices and a real API.
 
-- [ ] T095 [P] Write and pass `tests/e2e/identity-provider/reflow-and-keyboard.spec.ts`. These states have no horizontal scroll at 320 px and at the equivalent of 400 % zoom (320 CSS px on a 1,280 px desktop), work in landscape on the mobile projects, and never hide the focused element behind the sticky header:
+- [X] T095 *(done: `tests/e2e/identity-provider/reflow-and-keyboard.spec.ts` checks 14 screens and dialogs (setup, errors, stored values, section edit, test result, removal, the sign-in screens with single sign-on, the return page, the OAuth2 list, form, client page, new secret and bulk results) at 320 px and 400 % zoom, in landscape on phones and under reduced motion; the sticky header and focus; and the keyboard-only LDAP setup, single sign-on round trip, and OAuth2 creation and revocation)* [P] Write and pass `tests/e2e/identity-provider/reflow-and-keyboard.spec.ts`. These states have no horizontal scroll at 320 px and at the equivalent of 400 % zoom (320 CSS px on a 1,280 px desktop), work in landscape on the mobile projects, and never hide the focused element behind the sticky header:
   - every screen and dialog of this feature: overview, setup steps, setup page, section edits, OAuth2 list, create, detail, credentials dialog and bulk summary;
   - the return page states;
   - the sign-in screens with single sign-on.
 
   Transitions honour `prefers-reduced-motion`. The main paths of US1 (LDAP setup), US2 (single sign-on round trip) and US5 (create and revoke) complete with the keyboard alone, with focus visible at every step (FR-071 to FR-074, SC-004, SC-005).
-- [ ] T096 [P] Extend `tests/e2e/shell/storage-and-secrets.spec.ts` (SC-003, FR-081). After the US1, US2, US4 and US5 flows:
+- [X] T096 *(done: `tests/e2e/shell/storage-and-secrets.spec.ts` allows `mailcowui-ng.sso-return-to` and checks the identity provider secrets (only the save and test bodies carry them, never storage, history or headers), the single sign-on round trip (no code, state or kept address left) and an OAuth2 client secret (only in its dialog))* [P] Extend `tests/e2e/shell/storage-and-secrets.spec.ts` (SC-003, FR-081). After the US1, US2, US4 and US5 flows:
   - `localStorage` and `sessionStorage` hold only the keys of UI 001 data-model §4 plus `mailcowui-ng.sso-return-to`, which is absent after a return;
   - no storage value, address, `history.state` or recorded request header contains the code, the state, the bind password, the client secret or an OAuth2 client secret;
   - only the completion request body contains the code and state, and only the setup, edit and test bodies contain the typed secrets.

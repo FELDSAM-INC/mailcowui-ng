@@ -135,6 +135,54 @@ test('UI 012 SC-003 FR-081 the identity provider secrets never reach storage, hi
   ])
 })
 
+test('UI 012 SC-003 a single sign-on round trip leaves neither the code, the state nor the kept address', async ({
+  page,
+  mockApi,
+  fakeProvider,
+}) => {
+  test.slow()
+  await mockApi.use('sso-available')
+  const provider = await fakeProvider()
+  await page.goto('passkeys')
+  await page.getByRole('button', { name: 'Single Sign-On' }).click()
+  await expect(page).toHaveURL(/\/ng\/passkeys$/, { timeout: 15_000 })
+  const [state] = provider.states()
+  const [code] = provider.codes()
+  await expectCleanStorage(page, [state!, code!])
+  const kept = await page.evaluate(() => sessionStorage.getItem('mailcowui-ng.sso-return-to'))
+  expect(kept).toBeNull()
+})
+
+test('UI 012 SC-003 an OAuth2 client secret appears only in its dialog', async ({
+  page,
+  mockApi,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: () => Promise.resolve() },
+    })
+  })
+  await mockApi.use('oauth2-empty')
+  await page.goto('identity-providers/oauth2-apps/new')
+  await page
+    .getByRole('textbox', { name: /Redirect URI/ })
+    .fill('https://wiki.example.org/oauth/callback')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  const dialog = page.getByRole('dialog', { name: 'Add OAuth2 client' })
+  const secret = await dialog.getByRole('textbox', { name: 'Secret' }).inputValue()
+  expect(secret).toMatch(/^[0-9a-f]{24}$/)
+  await expectCleanStorage(page, [secret])
+  await dialog.getByRole('button', { name: 'Copy' }).click()
+  await dialog.getByRole('button', { name: 'Close' }).last().click()
+  await expect(dialog).toHaveCount(0)
+  await expect(page.getByText(secret)).toHaveCount(0)
+  await expectCleanStorage(page, [secret])
+  for (const request of await mockApi.requests()) {
+    expect(JSON.stringify(request.headers)).not.toContain(secret)
+  }
+})
+
 test('Edge: with storage disabled the app still signs in and works', async ({ page, mockApi }) => {
   await page.addInitScript(() => {
     for (const name of ['localStorage', 'sessionStorage'] as const) {

@@ -1,1 +1,122 @@
-{ "dns": {} }
+{
+  "dns": {
+    "diagnostics": {
+      "checks": {
+        "serverIpv4": "Server address (IPv4)",
+        "reverseIpv4": "Reverse name (IPv4)",
+        "serverIpv6": "Server address (IPv6)",
+        "reverseIpv6": "Reverse name (IPv6)",
+        "tlsa25": "TLSA for SMTP (port 25)",
+        "mx": "Mail exchanger",
+        "autodiscover": "Autodiscover",
+        "autodiscoverService": "Autodiscover service",
+        "autoconfig": "Autoconfig",
+        "mtaStsHost": "MTA-STS host",
+        "mtaStsRecord": "MTA-STS record",
+        "tlsReporting": "TLS reporting",
+        "spf": "SPF",
+        "dmarc": "DMARC",
+        "dkim": "DKIM",
+        "dkimSelector": "DKIM (selector {selector})",
+        "service": "{service} service",
+        "generic": "{type} record"
+      },
+      "status": {
+        "match": "Correct",
+        "mismatch": "Different value",
+        "missing": "Missing",
+        "missingOptional": "Not set (optional)",
+        "lookupFailed": "Could not be checked",
+        "informational": "Found",
+        "expectedUnknown": "Cannot be verified",
+        "unknown": "Unknown state"
+      },
+      "scopes": {
+        "server": "Server-wide records",
+        "domain": "Records of this name"
+      },
+      "causes": {
+        "connectionFailed": "the connection failed",
+        "timeout": "the connection timed out",
+        "starttlsRefused": "the server refused STARTTLS",
+        "tlsHandshakeFailed": "the TLS handshake failed",
+        "noCertificate": "no certificate was presented"
+      },
+      "messages": {
+        "lookupTimeout": "The lookup timed out after {timeoutSeconds} seconds.",
+        "runTimeout": "The check reached its time limit of {timeoutSeconds} seconds before this record was checked.",
+        "lookupError": "The DNS resolver reported an error or a failed DNSSEC validation.",
+        "publicAddressUnknown": "The server's public {family} address could not be determined.",
+        "certificateUnavailable": "The certificate of {host} on port {port} could not be read: {cause}.",
+        "dkimKeyUnavailable": "The stored DKIM key could not be read.",
+        "hostIsAlias": "The server host name is an alias (CNAME) of {target}, which a mail exchanger must not be.",
+        "dkimPublicKeyDiffers": "The DKIM record carries a different public key than the stored one.",
+        "spfMultipleRecords": "SPF records published: {count}. Only one is allowed.",
+        "spfTooManyLookups": "Evaluating the SPF policy needs more than {limit} DNS lookups.",
+        "spfTooManyVoidLookups": "Evaluating the SPF policy hits more than {limit} lookups without an answer.",
+        "spfNotPass": "The SPF policy does not authorise the server address {address} (result: {result}).",
+        "spfError": "The SPF policy could not be evaluated (result: {result}).",
+        "nullServiceRecord": "The name publishes a null service record: the service is marked as not offered.",
+        "noPublicIpv6": "The server has no public IPv6 address, so the IPv6 checks are left out.",
+        "serverChecksOmitted": "The server-wide records are checked for administrators only.",
+        "spfAuthorizeAddresses": "The SPF record must authorise the server's addresses:",
+        "spfSuggestedRecord": "Suggested SPF record:",
+        "spfSyntaxReference": "The SPF syntax is explained in its reference.",
+        "dmarcPublishPolicy": "Publish a DMARC policy for this name.",
+        "tlsReportingPublishRecord": "Publish a TLS reporting record to receive reports about failed TLS connections.",
+        "unknown": "Further detail, in English:"
+      },
+      "allow": "Allow",
+      "learnMore": "Learn more",
+      "noRecord": "No record found",
+      "found": "Values found",
+      "copyName": "Copy record name of {check}",
+      "copyExpected": "Copy expected value of {check}",
+      "copyValue": "Copy {value}",
+      "aliasOf": "Alias domain of {target}",
+      "aliasMtaSts": "The MTA-STS records of an alias domain point to the policy of {target}.",
+      "partial": "Some records could not be checked. Run the check again later.",
+      "changed": "The DKIM key or the MTA-STS policy changed after this check.",
+      "summary": {
+        "title": "Summary",
+        "groups": {
+          "ok": "{count} correct",
+          "needsAttention": "{count} need attention",
+          "optionalNotSet": "{count} optional, not set",
+          "notVerified": "{count} not verified"
+        },
+        "allCorrect": "All required records are correct.",
+        "allCorrectUnverified": "All required records that could be checked are correct; {count} not verified.",
+        "onlyAttention": "Only checks that need attention or were not verified",
+        "noneLeft": "No check needs attention."
+      },
+      "facts": {
+        "title": "Server",
+        "hostname": "Host name",
+        "ipv4": "IPv4 address",
+        "ipv6": "IPv6 address",
+        "noIpv6": "No public IPv6 address",
+        "checkedAt": "Checked"
+      },
+      "zone": {
+        "title": "Zone file",
+        "download": "Download",
+        "copy": "Copy zone file",
+        "show": "Show zone file",
+        "hide": "Hide zone file"
+      },
+      "run": {
+        "again": "Run again",
+        "running": "Checking the DNS records… This can take up to {seconds} seconds.",
+        "started": "Checking the DNS records of {name}…",
+        "finished": "DNS check finished: {counts}.",
+        "timeout": "The check took longer than {seconds} seconds and was stopped.",
+        "failed": "The DNS records could not be checked.",
+        "previous": "The result shown is from the previous check.",
+        "remaining": "Checks left this minute: {count}",
+        "availableIn": "Available again in {time}.",
+        "availableAgain": "Checking DNS is available again."
+      }
+    }
+  }
+}

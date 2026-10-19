@@ -1,1 +1,122 @@
-{ "dns": {} }
+{
+  "dns": {
+    "diagnostics": {
+      "checks": {
+        "serverIpv4": "Adresa servera (IPv4)",
+        "reverseIpv4": "Reverzný záznam (IPv4)",
+        "serverIpv6": "Adresa servera (IPv6)",
+        "reverseIpv6": "Reverzný záznam (IPv6)",
+        "tlsa25": "TLSA pre SMTP (port 25)",
+        "mx": "Poštový server (MX)",
+        "autodiscover": "Autodiscover",
+        "autodiscoverService": "Služba Autodiscover",
+        "autoconfig": "Autoconfig",
+        "mtaStsHost": "Hostiteľ MTA-STS",
+        "mtaStsRecord": "Záznam MTA-STS",
+        "tlsReporting": "Hlásenia TLS",
+        "spf": "SPF",
+        "dmarc": "DMARC",
+        "dkim": "DKIM",
+        "dkimSelector": "DKIM (selektor {selector})",
+        "service": "Služba {service}",
+        "generic": "Záznam {type}"
+      },
+      "status": {
+        "match": "Správne",
+        "mismatch": "Iná hodnota",
+        "missing": "Chýba",
+        "missingOptional": "Nenastavené (voliteľné)",
+        "lookupFailed": "Nepodarilo sa overiť",
+        "informational": "Nájdené",
+        "expectedUnknown": "Nemožno overiť",
+        "unknown": "Neznámy stav"
+      },
+      "scopes": {
+        "server": "Záznamy celého servera",
+        "domain": "Záznamy tohto názvu"
+      },
+      "causes": {
+        "connectionFailed": "spojenie zlyhalo",
+        "timeout": "vypršal časový limit spojenia",
+        "starttlsRefused": "server odmietol STARTTLS",
+        "tlsHandshakeFailed": "nadviazanie TLS zlyhalo",
+        "noCertificate": "server nepredložil žiadny certifikát"
+      },
+      "messages": {
+        "lookupTimeout": "Dopyt nebol zodpovedaný do {timeoutSeconds} sekúnd.",
+        "runTimeout": "Kontrola dosiahla časový limit {timeoutSeconds} sekúnd skôr, než bol tento záznam overený.",
+        "lookupError": "Resolver DNS ohlásil chybu alebo neúspešné overenie DNSSEC.",
+        "publicAddressUnknown": "Verejnú adresu {family} servera sa nepodarilo zistiť.",
+        "certificateUnavailable": "Certifikát servera {host} na porte {port} sa nepodarilo prečítať: {cause}.",
+        "dkimKeyUnavailable": "Uložený DKIM kľúč sa nepodarilo prečítať.",
+        "hostIsAlias": "Názov servera je alias (CNAME) pre {target}, čo poštový server nesmie byť.",
+        "dkimPublicKeyDiffers": "DKIM záznam obsahuje iný verejný kľúč, než je uložený.",
+        "spfMultipleRecords": "Zverejnené SPF záznamy: {count}. Povolený je len jeden.",
+        "spfTooManyLookups": "Vyhodnotenie SPF vyžaduje viac než {limit} dopytov DNS.",
+        "spfTooManyVoidLookups": "Vyhodnotenie SPF narazí na viac než {limit} dopytov bez odpovede.",
+        "spfNotPass": "SPF neautorizuje adresu servera {address} (výsledok: {result}).",
+        "spfError": "SPF sa nepodarilo vyhodnotiť (výsledok: {result}).",
+        "nullServiceRecord": "Názov zverejňuje prázdny záznam služby: služba je označená ako neponúkaná.",
+        "noPublicIpv6": "Server nemá verejnú adresu IPv6, kontroly IPv6 preto chýbajú.",
+        "serverChecksOmitted": "Záznamy celého servera sa kontrolujú len pre administrátorov.",
+        "spfAuthorizeAddresses": "SPF záznam musí autorizovať adresy servera:",
+        "spfSuggestedRecord": "Odporúčaný SPF záznam:",
+        "spfSyntaxReference": "Syntax SPF je opísaná v jej referencii.",
+        "dmarcPublishPolicy": "Zverejnite pre tento názov DMARC politiku.",
+        "tlsReportingPublishRecord": "Zverejnite záznam hlásení TLS, aby ste dostávali hlásenia o neúspešných spojeniach TLS.",
+        "unknown": "Ďalšie podrobnosti, v angličtine:"
+      },
+      "allow": "Povoliť",
+      "learnMore": "Viac informácií",
+      "noRecord": "Žiadny záznam sa nenašiel",
+      "found": "Nájdené hodnoty",
+      "copyName": "Kopírovať názov záznamu: {check}",
+      "copyExpected": "Kopírovať očakávanú hodnotu: {check}",
+      "copyValue": "Kopírovať {value}",
+      "aliasOf": "Alias doména domény {target}",
+      "aliasMtaSts": "Záznamy MTA-STS alias domény odkazujú na politiku domény {target}.",
+      "partial": "Niektoré záznamy sa nepodarilo overiť. Spustite kontrolu neskôr znova.",
+      "changed": "DKIM kľúč alebo MTA-STS politika sa po tejto kontrole zmenili.",
+      "summary": {
+        "title": "Súhrn",
+        "groups": {
+          "ok": "Správne: {count}",
+          "needsAttention": "Vyžaduje pozornosť: {count}",
+          "optionalNotSet": "Voliteľné, nenastavené: {count}",
+          "notVerified": "Neoverené: {count}"
+        },
+        "allCorrect": "Všetky povinné záznamy sú správne.",
+        "allCorrectUnverified": "Všetky povinné záznamy, ktoré sa dali overiť, sú správne; neoverené: {count}.",
+        "onlyAttention": "Len kontroly, ktoré vyžadujú pozornosť alebo neboli overené",
+        "noneLeft": "Žiadna kontrola nevyžaduje pozornosť."
+      },
+      "facts": {
+        "title": "Server",
+        "hostname": "Názov servera",
+        "ipv4": "Adresa IPv4",
+        "ipv6": "Adresa IPv6",
+        "noIpv6": "Žiadna verejná adresa IPv6",
+        "checkedAt": "Skontrolované"
+      },
+      "zone": {
+        "title": "Súbor zóny",
+        "download": "Stiahnuť",
+        "copy": "Kopírovať súbor zóny",
+        "show": "Zobraziť súbor zóny",
+        "hide": "Skryť súbor zóny"
+      },
+      "run": {
+        "again": "Spustiť znova",
+        "running": "Kontrolujem DNS záznamy… Môže to trvať až {seconds} sekúnd.",
+        "started": "Kontrolujem DNS záznamy pre {name}…",
+        "finished": "Kontrola DNS dokončená: {counts}.",
+        "timeout": "Kontrola trvala dlhšie než {seconds} sekúnd a bola zastavená.",
+        "failed": "DNS záznamy sa nepodarilo skontrolovať.",
+        "previous": "Zobrazený výsledok pochádza z predchádzajúcej kontroly.",
+        "remaining": "Zostávajúce kontroly v tejto minúte: {count}",
+        "availableIn": "Znova dostupné o {time}.",
+        "availableAgain": "Kontrola DNS je opäť dostupná."
+      }
+    }
+  }
+}

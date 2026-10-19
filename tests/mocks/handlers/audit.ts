@@ -52,15 +52,16 @@ function searchMatches(event: AuditEvent, q: string): boolean {
 }
 
 /** The targets whose identifier is a domain name, matched in ASCII or Unicode form, any case. */
-const DOMAIN_TARGETS = new Set(['domain', 'domainFooter'])
+const DOMAIN_TARGETS = new Set(['domain', 'domainFooter', 'mtaStsPolicy'])
 
 function asciiDomain(name: string): string {
   return (domainToASCII(name.toLowerCase()) || name).toLowerCase()
 }
 
 /**
- * The contract's `targetId`: the target identifier equals the value; domain names (targets `domain`
- * and `domainFooter`) in either form and any letter case. Without `targetType`, a domain name
+ * The contract's `targetId`: the target identifier equals the value; domain names (targets `domain`,
+ * `domainFooter` and `mtaStsPolicy`) in either form and any letter case, DKIM keys normalised or
+ * by their stored spelling. Without `targetType`, a domain name
  * therefore matches the records of the domain and of its footer.
  */
 export function targetMatches(
@@ -73,6 +74,10 @@ export function targetMatches(
   if (!targetId) return true
   if (!target?.id) return false
   if (DOMAIN_TARGETS.has(target.type)) return asciiDomain(target.id) === asciiDomain(targetId)
+  // UI 010: DKIM keys match in the normalised form, or by an unused key's stored spelling.
+  if (target.type === 'dkimKey') {
+    return target.id === targetId || asciiDomain(target.id) === asciiDomain(targetId)
+  }
   return target.id === targetId
 }
 

@@ -25,6 +25,8 @@ import { apiKeyHandlers } from './api-keys'
 import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
 import { problem, sessionAccount, withScenario } from './context'
+import { dkimHandlers } from './dkim'
+import { dnsDiagnosticsHandlers } from './dns-diagnostics'
 import { domainTemplateHandlers } from './domain-templates'
 import { domainHandlers } from './domains'
 import { identityHandlers } from './identity'
@@ -35,6 +37,7 @@ import { langHandlers } from './lang'
 import { mailboxTemplateReadHandlers } from './mailbox-templates'
 import { mailboxUpdateHandlers } from './mailbox-update'
 import { mailboxReadHandlers } from './mailboxes-read'
+import { mtaStsHandlers } from './mta-sts'
 import { passkeyHandlers } from './passkeys'
 import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
@@ -67,11 +70,24 @@ export const areaHandlers: RequestHandler[] = [
   ...aliasDomainHandlers,
   ...resourceHandlers,
   ...senderSettingsHandlers,
+  // UI 010: one module per contract module (research R24).
+  ...dkimHandlers,
+  ...mtaStsHandlers,
+  ...dnsDiagnosticsHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null
 
-const REDACTED = new Set(['password', 'code', 'otp', 'credential', 'secret', 'token'])
+const REDACTED = new Set([
+  'password',
+  'code',
+  'otp',
+  'credential',
+  'secret',
+  'token',
+  // UI 010: a DKIM import's private key never reaches the request log.
+  'privateKey',
+])
 
 function redact(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redact)

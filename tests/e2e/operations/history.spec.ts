@@ -4,6 +4,7 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
+import { expand, openDashboard } from './dashboard-helpers'
 
 const wide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768
 
@@ -121,5 +122,32 @@ test.describe('operations history @operations', () => {
       ]),
     )
     await expectAccessible()
+  })
+
+  test('FR-075 T141 History opens the audit log from a container card, the queue and Fail2ban', async ({
+    page,
+    mockApi,
+  }) => {
+    await mockApi.use('ops-audit-records')
+    await openDashboard(page)
+    const sogo = await expand(page, 'sogo-mailcow')
+    await sogo.getByRole('link', { name: 'History' }).click()
+    await expect(page).toHaveURL(/\/ng\/audit-log\?targetType=container&targetId=sogo-mailcow$/)
+    await expect(summary(page)).toHaveText('Showing 1 to 3 of 3 entries')
+
+    await page.goto('operations/mail-queue')
+    await page.getByRole('link', { name: 'History' }).click()
+    await expect(page).toHaveURL(/\/ng\/audit-log\?targetType=mailQueue$/)
+    await expect(summary(page)).toHaveText('Showing 1 to 7 of 7 entries')
+
+    await page.goto('operations/fail2ban')
+    const links = page.getByRole('link', { name: 'History' })
+    await expect(links).toHaveCount(2)
+    await links.first().click()
+    await expect(page).toHaveURL(/\/ng\/audit-log\?targetType=fail2banSettings$/)
+    await page.goBack()
+    await page.getByRole('link', { name: 'History' }).nth(1).click()
+    await expect(page).toHaveURL(/\/ng\/audit-log\?targetType=fail2banRules$/)
+    await expect(summary(page)).toHaveText('Showing 1 to 2 of 2 entries')
   })
 })

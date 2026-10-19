@@ -1,7 +1,8 @@
-// Domain names (UI 002 T022, research D15, FR-020, FR-042).
+// Domain names (UI 002 T022, research D15, FR-020, FR-042), promoted to shared at their second use
+// by UI 010 (T016, research R3), which adds the `wildcard` and `trailingDot` options of MX hosts.
 import { describe, expect, it } from 'vitest'
 
-import { isValidDomainName, matchesTypedName, toAsciiDomain } from '@/features/domains/domain-name'
+import { isValidDomainName, matchesTypedName, toAsciiDomain } from '@/shared/validation/domain-name'
 
 describe('domain names', () => {
   it('converts the readable form to lower-case ASCII', () => {
@@ -41,5 +42,30 @@ describe('domain names', () => {
     expect(matchesTypedName(' xn--mnchen-3ya.de ', domain)).toBe(true)
     expect(matchesTypedName('munchen.de', domain)).toBe(false)
     expect(matchesTypedName('', domain)).toBe(false)
+  })
+
+  it('UI 010: accepts a leading wildcard label only with the wildcard option', () => {
+    expect(isValidDomainName('*.example.org')).toBe(false)
+    expect(isValidDomainName('*.example.org', { wildcard: true })).toBe(true)
+    expect(isValidDomainName('*.münchen.de', { wildcard: true })).toBe(true)
+    expect(isValidDomainName('a.*.example.org', { wildcard: true })).toBe(false)
+    expect(isValidDomainName('*', { wildcard: true })).toBe(false)
+    expect(isValidDomainName('*example.org', { wildcard: true })).toBe(false)
+    expect(toAsciiDomain('*.MÜNCHEN.de', { wildcard: true })).toBe('*.xn--mnchen-3ya.de')
+  })
+
+  it('UI 010: removes one trailing dot with the trailingDot option', () => {
+    expect(isValidDomainName('mail.example.org.')).toBe(false)
+    expect(isValidDomainName('mail.example.org.', { trailingDot: true })).toBe(true)
+    expect(toAsciiDomain('Mail.Example.org.', { trailingDot: true })).toBe('mail.example.org')
+    expect(isValidDomainName('mail.example.org..', { trailingDot: true })).toBe(false)
+  })
+
+  it('UI 010: measures 253 characters on the ASCII form, 63 per label', () => {
+    const label63 = 'b'.repeat(63)
+    const name = [label63, label63, label63, 'b'.repeat(61)].join('.')
+    expect(name.length).toBe(253)
+    expect(isValidDomainName(name, { wildcard: true })).toBe(true)
+    expect(isValidDomainName(`*.${name}`, { wildcard: true })).toBe(false)
   })
 })

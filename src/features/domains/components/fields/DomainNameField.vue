@@ -6,7 +6,7 @@ import { computed, ref } from 'vue'
 import { lt } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
 
-import { isValidDomainName } from '../../domain-name'
+import { isValidDomainName } from '@/shared/validation/domain-name'
 
 const props = withDefaults(
   defineProps<{ id: string; modelValue: string; label: string; errors?: readonly string[] }>(),

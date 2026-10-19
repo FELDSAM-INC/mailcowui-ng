@@ -7,7 +7,7 @@
 import type { DomainCapabilities, DomainCreateRequest, DomainTemplate } from '@/api'
 import { legacy } from '@/i18n'
 
-import { isValidDomainName } from './domain-name'
+import { isValidDomainName } from '@/shared/validation/domain-name'
 import { add, checkLength, type ClientErrors, type RuleFormat } from './form-rules'
 import {
   newTemplateValues,

@@ -4,6 +4,8 @@
 // (outside the domain administrator's scope) and @deleted.example (stale), and two external sender
 // addresses.
 import { mockAlias } from '../factories/alias'
+import { mailboxAddresses } from '../factories/domain'
+import { mockMailbox, seedMailboxes } from '../factories/mailbox'
 import { senderAclRows } from '../factories/sender-acl'
 import { DOMAIN_ADMIN_004, MAILBOX_004, setupWorld004, syncUsage004 } from './feature-004-base'
 import type { ScenarioDefinition } from './index'
@@ -30,8 +32,26 @@ export const SENDER_004 = {
   salesCandidates: 60,
 } as const
 
-function anyAddress(state: ScenarioState): void {
+/**
+ * The base world with its mailboxes also stored as UI 003 mailboxes, so that the mailbox page (where
+ * "Allow to send as" lives, orchestrator 2026-10-19) opens for them.
+ */
+export function setupSenderWorld(state: ScenarioState): void {
   setupWorld004(state)
+  const addresses = state.domains.flatMap((domain) => mailboxAddresses(domain))
+  seedMailboxes(
+    state,
+    addresses
+      .filter((address) => !state.mailboxes.some((m) => `${m.localPart}@${m.domain}` === address))
+      .map((address) => {
+        const [localPart, domain] = address.split('@') as [string, string]
+        return mockMailbox({ localPart, domain, displayName: localPart, quota: 1024 * 1024 * 1024 })
+      }),
+  )
+}
+
+function anyAddress(state: ScenarioState): void {
+  setupSenderWorld(state)
   state.senderAcl = [
     ...state.senderAcl.filter((row) => row.mailbox !== MAILBOX_004.anna || row.external),
     ...senderAclRows(MAILBOX_004.anna, ['*']),
@@ -40,7 +60,7 @@ function anyAddress(state: ScenarioState): void {
 
 function setFlag(extendSenderAcl: boolean) {
   return (state: ScenarioState) => {
-    setupWorld004(state)
+    setupSenderWorld(state)
     const account = state.accounts.find((item) => item.username === DOMAIN_ADMIN_004)!
     account.permissions = { ...account.permissions, extendSenderAcl }
   }
@@ -51,7 +71,7 @@ export const senderSettingsScenarios: Record<string, ScenarioDefinition> = {
     description:
       'An administrator; anna@example.org with every kind of implicit and explicit sender address (SENDER_004) (UI 004 US5).',
     overrides: { signedInAs: 'admin' },
-    setup: (state) => setupWorld004(state),
+    setup: (state) => setupSenderWorld(state),
   },
   'sender-settings-da': {
     description:
@@ -81,7 +101,7 @@ export const senderSettingsScenarios: Record<string, ScenarioDefinition> = {
       'An administrator with 5,000 grantable aliases in example.com, 60 of them matching "sales" (US5-AS9).',
     overrides: { signedInAs: 'admin' },
     setup: (state) => {
-      setupWorld004(state)
+      setupSenderWorld(state)
       const first = Math.max(...state.aliases.map((alias) => alias.id)) + 1
       state.aliases.push(
         ...Array.from({ length: 5000 }, (_, index) => {

@@ -909,7 +909,7 @@ point at US1's detail.
   - `sender-settings-da` and `sender-settings-da-extend`;
   - an alias that, after the candidate list loaded, delivers to Anna and allows sending (FR-055,
     through `changeElsewhere`).
-- [ ] T071 [P] [US5] Write `tests/e2e/sender-settings/send-as.spec.ts`. It covers:
+- [X] T071 *(done: tests/e2e/sender-settings/send-as.spec.ts: the fields in UI 003's Mailbox section (orchestrator, 2026-10-19) with legacy's multi-select labels and subtexts instead of a separate Send as screen)* [P] [US5] Write `tests/e2e/sender-settings/send-as.spec.ts`. It covers:
   - FR-048: "Send as" in the mailbox section navigation for administrators and domain
     administrators; it opens `/ng/mailboxes/<address>/send-as` and keeps UI 003's side navigation
     from `lg` up;
@@ -929,7 +929,7 @@ point at US1's detail.
   - FR-003: a foreign mailbox address shows `NotFoundState`;
   - mailbox users get "no access";
   - FR-008: the states.
-- [ ] T072 [P] [US5] Write `tests/e2e/sender-settings/send-as-save.spec.ts`. It covers:
+- [X] T072 *(done: tests/e2e/sender-settings/send-as-save.spec.ts; session expiry drafts are UI 003's page (not covered here))* [P] [US5] Write `tests/e2e/sender-settings/send-as-save.spec.ts`. It covers:
   - US5-AS2: "Allow sending as this alias", then save, puts `info@` among the explicit permissions;
   - US5-AS3 and FR-051: turning the switch on opens the confirmation with the warning, and
     cancelling leaves it off. After confirming and saving, `['*']` is sent and the screen shows
@@ -944,7 +944,7 @@ point at US1's detail.
   - FR-025: the leave guard;
   - Edge, session expires while the form is open: the draft is restored;
   - Edge, network failure during save.
-- [ ] T073 [P] [US5] Write these unit tests:
+- [X] T073 *(done: send-as-model.spec.ts and fields.spec.ts (SenderAclField with the blocked aliases and candidates, ExternalSenderField); no AnyAddressSwitch or ReceiveOnlySection: * and the blocked aliases are options of legacy's multi-select)* [P] [US5] Write these unit tests:
   - `tests/unit/features/sender-settings/send-as-model.spec.ts`: `toView`, `buildSenderPatch`,
     `entryForPath` and `notNeededAfterSave` (data-model §2).
   - `PermissionCandidatePicker.spec.ts`:
@@ -958,7 +958,7 @@ point at US1's detail.
   - `AnyAddressSwitch.spec.ts`: administrators only, the confirmation with the warning before the
     switch turns on, and the explicit list disabled while on.
   - `ReceiveOnlySection.spec.ts`: the action, and the "allowed by an explicit permission" state.
-- [ ] T074 [P] [US5] Write `tests/smoke/sender-settings.smoke.spec.ts` (`@feature-004`), as `admin`:
+- [X] T074 *(done: tests/smoke/sender-settings.smoke.spec.ts on the Mailbox section)* [P] [US5] Write `tests/smoke/sender-settings.smoke.spec.ts` (`@feature-004`), as `admin`:
   - open "Send as" of `alice@example.org`;
   - grant an address candidate found through the picker (another seeded mailbox), save, and see it
     listed;
@@ -966,7 +966,7 @@ point at US1's detail.
 
 ### Implementation for User Story 5
 
-- [ ] T075 [US5] Implement:
+- [X] T075 *(done: sender-settings api.ts, send-as-model.ts, labels.ts and useSenderSettings.ts (working copy, whole-set save with If-Match, conflicts, refusals by entry, FR-055 notes, combine() with the section's save); no mailbox-send-as route or sections.ts entry: the orchestrator placed the fields in MailboxSection.vue at their legacy positions (after the quota, after the recovery e-mail), in the read-only values and the form)* [US5] Implement:
   - `src/features/sender-settings/api.ts`: get, save with `If-Match`, candidates through
     `useInfiniteQuery`, and data-model §3;
   - `send-as-model.ts`;
@@ -976,13 +976,13 @@ point at US1's detail.
   List the record among the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`. Add
   the `sendAs` entry, with its summary, to `src/features/mailboxes/sections.ts`. Extend
   `tests/unit/features/mailboxes/components/display/MailboxSectionNav.spec.ts` with the entry.
-- [ ] T076 [P] [US5] Implement these components in `src/features/sender-settings/components/`:
+- [X] T076 *(done: SenderAclField.vue (legacy's multi-select: selected entries with dont_check_sender_acl labels and Admin/Alias/Alias (allowed)/No longer exists, DomainPicker with hideChips over the blocked aliases and the candidates, * for administrators with edit.sender_acl_disabled, edit.sender_acl_info) and ExternalSenderField.vue (legacy's text field, placeholder, edit.extended_sender_acl_info; hidden without extendSenderAcl); DomainPicker gains note and hideChips)* [P] [US5] Implement these components in `src/features/sender-settings/components/`:
   `AlwaysAllowedSection.vue`, `ReceiveOnlySection.vue`, `ExplicitPermissionsSection.vue`,
   `PermissionCandidatePicker.vue` (Reka `Combobox` without a viewport, with loading, "no match" and
   error states), `AnyAddressSwitch.vue` (confirmation through `useConfirm`),
   `SenderCheckStatus.vue`, `ExternalSenderAddressesSection.vue` (`EntryListField`) and
   `SendAsHints.vue`. Legacy texts with markup are rendered unchanged through `SanitizedHtml.vue`.
-- [ ] T077 [US5] Implement `src/features/sender-settings/pages/SendAsPage.vue`:
+- [X] T077 *(done: no separate page: MailboxSection saves the sender settings first, then the mailbox, with one status (success.mailbox_modified plus the not-needed notes) and the joined outdated notice)* [US5] Implement `src/features/sender-settings/pages/SendAsPage.vue`:
   - the sections;
   - one sticky save bar;
   - `useProblemForm` with the form key `senderSettings`;
@@ -991,7 +991,7 @@ point at US1's detail.
   - the leave guard and `useFormDraft`;
   - announcements;
   - `NotFoundState`.
-- [ ] T078 [US5] Use the legacy keys of T005a's form map for "Send as" verbatim:
+- [X] T078 *(done: new strings senderSettings.subtext.* (English equal to legacy's hard-coded subtexts), senderSettings.notNeeded, senderSettings.externalPlaceholder (legacy's placeholder); messages through LEGACY_TEXTS)* [US5] Use the legacy keys of T005a's form map for "Send as" verbatim:
   - `edit.sender_acl`, `edit.dont_check_sender_acl`, `add.sender_allowed`,
     `edit.extended_sender_acl` and `acl.extend_sender_acl`;
   - `danger.extra_acl_invalid`, `danger.extra_acl_invalid_domain`, `danger.sender_acl_invalid` and

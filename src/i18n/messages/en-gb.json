@@ -859,5 +859,16 @@
     "tooMany": "Enter at most {max} entries.",
     "tooShort": "Enter at least {min} characters.",
     "unchanged": "The new value is the same as the current one."
+  },
+  "senderSettings": {
+    "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",
+    "notNeeded": "{address} was not added: an alias that delivers to this mailbox already allows sending as it.",
+    "subtext": {
+      "admin": "Admin",
+      "alias": "Alias",
+      "aliasAllowed": "Alias (allowed)",
+      "aliasBlocked": "Alias (blocked)",
+      "stale": "No longer exists"
+    }
   }
 }

@@ -9,10 +9,11 @@
 // with their legacy help, the save, and the creation and modification times. UI 004 adds "Allow to
 // send as" and the external sender addresses in their legacy positions. Saving says legacy's
 // `success.mailbox_modified`.
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useBranding } from '@/app/branding/public-config'
+import { ExternalSenderField, SenderAclField, useSenderSettings } from '@/features/sender-settings'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import EditableSection from '@/shared/components/EditableSection.vue'
@@ -166,6 +167,18 @@ const s = useMailboxSection<Form>(props, emit as never, {
   },
 })
 
+// UI 004: "Allow to send as" and the external sender addresses, saved with this section.
+const senders = useSenderSettings({
+  mailbox: () => props.mailbox.address,
+  editing: () => !!props.editing,
+  identity: () => props.identity,
+})
+const both = senders.combine(s)
+watch(
+  () => s.dirty.value || senders.dirty.value,
+  (value) => emit('dirty', value),
+)
+
 const controls = computed(() => controlsFor(s.form.value.authSource))
 const readControls = computed(() => controlsFor(props.mailbox.authSource))
 const relayhost = computed(() =>
@@ -195,6 +208,7 @@ const items = computed(() => [
   { key: 'displayName', label: lt('edit.full_name'), value: props.mailbox.displayName },
   { key: 'tags', label: lt('add.tags'), value: display.value('tags', props.mailbox.tags) },
   { key: 'quota', label: lt('edit.quota_mb'), value: display.quota(props.mailbox.quota) },
+  ...senders.items.value.acl,
   ...(canSeeRelayhost(props.identity)
     ? [{ key: 'relayhost', label: lt('edit.relayhost'), value: relayhost.value }]
     : []),
@@ -223,6 +237,7 @@ const items = computed(() => [
         },
       ]
     : []),
+  ...senders.items.value.external,
   {
     key: 'protocolAccess',
     label: lt('edit.allowed_protocols'),
@@ -268,14 +283,14 @@ const times = computed(() => [
     :editing="editing"
     :edit-disabled-reason="editDisabledReason"
     :saving="s.pending.value"
-    :status="s.status.value"
-    :outdated="s.outdated.value"
+    :status="both.status.value"
+    :outdated="both.outdated.value"
     :save-label="lt('edit.save')"
     @edit="emit('edit')"
     @cancel="s.cancel"
-    @save="s.save"
-    @save-again="s.saveAgain"
-    @discard="s.discard"
+    @save="both.save"
+    @save-again="both.saveAgain"
+    @discard="both.discard"
   >
     <ValueList :items="items" />
     <p class="mt-3 text-sm text-gray-600 italic dark:text-gray-400">
@@ -323,6 +338,7 @@ const times = computed(() => [
         :max="mailbox.largestAllowedQuota"
         :errors="s.errorsFor('quota')"
       />
+      <SenderAclField :state="senders" />
       <ValueList
         v-if="canSeeRelayhost(identity)"
         :items="[{ key: 'relayhost', label: lt('edit.relayhost'), value: relayhost }]"
@@ -397,6 +413,10 @@ const times = computed(() => [
           class="-mt-2 text-sm text-gray-600 dark:text-gray-400"
         />
       </template>
+      <ExternalSenderField
+        v-if="senders.permissions.value.canEditExternalSenderAddresses"
+        :state="senders"
+      />
       <MultiSelectField
         id="section-mailbox-protocols"
         :model-value="s.form.value.protocols"

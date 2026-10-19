@@ -26,6 +26,8 @@ export interface DomainPickerOption {
   nameUnicode: string
   /** UI 004: the domain is a relay (backup MX) domain, for `disabledReason`. */
   relay?: boolean
+  /** UI 004: a short note shown under the option, for example legacy's "Alias (blocked)". */
+  note?: string
 }
 
 export interface DomainPickerPage {
@@ -61,6 +63,8 @@ const props = withDefaults(
     disabledReason?: (option: DomainPickerOption) => string | null
     /** Readable names already known for chosen values (ASCII name → readable name). */
     labels?: Readonly<Record<string, string>>
+    /** UI 004: in multiple mode, the parent shows the chosen values itself. */
+    hideChips?: boolean
   }>(),
   {
     multiple: false,
@@ -70,6 +74,7 @@ const props = withDefaults(
     required: false,
     disabledReason: undefined,
     labels: () => ({}),
+    hideChips: false,
   },
 )
 const emit = defineEmits<{
@@ -287,7 +292,11 @@ function retry() {
       :errors="errors"
       :required="required"
     >
-      <ul v-if="multiple && selected.length > 0" class="flex flex-wrap gap-2" data-picker-chips>
+      <ul
+        v-if="multiple && !hideChips && selected.length > 0"
+        class="flex flex-wrap gap-2"
+        data-picker-chips
+      >
         <li v-for="name in selected" :key="name" class="max-w-full min-w-0">
           <button
             type="button"
@@ -334,8 +343,8 @@ function retry() {
         <template v-for="group in groups" :key="group.id">
           <div
             v-if="group.entries.length > 0"
-            :role="grouped ? 'group' : undefined"
-            :aria-labelledby="grouped ? `${optionPrefix}-${group.id}` : undefined"
+            :role="grouped && group.label ? 'group' : undefined"
+            :aria-labelledby="grouped && group.label ? `${optionPrefix}-${group.id}` : undefined"
           >
             <div
               v-if="grouped && group.label"
@@ -378,6 +387,9 @@ function retry() {
                 class="text-sm wrap-anywhere text-gray-600 dark:text-gray-400"
                 >{{ entry.name }}</span
               >
+              <span v-if="entry.note" class="text-sm text-gray-600 dark:text-gray-400">{{
+                entry.note
+              }}</span>
               <span v-if="entry.reason" class="text-sm text-gray-700 dark:text-gray-300">{{
                 entry.reason
               }}</span>

@@ -859,5 +859,16 @@
     "tooMany": "Zadajte najviac {max} položiek.",
     "tooShort": "Zadajte aspoň {min} znakov.",
     "unchanged": "Nová hodnota je rovnaká ako súčasná."
+  },
+  "senderSettings": {
+    "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",
+    "notNeeded": "{address} nebolo pridané: alias, ktorý doručuje do tejto schránky, už odosielanie ako táto adresa povoľuje.",
+    "subtext": {
+      "admin": "Správca",
+      "alias": "Alias",
+      "aliasAllowed": "Alias (povolený)",
+      "aliasBlocked": "Alias (blokovaný)",
+      "stale": "Už neexistuje"
+    }
   }
 }

@@ -114,7 +114,7 @@ describe('navigation catalogue', () => {
       expect(entry.labelKey).toEqual(legacyKey ? { legacy: legacyKey } : `nav.${entry.id}`)
       expect(entry.icon).toBeTruthy()
       // UI 010: the DNS entries live under /dns (research R2).
-      expect(entry.path).toMatch(/^\/[a-z-]*(\/[a-z-]+)?$/)
+      // UI 011: the operations entries live under /operations, one with a digit (fail2ban).
       expect(entry.path).toMatch(/^\/([a-z0-9-]+(\/[a-z0-9-]+)?)?$/)
     }
     expect(new Set(catalogue.map((entry) => entry.path)).size).toBe(catalogue.length)
@@ -177,6 +177,8 @@ describe('navigation catalogue', () => {
       domainAdmin: ['/domainadmin/mailbox'],
     })
     expect(catalogue.some((item) => (item.id as string) === 'dns')).toBe(false)
+  })
+
   it('groups the four operations screens of UI 011 under "System", administrators only', () => {
     const system = catalogue.filter((entry) => entry.group === 'system')
     expect(system.map((entry) => [entry.id, entry.path, entry.deliveredBy])).toEqual([

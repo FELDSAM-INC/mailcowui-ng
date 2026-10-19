@@ -113,6 +113,11 @@
       "disableLoginEffect": "Jejich uživatelé se už nepřihlásí; příchozí pošta se dál přijímá.",
       "disallowProtocolTitle": "Zakázat {protocol} vybraným schránkám ({count})?",
       "disallowProtocolEffect": "Jejich uživatelé už nebudou moci používat {protocol}."
+    },
+    "creationReport": {
+      "groupwareDirectoryUpdate": "Schránka byla přidána, ale adresář webmailu se nepodařilo aktualizovat.",
+      "rateLimit": "Schránka byla přidána, ale její omezení přenosu se nepodařilo nastavit.",
+      "taggedMailHandling": "Schránka byla přidána, ale zacházení s označkovanou poštou se nepodařilo nastavit."
     }
   },
   "mailboxTemplates": {

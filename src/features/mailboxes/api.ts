@@ -17,16 +17,18 @@ import {
   runMutation,
   type ListMeta,
   type MailboxCapabilities,
+  type MailboxCreateRequest,
   type MailboxListParams,
   type MailboxRenameRequest,
   type MailboxTagParams,
   type PasswordPolicy,
+  type Writable,
 } from '@/api'
 
 import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
 
 import type { Patch } from './patch'
-import type { Mailbox, MailboxDeletionPreview, MailboxRenamed } from './types'
+import type { Mailbox, MailboxCreated, MailboxDeletionPreview, MailboxRenamed } from './types'
 
 export interface MailboxPage {
   data: Mailbox[]
@@ -394,4 +396,38 @@ export function applyMailboxBulk(
     },
     request,
   )
+}
+
+// Creation (US2, data-model §3)
+
+/** One domain of the scope, for the add form's quota limits ("max." and no quota left). */
+export function domainOptions(name: string) {
+  return queryOptions({
+    queryKey: queryKeys.domains.detail(name),
+    queryFn: async () =>
+      requireData(await api.GET('/domains/{domain}', { params: { path: { domain: name } } })).data,
+    staleTime: 0,
+  })
+}
+
+/**
+ * Creates a mailbox. The request carries a password, so it is sent directly (never cached,
+ * `useSecretRequest`); the new mailbox is written to its detail and the lists, domains, tags and
+ * audit log are refreshed.
+ */
+export async function createMailbox(
+  client: QueryClient,
+  body: Writable<MailboxCreateRequest>,
+): Promise<MailboxCreated> {
+  const created = requireData(await api.POST('/mailboxes', { body })).data
+  const { creationReport: _report, ...mailbox } = created
+  writeMailbox(client, mailbox)
+  await Promise.all([
+    client.invalidateQueries({ queryKey: queryKeys.mailboxes.lists() }),
+    client.invalidateQueries({ queryKey: queryKeys.mailboxes.searches() }),
+    client.invalidateQueries({ queryKey: queryKeys.mailboxes.tagLists() }),
+    client.invalidateQueries({ queryKey: queryKeys.domains.all() }),
+    invalidateAudit(client),
+  ])
+  return created
 }

@@ -113,6 +113,11 @@
       "disableLoginEffect": "Their users can no longer sign in; incoming mail is still accepted.",
       "disallowProtocolTitle": "Disallow {protocol} for the selected mailboxes ({count})?",
       "disallowProtocolEffect": "Their users can no longer use {protocol}."
+    },
+    "creationReport": {
+      "groupwareDirectoryUpdate": "The mailbox was added, but the webmail address book could not be updated.",
+      "rateLimit": "The mailbox was added, but its rate limit could not be applied.",
+      "taggedMailHandling": "The mailbox was added, but its handling of tagged mail could not be applied."
     }
   },
   "mailboxTemplates": {

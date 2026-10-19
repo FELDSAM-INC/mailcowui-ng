@@ -22,6 +22,17 @@ export const mailboxRoutes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/mailboxes/new',
+    name: 'mailbox-create',
+    component: page(() => import('./pages/MailboxCreatePage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxes',
+      titleKey: legacy('mailbox.add_mailbox'),
+    },
+  },
+  {
     path: '/mailboxes/:address([^/]+@[^/]+)',
     name: 'mailbox-detail',
     component: page(() => import('./pages/MailboxDetailPage.vue')),

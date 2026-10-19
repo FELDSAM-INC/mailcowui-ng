@@ -28,6 +28,7 @@ import { domainsListScenarios } from './domains-list'
 import { applyDnsOverrides, dnsScenarios, initialDnsState } from './dns'
 import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from './mailboxes/base'
 import { mailboxBulkScenarios } from './mailboxes/bulk'
+import { mailboxCreateScenarios } from './mailboxes/create'
 import { mailboxDeleteScenarios } from './mailboxes/delete'
 import { mailboxEditScenarios } from './mailboxes/edit'
 import { mailboxHistoryScenarios } from './mailboxes/history'
@@ -108,6 +109,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...mailboxDeleteScenarios,
   ...mailboxRenameScenarios,
   ...mailboxBulkScenarios,
+  ...mailboxCreateScenarios,
   ...mailboxHistoryScenarios,
   ...mailboxTemplateScenarios,
   ...syncJobScenarios,

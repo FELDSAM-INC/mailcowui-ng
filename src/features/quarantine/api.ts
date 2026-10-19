@@ -5,8 +5,8 @@
 // Items (US1, US2): the list and the item are cached for 30 s, the item kept for 60 s after its
 // page closes (message content leaves memory soon, FR-085). An action sends the item's version tag
 // in `If-Match`; on success the item's detail is removed and the lists invalidated, on `404` the
-// same, on `412` the detail is read again. Every mutation runs through the mutation cache, so the
-// session reactions apply (a refused flag refreshes the identity, FR-004). Downloads go through the
+// same, on `412` the detail and lists are read again. Every mutation runs through the mutation cache,
+// so session reactions apply (a refused flag refreshes the identity, FR-004). Downloads go through the
 // client with `parseAs: 'blob'`, so a refusal is an ApiProblem with a translated reason (R10).
 import { queryOptions, type QueryClient } from '@tanstack/vue-query'
 
@@ -175,7 +175,11 @@ export function runItemAction(
         if (!isApiProblem(error)) return
         if (error.status === 404) void forgetItem(client, item.id)
         else if (error.status === 412) {
-          void client.invalidateQueries({ queryKey: queryKeys.quarantine.detail(item.id) })
+          // A list action must receive the current row/tag before the user confirms again too.
+          return Promise.all([
+            client.invalidateQueries({ queryKey: queryKeys.quarantine.detail(item.id) }),
+            invalidateLists(client),
+          ])
         }
       },
     },

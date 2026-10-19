@@ -141,7 +141,7 @@ Validation of this slice:
 
 - The first saved-feature unit run passed 108 tests but could not load the rate-limit section
   suite because of the missing page. After the page was added, those 14 rate-limit section tests
-  passed. The nine new page/filter unit tests pass, including ignored mailbox-user scope filters,
+  passed. The ten new page/filter unit tests pass, including ignored mailbox-user scope filters,
   hostile text, empty/no-match states, pagination, draft application and invalid filter ranges.
 - Type checking, the production build and lint of the new files pass. No new translation was
   introduced. The full translation gate still fails on the saved, unused
@@ -156,6 +156,9 @@ Validation of this slice:
   projects. Desktop `aria-sort`, mobile sort controls, both-theme accessibility and reflow are
   covered. All six list scenarios now pass across the three projects (18 checks across the
   initial run and focused follow-ups).
+- A regression test first reproduced stale list data after a removal received `412`. The action
+  now waits for both detail and list refreshes before a new confirmation can submit the updated
+  version tag. The page/action suites pass together (19 tests); lint and type checking pass.
 
 Logs are under the API checkout's ignored `storage/app/restart-2026-10-19/u006/resume-*.log`.
 This is a checkpoint of the list work, not completion of US1 or UI 006: bulk actions, remaining

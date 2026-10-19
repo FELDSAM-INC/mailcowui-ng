@@ -4,9 +4,10 @@ import { defineComponent } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { api } from '@/api'
+import * as confirmations from '@/features/quarantine/confirmations'
 import QuarantineListPage from '@/features/quarantine/pages/QuarantineListPage.vue'
 
-import { useScenario } from '../../../mocks/node'
+import { mockState, useScenario } from '../../../mocks/node'
 import { mountWithApp } from '../../support/mount'
 
 const mounted: { unmount(): void }[] = []
@@ -87,5 +88,26 @@ describe('QuarantineListPage', () => {
     expect(wrapper.find('[data-quarantine-item="12"] img').exists()).toBe(false)
     expect(wrapper.get('[data-quarantine-item="13"]').text()).toContain('U+202E')
     expect(wrapper.get('[data-quarantine-item="8"] h2').text()).toBe('-')
+  })
+
+  it('reloads an outdated removal before asking again with the new version', async () => {
+    const ask = vi.spyOn(confirmations, 'askItemAction').mockResolvedValue(true)
+    const { wrapper } = await open()
+    const stored = mockState().quarantine.items.find((item) => item.id === 30)!
+    stored.queueId = 'CHANGEDQUEUE30'
+    stored.subject = 'Changed message'
+    const writes = () =>
+      mockState().requests.filter((request) => request.operationId === 'deleteQuarantineItem')
+    await wrapper.get('[data-quarantine-item="30"] button').trigger('click')
+    await settle()
+    expect(writes().map((request) => request.status)).toEqual([412])
+    expect(wrapper.get('[data-quarantine-item="30"] h2').text()).toBe('Changed message')
+    expect(ask).toHaveBeenCalledTimes(1)
+    await wrapper.get('[data-quarantine-item="30"] button').trigger('click')
+    await settle()
+    expect(writes().map((request) => request.status)).toEqual([412, 204])
+    expect(ask).toHaveBeenCalledTimes(2)
+    expect(writes()[1]!.headers['if-match']).not.toBe(writes()[0]!.headers['if-match'])
+    expect(wrapper.find('[data-quarantine-item="30"]').exists()).toBe(false)
   })
 })

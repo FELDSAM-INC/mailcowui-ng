@@ -176,4 +176,93 @@ describe('DomainMtaStsSection', () => {
     expect(wrapper.find('button[aria-label="Edit MTA-STS"]').exists()).toBe(true)
     wrapper.unmount()
   })
+
+  it('saves again on top of the policy saved in the meantime', async () => {
+    const wrapper = await mountSection('example.org')
+    await wrapper.get('button[aria-label="Edit MTA-STS"]').trigger('click')
+    await settle()
+    applyDnsOverrides(mockState(), { policies: { 'example.org': { maxAge: 86_400 } } })
+    await wrapper.get('#mta-sts-mode').setValue('none')
+    await wrapper.get('form').trigger('submit')
+    await settle(8)
+    const again = wrapper.findAll('button').find((button) => button.text() === 'Save again')!
+    await again.trigger('click')
+    await settle(8)
+    expect(writes().map((request) => request.body)).toEqual([{ mode: 'none' }, { mode: 'none' }])
+    expect(mockState().dns.policies['example.org']).toMatchObject({ mode: 'none', maxAge: 86_400 })
+    expect(wrapper.text()).toContain('Changes to object example.org have been saved')
+    wrapper.unmount()
+  })
+
+  it("discards the user's changes for the values saved in the meantime", async () => {
+    const wrapper = await mountSection('example.org')
+    await wrapper.get('button[aria-label="Edit MTA-STS"]').trigger('click')
+    await settle()
+    applyDnsOverrides(mockState(), { policies: { 'example.org': { mode: 'testing' } } })
+    await wrapper.get('#mta-sts-max-age').setValue('3600')
+    await wrapper.get('form').trigger('submit')
+    await settle(8)
+    const discard = wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Discard my changes')!
+    await discard.trigger('click')
+    await settle()
+    expect((wrapper.get('#mta-sts-mode').element as HTMLSelectElement).value).toBe('testing')
+    expect((wrapper.get('#mta-sts-max-age').element as HTMLInputElement).value).toBe('604800')
+    wrapper.unmount()
+  })
+
+  it('turns a set-up into a change when the policy was created elsewhere', async () => {
+    const wrapper = await mountSection('example.net')
+    await wrapper.get('button[aria-label="Edit MTA-STS"]').trigger('click')
+    await settle()
+    await wrapper.get('#mta-sts-max-age').setValue('86400')
+    applyDnsOverrides(mockState(), { policies: { 'example.net': { mode: 'testing' } } })
+    await wrapper.get('form').trigger('submit')
+    await settle(8)
+    expect(wrapper.text()).toContain('This domain already has an MTA-STS policy.')
+    await wrapper.get('form').trigger('submit')
+    await settle(8)
+    expect(writes().map((request) => request.method)).toEqual(['POST', 'PATCH'])
+    expect(wrapper.text()).toContain('Changes to object example.net have been saved')
+    wrapper.unmount()
+  })
+
+  it("shows the server's field errors with the classic messages, and other problems", async () => {
+    const wrapper = await mountSection('example.org')
+    mockState().failures.updateMtaStsPolicy = {
+      status: 422,
+      type: 'validation-failed',
+      times: 1,
+      errors: {
+        'mxHosts.0': [{ code: 'invalidFormat', message: 'x', params: { format: 'mxHost' } }],
+        mode: [{ code: 'notInList', message: 'x', params: { allowed: ['enforce'] } }],
+      },
+    }
+    await wrapper.get('button[aria-label="Edit MTA-STS"]').trigger('click')
+    await settle()
+    await wrapper.get('#mta-sts-mode').setValue('testing')
+    await wrapper.get('#mta-sts-mx').setValue('mx9.example.org')
+    await wrapper.get('form').trigger('submit')
+    await settle(8)
+    expect(wrapper.text()).toContain('MX record mx9.example.org is invalid')
+    expect(wrapper.text()).toContain('Mode example.org is invalid')
+    mockState().failures.updateMtaStsPolicy = { status: 500, times: 1 }
+    await wrapper.get('form').trigger('submit')
+    await settle(8)
+    expect(wrapper.text()).toContain('An unexpected server error occurred')
+    wrapper.unmount()
+  })
+
+  it('closes without a request when nothing changed', async () => {
+    const wrapper = await mountSection('example.org')
+    await wrapper.get('button[aria-label="Edit MTA-STS"]').trigger('click')
+    await settle()
+    await wrapper.get('form').trigger('submit')
+    await settle(4)
+    expect(writes()).toEqual([])
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(wrapper.find('[data-policy-id-notice]').exists()).toBe(false)
+    wrapper.unmount()
+  })
 })

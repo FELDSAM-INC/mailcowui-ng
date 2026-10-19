@@ -7,6 +7,7 @@ import type { MtaStsPolicy } from '@/api'
 import {
   activationChange,
   formFromPolicy,
+  mergeFormChanges,
   newPolicyForm,
   policyIdChanged,
   policyPatch,
@@ -88,5 +89,20 @@ describe('identifier and activation changes', () => {
     expect(activationChange(policy(), policy())).toBeNull()
     expect(activationChange(null, policy())).toBe('activated')
     expect(activationChange(null, policy({ active: false }))).toBeNull()
+  })
+})
+
+describe('mergeFormChanges', () => {
+  it("keeps the user's changes and takes the values saved in the meantime for the rest", () => {
+    const opened = formFromPolicy(policy())
+    const latest = policy({ maxAge: 86_400, mxHosts: ['mx.example.org'], etag: '"p2"' })
+    const form = { ...opened, mode: 'none' }
+    expect(mergeFormChanges(opened, latest, form)).toEqual({
+      version: 'STSv1',
+      mode: 'none',
+      maxAge: '86400',
+      mx: 'mx.example.org',
+      active: true,
+    })
   })
 })

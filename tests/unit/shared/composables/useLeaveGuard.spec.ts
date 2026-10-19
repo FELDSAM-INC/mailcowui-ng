@@ -26,6 +26,11 @@ async function setup(initial: boolean) {
     routes: [
       { path: '/form/:id', component: Form },
       { path: '/other', component: { render: () => h('p', 'other') } },
+      {
+        path: '/sign-in',
+        component: { render: () => h('p', 'sign in') },
+        meta: { layout: 'auth' },
+      },
     ],
   })
   await router.push('/form/1')
@@ -56,6 +61,15 @@ describe('useLeaveGuard', () => {
     expect(ask).not.toHaveBeenCalled()
     await router.push('/form/2')
     expect(ask).toHaveBeenCalledTimes(1)
+  })
+
+  // UI 008: the session's end goes to the sign-in screen without a question.
+  it('lets an authentication screen through without asking', async () => {
+    const ask = vi.spyOn(confirmModule, 'confirm')
+    const { router } = await setup(true)
+    await router.replace('/sign-in')
+    expect(ask).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.path).toBe('/sign-in')
   })
 
   it('asks nothing while disarmed', async () => {

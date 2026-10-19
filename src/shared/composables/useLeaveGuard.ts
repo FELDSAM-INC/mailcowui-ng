@@ -36,7 +36,9 @@ export function useLeaveGuard(
     })
   }
 
-  onBeforeRouteLeave(() => (armed.value ? ask() : true))
+  // UI 008: going to an authentication screen (the session ended, or a sign-out) never asks: the
+  // input cannot be saved without a session, and the question would block the sign-in screen.
+  onBeforeRouteLeave((to) => (armed.value && to.meta.layout !== 'auth' ? ask() : true))
   onBeforeRouteUpdate((to, from) => (armed.value && to.path !== from.path ? ask() : true))
 
   function onBeforeUnload(event: BeforeUnloadEvent) {

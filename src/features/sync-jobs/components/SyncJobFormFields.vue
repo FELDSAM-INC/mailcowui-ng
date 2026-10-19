@@ -77,7 +77,11 @@ const TEXT_ATTRS = { autocapitalize: 'none', autocorrect: 'off', spellcheck: 'fa
 const INPUT =
   'h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none aria-invalid:border-red-500 read-only:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:read-only:bg-gray-950'
 
-const showCustomParams = computed(() => props.mode === 'edit' || props.customParamsAllowed)
+// On the create page the field stays while it holds a value the server has just refused, so the
+// refusal is shown on it (FR-056); the body leaves the value out once it is not allowed.
+const showCustomParams = computed(
+  () => props.mode === 'edit' || props.customParamsAllowed || values.value.customParameters !== '',
+)
 const customParamsPlaceholder = computed(() =>
   props.role === 'mailboxUser' && props.mode === 'create'
     ? '--delete2folders --otheroption'
@@ -206,7 +210,7 @@ const required = (field: string) =>
           v-model="values.customParameters"
           type="text"
           autocomplete="off"
-          :readonly="!customParamsAllowed"
+          :readonly="mode === 'edit' && !customParamsAllowed"
           :placeholder="customParamsPlaceholder"
           :maxlength="maxLengthOf(caps, 'customParameters')"
           :class="INPUT"

@@ -34,6 +34,23 @@ function recordOrigins(page: Page): { urls: string[]; foreign: string[] } {
 }
 
 test.describe('remote password secrecy', () => {
+  test('SC-003 the create flow sends the password once and keeps it out of the page and storage', async ({
+    page,
+    mockApi,
+  }) => {
+    const seen = recordOrigins(page)
+    await mockApi.use('sync-jobs-user')
+    await page.goto('sync-jobs/new')
+    await page.locator('#syncjob-create-remoteHost').fill('imap.secret.example')
+    await page.locator('#syncjob-create-remoteUser').fill('secret.user')
+    await page.locator('#syncjob-create-remotePassword').fill(MARKER)
+    await page.getByRole('button', { name: 'Add' }).click()
+    await expect(page).toHaveURL(/\/sync-jobs\/\d+$/)
+    expect(await bodiesWithMarker(mockApi)).toEqual(['createSyncJob'])
+    await expectNowhere(page, seen.urls)
+    expect(seen.foreign).toEqual([])
+  })
+
   test('SC-003 the edit flow sends the password once and keeps it out of the page and storage', async ({
     page,
     mockApi,

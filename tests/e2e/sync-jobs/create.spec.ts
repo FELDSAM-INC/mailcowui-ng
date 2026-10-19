@@ -35,7 +35,7 @@ test.describe('creating a sync job', () => {
     await mockApi.use('sync-jobs-empty')
     await page.goto('sync-jobs')
     await expect(
-      page.locator('[data-list-state="empty"]').getByRole('link', { name: 'Create new sync job' }),
+      page.locator('[data-empty]').getByRole('link', { name: 'Create new sync job' }),
     ).toBeVisible()
   })
 
@@ -49,7 +49,9 @@ test.describe('creating a sync job', () => {
     await mockApi.use('sync-jobs-admin')
     await page.goto('sync-jobs/new')
     await expect(page.getByRole('heading', { level: 1, name: 'Add sync job' })).toBeVisible()
-    await expect(page.getByText('Be aware that passwords need to be saved plain-text!')).toBeVisible()
+    await expect(
+      page.getByText('Be aware that passwords need to be saved plain-text!'),
+    ).toBeVisible()
     const ids = await page
       .locator('form [id^="syncjob-create-"]:is(input, select)')
       .evaluateAll((items) => items.map((item) => item.id.replace('syncjob-create-', '')))
@@ -223,7 +225,7 @@ test.describe('creating a sync job', () => {
     await expect(page.locator('#syncjob-create-intervalMinutes-error')).toContainText(
       'Enter a value from 1 to 43,800.',
     )
-    await expect(page.getByRole('heading', { name: 'Please correct the following' })).toBeFocused()
+    await expect(page.locator('div[id^="error-summary-"][tabindex="-1"]')).toBeFocused()
     expect(await requestsOf(mockApi, 'createSyncJob')).toEqual([])
   })
 
@@ -249,7 +251,7 @@ test.describe('creating a sync job', () => {
     await expect(page.locator('#syncjob-create-mailbox-error')).toContainText(
       'This address is a resource and cannot receive synced mail.',
     )
-    await expect(page.getByRole('heading', { name: 'Please correct the following' })).toBeFocused()
+    await expect(page.locator('div[id^="error-summary-"][tabindex="-1"]')).toBeFocused()
 
     await mockApi.use('sync-jobs-admin', {
       accounts: { admin: { preferences: { language: 'cs-cz', theme: 'system', etag: '"p"' } } },
@@ -323,7 +325,9 @@ test.describe('creating a sync job', () => {
     await page.goto('sync-jobs/new?mailbox=alice%40example.org')
     await fillRequired(page, 'mail.previous.example', 'alice')
     await page.getByRole('button', { name: 'Add' }).click()
-    await expect(page.getByText('Object mail.previous.example / alice already exists')).toBeVisible()
+    await expect(
+      page.getByText('Object mail.previous.example / alice already exists'),
+    ).toBeVisible()
     await expect(field(page, 'remoteHost')).toHaveValue('mail.previous.example')
     await page.getByRole('link', { name: 'Open the existing job' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Leave' }).click()
@@ -343,7 +347,9 @@ test.describe('creating a sync job', () => {
     await page.getByRole('button', { name: 'Add' }).click()
     await expect(page).toHaveURL(/\/sync-jobs\/61$/)
     await expect(
-      page.locator('#section-syncjob').getByText('Changes to mailbox dora@example.org have been saved'),
+      page
+        .locator('#section-syncjob')
+        .getByText('Changes to mailbox dora@example.org have been saved'),
     ).toBeVisible()
     await expect(page.locator('[data-live="polite"]')).toContainText('dora@example.org')
     await page.goBack()

@@ -243,7 +243,7 @@ function openLog(id: number) {
         </button>
       </div>
 
-      <div v-else-if="empty" class="flex flex-col items-start gap-3 py-6">
+      <div v-else-if="empty" data-empty class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
         <RouterLink :to="createLocation" :class="buttonVariants({ variant: 'default' })">
           <PlusIcon />

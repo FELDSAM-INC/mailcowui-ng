@@ -134,7 +134,7 @@ test.describe('sync job list', () => {
     await page.goto('sync-jobs')
     await expect(page.getByText('No data available in table')).toBeVisible()
     await expect(
-      page.locator('[data-list-state="empty"]').getByRole('link', { name: 'Create new sync job' }),
+      page.locator('[data-empty]').getByRole('link', { name: 'Create new sync job' }),
     ).toBeVisible()
     await expectAccessible()
     await mockApi.use('sync-jobs-admin')

@@ -6,6 +6,7 @@
 // background; "None / Inherit" comes first (decision 11). The mailbox section adds legacy's
 // `edit.mailbox_relayhost_info`.
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 import { queryKeys } from '@/api'
 import { lt, type LegacyKey } from '@/i18n'
@@ -13,6 +14,7 @@ import DomainPicker, {
   type DomainPickerOption,
   type DomainPickerSource,
 } from '@/shared/components/DomainPicker.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 
 import { fetchRelayhostChoices } from '../../api/relayhost-assignments'
@@ -27,6 +29,7 @@ const props = withDefaults(
 )
 
 const NONE = 'none'
+const { t } = useI18n()
 
 const source: DomainPickerSource = {
   id: 'relayhosts',
@@ -71,5 +74,12 @@ function update(next: string | null | string[]) {
       @pick="(option) => field.remember(option.name, option.nameUnicode)"
     />
     <LegacyText v-if="hint" :k="hint" as="p" class="text-sm text-gray-600 dark:text-gray-400" />
+    <div v-if="field.history.value" class="flex">
+      <HistoryLink
+        :target-type="field.history.value.targetType"
+        :target-id="field.history.value.targetId"
+        :aria-label="`${t('history.link')}: ${lt('edit.relayhost')}`"
+      />
+    </div>
   </div>
 </template>

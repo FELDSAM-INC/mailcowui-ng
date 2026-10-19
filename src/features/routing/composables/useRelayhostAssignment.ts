@@ -25,6 +25,8 @@ import {
   replaceDomainAssignment,
   replaceMailboxAssignment,
 } from '../api/relayhost-assignments'
+import { historyTarget } from '../history'
+import { useRoutingIdentity } from './useRoutingIdentity'
 
 type Assignment = DomainRelayhostAssignment | MailboxRelayhostAssignment
 
@@ -154,9 +156,21 @@ export function useRelayhostAssignment(options: RelayhostAssignmentOptions) {
       problem.value && errors.value.length === 0 ? problemMessage(problem.value) : null,
   }
 
+  const { canSeeHistory } = useRoutingIdentity()
+  /** The assignment's History target (administrators only; research R18). */
+  const history = computed(() =>
+    canSeeHistory.value
+      ? historyTarget(
+          options.kind === 'domain' ? 'domainRelayhostAssignment' : 'mailboxRelayhostAssignment',
+          { name: options.name() },
+        )
+      : null,
+  )
+
   return {
     companion,
     assignment,
+    history,
     selected,
     labels,
     loading,

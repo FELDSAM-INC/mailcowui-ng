@@ -14,6 +14,7 @@ import { mockDomain, GIB } from '../../../mocks/factories/domain'
 import { mockState, useScenario } from '../../../mocks/node'
 import { defaultDomainCapabilities } from '../../../mocks/scenarios/domains-base'
 import { mountWithApp, testPlugins } from '../../support/mount'
+import { createTestRouter } from '../../support/router'
 
 const capabilities: DomainCapabilities = { ...defaultDomainCapabilities(), taggingLimit: 3 }
 const all = new Set(PATCHABLE_ATTRIBUTES)
@@ -50,6 +51,8 @@ function mountSection(component: object, domain: Domain, props: Record<string, u
   return mountWithApp(component, {
     attachTo: document.body,
     props: { domain, editableFields: all, editing: true, capabilities, ...props },
+    // The relayhost field's History link (UI 009 US9) asks the router for the audit log route.
+    global: { plugins: [createTestRouter()] },
   })
 }
 

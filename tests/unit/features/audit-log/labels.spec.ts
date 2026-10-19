@@ -11,6 +11,9 @@ import {
   detailLabel,
 } from '@/features/audit-log/labels'
 import { hasMessage, text } from '@/i18n'
+import { LEGACY_TEXTS } from '@/i18n/legacy-messages'
+import csCz from '@/i18n/messages/cs-cz.json'
+import skSk from '@/i18n/messages/sk-sk.json'
 
 import { mountWithApp } from '../../support/mount'
 
@@ -67,6 +70,53 @@ describe('auditLabel', () => {
     expect(auditLabel('targetType', 'dkimKey', tr)).toBe('DKIM key')
     // The MTA-STS policy target uses the classic tab's name (LEGACY_TEXTS).
     expect(auditLabel('targetType', 'mtaStsPolicy', tr)).toBe('MTA-STS')
+  })
+
+  it('UI 009 T110 labels the routing events and targets in all three locales', () => {
+    const events: [string, string][] = [
+      ['relayhostCreation', 'Sender-dependent transport added'],
+      ['relayhostUpdate', 'Sender-dependent transport changed'],
+      ['relayhostDeletion', 'Sender-dependent transport removed'],
+      ['relayhostTest', 'Sender-dependent transport tested'],
+      ['relayhostAssignmentUpdate', 'Sender-dependent transport assignment changed'],
+      ['transportCreation', 'Transport added'],
+      ['transportUpdate', 'Transport changed'],
+      ['transportDeletion', 'Transport removed'],
+      ['transportTest', 'Transport tested'],
+      ['bccMapCreation', 'BCC map added'],
+      ['bccMapUpdate', 'BCC map changed'],
+      ['bccMapDeletion', 'BCC map removed'],
+      ['recipientMapCreation', 'Recipient map added'],
+      ['recipientMapUpdate', 'Recipient map changed'],
+      ['recipientMapDeletion', 'Recipient map removed'],
+      ['tlsPolicyMapCreation', 'TLS policy map added'],
+      ['tlsPolicyMapUpdate', 'TLS policy map changed'],
+      ['tlsPolicyMapDeletion', 'TLS policy map removed'],
+      ['forwardingHostCreation', 'Forwarding host added'],
+      ['forwardingHostUpdate', 'Forwarding host changed'],
+      ['forwardingHostDeletion', 'Forwarding host removed'],
+    ]
+    const targets: [string, string][] = [
+      ['relayhost', 'Sender-dependent transport'],
+      ['domainRelayhostAssignment', 'Sender-dependent transport of a domain'],
+      ['mailboxRelayhostAssignment', 'Sender-dependent transport of a mailbox'],
+      ['transport', 'Transport'],
+      // By their classic names (LEGACY_TEXTS).
+      ['bccMap', 'BCC map'],
+      ['recipientMap', 'Recipient map'],
+      ['tlsPolicyMap', 'TLS policy map'],
+      ['forwardingHost', 'Forwarding host'],
+    ]
+    for (const [code, label] of events) expect(auditLabel('eventType', code, tr)).toBe(label)
+    for (const [code, label] of targets) expect(auditLabel('targetType', code, tr)).toBe(label)
+    for (const messages of [csCz, skSk]) {
+      const enums = messages.enums as Record<string, Record<string, string>>
+      for (const [code] of events) expect(enums.auditEventType![code]).toBeTruthy()
+      for (const [code] of targets) {
+        const key = `enums.auditTargetType.${code}`
+        expect(enums.auditTargetType![code] ?? (key in LEGACY_TEXTS ? key : undefined)).toBeTruthy()
+      }
+    }
   })
 
   it('shows codes of later features with a generic label and the code', () => {

@@ -75,7 +75,7 @@ test.describe('OAuth2 apps list', () => {
     await page.getByLabel('Order').selectOption('asc')
     await page.locator('[data-page-size] select').selectOption('50')
     await expect(page).toHaveURL(/size=50/)
-    expect(await entryIds(page)).toHaveLength(40)
+    await expect.poll(() => entryIds(page)).toHaveLength(40)
     await page.locator('[data-page-size] select').selectOption('25')
     await page
       .getByRole('link', { name: 'Next' })

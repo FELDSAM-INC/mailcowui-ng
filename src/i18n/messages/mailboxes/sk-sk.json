@@ -122,7 +122,7 @@
   },
   "mailboxTemplates": {
     "delete": {
-      "keepValues": "Schránky vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Schránky vytvorené z týchto šablón si svoje hodnoty ponechajú."
+      "keepValues": "Schránky vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Schránky vytvorené z týchto šablón si svoje hodnoty ponechajú. | Schránky vytvorené z týchto šablón si svoje hodnoty ponechajú."
     },
     "detail": {
       "backToList": "Späť na šablóny schránok"

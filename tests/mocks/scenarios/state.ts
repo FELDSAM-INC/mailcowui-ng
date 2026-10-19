@@ -50,6 +50,7 @@ import type {
 import { type ViolationRecorder } from '../contract/validator'
 import type { MockIdentityProvider } from '../factories/identity-provider'
 import type { MockOauth2Client } from '../factories/oauth2-client'
+import type { OperationsPatch, OperationsState } from './operations/state'
 import type { PublicConfigVariant } from './public-config'
 import type { SyncJobChanges, SyncJobState } from './sync-jobs'
 import type { MockRoutingState, RoutingOverrides } from './routing/state'
@@ -583,6 +584,8 @@ export interface ScenarioState {
   dns: MockDnsState
   /** UI 009: relayhosts, transports, maps, forwarding hosts, DNS and connection test scripts. */
   routing: MockRoutingState
+  /** UI 011: capabilities, host clock, lags, injections and the data of each operations area. */
+  operations: OperationsState
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -656,6 +659,8 @@ export interface ScenarioOverrides {
   dns?: DnsPatch
   /** UI 009: routing data and switches (research R23). */
   routing?: RoutingOverrides
+  /** UI 011: monitoring capabilities, host clock, lags, injections and area data (T013). */
+  operations?: OperationsPatch
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

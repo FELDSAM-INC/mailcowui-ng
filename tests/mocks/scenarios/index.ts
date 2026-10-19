@@ -52,6 +52,7 @@ import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { routingScenarios } from './routing'
 import { applyRoutingOverrides, initialRoutingState } from './routing/state'
 import { navigationScenarios } from './navigation'
+import { applyOperationsPatch, initialOperationsState, operationsScenarios } from './operations'
 import { passkeySignInScenarios } from './passkey-sign-in'
 import { passkeyScenarios } from './passkeys'
 import { pendingActionScenarios } from './pending-actions'
@@ -133,6 +134,8 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...history004Scenarios,
   ...dnsScenarios,
   ...routingScenarios,
+  // UI 011: one module per area under ./operations/ (T013).
+  ...operationsScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {
@@ -232,6 +235,7 @@ export function applyOverrides(
   applyFeature004Overrides(state, overrides)
   if (overrides.dns) applyDnsOverrides(state, overrides.dns)
   applyRoutingOverrides(state, overrides.routing)
+  if (overrides.operations) applyOperationsPatch(state, overrides.operations)
   if (overrides.signedInAs) {
     const account = findAccount(state, overrides.signedInAs)
     if (!account) throw new Error(`Unknown account ${overrides.signedInAs}`)
@@ -284,6 +288,7 @@ export function createScenarioState(
     ...initialState004(),
     ...initialDnsState(),
     ...initialRoutingState(),
+    operations: initialOperationsState(),
   }
   definition.setup?.(state)
   applyOverrides(state, structuredClone(definition.overrides ?? {}))

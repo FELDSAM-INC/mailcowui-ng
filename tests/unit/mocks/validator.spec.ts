@@ -262,3 +262,82 @@ describe('response validation', () => {
     expect(validator.validateSchema('#/components/schemas/Role', 'root')).not.toEqual([])
   })
 })
+
+// UI 011 (T011): the monitoring operations the mock serves.
+describe('monitoring operations (UI 011)', () => {
+  const container = {
+    name: 'sogo-mailcow',
+    image: 'ghcr.io/mailcow/sogo:1.133',
+    state: 'running',
+    running: true,
+    startedAt: '2026-10-18T10:00:00Z',
+    health: null,
+    protected: false,
+    role: 'webmail',
+    availableActions: ['stop', 'restart'],
+    collectedAt: '2026-10-18T10:00:05Z',
+  }
+
+  it('accepts the optional Audit-Recorded header on a queue bulk action answer', () => {
+    const violations = validator.validateResponse(
+      matchOf('POST', '/mail-queue/messages/bulk-actions'),
+      {
+        status: 200,
+        headers: new Headers({ 'Content-Type': 'application/json', 'Audit-Recorded': 'false' }),
+        body: {
+          data: {
+            bulkRequestId: '4bf92f3577b34da6a3ce929d0e0e4736',
+            results: [{ id: 'ABC123', outcome: 'done' }],
+            summary: { total: 1, done: 1, refused: 0, outdated: 0, notFound: 0, failed: 0 },
+          },
+        },
+      },
+    )
+    expect(violations).toEqual([])
+  })
+
+  it('rejects a container action result without the container', () => {
+    const match = matchOf('POST', '/containers/sogo-mailcow/start')
+    expect(match.operationId).toBe('startContainer')
+    const ok = validator.validateResponse(match, {
+      status: 200,
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      body: { data: { action: 'start', outcome: 'done', container } },
+    })
+    expect(ok).toEqual([])
+    const violations = validator.validateResponse(match, {
+      status: 200,
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      body: { data: { action: 'start', outcome: 'done' } },
+    })
+    expect(violations.join('\n')).toMatch(/container/)
+  })
+
+  it('matches a percent-encoded network in the ban action path', () => {
+    const match = validator.match('POST', '/fail2ban/active-bans/203.0.113.0%2F24/lift')
+    expect(match?.operationId).toBe('liftFail2BanBan')
+    const result = validator.validateRequest(
+      request('POST', '/fail2ban/active-bans/203.0.113.0%2F24/lift', {
+        headers: { 'X-CSRF-Token': 't' },
+      }),
+    )
+    expect(result.violations).toEqual([])
+    expect(
+      validator.match('POST', '/fail2ban/active-bans/2001%3Adb8%3A%3A%2F64/allowlist')
+        ?.operationId,
+    ).toBe('allowlistFail2BanBan')
+  })
+
+  it('refuses a version in a queue bulk target', () => {
+    const body = (target: Record<string, string>) => ({ action: 'hold', targets: [target] })
+    const send = (target: Record<string, string>) =>
+      validator.validateRequest(
+        request('POST', '/mail-queue/messages/bulk-actions', {
+          headers: { 'X-CSRF-Token': 't' },
+          body: body(target),
+        }),
+      ).violations
+    expect(send({ id: 'ABC123' })).toEqual([])
+    expect(send({ id: 'ABC123', version: '"v1"' }).join('\n')).toMatch(/version/)
+  })
+})

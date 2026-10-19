@@ -24,16 +24,21 @@ import { aliasHandlers } from './aliases'
 import { apiKeyHandlers } from './api-keys'
 import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
+import { containerHandlers } from './containers'
 import { problem, sessionAccount, withScenario } from './context'
 import { dkimHandlers } from './dkim'
 import { dnsDiagnosticsHandlers } from './dns-diagnostics'
 import { domainTemplateHandlers } from './domain-templates'
 import { domainHandlers } from './domains'
+import { fail2banHandlers } from './fail2ban'
+import { hostHandlers } from './host'
 import { identityHandlers } from './identity'
 import { identityProviderHandlers } from './identity-provider'
 import { oauth2ClientHandlers } from './oauth2-clients'
 import { singleSignOnHandlers } from './single-sign-on'
 import { langHandlers } from './lang'
+import { logHandlers } from './logs'
+import { mailQueueHandlers } from './mail-queue'
 import { mailboxBulkHandlers } from './mailbox-bulk'
 import { mailboxCreateHandlers } from './mailbox-create'
 import { mailboxDeletionHandlers } from './mailbox-deletion'
@@ -47,6 +52,7 @@ import { passwordPolicyHandlers } from './password-policy'
 import { publicConfigHandlers } from './public-config'
 import { resourceHandlers } from './resources'
 import { senderSettingsHandlers } from './sender-settings'
+import { rspamdHandlers } from './rspamd'
 import { syncJobHandlers } from './sync-jobs'
 import { bccMapHandlers } from './bcc-maps'
 import { forwardingHostHandlers } from './forwarding-hosts'
@@ -100,6 +106,13 @@ export const areaHandlers: RequestHandler[] = [
   ...recipientMapHandlers,
   ...tlsPolicyMapHandlers,
   ...forwardingHostHandlers,
+  // UI 011: one module per contract module (T014).
+  ...hostHandlers,
+  ...containerHandlers,
+  ...logHandlers,
+  ...rspamdHandlers,
+  ...mailQueueHandlers,
+  ...fail2banHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

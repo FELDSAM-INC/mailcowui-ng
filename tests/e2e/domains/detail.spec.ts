@@ -44,14 +44,14 @@ test.describe('domain page', () => {
     await expectNoHorizontalScroll()
   })
 
-  test('FR-015 the relayhost in its legacy position, a vanished one by its ID, and the rate limit read-only', async ({
+  test('FR-015 the relayhost in its legacy position, a vanished one by its ID, and the rate limit', async ({
     page,
     mockApi,
   }) => {
     await mockApi.use('domains-60')
     await page.goto('domains/relayhost.example')
     await expect(page.locator('#section-domain')).toContainText('smtp.relay.example')
-    await expect(page.locator('#section-ratelimit')).toContainText('10 msgs / hour')
+    await expect(page.locator('#rate-limit')).toContainText('10 msgs / hour')
     await page.goto('domains/orphan-relay.example')
     await expect(page.locator('#section-domain')).toContainText('ID 7')
     await page.goto('domains/footed.example')

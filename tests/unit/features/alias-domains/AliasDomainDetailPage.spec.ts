@@ -44,6 +44,8 @@ async function save(wrapper: Wrapper) {
   await flushPromises()
 }
 
+const rateLimit = (wrapper: Wrapper) => wrapper.find('#rate-limit [data-value="rateLimit"] dd')
+
 describe('AliasDomainDetailPage: reading', () => {
   it("shows legacy's heading, the target, active, the rate limit and History", async () => {
     useScenario('alias-domains-admin')
@@ -59,14 +61,17 @@ describe('AliasDomainDetailPage: reading', () => {
       '/ng/domains/example.org',
     )
     expect(wrapper.get('[data-field="active"]').text()).toContain('Yes')
-    expect(wrapper.get('[data-field="rateLimit"]').text()).toBe('10 msgs / hour')
+    // UI 006: the rate limit is its section, loaded on its own.
+    await vi.waitFor(() => expect(rateLimit(wrapper).exists()).toBe(true))
+    expect(rateLimit(wrapper).text()).toBe('10 msgs / hour')
     expect(wrapper.findAll('a').some((link) => link.text() === 'History')).toBe(true)
   })
 
   it('says the rate limit is disabled and shows no History to a domain administrator', async () => {
     useScenario('alias-domains')
     const { wrapper } = await mountDetail()
-    expect(wrapper.get('[data-field="rateLimit"]').text()).toBe('Disabled')
+    await vi.waitFor(() => expect(rateLimit(wrapper).exists()).toBe(true))
+    expect(rateLimit(wrapper).text()).toBe('Disabled')
     expect(wrapper.findAll('a').some((link) => link.text() === 'History')).toBe(false)
   })
 
@@ -221,6 +226,6 @@ describe('AliasDomainDetailPage: editing', () => {
     const { wrapper } = await mountDetail('/alias-domains/example.net?edit=general', false)
     expect(wrapper.find('#section-general form').exists()).toBe(true)
     expect(wrapper.find('h1').exists()).toBe(false)
-    expect(wrapper.find('[data-alias-domain-rate-limit]').exists()).toBe(false)
+    expect(wrapper.find('#rate-limit').exists()).toBe(false)
   })
 })

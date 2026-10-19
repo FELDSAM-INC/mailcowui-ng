@@ -1,1 +1,19 @@
-{}
+{
+  "rateLimits": {
+    "title": "Omezení přenosu",
+    "list": {
+      "object": "Objekt"
+    },
+    "set": {
+      "title": "Nastavit omezení přenosu"
+    },
+    "bucket": {
+      "hash": "Hash"
+    },
+    "invalidStoredValue": "Uložené omezení přenosu „{value}“ má neplatný formát. Uložte novou hodnotu, nebo pole vyprázdněte.",
+    "effective": {
+      "title": "Platí: {limit} ({source})",
+      "withoutSource": "Platí: {limit}"
+    }
+  }
+}

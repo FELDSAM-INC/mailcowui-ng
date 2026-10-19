@@ -56,8 +56,8 @@ test.describe('edit a domain', () => {
     await expect(section).toContainText('51,200')
     await expect(section).toContainText('Created on:')
     await expect(section).toContainText('Last modified:')
-    await expect(page.locator('#section-ratelimit')).toContainText('Disabled')
-    await expect(page.getByRole('button', { name: 'Edit Rate limit' })).toHaveCount(0)
+    // UI 006 makes the rate limit editable in its own section (tests/e2e/rate-limits).
+    await expect(page.locator('#rate-limit')).toContainText('Disabled')
     await edit(page)
     await expect(field(page, 'Domain quota')).toHaveValue('51200')
     await expect(field(page, 'Max. quota per mailbox (MiB)')).toHaveValue('10240')
@@ -218,7 +218,7 @@ test.describe('edit a domain', () => {
     if (isNarrow(page)) {
       await expect(page.locator(SECTION)).toHaveAttribute('data-layout', 'full')
       await expect(page.locator(`${SECTION} [data-section-actions]`)).toHaveClass(/sticky/)
-      await expect(page.locator('#section-ratelimit')).toHaveCount(0)
+      await expect(page.locator('#rate-limit')).toHaveCount(0)
     } else {
       await expect(page.locator(SECTION)).toHaveAttribute('data-layout', 'inline')
     }

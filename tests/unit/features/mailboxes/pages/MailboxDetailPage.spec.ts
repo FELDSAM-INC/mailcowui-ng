@@ -36,13 +36,15 @@ describe('MailboxDetailPage', () => {
     const { wrapper } = await mountAt('/mailboxes/anna@a.example')
     await vi.waitFor(() => expect(wrapper.text()).toContain('Edit mailbox'))
     expect(wrapper.find('[data-mailbox-usage]').exists()).toBe(true)
+    // UI 006: the rate limit section is loaded on its own.
+    await vi.waitFor(() => expect(wrapper.find('#section-rate-limit').exists()).toBe(true))
     const sections = wrapper.findAll('section[id^="section-"]').map((item) => item.attributes('id'))
     expect(sections).toEqual([
       'section-mailbox',
       'section-attributes',
       'section-pushover',
       'section-acl',
-      'section-rateLimit',
+      'section-rate-limit',
       'section-rename',
     ])
     expect(wrapper.findAll('a').some((link) => link.text() === 'History')).toBe(true)

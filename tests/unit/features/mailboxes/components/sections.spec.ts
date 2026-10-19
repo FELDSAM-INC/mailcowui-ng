@@ -1,6 +1,7 @@
 // The sections of the mailbox page (UI 003 T072, T088 under the forms rule): the "Mailbox" tab's
 // read-only values and form in legacy order with the gates and sources, the custom attributes
-// table, the ACL multi-select and the read-only Pushover and Rate limit tabs.
+// table, the ACL multi-select and the read-only Pushover tab (the Rate limit tab is UI 006's
+// section).
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
@@ -125,7 +126,7 @@ describe('AttributesSection', () => {
   })
 })
 
-describe('AclSection, Pushover and Rate limit', () => {
+describe('AclSection and Pushover', () => {
   it('offers the present permissions in legacy order with the acl labels', async () => {
     const mailbox = await load()
     const wrapper = mountWithApp(AclSection, { props: { mailbox, editing: true } })
@@ -136,13 +137,11 @@ describe('AclSection, Pushover and Rate limit', () => {
     expect(options).toContain('Allow to reset mailcow user password')
   })
 
-  it('shows Pushover and the mailbox’s own rate limit read-only, with legacy’s help', async () => {
+  // UI 006: the "Rate limit" tab is the rate limit area's section (tests/unit/features/rate-limits).
+  it('shows Pushover read-only', async () => {
     const mailbox = await load()
     const pushover = mountWithApp(ManagedSections, { props: { mailbox, section: 'pushover' } })
     expect(pushover.text()).toContain('Pushover')
     expect(pushover.find('button').exists()).toBe(false)
-    const rate = mountWithApp(ManagedSections, { props: { mailbox, section: 'rateLimit' } })
-    expect(rate.text()).toContain('Disabled')
-    expect(rate.text()).toContain('A mailbox rate limit overrides a domain-wide rate limit.')
   })
 })

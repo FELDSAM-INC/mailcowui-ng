@@ -146,7 +146,6 @@ describe('P14, P15, P25 and the 006 shared blocks', () => {
 describe('P16–P19 the host pages of the sections (legacy form map D9)', () => {
   it.each([
     'src/features/domains/pages/DomainDetailPage.vue',
-    'src/features/domains/components/detail/sections/RateLimitSection.vue',
     'src/features/mailboxes/pages/MailboxDetailPage.vue',
     'src/features/mailboxes/components/sections/MailboxSection.vue',
     'src/features/mailboxes/components/sections/ManagedSections.vue',

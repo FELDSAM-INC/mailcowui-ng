@@ -61,21 +61,20 @@ test.describe('domain aliases: list and page', () => {
     }
   })
 
-  test('FR-035 the page shows the rate limit read-only under "Rate limit"', async ({
-    page,
-    mockApi,
-  }) => {
+  test('FR-035 the page shows the rate limit under "Rate limit"', async ({ page, mockApi }) => {
     await mockApi.use('alias-domains-admin')
     await page.goto(`alias-domains/${AD.withAliases}`)
     await expect(page.getByRole('heading', { level: 1, name: 'Edit Alias domain' })).toBeVisible()
-    await expect(page.locator('[data-field="rateLimit"]')).toHaveText('Disabled')
+    // UI 006: legacy's rate limit form, as its section below the edit form.
+    const rateLimit = page.locator('#rate-limit [data-value="rateLimit"] dd')
+    await expect(rateLimit).toHaveText('Disabled')
     await mockApi.patch({
       changeElsewhere: {
         aliasDomain: { [AD.withAliases]: { rateLimit: { value: 10, frame: 'hour' } } },
       },
     })
     await page.reload()
-    await expect(page.locator('[data-field="rateLimit"]')).toHaveText('10 msgs / hour')
+    await expect(rateLimit).toHaveText('10 msgs / hour')
   })
 
   test('US4-AS3 without "aliasDomains" there is no add control, but Edit and Remove stay', async ({

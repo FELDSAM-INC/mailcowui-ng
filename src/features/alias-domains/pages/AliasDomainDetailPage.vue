@@ -2,7 +2,7 @@
 // The domain alias page (US4, FR-035, FR-039), mirroring `templates/edit/aliasdomain.twig`
 // (docs/conventions.md "Detail pages"): legacy's edit heading with the name, the outcome alerts of
 // the creation that opened it, the "Edit Alias domain" form as one section (`?edit=general`), then
-// the rate limit read-only in its legacy position under `acl.ratelimit` (edited in UI 006). Deletion
+// legacy's rate limit form below it (UI 006's section, `acl.ratelimit`, `#rate-limit`). Deletion
 // stays in the list, as in legacy. Below md the open section takes the screen; leaving it with
 // changes asks first. A name in another spelling is replaced by the canonical ASCII name. An alias
 // domain that does not exist or lies outside the scope shows "not found" (FR-003); one that vanishes
@@ -17,7 +17,8 @@ import { isEntryAvailable } from '@/app/navigation/visibility'
 import { useIdentityQuery } from '@/app/session/queries'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { feature004Permissions } from '@/features/aliases-common'
-import { lt, type LegacyKey } from '@/i18n'
+import { RateLimitSection } from '@/features/rate-limits'
+import { lt } from '@/i18n'
 import CreationReport from '@/shared/components/CreationReport.vue'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -119,16 +120,6 @@ watch(
 
 const showOnly = computed(() => !wide.value && editing.value)
 
-const FRAMES: Record<string, LegacyKey> = {
-  second: 'ratelimit.second',
-  minute: 'ratelimit.minute',
-  hour: 'ratelimit.hour',
-  day: 'ratelimit.day',
-}
-const rateLimit = computed(() => {
-  const value = aliasDomain.value?.rateLimit
-  return value ? `${value.value} ${lt(FRAMES[value.frame]!)}` : lt('ratelimit.disabled')
-})
 const subtitle = computed(() => {
   const value = aliasDomain.value
   if (!value) return name.value
@@ -186,18 +177,7 @@ const subtitle = computed(() => {
       @dirty="dirty = $event"
       @gone="vanished"
     />
-    <section
-      v-if="!showOnly"
-      :aria-label="lt('acl.ratelimit')"
-      data-alias-domain-rate-limit
-      class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
-    >
-      <dl class="grid grid-cols-1 gap-3 md:grid-cols-[minmax(10rem,auto)_1fr] md:gap-x-6">
-        <dt class="text-sm text-gray-600 dark:text-gray-400">{{ lt('acl.ratelimit') }}</dt>
-        <dd class="min-w-0 text-gray-900 dark:text-white" data-field="rateLimit">
-          {{ rateLimit }}
-        </dd>
-      </dl>
-    </section>
+    <!-- UI 006: legacy's rate limit form below the edit form, reached with `#rate-limit`. -->
+    <RateLimitSection v-if="!showOnly" kind="aliasDomain" :object="aliasDomain.name" />
   </article>
 </template>

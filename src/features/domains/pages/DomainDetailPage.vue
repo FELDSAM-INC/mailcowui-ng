@@ -3,7 +3,7 @@
 // `templates/edit/domain.twig` (owner rule 1:1, docs/conventions.md "Detail pages"): legacy's edit
 // heading with the domain name, the creation outcomes after a creation, the usage figures and the
 // domain administrators (display-only, with the domain list's keys), then the tabs it delivers as
-// sections in legacy order: "Edit domain", "Rate limit" (read-only until its feature lands) and
+// sections in legacy order: "Edit domain", "Rate limit" (UI 006's section, editable there) and
 // "Domain wide footer". Deletion stays in the list, as in legacy. The domain is seeded
 // from a cached list entry; another spelling of its name in the address is replaced by the canonical
 // ASCII address (research D4); a domain that does not exist or lies outside the scope shows the
@@ -19,6 +19,7 @@ import { canAccess } from '@/app/navigation/visibility'
 import { CheckDnsAction, DomainDkimSection, DomainMtaStsSection } from '@/features/dns'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { mailboxCreateLink, mailboxListLink } from '@/features/mailboxes'
+import { RateLimitSection } from '@/features/rate-limits'
 import { buttonVariants } from '@/shared/ui/button'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -35,7 +36,6 @@ import { creationAlerts } from '../creation-report'
 import DomainAdminsList from '../components/detail/DomainAdminsList.vue'
 import DomainSection from '../components/detail/sections/DomainSection.vue'
 import FooterSection from '../components/detail/sections/FooterSection.vue'
-import RateLimitSection from '../components/detail/sections/RateLimitSection.vue'
 import UsageSummary from '../components/detail/UsageSummary.vue'
 import { useDomainPermissions } from '../composables/useDomainPermissions'
 import type { EditableAttribute } from '../permissions'
@@ -252,7 +252,8 @@ watch(
     />
     <!-- UI 010: the DKIM block legacy shows below the "Edit domain" form. -->
     <DomainDkimSection v-if="!showOnly" :name="domain.name" kind="domain" />
-    <RateLimitSection v-if="!showOnly" :domain="domain" />
+    <!-- UI 006: legacy's "Rate limit" tab (`#dratelimit`), reached with `#rate-limit`. -->
+    <RateLimitSection v-if="!showOnly" kind="domain" :object="domain.name" />
     <!-- UI 010: legacy's MTA-STS tab, before "Domain wide footer". -->
     <DomainMtaStsSection v-if="!showOnly" :domain="domain.name" />
     <FooterSection

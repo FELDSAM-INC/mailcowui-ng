@@ -1,1 +1,19 @@
-{}
+{
+  "rateLimits": {
+    "title": "Rate limits",
+    "list": {
+      "object": "Object"
+    },
+    "set": {
+      "title": "Set a rate limit"
+    },
+    "bucket": {
+      "hash": "Hash"
+    },
+    "invalidStoredValue": "The stored rate limit \"{value}\" has an invalid format. Save a new value or empty the field.",
+    "effective": {
+      "title": "In effect: {limit} ({source})",
+      "withoutSource": "In effect: {limit}"
+    }
+  }
+}

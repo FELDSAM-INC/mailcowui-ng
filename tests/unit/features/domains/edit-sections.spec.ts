@@ -7,7 +7,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { queryKeys, type Domain, type DomainCapabilities } from '@/api'
 import { fetchDomain } from '@/features/domains/api'
 import DomainSection from '@/features/domains/components/detail/sections/DomainSection.vue'
-import RateLimitSection from '@/features/domains/components/detail/sections/RateLimitSection.vue'
 import { PATCHABLE_ATTRIBUTES } from '@/features/domains/permissions'
 
 import { mockDomain, GIB } from '../../../mocks/factories/domain'
@@ -168,18 +167,5 @@ describe('DomainSection', () => {
         'Changes to domain edit.example have been saved',
       ),
     )
-  })
-})
-
-describe('RateLimitSection', () => {
-  it('shows the rate limit read-only, or "Disabled"', async () => {
-    const domain = await domainFixture()
-    const none = mountWithApp(RateLimitSection, { props: { domain } })
-    expect(none.text()).toContain('Disabled')
-    expect(none.find('button').exists()).toBe(false)
-    const limited = mountWithApp(RateLimitSection, {
-      props: { domain: { ...domain, rateLimit: { value: 10, frame: 'hour' } } },
-    })
-    expect(limited.text()).toContain('10 msgs / hour')
   })
 })

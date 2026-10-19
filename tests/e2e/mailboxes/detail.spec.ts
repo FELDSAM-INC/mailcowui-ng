@@ -43,6 +43,8 @@ test.describe('the mailbox page', () => {
     await expect(usage.locator('[data-figure="messages"]')).toContainText('10,000')
     await expect(usage.locator('[data-login="imap"]')).toContainText('IMAP @')
     await expect(usage.locator('[data-login="sso"]')).toContainText('SSO @ No record')
+    // UI 006: the rate limit section is loaded on its own.
+    await expect(page.locator('#rate-limit h2')).toBeVisible()
     const headings = await page.locator('section[id^="section-"] h2').allTextContents()
     expect(headings.map((text) => text.trim())).toEqual([
       'Edit mailbox',
@@ -57,8 +59,8 @@ test.describe('the mailbox page', () => {
     await expect(section).toContainText('ID 2')
     await expect(section).toContainText('Quota (MiB)')
     await expect(section).toContainText('Created on:')
-    await expect(page.locator('#section-rateLimit')).toContainText('Disabled')
-    await expect(page.getByRole('button', { name: 'Edit Rate limit' })).toHaveCount(0)
+    // UI 006 makes the rate limit editable in its own section (tests/e2e/rate-limits).
+    await expect(page.locator('#rate-limit')).toContainText('Disabled')
     await expect(page.getByRole('link', { name: 'History', exact: true })).toBeVisible()
     await expectAccessible()
     await expectNoHorizontalScroll()

@@ -3,7 +3,7 @@
 // `templates/edit/mailbox.twig` (owner rule 1:1, docs/conventions.md "Detail pages"): legacy's
 // edit heading with the address, the usage figures with the list's keys (display-only), then the
 // tabs as sections in legacy order: "Mailbox", "Custom attributes", "Pushover" (read-only until
-// UI 005), "ACL", "Rate limit" (read-only until UI 006) and "Rename mailbox". Deletion stays in the
+// UI 005), "ACL", "Rate limit" (UI 006's section) and "Rename mailbox". Deletion stays in the
 // list, as in legacy. A section opens for editing with `?edit=<section>`, one at a time, so each has
 // its own link; leaving a section with changes asks first. A mailbox opened from the list shows at
 // once from the list entry and is refreshed (FR-017); another spelling of the address is replaced by
@@ -27,6 +27,7 @@ import { useConfirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
+import { RateLimitSection } from '@/features/rate-limits'
 import { MailboxSyncJobsLink } from '@/features/sync-jobs'
 
 import { useMailbox } from '../api'
@@ -254,7 +255,8 @@ const subtitle = computed(() => {
       @close="closeSection"
       @dirty="dirty = $event"
     />
-    <ManagedSections v-if="!showOnly" :mailbox="mailbox" section="rateLimit" />
+    <!-- UI 006: legacy's "Rate limit" tab (`#mrl`), reached with `#rate-limit`. -->
+    <RateLimitSection v-if="!showOnly" kind="mailbox" :object="mailbox.address" />
     <RenameSection v-if="!showOnly" :mailbox="mailbox" @dirty="dirty = $event" />
   </article>
 </template>

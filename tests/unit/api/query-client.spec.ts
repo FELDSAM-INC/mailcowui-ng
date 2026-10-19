@@ -2,7 +2,13 @@
 // the retry policy, and the session-level reactions to problems.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiProblem, createQueryClient, setSessionReactions, shouldRetryQuery } from '@/api'
+import {
+  ApiProblem,
+  createQueryClient,
+  reportSessionProblem,
+  setSessionReactions,
+  shouldRetryQuery,
+} from '@/api'
 
 function problem(status: number, name: string | null, extra: Partial<ApiProblem> = {}) {
   return ApiProblem.fromParts({
@@ -122,6 +128,19 @@ describe('session reactions', () => {
       .execute(undefined)
       .catch(() => undefined)
     expect(handlers.unauthenticated).toHaveBeenCalledWith(error)
+  })
+
+  it('UI 012: dispatches identity-provider-session-ended, as unauthenticated without its reaction', async () => {
+    const ended = problem(401, 'identity-provider-session-ended')
+    const withReaction = { ...reactions(), identityProviderSessionEnded: vi.fn() }
+    setSessionReactions(withReaction)
+    reportSessionProblem(ended)
+    expect(withReaction.identityProviderSessionEnded).toHaveBeenCalledWith(ended)
+    expect(withReaction.unauthenticated).not.toHaveBeenCalled()
+    const without = reactions()
+    setSessionReactions(without)
+    reportSessionProblem(ended)
+    expect(without.unauthenticated).toHaveBeenCalledWith(ended)
   })
 
   it('leaves every other problem to the screen', async () => {

@@ -14,7 +14,7 @@ import { confirmState, settleConfirm } from '@/shared/composables/useConfirm'
 
 import { mockState, useScenario } from '../../../mocks/node'
 import { applyOverrides } from '../../../mocks/scenarios'
-import { mountPage } from '../aliases-common/page-support'
+import { confirmDialog, dialogButton, mountPage } from '../aliases-common/page-support'
 
 async function mountList(path = '/alias-domains', wide = true) {
   const { wrapper, router } = await mountPage(AliasDomainsPage, 'alias-domains', path, { wide })
@@ -183,17 +183,12 @@ describe('AliasDomainsPage: deleting one alias domain', () => {
     useScenario('alias-domains-admin')
     const { wrapper } = await mountList()
     await remove(wrapper, 'example.net')
-    const dialog = await vi.waitFor(() =>
-      document.querySelector<HTMLElement>('[role="alertdialog"], [role="dialog"]')!,
-    )
+    const dialog = await confirmDialog()
     expect(dialog.textContent).toContain('Confirm deletion')
     expect(dialog.querySelector('[data-alias-domain-delete]')!.textContent).toContain(
       'Deleted with it: its aliases (7)',
     )
-    const deleteNow = [...dialog.querySelectorAll('button')].find(
-      (item) => item.textContent?.trim() === 'Delete now',
-    )!
-    deleteNow.click()
+    dialogButton(dialog, 'Delete now').click()
     await vi.waitFor(() => expect(alert(wrapper).exists()).toBe(true))
     expect(alert(wrapper).text()).toContain('Alias domain example.net has been removed')
     expect(requests('deleteAliasDomain')[0]!.headers['if-match']).toBeTruthy()

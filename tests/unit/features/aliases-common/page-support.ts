@@ -4,7 +4,7 @@
 // and the viewport is narrow or wide. Each mounted page is unmounted after its test, after any open
 // confirmation is cancelled.
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
-import { afterEach } from 'vitest'
+import { afterEach, vi } from 'vitest'
 import { defineComponent, h, type Component } from 'vue'
 import { RouterView } from 'vue-router'
 
@@ -45,4 +45,22 @@ export async function mountPage(
   mounted.push(wrapper)
   await flushPromises()
   return { wrapper, router }
+}
+
+/** The app's confirmation dialog, once it is shown. */
+export function confirmDialog(): Promise<HTMLElement> {
+  return vi.waitFor(() => {
+    const element = document.querySelector<HTMLElement>('[role="alertdialog"]')
+    if (!element) throw new Error('No confirmation dialog is shown')
+    return element
+  })
+}
+
+/** A button of the shown confirmation dialog, by its text. */
+export function dialogButton(dialog: HTMLElement, text: string): HTMLButtonElement {
+  const found = [...dialog.querySelectorAll('button')].find(
+    (item) => item.textContent?.trim() === text,
+  )
+  if (!found) throw new Error(`No dialog button "${text}"`)
+  return found
 }

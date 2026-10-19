@@ -1,7 +1,8 @@
 // UI 010 foundation (T019, FR-001, research R2): the two DNS navigation entries for administrators
 // and domain administrators, none for mailbox users, the /dns redirect, and the layout checks.
-import { expect, test } from '../fixtures/test'
 import { isNarrow, openNavigation } from '../fixtures/flows'
+import { expect, test } from '../fixtures/test'
+import { FIRST_LOAD } from './helpers'
 
 test.describe('DNS navigation', () => {
   for (const scenario of ['dns-admin', 'dns-domain-admin']) {
@@ -19,7 +20,9 @@ test.describe('DNS navigation', () => {
       await expect(navigation.getByRole('link', { name: 'MTA-STS', exact: true })).toBeVisible()
       await navigation.getByRole('link', { name: 'ARC/DKIM keys' }).click()
       await expect(page).toHaveURL(/\/ng\/dns\/dkim-keys$/)
-      await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible()
+      await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible({
+        timeout: FIRST_LOAD,
+      })
       await expectAccessible()
       await expectNoHorizontalScroll()
     })
@@ -31,7 +34,7 @@ test.describe('DNS navigation', () => {
   }) => {
     await mockApi.use('mailbox-no-spam-flags')
     await page.goto('')
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: FIRST_LOAD })
     const navigation = await openNavigation(page)
     await expect(navigation.getByRole('link', { name: 'ARC/DKIM keys' })).toHaveCount(0)
     await expect(navigation.getByRole('link', { name: 'MTA-STS', exact: true })).toHaveCount(0)

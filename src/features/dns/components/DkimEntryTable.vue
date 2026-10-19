@@ -91,7 +91,7 @@ const number = (value: number | null) =>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950">
-        <tr v-for="entry in entries" :key="entry.name" class="align-top">
+        <tr v-for="entry in entries" :key="entry.name" :data-entry="entry.name" class="align-top">
           <td v-if="selectable" class="px-3 py-2"><slot name="select" :entry="entry" /></td>
           <td class="px-3 py-2 font-medium text-gray-900 dark:text-white">
             <RouterLink
@@ -110,7 +110,7 @@ const number = (value: number | null) =>
               v-if="entry.key?.selector"
               type="button"
               data-filter-selector
-              class="min-h-11 text-start underline underline-offset-2"
+              class="min-h-11 min-w-11 text-start underline underline-offset-2"
               :aria-label="t('dns.dkim.filters.bySelector', { selector: entry.key.selector })"
               @click="emit('filterSelector', entry.key.selector)"
             >

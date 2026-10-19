@@ -29,6 +29,8 @@ const { role } = useDnsRole()
 const query = useDkimKey(() => props.name)
 const entry = computed(() => query.data.value)
 const key = computed(() => entry.value?.key ?? null)
+/** Long labels wrap instead of widening the page at 320 px. */
+const LONG = 'h-auto min-h-11 max-w-full shrink whitespace-normal text-start'
 </script>
 
 <template>
@@ -75,14 +77,14 @@ const key = computed(() => entry.value?.key ?? null)
         <slot name="actions" :entry="entry" />
         <RouterLink
           :to="dkimKeyLocation(entry.name)"
-          :class="buttonVariants({ variant: 'outline' })"
+          :class="buttonVariants({ variant: 'outline', class: LONG })"
         >
           {{ t('dns.dkim.section.open') }}
         </RouterLink>
         <RouterLink
           v-if="kind === 'domain'"
           :to="dkimListLocation({ domain: entry.name })"
-          :class="buttonVariants({ variant: 'outline' })"
+          :class="buttonVariants({ variant: 'outline', class: LONG })"
         >
           {{ t('dns.dkim.section.list') }}
         </RouterLink>

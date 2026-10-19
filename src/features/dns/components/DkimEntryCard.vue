@@ -22,6 +22,7 @@ const { t, locale } = useI18n()
 
 <template>
   <li
+    :data-entry="entry.name"
     class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
   >
     <div class="flex items-start gap-2">
@@ -49,7 +50,7 @@ const { t, locale } = useI18n()
             v-if="entry.key.selector"
             type="button"
             data-filter-selector
-            class="min-h-11 text-start underline underline-offset-2"
+            class="min-h-11 min-w-11 text-start underline underline-offset-2"
             :aria-label="t('dns.dkim.filters.bySelector', { selector: entry.key.selector })"
             @click="emit('filterSelector', entry.key.selector)"
           >

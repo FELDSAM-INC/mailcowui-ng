@@ -144,6 +144,9 @@ jobs:
       HAS_TOKEN: ${{ secrets.MAILCOW_REST_V2_TOKEN != '' }}
       MAILCOW_REST_V2_DIR: ${{ github.workspace }}/api
       SMOKE_API_REF: ${{ vars.SMOKE_API_REF }}
+      # UI 012: the API's idp profile (OpenLDAP, and Keycloak with its realm import) for the @idp
+      # and @sso smoke tests.
+      SMOKE_IDP: '1'
     defaults:
       run:
         working-directory: ui

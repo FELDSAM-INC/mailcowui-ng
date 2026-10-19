@@ -7,7 +7,8 @@
 # The API is checked out at contract/VERSION.json's `commit`, or at SMOKE_API_REF, in a separate
 # git worktree under .smoke/api, so the developer's own checkout and dev stack are never touched.
 # It runs as its own Compose project (SMOKE_PROJECT) on its own ports (SMOKE_WEB_PORT, and
-# SMOKE_WEB_TLS_PORT for the API's HTTPS listener, which would otherwise take the developer's 18443).
+# SMOKE_WEB_TLS_PORT for the API's HTTPS listener, which would otherwise take the developer's 18443;
+# SMOKE_KEYCLOAK_PORT for the Keycloak of SMOKE_IDP=1, which would otherwise take 8081).
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -16,6 +17,7 @@ work="${SMOKE_WORKDIR:-$root/.smoke/api}"
 project="${SMOKE_PROJECT:-mailcowui-ng-smoke}"
 port="${SMOKE_WEB_PORT:-18480}"
 tls_port="${SMOKE_WEB_TLS_PORT:-18483}"
+keycloak_port="${SMOKE_KEYCLOAK_PORT:-18481}"
 image="mailcowui-ng:smoke"
 container="${project}-ng"
 ref="${SMOKE_API_REF:-$(node -p "require('$root/contract/VERSION.json').commit")}"
@@ -36,6 +38,7 @@ fi
 
 compose() {
   (cd "$work" && RESTV2_WEB_PORT="$port" RESTV2_WEB_TLS_PORT="$tls_port" \
+    RESTV2_KEYCLOAK_PORT="$keycloak_port" \
     RESTV2_UID="$(id -u)" RESTV2_GID="$(id -g)" docker compose -p "$project" "$@")
 }
 
@@ -71,8 +74,9 @@ wait_for() {
 wait_for "http://127.0.0.1:${port}/api/v2/health/ready"
 wait_for "http://127.0.0.1:${port}/ng/"
 
-# 5. UI 012 (research R25): with SMOKE_IDP=1, the API's `idp` profile (OpenLDAP, and Keycloak for
-#    the manual single sign-on checks), for the identity provider smoke tests tagged @idp.
+# 5. UI 012 (research R25, T101): with SMOKE_IDP=1, the API's `idp` profile, for the identity
+#    provider smoke tests: OpenLDAP (@idp) and Keycloak with the API's realm import (@sso), which
+#    the browser reaches through the smoke project's host mapping (playwright.config.ts).
 if [[ "${SMOKE_IDP:-}" == "1" ]]; then
   compose --profile idp up -d
   deadline=$((SECONDS + 180))
@@ -85,10 +89,8 @@ if [[ "${SMOKE_IDP:-}" == "1" ]]; then
     sleep 2
   done
   echo "idp: openldap ready"
-  if [[ -z "${SMOKE_SSO_USERNAME:-}" ]]; then
-    echo "idp: SMOKE_SSO_USERNAME and SMOKE_SSO_PASSWORD are not set; the single sign-on smoke" \
-      "test (@sso) will be skipped"
-  fi
+  wait_for "http://127.0.0.1:${keycloak_port}/realms/example/.well-known/openid-configuration"
+  echo "idp: keycloak ready on port ${keycloak_port}"
 fi
 
 echo "ready: http://localhost:${port}/ng/"

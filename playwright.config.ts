@@ -11,6 +11,10 @@ const mockPort = Number(process.env.MOCK_PORT ?? 4010)
 const previewPort = Number(process.env.PREVIEW_PORT ?? 4173)
 const baseURL = `http://localhost:${previewPort}/ng/`
 const smokeOnly = process.argv.some((arg) => arg === '--project=smoke' || arg === 'smoke')
+// scripts/smoke/stack-up.sh publishes the API dev stack on SMOKE_WEB_PORT and its Keycloak (with
+// SMOKE_IDP=1) on SMOKE_KEYCLOAK_PORT.
+const smokeWebPort = process.env.SMOKE_WEB_PORT ?? '18480'
+const smokeKeycloakPort = process.env.SMOKE_KEYCLOAK_PORT ?? '18481'
 
 const mobile = {
   viewport: { width: 360, height: 780 },
@@ -62,8 +66,18 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         browserName: 'chromium',
-        // scripts/smoke/stack-up.sh serves the API dev stack on SMOKE_WEB_PORT (default 18480).
-        baseURL: process.env.SMOKE_BASE_URL ?? 'http://localhost:18480/ng/',
+        baseURL: process.env.SMOKE_BASE_URL ?? `http://localhost:${smokeWebPort}/ng/`,
+        // UI 012 (T101): the dev stack's API sends the browser to its Keycloak by service name
+        // (http://keycloak:8080) and back to http://localhost/ng/sso/return without a port, so the
+        // browser maps both to the published ports.
+        launchOptions:
+          process.env.SMOKE_IDP === '1'
+            ? {
+                args: [
+                  `--host-resolver-rules=MAP keycloak:8080 127.0.0.1:${smokeKeycloakPort}, MAP localhost:80 127.0.0.1:${smokeWebPort}`,
+                ],
+              }
+            : {},
       },
     },
   ],

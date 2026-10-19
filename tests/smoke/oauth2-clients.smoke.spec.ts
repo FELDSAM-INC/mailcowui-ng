@@ -59,9 +59,13 @@ test.describe('@oauth2-clients', () => {
 
       await page.goto('identity-providers/oauth2-apps?size=100')
       await page.getByRole('button', { name: 'Select', exact: true }).click()
-      for (const id of ids) {
-        await page.locator(`[data-entry="${id}"]`).getByRole('checkbox').check()
+      // Clients an action is done for leave the selection; the next action selects them again.
+      const selectBoth = async () => {
+        for (const id of ids) {
+          await page.locator(`[data-entry="${id}"]`).getByRole('checkbox').check()
+        }
       }
+      await selectBoth()
       const bar = page.getByRole('region', { name: 'Bulk actions' })
       await bar.getByRole('button', { name: 'Generate new client secret' }).click()
       await page
@@ -78,15 +82,19 @@ test.describe('@oauth2-clients', () => {
           .click()
       }
       const results = page.getByRole('region', { name: 'Results' })
+      await expect(bar).toContainText('0 selected')
       await expect(results.locator('li', { hasText: 'Done' })).toHaveCount(2)
 
+      await selectBoth()
       await bar.getByRole('button', { name: 'Revoke all client tokens' }).click()
       await page
         .getByRole('alertdialog')
         .getByRole('button', { name: 'Revoke all client tokens' })
         .click()
+      await expect(bar).toContainText('0 selected')
       await expect(results.locator('li', { hasText: 'Done' })).toHaveCount(2)
 
+      await selectBoth()
       await bar.getByRole('button', { name: 'Remove' }).click()
       const confirm = page.getByRole('alertdialog')
       await confirm.getByRole('textbox').fill('2')

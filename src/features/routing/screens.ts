@@ -4,6 +4,8 @@
 import type { Role } from '@/api'
 import type { LegacyKey } from '@/i18n'
 
+import type { MaybeIdentity } from './access'
+
 export type RoutingScreenId =
   'relayhosts' | 'transports' | 'tlsPolicyMaps' | 'recipientMaps' | 'bccMaps' | 'forwardingHosts'
 
@@ -81,4 +83,15 @@ export const ROUTING_SCREENS: readonly RoutingScreen[] = [
 
 export function findScreen(id: RoutingScreenId): RoutingScreen {
   return ROUTING_SCREENS.find((screen) => screen.id === id)!
+}
+
+export function canOpenScreen(identity: MaybeIdentity, screen: RoutingScreen): boolean {
+  return !!identity && screen.roles.includes(identity.role)
+}
+
+/** The available screens the identity may open, in navigation order. */
+export function openScreens(identity: MaybeIdentity): RoutingScreen[] {
+  return ROUTING_SCREENS.filter(
+    (screen) => screen.status === 'available' && canOpenScreen(identity, screen),
+  )
 }

@@ -1,24 +1,13 @@
-// Who may open and change what in the Routing section (data-model §2 access predicates). Hiding is
-// a convenience: the API enforces permissions and its refusals are handled (FR-003).
+// Who may change what in the Routing section (data-model §2 access predicates); which screens an
+// identity may open is in `screens.ts`. Hiding is a convenience: the API enforces permissions and
+// its refusals are handled (FR-003). This module imports no screen data, so that the relayhost
+// field of the domain and mailbox sections keeps the screens out of the start-up bundle.
 import type { Identity } from '@/api'
 
-import { ROUTING_SCREENS, type RoutingScreen } from './screens'
-
-type MaybeIdentity = Identity | null | undefined
+export type MaybeIdentity = Identity | null | undefined
 
 const isAdmin = (identity: MaybeIdentity) => identity?.role === 'admin'
 const isDomainAdmin = (identity: MaybeIdentity) => identity?.role === 'domainAdmin'
-
-export function canOpenScreen(identity: MaybeIdentity, screen: RoutingScreen): boolean {
-  return !!identity && screen.roles.includes(identity.role)
-}
-
-/** The available screens the identity may open, in navigation order. */
-export function openScreens(identity: MaybeIdentity): RoutingScreen[] {
-  return ROUTING_SCREENS.filter(
-    (screen) => screen.status === 'available' && canOpenScreen(identity, screen),
-  )
-}
 
 export const canWriteRouting = isAdmin
 

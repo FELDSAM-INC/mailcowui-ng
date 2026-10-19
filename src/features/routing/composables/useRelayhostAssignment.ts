@@ -19,14 +19,16 @@ import { lt } from '@/i18n'
 import { useProblemMessages } from '@/i18n/problems'
 import type { SectionChange, SectionCompanion } from '@/shared/components/editable-section'
 
-import {
-  fetchDomainAssignment,
-  fetchMailboxAssignment,
-  replaceDomainAssignment,
-  replaceMailboxAssignment,
-} from '../api/relayhost-assignments'
+import { useIdentityQuery } from '@/app/session/queries'
+
+import { canSeeHistory } from '../access'
 import { historyTarget } from '../history'
-import { useRoutingIdentity } from './useRoutingIdentity'
+
+/**
+ * The assignment requests, loaded when a section opens: the domain and mailbox pages import this
+ * composable through the feature's index, which the router loads at start-up.
+ */
+const assignmentApi = () => import('../api/relayhost-assignments')
 
 type Assignment = DomainRelayhostAssignment | MailboxRelayhostAssignment
 
@@ -70,6 +72,7 @@ export function useRelayhostAssignment(options: RelayhostAssignmentOptions) {
   async function load(): Promise<Assignment | null> {
     loading.value = true
     try {
+      const { fetchDomainAssignment, fetchMailboxAssignment } = await assignmentApi()
       const value =
         options.kind === 'domain'
           ? await fetchDomainAssignment(options.name())
@@ -115,6 +118,7 @@ export function useRelayhostAssignment(options: RelayhostAssignmentOptions) {
       if (!current || !companion.dirty()) return 'unchanged'
       problem.value = null
       try {
+        const { replaceDomainAssignment, replaceMailboxAssignment } = await assignmentApi()
         const saved =
           options.kind === 'domain'
             ? await replaceDomainAssignment(client, options.name(), selected.value, current.etag)
@@ -156,10 +160,10 @@ export function useRelayhostAssignment(options: RelayhostAssignmentOptions) {
       problem.value && errors.value.length === 0 ? problemMessage(problem.value) : null,
   }
 
-  const { canSeeHistory } = useRoutingIdentity()
+  const identity = useIdentityQuery()
   /** The assignment's History target (administrators only; research R18). */
   const history = computed(() =>
-    canSeeHistory.value
+    canSeeHistory(identity.data.value)
       ? historyTarget(
           options.kind === 'domain' ? 'domainRelayhostAssignment' : 'mailboxRelayhostAssignment',
           { name: options.name() },

@@ -7,13 +7,11 @@ import {
   canEditDomainRelayhost,
   canEditMailboxRelayhost,
   canListRelayhostChoices,
-  canOpenScreen,
   canSeeHistory,
   canWriteBccMaps,
   canWriteRouting,
-  openScreens,
 } from '@/features/routing/access'
-import { findScreen, ROUTING_SCREENS } from '@/features/routing/screens'
+import { canOpenScreen, findScreen, openScreens, ROUTING_SCREENS } from '@/features/routing/screens'
 
 import { permissionFlags } from '../../../mocks/scenarios/accounts'
 

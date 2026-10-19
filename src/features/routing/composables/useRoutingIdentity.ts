@@ -4,7 +4,8 @@ import { computed } from 'vue'
 
 import { useIdentityQuery } from '@/app/session/queries'
 
-import { canSeeHistory, canWriteBccMaps, canWriteRouting, openScreens } from '../access'
+import { canSeeHistory, canWriteBccMaps, canWriteRouting } from '../access'
+import { openScreens } from '../screens'
 
 export function useRoutingIdentity() {
   const query = useIdentityQuery()

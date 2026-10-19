@@ -1,1 +1,74 @@
-{}
+{
+  "operations": {
+    "logs": {
+      "types": {
+        "postfix": "Postfix",
+        "dovecot": "Dovecot",
+        "sogo": "SOGo",
+        "netfilter": "Netfilter",
+        "autodiscover": "Autodiscover",
+        "watchdog": "Watchdog",
+        "acme": "ACME",
+        "api": "API",
+        "ratelimits": "Ratelimits",
+        "crontasks": "Crontasks",
+        "rspamd": "Rspamd",
+        "ui": "{productName} UI",
+        "sasl": "SASL"
+      },
+      "more100": "+ 100",
+      "more1000": "+ 1000",
+      "sort": {
+        "asc": "Vzestupně",
+        "desc": "Sestupně"
+      },
+      "columns": {
+        "userAgent": "User-Agent",
+        "ip": "IP",
+        "trend": "Trend",
+        "uri": "URI",
+        "method": "Metoda",
+        "data": "Data",
+        "messageId": "ID zprávy",
+        "headerFrom": "Hlavička From",
+        "hash": "Hash",
+        "user": "Uživatel",
+        "role": "Role",
+        "call": "Volání"
+      },
+      "autodiscover": {
+        "activesync": "ActiveSync",
+        "imap": "IMAP, SMTP, Cal-/CardDAV"
+      },
+      "unknown": "neznámý",
+      "none": "žádný",
+      "noHash": "err",
+      "healthLevel": "Úroveň zdraví: {level} % ({now}/{total})",
+      "unavailable": "Tento záznam je dočasně nedostupný."
+    },
+    "rspamd": {
+      "title": "Historie Rspamd",
+      "count": "Zprávy: {count}",
+      "summary": "Nejvíce zpráv ({percent}) dostalo akci {action}.",
+      "messages": "Zprávy",
+      "share": "Podíl",
+      "noneScanned": "Zatím nebyly zkontrolovány žádné zprávy.",
+      "above": "nad požadovaným skóre",
+      "below": "pod požadovaným skóre",
+      "sort": {
+        "label": "Řadit podle",
+        "order": "Pořadí"
+      },
+      "columns": {
+        "ip": "IP adresa",
+        "to": "Komu",
+        "symbols": "Symboly",
+        "size": "Velikost zprávy",
+        "scanTime": "Doba kontroly",
+        "id": "ID",
+        "user": "Ověřený uživatel"
+      },
+      "unavailable": "Rspamd teď není dostupný."
+    }
+  }
+}

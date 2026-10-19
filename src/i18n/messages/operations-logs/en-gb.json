@@ -1,1 +1,74 @@
-{}
+{
+  "operations": {
+    "logs": {
+      "types": {
+        "postfix": "Postfix",
+        "dovecot": "Dovecot",
+        "sogo": "SOGo",
+        "netfilter": "Netfilter",
+        "autodiscover": "Autodiscover",
+        "watchdog": "Watchdog",
+        "acme": "ACME",
+        "api": "API",
+        "ratelimits": "Ratelimits",
+        "crontasks": "Crontasks",
+        "rspamd": "Rspamd",
+        "ui": "{productName} UI",
+        "sasl": "SASL"
+      },
+      "more100": "+ 100",
+      "more1000": "+ 1000",
+      "sort": {
+        "asc": "Ascending",
+        "desc": "Descending"
+      },
+      "columns": {
+        "userAgent": "User-Agent",
+        "ip": "IP",
+        "trend": "Trend",
+        "uri": "URI",
+        "method": "Method",
+        "data": "Data",
+        "messageId": "Msg ID",
+        "headerFrom": "Header From",
+        "hash": "Hash",
+        "user": "User",
+        "role": "Role",
+        "call": "Call"
+      },
+      "autodiscover": {
+        "activesync": "ActiveSync",
+        "imap": "IMAP, SMTP, Cal-/CardDAV"
+      },
+      "unknown": "unknown",
+      "none": "none",
+      "noHash": "err",
+      "healthLevel": "Health level: {level}% ({now}/{total})",
+      "unavailable": "This log is temporarily unavailable."
+    },
+    "rspamd": {
+      "title": "Rspamd history",
+      "count": "{count} messages",
+      "summary": "Most messages ({percent}) got the action {action}.",
+      "messages": "Messages",
+      "share": "Share",
+      "noneScanned": "No messages were scanned yet.",
+      "above": "above the required score",
+      "below": "below the required score",
+      "sort": {
+        "label": "Sort by",
+        "order": "Order"
+      },
+      "columns": {
+        "ip": "IP address",
+        "to": "To",
+        "symbols": "Symbols",
+        "size": "Msg size",
+        "scanTime": "Scan Time",
+        "id": "ID",
+        "user": "Authenticated user"
+      },
+      "unavailable": "Rspamd cannot be reached right now."
+    }
+  }
+}

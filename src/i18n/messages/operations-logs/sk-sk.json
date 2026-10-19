@@ -1,1 +1,74 @@
-{}
+{
+  "operations": {
+    "logs": {
+      "types": {
+        "postfix": "Postfix",
+        "dovecot": "Dovecot",
+        "sogo": "SOGo",
+        "netfilter": "Netfilter",
+        "autodiscover": "Autodiscover",
+        "watchdog": "Watchdog",
+        "acme": "ACME",
+        "api": "API",
+        "ratelimits": "Ratelimits",
+        "crontasks": "Crontasks",
+        "rspamd": "Rspamd",
+        "ui": "{productName} UI",
+        "sasl": "SASL"
+      },
+      "more100": "+ 100",
+      "more1000": "+ 1000",
+      "sort": {
+        "asc": "Vzostupne",
+        "desc": "Zostupne"
+      },
+      "columns": {
+        "userAgent": "User-Agent",
+        "ip": "IP",
+        "trend": "Trend",
+        "uri": "URI",
+        "method": "Metóda",
+        "data": "Dáta",
+        "messageId": "ID správy",
+        "headerFrom": "Hlavička From",
+        "hash": "Hash",
+        "user": "Používateľ",
+        "role": "Rola",
+        "call": "Volanie"
+      },
+      "autodiscover": {
+        "activesync": "ActiveSync",
+        "imap": "IMAP, SMTP, Cal-/CardDAV"
+      },
+      "unknown": "neznámy",
+      "none": "žiadny",
+      "noHash": "err",
+      "healthLevel": "Úroveň zdravia: {level} % ({now}/{total})",
+      "unavailable": "Tento záznam je dočasne nedostupný."
+    },
+    "rspamd": {
+      "title": "História Rspamd",
+      "count": "Správy: {count}",
+      "summary": "Najviac správ ({percent}) dostalo akciu {action}.",
+      "messages": "Správy",
+      "share": "Podiel",
+      "noneScanned": "Zatiaľ neboli skontrolované žiadne správy.",
+      "above": "nad požadovaným skóre",
+      "below": "pod požadovaným skóre",
+      "sort": {
+        "label": "Zoradiť podľa",
+        "order": "Poradie"
+      },
+      "columns": {
+        "ip": "IP adresa",
+        "to": "Komu",
+        "symbols": "Symboly",
+        "size": "Veľkosť správy",
+        "scanTime": "Čas kontroly",
+        "id": "ID",
+        "user": "Overený používateľ"
+      },
+      "unavailable": "Rspamd teraz nie je dostupný."
+    }
+  }
+}

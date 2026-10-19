@@ -266,8 +266,6 @@ comment naming the Lucide icon.
 | `src/shared/icons/PauseIcon.vue` | Lucide `icons/pause.svg` (UI 011) |
 | `src/shared/icons/ArrowUpIcon.vue` | Lucide `icons/arrow-up.svg` (UI 011) |
 | `src/shared/icons/ArrowDownIcon.vue` | Lucide `icons/arrow-down.svg` (UI 011) |
-| `src/shared/icons/TrendUpIcon.vue` | Lucide `icons/trending-up.svg` (UI 011) |
-| `src/shared/icons/TrendDownIcon.vue` | Lucide `icons/trending-down.svg` (UI 011) |
 
 ### ISC licence
 

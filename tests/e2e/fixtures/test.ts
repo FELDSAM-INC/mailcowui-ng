@@ -10,6 +10,7 @@ import { attachCspRecorder, type CspRecorder } from './csp'
 import { expectNoHorizontalScroll, expectTouchTargets } from './layout'
 import { createMockApi, type MockApi } from './mock-api'
 import { fakeProvider, type FakeProvider, type FakeProviderOptions } from './provider'
+import { attachRequestGuard, type RequestGuard } from './requests'
 import { createWebAuthnTools, type WebAuthnTools } from './webauthn'
 
 interface Fixtures {
@@ -21,6 +22,11 @@ interface Fixtures {
   expectTouchTargets: (page?: Page) => Promise<void>
   /** UI 012: routes the fake identity provider for this test's browser context. */
   fakeProvider: (options?: FakeProviderOptions) => Promise<FakeProvider>
+  /**
+   * UI 006 (opt-in): fails the test on a request outside `/ng/`, `/api/v2/` and `/lang/`, and on a
+   * tripped `window.__xss` canary in any page of the test.
+   */
+  guardRequests: RequestGuard
 }
 
 export const test = base.extend<Fixtures>({
@@ -63,6 +69,14 @@ export const test = base.extend<Fixtures>({
   },
   fakeProvider: async ({ context }, use) => {
     await use((options) => fakeProvider(context, options))
+  },
+  guardRequests: async ({ context, baseURL }, use) => {
+    const guard = await attachRequestGuard(context, baseURL ?? 'http://localhost:4173/ng/')
+    await use(guard)
+    expect(guard.outside(), 'requests outside /ng/, /api/v2/ and /lang/').toEqual([])
+    for (const page of context.pages()) {
+      expect(await guard.canaryTripped(page), 'a script from message data ran').toBe(false)
+    }
   },
 })
 

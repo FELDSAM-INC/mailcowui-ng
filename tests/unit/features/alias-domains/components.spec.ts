@@ -1,11 +1,12 @@
 // The domain alias list entry and the target field (T063): the card shows the classic table's
 // columns (name, target with its link and legacy's relay badge, active) and the entry menu slot;
-// the target field disables relay domains with legacy's reason.
+// the target field disables relay domains with legacy's reason; the entry menu offers Edit and Remove.
 import { flushPromises } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import AliasDomainCard from '@/features/alias-domains/components/AliasDomainCard.vue'
+import AliasDomainEntryActions from '@/features/alias-domains/components/AliasDomainEntryActions.vue'
 import TargetDomainField from '@/features/alias-domains/components/TargetDomainField.vue'
 import { loadLegacy, resetLegacy } from '@/i18n/legacy'
 
@@ -75,6 +76,44 @@ describe('TargetDomainField', () => {
       .find((item) => item.text().includes('relay.example'))
     expect(option?.attributes('aria-disabled')).toBe('true')
     expect(option?.text()).toContain('Target domain relay.example is a relay domain')
+    wrapper.unmount()
+  })
+})
+
+describe('AliasDomainEntryActions', () => {
+  async function openMenu() {
+    const testRouter = router()
+    await testRouter.push('/')
+    const wrapper = mountWithApp(AliasDomainEntryActions, {
+      props: { aliasDomain: aliasDomain() },
+      global: { plugins: [testRouter] },
+      attachTo: document.body,
+    })
+    const trigger = wrapper.get('button')
+    expect(trigger.attributes('aria-label')).toBe('Actions for example.net')
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+    return { wrapper, router: testRouter, items }
+  }
+
+  it('offers Edit, which opens the alias domain with its section open', async () => {
+    const { wrapper, router: testRouter, items } = await openMenu()
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['Edit', 'Remove'])
+    items[0]!.click()
+    await vi.waitFor(() =>
+      expect(testRouter.currentRoute.value.fullPath).toBe(
+        '/alias-domains/example.net?edit=general',
+      ),
+    )
+    wrapper.unmount()
+  })
+
+  it('emits the deletion once the menu has closed', async () => {
+    const { wrapper, items } = await openMenu()
+    items[1]!.click()
+    await vi.waitFor(() => expect(wrapper.emitted('delete')).toHaveLength(1))
+    expect((wrapper.emitted('delete')![0]![0] as { name: string }).name).toBe('example.net')
     wrapper.unmount()
   })
 })

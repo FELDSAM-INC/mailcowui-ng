@@ -19,7 +19,44 @@
     "copy": "Kopírovať",
     "copyRefused": "Kopírovanie tu nie je dostupné. Text vyberte a skopírujte ručne.",
     "dashboard": {
-      "sectionError": "Túto časť sa nepodarilo načítať."
+      "sectionError": "Túto časť sa nepodarilo načítať.",
+      "ips": "IP adresy",
+      "version": "Verzia",
+      "cpu": "CPU",
+      "unavailable": "Nedostupné"
+    },
+    "charts": {
+      "summary": "{series}: teraz {value}, za posledných {count} meraní od {min} do {max}",
+      "showTable": "Zobraziť hodnoty ako tabuľku",
+      "hideTable": "Skryť tabuľku",
+      "diskIo": "Disk I/O",
+      "netIo": "Sieť I/O",
+      "read": "Čítanie",
+      "write": "Zápis",
+      "recv": "Príjem",
+      "sent": "Odoslané"
+    },
+    "containers": {
+      "expand": "Zobraziť podrobnosti: {name}",
+      "collapse": "Skryť podrobnosti: {name}",
+      "noResourceData": "Kým kontajner nebeží, nie sú k dispozícii žiadne údaje o jeho prostriedkoch.",
+      "stopTitle": "Zastaviť kontajner",
+      "stopNow": "Zastaviť teraz",
+      "starting": "Prebieha spúšťanie kontajnera, čakajte prosím",
+      "stopping": "Prebieha zastavovanie kontajnera, čakajte prosím",
+      "elapsed": "{seconds} s",
+      "ok": "OK",
+      "alreadyRunning": "Už beží",
+      "notRunning": "Nebeží",
+      "announce": "{name}: {outcome}"
+    },
+    "updates": {
+      "newRelease": "Nové vydanie {tag}",
+      "version": "Verzia {tag}",
+      "githubLink": "Odkaz na GitHub:",
+      "image": "Obrázok: {description}",
+      "imageUntitled": "Obrázok",
+      "notesFailed": "Poznámky k vydaniu sa nepodarilo načítať."
     }
   }
 }

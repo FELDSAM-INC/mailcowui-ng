@@ -19,7 +19,44 @@
     "copy": "Copy",
     "copyRefused": "Copying is not available here. Select the text to copy it.",
     "dashboard": {
-      "sectionError": "This section could not be loaded."
+      "sectionError": "This section could not be loaded.",
+      "ips": "IPs",
+      "version": "Version",
+      "cpu": "CPU",
+      "unavailable": "Unavailable"
+    },
+    "charts": {
+      "summary": "{series}: {value} now, from {min} to {max} in the last {count} samples",
+      "showTable": "Show the values as a table",
+      "hideTable": "Hide the table",
+      "diskIo": "Disk I/O",
+      "netIo": "Net I/O",
+      "read": "Read",
+      "write": "Write",
+      "recv": "Recv",
+      "sent": "Sent"
+    },
+    "containers": {
+      "expand": "Show details of {name}",
+      "collapse": "Hide details of {name}",
+      "noResourceData": "No resource data is available while the container is not running.",
+      "stopTitle": "Stop container",
+      "stopNow": "Stop now",
+      "starting": "Starting container, this may take a while",
+      "stopping": "Stopping container, this may take a while",
+      "elapsed": "{seconds} s",
+      "ok": "OK",
+      "alreadyRunning": "Already running",
+      "notRunning": "Not running",
+      "announce": "{name}: {outcome}"
+    },
+    "updates": {
+      "newRelease": "New Release {tag}",
+      "version": "Version {tag}",
+      "githubLink": "Github Link:",
+      "image": "Image: {description}",
+      "imageUntitled": "Image",
+      "notesFailed": "The release notes could not be loaded."
     }
   }
 }

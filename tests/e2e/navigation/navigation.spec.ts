@@ -12,6 +12,8 @@ const ADMIN = [
   // UI 002 US6 adds the domain templates for administrators.
   'Domain Templates',
   'Mailboxes',
+  // UI 003 adds the mailbox templates for administrators and domain administrators.
+  'Mailbox Templates',
   'Aliases and resources',
   'User Settings',
   'Passkeys',
@@ -30,6 +32,7 @@ const DOMAIN_ADMIN = [
   'Home',
   'Domains',
   'Mailboxes',
+  'Mailbox Templates',
   'Aliases and resources',
   'User Settings',
   'Passkeys',

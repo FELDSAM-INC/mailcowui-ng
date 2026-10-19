@@ -181,6 +181,8 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'dns.mtaSts.sort.domain': 'mailbox.domain',
   'dns.mtaSts.sort.mode': 'edit.mta_sts_mode',
   'dns.mtaSts.sort.maxAge': 'edit.mta_sts_max_age',
+  'dns.diagnostics.messages.matchedByAddressRecords': 'diagnostics.cname_from_a',
+  'dns.diagnostics.messages.propagationDelay': 'diagnostics.dns_records_24hours',
   'dns.dkim.form.errors.selector.required': 'danger.dkim_domain_or_sel_invalid',
   'dns.dkim.form.errors.selector.tooLong': 'danger.dkim_domain_or_sel_invalid',
   'dns.dkim.form.errors.selector.invalidFormat': 'danger.dkim_domain_or_sel_invalid',

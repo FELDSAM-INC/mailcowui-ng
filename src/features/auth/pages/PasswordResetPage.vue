@@ -97,6 +97,12 @@ async function submitPassword() {
     <div v-if="reset.state.value === 'checking'" role="status" aria-busy="true">
       {{ lt('footer.loading') }}
     </div>
+    <ProblemMessage
+      v-else-if="reset.state.value === 'error'"
+      :problem="reset.problem.value"
+      :retry="!reset.throttled.value"
+      @retry="reset.retry()"
+    />
     <template v-else-if="reset.state.value === 'invalid'">
       <LegacyText
         k="login.invalid_pass_reset_token"
@@ -210,6 +216,7 @@ async function submitPassword() {
       >
         {{ factorMessage }}
       </p>
+      <ProblemMessage v-else :problem="reset.problem.value" />
       <template v-for="section in groups.primarySections" :key="section.type">
         <WebAuthnFactor
           v-if="section.type === 'webauthn'"
@@ -247,6 +254,9 @@ async function submitPassword() {
         {{ lt('login.login') }}
       </RouterLink>
     </div>
+    <p v-if="reset.throttled.value" role="status" class="text-sm text-gray-700 dark:text-gray-300">
+      {{ t('auth.signIn.throttle.countdown', { time: reset.retryClock.value }) }}
+    </p>
     <RouterLink
       v-if="reset.state.value !== 'done'"
       :to="{ name: 'sign-in' }"

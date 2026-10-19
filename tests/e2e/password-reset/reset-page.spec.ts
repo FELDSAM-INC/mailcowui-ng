@@ -5,6 +5,76 @@ import { expect, test } from '../fixtures/test'
 const PLAIN = '3F9A1C-0B7E22-9D4F10-A6C3E8-51B2D7'
 const TOTP = '7B21D0-55AE19-C0FFEE-12AB34-9E8D7C'
 
+test('Edge FR-038 malformed reset links are cleared and show the invalid state', async ({
+  page,
+  mockApi,
+  expectAccessible,
+}) => {
+  await mockApi.use('account-password-reset')
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  for (const suffix of ['#token=%E0%A4%A', '?token=one&token=two', '?token=']) {
+    await page.goto('about:blank')
+    await page.goto(`reset-password${suffix}`)
+    await expect(page.locator('[data-reset-invalid]')).toBeVisible()
+    await expect(page).toHaveURL(/\/ng\/reset-password$/)
+  }
+  expect(errors).toEqual([])
+  expect(
+    (await mockApi.requests()).filter((r) => r.operationId === 'checkPasswordResetToken'),
+  ).toHaveLength(0)
+  await expectAccessible()
+})
+
+test('Edge FR-011 an unreachable token check shows an error and retries with the token in memory', async ({
+  page,
+  mockApi,
+  expectAccessible,
+}) => {
+  await mockApi.use('account-password-reset')
+  let offline = true
+  await page.route('**/api/v2/password-resets/token-check', (route) =>
+    offline ? route.abort('failed') : route.continue(),
+  )
+  await page.goto(`reset-password?token=${PLAIN}`)
+  const retry = page.getByRole('button', { name: 'Try again', exact: true })
+  await expect(retry).toBeVisible()
+  await expect(page).toHaveURL(/\/ng\/reset-password$/)
+  await expectAccessible()
+  offline = false
+  await retry.click()
+  await expect(page.locator('[data-reset-password]')).toBeVisible()
+  await expect(retry).toHaveCount(0)
+})
+
+test('Edge FR-037 a throttled reset completion waits before allowing another attempt', async ({
+  page,
+  mockApi,
+  expectAccessible,
+}) => {
+  await mockApi.use('account-password-reset', {
+    failures: {
+      completePasswordReset: { status: 429, type: 'too-many-requests', retryAfter: 30, times: 1 },
+    },
+  })
+  await page.clock.install()
+  await page.goto(`reset-password?token=${PLAIN}`)
+  await page.getByLabel('New Password', { exact: true }).fill('summer2026x')
+  await page.getByLabel('Confirm new password').fill('summer2026x')
+  const submit = page.getByRole('button', { name: 'Reset Password' })
+  await submit.click()
+  await expect(submit).toBeDisabled()
+  await expect(page.getByRole('main')).toContainText('You can try again in')
+  await expectAccessible()
+  expect(
+    (await mockApi.requests()).filter((r) => r.operationId === 'completePasswordReset'),
+  ).toHaveLength(1)
+  await page.clock.fastForward(31_000)
+  await expect(submit).toBeEnabled()
+  await submit.click()
+  await expect(page.locator('[data-reset-done]')).toBeVisible()
+})
+
 test('US3-AS4 FR-038 the token leaves the address at once and the rules are shown', async ({
   page,
   mockApi,
@@ -24,8 +94,8 @@ test('US3-AS4 FR-038 the token leaves the address at once and the rules are show
   await expect(page.getByLabel('New Password', { exact: true })).toBeVisible()
   await expect(page.getByLabel('Confirm new password')).toBeVisible()
   await expect(page.locator('[data-password-policy] li')).toHaveCount(1)
-  const history = await page.evaluate(() => JSON.stringify(history.state))
-  expect(history).not.toContain(PLAIN)
+  const historyState = await page.evaluate(() => JSON.stringify(window.history.state))
+  expect(historyState).not.toContain(PLAIN)
   await expectAccessible()
   await expectNoHorizontalScroll()
   await page.getByLabel('New Password', { exact: true }).fill('summer2026x')

@@ -23,6 +23,7 @@ import { cachedSession, fetchSession } from '@/app/session/queries'
 import { endSession } from '@/app/session/session-end'
 import { useCountdown } from '@/shared/composables/useCountdown'
 import { useSecretRequest } from '@/shared/composables/useSecretRequest'
+import { useThrottle } from '@/shared/composables/useThrottle'
 import { getAssertion } from '@/shared/platform/webauthn'
 
 import {
@@ -34,6 +35,7 @@ import { clearResetToken, takeResetToken } from '../reset-token'
 
 export type ResetState =
   | 'checking'
+  | 'error'
   | 'invalid'
   | 'unavailable'
   | 'askAdministrator'
@@ -60,6 +62,7 @@ export function usePasswordReset() {
   const challenge = useSecretRequest(createPasswordResetWebAuthnChallenge, {
     sessionReactions: false,
   })
+  const throttle = useThrottle({ endedKey: 'account.password.throttleEnded' })
 
   const countdown = useCountdown({
     deadline: () =>
@@ -93,6 +96,13 @@ export function usePasswordReset() {
       session && (session.state === 'active' || session.state === 'restricted')
         ? (session.username ?? null)
         : null
+    await checkToken()
+  }
+
+  async function checkToken(): Promise<void> {
+    if (!token || check.pending.value || throttle.active.value) return
+    state.value = 'checking'
+    problem.value = null
     const result = await check.run(token)
     if (!result) return fail(check.problem.value)
     info.value = result.info
@@ -108,6 +118,7 @@ export function usePasswordReset() {
 
   function fail(failure: ApiProblem | null) {
     problem.value = failure
+    if (failure?.is('too-many-requests')) throttle.start(failure.retryAfter)
     if (failure?.is('invalid-reset-token')) return invalidate()
     if (failure?.is('password-reset-unavailable')) {
       forget()
@@ -117,7 +128,13 @@ export function usePasswordReset() {
     if (failure?.is('second-factor-unavailable')) {
       forget()
       state.value = 'askAdministrator'
+      return
     }
+    if (state.value === 'checking') state.value = 'error'
+  }
+
+  async function retry(): Promise<void> {
+    if (state.value === 'error') await checkToken()
   }
 
   function proceed() {
@@ -145,7 +162,7 @@ export function usePasswordReset() {
 
   /** The password step: the rules are judged before any second factor. */
   async function submitPassword(newPassword: string): Promise<void> {
-    if (!token || state.value !== 'password') return
+    if (!token || state.value !== 'password' || throttle.active.value) return
     problem.value = null
     state.value = 'completing'
     password = newPassword
@@ -155,7 +172,7 @@ export function usePasswordReset() {
 
   /** The factor step: the proof with the password again. */
   async function submitFactor(secondFactor: Writable<SecondFactorVerification>): Promise<void> {
-    if (!token || !password || state.value !== 'factor') return
+    if (!token || !password || state.value !== 'factor' || throttle.active.value) return
     problem.value = null
     state.value = 'completing'
     await send({ token, newPassword: password, secondFactor })
@@ -164,7 +181,8 @@ export function usePasswordReset() {
 
   /** A security key: the reset's own challenge, then the proof. */
   async function submitWebAuthn(): Promise<void> {
-    if (!token) return
+    if (!token || state.value !== 'factor' || throttle.active.value || challenge.pending.value)
+      return
     const options = await challenge.run(token)
     if (!options) return fail(challenge.problem.value)
     try {
@@ -199,8 +217,17 @@ export function usePasswordReset() {
     problem,
     signedInAs,
     remaining: countdown.remaining,
-    busy: computed(() => state.value === 'completing' || check.pending.value),
+    throttled: throttle.active,
+    retryClock: throttle.clock,
+    busy: computed(
+      () =>
+        state.value === 'completing' ||
+        check.pending.value ||
+        challenge.pending.value ||
+        throttle.active.value,
+    ),
     start,
+    retry,
     proceed,
     submitPassword,
     submitFactor,

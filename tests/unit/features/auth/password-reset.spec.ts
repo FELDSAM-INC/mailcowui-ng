@@ -4,6 +4,7 @@
 // administrator case, and the completion without session reactions ending this browser's session
 // in place.
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { http, HttpResponse } from 'msw'
 
 import { createQueryClient, queryKeys } from '@/api'
 import { installGuards } from '@/app/router/guards'
@@ -13,7 +14,7 @@ import { usePasswordReset } from '@/features/auth/composables/usePasswordReset'
 import { captureResetToken, takeResetToken } from '@/features/auth/reset-token'
 import { createAppChannel } from '@/shared/platform/broadcast'
 
-import { mockState, useScenario } from '../../../mocks/node'
+import { mockState, server, useScenario } from '../../../mocks/node'
 import { withSetup } from '../../support/composable'
 import { createTestRouter } from '../../support/router'
 
@@ -40,6 +41,24 @@ function hold(token: string) {
 }
 
 describe('captureResetToken', () => {
+  it.each([
+    { query: {}, hash: '#token=%E0%A4%A' },
+    { query: {}, hash: '#token=' },
+    { query: { token: '' }, hash: '' },
+    { query: { token: ['one', 'two'] }, hash: '' },
+    { query: { token: 'x'.repeat(65) }, hash: '' },
+  ])('removes an invalid token without throwing or retaining an earlier one (%#)', (link) => {
+    hold('earlier-token')
+    expect(captureResetToken({ path: '/reset-password', ...link } as never)).toEqual({
+      path: '/reset-password',
+      query: {},
+      hash: '',
+      replace: true,
+      force: true,
+    })
+    expect(takeResetToken()).toBeNull()
+  })
+
   it('moves the token from the query or the fragment into the holder and clears the address', () => {
     const fromQuery = captureResetToken({
       path: '/reset-password',
@@ -62,6 +81,47 @@ describe('captureResetToken', () => {
 })
 
 describe('usePasswordReset', () => {
+  it('shows a retryable error when the token check cannot reach the server', async () => {
+    useScenario('account-password-reset')
+    await context()
+    hold(PLAIN)
+    server.use(
+      http.post('*/api/v2/password-resets/token-check', () => HttpResponse.error(), { once: true }),
+    )
+    const { result } = withSetup(() => usePasswordReset())
+    await result.start()
+    expect(result.state.value).toBe('error')
+    expect(result.busy.value).toBe(false)
+    expect(result.problem.value).not.toBeNull()
+    expect(takeResetToken()).toBeNull()
+    await result.retry()
+    expect(result.state.value).toBe('password')
+    expect(result.problem.value).toBeNull()
+  })
+
+  it('blocks another completion until the server retry time has elapsed', async () => {
+    useScenario('account-password-reset')
+    await context()
+    hold(PLAIN)
+    const { result } = withSetup(() => usePasswordReset())
+    await result.start()
+    mockState().selfService.resetAttempts[`complete:${PLAIN}`] = 10
+    await result.submitPassword('summer2026x')
+    expect(result.problem.value?.is('too-many-requests')).toBe(true)
+    expect(result.busy.value).toBe(true)
+    const attempts = mockState().selfService.resetAttempts[`complete:${PLAIN}`]
+    await result.submitPassword('summer2026x')
+    expect(mockState().selfService.resetAttempts[`complete:${PLAIN}`]).toBe(attempts)
+    const now = Date.now()
+    const retryAfter = result.problem.value!.retryAfter!
+    const date = vi.spyOn(Date, 'now').mockReturnValue(now + (retryAfter + 1) * 1000)
+    await vi.waitFor(() => expect(result.busy.value).toBe(false), { timeout: 2000 })
+    date.mockRestore()
+    mockState().selfService.resetAttempts[`complete:${PLAIN}`] = 0
+    await result.submitPassword('summer2026x')
+    expect(result.state.value).toBe('done')
+  })
+
   it('resets an account without a second factor', async () => {
     useScenario('account-password-reset')
     await context()

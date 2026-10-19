@@ -130,6 +130,13 @@ jobs:
           curl -fsSI 'http://127.0.0.1:8080/ng/sso/return?code=x&state=y' \
             | grep -qi "^content-security-policy: default-src 'none'"
           ! docker logs ng 2>&1 | grep -q 'sso/return?code='
+          # UI 005 (T154): deep links work without recording password reset tokens.
+          curl -fsS -A reset-token-log-test \
+            -e 'https://example.test/ng/reset-password?token=RESET_TOKEN_LOG_SENTINEL' \
+            'http://127.0.0.1:8080/ng/reset-password?token=RESET_TOKEN_LOG_SENTINEL' \
+            | grep -q '<div id="app">'
+          docker logs ng 2>&1 | grep -q 'reset-token-log-test'
+          ! docker logs ng 2>&1 | grep -q 'RESET_TOKEN_LOG_SENTINEL'
           asset=$(curl -fsS http://127.0.0.1:8080/ng/ | grep -o '/ng/assets/[^"]*\.js' | head -1)
           curl -fsSI "http://127.0.0.1:8080${asset}" | grep -qi '^cache-control: public, max-age=31536000, immutable'
           docker exec ng sh -c '! find /usr/share/nginx/html -name "*.map" | grep -q .'

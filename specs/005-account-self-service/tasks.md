@@ -898,7 +898,7 @@ types; use the History action of a mailbox's self-service group and of an app pa
 
   Record SC-001 to SC-004 and SC-011 to SC-013 in a "Validation log" section appended to `specs/005-account-self-service/quickstart.md`. If iOS does not open the profile installer from the blob download, record it and the Downloads fallback there (research R21).
 - [ ] T153 Run quickstart.md Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @005`, `scripts/smoke/stack-down.sh`) once API feature 005 runs in the dev stack. Confirm the status of API gaps AG1 and AG2 in the pinned contract and note it in the validation log.
-- [ ] T154 [P] In `docker/nginx/default.conf`, define the access log format of the `ng-mailcow` image with `$uri` instead of `$request_uri`, so that reset tokens of `/ng/reset-password?token=…` never reach its log (research R12, plan AG7). Extend the CI `image` job's container check in `.github/workflows/ci.yml` to request `/ng/reset-password?token=TEST` and assert that the log line contains no `TEST`.
+- [x] T154 [P] In `docker/nginx/default.conf`, define the access log format of the `ng-mailcow` image with `$uri` instead of `$request_uri`, so that reset tokens of `/ng/reset-password?token=…` never reach its log (research R12, plan AG7). Extend the CI `image` job's container check in `.github/workflows/ci.yml` to request `/ng/reset-password?token=TEST` and assert that the log line contains no `TEST`.
 
 ---
 

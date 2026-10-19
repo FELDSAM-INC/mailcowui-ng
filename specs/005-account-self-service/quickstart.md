@@ -117,3 +117,24 @@ scripts/smoke/stack-down.sh
    including the grouped TOTP key and the one-time password dialog.
 
 Record the timings and observations in a "Validation log" section appended to this file.
+
+## Validation log
+
+**2026-10-19, resumed password-reset checks:** the saved recovery/reset implementation now rejects
+malformed, empty, repeated and overlong link tokens without retaining them or throwing during
+navigation. A failed token check offers an explicit retry using the token kept in memory; reset
+completion respects the server's retry time. The new regression tests failed before the fixes.
+The focused unit run passed 17 tests (`password-reset.spec.ts`, `RecoveryEmailForm.spec.ts`), and
+the reset-request, reset-page and recovery-email browser specs passed all 54 tests across mobile
+Chromium, desktop Chromium and mobile WebKit. Type checking, the production build, and lint and
+formatting of the changed files passed.
+
+**T154:** reproduced a reset token in the UI container's access log, then verified the updated
+configuration with the existing nginx runtime: reset and SSO deep links still serve the app,
+while the access log contains neither the reset query token nor a token in the Referer header.
+`nginx -t` passed. The image CI check now exercises this with a dummy token. This addresses the UI
+container's access log; the upstream nginx-mailcow logging observation in plan AG7 still applies
+to query-string reset links.
+
+These are targeted checks of the resumed work. The remaining task boxes, full feature gates,
+real API smoke flows and device validation are still pending.

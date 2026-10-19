@@ -41,6 +41,7 @@ export type NavEntryId =
   | 'aliases'
   | 'aliasDomains'
   | 'resources'
+  | 'filters'
   | 'account'
   | 'passkeys'
   | 'quarantine'
@@ -104,6 +105,8 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   aliases: legacy('mailbox.aliases'),
   aliasDomains: legacy('mailbox.domain_aliases'),
   resources: legacy('mailbox.resources'),
+  // UI 005: the classic "Filters" tab of Mail setup.
+  filters: legacy('mailbox.filters'),
   account: legacy('header.user_settings'),
   quarantine: legacy('header.quarantine'),
   spamFilter: legacy('user.spamfilter'),
@@ -164,6 +167,8 @@ export const catalogue: readonly NavigationEntry[] = [
   entry('aliases', '/aliases', AtSignIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   entry('aliasDomains', '/alias-domains', LinkIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
+  // UI 005 (research R4): domain administrators without the filters flag read the list.
+  entry('filters', '/filters', FilterIcon, MANAGERS, '005', MAIL_SETUP),
   entry('account', '/account', UserCircleIcon, ALL, '005', {
     admin: ['/admin/system'],
     domainAdmin: ['/domainadmin/user'],

@@ -50,6 +50,9 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   aliases: { admin: true, domainAdmin: true, mailboxUser: false },
   aliasDomains: { admin: true, domainAdmin: true, mailboxUser: false },
   resources: { admin: true, domainAdmin: true, mailboxUser: false },
+  // UI 005 (research R4): Mail setup › Filters; domain administrators without the filters flag
+  // get a read-only screen, so the entry does not depend on it.
+  filters: { admin: true, domainAdmin: true, mailboxUser: false },
   account: { admin: true, domainAdmin: true, mailboxUser: true },
   passkeys: { admin: true, domainAdmin: true, mailboxUser: true },
   quarantine: { admin: true, domainAdmin: true, mailboxUser: true },
@@ -96,6 +99,7 @@ describe('navigation catalogue', () => {
       aliases: 'mailbox.aliases',
       aliasDomains: 'mailbox.domain_aliases',
       resources: 'mailbox.resources',
+      filters: 'mailbox.filters',
       account: 'header.user_settings',
       quarantine: 'header.quarantine',
       spamFilter: 'user.spamfilter',

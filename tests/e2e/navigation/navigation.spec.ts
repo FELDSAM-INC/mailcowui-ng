@@ -18,6 +18,8 @@ const ADMIN = [
   'Aliases',
   'Domain aliases',
   'Resources',
+  // UI 005 adds Mail setup › Filters for administrators and domain administrators.
+  'Filters',
   'User Settings',
   'Passkeys',
   'Quarantine',
@@ -47,6 +49,8 @@ const DOMAIN_ADMIN = [
   'Aliases',
   'Domain aliases',
   'Resources',
+  // UI 005 adds Mail setup › Filters for administrators and domain administrators.
+  'Filters',
   'User Settings',
   'Passkeys',
   'Quarantine',

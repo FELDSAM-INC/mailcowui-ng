@@ -328,7 +328,7 @@ accepts the new entry forms.
   - `domain-admin-004-all-flags`;
   - `mailbox-user-004`;
   - `capabilities-unavailable`: a documented `500` on `getAliasesCapabilities`;
-  - `groupware-disabled`;
+  - `aliases-groupware-disabled`;
   - `external-destinations-disabled`.
 
 ### New shared blocks (research R3, R8–R10)
@@ -455,7 +455,7 @@ compare the values with the mock data.
   - FR-013: every filter maps to its request parameter (`mockApi.requests()`);
   - FR-014: every sort key;
   - FR-017: the hint;
-  - US2-AS11, list part: on `groupware-disabled` there is no groupware badge, column, filter or sort
+  - US2-AS11, list part: on `aliases-groupware-disabled` there is no groupware badge, column, filter or sort
     key;
   - Edge, capabilities cannot be read: on `capabilities-unavailable` the list works, without the
     groupware elements;
@@ -1041,7 +1041,7 @@ per-object results and the selection afterwards.
   - US6-AS8: an outdated item reported and kept, and "Refresh the list" keeps the selection with new
     versions;
   - FR-056: selection is cleared on page, size, search, filter and sort changes;
-  - FR-057: show and hide are absent on `groupware-disabled`;
+  - FR-057: show and hide are absent on `aliases-groupware-disabled`;
   - FR-058: activate and show without confirmation; delete lists every address and needs the typed
     count;
   - FR-059 and FR-026: the summary per outcome, and targets with `{ id, version }` from the list

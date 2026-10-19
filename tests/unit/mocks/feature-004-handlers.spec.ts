@@ -936,7 +936,7 @@ describe('UI 004 scenarios', () => {
     'admin-004',
     'domain-admin-004',
     'domain-admin-004-all-flags',
-    'groupware-disabled',
+    'aliases-groupware-disabled',
     'external-destinations-disabled',
     'aliases-60',
     'aliases-empty',

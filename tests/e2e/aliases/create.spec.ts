@@ -225,7 +225,7 @@ test.describe('alias creation', () => {
     page,
     mockApi,
   }) => {
-    await mockApi.use('groupware-disabled')
+    await mockApi.use('aliases-groupware-disabled')
     await page.goto('aliases/new')
     await expect(page.getByLabel('Alias is visible in SOGo')).toHaveCount(0)
     await addresses(page).fill('nogroup@example.org')

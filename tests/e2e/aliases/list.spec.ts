@@ -264,7 +264,7 @@ test.describe('alias list', () => {
     page,
     mockApi,
   }) => {
-    await mockApi.use('groupware-disabled')
+    await mockApi.use('aliases-groupware-disabled')
     await page.goto('aliases')
     await listReady(page)
     await openFilters(page)

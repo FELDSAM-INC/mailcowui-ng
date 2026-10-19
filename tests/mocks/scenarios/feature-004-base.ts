@@ -422,7 +422,7 @@ export const feature004BaseScenarios: Record<string, ScenarioDefinition> = {
     overrides: { signedInAs: 'admin', failures: { getAliasesCapabilities: { status: 500 } } },
     setup: (state) => setupWorld004(state),
   },
-  'groupware-disabled': {
+  'aliases-groupware-disabled': {
     description: 'The base world as an administrator, with the groupware disabled on the server.',
     overrides: { signedInAs: 'admin', capabilities004: { groupwareEnabled: false } },
     setup: (state) => setupWorld004(state),

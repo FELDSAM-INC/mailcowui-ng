@@ -8,7 +8,7 @@
       "name": "GPL-3.0-only",
       "identifier": "GPL-3.0-only"
     },
-    "description": "mailcow REST API v2 runs next to the legacy mailcow UI and `/api/v1`, which keep working\nunchanged. It is the only backend of the mailcowui-ng web app. This document is the source of\ntruth: the implementation mirrors it exactly, and undocumented behaviour is a bug.\n\n## Conventions\n\n- Names are camelCase. Booleans are `true`/`false`. Times are RFC 3339 in UTC.\n- A single resource is returned as `{\"data\": {...}}`. A list is returned as\n  `{\"data\": [...], \"meta\": {\"total\", \"limit\", \"offset\"}}` and accepts `limit` (default 25, at\n  most 1,000), `offset`, `sort`, `order`, a substring search `q` and the documented filters.\n- Create returns `201` with a `Location` header, read and update return `200`, delete returns\n  `204`. Non-CRUD actions are sub-resources (for example `POST /api-keys/{apiKeyId}/revocation`)\n  and return `200` with the affected resource or the ceremony data.\n- `PATCH` takes JSON Merge Patch (RFC 7396, `application/merge-patch+json`).\n- Mutable resources carry a version tag: a strong ETag over their stored settings, never over\n  usage data. A single read returns it in the `ETag` header, and every representation,\n  including each list entry, carries the same value in `etag`. Writes accept `If-Match` and\n  answer `412` when it does not match. The legacy UI edits the same rows, so clients should\n  send it.\n\n## Errors\n\nEvery error is an RFC 9457 problem (`application/problem+json`) with `type`, `title`,\n`status`, `detail` and `requestId`. Problem types that clients act on are relative URI\nreferences of the form `/api/v2/problems/{name}`, documented in `docs/problems.md` and served\nas HTML by `GET /problems/{problemType}`. Compare `type` as an exact string. Other problems\nuse `about:blank` and are identified by their status (`400` malformed request, `404` unknown\nresource or path, `405` method not allowed, `409` conflict described in `detail`, `412`\nprecondition failed, `500` unexpected failure).\n\nErrors are never localised: the API ignores `Accept-Language`. `title` and `detail` are\nEnglish and meant for logs and scripts. A validation problem (`422`) carries an `errors` map\nfrom each invalid field to a list of violations, each with a stable rule `code` and its\n`params`, so that clients build translated messages themselves.\n\n## Authentication\n\n**Browser clients** use a same-origin session cookie (`sessionCookie`, `Secure`, `HttpOnly`,\n`SameSite=Strict`). Every state-changing request made with a session, including sign-in, must\ncarry the session's anti-forgery token in the `X-CSRF-Token` header (`csrfToken`), whatever\nits content type. The flow is:\n\n1. `GET /csrf-token` starts an anonymous session and returns its token. The token stays valid\n   for the lifetime of the session, including across sign-in. A `403` with type\n   `/api/v2/problems/csrf-token-mismatch` means the session ended or its identity changed (the\n   token is renewed when an impersonation starts or ends). Fetch a new token and re-read\n   `GET /me`. Retry the write once only if the identity is unchanged; otherwise discard it, so\n   that a write prepared under one identity is never sent under another.\n2. Sign in with a passkey (`POST /session/passkey-challenge`, then\n   `POST /session/passkey-assertion`) or with a password (`POST /session`).\n3. If the password step answers with state `pendingSecondFactor`, complete one of the listed\n   methods (`POST /session/pending-sign-in/second-factor`, after\n   `POST /session/pending-sign-in/webauthn-challenge` for WebAuthn) or cancel it\n   (`DELETE /session/pending-sign-in`).\n4. Sign out with `DELETE /session`.\n\n**Automation clients** send an API key in the `X-API-Key` header (`apiKeyAuth`). A request\nwith a key never creates a session and needs no anti-forgery token. When a request carries\nboth a key and a session cookie, the key decides and the cookie is ignored. Any request that\ncarries a non-empty `X-API-Key` header is authenticated by that key, and an invalid, expired\nor revoked key, or a key used from a disallowed address, is reported to mailcow's fail2ban.\nThe System operations (health checks, the contract, the documentation and the problem pages)\nignore `X-API-Key`.\n\n## Recommended presentation of sign-in methods\n\nClients should offer **passkey sign-in first** whenever the device supports WebAuthn\n(`PublicKeyCredential` is available), and username and password second. Passkeys registered\nin the legacy UI under the names \"FIDO2\" or \"Touch ID\" are ordinary passkeys and need no\nspecial handling. In the second-factor step, `PendingSignIn.methods` is already in the\nrecommended order: WebAuthn security keys and passkeys first, TOTP second, Yubico OTP last.\nMethods with `tier: primary` are offered directly; methods with `tier: advanced` belong behind\nan \"other methods\" option.\n\n## Restricted sessions\n\nWhen mailcow forces an account to change its password or to set up a second factor, the\nsession is restricted (`state: restricted`, non-empty `pendingActions`). It can read\n`GET /me`, sign out and, when only `secondFactorSetup` is pending, register a passkey.\nOperations that need no signed-in account stay available: `GET /csrf-token`, `GET /session`,\nsign-in and its steps, the public configuration, the documentation and the health checks.\nEvery other operation answers `403` with type `/api/v2/problems/pending-action-required`.\nAPI keys are never restricted: `Identity.pendingActions` is empty for them. Pending actions are re-evaluated from mailcow's\ndata on every request, so a restriction lifts as soon as it is resolved in either UI.\n"
+    "description": "mailcow REST API v2 runs next to the legacy mailcow UI and `/api/v1`, which keep working\nunchanged. It is the only backend of the mailcowui-ng web app. This document is the source of\ntruth: the implementation mirrors it exactly, and undocumented behaviour is a bug.\n\n## Conventions\n\n- Names are camelCase. Booleans are `true`/`false`. Times are RFC 3339 in UTC.\n- A single resource is returned as `{\"data\": {...}}`. A list is returned as\n  `{\"data\": [...], \"meta\": {\"total\", \"limit\", \"offset\"}}` and accepts `limit` (default 25, at\n  most 1,000), `offset`, `sort`, `order`, a substring search `q` and the documented filters.\n- Create returns `201` with a `Location` header, read and update return `200`, delete returns\n  `204`. Non-CRUD actions are sub-resources (for example `POST /api-keys/{apiKeyId}/revocation`)\n  and return `200` with the affected resource or the ceremony data.\n- `PATCH` takes JSON Merge Patch (RFC 7396, `application/merge-patch+json`).\n- Mutable resources carry a version tag: a strong ETag over their stored settings, never over\n  usage data. A single read returns it in the `ETag` header, and every representation,\n  including each list entry, carries the same value in `etag`. Writes accept `If-Match` and\n  answer `412` when it does not match. The legacy UI edits the same rows, so clients should\n  send it.\n\n## Errors\n\nEvery error is an RFC 9457 problem (`application/problem+json`) with `type`, `title`,\n`status`, `detail` and `requestId`. Problem types that clients act on are relative URI\nreferences of the form `/api/v2/problems/{name}`, documented in `docs/problems.md` and served\nas HTML by `GET /problems/{problemType}`. Compare `type` as an exact string. Other problems\nuse `about:blank` and are identified by their status (`400` malformed request, `404` unknown\nresource or path, `405` method not allowed, `409` conflict described in `detail`, `412`\nprecondition failed, `500` unexpected failure).\n\nErrors are never localised: the API ignores `Accept-Language`. `title` and `detail` are\nEnglish and meant for logs and scripts. A validation problem (`422`) carries an `errors` map\nfrom each invalid field to a list of violations, each with a stable rule `code` and its\n`params`, so that clients build translated messages themselves.\n\n## Authentication\n\n**Browser clients** use a same-origin session cookie (`sessionCookie`, `Secure`, `HttpOnly`,\n`SameSite=Strict`). Every state-changing request made with a session, including sign-in, must\ncarry the session's anti-forgery token in the `X-CSRF-Token` header (`csrfToken`), whatever\nits content type. The flow is:\n\n1. `GET /csrf-token` starts an anonymous session and returns its token. The token stays valid\n   for the lifetime of the session, including across sign-in. A `403` with type\n   `/api/v2/problems/csrf-token-mismatch` means the session ended or its identity changed (the\n   token is renewed when an impersonation starts or ends). Fetch a new token and re-read\n   `GET /me`. Retry the write once only if the identity is unchanged; otherwise discard it, so\n   that a write prepared under one identity is never sent under another.\n2. Sign in with a passkey (`POST /session/passkey-challenge`, then\n   `POST /session/passkey-assertion`) or with a password (`POST /session`).\n3. If the password step answers with state `pendingSecondFactor`, complete one of the listed\n   methods (`POST /session/pending-sign-in/second-factor`, after\n   `POST /session/pending-sign-in/webauthn-challenge` for WebAuthn) or cancel it\n   (`DELETE /session/pending-sign-in`).\n4. Sign out with `DELETE /session`.\n\n**Automation clients** send an API key in the `X-API-Key` header (`apiKeyAuth`). A request\nwith a key never creates a session and needs no anti-forgery token. When a request carries\nboth a key and a session cookie, the key decides and the cookie is ignored. Any request that\ncarries a non-empty `X-API-Key` header is authenticated by that key, and an invalid, expired\nor revoked key, or a key used from a disallowed address, is reported to mailcow's fail2ban.\nThe System operations (health checks, the contract, the documentation and the problem pages)\nignore `X-API-Key`.\n\n## Recommended presentation of sign-in methods\n\nClients should offer **passkey sign-in first** whenever the device supports WebAuthn\n(`PublicKeyCredential` is available), and username and password second. Passkeys registered\nin the legacy UI under the names \"FIDO2\" or \"Touch ID\" are ordinary passkeys and need no\nspecial handling. In the second-factor step, `PendingSignIn.methods` is already in the\nrecommended order: WebAuthn security keys and passkeys first, TOTP second, Yubico OTP last.\nMethods with `tier: primary` are offered directly; methods with `tier: advanced` belong behind\nan \"other methods\" option.\n\n## Restricted sessions\n\nWhen mailcow forces an account to change its password or to set up a second factor, the\nsession is restricted (`state: restricted`, non-empty `pendingActions`). It can read\n`GET /me` and `GET /capabilities/self-service` and sign out. While `passwordChange` is\npending it can read `GET /me/password-policy` and change the password (`PUT /me/password`);\nwhile `secondFactorSetup` is pending it can list and enrol second factors\n(`/me/second-factors`) and, when that is the only pending action, register a passkey.\nOperations that need no signed-in account stay available: `GET /csrf-token`, `GET /session`,\nsign-in and its steps, the public configuration, the documentation and the health checks.\nEvery other operation answers `403` with type `/api/v2/problems/pending-action-required`.\nAPI keys are never restricted: `Identity.pendingActions` is empty for them. Pending actions are re-evaluated from mailcow's\ndata on every request, so a restriction lifts as soon as it is resolved in either UI.\n"
   },
   "servers": [
     {
@@ -17678,7 +17678,7 @@
           "Own account"
         ],
         "summary": "Change my password",
-        "description": "Changes the signed-in account's password, for every role. The current password is required,\nalso for administrators, except in a session restricted by a forced password change, where the\nchange resolves the pending action at once. A wrong current password is audited, delayed and\ncounted like a failed sign-in for the account and client address (`429` after 10 failures in\n15 minutes); it is not reported to fail2ban.\n\nThe new password must meet the password policy (`validation-failed` names each unmet rule with\nthe code `passwordPolicy`) and must not start with a hash-scheme prefix (`preHashedPassword`).\nIt is stored in mailcow's configured hash scheme, so the mail server verifies it. For a mailbox\nthe forced-change flag is cleared, the password-changed time recorded and the groupware\ndirectory refreshed. App passwords, API keys and legacy UI sessions are not affected. The mail\nserver may accept the old password from mail clients for up to `mailServerCacheSeconds`.\n\nBy default the account's other sessions of this API end, with their webmail hand-offs; send\n`endOtherSessions: false` to keep them. The current session stays signed in with a renewed\nsession identifier. Mailboxes whose password lives in an external identity provider are refused\n(`password-managed-externally`). Not available to API keys. Audited, without the password.\n",
+        "description": "Changes the signed-in account's password, for every role. The current password is required,\nalso for administrators, except in a session restricted by a forced password change, where the\nchange resolves the pending action at once. A wrong current password is audited, delayed and\ncounted like a failed sign-in for the account and client address (`429` after 10 failures in\n15 minutes); it is not reported to fail2ban.\n\nThe new password must meet the password policy (`validation-failed` names each unmet rule with\nfeature 003's codes: `tooShort` with the policy's `min`, and `missingCharacterClass` with the\nmissing `characterClass`) and must not start with a hash-scheme prefix (`preHashedPassword`).\nIt is stored in mailcow's configured hash scheme, so the mail server verifies it. For a mailbox\nthe forced-change flag is cleared, the password-changed time recorded and the groupware\ndirectory refreshed. App passwords, API keys and legacy UI sessions are not affected. The mail\nserver may accept the old password from mail clients for up to `mailServerCacheSeconds`.\n\nBy default the account's other sessions of this API end, with their webmail hand-offs; send\n`endOtherSessions: false` to keep them. The current session stays signed in with a renewed\nsession identifier. Mailboxes whose password lives in an external identity provider are refused\n(`password-managed-externally`). Not available to API keys. Audited, without the password.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -19917,7 +19917,7 @@
           "Sieve filters"
         ],
         "summary": "List the Sieve filters of all mailboxes in scope",
-        "description": "Lists the Sieve filters of every mailbox in the caller's scope, with pagination instead of\nlegacy's per-domain loop. Sorted by mailbox and then description by default. `q` searches the\ndescription and the mailbox. Administrators and domain administrators, from a session or a key;\nreading needs no permission flag. Mailbox users list their own filters with\n`listMailboxSieveFilters`.\n",
+        "description": "Lists the Sieve filters of every mailbox in the caller's scope, with pagination instead of\nlegacy's per-domain loop. Sorted by mailbox and then description by default. `q` searches the\ndescription and the mailbox; `id` selects one filter. Administrators and domain administrators, from a session or a key;\nreading needs no permission flag. Mailbox users list their own filters with\n`listMailboxSieveFilters`.\n",
         "security": [
           {
             "sessionCookie": []
@@ -19950,6 +19950,17 @@
             "schema": {
               "type": "string",
               "maxLength": 255
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "description": "Only the filter with this ID (G23), for example to read a filter whose mailbox is not known.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4294967295
             }
           },
           {
@@ -20335,7 +20346,7 @@
       },
       "PendingAction": {
         "type": "string",
-        "description": "Action an account must complete before the session is fully usable.\n\n- `passwordChange`: mailcow forces a password change (`force_pw_update`). Until password change\n  arrives in this API, the user changes the password in the legacy UI.\n- `secondFactorSetup`: mailcow forces second-factor setup (`force_tfa`) and the account has no\n  second factor and no active passkey. Registering a passkey (`POST /me/passkeys`) resolves it.\n",
+        "description": "Action an account must complete before the session is fully usable.\n\n- `passwordChange`: mailcow forces a password change (`force_pw_update`). Changing the password\n  with `PUT /me/password`, which needs no current password in this case, resolves it.\n- `secondFactorSetup`: mailcow forces second-factor setup (`force_tfa`) and the account has no\n  second factor and no active passkey. Enrolling a second factor (`POST /me/second-factors`,\n  without the current password in this case) or registering a passkey (`POST /me/passkeys`)\n  resolves it.\n",
         "enum": [
           "passwordChange",
           "secondFactorSetup"
@@ -27348,6 +27359,7 @@
           "taggedMailHandling",
           "tlsEnforceInbound",
           "tlsEnforceOutbound",
+          "mailSettingsVersion",
           "quarantineNotification",
           "quarantineCategory",
           "rateLimit",
@@ -27510,6 +27522,11 @@
             "type": "boolean",
             "readOnly": true,
             "description": "Outbound TLS is enforced (`attributes.tls_enforce_out`). Read-only here, changed through feature 005. May be given at creation."
+          },
+          "mailSettingsVersion": {
+            "type": "string",
+            "readOnly": true,
+            "description": "The version tag of the mailbox's mail settings (`taggedMailHandling`, `tlsEnforceInbound`,\n`tlsEnforceOutbound`), equal to the `etag` of `GET /mailboxes/{mailbox}/mail-settings`. Send it\nas a target's `version` in `POST /mailboxes/mail-settings/bulk-actions` (feature 005, G22).\n"
           },
           "quarantineNotification": {
             "allOf": [
@@ -41281,7 +41298,7 @@
           },
           "qrCode": {
             "type": "string",
-            "description": "QR code of `provisioningUri` as a data URI (`data:image/svg+xml;base64,…`)."
+            "description": "QR code of `provisioningUri` as a data URI (`data:image/svg+xml;base64,…`). The SVG uses only\nthe elements `svg` (with `width`, `height` and `viewBox`), one white background `rect`, `g`\n(with `transform`) and one black `path` (`fill-rule=\"evenodd\"`); no scripts, styles, text or\nexternal references, so clients may render it as an image (G26). Clients that prefer their own\nrendering use `provisioningUri`.\n"
           },
           "issuer": {
             "type": "string",
@@ -42779,8 +42796,28 @@
         ],
         "properties": {
           "service": {
-            "type": "string",
-            "description": "The service as stored, upper-cased: for example `IMAP`, `POP3`, `SMTP`, `SIEVE`, `EAS`, `DAV`,\n`SSO` (webmail single sign-on), `SOGO`. Web UI sign-ins are always `WEBUI`, whether mailcow\nstored `MAILCOWUI` (upstream) or `WEBUI` (FeldHost fork).\n",
+            "description": "The service as stored, upper-cased. The known values are `IMAP`, `POP3`, `SMTP`, `SIEVE`\n(Dovecot's service names), `SOGO` (the groupware's own sign-ins, including ActiveSync and DAV),\n`SSO` (webmail single sign-on), `EAS`, `DAV` and `WEBUI`. Web UI sign-ins are always `WEBUI`,\nwhether mailcow stored `MAILCOWUI` (upstream) or `WEBUI` (FeldHost fork). Other mailcow\nversions may store other services, which are returned as they are (upper-cased), so clients\nshow unknown values as given (G24).\n",
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "IMAP",
+                  "POP3",
+                  "SMTP",
+                  "SIEVE",
+                  "SOGO",
+                  "SSO",
+                  "EAS",
+                  "DAV",
+                  "WEBUI"
+                ]
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 32
+              }
+            ],
             "examples": [
               "IMAP"
             ]
@@ -50487,11 +50524,11 @@
             }
           },
           "Cache-Control": {
-            "description": "Always `no-store`.",
+            "description": "Always contains `no-store` (as `no-store, private`), so that nothing caches the response.",
             "required": true,
             "schema": {
               "type": "string",
-              "const": "no-store"
+              "pattern": "(^|,\\s*)no-store(\\s*,|$)"
             }
           }
         },
@@ -50523,11 +50560,11 @@
             }
           },
           "Cache-Control": {
-            "description": "Always `no-store`.",
+            "description": "Always contains `no-store` (as `no-store, private`), so that nothing caches the response.",
             "required": true,
             "schema": {
               "type": "string",
-              "const": "no-store"
+              "pattern": "(^|,\\s*)no-store(\\s*,|$)"
             }
           }
         },
@@ -50551,11 +50588,11 @@
             }
           },
           "Cache-Control": {
-            "description": "Always `no-store`.",
+            "description": "Always contains `no-store` (as `no-store, private`), so that nothing caches the response.",
             "required": true,
             "schema": {
               "type": "string",
-              "const": "no-store"
+              "pattern": "(^|,\\s*)no-store(\\s*,|$)"
             }
           }
         },

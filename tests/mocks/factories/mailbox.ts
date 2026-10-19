@@ -161,6 +161,12 @@ export function mailboxEtag(mailbox: MockMailbox): string {
   return `"m${createHash('sha256').update(JSON.stringify(stored)).digest('hex').slice(0, 23)}"`
 }
 
+/** The version tag of a mailbox's mail settings (contract `Mailbox.mailSettingsVersion`, API 005). */
+export function mailSettingsVersion(mailbox: MockMailbox): string {
+  const stored = [mailbox.taggedMailHandling, mailbox.tlsEnforceInbound, mailbox.tlsEnforceOutbound]
+  return `"s${createHash('sha256').update(JSON.stringify(stored)).digest('hex').slice(0, 23)}"`
+}
+
 /** The domain of a mailbox, or a placeholder for mailboxes whose domain was removed. */
 export function domainOf(state: ScenarioState, mailbox: MockMailbox): MockDomain | undefined {
   return state.domains.find((domain) => domain.name === mailbox.domain)
@@ -222,6 +228,7 @@ export function mailboxView(
     domainRelayed: domain?.backupMx ?? false,
     createdAt: mailbox.createdAt,
     modifiedAt: mailbox.modifiedAt,
+    mailSettingsVersion: mailSettingsVersion(mailbox),
     etag: mailboxEtag(mailbox),
   }
 }

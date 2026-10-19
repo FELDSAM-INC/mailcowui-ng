@@ -5160,7 +5160,8 @@ export interface paths {
          *     15 minutes); it is not reported to fail2ban.
          *
          *     The new password must meet the password policy (`validation-failed` names each unmet rule with
-         *     the code `passwordPolicy`) and must not start with a hash-scheme prefix (`preHashedPassword`).
+         *     feature 003's codes: `tooShort` with the policy's `min`, and `missingCharacterClass` with the
+         *     missing `characterClass`) and must not start with a hash-scheme prefix (`preHashedPassword`).
          *     It is stored in mailcow's configured hash scheme, so the mail server verifies it. For a mailbox
          *     the forced-change flag is cleared, the password-changed time recorded and the groupware
          *     directory refreshed. App passwords, API keys and legacy UI sessions are not affected. The mail
@@ -7696,7 +7697,7 @@ export interface paths {
          * List the Sieve filters of all mailboxes in scope
          * @description Lists the Sieve filters of every mailbox in the caller's scope, with pagination instead of
          *     legacy's per-domain loop. Sorted by mailbox and then description by default. `q` searches the
-         *     description and the mailbox. Administrators and domain administrators, from a session or a key;
+         *     description and the mailbox; `id` selects one filter. Administrators and domain administrators, from a session or a key;
          *     reading needs no permission flag. Mailbox users list their own filters with
          *     `listMailboxSieveFilters`.
          */
@@ -12656,6 +12657,12 @@ export interface components {
             lastLogins: components["schemas"]["MailboxLastLogins"];
             /** @description Changes only through `renameMailbox`. */
             localPart: $Read<string>;
+            /**
+             * @description The version tag of the mailbox's mail settings (`taggedMailHandling`, `tlsEnforceInbound`,
+             *     `tlsEnforceOutbound`), equal to the `etag` of `GET /mailboxes/{mailbox}/mail-settings`. Send it
+             *     as a target's `version` in `POST /mailboxes/mail-settings/bulk-actions` (feature 005, G22).
+             */
+            mailSettingsVersion: $Read<string>;
             /** Format: int64 */
             messageCount: $Read<number>;
             /** @description `null` when never modified. */
@@ -14727,7 +14734,13 @@ export interface components {
              * @example otpauth://totp/anna%40example.org?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=mailcow%20UI&period=30&algorithm=SHA1&digits=6
              */
             provisioningUri: string;
-            /** @description QR code of `provisioningUri` as a data URI (`data:image/svg+xml;base64,…`). */
+            /**
+             * @description QR code of `provisioningUri` as a data URI (`data:image/svg+xml;base64,…`). The SVG uses only
+             *     the elements `svg` (with `width`, `height` and `viewBox`), one white background `rect`, `g`
+             *     (with `transform`) and one black `path` (`fill-rule="evenodd"`); no scripts, styles, text or
+             *     external references, so clients may render it as an image (G26). Clients that prefer their own
+             *     rendering use `provisioningUri`.
+             */
             qrCode: string;
             /** @description Random 160-bit secret in base32, for manual entry. */
             secret: string;
@@ -15008,10 +15021,12 @@ export interface components {
         /**
          * @description Action an account must complete before the session is fully usable.
          *
-         *     - `passwordChange`: mailcow forces a password change (`force_pw_update`). Until password change
-         *       arrives in this API, the user changes the password in the legacy UI.
+         *     - `passwordChange`: mailcow forces a password change (`force_pw_update`). Changing the password
+         *       with `PUT /me/password`, which needs no current password in this case, resolves it.
          *     - `secondFactorSetup`: mailcow forces second-factor setup (`force_tfa`) and the account has no
-         *       second factor and no active passkey. Registering a passkey (`POST /me/passkeys`) resolves it.
+         *       second factor and no active passkey. Enrolling a second factor (`POST /me/second-factors`,
+         *       without the current password in this case) or registering a passkey (`POST /me/passkeys`)
+         *       resolves it.
          * @enum {string}
          */
         PendingAction: "passwordChange" | "secondFactorSetup";
@@ -16137,12 +16152,15 @@ export interface components {
             /** Format: date-time */
             lastSeenAt: string;
             /**
-             * @description The service as stored, upper-cased: for example `IMAP`, `POP3`, `SMTP`, `SIEVE`, `EAS`, `DAV`,
-             *     `SSO` (webmail single sign-on), `SOGO`. Web UI sign-ins are always `WEBUI`, whether mailcow
-             *     stored `MAILCOWUI` (upstream) or `WEBUI` (FeldHost fork).
+             * @description The service as stored, upper-cased. The known values are `IMAP`, `POP3`, `SMTP`, `SIEVE`
+             *     (Dovecot's service names), `SOGO` (the groupware's own sign-ins, including ActiveSync and DAV),
+             *     `SSO` (webmail single sign-on), `EAS`, `DAV` and `WEBUI`. Web UI sign-ins are always `WEBUI`,
+             *     whether mailcow stored `MAILCOWUI` (upstream) or `WEBUI` (FeldHost fork). Other mailcow
+             *     versions may store other services, which are returned as they are (upper-cased), so clients
+             *     show unknown values as given (G24).
              * @example IMAP
              */
-            service: string;
+            service: ("IMAP" | "POP3" | "SMTP" | "SIEVE" | "SOGO" | "SSO" | "EAS" | "DAV" | "WEBUI") | string;
         };
         /**
          * @description A recipient map: the envelope recipient is rewritten before delivery. A domain map
@@ -19041,8 +19059,8 @@ export interface components {
          */
         AppleProfileCreated: {
             headers: {
-                /** @description Always `no-store`. */
-                "Cache-Control": "no-store";
+                /** @description Always contains `no-store` (as `no-store, private`), so that nothing caches the response. */
+                "Cache-Control": string;
                 /** @description `attachment; filename="<product name>.mobileconfig"`. */
                 "Content-Disposition": string;
                 /** @description Absolute path of the new app password. */
@@ -19059,8 +19077,8 @@ export interface components {
          */
         AppleProfileFile: {
             headers: {
-                /** @description Always `no-store`. */
-                "Cache-Control": "no-store";
+                /** @description Always contains `no-store` (as `no-store, private`), so that nothing caches the response. */
+                "Cache-Control": string;
                 /** @description `attachment; filename="<product name>.mobileconfig"`. */
                 "Content-Disposition": string;
                 [name: string]: unknown;
@@ -22957,8 +22975,8 @@ export interface components {
          */
         WebmailHandOffResponse: {
             headers: {
-                /** @description Always `no-store`. */
-                "Cache-Control": "no-store";
+                /** @description Always contains `no-store` (as `no-store, private`), so that nothing caches the response. */
+                "Cache-Control": string;
                 /**
                  * @description mailcow's legacy session cookie for the webmail-only session, for example
                  *     `MCSESSID=<id>; Path=/; Secure; HttpOnly; SameSite=Lax`. The name and the SameSite policy
@@ -34043,6 +34061,8 @@ export interface operations {
         parameters: {
             query?: {
                 active?: boolean;
+                /** @description Only the filter with this ID (G23), for example to read a filter whose mailbox is not known. */
+                id?: number;
                 kind?: components["schemas"]["SieveFilterKind"];
                 /** @description Page size. */
                 limit?: components["parameters"]["Limit"];
@@ -34851,6 +34871,7 @@ export const quarantineTemplatePreviewSampleQuarantineAclValues: ReadonlyArray<F
 export const rateLimitEffectiveSourceValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RateLimit"]["effectiveSource"]> = ["mailbox", "domain", "none"];
 export const rateLimitObjectKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RateLimitObjectKind"]> = ["domain", "aliasDomain", "mailbox"];
 export const rateLimitValueFrameValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RateLimitValue"]["frame"]> = ["second", "minute", "hour", "day"];
+export const recentLoginServiceAnyOf0Values: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RecentLogin"]["service"]> = ["IMAP", "POP3", "SMTP", "SIEVE", "SOGO", "SSO", "EAS", "DAV", "WEBUI"];
 export const recipientMapBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RecipientMapBulkActionRequest"]["action"]> = ["activate", "deactivate", "delete"];
 export const relayhostBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RelayhostBulkActionRequest"]["action"]> = ["activate", "deactivate", "delete"];
 export const relayhostReferenceStateValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["RelayhostReference"]["state"]> = ["active", "inactive", "dangling"];

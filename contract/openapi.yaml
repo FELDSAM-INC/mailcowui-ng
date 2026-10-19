@@ -85,7 +85,10 @@ info:
 
     When mailcow forces an account to change its password or to set up a second factor, the
     session is restricted (`state: restricted`, non-empty `pendingActions`). It can read
-    `GET /me`, sign out and, when only `secondFactorSetup` is pending, register a passkey.
+    `GET /me` and `GET /capabilities/self-service` and sign out. While `passwordChange` is
+    pending it can read `GET /me/password-policy` and change the password (`PUT /me/password`);
+    while `secondFactorSetup` is pending it can list and enrol second factors
+    (`/me/second-factors`) and, when that is the only pending action, register a passkey.
     Operations that need no signed-in account stay available: `GET /csrf-token`, `GET /session`,
     sign-in and its steps, the public configuration, the documentation and the health checks.
     Every other operation answers `403` with type `/api/v2/problems/pending-action-required`.
@@ -12845,7 +12848,8 @@ paths:
         15 minutes); it is not reported to fail2ban.
 
         The new password must meet the password policy (`validation-failed` names each unmet rule with
-        the code `passwordPolicy`) and must not start with a hash-scheme prefix (`preHashedPassword`).
+        feature 003's codes: `tooShort` with the policy's `min`, and `missingCharacterClass` with the
+        missing `characterClass`) and must not start with a hash-scheme prefix (`preHashedPassword`).
         It is stored in mailcow's configured hash scheme, so the mail server verifies it. For a mailbox
         the forced-change flag is cleared, the password-changed time recorded and the groupware
         directory refreshed. App passwords, API keys and legacy UI sessions are not affected. The mail
@@ -14397,7 +14401,7 @@ paths:
       description: |
         Lists the Sieve filters of every mailbox in the caller's scope, with pagination instead of
         legacy's per-domain loop. Sorted by mailbox and then description by default. `q` searches the
-        description and the mailbox. Administrators and domain administrators, from a session or a key;
+        description and the mailbox; `id` selects one filter. Administrators and domain administrators, from a session or a key;
         reading needs no permission flag. Mailbox users list their own filters with
         `listMailboxSieveFilters`.
       security:
@@ -14416,6 +14420,14 @@ paths:
           schema:
             type: string
             maxLength: 255
+        - name: id
+          in: query
+          required: false
+          description: Only the filter with this ID (G23), for example to read a filter whose mailbox is not known.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 4294967295
         - name: kind
           in: query
           required: false
@@ -14743,10 +14755,12 @@ components:
       description: |
         Action an account must complete before the session is fully usable.
 
-        - `passwordChange`: mailcow forces a password change (`force_pw_update`). Until password change
-          arrives in this API, the user changes the password in the legacy UI.
+        - `passwordChange`: mailcow forces a password change (`force_pw_update`). Changing the password
+          with `PUT /me/password`, which needs no current password in this case, resolves it.
         - `secondFactorSetup`: mailcow forces second-factor setup (`force_tfa`) and the account has no
-          second factor and no active passkey. Registering a passkey (`POST /me/passkeys`) resolves it.
+          second factor and no active passkey. Enrolling a second factor (`POST /me/second-factors`,
+          without the current password in this case) or registering a passkey (`POST /me/passkeys`)
+          resolves it.
       enum:
         - passwordChange
         - secondFactorSetup
@@ -20796,6 +20810,7 @@ components:
         - taggedMailHandling
         - tlsEnforceInbound
         - tlsEnforceOutbound
+        - mailSettingsVersion
         - quarantineNotification
         - quarantineCategory
         - rateLimit
@@ -20921,6 +20936,13 @@ components:
           type: boolean
           readOnly: true
           description: Outbound TLS is enforced (`attributes.tls_enforce_out`). Read-only here, changed through feature 005. May be given at creation.
+        mailSettingsVersion:
+          type: string
+          readOnly: true
+          description: |
+            The version tag of the mailbox's mail settings (`taggedMailHandling`, `tlsEnforceInbound`,
+            `tlsEnforceOutbound`), equal to the `etag` of `GET /mailboxes/{mailbox}/mail-settings`. Send it
+            as a target's `version` in `POST /mailboxes/mail-settings/bulk-actions` (feature 005, G22).
         quarantineNotification:
           allOf:
             - $ref: '#/components/schemas/MailboxQuarantineNotification'
@@ -32084,7 +32106,12 @@ components:
             - otpauth://totp/anna%40example.org?secret=JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP&issuer=mailcow%20UI&period=30&algorithm=SHA1&digits=6
         qrCode:
           type: string
-          description: QR code of `provisioningUri` as a data URI (`data:image/svg+xml;base64,…`).
+          description: |
+            QR code of `provisioningUri` as a data URI (`data:image/svg+xml;base64,…`). The SVG uses only
+            the elements `svg` (with `width`, `height` and `viewBox`), one white background `rect`, `g`
+            (with `transform`) and one black `path` (`fill-rule="evenodd"`); no scripts, styles, text or
+            external references, so clients may render it as an image (G26). Clients that prefer their own
+            rendering use `provisioningUri`.
         issuer:
           type: string
           examples:
@@ -33218,11 +33245,28 @@ components:
         - lastSeenAt
       properties:
         service:
-          type: string
           description: |
-            The service as stored, upper-cased: for example `IMAP`, `POP3`, `SMTP`, `SIEVE`, `EAS`, `DAV`,
-            `SSO` (webmail single sign-on), `SOGO`. Web UI sign-ins are always `WEBUI`, whether mailcow
-            stored `MAILCOWUI` (upstream) or `WEBUI` (FeldHost fork).
+            The service as stored, upper-cased. The known values are `IMAP`, `POP3`, `SMTP`, `SIEVE`
+            (Dovecot's service names), `SOGO` (the groupware's own sign-ins, including ActiveSync and DAV),
+            `SSO` (webmail single sign-on), `EAS`, `DAV` and `WEBUI`. Web UI sign-ins are always `WEBUI`,
+            whether mailcow stored `MAILCOWUI` (upstream) or `WEBUI` (FeldHost fork). Other mailcow
+            versions may store other services, which are returned as they are (upper-cased), so clients
+            show unknown values as given (G24).
+          anyOf:
+            - type: string
+              enum:
+                - IMAP
+                - POP3
+                - SMTP
+                - SIEVE
+                - SOGO
+                - SSO
+                - EAS
+                - DAV
+                - WEBUI
+            - type: string
+              minLength: 1
+              maxLength: 32
           examples:
             - IMAP
         clientAddress:
@@ -38619,11 +38663,11 @@ components:
           schema:
             type: string
         Cache-Control:
-          description: Always `no-store`.
+          description: Always contains `no-store` (as `no-store, private`), so that nothing caches the response.
           required: true
           schema:
             type: string
-            const: no-store
+            pattern: (^|,\s*)no-store(\s*,|$)
       content:
         application/x-apple-aspen-config:
           schema:
@@ -38646,11 +38690,11 @@ components:
           schema:
             type: string
         Cache-Control:
-          description: Always `no-store`.
+          description: Always contains `no-store` (as `no-store, private`), so that nothing caches the response.
           required: true
           schema:
             type: string
-            const: no-store
+            pattern: (^|,\s*)no-store(\s*,|$)
       content:
         application/x-apple-aspen-config:
           schema:
@@ -38673,11 +38717,11 @@ components:
           schema:
             type: string
         Cache-Control:
-          description: Always `no-store`.
+          description: Always contains `no-store` (as `no-store, private`), so that nothing caches the response.
           required: true
           schema:
             type: string
-            const: no-store
+            pattern: (^|,\s*)no-store(\s*,|$)
       content:
         application/json:
           schema:

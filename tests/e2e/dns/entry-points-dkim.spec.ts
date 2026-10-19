@@ -45,7 +45,7 @@ test.describe('DKIM section on the domain page', () => {
     await mockApi.use('dns-admin')
     await page.goto('domains/example.net')
     const section = page.locator('#section-dkim')
-    await expect(section).toContainText('Key missing')
+    await expect(section).toContainText('Key missing', { timeout: FIRST_LOAD })
     await expect(section).toContainText('Its mail is not signed')
   })
 
@@ -53,7 +53,7 @@ test.describe('DKIM section on the domain page', () => {
     await mockApi.use('dns-domain-admin')
     await page.goto('domains/example.org')
     const section = page.locator('#section-dkim')
-    await expect(section).toContainText('Key valid')
+    await expect(section).toContainText('Key valid', { timeout: FIRST_LOAD })
     await expect(section.getByRole('link', { name: 'Details of the DKIM key' })).toBeVisible()
   })
 })

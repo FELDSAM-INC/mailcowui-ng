@@ -62,9 +62,10 @@ test.describe('DNS with the keyboard only', () => {
     const copy = page.getByRole('button', { name: 'Copy record value of example.org' })
     await tabTo(page, copy)
     await page.keyboard.press('Enter')
+    // The button's own status, not the app's live region, which may say the same.
     await expect(
-      page.getByRole('status').filter({ hasText: 'Text copied to clipboard!' }),
-    ).toBeVisible()
+      page.getByRole('region', { name: 'DNS record' }).getByRole('status'),
+    ).toContainText('Text copied to clipboard!')
 
     await page.goto('dns/dkim-keys/example.net')
     await page.getByRole('heading', { level: 1 }).focus({ timeout: FIRST_LOAD })

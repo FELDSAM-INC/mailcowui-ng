@@ -55,6 +55,8 @@ test.describe('DKIM private key export', () => {
       .getByRole('alertdialog')
       .getByRole('button', { name: 'Show the private key' })
       .click()
+    // Escape once the key is shown: before that, the export request is still running.
+    await expect(page.getByRole('dialog').locator('textarea')).toHaveValue(/PRIVATE KEY/)
     await page.keyboard.press('Escape')
     await expect(page.getByRole('alertdialog')).toContainText('Have you saved the secret?')
     await page
@@ -86,9 +88,11 @@ test.describe('DKIM private key export', () => {
       .getByRole('alertdialog')
       .getByRole('button', { name: 'Show the private key' })
       .click()
-    await expect(
-      page.getByText('Private key export is turned off on this server. The operator'),
-    ).toBeVisible()
+    // The refusal's alert lasts until the refreshed capabilities remove the action; the page's note
+    // then says the same, so the lasting state is checked.
+    await expect(page.locator('[data-export-off]')).toContainText(
+      'Private key export is turned off on this server.',
+    )
     await expect(page.getByRole('button', { name: 'Private key' })).toHaveCount(0)
   })
 

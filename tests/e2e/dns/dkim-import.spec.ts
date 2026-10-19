@@ -24,7 +24,8 @@ test.describe('DKIM import', () => {
     await page.getByLabel('Selector').fill('mx2024')
     await page.locator('#dkim-import-key').fill(DNS_PEM_FIXTURES.pkcs8)
     await page.getByRole('button', { name: 'Import', exact: true }).click()
-    await expect(page).toHaveURL(/\/dns\/dkim-keys\/example\.net$/)
+    // The entry page is loaded for the first time here.
+    await expect(page).toHaveURL(/\/dns\/dkim-keys\/example\.net$/, { timeout: FIRST_LOAD })
     await expect(page.getByText('Key valid')).toBeVisible()
     await expect(page.locator('[data-dkim-record]')).toContainText('mx2024._domainkey.example.net')
     await expect(politeRegion(page)).toHaveText('DKIM key example.net has been saved')

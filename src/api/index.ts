@@ -426,6 +426,11 @@ export {
   componentsParametersTlsPolicyMapSortValues,
   componentsParametersTransportSortValues,
 } from './generated/schema'
+// UI 006 (US1, US2): the quarantine list's action filter and sort keys.
+export {
+  componentsParametersQuarantineItemSortValues,
+  quarantineItemActionValues,
+} from './generated/schema'
 
 // UI 011: monitoring and operations (data-model §1).
 export type {

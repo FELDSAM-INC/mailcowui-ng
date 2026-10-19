@@ -6,7 +6,7 @@ import { alice, reseller } from './fixtures/accounts'
 import { expectHome, signIn, signOut } from './fixtures/flows'
 import { freshTotp } from './fixtures/totp'
 
-test('reseller sees its domains, a classic link for mailboxes and no access to API keys', async ({
+test('reseller sees its domains, a classic link for DNS and no access to API keys', async ({
   page,
 }) => {
   await signIn(page, reseller.username, reseller.password, 'sign-in/domain-admin')
@@ -14,7 +14,8 @@ test('reseller sees its domains, a classic link for mailboxes and no access to A
   await expect(page.getByRole('region', { name: 'Your scope' }).getByRole('listitem')).toHaveCount(
     2,
   )
-  await page.goto('mailboxes')
+  // Mailboxes became available with UI 003, so DNS is the placeholder here.
+  await page.goto('dns')
   await expect(
     page.getByRole('main').getByRole('link', { name: 'E-Mail Configuration' }),
   ).toHaveAttribute('href', '/domainadmin/mailbox')

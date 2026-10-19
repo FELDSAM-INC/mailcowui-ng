@@ -2,27 +2,10 @@
 // the seeded mailboxes by role; a mailbox added through the form, renamed keeping its alias, changed
 // and found in its History, deactivated and activated in bulk, and removed through the dialog with
 // the real deletion preview. Every mailbox it creates has a unique name and is removed at the end.
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
-import { signIn, uniqueName } from './fixtures/domains-api'
-
-const DOMAIN = 'example.org'
-
-async function csrf(page: Page): Promise<string> {
-  const response = await page.request.get('/api/v2/csrf-token')
-  return ((await response.json()) as { data: { token: string } }).data.token
-}
-
-/** Removes a mailbox left over by a failed run, through the real API. */
-async function deleteMailbox(page: Page, address: string): Promise<void> {
-  const read = await page.request.get(`/api/v2/mailboxes/${address}`)
-  if (read.status() === 404) return
-  const { etag } = ((await read.json()) as { data: { etag: string } }).data
-  const response = await page.request.delete(`/api/v2/mailboxes/${address}`, {
-    headers: { 'X-CSRF-Token': await csrf(page), 'If-Match': etag },
-  })
-  expect([204, 404], `delete mailbox ${address}`).toContain(response.status())
-}
+import { signIn } from './fixtures/domains-api'
+import { deleteMailbox, SMOKE_DOMAIN as DOMAIN, uniqueLocalPart } from './fixtures/mailboxes-api'
 
 test.describe('@read-only mailboxes', () => {
   test('admin lists the seeded mailboxes, searches "alice" and opens alice@example.org', async ({
@@ -62,7 +45,7 @@ test.describe('@mailboxes', () => {
     page,
   }) => {
     test.slow()
-    const local = uniqueName('smoke').replace(/-/g, '.')
+    const local = uniqueLocalPart()
     const renamed = `${local}.new`
     await signIn(page, 'admin')
     try {
@@ -85,10 +68,22 @@ test.describe('@mailboxes', () => {
       await expect(page).toHaveURL(new RegExp(`/mailboxes/${renamed}@${DOMAIN}$`))
       expect((await page.request.get(`/api/v2/mailboxes/${local}@${DOMAIN}`)).status()).toBe(404)
 
-      // T121: a change appears in the History.
-      await page.getByRole('button', { name: 'Edit ACL (Permission)' }).click()
-      await page.getByRole('button', { name: 'Save changes' }).click()
+      // T121: a change appears in the History. API 003 records the rename under the previous
+      // address, so it is in that address's history.
+      await page.getByRole('button', { name: 'Edit Edit mailbox', exact: true }).click()
+      await page
+        .locator('#section-mailbox')
+        .getByRole('textbox', { name: 'Full name', exact: true })
+        .fill('Smoke History')
+      await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+      await expect(
+        page
+          .locator('section[id^="section-"]')
+          .getByText(`Changes to mailbox ${renamed}@${DOMAIN} have been saved`),
+      ).toBeVisible()
       await page.getByRole('link', { name: 'History' }).click()
+      await expect(page.getByText('Mailbox changed').first()).toBeVisible()
+      await page.goto(`audit-log?targetType=mailbox&targetId=${local}@${DOMAIN}`)
       await expect(page.getByText('Mailbox renamed').first()).toBeVisible()
 
       // T098: deactivate and activate in bulk.

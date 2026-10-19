@@ -3,11 +3,12 @@
 // with its copy buttons, "not signed" for a name without a key, the incomplete notice, and the
 // actions the role and the server allow (later stories add them). An unknown name, or one outside
 // the scope, shows the not-found page with a way back (FR-004).
-import { computed, nextTick } from 'vue'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
-import { isApiProblem, problemOf } from '@/api'
+import { isApiProblem, problemOf, queryKeys, type DkimDnsPublicationOutcome } from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
@@ -20,6 +21,7 @@ import CheckDnsAction from '../components/CheckDnsAction.vue'
 import DkimKeyFacts from '../components/DkimKeyFacts.vue'
 import DkimRecord from '../components/DkimRecord.vue'
 import IncompleteKeyNotice from '../components/IncompleteKeyNotice.vue'
+import PublicationOutcome from '../components/PublicationOutcome.vue'
 import GenerateKeyDialog from '../components/GenerateKeyDialog.vue'
 import { useSingleGeneration } from '../composables/useDkimGeneration'
 import { useDnsRole } from '../composables/useDnsRole'
@@ -41,6 +43,22 @@ const gone = computed(
 const actions = computed(() =>
   entry.value && role.value ? dkimActions(entry.value, role.value, capabilities.data.value) : null,
 )
+
+// The publication outcome of the last change of this name (US2, US5, US7), shown once.
+const queryClient = useQueryClient()
+const outcomeKey = computed(() => queryKeys.dkimKeys.outcome(name.value))
+const outcome = useQuery(
+  computed(() => ({
+    queryKey: outcomeKey.value,
+    queryFn: () => null as DkimDnsPublicationOutcome | null,
+    enabled: false,
+    staleTime: Infinity,
+  })),
+)
+function dismissOutcome() {
+  queryClient.removeQueries({ queryKey: outcomeKey.value, exact: true })
+}
+onBeforeUnmount(dismissOutcome)
 
 // US2: "Add ARC/DKIM key" for a name without a key; afterwards the record heading takes the focus.
 const generation = useSingleGeneration(async () => {
@@ -105,6 +123,18 @@ const generation = useSingleGeneration(async () => {
     >
       {{ t('dns.common.gone') }}
     </p>
+    <div
+      v-if="outcome.data.value && capabilities.data.value?.dkim.dnsPublicationEnabled"
+      data-entry-outcome
+      class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+    >
+      <PublicationOutcome
+        :outcome="outcome.data.value"
+        :enabled="capabilities.data.value.dkim.dnsPublicationEnabled"
+      >
+        <template #action><slot name="publish-again" /></template>
+      </PublicationOutcome>
+    </div>
     <section
       class="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
     >

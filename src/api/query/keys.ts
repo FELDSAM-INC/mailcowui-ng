@@ -173,6 +173,8 @@ export const queryKeys = {
     detail: (name: string) => ['dkim-keys', 'detail', name] as const,
     copyTargetLists: () => ['dkim-keys', 'copy-targets'] as const,
     copyTargets: (q: string) => ['dkim-keys', 'copy-targets', { q }] as const,
+    /** The publication outcome of the last change of a name, shown once on its entry page. */
+    outcome: (name: string) => ['dkim-keys', 'outcome', name] as const,
   },
   mtaStsPolicies: {
     all: () => ['mta-sts-policies'] as const,

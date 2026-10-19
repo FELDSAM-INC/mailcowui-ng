@@ -83,10 +83,16 @@ function invalidateLists(client: QueryClient): void {
   void client.invalidateQueries({ queryKey: queryKeys.auditEvents.all() })
 }
 
-/** After a key change: the result in the detail, the lists stale, the name marked as changed. */
+/**
+ * After a key change: the result in the detail, its publication outcome for the entry page, the
+ * lists stale, the name marked as changed.
+ */
 export function afterKeyChange(client: QueryClient, result: DkimKeyChangeResult | DkimKey): void {
   const entry = 'dnsPublication' in result ? entryOf(result) : result
   client.setQueryData(queryKeys.dkimKeys.detail(entry.name), entry)
+  if ('dnsPublication' in result) {
+    client.setQueryData(queryKeys.dkimKeys.outcome(entry.name), result.dnsPublication)
+  }
   invalidateLists(client)
   markDnsChanged(client, entry.name)
 }
@@ -232,6 +238,7 @@ export function publishRecord(
         ).data,
       onSuccess: (result) => {
         client.setQueryData(queryKeys.dkimKeys.detail(result.name), entryOf(result))
+        client.setQueryData(queryKeys.dkimKeys.outcome(result.name), result.dnsPublication)
         void client.invalidateQueries({ queryKey: queryKeys.auditEvents.all() })
       },
       onError: (error) => refetchOnConflict(client, name, error),

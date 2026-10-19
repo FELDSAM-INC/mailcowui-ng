@@ -66,6 +66,11 @@ describe('UI 010 query keys', () => {
     expect(queryKeys.dkimKeys.detail('example.org')).toEqual(['dkim-keys', 'detail', 'example.org'])
     expect(queryKeys.dkimKeys.copyTargetLists()).toEqual(['dkim-keys', 'copy-targets'])
     expect(queryKeys.dkimKeys.copyTargets('ex')).toEqual(['dkim-keys', 'copy-targets', { q: 'ex' }])
+    expect(queryKeys.dkimKeys.outcome('example.org')).toEqual([
+      'dkim-keys',
+      'outcome',
+      'example.org',
+    ])
   })
 
   it('keys MTA-STS policies by domain', () => {

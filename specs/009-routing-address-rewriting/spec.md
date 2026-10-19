@@ -831,6 +831,20 @@ better), **dropped** (not carried over, with the reason).
 | Internal IDs as the first table column | all tables above | FR-019, FR-037 | **Dropped** as a leading column for BCC, recipient and TLS policy maps (they are identified by their destinations); **kept** as secondary information for relayhosts and transports, where several entries can share a host |
 | Collapsed cards used as tabs on phones | all tabs above | FR-001, FR-005 | **Dropped**: each list is its own screen |
 | Change log entries in the legacy `logs` table | `json_api.php` logging | FR-064 | **Improved**: History opens the audit log filtered to the entry, without passwords |
+| BCC maps whose domain no longer exists (hidden from everyone) | `draw_bcc_table()`, `bcc()` in `inc/functions.address_rewriting.inc.php` | FR-050, FR-051 | **Improved** (plan parity note 1): administrators see them labelled "Domain no longer exists", can filter by it, edit and delete them |
+| Test dialog addresses ("To:" prefilled `null@hosted.mailcow.de`, "From:" empty) | `templates/modals/admin.twig` (`testTransportModal`) | FR-044 | **Matched** (plan parity note 2 as revised by plan part 3 decision 2): the recipient is prefilled with the server's default recipient and the sender shows the default sender as placeholder, both read from the routing capabilities |
+| Legacy hints with markup (bold, code, lists, links) | `admin.relayhosts_hint`, `admin.transports_hint`, `mailbox.tls_policy_maps_info` and the other hints listed below | FR-008, FR-073 | **Matched** (plan parity note 3): shown verbatim through `SanitizedHtml.vue` |
+
+**Revisions by the legacy form map** (plan part 3, 2026-10-19, constitution IV 1.4.0): where a row
+above says **Improved** because of an added explanation, that explanation is not built: the port-465
+and `*` warnings, the MX-lookup explanation, the policy explanations, the effective relayhost and the
+credential lookup note, the shared next hop notice, the BCC type explanations and "Whole domain"
+(decision 5). MX-based destinations are marked with `admin.is_mx_based` in text, the colour square is
+left out, the ID column stays on every list that has it and domain administrators see usernames in
+the relayhost choice (decision 6); transport destinations are split as legacy splits them (decision
+10); the relayhost choice is a field of the Domain and Mailbox sections, saved with the section and
+hidden without the flag (decision 12); forwarding hosts have no entry page, as in legacy (decision
+9). Every other row stands as written.
 
 **Legacy translation keys used verbatim** (constitution IV 1.3.0; the plan's legacy form map is the
 complete list, including the keys the templates use that this list lacks, such as `admin.add`,

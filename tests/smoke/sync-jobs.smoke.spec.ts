@@ -7,10 +7,11 @@ import { expect, test, type Page } from '@playwright/test'
 
 import { alice, SMOKE_DEFAULT_PASSWORD } from './fixtures/accounts'
 import { signIn as apiSignIn } from './fixtures/domains-api'
-import { signIn } from './fixtures/flows'
+import { expectHome, signIn } from './fixtures/flows'
 import { freshTotp } from './fixtures/totp'
 
-test.describe.configure({ mode: 'serial' })
+// Signing in as alice waits for a TOTP step that no earlier test used (fixtures/totp.ts), up to 30 s.
+test.describe.configure({ mode: 'serial', timeout: 120_000 })
 
 const created = new Set<number>()
 const SMOKE_HOST = 'imap.smoke.invalid'
@@ -82,6 +83,8 @@ test('alice sees her jobs #1 and #2, not #3, and the log of #2 without a passwor
 
 test('dave has no sync jobs entry and sees "No access"', async ({ page }) => {
   await signIn(page, 'dave@example.org', SMOKE_DEFAULT_PASSWORD)
+  await expectHome(page, 'dave@example.org')
+  await expect(page.getByRole('link', { name: 'Sync jobs', exact: true })).toHaveCount(0)
   await page.goto('sync-jobs')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
 })
@@ -104,7 +107,7 @@ test('admin follows "Sync jobs" from alice\'s mailbox page to the filtered list'
   }
 })
 
-test('alice creates a job, sees "already exists", edits, deactivates, schedules and removes it', async ({
+test('alice creates a job, sees "already exists", edits, deactivates, activates and removes it', async ({
   page,
 }) => {
   await signInAlice(page)
@@ -126,6 +129,7 @@ test('alice creates a job, sees "already exists", edits, deactivates, schedules 
   await page.goto(`sync-jobs/${id}?edit=syncjob`)
   await page.getByLabel('Interval (min)').fill('45')
   await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page).not.toHaveURL(/edit=/)
   await page.reload()
   await expect(page.locator('[data-section-values]')).toContainText('45')
 

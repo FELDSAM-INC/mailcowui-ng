@@ -1,15 +1,18 @@
 <script setup lang="ts">
 // The only place that renders HTML (FR-002, research R17), sanitised by a DOMPurify allowlist
-// first: operator HTML (the default), or the markup of a mailcow language value
-// (`profile="legacy"`, through LegacyText). Plain text never comes here.
+// first: operator HTML (the default), the markup of a mailcow language value
+// (`profile="legacy"`, through LegacyText), or release notes rendered from Markdown
+// (`profile="releaseNotes"`, UI 011). Plain text never comes here.
 import { computed } from 'vue'
 
-import { sanitizeHtml, sanitizeLegacyHtml } from '../security/sanitize'
+import { text } from '@/i18n'
+
+import { sanitizeHtml, sanitizeLegacyHtml, sanitizeReleaseNotes } from '../security/sanitize'
 
 const props = withDefaults(
   defineProps<{
     html: string | null | undefined
-    profile?: 'operator' | 'legacy'
+    profile?: 'operator' | 'legacy' | 'releaseNotes'
     /** The element that holds the HTML: a block for operator HTML, inline for legacy texts. */
     tag?: string
   }>(),
@@ -17,6 +20,9 @@ const props = withDefaults(
 )
 const safe = computed(() => {
   if (!props.html) return ''
+  if (props.profile === 'releaseNotes') {
+    return sanitizeReleaseNotes(props.html, text('common.opensInNewTab'))
+  }
   return props.profile === 'legacy' ? sanitizeLegacyHtml(props.html) : sanitizeHtml(props.html)
 })
 </script>
@@ -27,7 +33,7 @@ const safe = computed(() => {
   <component
     :is="tag"
     v-if="safe"
-    :class="profile === 'operator' ? 'operator-html' : 'legacy-html'"
+    :class="`${profile === 'legacy' ? 'legacy' : profile === 'releaseNotes' ? 'release-notes' : 'operator'}-html`"
     v-html="safe"
   />
   <!-- eslint-enable vue/no-v-html, vue/no-v-text-v-html-on-component -->

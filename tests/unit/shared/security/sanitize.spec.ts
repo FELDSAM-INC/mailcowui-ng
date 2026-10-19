@@ -240,3 +240,77 @@ describe('sanitizeLegacyHtml: markup in mailcow language values (constitution IV
     expect(link?.hasAttribute('href')).toBe(false)
   })
 })
+
+describe('sanitizeReleaseNotes (UI 011, FR-028, T128)', () => {
+  it('keeps the Markdown formatting tags with href and align', async () => {
+    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const root = parse(
+      sanitizeReleaseNotes(
+        '<h2>T</h2><p><strong>b</strong> <em>e</em> <del>d</del></p><ul><li>x</li></ul><ol><li>y</li></ol><blockquote>q</blockquote><pre><code>c</code></pre><table><thead><tr><th align="left">h</th></tr></thead><tbody><tr><td align="right">v</td></tr></tbody></table><hr>',
+        '(opens in a new tab)',
+      ),
+    )
+    for (const tag of [
+      'h2',
+      'strong',
+      'em',
+      'del',
+      'ul',
+      'ol',
+      'blockquote',
+      'pre',
+      'code',
+      'table',
+      'thead',
+      'tbody',
+      'th',
+      'td',
+      'hr',
+    ]) {
+      expect(root.querySelector(tag), tag).not.toBeNull()
+    }
+    expect(root.querySelector('th')?.getAttribute('align')).toBe('left')
+  })
+
+  it('removes images, styles, classes, handlers, frames, forms, svg and unsafe links', async () => {
+    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const output = sanitizeReleaseNotes(
+      '<img src="https://x.example/a.png"><p class="c" style="color:red" onclick="x()">p</p><iframe src="https://x.example"></iframe><form><input></form><svg onload="x()"></svg><a href="javascript:alert(1)">j</a><a href="/rel">r</a>',
+      '(opens in a new tab)',
+    )
+    const root = parse(output)
+    expect(
+      root.querySelector(
+        'img, iframe, form, input, svg, [class]:not(.sr-only), [style], [onclick]',
+      ),
+    ).toBeNull()
+    for (const link of root.querySelectorAll('a')) expect(link.hasAttribute('href')).toBe(false)
+    expect(output).not.toMatch(/javascript:/i)
+  })
+
+  it('opens links in a new window without access to the app and says so', async () => {
+    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    const root = parse(
+      sanitizeReleaseNotes('<a href="https://example.org/r">release</a>', '(opens in a new tab)'),
+    )
+    const link = root.querySelector('a')!
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer nofollow')
+    expect(link.querySelector('.sr-only')?.textContent).toBe(' (opens in a new tab)')
+  })
+
+  it('neutralises the injection vectors of the operator profile', async () => {
+    const { sanitizeReleaseNotes } = await import('@/shared/security/sanitize')
+    for (const input of [
+      '<p>Hi</p><script>alert(1)</script>',
+      '<img src=x onerror="alert(1)">',
+      '<a href="jav&#x09;ascript:alert(1)">x</a>',
+      '<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>',
+      '<a href="data:text/html;base64,PHNjcmlwdD4=">x</a>',
+    ]) {
+      const output = sanitizeReleaseNotes(input, '(opens in a new tab)')
+      expect(output).not.toMatch(/<script|onerror|javascript:|data:/i)
+      expect(parse(output).querySelector('img, script, style')).toBeNull()
+    }
+  })
+})

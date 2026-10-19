@@ -14096,7 +14096,7 @@
           "Spam policy"
         ],
         "summary": "Add an entry to the allow or block list of a domain",
-        "description": "Adds a pattern to the allow or block list (`SpamPolicyEntryCreateRequest`). The pattern is\ntrimmed and lower-cased before it is checked and stored. The same pattern on either list of\nthe same owner is refused with `409 spam-policy-entry-exists`, which names the list and the\nexisting entry. The spam filter applies the entry within one refresh of its settings map (at\nmost 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited with the owner, the list and the pattern.\n",
+        "description": "Adds a pattern to the allow or block list (`SpamPolicyEntryCreateRequest`). The pattern is\ntrimmed and lower-cased before it is checked and stored. The same pattern on either list of\nthe same owner is refused with `409 spam-policy-entry-exists`, which names the list and the\nexisting entry. The spam filter applies the entry within one refresh of its settings map (at\nmost 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited on the owner (audit target `domain`), with the entry's `entryId`, `list` and `pattern` in the details.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -14192,7 +14192,7 @@
           "Spam policy"
         ],
         "summary": "Remove an allow or block list entry of a domain",
-        "description": "Removes the entry through its owner. An entry of another owner, such as a domain entry\naddressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). The spam filter stops applying it\nwithin one refresh of its settings map (at most 1 minute). Audited with the owner, the list\nand the pattern.\n",
+        "description": "Removes the entry through its owner. An entry of another owner, such as a domain entry\naddressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). The spam filter stops applying it\nwithin one refresh of its settings map (at most 1 minute). Audited on the owner (audit\ntarget `domain`), with the entry's `entryId`, `list` and `pattern` in the details.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -14316,7 +14316,7 @@
           "Spam policy"
         ],
         "summary": "Add an entry to the allow or block list of an alias domain",
-        "description": "Adds a pattern to the allow or block list (`SpamPolicyEntryCreateRequest`). The pattern is\ntrimmed and lower-cased before it is checked and stored. The same pattern on either list of\nthe same owner is refused with `409 spam-policy-entry-exists`, which names the list and the\nexisting entry. The spam filter applies the entry within one refresh of its settings map (at\nmost 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited with the owner, the list and the pattern.\n",
+        "description": "Adds a pattern to the allow or block list (`SpamPolicyEntryCreateRequest`). The pattern is\ntrimmed and lower-cased before it is checked and stored. The same pattern on either list of\nthe same owner is refused with `409 spam-policy-entry-exists`, which names the list and the\nexisting entry. The spam filter applies the entry within one refresh of its settings map (at\nmost 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited on the owner (audit target `aliasDomain`), with the entry's `entryId`, `list` and `pattern` in the details.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -14412,7 +14412,7 @@
           "Spam policy"
         ],
         "summary": "Remove an allow or block list entry of an alias domain",
-        "description": "Removes the entry through its owner. An entry of another owner, such as a domain entry\naddressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). The spam filter stops applying it\nwithin one refresh of its settings map (at most 1 minute). Audited with the owner, the list\nand the pattern.\n",
+        "description": "Removes the entry through its owner. An entry of another owner, such as a domain entry\naddressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). The spam filter stops applying it\nwithin one refresh of its settings map (at most 1 minute). Audited on the owner (audit\ntarget `aliasDomain`), with the entry's `entryId`, `list` and `pattern` in the details.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -14536,7 +14536,7 @@
           "Spam policy"
         ],
         "summary": "Add an entry to the allow or block list of a mailbox",
-        "description": "Adds a pattern to the allow or block list (`SpamPolicyEntryCreateRequest`). The pattern is\ntrimmed and lower-cased before it is checked and stored. The same pattern on either list of\nthe same owner is refused with `409 spam-policy-entry-exists`, which names the list and the\nexisting entry. The spam filter applies the entry within one refresh of its settings map (at\nmost 1 minute). Administrators may always add; domain administrators and mailbox users need `spamPolicy`. Audited with the owner, the list and the pattern.\n",
+        "description": "Adds a pattern to the allow or block list (`SpamPolicyEntryCreateRequest`). The pattern is\ntrimmed and lower-cased before it is checked and stored. The same pattern on either list of\nthe same owner is refused with `409 spam-policy-entry-exists`, which names the list and the\nexisting entry. The spam filter applies the entry within one refresh of its settings map (at\nmost 1 minute). Administrators may always add; domain administrators and mailbox users need `spamPolicy`. Audited on the owner (audit target `mailbox`), with the entry's `entryId`, `list` and `pattern` in the details.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -14632,7 +14632,7 @@
           "Spam policy"
         ],
         "summary": "Remove an allow or block list entry of a mailbox",
-        "description": "Removes the entry through its owner. An entry of another owner, such as a domain entry\naddressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators and mailbox users need `spamPolicy`. The spam filter stops applying it\nwithin one refresh of its settings map (at most 1 minute). Audited with the owner, the list\nand the pattern.\n",
+        "description": "Removes the entry through its owner. An entry of another owner, such as a domain entry\naddressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators and mailbox users need `spamPolicy`. The spam filter stops applying it\nwithin one refresh of its settings map (at most 1 minute). Audited on the owner (audit\ntarget `mailbox`), with the entry's `entryId`, `list` and `pattern` in the details.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -32570,7 +32570,7 @@
       },
       "DomainAdminCreateRequest": {
         "type": "object",
-        "description": "A new domain administrator account. `username` and `password` follow the rules of\n`AdminCreateRequest`. Each entry of `domains` is normalised (trimmed, lower-cased, converted to\nASCII with the UTS #46 rules) and must be an existing primary domain: an invalid name is refused\nwith `invalidFormat` (`format: domainName`), an alias domain name with `notEligible`\n(`expected: primaryDomain`) and an unknown name with `notFound`, each on `domains.<index>`.\nDuplicates are merged. Permission flags that are not sent get this server's defaults, the values\n`GET /capabilities/accounts` reports. The account, its assignments (with the account's status) and\nits permission record are stored together or not at all; an orphaned permission record left by\nlegacy for the same username is replaced.\n",
+        "description": "A new domain administrator account. `username` and `password` follow the rules of\n`AdminCreateRequest`. Each entry of `domains` is normalised (trimmed, lower-cased, converted to\nASCII with the UTS #46 rules) and must be an existing primary domain: an invalid name is refused\nwith `invalidFormat` (`format: domainName`), an alias domain name with `notEligible`\n(`kind: aliasDomain`) and an unknown name with `notFound`, each on `domains.<index>`.\nDuplicates are merged. Permission flags that are not sent get this server's defaults, the values\n`GET /capabilities/accounts` reports. The account, its assignments (with the account's status) and\nits permission record are stored together or not at all; an orphaned permission record left by\nlegacy for the same username is replaced.\n",
         "required": [
           "username",
           "password",
@@ -34159,7 +34159,7 @@
       },
       "RateLimitLogEntry": {
         "type": "object",
-        "description": "One message that hit a rate limit (Redis list `RL_LOG`, written by Rspamd's metadata exporter).\n`rateLimitHash` identifies the limit, so that a client can reset it with feature 006; it is\n`null` when legacy recorded `err` (the limit could not be identified).\n",
+        "description": "One message that hit a rate limit (Redis list `RL_LOG`, written by Rspamd's metadata exporter).\n`rateLimitHash` identifies the limit's bucket, so that a client can reset it with feature 006\n(`resetRateLimitBucket`); it is `null` when legacy recorded `err` (the limit could not be\nidentified) or another text that is not a bucket identifier.\n",
         "required": [
           "id",
           "time",
@@ -34197,7 +34197,9 @@
           "rateLimitHash": {
             "oneOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^RL[0-9A-Za-z=]+$",
+                "maxLength": 128
               },
               {
                 "type": "null"

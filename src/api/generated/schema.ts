@@ -358,7 +358,7 @@ export interface paths {
          *     trimmed and lower-cased before it is checked and stored. The same pattern on either list of
          *     the same owner is refused with `409 spam-policy-entry-exists`, which names the list and the
          *     existing entry. The spam filter applies the entry within one refresh of its settings map (at
-         *     most 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited with the owner, the list and the pattern.
+         *     most 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited on the owner (audit target `aliasDomain`), with the entry's `entryId`, `list` and `pattern` in the details.
          */
         post: operations["createAliasDomainSpamPolicyEntry"];
         delete?: never;
@@ -399,8 +399,8 @@ export interface paths {
          * Remove an allow or block list entry of an alias domain
          * @description Removes the entry through its owner. An entry of another owner, such as a domain entry
          *     addressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). The spam filter stops applying it
-         *     within one refresh of its settings map (at most 1 minute). Audited with the owner, the list
-         *     and the pattern.
+         *     within one refresh of its settings map (at most 1 minute). Audited on the owner (audit
+         *     target `aliasDomain`), with the entry's `entryId`, `list` and `pattern` in the details.
          */
         delete: operations["deleteAliasDomainSpamPolicyEntry"];
         options?: never;
@@ -2340,7 +2340,7 @@ export interface paths {
          *     trimmed and lower-cased before it is checked and stored. The same pattern on either list of
          *     the same owner is refused with `409 spam-policy-entry-exists`, which names the list and the
          *     existing entry. The spam filter applies the entry within one refresh of its settings map (at
-         *     most 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited with the owner, the list and the pattern.
+         *     most 1 minute). Administrators may always add; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). Audited on the owner (audit target `domain`), with the entry's `entryId`, `list` and `pattern` in the details.
          */
         post: operations["createDomainSpamPolicyEntry"];
         delete?: never;
@@ -2381,8 +2381,8 @@ export interface paths {
          * Remove an allow or block list entry of a domain
          * @description Removes the entry through its owner. An entry of another owner, such as a domain entry
          *     addressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators need `spamPolicy`; mailbox users are refused (`forbidden`). The spam filter stops applying it
-         *     within one refresh of its settings map (at most 1 minute). Audited with the owner, the list
-         *     and the pattern.
+         *     within one refresh of its settings map (at most 1 minute). Audited on the owner (audit
+         *     target `domain`), with the entry's `entryId`, `list` and `pattern` in the details.
          */
         delete: operations["deleteDomainSpamPolicyEntry"];
         options?: never;
@@ -4513,7 +4513,7 @@ export interface paths {
          *     trimmed and lower-cased before it is checked and stored. The same pattern on either list of
          *     the same owner is refused with `409 spam-policy-entry-exists`, which names the list and the
          *     existing entry. The spam filter applies the entry within one refresh of its settings map (at
-         *     most 1 minute). Administrators may always add; domain administrators and mailbox users need `spamPolicy`. Audited with the owner, the list and the pattern.
+         *     most 1 minute). Administrators may always add; domain administrators and mailbox users need `spamPolicy`. Audited on the owner (audit target `mailbox`), with the entry's `entryId`, `list` and `pattern` in the details.
          */
         post: operations["createMailboxSpamPolicyEntry"];
         delete?: never;
@@ -4555,8 +4555,8 @@ export interface paths {
          * Remove an allow or block list entry of a mailbox
          * @description Removes the entry through its owner. An entry of another owner, such as a domain entry
          *     addressed through one of its mailboxes, answers `404`. Administrators may always remove; domain administrators and mailbox users need `spamPolicy`. The spam filter stops applying it
-         *     within one refresh of its settings map (at most 1 minute). Audited with the owner, the list
-         *     and the pattern.
+         *     within one refresh of its settings map (at most 1 minute). Audited on the owner (audit
+         *     target `mailbox`), with the entry's `entryId`, `list` and `pattern` in the details.
          */
         delete: operations["deleteMailboxSpamPolicyEntry"];
         options?: never;
@@ -10444,7 +10444,7 @@ export interface components {
          *     `AdminCreateRequest`. Each entry of `domains` is normalised (trimmed, lower-cased, converted to
          *     ASCII with the UTS #46 rules) and must be an existing primary domain: an invalid name is refused
          *     with `invalidFormat` (`format: domainName`), an alias domain name with `notEligible`
-         *     (`expected: primaryDomain`) and an unknown name with `notFound`, each on `domains.<index>`.
+         *     (`kind: aliasDomain`) and an unknown name with `notFound`, each on `domains.<index>`.
          *     Duplicates are merged. Permission flags that are not sent get this server's defaults, the values
          *     `GET /capabilities/accounts` reports. The account, its assignments (with the account's status) and
          *     its permission record are stored together or not at all; an orphaned permission record left by
@@ -16079,8 +16079,9 @@ export interface components {
         };
         /**
          * @description One message that hit a rate limit (Redis list `RL_LOG`, written by Rspamd's metadata exporter).
-         *     `rateLimitHash` identifies the limit, so that a client can reset it with feature 006; it is
-         *     `null` when legacy recorded `err` (the limit could not be identified).
+         *     `rateLimitHash` identifies the limit's bucket, so that a client can reset it with feature 006
+         *     (`resetRateLimitBucket`); it is `null` when legacy recorded `err` (the limit could not be
+         *     identified) or another text that is not a bucket identifier.
          */
         RateLimitLogEntry: {
             clientAddress: string | null;

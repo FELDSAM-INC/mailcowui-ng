@@ -3,7 +3,8 @@
 // lines with `content-visibility: auto`, so a 5 MB log stays fast; every chunk is neutralised
 // (control and bidi characters as visible markers) and shown through text interpolation only, in a
 // `dir="auto"` block. The area is a named region that takes the focus and scrolls by keyboard;
-// with wrapping off only it scrolls sideways.
+// with wrapping off only it scrolls sideways (each chunk is then as wide as its longest line, since
+// `content-visibility` contains a chunk's painting).
 import { computed, shallowRef, watch } from 'vue'
 
 import { neutralise, type PlainTextSegment } from '@/shared/security/plain-text'
@@ -38,7 +39,8 @@ const wrapping = computed(() =>
       v-for="(segments, index) in chunks"
       :key="index"
       data-chunk
-      class="[contain-intrinsic-size:auto_10000px] [content-visibility:auto]"
+      class="[contain-intrinsic-block-size:auto_10000px] [content-visibility:auto]"
+      :class="wrap ? '' : 'w-max min-w-full'"
     >
       <template v-for="(segment, at) in segments" :key="at">
         <template v-if="segment.kind === 'text'">{{ segment.value }}</template>

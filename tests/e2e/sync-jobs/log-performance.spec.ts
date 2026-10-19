@@ -21,7 +21,9 @@ test.describe('large run log', () => {
       .getByRole('button', { name: /^Open logs/ })
       .click()
     const region = page.getByRole('dialog').getByRole('region')
-    await expect(region).toContainText('msg INBOX/000001', { timeout: 3_000 })
+    await expect(region.locator('[data-chunk]').first()).toContainText('msg INBOX/000001', {
+      timeout: 3_000,
+    })
     expect(Date.now() - started).toBeLessThan(3_000)
     await page.evaluate(() => {
       const w = window as unknown as { __longTasks: number[] }
@@ -38,11 +40,12 @@ test.describe('large run log', () => {
       }
       element.scrollTop = element.scrollHeight
     })
-    await expect(region).toContainText('copied to INBOX', { timeout: 3_000 })
+    // Measured before Playwright reads any text: reading 5 MB of text is itself a long task.
     const longest = await page.evaluate(() =>
       Math.max(0, ...(window as unknown as { __longTasks: number[] }).__longTasks),
     )
     expect(longest).toBeLessThan(200)
+    await expect(region.locator('[data-chunk]').last()).toContainText('copied to INBOX')
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 })
   })
 })

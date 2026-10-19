@@ -3,7 +3,7 @@
 // full-screen viewer and a log can be linked; closing goes back when the viewer was opened in the
 // app and otherwise replaces the address. The focus returns to the control that opened it, or to
 // the page's heading.
-import { computed, nextTick } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import type { UseListState } from '@/shared/composables/useListState'
@@ -24,8 +24,15 @@ export function useLogViewer(list: ListWithViews) {
     target?.focus()
   }
 
+  const openId = computed(() => list.views.value.log)
+  // However the viewer closes (Close, Escape, Back), the focus returns once it is gone.
+  watch(openId, (id, previous) => {
+    if (id !== undefined || previous === undefined) return
+    void nextTick(() => requestAnimationFrame(restoreFocus))
+  })
+
   return {
-    openId: computed(() => list.views.value.log),
+    openId,
     async open(id: number) {
       const active = document.activeElement
       opener = active instanceof HTMLElement ? active : null
@@ -37,8 +44,6 @@ export function useLogViewer(list: ListWithViews) {
       const target = router.resolve({ query, hash: route.hash }).fullPath
       if (router.options.history.state.back === target) router.back()
       else await list.setView('log', undefined, { replace: true })
-      await nextTick()
-      requestAnimationFrame(restoreFocus)
     },
   }
 }

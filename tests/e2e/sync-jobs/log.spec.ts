@@ -70,8 +70,11 @@ test.describe('sync job run log', () => {
     }
     await dialog.getByRole('button', { name: 'Wrap lines' }).click()
     await expect(region).toHaveCSS('white-space', 'pre')
-    const scroll = await region.evaluate((el) => el.scrollWidth > el.clientWidth)
-    expect(scroll).toBe(true)
+    if (isNarrow(page)) {
+      // 120 columns do not fit at 360 px: only the log area scrolls sideways.
+      const scroll = await region.evaluate((el) => el.scrollWidth > el.clientWidth)
+      expect(scroll).toBe(true)
+    }
     await region.focus()
     await page.keyboard.press('ArrowRight')
     await expectNoHorizontalScroll()

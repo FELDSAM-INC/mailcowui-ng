@@ -221,14 +221,8 @@
     },
     "pendingActions": {
       "intro": "Skôr ako budete môcť pokračovať, musíte na svojom účte dokončiť tieto kroky.",
-      "password": {
-        "body": "Táto aplikácia zatiaľ heslo zmeniť nevie: zmeňte ho v klasickom rozhraní a potom to tu skontrolujte znova.",
-        "checkAgain": "Skontrolovať znova",
-        "link": "Zmeniť heslo v klasickom rozhraní",
-        "stillPending": "Zmena hesla stále čaká na dokončenie."
-      },
       "secondFactor": {
-        "afterPassword": "Prístupový kľúč tu budete môcť zaregistrovať, keď si zmeníte heslo.",
+        "afterPassword": "Druhý faktor tu nastavíte, keď bude nové heslo uložené.",
         "classicLink": "Nastaviť druhý faktor v klasickom rozhraní",
         "register": "Zaregistrovať prístupový kľúč",
         "required": "Prístupový kľúč sa počíta ako druhý faktor.",

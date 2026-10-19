@@ -1,18 +1,20 @@
 // Throttled sign-in (`429 too-many-requests`, US1-AS6, research R13). The server's `retryAfter`
-// disables sign-in until then. A visible countdown updates every second, but it is announced only
+// disables sign-in until then. Promoted from the sign-in by UI 005 (wrong current passwords, reset
+// requests), which names its own "try again" text (`endedKey`). A visible countdown updates every second, but it is announced only
 // when it starts and when sign-in is possible again. Component state only: a reload forgets it,
 // and a new attempt simply gets 429 again.
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useFormat } from '@/i18n/format'
-import { announce } from '@/shared/composables/useAnnouncer'
-import { useCountdown } from '@/shared/composables/useCountdown'
+
+import { announce } from './useAnnouncer'
+import { useCountdown } from './useCountdown'
 
 /** Used when a 429 carries no retry time. */
 const FALLBACK_SECONDS = 60
 
-export function useThrottle() {
+export function useThrottle(options: { endedKey?: string } = {}) {
   const { t } = useI18n()
   const fmt = useFormat()
   const until = ref<number | null>(null)
@@ -21,7 +23,7 @@ export function useThrottle() {
     deadline: () => until.value,
     onExpire: () => {
       until.value = null
-      announce(t('auth.signIn.throttle.ended'))
+      announce(t(options.endedKey ?? 'auth.signIn.throttle.ended'))
     },
   })
 

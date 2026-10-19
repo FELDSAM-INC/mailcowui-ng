@@ -1,29 +1,30 @@
 <script setup lang="ts">
 // The pending-actions screen of a restricted session (FR-038–FR-041): the actions in plain
 // language, the password change first, their resolutions and "Sign out". Every other address shows
-// this screen (the guard). After a passkey registration or a successful "Check again" the app
-// continues as after sign-in (FR-031), without a new sign-in. Language and theme are chosen in the
-// layout and apply on this device only, because the server does not save preferences here. "Sign
-// out" is the classic forced-setup modal's "Cancel and log out" (`tfa.cancel_setup`).
-import { computed, ref, shallowRef } from 'vue'
+// this screen (the guard). UI 005 (research R8, FR-029 to FR-031): a linear flow. The password is
+// set here (no classic link, no "Check again"); then the session and the identity are read again,
+// and the next action follows on the same screen, or the app lands as after sign-in
+// (`continueAfterSignIn()`: returnTo, home or webmail). Language and theme are chosen in the layout
+// and apply on this device only, because the server does not save preferences here. "Sign out" is
+// the classic forced-setup modal's "Cancel and log out" (`tfa.cancel_setup`).
+import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, PendingAction } from '@/api'
 import { sessionContext } from '@/app/session/context'
 import { continueAfterSignIn } from '@/app/session/landing'
-import { cachedSession, fetchSession, identityQuery, useSessionQuery } from '@/app/session/queries'
+import { cachedSession, fetchSession, useSessionQuery } from '@/app/session/queries'
 import { rerouteCurrent } from '@/app/session/reroute'
 import { useSignOut } from '@/app/session/sign-out'
 import { usePasskeyRegistration } from '@/features/passkeys'
-import { queryKeys } from '@/api'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
-import { announce } from '@/shared/composables/useAnnouncer'
 import { passkeysSupported } from '@/shared/platform/webauthn'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { acceptSession } from '../api'
 import PendingActionItem from '../components/PendingActionItem.vue'
+import ForcedPasswordChange from '../components/pending/ForcedPasswordChange.vue'
 
 const ORDER: Record<PendingAction, number> = { passwordChange: 0, secondFactorSetup: 1 }
 
@@ -38,39 +39,22 @@ const supported = passkeysSupported()
 const soleSetup = computed(
   () => actions.value.length === 1 && actions.value[0] === 'secondFactorSetup',
 )
-const checking = ref(false)
-const stillPending = ref(false)
 const problem = shallowRef<ApiProblem | null>(null)
 const registration = usePasskeyRegistration()
 const { signOut, pending: signingOut, failed: signOutFailed } = useSignOut()
 
-async function checkAgain() {
-  if (checking.value) return
-  checking.value = true
-  stillPending.value = false
+/** After an action was resolved: the next one on this screen, or the landing (FR-031). */
+async function resolved() {
   problem.value = null
   try {
-    const ctx = sessionContext()
-    const next = await fetchSession()
-    if (next.state === 'restricted') {
-      ctx.queryClient.setQueryData(queryKeys.session(), next)
-      await ctx.queryClient.fetchQuery({ ...identityQuery(), staleTime: 0 })
-      stillPending.value = true
-      announce(t('auth.pendingActions.password.stillPending'))
-    } else {
-      await acceptSession(next)
-    }
+    await acceptSession(await fetchSession())
   } catch (error) {
     problem.value = error as ApiProblem
-  } finally {
-    checking.value = false
   }
 }
 
 async function register() {
   const passkey = await registration.register()
-  // The registration read the session and the identity again; the guard continues once the
-  // restriction has lifted.
   if (!passkey) return
   // UI 005 (research R20): an active session lands through the landing hooks.
   const ctx = sessionContext()
@@ -90,12 +74,6 @@ async function register() {
         {{ t('auth.pendingActions.title') }}
       </h1>
       <p class="text-gray-700 dark:text-gray-300">{{ t('auth.pendingActions.intro') }}</p>
-      <p
-        v-if="stillPending"
-        class="rounded-xl border border-warning-200 bg-warning-50 p-4 text-warning-900 dark:border-warning-900 dark:bg-warning-950 dark:text-warning-100"
-      >
-        {{ t('auth.pendingActions.password.stillPending') }}
-      </p>
       <ProblemMessage :problem="problem ?? registration.problem.value" />
       <p
         v-if="registration.messageKey.value"
@@ -105,7 +83,7 @@ async function register() {
         {{ t(registration.messageKey.value) }}
       </p>
     </div>
-    <ul class="flex flex-col gap-3">
+    <ul class="flex flex-col gap-3" data-pending-actions>
       <PendingActionItem
         v-for="action in actions"
         :key="action"
@@ -114,10 +92,15 @@ async function register() {
         :can-register="soleSetup"
         :waits-for-password="action === 'secondFactorSetup' && !soleSetup"
         :supported="supported"
-        :busy="action === 'passwordChange' ? checking : registration.pending.value"
-        @check-again="checkAgain"
+        :busy="registration.pending.value"
         @register="register"
-      />
+      >
+        <ForcedPasswordChange
+          v-if="action === 'passwordChange'"
+          :username="session?.username ?? null"
+          @done="resolved"
+        />
+      </PendingActionItem>
     </ul>
     <div class="flex flex-col gap-3">
       <p v-if="signOutFailed" role="alert" class="text-red-800 dark:text-red-200">

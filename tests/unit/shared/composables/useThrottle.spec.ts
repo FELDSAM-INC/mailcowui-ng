@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
-import { useThrottle } from '@/features/auth/composables/useThrottle'
+import { useThrottle } from '@/shared/composables/useThrottle'
 import { liveMessages } from '@/shared/composables/useAnnouncer'
 
 import { withSetup } from '../../support/composable'

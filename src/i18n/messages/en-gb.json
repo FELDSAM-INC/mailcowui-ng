@@ -221,14 +221,8 @@
     },
     "pendingActions": {
       "intro": "Your account has actions to complete before you can continue.",
-      "password": {
-        "body": "This app cannot change passwords yet: change it in the classic interface, then check again here.",
-        "checkAgain": "Check again",
-        "link": "Change your password in the classic interface",
-        "stillPending": "The password change is still pending."
-      },
       "secondFactor": {
-        "afterPassword": "You can register a passkey here once your password has been changed.",
+        "afterPassword": "You set up a second factor here once your new password is saved.",
         "classicLink": "Set up a second factor in the classic interface",
         "register": "Register a passkey",
         "required": "A passkey counts as a second factor.",

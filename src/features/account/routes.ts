@@ -32,6 +32,12 @@ export const accountRoutes: RouteRecordRaw[] = [
         component: accountPage(() => import('./pages/AccountHomePage.vue')),
         meta: { titleKey: legacy('header.user_settings') },
       },
+      {
+        path: 'password',
+        name: 'account-password',
+        component: accountPage(() => import('./pages/PasswordPage.vue')),
+        meta: { accountSection: 'password', titleKey: legacy('user.change_password') },
+      },
     ],
   },
 ]

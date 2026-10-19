@@ -108,3 +108,72 @@ describe('getOwnMailboxOverview', () => {
     expect([restricted.status, problemName(restricted)]).toEqual([403, 'pending-action-required'])
   })
 })
+
+describe('the own password (T038)', () => {
+  const MOCK = 'Passw0rd!mock'
+
+  it('checks the current password, the policy and pre-hashed values', async () => {
+    useScenario('account-domain-admin')
+    const wrong = await call('PUT', '/me/password', {
+      body: { currentPassword: 'nope', newPassword: 'summer2026x', endOtherSessions: true },
+    })
+    expect([wrong.status, problemName(wrong)]).toEqual([403, 'current-password-incorrect'])
+    const weak = await call('PUT', '/me/password', {
+      body: { currentPassword: MOCK, newPassword: 'summer', endOtherSessions: true },
+    })
+    expect(weak.status).toBe(422)
+    expect(weak.body.errors.newPassword.map((v: { code: string }) => v.code)).toEqual([
+      'tooShort',
+      'missingCharacterClass',
+    ])
+    const hashed = await call('PUT', '/me/password', {
+      body: { currentPassword: MOCK, newPassword: '{SSHA512}abc', endOtherSessions: true },
+    })
+    expect(hashed.body.errors.newPassword[0].code).toBe('preHashedPassword')
+  })
+
+  it('ends and counts the other sessions unless asked not to', async () => {
+    useScenario('account-domain-admin')
+    const kept = await call('PUT', '/me/password', {
+      body: { currentPassword: MOCK, newPassword: 'summer2026x', endOtherSessions: false },
+    })
+    expect(kept.body.data).toEqual({
+      sessionsEnded: 0,
+      activeAppPasswords: 0,
+      mailServerCacheSeconds: 300,
+    })
+    const ended = await call('PUT', '/me/password', {
+      body: { currentPassword: 'summer2026x', newPassword: 'winter2026x', endOtherSessions: true },
+    })
+    expect(ended.body.data.sessionsEnded).toBe(2)
+  })
+
+  it('answers 429 after ten wrong current passwords', async () => {
+    useScenario('account-password-throttled')
+    const answer = await call('PUT', '/me/password', {
+      body: { currentPassword: MOCK, newPassword: 'summer2026x', endOtherSessions: true },
+    })
+    expect([answer.status, problemName(answer)]).toEqual([429, 'too-many-requests'])
+  })
+
+  it('lets a session restricted by a forced change read the policy and change it', async () => {
+    useScenario('forced-password-change')
+    expect((await call('GET', '/me/password-policy')).status).toBe(200)
+    const answer = await call('PUT', '/me/password', {
+      body: { newPassword: 'summer2026x', endOtherSessions: true },
+    })
+    expect(answer.status).toBe(200)
+    expect((await call('GET', '/session')).body.data.state).toBe('active')
+  })
+
+  it('refuses a session restricted only by second-factor setup, and external passwords', async () => {
+    useScenario('forced-second-factor')
+    const restricted = await call('GET', '/me/password-policy')
+    expect(problemName(restricted)).toBe('pending-action-required')
+    useScenario('account-external-source')
+    const external = await call('PUT', '/me/password', {
+      body: { currentPassword: MOCK, newPassword: 'summer2026x', endOtherSessions: true },
+    })
+    expect(problemName(external)).toBe('password-managed-externally')
+  })
+})

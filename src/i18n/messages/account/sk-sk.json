@@ -21,6 +21,14 @@
     },
     "sections": {
       "mailApps": "Nastavenie poštových aplikácií"
+    },
+    "password": {
+      "endOtherSessions": "Odhlásiť moje ostatné relácie",
+      "throttleEnded": "Teraz to môžete skúsiť znova.",
+      "result": {
+        "sessionsEnded": "Bola odhlásená {count} ďalšia relácia. | Boli odhlásené {count} ďalšie relácie. | Bolo odhlásených {count} ďalších relácií.",
+        "mailServerCache": "Poštové aplikácie môžu staré heslo prijímať ešte až {count} minútu. | Poštové aplikácie môžu staré heslo prijímať ešte až {count} minúty. | Poštové aplikácie môžu staré heslo prijímať ešte až {count} minút."
+      }
     }
   },
   "filters": {

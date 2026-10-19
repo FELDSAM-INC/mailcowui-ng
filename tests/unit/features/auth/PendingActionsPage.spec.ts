@@ -35,52 +35,61 @@ const headings = (wrapper: Awaited<ReturnType<typeof mountPage>>['wrapper']) =>
   wrapper.findAll('li h2').map((h) => h.text())
 
 describe('PendingActionsPage', () => {
-  it('lists the password change first', async () => {
+  it('lists the password change first, the second-factor setup as the next step', async () => {
     useScenario('forced-both')
     installWebAuthn()
     const { wrapper } = await mountPage()
     // The classic forced-change modals' titles (`user.change_password`, `tfa.setup_title`).
     expect(headings(wrapper)).toEqual(['Change password', 'Two-Factor Authentication Required'])
     expect(wrapper.text()).toContain(
-      'You can register a passkey here once your password has been changed.',
+      'You set up a second factor here once your new password is saved.',
     )
     expect(wrapper.findAll('button').some((b) => b.text() === 'Register a passkey')).toBe(false)
   })
 
-  it.each([
-    ['bob@example.org', '/'],
-    ['admin', '/admin'],
-    ['reseller', '/domainadmin'],
-  ])('links %s to the classic sign-in %s', async (username, href) => {
-    useScenario('anonymous-default', {
-      signedInAs: username,
-      accounts: { [username]: { pendingActions: ['passwordChange'] } },
-    })
-    const { wrapper } = await mountPage()
-    expect(wrapper.get('li a').attributes('href')).toBe(href)
-  })
-
-  it('reads the session and the identity again on "Check again" and says when still pending', async () => {
-    useScenario('forced-password-change')
+  it('UI 005 (FR-029): sets the password here, without a classic link or "Check again"', async () => {
+    useScenario('account-forced-password-policy')
     const { wrapper, router } = await mountPage()
+    expect(wrapper.find('[data-forced-password]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('Check again')
+    expect(wrapper.find('li a[href="/"]').exists()).toBe(false)
+    expect(wrapper.find('input[autocomplete="current-password"]').exists()).toBe(false)
+    const inputs = wrapper.findAll('input[autocomplete="new-password"]')
+    await inputs[0]!.setValue('summer2026x')
+    await inputs[1]!.setValue('summer2026x')
     const before = mockState().requests.length
-    await wrapper
-      .findAll('button')
-      .find((b) => b.text() === 'Check again')!
-      .trigger('click')
-    await vi.waitFor(() =>
-      expect(wrapper.text()).toContain('The password change is still pending.'),
-    )
+    await wrapper.get('[data-forced-password]').trigger('submit')
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
     const ops = mockState()
       .requests.slice(before)
       .map((r) => r.operationId)
-    expect(ops).toEqual(expect.arrayContaining(['getSession', 'getIdentity']))
-    mockState().accounts.find((a) => a.username === 'bob@example.org')!.pendingActions = []
-    await wrapper
-      .findAll('button')
-      .find((b) => b.text() === 'Check again')!
-      .trigger('click')
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    expect(ops).toEqual(expect.arrayContaining(['changeOwnPassword', 'getSession', 'getIdentity']))
+    const change = mockState().requests.find((r) => r.operationId === 'changeOwnPassword')!
+    expect(change.body).toEqual({ newPassword: '[redacted]', endOtherSessions: true })
+  })
+
+  it('UI 005 (FR-030): shows a refused password on its field and marks the rules', async () => {
+    useScenario('account-forced-password-policy')
+    const { wrapper } = await mountPage()
+    const inputs = wrapper.findAll('input[autocomplete="new-password"]')
+    await inputs[0]!.setValue('summer')
+    await inputs[1]!.setValue('summer')
+    await wrapper.get('[data-forced-password]').trigger('submit')
+    await vi.waitFor(() => expect(wrapper.text()).toContain('Password does not meet the policy'))
+    expect(wrapper.find('[data-rule="digits"][data-met="false"]').exists()).toBe(true)
+  })
+
+  it('UI 005 (FR-031): continues with the second-factor setup after the password', async () => {
+    useScenario('account-forced-both-policy')
+    installWebAuthn()
+    const { wrapper } = await mountPage()
+    const inputs = wrapper.findAll('input[autocomplete="new-password"]')
+    await inputs[0]!.setValue('summer2026x')
+    await inputs[1]!.setValue('summer2026x')
+    await wrapper.get('[data-forced-password]').trigger('submit')
+    await vi.waitFor(() =>
+      expect(headings(wrapper)).toEqual(['Two-Factor Authentication Required']),
+    )
   })
 
   it('offers passkey registration when second-factor setup is the only action', async () => {
@@ -88,13 +97,5 @@ describe('PendingActionsPage', () => {
     installWebAuthn()
     const { wrapper } = await mountPage()
     expect(wrapper.findAll('button').some((b) => b.text() === 'Register a passkey')).toBe(true)
-  })
-
-  it('points to the classic interface on a device without passkeys', async () => {
-    useScenario('forced-second-factor')
-    installWebAuthn({ supported: false })
-    const { wrapper } = await mountPage()
-    expect(wrapper.text()).toContain('This device cannot create passkeys.')
-    expect(wrapper.get('li a').attributes('href')).toBe('/')
   })
 })

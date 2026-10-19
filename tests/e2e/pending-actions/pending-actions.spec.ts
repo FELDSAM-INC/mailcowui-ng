@@ -1,12 +1,13 @@
 // T111: the pending-actions screen (US5-AS1–AS6, US2-AS7, FR-038–FR-041 and the reload edge case).
+// UI 005 replaced the classic link and "Check again" of the password change (FR-029).
 import type { Page } from '@playwright/test'
 
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { expect, test } from '../fixtures/test'
-import { politeRegion } from '../fixtures/flows'
 
 const heading = (page: Page) => page.getByRole('heading', { level: 1, name: 'Actions required' })
-const actions = (page: Page) => page.getByRole('main').getByRole('listitem')
+// UI 005: only the actions, not the list of password rules inside the password change.
+const actions = (page: Page) => page.getByRole('main').locator('[data-pending-actions] > li')
 
 test('US5-AS1 FR-039 @virtual-authenticator registering a passkey lifts second-factor setup and continues without a new sign-in', async ({
   page,
@@ -34,43 +35,8 @@ test('US5-AS1 FR-039 @virtual-authenticator registering a passkey lifts second-f
   expect(ops).not.toContain('createSession')
 })
 
-test('US5-AS2 FR-040 a forced password change links to the classic sign-in, and "Check again" stays until it is done', async ({
-  page,
-  mockApi,
-  expectAccessible,
-}) => {
-  await mockApi.use('forced-password-change')
-  await page.goto('')
-  await expect(heading(page)).toBeVisible()
-  const item = actions(page).first()
-  await expect(item).toContainText('Change password')
-  await expect(
-    item.getByRole('link', { name: 'Change your password in the classic interface' }),
-  ).toHaveAttribute('href', '/')
-  await expectAccessible()
-  await item.getByRole('button', { name: 'Check again' }).click()
-  await expect(
-    page.getByRole('main').getByText('The password change is still pending.'),
-  ).toBeVisible()
-  await expect(politeRegion(page)).toContainText('The password change is still pending.')
-  await expect(heading(page)).toBeVisible()
-  await mockApi.patch({ accounts: { 'bob@example.org': { pendingActions: [] } } })
-  await item.getByRole('button', { name: 'Check again' }).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, bob@example.org' }),
-  ).toBeVisible()
-})
-
-test('US5-AS2 FR-040 the classic link follows the role', async ({ page, mockApi }) => {
-  await mockApi.use('anonymous-default', {
-    signedInAs: 'reseller',
-    accounts: { reseller: { pendingActions: ['passwordChange'] } },
-  })
-  await page.goto('')
-  await expect(
-    page.getByRole('link', { name: 'Change your password in the classic interface' }),
-  ).toHaveAttribute('href', '/domainadmin')
-})
+// UI 005 (FR-029): the forced password change is resolved on this screen; its tests are in
+// tests/e2e/pending-actions/forced-password.spec.ts.
 
 test('US5-AS3 FR-041 with both actions the password change comes first and registration waits for it', async ({
   page,
@@ -86,7 +52,7 @@ test('US5-AS3 FR-041 with both actions the password change comes first and regis
     'Two-Factor Authentication Required',
   ])
   await expect(actions(page).nth(1)).toContainText(
-    'You can register a passkey here once your password has been changed.',
+    'You set up a second factor here once your new password is saved.',
   )
   await expect(page.getByRole('button', { name: 'Register a passkey' })).toHaveCount(0)
   await expectAccessible()

@@ -21,6 +21,14 @@
     },
     "sections": {
       "mailApps": "Mail app setup"
+    },
+    "password": {
+      "endOtherSessions": "Sign out my other sessions",
+      "throttleEnded": "You can try again now.",
+      "result": {
+        "sessionsEnded": "{count} other session was signed out. | {count} other sessions were signed out.",
+        "mailServerCache": "Mail apps may accept the old password for up to {count} minute. | Mail apps may accept the old password for up to {count} minutes."
+      }
     }
   },
   "filters": {

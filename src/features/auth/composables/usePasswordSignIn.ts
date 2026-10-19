@@ -14,7 +14,7 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 
 import { acceptSession, createSession } from '../api'
-import { useThrottle } from './useThrottle'
+import { useThrottle } from '@/shared/composables/useThrottle'
 
 export interface PasswordSignInOptions {
   role: () => Role | null

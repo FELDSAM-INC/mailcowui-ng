@@ -3,3 +3,5 @@
 export { accountRoutes } from './routes'
 export { mailboxSelfServiceRoutes } from './mailbox-routes'
 export { useSelfServiceCapabilities } from './api/capabilities'
+// The pending-actions screen's forced password change (UI 001's auth feature).
+export { changeOwnPassword, useOwnPasswordPolicy } from './api/password'

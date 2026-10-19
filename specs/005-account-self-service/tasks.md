@@ -122,17 +122,17 @@ section registry and visibility, the My account hub and the mailbox-context grou
 
 ### Tests for the core (write first; must fail)
 
-- [ ] T014 [P] Write `tests/unit/features/account/sections.spec.ts`, table-driven over every row of data-model §2 (own context and mailbox context). Cover:
+- [x] T014 [P] Write `tests/unit/features/account/sections.spec.ts`, table-driven over every row of data-model §2 (own context and mailbox context). Cover:
   - roles: administrator, domain administrator, mailbox user;
   - each flag of FR-002 and FR-004 on and off;
   - `passwordChangeAvailable`, `secondFactorManagementAvailable` and `groupware.enabled` true and false;
   - an unreadable capabilities read.
 
   Assert `ownVisibility` (`visible`, `hidden`, `replaced`, `unknown`) and `mailboxAccess` (`change`, `readOnly` with the flag, `hidden`) (FR-002 to FR-004, SC-009).
-- [ ] T015 [P] Move UI 003's unit tests of `src/features/mailboxes/password/{policy-rules,generate}.ts` to `tests/unit/shared/password/policy-rules.spec.ts` and `tests/unit/shared/password/generate.spec.ts`, retargeted to `src/shared/password/`, and extend them (research R7):
+- [x] T015 [P] Move UI 003's unit tests of `src/features/mailboxes/password/{policy-rules,generate}.ts` to `tests/unit/shared/password/policy-rules.spec.ts` and `tests/unit/shared/password/generate.spec.ts`, retargeted to `src/shared/password/`, and extend them (research R7):
   - policy: length counted in UTF-8 bytes (`ä` counts 2); letters `[A-Za-z]`, digits, special (any other character), mixed case; the minimum length always listed and class rules only when required; `missingCharacterClass` values `letter`, `digit`, `special`, `lowerAndUpper` and `tooShort` mapped to rules;
   - generator: at least 16 characters or the policy minimum when longer; at least one lower-case letter, upper-case letter and digit; a special character from the small set only when required; no `0 O 1 l I`; `crypto.getRandomValues` used (stubbed); every generated password meets the policy it was generated for.
-- [ ] T016 [P] Write `tests/unit/shared/components/password-fields.spec.ts` for `src/shared/components/password/PasswordField.vue` and `PasswordPolicyHints.vue` (UI 003's, moved; their UI 003 cases included) and the new `NewPasswordFields.vue` (FR-022 to FR-025):
+- [x] T016 [P] Write `tests/unit/shared/components/password-fields.spec.ts` for `src/shared/components/password/PasswordField.vue` and `PasswordPolicyHints.vue` (UI 003's, moved; their UI 003 cases included) and the new `NewPasswordFields.vue` (FR-022 to FR-025):
   - the show/hide button has `aria-pressed` and a label;
   - `autocomplete`: `current-password` on the current field, `new-password` on both new fields, and a hidden read-only `username` field holding the account address;
   - the confirmation mismatch is reported before submit with legacy `danger.password_mismatch`;
@@ -153,13 +153,13 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - `tooLong` with `unit: bytes` and with `stored: true`;
   - `sieveSyntax` with `message` and `line`; `preHashedPassword` with `scheme`; `missingCharacterClass` with the translated class;
   - the formats `email`, `pushoverCredential`, `soundName` and `digits`.
-- [ ] T021 [P] Extend `tests/unit/app/navigation/visibility.spec.ts` (the `filters` row: administrator ✓, domain administrator ✓ whatever its `filters` flag, mailbox user —, placeholder until US10) and `tests/unit/app/router/guards.spec.ts`:
+- [x] T021 [P] Extend `tests/unit/app/navigation/visibility.spec.ts` (the `filters` row: administrator ✓, domain administrator ✓ whatever its `filters` flag, mailbox user —, placeholder until US10) and `tests/unit/app/router/guards.spec.ts`:
   - a route with `meta.public` resolves in the `anonymous`, `pendingSecondFactor`, `restricted` and `active` states;
   - an anonymous navigation to a non-home address sets `landingIntent` to `requested`;
   - a navigation to home leaves it `default`;
   - 001's session end sets `requested`.
 - [x] T022 [P] Write `tests/unit/app/session/landing.spec.ts` (research R20): `continueAfterSignIn()` opens a validated `returnTo` or home, runs registered hooks first with the current intent, resets the intent to `default` afterwards, lands normally with an announced notice when a hook fails, and stops when a hook navigates away.
-- [ ] T023 [P] Write `tests/unit/features/account/AccountLayout.spec.ts` and `tests/unit/features/account/AccountHomePage.spec.ts`:
+- [x] T023 [P] Write `tests/unit/features/account/AccountLayout.spec.ts` and `tests/unit/features/account/AccountHomePage.spec.ts`:
   - a section whose `ownVisibility` is `hidden` renders `NoAccessState` in place with the address kept and no section request (FR-006);
   - `unknown` renders the error state with "Try again";
   - `NoAccessState` shows a reason key when given;
@@ -171,7 +171,7 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - `MailboxContextHeader.vue` names the mailbox in each section heading;
   - a `readOnly` section renders `ReadOnlyNotice` naming the flag;
   - groupware is hidden when disabled.
-- [ ] T025 [P] Write `tests/e2e/account/my-account-shell.spec.ts`:
+- [x] T025 [P] Write `tests/e2e/account/my-account-shell.spec.ts`:
   - FR-001: "My account" in the navigation and the user menu, reachable in at most two interactions from any screen, for each role;
   - the hub for `admin-account` shows the security group without the overview group;
   - `capabilities-unavailable`: sections that depend on the capabilities show their error state with "Try again";
@@ -179,16 +179,16 @@ section registry and visibility, the My account hub and the mailbox-context grou
 
 ### Core implementation
 
-- [ ] T026 [P] Move UI 003's `src/features/mailboxes/password/generate.ts` and `policy-rules.ts` to `src/shared/password/` without behavioural change (byte lengths through UI 004's `utf8ByteLength` in `src/shared/validation/utf8.ts`), update UI 003's imports, and add what T015 extends, so that T015 and UI 003's tests pass.
-- [ ] T027 Move UI 003's `src/features/mailboxes/components/password/PasswordField.vue` and `PasswordPolicyHints.vue` to `src/shared/components/password/` (adding the `autocomplete` prop and a mode without the generator), update UI 003's imports, and create `src/shared/components/password/NewPasswordFields.vue`, so that T016 and UI 003's tests pass.
+- [x] T026 [P] Move UI 003's `src/features/mailboxes/password/generate.ts` and `policy-rules.ts` to `src/shared/password/` without behavioural change (byte lengths through UI 004's `utf8ByteLength` in `src/shared/validation/utf8.ts`), update UI 003's imports, and add what T015 extends, so that T015 and UI 003's tests pass.
+- [x] T027 Move UI 003's `src/features/mailboxes/components/password/PasswordField.vue` and `PasswordPolicyHints.vue` to `src/shared/components/password/` (adding the `autocomplete` prop and a mode without the generator), update UI 003's imports, and create `src/shared/components/password/NewPasswordFields.vue`, so that T016 and UI 003's tests pass.
 - [ ] T028 [P] Promote `src/features/api-keys/components/ApiKeySecretDialog.vue` to `src/shared/components/OneTimeSecretDialog.vue` (001-R20; optional `username`, `grouped`, title and warning keys) and implement `src/shared/components/CopyButton.vue` and `src/shared/components/GroupedSecret.vue`. Switch `src/features/api-keys/pages/ApiKeyCreatePage.vue` to the shared dialog, delete the old component and its unit test (moved in T017). T017 and UI 001's API key end-to-end tests must pass.
 - [x] T029 Implement `src/shared/composables/useSecretRequest.ts` and `src/shared/composables/usePerItemRunner.ts` (on UI 002's `useBulkSelection` and `BulkResultSummary`), so that T018 passes. Switch `createApiKey` in `src/features/api-keys/api.ts` and `src/features/api-keys/pages/ApiKeyCreatePage.vue` to `useSecretRequest` (the secret passed straight to `OneTimeSecretDialog`, the list invalidated after success); UI 001's API key tests must pass.
 - [x] T030 Extend `src/api/problem.ts` (the extension members, typed from the generated problem schemas), `src/api/query/client.ts` (the exported `dispatchProblemReactions(problem, { sessionReactions })` used by the caches' `onError`; the `permission-flag-required` reaction, unless UI 003 added it) and `src/api/query/keys.ts` (the roots of data-model §3), so that T019 passes.
 - [x] T031 Extend `src/i18n/problems.ts` with the parameter handling of research R23, so that T020 passes.
 - [x] T032 Implement `src/app/session/landing.ts` (`continueAfterSignIn()` and a hook registry), the `landingIntent` field in `src/app/session/store.ts`, and in `src/app/router/guards.ts` the `meta.public` rule and the intent changes. Then switch UI 001's landing call sites in `src/features/auth/composables/` (password and passkey sign-in), `src/features/auth/pages/SecondFactorPage.vue` and `src/features/auth/pages/PendingActionsPage.vue` to `continueAfterSignIn()`. T021, T022 and UI 001's sign-in tests must pass.
-- [ ] T033 Add the `filters` row to `src/app/navigation/catalogue.ts`: path `/filters`, label `nav.filters`, administrator ✓, domain administrator ✓, mailbox user —, delivered by 005, `status: 'placeholder'`, with classic links `/admin/mailbox` and `/domainadmin/mailbox`. Place it after `aliases`. T021 must pass.
-- [ ] T034 Implement `src/features/account/sections.ts` (data-model §2), `src/features/account/api/capabilities.ts` (`useSelfServiceCapabilities`, key `['capabilities','self-service']`, staleTime 5 min, usable signed out), and `src/features/account/composables/useAccountContext.ts` and `src/features/account/composables/useSectionAccess.ts`, so that T014 passes.
-- [ ] T035 Implement:
+- [x] T033 Add the `filters` row to `src/app/navigation/catalogue.ts`: path `/filters`, label `nav.filters`, administrator ✓, domain administrator ✓, mailbox user —, delivered by 005, `status: 'placeholder'`, with classic links `/admin/mailbox` and `/domainadmin/mailbox`. Place it after `aliases`. T021 must pass.
+- [x] T034 Implement `src/features/account/sections.ts` (data-model §2), `src/features/account/api/capabilities.ts` (`useSelfServiceCapabilities`, key `['capabilities','self-service']`, staleTime 5 min, usable signed out), and `src/features/account/composables/useAccountContext.ts` and `src/features/account/composables/useSectionAccess.ts`, so that T014 passes.
+- [x] T035 Implement:
   - `src/features/account/components/layout/AccountLayout.vue`, `SectionNav.vue`, `SectionCard.vue`, `ReadOnlyNotice.vue` and `MailboxContextHeader.vue`;
   - `src/features/account/pages/AccountHomePage.vue`;
   - `src/features/account/routes.ts` with the `account` route (`meta.navEntry: 'account'`);
@@ -217,7 +217,7 @@ address leads back to the screen.
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T038 [US1] Implement `tests/mocks/handlers/self-service/own-account.ts` (registered in the self-service index):
+- [x] T038 [US1] Implement `tests/mocks/handlers/self-service/own-account.ts` (registered in the self-service index):
   - `getOwnPasswordPolicy`;
   - `changeOwnPassword`:
     - the current password is checked, except in a session restricted by `passwordChange`;
@@ -229,7 +229,7 @@ address leads back to the screen.
     - success clears `passwordChange` and renews the session cookie.
 
   Create `tests/mocks/scenarios/own-password.ts` (registered in the index) with `password-throttled`, `password-changed-flow` and `forced-password-change-domain-admin`, and extend UI 001's `forced-password-change` and `forced-both` with a policy.
-- [ ] T039 [P] [US1] Write `tests/e2e/account/password.spec.ts`. It covers:
+- [x] T039 [P] [US1] Write `tests/e2e/account/password.spec.ts`. It covers:
   - US1-AS1 on `domain-admin-account`: "Password changed, 2 other sessions signed out", fields cleared, still signed in; and with the box unticked, `endOtherSessions: false` asserted through `mockApi.requests()`;
   - US1-AS2: a wrong current password shows the error on its field, and on `password-throttled` the "too many attempts" countdown appears;
   - US1-AS3: typing "summer" marks the 10-character and digit rules as not met, and a refused save shows both on the new-password field;
@@ -241,7 +241,7 @@ address leads back to the screen.
   - FR-026: the message about mail apps accepting the old password for up to 5 minutes (spec edge case);
   - FR-012: `preHashedPassword` on the field;
   - FR-015: leaving with typed input asks for confirmation.
-- [ ] T040 [P] [US1] Write `tests/e2e/pending-actions/forced-password.spec.ts`. It covers:
+- [x] T040 [P] [US1] Write `tests/e2e/pending-actions/forced-password.spec.ts`. It covers:
   - US1-AS5: the "Set a new password" form without a current-password field, with legacy `user.pw_update_required`; any other address shows the screen again; the same for a domain administrator (`forced-password-change-domain-admin`);
   - US1-AS6: a valid password lands on home; on `forced-both` the second-factor setup is shown next (FR-031);
   - US1-AS7: "Sign out" ends the session;
@@ -249,15 +249,15 @@ address leads back to the screen.
   - FR-031: `returnTo` is honoured after the change;
   - Edge: a reload resumes the screen;
   - Edge: the language and theme choices still work on the screen.
-- [ ] T041 [P] [US1] Write `tests/unit/features/account/OwnPasswordForm.spec.ts` (`endOtherSessions` ticked by default; the message built from `sessionsEnded`, `activeAppPasswords` and `mailServerCacheSeconds` with Czech plural forms; fields cleared; problem mapping) and `tests/unit/features/auth/ForcedPasswordChange.spec.ts`. Extend `tests/unit/features/auth/PendingActionsPage.spec.ts` with the linear flow: password first, the second-factor item as "next step", refetch of `session` and `identity` after success, and no classic link or "Check again" for `passwordChange`.
+- [x] T041 [P] [US1] Write `tests/unit/features/account/OwnPasswordForm.spec.ts` (`endOtherSessions` ticked by default; the message built from `sessionsEnded`, `activeAppPasswords` and `mailServerCacheSeconds` with Czech plural forms; fields cleared; problem mapping) and `tests/unit/features/auth/ForcedPasswordChange.spec.ts`. Extend `tests/unit/features/auth/PendingActionsPage.spec.ts` with the linear flow: password first, the second-factor item as "next step", refetch of `session` and `identity` after success, and no classic link or "Check again" for `passwordChange`.
 - [ ] T042 [P] [US1] Update `tests/smoke/pending-actions.smoke.spec.ts` (it assumes the freshly reset dev database of `scripts/smoke/stack-up.sh`): `bob@example.org` signs in, sets a new password on the pending-actions screen (no classic link, no "Check again") and lands on home. Create `tests/smoke/account-credentials.smoke.spec.ts` as a `test.describe.serial` block, tagged `@005`, whose first case signs in as `alice@example.org` with TOTP, changes her password in My account › Password, signs in with the new one, and changes it back.
 
 ### Implementation for User Story 1
 
-- [ ] T043 [US1] Implement `src/features/account/api/password.ts` (`useOwnPasswordPolicy`, and `changeOwnPassword()` through `useSecretRequest` with the invalidation of data-model §3) and `src/features/account/api/overview.ts` (`useOwnMailboxOverview`, key `['me','mailbox']`, staleTime 5 min). Export the password hooks from `src/features/account/index.ts` for the pending-actions screen.
-- [ ] T044 [US1] Implement `src/features/account/components/password/OwnPasswordForm.vue` and `ExternalPasswordNotice.vue`, and `src/features/account/pages/PasswordPage.vue`. Add the `account-password` route to `src/features/account/routes.ts`.
-- [ ] T045 [US1] Implement `src/features/auth/components/pending/ForcedPasswordChange.vue`, and change `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue` to the linear flow of research R8. Remove the classic link and "Check again" of the password action; continue through `continueAfterSignIn()` once no action is pending.
-- [ ] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` new strings of the legacy form map, including the plural key for "{n} other sessions signed out", to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim by legacy key: the own-password form's `user.change_password`, `user.password_now`, `user.new_password`, `user.new_password_repeat`, `user.generate` and `user.change_password_hint_app_passwords` (with its `%d`), `user.pw_update_required`, `success.password_changed_success`, `danger.password_mismatch` and `danger.password_complexity` (the summary when the policy refuses a password). No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
+- [x] T043 [US1] Implement `src/features/account/api/password.ts` (`useOwnPasswordPolicy`, and `changeOwnPassword()` through `useSecretRequest` with the invalidation of data-model §3) and `src/features/account/api/overview.ts` (`useOwnMailboxOverview`, key `['me','mailbox']`, staleTime 5 min). Export the password hooks from `src/features/account/index.ts` for the pending-actions screen.
+- [x] T044 [US1] Implement `src/features/account/components/password/OwnPasswordForm.vue` and `ExternalPasswordNotice.vue`, and `src/features/account/pages/PasswordPage.vue`. Add the `account-password` route to `src/features/account/routes.ts`.
+- [x] T045 [US1] Implement `src/features/auth/components/pending/ForcedPasswordChange.vue`, and change `src/features/auth/pages/PendingActionsPage.vue` and `src/features/auth/components/PendingActionItem.vue` to the linear flow of research R8. Remove the classic link and "Check again" of the password action; continue through `continueAfterSignIn()` once no action is pending.
+- [x] T046 [US1] Add the `account.password.*` and `auth.pendingActions.passwordChange.*` new strings of the legacy form map, including the plural key for "{n} other sessions signed out", to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim by legacy key: the own-password form's `user.change_password`, `user.password_now`, `user.new_password`, `user.new_password_repeat`, `user.generate` and `user.change_password_hint_app_passwords` (with its `%d`), `user.pw_update_required`, `success.password_changed_success`, `danger.password_mismatch` and `danger.password_complexity` (the summary when the policy refuses a password). No hand-written values for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 works on its own: T039–T042 pass. This is the MVP: forced password changes no
 longer need the classic interface.

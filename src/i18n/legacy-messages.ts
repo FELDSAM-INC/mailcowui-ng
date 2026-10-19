@@ -322,6 +322,9 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'enums.auditFailureReason.lastSecondFactor': 'danger.last_key',
   'enums.auditFailureReason.secondFactorRequiredByPolicy': 'danger.tfa_removal_blocked',
   'enums.auditFailureReason.notConfigured': 'danger.pushover_credentials_missing',
+  // UI 005: a new password the policy refuses (`password_check()`), on the own, forced and reset forms.
+  'account.password.form.errors.newPassword.tooShort': 'danger.password_complexity',
+  'account.password.form.errors.newPassword.missingCharacterClass': 'danger.password_complexity',
 }
 
 /**

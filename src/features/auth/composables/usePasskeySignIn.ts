@@ -12,7 +12,7 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { getAssertion, WebAuthnCeremonyError, webAuthnMessageKey } from '@/shared/platform/webauthn'
 
 import { acceptSession, createPasskeyChallenge, createSessionWithPasskey } from '../api'
-import { useThrottle } from './useThrottle'
+import { useThrottle } from '@/shared/composables/useThrottle'
 
 export interface PasskeySignInOptions {
   role: () => Role | null

@@ -3,7 +3,9 @@
 // with another feature's.
 import type { ScenarioDefinition } from '../index'
 import { accountScenarios } from './account'
+import { ownPasswordScenarios } from './own-password'
 
 export const selfServiceScenarioGroups: Record<string, ScenarioDefinition> = {
   ...accountScenarios,
+  ...ownPasswordScenarios,
 }

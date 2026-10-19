@@ -140,3 +140,21 @@ export const OAUTH_ERROR_CODE_PATTERN = /^[\x20-\x21\x23-\x5B\x5D-\x7E]{1,64}$/
 
 /** Oauth2ClientCreateRequest redirectUris.items.maxLength */
 export const REDIRECT_URI_MAX_LENGTH = 2000
+
+// UI 010 (T020): DKIM and MTA-STS. The DKIM bulk limit and the selector, key and MX limits come
+// from `getDnsCapabilities` (conventions "Where features meet").
+
+/** DkimKeyGenerateRequest.properties.name.maxLength */
+export const DKIM_NAME_MAX_LENGTH = 255
+
+/** listDkimKeys query parameter `selector` maxLength */
+export const DKIM_SELECTOR_FILTER_MAX_LENGTH = 255
+
+/** listDkimKeys query parameter `domain` maxLength */
+export const DKIM_DOMAIN_FILTER_MAX_LENGTH = 255
+
+/** MtaStsPolicyCreateRequest.properties.mxHosts.maxItems (and MtaStsPolicyPatch) */
+export const MTA_STS_MX_HOSTS_MAX_ITEMS = 128
+
+/** MtaStsPolicyCreateRequest.properties.mxHosts.items.maxLength */
+export const MTA_STS_MX_HOST_MAX_LENGTH = 255

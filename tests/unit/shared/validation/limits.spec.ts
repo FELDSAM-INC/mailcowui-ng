@@ -226,6 +226,23 @@ describe('contract limits (data-model §6)', () => {
       'REDIRECT_URI_MAX_LENGTH',
       schemaValue('Oauth2ClientCreateRequest', 'properties', 'redirectUris', 'items', 'maxLength'),
     ],
+    // UI 010 (T009): DKIM and MTA-STS.
+    ['SEARCH_MAX_LENGTH', queryParameter('/dkim-keys', 'get', 'q').maxLength],
+    ['SEARCH_MAX_LENGTH', queryParameter('/mta-sts-policies', 'get', 'q').maxLength],
+    [
+      'DKIM_NAME_MAX_LENGTH',
+      schemaValue('DkimKeyGenerateRequest', 'properties', 'name', 'maxLength'),
+    ],
+    ['DKIM_SELECTOR_FILTER_MAX_LENGTH', queryParameter('/dkim-keys', 'get', 'selector').maxLength],
+    ['DKIM_DOMAIN_FILTER_MAX_LENGTH', queryParameter('/dkim-keys', 'get', 'domain').maxLength],
+    [
+      'MTA_STS_MX_HOSTS_MAX_ITEMS',
+      schemaValue('MtaStsPolicyCreateRequest', 'properties', 'mxHosts', 'maxItems'),
+    ],
+    [
+      'MTA_STS_MX_HOST_MAX_LENGTH',
+      schemaValue('MtaStsPolicyCreateRequest', 'properties', 'mxHosts', 'items', 'maxLength'),
+    ],
   ]
 
   // UI 012 (T006): syntax rules of the contract, compared as pattern sources.

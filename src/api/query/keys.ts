@@ -30,6 +30,9 @@ export type MailboxTemplateListParams = NonNullable<
   operations['listMailboxTemplates']['parameters']['query']
 >
 export type SyncJobListParams = NonNullable<operations['listSyncJobs']['parameters']['query']>
+// UI 010 (data-model §3).
+export type DkimListParams = NonNullable<operations['listDkimKeys']['parameters']['query']>
+export type MtaStsListParams = NonNullable<operations['listMtaStsPolicies']['parameters']['query']>
 
 export type Oauth2ClientListParams = NonNullable<
   operations['listOauth2Clients']['parameters']['query']
@@ -156,5 +159,31 @@ export const queryKeys = {
     lists: () => ['oauth2-clients', 'list'] as const,
     list: (params: Oauth2ClientListParams) => ['oauth2-clients', 'list', params] as const,
     detail: (id: number) => ['oauth2-clients', 'detail', id] as const,
+  },
+  // UI 010 (data-model §3): the DNS capabilities, DKIM entries, MTA-STS policies and the
+  // diagnostics results with the rate limit and the "changed after this check" markers.
+  dns: {
+    capabilities: () => ['dns-capabilities'] as const,
+  },
+  dkimKeys: {
+    all: () => ['dkim-keys'] as const,
+    lists: () => ['dkim-keys', 'list'] as const,
+    list: (params: DkimListParams) => ['dkim-keys', 'list', params] as const,
+    details: () => ['dkim-keys', 'detail'] as const,
+    detail: (name: string) => ['dkim-keys', 'detail', name] as const,
+    copyTargetLists: () => ['dkim-keys', 'copy-targets'] as const,
+    copyTargets: (q: string) => ['dkim-keys', 'copy-targets', { q }] as const,
+  },
+  mtaStsPolicies: {
+    all: () => ['mta-sts-policies'] as const,
+    lists: () => ['mta-sts-policies', 'list'] as const,
+    list: (params: MtaStsListParams) => ['mta-sts-policies', 'list', params] as const,
+    detail: (domain: string) => ['mta-sts-policies', 'detail', domain] as const,
+  },
+  dnsDiagnostics: {
+    all: () => ['dns-diagnostics'] as const,
+    result: (name: string) => ['dns-diagnostics', 'result', name] as const,
+    rateLimit: () => ['dns-diagnostics', 'rate-limit'] as const,
+    changed: (name: string) => ['dns-diagnostics', 'changed', name] as const,
   },
 }

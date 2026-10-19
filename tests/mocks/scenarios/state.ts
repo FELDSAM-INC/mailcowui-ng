@@ -8,6 +8,10 @@ import type {
   AliasDomainRateLimit,
   ApiKey,
   AuditEvent,
+  DkimDnsPublicationOutcome,
+  DnsCapabilities,
+  DnsCheck,
+  DnsCheckMessage,
   DomainCapabilities,
   DomainCreationReport,
   DomainDkimCapabilities,
@@ -27,6 +31,7 @@ import type {
   MailboxTaggedMailHandling,
   MailboxUserPermissions,
   IdentityProviderType,
+  MtaStsMode,
   Oauth2ClientCapabilities,
   Passkey,
   PasswordPolicy,
@@ -452,6 +457,84 @@ export interface DeletionsElsewhere {
   resource?: string[]
 }
 
+/**
+ * A stored DKIM key of the mock (UI 010 research R24). Missing parts are null (an incomplete key);
+ * the private key is never returned except by the export.
+ */
+export interface MockDkimKey {
+  /** null for an incomplete key without selector */
+  selector: string | null
+  /** RSA size of the stored key; null when no public key */
+  keyLength: number | null
+  /** base64 DER SPKI; null when missing */
+  publicKey: string | null
+  /** PEM; null when missing. Never returned except by exportDkimPrivateKey */
+  privateKeyPem: string | null
+  /** Bumps on every change; the version tag hashes the name, the key parts and this. */
+  version: number
+}
+
+/** A stored MTA-STS policy of the mock. */
+export interface MockMtaStsPolicy {
+  mode: MtaStsMode
+  mxHosts: string[]
+  maxAge: number
+  active: boolean
+  policyId: string
+  version: number
+}
+
+/** The checks and notes one diagnostics run of a name answers (UI 010 T052). */
+export interface DiagnosticsTemplate {
+  checks: DnsCheck[]
+  notes?: DnsCheckMessage[]
+  /** The server's public IPv6 address for this run; null for a server without one. */
+  publicIpv6?: string | null
+  /** The server's public IPv4 address; null when it could not be determined. */
+  publicIpv4?: string | null
+}
+
+/** UI 010: DKIM keys, the DNS capabilities, MTA-STS policies, diagnostics and injections. */
+export interface MockDnsState {
+  /** By stored name: lower-case ASCII for domains and alias domains; an unused key keeps its stored spelling. */
+  keys: Record<string, MockDkimKey>
+  capabilities: Omit<DnsCapabilities, 'serverHostname'>
+  /** By ASCII domain. */
+  policies: Record<string, MockMtaStsPolicy>
+  /** By ASCII name; names without one get a default template. */
+  diagnostics: Record<string, DiagnosticsTemplate>
+  /** One caller per scenario: `limit` runs per 60 s window of `now()`. */
+  rateLimit: { limit: number; remaining: number; windowStartedAt: number }
+  /** Injected publication outcome per operationId. */
+  publication: Partial<Record<string, DkimDnsPublicationOutcome>>
+  /** Bulk deletion targets that fail with a temporary failure. */
+  failingBulkTargets?: string[]
+  /** The last policy identifier handed out, so that the next is always greater. */
+  lastPolicyId?: string
+}
+
+/** Runtime changes to the DNS data (`PATCH /__mock/scenarios/:id` `{ dns: … }`). */
+export interface DnsPatch {
+  capabilities?: {
+    dkim?: Partial<DnsCapabilities['dkim']>
+    mtaSts?: Partial<DnsCapabilities['mtaSts']>
+    dnsDiagnostics?: Partial<DnsCapabilities['dnsDiagnostics']>
+    defaultPageSize?: number
+    maxPageSize?: number
+  }
+  /**
+   * Sets keys by name (merged into an existing key, or created: a new key without values gets a
+   * generated 2048-bit key, or `generate` bits, with selector `dkim`), or removes them (null).
+   */
+  keys?: Record<string, (Partial<MockDkimKey> & { generate?: number }) | null>
+  /** Sets policies by domain (a change of mode, MX hosts or max age gives a new identifier) or removes them. */
+  policies?: Record<string, Partial<Omit<MockMtaStsPolicy, 'policyId' | 'version'>> | null>
+  diagnostics?: Record<string, DiagnosticsTemplate | null>
+  rateLimit?: { remaining?: number; limit?: number }
+  publication?: Record<string, DkimDnsPublicationOutcome | null>
+  failingBulkTargets?: string[]
+}
+
 export interface ScenarioState {
   id: string
   name: string
@@ -495,6 +578,8 @@ export interface ScenarioState {
   aliasDomainCreationOutcomes: AliasDomainCreationOutcomes
   /** mailcow's shared store is down: alias domain reads and writes answer 503. */
   sharedStoreDown: boolean
+  /** UI 010: DKIM keys, DNS capabilities, MTA-STS policies and diagnostics. */
+  dns: MockDnsState
   publicConfig: PublicConfig
   idleTimeout: number
   session: MockSession
@@ -564,6 +649,8 @@ export interface ScenarioOverrides {
   sharedStoreDown?: boolean
   /** Permission flags of accounts, merged by username. */
   flags?: Record<string, Partial<PermissionFlags>>
+  /** UI 010: DNS data and injections. */
+  dns?: DnsPatch
 }
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */

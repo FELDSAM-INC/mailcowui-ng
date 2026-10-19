@@ -97,6 +97,12 @@ export function applySyncJobChanges(state: ScenarioState, changes: SyncJobChange
   if (changes.renameMailbox) {
     const { from, to } = changes.renameMailbox
     for (const item of state.syncJobs.jobs) if (item.mailbox === from) item.mailbox = to
+    const [fromLocal, fromDomain] = from.split('@')
+    const [toLocal = ''] = to.split('@')
+    for (const mailbox of state.mailboxes) {
+      if (mailbox.localPart === fromLocal && mailbox.domain === fromDomain)
+        mailbox.localPart = toLocal
+    }
     for (const domain of state.domains) {
       if (domain.mailboxAddresses?.includes(from)) {
         domain.mailboxAddresses = domain.mailboxAddresses.map((address) =>

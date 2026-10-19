@@ -6,7 +6,8 @@
 // bulk actions answer per target in request order. The password never appears in a response.
 import type { BulkItemResult, SyncJob, SyncJobCapabilities, SyncJobPatch } from '@/api'
 
-import { mailboxAddresses, resourceAddresses, aliasAddresses } from '../factories/domain'
+import { aliasAddresses, resourceAddresses } from '../factories/domain'
+import { addressOf } from '../factories/mailbox'
 import {
   CONFIG_KEYS,
   mockSyncJob,
@@ -24,6 +25,7 @@ import {
   validationFailed,
   type Violations,
 } from './domain-rules'
+import { ensureMailboxes } from './mailbox-rules'
 
 const notFound = () => problem(404, null)
 const outdated = () => problem(412, null)
@@ -184,13 +186,15 @@ function checkTarget(
   errors: Violations,
 ): Response | null {
   const lower = address.trim().toLowerCase()
+  if (!inScope(account, lower)) return notFound()
   const domains = state.domains.filter((domain) => inScope(account, `x@${domain.name}`))
   const has = (list: (domain: (typeof domains)[number]) => string[]) =>
     domains.some((domain) => list(domain).some((item) => item.toLowerCase() === lower))
-  if (!inScope(account, lower)) return notFound()
+  ensureMailboxes(state)
+  const isMailbox = state.mailboxes.some((mailbox) => addressOf(mailbox) === lower)
   if (has(resourceAddresses)) addViolation(errors, 'mailbox', 'notEligible', { kind: 'resource' })
   else if (has(aliasAddresses)) addViolation(errors, 'mailbox', 'notEligible', { kind: 'alias' })
-  else if (!has(mailboxAddresses)) return notFound()
+  else if (!isMailbox) return notFound()
   return null
 }
 

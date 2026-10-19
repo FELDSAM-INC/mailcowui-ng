@@ -87,7 +87,11 @@ function clearAll() {
 const label = (ref: TextRef) => resolveText(ref, t)
 const chips = computed<FilterChip[]>(() => {
   const { mailbox, domain, active, running, result } = state.value.filters
-  const chip = (key: keyof SyncJobListFilters, filter: TextRef, value: string): FilterChip => ({
+  const chip = (
+    key: keyof SyncJobListFilters & string,
+    filter: TextRef,
+    value: string,
+  ): FilterChip => ({
     key,
     label: t('syncJobs.filters.chip', { filter: label(filter), value }),
   })
@@ -176,7 +180,7 @@ function openLog(id: number) {
       />
       <ActiveFilterChips
         :chips="chips"
-        @remove="(key) => list.setFilter(key as keyof SyncJobListFilters, undefined)"
+        @remove="(key) => list.setFilter(key as keyof SyncJobListFilters & string, undefined)"
         @clear="list.setFilters(NO_FILTERS)"
       />
     </div>

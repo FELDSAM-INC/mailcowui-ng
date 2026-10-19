@@ -4,7 +4,8 @@ import type { RequestHandler } from 'msw'
 
 import { capabilityHandlers } from './capabilities'
 import { overviewHandlers } from './overview'
-import { ownAccountHandlers } from './own-account'
+import { ownAccountHandlers, recoveryEmailHandlers } from './own-account'
+import { passwordResetHandlers } from './password-reset'
 import { secondFactorHandlers } from './second-factors'
 
 export const selfServiceHandlers: RequestHandler[] = [
@@ -12,4 +13,6 @@ export const selfServiceHandlers: RequestHandler[] = [
   ...overviewHandlers,
   ...ownAccountHandlers,
   ...secondFactorHandlers,
+  ...recoveryEmailHandlers,
+  ...passwordResetHandlers,
 ]

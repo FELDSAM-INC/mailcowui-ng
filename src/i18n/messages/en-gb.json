@@ -262,6 +262,18 @@
         "cancelled": "The sign-in was cancelled or refused at your organisation's sign-in page."
       },
       "starting": "Opening your organisation's sign-in page…"
+    },
+    "passwordReset": {
+      "requested": "If this address belongs to an account with a recovery e-mail address, a reset link valid for {count} minute is on its way. | If this address belongs to an account with a recovery e-mail address, a reset link valid for {count} minutes is on its way.",
+      "signedIn": {
+        "body": "Completing the reset signs out every session of this account.",
+        "bodySelf": "Completing the reset signs out every session of this account, including this one.",
+        "continue": "Continue",
+        "back": "Back to the app"
+      },
+      "done": {
+        "sessionsEnded": "All sessions of this account were signed out."
+      }
     }
   },
   "bulk": {
@@ -1042,8 +1054,7 @@
       "mailStore": "Mail server",
       "pushover": "Pushover service",
       "addressGeneration": "Address generator",
-      "yubico": "Yubico verification service",
-      "unknown": "A server component"
+      "yubico": "Yubico verification service"
     }
   }
 }

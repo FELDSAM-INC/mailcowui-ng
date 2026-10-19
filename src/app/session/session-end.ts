@@ -20,6 +20,11 @@ export interface EndSessionOptions {
   broadcast?: boolean
   /** UI 012: the notice of the sign-in screen; `sessionEnded` by default. */
   notice?: SessionNotice
+  /**
+   * UI 005 (research R12): stay on the current page (the completed password reset, which ended
+   * this browser's session): the clean-up runs, but there is no redirect and no notice.
+   */
+  stay?: boolean
 }
 
 /** Ends the session locally. Concurrent calls share one run. */
@@ -46,13 +51,15 @@ async function run(ctx: SessionContext, options: EndSessionOptions): Promise<voi
     anonymousSession(session?.idleTimeout ?? store.idleTimeout),
   )
   store.reset()
-  store.returnTo = returnTo
-  // UI 005 (FR-100): signing in again after a session end is never forwarded to webmail.
-  store.landingIntent = 'requested'
-  store.notice = options.notice ?? 'sessionEnded'
+  if (!options.stay) {
+    store.returnTo = returnTo
+    // UI 005 (FR-100): signing in again after a session end is never forwarded to webmail.
+    store.landingIntent = 'requested'
+    store.notice = options.notice ?? 'sessionEnded'
+  }
   if (options.broadcast) ctx.channel.post({ v: 1, type: 'signed-out' })
 
-  await goToSignIn(ctx, returnTo)
+  if (!options.stay) await goToSignIn(ctx, returnTo)
   clearCsrfToken()
   await refreshCsrfToken().catch(() => undefined)
 }

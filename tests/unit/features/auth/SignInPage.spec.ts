@@ -87,7 +87,7 @@ describe('UI 012: single sign-on on the sign-in screens (FR-040 to FR-042, resea
       expect(divider.text()).toBe('or login with')
       expect(follows(form, divider.element)).toBe(true)
       expect(follows(divider.element, button!.element)).toBe(true)
-      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(true)
+      expect(wrapper.find('[data-forgot-password]').exists()).toBe(true)
     }
   })
 
@@ -106,7 +106,7 @@ describe('UI 012: single sign-on on the sign-in screens (FR-040 to FR-042, resea
       const wrapper = await mountPage(role)
       expect(ssoButton(wrapper)).toBeDefined()
       expect(wrapper.find('input[autocomplete^="username"]').exists()).toBe(false)
-      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(false)
+      expect(wrapper.find('[data-forgot-password]').exists()).toBe(false)
       expect(wrapper.find('[data-other-logins]').exists()).toBe(false)
       expect(wrapper.find('[data-role-links]').exists()).toBe(true)
     }
@@ -118,7 +118,7 @@ describe('UI 012: single sign-on on the sign-in screens (FR-040 to FR-042, resea
       const wrapper = await mountPage(null)
       expect(ssoButton(wrapper), name).toBeUndefined()
       expect(wrapper.find('input[autocomplete^="username"]').exists()).toBe(true)
-      expect(wrapper.find('a[href="/reset-password"]').exists()).toBe(true)
+      expect(wrapper.find('[data-forgot-password]').exists()).toBe(true)
     }
   })
 
@@ -140,12 +140,20 @@ describe('UI 012: single sign-on on the sign-in screens (FR-040 to FR-042, resea
 describe('the reset link (FR-009) and app links (FR-001a)', () => {
   it('links "Forgot password?" on the neutral and mailbox-user screens only', async () => {
     useScenario('anonymous-default')
-    // Verbatim, with the classic page's leading "> " (constitution IV 1.3.0).
-    expect((await mountPage(null)).find('a[href="/reset-password"]').text()).toBe(
-      '> Forgot Password?',
+    // Verbatim, with the classic page's leading "> " (constitution IV 1.3.0); UI 005 (FR-034): to
+    // the in-app reset request.
+    const neutral = await mountPage(null)
+    expect(neutral.get('[data-forgot-password]').text()).toBe('> Forgot Password?')
+    expect(neutral.get('[data-forgot-password]').attributes('href')).toBe(
+      '/ng/reset-password/request',
     )
-    expect((await mountPage('mailboxUser')).find('a[href="/reset-password"]').exists()).toBe(true)
-    expect((await mountPage('admin')).find('a[href="/reset-password"]').exists()).toBe(false)
+    expect((await mountPage('mailboxUser')).find('[data-forgot-password]').exists()).toBe(true)
+    expect((await mountPage('admin')).find('[data-forgot-password]').exists()).toBe(false)
+  })
+
+  it('UI 005 (FR-034): offers no link when the server cannot send a reset', async () => {
+    useScenario('account-password-reset-unavailable')
+    expect((await mountPage(null)).find('[data-forgot-password]').exists()).toBe(false)
   })
 
   it('lists the login-page app links under the operator label and hides an empty section', async () => {

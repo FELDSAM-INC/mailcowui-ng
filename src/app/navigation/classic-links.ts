@@ -27,9 +27,6 @@ export const CLASSIC_PAGE_LABELS: Readonly<Record<string, readonly LegacyRef[]>>
   '/quarantine': [legacy('header.quarantine')],
 }
 
-/** The classic password reset page, linked as "Forgot password?" until feature 005 (FR-009). */
-export const CLASSIC_PASSWORD_RESET = '/reset-password'
-
 /**
  * The classic sign-in page for a role. The role-neutral screens and the force-SSO notice use the
  * mailbox-user page, where the classic single sign-on button lives (FR-007).

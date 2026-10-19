@@ -4,10 +4,12 @@
 import type { ScenarioDefinition } from '../index'
 import { accountScenarios } from './account'
 import { ownPasswordScenarios } from './own-password'
+import { passwordResetScenarios } from './password-reset'
 import { twoFactorScenarios } from './two-factor'
 
 export const selfServiceScenarioGroups: Record<string, ScenarioDefinition> = {
   ...accountScenarios,
   ...ownPasswordScenarios,
   ...twoFactorScenarios,
+  ...passwordResetScenarios,
 }

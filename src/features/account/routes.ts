@@ -39,6 +39,12 @@ export const accountRoutes: RouteRecordRaw[] = [
         meta: { accountSection: 'password', titleKey: legacy('user.change_password') },
       },
       {
+        path: 'recovery-email',
+        name: 'account-recovery-email',
+        component: accountPage(() => import('./pages/RecoveryEmailPage.vue')),
+        meta: { accountSection: 'recoveryEmail', titleKey: legacy('user.pw_recovery_email') },
+      },
+      {
         path: 'two-factor',
         name: 'account-two-factor',
         component: accountPage(() => import('./pages/TwoFactorPage.vue')),

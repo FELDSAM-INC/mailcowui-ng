@@ -7,7 +7,6 @@ import { describe, expect, it } from 'vitest'
 import type { Identity, PermissionFlags, Role } from '@/api'
 import { catalogue, placeholderRouteSpecs, type NavEntryId } from '@/app/navigation/catalogue'
 import {
-  CLASSIC_PASSWORD_RESET,
   CLASSIC_SIGN_IN,
   classicSignIn,
 } from '@/app/navigation/classic-links'
@@ -259,7 +258,6 @@ describe('classic interface addresses (research R19)', () => {
     })
     expect(classicSignIn(null)).toBe('/')
     expect(classicSignIn('domainAdmin')).toBe('/domainadmin')
-    expect(CLASSIC_PASSWORD_RESET).toBe('/reset-password')
   })
 })
 

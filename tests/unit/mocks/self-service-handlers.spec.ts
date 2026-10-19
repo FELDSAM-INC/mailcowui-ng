@@ -274,3 +274,102 @@ describe('the own second factors (T047)', () => {
     expect([answer.status, problemName(answer)]).toEqual([503, 'temporary-verification-failure'])
   })
 })
+
+describe('the recovery address and the password reset (T060)', () => {
+  const MOCK = 'Passw0rd!mock'
+  const TOKENS = {
+    plain: '3F9A1C-0B7E22-9D4F10-A6C3E8-51B2D7',
+    totp: '7B21D0-55AE19-C0FFEE-12AB34-9E8D7C',
+    expired: '000000-EXPIRED-000000-000000-000000',
+    unsupported: '222222-U2FONLY-222222-222222-22222',
+  }
+
+  it('replaces the recovery address with the current password, If-Match and the pwReset flag', async () => {
+    useScenario('account-mailbox')
+    const read = await call('GET', '/me/recovery-email')
+    expect(read.body.data.address).toBe('anna.private@example.net')
+    const changed = await call('PUT', '/me/recovery-email', {
+      body: { address: 'anna@example.net', currentPassword: MOCK },
+      ifMatch: read.body.data.etag,
+    })
+    expect(changed.body.data.address).toBe('anna@example.net')
+    const stale = await call('PUT', '/me/recovery-email', {
+      body: { address: null, currentPassword: MOCK },
+      ifMatch: read.body.data.etag,
+    })
+    expect(stale.status).toBe(412)
+    useScenario('account-mailbox-no-pw-reset')
+    const refused = await call('PUT', '/me/recovery-email', {
+      body: { address: 'other@example.net', currentPassword: MOCK },
+    })
+    expect(problemName(refused)).toBe('permission-flag-required')
+  })
+
+  it('acknowledges every well-formed address the same way', async () => {
+    useScenario('account-password-reset')
+    for (const address of ['carl@example.org', 'nobody@example.org']) {
+      const answer = await call('POST', '/password-resets', { body: { address } })
+      expect(answer.body.data).toEqual({ tokenLifetimeMinutes: 15 })
+    }
+    useScenario('account-password-reset-unavailable')
+    const off = await call('POST', '/password-resets', { body: { address: 'carl@example.org' } })
+    expect(problemName(off)).toBe('password-reset-unavailable')
+  })
+
+  it('checks tokens and asks for the second factor after the password rules', async () => {
+    useScenario('account-password-reset')
+    const plain = await call('POST', '/password-resets/token-check', {
+      body: { token: TOKENS.plain },
+    })
+    expect(plain.body.data).toMatchObject({
+      address: 'carl@example.org',
+      secondFactorRequired: false,
+    })
+    const expired = await call('POST', '/password-resets/token-check', {
+      body: { token: TOKENS.expired },
+    })
+    expect(problemName(expired)).toBe('invalid-reset-token')
+    const weak = await call('POST', '/password-resets/completion', {
+      body: { token: TOKENS.totp, newPassword: 'x' },
+    })
+    expect(weak.status).toBe(422)
+    const factor = await call('POST', '/password-resets/completion', {
+      body: { token: TOKENS.totp, newPassword: 'summer2026x' },
+    })
+    expect(problemName(factor)).toBe('second-factor-required')
+    expect(factor.body.methods[0].type).toBe('totp')
+    const wrong = await call('POST', '/password-resets/completion', {
+      body: {
+        token: TOKENS.totp,
+        newPassword: 'summer2026x',
+        secondFactor: { type: 'totp', methodId: 11, code: '000000' },
+      },
+    })
+    expect(problemName(wrong)).toBe('second-factor-failed')
+    const done = await call('POST', '/password-resets/completion', {
+      body: {
+        token: TOKENS.totp,
+        newPassword: 'summer2026x',
+        secondFactor: { type: 'totp', methodId: 11, code: '123456' },
+      },
+    })
+    expect(done.body.data.address).toBe('alice@example.org')
+    const again = await call('POST', '/password-resets/token-check', {
+      body: { token: TOKENS.totp },
+    })
+    expect(problemName(again)).toBe('invalid-reset-token')
+    const unsupported = await call('POST', '/password-resets/completion', {
+      body: { token: TOKENS.unsupported, newPassword: 'summer2026x' },
+    })
+    expect(problemName(unsupported)).toBe('second-factor-unavailable')
+  })
+
+  it('ends this browser’s session when it is signed in as the account', async () => {
+    useScenario('account-password-reset-signed-in')
+    const done = await call('POST', '/password-resets/completion', {
+      body: { token: '333333-ANNA00-333333-333333-333333', newPassword: 'summer2026x' },
+    })
+    expect(done.status).toBe(200)
+    expect((await call('GET', '/session')).body.data.state).toBe('anonymous')
+  })
+})

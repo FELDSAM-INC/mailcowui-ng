@@ -13,7 +13,6 @@ import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, Role } from '@/api'
 import { useBranding } from '@/app/branding/public-config'
-import { CLASSIC_PASSWORD_RESET } from '@/app/navigation/classic-links'
 import { legacy, type LegacyRef } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -23,6 +22,7 @@ import { sessionStore } from '@/shared/platform/storage'
 import { passkeysSupported } from '@/shared/platform/webauthn'
 
 import AppLinksSection from '../components/AppLinksSection.vue'
+import ForgotPasswordLink from '../components/ForgotPasswordLink.vue'
 import OrDivider from '../components/OrDivider.vue'
 import PasskeySignInButton from '../components/PasskeySignInButton.vue'
 import PasswordForm from '../components/PasswordForm.vue'
@@ -131,13 +131,8 @@ onScopeDispose(() => window.removeEventListener('pageshow', onPageShow))
           @submitting="conditional.stop()"
           @failed="conditional.start()"
         />
-        <LegacyText
-          v-if="userScreen"
-          k="login.forgot_password"
-          as="a"
-          :href="CLASSIC_PASSWORD_RESET"
-          class="text-link self-start"
-        />
+        <!-- UI 005 (FR-034): the in-app reset, offered only when the server can send it. -->
+        <ForgotPasswordLink v-if="userScreen" />
       </template>
       <SingleSignOnSection
         v-if="ssoOffered"

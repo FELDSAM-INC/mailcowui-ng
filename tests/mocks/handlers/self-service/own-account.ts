@@ -4,15 +4,15 @@
 // session; ten wrong ones answer 429. The new password follows the policy (`tooShort`,
 // `missingCharacterClass`) and must not be pre-hashed. Other sessions end by default and are
 // counted; a success lifts the forced change.
-import type { OwnPasswordChangeRequest, Writable } from '@/api'
+import type { OwnPasswordChangeRequest, OwnRecoveryEmailReplacement, Writable } from '@/api'
 
 import { passwordPolicyView, passwordViolations } from '../../factories/password-policy'
-import { mailboxSelfService, accountSelfService } from '../../scenarios/self-service/state'
+import { accountSelfService, mailboxSelfService } from '../../scenarios/self-service/state'
 import type { MockAccount, ScenarioState } from '../../scenarios/state'
 import { csrfProblem, http, problem, requireAccount, scenario } from '../context'
 import { addViolation, validationFailed, type Violations } from '../domain-rules'
 import { isPreHashed } from '../mailbox-rules'
-import { isoNow } from './rules'
+import { etagHeader, forbidden, isoNow, ownMailbox, preconditionFailed } from './rules'
 
 const MAX_FAILURES = 10
 
@@ -104,5 +104,56 @@ export const ownAccountHandlers = [
     return response(200).json({
       data: { sessionsEnded, activeAppPasswords, mailServerCacheSeconds: 300 },
     })
+  }),
+]
+
+const recoveryEtag = (version: number) => `"re-${version}"`
+
+/** UI 005 T060: the recovery address of a mailbox user (mailcow source). */
+export const recoveryEmailHandlers = [
+  http.get('/me/recovery-email', ({ response }) => {
+    const state = scenario()
+    const account = requireAccount(state)
+    if (account instanceof Response) return response.untyped(account)
+    const mailbox = ownMailbox(state, account)
+    if (mailbox instanceof Response) return response.untyped(mailbox)
+    if (managedExternally(account))
+      return response.untyped(problem(403, 'password-managed-externally'))
+    const etag = recoveryEtag(mailboxSelfService(state, account.username).recoveryVersion)
+    return response(200).json({ data: { address: mailbox.recoveryEmail, etag } }, etagHeader(etag))
+  }),
+
+  http.put('/me/recovery-email', async ({ request, response }) => {
+    const state = scenario()
+    const refused = csrfProblem(state, request)
+    if (refused) return response.untyped(refused)
+    const account = requireAccount(state)
+    if (account instanceof Response) return response.untyped(account)
+    if (account.role !== 'mailboxUser') return response.untyped(forbidden())
+    const mailbox = ownMailbox(state, account)
+    if (mailbox instanceof Response) return response.untyped(mailbox)
+    if (managedExternally(account))
+      return response.untyped(problem(403, 'password-managed-externally'))
+    const record = mailboxSelfService(state, account.username)
+    const stale = preconditionFailed(request, recoveryEtag(record.recoveryVersion))
+    if (stale) return response.untyped(stale)
+    const body = (await request.json()) as unknown as Writable<OwnRecoveryEmailReplacement>
+    const wrong = checkCurrentPassword(state, account, body.currentPassword)
+    if (wrong) return response.untyped(wrong)
+    const address = body.address === null || body.address === '' ? null : body.address.trim()
+    if (address !== null && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      const errors: Violations = {}
+      addViolation(errors, 'address', 'invalidFormat', { format: 'email' })
+      return response.untyped(validationFailed(errors))
+    }
+    if (address !== mailbox.recoveryEmail && !account.permissions.pwReset) {
+      return response.untyped(
+        problem(403, 'permission-flag-required', { requiredFlags: ['pwReset'] }),
+      )
+    }
+    mailbox.recoveryEmail = address
+    record.recoveryVersion += 1
+    const etag = recoveryEtag(record.recoveryVersion)
+    return response(200).json({ data: { address, etag } }, etagHeader(etag))
   }),
 ]

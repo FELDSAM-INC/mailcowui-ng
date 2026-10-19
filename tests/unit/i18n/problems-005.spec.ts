@@ -46,7 +46,7 @@ describe('problem parameters (UI 005)', () => {
       'Nothing was changed. Temporarily unavailable: Mail server. Please try again in a moment.',
     )
     const other = problem('temporary-failure', 503, { dependency: 'somethingNew' })
-    expect(problemMessage(other, tr)).toContain('A server component')
+    expect(problemMessage(other, tr)).toBe(text('problem.temporary-failure'))
     expect(problemMessage(problem('temporary-failure', 503), tr)).toBe(
       text('problem.temporary-failure'),
     )

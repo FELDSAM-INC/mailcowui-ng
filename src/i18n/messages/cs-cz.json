@@ -262,6 +262,18 @@
         "cancelled": "Přihlášení bylo na přihlašovací stránce vaší organizace zrušeno nebo odmítnuto."
       },
       "starting": "Otevírá se přihlašovací stránka vaší organizace…"
+    },
+    "passwordReset": {
+      "requested": "Pokud tato adresa patří účtu se záchranným e-mailem, je na cestě odkaz pro obnovení platný {count} minutu. | Pokud tato adresa patří účtu se záchranným e-mailem, je na cestě odkaz pro obnovení platný {count} minuty. | Pokud tato adresa patří účtu se záchranným e-mailem, je na cestě odkaz pro obnovení platný {count} minut.",
+      "signedIn": {
+        "body": "Dokončení obnovení odhlásí všechny relace tohoto účtu.",
+        "bodySelf": "Dokončení obnovení odhlásí všechny relace tohoto účtu, včetně této.",
+        "continue": "Pokračovat",
+        "back": "Zpět do aplikace"
+      },
+      "done": {
+        "sessionsEnded": "Všechny relace tohoto účtu byly odhlášeny."
+      }
     }
   },
   "bulk": {
@@ -1042,8 +1054,7 @@
       "mailStore": "Poštovní server",
       "pushover": "Služba Pushover",
       "addressGeneration": "Generátor adres",
-      "yubico": "Ověřovací služba Yubico",
-      "unknown": "Součást serveru"
+      "yubico": "Ověřovací služba Yubico"
     }
   }
 }

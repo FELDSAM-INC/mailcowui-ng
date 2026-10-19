@@ -116,11 +116,13 @@ test.describe('the role-neutral sign-in screen', () => {
     await expectNoHorizontalScroll()
   })
 
-  test('FR-009 the role-neutral screen links to the classic password reset', async ({ page }) => {
+  test('FR-009 the role-neutral screen links to the password reset (UI 005: in the app)', async ({
+    page,
+  }) => {
     await page.goto('sign-in')
     await expect(page.getByRole('link', { name: 'Forgot Password?' })).toHaveAttribute(
       'href',
-      '/reset-password',
+      '/ng/reset-password/request',
     )
   })
 

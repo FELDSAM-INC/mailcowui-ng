@@ -3,6 +3,8 @@ import type { RouteRecordRaw } from 'vue-router'
 
 import { legacy, loadFeatureMessages, type TextRef } from '@/i18n'
 
+import { captureResetToken } from './reset-token'
+
 const SignInPage = () => import('./pages/SignInPage.vue')
 const SecondFactorPage = () => import('./pages/SecondFactorPage.vue')
 // UI 005 (research R8): the forced second-factor setup uses My account's enrolment, with its strings.
@@ -11,6 +13,16 @@ const PendingActionsPage = () =>
     ([module]) => module,
   )
 const SingleSignOnReturnPage = () => import('./pages/SingleSignOnReturnPage.vue')
+// UI 005 (research R12): the password reset pages, public in every session state.
+const PasswordResetRequestPage = () =>
+  Promise.all([
+    import('./pages/PasswordResetRequestPage.vue'),
+    loadFeatureMessages('account'),
+  ]).then(([module]) => module)
+const PasswordResetPage = () =>
+  Promise.all([import('./pages/PasswordResetPage.vue'), loadFeatureMessages('account')]).then(
+    ([module]) => module,
+  )
 
 const signIn = (path: string, name: string, role: string | null, titleKey: TextRef) =>
   ({
@@ -55,5 +67,18 @@ export const authRoutes: RouteRecordRaw[] = [
     name: 'sso-return',
     component: SingleSignOnReturnPage,
     meta: { layout: 'auth', public: true, titleKey: legacy('admin.iam_sso') },
+  },
+  {
+    path: '/reset-password/request',
+    name: 'password-reset-request',
+    component: PasswordResetRequestPage,
+    meta: { layout: 'auth', public: true, titleKey: legacy('login.reset_password') },
+  },
+  {
+    path: '/reset-password',
+    name: 'password-reset',
+    component: PasswordResetPage,
+    beforeEnter: captureResetToken,
+    meta: { layout: 'auth', public: true, titleKey: legacy('login.reset_password') },
   },
 ]

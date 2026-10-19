@@ -8,6 +8,10 @@ import {
   api,
   queryKeys,
   requireData,
+  type PasswordResetAcknowledgement,
+  type PasswordResetCompleted,
+  type PasswordResetCompletionRequest,
+  type PasswordResetTokenInfo,
   type PasskeySignInRequest,
   type PasswordSignInRequest,
   type SecondFactorVerification,
@@ -167,4 +171,34 @@ export async function returnToPasswordStep(
     name: 'sign-in',
     query: typeof returnTo === 'string' ? { returnTo } : {},
   })
+}
+
+// UI 005 (research R12): the password reset before sign-in. The request carries only an address;
+// the token check, the WebAuthn challenge and the completion carry the token (and the password), so
+// callers run them through `useSecretRequest`, the completion without the session reactions.
+
+export async function requestPasswordReset(address: string): Promise<PasswordResetAcknowledgement> {
+  return requireData(await api.POST('/password-resets', { body: { address } })).data
+}
+
+export async function checkPasswordResetToken(token: string): Promise<{
+  info: PasswordResetTokenInfo
+  skew: number
+}> {
+  const result = await api.POST('/password-resets/token-check', { body: { token } })
+  const date = result.response.headers.get('date')
+  return { info: requireData(result).data, skew: computeSkew(date ? new Date(date) : null) }
+}
+
+export async function createPasswordResetWebAuthnChallenge(
+  token: string,
+): Promise<WebAuthnChallenge> {
+  return requireData(await api.POST('/password-resets/webauthn-challenge', { body: { token } }))
+    .data
+}
+
+export async function completePasswordReset(
+  body: Writable<PasswordResetCompletionRequest>,
+): Promise<PasswordResetCompleted> {
+  return requireData(await api.POST('/password-resets/completion', { body })).data
 }

@@ -621,6 +621,17 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
     - These are anonymous requests and cannot keep a signed-in session alive.
     - The request is aborted when the screen unmounts, before the modal ceremony requests its
       challenge (it is resumed afterwards) and when the password form is submitted.
+      - A request stopped before `isConditionalMediationAvailable()` answered is not started
+        when the answer comes; whoever stopped it resumes it.
+      - It never takes the authenticator from another ceremony: when one is running as its
+        challenge arrives, it starts no `get()` and waits for that ceremony's owner to resume it.
+      - A challenge still on its way when the modal ceremony starts is dropped. The API keeps one
+        passkey challenge per session, so if the server stores that late challenge after the
+        modal one, the modal attempt gets `sign-in-expired` ("The passkey sign-in timed out.
+        Please try again.") and the user tries once more. The modal ceremony does not wait for
+        it, because WebKit wants the modal `get()` close to the user's tap.
+      - A single sign-on start (UI 012) stops it before the page is left. A refused start, or the
+        page brought back from the back-forward cache (`pageshow` with `persisted`), resumes it.
   - **Second-factor WebAuthn** (FR-021): `POST /session/pending-sign-in/webauthn-challenge`, then
     `get()`, then `POST /session/pending-sign-in/second-factor` with `{ type: 'webauthn', credential }`.
   - **Registration** (FR-053, FR-039): `POST /me/passkeys/registration-options`, then

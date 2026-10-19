@@ -34,9 +34,9 @@ import { identityProviderHandlers } from './identity-provider'
 import { oauth2ClientHandlers } from './oauth2-clients'
 import { singleSignOnHandlers } from './single-sign-on'
 import { langHandlers } from './lang'
-import { mailboxTemplateReadHandlers } from './mailbox-templates'
 import { mailboxDeletionHandlers } from './mailbox-deletion'
 import { mailboxRenameHandlers } from './mailbox-rename'
+import { mailboxTemplateReadHandlers, mailboxTemplateWriteHandlers } from './mailbox-templates'
 import { mailboxUpdateHandlers } from './mailbox-update'
 import { mailboxReadHandlers } from './mailboxes-read'
 import { mtaStsHandlers } from './mta-sts'
@@ -63,6 +63,7 @@ export const areaHandlers: RequestHandler[] = [
   ...mailboxDeletionHandlers,
   ...mailboxRenameHandlers,
   ...mailboxTemplateReadHandlers,
+  ...mailboxTemplateWriteHandlers,
   ...passwordPolicyHandlers,
   ...syncJobHandlers,
   // UI 012

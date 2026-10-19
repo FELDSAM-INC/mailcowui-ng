@@ -130,7 +130,7 @@ describe('session reactions', () => {
     expect(handlers.unauthenticated).toHaveBeenCalledWith(error)
   })
 
-  it('UI 012: dispatches identity-provider-session-ended, as unauthenticated without its reaction', async () => {
+  it('UI 012: dispatches identity-provider-session-ended, as unauthenticated without its reaction', () => {
     const ended = problem(401, 'identity-provider-session-ended')
     const withReaction = { ...reactions(), identityProviderSessionEnded: vi.fn() }
     setSessionReactions(withReaction)

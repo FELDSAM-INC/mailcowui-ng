@@ -16,7 +16,7 @@ import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 import { lt, type LegacyKey } from '@/i18n'
 import { isApiProblem, queryKeys, type DomainCreationReport } from '@/api'
 import { canAccess } from '@/app/navigation/visibility'
-import { DomainDkimSection } from '@/features/dns'
+import { CheckDnsAction, DomainDkimSection, DomainMtaStsSection } from '@/features/dns'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -214,6 +214,7 @@ watch(
         "
       >
         <template #actions>
+          <CheckDnsAction :name="domain.name" />
           <HistoryLink :target-id="domain.name" :allowed="historyAllowed" />
         </template>
       </PageHeader>
@@ -237,6 +238,8 @@ watch(
     <!-- UI 010: the DKIM block legacy shows below the "Edit domain" form. -->
     <DomainDkimSection v-if="!showOnly" :name="domain.name" kind="domain" />
     <RateLimitSection v-if="!showOnly" :domain="domain" />
+    <!-- UI 010: legacy's MTA-STS tab, before "Domain wide footer". -->
+    <DomainMtaStsSection v-if="!showOnly" :domain="domain.name" />
     <FooterSection
       v-if="visible('footer')"
       :domain="domain"

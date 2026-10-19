@@ -13,6 +13,8 @@ import { formatLegacy, type LegacyArg } from './legacy-format'
 import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
 import type enGbAliases from './messages/aliases/en-gb.json'
+import type enGbDnsDiagnostics from './messages/dns-diagnostics/en-gb.json'
+import type enGbDnsMtaSts from './messages/dns-mta-sts/en-gb.json'
 import type enGbDns from './messages/dns/en-gb.json'
 import type enGbDomains from './messages/domains/en-gb.json'
 import enGb from './messages/en-gb.json'
@@ -24,7 +26,9 @@ export type MessageSchema = typeof enGb &
   typeof enGbSyncJobs &
   typeof enGbIdentityProviders &
   typeof enGbAliases &
-  typeof enGbDns
+  typeof enGbDns &
+  typeof enGbDnsDiagnostics &
+  typeof enGbDnsMtaSts
 
 declare module 'vue-i18n' {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
@@ -55,6 +59,21 @@ const loaders: Partial<Record<AppLocale, Loader>> = {
   'sk-sk': () => import('./messages/sk-sk.json').then((m) => m.default),
 }
 
+/** Merges message modules group by group (a feature whose strings are split over files). */
+async function mergeAll(modules: Promise<{ default: Messages }>[]): Promise<Messages> {
+  const merge = (target: Messages, source: Messages): Messages => {
+    for (const [key, value] of Object.entries(source)) {
+      const current = target[key]
+      target[key] =
+        current && typeof current === 'object' && value && typeof value === 'object'
+          ? merge({ ...(current as Messages) }, value as Messages)
+          : value
+    }
+    return target
+  }
+  return (await Promise.all(modules)).reduce<Messages>((all, m) => merge(all, m.default), {})
+}
+
 /** The strings of features, loaded with their routes; en-gb is their fallback. */
 const featureLoaders = {
   domains: {
@@ -81,11 +100,27 @@ const featureLoaders = {
     'sk-sk': () => import('./messages/aliases/sk-sk.json').then((m) => m.default),
   },
   // UI 010: DKIM, MTA-STS and DNS diagnostics, loaded with the DNS routes and the sections that the
-  // domain page mounts.
+  // domain page mounts. The DKIM, diagnostics and MTA-STS strings are kept in three files and
+  // loaded together.
   dns: {
-    'en-gb': () => import('./messages/dns/en-gb.json').then((m) => m.default),
-    'cs-cz': () => import('./messages/dns/cs-cz.json').then((m) => m.default),
-    'sk-sk': () => import('./messages/dns/sk-sk.json').then((m) => m.default),
+    'en-gb': () =>
+      mergeAll([
+        import('./messages/dns/en-gb.json'),
+        import('./messages/dns-diagnostics/en-gb.json'),
+        import('./messages/dns-mta-sts/en-gb.json'),
+      ]),
+    'cs-cz': () =>
+      mergeAll([
+        import('./messages/dns/cs-cz.json'),
+        import('./messages/dns-diagnostics/cs-cz.json'),
+        import('./messages/dns-mta-sts/cs-cz.json'),
+      ]),
+    'sk-sk': () =>
+      mergeAll([
+        import('./messages/dns/sk-sk.json'),
+        import('./messages/dns-diagnostics/sk-sk.json'),
+        import('./messages/dns-mta-sts/sk-sk.json'),
+      ]),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

@@ -58,14 +58,15 @@ test.describe('domain page', () => {
     await expect(page.locator('#section-domain')).toContainText('Never')
   })
 
-  test('FR-015 nothing of later features: no spam filter, quota warning BCC, MTA-STS or DNS', async ({
+  // UI 010 delivers the DKIM block, the MTA-STS tab and "DNS"; the other tabs come later.
+  test('FR-015 nothing of later features: no spam filter or quota warning BCC', async ({
     page,
     mockApi,
   }) => {
     await mockApi.use('domains-60')
     await page.goto('domains/nearly.example')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit domain' })).toBeVisible()
-    for (const text of [/spam/i, /quota warning/i, /MTA-STS/, /DNS/]) {
+    for (const text of [/spam/i, /quota warning/i]) {
       await expect(page.getByRole('main').getByText(text)).toHaveCount(0)
     }
   })

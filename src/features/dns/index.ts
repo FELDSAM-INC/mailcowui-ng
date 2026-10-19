@@ -7,6 +7,8 @@ import { defineAsyncComponent } from 'vue'
 import { loadFeatureMessages } from '@/i18n'
 
 export { dnsRoutes } from './routes'
+/** "DNS": the diagnostics of a name, as a menu item or a button (props `name`, `variant`). */
+export { default as CheckDnsAction } from './components/CheckDnsAction.vue'
 
 function withMessages<T>(load: () => Promise<T>) {
   return () => Promise.all([load(), loadFeatureMessages('dns')]).then(([module]) => module)
@@ -15,4 +17,14 @@ function withMessages<T>(load: () => Promise<T>) {
 /** The DKIM section of a domain or alias domain page (props `name`, `kind`). */
 export const DomainDkimSection = defineAsyncComponent(
   withMessages(() => import('./components/DomainDkimSection.vue')),
+)
+
+/** The MTA-STS section of the domain page (prop `domain`), at the place of legacy's tab. */
+export const DomainMtaStsSection = defineAsyncComponent(
+  withMessages(() => import('./components/DomainMtaStsSection.vue')),
+)
+
+/** The MTA-STS section of an alias domain page (props `aliasDomain`, `targetDomain`). */
+export const AliasDomainMtaStsSection = defineAsyncComponent(
+  withMessages(() => import('./components/AliasDomainMtaStsSection.vue')),
 )

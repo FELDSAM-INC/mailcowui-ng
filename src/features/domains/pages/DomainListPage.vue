@@ -327,8 +327,12 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
           @sort="(sort, order) => list.setSort(sort, order)"
           @filter-tag="filterByTag"
         >
-          <template v-if="permissions.canDelete" #actions="{ domain }">
-            <DomainEntryActions :domain="domain" @delete="deletion.start" />
+          <template #actions="{ domain }">
+            <DomainEntryActions
+              :domain="domain"
+              :can-delete="permissions.canDelete"
+              @delete="deletion.start"
+            />
           </template>
           <template #select-all>
             <SelectCheckbox

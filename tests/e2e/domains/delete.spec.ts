@@ -200,7 +200,14 @@ test.describe('delete a domain', () => {
     await mockApi.use('domain-admin-two-of-ten')
     await page.goto('domains')
     await listReady(page)
-    await expect(page.getByRole('button', { name: /^Actions for/ })).toHaveCount(0)
+    // UI 010 adds "DNS" to the entry actions, which domain administrators may use.
+    await page
+      .getByRole('button', { name: /^Actions for/ })
+      .first()
+      .click()
+    await expect(page.getByRole('menuitem', { name: 'DNS' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'Remove' })).toHaveCount(0)
+    await page.keyboard.press('Escape')
     await page.goto('domains/customer-a.example')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit domain' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Delete', exact: true })).toHaveCount(0)

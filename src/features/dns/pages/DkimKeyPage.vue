@@ -15,6 +15,7 @@ import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 
 import { useDnsCapabilities } from '../api/capabilities'
 import { useDkimKey } from '../api/dkim'
+import CheckDnsAction from '../components/CheckDnsAction.vue'
 import DkimKeyFacts from '../components/DkimKeyFacts.vue'
 import DkimRecord from '../components/DkimRecord.vue'
 import IncompleteKeyNotice from '../components/IncompleteKeyNotice.vue'
@@ -75,7 +76,7 @@ const actions = computed(() =>
         </h1>
       </div>
       <div data-entry-actions class="flex flex-wrap gap-2">
-        <slot name="actions" :entry="entry" :actions="actions" />
+        <CheckDnsAction v-if="actions?.checkDns" :name="entry.name" />
       </div>
     </header>
     <p

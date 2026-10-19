@@ -1,10 +1,11 @@
 <script setup lang="ts">
-// The actions of a list entry (FR-041; UI 010 adds "DNS check" here, data-model §9): Delete, which
-// is unavailable with its reason while mailboxes or resources are in use.
+// The actions of a list entry (FR-041; UI 010 adds "DNS" here, data-model §9): Delete, which is
+// unavailable with its reason while mailboxes or resources are in use, for administrators.
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Domain } from '@/api'
+import { CheckDnsAction } from '@/features/dns'
 import { lt } from '@/i18n'
 import { HorizontalDotsIcon, TrashIcon } from '@/shared/icons'
 import {
@@ -16,7 +17,9 @@ import {
 
 import { deletionAvailability } from '../../composables/useDomainDeletion'
 
-const props = defineProps<{ domain: Domain }>()
+const props = withDefaults(defineProps<{ domain: Domain; canDelete?: boolean }>(), {
+  canDelete: true,
+})
 const emit = defineEmits<{ delete: [domain: Domain] }>()
 const { t } = useI18n()
 const availability = () => deletionAvailability(props.domain)
@@ -43,7 +46,13 @@ async function onDelete() {
         <HorizontalDotsIcon class="size-5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" class="max-w-[min(20rem,calc(100vw-2rem))]">
-        <DropdownMenuItem class="min-h-11" :disabled="!availability().available" @select="onDelete">
+        <CheckDnsAction :name="domain.name" variant="menuItem" />
+        <DropdownMenuItem
+          v-if="canDelete"
+          class="min-h-11"
+          :disabled="!availability().available"
+          @select="onDelete"
+        >
           <TrashIcon />
           <span class="flex flex-col">
             <span>{{ lt('mailbox.remove') }}</span>

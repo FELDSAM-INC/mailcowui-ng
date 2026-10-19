@@ -45,7 +45,8 @@ const types = computed<('address' | 'domain' | 'anyAddress')[]>(() =>
 const known = new Map<string, SenderEntry>()
 
 // The picker builds one query per source when it mounts; the sources read the current settings,
-// working copy and types each time, so the queries follow them.
+// working copy and types each time, so the queries follow them. The mailbox is the page's, which
+// is known before its settings have loaded.
 const blocked = computed(() =>
   read.value && copy.value ? blockedAliases(read.value, copy.value) : [],
 )
@@ -55,7 +56,7 @@ const sources: DomainPickerSource[] = [
     queryKey: (q) => [
       'sender-settings',
       'blocked',
-      read.value?.mailbox ?? '',
+      props.state.mailbox.value,
       blocked.value.map((entry) => entry.value),
       q,
     ],
@@ -78,13 +79,13 @@ const sources: DomainPickerSource[] = [
     id: 'candidates',
     queryKey: (q) =>
       queryKeys.senderPermissionCandidates({
-        mailbox: read.value?.mailbox ?? '',
+        mailbox: props.state.mailbox.value,
         q,
         type: types.value,
       }),
     fetchPage: async ({ q, offset, limit }) => {
       const page = await fetchCandidates({
-        mailbox: read.value?.mailbox ?? '',
+        mailbox: props.state.mailbox.value,
         type: types.value,
         limit,
         offset,

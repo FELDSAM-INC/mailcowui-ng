@@ -310,6 +310,8 @@ export function useSenderSettings(options: SenderSettingsOptions) {
   }
 
   return {
+    /** The page's mailbox, known before its settings have loaded. */
+    mailbox,
     query,
     settings,
     copy,

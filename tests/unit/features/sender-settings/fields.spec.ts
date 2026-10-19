@@ -107,6 +107,20 @@ describe('SenderAclField', () => {
     domainAdmin.unmount()
   })
 
+  it("asks for the page's mailbox's candidates while its settings are still loading", async () => {
+    useScenario('sender-settings', { delays: { getMailboxSenderSettings: 600 } })
+    const wrapper = mountWithApp(harness(identity('admin')), { attachTo: document.body })
+    await wrapper.get('[role="combobox"]').trigger('focus')
+    await new Promise((resolve) => setTimeout(resolve, 350))
+    await flushPromises()
+    const mailboxes = mockState()
+      .requests.filter((request) => request.operationId === 'listSenderPermissionCandidates')
+      .map((request) => new URL(request.path, location.origin).searchParams.get('mailbox'))
+    expect(mailboxes.length).toBeGreaterThan(0)
+    expect(new Set(mailboxes)).toEqual(new Set([SENDER_004.mailbox]))
+    wrapper.unmount()
+  })
+
   it('saves the changed set with If-Match and shows "*" as the disabled sender check', async () => {
     useScenario('sender-settings')
     const wrapper = mountWithApp(harness(identity('admin')), { attachTo: document.body })

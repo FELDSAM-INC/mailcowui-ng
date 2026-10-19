@@ -1046,7 +1046,7 @@ as "001 R20" point to `specs/001-sign-in-app-shell/research.md`.
     three catalogue rows and their labels.
   - `scripts/run-lhci.mjs` gains a third collection: `/ng/aliases` with
     `MOCK_DEFAULT_SCENARIO=aliases-60`, as an active administrator. The same assertions apply:
-    performance and accessibility of at least 0.9, and the script size budget.
+    performance of at least 0.8 and accessibility of at least 0.9, and the script size budget.
   - SC-009 (2 s first page on a mid-range phone over 4G) and SC-010 (100-alias results in 15 s) are
     measured manually in quickstart Part B, with the throttling profile.
 - **Rationale**: Constitution VII. The alias list is the heaviest new screen and the one SC-009

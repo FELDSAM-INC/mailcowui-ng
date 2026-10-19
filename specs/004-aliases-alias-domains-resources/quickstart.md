@@ -33,7 +33,7 @@ npm run test:unit        # + dependencies, mock handlers, entry lists, sequentia
                          #   patch builders, address preview, send-as model, permission matrix
 npm run build && npm run budget:check   # initial JS still ≤ 200 KB gzipped; 10 new lazy chunks
 npm run test:e2e         # + tests/e2e/{aliases,alias-domains,resources,sender-settings,history}
-npm run lhci             # + /ng/aliases (scenario aliases-60): performance and accessibility ≥ 0.9
+npm run lhci             # + /ng/aliases (scenario aliases-60): performance ≥ 0.8 and accessibility ≥ 0.9
 ```
 
 **Expected**:

@@ -31,7 +31,7 @@ npm run audit                           # npm audit gates
 npm run test:unit                       # Vitest with coverage thresholds
 npm run build && npm run budget:check   # initial JS ≤ 200 KB gzipped
 npm run test:e2e                        # Playwright: mobile-chromium, desktop-chromium, mobile-webkit
-npm run lhci                            # Lighthouse: performance and accessibility ≥ 90
+npm run lhci                            # Lighthouse: performance ≥ 80 and accessibility ≥ 90
 ```
 
 **Expected**:

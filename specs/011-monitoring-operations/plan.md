@@ -85,7 +85,7 @@ for Android; the static image under `/ng/`.
 - A 10 MiB queued message readable within 2 s after it arrives (first 256 Ki characters, R15).
 - `LiveLineChart` chunk ≤ 6 KB gzipped; dashboard route chunk ≤ 45 KB gzipped; `marked` only via a
   dynamic import; initial JavaScript still ≤ 200 KB gzipped (R22).
-- Lighthouse mobile performance and accessibility ≥ 0.9 on `/ng/operations/dashboard` (R22).
+- Lighthouse mobile performance ≥ 0.8 and accessibility ≥ 0.9 on `/ng/operations/dashboard` (R22).
 - After the page becomes visible or the user resumes, fresh data requested within 1 s (SC-004).
 
 **Constraints**:

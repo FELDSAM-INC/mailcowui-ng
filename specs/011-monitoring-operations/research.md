@@ -834,7 +834,7 @@ Slovak or Czech value for a legacy key: a key missing in a language falls back t
     requests no `LiveLineChart-*.js` and no `marked` chunk (SC-011); on the dashboard, with the chart
     chunk delayed by `page.route`, the figures are visible before the chart.
   - Lighthouse CI gets a third collection, `/ng/operations/dashboard` with the scenario
-    `admin-operations-lighthouse` (performance and accessibility ≥ 0.9). That scenario reports
+    `admin-operations-lighthouse` (performance ≥ 0.8 and accessibility ≥ 0.9). That scenario reports
     `pollIntervalSeconds: 60`, a contract-valid value, so that Lighthouse's network-idle detection is
     not defeated by 5-second polling.
 - **Rationale**: Constitution VII requires budgets and lazy routes, and the constitution's

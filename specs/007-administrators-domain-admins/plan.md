@@ -85,7 +85,7 @@ Safari and Chrome for Android, served under `/ng/` on the mailcow host's origin.
 
 **Performance Goals**: initial JavaScript stays under 200 KB gzipped: the new routes are lazy, and
 only the acting banner, the shell notice and the identity-switch module join the entry chunk (about
-3 KB). Lighthouse mobile scores stay at least 90. No polling: countdowns are local timers. SC-001: a
+3 KB). Lighthouse mobile performance stays at least 80 and accessibility at least 90. No polling: countdowns are local timers. SC-001: a
 domain administrator with two domains created in under 2 minutes at 360 px. SC-009: a valid
 one-time link reaches the home screen within 5 seconds. SC-010: a permission change saved in under
 30 seconds.

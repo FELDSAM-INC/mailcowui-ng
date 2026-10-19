@@ -87,7 +87,7 @@ Safari and Chrome for Android.
 
 - SC-010: the first list page within 2 s on a mid-range phone when the API answers within 1 s,
   and search results within 1 s of the last keystroke (300 ms debounce).
-- Lighthouse mobile ≥ 90 on `/ng/domains` (D30).
+- Lighthouse mobile performance ≥ 80 and accessibility ≥ 90 on `/ng/domains` (D30).
 - Initial JavaScript unchanged (≤ 200 KB gzipped). Every domain and template screen is a lazy
   chunk.
 

@@ -970,7 +970,7 @@ flags. Every enumeration this plan names exists as a generated `…Values` array
     - Every route of this feature is a lazy chunk.
     - The bundle budget (UI 001 R26) prints their sizes.
     - `scripts/run-lhci.mjs` gains a third collection: `/ng/mailboxes` with
-      `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`. Lighthouse's performance score of at least 0.9
+      `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`. Lighthouse's performance score of at least 0.8
       on the mobile preset is the automated proxy for SC-003. The manual measurement on a phone
       (T130) records the 2-second figure.
 - **Rationale**: Constitution VI and VII. Deterministic data makes the 10,000-mailbox tests

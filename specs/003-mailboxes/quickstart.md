@@ -56,7 +56,7 @@ npm run lhci
   `MailboxesPage`, `MailboxCreatePage`, `MailboxDetailPage` and the template pages separately.
 - `test:e2e -- tests/e2e/mailboxes` passes every `US1-AS…` to `US9-AS…` test of this feature on `mobile-chromium`,
   `desktop-chromium` and `mobile-webkit`, with no axe, CSP or mock contract violation.
-- `lhci` prints performance and accessibility of at least 0.9 for `/ng/sign-in`, `/ng/` and
+- `lhci` prints performance of at least 0.8 and accessibility of at least 0.9 for `/ng/sign-in`, `/ng/` and
   `/ng/mailboxes` (the 10,000-mailbox scenario).
 
 ## Part B: Manual checks per user story (mock API)

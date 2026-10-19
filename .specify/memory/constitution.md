@@ -147,7 +147,7 @@ follows are in `docs/conventions.md`, "Translations and forms".
 
 ### VII. Performance Budgets
 
-- Lighthouse mobile scores are at least 90 for performance and accessibility.
+- Lighthouse mobile scores are at least 80 for performance and at least 90 for accessibility.
 - The initial JavaScript payload is at most 200 KB gzipped. Routes are lazy-loaded.
 - Server state is cached and invalidated after mutations. A screen never refetches what it
   already has without reason.
@@ -240,6 +240,9 @@ follows are in `docs/conventions.md`, "Translations and forms".
     in en, cs and sk, never machine-translated (added in 1.3.0).
   - The classic interface's haveibeenpwned password check is kept. Stored OAuth2 client secrets
     are shown only once, at creation or renewal (added in 1.4.0).
+- Owner decision on 2026-10-19: lower the Lighthouse mobile performance threshold from 90 to
+  80 because 90 is too strict for the current release. Accessibility remains at least 90, and
+  the 200 KB initial JavaScript budget and mobile test conditions remain unchanged (2.0.0).
 - Agent runtime guidance lives in `CLAUDE.md` and MUST NOT contradict this document.
 
-**Version**: 1.4.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-18
+**Version**: 2.0.0 | **Ratified**: 2026-10-18 | **Last Amended**: 2026-10-19

@@ -86,7 +86,7 @@ storage; typed passwords, test results and batch results live only in component 
 **Performance Goals**: SC-008: a list's first page within 2 s on the standard mobile profile, and
 BCC picker matches within 1 s of a pause for 10,000 choices (one debounced request per pause). The
 initial JavaScript stays within UI 001's 200 KB budget: every routing page is a lazy route chunk,
-and the sections load as async components (research R25). Lighthouse mobile scores of at least 90.
+and the sections load as async components (research R25). Lighthouse mobile scores of at least 80 for performance and 90 for accessibility.
 
 **Constraints**:
 

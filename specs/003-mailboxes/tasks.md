@@ -1475,7 +1475,7 @@ rename and refused records, as an administrator and as a domain administrator, o
 - [ ] T127 *(open: the collection is added, the sign-in page's scripts are within their limit (195,370 bytes, the `$initial` group) and accessibility passes; performance of `/ng/`, `/ng/domains` and `/ng/mailboxes` is 0.69 to 0.86 on this shared machine, as on main, and needs a quiet machine or CI (implementation notes))* Add the third collection `/ng/mailboxes` with `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`
   to `scripts/run-lhci.mjs` and `lighthouserc.cjs` (research R20). Run
   `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JS is
-  at most 204,800 bytes gzipped, and performance and accessibility are at least 0.9 for all three
+  at most 204,800 bytes gzipped, and performance is at least 0.8 and accessibility is at least 0.9 for all three
   URLs.
 - [X] T128 *(done: 58 new strings beyond main 0194b3e, all in en-gb, cs-cz and sk-sk, written by hand; the cs-cz and sk-sk values are in `src/i18n/messages/` and `src/i18n/messages/mailboxes/` for the owner's review)* [P] Run `npm run i18n:check` (FR-072, SC-005). Remove the unused keys it reports from
   `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings of this

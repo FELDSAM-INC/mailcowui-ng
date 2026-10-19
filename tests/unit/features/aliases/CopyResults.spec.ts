@@ -60,6 +60,37 @@ describe('CopyResults', () => {
     expect(lines[3]).toBe('External goto address sales@example.de is not allowed')
   })
 
+  it("shows a failed copy with its problem's message, and other outcomes by name", () => {
+    const wrapper = mountWithApp(CopyResults, {
+      props: {
+        copies: [
+          copy({
+            address: 'sales@example.net',
+            outcome: 'failed',
+            problem: {
+              type: '/api/v2/problems/domain-alias-limit-reached',
+              title: 'Alias limit reached',
+              status: 409,
+              requestId: '00000000000000000000000000000000',
+            },
+          }),
+          copy({ addressUnicode: 'sales@bücher.example', outcome: 'failed' }),
+          copy({ addressUnicode: 'sales@example.eu' }),
+        ],
+      },
+      global: { plugins: [router()] },
+    })
+    const lines = wrapper.findAll('li').map((line) => line.text())
+    expect(wrapper.findAll('li').map((line) => line.attributes('data-copy'))).toEqual([
+      'failed',
+      'failed',
+      'skipped',
+    ])
+    expect(lines[0]).toBe('Max. aliases exceeded')
+    expect(lines[1]).toBe('sales@bücher.example: Failed')
+    expect(lines[2]).toBe('sales@example.eu: Skipped')
+  })
+
   it('says that nothing was created without alias domains', () => {
     const wrapper = mountWithApp(CopyResults, {
       props: { copies: [] },

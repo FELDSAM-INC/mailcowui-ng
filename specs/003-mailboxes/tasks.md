@@ -482,7 +482,7 @@ existing tests pass.
 
 ### Shared form fields and display (tests first)
 
-- [ ] T036 [P] Write `TM/components/password/PasswordField.spec.ts` and
+- [X] T036 *(done under the forms rule: `PasswordFields` (password, generate, `HibpCheck`, legacy policy list, repeat) in `fields.spec.ts`; no show/hide, copy or live marks (plan.md part 3))* [P] Write `TM/components/password/PasswordField.spec.ts` and
   `PasswordPolicyHints.spec.ts` (FR-028–FR-030). They cover:
   - `autocomplete="new-password"`, `autocapitalize="none"`, `spellcheck="false"`;
   - a typed value starts hidden, with a labelled show/hide toggle;
@@ -497,7 +497,7 @@ existing tests pass.
   - the pre-hashed notice for `{SSHA512}…`.
 
   The test must fail.
-- [ ] T037 [P] Write `TM/components/fields/MailboxQuotaField.spec.ts` (FR-034, FR-041). It covers:
+- [X] T037 *(done: `MailboxQuotaField` in MiB with legacy's "max." badge, "0 = ∞" and the quota warning)* [P] Write `TM/components/fields/MailboxQuotaField.spec.ts` (FR-034, FR-041). It covers:
   - the "Unlimited" switch is shown only when `canOfferUnlimited`;
   - "max. X" in binary units, and an error above the maximum before submitting;
   - a warning below `quotaUsed` that does not block;
@@ -505,7 +505,7 @@ existing tests pass.
   - a stored value is shown in the largest exact unit.
 
   The test must fail.
-- [ ] T038 [P] Write `TM/components/fields/fields.spec.ts`. It covers:
+- [X] T038 *(done under the forms rule: `StatusSelect`, `AuthSourceSelect`, `MultiSelectField` (protocols, ACL) locked with `AclReadOnlyNote`, `LegacyRadioGroup`, `TlsPolicyField`, `LegacyCheckbox`; no CollapsibleGroup (legacy has no groups))* [P] Write `TM/components/fields/fields.spec.ts`. It covers:
   - `StatusField`: three radio options, with each effect explained before saving (FR-035);
   - `AuthSourceField`: a native `<select>` over the options of `auth-source.ts`;
   - `ProtocolAccessFields`: six labelled switches; read-only with `AclReadOnlyNote` without the
@@ -522,7 +522,7 @@ existing tests pass.
   - `CollapsibleGroup`: a Reka `Collapsible` with a one-line summary, and `aria-expanded`.
 
   The test must fail.
-- [ ] T039 [P] Write `TM/components/fields/pickers.spec.ts`. It covers:
+- [X] T039 *(settled: UI 004 owns the domain picker; the add form's local part is a plain field as in legacy (no suffix or preview); TemplateSelect is the promoted shared one)* [P] Write `TM/components/fields/pickers.spec.ts`. It covers:
   - `DomainPicker`:
     - single and multiple modes;
     - Reka `Combobox` without `ComboboxViewport`;
@@ -535,7 +535,7 @@ existing tests pass.
     lower-cased), and the validation messages of `validation.ts`.
 
   The test must fail.
-- [ ] T040 [P] Write `TM/components/display/display.spec.ts`. It covers:
+- [X] T040 *(done: `MailboxStatusBadge`, `QuotaText` and `InUseBar` (legacy's columns, 75/90 classes, the percentage as text), `LastLogins`)* [P] Write `TM/components/display/display.spec.ts`. It covers:
   - `MailboxStatusBadge`: a text badge for each status; "Disallow login" shortened with the full
     legacy text in `title` and visually hidden text (FR-012);
   - `MailboxQuotaUsage`:
@@ -546,7 +546,7 @@ existing tests pass.
     - the state as text (US1-AS7, FR-011).
 
   The test must fail.
-- [ ] T041 [P] Write `TM/patch.spec.ts` and `TM/composables/useMailboxSection.spec.ts` (research
+- [X] T041 *(done: `patch.spec.ts` (T022 batch) and `composables/useMailboxSection.spec.ts`)* [P] Write `TM/patch.spec.ts` and `TM/composables/useMailboxSection.spec.ts` (research
   R6, data-model §7.1). `patch.spec.ts` covers:
   - scalars only when changed;
   - `protocolAccess` and `userPermissions` with only the changed members, and left out when none
@@ -576,20 +576,20 @@ existing tests pass.
     or query cache ever holds the password (conventions "Secrets in requests or responses").
 
   The tests must fail.
-- [ ] T042 [P] Implement `M/components/password/PasswordField.vue` and
+- [X] T042 *(done)* [P] Implement `M/components/password/PasswordField.vue` and
   `M/components/password/PasswordPolicyHints.vue` so that T036 passes.
-- [ ] T043 [P] Implement `M/components/fields/MailboxQuotaField.vue` on the shared `QuotaField` so
+- [X] T043 *(done)* [P] Implement `M/components/fields/MailboxQuotaField.vue` on the shared `QuotaField` so
   that T037 passes.
-- [ ] T044 [P] Implement `M/components/fields/StatusField.vue`, `AuthSourceField.vue`,
+- [X] T044 *(done)* [P] Implement `M/components/fields/StatusField.vue`, `AuthSourceField.vue`,
   `ProtocolAccessFields.vue`, `UserPermissionsFields.vue`, `InitialSettingsFields.vue`,
   `RateLimitField.vue`, `AclReadOnlyNote.vue` and `CollapsibleGroup.vue` so that T038 passes.
-- [ ] T045 [P] Implement `M/components/fields/DomainPicker.vue`, `TemplateSelect.vue` and
+- [X] T045 *(settled with T039)* [P] Implement `M/components/fields/DomainPicker.vue`, `TemplateSelect.vue` and
   `LocalPartField.vue` so that T039 passes. `DomainPicker` uses UI 002's domain list query from
   `@/features/domains`. Add a non-behavioural export to `src/features/domains/index.ts` if it is
   not exported yet. Export `DomainPicker` from `M/index.ts` for UI 004.
-- [ ] T046 [P] Implement `M/components/display/MailboxStatusBadge.vue` and
+- [X] T046 *(done)* [P] Implement `M/components/display/MailboxStatusBadge.vue` and
   `M/components/display/MailboxQuotaUsage.vue` so that T040 passes.
-- [ ] T047 Implement `M/patch.ts` and `M/composables/useMailboxSection.ts` so that T041 passes. Also
+- [X] T047 *(done: `useMailboxSection` on `useVersionedSave`, saves with a password through `useSecretRequest`; `updateMailbox` and `updateMailboxWithPassword` in `api.ts` with the invalidation of data-model §3)* Implement `M/patch.ts` and `M/composables/useMailboxSection.ts` so that T041 passes. Also
   implement the `updateMailbox` mutation in `M/api.ts` with the invalidation of data-model §3:
   - write the detail;
   - patch the entry in every cached list page;
@@ -685,7 +685,7 @@ and as a domain administrator, on 360 px and desktop:
   - Edge: IDN domains are shown readable;
   - SC-001: on 360 px with `admin-mailboxes-10k`, search a fragment and open a mailbox in under
     10 s.
-- [ ] T051 [P] [US1] Write `tests/e2e/mailboxes/detail.spec.ts`. It covers:
+- [X] T051 *(done for the mailbox page as `tests/e2e/mailboxes/detail.spec.ts` (legacy heading, usage, sections in legacy order, not found, IDN, canonical address); the section navigation of the spec is replaced by legacy's tabs)* [P] [US1] Write `tests/e2e/mailboxes/detail.spec.ts`. It covers:
   - US1-AS8: a domain administrator gets "not found" for a mailbox of `b.example`, the same as for
     a missing one, with a link to the list (FR-004);
   - US1-AS9: the overview shows every FR-015 group; settings managed elsewhere are read-only and
@@ -757,7 +757,7 @@ and as a domain administrator, on 360 px and desktop:
 
   The "Add mailbox" actions render only when the `mailbox-create` route exists
   (`router.hasRoute`), which US2 registers.
-- [ ] T058 [US1] Implement the detail screen:
+- [X] T058 *(done under the forms rule: `MailboxDetailPage` with `MailboxUsage` and the legacy tabs as sections; no MailboxSectionNav or overview groups (plan.md part 3, item 1))* [US1] Implement the detail screen:
   - `M/pages/MailboxDetailPage.vue`: the layout, the detail query, the canonical address replace,
     UI 002's `NotFoundPage` with its back link on 404, the side navigation from `lg` up, and a
     `RouterView` for the sections;
@@ -941,11 +941,11 @@ overwritten.
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T070 [US3] Create `tests/mocks/scenarios/mailboxes/edit.ts`, registered in
+- [X] T070 *(done: `tests/mocks/scenarios/mailboxes/edit.ts` (`admin-edit`, `domain-admin-edit`, `domain-admin-edit-limited`))* [US3] Create `tests/mocks/scenarios/mailboxes/edit.ts`, registered in
   `tests/mocks/scenarios/index.ts`, with `admin-edit`, `admin-edit-ldap`,
   `domain-admin-edit-no-protocol`, `domain-admin-edit-no-sogo` and `domain-admin-flags-revoked`.
   The `updateMailbox` handler and the "changed elsewhere" control change come from T011.
-- [ ] T071 [P] [US3] Write `tests/e2e/mailboxes/sections.spec.ts`. It covers:
+- [X] T071 *(done in `detail.spec.ts`: saves, outdated save, quota limits, generated password, repeat, haveibeenpwned, LDAP source, flags, leave guard; no status confirmation (legacy has none))* [P] [US3] Write `tests/e2e/mailboxes/sections.spec.ts`. It covers:
   - US3-AS1: a generated password is saved; the success is announced; the field is cleared; the
     last password change is updated; the password is never shown again;
   - US3-AS2: "Inactive" explains its effect before saving; saving asks one explicit confirmation
@@ -974,7 +974,7 @@ overwritten.
   - Edge: a second tab's save is refused as outdated;
   - Edge: session expired while editing: after the new sign-in the password field is empty;
   - FR-066: no double submit.
-- [ ] T072 [P] [US3] Write `TM/sections/GeneralSection.spec.ts`, `TM/sections/SignInSection.spec.ts`
+- [X] T072 *(done as `components/sections.spec.ts` for the Mailbox section)* [P] [US3] Write `TM/sections/GeneralSection.spec.ts`, `TM/sections/SignInSection.spec.ts`
   (switching sources, the hints, the password cleared on success and unmount) and
   `TM/sections/ProtocolAccessSection.spec.ts` (read-only, with no save action, without the flag).
 - [ ] T073 [P] [US3] Write `tests/smoke/mailbox-sections.smoke.spec.ts`:
@@ -986,21 +986,21 @@ overwritten.
 
 ### Implementation for User Story 3
 
-- [ ] T074 [P] [US3] Implement `M/sections/GeneralSection.vue`: display name, `MailboxQuotaField`
+- [X] T074 *(done under the forms rule as the "Mailbox" section (`MailboxSection.vue`), which also holds the tags and protocols as legacy's tab does)* [P] [US3] Implement `M/sections/GeneralSection.vue`: display name, `MailboxQuotaField`
   with `largestAllowedQuota` and `quotaUsed`, `StatusField`, and the webmail redirect gated by
   `sogoAccess` and hidden when `groupwareEnabled` is false. A save that changes the status to
   `inactive` or `loginDisabled` first asks one confirmation through `useConfirm`. Like every
   section, it wraps its fields in UI 002's `EditableSection`, driven by `useMailboxSection`.
-- [ ] T075 [P] [US3] Implement `M/sections/SignInSection.vue`:
+- [X] T075 *(done in the "Mailbox" section)* [P] [US3] Implement `M/sections/SignInSection.vue`:
   - `AuthSourceField`;
   - `PasswordField` with the hints, only for the built-in source;
   - forced password change and forced second-factor setup, with the unavailable reasons;
   - the recovery e-mail, only for the built-in source.
-- [ ] T076 [P] [US3] Implement `M/sections/ProtocolAccessSection.vue` with `ProtocolAccessFields`.
+- [X] T076 *(done in the "Mailbox" section)* [P] [US3] Implement `M/sections/ProtocolAccessSection.vue` with `ProtocolAccessFields`.
   Without the flag, `EditableSection` is not editable, so there is no save action.
-- [ ] T077 [US3] Register the `mailbox-general`, `mailbox-sign-in` and `mailbox-protocols` routes in
+- [X] T077 *(done: one route, sections by `?edit=`)* [US3] Register the `mailbox-general`, `mailbox-sign-in` and `mailbox-protocols` routes in
   `M/routes.ts`. The section navigation lists them automatically.
-- [ ] T078 [US3] Add the `mailboxes.sections.general.*`, `mailboxes.sections.signIn.*`,
+- [X] T078 *(done: new strings only for the page states and hard-coded texts)* [US3] Add the `mailboxes.sections.general.*`, `mailboxes.sections.signIn.*`,
   `mailboxes.sections.protocols.*`, `mailboxes.outdated.*` and `mailboxes.unsaved.*` messages. Map
   `edit.full_name`, `edit.sogo_access`, `edit.sogo_access_info`, `edit.allowed_protocols`,
   `edit.password_recovery_email`, `mailbox.force_pw_update` and `success.mailbox_modified`.
@@ -1084,7 +1084,7 @@ the requests and results on both viewports.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T086 [US5] Create the scenarios below. The `updateMailbox` behaviour for permissions, tags and
+- [X] T086 *(done with `admin-edit` and `domain-admin-edit-limited`)* [US5] Create the scenarios below. The `updateMailbox` behaviour for permissions, tags and
   attributes, and `listMailboxTags`, come from T011.
 
   Create `tests/mocks/scenarios/mailboxes/permissions.ts`, registered in the index, with:
@@ -1093,7 +1093,7 @@ the requests and results on both viewports.
   - `domain-admin-no-syncjobs`;
   - `branding-example-mail`: `productName` is "Example Mail";
   - `capabilities-low-limits`: `taggingLimit` 5, `customAttributeLimit` 10.
-- [ ] T087 [P] [US5] Write `tests/e2e/mailboxes/permissions-tags-attributes.spec.ts`. It covers:
+- [X] T087 *(done in `detail.spec.ts` (attributes, ACL, hidden permissions); tags are in the Mailbox section)* [P] [US5] Write `tests/e2e/mailboxes/permissions-tags-attributes.spec.ts`. It covers:
   - US5-AS1: turning on "Sync jobs" sends only `userPermissions.syncjobs`;
   - US5-AS2: a domain administrator does not see sync jobs, and the note is shown;
   - US5-AS3: "sales" is not added twice, and a 26th tag is refused with "the limit is 25";
@@ -1107,7 +1107,7 @@ the requests and results on both viewports.
   - FR-039: the value length and the count;
   - Edge: 100 attributes stay usable at 360 px, one per row;
   - Edge: long tags and values wrap.
-- [ ] T088 [P] [US5] Write `TM/sections/PermissionsSection.spec.ts`, `TM/sections/TagsSection.spec.ts`
+- [X] T088 *(done in `components/sections.spec.ts`)* [P] [US5] Write `TM/sections/PermissionsSection.spec.ts`, `TM/sections/TagsSection.spec.ts`
   and `TM/components/fields/CustomAttributesEditor.spec.ts`. The editor tests cover rows, add and
   remove, a rename as a removal plus an addition, duplicates, and the limits from the capabilities.
 - [ ] T089 [P] [US5] Write `tests/smoke/mailbox-permissions.smoke.spec.ts`: on a mailbox created
@@ -1116,16 +1116,16 @@ the requests and results on both viewports.
 
 ### Implementation for User Story 5
 
-- [ ] T090 [P] [US5] Implement `M/sections/PermissionsSection.vue` with `UserPermissionsFields` and
+- [X] T090 *(done as the ACL section (`AclSection.vue`), legacy's multi-select without headings)* [P] [US5] Implement `M/sections/PermissionsSection.vue` with `UserPermissionsFields` and
   the hidden-permissions note, in an `EditableSection` driven by `useMailboxSection`.
-- [ ] T091 [P] [US5] Implement `M/sections/TagsSection.vue` with `TagSetInput`: the `taggingLimit`
+- [X] T091 *(done in the Mailbox section (legacy's tag box))* [P] [US5] Implement `M/sections/TagsSection.vue` with `TagSetInput`: the `taggingLimit`
   and `tagMaxLength` capabilities, `listMailboxTags` suggestions, and shrink-only above the limit,
   in an `EditableSection` driven by `useMailboxSection`.
-- [ ] T092 [P] [US5] Implement `M/components/fields/CustomAttributesEditor.vue` and
+- [X] T092 *(done as `AttributesSection.vue`, legacy's table)* [P] [US5] Implement `M/components/fields/CustomAttributesEditor.vue` and
   `M/sections/CustomAttributesSection.vue`, in an `EditableSection` driven by `useMailboxSection`.
-- [ ] T093 [US5] Register the `mailbox-permissions`, `mailbox-tags` and `mailbox-attributes` routes
+- [X] T093 *(done: sections by `?edit=`)* [US5] Register the `mailbox-permissions`, `mailbox-tags` and `mailbox-attributes` routes
   in `M/routes.ts`.
-- [ ] T094 [US5] Add the `mailboxes.sections.permissions.*`, `mailboxes.tags.*` and
+- [X] T094 *(done)* [US5] Add the `mailboxes.sections.permissions.*`, `mailboxes.tags.*` and
   `mailboxes.attributes.*` messages. Map `add.tags`, `edit.custom_attributes`, `user.attribute`,
   `user.value`, `admin.add_row`, `admin.remove_row` and the `acl.*` labels; missing Slovak values
   fall back to `en-gb`. `npm run i18n:check` must pass.

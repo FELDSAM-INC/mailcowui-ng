@@ -76,7 +76,6 @@
       "moreTags": "+{count}",
       "moreTagsLabel": "and {count} more tags"
     },
-    "outcome": {},
     "relay": {
       "short": {
         "relayUnknownOnly": "Relay non-existing mailboxes only"

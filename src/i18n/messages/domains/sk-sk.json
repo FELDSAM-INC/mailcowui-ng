@@ -76,7 +76,6 @@
       "moreTags": "+{count}",
       "moreTagsLabel": "a ďalšie štítky ({count})"
     },
-    "outcome": {},
     "relay": {
       "short": {
         "relayUnknownOnly": "Preposielať len neexistujúce schránky"

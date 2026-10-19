@@ -13,7 +13,8 @@ const { t } = useI18n()
 
 <template>
   <div data-bulk-delete-impact class="flex flex-col gap-3">
-    <ul class="flex max-h-64 flex-col gap-1 overflow-y-auto">
+    <!-- eslint-disable-next-line vuejs-accessibility/no-noninteractive-tabindex -- a scrollable list must be reachable by keyboard -->
+    <ul tabindex="0" class="flex max-h-64 flex-col gap-1 overflow-y-auto">
       <li
         v-for="entry in targets"
         :key="entry.name"

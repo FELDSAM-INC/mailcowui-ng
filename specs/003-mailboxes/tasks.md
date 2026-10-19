@@ -75,11 +75,23 @@ plan.md records; tasks that describe the earlier design are done in that form an
     list);
   - bulk targets carry the version tag as listed, quotes included, which the contract accepts;
   - entry points exist on the domain page only (Mailboxes, Add mailbox).
-- **Lighthouse (T127)**: `/ng/mailboxes` is the third collection. On this loaded machine every URL,
-  including the existing ones, scores below 0.9 for performance; accessibility passes. The sign-in
-  page's scripts total 205,367 bytes, 567 over the 204,800 limit, because the router's preload
-  table in the initial chunk names the mailbox chunks (main measures about 204,340);
-  `npm run budget:check` (initial JS) passes at 176,721 bytes.
+- **Lighthouse (T127)**: `/ng/mailboxes` is the third collection. The sign-in page's scripts were
+  over the 204,800-byte limit (206,734 bytes on main `79948fc`), mostly through the response
+  headers of 23 script requests, 13 of them small chunks that rolldown splits out of the entry
+  because lazy routes share them. A `shell` group in `vite.config.ts` that takes every module of
+  the entry's static graph (rolldown's `$initial` tag) into the entry chunk fixes it. UI 003 made
+  that change, and UI 004 (T111) landed the same group on main `f0c9011`, so UI 003's copy was
+  dropped in the rebase. It replaces UI 012's group, which lists seven of these modules and still
+  leaves 17 scripts (201,759 bytes on main `681bfdb`); with it the sign-in page loads 12 scripts,
+  195,370 bytes, and the initial JavaScript is about 5 KB smaller. Accessibility is at least 0.99 everywhere and sign-in performance reaches 0.9,
+  but `/ng/`, `/ng/domains` and `/ng/mailboxes` score 0.69 to 0.86 for performance on this shared
+  machine (Total Blocking Time 300 to 660 ms), as main `681bfdb` does at the same load (`/ng/` 0.74
+  to 0.84, `/ng/domains` 0.71 to 0.77, sign-in 0.88 and 0.89); they need a run on a quiet machine
+  or in CI (quickstart validation log).
+- **Smoke run (T131)**: the run against the API dev stack corrected the mock: API 003 records a
+  rename under the previous address, so a renamed mailbox's History does not list its rename
+  (the previous address's history does); the record's `keepOldAddressAsAlias` is labelled with
+  legacy's `edit.mailbox_rename_alias` through `LEGACY_TEXTS`.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -738,7 +750,7 @@ and as a domain administrator, on 360 px and desktop:
   - `TM/components/display/MailboxSectionNav.spec.ts`: summaries; only registered section routes;
     History for administrators;
   - `TM/sections/MailboxOverview.spec.ts` and `TM/components/display/LastLogins.spec.ts`.
-- [X] T053 *(written in `tests/smoke/mailboxes.smoke.spec.ts` (`@read-only`); not run, the API dev stack is down)* [P] [US1] Write `tests/smoke/mailboxes.smoke.spec.ts`:
+- [X] T053 *(written in `tests/smoke/mailboxes.smoke.spec.ts` (`@read-only`); passes against the API dev stack (T131))* [P] [US1] Write `tests/smoke/mailboxes.smoke.spec.ts`:
   - `admin` lists the seeded mailboxes, searches "alice" and opens `alice@example.org`;
   - `reseller` sees only mailboxes of `example.org` and `example.net`;
   - one case runs at 360 × 780 with no horizontal scroll;
@@ -910,7 +922,7 @@ Check each request, each error, and the screen after success.
     - the password cleared after success and on unmount;
     - `createMailbox` goes through UI 001's `useSecretRequest`, never through a TanStack mutation,
       so no cache holds the password.
-- [X] T064 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US2] Write `tests/smoke/mailbox-create.smoke.spec.ts`:
+- [X] T064 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; passes against the API dev stack (T131))* [P] [US2] Write `tests/smoke/mailbox-create.smoke.spec.ts`:
   - `admin` creates `smoke-<random>@example.org` with a generated password that the real policy
     accepts, and the detail opens;
   - choosing "Small" applies 1 GiB with POP3 off;
@@ -998,7 +1010,7 @@ overwritten.
 - [X] T072 *(done as `components/sections.spec.ts` for the Mailbox section)* [P] [US3] Write `TM/sections/GeneralSection.spec.ts`, `TM/sections/SignInSection.spec.ts`
   (switching sources, the hints, the password cleared on success and unmount) and
   `TM/sections/ProtocolAccessSection.spec.ts` (read-only, with no save action, without the flag).
-- [ ] T073 *(open: needs the API dev stack, which is down; `tests/smoke/mailboxes.smoke.spec.ts` saves the ACL section once)* [P] [US3] Write `tests/smoke/mailbox-sections.smoke.spec.ts`:
+- [X] T073 *(done: on a mailbox created through the API (`tests/smoke/fixtures/mailboxes-api.ts`), the full name, 2 GiB and "Inactive" in one save, then "Active", a generated password (`passwordChangedAt` changes) and POP3 off; `reseller` sees the protocols read-only on alice's page and saves nothing; passes against the API dev stack (T131))* [P] [US3] Write `tests/smoke/mailbox-sections.smoke.spec.ts`:
   - `admin` creates a mailbox through the API, changes the display name, sets 2 GiB, sets it
     inactive and active again, sets a generated password (`passwordChangedAt` changes) and turns
     POP3 off;
@@ -1077,7 +1089,7 @@ and check what the user sees in each case.
   counts, present flags, retention as days, hours or minutes, blockers) and
   `TM/components/dialogs/MailboxDeleteDialog.spec.ts` (data-model §7.2: preview on open, the tag
   comparison, `If-Match` with `preview.etag`, the initial focus, every outcome).
-- [X] T082 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US4] Write `tests/smoke/mailbox-delete.smoke.spec.ts`: a mailbox created through the
+- [X] T082 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; passes against the API dev stack (T131))* [P] [US4] Write `tests/smoke/mailbox-delete.smoke.spec.ts`: a mailbox created through the
   API is removed through the dialog, with the real preview shown, and disappears from the list.
 
 ### Implementation for User Story 4
@@ -1131,7 +1143,7 @@ the requests and results on both viewports.
 - [X] T088 *(done in `components/sections.spec.ts`)* [P] [US5] Write `TM/sections/PermissionsSection.spec.ts`, `TM/sections/TagsSection.spec.ts`
   and `TM/components/fields/CustomAttributesEditor.spec.ts`. The editor tests cover rows, add and
   remove, a rename as a removal plus an addition, duplicates, and the limits from the capabilities.
-- [ ] T089 *(open: needs the API dev stack, which is down)* [P] [US5] Write `tests/smoke/mailbox-permissions.smoke.spec.ts`: on a mailbox created
+- [X] T089 *(done: sync jobs in the ACL section, two tags in the Mailbox section, a custom attribute, one tag removed, then the saved values after a reload and from the API; passes against the API dev stack (T131))* [P] [US5] Write `tests/smoke/mailbox-permissions.smoke.spec.ts`: on a mailbox created
   through the API, `admin` turns on sync jobs, adds two tags and an attribute, and removes one tag.
   The detail then shows the saved values.
 
@@ -1211,7 +1223,7 @@ the confirmation, the summary and the selection afterwards.
   `TM/composables/useMailboxBulk.spec.ts` (data-model §7.4, with versions in the targets) and
   `TM/components/list/MailboxBulkActions.spec.ts` (the menu, the protocol radio group in the
   dialog, the typed count).
-- [X] T098 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US6] Write `tests/smoke/mailbox-bulk.smoke.spec.ts`: two mailboxes created through
+- [X] T098 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; passes against the API dev stack (T131))* [P] [US6] Write `tests/smoke/mailbox-bulk.smoke.spec.ts`: two mailboxes created through
   the API are deactivated and then activated in bulk, with both results `done`. Teardown deletes
   them.
 
@@ -1284,7 +1296,7 @@ an administrator, and open them as a domain administrator, on both viewports.
     its changes;
   - `TM/components/templates/TemplateCard.spec.ts`: the one-line protocol summary and the forced
     flags as text.
-- [X] T105 *(done; written and listed, not run against the API dev stack)* [P] [US7] Write `tests/smoke/mailbox-templates.smoke.spec.ts`: `admin` creates
+- [X] T105 *(done; passes against the API dev stack (T131))* [P] [US7] Write `tests/smoke/mailbox-templates.smoke.spec.ts`: `admin` creates
   `smoke-<random>`, changes its quota, sees that Default cannot be deleted, and deletes the new
   template. `reseller` reads the list.
 
@@ -1359,7 +1371,7 @@ a temporary failure, "incomplete" and "outcome unknown", and check each screen.
 - [X] T113 *(done in `tests/unit/features/mailboxes/components/rename.spec.ts`)* [P] [US8] Write `TM/sections/RenameSection.spec.ts` (data-model §7.3) and
   `TM/components/dialogs/RenameReport.spec.ts` (every step and outcome translated, `role="alert"`,
   dismissal).
-- [X] T114 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US8] Write `tests/smoke/mailbox-rename.smoke.spec.ts`: a mailbox created through the
+- [X] T114 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; passes against the API dev stack (T131))* [P] [US8] Write `tests/smoke/mailbox-rename.smoke.spec.ts`: a mailbox created through the
   API is renamed with the alias kept, the new detail opens, and the old address no longer resolves
   as a mailbox. Teardown deletes the mailbox.
 
@@ -1412,7 +1424,7 @@ rename and refused records, as an administrator and as a domain administrator, o
   targets and failure reasons are translated, and the detail keys `changes`, `passwordSet`,
   `preHashed`, `previousAddress`, `newAddress`, `bulkRequestId` and `steps` get labels, with the
   raw key for any other.
-- [X] T121 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; not run, the API dev stack is down)* [P] [US9] Write `tests/smoke/mailbox-history.smoke.spec.ts`: after changing a mailbox
+- [X] T121 *(written in `tests/smoke/mailboxes.smoke.spec.ts`; passes against the API dev stack (T131); the change is a full name saved after the rename, because API 003 records the rename under the previous address, whose history the test opens too)* [P] [US9] Write `tests/smoke/mailbox-history.smoke.spec.ts`: after changing a mailbox
   created through the API, its History shows a `mailboxUpdate` by `admin`.
 
 ### Implementation for User Story 9
@@ -1460,7 +1472,7 @@ rename and refused records, as an administrator and as a domain administrator, o
   - no stored value, no visited URL, no `document.title`, no `history.state` and no console message
     contains either password;
   - with storage throwing, the list still works with the default columns.
-- [ ] T127 *(open: the collection is added; the assertions fail on this loaded machine (see the implementation notes))* Add the third collection `/ng/mailboxes` with `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`
+- [ ] T127 *(open: the collection is added, the sign-in page's scripts are within their limit (195,370 bytes, the `$initial` group) and accessibility passes; performance of `/ng/`, `/ng/domains` and `/ng/mailboxes` is 0.69 to 0.86 on this shared machine, as on main, and needs a quiet machine or CI (implementation notes))* Add the third collection `/ng/mailboxes` with `MOCK_DEFAULT_SCENARIO=admin-mailboxes-10k`
   to `scripts/run-lhci.mjs` and `lighthouserc.cjs` (research R20). Run
   `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JS is
   at most 204,800 bytes gzipped, and performance and accessibility are at least 0.9 for all three
@@ -1479,7 +1491,7 @@ rename and refused records, as an administrator and as a domain administrator, o
   timings and a VoiceOver and TalkBack pass of every user story. Run a moderated test of the create
   flow on a phone with at least five administrators and record the first-attempt success rate and
   times for SC-002. Everything goes in the "Validation log" of `specs/003-mailboxes/quickstart.md`.
-- [ ] T131 *(open: the pin 33f1eea already contains the merged API 003; Part C needs the API dev stack, which is down)* Once the API 003 implementation is merged, move the contract pin forward to its merge
+- [X] T131 *(done 2026-10-19: the pin stays at `33f1eea`, which contains the merged API 003 (API main `b4058c3` only adds to it: `Mailbox.mailSettingsVersion` for API 005, which UI 003 does not use and the mailbox mock adds when the pin moves); Part C with the API at `33f1eea` as its own Compose project passed: the mailbox smoke tests 13 of 13 and the whole smoke suite 40 of 40, and after the rebase onto main `681bfdb` 41 passed and 4 skipped (UI 012's identity provider tests, which need the API's `idp` profile); neither generated password appears in the API's, nginx's or the image's logs (quickstart validation log))* Once the API 003 implementation is merged, move the contract pin forward to its merge
   commit if T001 pinned the baseline (T001's procedure and review), then run `quickstart.md` Part C
   against the mailcow-rest-v2 dev stack: `scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep mailbox`,
   `scripts/smoke/stack-down.sh`. Confirm that the generated passwords do not appear in the API's

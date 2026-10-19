@@ -95,25 +95,24 @@ scripts/smoke/stack-down.sh
 The API's development seeder provides `admin`, `reseller` (domain administrator of `example.org`
 and `example.net`, without `protocol_access`), the Default mailbox template, the template "Small",
 and the domain `example.org` (10 mailboxes, 5 GiB). The smoke tests create their own mailboxes
-with random local parts (`smoke-<random>`) and delete them, and never change `alice` or `bob`.
+with random local parts (`smoke.<random>`) and delete them, and never change `alice` or `bob`.
 
-**Expected**: the smoke specs pass:
+**Expected**: the smoke specs pass (the stories' smoke tasks share the files below):
 
-- `mailboxes.smoke.spec.ts`: list, search and detail for `admin`; `reseller`'s scope; one case at
-  360 px;
-- `mailbox-create.smoke.spec.ts`: create with a generated password, the template "Small", and the
-  address-in-use refusal;
-- `mailbox-sections.smoke.spec.ts`: general, sign-in and protocol saves, and the domain
-  administrator's read-only protocols;
-- `mailbox-delete.smoke.spec.ts`: delete with the real preview;
-- `mailbox-permissions.smoke.spec.ts`: permission, tag and attribute saves;
-- `mailbox-bulk.smoke.spec.ts`: deactivate and activate two mailboxes;
-- `mailbox-templates.smoke.spec.ts`: create, edit and delete a template, with Default protected;
-- `mailbox-rename.smoke.spec.ts`: rename with the alias kept;
-- `mailbox-history.smoke.spec.ts`: the History link shows a change.
+- `mailboxes.smoke.spec.ts`: list, search and detail for `admin`; `reseller`'s scope at 360 px; one
+  mailbox added through the form with a generated password, renamed keeping its alias, changed and
+  found in its History (the rename is in the previous address's history, where API 003 records
+  it), deactivated in bulk and removed with the real deletion preview (T053, T064, T082, T098,
+  T114, T121);
+- `mailbox-sections.smoke.spec.ts`: the Mailbox section's full name, quota, status, generated
+  password and protocol saves, and the domain administrator's read-only protocols (T073);
+- `mailbox-permissions.smoke.spec.ts`: permission, tag and attribute saves (T089);
+- `mailbox-templates.smoke.spec.ts`: create, edit and delete a template, with Default protected
+  (T105).
 
-Also check that `docker compose -f $MAILCOW_REST_V2_DIR/compose.yaml logs app | grep -c <generated
-password>` prints `0`.
+Also check that no password generated in the add form or the Mailbox section appears in the
+stack's logs: `docker compose -p <project> logs` (app, web, MariaDB, Redis), the image's
+`docker logs` and the API's `storage/logs/`.
 
 ## Part D: On a mailcow host
 
@@ -130,3 +129,80 @@ After UI 001's Part D, open `https://<MAILCOW_HOSTNAME>/ng/mailboxes` as an admi
 
 Filled in by T130: SC-001 to SC-003 timings on a mid-range Android phone and an iPhone, and a
 VoiceOver and TalkBack pass of every user story.
+
+### Results (2026-10-19)
+
+- **Smoke suite (T073, T089, T131)**: the API at the pinned `33f1eea` as its own Compose project
+  (`SMOKE_PROJECT=ui003-smoke`, `SMOKE_WEB_PORT=18680`, the image tagged `mailcowui-ng:smoke-u003`)
+  so that other stacks on the machine were not touched, then `npm run test:smoke` in the
+  Playwright image. The first run of `--grep mailbox` found three test faults, fixed in the tests:
+  - the tag input of the Mailbox section is a combobox (it suggests the tags in use);
+  - a section's success message stays in that section, so the next save waits in its own section;
+  - API 003 records a rename under the previous address, so the History of the new address does
+    not list it; the test now saves a change after the rename and opens both histories. The mock
+    recorded the rename under the new address and now follows the API, and the record's
+    `keepOldAddressAsAlias` is labelled with legacy's "Create alias automatically";
+  - the navigation smoke test still expected Mailboxes as a placeholder for `reseller`; DNS is the
+    placeholder now, as in the end-to-end test.
+
+  Then the 13 mailbox tests and the whole smoke suite (40 of 40) passed. After the rebase onto
+  main `681bfdb`, with the image rebuilt, 41 passed and 4 were skipped (UI 012's identity provider
+  tests, which need the API's `idp` profile).
+- **Generated passwords (Part C)**: a password generated in the add form and one generated in the
+  Mailbox section of the same mailbox were saved through the app, then searched for in
+  `docker compose -p ui003-smoke logs` (app, web, MariaDB, Redis), the image's `docker logs` and the
+  API's `storage/logs/`: 0 matches for both, while the same logs list the requests.
+- **Bundle (T127)**, `npm run build && npm run budget:check`: the initial JavaScript is 175,078
+  bytes gzipped after the rebase onto main `681bfdb` and 177,138 after the one onto `f0c9011`. The
+  modules the entry imports statically are one chunk (`vite.config.ts`, group `shell` with
+  rolldown's `$initial` tag, which replaces UI 012's group of seven listed modules; UI 004 landed
+  the same group on main `f0c9011`), so the sign-in page requests 12 scripts instead of 17 on main
+  `681bfdb` (23 on main `79948fc`).
+- **Lighthouse (T127)**, `npm run lhci` with the host's Playwright Chromium on a machine shared with
+  other agents (load average 12 to 20 on 16 cores), this branch and then main `681bfdb`:
+
+  | URL | Scripts (limit 204,800) | Performance | Accessibility | main: scripts, performance |
+  |---|---|---|---|---|
+  | `/ng/sign-in` | 195,370 bytes, 12 requests | 0.89, 0.90, 0.90 | 1.00 | 201,759 bytes, 17 requests; 0.88, 0.88, 0.89 |
+  | `/ng/` | 182,078 bytes | 0.80, 0.83, 0.86 | 1.00 | 0.74, 0.84, 0.84 |
+  | `/ng/domains` | 215,490 bytes (lazy route) | 0.69, 0.74, 0.79 | 0.99 | 0.71, 0.74, 0.77 |
+  | `/ng/mailboxes` (10,000 mailboxes) | 224,912 bytes (lazy route) | 0.78, 0.81, 0.82 | 0.99 | not on main |
+
+  The performance scores below 0.9 come from Total Blocking Time (300 to 660 ms) and an LCP of about
+  3 s under this load, on main as on this branch; before the rebase, at a load average of 30 to 35,
+  they were lower still. They need a run on a quiet machine or in CI.
+- **End-to-end** (`npm run test:e2e`, three projects, two workers, in the pinned Playwright image):
+  - before the final rebase (on main `79948fc`): 1707 passed, 23 skipped, none failed;
+  - after the rebase onto main `681bfdb`: 2101 passed, 29 skipped and 2 failed under a load average
+    of about 50 (UI 012's reduced-motion check of the OAuth2 client form found the page not yet
+    rendered after 5 s, and UI 001's session-ended test met the expired session before it opened
+    the navigation); both passed when run again, three times each;
+  - after the rebase onto main `c2c7fe8`: 2116 passed, 29 skipped and 2 failed (UI 002's template
+    list error test, where Chromium reported `net::ERR_NETWORK_CHANGED` while other agents' Docker
+    networks changed, so a route's chunk did not load, and a WebKit `page.goto` of UI 012 that took
+    over 60 s); both passed when run again, three times each;
+  - after the rebase onto main `f0c9011` (UI 004 merged), in the shared two-slot limit: 2755
+    passed, 29 skipped and 8 failed. Three were UI 003's History link locator, which also matched
+    UI 004's new "History: Allow to send as" link on the mailbox page. Five were UI 004's reflow
+    checks of the Mailbox section, which found the section by a heading that also matches UI 003's
+    "⚠️ Rename mailbox". Both locators are exact now, and the two files then passed on the three
+    projects (183 tests).
+  - after the rebase onto main `d716050` (UI 010 merged), whose conflicts were in tests, UI 002's
+    domain page and the Lighthouse script only, the narrow set in the shared two-slot limit, on
+    its own Docker network: the mailbox, navigation, shell, History, audit log and sender settings
+    specs, the domain page and its DNS entry points, and the sync jobs entry points. 969 passed, 12
+    skipped and 3 failed: the navigation test's placeholder for a domain administrator was DNS,
+    which UI 010 delivers. It is Quarantine now (also in the smoke test), and the navigation specs
+    then passed on the three projects (77 tests).
+- **Unit tests** (`npm run test:unit`): after the rebase onto main `f0c9011`, 235 files and 2230
+  tests pass, but line coverage is 75.44 % against the global 80 % threshold, so the command fails;
+  main `f0c9011` alone measures 73.97 % (UI 004's alias domains, resources and aliases are at 8 to
+  40 % line coverage). After the rebase onto main `d716050`: 287 files and 2603 tests pass, line
+  coverage 77.59 %; the global threshold is the only one that fails. After the rebase onto main
+  `9bf0d6b`, which adds UI 004's unit tests: 298 files and 2772 tests pass with 88.7 % line
+  coverage, and the command exits 0. UI 003's `src/features/mailboxes` is at 88.0 % of lines and the
+  audit log it extends at 96.2 %.
+- **Devices (T130)**: not run. No mid-range Android phone or iPhone was available to the
+  implementing agent, so SC-001 to SC-003 on a phone and the VoiceOver and TalkBack passes are
+  still open. The automated stand-ins are the end-to-end suite on the two mobile projects (360 px
+  Chromium with touch, WebKit) with axe in both themes.

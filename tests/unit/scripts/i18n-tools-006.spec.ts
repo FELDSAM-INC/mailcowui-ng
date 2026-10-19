@@ -15,11 +15,12 @@ import {
   REQUIRED_TEMPLATE_REASONS,
   resolvePointer,
   type Coverage,
+  type Messages,
 } from '../../../scripts/i18n/lib.mjs'
 
 const root = process.cwd()
 const read = (path: string) => readFileSync(join(root, path), 'utf8')
-const snapshot = JSON.parse(read('src/i18n/snapshot/lang.en-gb.json')) as Record<string, unknown>
+const snapshot = JSON.parse(read('src/i18n/snapshot/lang.en-gb.json')) as Messages
 const contract = JSON.parse(read('contract/openapi.json')) as unknown
 const coverage = JSON.parse(read('src/i18n/coverage.json')) as Coverage
 

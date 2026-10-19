@@ -392,7 +392,15 @@
       "syncJobCreation": "Synchronizační úloha přidána",
       "syncJobDeletion": "Synchronizační úloha odstraněna",
       "syncJobReschedule": "Synchronizační úloha naplánována znovu",
-      "syncJobUpdate": "Synchronizační úloha změněna"
+      "syncJobUpdate": "Synchronizační úloha změněna",
+      "dkimKeyGeneration": "DKIM klíč vygenerován",
+      "dkimKeyImport": "DKIM klíč importován",
+      "dkimKeyCopy": "DKIM klíč zkopírován",
+      "dkimKeyDeletion": "DKIM klíč odebrán",
+      "dkimPrivateKeyExport": "Soukromý DKIM klíč exportován",
+      "dkimDnsPublication": "DKIM záznam zveřejněn",
+      "mtaStsPolicyCreation": "MTA-STS politika přidána",
+      "mtaStsPolicyUpdate": "MTA-STS politika změněna"
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktivní",
@@ -439,7 +447,8 @@
       "preferences": "Předvolby",
       "session": "Relace",
       "mailboxTemplate": "Šablona schránky",
-      "syncJob": "Synchronizační úloha"
+      "syncJob": "Synchronizační úloha",
+      "dkimKey": "DKIM klíč"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresáře",
@@ -600,7 +609,6 @@
   "nav": {
     "apiKeys": "API klíče",
     "auditLog": "Protokol auditu",
-    "dns": "DKIM, MTA-STS a DNS",
     "home": "Úvod",
     "identityProviders": "Poskytovatelé identit a OAuth2",
     "operations": "Monitorování a provoz",
@@ -709,7 +717,10 @@
     "mailbox-rename-incomplete": "Přejmenování se nepodařilo dokončit ani vrátit zpět. Obraťte se na provozovatele serveru.",
     "outcome-unknown": "Není známo, zda byla akce dokončena. Před dalším pokusem zkontrolujte výsledek.",
     "mailbox-template-name-exists": "Šablona schránky s tímto názvem již existuje.",
-    "mailbox-template-protected": "Výchozí šablonu nelze přejmenovat ani smazat."
+    "mailbox-template-protected": "Výchozí šablonu nelze přejmenovat ani smazat.",
+    "dkim-private-key-export-disabled": "Export soukromých klíčů je na tomto serveru vypnutý. Provozovatel jej může zapnout.",
+    "dkim-dns-publication-disabled": "Zveřejňování v DNS je na tomto serveru vypnuté.",
+    "mta-sts-policy-exists": "Tato doména již má MTA-STS politiku."
   },
   "roles": {
     "mailboxUser": "Uživatel schránky"
@@ -824,7 +835,8 @@
       "totpCode": "Zadejte šestimístný kód.",
       "webauthnCredential": "Odpověď bezpečnostního nebo přístupového klíče není platná.",
       "yubicoOtp": "Zadejte 44 písmen nebo číslic, které napíše váš YubiKey.",
-      "attributeName": "Použijte název bez mezer."
+      "attributeName": "Použijte název bez mezer.",
+      "mxHost": "Zadejte název hostitele, například mail.example.org nebo *.example.org."
     },
     "immutable": "Tuto hodnotu nelze změnit.",
     "invalid": "Tato hodnota není platná.",
@@ -844,7 +856,12 @@
     "tooLongBytes": "Text smí mít nejvýše {max}.",
     "tooMany": "Zadejte nejvýše {max} položek.",
     "tooShort": "Zadejte alespoň {min} znaků.",
-    "unchanged": "Nová hodnota je stejná jako současná."
+    "unchanged": "Nová hodnota je stejná jako současná.",
+    "invalidPrivateKey": "Toto není platný soukromý klíč ve formátu PEM.",
+    "encryptedPrivateKey": "Klíč je chráněn heslem. Nejprve heslo odstraňte.",
+    "unsupportedKeyType": "Podporovány jsou jen tyto typy klíčů: {allowed}.",
+    "keyLengthOutOfRange": "Klíč musí mít {min} až {max} bitů.",
+    "sameAsSource": "Zvolte jiný název, než má zdroj."
   },
   "senderSettings": {
     "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",
@@ -856,5 +873,8 @@
       "aliasBlocked": "Alias (blokován)",
       "stale": "Už neexistuje"
     }
+  },
+  "dns": {
+    "checkDns": "DNS"
   }
 }

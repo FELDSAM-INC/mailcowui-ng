@@ -1,0 +1,45 @@
+{
+  "dns": {
+    "common": {
+      "gone": "Tato položka již neexistuje.",
+      "retryIn": "Zkuste to znovu za {time}."
+    },
+    "capabilities": {
+      "loadFailed": "Nastavení DNS serveru se nepodařilo načíst."
+    },
+    "publication": {
+      "title": "Zveřejnění v DNS",
+      "status": {
+        "published": "Zveřejněno v zóně DNS",
+        "removed": "Odebráno ze zóny DNS",
+        "noRecordToRemove": "Žádný záznam k odebrání",
+        "noZone": "Pro tento název nebyla nalezena žádná zóna DNS",
+        "failed": "Nezveřejněno",
+        "notConfigured": "Zveřejňování v DNS není nastaveno"
+      },
+      "advice": {
+        "noZone": "Zveřejněte záznam ručně.",
+        "failed": "Klíč funguje; záznam lze zveřejnit znovu."
+      },
+      "reasons": {
+        "unreachable": "Server DNS nebyl dostupný.",
+        "timeout": "Server DNS neodpověděl včas.",
+        "authenticationFailed": "Server DNS odmítl přihlašovací údaje.",
+        "remoteFault": "Server DNS ohlásil chybu.",
+        "invalidResponse": "Server DNS poslal odpověď, kterou nelze přečíst.",
+        "staleRecordRemovalFailed": "Starý záznam se nepodařilo ze zóny odebrat.",
+        "unknown": "Server DNS ohlásil neočekávaný problém."
+      },
+      "detail": "Technické podrobnosti"
+    },
+    "dkim": {
+      "run": {
+        "started": "Zahájeno: {count} názvů.",
+        "progress": "Hotovo {percent} %.",
+        "finished": "Dokončeno: {counts}.",
+        "status": "Zpracováno {done} z {total} názvů",
+        "progressLabel": "Průběh"
+      }
+    }
+  }
+}

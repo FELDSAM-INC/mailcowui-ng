@@ -24,7 +24,9 @@ const ADMIN = [
   'Administrators',
   'Sync jobs',
   'Routing and rewriting',
-  'DKIM, MTA-STS and DNS',
+  // UI 010 splits its row into two entries (FR-001).
+  'ARC/DKIM keys',
+  'MTA-STS',
   'Monitoring and operations',
   'Identity providers and OAuth2',
   'System settings',
@@ -43,7 +45,9 @@ const DOMAIN_ADMIN = [
   'User Settings',
   'Passkeys',
   'Quarantine',
-  'DKIM, MTA-STS and DNS',
+  // UI 010 splits its row into two entries (FR-001).
+  'ARC/DKIM keys',
+  'MTA-STS',
 ]
 const MAILBOX_USER = ['Home', 'User Settings', 'Passkeys', 'Quarantine']
 

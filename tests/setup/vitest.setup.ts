@@ -24,6 +24,7 @@ beforeEach(async () => {
     loadFeatureMessages('sync-jobs', i18n, 'en-gb'),
     loadFeatureMessages('identityProviders', i18n, 'en-gb'),
     loadFeatureMessages('aliases', i18n, 'en-gb'),
+    loadFeatureMessages('dns', i18n, 'en-gb'),
   ])
 })
 

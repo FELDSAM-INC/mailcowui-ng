@@ -57,7 +57,9 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   administrators: { admin: true, domainAdmin: false, mailboxUser: false },
   syncJobs: { admin: true, domainAdmin: ['syncjobs'], mailboxUser: ['syncjobs'] },
   routing: { admin: true, domainAdmin: ['bccMaps'], mailboxUser: false },
-  dns: { admin: true, domainAdmin: true, mailboxUser: false },
+  // UI 010 (research R2): the row `dns` is split into two entries (FR-001).
+  dkimKeys: { admin: true, domainAdmin: true, mailboxUser: false },
+  mtaStsPolicies: { admin: true, domainAdmin: true, mailboxUser: false },
   operations: { admin: true, domainAdmin: false, mailboxUser: false },
   identityProviders: { admin: true, domainAdmin: false, mailboxUser: false },
   system: { admin: true, domainAdmin: false, mailboxUser: false },
@@ -95,12 +97,15 @@ describe('navigation catalogue', () => {
       spamFilter: 'user.spamfilter',
       administrators: 'admin.admins',
       syncJobs: 'mailbox.sync_jobs',
+      dkimKeys: 'admin.dkim_keys',
+      mtaStsPolicies: 'edit.mta_sts',
     }
     for (const entry of catalogue) {
       const legacyKey = classic[entry.id]
       expect(entry.labelKey).toEqual(legacyKey ? { legacy: legacyKey } : `nav.${entry.id}`)
       expect(entry.icon).toBeTruthy()
-      expect(entry.path).toMatch(/^\/[a-z-]*$/)
+      // UI 010: the DNS entries live under /dns (research R2).
+      expect(entry.path).toMatch(/^\/[a-z-]*(\/[a-z-]+)?$/)
     }
     expect(new Set(catalogue.map((entry) => entry.path)).size).toBe(catalogue.length)
   })
@@ -134,6 +139,18 @@ describe('navigation catalogue', () => {
     })
     const ids = catalogue.map((item) => item.id)
     expect(ids.indexOf('mailboxTemplates')).toBe(ids.indexOf('mailboxes') + 1)
+  })
+
+  it('delivers the two DNS entries with UI 010 under /dns', () => {
+    const dkim = catalogue.find((item) => item.id === 'dkimKeys')
+    const mtaSts = catalogue.find((item) => item.id === 'mtaStsPolicies')
+    expect(dkim?.path).toBe('/dns/dkim-keys')
+    expect(mtaSts?.path).toBe('/dns/mta-sts-policies')
+    expect(dkim?.deliveredBy).toBe('010')
+    expect(mtaSts?.deliveredBy).toBe('010')
+    expect(dkim?.classic).toEqual({ admin: ['/admin/system'], domainAdmin: ['/domainadmin/mailbox'] })
+    expect(mtaSts?.classic).toEqual({ admin: ['/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] })
+    expect(catalogue.some((item) => (item.id as string) === 'dns')).toBe(false)
   })
 
   it('links every placeholder to the classic interface for each role that sees it', () => {

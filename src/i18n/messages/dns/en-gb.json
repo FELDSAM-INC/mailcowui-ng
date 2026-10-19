@@ -1,0 +1,45 @@
+{
+  "dns": {
+    "common": {
+      "gone": "This entry no longer exists.",
+      "retryIn": "Try again in {time}."
+    },
+    "capabilities": {
+      "loadFailed": "The DNS settings of the server could not be loaded."
+    },
+    "publication": {
+      "title": "DNS publication",
+      "status": {
+        "published": "Published to the DNS zone",
+        "removed": "Removed from the DNS zone",
+        "noRecordToRemove": "No record to remove",
+        "noZone": "No DNS zone was found for this name",
+        "failed": "Not published",
+        "notConfigured": "DNS publication is not configured"
+      },
+      "advice": {
+        "noZone": "Publish the record manually.",
+        "failed": "The key works; the record can be published again."
+      },
+      "reasons": {
+        "unreachable": "The DNS server could not be reached.",
+        "timeout": "The DNS server did not answer in time.",
+        "authenticationFailed": "The DNS server refused the credentials.",
+        "remoteFault": "The DNS server reported an error.",
+        "invalidResponse": "The DNS server sent an answer that could not be read.",
+        "staleRecordRemovalFailed": "An old record could not be removed from the zone.",
+        "unknown": "The DNS server reported an unexpected problem."
+      },
+      "detail": "Technical detail"
+    },
+    "dkim": {
+      "run": {
+        "started": "Started: {count} names.",
+        "progress": "{percent} % done.",
+        "finished": "Finished: {counts}.",
+        "status": "{done} of {total} names processed",
+        "progressLabel": "Progress"
+      }
+    }
+  }
+}

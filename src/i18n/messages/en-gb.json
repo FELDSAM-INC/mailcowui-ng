@@ -392,7 +392,15 @@
       "syncJobCreation": "Sync job added",
       "syncJobDeletion": "Sync job removed",
       "syncJobReschedule": "Sync job rescheduled",
-      "syncJobUpdate": "Sync job changed"
+      "syncJobUpdate": "Sync job changed",
+      "dkimKeyGeneration": "DKIM key generated",
+      "dkimKeyImport": "DKIM key imported",
+      "dkimKeyCopy": "DKIM key copied",
+      "dkimKeyDeletion": "DKIM key removed",
+      "dkimPrivateKeyExport": "DKIM private key exported",
+      "dkimDnsPublication": "DKIM record published",
+      "mtaStsPolicyCreation": "MTA-STS policy added",
+      "mtaStsPolicyUpdate": "MTA-STS policy changed"
     },
     "auditFailureReason": {
       "accountInactive": "Account inactive",
@@ -439,7 +447,8 @@
       "preferences": "Preferences",
       "session": "Session",
       "mailboxTemplate": "Mailbox template",
-      "syncJob": "Sync job"
+      "syncJob": "Sync job",
+      "dkimKey": "DKIM key"
     },
     "authMethod": {
       "directoryPassword": "Directory password",
@@ -600,7 +609,6 @@
   "nav": {
     "apiKeys": "API keys",
     "auditLog": "Audit log",
-    "dns": "DKIM, MTA-STS and DNS",
     "home": "Home",
     "identityProviders": "Identity providers and OAuth2",
     "operations": "Monitoring and operations",
@@ -709,7 +717,10 @@
     "mailbox-rename-incomplete": "The rename could neither be completed nor undone. Contact the server operator.",
     "outcome-unknown": "It is unknown whether the action was completed. Check the result before you try again.",
     "mailbox-template-name-exists": "A mailbox template with this name already exists.",
-    "mailbox-template-protected": "The Default template cannot be renamed or deleted."
+    "mailbox-template-protected": "The Default template cannot be renamed or deleted.",
+    "dkim-private-key-export-disabled": "Private key export is turned off on this server. The operator can turn it on.",
+    "dkim-dns-publication-disabled": "DNS publication is turned off on this server.",
+    "mta-sts-policy-exists": "This domain already has an MTA-STS policy."
   },
   "roles": {
     "mailboxUser": "Mailbox user"
@@ -824,7 +835,8 @@
       "totpCode": "Enter the six-digit code.",
       "webauthnCredential": "The response of the security key or passkey is not valid.",
       "yubicoOtp": "Enter the 44 letters or digits your YubiKey types.",
-      "attributeName": "Use a name without spaces."
+      "attributeName": "Use a name without spaces.",
+      "mxHost": "Enter a host name, for example mail.example.org or *.example.org."
     },
     "immutable": "This value cannot be changed.",
     "invalid": "This value is not valid.",
@@ -844,7 +856,12 @@
     "tooLongBytes": "This text may be at most {max} long.",
     "tooMany": "Enter at most {max} entries.",
     "tooShort": "Enter at least {min} characters.",
-    "unchanged": "The new value is the same as the current one."
+    "unchanged": "The new value is the same as the current one.",
+    "invalidPrivateKey": "This is not a valid PEM private key.",
+    "encryptedPrivateKey": "The key is protected by a passphrase. Remove the passphrase first.",
+    "unsupportedKeyType": "Only these key types are supported: {allowed}.",
+    "keyLengthOutOfRange": "The key must have {min} to {max} bits.",
+    "sameAsSource": "Choose a name other than the source."
   },
   "senderSettings": {
     "externalPlaceholder": "user1{'@'}example.com, user2{'@'}example.org, {'@'}example.com, ...",
@@ -856,5 +873,8 @@
       "aliasBlocked": "Alias (blocked)",
       "stale": "No longer exists"
     }
+  },
+  "dns": {
+    "checkDns": "DNS"
   }
 }

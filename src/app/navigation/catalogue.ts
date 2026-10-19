@@ -45,7 +45,8 @@ export type NavEntryId =
   | 'administrators'
   | 'syncJobs'
   | 'routing'
-  | 'dns'
+  | 'dkimKeys'
+  | 'mtaStsPolicies'
   | 'operations'
   | 'identityProviders'
   | 'system'
@@ -94,6 +95,9 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   spamFilter: legacy('user.spamfilter'),
   administrators: legacy('admin.admins'),
   syncJobs: legacy('mailbox.sync_jobs'),
+  // UI 010 (legacy form map): the classic DKIM tab and the domain page's MTA-STS tab.
+  dkimKeys: legacy('admin.dkim_keys'),
+  mtaStsPolicies: legacy('edit.mta_sts'),
 }
 
 function entry(
@@ -165,10 +169,12 @@ export const catalogue: readonly NavigationEntry[] = [
     '009',
     { admin: ['/admin/system', '/admin/mailbox'], domainAdmin: ['/domainadmin/mailbox'] },
   ),
-  entry('dns', '/dns', DatabaseIcon, MANAGERS, '010', {
+  // UI 010 (research R2): DKIM keys (with the diagnostics) and the MTA-STS policies, under /dns.
+  entry('dkimKeys', '/dns/dkim-keys', DatabaseIcon, MANAGERS, '010', {
     admin: ['/admin/system'],
     domainAdmin: ['/domainadmin/mailbox'],
   }),
+  entry('mtaStsPolicies', '/dns/mta-sts-policies', LockIcon, MANAGERS, '010', MAIL_SETUP),
   entry('operations', '/operations', BarChartIcon, ADMIN, '011', {
     admin: ['/admin/dashboard', '/admin/queue'],
   }),

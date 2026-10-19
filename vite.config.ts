@@ -59,6 +59,13 @@ export default defineConfig({
               priority: 20,
             },
             { name: 'icons', test: /[\\/]src[\\/]shared[\\/]icons[\\/]/, priority: 10 },
+            // UI 012: small modules that every page loads at start, in one chunk instead of one
+            // request each (rolldown splits a module out when lazy chunks share it).
+            {
+              name: 'shell',
+              test: /[\\/]src[\\/](app[\\/]router[\\/]return-to|app[\\/]session[\\/]queries|app[\\/]preferences[\\/]theme|app[\\/]navigation[\\/]catalogue|shared[\\/]security[\\/]safe-url|shared[\\/]platform[\\/]storage|shared[\\/]composables[\\/]useAnnouncer)\.ts$/,
+              priority: 5,
+            },
           ],
         },
       },

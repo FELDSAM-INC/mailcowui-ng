@@ -32,6 +32,9 @@ async function mountPage(role: Role | null = null) {
     ),
   )
   await flushPromises()
+  // UI 012: the single sign-on section is a lazy component.
+  await vi.dynamicImportSettled()
+  await flushPromises()
   return wrapper
 }
 

@@ -8,11 +8,10 @@
 // password form and "Forgot password?" below the classic "or login with"; "force single sign-on"
 // then hides the password form and the reset link (the passkey stays). Forcing it while it is not
 // offered changes nothing. The administrator screens never offer it.
-import { computed, onMounted, useId } from 'vue'
+import { computed, defineAsyncComponent, onMounted, shallowRef, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
 
-import type { Role } from '@/api'
+import type { ApiProblem, Role } from '@/api'
 import { useBranding } from '@/app/branding/public-config'
 import { CLASSIC_PASSWORD_RESET } from '@/app/navigation/classic-links'
 import { legacy, type LegacyRef } from '@/i18n'
@@ -20,6 +19,7 @@ import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SanitizedHtml from '@/shared/components/SanitizedHtml.vue'
 import { ChevronDownIcon } from '@/shared/icons'
+import { sessionStore } from '@/shared/platform/storage'
 import { passkeysSupported } from '@/shared/platform/webauthn'
 
 import AppLinksSection from '../components/AppLinksSection.vue'
@@ -29,16 +29,17 @@ import PasswordForm from '../components/PasswordForm.vue'
 import RoleLinks from '../components/RoleLinks.vue'
 import SignInHeader from '../components/SignInHeader.vue'
 import SignInNotice from '../components/SignInNotice.vue'
-import SingleSignOnButton from '../components/SingleSignOnButton.vue'
 import { useConditionalPasskey } from '../composables/useConditionalPasskey'
 import { usePasskeySignIn } from '../composables/usePasskeySignIn'
-import { useSingleSignOnStart } from '../composables/useSingleSignOnStart'
-import { forgetKeptReturnTo } from '../sso/return-to'
+
+/** Loaded only when single sign-on is offered (constitution VII). */
+const SingleSignOnSection = defineAsyncComponent(
+  () => import('../components/SingleSignOnSection.vue'),
+)
 
 const props = defineProps<{ role?: Role | null }>()
 const { t } = useI18n()
 const { branding, query: publicConfig } = useBranding()
-const route = useRoute()
 const titleId = useId()
 
 const role = computed(() => props.role ?? null)
@@ -65,13 +66,10 @@ const conditional = useConditionalPasskey({
   onError: (error) => passkey.report(error),
 })
 
-// UI 012: single sign-on keeps the requested page for after the round trip (FR-043).
-const sso = useSingleSignOnStart({
-  returnTo: () => route.query.returnTo,
-  onStart: () => conditional.stop(),
-})
+// UI 012: the last problem of a single sign-on start, kept when the action is gone (FR-043).
+const ssoProblem = shallowRef<ApiProblem | null>(null)
 // An address left behind by an abandoned round trip never steers a later return (research R4).
-onMounted(forgetKeptReturnTo)
+onMounted(() => sessionStore.remove('mailcowui-ng.sso-return-to'))
 </script>
 
 <template>
@@ -113,14 +111,13 @@ onMounted(forgetKeptReturnTo)
           class="text-link self-start"
         />
       </template>
-      <template v-if="ssoOffered">
-        <OrDivider v-if="!forceSso || passkeys" data-other-logins>
-          <LegacyText k="login.other_logins" />
-        </OrDivider>
-        <ProblemMessage :problem="sso.problem.value" />
-        <SingleSignOnButton :pending="sso.pending.value" @start="sso.start" />
-      </template>
-      <ProblemMessage v-else :problem="sso.problem.value" />
+      <SingleSignOnSection
+        v-if="ssoOffered"
+        :divider="!forceSso || passkeys"
+        @starting="conditional.stop()"
+        @problem="ssoProblem = $event"
+      />
+      <ProblemMessage v-else :problem="ssoProblem" />
       <RoleLinks :role="role" />
     </section>
     <details v-if="branding.loginHelpHtml" data-help class="surface group">

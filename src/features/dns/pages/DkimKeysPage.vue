@@ -333,8 +333,9 @@ onBeforeUnmount(() => run.stop())
       </template>
     </PageHeader>
 
+    <!-- Shown at once with placeholders, so that the list does not move when the settings arrive. -->
     <DkimSettingsSummary
-      v-if="role === 'admin' && capabilities.data.value"
+      v-if="role === 'admin' && !(capabilities.isError.value && !capabilities.data.value)"
       :caps="capabilities.data.value"
     />
 

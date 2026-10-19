@@ -16,5 +16,16 @@ describe('DkimSettingsSummary', () => {
     expect(wrapper.text()).toContain('Private key export')
     expect(wrapper.text()).toContain('Off')
     expect(wrapper.text()).toContain('On')
+    expect(wrapper.find('[data-dkim-settings]').attributes('aria-busy')).toBeUndefined()
+  })
+
+  it('keeps its place with the labels and placeholders while the settings load (SC-013, no layout shift)', () => {
+    const wrapper = mountWithApp(DkimSettingsSummary, { props: { caps: undefined } })
+    const section = wrapper.find('[data-dkim-settings]')
+    expect(section.exists()).toBe(true)
+    expect(section.attributes('aria-busy')).toBe('true')
+    expect(wrapper.text()).toContain('Private key export')
+    expect(wrapper.findAll('dd [data-placeholder]')).toHaveLength(4)
+    expect(wrapper.text()).not.toContain('Off')
   })
 })

@@ -143,7 +143,7 @@ const columnCount = computed(
               <div class="flex flex-col items-start gap-1">
                 <RouterLink
                   :to="{ name: 'mailbox-template-detail', params: { templateId: template.id } }"
-                  class="inline-flex min-h-11 min-w-0 items-center font-semibold break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+                  class="inline-flex min-h-11 min-w-11 items-center font-semibold break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
                 >
                   {{ template.name }}
                 </RouterLink>

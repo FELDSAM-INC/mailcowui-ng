@@ -66,7 +66,7 @@ const values = computed(() => [
           <h3 :id="`${id}-name`" class="text-base font-semibold text-gray-900 dark:text-white">
             <RouterLink
               :to="{ name: 'mailbox-template-detail', params: { templateId: template.id } }"
-              class="inline-flex min-h-11 items-center break-words underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
+              class="inline-flex min-h-11 min-w-11 items-center break-words underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
             >
               {{ template.name }}
             </RouterLink>

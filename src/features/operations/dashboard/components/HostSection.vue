@@ -19,6 +19,7 @@ import CpuMemorySection from './CpuMemorySection.vue'
 import MailStorage from './MailStorage.vue'
 import PublicAddresses from './PublicAddresses.vue'
 import VersionLine from './VersionLine.vue'
+import { useOperationsFormat } from '../../format'
 
 const props = defineProps<{
   overview: HostOverview | undefined
@@ -32,6 +33,7 @@ const props = defineProps<{
 defineEmits<{ retryOverview: []; retryStorage: [] }>()
 const { t } = useI18n()
 const fmt = useFormat()
+const opsFmt = useOperationsFormat()
 const { branding } = useBranding()
 
 /** The host's current time in its own time zone (legacy shows the host's clock). */
@@ -107,7 +109,7 @@ const VALUE = 'min-w-0 wrap-anywhere text-gray-900 dark:text-white'
         <dd :class="VALUE" class="mb-2 sm:mb-0" data-time-zone>{{ overview.timeZone }}</dd>
         <dt :class="TERM">{{ lt('debug.uptime') }}</dt>
         <dd :class="VALUE" class="mb-2 sm:mb-0" data-uptime>
-          {{ fmt.uptime(overview.uptimeSeconds) }}
+          {{ opsFmt.uptime(overview.uptimeSeconds) }}
         </dd>
       </template>
       <dt :class="TERM">{{ lt('debug.disk_usage') }}</dt>

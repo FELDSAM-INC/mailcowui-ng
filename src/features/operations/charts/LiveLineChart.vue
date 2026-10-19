@@ -22,6 +22,7 @@ import {
   type ChartKind,
   type ChartSample,
 } from './scale'
+import { useOperationsFormat } from '../format'
 
 const props = defineProps<{
   caption: string
@@ -32,13 +33,14 @@ const props = defineProps<{
 
 const { t } = useI18n()
 const fmt = useFormat()
+const opsFmt = useOperationsFormat()
 const id = useId()
 const showTable = ref(false)
 
 function format(value: number): string {
   return props.kind === 'percent'
     ? fmt.number(value / 100, { style: 'percent', maximumFractionDigits: 1 })
-    : fmt.rate(value)
+    : opsFmt.rate(value)
 }
 
 const valued = computed(() =>

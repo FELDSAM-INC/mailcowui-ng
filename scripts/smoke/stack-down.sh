@@ -13,9 +13,11 @@ if [[ -d "$work" ]]; then
   # UI 011: the outbound fakes that stack-up.sh switched on.
   if [[ -f "$work/.env" ]]; then sed -i '/^RESTV2_FAKE_OUTBOUND=/d' "$work/.env"; fi
   # UI 012: also the `idp` profile that SMOKE_IDP=1 started; UI 009: the `routing` profile of
-  # SMOKE_COMPOSE_PROFILES.
-  (cd "$work" && docker compose -p "$project" --profile idp --profile routing down -v \
-    --remove-orphans)
+  # SMOKE_COMPOSE_PROFILES; UI 006: the `mail` profile (mailpit) with its port override.
+  files=(-f compose.yaml)
+  [[ -f "$work/compose.smoke-mail.yaml" ]] && files+=(-f compose.smoke-mail.yaml)
+  (cd "$work" && docker compose "${files[@]}" -p "$project" --profile idp --profile routing \
+    --profile mail down -v --remove-orphans)
   git -C "$api_dir" worktree remove --force "$work" 2>/dev/null || rm -rf "$work"
 fi
 echo "smoke stack removed"

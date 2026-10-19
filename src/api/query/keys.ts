@@ -56,6 +56,17 @@ export type ForwardingHostListParams = NonNullable<
   operations['listForwardingHosts']['parameters']['query']
 >
 
+// UI 006 (data-model §3).
+export type QuarantineListParams = NonNullable<
+  operations['listQuarantineItems']['parameters']['query']
+>
+export type SpamPolicyEntryListParams = NonNullable<
+  operations['listMailboxSpamPolicyEntries']['parameters']['query']
+>
+export type RateLimitListParams = NonNullable<operations['listRateLimits']['parameters']['query']>
+export type SpamPolicyOwnerKind = 'domain' | 'aliasDomain' | 'mailbox'
+export type RateLimitKind = SpamPolicyOwnerKind
+
 export type Oauth2ClientListParams = NonNullable<
   operations['listOauth2Clients']['parameters']['query']
 >
@@ -282,5 +293,38 @@ export const queryKeys = {
     all: () => ['forwarding-hosts'] as const,
     lists: () => ['forwarding-hosts', 'list'] as const,
     list: (params: ForwardingHostListParams) => ['forwarding-hosts', 'list', params] as const,
+  },
+  // UI 006 (data-model §3): the quarantine, the spam policy (score, lists, statistics) and the
+  // rate limits, each under its own root. Mailbox names are lower-cased like UI 003's keys.
+  quarantine: {
+    all: () => ['quarantine'] as const,
+    capabilities: () => ['quarantine', 'capabilities'] as const,
+    settings: () => ['quarantine', 'settings'] as const,
+    lists: () => ['quarantine', 'list'] as const,
+    list: (params: QuarantineListParams) => ['quarantine', 'list', params] as const,
+    details: () => ['quarantine', 'detail'] as const,
+    detail: (itemId: number) => ['quarantine', 'detail', itemId] as const,
+    notificationSettingsAll: () => ['quarantine', 'notification-settings'] as const,
+    notificationSettings: (mailbox: string) =>
+      ['quarantine', 'notification-settings', mailbox.toLowerCase()] as const,
+  },
+  spamPolicy: {
+    all: () => ['spam-policy'] as const,
+    spamScore: (mailbox: string) => ['spam-policy', 'spam-score', mailbox.toLowerCase()] as const,
+    entriesAll: () => ['spam-policy', 'entries'] as const,
+    ownerEntries: (kind: SpamPolicyOwnerKind, owner: string) =>
+      ['spam-policy', 'entries', kind, owner.toLowerCase()] as const,
+    entries: (kind: SpamPolicyOwnerKind, owner: string, params: SpamPolicyEntryListParams) =>
+      ['spam-policy', 'entries', kind, owner.toLowerCase(), params] as const,
+    statistics: () => ['spam-policy', 'statistics'] as const,
+  },
+  rateLimits: {
+    all: () => ['rate-limits'] as const,
+    lists: () => ['rate-limits', 'list'] as const,
+    list: (params: RateLimitListParams) => ['rate-limits', 'list', params] as const,
+    details: () => ['rate-limits', 'detail'] as const,
+    kindDetails: (kind: RateLimitKind) => ['rate-limits', 'detail', kind] as const,
+    detail: (kind: RateLimitKind, object: string) =>
+      ['rate-limits', 'detail', kind, object.toLowerCase()] as const,
   },
 }

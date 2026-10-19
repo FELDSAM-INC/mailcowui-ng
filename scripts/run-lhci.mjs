@@ -36,6 +36,8 @@ const collections = [
     scenario: 'admin-operations-lighthouse',
     optional: true,
   },
+  // UI 006 (T008, SC-010): the quarantine of a mailbox user, 25 of 30 items.
+  { url: `http://127.0.0.1:${previewPort}/ng/quarantine`, scenario: 'quarantine-mailbox-user' },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

@@ -101,8 +101,9 @@ describe('navigation catalogue', () => {
   })
 
   it('starts every row as a placeholder until its story makes it available', () => {
-    // Rows that later features have delivered so far (UI 002 US1: domains; US6: templates).
-    const available = new Set<NavEntryId>(['domains', 'domainTemplates'])
+    // Rows that later features have delivered so far (UI 002 US1: domains; US6: templates;
+    // UI 008: sync jobs).
+    const available = new Set<NavEntryId>(['domains', 'domainTemplates', 'syncJobs'])
     const delivered = catalogue.filter((entry) => entry.deliveredBy !== '001')
     for (const entry of delivered) {
       expect(entry.status, entry.id).toBe(available.has(entry.id) ? 'available' : 'placeholder')

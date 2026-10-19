@@ -17,6 +17,8 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { WarningIcon } from '@/shared/icons'
 
 import { useMonitoringCapabilities } from '../../capabilities'
+import { useContainers } from '../../dashboard/api'
+import ContainerActions from '../../dashboard/components/ContainerActions.vue'
 import { rulesOptions, settingsOptions } from '../api'
 import BanListSection from '../components/BanListSection.vue'
 import ParametersSection from '../components/ParametersSection.vue'
@@ -43,6 +45,13 @@ const rulesDirty = ref(false)
 useLeaveGuard(
   computed(() => parametersDirty.value || rulesDirty.value),
   { messageKey: 'leaveGuard.body' },
+)
+
+// FR-017 (T114): "Restart netfilter" restarts the container whose role is `banService`, with the
+// dashboard's confirmation, progress and outcomes; no service name is hard-coded (research R8).
+const containers = useContainers()
+const banService = computed(() =>
+  containers.data.value?.find((container) => container.role === 'banService'),
 )
 
 const notRunning = computed(
@@ -84,9 +93,14 @@ const notRunning = computed(
         @close="setEditing(false)"
         @dirty="(dirty) => (parametersDirty = dirty)"
       >
-        <!-- T114: "Restart netfilter" (`header.restart_netfilter`) for the container whose role is
-             `banService` goes here, beside the form's actions, as legacy places it. -->
-        <template #restart />
+        <template #restart>
+          <ContainerActions
+            v-if="banService"
+            :container="banService"
+            :actions="['restart']"
+            :restart-label="lt('header.restart_netfilter')"
+          />
+        </template>
       </ParametersSection>
 
       <RulesSection

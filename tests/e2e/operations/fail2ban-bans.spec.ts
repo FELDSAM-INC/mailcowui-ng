@@ -158,3 +158,28 @@ test.describe('Fail2ban bans @operations', () => {
     await expect(page.locator('[data-active-bans]')).toBeVisible()
   })
 })
+
+test.describe('Restart netfilter @operations', () => {
+  test('FR-017 T114 "Restart netfilter" confirms with legacy\'s dialog and reports the outcome', async ({
+    page,
+    mockApi,
+    expectAccessible,
+  }) => {
+    await mockApi.use('admin-operations')
+    await page.goto('operations/fail2ban')
+    const restart = page.getByRole('button', { name: 'Restart netfilter', exact: true })
+    await expect(restart).toBeVisible({ timeout: 15_000 })
+    await restart.click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog).toContainText('netfilter-mailcow')
+    await expect(dialog).toContainText('A graceful restart may take a while')
+    await expectAccessible()
+    await dialog.getByRole('button', { name: 'Cancel' }).click()
+    await expect(restart).toBeFocused()
+    expect(await mockApi.countRequests('restartContainer')).toBe(0)
+    await restart.click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Restart now' }).click()
+    await expect(page.locator('[data-action-outcome]')).toContainText('OK')
+    expect(await mockApi.countRequests('restartContainer')).toBe(1)
+  })
+})

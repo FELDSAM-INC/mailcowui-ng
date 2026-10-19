@@ -128,4 +128,48 @@ export const routingRoutes: RouteRecordRaw[] = [
     () => import('./pages/bcc-maps/BccMapEditPage.vue'),
     legacy('edit.title'),
   ),
+  // US6: TLS policy maps (one page for adding and editing, as legacy's forms are the same).
+  route(
+    '/routing/tls-policy-maps',
+    'routing-tls-policy-maps',
+    () => import('./pages/tls-policy-maps/TlsPolicyMapsPage.vue'),
+    legacy('mailbox.tls_policy_maps_long'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/tls-policy-maps/new',
+    'routing-tls-policy-map-create',
+    () => import('./pages/tls-policy-maps/TlsPolicyMapFormPage.vue'),
+    legacy('mailbox.add_tls_policy_map'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/tls-policy-maps/:tlsPolicyMapId(\\d+)',
+    'routing-tls-policy-map-edit',
+    () => import('./pages/tls-policy-maps/TlsPolicyMapFormPage.vue'),
+    legacy('edit.title'),
+    { roles: ADMIN },
+  ),
+  // US7: recipient maps.
+  route(
+    '/routing/recipient-maps',
+    'routing-recipient-maps',
+    () => import('./pages/recipient-maps/RecipientMapsPage.vue'),
+    legacy('mailbox.recipient_maps'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/recipient-maps/new',
+    'routing-recipient-map-create',
+    () => import('./pages/recipient-maps/RecipientMapFormPage.vue'),
+    legacy('mailbox.add_recipient_map_entry'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/recipient-maps/:recipientMapId(\\d+)',
+    'routing-recipient-map-edit',
+    () => import('./pages/recipient-maps/RecipientMapFormPage.vue'),
+    legacy('edit.title'),
+    { roles: ADMIN },
+  ),
 ]

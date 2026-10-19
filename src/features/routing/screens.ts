@@ -48,7 +48,7 @@ export const ROUTING_SCREENS: readonly RoutingScreen[] = [
     titleKey: 'mailbox.tls_policy_maps_long',
     hintKey: 'mailbox.tls_policy_maps_info',
     roles: ADMIN,
-    status: 'pending',
+    status: 'available',
   },
   {
     id: 'recipientMaps',
@@ -57,7 +57,7 @@ export const ROUTING_SCREENS: readonly RoutingScreen[] = [
     titleKey: 'mailbox.recipient_maps',
     hintKey: 'mailbox.recipient_map_info',
     roles: ADMIN,
-    status: 'pending',
+    status: 'available',
   },
   {
     id: 'bccMaps',

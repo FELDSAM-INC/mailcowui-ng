@@ -46,7 +46,15 @@
       "syncJobCreation",
       "syncJobUpdate",
       "syncJobReschedule",
-      "syncJobDeletion"
+      "syncJobDeletion",
+      "dkimKeyGeneration",
+      "dkimKeyImport",
+      "dkimKeyCopy",
+      "dkimKeyDeletion",
+      "dkimPrivateKeyExport",
+      "dkimDnsPublication",
+      "mtaStsPolicyCreation",
+      "mtaStsPolicyUpdate"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -64,7 +72,9 @@
       "mailboxTemplate",
       "identityProvider",
       "oauth2Client",
-      "syncJob"
+      "syncJob",
+      "dkimKey",
+      "mtaStsPolicy"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -134,7 +144,12 @@
       "missingCharacterClass",
       "unchanged",
       "secretRequired",
-      "duplicate"
+      "duplicate",
+      "invalidPrivateKey",
+      "encryptedPrivateKey",
+      "unsupportedKeyType",
+      "keyLengthOutOfRange",
+      "sameAsSource"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -180,7 +195,11 @@
       "sign-in-state-invalid",
       "identity-provider-unavailable",
       "identity-provider-session-ended",
-      "sync-job-exists"
+      "sync-job-exists",
+      "dkim-key-exists",
+      "dkim-private-key-export-disabled",
+      "dkim-dns-publication-disabled",
+      "mta-sts-policy-exists"
     ]
   },
   "complete": {
@@ -194,6 +213,16 @@
     "mailboxes.rename.outcome": "#/components/schemas/MailboxRenameStep/properties/outcome",
     "mailboxes.delete.blocker": "#/components/schemas/MailboxDeletionPreview/properties/blockers/items/properties/dependency",
     "identityProvider.type": "#/components/schemas/IdentityProviderType",
-    "identityProvider.test.failure": "#/components/schemas/IdentityProviderConnectionTestResult/properties/failureCategory/oneOf/0"
+    "identityProvider.test.failure": "#/components/schemas/IdentityProviderConnectionTestResult/properties/failureCategory/oneOf/0",
+    "dns.dkim.states": "#/components/schemas/DkimKeyState",
+    "dns.dkim.kinds": "#/components/schemas/DkimKeyKind",
+    "dns.dkim.missingParts": "#/components/schemas/DkimKeyDetails/properties/missingParts/items",
+    "dns.dkim.sort": "#/components/parameters/DkimKeySort/schema",
+    "dns.publication.status": "#/components/schemas/DkimDnsPublicationStatus",
+    "dns.publication.reasons": "#/components/schemas/DkimDnsPublicationReasonCode",
+    "dns.diagnostics.status": "#/components/schemas/DnsCheckStatus",
+    "dns.diagnostics.messages": "#/components/schemas/DnsCheckMessageCode",
+    "dns.diagnostics.scopes": "#/components/schemas/DnsCheck/properties/scope",
+    "dns.mtaSts.sort": "#/components/parameters/MtaStsPolicySort/schema"
   }
 }

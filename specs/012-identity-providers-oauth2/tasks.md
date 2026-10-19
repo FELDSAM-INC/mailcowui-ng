@@ -402,7 +402,7 @@ without the code or state outside the completion.
 
 ### Tests for User Story 2 (write first; must fail)
 
-- [ ] T040 [US2] Implement the single sign-on handlers and scenarios (research R24).
+- [X] T040 *(done: `tests/mocks/handlers/single-sign-on.ts` (state, expiry and return address on the session; the fake provider's address; consumption before every answer), the scenarios in `tests/mocks/scenarios/single-sign-on.ts`; `endIdpSession` is checked in `requireAccount` (`tests/mocks/handlers/context.ts`), and `/me` names the provider; `sso-force-ldap` and `sso-force-none` set the public configuration directly, so `public-config.ts` needed no new variant; checked in `tests/unit/mocks/single-sign-on-handlers.spec.ts`)* [US2] Implement the single sign-on handlers and scenarios (research R24).
   - `tests/mocks/handlers/single-sign-on.ts`:
     - `startSingleSignOn`:
       - it stores a random state's hash, an `expiresAt` 10 minutes later and the return address `http://<Host>/ng/sso/return` on the scenario session;
@@ -421,19 +421,19 @@ without the code or state outside the completion.
     - `sso-force` (with `forceSingleSignOn`), `sso-force-ldap` (force set, LDAP configured, not available) and `sso-force-none`;
     - `sso-auto-create`, `sso-refused`, `sso-provider-down`, `sso-disabled-after-start` and `sso-not-available-on-start`;
     - `sso-signed-in` and `sso-session-ends`.
-- [ ] T041 [P] [US2] Write `tests/e2e/fixtures/provider.ts` and expose it through `tests/e2e/fixtures/test.ts` (research R24). `fakeProvider(page, options)` routes `https://idp.example.test/**`.
+- [X] T041 *(done: `redirect` mode returns through a page that calls `location.replace`, because WebKit cannot fulfil a route with a 302; `page` mode shows "Approve" and "Cancel"; every request is recorded with its resource type)* [P] [US2] Write `tests/e2e/fixtures/provider.ts` and expose it through `tests/e2e/fixtures/test.ts` (research R24). `fakeProvider(page, options)` routes `https://idp.example.test/**`.
   - Mode `redirect` answers `302` to the request's `redirect_uri` with:
     - `code=mock-code-<n>&state=<echoed>`; or
     - `error=<code>&state=<echoed>`, optionally with an `error_description`; or
     - only `code`.
   - Mode `page` serves a minimal HTML page with "Approve" and "Cancel" links that redirect the same way.
-- [ ] T042 [P] [US2] Rewrite UI 001's tests to the new behaviour (research R7, FR-041, FR-042). They must fail until T055.
+- [X] T042 *(done: UI 001's force-SSO and identity-provider-hint tests in `sign-in-screen.spec.ts`, `SignInPage.spec.ts` and `passkey-sign-in.spec.ts` (force SSO with passkeys) expect the new composition)* [P] [US2] Rewrite UI 001's tests to the new behaviour (research R7, FR-041, FR-042). They must fail until T055.
   - In `tests/e2e/sign-in/sign-in-screen.spec.ts`:
     - US1-AS15 now expects, with force single sign-on but no available single sign-on, the normal screen with the password form;
     - US1-AS16 now expects that no identity provider hint is shown;
     - the force-SSO edge case without passkey support now expects the password form when single sign-on is unavailable.
   - In `tests/unit/features/auth/SignInPage.spec.ts`, replace the FR-007 and FR-008 cases with the R7 matrix.
-- [ ] T043 [P] [US2] Write `tests/e2e/single-sign-on/sign-in-screen.spec.ts`. It covers:
+- [X] T043 *(done: the order follows the legacy form map, not R7: passkey, "or", password form, "Forgot password?", the classic "or login with" (`login.other_logins`), then single sign-on)* [P] [US2] Write `tests/e2e/single-sign-on/sign-in-screen.spec.ts`. It covers:
   - US2-AS1 and FR-040: the role-neutral and mailbox-user screens offer "Sign in with single sign-on" as a full-width action; the administrator and domain-administrator screens do not.
   - US2-AS11: with `stubCredentials` the order is passkey, single sign-on, "or", password form; on `withoutPasskeySupport` single sign-on comes first.
   - US2-AS10 and FR-041:
@@ -443,7 +443,7 @@ without the code or state outside the completion.
     - the administrator screen keeps its form.
   - FR-042: with an LDAP provider configured, no "cannot use your password here" hint on any screen.
   - FR-044: starting never opens a second page (`context.pages().length` stays 1).
-- [ ] T044 [P] [US2] Write `tests/e2e/single-sign-on/round-trip.spec.ts` with `fakeProvider`. It covers:
+- [X] T044 *(done: the landing page is `/ng/passkeys` (a page every role may open; `/ng/mailboxes` is UI 003's and denied to mailbox users); the round trip loads the app twice, so these specs wait up to 15 s per expectation)* [P] [US2] Write `tests/e2e/single-sign-on/round-trip.spec.ts` with `fakeProvider`. It covers:
   - US2-AS2 and FR-043: tapping shows a busy state, a second tap sends nothing, and the provider address opens in the same tab.
   - US2-AS3, FR-045 to FR-047 and SC-011:
     - signed out, `/ng/mailboxes?page=2` leads to sign-in with `returnTo`;
@@ -469,13 +469,13 @@ without the code or state outside the completion.
   - FR-047: `sso-auto-create` lands like an existing mailbox.
   - FR-068: no outcome shows the API's English `title` or `detail`.
   - FR-080: every request made during the round trip matches a contract operation (the mock validator), and none goes to `idp.example.test`; the provider is reached only by navigation.
-- [ ] T045 [P] [US2] Write `tests/e2e/single-sign-on/session-end.spec.ts`. It covers:
+- [X] T045 *(done)* [P] [US2] Write `tests/e2e/single-sign-on/session-end.spec.ts`. It covers:
   - US2-AS8 and FR-052:
     - on `sso-session-ends`, after `mockApi.patch({ singleSignOn: { endIdpSession: true } })`, the next navigation shows the sign-in screen with the "single sign-on session ended" explanation and the single sign-on action;
     - no request goes to the provider;
     - after signing in again through the fake provider, the same page opens.
   - US2-AS9 and FR-053: on `sso-signed-in`, sign-out shows the confirmation with the provider note. A password session's sign-out does not.
-- [ ] T046 [P] [US2] Write `tests/unit/features/auth/sso/capture.spec.ts`, `return-to.spec.ts` and `return-classify.spec.ts` in `tests/unit/features/auth/sso/` (research R4–R6, data-model §2).
+- [X] T046 *(done: the return path is `import.meta.env.BASE_URL + 'sso/return'`, so the tests build it from `SSO_RETURN_PATH`)* [P] [US2] Write `tests/unit/features/auth/sso/capture.spec.ts`, `return-to.spec.ts` and `return-classify.spec.ts` in `tests/unit/features/auth/sso/` (research R4–R6, data-model §2).
   - Capture, with a fake `location` and `history`:
     - only on `/ng/sso/return`;
     - the first `code`, `state` and `error` are read, every other parameter is dropped;
@@ -483,7 +483,7 @@ without the code or state outside the completion.
     - `takeCapturedSingleSignOnReturn()` returns the values once.
   - Kept address: written only for values that `validateReturnTo()` accepts; removed otherwise; read and removed once; a throwing storage yields `null`.
   - Classification: the table of data-model §2, including the length limits 4,096 and 512 and the error pattern.
-- [ ] T047 [P] [US2] Write `tests/unit/features/auth/useSingleSignOnStart.spec.ts`, `useSingleSignOnReturn.spec.ts`, `SingleSignOnButton.spec.ts` and `SingleSignOnReturnPage.spec.ts` in `tests/unit/features/auth/`.
+- [X] T047 *(done)* [P] [US2] Write `tests/unit/features/auth/useSingleSignOnStart.spec.ts`, `useSingleSignOnReturn.spec.ts`, `SingleSignOnButton.spec.ts` and `SingleSignOnReturnPage.spec.ts` in `tests/unit/features/auth/`.
   - Start:
     - busy state and no double start;
     - the WebAuthn ceremony is aborted;
@@ -494,11 +494,11 @@ without the code or state outside the completion.
     - `pageshow` with `persisted` resets the busy state.
   - Return: the outcome table of research R6, with "Try again" calling the start with the address held in memory and never re-sending the old code.
   - Page: the branding, the announced progress, focus on the outcome heading, and the actions per outcome.
-- [ ] T048 [P] [US2] Extend `tests/unit/app/session/session-end.spec.ts` and `tests/unit/app/router/guards.spec.ts`.
+- [X] T048 *(done: the return route uses the existing `meta.public` (docs/conventions.md), so the guard needed no `anySession` rule; the guard spec checks `/sso/return` in all four states)* [P] [US2] Extend `tests/unit/app/session/session-end.spec.ts` and `tests/unit/app/router/guards.spec.ts`.
   - Session end: `401 identity-provider-session-ended` from any query, mutation or CSRF replay ends the session with notice `ssoSessionEnded` and `returnTo` set to the current path. `sign-out` sets `signedOutSso` when the cached identity's `authentication.method` is `singleSignOn`, and `signedOut` otherwise.
   - Guards: a route with `meta.anySession` resolves in the `anonymous`, `pendingSecondFactor`, `restricted` and `active` states without a redirect.
-- [ ] T049 [P] [US2] Extend the `image` job in `.github/workflows/ci.yml` (research R27). `GET /ng/sso/return?code=x&state=y` on the running container must answer `200` with `index.html` and the CSP header. It fails until T058.
-- [ ] T050 [P] [US2] Write `tests/smoke/single-sign-on.smoke.spec.ts`, tagged `@sso`. It is skipped, with a message naming the variables, unless `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` are set.
+- [X] T049 *(done: also checks that the container logs no `sso/return?code=`; checked locally on a built image)* [P] [US2] Extend the `image` job in `.github/workflows/ci.yml` (research R27). `GET /ng/sso/return?code=x&state=y` on the running container must answer `200` with `index.html` and the CSP header. It fails until T058.
+- [X] T050 *(done: runs only with `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD`; not run here (no Keycloak realm))* [P] [US2] Write `tests/smoke/single-sign-on.smoke.spec.ts`, tagged `@sso`. It is skipped, with a message naming the variables, unless `SMOKE_SSO_USERNAME` and `SMOKE_SSO_PASSWORD` are set.
   1. Open `/ng/sign-in/mailbox-user` and choose single sign-on.
   2. Sign in on the real Keycloak page (`#username`, `#password`, `#kc-login`).
   3. Check that the landing is home.
@@ -507,19 +507,19 @@ without the code or state outside the completion.
 
 ### Implementation for User Story 2
 
-- [ ] T051 [US2] Implement `src/features/auth/sso/capture.ts`, export `captureSingleSignOnReturn` from `src/features/auth/index.ts`, and call it as the first statement of `src/main.ts`, before the router and `bootstrap()` (research R5). The capture part of T046 must pass.
-- [ ] T052 [P] [US2] Implement `src/features/auth/sso/return-to.ts` (through `src/shared/platform/storage.ts` and `validateReturnTo()`) and `src/features/auth/sso/return-classify.ts`, so that the rest of T046 passes.
-- [ ] T053 [US2] Add `startSingleSignOn` and `cancelSingleSignOn` mutations, and `completeSingleSignOn` and `reportSingleSignOnProviderError` as direct client calls (their bodies carry the provider's code and state, which never enter a TanStack Query cache, `docs/conventions.md`), to `src/features/auth/api.ts`. On `201` the completion applies the same cache writes, identity fetch and `session-changed` broadcast as UI 001's sign-in mutations (data-model §3).
-- [ ] T054 [US2] Implement `src/features/auth/composables/useSingleSignOnStart.ts`, `src/features/auth/components/SingleSignOnButton.vue` (full width, busy state) and `src/features/auth/components/OrDivider.vue` (`role="separator"` with an accessible label), so that the start and button parts of T047 pass.
-- [ ] T055 [US2] Compose `src/features/auth/pages/SignInPage.vue` per research R7. Delete `src/features/auth/components/SsoNotice.vue` and `src/features/auth/components/IdpHint.vue` and their imports. Remove `mailcowui-ng.sso-return-to` when the page mounts. T042 and T043 must pass.
-- [ ] T056 [US2] Implement:
+- [X] T051 *(done)* [US2] Implement `src/features/auth/sso/capture.ts`, export `captureSingleSignOnReturn` from `src/features/auth/index.ts`, and call it as the first statement of `src/main.ts`, before the router and `bootstrap()` (research R5). The capture part of T046 must pass.
+- [X] T052 *(done: through `acceptReturnTo()` (UI 001's name for `validateReturnTo()`))* [P] [US2] Implement `src/features/auth/sso/return-to.ts` (through `src/shared/platform/storage.ts` and `validateReturnTo()`) and `src/features/auth/sso/return-classify.ts`, so that the rest of T046 passes.
+- [X] T053 *(done: all four are direct client calls, the start too, because its answer carries the provider's state in the authorization address; `acceptSingleSignOnSession()` shares the steps of `acceptSession()` and then opens the kept address)* [US2] Add `startSingleSignOn` and `cancelSingleSignOn` mutations, and `completeSingleSignOn` and `reportSingleSignOnProviderError` as direct client calls (their bodies carry the provider's code and state, which never enter a TanStack Query cache, `docs/conventions.md`), to `src/features/auth/api.ts`. On `201` the completion applies the same cache writes, identity fetch and `session-changed` broadcast as UI 001's sign-in mutations (data-model §3).
+- [X] T054 *(done: `OrDivider.vue` keeps UI 001's visible divider text (a paragraph read as text) instead of a labelled `role="separator"`, whose children assistive technology would not read; the button stays labelled `admin.iam_sso` while busy and announces `auth.sso.starting`)* [US2] Implement `src/features/auth/composables/useSingleSignOnStart.ts`, `src/features/auth/components/SingleSignOnButton.vue` (full width, busy state) and `src/features/auth/components/OrDivider.vue` (`role="separator"` with an accessible label), so that the start and button parts of T047 pass.
+- [X] T055 *(done: the legacy position (see T043); "force single sign-on" hides the form only while single sign-on is offered)* [US2] Compose `src/features/auth/pages/SignInPage.vue` per research R7. Delete `src/features/auth/components/SsoNotice.vue` and `src/features/auth/components/IdpHint.vue` and their imports. Remove `mailcowui-ng.sso-return-to` when the page mounts. T042 and T043 must pass.
+- [X] T056 *(done: route `sso-return` with `meta: { layout: 'auth', public: true }`; heading `admin.iam_sso` and progress `auth.sso.completing` instead of a new "Completing sign-in" title; after the landing the page lands again when the identity watch re-routes it (a second tab signed in another account))* [US2] Implement:
   - `src/features/auth/composables/useSingleSignOnReturn.ts`;
   - `src/features/auth/pages/SingleSignOnReturnPage.vue`, in `AuthLayout` with `SignInHeader`, an `<h1>` "Completing sign-in", the progress and the outcome messages of FR-048;
   - the `sso-return` route (`/sso/return`, `meta.anySession: true`) in `src/features/auth/routes.ts`;
   - the `anySession` rule in `src/app/router/guards.ts`.
 
   T044, and the return and guard parts of T047 and T048, must pass.
-- [ ] T057 [US2] Implement the session reactions (research R9):
+- [X] T057 *(done: an optional `identityProviderSessionEnded` reaction (handled as `unauthenticated` without it), the session-ended signal with a reason in the replay path of `src/api/client.ts` (the replay lives there, not in `csrf.ts`), `endSession(ctx, { notice })`; the `ssoSessionEnded` notice shows `problem.identity-provider-session-ended`, so it needs no own string)* [US2] Implement the session reactions (research R9):
   - the notices `ssoSessionEnded` and `signedOutSso` in `src/app/session/store.ts`;
   - a session-end reason in `src/app/session/session-end.ts`;
   - `identity-provider-session-ended` in the `onError` reactions of `src/api/query/client.ts` and in the replay path of `src/api/csrf.ts`;
@@ -527,8 +527,8 @@ without the code or state outside the completion.
   - the two notice texts in `src/features/auth/components/SignInNotice.vue`.
 
   T045 and the session part of T048 must pass.
-- [ ] T058 [P] [US2] Add a `location = /ng/sso/return` block with `access_log off` to `docker/nginx/default.conf`. It serves `/ng/index.html` and includes `security-headers.conf`. T049 must pass.
-- [ ] T059 [US2] Label the single sign-on action with the legacy `admin.iam_sso`, and show `danger.login_failed` for a failed return without a more specific outcome. Add these new strings to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
+- [X] T058 *(done)* [P] [US2] Add a `location = /ng/sso/return` block with `access_log off` to `docker/nginx/default.conf`. It serves `/ng/index.html` and includes `security-headers.conf`. T049 must pass.
+- [X] T059 *(done: new strings `auth.sso.starting`, `auth.sso.completing`, `auth.sso.outcome.cancelled`, `auth.sso.backToSignIn` and `auth.notice.signedOutSso`; the other outcomes use the foundation's `problem.*` strings and the classic `danger.login_failed` (through `problem.sign-in-failed`); the problem types were already in `src/i18n/coverage.json`; removed `auth.signIn.sso.*` and `auth.signIn.idpHint.*` with the deleted components)* [US2] Label the single sign-on action with the legacy `admin.iam_sso`, and show `danger.login_failed` for a failed return without a more specific outcome. Add these new strings to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`:
   - `auth.sso.*`: the busy announcement, the return page title and progress, each outcome of FR-048 with "Try again" and "Back to sign-in", and "not offered";
   - `session.notice.ssoSessionEnded` and `session.notice.signedOutSso`.
 
@@ -549,14 +549,14 @@ provider unavailable" and throttling.
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T060 [US3] Extend `createSession` in `tests/mocks/handlers/auth.ts` for provider accounts. It answers:
+- [X] T060 *(done: accounts with `source` `ldap` or `keycloak`; `singleSignOn.providerOutage` answers the 503; scenarios in `tests/mocks/scenarios/provider-password.ts`)* [US3] Extend `createSession` in `tests/mocks/handlers/auth.ts` for provider accounts. It answers:
   - `201` with `authMethod` `directoryPassword`, `directoryPasswordAndSecondFactor`, `providerPassword` or `providerPasswordAndSecondFactor`;
   - `pendingSecondFactor` for a directory account with TOTP;
   - `restricted` with `secondFactorSetup` for a Keycloak account whose template forces second-factor setup;
   - `503 identity-provider-unavailable` with `Retry-After` when `providerOutage` is set, which counts towards no throttling.
 
   Add `tests/mocks/scenarios/provider-password.ts` with `ldap-password` (`carl@example.org`), `ldap-password-totp`, `ldap-provider-down`, `keycloak-password-forced-2fa` and `ldap-throttled`.
-- [ ] T061 [P] [US3] Write `tests/e2e/sign-in/provider-password.spec.ts`. It covers:
+- [X] T061 *(done)* [P] [US3] Write `tests/e2e/sign-in/provider-password.spec.ts`. It covers:
   - US3-AS1 and FR-050: `ldap-password` reaches home through the role-neutral and the mailbox-user screen; `ldap-password-totp` reaches the second-factor step.
   - US3-AS2 and FR-051, on `ldap-provider-down`:
     - "your organisation's sign-in service is not reachable";
@@ -567,13 +567,13 @@ provider unavailable" and throttling.
   - US3-AS4: `keycloak-password-forced-2fa` shows UI 001's pending-actions screen.
   - Throttling (`ldap-throttled`) and the generic failure behave as in UI 001.
   - `Edge: provider unreachable during a password sign-in` adds no waiting time.
-- [ ] T062 [P] [US3] Extend `tests/unit/features/auth/usePasswordSignIn.spec.ts`: `identity-provider-unavailable` sets the temporary-failure message, keeps the username, clears the password, moves focus to the message and starts no throttle countdown despite `retryAfter`.
-- [ ] T063 [P] [US3] Write `tests/smoke/provider-password.smoke.spec.ts`, tagged `@idp`, skipped unless `SMOKE_IDP=1`. In `beforeAll` the fixture of T028 configures LDAP through the API. Then `carl@example.org` signs in with `Passw0rd!dev` through the app, reaches home and signs out.
+- [X] T062 *(done: new `tests/unit/features/auth/usePasswordSignIn.spec.ts` (there was none), on `PasswordForm`)* [P] [US3] Extend `tests/unit/features/auth/usePasswordSignIn.spec.ts`: `identity-provider-unavailable` sets the temporary-failure message, keeps the username, clears the password, moves focus to the message and starts no throttle countdown despite `retryAfter`.
+- [X] T063 *(done: uses the T028 fixture's `configureDevLdap()`; not run here (needs `SMOKE_IDP=1`))* [P] [US3] Write `tests/smoke/provider-password.smoke.spec.ts`, tagged `@idp`, skipped unless `SMOKE_IDP=1`. In `beforeAll` the fixture of T028 configures LDAP through the API. Then `carl@example.org` signs in with `Passw0rd!dev` through the app, reaches home and signs out.
 
 ### Implementation for User Story 3
 
-- [ ] T064 [US3] Add the `identity-provider-unavailable` branch to `src/features/auth/composables/usePasswordSignIn.ts`, and its message rendering to `src/features/auth/components/PasswordForm.vue` (research R8), so that T061 and T062 pass.
-- [ ] T065 [US3] Add `auth.signIn.providerUnavailable` to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass.
+- [X] T064 *(done)* [US3] Add the `identity-provider-unavailable` branch to `src/features/auth/composables/usePasswordSignIn.ts`, and its message rendering to `src/features/auth/components/PasswordForm.vue` (research R8), so that T061 and T062 pass.
+- [X] T065 *(done: no new string: the message is the foundation's `problem.identity-provider-unavailable`, which says the same)* [US3] Add `auth.signIn.providerUnavailable` to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P1 stories (US1 to US3) work.
 

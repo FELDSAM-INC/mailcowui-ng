@@ -16,8 +16,7 @@
       "certificateNotice": "Server si certifikát pre mta-sts.{domain} a názvy mta-sts. jej alias domén vyžiada pri ďalšom behu certifikačnej služby, čo môže trvať až jeden deň. Oba DNS záznamy musia byť zverejnené.",
       "deactivate": {
         "title": "Deaktivovať MTA-STS politiku?",
-        "body": "Politika domény {domain} sa prestane zverejňovať. Odosielatelia, ktorí ju majú vo vyrovnávacej pamäti, ju budú uplatňovať až po dobu jej maximálnej platnosti. Certifikát pre jej názvy mta-sts. sa už nebude vyžadovať.",
-        "confirm": "Deaktivovať"
+        "body": "Politika domény {domain} sa prestane zverejňovať. Odosielatelia, ktorí ju majú vo vyrovnávacej pamäti, ju budú uplatňovať až po dobu jej maximálnej platnosti. Certifikát pre jej názvy mta-sts. sa už nebude vyžadovať."
       },
       "mxLength": "{used} z {max} znakov",
       "duplicateDropped": "{host} je uvedený dvakrát a ponechá sa len raz.",

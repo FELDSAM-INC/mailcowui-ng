@@ -86,7 +86,7 @@ const number = (value: number | null) =>
             <template v-else>{{ header(column.key) }}</template>
           </th>
           <th scope="col" class="w-16 px-3 py-2">
-            <span class="sr-only">{{ t('dns.dkim.list.actions') }}</span>
+            <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>
       </thead>

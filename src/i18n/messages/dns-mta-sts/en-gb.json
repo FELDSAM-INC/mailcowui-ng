@@ -16,8 +16,7 @@
       "certificateNotice": "The server requests the certificate for mta-sts.{domain} and the mta-sts. names of its alias domains at the next run of the certificate service, which can take up to one day. Both DNS records must be published.",
       "deactivate": {
         "title": "Deactivate the MTA-STS policy?",
-        "body": "The policy of {domain} will no longer be published. Senders that cached it keep applying it for up to its max age. The certificate for its mta-sts. names will no longer be requested.",
-        "confirm": "Deactivate"
+        "body": "The policy of {domain} will no longer be published. Senders that cached it keep applying it for up to its max age. The certificate for its mta-sts. names will no longer be requested."
       },
       "mxLength": "{used} of {max} characters",
       "duplicateDropped": "{host} is listed twice and is kept once.",

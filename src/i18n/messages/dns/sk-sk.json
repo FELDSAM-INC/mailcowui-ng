@@ -2,7 +2,6 @@
   "dns": {
     "common": {
       "gone": "Táto položka už neexistuje.",
-      "retryIn": "Skúste to znova o {time}.",
       "sort": {
         "label": "Zoradiť podľa",
         "order": "Poradie",
@@ -78,8 +77,7 @@
       "list": {
         "count": "Položiek: {count}",
         "updating": "Aktualizácia…",
-        "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky nemusia byť aktuálne.",
-        "actions": "Akcie"
+        "refreshFailed": "Zoznam sa nepodarilo obnoviť. Zobrazené výsledky nemusia byť aktuálne."
       },
       "settings": {
         "title": "Nastavenia servera",

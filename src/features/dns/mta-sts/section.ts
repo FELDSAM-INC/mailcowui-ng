@@ -222,7 +222,7 @@ export function useMtaStsSection(options: MtaStsSectionOptions) {
       const leave = await confirm({
         title: t('dns.mtaSts.deactivate.title'),
         description: t('dns.mtaSts.deactivate.body', { domain: from.displayDomain }),
-        confirmLabel: t('dns.mtaSts.deactivate.confirm'),
+        confirmLabel: lt('mailbox.deactivate'),
         destructive: true,
       })
       if (!leave) return

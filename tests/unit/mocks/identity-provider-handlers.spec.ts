@@ -1,4 +1,4 @@
-// The identity provider and mailbox template mock handlers (UI 012 T016, T066, research R24):
+// The identity provider mock handlers (UI 012 T016, T066, research R24):
 // every response passes the contract validator (the setup file fails a test on any violation), and
 // each documented behaviour of API 012 that the screens rely on holds.
 import { describe, expect, it } from 'vitest'
@@ -184,17 +184,5 @@ describe('identity provider handlers', () => {
       'mailboxTemplate',
     )
     expect(answer.body.errors['attributeMapping.1.attributeValue'][0].code).toBe('duplicate')
-  })
-})
-
-describe('mailbox template list', () => {
-  it('lists the scenario templates by name', async () => {
-    useScenario('idp-none')
-    const answer = await call('GET', '/mailbox-templates?limit=1000&sort=name')
-    expect(answer.body.data.map((t: { name: string }) => t.name)).toEqual([
-      'Default',
-      'Staff',
-      'Students',
-    ])
   })
 })

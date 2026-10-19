@@ -31,9 +31,6 @@ export type MailboxTemplateListParams = NonNullable<
 >
 export type SyncJobListParams = NonNullable<operations['listSyncJobs']['parameters']['query']>
 
-export type MailboxTemplateListParams = NonNullable<
-  operations['listMailboxTemplates']['parameters']['query']
->
 export type Oauth2ClientListParams = NonNullable<
   operations['listOauth2Clients']['parameters']['query']
 >

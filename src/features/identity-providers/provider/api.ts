@@ -17,6 +17,8 @@ import {
   type IdentityProviderConnectionTestResult,
 } from '@/api'
 
+import { allTemplatesOptions } from '@/features/mailboxes'
+
 import type { ProviderInput, ProviderPatch } from './form-model'
 import type { IdentityProviderConfig } from './types'
 
@@ -49,21 +51,14 @@ export function configurationOptions() {
 }
 
 /** The page size of `listMailboxTemplates` that reads every template at once (`Limit` maximum). */
-const ALL_TEMPLATES = 1000
+export const ALL_TEMPLATES = 1000
 
-/** The mailbox template names, by name, for the mapping's template choices (FR-029). */
-export function templateNamesOptions() {
-  return queryOptions({
-    queryKey: queryKeys.mailboxTemplates.allTemplates(),
-    queryFn: async (): Promise<string[]> =>
-      requireData(
-        await api.GET('/mailbox-templates', {
-          params: { query: { limit: ALL_TEMPLATES, sort: 'name', order: 'asc' } },
-        }),
-      ).data.map((template) => template.name),
-    staleTime: 60_000,
-  })
-}
+/** UI 003's "all templates" query, for the mapping's template choices (FR-029). */
+export const templatesQuery = () => allTemplatesOptions(ALL_TEMPLATES)
+
+/** The template names of that query's page, in its order (Default first, then by name). */
+export const templateNames = (page: { data: readonly { name: string }[] }): string[] =>
+  page.data.map((template) => template.name)
 
 async function direct<T>(request: () => Promise<T>): Promise<T> {
   try {

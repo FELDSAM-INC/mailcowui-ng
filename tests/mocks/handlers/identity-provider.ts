@@ -34,6 +34,10 @@ const ADDRESS: Record<IdentityProviderType, string> = {
 }
 const SOURCES: IdentityProviderType[] = ['keycloak', 'genericOidc', 'ldap']
 
+/** The names of UI 003's mailbox templates of the scenario. */
+const templateNames = (state: ScenarioState) =>
+  state.mailboxTemplates.map((template) => template.name)
+
 const notConfigured = () => problem(404, 'identity-provider-not-configured')
 const outdated = () => problem(412, null)
 
@@ -126,7 +130,7 @@ function checkSettings(
         duplicateOf: `attributeMapping.${first}.attributeValue`,
       })
     } else seen.set(entry.attributeValue, index)
-    if (options.templates && !state.mailboxTemplates.includes(entry.template)) {
+    if (options.templates && !templateNames(state).includes(entry.template)) {
       addViolation(errors, `attributeMapping.${index}.template`, 'notFound', {
         resource: 'mailboxTemplate',
       })
@@ -136,7 +140,7 @@ function checkSettings(
   if (
     options.templates &&
     typeof fallback === 'string' &&
-    !state.mailboxTemplates.includes(fallback)
+    !templateNames(state).includes(fallback)
   ) {
     addViolation(errors, 'defaultTemplate', 'notFound', { resource: 'mailboxTemplate' })
   }
@@ -247,7 +251,7 @@ function testedAddress(values: Record<string, unknown>): string {
 /** Keeps the public configuration in step with the stored configuration (FR-012, FR-039). */
 function syncPublicConfig(state: ScenarioState): void {
   const idp = state.identityProvider
-  const view = idp.stored ? identityProviderView(idp, state.mailboxTemplates) : null
+  const view = idp.stored ? identityProviderView(idp, templateNames(state)) : null
   state.publicConfig = {
     ...state.publicConfig,
     externalIdentityProvider: {
@@ -301,7 +305,7 @@ export const identityProviderHandlers = [
     if (account instanceof Response) return response.untyped(account)
     const idp = state.identityProvider
     if (!idp.stored) return response.untyped(notConfigured())
-    const data = identityProviderView(idp, state.mailboxTemplates)
+    const data = identityProviderView(idp, templateNames(state))
     return response(200).json({ data }, { headers: { ETag: data.etag } })
   }),
 
@@ -319,7 +323,7 @@ export const identityProviderHandlers = [
     if (preconditionFailed(state, request.headers.get('if-match'))) {
       return response.untyped(outdated())
     }
-    const input = (await request.json())
+    const input = await request.json()
     const values = input as unknown as Record<string, unknown>
     const errors: Violations = {}
     checkSettings(errors, values, state, { templates: true })
@@ -335,7 +339,7 @@ export const identityProviderHandlers = [
     idp.bindPassword = secret === 'bindPassword' ? sent : null
     stamp(state)
     syncPublicConfig(state)
-    const data = identityProviderView(idp, state.mailboxTemplates)
+    const data = identityProviderView(idp, templateNames(state))
     if (creating) {
       return response(201).json(
         { data },
@@ -380,7 +384,7 @@ export const identityProviderHandlers = [
     idp[secret] = sent
     stamp(state)
     syncPublicConfig(state)
-    const data = identityProviderView(idp, state.mailboxTemplates)
+    const data = identityProviderView(idp, templateNames(state))
     return response(200).json({ data }, { headers: { ETag: data.etag } })
   }),
 

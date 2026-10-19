@@ -8,7 +8,8 @@ import {
 } from '../factories/identity-provider'
 import type { ScenarioDefinition } from './index'
 
-const TEMPLATES = ['Default', 'Students', 'Staff']
+/** UI 003's Default template is always there; the scenarios add Students and Staff. */
+const TEMPLATES = { add: [{ name: 'Students' }, { name: 'Staff' }] }
 const MODIFIED = '2026-10-12T08:30:00Z'
 
 function admin(
@@ -36,7 +37,7 @@ export const identityProviderScenarios: Record<string, ScenarioDefinition> = {
     'admin, no identity provider, no mailbox template but Default',
     {},
     {
-      mailboxTemplates: ['Default'],
+      mailboxTemplates: {},
     },
   ),
   'idp-templates-fail': admin(

@@ -1,6 +1,6 @@
 // The UI 012 mock factories produce contract-valid data (T010, research R24): the identity
 // provider capabilities and representations of each type, connection test results, OAuth2
-// clients and mailbox templates.
+// clients.
 import { describe, expect, it } from 'vitest'
 
 import { contractValidator } from '../../mocks/contract/validator'
@@ -14,7 +14,6 @@ import {
   storedKeycloak,
   storedLdap,
 } from '../../mocks/factories/identity-provider'
-import { mailboxTemplateView } from '../../mocks/factories/mailbox-template'
 import {
   mockOauth2Client,
   OAUTH2_CAPABILITIES,
@@ -89,7 +88,7 @@ describe('UI 012 mock factories', () => {
     }
   })
 
-  it('build contract-valid OAuth2 clients, capabilities and mailbox templates', () => {
+  it('build contract-valid OAuth2 clients and capabilities', () => {
     const client = mockOauth2Client({ id: 7 })
     expect(client.clientId).toMatch(/^[0-9a-f]{12}$/)
     expect(client.clientSecret).toMatch(/^[0-9a-f]{24}$/)
@@ -97,9 +96,6 @@ describe('UI 012 mock factories', () => {
     expect(oauth2ClientView(client)).not.toHaveProperty('clientSecret')
     expect(
       validator.validateSchema(schema('Oauth2ClientCapabilities'), OAUTH2_CAPABILITIES),
-    ).toEqual([])
-    expect(
-      validator.validateSchema(schema('MailboxTemplate'), mailboxTemplateView('Staff', 2)),
     ).toEqual([])
   })
 })

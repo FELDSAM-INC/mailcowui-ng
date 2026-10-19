@@ -34,7 +34,8 @@ import {
   configurationOptions,
   deleteIdentityProvider,
   forgetConfiguration,
-  templateNamesOptions,
+  templateNames,
+  templatesQuery as templatesQuery_,
   type IdentityProviderConfig,
 } from '../api'
 import ConnectionTest from '../components/ConnectionTest.vue'
@@ -67,9 +68,11 @@ const editor = useProviderEditor({
 })
 
 const templatesQuery = useQuery(
-  computed(() => ({ ...templateNamesOptions(), enabled: editor.form.value !== null })),
+  computed(() => ({ ...templatesQuery_(), enabled: editor.form.value !== null })),
 )
-const templates = computed(() => templatesQuery.data.value ?? [])
+const templates = computed(() =>
+  templatesQuery.data.value ? templateNames(templatesQuery.data.value) : [],
+)
 const templatesProblem = computed(() =>
   templatesQuery.isError.value && isApiProblem(templatesQuery.error.value)
     ? templatesQuery.error.value

@@ -10,7 +10,8 @@ import {
   configurationOptions,
   deleteIdentityProvider,
   saveIdentityProvider,
-  templateNamesOptions,
+  templateNames,
+  templatesQuery,
   testIdentityProviderConnection,
   updateIdentityProvider,
 } from '@/features/identity-providers/provider/api'
@@ -55,7 +56,7 @@ describe('identity provider data layer', () => {
   it('reads "not configured" as null and the template names in order', async () => {
     useScenario('idp-none')
     expect(await client.fetchQuery(configurationOptions())).toBeNull()
-    expect(await client.fetchQuery(templateNamesOptions())).toEqual([
+    expect(templateNames(await client.fetchQuery(templatesQuery()))).toEqual([
       'Default',
       'Staff',
       'Students',

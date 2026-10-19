@@ -16,7 +16,7 @@ import * as clipboard from '@/shared/platform/clipboard'
 
 import { mockState, useScenario } from '../../../../mocks/node'
 import { TEST_TRANSPORTS } from '../../../../mocks/scenarios/routing/connection-tests'
-import { mountWithApp } from '../../../support/mount'
+import { mountWithApp, testPlugins } from '../../../support/mount'
 import { mountRoute, settle, until } from '../pages/mount-route'
 
 const base: RoutingConnectionTestResult = {
@@ -138,6 +138,8 @@ describe('useConnectionTest', () => {
       await running
       expect(api().state.value).toBe('noResult')
       expect(api().result.value).toBeNull()
+      // Nothing of the test is kept in the mutation cache.
+      expect(testPlugins().queryClient.getMutationCache().getAll()).toEqual([])
     } finally {
       vi.useRealTimers()
     }
@@ -154,6 +156,7 @@ describe('useConnectionTest', () => {
     await api().run({})
     expect(api().state.value).toBe('idle')
     expect(api().problem.value?.status).toBe(404)
+    expect(testPlugins().queryClient.getMutationCache().getAll()).toEqual([])
     api().reset()
     expect(api().problem.value).toBeNull()
     scope.stop()

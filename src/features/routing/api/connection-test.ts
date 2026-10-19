@@ -1,6 +1,6 @@
 // The connection test calls (research R11): nothing is cached (the composable runs them through a
-// mutation with `gcTime: 0`), and the request takes an `AbortSignal` for the watchdog and for
-// leaving the page.
+// mutation that it removes from the cache once settled), and the request takes an `AbortSignal`
+// for the watchdog and for leaving the page.
 import {
   api,
   requireData,

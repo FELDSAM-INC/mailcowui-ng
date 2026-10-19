@@ -1,14 +1,17 @@
 // Running a connection test (research R11, data-model §7 "Connection test"): one request at a
-// time with an `AbortSignal`, a mutation with `gcTime: 0` so that the session reactions apply and
-// nothing is kept; progress announced at the start (legacy's `footer.loading`); a watchdog at the
-// server's total test timeout plus 15 seconds that aborts the request and reports that no result
-// arrived; leaving the page aborts and forgets everything. Running again replaces the result.
-import { useMutation } from '@tanstack/vue-query'
+// time with an `AbortSignal`, a mutation of the client's mutation cache (`runMutation`) so that
+// the session reactions apply, removed from the cache once settled so that nothing is kept (a
+// `gcTime` of 0 would reschedule its removal without pause while the test runs); progress
+// announced at the start (legacy's `footer.loading`); a watchdog at the server's total test
+// timeout plus 15 seconds that aborts the request and reports that no result arrived; leaving the
+// page aborts and forgets everything. Running again replaces the result.
+import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, shallowRef } from 'vue'
 
 import {
   ApiProblem,
   isApiProblem,
+  runMutation,
   type RoutingConnectionTestRequest,
   type RoutingConnectionTestResult,
 } from '@/api'
@@ -18,6 +21,8 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { runConnectionTest, type ConnectionTestKind } from '../api/connection-test'
 
 export const WATCHDOG_MARGIN_SECONDS = 15
+
+const MUTATION_KEY = ['routing-connection-test'] as const
 
 export function useConnectionTest(options: {
   kind: () => ConnectionTestKind
@@ -32,11 +37,7 @@ export function useConnectionTest(options: {
   let watchdog: ReturnType<typeof setTimeout> | null = null
   let timedOut = false
 
-  const mutation = useMutation({
-    mutationFn: (body: RoutingConnectionTestRequest) =>
-      runConnectionTest(options.kind(), options.id(), body, controller!.signal),
-    gcTime: 0,
-  })
+  const client = useQueryClient()
 
   function stopWatchdog() {
     if (watchdog) clearTimeout(watchdog)
@@ -60,7 +61,15 @@ export function useConnectionTest(options: {
       (total + WATCHDOG_MARGIN_SECONDS) * 1000,
     )
     try {
-      result.value = await mutation.mutateAsync(body)
+      result.value = await runMutation<RoutingConnectionTestResult, RoutingConnectionTestRequest>(
+        client,
+        {
+          mutationKey: MUTATION_KEY,
+          mutationFn: (request) =>
+            runConnectionTest(options.kind(), options.id(), request, controller!.signal),
+        },
+        body,
+      )
       state.value = 'result'
     } catch (error) {
       if (timedOut) {
@@ -74,6 +83,17 @@ export function useConnectionTest(options: {
     } finally {
       stopWatchdog()
       controller = null
+      forgetSettled()
+    }
+  }
+
+  /** Removes the settled test mutations from the cache, with their pending removal timers. */
+  function forgetSettled() {
+    const cache = client.getMutationCache()
+    for (const mutation of cache.findAll({ mutationKey: MUTATION_KEY })) {
+      if (mutation.state.status === 'pending') continue
+      mutation.destroy()
+      cache.remove(mutation)
     }
   }
 
@@ -81,7 +101,6 @@ export function useConnectionTest(options: {
     stopWatchdog()
     controller?.abort()
     controller = null
-    mutation.reset()
     state.value = 'idle'
     result.value = null
     problem.value = null

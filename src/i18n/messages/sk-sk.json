@@ -193,7 +193,13 @@
       "previousAddress": "Pôvodná adresa",
       "newAddress": "Nová adresa",
       "bulkRequestId": "Hromadná požiadavka",
-      "steps": "Kroky"
+      "steps": "Kroky",
+      "list": "Zoznam",
+      "entryId": "ID záznamu",
+      "old": "Pôvodná hodnota",
+      "new": "Nová hodnota",
+      "countersExisted": "Počítadlá existovali",
+      "logEntriesRemoved": "Odstránené záznamy protokolu"
     }
   },
   "auth": {
@@ -505,7 +511,7 @@
       "versionOutdated": "Medzitým zmenené",
       "outcomeUnknown": "Výsledok neznámy",
       "partiallyCompleted": "Dokončené len čiastočne",
-      "serviceFailure": "Služba kontajnerov alebo Postfix ohlásili chybu",
+      "serviceFailure": "Zlyhanie služby",
       "rulesNotRestored": "Predvolené regex filtre sa včas neobnovili"
     },
     "auditOutcome": {

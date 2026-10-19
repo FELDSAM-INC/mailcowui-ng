@@ -2,6 +2,35 @@
   "quarantineUi": {
     "nav": {
       "label": "Quarantine sections"
+    },
+    "list": {
+      "details": "Details"
+    },
+    "filters": {
+      "receivedFrom": "From",
+      "receivedTo": "To",
+      "scoreMin": "Minimum score",
+      "scoreMax": "Maximum score"
+    },
+    "item": {
+      "loadError": "Error loading quarantine item",
+      "sourceAddress": "IP address",
+      "fuzzyHashes": "Fuzzy Hashes",
+      "parserFallback": "Parser failed, assuming HTML",
+      "showFullText": "Show full text",
+      "showLess": "Show less",
+      "sha256": "SHA-256",
+      "copySha256": "Copy the SHA-256 of attachment {number}",
+      "copyFuzzyHash": "Copy fuzzy hash {number}"
+    },
+    "deliver": {
+      "virusAcknowledge": "I understand that this message contains a virus"
+    },
+    "bulk": {
+      "virusCount": "{count} of the selected items contain a virus."
+    },
+    "download": {
+      "virusWarning": "This message contains a virus. The file may harm your device."
     }
   }
 }

@@ -3,12 +3,15 @@
 // the other non-secret details, all rendered as text in a definition list. Cards use the
 // collapsible variant (Reka Collapsible); the table renders the list in a row of its own. UI 004
 // links the target back to its object and shows the documented detail keys as lines of text
-// (`auditTargetLink`, `auditDetailRows`).
+// (`auditTargetLink`, `auditDetailRows`). UI 006 (research R23, FR-083): every value is plain text
+// (`PlainText`): a recipient or pattern from a message never renders as markup, and control or
+// direction characters show as visible markers.
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import type { AuditEvent } from '@/api'
+import PlainText from '@/shared/components/PlainText.vue'
 import { ChevronDownIcon } from '@/shared/icons'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 
@@ -95,11 +98,11 @@ const rows = computed<Row[]>(() => [
             v-if="row.link"
             :to="row.link"
             class="text-brand-600 underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
-            >{{ row.lines.join(' ') }}</RouterLink
+            ><PlainText :value="row.lines.join(' ')" /></RouterLink
           >
-          <template v-else-if="row.lines.length === 1">{{ row.lines[0] }}</template>
+          <PlainText v-else-if="row.lines.length === 1" :value="row.lines[0]" />
           <template v-else>
-            <span v-for="(line, at) in shownLines(row)" :key="at" class="block">{{ line }}</span>
+            <span v-for="(line, at) in shownLines(row)" :key="at" class="block"><PlainText :value="line" /></span>
             <button
               v-if="shownLines(row).length < row.lines.length"
               type="button"

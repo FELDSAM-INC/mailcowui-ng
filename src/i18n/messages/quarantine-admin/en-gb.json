@@ -1,1 +1,22 @@
-{}
+{
+  "quarantineUi": {
+    "settings": {
+      "missingDomain": "no longer exists"
+    },
+    "statistics": {
+      "actions": {
+        "rejected": "reject",
+        "softRejected": "soft reject",
+        "subjectRewritten": "rewrite subject",
+        "movedToJunk": "add header",
+        "noAction": "no action"
+      },
+      "count": "Count",
+      "share": "Share",
+      "total": "Total",
+      "countedSince": "Counted since {date}",
+      "countedSinceUnknown": "Counting start unknown",
+      "runningSince": "Spam filter running since {date}"
+    }
+  }
+}

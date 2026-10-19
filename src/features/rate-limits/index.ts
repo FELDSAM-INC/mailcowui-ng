@@ -21,3 +21,12 @@ function withMessages<T>(load: () => Promise<T>) {
 export const RateLimitSection = defineAsyncComponent(
   withMessages(() => import('./components/RateLimitSection.vue')),
 )
+
+/**
+ * For UI 011's rate-limited log: legacy's "Remove hash" dialog (`v-model:open`, `bucketId` to fill
+ * in the identifier of a log entry, `done` with the outcome to show), administrators only.
+ */
+export const ResetBucketDialog = defineAsyncComponent(
+  withMessages(() => import('./components/ResetBucketDialog.vue')),
+)
+export { useResetRateLimitBucket, type ResetOutcome } from './composables/useResetRateLimitBucket'

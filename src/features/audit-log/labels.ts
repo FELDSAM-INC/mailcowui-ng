@@ -3,7 +3,9 @@
 // locale files (npm run i18n:check requires one per contract value). A code this version does not
 // know is shown with a generic label and the code, never hidden.
 import type { AuditActor, AuditEvent } from '@/api'
-import { hasMessage, text } from '@/i18n'
+import { hasMessage, i18n, text } from '@/i18n'
+import { formatBytes } from '@/i18n/format'
+import type { AppLocale } from '@/i18n/locales'
 
 /** A route to an audit target, as `RouterLink` takes it. */
 export interface AuditLink {
@@ -98,6 +100,9 @@ const TARGET_ROUTES: Record<string, (id: string) => AuditLink> = {
   mailboxSenderSettings: (id) => ({ name: 'mailbox-detail', params: { address: id } }),
   // UI 011 (FR-002): a container's card on the dashboard.
   container: (id) => ({ name: 'operations-container', params: { containerName: id } }),
+  // UI 006: a mailbox's notification settings and spam score live on its page (D9).
+  quarantineNotificationSettings: (id) => ({ name: 'mailbox-detail', params: { address: id } }),
+  spamScore: (id) => ({ name: 'mailbox-detail', params: { address: id } }),
 }
 
 /** The page of an event's target, or null for a deleted or unknown one. */
@@ -121,6 +126,45 @@ export interface AuditDetailRow {
 /** Formats a flag; UI 003 passes Yes or No in the user's language. */
 export type FlagText = (value: boolean) => string
 
+// Feature 006 (mailcow-rest-v2 `docs/audit-events.md`, "Refusal records of feature 006" onwards):
+// enumeration values of its detail keys with the app's labels (legacy's where the classic interface
+// has one), the steps of an item action one per line, and the template's sizes. A value without a
+// label stays as recorded.
+
+/** The label of a recorded enumeration value under `enums.<namespace>`, or null without one. */
+function enumText(namespace: string, value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const key = `enums.${namespace}.${value}`
+  return hasMessage(key) ? text(key) : null
+}
+
+/** Detail keys whose value is an enumeration of API 006. */
+const VALUE_ENUMS: Readonly<Record<string, string>> = {
+  action: 'quarantineReportAction',
+  list: 'spamPolicyList',
+  kind: 'rateLimitObjectKind',
+}
+
+/** `changes` members whose old and new values are enumerations of API 006. */
+const CHANGE_ENUMS: Readonly<Record<string, string>> = {
+  frequency: 'quarantineNotificationFrequency',
+  category: 'quarantineNotificationCategory',
+  releaseFormat: 'quarantineReleaseFormat',
+}
+
+/** The steps of a release or spam learning, by step. */
+const STEP_ENUMS: Readonly<Record<string, string>> = {
+  delivery: 'quarantineReportDelivery',
+  learning: 'quarantineReportLearning',
+  fuzzy: 'quarantineReportFuzzy',
+}
+
+function sizeText(value: unknown): string {
+  return typeof value === 'number'
+    ? formatBytes(value, i18n.global.locale.value as AppLocale)
+    : String(value)
+}
+
 function detailText(value: unknown, flag: FlagText = String): string {
   if (typeof value === 'boolean') return flag(value)
   if (Array.isArray(value)) return value.map((item) => detailText(item, flag)).join(', ')
@@ -131,10 +175,15 @@ function detailText(value: unknown, flag: FlagText = String): string {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
 
+function changeText(path: string, value: unknown, flag: FlagText): string {
+  return (CHANGE_ENUMS[path] && enumText(CHANGE_ENUMS[path], value)) ?? detailText(value, flag)
+}
+
 /**
  * The details of an event as text: `changes` one line per changed value with its old and new
  * value, `removed` and `creationReport` one line per entry, `copiedFromAliasId` as a link to that
  * alias; every other key verbatim (research R19). Flags go through `flag` (UI 003: Yes or No).
+ * UI 006: `steps` one line per step, and API 006's enumeration values and template sizes labelled.
  */
 export function auditDetailRows(event: AuditEvent, flag: FlagText = String): AuditDetailRow[] {
   return Object.entries(event.details).map(([key, value]) => {
@@ -143,10 +192,27 @@ export function auditDetailRows(event: AuditEvent, flag: FlagText = String): Aud
         key,
         lines: Object.entries(value).map(([path, change]) =>
           isRecord(change) && 'old' in change && 'new' in change
-            ? `${path}: ${detailText(change.old, flag)} → ${detailText(change.new, flag)}`
-            : `${path}: ${detailText(change, flag)}`,
+            ? `${path}: ${changeText(path, change.old, flag)} → ${changeText(path, change.new, flag)}`
+            : isRecord(change) && 'oldSize' in change && 'newSize' in change
+              ? `${path}: ${sizeText(change.oldSize)} → ${sizeText(change.newSize)}`
+              : `${path}: ${detailText(change, flag)}`,
         ),
       }
+    }
+    if (key === 'steps' && isRecord(value)) {
+      return {
+        key,
+        lines: Object.entries(value).map(
+          ([step, outcome]) =>
+            `${enumText('spamFilterStep', step) ?? step}: ${
+              (STEP_ENUMS[step] && enumText(STEP_ENUMS[step], outcome)) ?? detailText(outcome, flag)
+            }`,
+        ),
+      }
+    }
+    if (VALUE_ENUMS[key]) {
+      const label = enumText(VALUE_ENUMS[key], value)
+      if (label !== null) return { key, lines: [label] }
     }
     if ((key === 'removed' || key === 'creationReport') && isRecord(value)) {
       return {

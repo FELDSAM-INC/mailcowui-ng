@@ -1,1 +1,22 @@
-{}
+{
+  "quarantineUi": {
+    "settings": {
+      "missingDomain": "už neexistuje"
+    },
+    "statistics": {
+      "actions": {
+        "rejected": "reject",
+        "softRejected": "soft reject",
+        "subjectRewritten": "rewrite subject",
+        "movedToJunk": "add header",
+        "noAction": "no action"
+      },
+      "count": "Počet",
+      "share": "Podiel",
+      "total": "Spolu",
+      "countedSince": "Počítané od {date}",
+      "countedSinceUnknown": "Začiatok počítania nie je známy",
+      "runningSince": "Spam filter beží od {date}"
+    }
+  }
+}

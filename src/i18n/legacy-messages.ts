@@ -266,11 +266,28 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'enums.auditTargetType.quarantineNotificationSettings': 'user.quarantine_notification',
   'enums.auditTargetType.spamScore': 'acl.spam_score',
   'enums.auditTargetType.rateLimit': 'edit.ratelimit',
+  // UI 006 history: the detail keys of API 006's records that a classic column names (screen 10).
+  'auditLog.detailKeys.queueId': 'quarantine.qid',
+  'auditLog.detailKeys.recipient': 'mailbox.recipient',
+  'auditLog.detailKeys.sender': 'mailbox.sender',
+  'auditLog.detailKeys.action': 'mailbox.action',
+  'auditLog.detailKeys.pattern': 'user.spamfilter_table_rule',
+  'auditLog.detailKeys.kind': 'mailbox.kind',
   'problem.spam-policy-entry-exists': 'danger.policy_list_from_exists',
   'problem.quarantine-delivery-refused': 'danger.release_send_failed',
   'validation.format.senderPattern': 'danger.policy_list_from_invalid',
   'rateLimits.form.errors.frame.notInList': 'danger.rl_timeframe',
   'quarantineUi.notifications.errors.category.notInList': 'danger.quarantine_category_invalid',
+  // UI 006 quarantine list: the sort fields as their column keys (screen 1); `id` is `lists.id`.
+  'quarantineUi.sort.arrivedAt': 'quarantine.received',
+  'quarantineUi.sort.queueId': 'quarantine.qid',
+  'quarantineUi.sort.score': 'quarantine.spam_score',
+  'quarantineUi.sort.sender': 'quarantine.sender',
+  'quarantineUi.sort.recipient': 'quarantine.rcpt',
+  'quarantineUi.sort.subject': 'quarantine.subj',
+  'quarantineUi.sort.action': 'quarantine.rspamd_result',
+  'quarantineUi.sort.virus': 'quarantine.danger',
+  'quarantineUi.sort.notified': 'quarantine.notified',
 }
 
 /**

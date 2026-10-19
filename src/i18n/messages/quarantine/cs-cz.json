@@ -2,6 +2,35 @@
   "quarantineUi": {
     "nav": {
       "label": "Části karantény"
+    },
+    "list": {
+      "details": "Podrobnosti"
+    },
+    "filters": {
+      "receivedFrom": "Od",
+      "receivedTo": "Do",
+      "scoreMin": "Minimální skóre",
+      "scoreMax": "Maximální skóre"
+    },
+    "item": {
+      "loadError": "Chyba při načítání položky v karanténě",
+      "sourceAddress": "IP adresa",
+      "fuzzyHashes": "Fuzzy hashe",
+      "parserFallback": "Analýza zprávy selhala, předpokládá se HTML",
+      "showFullText": "Zobrazit celý text",
+      "showLess": "Zobrazit méně",
+      "sha256": "SHA-256",
+      "copySha256": "Kopírovat SHA-256 přílohy {number}",
+      "copyFuzzyHash": "Kopírovat fuzzy hash {number}"
+    },
+    "deliver": {
+      "virusAcknowledge": "Rozumím, že tato zpráva obsahuje virus"
+    },
+    "bulk": {
+      "virusCount": "Virus obsahuje {count} z vybraných položek."
+    },
+    "download": {
+      "virusWarning": "Tato zpráva obsahuje virus. Soubor může poškodit vaše zařízení."
     }
   }
 }

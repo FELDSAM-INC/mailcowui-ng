@@ -8,6 +8,7 @@ import { i18n, lt, text, type LegacyKey } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import { parseLocaleInteger } from '@/i18n/parse'
+import { neutralise } from '@/shared/security/plain-text'
 
 export type RateLimitFrame = RateLimitValue['frame']
 export type RateLimitCapabilities = QuarantineCapabilities['rateLimit']
@@ -44,6 +45,18 @@ export function effectiveText(rateLimit: RateLimit, locale: AppLocale): string |
     limit: formatLimit(rateLimit.effectiveLimit, locale),
     source: text(`enums.rateLimitEffectiveSource.${rateLimit.effectiveSource}`),
   })
+}
+
+/** An API string as inert text: control and bidi characters become visible code points. */
+export function inertText(value: string): string {
+  return neutralise(value, { multiline: false })
+    .map((segment) => (segment.kind === 'text' ? segment.value : segment.codePoint))
+    .join('')
+}
+
+/** A stored value in an invalid format (D17), with its text as inert text. */
+export function invalidStoredText(stored: string): string {
+  return i18n.global.t('rateLimits.invalidStoredValue', { value: inertText(stored) })
 }
 
 export type LimitError =

@@ -43,12 +43,13 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { useVersionedSave } from '@/shared/composables/useVersionedSave'
 import { WarningIcon } from '@/shared/icons'
-import { neutralise } from '@/shared/security/plain-text'
 
 import { rateLimitOptions, removeRateLimit, setRateLimit, type RateLimitKind } from '../api'
 import {
   effectiveText,
   formatLimit,
+  inertText,
+  invalidStoredText,
   limitMessages,
   validateLimit,
   type RateLimitFrame,
@@ -90,22 +91,13 @@ const labelKey = computed<LegacyKey>(() =>
 )
 const saveLabel = computed(() => (props.kind === 'mailbox' ? lt('edit.save') : lt('admin.save')))
 
-/** An API string as inert text: control and bidi characters become visible code points. */
-function inert(value: string): string {
-  return neutralise(value, { multiline: false })
-    .map((segment) => (segment.kind === 'text' ? segment.value : segment.codePoint))
-    .join('')
-}
-
 const invalidText = (value: RateLimit) =>
-  value.invalidStoredValue === null
-    ? null
-    : t('rateLimits.invalidStoredValue', { value: inert(value.invalidStoredValue) })
+  value.invalidStoredValue === null ? null : invalidStoredText(value.invalidStoredValue)
 
 /** The stored value as the read view shows it. */
 const display = (value: RateLimit) =>
   value.invalidStoredValue !== null
-    ? inert(value.invalidStoredValue)
+    ? inertText(value.invalidStoredValue)
     : formatLimit(value.limit, appLocale.value)
 
 const items = computed(() =>

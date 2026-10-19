@@ -28,6 +28,8 @@ import { domainsListScenarios } from './domains-list'
 import { applyDnsOverrides, dnsScenarios, initialDnsState } from './dns'
 // UI 006
 import { applyQuarantineOverrides, initialQuarantineState, quarantineScenarios } from './quarantine'
+import { quarantineAdminScenarios } from './quarantine-admin'
+import { spamFilterScenarios } from './spam-filter'
 import { applyMailboxOverrides, initialMailboxState, mailboxBaseScenarios } from './mailboxes/base'
 import { mailboxBulkScenarios } from './mailboxes/bulk'
 import { mailboxCreateScenarios } from './mailboxes/create'
@@ -52,6 +54,7 @@ import { resourceScenarios } from './resources'
 import { history004Scenarios } from './history-004'
 import { publicConfig, PUBLIC_CONFIG_VARIANTS } from './public-config'
 import { routingScenarios } from './routing'
+import { rateLimitScenarios } from './rate-limits'
 import { applyRoutingOverrides, initialRoutingState } from './routing/state'
 import { navigationScenarios } from './navigation'
 import { applyOperationsPatch, initialOperationsState, operationsScenarios } from './operations'
@@ -138,8 +141,11 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...routingScenarios,
   // UI 011: one module per area under ./operations/ (T013).
   ...operationsScenarios,
+  ...rateLimitScenarios,
   // UI 006
   ...quarantineScenarios,
+  ...quarantineAdminScenarios,
+  ...spamFilterScenarios,
 }
 
 function resolvePublicConfig(value: ScenarioOverrides['publicConfig']): PublicConfig {

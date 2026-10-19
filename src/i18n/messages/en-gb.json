@@ -193,7 +193,13 @@
       "previousAddress": "Previous address",
       "newAddress": "New address",
       "bulkRequestId": "Bulk request",
-      "steps": "Steps"
+      "steps": "Steps",
+      "list": "List",
+      "entryId": "Entry ID",
+      "old": "Old value",
+      "new": "New value",
+      "countersExisted": "Counters existed",
+      "logEntriesRemoved": "Log entries removed"
     }
   },
   "auth": {
@@ -505,7 +511,7 @@
       "versionOutdated": "Changed in the meantime",
       "outcomeUnknown": "Outcome unknown",
       "partiallyCompleted": "Partly completed",
-      "serviceFailure": "The container service or Postfix reported an error",
+      "serviceFailure": "Service failure",
       "rulesNotRestored": "Default regex filters were not restored in time"
     },
     "auditOutcome": {

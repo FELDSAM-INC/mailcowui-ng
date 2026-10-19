@@ -547,6 +547,11 @@ export type {
   SpamScore,
   SpamScoreUpdate,
 } from './generated/schema'
+// UI 006 (US6): the rate limit overview's kind filter and sort fields.
+export {
+  componentsParametersRateLimitSortValues,
+  rateLimitObjectKindValues,
+} from './generated/schema'
 export { onActivity, recordActivity } from './activity'
 export { api, onSessionEnded, requireData, type SessionEndReason } from './client'
 export { clearCsrfToken, currentCsrfToken, ensureCsrfToken, refreshCsrfToken } from './csrf'

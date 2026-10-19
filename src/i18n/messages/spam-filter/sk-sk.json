@@ -1,1 +1,17 @@
-{}
+{
+  "spamFilter": {
+    "score": {
+      "junkScore": "Do nevyžiadanej pošty od",
+      "rejectScore": "Odmietnuť od",
+      "rangeBelow": "< {junk}",
+      "rangeBetween": "{junk} - {reject}",
+      "rangeAbove": "> {reject}",
+      "usingDefaults": "Platia implicitné hodnoty servera.",
+      "fallback": "Implicitné hodnoty sa od spam filtra nepodarilo zistiť; toto sú vstavané hodnoty."
+    },
+    "lists": {
+      "patternPlaceholder": "*{'@'}example.org",
+      "scope": "Platí pre"
+    }
+  }
+}

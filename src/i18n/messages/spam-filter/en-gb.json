@@ -1,1 +1,17 @@
-{}
+{
+  "spamFilter": {
+    "score": {
+      "junkScore": "Junk folder from",
+      "rejectScore": "Reject from",
+      "rangeBelow": "< {junk}",
+      "rangeBetween": "{junk} - {reject}",
+      "rangeAbove": "> {reject}",
+      "usingDefaults": "The server defaults apply.",
+      "fallback": "The spam filter could not be asked for its defaults; these are the built-in values."
+    },
+    "lists": {
+      "patternPlaceholder": "*{'@'}example.org",
+      "scope": "Scope"
+    }
+  }
+}

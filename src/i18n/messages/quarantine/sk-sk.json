@@ -2,6 +2,35 @@
   "quarantineUi": {
     "nav": {
       "label": "Časti karantény"
+    },
+    "list": {
+      "details": "Podrobnosti"
+    },
+    "filters": {
+      "receivedFrom": "Od",
+      "receivedTo": "Do",
+      "scoreMin": "Minimálny výsledok",
+      "scoreMax": "Maximálny výsledok"
+    },
+    "item": {
+      "loadError": "Chyba pri načítaní karanténnej položky",
+      "sourceAddress": "IP adresa",
+      "fuzzyHashes": "Fuzzy hashe",
+      "parserFallback": "Analýza správy zlyhala, predpokladá sa HTML",
+      "showFullText": "Zobraziť celý text",
+      "showLess": "Zobraziť menej",
+      "sha256": "SHA-256",
+      "copySha256": "Kopírovať SHA-256 prílohy {number}",
+      "copyFuzzyHash": "Kopírovať fuzzy hash {number}"
+    },
+    "deliver": {
+      "virusAcknowledge": "Rozumiem, že táto správa obsahuje vírus"
+    },
+    "bulk": {
+      "virusCount": "Vírus obsahuje {count} z vybraných položiek."
+    },
+    "download": {
+      "virusWarning": "Táto správa obsahuje vírus. Súbor môže poškodiť vaše zariadenie."
     }
   }
 }

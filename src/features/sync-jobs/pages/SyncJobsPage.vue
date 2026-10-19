@@ -6,33 +6,38 @@
 // listed job runs; the match count announced after a search or filter change. Later stories add the
 // create action (US2), selection mode (US4), the log viewer (US5) and deletion (US6).
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
-import { problemOf, type SyncJob } from '@/api'
+import { problemOf, type SyncJob, type SyncJobBulkAction } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import { useSessionStore } from '@/app/session/store'
 import { legacy, lt, resolveText, text, type TextRef } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import ActiveFilterChips, { type FilterChip } from '@/shared/components/ActiveFilterChips.vue'
+import BulkActionBar from '@/shared/components/BulkActionBar.vue'
+import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
+import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
+import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
-import { syncJobListOptions } from '../api'
+import { syncJobListOptions, useSyncJobCapabilities } from '../api'
 import AutoRefreshControl from '../components/AutoRefreshControl.vue'
 import SyncJobFilters from '../components/SyncJobFilters.vue'
 import SyncJobList from '../components/SyncJobList.vue'
 import SyncJobRowActions from '../components/SyncJobRowActions.vue'
 import { useRunningRefresh } from '../composables/useRunningRefresh'
+import { useSyncJobActions } from '../composables/useSyncJobActions'
 import { useSyncJobListState, type SyncJobListFilters } from '../list-state'
-import { listTexts } from '../presentation'
+import { jobLabel, listTexts } from '../presentation'
 
 const { t } = useI18n()
 const fmt = useFormat()
@@ -41,9 +46,11 @@ const session = useSessionStore()
 const role = identity.data.value?.role ?? 'mailboxUser'
 const texts = listTexts(role)
 const wide = useMediaQuery('(min-width: 768px)')
-const list = useSyncJobListState(role)
+const selection = useBulkSelection({ limit: () => capabilities.data.value?.bulkLimit })
+const capabilities = useSyncJobCapabilities(() => selection.active.value)
+const list = useSyncJobListState(role, { onReset: () => selection.clear() })
 const state = computed(() => list.state.value)
-const selecting = ref(false)
+const selecting = computed(() => selection.active.value)
 // The current page's jobs, for the automatic refresh (the query is created after it).
 const pageJobs = shallowRef<readonly SyncJob[]>([])
 
@@ -151,6 +158,37 @@ const createLocation = computed(() => ({
   query: state.value.filters.mailbox ? { mailbox: state.value.filters.mailbox } : {},
 }))
 
+// Selection mode and the classic mass actions (FR-037): "Schedule next" is on the administrators'
+// and domain administrators' tab only, as in the classic interface.
+const actions = useSyncJobActions({ selection, entries: () => jobs.value, role: () => role })
+const pageIds = computed(() => jobs.value.map((job) => String(job.id)))
+const allSelected = computed(
+  () =>
+    pageIds.value.length > 0 &&
+    pageIds.value.every((id) => selection.isSelected(id) || !selection.canSelect(id)),
+)
+const limitMessage = computed(() =>
+  selection.limitReached.value && selection.limit.value !== null
+    ? t('bulk.limitReached', { max: fmt.number(selection.limit.value) })
+    : null,
+)
+const BULK_ACTIONS = computed(() => [
+  ...(role === 'mailboxUser'
+    ? []
+    : [{ id: 'reschedule', label: text('enums.syncJobBulkAction.reschedule') }]),
+  { id: 'activate', label: text('enums.syncJobBulkAction.activate') },
+  { id: 'deactivate', label: text('enums.syncJobBulkAction.deactivate') },
+  { id: 'delete', label: text('enums.syncJobBulkAction.delete'), destructive: true },
+])
+function toggleAll(checked: boolean) {
+  if (checked) selection.selectPage(pageIds.value)
+  else selection.clear()
+}
+function toggleSelecting() {
+  if (selection.active.value) selection.leave()
+  else selection.enter()
+}
+
 function openLog(id: number) {
   void list.setView('log', id)
 }
@@ -164,6 +202,14 @@ function openLog(id: number) {
           <PlusIcon />
           {{ lt('user.create_syncjob') }}
         </RouterLink>
+        <button
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="reload">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -236,6 +282,31 @@ function openLog(id: number) {
         {{ t('syncJobs.list.refreshFailed') }}
       </p>
 
+      <p
+        v-if="actions.status.value"
+        role="status"
+        class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200"
+      >
+        {{ actions.status.value }}
+      </p>
+      <div
+        v-if="actions.phase.value === 'running'"
+        data-bulk-progress
+        role="status"
+        class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+      >
+        <SyncIcon class="size-5 motion-safe:animate-spin" />
+        {{ t('bulk.progress', { count: actions.running.value }) }}
+      </div>
+      <BulkResultSummary
+        v-else-if="actions.phase.value === 'results' && actions.rows.value.length > 0"
+        :rows="actions.rows.value"
+        @retry="actions.retry"
+        @refresh="reload"
+        @close="actions.close"
+      />
+      <ProblemMessage v-if="actions.problem.value" :problem="actions.problem.value" />
+
       <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearAll">
@@ -255,16 +326,43 @@ function openLog(id: number) {
         <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
           {{ countText }}
         </p>
+        <div v-if="selection.active.value && !wide" class="flex items-center gap-2">
+          <SelectCheckbox
+            :label="lt('mailbox.toggle_all')"
+            :checked="allSelected"
+            @change="toggleAll"
+          />
+          <span aria-hidden="true" class="text-sm text-gray-700 dark:text-gray-300">{{
+            lt('mailbox.toggle_all')
+          }}</span>
+        </div>
         <SyncJobList
           :jobs="jobs"
           :role="role"
           :sort="state.sort ?? 'id'"
           :order="state.order ?? 'desc'"
+          :selectable="selection.active.value"
           @sort="(sort, order) => list.setSort(sort, order)"
           @open-log="(job) => openLog(job.id)"
         >
           <template #actions="{ job }">
-            <SyncJobRowActions :job="job" :role="role" />
+            <SyncJobRowActions :job="job" :role="role" can-remove @remove="actions.removeOne" />
+          </template>
+          <template #select-all>
+            <SelectCheckbox
+              :label="lt('mailbox.toggle_all')"
+              :checked="allSelected"
+              @change="toggleAll"
+            />
+          </template>
+          <template #select="{ job }">
+            <SelectCheckbox
+              :label="t('bulk.selectItem', { name: jobLabel(job) })"
+              :checked="selection.isSelected(String(job.id))"
+              :disabled="!selection.canSelect(String(job.id))"
+              described-by="bulk-limit-message"
+              @change="selection.toggle(String(job.id))"
+            />
           </template>
         </SyncJobList>
         <PaginationBar
@@ -277,5 +375,15 @@ function openLog(id: number) {
         />
       </template>
     </template>
+
+    <BulkActionBar
+      v-if="selection.active.value"
+      :count="selection.count.value"
+      :actions="BULK_ACTIONS"
+      :limit-message="limitMessage"
+      :busy="actions.phase.value === 'running'"
+      @action="(id) => actions.run(id as SyncJobBulkAction)"
+      @clear="selection.clear()"
+    />
   </section>
 </template>

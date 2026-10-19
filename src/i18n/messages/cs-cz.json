@@ -788,6 +788,14 @@
     },
     "create": {
       "loadFailed": "Formulář se nepodařilo načíst."
+    },
+    "bulk": {
+      "deactivateTitle": "Deaktivovat synchronizační úlohy ({count})?",
+      "deactivateNote": "Nespustí se, dokud je znovu neaktivujete.",
+      "listLabel": "Vybrané synchronizační úlohy"
+    },
+    "delete": {
+      "mailKept": "Již zkopírovaná pošta ve schránce zůstane."
     }
   },
   "themes": {

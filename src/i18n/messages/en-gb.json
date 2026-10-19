@@ -788,6 +788,14 @@
     },
     "create": {
       "loadFailed": "The form could not be loaded."
+    },
+    "bulk": {
+      "deactivateTitle": "Deactivate {count} sync jobs?",
+      "deactivateNote": "They do not run until they are activated again.",
+      "listLabel": "Selected sync jobs"
+    },
+    "delete": {
+      "mailKept": "Mail that was already copied stays in the mailbox."
     }
   },
   "themes": {

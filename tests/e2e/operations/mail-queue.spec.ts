@@ -97,6 +97,14 @@ test.describe('Queue Manager @operations', () => {
     await open(page, mockApi, 'ops-queue-vanishing')
     await select(page, '4F2A1B3C9D', '5B0C2D4E1F', '6C1D3E5F20', '7D2E4F6031')
     await expect(bar(page)).toContainText('4 selected')
+    // Cards scrolled under the sticky header or the selection bar would overlap their controls for
+    // axe's target size check (as in UI 008's bulk actions). The focus leaves the last checkbox
+    // first, so that WebKit does not scroll it back into view while axe runs.
+    await page.evaluate(() => {
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+      window.scrollTo({ top: 0, behavior: 'instant' })
+    })
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
     await expectAccessible()
     await expectNoHorizontalScroll()
     const before = await mockApi.mark()

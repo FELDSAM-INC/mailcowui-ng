@@ -12,6 +12,7 @@ import { legacyRaw, lt } from './legacy'
 import { formatLegacy, type LegacyArg } from './legacy-format'
 import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
+import type enGbAccount from './messages/account/en-gb.json'
 import type enGbAliases from './messages/aliases/en-gb.json'
 import type enGbDnsDiagnostics from './messages/dns-diagnostics/en-gb.json'
 import type enGbDnsMtaSts from './messages/dns-mta-sts/en-gb.json'
@@ -32,6 +33,7 @@ import type enGbSpamFilter from './messages/spam-filter/en-gb.json'
 import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
 export type MessageSchema = typeof enGb &
+  typeof enGbAccount &
   typeof enGbDomains &
   typeof enGbMailboxes &
   typeof enGbSyncJobs &
@@ -213,6 +215,13 @@ const featureLoaders = {
         import('./messages/spam-filter/sk-sk.json'),
         import('./messages/rate-limits/sk-sk.json'),
       ]),
+  },
+  // UI 005: My account, the mailbox context's self-service sections and Mail setup › Filters, loaded
+  // with their routes and with the pending-actions screen (second-factor setup).
+  account: {
+    'en-gb': () => import('./messages/account/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/account/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/account/sk-sk.json').then((m) => m.default),
   },
 } satisfies Record<string, Partial<Record<AppLocale, Loader>>>
 

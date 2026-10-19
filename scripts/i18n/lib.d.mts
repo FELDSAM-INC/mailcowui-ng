@@ -11,6 +11,7 @@ export const DYNAMIC_NAMESPACES: readonly string[]
 export function getPath(object: unknown, dotted: string): unknown
 export function flatten(object: Messages | undefined): Map<string, unknown>
 export function placeholders(message: unknown): string[]
+export function choiceCount(message: string): number
 export function problemNamesFromContract(text: string): string[]
 export function enumValuesFromSchema(schemaTs: string): Record<string, string[]>
 export function requiredKeys(input: {

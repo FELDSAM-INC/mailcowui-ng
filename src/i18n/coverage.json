@@ -104,7 +104,30 @@
       "spamPolicyEntryRemoval",
       "rateLimitUpdate",
       "rateLimitRemoval",
-      "rateLimitBucketReset"
+      "rateLimitBucketReset",
+      "ownPasswordChange",
+      "ownSecondFactorEnrolment",
+      "ownSecondFactorRemoval",
+      "ownRecoveryEmailChange",
+      "passwordResetRequest",
+      "passwordResetCompletion",
+      "appPasswordCreation",
+      "appPasswordUpdate",
+      "appPasswordDeletion",
+      "temporaryAliasCreation",
+      "temporaryAliasUpdate",
+      "temporaryAliasDeletion",
+      "sieveFilterCreation",
+      "sieveFilterUpdate",
+      "sieveFilterDeletion",
+      "pushNotificationSettingsUpdate",
+      "pushNotificationSettingsDeletion",
+      "pushNotificationVerification",
+      "mailSettingsUpdate",
+      "recentLoginsClear",
+      "activeSyncCacheReset",
+      "groupwareProfileReset",
+      "webmailHandOff"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -146,7 +169,19 @@
       "spamScore",
       "spamPolicyEntry",
       "rateLimit",
-      "rateLimitBucket"
+      "rateLimitBucket",
+      "accountPassword",
+      "secondFactor",
+      "recoveryEmail",
+      "passwordReset",
+      "appPassword",
+      "temporaryAlias",
+      "sieveFilter",
+      "pushNotificationSettings",
+      "mailSettings",
+      "recentLogins",
+      "groupwareData",
+      "webmailHandOff"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -184,7 +219,17 @@
       "passwordNotVerifiable",
       "connectionTestFailed",
       "serviceFailure",
-      "rulesNotRestored"
+      "rulesNotRestored",
+      "currentPasswordIncorrect",
+      "unknownAccount",
+      "accountNotEligible",
+      "noRecoveryEmail",
+      "tokenLimitReached",
+      "messageNotSent",
+      "invalidResetToken",
+      "lastSecondFactor",
+      "secondFactorRequiredByPolicy",
+      "notConfigured"
     ],
     "AuthMethod": [
       "password",
@@ -228,7 +273,10 @@
       "invalidRegex",
       "notResolvable",
       "missingCaptureGroup",
-      "invalidTemplate"
+      "invalidTemplate",
+      "preHashedPassword",
+      "sieveSyntax",
+      "mutuallyExclusive"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -292,7 +340,17 @@
       "quarantine-item-busy",
       "quarantine-delivery-refused",
       "quarantine-message-too-large",
-      "spam-policy-entry-exists"
+      "spam-policy-entry-exists",
+      "current-password-incorrect",
+      "password-managed-externally",
+      "password-reset-unavailable",
+      "invalid-reset-token",
+      "second-factor-enrolment-expired",
+      "second-factor-enrolment-failed",
+      "last-second-factor",
+      "second-factor-required-by-policy",
+      "push-notifications-not-configured",
+      "groupware-disabled"
     ]
   },
   "complete": {
@@ -337,6 +395,10 @@
     "enums.spamPolicyOwnerKind": "#/components/schemas/SpamPolicyOwner/properties/kind",
     "enums.rateLimitObjectKind": "#/components/schemas/RateLimitObjectKind",
     "enums.rateLimitFrame": "#/components/schemas/RateLimitValue/properties/frame",
-    "enums.rateLimitEffectiveSource": "#/components/schemas/RateLimit/properties/effectiveSource"
+    "enums.rateLimitEffectiveSource": "#/components/schemas/RateLimit/properties/effectiveSource",
+    "account.twoFactor.type": "#/components/schemas/OwnSecondFactorType",
+    "account.appPasswords.protocol": "#/components/schemas/AppPasswordProtocol",
+    "account.mailSettings.tagged": "#/components/schemas/MailboxTaggedMailHandling",
+    "filters.kind": "#/components/schemas/SieveFilterKind"
   }
 }

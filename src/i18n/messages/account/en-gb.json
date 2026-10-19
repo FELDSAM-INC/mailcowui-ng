@@ -1,0 +1,29 @@
+{
+  "account": {
+    "twoFactor": {
+      "type": {
+        "u2f": "Fido U2F",
+        "hotp": "HMAC-based OTP"
+      }
+    },
+    "appPasswords": {
+      "protocol": {
+        "imap": "IMAP",
+        "smtp": "SMTP",
+        "activeSync": "EAS/ActiveSync",
+        "dav": "CardDAV/CalDAV",
+        "pop3": "POP3",
+        "sieve": "Sieve"
+      },
+      "protocolShort": {
+        "dav": "DAV"
+      }
+    }
+  },
+  "filters": {
+    "kind": {
+      "prefilter": "Prefilter",
+      "postfilter": "Postfilter"
+    }
+  }
+}

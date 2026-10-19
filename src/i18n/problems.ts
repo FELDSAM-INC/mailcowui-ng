@@ -127,6 +127,13 @@ export function problemMessage(
   tr: MessageTranslator,
   context: MessageContext = {},
 ): string {
+  // UI 005 (research R6, FR-020): a temporary failure names the service that is unavailable.
+  const dependency = problem.is('temporary-failure') ? problem.dependency : null
+  if (dependency && tr.te('problem.dependency-unavailable')) {
+    const label = `selfService.dependency.${dependency}`
+    const service = tr.t(tr.te(label) ? label : 'selfService.dependency.unknown')
+    return tr.t('problem.dependency-unavailable', { service })
+  }
   const key = problemMessageKey(problem, tr.te)
   const named = extensionParams(problem, tr, context)
   return Object.keys(named).length > 0 ? tr.t(key, named) : tr.t(key)
@@ -234,6 +241,11 @@ export function violationParams(
   for (const key of ['option', 'token'] as const) {
     if (typeof params[key] === 'string') named[key] = params[key]
   }
+  // UI 005: the Sieve parser's message and line, and the hash scheme of a pre-hashed password.
+  for (const key of ['message', 'scheme'] as const) {
+    if (typeof params[key] === 'string') named[key] = params[key]
+  }
+  if (typeof params.line === 'number') named.line = formatNumber(params.line, locale)
   // UI 004: the entry the violation names, its domain part, and the form's other values.
   const entry = context.path ? context.valueAt?.(context.path) : undefined
   if (entry !== undefined) {
@@ -259,6 +271,10 @@ export function violationMessage(
   if (key === 'validation.invalid') return tr.t(key)
   if (key === 'validation.tooLong' && violation.params?.unit === 'bytes') {
     return tr.t('validation.tooLongBytes', violationParams(violation, tr, context))
+  }
+  // UI 005: a name whose stored form (special characters encoded) is too long.
+  if (key === 'validation.tooLong' && violation.params?.stored === true) {
+    return tr.t('validation.tooLongStored', violationParams(violation, tr, context))
   }
   return tr.t(key, violationParams(violation, tr, context))
 }

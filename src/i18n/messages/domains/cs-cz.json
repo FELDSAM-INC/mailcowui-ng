@@ -92,7 +92,7 @@
   },
   "domainTemplates": {
     "delete": {
-      "keepValues": "Domény vytvořené z této šablony si své hodnoty ponechají. | Domény vytvořené z těchto šablon si své hodnoty ponechají."
+      "keepValues": "Domény vytvořené z této šablony si své hodnoty ponechají. | Domény vytvořené z těchto šablon si své hodnoty ponechají. | Domény vytvořené z těchto šablon si své hodnoty ponechají."
     },
     "detail": {
       "backToList": "Zpět na šablony domén"

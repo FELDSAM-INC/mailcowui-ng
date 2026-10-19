@@ -92,7 +92,7 @@
   },
   "domainTemplates": {
     "delete": {
-      "keepValues": "Domény vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú."
+      "keepValues": "Domény vytvorené z tejto šablóny si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú. | Domény vytvorené z týchto šablón si svoje hodnoty ponechajú."
     },
     "detail": {
       "backToList": "Späť na šablóny domén"

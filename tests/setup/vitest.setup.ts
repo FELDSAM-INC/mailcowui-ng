@@ -32,6 +32,7 @@ beforeEach(async () => {
     loadFeatureMessages('operationsQueue', i18n, 'en-gb'),
     loadFeatureMessages('operationsFail2ban', i18n, 'en-gb'),
     loadFeatureMessages('quarantine', i18n, 'en-gb'),
+    loadFeatureMessages('account', i18n, 'en-gb'),
   ])
 })
 

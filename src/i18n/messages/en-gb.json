@@ -475,7 +475,30 @@
       "spamPolicyEntryRemoval": "Allowlist or denylist entry removed",
       "rateLimitUpdate": "Rate limit set",
       "rateLimitRemoval": "Rate limit removed",
-      "rateLimitBucketReset": "Rate limit hash removed"
+      "rateLimitBucketReset": "Rate limit hash removed",
+      "ownPasswordChange": "Own password changed",
+      "ownSecondFactorEnrolment": "Second factor added",
+      "ownSecondFactorRemoval": "Second factor removed",
+      "ownRecoveryEmailChange": "Recovery e-mail changed",
+      "passwordResetRequest": "Password reset requested",
+      "passwordResetCompletion": "Password reset",
+      "appPasswordCreation": "App password added",
+      "appPasswordUpdate": "App password changed",
+      "appPasswordDeletion": "App password removed",
+      "temporaryAliasCreation": "Temporary alias added",
+      "temporaryAliasUpdate": "Temporary alias validity changed",
+      "temporaryAliasDeletion": "Temporary alias removed",
+      "sieveFilterCreation": "Filter added",
+      "sieveFilterUpdate": "Filter changed",
+      "sieveFilterDeletion": "Filter removed",
+      "pushNotificationSettingsUpdate": "Push notification settings changed",
+      "pushNotificationSettingsDeletion": "Push notification settings removed",
+      "pushNotificationVerification": "Push notification credentials verified",
+      "mailSettingsUpdate": "Mail settings changed",
+      "recentLoginsClear": "Recent logins cleared",
+      "activeSyncCacheReset": "ActiveSync device cache reset",
+      "groupwareProfileReset": "SOGo profile reset",
+      "webmailHandOff": "Webmail opened"
     },
     "auditFailureReason": {
       "accountInactive": "Account inactive",
@@ -512,7 +535,8 @@
       "outcomeUnknown": "Outcome unknown",
       "partiallyCompleted": "Partly completed",
       "serviceFailure": "Service failure",
-      "rulesNotRestored": "Default regex filters were not restored in time"
+      "rulesNotRestored": "Default regex filters were not restored in time",
+      "accountNotEligible": "Account cannot reset its password"
     },
     "auditOutcome": {
       "failure": "Failure"
@@ -538,7 +562,9 @@
       "fail2banActiveBan": "Active ban",
       "fail2banBanListId": "Banlist ID",
       "spamPolicyEntry": "Allowlist or denylist entry",
-      "rateLimitBucket": "Rate limit hash"
+      "rateLimitBucket": "Rate limit hash",
+      "sieveFilter": "Filter",
+      "groupwareData": "Groupware data"
     },
     "authMethod": {
       "directoryPassword": "Directory password",
@@ -675,7 +701,8 @@
     "identityProviders": "Identity providers and OAuth2",
     "passkeys": "Passkeys",
     "routing": "Routing and rewriting",
-    "system": "System settings"
+    "system": "System settings",
+    "operations": "Monitoring and operations"
   },
   "passkeys": {
     "add": {
@@ -797,7 +824,12 @@
           "mailServer": "Nothing was changed, because the mail server is temporarily unavailable. Please try again in a moment."
         }
       }
-    }
+    },
+    "password-managed-externally": "Your organisation manages the password and second factors of this account.",
+    "second-factor-enrolment-expired": "The setup expired. Start again.",
+    "second-factor-enrolment-failed": "The second factor could not be verified. Nothing was saved.",
+    "groupware-disabled": "Webmail, the groupware resets and the calendar profile are not available on this server.",
+    "dependency-unavailable": "Nothing was changed. Temporarily unavailable: {service}. Please try again in a moment."
   },
   "roles": {
     "mailboxUser": "Mailbox user"
@@ -928,7 +960,10 @@
       "yubicoOtp": "Enter the 44 letters or digits your YubiKey types.",
       "attributeName": "Use a name without spaces.",
       "mxHost": "Enter a host name, for example mail.example.org or *.example.org.",
-      "logCursor": "This position in the log is no longer valid. Refresh the log."
+      "logCursor": "This position in the log is no longer valid. Refresh the log.",
+      "pushoverCredential": "Enter exactly 30 letters or digits.",
+      "soundName": "Use 1 to 20 letters, digits, hyphens or underscores.",
+      "digits": "Use digits only."
     },
     "immutable": "This value cannot be changed.",
     "invalid": "This value is not valid.",
@@ -959,7 +994,10 @@
     "notResolvable": "This name resolves to no address.",
     "outOfRangeMinField": "Enter a value from {min} ({field}) to {max}.",
     "missingCaptureGroup": "The rule needs a capture group for the client address.",
-    "invalidTemplate": "This template cannot be used."
+    "invalidTemplate": "This template cannot be used.",
+    "preHashedPassword": "The password may not start with a hash scheme such as {scheme}.",
+    "tooLongStored": "This name is too long once special characters are encoded (at most {max} characters).",
+    "mutuallyExclusive": "Use only one of these values."
   },
   "domainTemplates": {
     "create": {
@@ -999,5 +1037,15 @@
   },
   "dns": {
     "checkDns": "DNS"
+  },
+  "selfService": {
+    "dependency": {
+      "sharedStore": "Settings store",
+      "mailStore": "Mail server",
+      "pushover": "Pushover service",
+      "addressGeneration": "Address generator",
+      "yubico": "Yubico verification service",
+      "unknown": "A server component"
+    }
   }
 }

@@ -475,7 +475,30 @@
       "spamPolicyEntryRemoval": "Položka seznamu povolení nebo zákazů odebrána",
       "rateLimitUpdate": "Omezení přenosu nastaveno",
       "rateLimitRemoval": "Omezení přenosu odebráno",
-      "rateLimitBucketReset": "Hash omezení přenosu odebrán"
+      "rateLimitBucketReset": "Hash omezení přenosu odebrán",
+      "ownPasswordChange": "Vlastní heslo změněno",
+      "ownSecondFactorEnrolment": "Druhý faktor přidán",
+      "ownSecondFactorRemoval": "Druhý faktor odebrán",
+      "ownRecoveryEmailChange": "Záchranný e-mail změněn",
+      "passwordResetRequest": "Vyžádáno obnovení hesla",
+      "passwordResetCompletion": "Heslo obnoveno",
+      "appPasswordCreation": "Heslo aplikace přidáno",
+      "appPasswordUpdate": "Heslo aplikace změněno",
+      "appPasswordDeletion": "Heslo aplikace odebráno",
+      "temporaryAliasCreation": "Dočasný alias přidán",
+      "temporaryAliasUpdate": "Platnost dočasného aliasu změněna",
+      "temporaryAliasDeletion": "Dočasný alias odebrán",
+      "sieveFilterCreation": "Filtr přidán",
+      "sieveFilterUpdate": "Filtr změněn",
+      "sieveFilterDeletion": "Filtr odebrán",
+      "pushNotificationSettingsUpdate": "Nastavení push oznámení změněno",
+      "pushNotificationSettingsDeletion": "Nastavení push oznámení odebráno",
+      "pushNotificationVerification": "Přihlašovací údaje push oznámení ověřeny",
+      "mailSettingsUpdate": "Nastavení pošty změněno",
+      "recentLoginsClear": "Nedávná přihlášení vymazána",
+      "activeSyncCacheReset": "Mezipaměť zařízení ActiveSync obnovena",
+      "groupwareProfileReset": "Profil SOGo obnoven",
+      "webmailHandOff": "Webmail otevřen"
     },
     "auditFailureReason": {
       "accountInactive": "Účet je neaktivní",
@@ -512,7 +535,8 @@
       "outcomeUnknown": "Výsledek neznámý",
       "partiallyCompleted": "Dokončeno jen částečně",
       "serviceFailure": "Selhání služby",
-      "rulesNotRestored": "Výchozí regex filtry se včas neobnovily"
+      "rulesNotRestored": "Výchozí regex filtry se včas neobnovily",
+      "accountNotEligible": "Účet si nemůže obnovit heslo"
     },
     "auditOutcome": {
       "failure": "Neúspěch"
@@ -538,7 +562,9 @@
       "fail2banActiveBan": "Aktivní blokace",
       "fail2banBanListId": "ID seznamu blokací",
       "spamPolicyEntry": "Položka seznamu povolení nebo zákazů",
-      "rateLimitBucket": "Hash omezení přenosu"
+      "rateLimitBucket": "Hash omezení přenosu",
+      "sieveFilter": "Filtr",
+      "groupwareData": "Data groupwaru"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresáře",
@@ -675,7 +701,8 @@
     "identityProviders": "Poskytovatelé identit a OAuth2",
     "passkeys": "Přístupové klíče",
     "routing": "Směrování a přepisování adres",
-    "system": "Nastavení systému"
+    "system": "Nastavení systému",
+    "operations": "Monitorování a provoz"
   },
   "passkeys": {
     "add": {
@@ -797,7 +824,12 @@
           "mailServer": "Nic se nezměnilo, protože poštovní server je dočasně nedostupný. Zkuste to prosím za chvíli znovu."
         }
       }
-    }
+    },
+    "password-managed-externally": "Heslo a druhé faktory tohoto účtu spravuje vaše organizace.",
+    "second-factor-enrolment-expired": "Platnost nastavení vypršela. Začněte znovu.",
+    "second-factor-enrolment-failed": "Druhý faktor se nepodařilo ověřit. Nic nebylo uloženo.",
+    "groupware-disabled": "Webmail, obnovení groupwaru a profil s kalendáři nejsou na tomto serveru k dispozici.",
+    "dependency-unavailable": "Nic nebylo změněno. Dočasně nedostupné: {service}. Zkuste to prosím za chvíli znovu."
   },
   "roles": {
     "mailboxUser": "Uživatel schránky"
@@ -928,7 +960,10 @@
       "yubicoOtp": "Zadejte 44 písmen nebo číslic, které napíše váš YubiKey.",
       "attributeName": "Použijte název bez mezer.",
       "mxHost": "Zadejte název hostitele, například mail.example.org nebo *.example.org.",
-      "logCursor": "Toto místo v záznamu už neplatí. Obnovte záznam."
+      "logCursor": "Toto místo v záznamu už neplatí. Obnovte záznam.",
+      "pushoverCredential": "Zadejte přesně 30 písmen nebo číslic.",
+      "soundName": "Použijte 1 až 20 písmen, číslic, pomlček nebo podtržítek.",
+      "digits": "Použijte jen číslice."
     },
     "immutable": "Tuto hodnotu nelze změnit.",
     "invalid": "Tato hodnota není platná.",
@@ -959,7 +994,10 @@
     "notResolvable": "Tento název se nepřekládá na žádnou adresu.",
     "outOfRangeMinField": "Zadejte hodnotu od {min} ({field}) do {max}.",
     "missingCaptureGroup": "Pravidlo potřebuje zachytávací skupinu pro adresu klienta.",
-    "invalidTemplate": "Tuto šablonu nelze použít."
+    "invalidTemplate": "Tuto šablonu nelze použít.",
+    "preHashedPassword": "Heslo nesmí začínat schématem hashe, jako je {scheme}.",
+    "tooLongStored": "Tento název je po zakódování zvláštních znaků příliš dlouhý (nejvýše {max} znaků).",
+    "mutuallyExclusive": "Použijte jen jednu z těchto hodnot."
   },
   "domainTemplates": {
     "create": {
@@ -999,5 +1037,15 @@
   },
   "dns": {
     "checkDns": "DNS"
+  },
+  "selfService": {
+    "dependency": {
+      "sharedStore": "Úložiště nastavení",
+      "mailStore": "Poštovní server",
+      "pushover": "Služba Pushover",
+      "addressGeneration": "Generátor adres",
+      "yubico": "Ověřovací služba Yubico",
+      "unknown": "Součást serveru"
+    }
   }
 }

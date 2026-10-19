@@ -288,6 +288,40 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'quarantineUi.sort.action': 'quarantine.rspamd_result',
   'quarantineUi.sort.virus': 'quarantine.danger',
   'quarantineUi.sort.notified': 'quarantine.notified',
+  // UI 005 (legacy form map part 2): self-service problems, rule codes, enumeration values and audit
+  // labels with a classic text of the same meaning.
+  'problem.current-password-incorrect': 'danger.access_denied',
+  'problem.password-reset-unavailable': 'danger.password_reset_na',
+  'problem.invalid-reset-token': 'danger.invalid_reset_token',
+  'problem.last-second-factor': 'danger.last_key',
+  'problem.second-factor-required-by-policy': 'danger.tfa_removal_blocked',
+  'problem.push-notifications-not-configured': 'danger.pushover_credentials_missing',
+  'validation.sieveSyntax': 'danger.sieve_error',
+  'account.twoFactor.type.totp': 'tfa.totp',
+  'account.twoFactor.type.webauthn': 'tfa.webauthn',
+  'account.twoFactor.type.yubiOtp': 'tfa.yubi_otp',
+  'account.mailSettings.tagged.subfolder': 'user.tag_in_subfolder',
+  'account.mailSettings.tagged.subject': 'user.tag_in_subject',
+  'account.mailSettings.tagged.none': 'user.tag_in_none',
+  'enums.auditTargetType.accountPassword': 'login.password',
+  'enums.auditTargetType.secondFactor': 'tfa.tfa',
+  'enums.auditTargetType.recoveryEmail': 'user.pw_recovery_email',
+  'enums.auditTargetType.passwordReset': 'login.reset_password',
+  'enums.auditTargetType.appPassword': 'edit.app_passwd',
+  'enums.auditTargetType.temporaryAlias': 'mailbox.spam_aliases',
+  'enums.auditTargetType.pushNotificationSettings': 'edit.pushover',
+  'enums.auditTargetType.mailSettings': 'user.mailbox_settings',
+  'enums.auditTargetType.recentLogins': 'user.recent_successful_connections',
+  'enums.auditTargetType.webmailHandOff': 'user.open_webmail_sso',
+  'enums.auditFailureReason.currentPasswordIncorrect': 'danger.access_denied',
+  'enums.auditFailureReason.unknownAccount': 'danger.password_reset_invalid_user',
+  'enums.auditFailureReason.noRecoveryEmail': 'danger.password_reset_invalid_user',
+  'enums.auditFailureReason.tokenLimitReached': 'danger.reset_token_limit_exceeded',
+  'enums.auditFailureReason.messageNotSent': 'danger.recovery_email_failed',
+  'enums.auditFailureReason.invalidResetToken': 'danger.invalid_reset_token',
+  'enums.auditFailureReason.lastSecondFactor': 'danger.last_key',
+  'enums.auditFailureReason.secondFactorRequiredByPolicy': 'danger.tfa_removal_blocked',
+  'enums.auditFailureReason.notConfigured': 'danger.pushover_credentials_missing',
 }
 
 /**
@@ -352,4 +386,6 @@ export const LEGACY_ARGS: Readonly<Partial<Record<string, readonly string[]>>> =
   'routing.forwardingHosts.form.errors.host.invalidFormat': ['entry'],
   // UI 006: the mail server's answer of a refused release, "<code> <answer>" (`smtpAnswer`).
   'problem.quarantine-delivery-refused': ['smtpAnswer'],
+  // UI 005: the Sieve parser's message (`danger.sieve_error`).
+  'validation.sieveSyntax': ['message'],
 }

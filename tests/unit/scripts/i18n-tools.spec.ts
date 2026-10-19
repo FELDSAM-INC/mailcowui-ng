@@ -398,3 +398,76 @@ describe('UI 012: enumerations the identity provider screen introduces (T003, re
     )
   })
 })
+
+describe('UI 005: plural forms and the enumerations of the self-service screens (T002, research R23)', () => {
+  const realCoverage = JSON.parse(readFileSync('src/i18n/coverage.json', 'utf8')) as {
+    partial: Record<string, string[]>
+    complete: Record<string, string>
+  }
+  const realContract = JSON.parse(readFileSync('contract/openapi.json', 'utf8')) as Record<
+    string,
+    unknown
+  >
+  const realEnums = enumValuesFromSchema(readFileSync('src/api/generated/schema.ts', 'utf8'))
+
+  function pluralInput(cs: string, sk: string) {
+    const input = baseInput()
+    input.usedKeys = undefined
+    input.app['en-gb'] = {
+      ...input.app['en-gb'],
+      count: { sessions: '{n} session | {n} sessions' },
+    }
+    input.app['cs-cz'] = { ...input.app['cs-cz'], count: { sessions: cs } }
+    input.app['sk-sk'] = { ...input.app['sk-sk'], count: { sessions: sk } }
+    return input
+  }
+
+  it('rule 8: a plural new string has exactly three forms in cs-cz and sk-sk', () => {
+    const ok = pluralInput(
+      '{n} relace | {n} relace | {n} relací',
+      '{n} relácia | {n} relácie | {n} relácií',
+    )
+    expect(checkMessages(ok).errors).toEqual([])
+    const two = pluralInput('{n} relace | {n} relací', '{n} relácia | {n} relácie | {n} relácií')
+    expect(checkMessages(two).errors.join('\n')).toMatch(/cs-cz.*count\.sessions.*three/)
+    const four = pluralInput(
+      '{n} relace | {n} relace | {n} relací',
+      '{n} | {n} relácia | {n} relácie | {n} relácií',
+    )
+    expect(checkMessages(four).errors.join('\n')).toMatch(/sk-sk.*count\.sessions.*three/)
+  })
+
+  it('rule 8: a cs-cz or sk-sk text without choices is accepted only when en-gb has none', () => {
+    const input = pluralInput('{n} relací', '{n} relácií')
+    expect(checkMessages(input).errors.join('\n')).toMatch(/count\.sessions/)
+  })
+
+  it('requires every value of the enumerations the self-service screens introduce', () => {
+    const expected = {
+      'account.twoFactor.type': '#/components/schemas/OwnSecondFactorType',
+      'account.appPasswords.protocol': '#/components/schemas/AppPasswordProtocol',
+      'account.mailSettings.tagged': '#/components/schemas/MailboxTaggedMailHandling',
+      'filters.kind': '#/components/schemas/SieveFilterKind',
+    }
+    for (const [prefix, pointer] of Object.entries(expected)) {
+      expect(realCoverage.complete[prefix]).toBe(pointer)
+    }
+    const { required, errors } = checkCoverage({
+      coverage: realCoverage,
+      enums: realEnums,
+      problemNames: [],
+      contract: realContract,
+    })
+    expect(errors).toEqual([])
+    const values = {
+      'account.twoFactor.type': realEnums.ownSecondFactorTypeValues,
+      'account.appPasswords.protocol': realEnums.appPasswordProtocolValues,
+      'account.mailSettings.tagged': realEnums.mailboxTaggedMailHandlingValues,
+      'filters.kind': realEnums.sieveFilterKindValues,
+    }
+    for (const [prefix, list] of Object.entries(values)) {
+      expect(list?.length).toBeGreaterThan(0)
+      for (const value of list ?? []) expect(required).toContain(`${prefix}.${value}`)
+    }
+  })
+})

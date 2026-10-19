@@ -243,6 +243,21 @@ export function checkMessages({
     }
   }
 
+  // Rule 8 (UI 005, research R23): a plural new string (choices separated by `|` in en-gb) has
+  // exactly three forms in cs-cz and sk-sk, chosen by their plural rules (1, 2–4, other).
+  for (const key of [...allKeys].sort()) {
+    const english = flat['en-gb'].get(key)
+    if (typeof english !== 'string' || choiceCount(english) < 2) continue
+    for (const locale of ['cs-cz', 'sk-sk']) {
+      const value = flat[locale].get(key)
+      if (typeof value !== 'string') continue
+      const count = choiceCount(value)
+      if (count !== 3) {
+        errors.push(`${locale}: ${key} has ${count} plural form(s); cs-cz and sk-sk need three`)
+      }
+    }
+  }
+
   // Rule 6: no unused new strings.
   if (usedKeys) {
     for (const key of [...allKeys].sort()) {
@@ -253,6 +268,11 @@ export function checkMessages({
   }
 
   return { errors, warnings }
+}
+
+/** The number of plural choices of a vue-i18n message (`a | b | c`); 1 without choices. */
+export function choiceCount(message) {
+  return message.split('|').length
 }
 
 /** Text for comparing meanings: no markup, placeholders, punctuation, glyphs or case. */

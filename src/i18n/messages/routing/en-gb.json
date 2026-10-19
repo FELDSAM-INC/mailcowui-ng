@@ -95,7 +95,10 @@
     },
     "forwardingHosts": {
       "disableSpamFilter": "Disable spam filter",
-      "enableSpamFilter": "Enable spam filter"
+      "enableSpamFilter": "Enable spam filter",
+      "historyOfSource": "History of this source",
+      "hostPlaceholder": "example.org",
+      "updated": "Already listed, updated: {addresses}"
     },
     "relayhosts": {
       "delete": {

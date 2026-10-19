@@ -95,7 +95,10 @@
     },
     "forwardingHosts": {
       "disableSpamFilter": "Vypnúť spam filter",
-      "enableSpamFilter": "Zapnúť spam filter"
+      "enableSpamFilter": "Zapnúť spam filter",
+      "historyOfSource": "História tohto zdroja",
+      "hostPlaceholder": "example.org",
+      "updated": "Už uvedené, aktualizované: {addresses}"
     },
     "relayhosts": {
       "delete": {

@@ -172,4 +172,19 @@ export const routingRoutes: RouteRecordRaw[] = [
     legacy('edit.title'),
     { roles: ADMIN },
   ),
+  // US8: forwarding hosts (legacy has no entry page for them).
+  route(
+    '/routing/forwarding-hosts',
+    'routing-forwarding-hosts',
+    () => import('./pages/forwarding-hosts/ForwardingHostsPage.vue'),
+    legacy('admin.forwarding_hosts'),
+    { roles: ADMIN },
+  ),
+  route(
+    '/routing/forwarding-hosts/new',
+    'routing-forwarding-host-create',
+    () => import('./pages/forwarding-hosts/ForwardingHostCreatePage.vue'),
+    legacy('admin.add_forwarding_host'),
+    { roles: ADMIN },
+  ),
 ]

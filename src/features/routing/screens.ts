@@ -75,7 +75,7 @@ export const ROUTING_SCREENS: readonly RoutingScreen[] = [
     titleKey: 'admin.forwarding_hosts',
     hintKey: 'admin.forwarding_hosts_hint',
     roles: ADMIN,
-    status: 'pending',
+    status: 'available',
   },
 ]
 

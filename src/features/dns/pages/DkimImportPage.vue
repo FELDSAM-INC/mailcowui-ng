@@ -318,7 +318,7 @@ const INPUT =
         {{ lt('admin.dkim_overwrite_key') }}
       </label>
       <div
-        data-sticky-actions
+        data-sticky-save
         class="sticky bottom-0 -mx-4 flex flex-col-reverse gap-2 border-t border-gray-200 bg-white px-4 py-3 sm:static sm:mx-0 sm:flex-row sm:justify-end sm:border-0 sm:p-0 dark:border-gray-800 dark:bg-gray-900"
       >
         <button

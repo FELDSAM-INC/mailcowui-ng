@@ -128,7 +128,13 @@
       },
       "import": {
         "keyHint": "RSA PKCS#8 or PKCS#1, {min} to {max} bits",
-        "chooseFile": "Choose a file"
+        "chooseFile": "Choose a file",
+        "existing": "This name has a key: selector {selector}, {length} bits.",
+        "unused": "No domain or alias domain has this name. The key is listed as unused until one does.",
+        "switchOverwrite": "Switch on overwrite",
+        "confirmOverwrite": "The key {selector} ({length} bits) and its private key are removed completely and replaced by the imported key.",
+        "tooLarge": "The key is larger than the server accepts.",
+        "leave": "The private key you entered will be discarded."
       },
       "delete": {
         "unsigned": "Mail of {name} is no longer signed from the next message on.",
@@ -150,6 +156,12 @@
         "confirm": "The private key lets its holder sign mail for {name}. The export is recorded in the history.",
         "action": "Show the private key",
         "off": "Private key export is turned off on this server."
+      },
+      "copy": {
+        "incomplete": "This key is incomplete and cannot be copied.",
+        "hasKey": "{name} has a key (selector {selector}).",
+        "confirmOverwrite": "These names have a key: {names}. Their old keys, including the private keys, are removed completely.",
+        "skipOverwrite": "Skip these names"
       }
     }
   }

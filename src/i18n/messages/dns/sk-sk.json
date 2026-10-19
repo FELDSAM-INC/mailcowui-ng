@@ -128,7 +128,13 @@
       },
       "import": {
         "keyHint": "RSA PKCS#8 alebo PKCS#1, {min} až {max} bitov",
-        "chooseFile": "Vybrať súbor"
+        "chooseFile": "Vybrať súbor",
+        "existing": "Tento názov má kľúč: selektor {selector}, {length} bitov.",
+        "unused": "Žiadna doména ani alias doména nemá tento názov. Kľúč bude vedený ako nepoužívaný, kým taký nebude.",
+        "switchOverwrite": "Zapnúť prepísanie",
+        "confirmOverwrite": "Kľúč {selector} ({length} bitov) aj jeho súkromný kľúč budú úplne odstránené a nahradené importovaným kľúčom.",
+        "tooLarge": "Kľúč je väčší, než server prijme.",
+        "leave": "Zadaný súkromný kľúč bude zahodený."
       },
       "delete": {
         "unsigned": "Pošta pre {name} nebude od ďalšej správy podpisovaná.",
@@ -150,6 +156,12 @@
         "confirm": "Súkromný kľúč umožní svojmu držiteľovi podpisovať poštu za {name}. Export sa zaznamená do histórie.",
         "action": "Zobraziť súkromný kľúč",
         "off": "Export súkromných kľúčov je na tomto serveri vypnutý."
+      },
+      "copy": {
+        "incomplete": "Tento kľúč je neúplný a nemožno ho skopírovať.",
+        "hasKey": "{name} má kľúč (selektor {selector}).",
+        "confirmOverwrite": "Tieto názvy majú kľúč: {names}. Ich staré kľúče vrátane súkromných kľúčov budú úplne odstránené.",
+        "skipOverwrite": "Tieto názvy preskočiť"
       }
     }
   }

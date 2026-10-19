@@ -7,16 +7,18 @@
 // on the current page with the bulk bar (legacy's multi-select), generation for the selection or
 // for every name without a key (legacy's "Select domains with missing keys"), and the run's
 // progress and results, guarded against leaving while it runs.
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
-import { problemOf } from '@/api'
+import { isApiProblem, problemOf, type DkimDnsPublicationOutcome } from '@/api'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import BulkActionBar from '@/shared/components/BulkActionBar.vue'
+import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
+import { rowsFromBulkResult, unknownRows, type BulkRow } from '@/shared/components/bulk-row'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
@@ -31,7 +33,9 @@ import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useDnsCapabilities } from '../api/capabilities'
-import { dkimListOptions, fetchDkimKeys } from '../api/dkim'
+import { deleteKeys, dkimListOptions, fetchDkimKeys } from '../api/dkim'
+import BulkDeleteImpact from '../components/BulkDeleteImpact.vue'
+import PublicationOutcome from '../components/PublicationOutcome.vue'
 import DkimEntryList from '../components/DkimEntryList.vue'
 import GenerateKeyDialog from '../components/GenerateKeyDialog.vue'
 import NamePreview from '../components/NamePreview.vue'
@@ -166,7 +170,74 @@ function openGeneration(names: RunName[], skipped: RunName[]) {
   generateOpen.value = true
 }
 
+// US5 (FR-038, FR-040, FR-092): deleting the selected keys in one bulk request with their version
+// tags, after the number of keys is typed; failed, refused and outdated keys stay selected.
+const queryClient = useQueryClient()
+const bulkRows = shallowRef<BulkRow[]>([])
+const bulkPublication = shallowRef<Record<string, DkimDnsPublicationOutcome>>({})
+const deleting = ref(false)
+
+async function deleteSelected() {
+  const { targets, skipped } = splitSelection(selectedEntries.value, 'delete')
+  if (targets.length === 0) return
+  const publication = capabilities.data.value?.dkim.dnsPublicationEnabled ?? false
+  const go = await confirm({
+    title: lt('footer.confirm_delete'),
+    description: lt('footer.delete_these_items'),
+    confirmLabel: lt('footer.delete_now'),
+    cancelLabel: lt('footer.cancel'),
+    destructive: true,
+    content: { component: BulkDeleteImpact, props: { targets, skipped, publication } },
+    requireTyped: {
+      accepted: [String(targets.length)],
+      labelKey: 'bulk.confirm.typeCount',
+      labelParams: { count: targets.length },
+    },
+  })
+  if (!go) return
+  const entriesFor = targets.map((entry) => ({ name: entry.name, unicodeName: entry.displayName }))
+  deleting.value = true
+  bulkRows.value = []
+  try {
+    const outcome = await deleteKeys(
+      queryClient,
+      targets.map((entry) => ({ id: entry.name, ...(entry.etag ? { version: entry.etag } : {}) })),
+    )
+    bulkPublication.value = outcome.publication
+    bulkRows.value = [
+      ...rowsFromBulkResult(outcome.result, entriesFor),
+      ...skipped.map((entry) => ({
+        id: entry.name,
+        label: entry.displayName,
+        outcome: 'skipped' as const,
+      })),
+    ]
+    selection.keep(
+      bulkRows.value
+        .filter((row) => ['failed', 'refused', 'outdated'].includes(row.outcome))
+        .map((row) => row.id),
+    )
+  } catch (error) {
+    if (isApiProblem(error) && (error.kind === 'network' || error.kind === 'unavailable')) {
+      bulkRows.value = unknownRows(entriesFor)
+    } else {
+      allMissingProblem.value = error
+    }
+  } finally {
+    deleting.value = false
+  }
+}
+
+function bulkMessage(row: BulkRow): string | null {
+  if (row.outcome === 'done') return lt('success.dkim_removed', row.id)
+  return null
+}
+
 function onBulk(id: string) {
+  if ((id as DkimBulkActionId) === 'delete') {
+    void deleteSelected()
+    return
+  }
   if ((id as DkimBulkActionId) !== 'generate') return
   const { targets, skipped } = splitSelection(selectedEntries.value, 'generate')
   if (targets.length === 0) {
@@ -332,6 +403,26 @@ onBeforeUnmount(() => run.stop())
         {{ t('dns.dkim.allMissing.collecting') }}
       </p>
       <ProblemMessage v-if="allMissingProblem" :problem="problemOf(allMissingProblem)" />
+      <p v-if="deleting" role="status" class="text-sm text-gray-700 dark:text-gray-300">
+        {{ t('bulk.progress', { count: selection.count.value }) }}
+      </p>
+      <BulkResultSummary
+        v-else-if="bulkRows.length > 0"
+        data-bulk-results
+        :rows="bulkRows"
+        :message="bulkMessage"
+        @retry="deleteSelected"
+        @refresh="refresh"
+        @close="bulkRows = []"
+      >
+        <template #item="{ row }">
+          <PublicationOutcome
+            v-if="bulkPublication[row.id]"
+            :outcome="bulkPublication[row.id]!"
+            :enabled="capabilities.data.value?.dkim.dnsPublicationEnabled ?? false"
+          />
+        </template>
+      </BulkResultSummary>
 
       <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
@@ -407,7 +498,7 @@ onBeforeUnmount(() => run.stop())
       :count="selection.count.value"
       :actions="bulkActions"
       :limit-message="limitMessage"
-      :busy="run.running.value"
+      :busy="run.running.value || deleting"
       @action="onBulk"
       @clear="selection.clear()"
     />

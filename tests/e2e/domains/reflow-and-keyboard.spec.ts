@@ -230,6 +230,8 @@ test.describe('keyboard only', () => {
     await mockApi.use('footer')
     await page.goto('domains/plain.example?edit=footer')
     const select = page.getByLabel('Exclude from footer')
+    // The addresses load after the form opens; ArrowDown on an empty list selects nothing.
+    await expect(select.locator('option[value="a:info@plain.example"]')).toHaveCount(1)
     await select.focus()
     await expect(select).toBeFocused()
     await page.keyboard.press('ArrowDown')

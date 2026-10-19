@@ -1113,12 +1113,13 @@ loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.*.json`. Status:
 | `SPLIT_DKIM_255` setting | Server-wide choice of one notation | Improved: both forms always available | FR-016, FR-017 |
 | "Private key" link and modal | Every private key embedded in the page when `SHOW_DKIM_PRIV_KEYS` is on; otherwise a "Please set $SHOW_DKIM_PRIV_KEYS" text | Improved: separate confirmed and audited export, administrators only, offered only while enabled, never preloaded, discarded when closed; copy and download | FR-002, FR-015, FR-077 |
 | Checkbox per entry (disabled for missing keys), "Toggle all", "Remove" | One request for all selected, generic "Are you sure" | Improved: selection mode, generation and deletion of a selection (deletion in one bulk request with version tags), impact confirmation with the number typed, per-name results and retry | FR-038, FR-040 to FR-042, FR-092 |
-| "Add ARC/DKIM key" form: domains as comma-separated text, "Select domains with missing keys", selector pre-filled with `feldhost` (hard-coded in the fork), key length 1024 to 4096 | One request with several domains | Improved: names from the selection or "all names without a key" across pages, selector from the server default, sizes from the server's allowed sizes, per-name results | FR-024 to FR-028, FR-041 |
+| "Add ARC/DKIM key" form: domains as comma-separated text, "Select domains with missing keys", selector pre-filled with `feldhost` (hard-coded in the fork), key length 1024 to 4096 | One request with several domains; "Select domains with missing keys" picks the names of the visible page | Improved: names from the selection or "all names without a key", which applies the current search and type filter across all pages and names the count and the filters in its confirmation (plan parity note 1); selector from the server default, sizes from the server's allowed sizes, per-name results | FR-024 to FR-028, FR-041 |
 | Free-text domain entry for generation | Accepts any text | Dropped: generation applies to listed domains and alias domains, which the API requires | FR-024 |
 | "Import private key" (collapsed): domain, selector, private key text area "(RSA PKCS#8)", "Overwrite existing DKIM key" | Errors as generic notifications; form input cached in the browser | Improved: file loading, size check, overwrite confirmation, translated rules on the field, key never cached and cleared after success | FR-029 to FR-033, FR-076 |
 | "Duplicate DKIM record": from (keys), to (several domains), "Target domain/s - will be overwritten" | Silent overwrite of every target | Improved: targets with a key marked, explicit overwrite, per-target results | FR-034 to FR-036 |
 | Notifications `dkim_added`, `dkim_removed`, `dkim_duplicated`, `dkim_domain_or_sel_exists`, `private_key_error` | Toasts | Matched as translated outcome messages | FR-071, FR-074 |
 | ISPConfig push (fork) | Silent, failures ignored | Improved: outcome shown, "Publish DNS record again" | FR-043 to FR-045 |
+| Key rotation | Only by deleting the key and generating a new one, which leaves the name unsigned in between | Improved: "Replace with a new key" (administrators) replaces the key atomically with the version tag, so mail stays signed during the change (plan parity note 2) | FR-090 |
 
 #### Edit domain page
 
@@ -1126,13 +1127,13 @@ loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.*.json`. Status:
 |---|---|---|---|
 | DKIM record under the domain form: "Domain: x (selector._domainkey)" and the TXT value | Read-only `pre` block, administrators and domain administrators | Improved: DKIM section with state, copy buttons and generation when missing (domain administrators had no generation form) | FR-021, FR-024 |
 | MTA-STS tab with HTML info text | Links and markup in the translation | Matched: the legacy text shown verbatim through the app's sanitiser (constitution IV 1.3.0) | FR-046, FR-087 |
-| Version select with the single option STSv1 | Select | Improved: fixed text | FR-047 |
-| Mode select enforce/testing/none, explanation in a tooltip | Tooltip on a "?" icon; a new policy starts with "enforce" | Improved: explanations visible next to each choice, usable by touch; a new policy starts with "testing" | FR-047 |
-| Max age in seconds | Number input, checked only by the server, empty for a new policy | Improved: number with a unit, readable duration, 1 week for a new policy, checked before sending | FR-046 to FR-048 |
-| MX server text area, comma-separated | Free text | Improved: list of entries, checked before sending, 255-character limit shown | FR-047, FR-048 |
-| Active checkbox with tooltip | Checkbox | Matched as a switch with visible explanation | FR-047 |
+| Version select with the single option STSv1 | Select | Matched (plan settled deviation 5) | FR-047 |
+| Mode select enforce/testing/none, explanation in a tooltip | Tooltip on a "?" icon; a new policy starts with "enforce" | Matched: the same select with the raw values; the legacy explanation shown whole as help, usable by touch; a new policy starts with "enforce" (plan settled deviations 1, 2) | FR-047 |
+| Max age in seconds | Number input, checked only by the server, empty for a new policy | Matched in seconds and empty for a new policy; improved by a check before sending (plan settled deviation 3) | FR-046 to FR-048 |
+| MX server text area, comma-separated | Free text | Matched with the legacy notice; improved by checking every entry before sending and showing the length limit; a new policy starts with the server host name (plan settled deviation 4) | FR-047, FR-048 |
+| Active checkbox with tooltip | Checkbox | Matched with the explanation as visible help | FR-047 |
 | Save (add on first save, edit later) | Last write wins | Improved: outdated saves stopped without losing input | FR-049 |
-| Deactivation by unticking Active | Saved without warning | Improved: "Deactivate" with a confirmation of the effect; no deletion, as in legacy | FR-052 |
+| Deactivation by unticking Active | Saved without warning | Improved: unticking Active and saving asks with the effect; ticking it shows the certificate notice; no deletion, as in legacy | FR-051, FR-052 |
 | Policy identifier and DNS records | Not shown | Improved: identifier, records with copy buttons, policy text and address, notice when the identifier changes | FR-046, FR-050 |
 | Tab on alias domain pages | None; an alias domain policy could be stored through the API but was never published | Improved: alias domain section names the target's policy | FR-022 |
 
@@ -1140,12 +1141,12 @@ loader), `inc/ajax/dns_diagnostics.php` and `lang/lang.*.json`. Status:
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| "DNS" button in the domain list (administrators and domain administrators) and alias domain list | Opens an extra-large modal | Improved: "Check DNS" on lists, pages and DKIM entries, own addressable page | FR-023, FR-057 |
+| "DNS" button in the domain list (administrators and domain administrators) and alias domain list | Opens an extra-large modal | Improved: "DNS" (the legacy label) on lists, pages and DKIM entries, own addressable page | FR-023, FR-057 |
 | Spinner while loading, new run on every opening | No time indication | Improved: progress with the 30-second bound; a result under 10 minutes old is reused with its time | FR-058 |
 | HTML table inserted from the server | Raw HTML rendered | Improved: structured data shown as text | FR-059, FR-078 |
 | 24-hour notice | Text | Matched | FR-057 |
 | Columns Name, Type, Correct Data, Current State | Table, horizontal scrolling on phones | Matched on wide screens; cards on phones | FR-068 |
-| Status icons ✓, ✗, "?" and footnotes ¹ (derived from A/AAAA) and ² (optional) | A missing MX looked optional | Improved: six text statuses, optional marker, summary groups with a "needs attention" filter, notes as text | FR-059, FR-060, FR-062 |
+| Status icons ✓, ✗, "?" and footnotes ¹ (derived from A/AAAA) and ² (optional) | A missing MX looked optional | Improved: the "Current State" column shows six statuses as icon and text (an icon alone has no accessible name, plan settled deviation 6), the optional marker with the legacy footnote text, summary groups with a "needs attention" filter, notes as text | FR-059, FR-060, FR-062 |
 | SPF: `v=spf1 mx a ~all`, "Allow ip4/ip6", "SPF Record Syntax" link (fork) | Hard-coded suggestion | Matched: addresses always, suggestion when configured, copy buttons | FR-063 |
 | DMARC Assistant link | External link | Matched as translated guidance | FR-059 |
 | Server-wide records for administrators | A, PTR, AAAA, PTR, TLSA | Matched | FR-002, FR-059 |

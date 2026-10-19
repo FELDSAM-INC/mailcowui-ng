@@ -32,6 +32,14 @@ module.exports = {
             'categories:accessibility': ['error', { minScore: 0.9 }],
           },
         },
+        {
+          // UI 010 (T109): the DKIM keys, with their route loaded lazily.
+          matchingUrlPattern: '/ng/dns/dkim-keys',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.9 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
+          },
+        },
       ],
     },
     upload: {

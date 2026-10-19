@@ -20,6 +20,8 @@ const collections = [
   { url: `http://127.0.0.1:${previewPort}/ng/domains`, scenario: 'domains-60' },
   // UI 004 T111: the alias list with 60 aliases, as an active administrator.
   { url: `http://127.0.0.1:${previewPort}/ng/aliases`, scenario: 'aliases-60' },
+  // UI 010 (T109, SC-013): the DKIM keys as an administrator, 25 of 600 entries.
+  { url: `http://127.0.0.1:${previewPort}/ng/dns/dkim-keys`, scenario: 'dns-many' },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

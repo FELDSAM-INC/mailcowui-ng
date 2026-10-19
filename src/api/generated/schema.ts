@@ -10007,6 +10007,11 @@ export interface components {
                  *     ]
                  */
                 allowedKeySizes: number[];
+                /**
+                 * @description Most targets one `applyDkimKeyBulkAction` request may name.
+                 * @example 100
+                 */
+                bulkLimit: number;
                 /** @example 2048 */
                 defaultKeySize: number;
                 /**
@@ -10919,8 +10924,10 @@ export interface components {
          *     **Rules**: as for creation, plus: a changed limit may not be below current usage (`belowInUse`,
          *     with the value in use as `inUse`): `maxMailboxes` ≥ `usage.mailboxes`, `maxAliases` ≥
          *     `usage.aliases`, `maxMailboxQuota` ≥ `usage.largestMailboxQuota`, `domainQuota` ≥
-         *     `usage.quotaAllocated`. A limit that is not changed is not checked. An empty `description`, or
-         *     `null`, stores the domain name.
+         *     `usage.quotaAllocated`. A limit that is not changed is not checked. `maxMailboxQuota` ≤
+         *     `domainQuota` (`mustNotExceed`) is checked on the resulting values only when the patch changes
+         *     one of the two, so stored quotas that break it never block an edit of other attributes. An
+         *     empty `description`, or `null`, stores the domain name.
          *
          *     mailcow's default mailbox quota of a domain is not part of this API (owner decision 2026-10-18).
          *     An edit that changes `maxMailboxQuota` lowers a larger stored default to the new maximum, so that
@@ -11151,7 +11158,9 @@ export interface components {
         };
         /**
          * @description JSON Merge Patch of a domain template. Only the sent values change; every other value is kept.
-         *     The rules of `DomainTemplateCreateRequest` apply to the resulting template. Renaming the Default
+         *     The rules of `DomainTemplateCreateRequest` apply to the resulting template, except that
+         *     `maxMailboxQuota` ≤ `domainQuota` (`mustNotExceed`) is checked only when the patch changes one of
+         *     the two, so stored quotas that break it never block an edit of other values. Renaming the Default
          *     template is refused with `409 domain-template-protected` (sending its current name is accepted).
          *     The read-only members (`id`, `isDefault`, `createdAt`, `modifiedAt`, `etag`) are accepted when
          *     equal to the current value and refused with the rule code `immutable` otherwise.
@@ -25281,9 +25290,11 @@ export interface operations {
                 /** @description Sort field. Default `occurredAt` with `order=desc` (newest first). */
                 sort?: components["parameters"]["AuditEventSort"];
                 /**
-                 * @description Only records whose target identifier equals this value. Domain names (targets `domain` and
-                 *     `domainFooter`) may be given in ASCII or Unicode form and any letter case. Without
-                 *     `targetType`, a domain name matches the records of the domain and of its footer.
+                 * @description Only records whose target identifier equals this value. Domain names (targets `domain`,
+                 *     `domainFooter` and `mtaStsPolicy`) may be given in ASCII or Unicode form and any letter case.
+                 *     DKIM keys (`dkimKey`) match in that normalised form and, for an unused key that legacy stored
+                 *     under another spelling, also by that exact spelling. Without `targetType`, a domain name
+                 *     matches the records of the domain and of its footer.
                  */
                 targetId?: string;
                 /** @description Only records whose target is of this type. */

@@ -206,9 +206,132 @@ and success, warning and danger messages come from the legacy keys. Every mailco
 supported; legacy values are loaded at runtime from the installation and shown verbatim (HTML
 through `SanitizedHtml.vue`); a missing key falls back to `en-gb`, never to a hand-written value.
 
-**Legacy form map**: written into this section by T004a before any screen is built.
+**Legacy form map** (T004a, 2026-10-19). Paths under `../mailhosting/data/web/`. New strings are
+named by their key in `src/i18n/messages/` (`dns/<locale>.json` unless marked "main"); a key in
+`LEGACY_TEXTS` is shown with mailcow's own text. The deviations below are settled by the
+orchestrator's decisions of 2026-10-18 (`docs/conventions.md`), as the "Settled" list records.
 
-**Deviations needing a decision** (not built until the owner or orchestrator decides):
+*1. Fields and elements*
+
+| Screen (route) | Legacy source | Element | Legacy key (or new string, reason) |
+|---|---|---|---|
+| Navigation | `admin.twig` tab | "ARC/DKIM keys" entry | `admin.dkim_keys` |
+| Navigation | `edit/domain.twig` `#dmtasts` | "MTA-STS" entry (no overview in legacy; the tab's name) | `edit.mta_sts` |
+| DKIM keys (`dkim-keys`) | `admin/tab-config-dkim.twig` | heading, title | `admin.dkim_keys` |
+| | state toggles | filter checkboxes (unused for administrators only) | `admin.dkim_key_valid`, `admin.dkim_key_unused`, `admin.dkim_key_missing` |
+| | entry | name label, column header and sort | `admin.domain` |
+| | entry badge | state badge | `admin.dkim_key_valid`, `admin.dkim_key_missing`, `admin.dkim_key_unused` (`LEGACY_TEXTS` for `dns.dkim.states.*`); "Incomplete": `dns.dkim.incomplete` (new: legacy cannot hold a partial key) |
+| | entry badge "Selector '…'" | selector label, column, sort | `admin.dkim_domains_selector` |
+| | entry badge "… bit" (hard-coded "bit") | key length label, column, sort | `admin.dkim_key_length` (its "(bits)" replaces the hard-coded unit) |
+| | "↳ Alias-Domain:" (hard-coded) | kind label, kind filter option | `add.alias_domain`; `domain` → `admin.domain`; `none` → `dns.dkim.kinds.none` (new: legacy has no label for unused names) |
+| | — | kind and completeness filters, search, sort control, result count, empty and no-match states, refresh failure | new `dns.dkim.list.*` and `dns.dkim.filters.*` (list improvements, conventions "Lists"); search label `datatables.search`, empty table `datatables.emptyTable`, no match `datatables.zeroRecords`, loading `datatables.loadingRecords`, refresh `admin.refresh` |
+| | `#toggle_multi_select_all`, `delete_selected` | select all on the page; remove the selection | `mailbox.toggle_all`; `admin.remove` |
+| | add form legend | generation dialog title, "Add" action of the selection | `admin.dkim_add_key`; submit `admin.add` |
+| | add form "Domain/s" | the names of the generation, read-only | `admin.domain_s` |
+| | `#dkim_missing_keys` link | "all names without a key" action | `admin.dkim_domains_wo_keys` |
+| | add form selector (fork value `feldhost`) | selector field, prefilled from `defaultSelector` | `admin.dkim_domains_selector` |
+| | add form key size select (subtext "bits") | key length select, options from `allowedKeySizes` | `admin.dkim_key_length` |
+| | — | runs: progress, per-name outcome, retry, stop, leave question, confirmation of "all names without a key" | new `dns.dkim.run.*`; outcomes reuse `bulk.outcome.*` (main) |
+| | import legend | "Import private key" action | `admin.import_private_key` |
+| | — | read-only server settings (administrators) | new `dns.dkim.settings.*`; labels `admin.dkim_domains_selector`, `admin.dkim_key_length` |
+| DKIM entry (`dkim-key`) | the entry's row in the tab | heading: the readable name; facts | `admin.domain`, `admin.dkim_domains_selector`, `admin.dkim_key_length`, the state badge; kind as above |
+| | entry `textarea` with the TXT value | record name, host label, value; one or split form; copy buttons | new `dns.dkim.record.*` (legacy shows the value only; copy and split are FR-017); copied message `admin.copy_to_clipboard` |
+| | — | not signed, incomplete notice with the missing parts and repair advice | new `dns.dkim.entry.*`, `dns.dkim.missingParts.*` |
+| | "Private key" link (`showDKIMprivKey`) | export action and dialog title | `admin.dkim_private_key` |
+| | — | "Replace with a new key", "Publish DNS record again", History | new `dns.dkim.replace.*`, `dns.publication.publishAgain.*`; History `history.link` (main) |
+| | duplicate form | "Duplicate" action to the copy page | `admin.duplicate` |
+| | mass action "Remove" | delete action | `admin.remove` |
+| | `dnsInfoModal` button (hard-coded "DNS") | diagnostics action | `dns.checkDns` (main, new: hard-coded text, same English text) |
+| Import (`dkim-import`) | import form | title | `admin.import_private_key` |
+| | "Domain:" | name field | `admin.domain` |
+| | "Selector:" (fork value `feldhost`) | selector field, prefilled from `defaultSelector` | `admin.dkim_domains_selector` |
+| | "Private key: (RSA PKCS#8)", placeholder `-----BEGIN RSA KEY-----` | key field; its hint names the bit range of the capabilities | `admin.private_key`; hint `dns.dkim.import.keyHint` (new: the hard-coded "(RSA PKCS#8)" with the limits); the placeholder is a technical literal |
+| | checkbox | overwrite | `admin.dkim_overwrite_key` |
+| | button | submit | `admin.import` |
+| | — | file chooser, existing-key notice, overwrite confirmation, leave question | new `dns.dkim.import.*` |
+| Copy (`dkim-copy`) | duplicate form | title | `admin.duplicate_dkim` |
+| | "From:" (`title` "Source domain to copy data from") | source summary and its description | `admin.dkim_from`, `admin.dkim_from_title` |
+| | "To:" (`title` "Target domain/s - will be overwritten") | target picker and its description | `admin.dkim_to`, `admin.dkim_to_title` |
+| | button | submit | `admin.duplicate` |
+| | — | "has a key" marker, overwrite confirmation, incomplete source, load more | new `dns.dkim.copy.*` |
+| Deletion (dialogs) | `#ConfirmDeleteModal` (`modals/footer.twig`) | title, intro, buttons | `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel` |
+| | — | impact lines, typed count | new `dns.dkim.delete.*`; `bulk.confirm.typeCount` (main) |
+| Export (dialog) | `showDKIMprivKey` | title | `admin.dkim_private_key` |
+| | — | confirmation, turned-off note, download | new `dns.dkim.export.*`; dialog texts `secrets.*` (main) |
+| Domain page DKIM block (`domain-detail`) | `edit/domain.twig` below the `#dedit` form | "Domain: **name** (selector._domainkey)" and the TXT `<pre>` | `add.domain`; the value with its copy button; heading `admin.dkim_keys` (the block becomes a section, so it needs a heading) |
+| | — | state, link to the entry, "Add" for a name without a key, "DKIM keys of this domain and its alias domains" | state badge as above; `admin.dkim_add_key`; new `dns.dkim.section.*` |
+| Domain page MTA-STS section | `edit/domain.twig` `#dmtasts` (tab order: after "Quota warning BCC", before "Domain wide footer") | heading, explanation | `edit.mta_sts`; `edit.mta_sts_info` (HTML, `SanitizedHtml`) |
+| | version select, tooltip | version field (one option `STSv1`), help | `edit.mta_sts_version`; `edit.mta_sts_version_info` (HTML) |
+| | mode select, tooltip | mode field, options as raw values `enforce`, `testing`, `none` in legacy order, help | `edit.mta_sts_mode`; `edit.mta_sts_mode_info` (HTML, whole) |
+| | max age input, tooltip | max age in seconds, help | `edit.mta_sts_max_age`; `edit.mta_sts_max_age_info` |
+| | MX textarea, tooltip, notice | MX hosts, comma-separated; help; notice | `edit.mta_sts_mx`; `edit.mta_sts_mx_info`; `edit.mta_sts_mx_notice` |
+| | active checkbox, tooltip | active, help | `edit.active`; `edit.mta_sts_active_info` |
+| | button | save | `admin.save` |
+| | — | "no policy", policy identifier, policy address, DNS records with copy buttons, identifier-change notice and highlight, deactivation confirmation, certificate notice | new `dns.mtaSts.*` (legacy shows none of these; FR-050 to FR-052) |
+| MTA-STS overview (`mta-sts-policies`) | none | heading | `edit.mta_sts` |
+| | — | columns and filters | `mailbox.domain`, `edit.mta_sts_mode`, `edit.mta_sts_max_age`, `edit.mta_sts_mx`, `edit.active`; identifier and the rest new `dns.mtaSts.list.*` |
+| Diagnostics (`dns-diagnostics`) | `dnsInfoModal` (`modals/mailbox.twig`) | heading, notice, documentation | `diagnostics.dns_records`; `diagnostics.dns_records_24hours`; `diagnostics.dns_records_docs` (HTML) |
+| | `inc/ajax/dns_diagnostics.php` table | columns | `diagnostics.dns_records_name`, `diagnostics.dns_records_type`, `diagnostics.dns_records_data`, `diagnostics.dns_records_status` |
+| | ✓, ✗, "?" with the values found | status: icon plus text (an icon alone has no accessible name) | new `dns.diagnostics.status.*` |
+| | footnotes ¹ ² | note of `matchedByAddressRecords`; the optional marker | `diagnostics.cname_from_a`; `diagnostics.optional` |
+| | SPF hint "Allow ip4:…" (fork key) | SPF guidance | `dns.diagnostics.allow` (new: fork-only key `diagnostics.allow`) |
+| | "Download" (hard-coded) | zone file download | `dns.diagnostics.zone.download` (new, same English text) |
+| | — | purposes, message codes, summary, filter, server facts, run states, rate limit, copy and view of the zone file | new `dns.diagnostics.*` (contract codes legacy cannot show) |
+| Publication outcomes | `dkim_update_in_dns()` (silent) | statuses, reasons, advice | new `dns.publication.*` (legacy reports nothing) |
+| Audit log | none | event and target labels | new `enums.auditEventType.dkim*`, `.mtaSts*`, `enums.auditTargetType.dkimKey` (main); `enums.auditTargetType.mtaStsPolicy` → `edit.mta_sts` |
+
+*2. Messages*
+
+| API outcome | Legacy key | Placeholders |
+|---|---|---|
+| `generateDkimKey` 201, 200 (replace); `importDkimKey` 201, 200 | `success.dkim_added` | the entry's name |
+| `copyDkimKey` 201, 200 | `success.dkim_duplicated` | source name, target name |
+| `deleteDkimKey` 204; bulk `done` | `success.dkim_removed` | the entry's name |
+| `409 dkim-key-exists` | `danger.dkim_domain_or_sel_exists` (`LEGACY_TEXTS`, `LEGACY_ARGS` `name`) | the name |
+| `422` `selector` `invalidFormat`, `required`, `tooLong` | `danger.dkim_domain_or_sel_invalid` (form key `dns.dkim.form`) | the name |
+| `422` `privateKey` rule codes | new `validation.invalidPrivateKey`, `.encryptedPrivateKey`, `.unsupportedKeyType`, `.keyLengthOutOfRange` (main): `danger.private_key_error` is filled with OpenSSL's text, which the API never returns | — |
+| `422` `target` `sameAsSource` | new `validation.sameAsSource` (main) | — |
+| `403 dkim-private-key-export-disabled`, `403 dkim-dns-publication-disabled`, `409 mta-sts-policy-exists` | new `problem.*` (main) | — |
+| `403 forbidden` | `danger.access_denied` (UI 001) | — |
+| `createMtaStsPolicy` 201, `updateMtaStsPolicy` 200 | `success.object_modified` (legacy's add says nothing; the edit message fits both) | the domain |
+| `422` `mode` | `danger.mode_invalid` (form key `dns.mtaSts.form`) | the domain |
+| `422` `maxAge` | `danger.max_age_invalid` | the domain |
+| `422` `mxHosts.<i>` `invalidFormat` | `danger.mx_invalid` | the entry |
+| `422` `version` | `danger.version_invalid` | the version |
+| `422` `mxHosts` `tooLong`, `tooMany`, `required` | UI 001's `validation.*` | `max` |
+| client checks of the same rules | the same keys, through `client-errors.ts` | as above |
+
+*3. Settled deviations* (orchestrator decisions of 2026-10-18 in `docs/conventions.md`):
+
+1. Mode help: `edit.mta_sts_mode_info` is shown whole; no per-mode texts ("follow the legacy form").
+2. New policy: mode `enforce` (legacy's first option), max age empty, active off, and the server
+   host name as the only MX host (orchestrator answer to owner question 2, `analysis.md`).
+3. Max age: seconds in a number field, as legacy; no unit select (durations in legacy's units).
+4. MX hosts: legacy's comma-separated textarea with `edit.mta_sts_mx_notice`; entries are checked
+   one by one and named in their errors.
+5. Version: a select with the one option `STSv1`.
+6. Diagnostics columns: legacy's four headers; the status column shows the API's status as icon
+   plus text, because an icon alone has no accessible name (WCAG 1.1.1).
+7. `diagnostics.allow`: the new string `dns.diagnostics.allow` (fork-only key).
+8. "DNS" button: the new string `dns.checkDns` with legacy's hard-coded text "DNS".
+9. Domain administrators' DKIM screen, the MTA-STS overview and the alias domain section stay
+   ("screens with no legacy counterpart"). The free-text names of legacy's add form are not
+   offered: the API generates keys for domains and alias domains only (API FR-024); unused names
+   get keys by import.
+
+Further decisions made while mapping:
+
+- The MTA-STS section takes legacy's tab position: after "Rate limit" (the spam filter and quota
+  warning BCC tabs belong to later features), before "Domain wide footer". The DKIM block is shown
+  right after the "Edit domain" section, where legacy shows it below that tab's form.
+- Activation and deactivation use the section's "Active" checkbox, as legacy does; a save that
+  switches it off asks first (conventions "Confirmations": deactivating), and one that switches it
+  on shows the certificate notice (FR-051). There are no separate Activate and Deactivate buttons.
+- The DKIM bulk limit is `DnsCapabilities.dkim.bulkLimit` (API gap 2, closed at the pinned commit);
+  no constant is kept in `limits.ts`.
+
+**Deviations needing a decision** (as the plan listed them; all nine are settled, see "Settled
+deviations" in the legacy form map above):
 
 1. **MTA-STS mode help**: legacy's `edit.mta_sts_mode_info` is one HTML list for all three modes.
    The first plan split it into new per-mode keys next to each choice (FR-047). Splitting a legacy
@@ -288,6 +411,32 @@ earlier pages import them from `@/features/dns`, as UI 001 R3 allows.
 | Alias domain detail (UI 004) | `src/features/alias-domains/pages/AliasDomainDetailPage.vue` (route `alias-domain-detail`) | sections after General; page actions | DKIM section, MTA-STS section naming the target, "Check DNS" | US1, US2, US3, US4 |
 | Creation reports (UI 002, UI 004) | `src/shared/components/CreationReport.vue` and its callers | DKIM key and DKIM DNS publication lines | Live link to the DKIM keys screen: `isEntryAvailable('dkimKeys')` replaces `'dns'` (T021) | US1 |
 | Audit log (UI 001, filters by UI 002) | `src/features/audit-log/labels.ts`, `src/i18n/coverage.json` | event and target labels | 8 event types, 2 target types (FR-070) | US8 |
+
+### T001 reconciliation (2026-10-19)
+
+UI main `f02acc5` has UI 001, the runtime translations, UI 002 and the shared pieces of UI 003 and
+UI 004; UI 003, 004, 005, 008, 009 and 012 are still being implemented in parallel worktrees. What
+exists, and what UI 010 does about the rest:
+
+| Block | Found | UI 010 |
+|---|---|---|
+| `EditableSection`, `useVersionedSave`, `useBulkSelection`, `BulkActionBar`, `BulkResultSummary` (`#item` slot), `ConfirmDialog` `requireTyped`, `useLeaveGuard`, `HistoryLink`, `SearchField`, `ActiveFilterChips`, `utf8ByteLength` (`src/shared/validation/utf8.ts`), `OneTimeSecretDialog`, `useSecretRequest`, `src/i18n/coverage.json` | as planned | reused |
+| `useSequentialCreate` | not on main; UI 004's worktree has it (`src/shared/composables/useSequentialCreate.ts`, with `src/shared/validation/entry-list.ts`) | copied unchanged from UI 004 (commit `9fc0c45`), then T025 adds `unknown` for the entry in flight when the connection drops |
+| `DomainNameText` | feature-local `src/features/domains/components/list/DomainNameText.vue`; UI 004 moves it to `src/shared/components/` | moved the same way (identical file, same imports) |
+| `CopyButton` | absent (UI 005 not started) | T022 creates `src/shared/components/CopyButton.vue` with the select-in-place fallback |
+| `download.ts` | absent | T023 creates `src/shared/platform/download.ts` |
+| `domain-name.ts` | `src/features/domains/domain-name.ts`, feature-local | T024 promotes it to `src/shared/validation/domain-name.ts` |
+| Router scroll restoration and focus without scrolling | present (`appScrollBehavior`, `focusPageHeading`, UI 002 D9) | T027 not needed |
+| Alias domain list and detail page | absent (UI 004 in progress) | the DKIM section, the alias MTA-STS section and "DNS" are exported from `@/features/dns`; UI 004 places them in its card, table and detail page (conventions "Where features meet") |
+| Creation reports `isEntryAvailable('dns')` | no reference to the `dns` entry exists on main | nothing to replace |
+
+Entry points as implemented:
+
+| Screen | File | Area | UI 010 adds |
+|---|---|---|---|
+| Domain list | `src/features/domains/components/list/DomainEntryActions.vue` (used by `DomainCard` and `DomainTable` through `DomainListPage`) | entry actions menu, now shown to domain administrators too (Delete stays administrator-only) | "DNS" |
+| Domain page | `src/features/domains/pages/DomainDetailPage.vue` | after the "Edit domain" section; after "Rate limit"; header actions | DKIM section; MTA-STS section `#mta-sts` (`edit=mta-sts`); "DNS" |
+| Audit log | `src/features/audit-log/labels.ts` via `enums.*` | event and target labels | 8 event types, 2 target types |
 
 ## API dependency and gaps
 

@@ -34,7 +34,14 @@ below are unchanged (research R1). `contract/VERSION.json` stays authoritative f
 is actually vendored. T002 records that commit and its sha256 in the "Pin as implemented" line
 below.
 
-**Pin as implemented**: _recorded by T002_.
+**Pin as implemented**: mailcow-rest-v2 `main` at `e7efa732101e28f4f165f8e089ee6994d115b932`
+(2026-10-19, "Walk through the quickstart of feature 010 and record the gates"), bundle sha256
+`da783ad914587a8cb7a1db917e6c0f826675044122dfd466f0934c3ecbfc09aa`. It descends from `3207925`
+and from the previous pin `33f1eea`. Against `3207925`, the DKIM, MTA-STS and diagnostics modules
+are unchanged except `DnsCapabilities.dkim.bulkLimit` (required, plan gap 2 closed). Against
+`33f1eea`, the only other changes are descriptions: `DomainPatch` and `DomainTemplatePatch`
+(`mustNotExceed` checked only when a quota changes) and the audit `targetId` filter, which now
+names `mtaStsPolicy` and `dkimKey`. API 010 is implemented at this commit.
 
 ## Operations used by this feature
 

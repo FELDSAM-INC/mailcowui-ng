@@ -49,10 +49,11 @@ fail before the implementation tasks that follow them. Every end-to-end spec:
 - **Contract.** Pinned at mailcow-rest-v2 `e7efa73`; the DKIM bulk limit is
   `DnsCapabilities.dkim.bulkLimit`.
 - **Bundle (T109).** The DNS pages share the shell's modules in new combinations, and Rolldown
-  split them into more small initial chunks (29 scripts on the sign-in page). `vite.config.ts`
-  now keeps what the shell loads anyway in two chunk groups, `shell-ui` and `shell`, which may
-  only capture modules of the initial graph. The DKIM settings summary shows placeholders while
-  the capabilities load, so the key list does not shift (Lighthouse found a layout shift of 0.15).
+  split them into more small initial chunks (29 scripts on the sign-in page, over UI 001's script
+  assertion). UI 010 kept them in two hand-picked chunk groups until main's `$initial` group (UI 012
+  and UI 004) put every module the entry loads into the entry chunk; the rebase took main's rule.
+  The DKIM settings summary shows placeholders while the capabilities load, so the key list does
+  not shift (Lighthouse found a layout shift of 0.15).
 - **Publication turned off between loading and acting** (spec edge case, FR-045). The entry page
   shows the refusal itself, because the refreshed capabilities remove "Publish DNS record again"
   together with any message inside it.
@@ -1427,16 +1428,16 @@ domain administrator is never offered it.
   - a `403 forbidden` mid-session (role changed via `PATCH /__mock`) shows the translated reason,
     refreshes the identity and capabilities, updates the actions and keeps unsaved input;
   - a mailbox user gets "no access" on every DNS address.
-- [ ] T109 Add a collection for `/ng/dns/dkim-keys` (scenario `dns-many`) to `lighthouserc.cjs` and
+- [X] T109 *(done 2026-10-19: initial JavaScript 178,958 bytes gzipped on main `f0c9011` (main 176,173); the sign-in page's scripts 199,593 bytes with headers (limit 204,800; 215,500 before the shell was kept together); the list's layout shift of 0.15 removed; accessibility 0.99–1.0. Performance 0.77–0.80 on `/ng/dns/dkim-keys` at load average 16 (0.75–0.82 at 20–30), with main's pages equally below 0.9 under the same load, so the 0.9 check needs a quiet runner; see the validation log)* Add a collection for `/ng/dns/dkim-keys` (scenario `dns-many`) to `lighthouserc.cjs` and
   `scripts/run-lhci.mjs`. Run `npm run build && npm run budget:check && npm run lhci`, and fix
   regressions until the initial JS is at most 204,800 bytes gzipped and performance and
   accessibility are at least 0.9 (SC-013, constitution VII).
-- [ ] T110 Run quickstart Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep
+- [X] T110 *(done 2026-10-19: `@dns` 11 of 11 and the whole smoke suite 44 passed, 4 skipped (`SMOKE_IDP` only), against API main `b4058c3`; no private key in the API logs)* Run quickstart Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep
   @dns`, `scripts/smoke/stack-down.sh`) against the mailcow-rest-v2 dev stack with API 010
   implemented, and confirm that the API log contains no private key.
 - [X] T111 [P] Add the plan's two parity notes ("all names without a key" across pages; atomic
   replacement) to the "Legacy Parity" tables of `specs/010-dkim-mta-sts-dns/spec.md`.
-- [ ] T112 Run quickstart Part D on a mid-range Android phone and an iPhone:
+- [ ] T112 *(open: no phones available to the implementing agent; recorded in the validation log)* Run quickstart Part D on a mid-range Android phone and an iPhone:
   - SC-001 and SC-013 timings;
   - VoiceOver and TalkBack passes of US1–US4;
   - the SC-002 parity check for the four listed names.

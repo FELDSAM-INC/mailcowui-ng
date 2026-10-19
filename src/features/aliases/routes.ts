@@ -16,6 +16,17 @@ export const aliasRoutes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/aliases/new',
+    name: 'alias-create',
+    component: () => import('./pages/AliasCreatePage.vue'),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'aliases',
+      titleKey: legacy('mailbox.add_alias'),
+    },
+  },
+  {
     path: '/aliases/:aliasId(\\d+)',
     name: 'alias-detail',
     component: () => import('./pages/AliasDetailPage.vue'),

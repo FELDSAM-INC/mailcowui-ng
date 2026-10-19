@@ -5,8 +5,20 @@
 import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
-import { api, queryKeys, requireData, type Alias, type AliasListParams, type ListMeta } from '@/api'
+import {
+  api,
+  queryKeys,
+  requireData,
+  runMutation,
+  type Alias,
+  type AliasCreateRequest,
+  type AliasListParams,
+  type AliasPatch,
+  type ListMeta,
+} from '@/api'
 import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
+
+import type { AliasCreateBody } from './alias-form'
 
 export interface AliasPage {
   data: Alias[]
@@ -102,4 +114,77 @@ export function aliasDomainPickerSource(label?: string): DomainPickerSource {
       }
     },
   }
+}
+
+// Mutations (data-model §3).
+
+const MERGE_PATCH = { 'Content-Type': 'application/merge-patch+json' }
+
+/** What an alias change makes stale: the lists, other features' derived numbers and senders. */
+export function invalidateAfterAliasChange(client: QueryClient): void {
+  void client.invalidateQueries({ queryKey: queryKeys.aliases.lists() })
+  void client.invalidateQueries({ queryKey: queryKeys.aliasDomains.all() })
+  void client.invalidateQueries({ queryKey: queryKeys.domains.all() })
+  void client.invalidateQueries({ queryKey: queryKeys.senderSettings.all() })
+  void client.invalidateQueries({ queryKey: queryKeys.auditEvents.all() })
+}
+
+export function createAlias(client: QueryClient, body: AliasCreateBody): Promise<Alias> {
+  return runMutation(
+    client,
+    {
+      // The omitted members take the contract's defaults (AliasCreateBody).
+      mutationFn: async (request: AliasCreateBody) =>
+        requireData(await api.POST('/aliases', { body: request as AliasCreateRequest })).data,
+      onSuccess: (alias) => {
+        client.setQueryData(queryKeys.aliases.detail(alias.id), alias)
+        invalidateAfterAliasChange(client)
+      },
+    },
+    body,
+  )
+}
+
+export function updateAlias(
+  client: QueryClient,
+  id: number,
+  patch: AliasPatch,
+  ifMatch: string,
+): Promise<Alias> {
+  return runMutation(
+    client,
+    {
+      mutationFn: async () =>
+        requireData(
+          await api.PATCH('/aliases/{aliasId}', {
+            params: { path: { aliasId: id }, header: { 'If-Match': ifMatch } },
+            body: patch,
+            headers: MERGE_PATCH,
+          }),
+        ).data,
+      onSuccess: (alias) => {
+        client.setQueryData(queryKeys.aliases.detail(alias.id), alias)
+        invalidateAfterAliasChange(client)
+      },
+    },
+    undefined,
+  )
+}
+
+export function deleteAlias(client: QueryClient, id: number, ifMatch: string): Promise<void> {
+  return runMutation(
+    client,
+    {
+      mutationFn: async () => {
+        await api.DELETE('/aliases/{aliasId}', {
+          params: { path: { aliasId: id }, header: { 'If-Match': ifMatch } },
+        })
+      },
+      onSuccess: () => {
+        client.removeQueries({ queryKey: queryKeys.aliases.detail(id), exact: true })
+        invalidateAfterAliasChange(client)
+      },
+    },
+    undefined,
+  )
 }

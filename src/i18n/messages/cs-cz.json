@@ -15,8 +15,14 @@
       "failed": "Nastavení serveru, která tento formulář potřebuje, se nepodařilo načíst.",
       "loading": "Načítání nastavení serveru…"
     },
+    "create": {
+      "progress": "Přidávání {current} z {total}…"
+    },
     "filters": {
       "destinationType": "Cíl"
+    },
+    "form": {
+      "externalNotice": "Jako cílové adresy lze přidat jen adresy domén hostovaných na tomto serveru."
     },
     "list": {
       "moreDestinations": "+{count} další"

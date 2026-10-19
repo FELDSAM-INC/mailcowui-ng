@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router'
 
 import { confirm } from './useConfirm'
+import { sessionEnded } from './useFormDraft'
 
 export interface LeaveGuardTexts {
   /** Translation key of the question's explanation. */
@@ -23,7 +24,9 @@ export function useLeaveGuard(
   const { t } = useI18n()
   const options: LeaveGuardTexts = typeof texts === 'string' ? { messageKey: texts } : texts
   const disarmed = ref(false)
-  const armed = computed(() => !disarmed.value && toValue(shouldGuard))
+  // UI 004: an ended session goes to the sign-in screen without asking (the input is kept as a
+  // draft by forms that use `useFormDraft`).
+  const armed = computed(() => !disarmed.value && !sessionEnded.value && toValue(shouldGuard))
 
   /** Asks the question; resolves true when the user chooses to leave. */
   function ask(): Promise<boolean> {

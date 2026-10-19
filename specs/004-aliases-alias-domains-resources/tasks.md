@@ -573,7 +573,7 @@ page).
   - `aliases-create-limit`: `example.org` at its alias limit;
   - `aliases-create-da-no-external`;
   - `aliases-create-network`: a network failure on the n-th `createAlias`.
-- [ ] T042 [P] [US2] Write `tests/e2e/aliases/create.spec.ts`. It covers:
+- [X] T042 *(done: tests/e2e/aliases/create.spec.ts on the classic add form: goto checkboxes, no comment fields (US2-AS9's comment limit is tested on the alias page in US3), legacy messages at the fields)* [P] [US2] Write `tests/e2e/aliases/create.spec.ts`. It covers:
   - US2-AS1 to US2-AS11;
   - FR-018: the four sections, and the defaults sent (active, sending allowed and internal; the
     groupware option only when enabled);
@@ -601,7 +601,7 @@ page).
   - Edge, session expires while the form is open: `mockApi.patch({ expireSession: true })`, sign in
     again in the same tab, and the input is restored;
   - Edge, capabilities cannot be read: the form shows the error state with retry.
-- [ ] T043 [P] [US2] Write these unit tests:
+- [X] T043 *(done: alias-form, DestinationField (the goto field), AliasCreateResults specs; the address field is EntryListField's marker case (EntryListField.spec))* [P] [US2] Write these unit tests:
   - `tests/unit/features/aliases/alias-form.spec.ts`: `toCreateRequest` (data-model §2), and
     `classifyAliasRefusal` against research R9's table.
   - `tests/unit/features/aliases/DestinationField.spec.ts`:
@@ -614,23 +614,23 @@ page).
     `commentMaxBytes` with multi-byte text.
   - `tests/unit/features/aliases/AliasCreateResults.spec.ts`: created with links, refused with the
     reason, not processed, announced, and focus moved to the summary.
-- [ ] T044 [P] [US2] Write `tests/smoke/aliases-create.smoke.spec.ts` (`@feature-004`), as `admin`:
+- [X] T044 *(done: tests/smoke/aliases-create.smoke.spec.ts)* [P] [US2] Write `tests/smoke/aliases-create.smoke.spec.ts` (`@feature-004`), as `admin`:
   - create `smoke-<timestamp>@<domain>` with two destinations;
   - create three addresses, one of them a duplicate of the first, and see one refused;
   - remove the created aliases through the UI.
 
 ### Implementation for User Story 2
 
-- [ ] T045 [US2] Implement in `src/features/aliases/alias-form.ts` the form model, `toCreateRequest`
+- [X] T045 *(done: alias-form.ts: create and edit form models with gotoAction, toCreateRequest (AliasCreateBody: omitted members take the contract's defaults), buildAliasPatch, classifyAliasRefusal; createAlias, updateAlias and deleteAlias in api.ts with the invalidation of data-model §3)* [US2] Implement in `src/features/aliases/alias-form.ts` the form model, `toCreateRequest`
   and `classifyAliasRefusal` (data-model §2, research R8, R9). Add `useCreateAlias` to
   `src/features/aliases/api.ts`, with the invalidation of data-model §3.
-- [ ] T046 [P] [US2] Implement these components in `src/features/aliases/components/`:
+- [X] T046 *(done: DestinationField (textarea + legacy's three goto checkboxes, external notice), AliasOptionsFields (add and edit labels); the address field is EntryListField with the Catch-All marker; no comment fields at creation (legacy form map part 3, item 4))* [P] [US2] Implement these components in `src/features/aliases/components/`:
   - `AddressEntriesField.vue` (`EntryListField`);
   - `DestinationField.vue` (Reka `RadioGroup` plus `EntryListField`, with the FR-020 notice);
   - `AliasOptionsFields.vue` (switches with the legacy explanations; groupware only when enabled);
   - `AliasCommentsFields.vue` (byte counters through `utf8ByteLength`).
-- [ ] T047 [P] [US2] Implement `src/features/aliases/components/AliasCreateResults.vue`.
-- [ ] T048 [US2] Implement `src/features/aliases/pages/AliasCreatePage.vue`:
+- [X] T047 *(done: AliasCreateResults.vue: legacy's success.alias_added per created address, the refusal's legacy message, bulk.outcome.notProcessed)* [P] [US2] Implement `src/features/aliases/components/AliasCreateResults.vue`.
+- [X] T048 *(done: AliasCreatePage.vue (CapabilitiesGate, useProblemForm with aliases.form, useSequentialCreate, flash of success.alias_added on the alias page through OutcomeAlert, leave guard, useFormDraft); route alias-create; Add alias on the list header and empty state; leave guards now stand aside once the session ended (useLeaveGuard reads useFormDraft's sessionEnded))* [US2] Implement `src/features/aliases/pages/AliasCreatePage.vue`:
   - `CapabilitiesGate`;
   - the four sections;
   - `useProblemForm` with the form key `aliases.form`;
@@ -643,7 +643,7 @@ page).
   Add the route `alias-create` (`/aliases/new`) to `src/features/aliases/routes.ts`. Add the "Add
   alias" control to the header and the "nothing exists yet" state of `AliasesPage.vue`, only when
   permitted.
-- [ ] T049 [US2] Use the legacy keys of T005a's form map for the alias form verbatim: the labels and
+- [X] T049 *(done: new strings aliases.create.progress and aliases.form.externalNotice; messages through LEGACY_TEXTS (T013))* [US2] Use the legacy keys of T005a's form map for the alias form verbatim: the labels and
   `*_info` texts of `#addAliasModal`, `add.alias_address_info` as the installation has it, and the
   messages, with problem types and rule codes mapped to the legacy `danger.*` keys
   (`success.alias_added` with the address and the ID; `acl.alias_external_goto` and

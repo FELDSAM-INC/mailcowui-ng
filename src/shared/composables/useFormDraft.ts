@@ -3,7 +3,7 @@
 // session ended, and given back when the same account opens the same address again in this tab.
 // It lives in a module-level Map only: never in device storage, and a reload loses it by design.
 // Forms that carry secrets never use it (docs/conventions.md "Secrets in requests or responses").
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, readonly, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 interface Draft {
@@ -13,19 +13,25 @@ interface Draft {
 
 const drafts = new Map<string, Draft>()
 let owner: string | null = null
-let ended = false
+const ended = ref(false)
+
+/**
+ * Whether the session has ended and the app is on its way to the sign-in screen. Leave guards
+ * stand aside then (`useLeaveGuard`): the input is kept as a draft instead.
+ */
+export const sessionEnded = readonly(ended)
 
 /** The signed-in account. Another account's drafts are discarded; a new session starts. */
 export function setDraftOwner(username: string | null): void {
   if (!username) return
   if (owner !== null && owner !== username) drafts.clear()
   owner = username
-  ended = false
+  ended.value = false
 }
 
 /** The session ended (idle, refused, another tab): forms that unmount now keep their input. */
 export function markSessionEnded(): void {
-  ended = true
+  ended.value = true
 }
 
 /** Sign-out and an account change discard every draft. */
@@ -63,7 +69,7 @@ export function useFormDraft<T>(formId: string, options: FormDraftOptions<T>) {
   })
 
   onBeforeUnmount(() => {
-    if (!ended || owner === null || !options.dirty()) return
+    if (!ended.value || owner === null || !options.dirty()) return
     const value = options.capture()
     if (settled !== null && JSON.stringify(value) === settled) return
     drafts.set(key, { owner, value: structuredClone(value) })

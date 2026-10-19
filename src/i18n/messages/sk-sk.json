@@ -15,8 +15,14 @@
       "failed": "Nastavenia servera, ktoré tento formulár potrebuje, sa nepodarilo načítať.",
       "loading": "Načítavajú sa nastavenia servera…"
     },
+    "create": {
+      "progress": "Pridáva sa {current} z {total}…"
+    },
     "filters": {
       "destinationType": "Cieľ"
+    },
+    "form": {
+      "externalNotice": "Ako cieľové adresy možno pridať len adresy domén hostovaných na tomto serveri."
     },
     "list": {
       "moreDestinations": "+{count} ďalšie"

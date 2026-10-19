@@ -8,6 +8,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 
 import { problemOf } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
@@ -25,7 +26,7 @@ import SearchField from '@/shared/components/SearchField.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import type { PageSize } from '@/shared/composables/useListState'
-import { SyncIcon } from '@/shared/icons'
+import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { aliasListOptions } from '../api'
@@ -189,7 +190,14 @@ function refresh() {
   <section class="mx-auto flex w-full max-w-7xl flex-col gap-4" :data-list-state="listState">
     <PageHeader :title="lt('mailbox.aliases')">
       <template #actions>
-        <slot name="header-actions" />
+        <RouterLink
+          v-if="permissions.canManageAliases"
+          :to="{ name: 'alias-create' }"
+          :class="buttonVariants({ variant: 'default' })"
+        >
+          <PlusIcon />
+          {{ lt('mailbox.add_alias') }}
+        </RouterLink>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -265,7 +273,6 @@ function refresh() {
       >
         {{ t('lists.refreshFailed') }}
       </p>
-      <slot name="before-list" />
 
       <div v-if="noMatches" data-empty="noMatch" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
@@ -280,7 +287,14 @@ function refresh() {
 
       <div v-else-if="empty" data-empty="none" class="flex flex-col items-start gap-3 py-6">
         <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
-        <slot name="empty-actions" />
+        <RouterLink
+          v-if="permissions.canManageAliases"
+          :to="{ name: 'alias-create' }"
+          :class="buttonVariants({ variant: 'default' })"
+        >
+          <PlusIcon />
+          {{ lt('mailbox.add_alias') }}
+        </RouterLink>
       </div>
 
       <template v-else>

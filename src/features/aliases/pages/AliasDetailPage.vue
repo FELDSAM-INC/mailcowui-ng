@@ -4,7 +4,7 @@
 // domain, target domain, the Catch-All badge) and the orphaned warning, then the "Edit alias" form
 // as one section. Deletion and "Expand alias over alias domains" stay in the list, as in legacy.
 // An alias that does not exist or lies outside the scope shows "not found" with a way back (FR-003).
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
@@ -15,6 +15,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
+import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 
 import { useAlias } from '../api'
@@ -22,6 +23,7 @@ import { useAliasesCapabilities } from '../capabilities'
 import AliasBadges from '../components/AliasBadges.vue'
 import AliasValues from '../components/AliasValues.vue'
 import OrphanedAliasWarning from '../components/OrphanedAliasWarning.vue'
+import { takeAliasFlash } from '../flash'
 import { feature004Permissions } from '../permissions'
 
 const { t } = useI18n()
@@ -34,6 +36,8 @@ const permissions = computed(() =>
 const groupwareEnabled = computed(() => capabilities.data.value?.groupwareEnabled)
 
 const id = computed(() => Number(route.params.aliasId))
+/** The outcome of the creation that opened this page (legacy's `success.alias_added`). */
+const flash = ref<string | null>(takeAliasFlash(id.value))
 const query = useAlias(id)
 const alias = computed(() => query.data.value)
 const notFound = computed(
@@ -97,6 +101,7 @@ const LINK =
     <PageHeader :title="lt('edit.alias')" :description="subtitle">
       <template #actions><slot name="header-actions" :alias="alias" /></template>
     </PageHeader>
+    <OutcomeAlert v-if="flash" :message="flash" @dismiss="flash = null" />
     <OrphanedAliasWarning v-if="permissions.canSeeOrphaned && alias.orphaned" />
     <section
       :aria-label="lt('edit.alias')"

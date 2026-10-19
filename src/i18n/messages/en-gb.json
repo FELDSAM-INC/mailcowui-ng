@@ -15,8 +15,14 @@
       "failed": "The server settings this form needs could not be loaded.",
       "loading": "Loading the server settings…"
     },
+    "create": {
+      "progress": "Adding {current} of {total}…"
+    },
     "filters": {
       "destinationType": "Destination"
+    },
+    "form": {
+      "externalNotice": "Only addresses of domains hosted on this server can be added as goto addresses."
     },
     "list": {
       "moreDestinations": "+{count} more"

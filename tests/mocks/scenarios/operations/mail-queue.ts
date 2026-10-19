@@ -51,7 +51,7 @@ export function seedMailQueue(state: ScenarioState): void {
 }
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const mailQueueScenarios: Record<string, ScenarioDefinition> = {
+export const mailQueueScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'ops-queue': {
     description:
       'An administrator with 8 queued messages, 3 of them deferred to partner.example, one bounce, one held message, and a 10 MiB message (UI 011 US4).',

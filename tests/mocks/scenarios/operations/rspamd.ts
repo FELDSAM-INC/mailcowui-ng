@@ -34,7 +34,7 @@ export function seedRspamd(state: ScenarioState): void {
 const unavailable = { status: 503, problemType: 'temporary-failure', retryAfter: 30 }
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const rspamdScenarios: Record<string, ScenarioDefinition> = {
+export const rspamdScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'ops-rspamd': {
     description:
       'Rspamd statistics and history with a message from spammer@example.net that was rejected (UI 011 US6-AS1).',

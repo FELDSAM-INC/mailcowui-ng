@@ -31,7 +31,7 @@ export function applyUpdatesPatch(state: ScenarioState, patch: UpdatesPatch): vo
 export function seedUpdates(_state: ScenarioState): void {}
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const updatesScenarios: Record<string, ScenarioDefinition> = {
+export const updatesScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'ops-update-up-to-date': {
     description: 'The installation is on the newest release (UI 011 US7).',
     overrides: { operations: { updates: { status: 'upToDate' } } },

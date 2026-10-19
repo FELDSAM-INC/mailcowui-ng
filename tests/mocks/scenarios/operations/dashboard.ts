@@ -75,7 +75,7 @@ const SERVICE_DOWN = {
 } as const
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const dashboardScenarios: Record<string, ScenarioDefinition> = {
+export const dashboardScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'admin-operations-lighthouse': {
     description:
       'The operations installation polled every 60 seconds, for Lighthouse (UI 011 R22).',

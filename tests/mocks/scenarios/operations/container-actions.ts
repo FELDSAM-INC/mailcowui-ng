@@ -50,7 +50,7 @@ export function applyContainerActionsPatch(
 export function seedContainerActions(_state: ScenarioState): void {}
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const containerActionsScenarios: Record<string, ScenarioDefinition> = {
+export const containerActionsScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'ops-container-actions': {
     description:
       'An outcome per container: SOGo restarts after 3 s, olefy times out, memcached refuses to stop, Redis restarts without an audit record, ACME was removed, watchdog is restarting and ofelia paused (UI 011 US2).',

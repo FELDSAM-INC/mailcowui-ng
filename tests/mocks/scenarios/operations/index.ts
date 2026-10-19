@@ -5,40 +5,50 @@
 // it.
 import type { ScenarioDefinition } from '../index'
 import type { ScenarioState } from '../state'
-import { auditScenarios } from './audit'
+import { auditScenarioDefinitions } from './audit'
 import {
   applyContainerActionsPatch,
-  containerActionsScenarios,
+  containerActionsScenarioDefinitions,
   initialContainerActionsData,
   seedContainerActions,
 } from './container-actions'
 import {
   applyDashboardPatch,
-  dashboardScenarios,
+  dashboardScenarioDefinitions,
   initialDashboardData,
   seedDashboard,
 } from './dashboard'
 import {
   applyFail2banPatch,
-  fail2banScenarios,
+  fail2banScenarioDefinitions,
   initialFail2banData,
   seedFail2ban,
 } from './fail2ban'
-import { applyLogsPatch, initialLogsData, logsScenarios, seedLogs } from './logs'
+import { applyLogsPatch, initialLogsData, logsScenarioDefinitions, seedLogs } from './logs'
 import {
   applyMailQueuePatch,
   initialMailQueueData,
-  mailQueueScenarios,
+  mailQueueScenarioDefinitions,
   seedMailQueue,
 } from './mail-queue'
-import { applyRspamdPatch, initialRspamdData, rspamdScenarios, seedRspamd } from './rspamd'
+import {
+  applyRspamdPatch,
+  initialRspamdData,
+  rspamdScenarioDefinitions,
+  seedRspamd,
+} from './rspamd'
 import {
   defaultMonitoringCapabilities,
   mergeDeep,
   type OperationsPatch,
   type OperationsState,
 } from './state'
-import { applyUpdatesPatch, initialUpdatesData, seedUpdates, updatesScenarios } from './updates'
+import {
+  applyUpdatesPatch,
+  initialUpdatesData,
+  seedUpdates,
+  updatesScenarioDefinitions,
+} from './updates'
 
 export function initialOperationsState(): OperationsState {
   return {
@@ -90,14 +100,14 @@ export function applyOperationsPatch(state: ScenarioState, patch: OperationsPatc
 }
 
 const areaScenarios: Record<string, ScenarioDefinition> = {
-  ...dashboardScenarios,
-  ...containerActionsScenarios,
-  ...logsScenarios,
-  ...mailQueueScenarios,
-  ...fail2banScenarios,
-  ...rspamdScenarios,
-  ...updatesScenarios,
-  ...auditScenarios,
+  ...dashboardScenarioDefinitions,
+  ...containerActionsScenarioDefinitions,
+  ...logsScenarioDefinitions,
+  ...mailQueueScenarioDefinitions,
+  ...fail2banScenarioDefinitions,
+  ...rspamdScenarioDefinitions,
+  ...updatesScenarioDefinitions,
+  ...auditScenarioDefinitions,
 }
 
 /** An area scenario on top of the healthy installation, signed in as `admin` unless it says otherwise. */

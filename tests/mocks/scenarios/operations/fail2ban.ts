@@ -71,7 +71,7 @@ export function seedFail2ban(state: ScenarioState): void {
 }
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const fail2banScenarios: Record<string, ScenarioDefinition> = {
+export const fail2banScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'ops-fail2ban': {
     description:
       'An administrator on the ban service: ban time 1,800 s, maximum 10,000 s, three active bans (one queued for lifting), two permanent bans and the default rules (UI 011 US5).',

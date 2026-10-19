@@ -88,7 +88,7 @@ export function seedLogs(state: ScenarioState): void {
 const unavailable = { status: 503, problemType: 'temporary-failure', retryAfter: 30 }
 
 /** Scenarios of this area; `setup` runs after the seed of every area. */
-export const logsScenarios: Record<string, ScenarioDefinition> = {
+export const logsScenarioDefinitions: Record<string, ScenarioDefinition> = {
   'ops-logs-large': {
     description:
       'An administrator with 10,000 Postfix entries; three new entries arrive before every Postfix request (UI 011 US3-AS1, SC-010).',

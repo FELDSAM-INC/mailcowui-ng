@@ -52,6 +52,10 @@ compose() {
 compose up -d --build
 compose run --rm app composer install --no-interaction
 compose run --rm app sh -c 'test -f .env || cp .env.example .env'
+# UI 011 (research R21, API 011 quickstart Part B): the outbound fakes stand in for dockerapi,
+# Postfix and Rspamd, which the dev stack does not have. Development only; stack-down.sh removes it.
+compose run --rm app sh -c \
+  "grep -q '^RESTV2_FAKE_OUTBOUND=' .env && sed -i 's/^RESTV2_FAKE_OUTBOUND=.*/RESTV2_FAKE_OUTBOUND=y/' .env || echo RESTV2_FAKE_OUTBOUND=y >> .env"
 compose run --rm app php artisan key:generate --force
 compose run --rm app scripts/dev/reset-dev-database.sh
 

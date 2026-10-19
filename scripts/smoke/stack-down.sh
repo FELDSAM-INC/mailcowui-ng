@@ -10,6 +10,8 @@ container="${project}-ng"
 
 docker rm -f "$container" >/dev/null 2>&1 || true
 if [[ -d "$work" ]]; then
+  # UI 011: the outbound fakes that stack-up.sh switched on.
+  if [[ -f "$work/.env" ]]; then sed -i '/^RESTV2_FAKE_OUTBOUND=/d' "$work/.env"; fi
   # UI 012: also the `idp` profile that SMOKE_IDP=1 started; UI 009: the `routing` profile of
   # SMOKE_COMPOSE_PROFILES.
   (cd "$work" && docker compose -p "$project" --profile idp --profile routing down -v \

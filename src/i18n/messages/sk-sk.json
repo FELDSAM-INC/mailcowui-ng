@@ -796,6 +796,17 @@
     },
     "delete": {
       "mailKept": "Už skopírovaná pošta v schránke zostane."
+    },
+    "log": {
+      "title": "Záznam",
+      "region": "Záznam úlohy {name}",
+      "copy": "Kopírovať",
+      "copied": "Záznam bol skopírovaný.",
+      "copyRefused": "Kopírovanie nie je k dispozícii. Označte text a skopírujte ho.",
+      "wrap": "Zalamovať riadky",
+      "never": "Zatiaľ žiadny záznam.",
+      "noOutput": "Beh nevytvoril žiadny výstup.",
+      "running": "Práve prebieha beh. Toto je záznam predchádzajúceho behu."
     }
   },
   "themes": {

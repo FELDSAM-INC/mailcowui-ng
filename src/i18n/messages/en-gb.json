@@ -796,6 +796,17 @@
     },
     "delete": {
       "mailKept": "Mail that was already copied stays in the mailbox."
+    },
+    "log": {
+      "title": "Log",
+      "region": "Log of {name}",
+      "copy": "Copy",
+      "copied": "The log was copied.",
+      "copyRefused": "Copying is not available. Select the text to copy it.",
+      "wrap": "Wrap lines",
+      "never": "No log yet.",
+      "noOutput": "The run produced no output.",
+      "running": "A run is in progress. This is the log of the previous run."
     }
   },
   "themes": {

@@ -796,6 +796,17 @@
     },
     "delete": {
       "mailKept": "Již zkopírovaná pošta ve schránce zůstane."
+    },
+    "log": {
+      "title": "Záznam",
+      "region": "Záznam úlohy {name}",
+      "copy": "Kopírovat",
+      "copied": "Záznam byl zkopírován.",
+      "copyRefused": "Kopírování není k dispozici. Označte text a zkopírujte ho.",
+      "wrap": "Zalamovat řádky",
+      "never": "Zatím žádný záznam.",
+      "noOutput": "Běh nevytvořil žádný výstup.",
+      "running": "Právě probíhá běh. Toto je záznam předchozího běhu."
     }
   },
   "themes": {

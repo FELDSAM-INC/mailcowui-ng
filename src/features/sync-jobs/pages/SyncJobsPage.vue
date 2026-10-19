@@ -6,7 +6,7 @@
 // listed job runs; the match count announced after a search or filter change. Later stories add the
 // create action (US2), selection mode (US4), the log viewer (US5) and deletion (US6).
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, defineAsyncComponent, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
@@ -35,9 +35,12 @@ import SyncJobFilters from '../components/SyncJobFilters.vue'
 import SyncJobList from '../components/SyncJobList.vue'
 import SyncJobRowActions from '../components/SyncJobRowActions.vue'
 import { useRunningRefresh } from '../composables/useRunningRefresh'
+import { useLogViewer } from '../composables/useLogViewer'
 import { useSyncJobActions } from '../composables/useSyncJobActions'
 import { useSyncJobListState, type SyncJobListFilters } from '../list-state'
 import { jobLabel, listTexts } from '../presentation'
+
+const SyncJobLogDialog = defineAsyncComponent(() => import('../components/SyncJobLogDialog.vue'))
 
 const { t } = useI18n()
 const fmt = useFormat()
@@ -189,8 +192,10 @@ function toggleSelecting() {
   else selection.enter()
 }
 
+// The run log (US5): a view parameter of the list's address, the viewer loaded lazily.
+const logViewer = useLogViewer(list)
 function openLog(id: number) {
-  void list.setView('log', id)
+  void logViewer.open(id)
 }
 </script>
 
@@ -375,6 +380,14 @@ function openLog(id: number) {
         />
       </template>
     </template>
+
+    <SyncJobLogDialog
+      v-if="logViewer.openId.value !== undefined"
+      :key="logViewer.openId.value"
+      :job-id="logViewer.openId.value"
+      :role="role"
+      @close="logViewer.close()"
+    />
 
     <BulkActionBar
       v-if="selection.active.value"

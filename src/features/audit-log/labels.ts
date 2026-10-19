@@ -96,6 +96,8 @@ const TARGET_ROUTES: Record<string, (id: string) => AuditLink> = {
   resource: (id) => ({ name: 'resource-detail', params: { resourceAddress: id } }),
   // "Allow to send as" lives on the mailbox page (orchestrator, 2026-10-19).
   mailboxSenderSettings: (id) => ({ name: 'mailbox-detail', params: { address: id } }),
+  // UI 011 (FR-002): a container's card on the dashboard.
+  container: (id) => ({ name: 'operations-container', params: { containerName: id } }),
 }
 
 /** The page of an event's target, or null for a deleted or unknown one. */
@@ -104,6 +106,9 @@ export function auditTargetLink(event: AuditEvent): AuditLink | null {
   if (!target?.id || event.eventType.endsWith('Deletion')) return null
   return TARGET_ROUTES[target.type]?.(target.id) ?? null
 }
+
+/** UI 011 (FR-075): details with more lines than this are collapsed behind "Show all <n>". */
+export const COLLAPSED_LINES = 10
 
 export interface AuditDetailRow {
   key: string
@@ -155,6 +160,11 @@ export function auditDetailRows(event: AuditEvent, flag: FlagText = String): Aud
         lines: [String(value)],
         link: { name: 'alias-detail', params: { aliasId: String(value) } },
       }
+    }
+    // UI 011 (FR-075): a list longer than the collapsed length shows one item per line, so that
+    // the details view can collapse it (for example a queue deletion's queue IDs and results).
+    if (Array.isArray(value) && value.length > COLLAPSED_LINES) {
+      return { key, lines: value.map((item) => detailText(item, flag)) }
     }
     return { key, lines: [detailText(value, flag)] }
   })

@@ -75,3 +75,104 @@ export function refusedDomainAuditEvent(
 ): AuditEvent {
   return domainAuditEvent(kind, target, { outcome: 'failure', failureReason, ...overrides })
 }
+
+/**
+ * UI 011 (T136): records of the 17 event types of monitoring and operations, with the details API
+ * 011 writes (`docs/audit-events.md` of the API; the contract leaves `details` open, so the app
+ * shows them as stored). Includes a deletion of 4 queue IDs and one of 400.
+ */
+export function operationsAuditEvents(): AuditEvent[] {
+  const container = (eventType: 'containerStart' | 'containerStop' | 'containerRestart') =>
+    auditEvent({
+      eventType,
+      target: { type: 'container', id: 'sogo-mailcow', name: null },
+      details: {
+        action: eventType.replace('container', '').toLowerCase(),
+        stateBefore: { state: 'running', startedAt: '2026-10-18T07:00:00Z' },
+        stateAfter: { state: 'running', startedAt: '2026-10-18T10:00:00Z' },
+      },
+    })
+  const queueResults = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({
+      id: (0x4f2a00 + index).toString(16).toUpperCase(),
+      outcome: index === 3 ? 'notFound' : 'done',
+    }))
+  const queue = (
+    eventType: 'mailQueueDelivery' | 'mailQueueHold' | 'mailQueueRelease' | 'mailQueueDeletion',
+    count: number,
+  ) =>
+    auditEvent({
+      eventType,
+      target: { type: 'mailQueue', id: null, name: null },
+      details: { results: queueResults(count) },
+    })
+  return [
+    container('containerRestart'),
+    container('containerStop'),
+    container('containerStart'),
+    auditEvent({
+      eventType: 'containerRestart',
+      outcome: 'failure',
+      failureReason: 'outcomeUnknown',
+      target: { type: 'container', id: 'nginx-mailcow', name: null },
+      details: { action: 'restart' },
+    }),
+    auditEvent({
+      eventType: 'containerStop',
+      outcome: 'failure',
+      failureReason: 'serviceFailure',
+      target: { type: 'container', id: 'clamd-mailcow', name: null },
+      details: { action: 'stop', serviceMessage: 'container is restarting' },
+    }),
+    queue('mailQueueDeletion', 4),
+    queue('mailQueueDeletion', 400),
+    queue('mailQueueHold', 2),
+    queue('mailQueueRelease', 2),
+    queue('mailQueueDelivery', 1),
+    auditEvent({ eventType: 'mailQueueFlush', target: { type: 'mailQueue', id: null, name: null } }),
+    auditEvent({ eventType: 'mailQueuePurge', target: { type: 'mailQueue', id: null, name: null } }),
+    auditEvent({
+      eventType: 'mailQueueMessageView',
+      target: { type: 'mailQueueMessage', id: '4F2A1B', name: null },
+    }),
+    auditEvent({
+      eventType: 'fail2banSettingsUpdate',
+      target: { type: 'fail2banSettings', id: null, name: null },
+      details: {
+        changes: { banTime: { old: 1800, new: 7200 } },
+        allowlistAdded: ['192.0.2.0/24'],
+        allowlistRemoved: ['198.51.100.0/24'],
+      },
+    }),
+    auditEvent({
+      eventType: 'fail2banRulesReplacement',
+      target: { type: 'fail2banRules', id: null, name: null },
+      details: { oldRules: ['^old (\\S+)$'], newRules: ['^new (\\S+)$'] },
+    }),
+    auditEvent({
+      eventType: 'fail2banRulesReset',
+      outcome: 'failure',
+      failureReason: 'rulesNotRestored',
+      target: { type: 'fail2banRules', id: null, name: null },
+    }),
+    auditEvent({
+      eventType: 'fail2banBanLift',
+      target: { type: 'fail2banActiveBan', id: '203.0.113.0/24', name: null },
+      details: { network: '203.0.113.0/24' },
+    }),
+    auditEvent({
+      eventType: 'fail2banBanAllowlisting',
+      target: { type: 'fail2banActiveBan', id: '203.0.113.0/24', name: null },
+      details: { network: '203.0.113.0/24', allowlistAdded: ['203.0.113.0/24'] },
+    }),
+    auditEvent({
+      eventType: 'fail2banBanDenylisting',
+      target: { type: 'fail2banActiveBan', id: '198.51.100.0/24', name: null },
+      details: { network: '198.51.100.0/24', denylistAdded: ['198.51.100.0/24'] },
+    }),
+    auditEvent({
+      eventType: 'fail2banBanListIdRotation',
+      target: { type: 'fail2banBanListId', id: null, name: null },
+    }),
+  ]
+}

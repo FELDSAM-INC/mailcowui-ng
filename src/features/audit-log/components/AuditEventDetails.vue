@@ -12,7 +12,13 @@ import type { AuditEvent } from '@/api'
 import { ChevronDownIcon } from '@/shared/icons'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 
-import { auditDetailRows, auditTargetLink, useAuditLabels, type AuditLink } from '../labels'
+import {
+  auditDetailRows,
+  auditTargetLink,
+  COLLAPSED_LINES,
+  useAuditLabels,
+  type AuditLink,
+} from '../labels'
 
 const props = withDefaults(defineProps<{ event: AuditEvent; variant?: 'collapsible' | 'list' }>(), {
   variant: 'collapsible',
@@ -26,6 +32,15 @@ const flag = (value: boolean) => t(value ? 'domains.values.yes' : 'domains.value
 const usable = (link: AuditLink | null | undefined) =>
   link && router?.hasRoute(link.name) ? link : undefined
 const open = ref(false)
+/** UI 011 (FR-075): the rows whose long list the user expanded. */
+const expanded = ref(new Set<string>())
+const shownLines = (row: { key: string; lines: string[] }) =>
+  row.lines.length > COLLAPSED_LINES && !expanded.value.has(row.key)
+    ? row.lines.slice(0, COLLAPSED_LINES)
+    : row.lines
+function expand(key: string) {
+  expanded.value = new Set([...expanded.value, key])
+}
 
 const regionLabel = computed(() =>
   t('auditLog.details.label', { event: label('eventType', props.event.eventType) }),
@@ -83,7 +98,17 @@ const rows = computed<Row[]>(() => [
             >{{ row.lines.join(' ') }}</RouterLink
           >
           <template v-else-if="row.lines.length === 1">{{ row.lines[0] }}</template>
-          <span v-for="line in row.lines" v-else :key="line" class="block">{{ line }}</span>
+          <template v-else>
+            <span v-for="(line, at) in shownLines(row)" :key="at" class="block">{{ line }}</span>
+            <button
+              v-if="shownLines(row).length < row.lines.length"
+              type="button"
+              class="inline-flex min-h-11 items-center font-medium text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+              @click="expand(row.key)"
+            >
+              {{ t('auditLog.details.showAll', { count: row.lines.length }) }}
+            </button>
+          </template>
         </dd>
       </template>
     </dl>

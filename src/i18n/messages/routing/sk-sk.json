@@ -1,5 +1,8 @@
 {
   "routing": {
+    "bccMaps": {
+      "orphaned": "Doména už neexistuje"
+    },
     "bulk": {
       "leaveRunning": "Akcia na serveri ďalej beží, ale jej výsledok sa nezobrazí.",
       "leaveTitle": "Odísť, kým akcia beží?"

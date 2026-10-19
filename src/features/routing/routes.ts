@@ -109,4 +109,23 @@ export const routingRoutes: RouteRecordRaw[] = [
     'routing.connectionTest.title',
     { roles: ADMIN, props: { kind: 'transport' } },
   ),
+  // US5: BCC maps, for administrators and domain administrators (read-only without the flag).
+  route(
+    '/routing/bcc-maps',
+    'routing-bcc-maps',
+    () => import('./pages/bcc-maps/BccMapsPage.vue'),
+    legacy('mailbox.bcc_maps'),
+  ),
+  route(
+    '/routing/bcc-maps/new',
+    'routing-bcc-map-create',
+    () => import('./pages/bcc-maps/BccMapCreatePage.vue'),
+    legacy('mailbox.add_bcc_entry'),
+  ),
+  route(
+    '/routing/bcc-maps/:bccMapId(\\d+)',
+    'routing-bcc-map-edit',
+    () => import('./pages/bcc-maps/BccMapEditPage.vue'),
+    legacy('edit.title'),
+  ),
 ]

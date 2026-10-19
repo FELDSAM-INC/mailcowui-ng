@@ -18,3 +18,5 @@ export type FilterDef =
   | { key: string; label: string; kind: 'select'; options: readonly SortChoice[] }
   | { key: string; label: string; kind: 'checks'; options: readonly SortChoice[] }
   | { key: string; label: string; kind: 'text' }
+  /** One free-text value of a repeatable parameter (sent as a one-item list). */
+  | { key: string; label: string; kind: 'textList' }

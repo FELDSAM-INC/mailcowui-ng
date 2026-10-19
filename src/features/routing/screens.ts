@@ -66,7 +66,7 @@ export const ROUTING_SCREENS: readonly RoutingScreen[] = [
     titleKey: 'mailbox.bcc_maps',
     hintKey: 'mailbox.bcc_info',
     roles: ['admin', 'domainAdmin'],
-    status: 'pending',
+    status: 'available',
   },
   {
     id: 'forwardingHosts',

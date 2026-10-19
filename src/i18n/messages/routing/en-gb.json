@@ -1,5 +1,8 @@
 {
   "routing": {
+    "bccMaps": {
+      "orphaned": "Domain no longer exists"
+    },
     "bulk": {
       "leaveRunning": "The action keeps running on the server, but its result will not be shown.",
       "leaveTitle": "Leave while the action runs?"

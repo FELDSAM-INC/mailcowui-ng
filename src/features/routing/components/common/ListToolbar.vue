@@ -50,8 +50,12 @@ const chips = computed<FilterChip[]>(() =>
   props.filters.flatMap((filter) => {
     const value = props.values[filter.key]
     if (value === undefined || (Array.isArray(value) && value.length === 0)) return []
-    if (filter.kind === 'text')
+    if (filter.kind === 'text') {
       return [{ key: filter.key, label: `${filter.label}: ${valueText(value)}` }]
+    }
+    if (filter.kind === 'textList') {
+      return [{ key: filter.key, label: `${filter.label}: ${(value as string[]).join(', ')}` }]
+    }
     const label = (item: string) =>
       filter.options.find((option) => option.value === item)?.label ?? item
     const text = Array.isArray(value) ? value.map(label).join(', ') : label(valueText(value))
@@ -140,6 +144,32 @@ function removeChip(key: string) {
             </label>
           </div>
         </fieldset>
+        <div v-else-if="filter.kind === 'textList'" class="flex flex-col gap-1.5 md:w-64">
+          <label
+            :for="`${idPrefix}-filter-${filter.key}`"
+            class="text-sm font-medium text-gray-800 dark:text-gray-200"
+          >
+            {{ filter.label }}
+          </label>
+          <input
+            :id="`${idPrefix}-filter-${filter.key}`"
+            type="text"
+            :value="selected(filter.key)[0] ?? ''"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            class="form-control"
+            @change="
+              emit(
+                'filter',
+                filter.key,
+                ($event.target as HTMLInputElement).value.trim()
+                  ? [($event.target as HTMLInputElement).value.trim()]
+                  : [],
+              )
+            "
+          />
+        </div>
         <div v-else class="flex flex-col gap-1.5 md:w-64">
           <label
             :for="`${idPrefix}-filter-${filter.key}`"

@@ -128,9 +128,13 @@ test.describe('connection test', () => {
     page,
     mockApi,
     context,
+    browserName,
     expectNoHorizontalScroll,
   }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    // WebKit knows no clipboard permissions: there the copy either works or is refused with the
+    // transcript selected for copying by hand.
+    if (browserName === 'chromium')
+      await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await mockApi.use('routing-tests')
     await page.goto('routing/relayhosts/1/test')
     await page.getByRole('button', { name: 'Run test' }).click()
@@ -145,7 +149,15 @@ test.describe('connection test', () => {
     await expect(transcript).toContainText('S:')
     await expectNoHorizontalScroll()
     await page.getByRole('button', { name: 'Copy transcript' }).click()
-    await expect(polite(page)).toContainText('Copied to the clipboard.')
+    if (browserName === 'chromium') {
+      await expect(polite(page)).toContainText('Copied to the clipboard.')
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+        'C: AUTH PLAIN [redacted]',
+      )
+    } else {
+      const outcome = /Copied to the clipboard\.|The browser did not allow copying\./
+      await expect(page.locator('[data-live]').filter({ hasText: outcome })).toHaveCount(1)
+    }
     await page.goto('routing/transports/20/test')
     await page.getByRole('button', { name: 'Run test' }).click()
     if (isNarrow(page)) await page.getByRole('button', { name: /Transcript/ }).click()

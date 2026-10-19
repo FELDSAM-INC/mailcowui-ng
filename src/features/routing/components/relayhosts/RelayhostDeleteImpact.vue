@@ -81,7 +81,7 @@ const inUse = computed(() => totals.value.domains + totals.value.mailboxes > 0)
       </RouterLink>
       <p>
         {{ t('routing.relayhosts.delete.cleared') }}
-        <span class="font-medium">{{ lt('edit.none_inherit') }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{ lt('edit.none_inherit') }}</span>
       </p>
     </template>
   </div>

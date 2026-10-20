@@ -102,16 +102,30 @@ describe('active', () => {
     expect(router.currentRoute.value.name).toBe('domains')
   })
 
-  it('sends sign-in routes to returnTo, or home (FR-031)', async () => {
+  it('sends sign-in routes to returnTo, or the default working section (FR-031)', async () => {
     const { router } = setup()
     await router.push('/sign-in?returnTo=%2Fapi-keys%2Fnew')
     expect(router.currentRoute.value.fullPath).toBe('/api-keys/new')
     await router.push('/sign-in/admin?returnTo=https%3A%2F%2Fevil.example')
-    expect(router.currentRoute.value.fullPath).toBe('/')
+    expect(router.currentRoute.value.fullPath).toBe('/operations/dashboard')
     await router.push('/sign-in/second-factor')
-    expect(router.currentRoute.value.fullPath).toBe('/')
+    expect(router.currentRoute.value.fullPath).toBe('/operations/dashboard')
     await router.push('/pending-actions')
-    expect(router.currentRoute.value.fullPath).toBe('/')
+    expect(router.currentRoute.value.fullPath).toBe('/operations/dashboard')
+  })
+
+  it.each([
+    ['admin', '/operations/dashboard'],
+    ['reseller', '/domains'],
+    ['alice@example.org', '/account/password'],
+  ])('resolves the landing page before rendering for %s', async (username, destination) => {
+    useScenario('anonymous-default', { signedInAs: username })
+    const { router } = setup()
+    const visited: string[] = []
+    router.afterEach((to) => visited.push(to.path))
+    await router.push('/')
+    expect(router.currentRoute.value.path).toBe(destination)
+    expect(visited).toEqual([destination])
   })
 
   it('uses the returnTo kept by a session end', async () => {

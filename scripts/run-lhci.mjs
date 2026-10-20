@@ -15,7 +15,8 @@ const config = join(root, 'lighthouserc.cjs')
 
 const collections = [
   { url: `http://127.0.0.1:${previewPort}/ng/sign-in`, scenario: 'anonymous-default' },
-  { url: `http://127.0.0.1:${previewPort}/ng/`, scenario: 'admin-active' },
+  // The owner removed Home: '/' opens System & Containers, including monitoring reads.
+  { url: `http://127.0.0.1:${previewPort}/ng/`, scenario: 'admin-operations-lighthouse' },
   // UI 002 (T104): the domain list as an administrator, 25 of 60 domains.
   { url: `http://127.0.0.1:${previewPort}/ng/domains`, scenario: 'domains-60' },
   // UI 004 T111: the alias list with 60 aliases, as an active administrator.

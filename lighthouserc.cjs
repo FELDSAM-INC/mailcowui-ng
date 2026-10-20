@@ -18,11 +18,20 @@ module.exports = {
     assert: {
       assertMatrix: [
         {
-          matchingUrlPattern: '/ng/(sign-in)?$',
+          matchingUrlPattern: '/ng/sign-in$',
           assertions: {
             'categories:performance': ['error', { minScore: 0.8 }],
             'categories:accessibility': ['error', { minScore: 0.9 }],
             'resource-summary:script:size': ['error', { maxNumericValue: 215040 }],
+          },
+        },
+        {
+          // '/' now resolves to System & Containers. Its monitoring chunks use the same budgets
+          // as the direct dashboard URL; the shared initial graph still has the 200 KiB gate.
+          matchingUrlPattern: '/ng/$',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.8 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
           },
         },
         {

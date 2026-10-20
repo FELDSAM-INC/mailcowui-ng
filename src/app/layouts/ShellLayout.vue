@@ -19,7 +19,7 @@ import { useIdentityQuery } from '../session/queries'
 import { useSignOut } from '../session/sign-out'
 import { useBranding } from '../branding/public-config'
 const { branding } = useBranding()
-const AnnouncementBanner = defineAsyncComponent(() => import('../shell/AnnouncementBanner.vue'))
+import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
 const AppsMenu = defineAsyncComponent(() => import('../shell/AppsMenu.vue'))

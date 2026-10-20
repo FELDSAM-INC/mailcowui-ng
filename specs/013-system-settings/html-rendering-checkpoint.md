@@ -9,4 +9,4 @@ This is a static check of explicit sinks, not a general dynamic data-flow analys
 The 21 focused checks exercise the repository ESLint configuration on unsafe fixtures and
 allow DOM text construction used by email previews. A source scan confirms the only `v-html`
 attribute remains in `SanitizedHtml.vue`. Focused tests, scoped lint, formatting and a fresh
-app/test typecheck pass. Full repository lint is recorded with release verification.
+app/test typecheck and full repository lint pass.

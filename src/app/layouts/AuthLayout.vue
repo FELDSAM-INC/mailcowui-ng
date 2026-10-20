@@ -19,7 +19,7 @@ import ThemeSelect from '../preferences/ThemeSelect.vue'
 
 import { useBranding } from '../branding/public-config'
 const { branding } = useBranding()
-const AnnouncementBanner = defineAsyncComponent(() => import('../shell/AnnouncementBanner.vue'))
+import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import SkipLink from '../shell/SkipLink.vue'
 </script>

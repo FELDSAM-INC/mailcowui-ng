@@ -5,17 +5,8 @@
 import { expect, test } from '../fixtures/test'
 import { isNarrow, listReady } from './helpers'
 
-const SCREENS = [
-  'Sender-dependent transports',
-  'Transport Maps',
-  'TLS policy maps',
-  'Recipient maps',
-  'BCC maps',
-  'Forwarding Hosts',
-]
-
 test.describe('routing shell', () => {
-  test('FR-001 an administrator opens the index and moves between the screens', async ({
+  test('the old Routing address opens BCC maps and exposes only email routing tabs', async ({
     page,
     mockApi,
     expectAccessible,
@@ -24,29 +15,19 @@ test.describe('routing shell', () => {
   }) => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing')
-    await expect(page.getByRole('heading', { level: 1, name: 'Routing' })).toBeVisible()
-    const index = page.locator('[data-routing-index]')
-    await expect(index.getByRole('link')).toHaveText(SCREENS)
+    await expect(page).toHaveURL(/routing\/bcc-maps$/)
+    await listReady(page)
+    const nav = page.getByRole('navigation', { name: 'Routing', exact: true })
+    if (isNarrow(page)) await nav.getByRole('button').click()
+    await expect(nav.getByRole('link')).toHaveText([
+      'BCC maps',
+      'Recipient maps',
+      'TLS policy maps',
+    ])
+    await nav.getByRole('link', { name: 'Recipient maps', exact: true }).click()
+    await expect(page).toHaveURL(/routing\/recipient-maps$/)
     await expectAccessible()
     await expectTouchTargets()
-    await expectNoHorizontalScroll()
-
-    await index.getByRole('link', { name: 'Transport Maps' }).click()
-    await expect(page).toHaveURL(/routing\/transports$/)
-    await listReady(page)
-    const nav = page.getByRole('navigation', { name: 'Routing' })
-    if (isNarrow(page)) {
-      const toggle = nav.getByRole('button')
-      await expect(toggle).toHaveAttribute('aria-expanded', 'false')
-      await toggle.click()
-    }
-    await expect(nav.getByRole('link', { name: 'Transport Maps' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    await nav.getByRole('link', { name: 'Forwarding Hosts' }).click()
-    await expect(page).toHaveURL(/routing\/forwarding-hosts$/)
-    await expect(page.getByRole('heading', { level: 1, name: 'Forwarding Hosts' })).toBeVisible()
     await expectNoHorizontalScroll()
   })
 

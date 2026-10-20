@@ -2,6 +2,7 @@
 import { expect, test } from '../fixtures/test'
 import {
   assertiveRegion,
+  expectLanding,
   openNavigation,
   passwordForm,
   politeRegion,
@@ -9,7 +10,7 @@ import {
   submitPassword,
 } from '../fixtures/flows'
 
-test('US1-AS2 FR-047 an administrator without second factors lands on home with the administrator navigation', async ({
+test('US1-AS2 FR-047 an administrator without second factors lands on System and Containers with the administrator navigation', async ({
   page,
   mockApi,
   expectAccessible,
@@ -17,13 +18,13 @@ test('US1-AS2 FR-047 an administrator without second factors lands on home with 
 }) => {
   await mockApi.use('admin-password')
   await signInWithPassword(page, 'admin')
-  await expect(page).toHaveURL(/\/ng\/$/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
-  await expect(page.getByRole('main')).toContainText('You are signed in as Administrator.')
-  await expect(page).toHaveTitle('Home – Example Mail')
+  await expectLanding(page)
+  await expect(page).toHaveTitle('System & Containers – Example Mail')
   const navigation = await openNavigation(page)
-  await expect(navigation.getByRole('link', { name: 'API keys' })).toBeVisible()
-  await expect(navigation.getByRole('link', { name: 'Audit log' })).toBeVisible()
+  await expect(navigation.getByRole('link', { name: 'Access', exact: true })).toBeVisible()
+  await expect(
+    navigation.getByRole('link', { name: 'System & Containers', exact: true }),
+  ).toBeVisible()
   await expectAccessible()
   await expectNoHorizontalScroll()
 })
@@ -120,7 +121,7 @@ test('FR-017 a deliberately delayed answer keeps the busy state, prevents a seco
   await expect(politeRegion(page)).toContainText('Please wait...')
   await busy.click({ force: true }).catch(() => undefined)
   await form.password.press('Enter').catch(() => undefined)
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(page)
   const attempts = (await mockApi.requests()).filter((r) => r.operationId === 'createSession')
   expect(attempts).toHaveLength(1)
 })
@@ -131,13 +132,13 @@ test('FR-005 FR-019 a role screen names its role in the sign-in, the neutral scr
 }) => {
   await mockApi.use('domain-admin-password')
   await signInWithPassword(page, 'reseller', 'Passw0rd!mock', 'sign-in/domain-admin')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, reseller' })).toBeVisible()
+  await expectLanding(page, 'domainAdmin')
   const [roleAttempt] = (await mockApi.requests()).filter((r) => r.operationId === 'createSession')
   expect(roleAttempt?.body).toMatchObject({ username: 'reseller', role: 'domainAdmin' })
 
   await mockApi.use('admin-password')
   await signInWithPassword(page, 'admin', 'Passw0rd!mock', 'sign-in')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(page)
   const [neutral] = (await mockApi.requests()).filter((r) => r.operationId === 'createSession')
   expect(neutral?.body).not.toHaveProperty('role')
 })

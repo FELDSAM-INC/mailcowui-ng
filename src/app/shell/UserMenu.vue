@@ -1,10 +1,10 @@
 <script setup lang="ts">
-// The user menu (FR-042, FR-058): username and role, the language and theme choices as radio
-// items, My account (UI 005), Passkeys and Sign out. Sign-out is never confirmed (FR-036). The languages are the
-// installation's language menu; "Logged in as %s" is the classic interface's text.
+// The account dropdown: username/role, flagged language choices, account settings, passkeys
+// and sign-out. The theme switch is a separate header control. Language names stay exactly as
+// the installation supplies them; flags are decorative.
 import { useI18n } from 'vue-i18n'
 
-import { themeValues, type Identity, type Theme } from '@/api'
+import type { Identity } from '@/api'
 import { lt, text } from '@/i18n'
 import { isAppLocale, toBcp47 } from '@/i18n/locales'
 import { ChevronDownIcon, PasskeyIcon, SignOutIcon, UserCircleIcon } from '@/shared/icons'
@@ -12,6 +12,7 @@ import LegacyText from '@/shared/components/LegacyText.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuCheckboxItem,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -22,6 +23,8 @@ import {
 
 import { usePreferencesStore } from '../preferences/store'
 import { usePreferenceChoice } from '../preferences/sync'
+import { localeFlag } from '../preferences/locale-flag'
+import { darkMode } from '../preferences/theme'
 
 defineProps<{ identity: Identity; signingOut?: boolean }>()
 defineEmits<{ signOut: [] }>()
@@ -31,10 +34,6 @@ const { chooseLocale, chooseTheme } = usePreferenceChoice()
 
 function onLocale(value: unknown) {
   if (isAppLocale(value)) void chooseLocale(value)
-}
-
-function onTheme(value: unknown) {
-  if ((themeValues as readonly unknown[]).includes(value)) void chooseTheme(value as Theme)
 }
 </script>
 
@@ -61,11 +60,10 @@ function onTheme(value: unknown) {
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <template v-if="prefs.showLanguageChoice">
-        <DropdownMenuLabel class="px-3 pt-2 pb-1 text-xs text-gray-600 dark:text-gray-400">
-          {{ t('preferences.language') }}
-        </DropdownMenuLabel>
-        <!-- The choice applies on the item's select event: the radio group's value follows later. -->
-        <DropdownMenuRadioGroup :model-value="prefs.locale">
+        <DropdownMenuLabel class="text-gray-600 dark:text-gray-400">{{
+          t('preferences.language')
+        }}</DropdownMenuLabel>
+        <DropdownMenuRadioGroup :model-value="prefs.locale" :aria-label="t('preferences.language')">
           <DropdownMenuRadioItem
             v-for="language in prefs.availableLanguages"
             :key="language.code"
@@ -74,25 +72,24 @@ function onTheme(value: unknown) {
             class="min-h-11"
             @select="onLocale(language.code)"
           >
+            <span aria-hidden="true" data-language-flag class="text-lg">{{
+              localeFlag(language.code)
+            }}</span>
             {{ language.name }}
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
       </template>
-      <DropdownMenuLabel class="px-3 pt-2 pb-1 text-xs text-gray-600 dark:text-gray-400">
-        {{ t('preferences.theme') }}
-      </DropdownMenuLabel>
-      <DropdownMenuRadioGroup :model-value="prefs.theme">
-        <DropdownMenuRadioItem
-          v-for="theme in themeValues"
-          :key="theme"
-          :value="theme"
-          class="min-h-11"
-          @select="onTheme(theme)"
-        >
-          {{ t(`themes.${theme}`) }}
-        </DropdownMenuRadioItem>
-      </DropdownMenuRadioGroup>
+      <DropdownMenuLabel class="text-gray-600 dark:text-gray-400">{{
+        t('preferences.theme')
+      }}</DropdownMenuLabel>
+      <DropdownMenuCheckboxItem
+        :model-value="prefs.theme === 'system'"
+        class="min-h-11"
+        @update:model-value="chooseTheme($event ? 'system' : darkMode ? 'dark' : 'light')"
+      >
+        {{ t('themes.system') }}
+      </DropdownMenuCheckboxItem>
       <DropdownMenuSeparator />
       <!-- UI 005 (FR-001): My account, legacy's "User Settings". -->
       <DropdownMenuItem to="/account" class="min-h-11">

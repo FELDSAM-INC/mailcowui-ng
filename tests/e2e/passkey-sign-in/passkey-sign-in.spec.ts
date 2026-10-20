@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test'
 
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { expect, test } from '../fixtures/test'
-import { assertiveRegion, passwordForm } from '../fixtures/flows'
+import { expectLanding, assertiveRegion, passwordForm } from '../fixtures/flows'
 import type { MockApi } from '../fixtures/mock-api'
 
 const passkeyButton = (page: Page) => page.getByRole('button', { name: 'Sign in with a passkey' })
@@ -50,9 +50,7 @@ test('US2-AS2 FR-011 @virtual-authenticator a passkey signs in without username,
   await authenticator.addCredential({ credentialId: SEEDED_CREDENTIALS.alice })
   await page.goto('sign-in')
   await passkeyButton(page).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
   const ops = (await mockApi.requests()).map((r) => r.operationId)
   expect(ops).toContain('createSessionWithPasskey')
   expect(ops).not.toContain('createSession')
@@ -184,9 +182,7 @@ test('US2-AS9 FR-012 choosing a passkey from the autofill signs in', async ({
   await page.goto('sign-in')
   await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
   await webauthn.releaseConditional()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })
 
 const operations = async (mockApi: MockApi) => (await mockApi.requests()).map((r) => r.operationId)
@@ -257,9 +253,7 @@ test('FR-012 the autofill request outlives focus changes and session refetches, 
   await expect(passwordForm(page).username).toHaveValue('someone')
 
   await webauthn.releaseConditional()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
   expect(await count('createSessionWithPasskey')).toBe(1)
   // Signed in: no autofill request is left, and none starts.
   expect(await webauthn.pendingConditional()).toBe(0)
@@ -284,9 +278,7 @@ test('FR-012 an autofill request the browser ends without a passkey is restarted
   expect(await webauthn.pendingConditional()).toBe(1)
   await expect(page.getByRole('alert')).toHaveCount(0)
   await webauthn.releaseConditional()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
   expect(
     (await operations(mockApi)).filter((op) => op === 'createSessionWithPasskey'),
   ).toHaveLength(1)
@@ -303,9 +295,7 @@ test('FR-011 FR-012 the passkey action takes over from the autofill request, and
   await expect.poll(() => webauthn.credentialCalls()).toEqual(['get:conditional'])
   expect(await webauthn.pendingConditional()).toBe(1)
   await passkeyButton(page).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
   // The autofill request was aborted before the prompt (the fixture checks that no call overlapped
   // it) and was not resumed after the sign-in.
   expect(await webauthn.credentialCalls()).toEqual(['get:conditional', 'get:modal'])

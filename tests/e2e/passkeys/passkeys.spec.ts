@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test'
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { alicePasskeys, PASSKEY_IDS } from '../../mocks/scenarios/passkeys'
 import { expect, test } from '../fixtures/test'
-import { assertiveRegion, politeRegion, signOutFromMenu } from '../fixtures/flows'
+import { expectLanding, assertiveRegion, politeRegion, signOutFromMenu } from '../fixtures/flows'
 
 const cards = (page: Page) => page.getByRole('main').getByRole('listitem')
 const addButton = (page: Page) => page.getByRole('button', { name: 'Add a passkey' })
@@ -76,7 +76,7 @@ test('US4-AS3 @virtual-authenticator a new passkey signs in after sign-out', asy
   await signOutFromMenu(page)
   await expect(page.getByRole('main').getByText('You have signed out.')).toBeVisible()
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(page)
 })
 
 test('US4-AS4 FR-054 renaming refuses an empty or over-long name on the field and then saves', async ({

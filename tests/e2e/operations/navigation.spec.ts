@@ -15,7 +15,7 @@ const OPERATIONS_PATHS =
   /^\/api\/v2\/(capabilities\/monitoring|host|installation|containers|logs|rspamd|mail-queue|fail2ban)/
 
 test.describe('operations navigation @operations', () => {
-  test('FR-001 administrators find Dashboard, Logs, Mail queue and Fail2ban under System', async ({
+  test('administrators find the System and Containers group with dashboard, logs and audit tabs', async ({
     page,
     mockApi,
     expectAccessible,
@@ -23,21 +23,23 @@ test.describe('operations navigation @operations', () => {
   }) => {
     await mockApi.use('admin-operations')
     await page.goto('')
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
     const menu = page.getByRole('button', { name: NAVIGATION })
+    if (await menu.isVisible()) await menu.click()
     const group = page.getByRole('list', { name: 'System', exact: true })
-    const openNavigation = async () => {
-      if ((await menu.isVisible()) && !(await group.isVisible())) await menu.click()
-    }
-    await openNavigation()
-    await expect(group.getByRole('link')).toHaveText(SCREENS.map(([name]) => name))
+    await expect(group.getByRole('link')).toHaveText(['System & Containers'])
+    await group.getByRole('link').click()
+    const tabs = page.locator('[data-section-navigation]')
+    if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
+    await expect(tabs.getByRole('link')).toHaveText(['System & Containers', 'Logs', 'Audit log'])
+    await tabs.getByRole('link', { name: 'Logs', exact: true }).click()
+    await expect(page).toHaveURL(/\/ng\/operations\/logs\/postfix/)
     await expectAccessible()
-    for (const [name, path] of SCREENS) {
-      await openNavigation()
-      await group.getByRole('link', { name, exact: true }).click()
-      await expect(page).toHaveURL(new RegExp(`/ng/${path}`))
+    await expectNoHorizontalScroll()
+    // The queue remains directly addressable, and Fail2ban is in the Options group.
+    for (const [, path] of SCREENS.slice(2)) {
+      await page.goto(path)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      await expect(page.getByText('Page not found')).toHaveCount(0)
       await expectNoHorizontalScroll()
     }
   })
@@ -62,12 +64,12 @@ test.describe('operations navigation @operations', () => {
     })
   }
 
-  test('FR-001 the home screen stays the landing screen of administrators', async ({
+  test('FR-001 administrators land directly on System and Containers', async ({
     page,
     mockApi,
   }) => {
     await mockApi.use('admin-operations')
     await page.goto('')
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expect(page).toHaveURL(/\/ng\/operations\/dashboard$/)
   })
 })

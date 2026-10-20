@@ -27,10 +27,10 @@ function restoreFocus(event: Event, target: HTMLElement | null) {
       <DialogOverlay class="fixed inset-0 z-100 bg-black/50 dark:bg-black/70" />
       <DialogContent
         :aria-describedby="undefined"
-        class="fixed inset-y-0 start-0 z-101 flex w-[min(20rem,85vw)] flex-col gap-4 overflow-y-auto border-e border-gray-200 bg-white p-4 shadow-theme-lg outline-none dark:border-gray-800 dark:bg-gray-900"
+        class="fixed inset-y-0 start-0 z-101 flex w-[min(20rem,85vw)] flex-col gap-4 overflow-hidden border-e border-gray-200 bg-white p-4 shadow-theme-lg outline-none dark:border-gray-800 dark:bg-gray-900"
         @close-auto-focus="restoreFocus($event, returnFocus)"
       >
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex shrink-0 items-center justify-between gap-3">
           <DialogTitle class="sr-only">{{ t('a11y.mainNavigation') }}</DialogTitle>
           <BrandLogo />
           <button
@@ -42,7 +42,12 @@ function restoreFocus(event: Event, target: HTMLElement | null) {
             <CloseIcon class="size-5" />
           </button>
         </div>
-        <NavigationList :identity="identity" @navigate="open = false" />
+        <div
+          data-sidebar-scroll
+          class="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
+          <NavigationList :identity="identity" @navigate="open = false" />
+        </div>
       </DialogContent>
     </DialogPortal>
   </DialogRoot>

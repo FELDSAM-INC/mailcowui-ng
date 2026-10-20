@@ -28,7 +28,6 @@ import { findScreen, type RoutingScreenId } from '../../screens'
 import EntryList from './EntryList.vue'
 import type { EntryColumn, FilterDef, SortChoice } from './entry-list'
 import ListToolbar from './ListToolbar.vue'
-import RoutingSectionNav from './RoutingSectionNav.vue'
 import ScreenIntro from './ScreenIntro.vue'
 
 const props = withDefaults(
@@ -142,7 +141,6 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
       </template>
     </PageHeader>
 
-    <RoutingSectionNav :current="screen" />
     <ScreenIntro :hint="info.hintKey" />
     <slot name="before-toolbar" />
 

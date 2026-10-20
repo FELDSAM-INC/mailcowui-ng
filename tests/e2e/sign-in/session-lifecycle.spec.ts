@@ -3,6 +3,7 @@
 import { expect, test } from '../fixtures/test'
 import {
   assertiveRegion,
+  expectLanding,
   openNavigation,
   passwordForm,
   signInWithPassword,
@@ -125,8 +126,7 @@ test('FR-031 a deep link opened signed out is reached after sign-in', async ({ p
 test('FR-092 a hostile return address is ignored', async ({ page, mockApi }) => {
   await mockApi.use('admin-password')
   await signInWithPassword(page, 'admin', undefined, 'sign-in?returnTo=//evil.example/x')
-  await expect(page).toHaveURL(/\/ng\/$/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(page)
 })
 
 test('FR-034 a request answered as unauthenticated shows the session-ended message', async ({
@@ -206,7 +206,7 @@ test('FR-037 a sign-out in another page ends this one, and a sign-in there as an
 
   const other = await context.newPage()
   await other.goto('')
-  await expect(other.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(other)
   await signOutFromMenu(other)
   await expect(other.getByRole('main').getByText('You have signed out.')).toBeVisible()
 
@@ -214,9 +214,7 @@ test('FR-037 a sign-out in another page ends this one, and a sign-in there as an
   await expect(page.getByRole('heading', domainsHeading)).toHaveCount(0)
 
   await submitPassword(other, 'alice@example.org')
-  await expect(
-    other.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(other, 'mailboxUser')
   // The first page shows the new session's state: alice's account, and no data of admin.
   await expect(
     page.getByRole('button', { name: 'Account menu of alice@example.org' }),
@@ -245,5 +243,5 @@ test('Edge: a lost connection gives a translated message, nothing is reported as
   await page.unroute('**/api/v2/session')
   await passwordForm(page).password.fill('Passw0rd!mock')
   await passwordForm(page).submit.click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(page)
 })

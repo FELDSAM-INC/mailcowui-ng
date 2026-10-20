@@ -28,7 +28,6 @@ import { useVersionedSave } from '@/shared/composables/useVersionedSave'
 import { CheckIcon, TrashIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
-import SectionNav from '../../components/SectionNav.vue'
 import {
   capabilitiesOptions,
   configurationOptions,
@@ -255,7 +254,6 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
 
 <template>
   <section class="mx-auto flex w-full max-w-5xl flex-col gap-4">
-    <SectionNav />
     <PageHeader :title="lt('admin.iam')">
       <template #actions>
         <HistoryLink target-type="identityProvider" :allowed="historyAllowed" />

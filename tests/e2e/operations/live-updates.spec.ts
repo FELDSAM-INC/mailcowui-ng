@@ -5,6 +5,7 @@
 // capabilities cannot be read. (Freshness ages are not built: plan decision 12.)
 import { setPageVisibility } from '../fixtures/visibility'
 import { expect, test } from '../fixtures/test'
+import { openNavigation } from '../fixtures/flows'
 import { card, dashboardReady, openDashboard } from './dashboard-helpers'
 
 const LIVE = [
@@ -57,8 +58,10 @@ test.describe('dashboard live updates @operations', () => {
     await page.clock.runFor(5_500)
     await expect.poll(() => mockApi.countRequests('getHostOverview', mark)).toBe(2)
 
-    await page.locator('header a[href="/ng/"]').click()
-    await expect(page).toHaveURL(/\/ng\/$/)
+    const navigation = await openNavigation(page)
+    await navigation.getByRole('link', { name: 'Domains', exact: true }).click()
+    await expect(page).toHaveURL(/\/ng\/domains$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
     const left = await mockApi.mark()
     await page.clock.runFor(30_000)
     expect(await mockApi.countRequests('getHostOverview', left)).toBe(0)

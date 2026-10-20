@@ -3,7 +3,7 @@
 // that strips the code and state before any request, every outcome, and the landing.
 import type { Page } from '@playwright/test'
 
-import { submitPassword } from '../fixtures/flows'
+import { expectLanding, submitPassword } from '../fixtures/flows'
 import { expect as baseExpect, test } from '../fixtures/test'
 
 // Every round trip loads the app twice (before and after the provider); on a loaded machine the
@@ -99,13 +99,13 @@ test.describe('the single sign-on round trip', () => {
       }
     })
     await startFrom(page)
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expectLanding(page, 'mailboxUser')
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     expect(returnedAt).toBeGreaterThan(0)
     expect(Date.now() - returnedAt).toBeLessThan(3000)
   })
 
-  test('SC-011 with site storage blocked the landing is home', async ({
+  test('SC-011 with site storage blocked the landing is User Settings', async ({
     page,
     mockApi,
     fakeProvider,
@@ -121,7 +121,7 @@ test.describe('the single sign-on round trip', () => {
     await mockApi.use('sso-available')
     await fakeProvider()
     await startFrom(page, 'passkeys')
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expectLanding(page, 'mailboxUser')
   })
 
   test('US2-AS4 a foreign state says the sign-in expired; "Try again" starts anew without resending the old code', async ({
@@ -137,7 +137,7 @@ test.describe('the single sign-on round trip', () => {
     await expect(page).toHaveURL(/\/ng\/sso\/return$/)
     await expectAccessible()
     await tryAgain(page).click()
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expectLanding(page, 'mailboxUser')
     const completions = (await mockApi.requests()).filter(
       (r) => r.operationId === 'completeSingleSignOn',
     )
@@ -291,7 +291,7 @@ test.describe('the single sign-on round trip', () => {
   }) => {
     await mockApi.use('sso-signed-in')
     await page.goto('sso/return')
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expectLanding(page, 'mailboxUser')
   })
 
   test('Edge: Browser Back from the provider leaves every sign-in action usable', async ({
@@ -326,7 +326,7 @@ test.describe('the single sign-on round trip', () => {
     await mockApi.use('sso-auto-create')
     await fakeProvider()
     await startFrom(page)
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expectLanding(page, 'mailboxUser')
     await expect(
       page.getByRole('button', { name: /Account menu of new\.user@example\.org/ }),
     ).toBeVisible()
@@ -345,9 +345,9 @@ test.describe('the single sign-on round trip', () => {
     const other = await context.newPage()
     await other.goto('sign-in')
     await submitPassword(other, 'alice@example.org')
-    await expect(other).toHaveURL(/\/ng\/$/)
+    await expectLanding(other, 'mailboxUser')
     await page.getByRole('link', { name: 'Approve' }).click()
-    await expect(page).toHaveURL(/\/ng\/$/)
+    await expectLanding(page, 'mailboxUser')
     await expect(
       page.getByRole('button', { name: /Account menu of anna@example\.org/ }),
     ).toBeVisible()

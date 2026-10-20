@@ -187,10 +187,10 @@ describe('routing list screens', { timeout: 60_000 }, () => {
     expect(wrapper.text()).toContain('[smtp.example.net]:587')
   })
 
-  it('offers the screens the identity may open on the index page', async () => {
-    const { wrapper } = await mountRoute('/routing')
-    await until(() => expect(wrapper.text()).toContain('Transport Maps'))
-    expect(wrapper.text()).toContain('Forwarding Hosts')
+  it('opens the email-routing group at BCC maps from its old root address', async () => {
+    const { wrapper, router } = await mountRoute('/routing')
+    await until(() => expect(wrapper.find('h1').text()).toBe('BCC maps'))
+    expect(router.currentRoute.value.path).toBe('/routing/bcc-maps')
   })
 
   it('opens the BCC maps directly for a domain administrator', async () => {

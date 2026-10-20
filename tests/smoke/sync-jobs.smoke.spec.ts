@@ -20,9 +20,7 @@ async function signInAlice(page: Page) {
   await signIn(page, alice.username, alice.password)
   await page.getByLabel('Six-digit code').fill(await freshTotp(alice.totpSecret))
   await page.getByRole('button', { name: 'Login', exact: true }).first().click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: `Hello, ${alice.username}` }),
-  ).toBeVisible()
+  await expectHome(page, alice.username)
 }
 
 async function listIds(page: Page): Promise<number[]> {

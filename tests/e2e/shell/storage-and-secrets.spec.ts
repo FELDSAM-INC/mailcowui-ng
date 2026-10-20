@@ -38,21 +38,16 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
   await submitPassword(page, 'alice@example.org')
   await page.getByLabel('Six-digit code').fill('123456')
   await page.getByRole('button', { name: 'Login', exact: true }).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
   await page
     .locator('[data-announcement]')
     .getByRole('button', { name: 'Hide announcement' })
     .click()
-  await page.getByRole('button', { name: /^Account menu of/ }).click()
-  await page.getByRole('menuitemradio', { name: 'Dark' }).click()
+  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
   await page.getByRole('button', { name: /^Account menu of/ }).click()
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
   const token = (await mockApi.requests()).find((r) => r.headers['x-csrf-token'])?.headers[
     'x-csrf-token'
   ]
@@ -197,9 +192,8 @@ test('Edge: with storage disabled the app still signs in and works', async ({ pa
   await mockApi.use('admin-password')
   await page.goto('sign-in')
   await submitPassword(page, 'admin')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
-  await page.getByRole('button', { name: 'Account menu of admin' }).click()
-  await page.getByRole('menuitemradio', { name: 'Dark' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
+  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
   await expect(page.locator('html')).toHaveClass(/dark/)
   await page
     .locator('[data-announcement]')

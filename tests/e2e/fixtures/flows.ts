@@ -1,12 +1,21 @@
 // Shared steps of the end-to-end specs: signing in through the password form, opening the
 // navigation on any viewport, and reading the live regions.
 import { expect, type Locator, type Page } from '@playwright/test'
+import type { Role } from '@/api'
 
 import { MOCK_PASSWORD } from '../../mocks/scenarios/accounts'
 
 export { MOCK_PASSWORD }
 
 export const isNarrow = (page: Page) => (page.viewportSize()?.width ?? 0) < 1024
+
+/** Default landing now opens the role's working section; Home is no longer a page. */
+export async function expectLanding(page: Page, role: Role = 'admin'): Promise<void> {
+  const path =
+    role === 'admin' ? '/operations/dashboard' : role === 'domainAdmin' ? '/domains' : '/account'
+  await expect(page).toHaveURL((url) => url.pathname === `/ng${path}`)
+  await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toBeVisible()
+}
 
 export function passwordForm(page: Page) {
   return {

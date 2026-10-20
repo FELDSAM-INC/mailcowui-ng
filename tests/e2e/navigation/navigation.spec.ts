@@ -4,64 +4,33 @@ import type { Page } from '@playwright/test'
 
 import { permissionFlags } from '../../mocks/scenarios/accounts'
 import { expect, test } from '../fixtures/test'
-import { isNarrow, openNavigation, submitPassword } from '../fixtures/flows'
+import { expectLanding, isNarrow, openNavigation, submitPassword } from '../fixtures/flows'
 
 const ADMIN = [
-  'Home',
   'Domains',
-  // UI 002 US6 adds the domain templates for administrators.
-  'Domain Templates',
   'Mailboxes',
-  // UI 003 adds the mailbox templates for administrators and domain administrators.
-  'Mailbox Templates',
-  // UI 004 splits its entry into the classic "Aliases" tab dropdown's three entries.
   'Aliases',
-  'Domain aliases',
   'Resources',
-  // UI 005 adds Mail setup › Filters for administrators and domain administrators.
   'Filters',
-  'User Settings',
-  'Passkeys',
-  'Quarantine',
-  'Administrators',
   'Sync jobs',
-  // UI 009 names the entry with the classic Routing tab's label.
   'Routing',
-  // UI 010 splits its row into two entries (FR-001).
-  'ARC/DKIM keys',
-  'MTA-STS',
-  // UI 011: the "System" group.
+  'Quarantine',
   'System & Containers',
-  'Logs',
-  'Queue Manager',
-  'Fail2ban parameters',
-  'Identity providers and OAuth2',
-  'System settings',
-  'API keys',
-  'Audit log',
+  'Access',
+  'Options',
+  'Routing',
 ]
 const DOMAIN_ADMIN = [
-  'Home',
   'Domains',
   'Mailboxes',
-  'Mailbox Templates',
-  // UI 004 splits its entry into the classic "Aliases" tab dropdown's three entries.
   'Aliases',
-  'Domain aliases',
   'Resources',
-  // UI 005 adds Mail setup › Filters for administrators and domain administrators.
   'Filters',
-  'User Settings',
-  'Passkeys',
-  'Quarantine',
-  // UI 009: domain administrators always see the BCC maps (read-only without the flag).
   'Routing',
-  // UI 010 splits its row into two entries (FR-001).
-  'ARC/DKIM keys',
-  'MTA-STS',
+  'Quarantine',
+  'Options',
 ]
-const MAILBOX_USER = ['Home', 'User Settings', 'Passkeys', 'Quarantine']
-
+const MAILBOX_USER = ['Quarantine']
 const withEntry = (base: string[], label: string, after: string) => {
   const list = [...base]
   list.splice(list.indexOf(after) + 1, 0, label)
@@ -70,7 +39,7 @@ const withEntry = (base: string[], label: string, after: string) => {
 
 async function navigationLabels(page: Page): Promise<string[]> {
   const navigation = await openNavigation(page)
-  const labels = await navigation.getByRole('link').allInnerTexts()
+  const labels = await navigation.locator('a').allInnerTexts()
   if (isNarrow(page)) await page.keyboard.press('Escape')
   return labels.map((label) => label.trim())
 }
@@ -78,11 +47,11 @@ async function navigationLabels(page: Page): Promise<string[]> {
 const CASES: [string, string[]][] = [
   ['admin-active', ADMIN],
   ['domain-admin-no-syncjobs', DOMAIN_ADMIN],
-  ['domain-admin-bcc', withEntry(DOMAIN_ADMIN, 'Sync jobs', 'Quarantine')],
+  ['domain-admin-bcc', withEntry(DOMAIN_ADMIN, 'Sync jobs', 'Filters')],
   ['mailbox-no-spam-flags', MAILBOX_USER],
   ['mailbox-spam-score', withEntry(MAILBOX_USER, 'Spam filter', 'Quarantine')],
   ['mailbox-spam-policy', withEntry(MAILBOX_USER, 'Spam filter', 'Quarantine')],
-  ['mailbox-syncjobs', withEntry(MAILBOX_USER, 'Sync jobs', 'Quarantine')],
+  ['mailbox-syncjobs', ['Sync jobs', ...MAILBOX_USER]],
 ]
 
 for (const [scenario, expected] of CASES) {
@@ -97,56 +66,24 @@ for (const [scenario, expected] of CASES) {
   })
 }
 
-test('US3-AS3 FR-044 a placeholder names its section, says it comes later and links to the classic page of the role', async ({
+test('unfinished destinations are visible but disabled with no link action', async ({
   page,
   mockApi,
   expectAccessible,
   expectNoHorizontalScroll,
   expectTouchTargets,
 }) => {
-  // Domains, Mailboxes and DNS became available with UI 002, UI 003 and UI 010, so Quarantine is the
-  // placeholder here.
-  await mockApi.use('domain-admin-two-domains')
-  await page.goto('quarantine')
-  const main = page.getByRole('main')
-  await expect(page.getByRole('heading', { level: 1, name: 'Quarantine' })).toBeVisible()
-  await expect(main).toContainText('This section comes in a later version of the app.')
-  await expect(main.getByRole('link', { name: 'Quarantine' })).toHaveAttribute(
-    'href',
-    '/quarantine',
-  )
-  await expect(main).toContainText('you sign in there separately')
+  await mockApi.use('admin-active')
+  await page.goto('domains')
+  const navigation = await openNavigation(page)
+  for (const id of ['systemMails', 'globalFilterMaps']) {
+    const item = navigation.locator(`[data-nav-item="${id}"]`)
+    await expect(item).toHaveAttribute('aria-disabled', 'true')
+    await expect(item).not.toHaveAttribute('href')
+  }
   await expectAccessible()
   await expectNoHorizontalScroll()
   await expectTouchTargets()
-
-  await mockApi.use('admin-active')
-  await page.goto('system')
-  await expect(page.getByRole('main').getByRole('link')).toHaveText(['System › Configuration'])
-  await expect(
-    page.getByRole('main').getByRole('link', { name: 'System Configuration' }),
-  ).toHaveAttribute('href', '/admin/system')
-
-  // UI 005 made My account available, so Quarantine is the mailbox user's placeholder here.
-  await mockApi.use('mailbox-no-spam-flags')
-  await page.goto('quarantine')
-  await expect(page.getByRole('main').getByRole('link', { name: 'Quarantine' })).toHaveAttribute(
-    'href',
-    '/quarantine',
-  )
-  const ops = (await mockApi.requests()).map((r) => r.operationId)
-  expect(
-    ops.filter(
-      (op) =>
-        ![
-          'getCsrfToken',
-          'getSession',
-          'getPublicConfig',
-          'getIdentity',
-          'getPublicConfigLogo',
-        ].includes(op ?? ''),
-    ),
-  ).toEqual([])
 })
 
 test('US3-AS4 FR-045 the API keys address shows "no access" to a domain administrator and requests no key data', async ({
@@ -158,7 +95,7 @@ test('US3-AS4 FR-045 the API keys address shows "no access" to a domain administ
   await page.goto('api-keys')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
   await expect(
-    page.getByRole('main').getByRole('link', { name: 'Go to the home screen' }),
+    page.getByRole('main').getByRole('link', { name: 'Go to the main page' }),
   ).toHaveAttribute('href', '/ng/')
   await expectAccessible()
   const ops = (await mockApi.requests()).map((r) => r.operationId)
@@ -196,7 +133,7 @@ test('US3-AS7 FR-050 changed permission flags show after the identity is read ag
   await mockApi.use('flags-change')
   await page.clock.install()
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, reseller' })).toBeVisible()
+  await expectLanding(page, 'domainAdmin')
   expect(await navigationLabels(page)).not.toContain('Sync jobs')
   await mockApi.patch({
     accounts: {
@@ -205,8 +142,8 @@ test('US3-AS7 FR-050 changed permission flags show after the identity is read ag
   })
   await page.clock.fastForward('05:01')
   const navigation = await openNavigation(page)
-  await navigation.getByRole('link', { name: 'Passkeys' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Passkeys' })).toBeVisible()
+  await navigation.getByRole('link', { name: 'Mailboxes', exact: true }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'Mailboxes' })).toBeVisible()
   expect(await navigationLabels(page)).toContain('Sync jobs')
 })
 
@@ -215,10 +152,10 @@ test('Edge: a deep link to a section the role may not use shows "no access" afte
   mockApi,
 }) => {
   await mockApi.use('domain-admin-password')
-  await page.goto('administrators')
-  await expect(page).toHaveURL(/sign-in\?returnTo=(%2F|\/)administrators$/)
+  await page.goto('administrators/admins')
+  await expect(page).toHaveURL(/sign-in\?returnTo=(%2F|\/)administrators(%2F|\/)admins$/)
   await submitPassword(page, 'reseller')
-  await expect(page).toHaveURL(/\/ng\/administrators$/)
+  await expect(page).toHaveURL(/\/ng\/administrators\/admins$/)
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
 })
 
@@ -232,7 +169,7 @@ for (const scenario of ['admin-active', 'domain-admin-bcc', 'mailbox-syncjobs'])
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     const navigation = await openNavigation(page)
     const hrefs = await navigation
-      .getByRole('link')
+      .locator('a')
       .evaluateAll((links) => links.map((link) => link.getAttribute('href') ?? ''))
     if (isNarrow(page)) await page.keyboard.press('Escape')
     for (const href of hrefs) {

@@ -2,7 +2,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
-import { assertiveRegion, passwordForm, signInWithPassword } from '../fixtures/flows'
+import { expectLanding, assertiveRegion, passwordForm, signInWithPassword } from '../fixtures/flows'
 
 const YUBI_OTP = 'cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf'
 
@@ -24,7 +24,7 @@ async function openStep(page: Page, username = 'alice@example.org') {
   await expect(step(page).heading).toBeVisible()
 }
 
-test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under "Other methods", and TOTP lands home', async ({
+test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under "Other methods", and TOTP lands on User Settings', async ({
   page,
   mockApi,
   expectAccessible,
@@ -51,9 +51,7 @@ test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under 
 
   await s.code.fill('123456')
   await s.verify.first().click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })
 
 test('US1-AS4 FR-022 with two authenticators the user chooses by name; with one it is preselected and the code has focus', async ({
@@ -70,9 +68,7 @@ test('US1-AS4 FR-022 with two authenticators the user chooses by name; with one 
   await expectAccessible()
   await step(page).code.fill('654321')
   await step(page).verify.click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 
   await mockApi.use('anonymous-default')
   await openStep(page)
@@ -155,9 +151,7 @@ test('US1-AS10 FR-027 a Yubico outage keeps the step open and allows a retry or 
     .getByRole('region', { name: 'Time-based OTP (Google Authenticator, Authy, etc.)' })
     .getByRole('button', { name: 'Login' })
     .click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })
 
 test('US1-AS11 FR-028 an account with only U2F entries is told to ask an administrator', async ({
@@ -203,9 +197,7 @@ test('Edge: an account whose only second factor is Yubico OTP sees it directly',
   await expectAccessible()
   await step(page).yubiField.fill(YUBI_OTP)
   await step(page).verify.click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })
 
 test('Edge: a factor deactivated between the steps returns to the password step', async ({
@@ -264,9 +256,7 @@ test('FR-022 FR-023 the code formats are checked before submitting', async ({
     .getByRole('region', { name: 'Time-based OTP (Google Authenticator, Authy, etc.)' })
     .getByRole('button', { name: 'Login' })
     .click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })
 
 test('FR-021 @virtual-authenticator the WebAuthn second factor signs in', async ({
@@ -280,9 +270,7 @@ test('FR-021 @virtual-authenticator the WebAuthn second factor signs in', async 
   await authenticator.addCredential()
   await openStep(page)
   await step(page).webauthn.click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })
 
 test('FR-021 a cancelled WebAuthn prompt keeps the step open without an error and allows another method', async ({
@@ -302,7 +290,5 @@ test('FR-021 a cancelled WebAuthn prompt keeps the step open without an error an
   expect(ops).not.toContain('verifySecondFactor')
   await step(page).code.fill('123456')
   await step(page).verify.first().click()
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
 })

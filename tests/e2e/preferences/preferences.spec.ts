@@ -12,8 +12,16 @@ async function openUserMenu(page: Page) {
 }
 
 async function chooseInMenu(page: Page, name: string) {
-  const menu = await openUserMenu(page)
-  await menu.getByRole('menuitemradio', { name }).click()
+  if (name === 'Dark') {
+    await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+    return
+  }
+  await openUserMenu(page)
+  if (name === 'Device setting') {
+    await page.getByRole('menuitemcheckbox', { name, exact: true }).click()
+    return
+  }
+  await page.getByRole('menuitemradio', { name }).click()
 }
 
 const preferenceRequests = async (mockApi: MockApi) =>
@@ -37,13 +45,10 @@ test('US6-AS1 FR-059 FR-088 Czech applies at once to text, numbers and the docum
 }) => {
   const id = await mockApi.use('admin-active')
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   await chooseInMenu(page, 'Čeština')
-  await expect(page.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'cs-CZ')
-  await expect(
-    page.getByRole('region', { name: 'Sekce' }).getByRole('link', { name: 'Domény' }),
-  ).toBeVisible()
   const [save] = await preferenceRequests(mockApi)
   expect(save?.body).toEqual({ language: 'cs-cz' })
   expect(save?.headers['if-match']).toBe('"pref-1"')
@@ -55,7 +60,7 @@ test('US6-AS1 FR-059 FR-088 Czech applies at once to text, numbers and the docum
   await other.goto('sign-in')
   await expect(other.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await submitPassword(other, 'admin')
-  await expect(other.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
+  await expect(other.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
   await device.close()
 })
 
@@ -113,6 +118,10 @@ test('US6-AS3 FR-062 the device setting follows the device without a reload', as
   })
   await page.emulateMedia({ colorScheme: 'light' })
   await page.goto('')
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
+  await expect(page.locator('html')).not.toHaveClass(/dark/)
+  await chooseInMenu(page, 'Dark')
+  await expect(page.locator('html')).toHaveClass(/dark/)
   await chooseInMenu(page, 'Device setting')
   await expect(page.locator('html')).not.toHaveClass(/dark/)
   await page.emulateMedia({ colorScheme: 'dark' })
@@ -161,7 +170,7 @@ test('US6-AS6 FR-059 a failed save restores the previous setting with a message'
   await page.goto('')
   await chooseInMenu(page, 'Čeština')
   await expect(page.getByRole('alert')).toContainText('Your change was not saved.')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'en-GB')
   await expectAccessible()
 })
@@ -172,14 +181,14 @@ test('US6-AS6 Edge: a preference changed elsewhere applies the saved value and s
 }) => {
   await mockApi.use('admin-active')
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   await mockApi.patch({
     accounts: {
       admin: { preferences: { language: 'sk-sk', theme: 'system', etag: '"pref-else"' } },
     },
   })
   await chooseInMenu(page, 'Čeština')
-  await expect(page.getByRole('heading', { level: 1, name: 'Dobrý deň, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Systém & Kontajnery' })).toBeVisible()
   await expect(page.getByRole('alert')).toContainText('zmenené inde')
 })
 
@@ -191,7 +200,9 @@ test('US6-AS7 FR-060 with one language there is no language choice', async ({ pa
   await submitPassword(page, 'admin')
   const menu = await openUserMenu(page)
   await expect(menu.getByRole('menuitemradio', { name: 'English' })).toHaveCount(0)
-  await expect(menu.getByRole('menuitemradio', { name: 'Dark' })).toBeVisible()
+  await expect(menu.getByRole('group', { name: 'Language', exact: true })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('switch', { name: 'Dark', exact: true })).toBeVisible()
 })
 
 test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; without a choice the profile applies', async ({
@@ -206,7 +217,7 @@ test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; 
   await page.locator('input[name="username"]').fill('admin')
   await page.locator('input[name="password"]').fill(MOCK_PASSWORD)
   await page.getByRole('button', { name: 'Prihlásenie', exact: true }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'Dobrý deň, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Systém & Kontajnery' })).toBeVisible()
   await expect
     .poll(async () => (await preferenceRequests(mockApi)).map((r) => r.body))
     .toEqual([{ language: 'sk-sk' }])
@@ -217,7 +228,7 @@ test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; 
   await other.goto('sign-in')
   await expect(other.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
   await submitPassword(other, 'admin')
-  await expect(other.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
+  await expect(other.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
   await expect(other.locator('html')).toHaveClass(/dark/)
   expect((await mockApi.requests()).filter((r) => r.operationId === 'updatePreferences')).toEqual(
     [],
@@ -232,7 +243,7 @@ test('US6-AS9 FR-061 the language used is remembered on the device after sign-ou
   await mockApi.use('admin-active')
   await page.goto('')
   await chooseInMenu(page, 'Čeština')
-  await expect(page.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
   await page.getByRole('button', { name: /^Nabídka účtu/ }).click()
   await page.getByRole('menuitem', { name: 'Odhlásit se' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Přihlásit' })).toBeVisible()
@@ -246,10 +257,11 @@ test('Edge: no translated server language gives English, no choice and no saved 
 }) => {
   await mockApi.use('languages-none-translated', { signedInAs: 'admin' })
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   const menu = await openUserMenu(page)
   await expect(menu.getByRole('menuitemradio', { name: 'English' })).toHaveCount(0)
-  await menu.getByRole('menuitemradio', { name: 'Dark' }).click()
+  await page.keyboard.press('Escape')
+  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
   await expect
     .poll(async () => (await preferenceRequests(mockApi)).map((r) => r.body))
     .toEqual([{ theme: 'dark' }])
@@ -262,7 +274,7 @@ test('Edge: a profile language no longer enabled uses the server default', async
   await mockApi.use('profile-language-disabled')
   await page.goto('sign-in')
   await submitPassword(page, 'admin')
-  await expect(page.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
 })
 
 test('FR-038 Edge: on the pending-actions screen language and theme apply on this device only', async ({

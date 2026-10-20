@@ -1,9 +1,9 @@
 // T093: the home screen and the shell (US3-AS6, AS8, AS9, FR-001a, FR-002, FR-042, FR-047, FR-048,
 // FR-084 and the long-username edge case).
 import { expect, test } from '../fixtures/test'
-import { isNarrow, openNavigation } from '../fixtures/flows'
+import { expectLanding } from '../fixtures/flows'
 
-test('US3-AS6 FR-047 home lists the two domains of a domain administrator, with shortcuts to the visible sections', async ({
+test('default landing opens the domain list for domain administrators', async ({
   page,
   mockApi,
   expectAccessible,
@@ -12,51 +12,35 @@ test('US3-AS6 FR-047 home lists the two domains of a domain administrator, with 
 }) => {
   await mockApi.use('domain-admin-two-domains')
   await page.goto('')
-  const main = page.getByRole('main')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, reseller' })).toBeVisible()
-  const scope = main.getByRole('region', { name: 'Your scope' })
-  await expect(scope.getByRole('listitem')).toHaveText(['example.org', 'example.net'])
-  const shortcuts = main.getByRole('region', { name: 'Sections' })
-  const navigation = await openNavigation(page)
-  const visible = (await navigation.getByRole('link').allInnerTexts()).map((t) => t.trim())
-  if (isNarrow(page)) await page.keyboard.press('Escape')
-  await expect(shortcuts.getByRole('link')).toHaveText(visible.filter((label) => label !== 'Home'))
+  await expectLanding(page, 'domainAdmin')
+  await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
   await expectAccessible()
   await expectNoHorizontalScroll()
   await expectTouchTargets()
 })
 
-test('US3-AS6 home says that no domains are assigned', async ({ page, mockApi }) => {
+test('a domain administrator with no assigned domains reaches the empty domain list', async ({
+  page,
+  mockApi,
+}) => {
   await mockApi.use('domain-admin-no-domains')
   await page.goto('')
-  await expect(
-    page.getByRole('region', { name: 'Your scope' }).getByText('No domains are assigned to you.'),
-  ).toBeVisible()
+  await expectLanding(page, 'domainAdmin')
+  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
 })
 
-test('FR-047 home shows all domains for an administrator and the mailbox for a mailbox user', async ({
+test('administrator and mailbox default landings replace the old homepage', async ({
   page,
   mockApi,
 }) => {
   await mockApi.use('admin-active')
   await page.goto('')
-  await expect(page.getByRole('region', { name: 'Your scope' })).toContainText(
-    'You manage all domains.',
-  )
-  await expect(
-    page.getByRole('region', { name: 'Sections' }).getByRole('link', { name: 'Audit log' }),
-  ).toBeVisible()
-
+  await expectLanding(page)
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   await mockApi.use('mailbox-no-spam-flags')
   await page.goto('')
-  await expect(page.getByRole('region', { name: 'Your scope' })).toContainText(
-    'Your mailbox: alice@example.org',
-  )
-  await expect(page.getByRole('region', { name: 'Sections' }).getByRole('link')).toHaveText([
-    'User Settings',
-    'Passkeys',
-    'Quarantine',
-  ])
+  await expectLanding(page, 'mailboxUser')
+  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
 })
 
 for (const [scenario, type] of [
@@ -149,7 +133,7 @@ test('US3-AS9 webmail is missing when the groupware is disabled, and a javascrip
 test('US3-AS9 there is no apps menu without app links', async ({ page, mockApi }) => {
   await mockApi.use('app-links-none')
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expectLanding(page)
   await expect(page.getByRole('button', { name: /menu$/ }).filter({ hasText: 'Apps' })).toHaveCount(
     0,
   )
@@ -167,7 +151,8 @@ test('Edge: a 255-character username fits the header and the user menu at 360 px
     signedInAs: username,
   })
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(username)
+  await expectLanding(page, 'mailboxUser')
+  await expect(page.getByRole('button', { name: `Account menu of ${username}` })).toBeVisible()
   await expectNoHorizontalScroll()
   await page.getByRole('button', { name: `Account menu of ${username}` }).click()
   await expect(page.getByRole('menu')).toContainText(username)

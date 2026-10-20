@@ -30,7 +30,6 @@ import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { changedSince, useVersionedSave } from '@/shared/composables/useVersionedSave'
 import { useProblemMessages } from '@/i18n/problems'
 
-import SectionNav from '../../components/SectionNav.vue'
 import {
   oauth2ClientOptions,
   updateOauth2RedirectUris,
@@ -224,7 +223,6 @@ const definition = 'min-w-0 text-gray-900 dark:text-white'
     <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="query.refetch()" />
   </section>
   <article v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <SectionNav />
     <RouterLink
       :to="{ name: 'oauth2-clients' }"
       class="inline-flex min-h-11 items-center self-start text-sm font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"

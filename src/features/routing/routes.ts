@@ -37,12 +37,7 @@ function route(
 const ADMIN: Role[] = ['admin']
 
 export const routingRoutes: RouteRecordRaw[] = [
-  route(
-    '/routing',
-    'routing',
-    () => import('./pages/RoutingIndexPage.vue'),
-    legacy('admin.routing'),
-  ),
+  { path: '/routing', name: 'routing', redirect: { name: 'routing-bcc-maps' } },
   // US1: Sender-dependent transports.
   route(
     '/routing/relayhosts',

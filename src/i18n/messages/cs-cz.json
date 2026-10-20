@@ -337,7 +337,7 @@
     "back": "Zpět",
     "close": "Zavřít",
     "documentTitle": "{page} – {site}",
-    "goHome": "Přejít na úvodní obrazovku",
+    "goHome": "Přejít na hlavní stránku",
     "opensInNewTab": "(otevře se na nové kartě)",
     "requestId": "ID požadavku: {requestId}",
     "retry": "Zkusit znovu",
@@ -745,7 +745,13 @@
     "passkeys": "Přístupové klíče",
     "routing": "Směrování a přepisování adres",
     "system": "Nastavení systému",
-    "operations": "Monitorování a provoz"
+    "operations": "Monitorování a provoz",
+    "groups": {
+      "emailConfiguration": "Nastavení e-mailu",
+      "systemConfiguration": "Nastavení systému"
+    },
+    "unavailable": "Zatím není k dispozici",
+    "rspamdUi": "Rspamd UI"
   },
   "passkeys": {
     "add": {

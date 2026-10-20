@@ -2,6 +2,7 @@
 // role warnings: plan decision 16), a stop confirmation, the progress with the elapsed time, every
 // outcome including "Outcome unknown", and outcomes that survive leaving the dashboard.
 import { expect, test } from '../fixtures/test'
+import { openNavigation } from '../fixtures/flows'
 import { card, dashboardReady, expand, openDashboard, requestsOf } from './dashboard-helpers'
 
 test.describe('container actions @operations', () => {
@@ -207,8 +208,10 @@ test.describe('container actions @operations', () => {
     const sogo = await expand(page, 'sogo-mailcow')
     await sogo.getByRole('button', { name: 'Restart', exact: true }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Restart now' }).click()
-    await page.locator('header a[href="/ng/"]').click()
-    await expect(page).toHaveURL(/\/ng\/$/)
+    const navigation = await openNavigation(page)
+    await navigation.getByRole('link', { name: 'Domains', exact: true }).click()
+    await expect(page).toHaveURL(/\/ng\/domains$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
     const message = page.locator('[data-status-message]')
     await expect(message).toHaveText('sogo-mailcow: OK', { timeout: 15_000 })
     await page.waitForTimeout(1000)

@@ -47,6 +47,7 @@ export type NavEntryId =
   | 'quarantine'
   | 'spamFilter'
   | 'administrators'
+  | 'domainAdmins'
   | 'syncJobs'
   | 'routing'
   | 'dkimKeys'
@@ -111,6 +112,7 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   quarantine: legacy('header.quarantine'),
   spamFilter: legacy('user.spamfilter'),
   administrators: legacy('admin.admins'),
+  domainAdmins: legacy('admin.domain_admins'),
   syncJobs: legacy('mailbox.sync_jobs'),
   // UI 010 (legacy form map): the classic DKIM tab and the domain page's MTA-STS tab.
   dkimKeys: legacy('admin.dkim_keys'),
@@ -192,7 +194,10 @@ export const catalogue: readonly NavigationEntry[] = [
     '006',
     { mailboxUser: ['/user'] },
   ),
-  entry('administrators', '/administrators', UsersIcon, ADMIN, '007', {
+  entry('administrators', '/administrators/admins', UsersIcon, ADMIN, '007', {
+    admin: ['/admin/system'],
+  }),
+  entry('domainAdmins', '/administrators/domain-admins', UsersIcon, ADMIN, '007', {
     admin: ['/admin/system'],
   }),
   entry(

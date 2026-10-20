@@ -5,7 +5,7 @@ export const homeRoutes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: () => import('./pages/HomePage.vue'),
+    component: () => import('@/app/states/LandingPage.vue'),
     meta: { layout: 'shell', access: 'session', navEntry: 'home', titleKey: 'home.title' },
   },
 ]

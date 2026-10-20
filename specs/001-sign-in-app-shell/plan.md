@@ -440,3 +440,60 @@ are isolated in `contract/` and `src/api/generated/`. Deployment artefacts live 
 |---|---|---|
 | Brand colours do not yet come from the API's branding configuration (constitution IV): both themes use TailAdmin's default palette, adjusted for AA contrast. | The API offers no colours until feature 013, and spec FR-004 requires the defaults until then. Colours are CSS custom properties, so 013 can set them at runtime through CSSOM without other changes (R16). | Hard-coding operator colours is forbidden by IV. Blocking UI 001 until API 013 would block every other feature. Reading legacy colours is impossible, because legacy has none. |
 | The smoke suite (a constitution VI required layer) is written and runnable, but it is not a blocking merge gate until mailcow-rest-v2 runs its implementation in its dev stack. Until then the CI `smoke` job runs on dispatch, nightly, or when `SMOKE_ENABLED=true`. | Today mailcow-rest-v2 is a merged contract without an implementation. The constitution allows a UI feature to start once the contract is merged (Workflow). A blocking gate would block every merge on a service that cannot yet run. | Leaving the smoke suite out until the API exists was rejected: VI requires the layer, and writing it now keeps it test-first. Mocking the API in the smoke suite was rejected, because that is the end-to-end suite's job and would defeat the smoke layer's purpose. |
+
+
+## Owner navigation update — 2026-10-20
+
+The owner replaced the flat sidebar and Home landing with the following information architecture.
+This decision supersedes the earlier Home/shortcut and flat-catalogue layout requirements; route
+permissions and API contracts are unchanged. Existing TailAdmin Free primitives and the Routing
+section's responsive navigation style are reused.
+
+- **Email configuration**: Domains (Domains, Domain Templates), Mailboxes (Mailboxes, Mailbox
+  Templates), Aliases (Aliases, Domain aliases), Resources, Filters, Sync jobs, and Routing
+  (BCC maps, Recipient maps, TLS policy maps).
+- **Quarantine** keeps its destinations and role filtering. Its tabs use the shared tab styling.
+- **System**: System & Containers, with System & Containers, Logs and Audit log tabs.
+- **System configuration**: Access (Administrators, Domain administrators, API keys, Identity
+  Provider, OAuth2 Apps, Rspamd UI), Options (ARC/DKIM keys, Forwarding Hosts, Fail2ban parameters,
+  Quota notifications, Rspamd settings map, Password Settings, Customize), Routing
+  (Sender-dependent transports, Transport Maps), System mails and Global filter maps.
+
+Home, Passkeys, User Settings and MTA-STS are absent from the sidebar. Account settings and passkeys
+remain in the username dropdown; their routes and the MTA-STS routes retain their access rules.
+`/` replaces itself with `/operations/dashboard` for administrators, `/domains` for domain
+administrators, or `/account` for mailbox users. Valid deep links and the existing mailbox webmail
+forwarding hook retain precedence. The old `/routing` address now opens BCC maps.
+
+Sidebar section disclosures use TailAdmin's existing collapsible primitives. The desktop sidebar
+and mobile drawer body scroll independently; the mobile close button stays visible. A single
+`max-w-7xl` shell content wrapper sets the width of all signed-in pages and tabs. A scoped rule
+normalizes immediate route roots only, preserving internal data-table scrolling and form layouts.
+The theme switch sits outside the username dropdown. Its language choices use TailAdmin dropdown
+items, the installation's verbatim language names and decorative locale-region flags.
+The menu retains a Device setting checkbox so the existing automatic theme preference can be
+restored after using the outside dark-mode switch. The announcement is inside the content column,
+so it cannot push the desktop sidebar's lower edge below the viewport.
+
+Unimplemented destinations are explicitly disabled, without a link action: Administrators and
+Domain administrators until UI007 is integrated, Rspamd UI, Quota notifications, Rspamd settings
+map, Password Settings, Customize, System mails and Global filter maps. UI007's two administrator
+tabs use their catalogue availability, so they become links when that feature is marked available.
+The existing `/system` overview and `/system/ip-check` remain directly addressable; the request
+did not identify an unambiguous placement for IP Check. Queue Manager also retains its direct URL.
+
+Implementation is on `wt/navigation`, based on `b7446038`. Validation and any remaining integration
+work are recorded with the implementation commit.
+
+Validation completed on 2026-10-20: 513 impacted unit checks across the initial and focused runs;
+385 distinct browser checks passed across the final core, migrated landing, foundation and storage
+runs, with one expected desktop skip for the mobile drawer. Core navigation, width, scroll,
+keyboard, language and theme checks passed in mobile Chromium, desktop Chromium and mobile WebKit.
+Two read-only local-API smoke cases passed for administrator and domain-administrator navigation.
+Full lint, typecheck, translation check and production build passed; initial JavaScript is 198,898
+bytes gzipped against the 204,800-byte budget. Screenshots and logs are retained under
+`storage/app/restart-2026-10-20/navigation` in the API workspace.
+
+UI007 integration must mark both administrator catalogue entries available, use `domainAdmins`
+on its domain-administrator routes, and adjust the Access tests from three disabled tabs to one
+(Rspamd UI) and from `/api-keys` to `/administrators/admins` as the group's first destination.

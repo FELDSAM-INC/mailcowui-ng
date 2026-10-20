@@ -173,7 +173,7 @@ test('FR-015 leaving with typed input asks first', async ({ page, mockApi }) => 
   await open(page)
   await form(page).next.fill('something')
   const navigation = await openNavigation(page)
-  await navigation.getByRole('link', { name: 'Home' }).click()
+  await navigation.getByRole('link', { name: 'Quarantine', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toBeVisible()
   await dialog.getByRole('button', { name: /stay/i }).click()

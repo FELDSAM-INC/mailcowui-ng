@@ -337,7 +337,7 @@
     "back": "Back",
     "close": "Close",
     "documentTitle": "{page} – {site}",
-    "goHome": "Go to the home screen",
+    "goHome": "Go to the main page",
     "opensInNewTab": "(opens in a new tab)",
     "requestId": "Request ID: {requestId}",
     "retry": "Try again",
@@ -745,7 +745,13 @@
     "passkeys": "Passkeys",
     "routing": "Routing and rewriting",
     "system": "System settings",
-    "operations": "Monitoring and operations"
+    "operations": "Monitoring and operations",
+    "groups": {
+      "emailConfiguration": "Email configuration",
+      "systemConfiguration": "System configuration"
+    },
+    "unavailable": "Not available yet",
+    "rspamdUi": "Rspamd UI"
   },
   "passkeys": {
     "add": {

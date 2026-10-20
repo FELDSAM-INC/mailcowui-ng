@@ -36,7 +36,7 @@ defineExpose({ menuButton })
       to="/"
       class="flex min-h-11 min-w-0 items-center rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-brand-500"
     >
-      <BrandLogo text-class="truncate" />
+      <BrandLogo class="max-w-full" text-class="truncate" />
     </RouterLink>
     <div class="ms-auto flex shrink-0 items-center gap-1">
       <slot name="actions" />

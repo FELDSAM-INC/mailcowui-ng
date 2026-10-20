@@ -1,4 +1,4 @@
-import { submitPassword } from '../fixtures/flows'
+import { expectLanding, submitPassword } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
 test('US5 overview preserves legacy storage, protocols, aliases and recovery address', async ({
@@ -140,7 +140,7 @@ for (const scenario of ['account-groupware-disabled', 'account-mailbox-impersona
   })
 }
 
-test('US5 home card reuses the overview and offers webmail and My account', async ({
+test('US5 the mailbox default landing shows the overview and offers webmail', async ({
   page,
   mockApi,
   expectAccessible,
@@ -148,12 +148,12 @@ test('US5 home card reuses the overview and offers webmail and My account', asyn
 }) => {
   await mockApi.use('account-mailbox')
   await page.goto('')
-  const card = page.locator('[data-mailbox-home]')
+  await expectLanding(page, 'mailboxUser')
+  const card = page.locator('[data-mailbox-overview]')
   await expect(card).toContainText('256 MiB / 1 GiB')
   await expect(card.getByRole('button', { name: 'Webmail', exact: true })).toBeVisible()
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await card.getByRole('link', { name: 'User Settings', exact: true }).click()
   await expect(page.locator('[data-mailbox-address]')).toBeVisible()
   expect(await mockApi.countRequests('getOwnMailboxOverview')).toBe(1)
 })
@@ -183,18 +183,22 @@ test('US5 default sign-in forwards in the same tab, while a deep link returns to
   expect(await mockApi.countRequests('createWebmailHandOff')).toBe(0)
 })
 
-test('US5 a forwarding failure lands at home with an announcement', async ({ page, mockApi }) => {
+test('US5 a forwarding failure lands on User Settings with an announcement', async ({
+  page,
+  mockApi,
+}) => {
   await mockApi.use('account-mailbox-webmail-redirect')
   await mockApi.failNext('createWebmailHandOff', { status: 500 })
   await page.goto('')
   await submitPassword(page, 'anna@example.org')
-  await expect(page.locator('[data-mailbox-home]')).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
+  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
   await expect(page.locator('[data-live="assertive"]')).toContainText(
     'Webmail could not be opened.',
   )
 })
 
-test('US5 reauthentication returns home without applying the forwarding preference', async ({
+test('US5 reauthentication returns to User Settings without applying the forwarding preference', async ({
   page,
   mockApi,
 }) => {
@@ -204,12 +208,13 @@ test('US5 reauthentication returns home without applying the forwarding preferen
   })
   await page.clock.install()
   await page.goto('')
-  await expect(page.locator('[data-mailbox-home]')).toBeVisible()
+  await expectLanding(page, 'mailboxUser')
+  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
   await mockApi.patch({ expireSession: true })
   await page.clock.fastForward('03:00')
   await expect(page.getByRole('button', { name: 'Login', exact: true })).toBeVisible()
   await submitPassword(page, 'anna@example.org')
-  await expect(page.locator('[data-mailbox-home]')).toBeVisible()
-  await expect(page).toHaveURL(/\/ng\/$/)
+  await expectLanding(page, 'mailboxUser')
+  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
   expect(await mockApi.countRequests('createWebmailHandOff')).toBe(0)
 })

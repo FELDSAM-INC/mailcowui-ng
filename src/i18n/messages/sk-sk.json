@@ -337,7 +337,7 @@
     "back": "Späť",
     "close": "Zavrieť",
     "documentTitle": "{page} – {site}",
-    "goHome": "Prejsť na úvodnú obrazovku",
+    "goHome": "Prejsť na hlavnú stránku",
     "opensInNewTab": "(otvorí sa na novej karte)",
     "requestId": "ID požiadavky: {requestId}",
     "retry": "Skúsiť znova",
@@ -745,7 +745,13 @@
     "passkeys": "Prístupové kľúče",
     "routing": "Smerovanie a prepisovanie adries",
     "system": "Nastavenia systému",
-    "operations": "Monitorovanie a prevádzka"
+    "operations": "Monitorovanie a prevádzka",
+    "groups": {
+      "emailConfiguration": "Nastavenia e-mailu",
+      "systemConfiguration": "Nastavenia systému"
+    },
+    "unavailable": "Zatiaľ nie je k dispozícii",
+    "rspamdUi": "Rspamd UI"
   },
   "passkeys": {
     "add": {

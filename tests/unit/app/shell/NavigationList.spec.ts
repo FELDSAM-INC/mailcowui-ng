@@ -39,25 +39,43 @@ async function mountList(role: Identity['role']) {
 }
 
 describe('NavigationList groups', () => {
-  it('lists the System entries under their heading for administrators', async () => {
+  it('groups content tabs behind one sidebar entry and highlights the active section', async () => {
     const wrapper = await mountList('admin')
-    const group = wrapper.get('[data-nav-group]')
+    const group = wrapper.get('[data-nav-group="system"]')
     const heading = group.get('h2')
     expect(heading.text()).toBe('System')
     const list = group.get('ul')
     expect(list.attributes('aria-labelledby')).toBe(heading.attributes('id'))
     expect(list.findAll('a').map((link) => [link.text(), link.attributes('href')])).toEqual([
       ['System & Containers', '/ng/operations/dashboard'],
-      ['Logs', '/ng/operations/logs'],
-      ['Queue Manager', '/ng/operations/mail-queue'],
-      ['Fail2ban parameters', '/ng/operations/fail2ban'],
     ])
-    expect(list.get('a[aria-current="page"]').text()).toBe('Logs')
+    expect(list.get('a[aria-current="page"]').text()).toBe('System & Containers')
+    expect(wrapper.find('a[href="/ng/"]').exists()).toBe(false)
+    expect(wrapper.find('a[href="/ng/passkeys"]').exists()).toBe(false)
+    expect(wrapper.find('a[href="/ng/account"]').exists()).toBe(false)
+    expect(wrapper.find('a[href="/ng/dns/mta-sts-policies"]').exists()).toBe(false)
+    wrapper.unmount()
   })
 
   it('shows no System group to domain administrators', async () => {
     const wrapper = await mountList('domainAdmin')
-    expect(wrapper.find('[data-nav-group]').exists()).toBe(false)
+    expect(wrapper.find('[data-nav-group="system"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Queue Manager')
+    wrapper.unmount()
+  })
+
+  it('supports collapsing sections and renders unfinished destinations without hrefs', async () => {
+    const wrapper = await mountList('admin')
+    const section = wrapper.get('[data-nav-group="email"]')
+    const trigger = section.get('button')
+    expect(trigger.attributes('aria-expanded')).toBe('true')
+    await trigger.trigger('click')
+    expect(trigger.attributes('aria-expanded')).toBe('false')
+    await trigger.trigger('click')
+    expect(trigger.attributes('aria-expanded')).toBe('true')
+    const pending = wrapper.get('[data-nav-item="systemMails"]')
+    expect(pending.attributes('aria-disabled')).toBe('true')
+    expect(pending.attributes('href')).toBeUndefined()
+    wrapper.unmount()
   })
 })

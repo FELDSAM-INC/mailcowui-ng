@@ -1,6 +1,6 @@
 // UI 012 T061: password sign-in of LDAP and Keycloak mailboxes through UI 001's form (US3,
 // FR-050, FR-051, FR-042).
-import { passwordForm, submitPassword } from '../fixtures/flows'
+import { expectLanding, passwordForm, submitPassword } from '../fixtures/flows'
 import { expect as baseExpect, test } from '../fixtures/test'
 
 // Every round trip loads the app twice (before and after the provider); on a loaded machine the
@@ -19,7 +19,7 @@ test.describe('password sign-in through the identity provider', () => {
       await mockApi.use('ldap-password')
       await page.goto(path)
       await submitPassword(page, 'carl@example.org')
-      await expect(page).toHaveURL(/\/ng\/$/)
+      await expectLanding(page, 'mailboxUser')
     }
   })
 

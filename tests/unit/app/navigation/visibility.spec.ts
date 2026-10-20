@@ -54,6 +54,7 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   quarantine: { admin: true, domainAdmin: true, mailboxUser: true },
   spamFilter: { admin: false, domainAdmin: false, mailboxUser: ['spamScore', 'spamPolicy'] },
   administrators: { admin: true, domainAdmin: false, mailboxUser: false },
+  domainAdmins: { admin: true, domainAdmin: false, mailboxUser: false },
   syncJobs: { admin: true, domainAdmin: ['syncjobs'], mailboxUser: ['syncjobs'] },
   // UI 009: domain administrators see the BCC maps read-only without the flag (US5-AS6).
   routing: { admin: true, domainAdmin: true, mailboxUser: false },
@@ -100,6 +101,7 @@ describe('navigation catalogue', () => {
       quarantine: 'header.quarantine',
       spamFilter: 'user.spamfilter',
       administrators: 'admin.admins',
+      domainAdmins: 'admin.domain_admins',
       syncJobs: 'mailbox.sync_jobs',
       routing: 'admin.routing',
       dkimKeys: 'admin.dkim_keys',

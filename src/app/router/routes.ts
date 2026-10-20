@@ -66,6 +66,7 @@ export const featureRoutes: RouteRecordRaw[] = [
 export function buildRoutes(): RouteRecordRaw[] {
   return [
     ...featureRoutes,
+    { path: '/administrators', redirect: '/administrators/admins' },
     ...placeholderRouteSpecs().map((spec): RouteRecordRaw => ({
       path: spec.path,
       name: spec.name,

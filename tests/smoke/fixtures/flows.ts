@@ -15,5 +15,11 @@ export async function signOut(page: Page) {
 }
 
 export async function expectHome(page: Page, username: string) {
-  await expect(page.getByRole('heading', { level: 1, name: `Hello, ${username}` })).toBeVisible()
+  const path = username.includes('@')
+    ? '/account'
+    : username === 'reseller'
+      ? '/domains'
+      : '/operations/dashboard'
+  await expect(page).toHaveURL((url) => url.pathname === `/ng${path}`)
+  await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toBeVisible()
 }

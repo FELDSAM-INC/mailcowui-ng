@@ -22,7 +22,6 @@ import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { useSecretRequest } from '@/shared/composables/useSecretRequest'
 import { buttonVariants } from '@/shared/ui/button'
 
-import SectionNav from '../../components/SectionNav.vue'
 import { createOauth2Client, rememberCreatedClient, useOauth2Capabilities } from '../api'
 import { useRedirectUriMessages } from '../composables/useRedirectUriMessages'
 import { redirectUriProblems, splitRedirectUris } from '../redirect-uris'
@@ -87,7 +86,6 @@ onBeforeRouteLeave(async () => {
 
 <template>
   <section class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <SectionNav />
     <PageHeader :title="lt('admin.oauth2_add_client')" />
     <form novalidate class="surface flex flex-col gap-4" @submit.prevent="submit">
       <ErrorSummary :id="form.summaryId" :items="form.summary.value" />

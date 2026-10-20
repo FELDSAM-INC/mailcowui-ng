@@ -31,7 +31,6 @@ import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
-import SectionNav from '../../components/SectionNav.vue'
 import { oauth2ListOptions, useOauth2Capabilities } from '../api'
 import Oauth2ClientActions from '../components/Oauth2ClientActions.vue'
 import Oauth2ClientList from '../components/Oauth2ClientList.vue'
@@ -137,7 +136,6 @@ onBeforeRouteLeave(async () => {
 
 <template>
   <section class="mx-auto flex w-full max-w-7xl flex-col gap-4" :data-list-state="listState">
-    <SectionNav />
     <PageHeader :title="lt('admin.oauth2_apps')">
       <template #actions>
         <RouterLink

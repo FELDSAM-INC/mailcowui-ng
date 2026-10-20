@@ -1,17 +1,16 @@
 // The Phase 2 checkpoint (T048): the app boots against the mock with the strict CSP, renders the
 // shell with the catalogue navigation for an active session, and handles "API not ready" and
-// unknown addresses. Only routes that exist after Phase 2 are used: the generated placeholders and
-// the catch-all. (UI 002 made Domains available and UI 003 Mailboxes, so the placeholder used here is System
-// settings, delivered last.)
+// unknown addresses. System Settings remains directly addressable after the grouped navigation
+// update; UI013 now supplies its overview instead of the former placeholder.
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
 
 const isNarrow = (page: Page) => (page.viewportSize()?.width ?? 0) < 1024
 
-async function expectPlaceholder(page: Page) {
+async function expectSettingsOverview(page: Page) {
   await expect(page.getByRole('heading', { level: 1, name: 'System settings' })).toBeVisible()
-  await expect(page.getByText('This section comes in a later version of the app.')).toBeVisible()
+  await expect(page.locator('[data-settings-overview]')).toBeVisible()
 }
 
 test.describe('Edge: API not ready', () => {
@@ -29,7 +28,7 @@ test.describe('Edge: API not ready', () => {
     await expectAccessible()
     await page.unroute('**/api/v2/**')
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectPlaceholder(page)
+    await expectSettingsOverview(page)
   })
 
   test('Edge: API not ready – an HTML 502 from nginx shows the full-page message, and its retry recovers', async ({
@@ -50,7 +49,7 @@ test.describe('Edge: API not ready', () => {
     ).toBeVisible()
     await page.unroute('**/api/v2/**')
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectPlaceholder(page)
+    await expectSettingsOverview(page)
   })
 
   test('Edge: API not ready – the documented 500 of the session shows the full-page message, and its retry recovers', async ({
@@ -64,12 +63,12 @@ test.describe('Edge: API not ready', () => {
     ).toBeVisible()
     await mockApi.patch({ failures: { getSession: { status: 500, times: 0 } } })
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectPlaceholder(page)
+    await expectSettingsOverview(page)
   })
 })
 
 test.describe('the shell', () => {
-  test('FR-042 FR-043 FR-046 an active administrator opening /ng/system sees the shell, the navigation and the placeholder', async ({
+  test('FR-042 FR-043 FR-046 an active administrator opening /ng/system sees the shell, grouped navigation and the settings overview', async ({
     page,
     mockApi,
     expectAccessible,
@@ -78,7 +77,7 @@ test.describe('the shell', () => {
   }) => {
     await mockApi.use('admin-active')
     await page.goto('system')
-    await expectPlaceholder(page)
+    await expectSettingsOverview(page)
     await expect(page).toHaveTitle('System settings – Example Mail')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeAttached()
     await expect(page.getByText('Maintenance on Sunday 02:00–04:00 UTC.')).toBeVisible()
@@ -94,7 +93,7 @@ test.describe('the shell', () => {
       await menuButton.click()
       const drawer = page.getByRole('dialog')
       await expect(drawer.getByRole('navigation', { name: 'Main navigation' })).toBeVisible()
-      await expect(drawer.getByRole('link', { name: 'API keys' })).toBeVisible()
+      await expect(drawer.getByRole('link', { name: 'Access', exact: true })).toBeVisible()
       await expect(drawer.getByRole('link', { name: 'Spam filter' })).toHaveCount(0)
       await expectAccessible()
       await expectNoHorizontalScroll()
@@ -107,10 +106,8 @@ test.describe('the shell', () => {
       await expect(page.getByRole('dialog')).toHaveCount(0)
     } else {
       await expect(navigation).toBeVisible()
-      await expect(navigation.getByRole('link', { name: 'System settings' })).toHaveAttribute(
-        'aria-current',
-        'page',
-      )
+      await expect(navigation.getByRole('link', { name: 'System settings' })).toHaveCount(0)
+      await expect(navigation.getByRole('link', { name: 'Options', exact: true })).toBeVisible()
       await expect(navigation.getByRole('link', { name: 'Spam filter' })).toHaveCount(0)
       await navigation.getByRole('link', { name: 'Aliases', exact: true }).click()
     }
@@ -138,7 +135,7 @@ test.describe('the shell', () => {
       accounts: { admin: { preferences: { language: 'en-gb', theme: 'dark', etag: '"p2"' } } },
     })
     await page.goto('system')
-    await expectPlaceholder(page)
+    await expectSettingsOverview(page)
     await expect(page.locator('html')).toHaveClass(/dark/)
     await expectNoHorizontalScroll()
   })
@@ -155,7 +152,7 @@ test.describe('not found', () => {
     await page.goto('no/such/page')
     await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
     await expect(page).toHaveTitle('Page not found – Example Mail')
-    const home = page.getByRole('main').getByRole('link', { name: 'Go to the home screen' })
+    const home = page.getByRole('main').getByRole('link', { name: 'Go to the main page' })
     await expect(home).toHaveAttribute('href', '/ng/')
     await expectAccessible()
     await expectNoHorizontalScroll()

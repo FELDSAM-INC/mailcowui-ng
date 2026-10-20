@@ -1,26 +1,26 @@
 // T025: My account in the shell (FR-001, FR-002, FR-006, research R4; decision D1): reachable from
-// the navigation and the user menu for every role, the hub per role, the capabilities error, and
+// the user menu for every role, the hub per role, the capabilities error, and
 // Mail setup › Filters availability (US10).
 import { expect, test } from '../fixtures/test'
-import { openNavigation } from '../fixtures/flows'
+import { isNarrow, openNavigation } from '../fixtures/flows'
 
 const heading = { level: 1, name: 'User Settings' } as const
 
 for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admin']) {
-  test(`FR-001 My account is one interaction away in the navigation and the user menu (${scenario})`, async ({
+  test(`FR-001 My account is reached through the user menu and omitted from the sidebar (${scenario})`, async ({
     page,
     mockApi,
   }) => {
     await mockApi.use(scenario)
     await page.goto('')
     const navigation = await openNavigation(page)
-    await navigation.getByRole('link', { name: 'User Settings' }).click()
-    await expect(page.getByRole('heading', heading)).toBeVisible()
-    await expect(page).toHaveURL(/\/ng\/account$/)
-    await page.goto('')
+    await expect(navigation.getByRole('link', { name: 'User Settings' })).toHaveCount(0)
+    await expect(navigation.getByRole('link', { name: 'Passkeys' })).toHaveCount(0)
+    if (isNarrow(page)) await page.keyboard.press('Escape')
     await page.getByRole('button', { name: /^Account menu of / }).click()
     await page.getByRole('menuitem', { name: 'User Settings' }).click()
     await expect(page.getByRole('heading', heading)).toBeVisible()
+    await expect(page).toHaveURL(/\/ng\/account$/)
   })
 }
 

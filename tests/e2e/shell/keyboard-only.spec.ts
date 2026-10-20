@@ -22,8 +22,14 @@ async function tabTo(page: Page, target: Locator, limit = 60): Promise<void> {
 
 async function arrowTo(page: Page, name: string, limit = 20): Promise<void> {
   for (let step = 0; step < limit; step++) {
-    const text = await page.evaluate(() => document.activeElement?.textContent?.trim() ?? '')
-    if (text === name) return
+    const item = page
+      .getByRole('menuitem', { name, exact: true })
+      .or(page.getByRole('menuitemradio', { name, exact: true }))
+    if (
+      (await item.count()) &&
+      (await item.evaluate((element) => element === document.activeElement))
+    )
+      return
     await page.keyboard.press('ArrowDown')
   }
   throw new Error(`"${name}" was not reached with the arrow keys`)
@@ -37,7 +43,7 @@ test('US1 password sign-in with the keyboard', async ({ page, mockApi }) => {
   await page.keyboard.press('Tab')
   await page.keyboard.type(MOCK_PASSWORD)
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
 })
 
 test('US1 the second factor with the keyboard', async ({ page, mockApi }) => {
@@ -52,9 +58,7 @@ test('US1 the second factor with the keyboard', async ({ page, mockApi }) => {
   await expect(code).toBeFocused()
   await page.keyboard.type('123456')
   await page.keyboard.press('Enter')
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
 })
 
 test('US2 passkey sign-in with the keyboard', async ({ page, mockApi, webauthn }) => {
@@ -63,15 +67,13 @@ test('US2 passkey sign-in with the keyboard', async ({ page, mockApi, webauthn }
   await page.goto('sign-in')
   await tabTo(page, page.getByRole('button', { name: 'Sign in with a passkey' }))
   await page.keyboard.press('Enter')
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Hello, alice@example.org' }),
-  ).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
 })
 
 test('US3 navigation with the keyboard', async ({ page, mockApi }) => {
   await mockApi.use('admin-active')
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   if (isNarrow(page)) {
     await tabTo(page, page.getByRole('button', { name: 'Toggle navigation' }))
     await page.keyboard.press('Enter')
@@ -101,25 +103,34 @@ test('US4 adding a passkey with the keyboard', async ({ page, mockApi, webauthn 
   ).toBeVisible()
 })
 
-test('US5 "Check again" with the keyboard', async ({ page, mockApi }) => {
+test('US5 required password change can be completed with the keyboard', async ({
+  page,
+  mockApi,
+}) => {
   await mockApi.use('forced-password-change')
   await page.goto('')
-  await tabTo(page, page.getByRole('button', { name: 'Check again' }))
+  await tabTo(page, page.getByRole('textbox', { name: 'New password', exact: true }))
+  await page.keyboard.type('Keyboard-password-42!')
+  await tabTo(
+    page,
+    page.getByRole('textbox', { name: 'Confirmation password (repeat)', exact: true }),
+  )
+  await page.keyboard.type('Keyboard-password-42!')
+  await tabTo(page, page.getByRole('button', { name: 'Save changes', exact: true }))
   await page.keyboard.press('Enter')
-  await expect(
-    page.getByRole('main').getByText('The password change is still pending.'),
-  ).toBeVisible()
+  await expect(page).toHaveURL(/\/ng\/account$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
 })
 
 test('US6 choosing a language with the keyboard', async ({ page, mockApi }) => {
   await mockApi.use('admin-active')
   await page.goto('')
-  await expect(page.getByRole('heading', { level: 1, name: 'Hello, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
   await tabTo(page, page.getByRole('button', { name: 'Account menu of admin' }))
   await page.keyboard.press('Enter')
   await arrowTo(page, 'Čeština (Czech)')
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('heading', { level: 1, name: 'Dobrý den, admin' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
 })
 
 test('US7 creating an API key and copying its secret with the keyboard', async ({

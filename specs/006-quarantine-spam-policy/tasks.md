@@ -438,13 +438,14 @@ connection, and compare the results with the mock (spec US2).
   - `quarantine-busy`;
   - `quarantine-low-bulk-limit` (`bulkLimit` 10);
   - recipients that are a resource and a deleted mailbox (`getMailbox` answers `404`).
-- [ ] T060 [P] [US2] Write `tests/e2e/quarantine/scope-and-filters.spec.ts`. It covers:
+- [x] T060 [P] [US2] Write `tests/e2e/quarantine/scope-and-filters.spec.ts`. It covers:
   - US2-AS1: only the two domains' items, the recipient column shown, and the domain filter offering only those two (no request for domains);
   - US2-AS2: "Junk folder", virus "High", sort by score descending, page 2, survive a reload and a shared address;
   - the recipient filter as an exact address;
   - an administrator's domain filter through `DomainPicker`;
   - sorting by each of the 10 keys;
   - no recipient column or filter for mailbox users.
+  - Verified 2026-10-20: all seven cases pass on mobile Chromium, desktop Chromium and mobile WebKit. The domain administrator's filter now uses `identity.scope.domains` directly, including an empty scope; administrators retain the searched `DomainPicker`. Three component regressions failed before this fix; 27 focused units now pass. The combined browser regression passes 41 cases with one expected desktop skip; six affected checks also pass with the two-of-five-domain fixture.
 - [x] T061 [P] [US2] Write `tests/e2e/quarantine/bulk.spec.ts`. It covers:
   - US2-AS3: 40 items selected on a 50-item page; delivery with learning; the confirmation names the action and 40 and lists subjects and recipients; the summary shows 39 done and 1 not found, with rows;
   - FR-035 with `quarantine-bulk-failures`: counts per outcome, the learning warning on a `done` row, and refused, failed and outdated rows staying selected;

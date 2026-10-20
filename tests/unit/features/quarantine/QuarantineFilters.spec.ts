@@ -11,16 +11,38 @@ afterEach(() => {
   mounted.splice(0).forEach((wrapper) => wrapper.unmount())
   vi.unstubAllGlobals()
 })
-function open(scoped = false) {
+function open(scoped = false, domains?: readonly string[]) {
   installMatchMedia({ '(min-width: 768px)': true })
   const wrapper = mountWithApp(QuarantineFilters, {
-    props: { filters: { ...NO_FILTERS, action: [] }, scoped },
+    props: { filters: { ...NO_FILTERS, action: [] }, scoped, domains },
   })
   mounted.push(wrapper)
   return wrapper
 }
 
 describe('QuarantineFilters', () => {
+  it('uses the domain administrator scope as the domain choices without a server picker', async () => {
+    const wrapper = open(true, ['example.org', 'example.com'])
+    await wrapper.get('[data-filter-toggle]').trigger('click')
+    const field = wrapper.get('select#quarantine-domain')
+    expect(field.findAll('option').map((option) => option.text())).toEqual([
+      'All',
+      'example.org',
+      'example.com',
+    ])
+    expect(wrapper.find('[role="combobox"]').exists()).toBe(false)
+    await field.setValue('example.com')
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.emitted('apply')?.[0]?.[0]).toMatchObject({ domain: 'example.com' })
+  })
+
+  it('keeps an empty domain-administrator scope local', async () => {
+    const wrapper = open(true, [])
+    await wrapper.get('[data-filter-toggle]').trigger('click')
+    expect(wrapper.get('select#quarantine-domain').findAll('option')).toHaveLength(1)
+    expect(wrapper.find('[role="combobox"]').exists()).toBe(false)
+  })
+
   it('keeps edits in a draft until Apply and sends selected actions together', async () => {
     const wrapper = open()
     await wrapper.get('[data-filter-toggle]').trigger('click')

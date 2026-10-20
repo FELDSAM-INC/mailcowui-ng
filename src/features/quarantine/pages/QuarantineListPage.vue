@@ -51,6 +51,10 @@ const client = useQueryClient()
 const wide = useMediaQuery('(min-width: 768px)')
 const identity = useIdentityQuery()
 const scoped = computed(() => !!identity.data.value && identity.data.value.role !== 'mailboxUser')
+const scopeDomains = computed(() => {
+  const scope = identity.data.value?.scope
+  return scope?.type === 'domains' ? scope.domains : undefined
+})
 const canRemove = computed(() => canActOnItems(identity.data.value))
 const aclFlag = computed(() => missingFlag(identity.data.value, 'actOnItems'))
 const capabilities = useQuarantineCapabilities()
@@ -237,7 +241,12 @@ async function refresh() {
       :model-value="state.filters.q ?? ''"
       @search="list.setFilter('q', $event || undefined, { typing: true })"
     />
-    <QuarantineFilters :filters="state.filters" :scoped="scoped" @apply="list.setFilters" />
+    <QuarantineFilters
+      :filters="state.filters"
+      :scoped="scoped"
+      :domains="scopeDomains"
+      @apply="list.setFilters"
+    />
     <QuarantineSortControl
       v-if="!wide"
       :sort="state.sort ?? 'arrivedAt'"

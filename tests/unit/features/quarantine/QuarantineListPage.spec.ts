@@ -7,6 +7,7 @@ import { api } from '@/api'
 import * as confirmations from '@/features/quarantine/confirmations'
 import * as bulkConfirmations from '@/features/quarantine/bulk-confirmations'
 import QuarantineListPage from '@/features/quarantine/pages/QuarantineListPage.vue'
+import QuarantineFilters from '@/features/quarantine/components/list/QuarantineFilters.vue'
 
 import { mockState, useScenario } from '../../../mocks/node'
 import { mountWithApp } from '../../support/mount'
@@ -39,6 +40,17 @@ async function open(scenario = 'quarantine-mailbox-user', query = '') {
 }
 
 describe('QuarantineListPage', () => {
+  it('passes the identity domain scope to the filters (T060)', async () => {
+    const { wrapper } = await open('quarantine-domain-admin')
+    expect(wrapper.findComponent(QuarantineFilters).props('domains')).toEqual([
+      'example.org',
+      'example.com',
+    ])
+    expect(mockState().requests.filter((request) => request.operationId === 'listDomains')).toEqual(
+      [],
+    )
+  })
+
   it('selects only the allowed first ten items and clears them when the page changes', async () => {
     const { wrapper } = await open('quarantine-low-bulk-limit')
     await wrapper.get('[data-select-mode]').trigger('click')

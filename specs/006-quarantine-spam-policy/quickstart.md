@@ -383,3 +383,25 @@ JavaScript is **193,361 / 204,800 bytes gzipped**. Logs and retained failed-run 
 `u006-busy-red.log`, `u006-busy-units.log`, `u006-busy-browser-focused.log` and
 `u006-busy-browser-regression.log`. This completes T062 and adds lifecycle coverage under T047;
 the remaining UI 006 acceptance and manual checks stay open. This follow-up has not been deployed.
+
+**2026-10-20, scope and filter follow-up (T060)**: the domain administrator's domain filter was
+using the server-searched picker. It now offers the domains already present in
+`identity.scope.domains`, including an empty scope, without a domain-list request, as research
+R12 specifies. Administrators keep the searched picker. No API contract or translation change
+was needed.
+
+Three component regressions first failed; all **27 focused unit tests** now pass. The new browser
+spec verifies a two-of-five-domain scope, empty scope, administrator domain search, exact recipient
+matching, all ten sort fields, and the action/virus/score/page state across reloads and a shared
+address. It also verifies that mailbox users have no recipient/domain controls and do not send
+those filters from a supplied URL. Together with the existing list regression, **41 browser
+cases pass** on mobile Chromium, desktop Chromium and mobile WebKit, with one expected desktop
+skip for a mobile-only disclosure case. Six affected cases were rerun after expanding the scope
+fixture to five domains; all passed. Both-theme axe, 360/320 px reflow, CSP and mock-contract
+checks remain enforced, with no retries in these runs.
+
+Full type checking, scoped ESLint/Prettier, production build and bundle budgets pass. Initial
+JavaScript is **195,785 / 204,800 bytes gzipped**. Evidence is retained under
+`storage/app/restart-2026-10-20/u006/scope-filters/` in the API checkout, including
+`u006-scope-red.log`, `u006-scope-units.log`, `u006-scope-browser.log` and
+`u006-scope-browser-five-domains.log`. T060 is complete; this follow-up has not been deployed.

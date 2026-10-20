@@ -23,7 +23,12 @@ import {
   type QuarantineListFilters,
 } from '../../list-state'
 
-const props = defineProps<{ filters: QuarantineListFilters; scoped: boolean }>()
+const props = defineProps<{
+  filters: QuarantineListFilters
+  scoped: boolean
+  /** Domain administrators choose from their identity scope without loading the domain list. */
+  domains?: readonly string[]
+}>()
 const emit = defineEmits<{ apply: [filters: QuarantineListFilters] }>()
 const { t } = useI18n()
 const copy = () => ({ ...props.filters, action: [...props.filters.action] })
@@ -190,7 +195,19 @@ const CONTROL =
           :class="CONTROL"
         />
       </FormField>
+      <FormField
+        v-if="domains !== undefined"
+        id="quarantine-domain"
+        v-slot="control"
+        :label="labels.domain!"
+      >
+        <select v-bind="control" v-model="draft.domain" :class="CONTROL">
+          <option :value="undefined">{{ t('lists.filters.all') }}</option>
+          <option v-for="domain in domains" :key="domain" :value="domain">{{ domain }}</option>
+        </select>
+      </FormField>
       <DomainPicker
+        v-else
         id="quarantine-domain"
         :label="labels.domain!"
         :sources="source"

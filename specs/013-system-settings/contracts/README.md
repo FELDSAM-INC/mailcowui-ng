@@ -12,6 +12,9 @@ This app exposes no API of its own. Its only interface is the mailcow-rest-v2 co
 | API repository | `FELDSAM-INC/mailcow-rest-v2` |
 | API feature | 013 – system settings (plus the operations of 001, 002 and 003 listed below) |
 | Contract version (`info.version`) | `0.1.0` (does not identify a contract, 001-R6) |
+| UI013 implementation pin | `dd9a44e` / `dd9a44ec76b39d6aaaceacbb9512409494a19cdb` |
+| UI013 bundle sha256 | `d7a259a5cda61863deccfa8a98622caaf499a0f2eb81118f0cca63ba6f06edd6` |
+| Pin ancestry verified | Includes both `32079252` and preceding UI pin `4be8653` |
 | Planning baseline (authoritative minimum) | commit `32079252d55797d3da4e58ae661e9fb91c51c6f9` (2026-10-18, "Register KnownProblemType in contract components") |
 | Bundle sha256 at the baseline | `5201f7ed64d3f7c64414ce0a12e261934ce03dee28864374bd589bcd850253b6` (`@redocly/cli@2.64.1 bundle api/openapi.yaml`) |
 | Paths / operations at the baseline | 250 / 376 |

@@ -181,7 +181,8 @@
       "mailSettings",
       "recentLogins",
       "groupwareData",
-      "webmailHandOff"
+      "webmailHandOff",
+      "ipCheck"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -351,7 +352,8 @@
       "last-second-factor",
       "second-factor-required-by-policy",
       "push-notifications-not-configured",
-      "groupware-disabled"
+      "groupware-disabled",
+      "demo-mode"
     ]
   },
   "complete": {

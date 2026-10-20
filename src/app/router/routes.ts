@@ -23,6 +23,7 @@ import { quarantineRoutes } from '@/features/quarantine/routes'
 import { rateLimitRoutes } from '@/features/rate-limits/routes'
 import { spamFilterRoutes } from '@/features/spam-filter/routes'
 import { syncJobRoutes } from '@/features/sync-jobs'
+import { systemSettingsRoutes } from '@/features/system-settings/routes'
 import { routingRoutes } from '@/features/routing'
 
 import { findEntry, placeholderRouteSpecs } from '../navigation/catalogue'
@@ -48,6 +49,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...identityProviderRoutes,
   ...dnsRoutes,
   ...routingRoutes,
+  ...systemSettingsRoutes,
   ...operationsRoutes,
   // UI 006
   ...quarantineRoutes,

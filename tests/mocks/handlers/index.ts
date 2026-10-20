@@ -1,3 +1,4 @@
+import { settingsServerHandlers } from './settings-server'
 // Mock API handlers (research R22), shared by every transport: Vitest (msw/node), the Node mock
 // server for development, end-to-end tests and Lighthouse.
 //
@@ -125,6 +126,7 @@ export const areaHandlers: RequestHandler[] = [
   ...rateLimitHandlers,
   // UI 005: one module per area under ./self-service/.
   ...selfServiceHandlers,
+  ...settingsServerHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

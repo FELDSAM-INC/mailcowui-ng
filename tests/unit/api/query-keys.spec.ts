@@ -101,3 +101,78 @@ describe('UI 010 query keys', () => {
     ])
   })
 })
+
+describe('UI 013 query roots', () => {
+  it('keeps settings resources distinct and reuses the existing policy key', () => {
+    expect(queryKeys.systemSettings.capabilities()).toEqual(['system-settings', 'capabilities'])
+    expect(queryKeys.systemSettings.logo('dark')).toEqual(['system-settings', 'logo', 'dark'])
+    expect(queryKeys.systemSettings.uiTexts()).toEqual(['system-settings', 'ui-texts'])
+    expect(queryKeys.systemSettings.loginPage()).toEqual(['system-settings', 'login-page'])
+    expect(queryKeys.systemSettings.appLinks()).toEqual(['system-settings', 'app-links'])
+    expect(queryKeys.systemSettings.brandColors()).toEqual(['system-settings', 'brand-colors'])
+    expect(queryKeys.systemSettings.ipCheck()).toEqual(['system-settings', 'ip-check'])
+    expect(queryKeys.systemSettings.passwordResetNotification()).toEqual([
+      'system-settings',
+      'password-reset-notification',
+    ])
+    expect(queryKeys.systemSettings.quotaNotification()).toEqual([
+      'system-settings',
+      'quota-notification',
+    ])
+    expect(queryKeys.passwordPolicy()).toEqual(['password-policy'])
+    expect(queryKeys.quotaNotificationRecipients('EXAMPLE.ORG')).toEqual([
+      'quota-notification-recipients',
+      'example.org',
+    ])
+  })
+
+  it('scopes lists and individual resources for targeted invalidation', () => {
+    const params = { limit: 25, offset: 25 }
+    expect(queryKeys.rspamdRules.list(params)).toEqual(['rspamd-rules', 'list', params])
+    expect(queryKeys.rspamdRules.detail(7)).toEqual(['rspamd-rules', 'detail', 7])
+    expect(queryKeys.rspamdSettingsMap()).toEqual(['rspamd-settings-map'])
+    expect(queryKeys.rspamdRegexMaps.list(params)).toEqual(['rspamd-regex-maps', 'list', params])
+    expect(queryKeys.rspamdRegexMaps.detail('custom.map')).toEqual([
+      'rspamd-regex-maps',
+      'detail',
+      'custom.map',
+    ])
+    expect(queryKeys.globalSieveFilters()).toEqual(['global-sieve-filters'])
+    expect(queryKeys.presets('sieve')).toEqual(['presets', 'sieve'])
+    expect(queryKeys.legacyApiCors()).toEqual(['legacy-api-cors'])
+    expect(queryKeys.license()).toEqual(['license'])
+    expect(queryKeys.massMailJobs.list(params)).toEqual(['mass-mail-jobs', 'list', params])
+    expect(queryKeys.massMailJobs.running()).toEqual(['mass-mail-jobs', 'running'])
+    expect(queryKeys.massMailJobs.detail('job')).toEqual(['mass-mail-jobs', 'detail', 'job'])
+    expect(queryKeys.massMailJobs.recipients('job', params)).toEqual([
+      'mass-mail-jobs',
+      'recipients',
+      'job',
+      params,
+    ])
+    expect(queryKeys.massMailPreview('selection', params)).toEqual([
+      'mass-mail-preview',
+      'selection',
+      params,
+    ])
+  })
+
+  it('separates infinite picker data from paged list data', () => {
+    const domains = { q: 'example' }
+    const mailboxes = {
+      q: 'anna',
+      domain: ['example.org'],
+      status: ['active', 'loginDisabled'] as const,
+    }
+    expect(queryKeys.domains.picker(domains)).toEqual(['domains', 'picker', domains])
+    expect(queryKeys.domains.picker(domains)).not.toEqual(queryKeys.domains.list(domains))
+    expect(queryKeys.mailboxes.picker({ ...mailboxes, status: [...mailboxes.status] })).toEqual([
+      'mailboxes',
+      'picker',
+      mailboxes,
+    ])
+    expect(queryKeys.mailboxes.picker({ ...mailboxes, status: [...mailboxes.status] })).not.toEqual(
+      queryKeys.mailboxes.list({ ...mailboxes, status: [...mailboxes.status] }),
+    )
+  })
+})

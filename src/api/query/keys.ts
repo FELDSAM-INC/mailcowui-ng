@@ -105,6 +105,25 @@ export type Fail2BanPermanentBanListParams = NonNullable<
   operations['listFail2BanPermanentBans']['parameters']['query']
 >
 
+// UI 013 (data-model §3): generated query parameters, shared picker roots.
+export type RspamdRuleListParams = NonNullable<
+  operations['listRspamdSettingsRules']['parameters']['query']
+>
+export type RspamdRegexMapListParams = NonNullable<
+  operations['listRspamdRegexMaps']['parameters']['query']
+>
+export type MassMailJobListParams = NonNullable<
+  operations['listMassMailJobs']['parameters']['query']
+>
+export type MassMailRecipientListParams = NonNullable<
+  operations['listMassMailJobRecipients']['parameters']['query']
+>
+export type MassMailPreviewParams = NonNullable<
+  operations['previewMassMailRecipients']['parameters']['query']
+>
+export type DomainPickerParams = Pick<DomainListParams, 'q'>
+export type MailboxPickerParams = Pick<MailboxListParams, 'q' | 'domain' | 'status'>
+
 export const queryKeys = {
   publicConfig: () => ['public-config'] as const,
   session: () => ['session'] as const,
@@ -130,6 +149,7 @@ export const queryKeys = {
     all: () => ['domains'] as const,
     lists: () => ['domains', 'list'] as const,
     list: (params: DomainListParams) => ['domains', 'list', params] as const,
+    picker: (params: DomainPickerParams) => ['domains', 'picker', params] as const,
     details: () => ['domains', 'detail'] as const,
     detail: (name: string) => ['domains', 'detail', name] as const,
     footer: (name: string) => ['domains', 'footer', name] as const,
@@ -248,6 +268,7 @@ export const queryKeys = {
     all: () => ['mailboxes'] as const,
     lists: () => ['mailboxes', 'list'] as const,
     list: (params: MailboxListParams) => ['mailboxes', 'list', params] as const,
+    picker: (params: MailboxPickerParams) => ['mailboxes', 'picker', params] as const,
     details: () => ['mailboxes', 'detail'] as const,
     detail: (address: string) => ['mailboxes', 'detail', address.toLowerCase()] as const,
     deletionPreview: (address: string) =>
@@ -398,4 +419,47 @@ export const queryKeys = {
     detail: (kind: RateLimitKind, object: string) =>
       ['rate-limits', 'detail', kind, object.toLowerCase()] as const,
   },
+  // UI 013: versioned settings and operational collections have independent roots.
+  systemSettings: {
+    all: () => ['system-settings'] as const,
+    capabilities: () => ['system-settings', 'capabilities'] as const,
+    logo: (variant: 'light' | 'dark') => ['system-settings', 'logo', variant] as const,
+    uiTexts: () => ['system-settings', 'ui-texts'] as const,
+    loginPage: () => ['system-settings', 'login-page'] as const,
+    appLinks: () => ['system-settings', 'app-links'] as const,
+    brandColors: () => ['system-settings', 'brand-colors'] as const,
+    ipCheck: () => ['system-settings', 'ip-check'] as const,
+    passwordResetNotification: () => ['system-settings', 'password-reset-notification'] as const,
+    quotaNotification: () => ['system-settings', 'quota-notification'] as const,
+  },
+  quotaNotificationRecipients: (domain: string) =>
+    ['quota-notification-recipients', domain.toLowerCase()] as const,
+  rspamdRules: {
+    all: () => ['rspamd-rules'] as const,
+    lists: () => ['rspamd-rules', 'list'] as const,
+    list: (params: RspamdRuleListParams) => ['rspamd-rules', 'list', params] as const,
+    detail: (id: number) => ['rspamd-rules', 'detail', id] as const,
+  },
+  rspamdSettingsMap: () => ['rspamd-settings-map'] as const,
+  rspamdRegexMaps: {
+    all: () => ['rspamd-regex-maps'] as const,
+    lists: () => ['rspamd-regex-maps', 'list'] as const,
+    list: (params: RspamdRegexMapListParams) => ['rspamd-regex-maps', 'list', params] as const,
+    detail: (id: string) => ['rspamd-regex-maps', 'detail', id] as const,
+  },
+  globalSieveFilters: () => ['global-sieve-filters'] as const,
+  presets: (kind: 'rspamd' | 'sieve') => ['presets', kind] as const,
+  legacyApiCors: () => ['legacy-api-cors'] as const,
+  license: () => ['license'] as const,
+  massMailJobs: {
+    all: () => ['mass-mail-jobs'] as const,
+    lists: () => ['mass-mail-jobs', 'list'] as const,
+    list: (params: MassMailJobListParams) => ['mass-mail-jobs', 'list', params] as const,
+    running: () => ['mass-mail-jobs', 'running'] as const,
+    detail: (id: string) => ['mass-mail-jobs', 'detail', id] as const,
+    recipients: (id: string, params: MassMailRecipientListParams) =>
+      ['mass-mail-jobs', 'recipients', id, params] as const,
+  },
+  massMailPreview: (selectionKey: string, params: MassMailPreviewParams) =>
+    ['mass-mail-preview', selectionKey, params] as const,
 }

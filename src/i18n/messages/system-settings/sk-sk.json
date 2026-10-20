@@ -1,0 +1,10 @@
+{
+  "systemSettings": {
+    "groups": {
+      "integrations": "Integrácie"
+    },
+    "ipCheck": {
+      "description": "Zvoľte, či môžu externé služby zisťovať verejné IP adresy servera."
+    }
+  }
+}

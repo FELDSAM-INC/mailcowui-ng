@@ -1,3 +1,8 @@
+import {
+  applySettingsPatch,
+  initialSettingsState,
+  systemSettingsScenarios,
+} from './system-settings'
 // Scenario registry of the mock API (research R22). It aggregates one module per area, so that
 // parallel stories never edit the same scenario file: each story adds `./<area>.ts` and one line
 // below.
@@ -143,6 +148,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...history004Scenarios,
   ...dnsScenarios,
   ...routingScenarios,
+  ...systemSettingsScenarios,
   // UI 011: one module per area under ./operations/ (T013).
   ...operationsScenarios,
   ...rateLimitScenarios,
@@ -250,6 +256,7 @@ export function applyOverrides(
   applyIdentityProviderOverrides(state, overrides)
   applyFeature004Overrides(state, overrides)
   if (overrides.dns) applyDnsOverrides(state, overrides.dns)
+  if (overrides.settings) applySettingsPatch(state, overrides.settings)
   applyRoutingOverrides(state, overrides.routing)
   if (overrides.operations) applyOperationsPatch(state, overrides.operations)
   applyQuarantineOverrides(state, overrides)
@@ -306,6 +313,7 @@ export function createScenarioState(
     ...initialState004(),
     ...initialDnsState(),
     ...initialRoutingState(),
+    settings: initialSettingsState(),
     operations: initialOperationsState(),
     ...initialQuarantineState(),
     ...initialSelfServiceState(),

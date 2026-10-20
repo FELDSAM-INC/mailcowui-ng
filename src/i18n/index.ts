@@ -112,6 +112,11 @@ async function mergeAll(modules: Promise<{ default: Messages }>[]): Promise<Mess
 
 /** The strings of features, loaded with their routes; en-gb is their fallback. */
 const featureLoaders = {
+  'system-settings': {
+    'en-gb': () => import('./messages/system-settings/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/system-settings/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/system-settings/sk-sk.json').then((m) => m.default),
+  },
   domains: {
     'en-gb': () => import('./messages/domains/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/domains/cs-cz.json').then((m) => m.default),

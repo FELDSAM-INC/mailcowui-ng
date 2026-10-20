@@ -40,6 +40,34 @@ be implemented and tested on its own once the foundation is in place.
 
 ---
 
+## Implementation checkpoint — 2026-10-20
+
+The owner instructed starting isolated worktree `wt/013` from UI `dbf920db` while UI005 is still
+being finalized. Rebase onto the merged UI005 before integration. This checkpoint is a first
+independent slice, not completion of US1/US11 or the foundational phase:
+
+- API pin advanced from `4be8653` to `dd9a44e`, with ancestry verified; generated schemas/types
+  and all 51 consumed-operation assertions pass. T001 remains open for its full integration gates.
+- T003 query roots and generated parameter aliases pass. The existing password-policy key is reused;
+  infinite picker keys differ from ordinary paged lists.
+- T004/T005 reused existing `%d` formatter coverage (`legacy-format.spec.ts`); the new IP-check
+  component check verifies both `<strong>` host names survive the legacy HTML layer. No formatter change.
+- T006/T007 found binary support already delivered. Seven tests cover five documented logo media
+  types, an undocumented type, and retained JSON/merge-patch validation. No artificial red test or
+  validator rewrite was needed for that existing behavior.
+- T008/T009/T011 are partial: typed capabilities/IP-check data and defaults, admin/demo/error/role
+  scenarios, failure injection and version tags exist; other settings stores remain for later slices.
+- T008a records the field map; D1 grouping is orchestrator-approved. All other unresolved deviations
+  continue to require the legacy form.
+- T022/T023/T035 are partial: the reusable section core covers versioned saves, cache updates,
+  unchanged saves, explicit 412 retry/discard, demo-mode refresh and failed-request draft retention.
+  IP check uses the canonical leave guard; multi-section coordination and the full validation
+  matrix remain open.
+- T024 passes loading/retry/render-gating/demo-capability component checks. The registered settings
+  overview and IP-check route are lazy and admin-only; only implemented routes receive links.
+- US11 IP-check portions of T150/T153/T154/T156/T158 are implemented. Other server settings and the
+  complete US11 gates remain open. Browser and real-stack results are recorded in quickstart as run.
+
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Pin the contract that contains API 013, add the cache roots, and extend the i18n and
@@ -50,12 +78,12 @@ mock tooling that the whole feature needs (research R2, R28, R30).
   - re-export the 013 root types of data-model §1 from `src/api/index.ts`, and export the generated `Type` as `AuditTargetType` (plan, observation O3);
   - record the pinned ref, commit and bundle sha256 in the "Pinned contract" table of `specs/013-system-settings/contracts/README.md`;
   - run `npm run typecheck && npm run test:unit && npm run test:e2e`; fix type errors without changing behaviour.
-- [ ] T002 [P] Write `tests/unit/api/system-settings-operations.spec.ts`. It reads `contract/openapi.json` and asserts that each of the 44 API 013 operations and the 7 operations of earlier features listed in `specs/013-system-settings/contracts/README.md` exists with its method, path and documented response statuses (for example `replaceRspamdRegexMap`: 200, 409, 412, 422; `createMassMailJob`: 201, 409, 422; `setRspamdUiPassword`: 204, 502, 504). It must pass after T001 and fail on any later bump that drops one.
-- [ ] T003 [P] Add the 013 query key roots of data-model §3 to `src/api/query/keys.ts`, with list parameter types aliased from the generated `operations['listRspamdSettingsRules' | 'listRspamdRegexMaps' | 'listMassMailJobs' | 'listMassMailJobRecipients' | 'previewMassMailRecipients' | 'listDomains' | 'listMailboxes']['parameters']['query']`. Reuse UI 003's password-policy key (expected `['password-policy']`) instead of adding one. Extend `tests/unit/api/query-keys.spec.ts`: keys are stable, `['domains','picker',…]` and `['mailboxes','picker',…]` never equal UI 002/003 list keys.
-- [ ] T004 [P] Extend the unit tests of UI 001's legacy formatter (research R28, constitution IV 1.3.0; no importer extension). They must check that `%d` is substituted like `%s` (fixture `admin.password_policy_length`: "Minimum password length is %d") and that a legacy value with markup (`admin.ip_check_opt_in`) is passed unchanged to `SanitizedHtml.vue`, which keeps its `<strong>` elements. Where UI 001's tests already cover this, record that and skip; otherwise the new tests must fail.
-- [ ] T005 Add `%d` substitution to UI 001's legacy formatter if T004 fails, so that T004 passes.
-- [ ] T006 [P] Write `tests/unit/mocks/validator-binary.spec.ts`. The contract validator must accept a `replaceLogo` request whose body is raw bytes with a documented media type (`image/png`, `image/jpeg`, `image/gif`, `image/svg+xml`, `application/octet-stream`), reject one with an undocumented media type (`text/plain`), and still validate JSON and merge-patch bodies against their schemas. The test must fail.
-- [ ] T007 Implement binary request bodies in `tests/mocks/contract/validator.ts`: for a documented non-JSON media type, only the media type is checked (research R30). T006 must pass.
+- [x] T002 [P] Write `tests/unit/api/system-settings-operations.spec.ts`. It reads `contract/openapi.json` and asserts that each of the 44 API 013 operations and the 7 operations of earlier features listed in `specs/013-system-settings/contracts/README.md` exists with its method, path and documented response statuses (for example `replaceRspamdRegexMap`: 200, 409, 412, 422; `createMassMailJob`: 201, 409, 422; `setRspamdUiPassword`: 204, 502, 504). It must pass after T001 and fail on any later bump that drops one.
+- [x] T003 [P] Add the 013 query key roots of data-model §3 to `src/api/query/keys.ts`, with list parameter types aliased from the generated `operations['listRspamdSettingsRules' | 'listRspamdRegexMaps' | 'listMassMailJobs' | 'listMassMailJobRecipients' | 'previewMassMailRecipients' | 'listDomains' | 'listMailboxes']['parameters']['query']`. Reuse UI 003's password-policy key (expected `['password-policy']`) instead of adding one. Extend `tests/unit/api/query-keys.spec.ts`: keys are stable, `['domains','picker',…]` and `['mailboxes','picker',…]` never equal UI 002/003 list keys.
+- [x] T004 [P] Extend the unit tests of UI 001's legacy formatter (research R28, constitution IV 1.3.0; no importer extension). They must check that `%d` is substituted like `%s` (fixture `admin.password_policy_length`: "Minimum password length is %d") and that a legacy value with markup (`admin.ip_check_opt_in`) is passed unchanged to `SanitizedHtml.vue`, which keeps its `<strong>` elements. Where UI 001's tests already cover this, record that and skip; otherwise the new tests must fail.
+- [x] T005 Add `%d` substitution to UI 001's legacy formatter if T004 fails, so that T004 passes.
+- [x] T006 [P] Write `tests/unit/mocks/validator-binary.spec.ts`. The contract validator must accept a `replaceLogo` request whose body is raw bytes with a documented media type (`image/png`, `image/jpeg`, `image/gif`, `image/svg+xml`, `application/octet-stream`), reject one with an undocumented media type (`text/plain`), and still validate JSON and merge-patch bodies against their schemas. The test must fail.
+- [x] T007 Implement binary request bodies in `tests/mocks/contract/validator.ts`: for a documented non-JSON media type, only the media type is checked (research R30). T006 must pass.
 - [ ] T008 [P] Extend the scenario state in `tests/mocks/scenarios/state.ts` with a `settings` store (research R30):
   - capabilities (host name, demo mode, license switch, Rspamd address, logo limits, colour references, the limits of `SettingsLimits`, the mass mail policy);
   - logos (bytes, media type, size, dimensions), UI texts, login page options, custom and built-in app links, brand colours, IP check, password policy, reset notification, quota notification, quota copy recipients per domain;
@@ -76,13 +104,13 @@ catalogue, the section editing composable, and the settings layout with a minima
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T008a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
+- [x] T008a Write the legacy form map for this feature's screens (screen → legacy template → field → legacy key, including messages) in `plan.md`, and use only those keys plus the minimal new strings in the implementation.
   Follow `docs/conventions.md` "Translations and forms" and the templates in plan.md "Translations and forms (constitution IV 1.3.0)"; list any deviation under "Deviations needing a decision". Every later screen task depends on it.
 
 ### Mock base
 
 - [ ] T009 Create `tests/mocks/factories/settings.ts` with the legacy defaults of the spec's edge case "Settings never saved" (empty texts, announcement inactive, no logos, all sign-in links shown, no app links, IP check off, length 6 without classes, no reset sender or subject with the default templates marked as defaults, quota sender `quota-warning@localhost`, subject "Quota warning" and the default template marked, CORS for the server origin with GET, POST, PUT and DELETE) and the default capabilities (limits of API 013: 255, 65,535, 1,048,576 bytes, 50 app links, 100 recipients, 100 origins, policy 3–64, Rspamd password 6–256, page sizes 25/1,000; logos 15 MiB and 1,920 × 1,920; references `#ffffff`, `#1d2939`, minimum 4.5; mass mail sender `noreply@mail.example.org`, 10/s, 1 job, 3 retries, 300 s, 1,000 entries, 1,048,576 bytes).
-- [ ] T010 Implement `tests/mocks/handlers/settings-server.ts` with `getSettingsCapabilities` (admin only; `403 forbidden` for other roles; failure injection to `500`), and register it in `tests/mocks/handlers/index.ts`.
+- [x] T010 Implement `tests/mocks/handlers/settings-server.ts` with `getSettingsCapabilities` (admin only; `403 forbidden` for other roles; failure injection to `500`), and register it in `tests/mocks/handlers/index.ts`.
 - [ ] T011 Create `tests/mocks/scenarios/system-settings.ts`, registered in `tests/mocks/scenarios/index.ts`, with `settings-admin-defaults`, `settings-admin-custom`, `settings-domain-admin` (domain administrator of `example.org`), `settings-mailbox-user`, `settings-capabilities-error` (`500` on `getSettingsCapabilities`), `settings-demo-mode` (`demoMode: true`), `settings-license-disabled` and `settings-temporary-failure` (switchable `503 temporary-failure` with `Retry-After` on any settings operation). Later stories add their scenarios to this module.
 - [ ] T012 Extend `tests/mocks/handlers/public-config.ts`: logos, page title, product name, apps label, help text, footer, announcement, login page options and operator app links come from the settings store; `brandColors` holds the effective colours and foregrounds of FR-031 (dark: the dark colour, else the light colour when it reaches 4.5:1 on `#1d2939`, else `null`; foreground black or white by the higher ratio, ties black); the `ETag` changes with the store.
 
@@ -105,7 +133,7 @@ catalogue, the section editing composable, and the settings layout with a minima
 - [ ] T021 [P] Write `tests/unit/features/system-settings/catalogue.spec.ts`: seven groups and seventeen pages in FR-004 order with the ids, paths, sections, legacy names and audit targets of data-model §10; every page's route name resolves once registered; every key exists in en-gb; `visible(caps)` hides only `license` when `licenseVerificationEnabled` is `false`; every `auditTarget.type` is a value of the generated `AuditTargetType`; for every page component file that exists, each section id occurs as a heading `id` in the SFC (static scan; T179 requires all seventeen).
 - [ ] T022 [P] Write `tests/unit/features/system-settings/composables/useSettingsSection.spec.ts` against the state machine of data-model §5 (research R9; FR-009 to FR-014, FR-017, FR-092): edit from the cached resource keeping its `etag`; a merge patch of only the changed fields (nested for the announcement, whole lists for app links, origins and recipients) with `If-Match`; on `200` the cache is written, success announced and the follow-up hook run; on `412` the draft is kept, the resource refetched and `changedSinceRead` filled; on `422` field errors are mapped and the summary focused; on `403 demo-mode` the draft is kept and the capabilities invalidated; on `503` and network failures the draft is kept with "nothing was changed"; only one section of a page edits at a time; Save is disabled while saving.
 - [ ] T023 [P] Write `tests/unit/features/system-settings/composables/useSettingsSection-leave.spec.ts` (FR-013): a dirty section passes `shouldGuard: true` to UI 002's `useLeaveGuard` (`src/shared/composables/useLeaveGuard.ts`, the canonical leave guard of `docs/conventions.md`; no feature-own guard), so leaving asks through `useConfirm` and `beforeunload` is registered only while dirty; opening another section while one is dirty asks through `useConfirm`; nothing is asked when clean or after a save.
-- [ ] T024 [P] Write `tests/unit/features/system-settings/layouts/SettingsLayout.spec.ts`: loading and error states with retry for the capabilities (FR-032); the routed page renders only after the capabilities load; demo mode is provided to pages as read-only.
+- [x] T024 [P] Write `tests/unit/features/system-settings/layouts/SettingsLayout.spec.ts`: loading and error states with retry for the capabilities (FR-032); the routed page renders only after the capabilities load; demo mode is provided to pages as read-only.
 - [ ] T025 [P] Write `tests/e2e/system-settings/navigation/foundation.spec.ts`: on `settings-admin-defaults`, the navigation shows "System settings" (no longer a placeholder) and `/ng/system` renders the layout with the groups and the pages registered so far; on `settings-capabilities-error`, the area shows its error state and the retry recovers after `mockApi.patch`; FR-001: on `settings-domain-admin` and `settings-mailbox-user`, `/ng/system` shows UI 001's "no access" and `mockApi.requests()` contains no settings operation.
 
 ### Implementation of the shared building blocks and the settings core

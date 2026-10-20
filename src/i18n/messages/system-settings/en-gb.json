@@ -1,0 +1,10 @@
+{
+  "systemSettings": {
+    "groups": {
+      "integrations": "Integrations"
+    },
+    "ipCheck": {
+      "description": "Choose whether external services may resolve the server’s public IP addresses."
+    }
+  }
+}

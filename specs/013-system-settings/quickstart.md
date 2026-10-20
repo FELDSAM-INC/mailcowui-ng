@@ -106,3 +106,33 @@ The Rspamd password, sending mass mail and license verification are deliberately
 Filled in by T181 and T182: device timings for SC-002 and SC-014 on a mid-range Android phone and
 an iPhone, the moderated SC-001 test, a screen-reader pass (VoiceOver, TalkBack) of each user
 story's main path, and the smoke run against the real API.
+
+
+### First implementation slice (2026-10-20)
+
+Worktree `/home/feldsam/Projects/mailcowui-ng-wt/013`, branch `wt/013`, UI base `dbf920db`, API pin
+`dd9a44e`. The first slice is the settings capabilities/layout/navigation boundary and IP check;
+remaining pages, search, multi-section coordination and shared editor/preview foundations remain open.
+
+Observed red tests covered missing query roots, missing capabilities/layout modules, missing section
+save module, stale-version actions without changed fields, and the corresponding empty-diff wording.
+The operation-presence guard and already-delivered binary validator passed immediately.
+
+- Focused API, section, layout, page, navigation/router, formatter and validator units: **216 passed**.
+  The final empty-diff wording change then passed all **23 impacted checks**.
+- App, Node and test TypeScript checks: passed (`vue-tsc --build --force`).
+- Lint, i18n and `contract:check`: passed. The pin checksum matches and regeneration produces
+  identical artifacts.
+- Production build and initial JavaScript budget: passed (**194,044 / 204,800 bytes gzip**).
+- Browser tests: **18/18 passed**, zero retries, across mobile Chromium, desktop Chromium and
+  mobile WebKit. The checks cover admin save, both denied roles, failed-capability retry, demo mode,
+  stale save, unsaved navigation, both-theme axe checks, reflow and touch targets.
+- Local-stack smoke: **1/1 passed**, zero retries, against the isolated API on port 18580 through
+  the production preview. It verifies the changed value and ETag, reload persistence, and the
+  restoration response matching the original opt-in value. The original value is restored in
+  `finally`; the live deployment is not used.
+
+Validation artifacts are in
+`/home/feldsam/Projects/mailcow-rest-v2/storage/app/restart-2026-10-20/u013/`.
+
+No push or deployment was performed from this worktree. UI005 files were not edited.

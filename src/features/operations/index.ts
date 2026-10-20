@@ -1,3 +1,4 @@
+import type { QueryClient } from '@tanstack/vue-query'
 // UI feature 011, monitoring and operations (research R3). Other code reaches it only through this
 // file: the routes, and the address of a container's card for screens that link to it (for example
 // UI 002's Global Address List notice linking to the SOGo container).
@@ -12,4 +13,10 @@ export function containerRoute(name: string): RouteLocationRaw | null {
   return CONTAINER_NAME.test(name)
     ? { name: 'operations-container', params: { containerName: name } }
     : null
+}
+
+/** UI013: changing the IP-check opt-in invalidates the dashboard's cached addresses. */
+export async function invalidatePublicAddresses(client: QueryClient): Promise<void> {
+  const { operationsKeys } = await import('./query-keys')
+  await client.invalidateQueries({ queryKey: operationsKeys.monitoring.publicAddresses() })
 }

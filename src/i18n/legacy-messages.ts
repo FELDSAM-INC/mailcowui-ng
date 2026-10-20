@@ -10,6 +10,8 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   // Problems: the classic `danger.*`, `warning.*` and `info.*` message of the same meaning.
   'problem.csrf-token-mismatch': 'warning.session_token',
   'problem.forbidden': 'danger.access_denied',
+  'problem.demo-mode': 'danger.demo_mode_enabled',
+  'enums.auditTargetType.ipCheck': 'admin.ip_check',
   'problem.second-factor-required': 'info.awaiting_tfa_confirmation',
   'problem.sign-in-failed': 'danger.login_failed',
   'problem.temporary-verification-failure': 'danger.temp_error',

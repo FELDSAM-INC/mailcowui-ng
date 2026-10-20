@@ -105,6 +105,19 @@ describe('EditableSection', () => {
     expect(wrapper.find('[role="status"]').exists()).toBe(true)
   })
 
+  it('requires an explicit retry when the version changed without field differences', async () => {
+    const wrapper = mountSection({ editing: true, versionChanged: true, outdated: [] })
+    expect(wrapper.find('[data-outdated]').exists()).toBe(true)
+    expect(wrapper.find('[data-outdated] li').exists()).toBe(false)
+    expect(wrapper.get('[data-outdated]').text()).not.toContain('These values changed:')
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Save again')!
+      .trigger('click')
+    expect(wrapper.emitted('saveAgain')).toHaveLength(1)
+    expect(wrapper.emitted('save')).toBeUndefined()
+  })
+
   it('lists the changed fields with their saved values and offers Save again and Discard', async () => {
     const wrapper = mountSection({
       editing: true,

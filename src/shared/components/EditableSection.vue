@@ -29,6 +29,8 @@ const props = withDefaults(
     saving?: boolean
     status?: SectionStatus | null
     outdated?: readonly SectionChange[] | null
+    /** A version can change even when none of this section’s fields changed. */
+    versionChanged?: boolean
     saveLabel?: string
     /** False when nothing in the open form can be saved any more: only Close is offered. */
     canSave?: boolean
@@ -38,6 +40,7 @@ const props = withDefaults(
     saving: false,
     status: null,
     outdated: null,
+    versionChanged: false,
     saveLabel: undefined,
     canSave: true,
   },
@@ -50,6 +53,7 @@ const heading = ref<HTMLElement | null>(null)
 const root = ref<HTMLElement | null>(null)
 const headingId = computed(() => `section-${props.sectionId}-title`)
 const reasonId = computed(() => `section-${props.sectionId}-reason`)
+const isOutdated = computed(() => props.versionChanged || (props.outdated?.length ?? 0) > 0)
 const layout = computed(() => (props.editing && !wide.value ? 'full' : 'inline'))
 
 watch(
@@ -73,7 +77,7 @@ function onEdit() {
 function onSubmit(event: Event) {
   event.preventDefault()
   if (props.saving || !props.canSave) return
-  if (props.outdated?.length) emit('saveAgain')
+  if (isOutdated.value) emit('saveAgain')
   else emit('save')
 }
 
@@ -139,7 +143,7 @@ useStickyBarFocus()
 
     <form v-else class="mt-4 flex flex-col gap-4" novalidate @submit="onSubmit">
       <div
-        v-if="outdated && outdated.length > 0"
+        v-if="isOutdated"
         data-outdated
         role="alert"
         class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
@@ -147,8 +151,10 @@ useStickyBarFocus()
         <WarningIcon class="mt-0.5 size-5 shrink-0" />
         <div class="min-w-0">
           <p class="font-semibold">{{ t('sections.outdated.title') }}</p>
-          <p class="mt-1 text-sm">{{ t('sections.outdated.body') }}</p>
-          <ul class="mt-2 list-disc ps-5 text-sm">
+          <p class="mt-1 text-sm">
+            {{ t(outdated?.length ? 'sections.outdated.body' : 'problem.status.412') }}
+          </p>
+          <ul v-if="outdated?.length" class="mt-2 list-disc ps-5 text-sm">
             <li v-for="change in outdated" :key="change.field" class="break-words">
               {{ t('sections.outdated.savedAs', { field: change.label, value: change.saved }) }}
             </li>
@@ -175,7 +181,7 @@ useStickyBarFocus()
         >
           {{ t('common.close') }}
         </button>
-        <template v-else-if="outdated && outdated.length > 0">
+        <template v-else-if="isOutdated">
           <button
             type="button"
             :class="buttonVariants({ variant: 'outline' })"

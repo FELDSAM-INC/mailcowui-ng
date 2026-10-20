@@ -145,6 +145,8 @@ describe('navigation catalogue', () => {
       // UI 005: My account.
       'account',
       'filters',
+      // UI 013: settings overview and IP check.
+      'system',
     ])
     const delivered = catalogue.filter((entry) => entry.deliveredBy !== '001')
     for (const entry of delivered) {

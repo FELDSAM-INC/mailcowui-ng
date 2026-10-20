@@ -1,7 +1,12 @@
 <!-- Derived from TailAdmin Vue Free 2.5.0 (94ebe1b), MIT. See THIRD_PARTY_NOTICES.md. -->
 <script setup lang="ts">
-import { computed, type HTMLAttributes } from 'vue'
-import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from 'reka-ui'
+import { computed, ref, watch, type HTMLAttributes } from 'vue'
+import {
+  DropdownMenuContent,
+  DropdownMenuPortal,
+  injectDropdownMenuRootContext,
+  useForwardPropsEmits,
+} from 'reka-ui'
 import type { DropdownMenuContentEmits, DropdownMenuContentProps } from 'reka-ui'
 import { cn } from '@/shared/ui/utils/cn'
 
@@ -21,10 +26,21 @@ const delegated = computed(() => {
   return rest
 })
 const forwarded = useForwardPropsEmits(delegated, emits)
+const menu = injectDropdownMenuRootContext()
+const activated = ref(false)
+watch(
+  menu.open,
+  (open) => {
+    if (open) activated.value = true
+  },
+  { immediate: true },
+)
+// Lists can contain dozens of closed menus. Create their portal/content machinery on first use,
+// then keep it mounted so Reka can finish closing animations and restore trigger focus normally.
 </script>
 
 <template>
-  <DropdownMenuPortal>
+  <DropdownMenuPortal v-if="activated || forceMount">
     <DropdownMenuContent
       data-slot="dropdown-menu-content"
       v-bind="forwarded"

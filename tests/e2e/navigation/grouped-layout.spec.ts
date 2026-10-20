@@ -85,14 +85,14 @@ test('grouped tabs select templates and aliases while keeping page content equal
   await expectAccessible()
 })
 
-test('Access and Options show exact ordered tabs and clearly disable unfinished destinations', async ({
+test('Access and Options show exact ordered tabs with available destinations', async ({
   page,
   mockApi,
   expectAccessible,
   expectNoHorizontalScroll,
 }) => {
   await mockApi.use('admin-active')
-  for (const [path, expected, disabled] of [
+  for (const [path, expected] of [
     [
       'api-keys',
       [
@@ -103,7 +103,6 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
         'OAuth2 Apps',
         'Rspamd UI',
       ],
-      0,
     ],
     [
       'dns/dkim-keys',
@@ -116,7 +115,6 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
         'Password Settings',
         'Customize',
       ],
-      1,
     ],
   ] as const) {
     await page.goto(path)
@@ -132,8 +130,8 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
       }),
     )
     expect(labels).toEqual([...expected])
-    await expect(tabs.locator('[aria-disabled="true"]')).toHaveCount(disabled)
-    expect(await tabs.locator('[aria-disabled="true"][href]').count()).toBe(0)
+    await expect(tabs.locator('[aria-disabled="true"]')).toHaveCount(0)
+    await expect(tabs.getByRole('link')).toHaveCount(expected.length)
     await expectAccessible()
     await expectNoHorizontalScroll()
   }

@@ -29,3 +29,36 @@ Verification so far:
 Evidence: `mailcow-rest-v2/storage/app/restart-2026-10-20/settings-integration/` contains the
 initial and diagnostic Lighthouse reports, including failures. The final release checkpoint
 must record the complete collection's outcome; this document does not claim deployment.
+
+## Quiet combined baseline and rendering follow-up (2026-10-21)
+
+The complete quiet collection on pushed `62b9e988` ran all eleven URLs three times while other
+agents' browser, build and typecheck jobs were paused. Accessibility passed at 99–100. Performance
+still failed on Domains (71–73), Aliases (72–76), Mailboxes (76–77), relayhosts (77) and Quarantine
+(77). Sign-in scored 85–87, Password 80 and UI texts 81–82. Root/dashboard and DKIM had individual
+runs below 80, although their best runs reached the configured assertion's threshold. The gate is
+still open; this is not a passing release collection.
+
+A separate CPU profile identified the sticky header's synchronous geometry read during mount.
+The header now uses the border-box size supplied by ResizeObserver, keeping the existing CSS
+height fallback until the first notification. Dropdown content creates its portal machinery on
+first opening and keeps it thereafter, preserving Reka's closing animation and focus lifecycle.
+These changes need a fresh quiet performance measurement before any improvement is claimed.
+
+- 33 focused shell/dropdown units pass, including first keyboard opening, Escape/focus return,
+  initial-open/force-mount behavior and observed header dimensions. A partial ResizeObserver
+  test fixture was completed after TypeScript rejected it; fresh test types then passed.
+- 25 distinct browser executions pass across the three profiles, with zero retries; two
+  desktop-only rail executions are intentionally skipped on mobile. The first run passed 19,
+  exposing a stale assertion that Options still contained a disabled tab and a real selected-
+  language contrast defect in dark mode. Options now verifies every destination is a link.
+  The selected language supplies its theme-specific foreground, and its checkmark inherits the
+  row's text colour. The six affected checks pass on the final build, including the four-palette
+  accessibility fixture. Keyboard menus, section History, tabs and sidebar regressions pass.
+- Scoped lint/formatting, production build and bundle budget pass: 189,170 / 204,800 bytes gzip.
+
+The complete baseline reports and scores are archived under
+`mailcow-rest-v2/storage/app/restart-2026-10-20/settings-integration/lighthouse-62b9e988-quiet/`.
+CPU-profile evidence is in `/tmp/ui-settings-startup-profile/`; browser logs are
+`/tmp/ui-settings-shell-render-browser.log` and `/tmp/ui-settings-language-tabs-final.log`, with
+failure and final artifacts preserved under `/tmp/ui013-shell-render-results/`.

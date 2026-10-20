@@ -109,7 +109,7 @@ function onLocale(value: unknown) {
                   :key="language.code"
                   :value="language.code"
                   :lang="toBcp47(language.code)"
-                  class="min-h-11 data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground"
+                  class="min-h-11 data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground dark:data-[state=checked]:bg-accent dark:data-[state=checked]:text-accent-foreground"
                   @select="onLocale(language.code)"
                 >
                   <span aria-hidden="true" data-language-flag class="text-lg">{{

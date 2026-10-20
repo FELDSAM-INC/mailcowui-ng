@@ -3,7 +3,8 @@
     "groups": {
       "integrations": "Integrations",
       "passwords": "Passwords",
-      "spam-filtering": "Spam filtering"
+      "spam-filtering": "Spam filtering",
+      "notifications": "Notifications"
     },
     "ipCheck": {
       "description": "Choose whether external services may resolve the server’s public IP addresses."
@@ -22,24 +23,29 @@
     "passwordReset": {
       "available": "Self-service password reset is available.",
       "unavailable": "Self-service password reset is unavailable. Set both a sender and a subject to enable it.",
-      "defaultTemplate": "Default template",
       "restoreDefaults": "Restore default templates",
       "defaultsAfterSave": "Both templates are empty. The default templates will apply after saving.",
       "missingLink": "A template is missing {placeholder}; that version of the email will contain no reset link.",
       "oneEmpty": "Only one template is filled in. The email will have only that version.",
       "disableTitle": "Disable password reset?",
       "disableBody": "Saving an empty sender or subject stops self-service password reset for every user.",
-      "templateChanged": "Template content changed.",
       "copyPlaceholder": "Copy {placeholder}",
       "placeholders": "Template placeholders",
-      "size": "{size} of {max}",
-      "wrapLines": "Wrap long lines",
-      "preview": "Preview HTML template",
-      "previewNote": "Images and links are inactive in this preview. Email clients may display the message differently.",
-      "imageOmitted": "Image not loaded in the preview: {alt}",
       "sampleMailbox": "user{'@'}example.org",
-      "sampleRecovery": "recovery{'@'}example.net",
-      "singleLine": "Enter the subject on one line."
+      "sampleRecovery": "recovery{'@'}example.net"
+    },
+    "quota": {
+      "description": "Configure mailbox quota warnings and domain copy recipients.",
+      "defaultValue": "Default",
+      "emptyDefaults": "Leave empty to restore the default value.",
+      "restore": "Restore default template",
+      "fallback": "If Dovecot cannot parse the template, it uses the default template. Empty values restore their defaults after saving.",
+      "copies": "Configure separate copies for each domain. Each copy includes the mailbox name in its subject.",
+      "manageCopies": "Manage copies by domain"
+    },
+    "quotaCopies": {
+      "empty": "Copies stay inactive while the recipient list is empty.",
+      "unavailable": "This domain is no longer available. Your changes have not been saved."
     }
   }
 }

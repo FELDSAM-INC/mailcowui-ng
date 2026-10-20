@@ -28,6 +28,7 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
 import { problemOf, useDomain } from '../api'
+import { QuotaCopiesSection } from '@/features/system-settings'
 import { useDomainCapabilities } from '../capabilities'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -257,6 +258,7 @@ watch(
     <RateLimitSection v-if="!showOnly" kind="domain" :object="domain.name" />
     <SpamFilterSection v-if="!showOnly" kind="domain" :owner="domain.name" />
     <!-- UI 010: legacy's MTA-STS tab, before "Domain wide footer". -->
+    <QuotaCopiesSection v-if="!showOnly" :key="domain.name" :domain="domain.name" />
     <DomainMtaStsSection v-if="!showOnly" :domain="domain.name" />
     <FooterSection
       v-if="visible('footer')"

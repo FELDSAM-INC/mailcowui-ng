@@ -23,6 +23,15 @@ export interface SettingsPage {
 }
 export const settingsPages: readonly SettingsPage[] = [
   {
+    id: 'quota-notifications',
+    group: 'notifications',
+    routeName: 'system-settings-quota-notifications',
+    title: legacy('admin.quota_notifications'),
+    description: 'systemSettings.quota.description',
+    auditTarget: 'quotaNotification',
+    visible: () => true,
+  },
+  {
     id: 'password-policy',
     group: 'passwords',
     routeName: 'system-settings-password-policy',

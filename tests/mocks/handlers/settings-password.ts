@@ -65,9 +65,9 @@ export const settingsPasswordHandlers = [
       )
         errors[field] = [
           {
-            code: 'tooLongBytes',
+            code: 'tooLong',
             message: 'Template too long',
-            params: { max: state.settings.capabilities.limits.templateMaxBytes },
+            params: { max: state.settings.capabilities.limits.templateMaxBytes, unit: 'bytes' },
           },
         ]
     if (Object.keys(errors).length)

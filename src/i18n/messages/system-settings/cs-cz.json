@@ -3,7 +3,8 @@
     "groups": {
       "integrations": "Integrace",
       "passwords": "Hesla",
-      "spam-filtering": "Spam filtering"
+      "spam-filtering": "Spam filtering",
+      "notifications": "Upozornění"
     },
     "ipCheck": {
       "description": "Zvolte, zda mohou externí služby zjišťovat veřejné IP adresy serveru."
@@ -22,24 +23,29 @@
     "passwordReset": {
       "available": "Samoobslužné obnovení hesla je dostupné.",
       "unavailable": "Samoobslužné obnovení hesla není dostupné. Pro zapnutí nastavte odesílatele i předmět.",
-      "defaultTemplate": "Výchozí šablona",
       "restoreDefaults": "Obnovit výchozí šablony",
       "defaultsAfterSave": "Obě šablony jsou prázdné. Po uložení se použijí výchozí šablony.",
       "missingLink": "V šabloně chybí {placeholder}; tato verze e-mailu nebude obsahovat odkaz na obnovení hesla.",
       "oneEmpty": "Je vyplněna jen jedna šablona. E-mail bude obsahovat pouze tuto verzi.",
       "disableTitle": "Vypnout obnovení hesla?",
       "disableBody": "Uložením prázdného odesílatele nebo předmětu vypnete samoobslužné obnovení hesla všem uživatelům.",
-      "templateChanged": "Obsah šablony se změnil.",
       "copyPlaceholder": "Kopírovat {placeholder}",
       "placeholders": "Proměnné šablony",
-      "size": "{size} z {max}",
-      "wrapLines": "Zalamovat dlouhé řádky",
-      "preview": "Náhled HTML šablony",
-      "previewNote": "Obrázky a odkazy jsou v tomto náhledu neaktivní. E-mailové aplikace mohou zprávu zobrazit jinak.",
-      "imageOmitted": "Obrázek se v náhledu nenačítá: {alt}",
       "sampleMailbox": "uzivatel{'@'}example.org",
-      "sampleRecovery": "obnova{'@'}example.net",
-      "singleLine": "Zadejte předmět na jednom řádku."
+      "sampleRecovery": "obnova{'@'}example.net"
+    },
+    "quota": {
+      "description": "Nastavte upozornění na zaplnění schránky a příjemce kopií pro domény.",
+      "defaultValue": "Výchozí",
+      "emptyDefaults": "Prázdná hodnota obnoví výchozí nastavení.",
+      "restore": "Obnovit výchozí šablonu",
+      "fallback": "Pokud Dovecot nedokáže šablonu zpracovat, použije výchozí šablonu. Prázdné hodnoty po uložení obnoví výchozí nastavení.",
+      "copies": "Nastavte samostatné kopie pro každou doménu. Každá kopie obsahuje v předmětu název schránky.",
+      "manageCopies": "Spravovat kopie podle domény"
+    },
+    "quotaCopies": {
+      "empty": "Kopie zůstávají neaktivní, dokud je seznam příjemců prázdný.",
+      "unavailable": "Tato doména již není dostupná. Vaše změny nebyly uloženy."
     }
   }
 }

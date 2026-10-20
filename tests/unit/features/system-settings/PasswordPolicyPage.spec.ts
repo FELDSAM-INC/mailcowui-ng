@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 
 import { queryKeys, type PasswordPolicy } from '@/api'
@@ -87,4 +87,16 @@ describe('Password Settings policy editor', () => {
     expect(wrapper.find('#section-policy button').exists()).toBe(false)
     expect(wrapper.find('#section-policy input').exists()).toBe(false)
   })
+})
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
+  vi.stubGlobal('requestAnimationFrame', () => 1)
+  vi.stubGlobal('cancelAnimationFrame', () => {})
 })

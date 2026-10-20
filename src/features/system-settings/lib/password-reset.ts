@@ -47,8 +47,7 @@ export function validateNotification(
     (!/^[^\s@]+@[^\s@]+$/.test(draft.sender) || /[\u0000-\u001f\u007f]/.test(draft.sender))
   )
     errors.sender = 'validation.format.email'
-  if (/[\u0000-\u001f\u007f]/.test(draft.subject))
-    errors.subject = 'systemSettings.passwordReset.singleLine'
+  if (/[\u0000-\u001f\u007f]/.test(draft.subject)) errors.subject = 'emailTemplate.singleLine'
   else if ([...draft.subject].length > 255) errors.subject = 'validation.tooLong'
   for (const field of ['textTemplate', 'htmlTemplate'] as const)
     if (templateBytes(draft[field]) > maxBytes) errors[field] = 'validation.tooLongBytes'

@@ -1130,5 +1130,13 @@
     "line": "Line {line}",
     "goToLine": "Go to line {line}",
     "moreErrors": "{count} more lines have errors."
+  },
+  "emailTemplate": {
+    "defaultTemplate": "Default template",
+    "templateChanged": "Template content changed.",
+    "preview": "Preview HTML template",
+    "previewNote": "Images and links are inactive in this preview. Email clients may display the message differently.",
+    "imageOmitted": "Image not loaded in the preview: {alt}",
+    "singleLine": "Enter the subject on one line."
   }
 }

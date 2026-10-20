@@ -178,7 +178,7 @@ test('FR-072 UTF-8 size errors open the editor, preserve input and keep sideways
   await page.locator('#reset-textTemplate').fill('é'.repeat(95))
   await expect(panel.getByRole('status')).toContainText('200')
   await page.locator('#reset-textTemplate').fill('x'.repeat(201))
-  await panel.getByRole('checkbox', { name: 'Wrap long lines' }).uncheck()
+  await panel.getByRole('checkbox', { name: 'Wrap lines' }).uncheck()
   await panel.locator('summary').click()
   await page
     .locator('#section-password-reset')

@@ -58,16 +58,15 @@ test.describe('domain page', () => {
     await expect(page.locator('#section-domain')).toContainText('Never')
   })
 
-  // UI 006 now provides the spam filter; quota warning BCC remains a later feature.
-  test('FR-015 the spam filter is present and quota warning BCC remains absent', async ({
-    page,
-    mockApi,
-  }) => {
+  // UI 006 provides the spam filter; UI 013 adds the quota copy recipients.
+  test('FR-015 the spam filter and quota warning BCC are present', async ({ page, mockApi }) => {
     await mockApi.use('domains-60')
     await page.goto('domains/nearly.example')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit domain' })).toBeVisible()
     await expect(page.locator('[data-spam-filter-section] h2')).toBeVisible()
-    await expect(page.getByRole('main').getByText(/quota warning/i)).toHaveCount(0)
+    await expect(
+      page.locator('#section-quota-copies').getByRole('heading', { name: 'Quota warning BCC' }),
+    ).toBeVisible()
   })
 
   test('FR-016 binary units, the locale and the device time zone', async ({ page, mockApi }) => {

@@ -1,5 +1,5 @@
-// R21: the only consumer is the password-reset preview. Keep this profile local until another
-// settings email actually needs it. The app's CSP is unchanged; the frame has no script permission.
+// R21: shared by password recovery and quota notification previews. The app's CSP stays
+// unchanged; the isolated preview frame has no script permission.
 import DOMPurify from 'dompurify'
 
 const purify = DOMPurify(window)

@@ -26,9 +26,9 @@ import {
   validateNotification,
 } from '../../lib/password-reset'
 import { replaceResetSamples } from '../../lib/email-samples'
-import EmailPreviewDialog from './EmailPreviewDialog.vue'
+import EmailPreviewDialog from '@/shared/components/email/EmailPreviewDialog.vue'
 import PlaceholderReference from './PlaceholderReference.vue'
-import TemplateField from './TemplateField.vue'
+import TemplateField from '@/shared/components/email/TemplateField.vue'
 
 const linkPlaceholder = '{{link}}'
 const props = defineProps<{ capabilities: SettingsCapabilities }>()
@@ -65,7 +65,7 @@ const changes = computed(() =>
     saved:
       change.field === 'sender' || change.field === 'subject'
         ? String(change.savedValue)
-        : t('systemSettings.passwordReset.templateChanged'),
+        : t('emailTemplate.templateChanged'),
   })),
 )
 const confirming = ref(false)

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import { loadFeatureMessages } from '@/i18n'
 import PasswordResetEmailSection from '@/features/system-settings/components/passwords/PasswordResetEmailSection.vue'
@@ -82,4 +82,16 @@ describe('Password Recovery Settings section', () => {
     await Promise.resolve()
     expect(mockState().settings.passwordReset.subject).toBe('Reset your password')
   })
+})
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
+  vi.stubGlobal('requestAnimationFrame', () => 1)
+  vi.stubGlobal('cancelAnimationFrame', () => {})
 })

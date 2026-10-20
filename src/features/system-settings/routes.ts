@@ -29,6 +29,12 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         component: () => import('./pages/SettingsOverviewPage.vue'),
       },
       {
+        path: 'quota-notifications',
+        name: 'system-settings-quota-notifications',
+        component: () => import('./pages/notifications/QuotaNotificationsPage.vue'),
+        meta: { titleKey: legacy('admin.quota_notifications') },
+      },
+      {
         path: 'password-policy',
         name: 'system-settings-password-policy',
         component: () => import('./pages/passwords/PasswordPolicyPage.vue'),

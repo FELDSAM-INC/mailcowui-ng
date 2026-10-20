@@ -566,3 +566,38 @@ API discrepancy: T018 documents local-domain senders such as `quota-warning@loca
 which the UI and mocks accept. The pinned API's `EmailAddress` delegates to PHP
 `FILTER_VALIDATE_EMAIL`, which rejects that address. Server errors remain mapped to the
 sender field. Root is tracking backend parity; no API code was changed in this UI slice.
+
+### Quota notification slice implementation notes (2026-10-20)
+
+- The owner’s Options → Quota notifications destination uses `/system/quota-notifications`.
+  The classic sender, subject and collapsed HTML template remain in their original order with
+  one versioned save. The template help and domain-copies pointer have their own anchors;
+  splitting the legacy form into independently saved resources would misleadingly imply separate
+  API versions. D10 remains unresolved: the domain copy recipients keep the legacy textarea,
+  with the existing multi-entry parser accepting pasted separators and preserving the first
+  spelling of case-insensitive duplicates. No tag editor was introduced.
+- Default quota sender, subject and template are projections. PATCH includes only changed fields,
+  so changing the subject never sends `quota-warning@localhost` as a custom sender. Empty strings
+  restore the individual default. Explicitly saving a custom local-domain sender can receive the
+  API’s existing email validation error, displayed on the field with the draft retained.
+- The settings capabilities endpoint is administrator-only; domain capabilities do not expose
+  `quotaNotificationRecipientsMax`. Administrators use the advertised settings limit. Domain
+  administrators use the recipients schema’s fixed maximum of 100 and never request the forbidden
+  settings endpoint; the API remains authoritative. A capability addition would remove this
+  contract split. The component is keyed by domain to dispose drafts when navigation changes scope.
+- Recovery and quota emails are now the two concrete consumers of the shared `TemplateField`,
+  `EmailPreviewDialog` and sanitized preview profile. The editor wraps the shared native
+  `CodeEditor` with line numbers disabled to preserve the classic form. No runtime dependency or
+  CSP exception was added. Preview isolation and hostile-email regressions remain applicable to
+  both consumers. Read-only email contents stay inside the editor’s own scroll area.
+- Copies are stored separately from domain lifetime; removing and re-creating a domain exposes
+  the retained recipients again. A missing or newly inaccessible domain keeps the draft visible,
+  explains that it was not saved, and disables further writes. History is administrator-only.
+
+Validation: 61 focused unit/component checks, 75 browser executions across mobile Chromium,
+desktop Chromium and mobile WebKit (quota, domain details, recovery editor and hostile previews),
+and two local real-API smokes pass. The API smoke restored the original copy recipients and
+active state in `finally`; the version may differ when an originally absent Redis field becomes
+an explicit empty record. Typecheck, scoped lint, formatting, translation completeness and the
+production bundle budget pass (199,398 / 204,800 initial gzip bytes). Logs are in
+`storage/app/restart-2026-10-20/u013-password/quota-*.log` in the API workspace.

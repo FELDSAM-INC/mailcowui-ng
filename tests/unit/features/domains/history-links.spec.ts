@@ -15,7 +15,10 @@ import { HISTORY_KEY } from '../../../mocks/scenarios/domains-history'
 import { mountWithApp, testPlugins } from '../../support/mount'
 import { createTestRouter } from '../../support/router'
 
-afterEach(() => setSessionContext(null))
+afterEach(async () => {
+  await vi.dynamicImportSettled()
+  setSessionContext(null)
+})
 
 async function mountAt(path: string, component: object, props: Record<string, unknown> = {}) {
   const router = createTestRouter()

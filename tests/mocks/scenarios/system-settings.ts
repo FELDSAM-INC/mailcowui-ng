@@ -1,5 +1,13 @@
+import { mockDomain } from '../factories/domain'
+import { assignDomains } from './domains-base'
 // UI 013 R30: only data used by implemented settings is seeded; later slices extend this store.
-import type { IpCheckSetting, PasswordResetNotification, SettingsCapabilities } from '@/api'
+import type {
+  IpCheckSetting,
+  PasswordResetNotification,
+  SettingsCapabilities,
+  QuotaNotificationSettings,
+  QuotaNotificationRecipients,
+} from '@/api'
 
 import { settingsCapabilities } from '../factories/settings'
 import type { ScenarioDefinition } from './index'
@@ -9,12 +17,16 @@ export interface SettingsState {
   capabilities: SettingsCapabilities
   ipCheck: IpCheckSetting
   passwordReset: PasswordResetNotification
+  quota: QuotaNotificationSettings
+  quotaCopies: Record<string, QuotaNotificationRecipients>
   revision: number
 }
 export interface SettingsPatch {
   capabilities?: Partial<SettingsCapabilities>
   ipCheck?: Partial<IpCheckSetting>
   passwordReset?: Partial<PasswordResetNotification>
+  quota?: Partial<QuotaNotificationSettings>
+  quotaCopies?: Record<string, QuotaNotificationRecipients>
 }
 export function initialSettingsState(): SettingsState {
   return {
@@ -29,16 +41,61 @@ export function initialSettingsState(): SettingsState {
       passwordResetAvailable: false,
       etag: '"password-reset-1"',
     },
+    quota: {
+      sender: '',
+      subject: '',
+      htmlTemplate: '',
+      senderIsDefault: true,
+      subjectIsDefault: true,
+      htmlTemplateIsDefault: true,
+      etag: '"quota-1"',
+    },
+    quotaCopies: {
+      'example.net': {
+        domain: 'example.net',
+        recipients: ['retained@example.net'],
+        active: true,
+        etag: '"copies-net-1"',
+      },
+    },
     revision: 1,
   }
 }
 export function applySettingsPatch(state: ScenarioState, patch: SettingsPatch): void {
+  if (patch.quota) Object.assign(state.settings.quota, patch.quota)
+  if (patch.quotaCopies) Object.assign(state.settings.quotaCopies, patch.quotaCopies)
   if (patch.ipCheck) Object.assign(state.settings.ipCheck, patch.ipCheck)
   if (patch.passwordReset) Object.assign(state.settings.passwordReset, patch.passwordReset)
   if (patch.capabilities) Object.assign(state.settings.capabilities, patch.capabilities)
 }
 
 export const systemSettingsScenarios: Record<string, ScenarioDefinition> = {
+  'quota-defaults': {
+    setup: setupQuotaDomains,
+    description: 'Default quota notifications.',
+    overrides: { signedInAs: 'admin' },
+  },
+  'quota-custom': {
+    description: 'Custom quota notification.',
+    overrides: {
+      signedInAs: 'admin',
+      settings: {
+        quota: {
+          sender: 'support@example.org',
+          subject: 'Storage warning',
+          htmlTemplate: '<p>{{username}} {{percent}}</p>',
+        },
+      },
+    },
+  },
+  'quota-copies-example-org': {
+    setup: setupQuotaDomains,
+    description: 'Domain administrator quota copies.',
+    overrides: {
+      signedInAs: 'reseller',
+      accounts: { reseller: { scope: { type: 'domains', domains: ['example.org'] } } },
+    },
+  },
   'password-defaults': {
     description: 'The default password policy and reset templates.',
     overrides: { signedInAs: 'admin' },
@@ -93,4 +150,9 @@ export const systemSettingsScenarios: Record<string, ScenarioDefinition> = {
       settings: { capabilities: { licenseVerificationEnabled: false } },
     },
   },
+}
+
+function setupQuotaDomains(state: ScenarioState) {
+  state.domains = [mockDomain({ name: 'example.org' }), mockDomain({ name: 'example.net' })]
+  assignDomains(state, 'reseller', ['example.org'])
 }

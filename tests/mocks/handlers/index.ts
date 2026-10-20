@@ -1,4 +1,5 @@
 import { actingValidityProblem, impersonationHandlers } from './impersonation'
+import { settingsQuotaHandlers } from './settings-quota-notifications'
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
 import { settingsPasswordHandlers } from './settings-password'
@@ -98,6 +99,7 @@ export const areaHandlers: RequestHandler[] = [
   ...mailboxTemplateWriteHandlers,
   ...passwordPolicyHandlers,
   ...settingsPasswordHandlers,
+  ...settingsQuotaHandlers,
   ...syncJobHandlers,
   // UI 012
   ...identityProviderHandlers,

@@ -1130,5 +1130,13 @@
     "line": "Line {line}",
     "goToLine": "Go to line {line}",
     "moreErrors": "{count} more lines have errors."
+  },
+  "emailTemplate": {
+    "defaultTemplate": "Výchozí šablona",
+    "templateChanged": "Obsah šablony se změnil.",
+    "preview": "Náhled HTML šablony",
+    "previewNote": "Obrázky a odkazy jsou v tomto náhledu neaktivní. E-mailové aplikace mohou zprávu zobrazit jinak.",
+    "imageOmitted": "Obrázek se v náhledu nenačítá: {alt}",
+    "singleLine": "Zadejte předmět na jednom řádku."
   }
 }

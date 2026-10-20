@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { populateEmailPreview } from '@/features/system-settings/lib/email-html'
+import { populateEmailPreview } from '@/shared/lib/email-html'
 import { replaceResetSamples } from '@/features/system-settings/lib/email-samples'
 
 describe('isolated email preview content', () => {

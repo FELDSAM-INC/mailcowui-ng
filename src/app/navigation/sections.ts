@@ -171,7 +171,12 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
             roles: ADMIN,
           }),
           tab('fail2ban'),
-          pending('quotaNotifications', legacy('admin.quota_notifications')),
+          {
+            id: 'quotaNotifications',
+            labelKey: legacy('admin.quota_notifications'),
+            path: '/system/quota-notifications',
+            roles: ['admin'],
+          },
           pending('rspamdSettingsMap', legacy('admin.rspamd_settings_map')),
           {
             id: 'passwordSettings',

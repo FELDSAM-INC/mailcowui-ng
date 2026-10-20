@@ -1,3 +1,4 @@
+import { settingsLoginLinksScenarios } from './settings-login-links'
 import { actingScenarios } from './acting'
 import { rspamdRulesScenarios } from './settings-rspamd-rules'
 import { settingsBrandingScenarios } from './settings-branding'
@@ -165,6 +166,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...routingScenarios,
   ...systemSettingsScenarios,
   ...settingsBrandingScenarios,
+  ...settingsLoginLinksScenarios,
   // UI 011: one module per area under ./operations/ (T013).
   ...operationsScenarios,
   ...rateLimitScenarios,

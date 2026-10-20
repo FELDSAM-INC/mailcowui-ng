@@ -19,6 +19,18 @@ const items = computed(() => [
     to: '/system/customize/ui-texts',
     current: route.name === 'system-settings-ui-texts',
   },
+  {
+    id: 'login-page',
+    labelKey: legacy('admin.login_page'),
+    to: '/system/customize/login-page',
+    current: route.name === 'system-settings-sign-in-page',
+  },
+  {
+    id: 'app-links',
+    labelKey: legacy('admin.app_links'),
+    to: '/system/customize/app-links',
+    current: route.name === 'system-settings-app-links',
+  },
 ])
 </script>
 <template>

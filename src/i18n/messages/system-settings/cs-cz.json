@@ -257,6 +257,31 @@
       "supportLevel": "Support level",
       "verifyHelp": "Only the GUID is sent to the mailcow license verification service when you verify it.",
       "verifying": "Verifying the GUID…"
+    },
+    "signInPage": {
+      "description": "Choose the links and sign-in methods shown on the login page.",
+      "noSso": "This option has no effect until single sign-on is configured and available."
+    },
+    "appLinks": {
+      "description": "Manage the ordered custom links shown on login pages and in the Apps menu.",
+      "urlHelp": "Link is used while signed out. User link is used while signed in; %u is replaced with the URL-encoded username.",
+      "relativeHelp": "Use an absolute http or https URL, or a path starting with one / on this mailcow host.",
+      "sameAsLink": "Leave empty to use the same address as Link.",
+      "sameAsLinkValue": "Same as Link",
+      "preview": "User link preview for {username}:",
+      "previewInvalid": "Enter a valid link to see its preview.",
+      "builtIn": "Built-in app links",
+      "empty": "No custom app links.",
+      "row": "App link {position}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "moveUpNamed": "Move up: {name}",
+      "moveDownNamed": "Move down: {name}",
+      "moved": "Moved {name} to position {position} of {count}.",
+      "limit": "{count} of 50 custom links. Remove a link before adding another at the limit.",
+      "limitError": "Keep at most 50 custom links.",
+      "appLinkUrl": "Enter an http or https URL or a path starting with one /. Use %u only in User link. Spaces and control characters are not allowed.",
+      "singleLine": "Enter this value on one line without control characters."
     }
   }
 }

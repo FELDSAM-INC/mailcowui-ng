@@ -1,5 +1,6 @@
 import { settingsCorsHandlers } from './settings-cors'
 import { licenseHandlers } from './license'
+import { settingsLoginLinksHandlers } from './settings-login-links'
 import { globalFilterHandlers } from './settings-global-filters'
 import { actingValidityProblem, impersonationHandlers } from './impersonation'
 import { settingsQuotaHandlers } from './settings-quota-notifications'
@@ -93,6 +94,7 @@ export const areaHandlers: RequestHandler[] = [
   ...impersonationHandlers,
   ...publicConfigHandlers,
   ...settingsBrandingHandlers,
+  ...settingsLoginLinksHandlers,
   ...passkeyHandlers,
   ...apiKeyHandlers,
   ...adminHandlers,

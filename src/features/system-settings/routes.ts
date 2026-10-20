@@ -65,6 +65,18 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         children: [
           { path: '', redirect: { name: 'system-settings-logos' } },
           {
+            path: 'login-page',
+            name: 'system-settings-sign-in-page',
+            component: () => import('./pages/branding/SignInPageSettingsPage.vue'),
+            meta: { titleKey: legacy('admin.login_page') },
+          },
+          {
+            path: 'app-links',
+            name: 'system-settings-app-links',
+            component: () => import('./pages/branding/AppLinksPage.vue'),
+            meta: { titleKey: legacy('admin.app_links') },
+          },
+          {
             path: 'logos',
             name: 'system-settings-logos',
             component: () => import('./pages/branding/LogosPage.vue'),

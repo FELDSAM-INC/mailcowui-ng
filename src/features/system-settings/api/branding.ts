@@ -6,6 +6,8 @@ import {
   runMutation,
   type LogoSetting,
   type UiTextsPatch,
+  type LoginPageSettingsPatch,
+  type AppLinkSettingsPatch,
 } from '@/api'
 
 export function logoOptions(variant: LogoSetting['variant']) {
@@ -79,6 +81,39 @@ export function deleteLogo(client: QueryClient, before: LogoSetting) {
 export async function updateUiTexts(body: UiTextsPatch, ifMatch: string) {
   return requireData(
     await api.PATCH('/settings/ui-texts', {
+      body,
+      headers: { 'Content-Type': 'application/merge-patch+json', 'If-Match': ifMatch },
+    }),
+  ).data
+}
+
+export function loginPageOptions() {
+  return queryOptions({
+    queryKey: queryKeys.systemSettings.loginPage(),
+    staleTime: 30_000,
+    queryFn: async ({ signal }) =>
+      requireData(await api.GET('/settings/login-page', { signal })).data,
+  })
+}
+export function appLinksOptions() {
+  return queryOptions({
+    queryKey: queryKeys.systemSettings.appLinks(),
+    staleTime: 30_000,
+    queryFn: async ({ signal }) =>
+      requireData(await api.GET('/settings/app-links', { signal })).data,
+  })
+}
+export async function updateLoginPage(body: LoginPageSettingsPatch, ifMatch: string) {
+  return requireData(
+    await api.PATCH('/settings/login-page', {
+      body,
+      headers: { 'Content-Type': 'application/merge-patch+json', 'If-Match': ifMatch },
+    }),
+  ).data
+}
+export async function updateAppLinks(body: AppLinkSettingsPatch, ifMatch: string) {
+  return requireData(
+    await api.PATCH('/settings/app-links', {
       body,
       headers: { 'Content-Type': 'application/merge-patch+json', 'If-Match': ifMatch },
     }),

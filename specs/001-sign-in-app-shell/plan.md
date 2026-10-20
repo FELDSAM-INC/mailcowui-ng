@@ -475,12 +475,13 @@ The menu retains a Device setting checkbox so the existing automatic theme prefe
 restored after using the outside dark-mode switch. The announcement is inside the content column,
 so it cannot push the desktop sidebar's lower edge below the viewport.
 
-Unimplemented destinations are explicitly disabled, without a link action: Administrators and
-Domain administrators until UI007 is integrated, Rspamd UI, Quota notifications, Rspamd settings
-map, Password Settings, Customize, System mails and Global filter maps. UI007's two administrator
-tabs use their catalogue availability, so they become links when that feature is marked available.
-The existing `/system` overview and `/system/ip-check` remain directly addressable; the request
-did not identify an unambiguous placement for IP Check. Queue Manager also retains its direct URL.
+Unimplemented destinations are explicitly disabled, without a link action: Rspamd UI, Quota
+notifications, Rspamd settings map, Password Settings, Customize, System mails and Global filter
+maps. UI007's two administrator tabs are available. Queue Manager is linked from the System &
+Containers page header; IP Check is linked from its public-addresses panel, and links back to the
+existing System settings overview. These contextual links preserve the requested sidebar order.
+Account sections also use the shared tabs above their full-width content; mailbox-scoped account
+pages retain their mailbox context and permission checks.
 
 Implementation is on `wt/navigation`, based on `b7446038`. Validation and any remaining integration
 work are recorded with the implementation commit.
@@ -494,10 +495,6 @@ Full lint, typecheck, translation check and production build passed; initial Jav
 bytes gzipped against the 204,800-byte budget. Screenshots and logs are retained under
 `storage/app/restart-2026-10-20/navigation` in the API workspace.
 
-UI007 integration must mark both administrator catalogue entries available, use `domainAdmins`
-on its domain-administrator routes, and adjust the Access tests from three disabled tabs to one
-(Rspamd UI) and from `/api-keys` to `/administrators/admins` as the group's first destination.
-
 Integration checkpoint: the UI007 CRUD routes and quarantine scope-filter fix are now combined
 with this navigation. Both administrator tabs are available, Access opens `/administrators/admins`,
 and domain-administrator detail routes retain their correct tab. Identity transitions still unmount
@@ -507,3 +504,8 @@ checks passed. Typecheck, lint, translations, production build and bundle budget
 initial JavaScript is 202,257/204,800 bytes gzipped. Browser coverage includes following Access
 from the sidebar into account detail and measures the actual domain creation form at
 `/domains/-/new`. UI002 T044 is superseded by the owner's Home removal.
+
+The account-width and contextual-link follow-up passed 62 focused unit tests and 21 browser
+checks across all three profiles, including dark/light accessibility, reflow, touch targets,
+mailbox context, permission checks and unsaved-change prompts. Its validation evidence is in
+`storage/app/restart-2026-10-20/navigation/entry-links` in the API workspace.

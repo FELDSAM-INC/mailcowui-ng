@@ -38,8 +38,13 @@ const collections = [
   },
   // UI 006 (T008, SC-010): the quarantine of a mailbox user, 25 of 30 items.
   { url: `http://127.0.0.1:${previewPort}/ng/quarantine`, scenario: 'quarantine-mailbox-user' },
-  // UI 005: the mailbox user's account hub and available self-service sections.
-  { url: `http://127.0.0.1:${previewPort}/ng/account`, scenario: 'account-mailbox' },
+  // The account menu opens Password directly (owner's revised account navigation).
+  { url: `http://127.0.0.1:${previewPort}/ng/account/password`, scenario: 'account-mailbox' },
+  // UI 013 T176: the shared Customize layout and text-preview controls.
+  {
+    url: `http://127.0.0.1:${previewPort}/ng/system/customize/ui-texts`,
+    scenario: 'settings-admin-defaults',
+  },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

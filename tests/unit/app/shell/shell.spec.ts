@@ -244,6 +244,9 @@ describe('announcement (FR-048)', () => {
 describe('user menu (FR-042)', () => {
   it('shows the username, the role, Passkeys and Sign out', async () => {
     const { wrapper } = await mountShell({ role: 'domainAdmin', username: 'reseller' })
+    await vi.waitFor(() =>
+      expect(wrapper.find('button[aria-label="Account menu of reseller"]').exists()).toBe(true),
+    )
     const trigger = wrapper.get('button[aria-label="Account menu of reseller"]')
     expect(trigger.text()).toContain('reseller')
     await trigger.trigger('keydown', { key: 'Enter' })

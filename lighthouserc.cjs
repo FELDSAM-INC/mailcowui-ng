@@ -56,7 +56,14 @@ module.exports = {
           },
         },
         {
-          matchingUrlPattern: '/ng/account$',
+          matchingUrlPattern: '/ng/account/password$',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.8 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
+          },
+        },
+        {
+          matchingUrlPattern: '/ng/system/customize/ui-texts$',
           assertions: {
             'categories:performance': ['error', { minScore: 0.8 }],
             'categories:accessibility': ['error', { minScore: 0.9 }],

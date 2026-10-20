@@ -90,6 +90,11 @@ test('implemented settings History actions select the right target', async ({ pa
     ['system/password-policy', 'passwordPolicy', ''],
     ['system/ip-check', 'ipCheck', ''],
     ['system/global-sieve-filters', 'globalSieveFilter', 'prefilter'],
+    ['system/customize/logos', 'logo', ''],
+    ['system/customize/ui-texts', 'uiTexts', ''],
+    ['system/mass-mail/jobs', 'massMailJob', ''],
+    ['system/cors', 'legacyApiCors', ''],
+    ['system/license', 'license', ''],
   ]) {
     await page.goto(path!)
     const link = page.locator(`main a[href*="targetType=${type}"]`).first()

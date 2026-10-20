@@ -1,5 +1,6 @@
 // Public entry of UI013. Route registration may import routes.ts directly to keep pages lazy.
 export { systemSettingsRoutes } from './routes'
+export { settingsCapabilitiesOptions } from './api/capabilities'
 
 import { defineAsyncComponent } from 'vue'
 import { loadFeatureMessages } from '@/i18n'

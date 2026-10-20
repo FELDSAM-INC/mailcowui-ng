@@ -65,8 +65,19 @@ describe('DashboardPage', { timeout: 30_000 }, () => {
       const { wrapper } = await openDashboard({ scenario })
       await settle(() => expect(count('getIdentity')).toBeGreaterThan(0))
       expect(wrapper.find('a[href="/ng/operations/mail-queue"]').exists()).toBe(false)
+      expect(wrapper.find('a[href="/ng/system/license"]').exists()).toBe(false)
+      expect(count('getSettingsCapabilities')).toBe(0)
     },
   )
+
+  it.each([true, false])('offers License only when the server enables it: %s', async (enabled) => {
+    const { wrapper } = await openDashboard({
+      overrides: { settings: { capabilities: { licenseVerificationEnabled: enabled } } },
+    })
+    await settle(() => expect(count('getSettingsCapabilities')).toBe(1))
+    await settle(() => expect(wrapper.find('a[href="/ng/system/license"]').exists()).toBe(enabled))
+    expect(count('getLicenseStatus')).toBe(0)
+  })
 
   it('shows the host and every container, and pauses, resumes and refreshes live updates', async () => {
     const { wrapper } = await openDashboard()

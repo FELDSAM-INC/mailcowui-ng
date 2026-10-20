@@ -56,7 +56,7 @@ test('one MiB editor opens promptly and typed characters appear without input la
     input.addEventListener(
       'beforeinput',
       (event) => {
-        typed += (event as InputEvent).data ?? ''
+        typed += event.data ?? ''
         const expectedPrefix = '/' + typed
         const began = performance.now()
         typingSince ||= began

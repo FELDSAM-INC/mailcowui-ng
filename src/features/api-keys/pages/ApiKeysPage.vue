@@ -6,6 +6,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
+import { lt } from '@/i18n'
 import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
@@ -47,6 +48,11 @@ function clearFilters() {
         <RouterLink :to="{ name: 'api-key-create' }" :class="buttonVariants({})">
           {{ t('apiKeys.create.action') }}
         </RouterLink>
+        <RouterLink
+          :to="{ name: 'system-settings-cors' }"
+          :class="buttonVariants({ variant: 'outline' })"
+          >{{ lt('admin.cors_settings') }}</RouterLink
+        >
         <a
           href="/api/v2/docs"
           target="_blank"

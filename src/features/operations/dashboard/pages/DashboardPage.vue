@@ -4,7 +4,7 @@
 // is visible, running and interacted with (research R5); the version and update status are read
 // once per visit. A container's own address (`expand`) opens its card and focuses it; collapsing
 // it returns to the dashboard's address; a name the installation does not have is "not found".
-import { useIsFetching } from '@tanstack/vue-query'
+import { useIsFetching, useQuery } from '@tanstack/vue-query'
 import { computed, nextTick, provide, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
@@ -14,6 +14,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import { buttonVariants } from '@/shared/ui/button'
+import { settingsCapabilitiesOptions } from '@/features/system-settings'
 
 import { useMonitoringCapabilities } from '../../capabilities'
 import LiveUpdatesBar from '../../live/components/LiveUpdatesBar.vue'
@@ -32,6 +33,10 @@ const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
 const identity = useIdentityQuery()
+const settings = useQuery({
+  ...settingsCapabilitiesOptions(),
+  enabled: computed(() => identity.data.value?.role === 'admin'),
+})
 
 const capabilities = useMonitoringCapabilities()
 const live = useLiveUpdates({
@@ -119,6 +124,12 @@ function toggle(name: string) {
   <div v-else class="flex flex-col gap-6">
     <PageHeader :title="lt('debug.system_containers')">
       <template v-if="identity.data.value?.role === 'admin'" #actions>
+        <RouterLink
+          v-if="settings.data.value?.licenseVerificationEnabled"
+          :to="{ name: 'system-settings-license' }"
+          :class="buttonVariants({ variant: 'link' })"
+          >{{ lt('admin.guid_and_license') }}</RouterLink
+        >
         <RouterLink
           :to="{ name: 'operations-mail-queue' }"
           :class="buttonVariants({ variant: 'link' })"

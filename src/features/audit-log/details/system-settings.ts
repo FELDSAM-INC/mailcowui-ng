@@ -160,6 +160,8 @@ export function settingsDetailRow(
 const singletonRoutes: Record<string, string> = {
   logo: 'system-settings-logos',
   uiTexts: 'system-settings-ui-texts',
+  loginPage: 'system-settings-sign-in-page',
+  appLinks: 'system-settings-app-links',
   brandColors: 'system-settings-colours',
   passwordPolicy: 'system-settings-password-policy',
   passwordResetNotification: 'system-settings-password-policy',

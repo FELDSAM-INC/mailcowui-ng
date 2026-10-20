@@ -70,12 +70,20 @@ describe('requested application navigation', () => {
     ).toBe('oauth2Apps')
   })
 
-  it('shows unfinished destinations as disabled, without a navigable target', () => {
+  it('enables every requested sidebar destination', () => {
     const sections = sidebarSections(identity('admin')).flatMap((group) => group.items)
     const unavailable = sections.flatMap((section) => section.tabs).filter((tab) => tab.disabled)
-    expect(unavailable.map((tab) => tab.id)).toEqual(['systemMails'])
-    expect(unavailable.every((tab) => tab.to === undefined)).toBe(true)
+    expect(unavailable).toEqual([])
     expect(sections.find((section) => section.id === 'access')?.to).toBe('/administrators/admins')
+  })
+
+  it('keeps contextual CORS and License pages within their existing tabs', () => {
+    expect(
+      activeSection('/system/cors', identity('admin'))?.tabs.find((tab) => tab.current)?.id,
+    ).toBe('apiKeys')
+    expect(
+      activeSection('/system/license', identity('admin'))?.tabs.find((tab) => tab.current)?.id,
+    ).toBe('dashboard')
   })
 
   it.each(['/system/customize/logos', '/system/customize/ui-texts'])(

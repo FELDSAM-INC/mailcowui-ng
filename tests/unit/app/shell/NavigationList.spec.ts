@@ -64,7 +64,7 @@ describe('NavigationList groups', () => {
     wrapper.unmount()
   })
 
-  it('supports collapsing sections and renders unfinished destinations without hrefs', async () => {
+  it('supports collapsing sections and links to System mails', async () => {
     const wrapper = await mountList('admin')
     const section = wrapper.get('[data-nav-group="email"]')
     const trigger = section.get('button')
@@ -73,9 +73,9 @@ describe('NavigationList groups', () => {
     expect(trigger.attributes('aria-expanded')).toBe('false')
     await trigger.trigger('click')
     expect(trigger.attributes('aria-expanded')).toBe('true')
-    const pending = wrapper.get('[data-nav-item="systemMails"]')
-    expect(pending.attributes('aria-disabled')).toBe('true')
-    expect(pending.attributes('href')).toBeUndefined()
+    const mails = wrapper.get('[data-nav-item="systemMails"]')
+    expect(mails.attributes('aria-disabled')).toBeUndefined()
+    expect(mails.attributes('href')).toBe('/ng/system/mass-mail/send')
     wrapper.unmount()
   })
 })

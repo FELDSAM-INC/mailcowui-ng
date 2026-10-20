@@ -62,13 +62,6 @@ const single = (id: NavEntryId): SectionSpec => {
   const item = findEntry(id)!
   return { id, labelKey: item.labelKey, icon: item.icon, tabs: [tab(id)] }
 }
-const pending = (id: string, labelKey: TextRef): TabSpec => ({
-  id,
-  labelKey,
-  roles: ADMIN,
-  pending: true,
-})
-
 const emailRouting: SectionSpec = {
   id: 'emailRouting',
   labelKey: legacy('admin.routing'),
@@ -130,7 +123,7 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
         labelKey: legacy('debug.system_containers'),
         icon: ServerIcon,
         tabs: [
-          tab('dashboard', { matches: ['/operations/containers'] }),
+          tab('dashboard', { matches: ['/operations/containers', '/system/license'] }),
           tab('logs'),
           tab('auditLog'),
         ],
@@ -150,7 +143,7 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
             pending: findEntry('administrators')?.status !== 'available',
           }),
           tab('domainAdmins'),
-          tab('apiKeys'),
+          tab('apiKeys', { matches: ['/system/cors'] }),
           tab('identityProviders', {
             labelKey: legacy('admin.iam'),
             path: '/identity-providers/provider',

@@ -4,7 +4,19 @@
       "changedInAnotherTab": "Účet sa zmenil na inej karte.",
       "endedByServer": "Prihlásenie za iný účet sa skončilo.",
       "writeNotCarriedOut": "Vaša posledná akcia nebola vykonaná."
-    }
+    },
+    "banner": {
+      "title": "Konáte ako {username}, {role}",
+      "label": "Konáte ako",
+      "since": "Prihlásení ako {username} od {time}"
+    },
+    "role": {
+      "mailboxUser": "používateľ schránky",
+      "domainAdmin": "správca domény"
+    },
+    "return": "Späť na účet {username}",
+    "titlePrefix": "Konáte ako {username} · ",
+    "returned": "Vrátili ste sa k svojmu účtu"
   },
   "shellNotice": {
     "dismiss": "Zavrieť oznámenie"
@@ -1104,5 +1116,8 @@
       "addressGeneration": "Generátor adries",
       "yubico": "Overovacia služba Yubico"
     }
+  },
+  "userMenu": {
+    "signOutCompletely": "Úplne sa odhlásiť"
   }
 }

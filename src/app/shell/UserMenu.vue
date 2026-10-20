@@ -102,7 +102,11 @@ function onLocale(value: unknown) {
       </DropdownMenuItem>
       <DropdownMenuItem class="min-h-11" :disabled="signingOut" @select="$emit('signOut')">
         <SignOutIcon />
-        {{ signingOut ? lt('footer.loading') : t('common.signOut') }}
+        {{
+          signingOut
+            ? lt('footer.loading')
+            : t(identity.impersonation ? 'userMenu.signOutCompletely' : 'common.signOut')
+        }}
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

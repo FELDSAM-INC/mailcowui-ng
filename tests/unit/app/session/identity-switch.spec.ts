@@ -80,7 +80,7 @@ it('unmounts before cancellation/cache clearing, adopts supplied identity and to
   expect(ctx.queryClient.getQueryData(queryKeys.identity())).toEqual(identity)
   expect(store.actingOrigin).toBe('/domains?q=old')
   expect(store.identityTransition).toBe(false)
-  expect(ctx.router.currentRoute.value.name).toBe('home')
+  expect(ctx.router.currentRoute.value.name).toBe('domains')
   expect(ctx.channel.post).toHaveBeenCalledWith({ v: 1, type: 'session-changed' })
   wrapper.unmount()
 })
@@ -96,7 +96,7 @@ it('keeps a permitted route on another-tab switch, otherwise goes home, and does
   const ctx = await context('/private-admin')
   useScenario('anonymous-default', { signedInAs: 'reseller' })
   await switchIdentity({ reason: 'changedInAnotherTab', refusedWrite: true }, ctx)
-  expect(ctx.router.currentRoute.value.name).toBe('home')
+  expect(ctx.router.currentRoute.value.name).toBe('domains')
   expect(ctx.channel.post).not.toHaveBeenCalled()
   expect(useSessionStore().shellNotice).toMatchObject({
     key: 'acting.notice.changedInAnotherTab',

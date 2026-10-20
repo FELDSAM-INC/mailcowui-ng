@@ -882,6 +882,8 @@ export interface ScenarioOverrides {
 
 /** Runtime changes through `PATCH /__mock/scenarios/:id`. */
 export interface ScenarioPatch extends Omit<ScenarioOverrides, 'signedInAs'> {
+  /** UI 007: the server ends the acting session before the next operation. */
+  invalidateImpersonation?: boolean
   /** Ends the server session now, as an idle timeout would (page.clock cannot reach the mock). */
   expireSession?: boolean
   /** UI 004: stored values changed behind the app's back. */

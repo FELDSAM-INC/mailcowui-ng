@@ -8,6 +8,7 @@ import { createOpenApiHttp } from 'openapi-msw'
 import type { PendingAction, paths, Session } from '@/api'
 
 import { requestId } from '../factories/ids'
+import { permissionFlags } from '../scenarios/accounts'
 import { endSession, findAccount, type MockAccount, type ScenarioState } from '../scenarios/state'
 
 /** Typed MSW handlers for the contract's paths, on any origin. */
@@ -71,6 +72,50 @@ export function sessionAccount(state: ScenarioState): MockAccount | undefined {
   if (session.state !== 'active' && session.state !== 'restricted') return undefined
   const account = findAccount(state, session.username)
   if (account) session.state = account.pendingActions.length > 0 ? 'restricted' : 'active'
+  if (account && session.impersonation) {
+    const target = findAccount(state, session.impersonation.target.username)
+    if (!target) return undefined
+    return {
+      ...target,
+      active: true,
+      pendingActions: account.pendingActions,
+      preferences: account.preferences,
+      // API007 R18: the target's ACL does not restrict the impersonating account.
+      permissions:
+        account.role === 'admin'
+          ? permissionFlags(true)
+          : permissionFlags(
+              true,
+              Object.fromEntries(
+                [
+                  'syncjobs',
+                  'quarantine',
+                  'appPasswds',
+                  'pushover',
+                  'spamPolicy',
+                  'loginAs',
+                  'sogoAccess',
+                  'bccMaps',
+                  'filters',
+                  'ratelimit',
+                  'extendSenderAcl',
+                  'unlimitedQuota',
+                  'protocolAccess',
+                  'smtpIpAccess',
+                  'aliasDomains',
+                  'mailboxRelayhost',
+                  'domainRelayhost',
+                  'domainDesc',
+                  'aliasExternalGoto',
+                ].map((flag) => [
+                  flag,
+                  account.permissions[flag as keyof typeof account.permissions],
+                ]),
+              ),
+            ),
+      impersonation: session.impersonation,
+    }
+  }
   return account
 }
 
@@ -143,6 +188,7 @@ export function sessionBody(state: ScenarioState): Session {
       authMethod: session.authMethod,
       signedInAt: session.signedInAt,
       pendingActions: session.state === 'restricted' ? account.pendingActions : [],
+      ...(session.impersonation ? { impersonation: session.impersonation } : {}),
     }
   }
   return base

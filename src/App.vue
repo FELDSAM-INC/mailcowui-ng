@@ -33,7 +33,12 @@ const layout = computed(() => {
 installTitle(router, {
   t: (key, named) => (named ? i18n.t(key, named) : i18n.t(key)),
   pageTitle: () => branding.value.pageTitle,
-  dependencies: [() => i18n.locale.value, () => branding.value.pageTitle],
+  actingUsername: () => session.data.value?.impersonation?.target.username,
+  dependencies: [
+    () => i18n.locale.value,
+    () => branding.value.pageTitle,
+    () => session.data.value?.impersonation?.id,
+  ],
 })
 </script>
 

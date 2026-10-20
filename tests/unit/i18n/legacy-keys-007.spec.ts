@@ -20,7 +20,12 @@ it('reuses the classic account outcomes and every permission label verbatim', ()
     expect(typeof getPath(snapshot, LEGACY_TEXTS[key]!)).toBe('string')
     for (const messages of [en, cs, sk]) expect(getPath(messages, key)).toBeUndefined()
   }
-  for (const key of Object.values(outcomes)) {
+  for (const key of [
+    ...Object.values(outcomes),
+    'login.login',
+    'success.logged_in_as',
+    'acl.login_as',
+  ]) {
     expect(typeof getPath(snapshot, key)).toBe('string')
     for (const messages of [en, cs, sk]) expect(getPath(messages, key)).toBeUndefined()
   }

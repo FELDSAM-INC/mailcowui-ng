@@ -41,6 +41,9 @@
 }
 
 @theme {
+  --color-acting-bg: #fffaeb;
+  --color-acting-fg: #7a2e0e;
+  --color-acting-border: #fdb022;
   --font-*: initial;
   --font-sans:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
@@ -187,8 +190,9 @@
   :root {
     /* Height of the sticky shell header; focused elements never hide behind it (WCAG 2.4.11). */
     --header-height: 4rem;
+    --shell-sticky-height: var(--header-height);
     color-scheme: light;
-    scroll-padding-top: calc(var(--header-height) + 0.5rem);
+    scroll-padding-top: calc(var(--shell-sticky-height) + 0.5rem);
   }
 
   /* A sticky action bar at the bottom of a form or an edited section (UI 002): focused fields
@@ -198,6 +202,9 @@
   }
 
   :root.dark {
+    --color-acting-bg: #4e1d09;
+    --color-acting-fg: #fef0c7;
+    --color-acting-border: #dc6803;
     color-scheme: dark;
     --color-chart-1: #7592ff;
     --color-chart-2: #fd853a;

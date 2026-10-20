@@ -131,3 +131,26 @@ https://<MAILCOW_HOSTNAME>/ng/sign-in/sso-token?sso_token=<token>
 The token works once, within 30 seconds of issue, in either this address or the classic
 `/domainadmin?sso_token=<token>`. The app removes it from the address bar before doing anything
 else, and exchanges it only when the page is shown to the user.
+
+
+## Validation log: acting implementation checkpoint (2026-10-20)
+
+The isolated `wt/007-acting` checkpoint was based on `93a95af9`. It preserves the approved legacy
+**Login** entry label and provides a persistent acting banner, return action, complete sign-out,
+credential route restrictions and identity-safe cross-tab transitions.
+
+- 582 relevant unit tests passed across 83 files: API/session/router/shell, acting, account guards,
+  administrator/mailbox integration and passkeys. Regressions first reproduced stale mounted
+  identity/session observers, a lost post-switch notice and direct-write automatic acting expiry.
+- 27 production-browser checks passed on desktop Chromium, mobile Chromium and mobile WebKit,
+  with zero retries. Each screen check runs axe in both themes. Coverage includes exact filtered
+  return paths, failed return/retry, complete sign-out, forced/inactive targets, credential gates,
+  scoped actions, automatic expiry, cross-tab updates and stale-CSRF write refusal without replay.
+- Two session-only smoke cases passed against the local API on port 18580: admin → Alice across
+  two screens → filtered mailbox list, and admin → reseller → filtered domain-admin list. Both
+  restore and verify the original admin session in `finally`; no seeded account metadata changes.
+- Typecheck, source lint, i18n validation and production build passed. The initial JavaScript is
+  203,117 / 204,800 bytes gzipped. The custom build directory was excluded from source lint.
+- The remaining US2 acceptance matrix is explicitly listed after T064 in `tasks.md`. No physical
+  device, VoiceOver/TalkBack, one-time link, webmail-on-behalf or audit-attribution result is claimed
+  by this checkpoint.

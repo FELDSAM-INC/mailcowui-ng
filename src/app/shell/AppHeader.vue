@@ -18,7 +18,7 @@ defineExpose({ menuButton })
 
 <template>
   <header
-    class="sticky top-0 z-50 flex h-16 items-center gap-2 border-b border-gray-200 bg-white px-2 sm:px-4 dark:border-gray-800 dark:bg-gray-900"
+    class="flex h-16 items-center gap-2 border-b border-gray-200 bg-white px-2 sm:px-4 dark:border-gray-800 dark:bg-gray-900"
   >
     <button
       v-if="showMenuButton"

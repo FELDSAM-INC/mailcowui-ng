@@ -3,8 +3,9 @@
 // language. Preferences are a JSON Merge Patch with `If-Match` (412 when outdated), languages are
 // checked against the enabled ones (`422 notInList` with `allowed`), and a restricted session is
 // refused like every other operation.
-import type { IdentityProviderType, Preferences, PreferencesPatch, Writable } from '@/api'
+import type { Identity, IdentityProviderType, Preferences, PreferencesPatch, Writable } from '@/api'
 
+import { findAccount } from '../scenarios/state'
 import type { MockAccount, MockAuthMethod, ScenarioState } from '../scenarios/state'
 import { csrfProblem, http, problem, requireAccount, scenario } from './context'
 
@@ -31,23 +32,25 @@ function authenticationOf(state: ScenarioState): {
   return { method }
 }
 
+export function identityBody(state: ScenarioState, account: MockAccount): Identity {
+  return {
+    username: account.username,
+    role: account.role,
+    authentication: authenticationOf(state),
+    scope: account.scope,
+    permissions: account.permissions,
+    pendingActions: account.pendingActions,
+    preferences: effectivePreferences(state, account),
+    ...(account.impersonation ? { impersonation: account.impersonation } : {}),
+  }
+}
+
 export const identityHandlers = [
   http.get('/me', ({ response }) => {
     const state = scenario()
     const account = requireAccount(state, { allowRestricted: true })
     if (account instanceof Response) return response.untyped(account)
-    return response(200).json({
-      data: {
-        username: account.username,
-        role: account.role,
-        authentication: authenticationOf(state),
-        scope: account.scope,
-        permissions: account.permissions,
-        pendingActions: account.pendingActions,
-        preferences: effectivePreferences(state, account),
-        ...(account.impersonation ? { impersonation: account.impersonation } : {}),
-      },
-    })
+    return response(200).json({ data: identityBody(state, account) })
   }),
 
   http.patch('/me/preferences', async ({ request, response }) => {
@@ -56,6 +59,9 @@ export const identityHandlers = [
     if (refused) return response.untyped(refused)
     const account = requireAccount(state)
     if (account instanceof Response) return response.untyped(account)
+    const preferenceOwner = state.session.impersonation
+      ? findAccount(state, state.session.impersonation.impersonator.username)!
+      : account
     const ifMatch = request.headers.get('if-match')
     if (ifMatch && ifMatch !== '*' && ifMatch !== account.preferences.etag) {
       return response.untyped(problem(412, null))
@@ -73,14 +79,14 @@ export const identityHandlers = [
         }),
       )
     }
-    account.preferences = {
+    preferenceOwner.preferences = {
       language: body.language ?? effectivePreferences(state, account).language,
       theme: body.theme ?? account.preferences.theme,
       etag: `"pref-v${++version}"`,
     }
     return response(200).json(
-      { data: account.preferences },
-      { headers: { ETag: account.preferences.etag } },
+      { data: preferenceOwner.preferences },
+      { headers: { ETag: preferenceOwner.preferences.etag } },
     )
   }),
 ]

@@ -14,6 +14,7 @@ import {
 } from './csrf'
 import type { paths } from './generated/schema'
 import { ApiProblem, peekProblemName, problemFromResponse } from './problem'
+import { reportSessionProblem } from './query/client'
 
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const CSRF_HEADER = 'X-CSRF-Token'
@@ -121,7 +122,12 @@ const activityMiddleware: Middleware = {
 
 const problemMiddleware: Middleware = {
   async onResponse({ response }) {
-    if (response.status >= 400) throw await problemFromResponse(response)
+    if (response.status >= 400) {
+      const problem = await problemFromResponse(response)
+      // Acting can end on any operation, including direct versioned writes outside query caches.
+      if (problem.is('impersonation-ended')) reportSessionProblem(problem)
+      throw problem
+    }
     return undefined
   },
   onError({ error }) {

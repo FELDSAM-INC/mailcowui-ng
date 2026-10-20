@@ -26,6 +26,8 @@ export type LandingIntent = 'default' | 'requested'
 export const DEFAULT_IDLE_TIMEOUT = 10_800
 
 export const useSessionStore = defineStore('session', () => {
+  /** Rebind persistent shell observers after their old Query objects have been removed. */
+  const identityGeneration = ref(0)
   const identityTransition = ref(false)
   const identityTransitionProblem = shallowRef<ApiProblem | null>(null)
   const actingOrigin = ref<string | null>(null)
@@ -65,6 +67,7 @@ export const useSessionStore = defineStore('session', () => {
 
   /** Forgets everything of the previous session (sign-out, session end). */
   function reset() {
+    identityGeneration.value++
     identityTransition.value = false
     identityTransitionProblem.value = null
     actingOrigin.value = null
@@ -76,6 +79,7 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   return {
+    identityGeneration,
     identityTransition,
     identityTransitionProblem,
     actingOrigin,

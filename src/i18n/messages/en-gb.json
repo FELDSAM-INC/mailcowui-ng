@@ -4,7 +4,19 @@
       "changedInAnotherTab": "The account changed in another tab.",
       "endedByServer": "Acting as another account has ended.",
       "writeNotCarriedOut": "Your last action was not carried out."
-    }
+    },
+    "banner": {
+      "title": "Acting as {username}, {role}",
+      "label": "Acting as",
+      "since": "Signed in as {username} since {time}"
+    },
+    "role": {
+      "mailboxUser": "mailbox user",
+      "domainAdmin": "domain administrator"
+    },
+    "return": "Return to {username}",
+    "titlePrefix": "Acting as {username} · ",
+    "returned": "Returned to your account"
   },
   "shellNotice": {
     "dismiss": "Dismiss notice"
@@ -1104,5 +1116,8 @@
       "addressGeneration": "Address generator",
       "yubico": "Yubico verification service"
     }
+  },
+  "userMenu": {
+    "signOutCompletely": "Sign out completely"
   }
 }

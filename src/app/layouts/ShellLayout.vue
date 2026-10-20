@@ -28,6 +28,8 @@ import SkipLink from '../shell/SkipLink.vue'
 import UserMenu from '../shell/UserMenu.vue'
 import IdentityTransition from '../shell/IdentityTransition.vue'
 import ShellNotice from '../shell/ShellNotice.vue'
+import StickyHeader from '../shell/StickyHeader.vue'
+const ActingBanner = defineAsyncComponent(() => import('../shell/ActingBanner.vue'))
 import { useSessionStore } from '../session/store'
 import NoAccessState from '../states/NoAccessState.vue'
 
@@ -36,7 +38,7 @@ const session = useSessionStore()
 const route = useRoute()
 const wide = useMediaQuery('(min-width: 1024px)')
 const identityQuery = useIdentityQuery()
-const identity = computed(() => identityQuery.data.value)
+const identity = computed(() => (session.identityTransition ? undefined : identityQuery.data.value))
 const allowed = computed(() => routeAccess(route, identity.value) === 'allowed')
 
 const drawerOpen = ref(false)
@@ -54,23 +56,26 @@ const statusMessages = useStatusMessage().messages
 <template>
   <div class="flex min-h-dvh flex-col bg-gray-50 dark:bg-gray-950">
     <SkipLink />
-    <AppHeader
-      ref="header"
-      :show-menu-button="!wide"
-      :menu-open="drawerOpen"
-      @open-menu="drawerOpen = true"
-    >
-      <template #actions>
-        <ThemeToggle />
-        <AppsMenu v-if="identity" :username="identity.username" />
-        <UserMenu
-          v-if="identity"
-          :identity="identity"
-          :signing-out="signingOut"
-          @sign-out="signOut"
-        />
-      </template>
-    </AppHeader>
+    <StickyHeader>
+      <ActingBanner v-if="identity?.impersonation" :impersonation="identity.impersonation" />
+      <AppHeader
+        ref="header"
+        :show-menu-button="!wide"
+        :menu-open="drawerOpen"
+        @open-menu="drawerOpen = true"
+      >
+        <template #actions>
+          <ThemeToggle />
+          <AppsMenu v-if="identity" :username="identity.username" />
+          <UserMenu
+            v-if="identity"
+            :identity="identity"
+            :signing-out="signingOut"
+            @sign-out="signOut"
+          />
+        </template>
+      </AppHeader>
+    </StickyHeader>
     <NavigationDrawer
       v-if="!wide"
       v-model:open="drawerOpen"
@@ -81,7 +86,7 @@ const statusMessages = useStatusMessage().messages
       <aside
         v-if="wide"
         data-sidebar-scroll
-        class="custom-scrollbar sticky top-16 h-[calc(100dvh-4rem)] w-72 shrink-0 self-start overflow-y-auto overscroll-contain border-e border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+        class="custom-scrollbar sticky top-(--shell-sticky-height) h-[calc(100dvh-var(--shell-sticky-height))] w-72 shrink-0 self-start overflow-y-auto overscroll-contain border-e border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
       >
         <NavigationList :identity="identity" />
       </aside>

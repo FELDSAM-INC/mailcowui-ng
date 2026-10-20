@@ -37,7 +37,12 @@ export function useSectionAccess(id: () => AccountSectionId | null) {
 
   /** Whether the section may change values (own context: visible; mailbox context: change). */
   const canChange = computed(() =>
-    context.kind.value === 'own' ? own.value === 'visible' : mailbox.value.mode === 'change',
+    identity.data.value?.impersonation &&
+    ['password', 'twoFactor', 'recoveryEmail'].includes(id() ?? '')
+      ? false
+      : context.kind.value === 'own'
+        ? own.value === 'visible'
+        : mailbox.value.mode === 'change',
   )
 
   return { identity, capabilities, context, own, mailbox, canChange }

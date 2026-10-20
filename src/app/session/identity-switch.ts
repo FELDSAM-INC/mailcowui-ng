@@ -2,11 +2,12 @@
 import { nextTick } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 import { problemOf, queryKeys, refreshCsrfToken, setCsrfToken, type Identity } from '@/api'
-import { lt } from '@/i18n'
+import { i18n, lt } from '@/i18n'
 import { clearAllDrafts, setDraftOwner } from '@/shared/composables/draft-registry'
 import { settleConfirm } from '@/shared/composables/useConfirm'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { routeAccess } from '../router/guards'
+import { defaultLandingPath } from '../navigation/landing'
 import { focusPageHeadingWhenReady } from '../router/focus'
 import { acceptReturnTo } from '../router/return-to'
 import { sessionContext, type SessionContext } from './context'
@@ -26,6 +27,8 @@ export interface IdentitySwitch {
   identity?: Identity
   csrfToken?: string
   refusedWrite?: boolean
+  /** Captured when the user chooses the action, before the server answers; memory only. */
+  origin?: string
 }
 let running: Promise<void> | null = null
 let stopFocus: (() => void) | null = null
@@ -43,7 +46,8 @@ export function switchIdentity(options: IdentitySwitch, context = sessionContext
   const store = useSessionStore()
   const current = context.router.currentRoute.value.fullPath
   const origin = store.actingOrigin
-  if (options.reason === 'actingStarted') store.actingOrigin = current
+  if (options.reason === 'actingStarted')
+    store.actingOrigin = acceptReturnTo(options.origin, context.router) ?? current
   else store.actingOrigin = null
   pending = { options, context, origin, current }
   running = run(pending).finally(() => {
@@ -81,6 +85,8 @@ async function run(operation: NonNullable<typeof pending>): Promise<void> {
     ctx.queryClient.setQueryData(queryKeys.identity(), identity)
     setDraftOwner(identity.username)
     await ctx.queryClient.fetchQuery({ ...sessionQuery(), retry: false })
+    store.identityGeneration++
+    await nextTick()
     if (options.reason !== 'changedInAnotherTab')
       ctx.channel.post({ v: 1, type: 'session-changed' })
     let target: RouteLocationRaw = { name: 'home' }
@@ -99,6 +105,16 @@ async function run(operation: NonNullable<typeof pending>): Promise<void> {
     const resolved = ctx.router.resolve(target)
     if (!resolved.matched.length || routeAccess(resolved, identity) !== 'allowed')
       target = { name: 'home' }
+    // Resolve the working section before showing a notice: LandingPage's follow-up redirect
+    // would otherwise dismiss it immediately after the identity transition.
+    if (ctx.router.resolve(target).name === 'home') {
+      const landing = defaultLandingPath(identity)
+      if (
+        ctx.router.getRoutes().some((route) => route.path === landing) &&
+        routeAccess(ctx.router.resolve(landing), identity) === 'allowed'
+      )
+        target = landing
+    }
     await ctx.router.replace(target)
     if (options.reason === 'changedInAnotherTab')
       store.shellNotice = {
@@ -107,8 +123,9 @@ async function run(operation: NonNullable<typeof pending>): Promise<void> {
       }
     else if (options.reason === 'actingEndedByServer')
       store.shellNotice = { key: 'acting.notice.endedByServer', refusedWrite: true }
-    else if (options.reason === 'actingStarted' || options.reason === 'actingEnded')
+    else if (options.reason === 'actingStarted')
       announce(lt('success.logged_in_as', identity.username))
+    else if (options.reason === 'actingEnded') announce(i18n.global.t('acting.returned'))
     else if (options.reason === 'selfRenamed') announce(lt('success.admin_modified'))
     store.identityTransition = false
     pending = null

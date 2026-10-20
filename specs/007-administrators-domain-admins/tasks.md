@@ -277,23 +277,45 @@ the previous identity is shown after either switch, and that the user lands on t
   - FR-054: starting acting in one tab shows the banner and the target's view in the second tab without a reload, and returning removes it there; with the second tab in the background, bringing it to the front shows the current identity without any request on focus;
   - US2-AS10, FR-053 and SC-004: with a form changed in the second tab, `startImpersonationOutOfBand()`, then saving in the second tab: the change is not carried out, the tab explains that the account changed in another tab, then shows the banner and the target's view; `mockApi.requests()` holds the one refused write and no replay;
   - FR-052: the second tab shows no data of the previous identity after either switch.
-- [ ] T053 [P] [US2] Write `tests/unit/features/acting/eligibility.spec.ts`, table-driven over data-model §2: roles × target kinds × acting or not × pending actions × `loginAs` × domain in or out of scope; administrators never as targets.
+- [x] T053 [P] [US2] Write `tests/unit/features/acting/eligibility.spec.ts`, table-driven over data-model §2: roles × target kinds × acting or not × pending actions × `loginAs` × domain in or out of scope; administrators never as targets.
 - [ ] T054 [P] [US2] Write `tests/unit/app/shell/ActingBanner.spec.ts` and `tests/unit/app/router/title-acting.spec.ts` (research R7): a `<section>` named by its title; the target, role, impersonator and start time (time only today, date and time otherwise, in the user's locale); the return button's label and size classes; the address split into a shrinking local part and a fixed `@domain`, other usernames truncated at the end; the toggle with `aria-expanded` and the full text as accessible name; no live region inside; the token classes; rendered by both layouts only while acting; the title prefix only while acting.
 - [ ] T055 [P] [US2] Write `tests/unit/features/acting/SignInAsAction.spec.ts`, `tests/unit/features/acting/useActingState.spec.ts` and `tests/unit/features/acting/ActingUnavailableNotice.spec.ts`: nothing rendered when `canSignInAs` is false; the origin recorded before the request; `startImpersonation` with `role` and `username`; on `201`, `switchIdentity({ reason: 'actingStarted', identity, csrfToken })`; refusals mapped to their messages; the notice text and its association with the disabled control; a `not-allowed-while-impersonating` problem from a credential form shows the same text (FR-049).
-- [ ] T056 [P] [US2] Write `tests/unit/app/shell/UserMenu-acting.spec.ts`: "Sign out completely" while acting, "Sign out" otherwise, both calling UI 001's sign-out.
-- [ ] T057 [P] [US2] Write `tests/smoke/acting.smoke.spec.ts`: as `admin`, "Sign in as" `alice@example.org` from the mailbox list, see the banner on two screens, return to the list with its search; "Sign in as" `reseller` from the domain administrator list and return.
+- [x] T056 [P] [US2] Write `tests/unit/app/shell/UserMenu-acting.spec.ts`: "Sign out completely" while acting, "Sign out" otherwise, both calling UI 001's sign-out.
+- [x] T057 [P] [US2] Write `tests/smoke/acting.smoke.spec.ts`: as `admin`, "Sign in as" `alice@example.org` from the mailbox list, see the banner on two screens, return to the list with its search; "Sign in as" `reseller` from the domain administrator list and return.
 
 ### Implementation for User Story 2
 
-- [ ] T058 [US2] Implement `src/features/acting/api.ts` (`startImpersonation`, `endImpersonation`), `src/features/acting/eligibility.ts`, `src/features/acting/composables/useActingState.ts` and `src/features/acting/index.ts`, so that T053 and part of T055 pass.
-- [ ] T059 [P] [US2] Implement `src/features/acting/components/SignInAsAction.vue` (a menu item or button variant by prop) and `src/features/acting/components/ActingUnavailableNotice.vue`, so that T055 passes.
-- [ ] T060 [P] [US2] Implement `src/app/shell/ActingBanner.vue` with the `ResizeObserver` that sets `--shell-sticky-height`, place it at the top of the sticky region in `src/app/layouts/ShellLayout.vue` and `src/app/layouts/AuthLayout.vue`, and add the acting prefix in `src/app/router/title.ts`, so that T054 passes.
-- [ ] T061 [US2] Wire "Return to {impersonator}" in `src/app/shell/ActingBanner.vue` (`endImpersonation`, then `switchIdentity({ reason: 'actingEnded' })`; a network failure keeps acting and shows a retry) and "Sign out completely" in `src/app/shell/UserMenu.vue`, so that T056 passes.
-- [ ] T062 [US2] Add the entry points (FR-041): `SignInAsAction` in `src/features/administrators/components/AccountActionsMenu.vue` (domain administrators only) and in the header actions of `src/features/administrators/pages/DomainAdminDetailPage.vue`; and in UI 003's designated action areas `src/features/mailboxes/components/list/MailboxRowActions.vue` and the header of `src/features/mailboxes/pages/MailboxDetailPage.vue`, passing the mailbox's address and domain.
-- [ ] T063 [US2] Make the credential controls unavailable while acting (FR-049) with `useActingState()` and `ActingUnavailableNotice`: UI 001's `src/features/passkeys/pages/PasskeysPage.vue`, `src/features/passkeys/components/AddPasskeyForm.vue`, `src/features/passkeys/components/PasskeyCard.vue` and `src/features/passkeys/components/RenamePasskeyDialog.vue`; UI 005's `src/features/account/components/password/OwnPasswordForm.vue`, `src/features/account/components/two-factor/SecondFactorList.vue`, `src/features/account/components/two-factor/AddSecondFactorMenu.vue`, `src/features/account/components/two-factor/TurnOffTwoFactorDialog.vue`, `src/features/account/pages/AddSecondFactorPage.vue` and `src/features/account/components/recovery/RecoveryEmailForm.vue`. Map `not-allowed-while-impersonating` from these screens to the same text.
+- [x] T058 [US2] Implement `src/features/acting/api.ts` (`startImpersonation`, `endImpersonation`), `src/features/acting/eligibility.ts`, `src/features/acting/composables/useActingState.ts` and `src/features/acting/index.ts`, so that T053 and part of T055 pass.
+- [x] T059 [P] [US2] Implement `src/features/acting/components/SignInAsAction.vue` (a menu item or button variant by prop) and `src/features/acting/components/ActingUnavailableNotice.vue`, so that T055 passes.
+- [x] T060 [P] [US2] Implement `src/app/shell/ActingBanner.vue` with the `ResizeObserver` that sets `--shell-sticky-height`, place it at the top of the sticky region in `src/app/layouts/ShellLayout.vue` and `src/app/layouts/AuthLayout.vue`, and add the acting prefix in `src/app/router/title.ts`, so that T054 passes.
+- [x] T061 [US2] Wire "Return to {impersonator}" in `src/app/shell/ActingBanner.vue` (`endImpersonation`, then `switchIdentity({ reason: 'actingEnded' })`; a network failure keeps acting and shows a retry) and "Sign out completely" in `src/app/shell/UserMenu.vue`, so that T056 passes.
+- [x] T062 [US2] Add the entry points (FR-041): `SignInAsAction` in `src/features/administrators/components/AccountActionsMenu.vue` (domain administrators only) and in the header actions of `src/features/administrators/pages/DomainAdminDetailPage.vue`; and in UI 003's designated action areas `src/features/mailboxes/components/list/MailboxRowActions.vue` and the header of `src/features/mailboxes/pages/MailboxDetailPage.vue`, passing the mailbox's address and domain.
+- [x] T063 [US2] Make the credential controls unavailable while acting (FR-049) with `useActingState()` and `ActingUnavailableNotice`: UI 001's `src/features/passkeys/pages/PasskeysPage.vue`, `src/features/passkeys/components/AddPasskeyForm.vue`, `src/features/passkeys/components/PasskeyCard.vue` and `src/features/passkeys/components/RenamePasskeyDialog.vue`; UI 005's `src/features/account/components/password/OwnPasswordForm.vue`, `src/features/account/components/two-factor/SecondFactorList.vue`, `src/features/account/components/two-factor/AddSecondFactorMenu.vue`, `src/features/account/components/two-factor/TurnOffTwoFactorDialog.vue`, `src/features/account/pages/AddSecondFactorPage.vue` and `src/features/account/components/recovery/RecoveryEmailForm.vue`. Map `not-allowed-while-impersonating` from these screens to the same text.
 - [ ] T064 [US2] Translations for US2: first add `success.logged_in_as` and `acl.login_as` to `tests/unit/i18n/legacy-keys-007.spec.ts` (must fail); then add the new strings of the form map, never machine-translated, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`: the `acting.*` messages (banner title and line, role names, return, toggle, title prefix, announcements, unavailable reason, and "Sign in as" unless deviation 3 is decided for `login.login`) and `userMenu.signOutCompletely`. The `loginAs` flag in `problem.permission-flag-required` is named with the legacy `acl.login_as`, and a switch announces the legacy `success.logged_in_as` with the new username; neither gets a `legacy-map.json` entry. The test and `npm run i18n:check` must pass.
 
-**Checkpoint**: US1 and US2 work on their own; acting is complete except webmail (US6).
+**Implementation checkpoint (2026-10-20)**: the acting entry/return flow is implemented and
+validated in `tests/e2e/acting/acting.spec.ts` (27 cases across three profiles) and
+`tests/smoke/acting.smoke.spec.ts` (two local real-API flows). T063 is enforced at the credential
+route boundaries: `AccountLayout` does not mount password, two-factor or recovery-email pages,
+and `PasskeysPage` does not request or render credential controls. This also removes stale forms
+when the identity changes. `useSectionAccess` independently refuses the corresponding writes.
+`StickyHeader` owns T060's combined header measurement. Entry actions retain the approved legacy
+`login.login` label. The existing legacy access-denied mapping is preserved for permission errors.
+
+T048–T052, T054–T055 and T064 remain open for their complete listed acceptance matrix. Current
+coverage includes forced/inactive mailbox targets, failed return and retry, sign-out completely,
+credential route gates, scoped entry visibility, domain-admin list/detail entry, translated
+409/403/404 refusal unit checks, server-ended direct writes without replay, exact in-memory return
+paths, another tab adopting both switches, stale-CSRF refusal, private-cache clearing and CSRF
+exclusion. Remaining explicit checks include long-name/focus behavior, locale-specific banner
+dates, all banner scroll contexts, preferences surviving return, inactive-domain/no-domain target
+fixtures, original-actor deactivation and removed-origin fallback browser cases, and the full
+mock credential-refusal/effective-identity matrix. T064's new text exists in all three locales;
+the final matrix and the task's flag-specific denial wording still need reconciliation with the
+approved verbatim legacy mapping.
+
+**Full US2 checkpoint remains pending** until those open acceptance tasks are completed; webmail
+on behalf remains US6.
 
 ---
 

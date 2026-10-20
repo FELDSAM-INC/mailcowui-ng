@@ -1,3 +1,4 @@
+import { actingScenarios } from './acting'
 import {
   applySettingsPatch,
   initialSettingsState,
@@ -110,6 +111,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...settingsRspamdScenarios,
   ...baseScenarios,
   ...administratorScenarios,
+  ...actingScenarios,
   ...signInScenarios,
   ...passkeySignInScenarios,
   ...navigationScenarios,
@@ -277,6 +279,8 @@ export function applyOverrides(
   }
   if (overrides.session) state.session = { ...state.session, ...overrides.session }
   if (overrides.expireSession) endSession(state)
+  if (overrides.invalidateImpersonation !== undefined)
+    state.invalidateImpersonation = overrides.invalidateImpersonation
 }
 
 /** Creates a fresh, isolated state for a registered scenario name plus overrides. */

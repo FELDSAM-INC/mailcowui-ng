@@ -4,7 +4,19 @@
       "changedInAnotherTab": "Účet se změnil v jiné kartě.",
       "endedByServer": "Přihlášení za jiný účet skončilo.",
       "writeNotCarriedOut": "Vaše poslední akce nebyla provedena."
-    }
+    },
+    "banner": {
+      "title": "Jednáte jako {username}, {role}",
+      "label": "Jednáte jako",
+      "since": "Přihlášeni jako {username} od {time}"
+    },
+    "role": {
+      "mailboxUser": "uživatel schránky",
+      "domainAdmin": "správce domény"
+    },
+    "return": "Zpět na účet {username}",
+    "titlePrefix": "Jednáte jako {username} · ",
+    "returned": "Vrátili jste se ke svému účtu"
   },
   "shellNotice": {
     "dismiss": "Zavřít oznámení"
@@ -1104,5 +1116,8 @@
       "addressGeneration": "Generátor adres",
       "yubico": "Ověřovací služba Yubico"
     }
+  },
+  "userMenu": {
+    "signOutCompletely": "Úplně se odhlásit"
   }
 }

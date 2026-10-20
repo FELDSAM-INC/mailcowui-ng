@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { SignInAsAction } from '@/features/acting'
 import { lt } from '@/i18n'
 import { HorizontalDotsIcon } from '@/shared/icons'
 import {
@@ -60,6 +61,11 @@ async function run(action: 'activate' | 'deactivate' | 'suspendSecondFactors' | 
           @select="run('suspendSecondFactors')"
           >{{ lt('tfa.disable_tfa') }}</DropdownMenuItem
         >
+        <SignInAsAction
+          v-if="'domains' in account"
+          menu
+          :target="{ kind: 'domainAdmin', username: account.username }"
+        />
         <slot />
         <DropdownMenuItem
           class="min-h-11"

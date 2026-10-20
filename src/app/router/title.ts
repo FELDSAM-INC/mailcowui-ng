@@ -11,14 +11,17 @@ export interface TitleSources {
   pageTitle: () => string
   /** Changes that must recompute the title: the language and the configuration. */
   dependencies: WatchSource[]
+  actingUsername?: () => string | undefined
 }
 
 export function documentTitle(route: RouteLocationNormalizedLoaded, sources: TitleSources) {
   const site = sources.pageTitle()
   const ref = route.meta.titleKey
-  if (!ref) return site
-  const page = resolveText(ref, (key) => sources.t(key))
-  return sources.t('common.documentTitle', { page, site })
+  const title = ref
+    ? sources.t('common.documentTitle', { page: resolveText(ref, (key) => sources.t(key)), site })
+    : site
+  const username = sources.actingUsername?.()
+  return username ? sources.t('acting.titlePrefix', { username }) + title : title
 }
 
 export function installTitle(router: Router, sources: TitleSources): () => void {

@@ -1,3 +1,4 @@
+import { actingValidityProblem, impersonationHandlers } from './impersonation'
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
 import { settingsPasswordHandlers } from './settings-password'
@@ -77,6 +78,7 @@ import { transportHandlers } from './transports'
 export const areaHandlers: RequestHandler[] = [
   ...authHandlers,
   ...identityHandlers,
+  ...impersonationHandlers,
   ...publicConfigHandlers,
   ...passkeyHandlers,
   ...apiKeyHandlers,
@@ -230,6 +232,9 @@ export function createHandlers(stateResolver: StateResolver): RequestHandler[] {
       const delay = state.delays[match.operationId]
       if (delay) await new Promise((resolve) => setTimeout(resolve, delay))
       const response =
+        (match.operationId === 'endImpersonation' || match.operationId === 'deleteSession'
+          ? null
+          : actingValidityProblem(state, match.pathTemplate)) ??
         injectedFailure(state, match) ??
         (await withScenario(state, () => getResponse(areaHandlers, request.clone())))
       if (!response) return fail(match.operationId, [`no mock handler for ${match.operationId}`])

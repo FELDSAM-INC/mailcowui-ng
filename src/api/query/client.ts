@@ -30,6 +30,7 @@ export interface SessionReactions {
 }
 
 let reactions: SessionReactions | null = null
+const endedActingProblems = new WeakSet<ApiProblem>()
 
 /** Registered by the session module at start; tests pass their own or null. */
 export function setSessionReactions(next: SessionReactions | null): void {
@@ -42,8 +43,11 @@ export function setSessionReactions(next: SessionReactions | null): void {
  */
 export function reportSessionProblem(error: unknown): void {
   if (!(error instanceof ApiProblem) || !reactions) return
-  if (error.is('impersonation-ended')) reactions.impersonationEnded?.(error)
-  else if (error.is('unauthenticated')) reactions.unauthenticated(error)
+  if (error.is('impersonation-ended')) {
+    if (endedActingProblems.has(error)) return
+    endedActingProblems.add(error)
+    reactions.impersonationEnded?.(error)
+  } else if (error.is('unauthenticated')) reactions.unauthenticated(error)
   else if (error.is('identity-provider-session-ended')) {
     if (reactions.identityProviderSessionEnded) reactions.identityProviderSessionEnded(error)
     else reactions.unauthenticated(error)

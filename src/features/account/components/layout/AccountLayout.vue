@@ -7,6 +7,8 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute } from 'vue-router'
 
+import { ActingUnavailableNotice } from '@/features/acting'
+import PageHeader from '@/shared/components/PageHeader.vue'
 import { problemOf } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import NoAccessState from '@/app/states/NoAccessState.vue'
@@ -28,6 +30,12 @@ const sectionId = computed(() => route.meta.accountSection ?? null)
 const section = computed(() => (sectionId.value ? findSection(sectionId.value) : null))
 
 const offered = useOfferedSections()
+const actingRestricted = computed(
+  () =>
+    !!identity.value?.impersonation &&
+    !!sectionId.value &&
+    ['password', 'twoFactor', 'recoveryEmail'].includes(sectionId.value),
+)
 
 const state = computed(() => {
   if (!section.value) return 'visible'
@@ -40,7 +48,12 @@ const state = computed(() => {
   <div class="flex w-full min-w-0 flex-col gap-6">
     <SectionNav :sections="offered" :label="lt('header.user_settings')" />
     <div data-account-content class="w-full min-w-0">
-      <NoAccessState v-if="state === 'hidden'" :reason="section?.noAccessReason" />
+      <section v-if="actingRestricted" class="flex flex-col gap-4">
+        <PageHeader
+          :title="section ? resolveText(section.title, t) : ''"
+        /><ActingUnavailableNotice />
+      </section>
+      <NoAccessState v-else-if="state === 'hidden'" :reason="section?.noAccessReason" />
       <section v-else-if="state === 'unknown'" class="flex flex-col gap-3">
         <h1
           tabindex="-1"

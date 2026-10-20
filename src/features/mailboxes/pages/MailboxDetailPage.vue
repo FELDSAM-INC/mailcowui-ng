@@ -14,6 +14,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router'
 
+import { SignInAsAction } from '@/features/acting'
 import { isApiProblem, problemOf, queryKeys } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import { canAccess } from '@/app/navigation/visibility'
@@ -201,6 +202,10 @@ const subtitle = computed(() => {
     <template v-if="!showOnly">
       <PageHeader :title="lt('edit.mailbox')" :description="subtitle">
         <template #actions>
+          <SignInAsAction
+            v-if="!editing"
+            :target="{ kind: 'mailboxUser', address: mailbox.address, domain: mailbox.domain }"
+          />
           <HistoryLink :target-id="mailbox.address" :allowed="historyAllowed" />
           <!-- UI 008 (FR-004): the mailbox's sync jobs, for whoever may open them. -->
           <MailboxSyncJobsLink :address="mailbox.address" />

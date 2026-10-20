@@ -5,6 +5,7 @@
 // features add theirs (data-model §8).
 import { RouterLink } from 'vue-router'
 
+import { SignInAsAction } from '@/features/acting'
 import { lt } from '@/i18n'
 import { PencilIcon, TrashIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -25,6 +26,9 @@ const emit = defineEmits<{ remove: [mailbox: Mailbox, trigger: HTMLElement] }>()
       {{ lt('mailbox.edit') }}
       <span class="sr-only">{{ readableAddress(mailbox) }}</span>
     </RouterLink>
+    <SignInAsAction
+      :target="{ kind: 'mailboxUser', address: mailbox.address, domain: mailbox.domain }"
+    />
     <button
       v-if="removable"
       type="button"

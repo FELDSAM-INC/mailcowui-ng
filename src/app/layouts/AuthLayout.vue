@@ -2,11 +2,17 @@
 // The layout of the sign-in flow (research R4: adapted from TailAdmin's AuthLayout): the
 // announcement, the language and theme choices (FR-058; on the pending-actions screen they apply
 // on this device only), a centred column for the page and the operator's footer.
+import { defineAsyncComponent } from 'vue'
+import { useIdentityQuery, useSessionQuery } from '../session/queries'
+import StickyHeader from '../shell/StickyHeader.vue'
 import { RouterView } from 'vue-router'
 import IdentityTransition from '../shell/IdentityTransition.vue'
 import ShellNotice from '../shell/ShellNotice.vue'
 import { useSessionStore } from '../session/store'
 const session = useSessionStore()
+const routeSession = useSessionQuery()
+const identity = useIdentityQuery(() => !!routeSession.data.value?.impersonation)
+const ActingBanner = defineAsyncComponent(() => import('../shell/ActingBanner.vue'))
 
 import LanguageSelect from '../preferences/LanguageSelect.vue'
 import ThemeSelect from '../preferences/ThemeSelect.vue'
@@ -19,6 +25,9 @@ import SkipLink from '../shell/SkipLink.vue'
 <template>
   <div class="flex min-h-dvh flex-col bg-gray-50 dark:bg-gray-950">
     <SkipLink />
+    <StickyHeader v-if="identity.data.value?.impersonation"
+      ><ActingBanner :impersonation="identity.data.value.impersonation"
+    /></StickyHeader>
     <AnnouncementBanner />
     <div class="flex flex-wrap items-center justify-end gap-3 px-4 pt-3 sm:px-6">
       <LanguageSelect />

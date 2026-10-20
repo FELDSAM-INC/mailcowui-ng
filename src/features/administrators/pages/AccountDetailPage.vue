@@ -14,6 +14,7 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { activeAdminCountOptions, useAccount, type AccountRole, type ManagedAccount } from '../api'
+import { SignInAsAction } from '@/features/acting'
 import AccountActionsMenu from '../components/AccountActionsMenu.vue'
 import AccountSection from '../components/AccountSection.vue'
 import PermissionsSection from '../components/PermissionsSection.vue'
@@ -152,7 +153,9 @@ async function action(name: 'activate' | 'deactivate' | 'suspendSecondFactors' |
         ><HistoryLink
           :target-type="role"
           :target-id="account.username"
-          :allowed="allowed" /><AccountActionsMenu
+          :allowed="allowed" /><SignInAsAction
+          v-if="role === 'domainAdmin' && !editing"
+          :target="{ kind: 'domainAdmin', username: account.username }" /><AccountActionsMenu
           v-if="allowed"
           :account="account"
           :own="own"

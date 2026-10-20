@@ -66,10 +66,20 @@ export function cachedIdentity(queryClient: QueryClient): Identity | undefined {
 }
 
 export function useSessionQuery() {
-  return useQuery(sessionQuery())
+  const store = useSessionStore()
+  return useQuery(
+    computed(() => ({ ...sessionQuery(), meta: { identityGeneration: store.identityGeneration } })),
+  )
 }
 
 /** The identity, fetched only for active or restricted sessions. */
 export function useIdentityQuery(enabled: MaybeRefOrGetter<boolean> = true) {
-  return useQuery({ ...identityQuery(), enabled: computed(() => toValue(enabled)) })
+  const store = useSessionStore()
+  return useQuery(
+    computed(() => ({
+      ...identityQuery(),
+      enabled: toValue(enabled),
+      meta: { identityGeneration: store.identityGeneration },
+    })),
+  )
 }

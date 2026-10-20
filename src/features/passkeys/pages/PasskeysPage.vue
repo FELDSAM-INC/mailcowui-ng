@@ -8,6 +8,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { isApiProblem, queryKeys, type ApiProblem, type Passkey } from '@/api'
+import { ActingUnavailableNotice, useActingState } from '@/features/acting'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import ListState from '@/shared/components/ListState.vue'
@@ -26,14 +27,16 @@ import RenamePasskeyDialog from '../components/RenamePasskeyDialog.vue'
 import { passkeyDisplayName } from '../display-name'
 
 const { t } = useI18n()
+const { isActing } = useActingState()
 const fmt = useFormat()
 const confirm = useConfirm()
 const queryClient = useQueryClient()
 const list = useListState({ filters: {} })
 const query = useQuery(
-  computed(() =>
-    passkeysListQuery({ limit: list.paging.value.limit, offset: list.paging.value.offset }),
-  ),
+  computed(() => ({
+    ...passkeysListQuery({ limit: list.paging.value.limit, offset: list.paging.value.offset }),
+    enabled: !isActing.value,
+  })),
 )
 const passkeys = computed(() => query.data.value?.data ?? [])
 const total = computed(() => query.data.value?.meta.total ?? 0)
@@ -53,6 +56,7 @@ async function reload(id: string): Promise<Passkey | undefined> {
 }
 
 function rename(passkey: Passkey) {
+  if (isActing.value) return
   renaming.value = passkey.id
   renameOpen.value = true
 }
@@ -70,8 +74,9 @@ function removal(passkey: Passkey) {
 }
 
 async function remove(passkey: Passkey) {
+  if (isActing.value) return
   removeProblem.value = null
-  if (!(await confirm(removal(passkey)))) return
+  if (!(await confirm(removal(passkey))) || isActing.value) return
   let target: Passkey | undefined = passkey
   const saver = useVersionedSave<Passkey>({
     current: () => target,
@@ -93,32 +98,35 @@ async function remove(passkey: Passkey) {
 <template>
   <section class="mx-auto flex w-full max-w-3xl flex-col gap-6">
     <PageHeader :title="t('passkeys.title')" :description="t('passkeys.intro')" />
-    <AddPasskeyForm @added="query.refetch()" />
-    <ProblemMessage :problem="removeProblem" />
-    <ListState
-      :loading="query.isPending.value"
-      :empty="total === 0"
-      :problem="isApiProblem(query.error.value) ? query.error.value : null"
-      :empty-text="t('passkeys.empty')"
-      @retry="query.refetch()"
-    >
-      <PasskeyList :passkeys="passkeys" :total="total" @rename="rename" @remove="remove" />
-      <PaginationBar
-        v-if="total > list.state.value.size"
-        class="mt-4"
-        :total="total"
-        :page="list.state.value.page"
-        :size="list.state.value.size"
-        @update:page="list.setPage"
-        @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
+    <ActingUnavailableNotice v-if="isActing" />
+    <template v-else>
+      <AddPasskeyForm @added="query.refetch()" />
+      <ProblemMessage :problem="removeProblem" />
+      <ListState
+        :loading="query.isPending.value"
+        :empty="total === 0"
+        :problem="isApiProblem(query.error.value) ? query.error.value : null"
+        :empty-text="t('passkeys.empty')"
+        @retry="query.refetch()"
+      >
+        <PasskeyList :passkeys="passkeys" :total="total" @rename="rename" @remove="remove" />
+        <PaginationBar
+          v-if="total > list.state.value.size"
+          class="mt-4"
+          :total="total"
+          :page="list.state.value.page"
+          :size="list.state.value.size"
+          @update:page="list.setPage"
+          @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
+        />
+      </ListState>
+      <RenamePasskeyDialog
+        v-if="renamed"
+        v-model:open="renameOpen"
+        :passkey="renamed"
+        :reload="() => reload(renamed!.id)"
+        @saved="query.refetch()"
       />
-    </ListState>
-    <RenamePasskeyDialog
-      v-if="renamed"
-      v-model:open="renameOpen"
-      :passkey="renamed"
-      :reload="() => reload(renamed!.id)"
-      @saved="query.refetch()"
-    />
+    </template>
   </section>
 </template>

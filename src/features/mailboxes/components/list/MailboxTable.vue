@@ -64,7 +64,7 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             <button
               v-if="column.sort"
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start font-medium hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.sort)"
             >
               {{ header(column) }}

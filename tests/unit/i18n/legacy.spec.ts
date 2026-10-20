@@ -7,6 +7,7 @@ import { effectScope, watchEffect } from 'vue'
 
 import {
   legacyStatus,
+  ltEnglish,
   loadLegacy,
   lt,
   mergeLegacy,
@@ -47,6 +48,30 @@ describe('mergeLegacy', () => {
 })
 
 describe('loadLegacy', () => {
+  it('retains the installation English names for search without changing the selected locale or fetching again', async () => {
+    let reads = 0
+    server.use(
+      http.get('*/lang/lang.en-gb.json', () => {
+        reads++
+        return HttpResponse.json({ login: { login_admin: 'Operator sign-in' } })
+      }),
+    )
+    await loadLegacy('cs-cz')
+    expect(ltEnglish('login.login_admin')).toBe('Operator sign-in')
+    expect(lt('login.login_admin')).toBe('Přihlášení správce')
+    expect(legacyStatus.value.locale).toBe('cs-cz')
+    expect(reads).toBe(1)
+  })
+  it('uses the English snapshot when a search label is absent from the installation base', async () => {
+    server.use(
+      http.get('*/lang/lang.en-gb.json', () => HttpResponse.json({ login: { login: 'Sign on' } })),
+    )
+    await loadLegacy('cs-cz')
+    ltEnglish('admin.customize')
+    await vi.waitFor(() => expect(ltEnglish('admin.customize')).toBe('Customize'))
+    expect(lt('login.login_admin')).toBe('Přihlášení správce')
+  })
+
   it("fetches the selected file and en-gb from the installation's /lang/", async () => {
     const urls: string[] = []
     server.events.on('request:start', ({ request }) => {

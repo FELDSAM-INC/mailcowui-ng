@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { ApiProblem, type FieldViolation } from '@/api'
-import { createAppI18n, loadLocale, lt } from '@/i18n'
+import { createAppI18n, loadFeatureMessages, loadLocale, lt } from '@/i18n'
 import { LEGACY_TEXTS } from '@/i18n/legacy-messages'
 import {
   problemMessage,
@@ -45,9 +45,10 @@ function translator(locale: 'en-gb' | 'cs-cz' | 'sk-sk' = 'en-gb'): MessageTrans
   return translatorOf(i18n, locale)
 }
 
-async function loaded(locale: 'cs-cz' | 'sk-sk'): Promise<MessageTranslator> {
+async function loaded(locale: 'en-gb' | 'cs-cz' | 'sk-sk'): Promise<MessageTranslator> {
   const i18n = createAppI18n()
   await loadLocale(i18n, locale)
+  await loadFeatureMessages('system-settings', i18n, locale)
   i18n.global.locale.value = locale
   return translatorOf(i18n, locale)
 }
@@ -71,20 +72,19 @@ describe('problem messages', () => {
     expect(names).toEqual(expect.arrayContaining(translated))
   })
 
-  it('falls back to the status or generic message for a contract type not translated yet', () => {
-    const untranslated = names.find((name) => !translated.includes(name))
-    expect(untranslated).toBeDefined()
+  it('falls back to the status or generic message for future problem types', () => {
+    const untranslated = 'future-problem-type'
     const en = translator()
-    expect(problemMessageKey(problemOf(`/api/v2/problems/${untranslated!}`, 409), en.te)).toBe(
+    expect(problemMessageKey(problemOf(`/api/v2/problems/${untranslated}`, 409), en.te)).toBe(
       'problem.status.409',
     )
-    expect(problemMessageKey(problemOf(`/api/v2/problems/${untranslated!}`, 418), en.te)).toBe(
+    expect(problemMessageKey(problemOf(`/api/v2/problems/${untranslated}`, 418), en.te)).toBe(
       'problem.generic',
     )
   })
 
   it.each(translated)('maps %s to problem.<name> with a message in every locale', async (name) => {
-    const en = translator()
+    const en = await loaded('en-gb')
     const problem = problemOf(`/api/v2/problems/${name}`)
     expect(problemMessageKey(problem, en.te)).toBe(`problem.${name}`)
     for (const tr of [en, await loaded('cs-cz'), await loaded('sk-sk')]) {

@@ -307,9 +307,26 @@
       "sampleLink": "Example link",
       "sampleNavigation": "Selected navigation",
       "sampleSwitch": "Enabled switch"
+    },
+    "search": {
+      "label": "Search settings",
+      "help": "Search page names, sections and field labels.",
+      "empty": "No matching settings",
+      "count": "{count} matching page | {count} matching pages | {count} matching pages"
     }
   },
   "validation": {
-    "insufficientContrast": "The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}."
+    "insufficientContrast": "The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}.",
+    "unsafeSvgContent": "This SVG contains scripts, external resources or unsupported markup.",
+    "invalidRegexLine": "The regular expression on line {line} is not valid.",
+    "unbalancedStructure": "@:systemSettings.rules.invalidStructure",
+    "tooFew": "Enter at least {min} entries."
+  },
+  "problem": {
+    "feature-disabled": "This feature is disabled on this server.",
+    "regex-map-unavailable": "@:systemSettings.filterMaps.unavailable",
+    "global-sieve-filter-unavailable": "@:systemSettings.globalSieve.unavailable",
+    "mass-mail-already-running": "@:systemSettings.massMail.runningConflict",
+    "mass-mail-recipient-count-changed": "@:systemSettings.massMail.countChanged"
   }
 }

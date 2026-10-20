@@ -1,0 +1,241 @@
+key,en-gb,cs-cz,sk-sk,review_locales,status
+auditLog.settings.changedSize,changed ({old} → {new}),changed ({old} → {new}),changed ({old} → {new}),cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.dimensions,{width} × {height} px,{width} × {height} px,{width} × {height} px,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.allowedMethods,Allowed methods,Allowed methods,Allowed methods,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.allowedOrigins,Allowed origins,Allowed origins,Allowed origins,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.announcement_active,Announcement active,Announcement active,Announcement active,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.announcement_text,Announcement text,Announcement text,Announcement text,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.announcement_type,Announcement type,Announcement type,Announcement type,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.appsHeading,App menu heading,App menu heading,App menu heading,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.content,Content,Content,Content,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.dark,Dark theme,Dark theme,Dark theme,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.delivered,Delivered,Delivered,Delivered,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.domainCount,Domain count,Domain count,Domain count,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.domains,Domains,Domains,Domains,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.enabled,Enabled,Enabled,Enabled,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.excludeCount,Excluded mailboxes,Excluded mailboxes,Excluded mailboxes,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.failed,Failed,Failed,Failed,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.footerHtml,Footer,Footer,Footer,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.forceSingleSignOn,Force single sign-on,Force single sign-on,Force single sign-on,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.hideAdminLogin,Hide administrator login,Hide administrator login,Hide administrator login,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.hideDomainAdminLogin,Hide domain administrator login,Hide domain administrator login,Hide domain administrator login,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.hideMailboxUserLogin,Hide mailbox login,Hide mailbox login,Hide mailbox login,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.htmlTemplate,HTML template,HTML template,HTML template,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.includeCount,Included mailboxes,Included mailboxes,Included mailboxes,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.light,Light theme,Light theme,Light theme,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.links,App links,App links,App links,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.loginHelpHtml,Login help,Login help,Login help,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.minLength,Minimum password length,Minimum password length,Minimum password length,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.pageTitle,Page title,Page title,Page title,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.pending,Pending,Pending,Pending,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.productName,Product name,Product name,Product name,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.recipients,Recipients,Recipients,Recipients,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.requireDigits,Require digits,Require digits,Require digits,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.requireLetters,Require letters,Require letters,Require letters,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.requireMixedCase,Require upper and lower case,Require upper and lower case,Require upper and lower case,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.requireSpecialCharacters,Require special characters,Require special characters,Require special characters,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.script,Script,Script,Script,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.skipped,Skipped,Skipped,Skipped,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.fields.textTemplate,Text template,Text template,Text template,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.license.invalid,Invalid,Invalid,Invalid,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.license.unreachable,Verification service unreachable,Verification service unreachable,Verification service unreachable,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.license.valid,Valid,Valid,Valid,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.restart.deferred,Saved; applies at the next restart,Saved; applies at the next restart,Saved; applies at the next restart,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.restart.done,Mail service restarted,Mail service restarted,Mail service restarted,cs-cz;sk-sk,English source fallback; human review pending
+auditLog.settings.restart.failed,Restart failed; the script is saved and applies at the next restart,Restart failed; the script is saved and applies at the next restart,Restart failed; the script is saved and applies at the next restart,cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.goToLine,Go to line {line},Go to line {line},Go to line {line},cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.line,Line {line},Line {line},Line {line},cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.loadFailed,The enhanced editor could not be loaded. You can continue with the basic editor; large files may respond more slowly.,The enhanced editor could not be loaded. You can continue with the basic editor; large files may respond more slowly.,The enhanced editor could not be loaded. You can continue with the basic editor; large files may respond more slowly.,cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.moreErrors,{count} more lines have errors.,{count} more lines have errors.,{count} more lines have errors.,cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.overLimit,{used} exceeds the {max} limit. Shorten the content before saving.,{used} exceeds the {max} limit. Shorten the content before saving.,{used} exceeds the {max} limit. Shorten the content before saving.,cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.size,{used} of {max},{used} of {max},{used} of {max},cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.tabHint,Tab moves to the next control.,Tab moves to the next control.,Tab moves to the next control.,cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.useBasic,Use basic editor,Use basic editor,Use basic editor,cs-cz;sk-sk,English source fallback; human review pending
+codeEditor.wrap,Wrap lines,Wrap lines,Wrap lines,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.appLinksUpdate,App links changed,App links changed,App links changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.brandColorsUpdate,Brand colours changed,Brand colours changed,Brand colours changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.globalSieveFilterReplacement,Global Sieve filter replaced,Global Sieve filter replaced,Global Sieve filter replaced,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.ipCheckUpdate,IP check preference changed,IP check preference changed,IP check preference changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.legacyApiCorsUpdate,Classic API CORS settings changed,Classic API CORS settings changed,Classic API CORS settings changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.licenseVerification,License verified,License verified,License verified,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.loginPageUpdate,Login page changed,Login page changed,Login page changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.logoDeletion,Logo removed,Logo removed,Logo removed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.logoReplacement,Logo replaced,Logo replaced,Logo replaced,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.massMailJobCancellation,Mass mail cancelled,Mass mail cancelled,Mass mail cancelled,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.massMailJobCompletion,Mass mail completed,Mass mail completed,Mass mail completed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.massMailJobCreation,Mass mail queued,Mass mail queued,Mass mail queued,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.passwordPolicyUpdate,Password policy changed,Password policy changed,Password policy changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.passwordResetNotificationUpdate,Password reset email changed,Password reset email changed,Password reset email changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.quotaNotificationRecipientsUpdate,Quota notification recipients changed,Quota notification recipients changed,Quota notification recipients changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.quotaNotificationUpdate,Quota notification changed,Quota notification changed,Quota notification changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.rspamdRegexMapReplacement,Global filter map replaced,Global filter map replaced,Global filter map replaced,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.rspamdSettingsRuleCreation,Rspamd settings rule created,Rspamd settings rule created,Rspamd settings rule created,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.rspamdSettingsRuleDeletion,Rspamd settings rule deleted,Rspamd settings rule deleted,Rspamd settings rule deleted,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.rspamdSettingsRuleUpdate,Rspamd settings rule changed,Rspamd settings rule changed,Rspamd settings rule changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.rspamdUiPasswordChange,Rspamd web interface password changed,Rspamd web interface password changed,Rspamd web interface password changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditEventType.uiTextsUpdate,UI labels and texts changed,UI labels and texts changed,UI labels and texts changed,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditTargetType.brandColors,Brand colours,Brand colours,Brand colours,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditTargetType.globalSieveFilter,Global Sieve filter,Global Sieve filter,Global Sieve filter,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditTargetType.logo,Logo,Logo,Logo,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditTargetType.passwordResetNotification,Password reset email,Password reset email,Password reset email,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditTargetType.quotaNotificationRecipients,Quota notification recipients,Quota notification recipients,Quota notification recipients,cs-cz;sk-sk,English source fallback; human review pending
+enums.auditTargetType.rspamdUiPassword,Rspamd web interface password,Rspamd web interface password,Rspamd web interface password,cs-cz;sk-sk,English source fallback; human review pending
+problem.feature-disabled,This feature is disabled on this server.,This feature is disabled on this server.,This feature is disabled on this server.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.appLinkUrl,Enter an http or https URL or a path starting with one /. Use %u only in User link. Spaces and control characters are not allowed.,Enter an http or https URL or a path starting with one /. Use %u only in User link. Spaces and control characters are not allowed.,Enter an http or https URL or a path starting with one /. Use %u only in User link. Spaces and control characters are not allowed.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.builtIn,Built-in app links,Built-in app links,Built-in app links,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.description,Manage the ordered custom links shown on login pages and in the Apps menu.,Manage the ordered custom links shown on login pages and in the Apps menu.,Manage the ordered custom links shown on login pages and in the Apps menu.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.empty,No custom app links.,No custom app links.,No custom app links.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.limit,{count} of 50 custom links. Remove a link before adding another at the limit.,{count} of 50 custom links. Remove a link before adding another at the limit.,{count} of 50 custom links. Remove a link before adding another at the limit.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.limitError,Keep at most 50 custom links.,Keep at most 50 custom links.,Keep at most 50 custom links.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.moveDown,Move down,Move down,Move down,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.moveDownNamed,Move down: {name},Move down: {name},Move down: {name},cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.moveUp,Move up,Move up,Move up,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.moveUpNamed,Move up: {name},Move up: {name},Move up: {name},cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.moved,Moved {name} to position {position} of {count}.,Moved {name} to position {position} of {count}.,Moved {name} to position {position} of {count}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.preview,User link preview for {username}:,User link preview for {username}:,User link preview for {username}:,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.previewInvalid,Enter a valid link to see its preview.,Enter a valid link to see its preview.,Enter a valid link to see its preview.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.relativeHelp,"Use an absolute http or https URL, or a path starting with one / on this mailcow host.","Use an absolute http or https URL, or a path starting with one / on this mailcow host.","Use an absolute http or https URL, or a path starting with one / on this mailcow host.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.row,App link {position},App link {position},App link {position},cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.sameAsLink,Leave empty to use the same address as Link.,Leave empty to use the same address as Link.,Leave empty to use the same address as Link.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.sameAsLinkValue,Same as Link,Same as Link,Same as Link,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.singleLine,Enter this value on one line without control characters.,Enter this value on one line without control characters.,Enter this value on one line without control characters.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.appLinks.urlHelp,Link is used while signed out. User link is used while signed in; %u is replaced with the URL-encoded username.,Link is used while signed out. User link is used while signed in; %u is replaced with the URL-encoded username.,Link is used while signed out. User link is used while signed in; %u is replaced with the URL-encoded username.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.classic,These colours apply to this interface. The classic interface keeps its own palette. Clear a value to restore the default palette for that theme.,These colours apply to this interface. The classic interface keeps its own palette. Clear a value to restore the default palette for that theme.,These colours apply to this interface. The classic interface keeps its own palette. Clear a value to restore the default palette for that theme.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.dark,Dark theme colour,Dark theme colour,Dark theme colour,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.darkDefault,The light colour does not meet the dark theme contrast requirement. The dark theme keeps the default palette.,The light colour does not meet the dark theme contrast requirement. The dark theme keeps the default palette.,The light colour does not meet the dark theme contrast requirement. The dark theme keeps the default palette.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.darkUsesLight,The dark theme uses the light theme colour because it meets the contrast requirement.,The dark theme uses the light theme colour because it meets the contrast requirement.,The dark theme uses the light theme colour because it meets the contrast requirement.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.default,Default palette,Default palette,Default palette,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.description,Set accessible accent colours for the light and dark themes.,Set accessible accent colours for the light and dark themes.,Set accessible accent colours for the light and dark themes.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.fails,Fails.,Fails.,Fails.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.format,"Enter six hexadecimal digits, with or without #. Leave empty to use the default palette.","Enter six hexadecimal digits, with or without #. Leave empty to use the default palette.","Enter six hexadecimal digits, with or without #. Leave empty to use the default palette.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.light,Light theme colour,Light theme colour,Light theme colour,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.needsContrast,Choose a colour that meets the minimum contrast.,Choose a colour that meets the minimum contrast.,Choose a colour that meets the minimum contrast.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.offer,Use adjusted colour {colour},Use adjusted colour {colour},Use adjusted colour {colour},cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.passes,Passes.,Passes.,Passes.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.picker,Choose {theme},Choose {theme},Choose {theme},cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.preview,Colour preview,Colour preview,Colour preview,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.previewDefault,The preview keeps the default palette until this colour meets the contrast requirement.,The preview keeps the default palette until this colour meets the contrast requirement.,The preview keeps the default palette until this colour meets the contrast requirement.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.ratio,"{ratio}:1, minimum {minimum}:1, against {surface}.","{ratio}:1, minimum {minimum}:1, against {surface}.","{ratio}:1, minimum {minimum}:1, against {surface}.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.sampleButton,Primary button,Primary button,Primary button,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.sampleLink,Example link,Example link,Example link,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.sampleNavigation,Selected navigation,Selected navigation,Selected navigation,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.sampleSwitch,Enabled switch,Enabled switch,Enabled switch,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.saved,Brand colours saved.,Brand colours saved.,Brand colours saved.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.settings,Brand colours,Brand colours,Brand colours,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.colours.title,Colours,Colours,Colours,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.cors.description,Origins and methods accepted by the classic API.,Origins and methods accepted by the classic API.,Origins and methods accepted by the classic API.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.cors.empty,An empty origin list allows only this server’s own origin: {origin}.,An empty origin list allows only this server’s own origin: {origin}.,An empty origin list allows only this server’s own origin: {origin}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.cors.scope,These CORS settings apply only to the classic /api/v1. API v2 accepts only same-origin requests.,These CORS settings apply only to the classic /api/v1. API v2 accepts only same-origin requests.,These CORS settings apply only to the classic /api/v1. API v2 accepts only same-origin requests.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.cors.wildcard,"The wildcard * allows every origin, including when specific origins are also listed.","The wildcard * allows every origin, including when specific origins are also listed.","The wildcard * allows every origin, including when specific origins are also listed.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.added,Added lines ({count}),Added lines ({count}),Added lines ({count}),cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.count,{count} maps,{count} maps,{count} maps,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.description,Review and edit the server’s global regular-expression maps.,Review and edit the server’s global regular-expression maps.,Review and edit the server’s global regular-expression maps.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.format,"Each line can be empty, a comment starting with #, or /pattern/ with at most one flag: i, m or s. For example:","Each line can be empty, a comment starting with #, or /pattern/ with at most one flag: i, m or s. For example:","Each line can be empty, a comment starting with #, or /pattern/ with at most one flag: i, m or s. For example:",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.moreLines,Show more lines,Show more lines,Show more lines,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.outdated,"This map changed after you opened it. Your content has been kept. Review the changes again before saving, or discard your changes.","This map changed after you opened it. Your content has been kept. Review the changes again before saving, or discard your changes.","This map changed after you opened it. Your content has been kept. Review the changes again before saving, or discard your changes.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.reasons.doesNotCompile,The server could not compile this regular expression.,The server could not compile this regular expression.,The server could not compile this regular expression.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.reasons.innerSlash,The pattern must not contain another slash.,The pattern must not contain another slash.,The pattern must not contain another slash.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.reasons.notSlashDelimited,"Use /pattern/ with at most one flag: i, m or s.","Use /pattern/ with at most one flag: i, m or s.","Use /pattern/ with at most one flag: i, m or s.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.reasons.tooManyFlags,"Use at most one flag: i, m or s.","Use at most one flag: i, m or s.","Use at most one flag: i, m or s.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.reload,Rspamd reloads changed maps automatically; no restart is needed.,Rspamd reloads changed maps automatically; no restart is needed.,Rspamd reloads changed maps automatically; no restart is needed.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.removed,Removed lines ({count}),Removed lines ({count}),Removed lines ({count}),cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.review,Review map changes,Review map changes,Review map changes,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.search,Search maps,Search maps,Search maps,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.unavailable,This map is not available on this server; nothing was changed.,This map is not available on this server; nothing was changed.,This map is not available on this server; nothing was changed.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.filterMaps.valid,The map is valid. Nothing was saved.,The map is valid. Nothing was saved.,The map is valid. Nothing was saved.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.apply,Apply the saved filter,Apply the saved filter,Apply the saved filter,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.confirm,Save global filter?,Save global filter?,Save global filter?,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.deferred,The script is saved and takes effect at the next restart of the mail service.,The script is saved and takes effect at the next restart of the mail service.,The script is saved and takes effect at the next restart of the mail service.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.description,Manage filters that apply before and after every mailbox’s own filters.,Manage filters that apply before and after every mailbox’s own filters.,Manage filters that apply before and after every mailbox’s own filters.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.empty,An empty script means no global filter at this stage.,An empty script means no global filter at this stage.,An empty script means no global filter at this stage.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.interruption,"Restarting the mail service briefly interrupts IMAP, POP3 and mail delivery for every user.","Restarting the mail service briefly interrupts IMAP, POP3 and mail delivery for every user.","Restarting the mail service briefly interrupts IMAP, POP3 and mail delivery for every user.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.later,Apply at the next restart,Apply at the next restart,Apply at the next restart,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.now,Restart the mail service now,Restart the mail service now,Restart the mail service now,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.outdated,"This filter changed after you opened it. Your script has been kept. Save again to use the current version, or cancel to discard your changes.","This filter changed after you opened it. Your script has been kept. Save again to use the current version, or cancel to discard your changes.","This filter changed after you opened it. Your script has been kept. Save again to use the current version, or cancel to discard your changes.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.postfilter,Global post-filter,Global post-filter,Global post-filter,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.postfilterHelp,Runs after every mailbox’s own filters. The default script files spam into the Junk folder.,Runs after every mailbox’s own filters. The default script files spam into the Junk folder.,Runs after every mailbox’s own filters. The default script files spam into the Junk folder.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.prefilter,Global pre-filter,Global pre-filter,Global pre-filter,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.prefilterHelp,Runs before every mailbox’s own filters.,Runs before every mailbox’s own filters.,Runs before every mailbox’s own filters.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.title,Global Sieve filters,Global Sieve filters,Global Sieve filters,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.unavailable,This filter file is not available on this server. Nothing was saved or restarted.,This filter file is not available on this server. Nothing was saved or restarted.,This filter file is not available on this server. Nothing was saved or restarted.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.globalSieve.valid,The script is valid. Nothing was saved or restarted.,The script is valid. Nothing was saved or restarted.,The script is valid. Nothing was saved or restarted.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.groups.mail-filtering,Mail filtering,Mail filtering,Mail filtering,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.groups.spam-filtering,Spam filtering,Spam filtering,Spam filtering,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.copyGuid,Copy GUID,Copy GUID,Copy GUID,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.description,Instance GUID and the last license verification result.,Instance GUID and the last license verification result.,Instance GUID and the last license verification result.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.guidInvalid,The GUID is marked invalid by mailcow.,The GUID is marked invalid by mailcow.,The GUID is marked invalid by mailcow.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.result,Last verification result,Last verification result,Last verification result,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.results.invalid,Invalid,Invalid,Invalid,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.results.neverVerified,Never verified,Never verified,Never verified,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.results.unreachable,License service unreachable,License service unreachable,License service unreachable,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.results.valid,Valid,Valid,Valid,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.supportLevel,Support level,Support level,Support level,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.verifiedAt,Last verified,Last verified,Last verified,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.verifyHelp,Only the GUID is sent to the mailcow license verification service when you verify it.,Only the GUID is sent to the mailcow license verification service when you verify it.,Only the GUID is sent to the mailcow license verification service when you verify it.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.license.verifying,Verifying the GUID…,Verifying the GUID…,Verifying the GUID…,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.allowed,Accepted types: {types}.,Accepted types: {types}.,Accepted types: {types}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.doctype,a document type declaration,a document type declaration,a document type declaration,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.eventHandlerAttribute,an event handler attribute,an event handler attribute,an event handler attribute,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.externalReference,an external resource reference,an external resource reference,an external resource reference,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.foreignContent,embedded foreign content,embedded foreign content,embedded foreign content,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.notWellFormed,invalid XML,invalid XML,invalid XML,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.rootNotSvg,a root element other than SVG,a root element other than SVG,a root element other than SVG,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.scriptElement,a script element,a script element,a script element,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.scriptUrl,a script URL,a script URL,a script URL,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.styleImport,an external stylesheet import,an external stylesheet import,an external stylesheet import,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.construct.unknown,unsafe content,unsafe content,unsafe content,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.darkSurface,Dark background,Dark background,Dark background,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.default,Deployment default,Deployment default,Deployment default,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.description,Upload or reset the images used in the app and on the sign-in page.,Upload or reset the images used in the app and on the sign-in page.,Upload or reset the images used in the app and on the sign-in page.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.fileLimit,Maximum file size: {limit}.,Maximum file size: {limit}.,Maximum file size: {limit}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.headerSize,App header: up to {height} px high and {maxWidth} px wide.,App header: up to {height} px high and {maxWidth} px wide.,App header: up to {height} px high and {maxWidth} px wide.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.lightSurface,Light background,Light background,Light background,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.noDimensions,No declared size,No declared size,No declared size,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.pixelLimit,Maximum raster dimensions: {width} × {height} px. SVG dimensions are not limited.,Maximum raster dimensions: {width} × {height} px. SVG dimensions are not limited.,Maximum raster dimensions: {width} × {height} px. SVG dimensions are not limited.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.resetDescription,Reset the {variant} logo shown below to the deployment default? The default will be displayed after the reset.,Reset the {variant} logo shown below to the deployment default? The default will be displayed after the reset.,Reset the {variant} logo shown below to the deployment default? The default will be displayed after the reset.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.signInSize,App sign-in: up to {height} px high and {maxWidth} px wide.,App sign-in: up to {height} px high and {maxWidth} px wide.,App sign-in: up to {height} px high and {maxWidth} px wide.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.logos.unsafe,The SVG was refused because it contains {construct} on line {line}.,The SVG was refused because it contains {construct} on line {line}.,The SVG was refused because it contains {construct} on line {line}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rspamdUi.description,Set the password for the Rspamd web interface.,Set the password for the Rspamd web interface.,Set the password for the Rspamd web interface.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rspamdUi.outcomeUnknown,It is unknown whether the password was set. Setting it again is safe.,It is unknown whether the password was set. Setting it again is safe.,It is unknown whether the password was set. Setting it again is safe.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rspamdUi.restarted,Rspamd restarted.,Rspamd restarted.,Rspamd restarted.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rspamdUi.serviceFailure,The change could not be confirmed. The new password may take effect at Rspamd’s next start.,The change could not be confirmed. The new password may take effect at Rspamd’s next start.,The change could not be confirmed. The new password may take effect at Rspamd’s next start.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.deleteImpact,Remove rule #{id}: {description}? Active rules stop applying at Rspamd’s next refresh.,Remove rule #{id}: {description}? Active rules stop applying at Rspamd’s next refresh.,Remove rule #{id}: {description}? Active rules stop applying at Rspamd’s next refresh.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.description,Manage custom rules in the Rspamd settings map.,Manage custom rules in the Rspamd settings map.,Manage custom rules in the Rspamd settings map.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.invalidStructure,The rule contains an unbalanced structure.,The rule contains an unbalanced structure.,The rule contains an unbalanced structure.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.refreshNote,"Active rule changes reach Rspamd at its next refresh, usually within a minute.","Active rule changes reach Rspamd at its next refresh, usually within a minute.","Active rule changes reach Rspamd at its next refresh, usually within a minute.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.replaceBody,The example will replace the text currently in the editor.,The example will replace the text currently in the editor.,The example will replace the text currently in the editor.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.replaceTitle,Replace editor content?,Replace editor content?,Replace editor content?,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.unclosedBrace,Unclosed brace,Unclosed brace,Unclosed brace,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.unclosedBracket,Unclosed bracket,Unclosed bracket,Unclosed bracket,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.unclosedString,Unclosed quoted string,Unclosed quoted string,Unclosed quoted string,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.unexpectedBrace,Unexpected closing brace,Unexpected closing brace,Unexpected closing brace,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.rules.unexpectedBracket,Unexpected closing bracket,Unexpected closing bracket,Unexpected closing bracket,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.search.count,{count} matching page | {count} matching pages,{count} matching page | {count} matching pages | {count} matching pages,{count} matching page | {count} matching pages | {count} matching pages,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.search.empty,No matching settings,No matching settings,No matching settings,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.search.help,"Search page names, sections and field labels.","Search page names, sections and field labels.","Search page names, sections and field labels.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.search.label,Search settings,Search settings,Search settings,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.signInPage.description,Choose the links and sign-in methods shown on the login page.,Choose the links and sign-in methods shown on the login page.,Choose the links and sign-in methods shown on the login page.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.signInPage.noSso,This option has no effect until single sign-on is configured and available.,This option has no effect until single sign-on is configured and available.,This option has no effect until single sign-on is configured and available.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.announcementEmpty,An empty or inactive announcement is hidden.,An empty or inactive announcement is hidden.,An empty or inactive announcement is hidden.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.appsHelp,This heading labels the Apps menu. Leave empty to use {value}.,This heading labels the Apps menu. Leave empty to use {value}.,This heading labels the Apps menu. Leave empty to use {value}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.classicHtml,The classic interface shows the HTML as written. This app uses the sanitized preview shown here.,The classic interface shows the HTML as written. This app uses the sanitized preview shown here.,The classic interface shows the HTML as written. This app uses the sanitized preview shown here.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.description,"Change product names, sign-in help, announcements and the footer.","Change product names, sign-in help, announcements and the footer.","Change product names, sign-in help, announcements and the footer.",cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.emptyDefault,Leave empty to use {value}.,Leave empty to use {value}.,Leave empty to use {value}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.emptyHidden,Nothing is shown when this field is empty.,Nothing is shown when this field is empty.,Nothing is shown when this field is empty.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.names,Names and titles,Names and titles,Names and titles,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.neutral,No type (neutral),No type (neutral),No type (neutral),cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.preview,Preview,Preview,Preview,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removed,Removed from this preview: {kinds}.,Removed from this preview: {kinds}.,Removed from this preview: {kinds}.,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.eventHandlers,event handlers,event handlers,event handlers,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.formatting,other formatting,other formatting,other formatting,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.forms,forms,forms,forms,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.frames,frames,frames,frames,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.images,images,images,images,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.links,unsupported links,unsupported links,unsupported links,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.scripts,scripts,scripts,scripts,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.removedKinds.styles,styles,styles,styles,cs-cz;sk-sk,English source fallback; human review pending
+systemSettings.uiTexts.singleLine,Enter one line without control characters.,Enter one line without control characters.,Enter one line without control characters.,cs-cz;sk-sk,English source fallback; human review pending
+validation.insufficientContrast,The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}.,The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}.,The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}.,cs-cz;sk-sk,English source fallback; human review pending
+validation.invalidRegexLine,The regular expression on line {line} is not valid.,The regular expression on line {line} is not valid.,The regular expression on line {line} is not valid.,cs-cz;sk-sk,English source fallback; human review pending
+validation.tooFew,Enter at least {min} entries.,Enter at least {min} entries.,Enter at least {min} entries.,cs-cz;sk-sk,English source fallback; human review pending
+validation.unsafeSvgContent,"This SVG contains scripts, external resources or unsupported markup.","This SVG contains scripts, external resources or unsupported markup.","This SVG contains scripts, external resources or unsupported markup.",cs-cz;sk-sk,English source fallback; human review pending

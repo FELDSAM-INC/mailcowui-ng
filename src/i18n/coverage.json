@@ -336,7 +336,18 @@
       "preHashedPassword",
       "sieveSyntax",
       "mutuallyExclusive",
-      "unknownField"
+      "unknownField",
+      "optionNotAllowed",
+      "optionContainsSpace",
+      "customParamsNotPermitted",
+      "unsupportedImageType",
+      "invalidImage",
+      "imageDimensionsExceeded",
+      "unsafeSvgContent",
+      "insufficientContrast",
+      "invalidRegexLine",
+      "unbalancedStructure",
+      "tooFew"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -419,7 +430,12 @@
       "impersonation-ended",
       "not-allowed-while-impersonating",
       "webmail-on-behalf-disabled",
-      "account-inactive"
+      "account-inactive",
+      "feature-disabled",
+      "regex-map-unavailable",
+      "global-sieve-filter-unavailable",
+      "mass-mail-already-running",
+      "mass-mail-recipient-count-changed"
     ]
   },
   "complete": {

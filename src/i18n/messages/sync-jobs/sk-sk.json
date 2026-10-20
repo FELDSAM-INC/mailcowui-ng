@@ -107,5 +107,10 @@
       "failed": "Neúspešné",
       "unknown": "Bez výsledku"
     }
+  },
+  "validation": {
+    "optionNotAllowed": "@:syncJobs.form.errors.customParameters.optionNotAllowed",
+    "optionContainsSpace": "@:syncJobs.form.errors.customParameters.optionContainsSpace",
+    "customParamsNotPermitted": "@:syncJobs.form.errors.customParameters.customParamsNotPermitted"
   }
 }

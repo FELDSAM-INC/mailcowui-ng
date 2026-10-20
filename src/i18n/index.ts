@@ -324,6 +324,14 @@ export function text(key: string, named?: Record<string, unknown>): string {
   return named ? i18n.global.t(key, named) : i18n.global.t(key)
 }
 
-export { hasLegacy, legacyStatus, loadLegacy, lt, prefetchLegacy, type LegacyKey } from './legacy'
+export {
+  hasLegacy,
+  legacyStatus,
+  loadLegacy,
+  lt,
+  ltEnglish,
+  prefetchLegacy,
+  type LegacyKey,
+} from './legacy'
 export type { LegacyArg, LegacyNamed } from './legacy-format'
 export { legacy, resolveText, type LegacyRef, type TextRef } from './text'

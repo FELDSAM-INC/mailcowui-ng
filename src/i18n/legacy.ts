@@ -35,6 +35,7 @@ export interface LegacyStatus {
 }
 
 const messages = shallowRef<LegacyTree>({})
+const englishMessages = shallowRef<LegacyTree>({})
 const status = shallowRef<LegacyStatus>({ locale: DEFAULT_LOCALE, base: 'none', selected: false })
 
 /** The language and sources of the loaded texts. */
@@ -117,6 +118,7 @@ export async function loadLegacy(locale: AppLocale): Promise<void> {
   const base = installed ?? (await loadSnapshot())
   if (run !== generation) return
   const english = installed && completion ? mergeLegacy(completion, base) : base
+  englishMessages.value = english
   messages.value = selected ? mergeLegacy(english, selected) : english
   status.value = { locale, base: installed ? 'installation' : 'snapshot', selected: !!selected }
 }
@@ -126,12 +128,13 @@ function completeFromSnapshot(): void {
   if (completing || status.value.base !== 'installation') return
   completing = loadSnapshot().then((tree) => {
     completion = tree
+    englishMessages.value = mergeLegacy(tree, englishMessages.value)
     messages.value = mergeLegacy(tree, messages.value)
   })
 }
 
-function lookup(key: string): string | undefined {
-  let node: string | LegacyTree | undefined = messages.value
+function lookup(key: string, tree = messages.value): string | undefined {
+  let node: string | LegacyTree | undefined = tree
   for (const part of key.split('.')) {
     if (!isTree(node)) return undefined
     node = node[part]
@@ -163,6 +166,13 @@ export function lt(key: LegacyKey, ...args: (LegacyArg | LegacyNamed)[]): string
   return formatLegacy(legacyRaw(key), positional, named)
 }
 
+/** English legacy names for catalogue search, from the already-loaded installation fallback. */
+export function ltEnglish(key: LegacyKey, ...args: LegacyArg[]): string {
+  const value = lookup(key, englishMessages.value)
+  if (value === undefined) completeFromSnapshot()
+  return formatLegacy(value ?? key, args)
+}
+
 /** Forgets the loaded texts and files (tests). */
 export function resetLegacy(): void {
   generation += 1
@@ -170,5 +180,6 @@ export function resetLegacy(): void {
   completion = null
   completing = null
   messages.value = {}
+  englishMessages.value = {}
   status.value = { locale: DEFAULT_LOCALE, base: 'none', selected: false }
 }

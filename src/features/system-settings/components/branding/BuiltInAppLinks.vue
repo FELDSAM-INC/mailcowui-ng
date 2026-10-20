@@ -7,7 +7,7 @@ defineProps<{ links: readonly AppLink[]; username: string }>()
 const { t } = useI18n()
 </script>
 <template>
-  <section class="min-w-0 space-y-3" data-built-in-links>
+  <section id="built-in-links" class="min-w-0 space-y-3" data-built-in-links>
     <h2 class="text-lg font-semibold">{{ t('systemSettings.appLinks.builtIn') }}</h2>
     <LegacyText k="admin.merged_vars_hint" as="p" /><AppLinkList
       :model-value="links"

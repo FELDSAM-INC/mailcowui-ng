@@ -7,6 +7,10 @@
 import type { LegacyKey } from './legacy'
 
 export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
+  // UI013: keep the classic image validation wording; detailed logo limits stay in the form.
+  'validation.unsupportedImageType': 'danger.invalid_mime_type',
+  'validation.invalidImage': 'danger.img_invalid',
+  'validation.imageDimensionsExceeded': 'danger.img_dimensions_exceeded',
   // UI013: classic names keep the server-provided translations.
   'enums.auditTargetType.uiTexts': 'admin.ui_texts',
   'enums.auditTargetType.loginPage': 'admin.login_page',

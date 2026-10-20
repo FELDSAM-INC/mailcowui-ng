@@ -48,6 +48,26 @@ const button = (wrapper: { findAll: (s: string) => { text: () => string }[] }, n
   }
 
 describe('DashboardPage', { timeout: 30_000 }, () => {
+  it('links the administrator to Queue Manager from the dashboard', async () => {
+    const { wrapper, router } = await openDashboard()
+    await settle(() =>
+      expect(wrapper.find('a[href="/ng/operations/mail-queue"]').exists()).toBe(true),
+    )
+    const link = wrapper.get('a[href="/ng/operations/mail-queue"]')
+    expect(link.text()).toBe('Queue Manager')
+    await link.trigger('click')
+    await settle(() => expect(router.currentRoute.value.name).toBe('operations-mail-queue'))
+  })
+
+  it.each(['domain-admin-operations', 'mailbox-user-operations'])(
+    'does not offer Queue Manager to %s',
+    async (scenario) => {
+      const { wrapper } = await openDashboard({ scenario })
+      await settle(() => expect(count('getIdentity')).toBeGreaterThan(0))
+      expect(wrapper.find('a[href="/ng/operations/mail-queue"]').exists()).toBe(false)
+    },
+  )
+
   it('shows the host and every container, and pauses, resumes and refreshes live updates', async () => {
     const { wrapper } = await openDashboard()
     await settle(() => expect(wrapper.find('[data-hostname]').exists()).toBe(true))

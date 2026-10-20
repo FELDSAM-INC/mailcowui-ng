@@ -18,7 +18,7 @@ const form = (page: Page) => ({
   repeat: page.getByLabel('Confirmation password (repeat)'),
   current: page.getByLabel('Current password (confirm changes)'),
   endOthers: page.getByRole('checkbox', { name: 'Sign out my other sessions' }),
-  submit: page.getByRole('button', { name: 'Change password' }),
+  submit: page.locator('form').getByRole('button', { name: 'Change password' }),
 })
 
 async function fill(page: Page, next: string, current: string) {

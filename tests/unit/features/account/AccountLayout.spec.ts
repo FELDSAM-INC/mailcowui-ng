@@ -1,7 +1,7 @@
 // My account's frame and hub (UI 005 T023, FR-001, FR-002, FR-006, research R4): "no access" in
 // place with the address kept and no section request, the capabilities error with "Try again", the
 // optional classic reason, only registered sections on the hub in the classic order, and the
-// section navigation beside the content from `lg` up.
+// shared section navigation above full-width content on every viewport.
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
@@ -112,22 +112,36 @@ describe('AccountLayout', () => {
     await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
   })
 
-  it('keeps the section navigation beside the content from lg up', async () => {
-    installMatchMedia({ '(min-width: 1024px)': true })
+  it.each([false, true])('places section navigation above the content (wide=%s)', async (wide) => {
+    installMatchMedia({ '(min-width: 1024px)': wide })
     useScenario('account-mailbox')
-    const { wrapper } = await mountAt('/account/password')
-    await vi.waitFor(() =>
-      expect(wrapper.find('[data-section-nav] [aria-current="page"]').text()).toBe(
-        'Change password',
-      ),
+    const { wrapper, router } = await mountAt('/account/password')
+    await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
+    const navigation = wrapper.get('[data-section-nav]')
+    expect(navigation.attributes('data-section-navigation')).toBeDefined()
+    expect(navigation.get('[aria-current="page"]').text()).toBe('Change password')
+    expect(wrapper.find('aside').exists()).toBe(false)
+    expect(navigation.element.parentElement).toBe(
+      wrapper.get('[data-account-content]').element.parentElement,
     )
+    expect(navigation.get('button').attributes('aria-expanded')).toBe('false')
+    await navigation.get('button').trigger('click')
+    expect(navigation.get('button').attributes('aria-expanded')).toBe('true')
+    await navigation.get('a[href="/ng/account/app-passwords"]').trigger('click')
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('account-app-passwords'))
+    expect(navigation.get('[aria-current="page"]').text()).toBe('App passwords')
+    expect(navigation.get('button').attributes('aria-expanded')).toBe('false')
   })
 
-  it('has no section navigation below lg', async () => {
-    useScenario('account-mailbox')
+  it('offers only permitted account sections in the shared navigation', async () => {
+    useScenario('account-admin')
     const { wrapper } = await mountAt('/account/password')
-    await flushPromises()
-    expect(wrapper.find('[data-section-nav]').exists()).toBe(false)
+    await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
+    expect(wrapper.findAll('[data-section-nav] a').map((link) => link.attributes('href'))).toEqual([
+      '/ng/account',
+      '/ng/account/password',
+      '/ng/passkeys',
+    ])
   })
 })
 

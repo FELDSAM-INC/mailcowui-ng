@@ -48,6 +48,7 @@ for (const forced of [false, true]) {
     if (!forced) await page.getByLabel('Current password (confirm changes)').fill(MOCK_PASSWORD)
     await check([next, MOCK_PASSWORD])
     await page
+      .locator('form')
       .getByRole('button', { name: forced ? 'Save changes' : 'Change password', exact: true })
       .click()
     if (forced) await expect(page).toHaveURL(/\/ng\/account$/)

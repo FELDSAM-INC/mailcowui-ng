@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// The frame of My account (UI 005 research R4, FR-006): from `lg` up the section navigation stays
-// beside the content; below `lg` the hub is the navigation. A section the account may not use
+// The frame of My account (UI 005 research R4, FR-006; owner navigation update): the shared
+// section navigation stays above the full-width content. A section the account may not use
 // shows UI 001's "no access" in place, keeping the address and requesting no section data; a
 // section whose rule needs the unreadable capabilities shows the error state with "Try again".
 import { computed } from 'vue'
@@ -12,7 +12,6 @@ import { useIdentityQuery } from '@/app/session/queries'
 import NoAccessState from '@/app/states/NoAccessState.vue'
 import { lt, resolveText } from '@/i18n'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
-import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
 import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import { useOfferedSections } from '../../composables/useOfferedSections'
@@ -23,7 +22,6 @@ const { t } = useI18n()
 const route = useRoute()
 const identityQuery = useIdentityQuery()
 const capabilities = useSelfServiceCapabilities()
-const wide = useMediaQuery('(min-width: 1024px)')
 
 const identity = computed(() => identityQuery.data.value)
 const sectionId = computed(() => route.meta.accountSection ?? null)
@@ -39,11 +37,9 @@ const state = computed(() => {
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-6xl gap-8">
-    <aside v-if="wide" class="w-60 shrink-0">
-      <SectionNav :sections="offered" :label="lt('header.user_settings')" />
-    </aside>
-    <div class="min-w-0 flex-1">
+  <div class="flex w-full min-w-0 flex-col gap-6">
+    <SectionNav :sections="offered" :label="lt('header.user_settings')" />
+    <div data-account-content class="w-full min-w-0">
       <NoAccessState v-if="state === 'hidden'" :reason="section?.noAccessReason" />
       <section v-else-if="state === 'unknown'" class="flex flex-col gap-3">
         <h1

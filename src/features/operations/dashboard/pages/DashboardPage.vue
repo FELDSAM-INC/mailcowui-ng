@@ -6,12 +6,14 @@
 // it returns to the dashboard's address; a name the installation does not have is "not found".
 import { useIsFetching } from '@tanstack/vue-query'
 import { computed, nextTick, provide, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import { useSessionStore } from '@/app/session/store'
+import { useIdentityQuery } from '@/app/session/queries'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
+import { buttonVariants } from '@/shared/ui/button'
 
 import { useMonitoringCapabilities } from '../../capabilities'
 import LiveUpdatesBar from '../../live/components/LiveUpdatesBar.vue'
@@ -29,6 +31,7 @@ const props = defineProps<{ expand?: string }>()
 const route = useRoute()
 const router = useRouter()
 const session = useSessionStore()
+const identity = useIdentityQuery()
 
 const capabilities = useMonitoringCapabilities()
 const live = useLiveUpdates({
@@ -114,7 +117,15 @@ function toggle(name: string) {
     :back-label="lt('debug.system_containers')"
   />
   <div v-else class="flex flex-col gap-6">
-    <PageHeader :title="lt('debug.system_containers')" />
+    <PageHeader :title="lt('debug.system_containers')">
+      <template v-if="identity.data.value?.role === 'admin'" #actions>
+        <RouterLink
+          :to="{ name: 'operations-mail-queue' }"
+          :class="buttonVariants({ variant: 'link' })"
+          >{{ lt('queue.queue_manager') }}</RouterLink
+        >
+      </template>
+    </PageHeader>
     <LiveUpdatesBar
       :state="live.state.value"
       :since="live.since.value"

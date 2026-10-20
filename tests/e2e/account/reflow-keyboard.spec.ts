@@ -168,7 +168,10 @@ test('US1 password change works with the keyboard and keeps focus visible', asyn
   await page.keyboard.type('Keyboard-Password-71')
   await tabTo(page, page.getByLabel('Current password (confirm changes)'))
   await page.keyboard.type(MOCK_PASSWORD)
-  await tabTo(page, page.getByRole('button', { name: 'Change password', exact: true }))
+  await tabTo(
+    page,
+    page.locator('form').getByRole('button', { name: 'Change password', exact: true }),
+  )
   await page.keyboard.press('Enter')
   await expect(page.locator('[data-password-changed]')).toBeVisible()
 })

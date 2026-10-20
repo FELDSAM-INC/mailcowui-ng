@@ -6,8 +6,10 @@
 // (`admin.ip_check_disabled`) and the capabilities are read again.
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import { problemOf } from '@/api'
+import { useIdentityQuery } from '@/app/session/queries'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import { buttonVariants } from '@/shared/ui/button'
@@ -17,6 +19,7 @@ import { operationsKeys } from '../../query-keys'
 
 const props = defineProps<{ ipCheckEnabled: boolean | null }>()
 const client = useQueryClient()
+const identity = useIdentityQuery()
 const query = usePublicAddresses()
 
 const refused = computed(() => problemOf(query.error.value)?.is('ip-check-disabled') ?? false)
@@ -56,5 +59,11 @@ async function show() {
         </button>
       </div>
     </template>
+    <RouterLink
+      v-if="identity.data.value?.role === 'admin'"
+      :to="{ name: 'system-settings-ip-check' }"
+      :class="buttonVariants({ variant: 'link', class: 'self-start' })"
+      >{{ lt('admin.ip_check') }}</RouterLink
+    >
   </div>
 </template>

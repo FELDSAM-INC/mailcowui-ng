@@ -9,7 +9,7 @@
       "description": "Choose whether external services may resolve the server’s public IP addresses."
     },
     "passwordPolicy": {
-      "description": "Choose the rules checked when a new password is set.",
+      "description": "Choose password rules and configure recovery emails.",
       "rules": "Resulting rules",
       "existingPasswords": "Existing passwords keep working. These rules apply the next time a password is set."
     },
@@ -18,6 +18,28 @@
       "restarted": "Rspamd restarted.",
       "serviceFailure": "The change could not be confirmed. The new password may take effect at Rspamd’s next start.",
       "outcomeUnknown": "It is unknown whether the password was set. Setting it again is safe."
+    },
+    "passwordReset": {
+      "available": "Self-service password reset is available.",
+      "unavailable": "Self-service password reset is unavailable. Set both a sender and a subject to enable it.",
+      "defaultTemplate": "Default template",
+      "restoreDefaults": "Restore default templates",
+      "defaultsAfterSave": "Both templates are empty. The default templates will apply after saving.",
+      "missingLink": "A template is missing {placeholder}; that version of the email will contain no reset link.",
+      "oneEmpty": "Only one template is filled in. The email will have only that version.",
+      "disableTitle": "Disable password reset?",
+      "disableBody": "Saving an empty sender or subject stops self-service password reset for every user.",
+      "templateChanged": "Template content changed.",
+      "copyPlaceholder": "Copy {placeholder}",
+      "placeholders": "Template placeholders",
+      "size": "{size} of {max}",
+      "wrapLines": "Wrap long lines",
+      "preview": "Preview HTML template",
+      "previewNote": "Images and links are inactive in this preview. Email clients may display the message differently.",
+      "imageOmitted": "Image not loaded in the preview: {alt}",
+      "sampleMailbox": "user{'@'}example.org",
+      "sampleRecovery": "recovery{'@'}example.net",
+      "singleLine": "Enter the subject on one line."
     }
   }
 }

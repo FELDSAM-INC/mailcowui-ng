@@ -36,7 +36,9 @@ describe('Password Settings policy editor', () => {
     const wrapper = await setup()
     await wrapper.get('#section-policy button').trigger('click')
     expect(
-      wrapper.findAll('input[type="checkbox"]').map((input) => input.attributes('name')),
+      wrapper
+        .findAll('#section-policy input[type="checkbox"]')
+        .map((input) => input.attributes('name')),
     ).toEqual(['requireLetters', 'requireSpecialCharacters', 'requireMixedCase', 'requireDigits'])
     await wrapper.get('#policy-minLength').setValue('10')
     await wrapper.get('#policy-requireMixedCase').setValue(true)
@@ -82,7 +84,7 @@ describe('Password Settings policy editor', () => {
   it('keeps demo-mode rules readable and exposes no edit action', async () => {
     const wrapper = await setup(true)
     expect(wrapper.find('[data-demo-mode]').text()).toBe('Demo Mode is enabled')
-    expect(wrapper.find('button').exists()).toBe(false)
-    expect(wrapper.find('input').exists()).toBe(false)
+    expect(wrapper.find('#section-policy button').exists()).toBe(false)
+    expect(wrapper.find('#section-policy input').exists()).toBe(false)
   })
 })

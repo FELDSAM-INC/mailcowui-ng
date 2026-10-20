@@ -35,6 +35,11 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         meta: { titleKey: legacy('admin.password_settings') },
       },
       {
+        path: 'password-reset-email',
+        name: 'system-settings-password-reset-email',
+        redirect: { name: 'system-settings-password-policy', hash: '#password-reset-email' },
+      },
+      {
         path: 'ip-check',
         name: 'system-settings-ip-check',
         component: () => import('./pages/integrations/IpCheckPage.vue'),

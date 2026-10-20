@@ -9,7 +9,7 @@
       "description": "Zvoľte, či môžu externé služby zisťovať verejné IP adresy servera."
     },
     "passwordPolicy": {
-      "description": "Zvoľte pravidlá na kontrolu novo nastavených hesiel.",
+      "description": "Nastavte pravidlá pre heslá a e-maily na ich obnovenie.",
       "rules": "Výsledné pravidlá",
       "existingPasswords": "Existujúce heslá zostávajú funkčné. Tieto pravidlá sa použijú pri ďalšom nastavení hesla."
     },
@@ -18,6 +18,28 @@
       "restarted": "Rspamd restarted.",
       "serviceFailure": "The change could not be confirmed. The new password may take effect at Rspamd’s next start.",
       "outcomeUnknown": "It is unknown whether the password was set. Setting it again is safe."
+    },
+    "passwordReset": {
+      "available": "Samoobslužné obnovenie hesla je dostupné.",
+      "unavailable": "Samoobslužné obnovenie hesla nie je dostupné. Na zapnutie nastavte odosielateľa aj predmet.",
+      "defaultTemplate": "Predvolená šablóna",
+      "restoreDefaults": "Obnoviť predvolené šablóny",
+      "defaultsAfterSave": "Obe šablóny sú prázdne. Po uložení sa použijú predvolené šablóny.",
+      "missingLink": "V šablóne chýba {placeholder}; táto verzia e-mailu nebude obsahovať odkaz na obnovenie hesla.",
+      "oneEmpty": "Je vyplnená len jedna šablóna. E-mail bude obsahovať iba túto verziu.",
+      "disableTitle": "Vypnúť obnovenie hesla?",
+      "disableBody": "Uložením prázdneho odosielateľa alebo predmetu vypnete samoobslužné obnovenie hesla všetkým používateľom.",
+      "templateChanged": "Obsah šablóny sa zmenil.",
+      "copyPlaceholder": "Kopírovať {placeholder}",
+      "placeholders": "Premenné šablóny",
+      "size": "{size} z {max}",
+      "wrapLines": "Zalamovať dlhé riadky",
+      "preview": "Náhľad HTML šablóny",
+      "previewNote": "Obrázky a odkazy sú v tomto náhľade neaktívne. E-mailové aplikácie môžu správu zobraziť inak.",
+      "imageOmitted": "Obrázok sa v náhľade nenačítava: {alt}",
+      "sampleMailbox": "pouzivatel{'@'}example.org",
+      "sampleRecovery": "obnova{'@'}example.net",
+      "singleLine": "Zadajte predmet na jednom riadku."
     }
   }
 }

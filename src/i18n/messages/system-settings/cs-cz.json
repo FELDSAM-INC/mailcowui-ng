@@ -9,7 +9,7 @@
       "description": "Zvolte, zda mohou externí služby zjišťovat veřejné IP adresy serveru."
     },
     "passwordPolicy": {
-      "description": "Zvolte pravidla pro kontrolu nově nastavených hesel.",
+      "description": "Nastavte pravidla pro hesla a e-maily pro jejich obnovení.",
       "rules": "Výsledná pravidla",
       "existingPasswords": "Stávající hesla zůstávají funkční. Tato pravidla se použijí při příštím nastavení hesla."
     },
@@ -18,6 +18,28 @@
       "restarted": "Rspamd restarted.",
       "serviceFailure": "The change could not be confirmed. The new password may take effect at Rspamd’s next start.",
       "outcomeUnknown": "It is unknown whether the password was set. Setting it again is safe."
+    },
+    "passwordReset": {
+      "available": "Samoobslužné obnovení hesla je dostupné.",
+      "unavailable": "Samoobslužné obnovení hesla není dostupné. Pro zapnutí nastavte odesílatele i předmět.",
+      "defaultTemplate": "Výchozí šablona",
+      "restoreDefaults": "Obnovit výchozí šablony",
+      "defaultsAfterSave": "Obě šablony jsou prázdné. Po uložení se použijí výchozí šablony.",
+      "missingLink": "V šabloně chybí {placeholder}; tato verze e-mailu nebude obsahovat odkaz na obnovení hesla.",
+      "oneEmpty": "Je vyplněna jen jedna šablona. E-mail bude obsahovat pouze tuto verzi.",
+      "disableTitle": "Vypnout obnovení hesla?",
+      "disableBody": "Uložením prázdného odesílatele nebo předmětu vypnete samoobslužné obnovení hesla všem uživatelům.",
+      "templateChanged": "Obsah šablony se změnil.",
+      "copyPlaceholder": "Kopírovat {placeholder}",
+      "placeholders": "Proměnné šablony",
+      "size": "{size} z {max}",
+      "wrapLines": "Zalamovat dlouhé řádky",
+      "preview": "Náhled HTML šablony",
+      "previewNote": "Obrázky a odkazy jsou v tomto náhledu neaktivní. E-mailové aplikace mohou zprávu zobrazit jinak.",
+      "imageOmitted": "Obrázek se v náhledu nenačítá: {alt}",
+      "sampleMailbox": "uzivatel{'@'}example.org",
+      "sampleRecovery": "obnova{'@'}example.net",
+      "singleLine": "Zadejte předmět na jednom řádku."
     }
   }
 }

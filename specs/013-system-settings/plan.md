@@ -530,3 +530,39 @@ leave protection, History, and the shared policy in mailbox creation. The isolat
 API smoke changed the minimum length and restored the exact original policy and
 ETag in a finally block. Typecheck, lint, i18n, production build and the initial
 bundle budget pass (194.4 KiB gzip of 200 KiB). Reset-email tasks remain open.
+
+
+### Password reset email checkpoint (2026-10-20)
+
+The owner-requested Password Settings destination contains policy and recovery settings
+on one page. `/system/password-reset-email` redirects to its recovery section. The
+classic recovery form retains sender, subject and collapsed text/HTML template order,
+its exact labels and `success.saved_settings`. The approved FR-046 restore action,
+FR-047 disable confirmation and FR-048 warnings are implemented. Both default bodies
+are projected by the API from empty stored values; changing one default body explicitly
+preserves the other displayed body, whereas changing only the sender/subject never
+persists the default templates.
+
+`TemplateField`, `EmailPreviewDialog` and the email sanitizer remain feature-local until
+there is a second actual consumer. The textarea implements the relevant FR-072 editor
+behavior with native keyboard navigation, wrapping and UTF-8 size limits. Preview uses
+no new dependency or CSP permission: DOMPurify allowlisting, inert image/link replacements,
+safe CSS declarations through CSSOM, and a scriptless no-src iframe. Initialization covers
+both an already-loaded blank document and its load event. The hostile fixture includes
+40 inline attributes. The app dialog receives both-theme axe checks; its operator-authored,
+scriptless frame cannot run axe and is excluded from that audit, with its accessible title
+and content isolation asserted separately.
+
+Validation evidence: 45 focused unit checks; 51 unique browser cases across desktop/mobile
+Chromium and mobile WebKit (48 initial form passes and all 12 affected checks passing after
+the preview fix); read-only isolated API smoke confirms the returned sender/subject
+availability, default markers, exact text/HTML bodies and working preview. Policy's earlier
+reversible write/restore smoke also passed. Typecheck, lint, i18n, build and bundle checks
+pass; the reset build has 199,002 bytes of initial gzip JavaScript (limit 204,800).
+T090's rule coverage reuses the shared policy-rules suite and policy-page live draft test;
+placeholder copying and reset page confirmations have focused unit coverage.
+
+API discrepancy: T018 documents local-domain senders such as `quota-warning@localhost`,
+which the UI and mocks accept. The pinned API's `EmailAddress` delegates to PHP
+`FILTER_VALIDATE_EMAIL`, which rejects that address. Server errors remain mapped to the
+sender field. Root is tracking backend parity; no API code was changed in this UI slice.

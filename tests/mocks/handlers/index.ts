@@ -1,5 +1,6 @@
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
+import { settingsPasswordHandlers } from './settings-password'
 // Mock API handlers (research R22), shared by every transport: Vitest (msw/node), the Node mock
 // server for development, end-to-end tests and Lighthouse.
 //
@@ -94,6 +95,7 @@ export const areaHandlers: RequestHandler[] = [
   ...mailboxTemplateReadHandlers,
   ...mailboxTemplateWriteHandlers,
   ...passwordPolicyHandlers,
+  ...settingsPasswordHandlers,
   ...syncJobHandlers,
   // UI 012
   ...identityProviderHandlers,

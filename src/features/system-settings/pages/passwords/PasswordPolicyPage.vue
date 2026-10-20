@@ -20,6 +20,7 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 
 import { passwordPolicyOptions, updatePasswordPolicy, usePasswordPolicy } from '../../api/passwords'
 import PolicyRulesPreview from '../../components/passwords/PolicyRulesPreview.vue'
+import PasswordResetEmailSection from '../../components/passwords/PasswordResetEmailSection.vue'
 import { useSettingsSection } from '../../composables/useSettingsSection'
 
 const props = defineProps<{ capabilities: SettingsCapabilities }>()
@@ -204,5 +205,6 @@ useLeaveGuard(
         </p>
       </section>
     </template>
+    <PasswordResetEmailSection :capabilities="capabilities" />
   </section>
 </template>

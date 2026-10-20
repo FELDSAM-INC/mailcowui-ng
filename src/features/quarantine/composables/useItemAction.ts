@@ -12,7 +12,7 @@
 // - no response: "outcome unknown" and one re-read of the item; gone → back to the list. The action
 //   is never sent again by itself.
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
 
 import { problemOf, type QuarantineItem } from '@/api'
 import { text } from '@/i18n'
@@ -29,6 +29,8 @@ export type RereadResult = 'present' | 'gone' | 'failed'
 
 export interface ItemActionOptions {
   item: () => ActionItem | undefined
+  /** Route identity, when a successful mutation can remove the cached item before returning. */
+  itemId?: () => number | undefined
   /** Reads the item again (once). */
   reread: () => Promise<RereadResult>
   /** The action is done: back to the list with its alerts. */
@@ -49,41 +51,64 @@ export function useItemAction(options: ItemActionOptions) {
   const lines = shallowRef<OutcomeLine[]>([])
   /** The action a temporary failure left for the user to retry. */
   const retryKind = ref<ItemActionKind | null>(null)
+  const itemId = () => (options.itemId ? options.itemId() : options.item()?.id)
+  let disposed = false
+  let operation = 0
 
-  async function rereadAfterBusy() {
+  function reset() {
+    operation++
+    recheck.cancel()
+    sending.value = false
+    confirming.value = false
+    lines.value = []
+    retryKind.value = null
+  }
+  watch(itemId, reset, { flush: 'sync' })
+  onScopeDispose(() => {
+    disposed = true
+    reset()
+  })
+
+  async function rereadAfterBusy(current: () => boolean) {
+    if (!current()) return
     const result = await options.reread()
+    if (!current()) return
     if (result === 'gone') options.onGone(goneLines())
     else if (result === 'present') lines.value = []
   }
 
   async function run(kind: ItemActionKind) {
     const item = options.item()
-    if (!item || sending.value || confirming.value) return
+    if (disposed || !item || item.id !== itemId() || sending.value || confirming.value) return
+    const started = ++operation
+    const current = () => !disposed && operation === started && itemId() === item.id
     recheck.cancel()
     confirming.value = true
     try {
-      if (!(await ask(kind, item))) return
+      if (!(await ask(kind, item)) || !current()) return
     } finally {
-      confirming.value = false
+      if (current()) confirming.value = false
     }
     sending.value = true
     retryKind.value = null
     lines.value = []
     try {
       const report = await runItemAction(client, kind, item)
+      if (!current()) return
       options.onFinished(report ? reportLines(report) : deletedLines(item.id))
     } catch (error) {
+      if (!current()) return
       const outcome = toProblemOutcome(problemOf(error)!)
       lines.value = outcome.lines
       if (outcome.follow === 'return') options.onGone(outcome.lines)
       else if (outcome.follow === 'recheck') {
-        recheck.schedule(outcome.retryAfter ?? 5, rereadAfterBusy)
+        recheck.schedule(outcome.retryAfter ?? 5, () => rereadAfterBusy(current))
       } else if (outcome.follow === 'retry') retryKind.value = kind
       else if (outcome.follow === 'unknown') {
-        if ((await options.reread()) === 'gone') options.onGone(outcome.lines)
+        if ((await options.reread()) === 'gone' && current()) options.onGone(outcome.lines)
       }
     } finally {
-      sending.value = false
+      if (current()) sending.value = false
     }
   }
 

@@ -346,6 +346,7 @@ sent, and that no markup is ever rendered (spec US1).
   - `AttachmentList.spec.ts`: hash copy through `clipboard.ts`; the VT link built only for a valid hash;
   - `QuarantineStatusNotice.spec.ts`;
   - `useItemAction.spec.ts`: each outcome of the data-model §8 state machine, with fake timers for the single busy re-check after `Retry-After`, the re-read after no response, and never a second action request.
+  - Lifecycle follow-up: `useItemAction-lifecycle.spec.ts` covers leaving during confirmation, mutation or re-read, changing the route's item, and keeping the current completion after cache eviction. Ten regressions pass; this does not close the other component coverage in T047.
 - [ ] T048 [P] [US1] Write `tests/smoke/quarantine.smoke.spec.ts` (`@006`) against the dev stack seeded by API 006. As `alice@example.org`:
   - 30 items are listed;
   - opening an item shows its symbols;
@@ -456,10 +457,11 @@ connection, and compare the results with the mock (spec US2).
   - a delivery that includes virus items states their number and requires the acknowledgement;
   - a whole-request `403` gives one message, with the selection kept;
   - at 360 px: the "Select" control, 44 × 44 checkboxes, and the bar with the count and actions staying visible.
-- [ ] T062 [P] [US2] Write `tests/e2e/quarantine/busy-and-recipient.spec.ts`. It covers:
+- [x] T062 [P] [US2] Write `tests/e2e/quarantine/busy-and-recipient.spec.ts`. It covers:
   - US2-AS7 with `page.clock`: "another action is in progress for this item", one re-read after 5 s, and the item then gone (back to the list) or available again;
-  - US2-AS8: an administrator selects bob's address and lands on `/ng/mailboxes/bob@example.org/spam-filter`;
+  - US2-AS8: an administrator selects bob's address and lands on the host mailbox's spam-filter section, `/ng/mailboxes/bob@example.org#spam-filter`;
   - Edge: the recipient of an item for a resource or a deleted mailbox is shown without a link (FR-006).
+  - Verified 2026-10-20: 30 browser cases across mobile Chromium, desktop Chromium and mobile WebKit, with both-theme axe, 360/320 px reflow, CSP and contract checks. Includes cancellation on leaving, late responses after navigation, domain-administrator navigation and mailbox-user plain text.
 - [x] T063 [P] [US2] Write the unit tests in `tests/unit/features/quarantine/`:
   - `useQuarantineBulk.spec.ts`: targets with `version` from `etag`; `retain` keeps refused, failed and outdated; the unknown outcome never resends; a whole-request refusal keeps the selection;
   - `QuarantineBulkConfirm.spec.ts`: typed count for the destructive actions; virus count and acknowledgement; `PlainText` lists;

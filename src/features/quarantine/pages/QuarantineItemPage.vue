@@ -99,6 +99,7 @@ async function reread(): Promise<RereadResult> {
 
 const action = useItemAction({
   item: () => item.value,
+  itemId: () => itemId.value,
   reread,
   onFinished: leave,
   onGone(lines) {

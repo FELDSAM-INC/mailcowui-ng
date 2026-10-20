@@ -354,3 +354,32 @@ This deployment includes the implemented quarantine, spam policy, notification a
 flows described above. The original checklist's remaining acceptance cases, physical devices,
 assistive-technology and live authenticated parity checks remain open. The separate UI 005
 account/self-service worktree is still unfinished and is not part of this release.
+
+**2026-10-20, busy-item and recipient follow-up (T062, focused T047 coverage)**: delayed
+confirmations, action responses and busy-item reads previously retained the old page's callbacks
+after navigation. They could submit an action after the user left its confirmation, navigate back
+to the list from another item, or clear a newer failure. Item actions now belong to their current
+route and operation. Leaving cancels the pending recheck, and obsolete results cannot change the
+current page. Already-sent mutations still update the shared cache. The current action also
+finishes correctly when its successful mutation removes the cached item.
+
+The ten lifecycle regressions first produced nine failures and one pass, then all passed with the
+fix. All **122 quarantine unit tests** pass. The missing `busy-and-recipient.spec.ts` passes
+**30 browser cases** across mobile Chromium, desktop Chromium and mobile WebKit. It verifies one
+five-second recheck for both available and gone outcomes, no automatic resubmission, navigation
+during pending work, administrator and domain-administrator recipient links, and plain text for
+mailbox users, resources and deleted mailboxes. Recipient navigation uses the existing mailbox
+host section at `#spam-filter`.
+
+The existing action, item and host-integration specs pass **51 further browser cases** against the
+same frozen production build, for **81 passing cases** with no retries. Both-theme axe, 360/320 px
+reflow, CSP and mock-contract checks are enforced. The initial run was stopped to correct two
+test fixtures: a fully paused page clock prevented action dispatch, and the navigation helper
+selected an item outside the first list page. No product change was needed for those failures.
+
+Full type checking, scoped ESLint/Prettier, the production build and bundle budgets pass; initial
+JavaScript is **193,361 / 204,800 bytes gzipped**. Logs and retained failed-run traces are under
+`storage/app/restart-2026-10-20/u006/busy-recipient/` in the API checkout, including
+`u006-busy-red.log`, `u006-busy-units.log`, `u006-busy-browser-focused.log` and
+`u006-busy-browser-regression.log`. This completes T062 and adds lifecycle coverage under T047;
+the remaining UI 006 acceptance and manual checks stay open. This follow-up has not been deployed.

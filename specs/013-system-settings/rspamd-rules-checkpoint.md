@@ -85,3 +85,16 @@ the shared route issue was reported separately and is outside this checkpoint.
 T108's assertion that Global Sieve offers no examples belongs to the forthcoming US9 page;
 that page is not registered at this baseline, so this checkpoint does not invent a test of a
 nonexistent form. No global Sieve preset integration is added.
+
+## Integrated main validation — 2026-10-21
+
+Merged with the TailAdmin shell, acting sessions, quota notifications, and shared editor
+geometry cache. The Options tab now opens Rspamd settings map. All 48 focused browser
+executions passed on mobile Chromium, desktop Chromium, and mobile WebKit, including
+Rspamd rules, Sieve presets, Options navigation, and shared-editor quota/password-reset
+regressions. All 127 focused unit tests passed in 31 files. Typecheck, scoped ESLint,
+i18n completeness, production build, and bundle budget passed. Initial JavaScript is
+186,745 of the 204,800-byte gzip budget; localization fallbacks above remain explicit.
+
+Integration evidence is retained under
+`mailcow-rest-v2/storage/app/restart-2026-10-20/rspamd-rules/integration/`.

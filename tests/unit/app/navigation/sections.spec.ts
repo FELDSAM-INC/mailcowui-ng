@@ -74,7 +74,6 @@ describe('requested application navigation', () => {
     const sections = sidebarSections(identity('admin')).flatMap((group) => group.items)
     const unavailable = sections.flatMap((section) => section.tabs).filter((tab) => tab.disabled)
     expect(unavailable.map((tab) => tab.id)).toEqual([
-      'rspamdSettingsMap',
       'customize',
       'systemMails',
       'globalFilterMaps',

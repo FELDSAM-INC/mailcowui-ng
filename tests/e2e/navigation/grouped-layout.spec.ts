@@ -116,7 +116,7 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
         'Password Settings',
         'Customize',
       ],
-      2,
+      1,
     ],
   ] as const) {
     await page.goto(path)

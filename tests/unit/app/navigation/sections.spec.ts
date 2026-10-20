@@ -64,8 +64,6 @@ describe('requested application navigation', () => {
     const sections = sidebarSections(identity('admin')).flatMap((group) => group.items)
     const unavailable = sections.flatMap((section) => section.tabs).filter((tab) => tab.disabled)
     expect(unavailable.map((tab) => tab.id)).toEqual([
-      'administrators',
-      'domainAdmins',
       'rspamdUi',
       'quotaNotifications',
       'rspamdSettingsMap',
@@ -75,7 +73,7 @@ describe('requested application navigation', () => {
       'globalFilterMaps',
     ])
     expect(unavailable.every((tab) => tab.to === undefined)).toBe(true)
-    expect(sections.find((section) => section.id === 'access')?.to).toBe('/api-keys')
+    expect(sections.find((section) => section.id === 'access')?.to).toBe('/administrators/admins')
   })
 
   it.each(['/dns/dkim-import', '/dns/diagnostics/example.org'])(

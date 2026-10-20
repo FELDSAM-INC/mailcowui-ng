@@ -497,3 +497,13 @@ bytes gzipped against the 204,800-byte budget. Screenshots and logs are retained
 UI007 integration must mark both administrator catalogue entries available, use `domainAdmins`
 on its domain-administrator routes, and adjust the Access tests from three disabled tabs to one
 (Rspamd UI) and from `/api-keys` to `/administrators/admins` as the group's first destination.
+
+Integration checkpoint: the UI007 CRUD routes and quarantine scope-filter fix are now combined
+with this navigation. Both administrator tabs are available, Access opens `/administrators/admins`,
+and domain-administrator detail routes retain their correct tab. Identity transitions still unmount
+the previous route and suppress its tabs. Validation: 170 focused unit tests, 72 browser checks
+across mobile Chromium, desktop Chromium and mobile WebKit, and four isolated real-API smoke
+checks passed. Typecheck, lint, translations, production build and bundle budgets passed; combined
+initial JavaScript is 202,257/204,800 bytes gzipped. Browser coverage includes following Access
+from the sidebar into account detail and measures the actual domain creation form at
+`/domains/-/new`. UI002 T044 is superseded by the owner's Home removal.

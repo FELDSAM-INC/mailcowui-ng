@@ -12,7 +12,7 @@ export const administratorRoutes: RouteRecordRaw[] = [
     meta: {
       layout: 'shell',
       access: 'session',
-      navEntry: 'administrators',
+      navEntry: 'domainAdmins',
       roles: ['admin'],
       titleKey: legacy('admin.domain_admins'),
     },
@@ -25,7 +25,7 @@ export const administratorRoutes: RouteRecordRaw[] = [
     meta: {
       layout: 'shell',
       access: 'session',
-      navEntry: 'administrators',
+      navEntry: 'domainAdmins',
       roles: ['admin'],
       titleKey: legacy('admin.add_domain_admin'),
     },
@@ -38,7 +38,7 @@ export const administratorRoutes: RouteRecordRaw[] = [
     meta: {
       layout: 'shell',
       access: 'session',
-      navEntry: 'administrators',
+      navEntry: 'domainAdmins',
       roles: ['admin'],
       titleKey: legacy('edit.domain_admin'),
     },

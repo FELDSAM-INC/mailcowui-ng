@@ -147,6 +147,9 @@ describe('navigation catalogue', () => {
       // UI 005: My account.
       'account',
       'filters',
+      // UI 007: account management.
+      'administrators',
+      'domainAdmins',
       // UI 013: settings overview and IP check.
       'system',
     ])

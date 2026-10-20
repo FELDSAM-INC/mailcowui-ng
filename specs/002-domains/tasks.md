@@ -650,10 +650,10 @@ shown with the mock data.
   `src/features/domains/routes.ts`, with lazy components and the title keys of data-model §5. Set
   the catalogue's `domains` entry to `available` in `src/app/navigation/catalogue.ts`, and update
   `tests/unit/app/navigation/visibility.spec.ts`.
-- [ ] T044 [US1] *(awaits UI 001 US3 merge: `ScopeSummary.vue` does not exist on `main` yet)* Add the home entry point in `src/features/home/components/ScopeSummary.vue`. For a
-  domain administrator, each domain of `scope.domains` links to `domain-detail`. For an
-  administrator, "all domains" links to `domains`. Update
-  `tests/unit/features/home/HomePage.spec.ts`.
+- [X] T044 [US1] **Superseded by the owner's 2026-10-20 navigation request:** Home is removed,
+  so its proposed domain-scope links are no longer required. Domain administrators land on
+  `/domains`; its existing domain links and the detail page's list navigation remain available.
+  See the owner navigation update in `specs/001-sign-in-app-shell/plan.md`.
 - [X] T045 [US1] Add the `domains.title`, `domains.list.*`, `domains.filters.*`, `domains.sort.*`
   (one label per `DomainSort` value), `domains.state.*`, `domains.badge.*`, `domains.usage.*`,
   `domains.detail.*` and `domains.empty.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`,

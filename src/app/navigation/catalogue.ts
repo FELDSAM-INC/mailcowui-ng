@@ -194,12 +194,28 @@ export const catalogue: readonly NavigationEntry[] = [
     '006',
     { mailboxUser: ['/user'] },
   ),
-  entry('administrators', '/administrators/admins', UsersIcon, ADMIN, '007', {
-    admin: ['/admin/system'],
-  }),
-  entry('domainAdmins', '/administrators/domain-admins', UsersIcon, ADMIN, '007', {
-    admin: ['/admin/system'],
-  }),
+  entry(
+    'administrators',
+    '/administrators/admins',
+    UsersIcon,
+    ADMIN,
+    '007',
+    {
+      admin: ['/admin/system'],
+    },
+    'available',
+  ),
+  entry(
+    'domainAdmins',
+    '/administrators/domain-admins',
+    UsersIcon,
+    ADMIN,
+    '007',
+    {
+      admin: ['/admin/system'],
+    },
+    'available',
+  ),
   entry(
     'syncJobs',
     '/sync-jobs',

@@ -48,6 +48,25 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         meta: { titleKey: legacy('admin.active_rspamd_settings_map') },
       },
       {
+        path: 'customize',
+        component: () => import('./layouts/CustomizeLayout.vue'),
+        children: [
+          { path: '', redirect: { name: 'system-settings-logos' } },
+          {
+            path: 'logos',
+            name: 'system-settings-logos',
+            component: () => import('./pages/branding/LogosPage.vue'),
+            meta: { titleKey: legacy('admin.change_logo') },
+          },
+          {
+            path: 'ui-texts',
+            name: 'system-settings-ui-texts',
+            component: () => import('./pages/branding/UiTextsPage.vue'),
+            meta: { titleKey: legacy('admin.ui_texts') },
+          },
+        ],
+      },
+      {
         path: 'rspamd-web-interface',
         name: 'system-settings-rspamd-web-interface',
         component: () => import('./pages/spam/RspamdWebInterfacePage.vue'),

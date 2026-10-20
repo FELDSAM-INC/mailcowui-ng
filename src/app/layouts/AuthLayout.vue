@@ -17,7 +17,9 @@ const ActingBanner = defineAsyncComponent(() => import('../shell/ActingBanner.vu
 import LanguageSelect from '../preferences/LanguageSelect.vue'
 import ThemeSelect from '../preferences/ThemeSelect.vue'
 
-import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
+import { useBranding } from '../branding/public-config'
+const { branding } = useBranding()
+const AnnouncementBanner = defineAsyncComponent(() => import('../shell/AnnouncementBanner.vue'))
 import AppFooter from '../shell/AppFooter.vue'
 import SkipLink from '../shell/SkipLink.vue'
 </script>
@@ -28,7 +30,7 @@ import SkipLink from '../shell/SkipLink.vue'
     <StickyHeader v-if="identity.data.value?.impersonation"
       ><ActingBanner :impersonation="identity.data.value.impersonation"
     /></StickyHeader>
-    <AnnouncementBanner />
+    <AnnouncementBanner v-if="branding.announcement" />
     <div class="flex flex-wrap items-center justify-end gap-3 px-4 pt-3 sm:px-6">
       <LanguageSelect />
       <ThemeSelect />

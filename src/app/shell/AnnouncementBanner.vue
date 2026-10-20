@@ -6,22 +6,41 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { text } from '@/i18n'
+import { lt, text } from '@/i18n'
 import { DangerIcon, InfoIcon, WarningIcon } from '@/shared/icons'
 import { sessionStore } from '@/shared/platform/storage'
 
 import { useBranding, type AnnouncementType } from '../branding/public-config'
 
+const props = defineProps<{
+  preview?: boolean
+  announcement?: { text: string; type: AnnouncementType } | null
+}>()
 const KEY = 'mailcowui-ng.announcement-collapsed'
 const { t } = useI18n()
 const { branding } = useBranding()
 
-const announcement = computed(() => branding.value.announcement)
+const announcement = computed(() =>
+  props.announcement === undefined ? branding.value.announcement : props.announcement,
+)
+const kind = computed(() => announcement.value?.type ?? 'neutral')
+const typeLabel = computed(() =>
+  announcement.value?.type
+    ? text(`enums.announcementType.${announcement.value.type}`)
+    : lt('admin.ui_header_announcement'),
+)
 const hash = ref<string | null>(null)
 const collapsed = ref(false)
 
-const ICONS = { info: InfoIcon, warning: WarningIcon, danger: DangerIcon } as const
-const STYLES: Record<AnnouncementType, string> = {
+const ICONS = {
+  neutral: InfoIcon,
+  info: InfoIcon,
+  warning: WarningIcon,
+  danger: DangerIcon,
+} as const
+const STYLES: Record<NonNullable<AnnouncementType> | 'neutral', string> = {
+  neutral:
+    'border-gray-200 bg-gray-50 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100',
   info: 'border-blue-light-100 bg-blue-light-50 text-blue-light-950 dark:border-blue-light-700 dark:bg-blue-light-950 dark:text-blue-light-50',
   warning:
     'border-warning-200 bg-warning-50 text-warning-900 dark:border-warning-900 dark:bg-warning-950 dark:text-warning-100',
@@ -42,9 +61,16 @@ async function sha256(text: string): Promise<string | null> {
 
 watch(
   () => announcement.value?.text,
-  async (text) => {
+  async (text, _, onCleanup) => {
+    let current = true
+    onCleanup(() => {
+      current = false
+    })
+    if (props.preview) return
     collapsed.value = false
-    hash.value = text ? await sha256(text) : null
+    const digest = text ? await sha256(text) : null
+    if (!current) return
+    hash.value = digest
     collapsed.value = !!hash.value && sessionStore.get(KEY) === hash.value
   },
   { immediate: true },
@@ -66,19 +92,20 @@ function expand() {
     v-if="announcement"
     data-announcement
     class="border-b px-4 py-2 sm:px-6"
-    :class="STYLES[announcement.type]"
+    :class="STYLES[kind]"
   >
     <div v-if="!collapsed" class="flex items-start gap-3">
-      <component :is="ICONS[announcement.type]" class="mt-2.5 size-5 shrink-0" />
+      <component :is="ICONS[kind]" class="mt-2.5 size-5 shrink-0" />
       <p class="min-w-0 flex-1 py-2 break-words">
         <span class="sr-only">{{
           t('shell.announcement.prefix', {
-            type: text(`enums.announcementType.${announcement.type}`),
+            type: typeLabel,
           })
         }}</span>
         {{ announcement.text }}
       </p>
       <button
+        v-if="!preview"
         type="button"
         class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10"
         :aria-label="t('shell.announcement.collapse')"
@@ -104,9 +131,9 @@ function expand() {
       class="flex min-h-11 items-center gap-2 rounded-lg px-2 font-medium hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-current dark:hover:bg-white/10"
       @click="expand"
     >
-      <component :is="ICONS[announcement.type]" class="size-5 shrink-0" />
+      <component :is="ICONS[kind]" class="size-5 shrink-0" />
       <!-- The visible type is part of the accessible name (WCAG 2.5.3 label in name). -->
-      <span>{{ text(`enums.announcementType.${announcement.type}`) }}</span>
+      <span>{{ typeLabel }}</span>
       <span class="sr-only">{{ ` – ${t('shell.announcement.expand')}` }}</span>
     </button>
   </div>

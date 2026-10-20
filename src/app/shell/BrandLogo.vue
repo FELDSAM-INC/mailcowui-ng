@@ -1,25 +1,30 @@
 <script setup lang="ts">
 // The operator's logo for the active theme (FR-001, research R16). Without a logo, or when it
 // fails to load, the product name is shown as text (spec edge case).
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { useBranding } from '../branding/public-config'
+import { logoSizes, type LogoSize } from '../branding/logo-sizes'
 
-defineProps<{ textClass?: string; compact?: boolean }>()
+const props = withDefaults(
+  defineProps<{ textClass?: string; compact?: boolean; size?: LogoSize; src?: string | null }>(),
+  { size: 'header' },
+)
 const { branding, logo } = useBranding()
+const source = computed(() => (props.src === undefined ? logo.value : props.src))
 const failed = ref(false)
-watch(logo, () => {
+watch(source, () => {
   failed.value = false
 })
 </script>
 
 <template>
   <img
-    v-if="logo && !failed"
-    :src="logo"
+    v-if="source && !failed"
+    :src="source"
     :alt="branding.productName"
-    class="h-10 w-auto object-contain"
-    :class="compact ? 'max-w-11' : 'max-w-[12rem]'"
+    class="w-auto object-contain"
+    :class="[logoSizes[size].heightClass, compact ? 'max-w-11' : logoSizes[size].widthClass]"
     @error="failed = true"
   />
   <span

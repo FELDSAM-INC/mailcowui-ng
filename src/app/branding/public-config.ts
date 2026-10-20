@@ -19,7 +19,7 @@ import {
 import { darkMode } from '../preferences/theme'
 import { defaultBranding } from './defaults'
 
-export type AnnouncementType = NonNullable<Announcement['type']>
+export type AnnouncementType = Announcement['type']
 
 export interface Branding {
   productName: string
@@ -63,7 +63,7 @@ export function brandingFrom(config: PublicConfig | undefined | null): Branding 
     footerHtml: config.footerHtml,
     announcement:
       announcement.active && announcement.text
-        ? { text: announcement.text, type: announcement.type ?? 'info' }
+        ? { text: announcement.text, type: announcement.type }
         : null,
     loginPage: config.loginPage,
     languages: config.languages,

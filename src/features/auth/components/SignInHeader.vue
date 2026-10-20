@@ -5,6 +5,7 @@
 import { ref, watch } from 'vue'
 
 import { useBranding } from '@/app/branding/public-config'
+import { logoSizes } from '@/app/branding/logo-sizes'
 
 const { branding, logo } = useBranding()
 const failed = ref(false)
@@ -19,7 +20,8 @@ watch(logo, () => {
       v-if="logo && !failed"
       :src="logo"
       alt=""
-      class="h-12 w-auto max-w-full object-contain"
+      class="w-auto object-contain"
+      :class="[logoSizes.signIn.heightClass, logoSizes.signIn.widthClass]"
       @error="failed = true"
     />
     <p

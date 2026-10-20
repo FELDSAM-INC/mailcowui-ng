@@ -5,7 +5,8 @@ import { createHash } from 'node:crypto'
 import { HttpResponse } from 'msw'
 
 import { LOGO_VERSION } from '../scenarios/public-config'
-import { http, scenario } from './context'
+import { existingBranding } from '../scenarios/settings-branding'
+import { http, problem, scenario } from './context'
 
 const etagOf = (value: unknown) =>
   `"${createHash('sha256').update(JSON.stringify(value)).digest('hex').slice(0, 20)}"`
@@ -30,6 +31,21 @@ export const publicConfigHandlers = [
 
   http.get('/public-config/logos/{variant}', ({ params, query, response }) => {
     const variant = params.variant === 'dark' ? 'dark' : 'light'
+    const saved = existingBranding(scenario())?.logos[variant]
+    if (saved) {
+      if (!saved.bytes || !saved.metadata.mediaType) return response.untyped(problem(404, null))
+      return response.untyped(
+        new HttpResponse(Uint8Array.from(saved.bytes).buffer, {
+          status: 200,
+          headers: {
+            'Content-Type': saved.metadata.mediaType,
+            ETag: saved.metadata.etag,
+            'Cache-Control': 'no-cache',
+            'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+          },
+        }),
+      )
+    }
     const body = logoSvg(variant)
     const versioned = query.get('v') === LOGO_VERSION
     return response.untyped(

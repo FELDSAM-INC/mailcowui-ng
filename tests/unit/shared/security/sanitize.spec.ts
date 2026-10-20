@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { sanitizeHtml, sanitizeLegacyHtml } from '@/shared/security/sanitize'
+import { sanitizeHtmlWithReport } from '@/shared/security/sanitize-report'
 
 function parse(html: string): HTMLElement {
   const root = document.createElement('div')
@@ -66,6 +67,7 @@ describe('sanitizeHtml: injection vectors (SC-013)', () => {
 
   it.each(vectors)('neutralises %s', (_label, input) => {
     expectNeutralised(sanitizeHtml(input))
+    expect(sanitizeHtmlWithReport(input).html).toBe(sanitizeHtml(input))
   })
 
   it('keeps the text of removed formatting containers', () => {

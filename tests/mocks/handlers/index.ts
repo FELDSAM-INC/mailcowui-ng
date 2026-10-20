@@ -4,6 +4,7 @@ import { settingsQuotaHandlers } from './settings-quota-notifications'
 import { rspamdRulesHandlers } from './settings-rspamd-rules'
 import { settingsPresetHandlers } from './settings-presets'
 import { regexMapHandlers } from './settings-regex-maps'
+import { settingsBrandingHandlers } from './settings-branding'
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
 import { settingsPasswordHandlers } from './settings-password'
@@ -88,6 +89,7 @@ export const areaHandlers: RequestHandler[] = [
   ...identityHandlers,
   ...impersonationHandlers,
   ...publicConfigHandlers,
+  ...settingsBrandingHandlers,
   ...passkeyHandlers,
   ...apiKeyHandlers,
   ...adminHandlers,

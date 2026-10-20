@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import type { SettingsCapabilities } from '@/api'
-import { resolveText } from '@/i18n'
+import { lt, resolveText } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 
 import { settingsGroups, settingsPages } from '../catalogue'
@@ -33,7 +33,9 @@ const groups = computed(() =>
         :id="`settings-${group.id}`"
         class="mb-3 text-lg font-semibold text-gray-900 dark:text-white"
       >
-        {{ t(`systemSettings.groups.${group.id}`) }}
+        {{
+          group.id === 'branding' ? lt('admin.customize') : t(`systemSettings.groups.${group.id}`)
+        }}
       </h2>
       <ul class="grid gap-3 sm:grid-cols-2">
         <li v-for="page in group.pages" :key="page.id">

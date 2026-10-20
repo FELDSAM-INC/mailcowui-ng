@@ -73,10 +73,25 @@ describe('requested application navigation', () => {
   it('shows unfinished destinations as disabled, without a navigable target', () => {
     const sections = sidebarSections(identity('admin')).flatMap((group) => group.items)
     const unavailable = sections.flatMap((section) => section.tabs).filter((tab) => tab.disabled)
-    expect(unavailable.map((tab) => tab.id)).toEqual(['customize', 'systemMails'])
+    expect(unavailable.map((tab) => tab.id)).toEqual(['systemMails'])
     expect(unavailable.every((tab) => tab.to === undefined)).toBe(true)
     expect(sections.find((section) => section.id === 'access')?.to).toBe('/administrators/admins')
   })
+
+  it.each(['/system/customize/logos', '/system/customize/ui-texts'])(
+    'keeps Customize active at %s only for administrators',
+    (path) => {
+      const section = activeSection(path, identity('admin'))
+      expect(section?.id).toBe('options')
+      expect(section?.tabs.find((tab) => tab.current)).toMatchObject({
+        id: 'customize',
+        to: '/system/customize/logos',
+        disabled: false,
+      })
+      expect(activeSection(path, identity('domainAdmin'))).toBeUndefined()
+      expect(activeSection(path, identity('mailboxUser'))).toBeUndefined()
+    },
+  )
 
   it('makes Password Settings an administrator Options tab', () => {
     const section = activeSection('/system/password-policy', identity('admin'))

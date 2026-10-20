@@ -1,5 +1,6 @@
 import { actingScenarios } from './acting'
 import { rspamdRulesScenarios } from './settings-rspamd-rules'
+import { settingsBrandingScenarios } from './settings-branding'
 import {
   applySettingsPatch,
   initialSettingsState,
@@ -161,6 +162,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...dnsScenarios,
   ...routingScenarios,
   ...systemSettingsScenarios,
+  ...settingsBrandingScenarios,
   // UI 011: one module per area under ./operations/ (T013).
   ...operationsScenarios,
   ...rateLimitScenarios,

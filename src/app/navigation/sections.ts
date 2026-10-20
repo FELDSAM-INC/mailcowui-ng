@@ -201,7 +201,13 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
             path: '/system/password-policy',
             roles: ADMIN,
           },
-          pending('customize', legacy('admin.customize')),
+          {
+            id: 'customize',
+            labelKey: legacy('admin.customize'),
+            path: '/system/customize/logos',
+            matches: ['/system/customize'],
+            roles: ADMIN,
+          },
         ],
       },
       {

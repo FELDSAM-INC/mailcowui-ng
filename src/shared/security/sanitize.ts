@@ -118,8 +118,13 @@ export function sanitizeLegacyHtml(html: string): string {
   return sanitized
 }
 
-export function sanitizeHtml(html: string): string {
-  return purify.sanitize(defangForParsing(html), {
+export type SanitizeRemoval = (typeof purify.removed)[number]
+
+export function sanitizeHtml(
+  html: string,
+  report?: (removed: readonly SanitizeRemoval[]) => void,
+): string {
+  const safe = purify.sanitize(defangForParsing(html), {
     ALLOWED_TAGS,
     ALLOWED_ATTR: ['href'],
     // Only absolute http(s) and mailto links: relative links and every other scheme are dropped.
@@ -128,6 +133,8 @@ export function sanitizeHtml(html: string): string {
     ALLOW_ARIA_ATTR: false,
     RETURN_TRUSTED_TYPE: false,
   })
+  report?.(purify.removed)
+  return safe
 }
 
 // UI 011 (research R9, FR-028, research R22): sanitisers that only a lazily loaded screen needs

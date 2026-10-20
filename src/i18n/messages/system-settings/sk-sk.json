@@ -98,6 +98,55 @@
       "valid": "The script is valid. Nothing was saved or restarted.",
       "unavailable": "This filter file is not available on this server. Nothing was saved or restarted.",
       "outdated": "This filter changed after you opened it. Your script has been kept. Save again to use the current version, or cancel to discard your changes."
+    },
+    "logos": {
+      "lightSurface": "Light background",
+      "darkSurface": "Dark background",
+      "headerSize": "App header: up to {height} px high and {maxWidth} px wide.",
+      "signInSize": "App sign-in: up to {height} px high and {maxWidth} px wide.",
+      "noDimensions": "No declared size",
+      "default": "Deployment default",
+      "allowed": "Accepted types: {types}.",
+      "fileLimit": "Maximum file size: {limit}.",
+      "pixelLimit": "Maximum raster dimensions: {width} × {height} px. SVG dimensions are not limited.",
+      "resetDescription": "Reset the {variant} logo shown below to the deployment default? The default will be displayed after the reset.",
+      "unsafe": "The SVG was refused because it contains {construct} on line {line}.",
+      "construct": {
+        "notWellFormed": "invalid XML",
+        "rootNotSvg": "a root element other than SVG",
+        "doctype": "a document type declaration",
+        "styleImport": "an external stylesheet import",
+        "scriptElement": "a script element",
+        "eventHandlerAttribute": "an event handler attribute",
+        "foreignContent": "embedded foreign content",
+        "scriptUrl": "a script URL",
+        "externalReference": "an external resource reference",
+        "unknown": "unsafe content"
+      },
+      "description": "Upload or reset the images used in the app and on the sign-in page."
+    },
+    "uiTexts": {
+      "description": "Change product names, sign-in help, announcements and the footer.",
+      "names": "Names and titles",
+      "emptyDefault": "Leave empty to use {value}.",
+      "emptyHidden": "Nothing is shown when this field is empty.",
+      "appsHelp": "This heading labels the Apps menu. Leave empty to use {value}.",
+      "preview": "Preview",
+      "classicHtml": "The classic interface shows the HTML as written. This app uses the sanitized preview shown here.",
+      "removed": "Removed from this preview: {kinds}.",
+      "removedKinds": {
+        "scripts": "scripts",
+        "styles": "styles",
+        "images": "images",
+        "forms": "forms",
+        "frames": "frames",
+        "eventHandlers": "event handlers",
+        "links": "unsupported links",
+        "formatting": "other formatting"
+      },
+      "singleLine": "Enter one line without control characters.",
+      "neutral": "No type (neutral)",
+      "announcementEmpty": "An empty or inactive announcement is hidden."
     }
   }
 }

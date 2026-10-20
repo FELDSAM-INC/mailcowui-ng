@@ -17,7 +17,9 @@ import ThemeToggle from '../preferences/ThemeToggle.vue'
 import { routeAccess } from '../router/guards'
 import { useIdentityQuery } from '../session/queries'
 import { useSignOut } from '../session/sign-out'
-import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
+import { useBranding } from '../branding/public-config'
+const { branding } = useBranding()
+const AnnouncementBanner = defineAsyncComponent(() => import('../shell/AnnouncementBanner.vue'))
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
 const AppsMenu = defineAsyncComponent(() => import('../shell/AppsMenu.vue'))
@@ -110,7 +112,7 @@ const statusMessages = useStatusMessage().messages
       </StickyHeader>
       <main id="main" tabindex="-1" class="min-w-0 flex-1 px-4 py-6 focus:outline-none sm:px-6">
         <div class="mx-auto w-full max-w-7xl min-w-0" data-shell-content>
-          <AnnouncementBanner class="mb-6 rounded-xl border" />
+          <AnnouncementBanner v-if="branding.announcement" class="mb-6 rounded-xl border" />
           <div
             v-if="signOutFailed"
             role="alert"

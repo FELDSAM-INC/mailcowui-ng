@@ -39,7 +39,7 @@ describe('branding', () => {
     }
     expect(brandingFrom(inactive).announcement).toBeNull()
     expect(brandingFrom(empty).announcement).toBeNull()
-    expect(brandingFrom(untyped).announcement).toEqual({ text: 'Hello', type: 'info' })
+    expect(brandingFrom(untyped).announcement).toEqual({ text: 'Hello', type: null })
   })
 
   it('chooses the logo for the active theme', () => {

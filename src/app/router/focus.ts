@@ -30,6 +30,37 @@ export function focusPageHeading(): void {
   document.querySelector<HTMLElement>('main')?.focus({ preventScroll: restored })
 }
 
+/** An identity switch clears page queries, so the new heading may follow a loading state. */
+export function focusPageHeadingWhenReady(): () => void {
+  focusPageHeading()
+  const main = document.querySelector<HTMLElement>('main')
+  if (!main || main.querySelector('[data-autofocus], h1')) return () => {}
+  const stop = () => {
+    observer.disconnect()
+    document.removeEventListener('focusin', onFocus)
+    document.removeEventListener('pointerdown', stop)
+    document.removeEventListener('keydown', stop)
+  }
+  const onFocus = (event: FocusEvent) => {
+    if (event.target !== main) stop()
+  }
+  const observer = new MutationObserver(() => {
+    if (!main.isConnected || document.activeElement !== main) {
+      stop()
+      return
+    }
+    if (main.querySelector('[data-autofocus], h1')) {
+      stop()
+      focusPageHeading()
+    }
+  })
+  observer.observe(main, { childList: true, subtree: true })
+  document.addEventListener('focusin', onFocus)
+  document.addEventListener('pointerdown', stop)
+  document.addEventListener('keydown', stop)
+  return stop
+}
+
 export function installFocusManagement(router: Router): void {
   let first = true
   router.afterEach((to, from, failure) => {

@@ -25,6 +25,16 @@ for (const kind of ['admin', 'domainAdmin'] as const) {
       username = uniqueName(`smoke-${kind.toLowerCase()}`)
     await signIn(page, 'admin')
     try {
+      if (kind === 'admin') {
+        await page.goto('administrators/admins')
+        await expect(page.locator('[data-account-row="admin"]')).toContainText('You')
+        await page.getByRole('button', { name: 'Actions for admin', exact: true }).click()
+        await expect(page.getByRole('menuitem', { name: /Remove/ })).toHaveAttribute(
+          'data-disabled',
+          '',
+        )
+        await page.keyboard.press('Escape')
+      }
       await page.goto(`administrators/${path}/-/new`)
       await page.locator('input[name="accountUsername"]').fill(username)
       if (kind === 'domainAdmin') {
@@ -35,9 +45,13 @@ for (const kind of ['admin', 'domainAdmin'] as const) {
       await page.getByRole('button', { name: 'Add', exact: true }).click()
       await expect(page).toHaveURL(new RegExp(`/administrators/${path}/${username}$`))
       if (kind === 'domainAdmin') {
+        await page.goto('administrators/domain-admins?q=example.org')
+        const row = page.locator(`[data-account-row="${username}"]`)
+        await expect(row).toBeVisible()
+        await row.getByRole('link', { name: username, exact: true }).click()
         await page
           .locator('#section-account')
-          .getByRole('button', { name: /^Edit:/ })
+          .getByRole('button', { name: /^Edit / })
           .click()
         await page.getByRole('combobox', { name: /Domains/ }).fill('example.net')
         await page.getByRole('option', { name: 'example.net', exact: true }).click()
@@ -45,7 +59,7 @@ for (const kind of ['admin', 'domainAdmin'] as const) {
         await expect(page).not.toHaveURL(/edit=/)
         await page
           .locator('#section-permissions')
-          .getByRole('button', { name: /^Edit:/ })
+          .getByRole('button', { name: /^Edit / })
           .click()
         const aliasDomains = page.locator('#account-permission-aliasDomains')
         if (!(await aliasDomains.isChecked())) await aliasDomains.click()

@@ -1,5 +1,12 @@
 import { expect, test } from '../fixtures/test'
 
+test.afterEach(async ({ expectAccessible, expectNoHorizontalScroll, expectTouchTargets }, info) => {
+  if (info.status !== info.expectedStatus) return
+  await expectAccessible()
+  await expectNoHorizontalScroll()
+  if (info.project.name.startsWith('mobile-')) await expectTouchTargets()
+})
+
 for (const role of ['admin', 'domainAdmin'] as const) {
   const path = role === 'admin' ? 'admins' : 'domain-admins'
   test(`${role} list, sort, back restoration and responsive layout`, async ({
@@ -25,6 +32,7 @@ for (const role of ['admin', 'domainAdmin'] as const) {
     mockApi,
     expectAccessible,
     expectNoHorizontalScroll,
+    expectTouchTargets,
   }) => {
     await mockApi.use(role === 'admin' ? 'admins-three' : 'domain-admins-three')
     await page.goto(`administrators/${path}/-/new`)
@@ -37,19 +45,22 @@ for (const role of ['admin', 'domainAdmin'] as const) {
     await expect(page.locator('input[autocomplete="new-password"]').first()).not.toHaveValue('')
     await expectAccessible()
     await expectNoHorizontalScroll()
+    await expectTouchTargets()
     await page.getByRole('button', { name: 'Add', exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/administrators/${path}/browser-${path}$`))
     await expect(page.locator('input[autocomplete="new-password"]')).toHaveCount(0)
     await page
       .locator('#section-account')
-      .getByRole('button', { name: /^Edit:/ })
+      .getByRole('button', { name: /^Edit / })
       .click()
     await page.locator('input[name="accountUsername"]').fill(`renamed-${path}`)
+    await expectTouchTargets()
     await page
       .locator('#section-account')
       .getByRole('button', { name: 'Save changes', exact: true })
       .click()
     await expect(page.getByRole('alertdialog')).toContainText('API keys')
+    await expectAccessible()
     await page
       .getByRole('alertdialog')
       .getByRole('button', { name: 'Save changes', exact: true })
@@ -58,6 +69,7 @@ for (const role of ['admin', 'domainAdmin'] as const) {
     await page.getByRole('button', { name: `Actions for renamed-${path}` }).click()
     await page.getByRole('menuitem', { name: 'Remove', exact: true }).click()
     await expect(page.getByRole('alertdialog')).toContainText('Domains and mailboxes remain')
+    await expectAccessible()
     await page.getByRole('button', { name: 'Delete now', exact: true }).click()
     await expect(page).toHaveURL(new RegExp(`/administrators/${path}$`))
     await expect(page.locator('[data-account-row]')).toHaveCount(3)
@@ -67,6 +79,7 @@ test('ACL conflict retains the draft and only resends intended flags', async ({
   page,
   mockApi,
   expectAccessible,
+  expectTouchTargets,
 }) => {
   await mockApi.use('domain-admins-three')
   await page.goto('administrators/domain-admins/reseller?edit=permissions')
@@ -77,8 +90,11 @@ test('ACL conflict retains the draft and only resends intended flags', async ({
     .getByRole('button', { name: 'Save changes', exact: true })
     .click()
   await expect(page.locator('[data-outdated]')).toBeVisible()
+  // Measure the complete page from its top, with no unrelated target clipped by the sticky header.
+  await page.evaluate(() => window.scrollTo(0, 0))
   await expect(page.locator('#account-permission-loginAs')).toBeChecked()
   await expectAccessible()
+  await expectTouchTargets()
   expect(
     (await mockApi.requests()).filter((request) => request.operationId === 'updateDomainAdmin'),
   ).toHaveLength(1)
@@ -114,7 +130,9 @@ test('last active administrator cannot be deactivated or removed', async ({ page
   await mockApi.use('admins-one')
   await page.goto('administrators/admins/admin?edit=account')
   await expect(page.locator('#account-edit-active')).toBeDisabled()
-  await expect(page.locator('#account-edit-active-reason')).toContainText('active administrator')
+  await expect(page.locator('#account-edit-active-reason')).toHaveText(
+    'Cannot deactivate last active admin',
+  )
   await page.getByRole('button', { name: 'Cancel', exact: true }).click()
   await page.getByRole('button', { name: 'Actions for admin' }).click()
   await expect(page.getByRole('menuitem', { name: /Remove/ })).toHaveAttribute('data-disabled', '')
@@ -141,7 +159,7 @@ test('self rename clears old identity state and self deactivation explains sign-
   await expect(page.locator('h1')).toBeFocused()
   await page
     .locator('#section-account')
-    .getByRole('button', { name: /^Edit:/ })
+    .getByRole('button', { name: /^Edit / })
     .click()
   await page.locator('#account-edit-active').click()
   await page.getByRole('button', { name: 'Save changes', exact: true }).click()

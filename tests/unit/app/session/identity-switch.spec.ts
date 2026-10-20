@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { expect, it, vi } from 'vitest'
-import { defineComponent, h, onUnmounted, nextTick } from 'vue'
+import { defineComponent, h, onUnmounted, nextTick, ref } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { createQueryClient, currentCsrfToken, queryKeys, type Identity } from '@/api'
 import { switchIdentity, retryIdentitySwitch } from '@/app/session/identity-switch'
@@ -144,6 +144,27 @@ it('focuses the newly mounted heading even when another-tab switch keeps the sam
   )
   await switchIdentity({ reason: 'changedInAnotherTab' }, ctx)
   expect(document.activeElement).toBe(wrapper.get('h1').element)
+  wrapper.unmount()
+})
+it('focuses the heading when the new page finishes loading after the cache clear', async () => {
+  const ctx = await context()
+  const store = useSessionStore()
+  const ready = ref(false)
+  const wrapper = mount(
+    defineComponent({
+      setup: () => () =>
+        h(
+          'main',
+          { tabindex: -1 },
+          store.identityTransition || !ready.value ? h('p', 'Loading') : h('h1', 'Loaded account'),
+        ),
+    }),
+    { attachTo: document.body },
+  )
+  await switchIdentity({ reason: 'selfRenamed' }, ctx)
+  expect(document.activeElement).toBe(wrapper.get('main').element)
+  ready.value = true
+  await vi.waitFor(() => expect(document.activeElement).toBe(wrapper.get('h1').element))
   wrapper.unmount()
 })
 it('cancels an open confirmation before changing identity', async () => {

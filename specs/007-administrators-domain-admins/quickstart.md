@@ -22,11 +22,22 @@ npm run typecheck
 npm run i18n:check
 ```
 
-The checkpoint passed 438 focused tests. The new browser file is
-`tests/e2e/administrators/crud.spec.ts`; the real-API file is
-`tests/smoke/administrators.smoke.spec.ts`. Both are awaiting their first runs. Account creation is
-at `/administrators/domain-admins/-/new` or `/administrators/admins/-/new`. The remaining stories
-and the full-screen domain-picker extension described below are not yet implemented.
+After rebasing onto `b7446038`, the checkpoint passed 496 focused tests across 61 files. A later
+63-test administrator/focus run covers the fixes for asynchronous heading focus after an identity
+switch and 44-pixel switch labels. Typecheck, focused ESLint, formatting and i18n checks pass. The
+production build's initial JavaScript is 199,199 / 204,800 gzip bytes; all chunk budgets pass.
+
+`tests/e2e/administrators/crud.spec.ts` covers 12 scenarios over the three profiles. The full run
+passed 34/36; the two mobile touch failures were fixed and passed in the focused form rerun. That
+rerun passed 11/12; its desktop ACL accessibility check needed the page scrolled to the top before
+measurement, and the final ACL rerun passed 3/3. Every scenario/profile combination is now green.
+The two disposable-account flows in `tests/smoke/administrators.smoke.spec.ts` also passed against
+the isolated real API, served by production preview with the production security headers. They
+create, change and remove unique accounts; seeded account metadata stays unchanged.
+
+Account creation is at `/administrators/domain-admins/-/new` or `/administrators/admins/-/new`.
+The remaining acceptance cases, stories and full-screen domain-picker extension described below
+are not yet implemented.
 
 ## Prerequisites
 

@@ -127,7 +127,7 @@ function update<K extends keyof AccountForm>(key: K, value: AccountForm[K]) {
     <div class="flex min-h-11 items-center justify-between gap-4">
       <label
         :for="`${idPrefix}-active`"
-        class="text-sm font-medium text-gray-800 dark:text-gray-200"
+        class="flex min-h-11 min-w-0 items-center text-sm font-medium text-gray-800 dark:text-gray-200"
         >{{ lt(keys.active) }}</label
       >
       <Switch
@@ -150,7 +150,7 @@ function update<K extends keyof AccountForm>(key: K, value: AccountForm[K]) {
       <div class="flex min-h-11 items-center justify-between gap-4">
         <label
           :for="`${idPrefix}-forceSecondFactorSetup`"
-          class="text-sm font-medium text-gray-800 dark:text-gray-200"
+          class="flex min-h-11 min-w-0 items-center text-sm font-medium text-gray-800 dark:text-gray-200"
           >{{ lt('tfa.force_tfa') }}</label
         >
         <Switch
@@ -169,7 +169,7 @@ function update<K extends keyof AccountForm>(key: K, value: AccountForm[K]) {
       <div class="flex min-h-11 items-center justify-between gap-4">
         <label
           :for="`${idPrefix}-forcePasswordChange`"
-          class="text-sm font-medium text-gray-800 dark:text-gray-200"
+          class="flex min-h-11 min-w-0 items-center text-sm font-medium text-gray-800 dark:text-gray-200"
           >{{ lt('edit.force_pw_update') }}</label
         >
         <Switch

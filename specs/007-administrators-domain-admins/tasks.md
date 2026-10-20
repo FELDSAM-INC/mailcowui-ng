@@ -366,7 +366,7 @@ message.
   - FR-036 (stale count) is covered at unit level by T074, because the signed-in administrator is always active and never a target.
 - [ ] T074 [P] [US4] Extend `tests/unit/features/administrators/list-state.spec.ts` with the administrator schema, `tests/unit/features/administrators/bulk.spec.ts` with the administrator rules of data-model §2 in their order (`excludedOwn` first, then `blocked: 'lastActiveAdmin'` when the remaining active targets are at least a stale `activeAdminCount`), and `tests/unit/features/administrators/account-components.spec.ts` with `AdminCard.vue` ("You" marker) and the disabled reasons of `AccountActionsMenu.vue` for the own account and for the own account as the last active administrator; and change `tests/unit/app/navigation/visibility.spec.ts` so that the `administrators` row is available (T082).
 - [x] T075 [P] [US4] Write `tests/unit/features/administrators/own-account-flows.spec.ts`: after a self-deactivation `200`, `GET /session` reporting `anonymous` runs UI 001's session end with the notice `selfDeactivated`; after a self-rename `200`, `switchIdentity({ reason: 'selfRenamed' })` targets `admin-detail` with the new name and the old detail key is removed from the cache.
-- [ ] T076 [P] [US4] Write `tests/smoke/admins.smoke.spec.ts`: as `admin`, the list shows `admin` with "You" and its Remove disabled; create `smoke-admin-<random>`, deactivate (confirming) and activate it, and remove it; `admin` itself is never changed.
+- [x] T076 [P] [US4] Write `tests/smoke/admins.smoke.spec.ts`: as `admin`, the list shows `admin` with "You" and its Remove disabled; create `smoke-admin-<random>`, deactivate (confirming) and activate it, and remove it; `admin` itself is never changed. Implemented in the shared `tests/smoke/administrators.smoke.spec.ts`; the real-API run passes.
 
 ### Implementation for User Story 4
 
@@ -655,16 +655,25 @@ supersedes the older proposed form splits: repeat password and HIBP remain, crea
 classic fields, and permissions are a separate flat ACL form on detail. Both creation routes use
 `/-/new` to avoid hiding an account whose username is `new`.
 
-Verified at this checkpoint: 438 focused tests across 60 files, `npm run typecheck`, focused ESLint,
-`npm run i18n:check`, and a 14-case identity-switch rerun including the self-rename announcement and failures at each remote read.
+Verified after rebasing onto `b7446038`: 496 focused tests across 61 files, `npm run typecheck`,
+focused ESLint, formatting and `npm run i18n:check`. A later 63-test administrator/focus rerun
+includes the self-rename announcement, failures at each remote read, delayed heading focus and
+preservation of user-chosen focus. Initial JavaScript is 199,199 / 204,800 gzip bytes and all
+per-chunk budgets pass.
 The focused suites include all API/session changes, all administrator tests and the mailbox tests
 that consume the promoted password-policy query. A pre-existing mailbox test that replaced its
 server scenario within one test now explicitly resets the discarded session's CSRF token.
 
-`tests/e2e/administrators/crud.spec.ts` contains 12 scenarios (36 runs over the three profiles), and
-`tests/smoke/administrators.smoke.spec.ts` contains two disposable-account flows. They are written
-but have not been run at this checkpoint. Browser/real-API acceptance tasks remain open until those
-runs and the remaining acceptance cases pass. The shared multiple-domain picker dialog, acting,
+`tests/e2e/administrators/crud.spec.ts` contains 12 scenarios (36 runs over the three profiles).
+The full run passed 34/36; both mobile touch failures were fixed. The focused form run passed
+11/12, and its remaining desktop ACL measurement passed in a final 3/3 profile rerun after
+scrolling to the page top so no unrelated target was partially hidden by the sticky header.
+All scenario/profile combinations have passing evidence. Both disposable-account real-API flows
+in `tests/smoke/administrators.smoke.spec.ts` passed; they cover creation, domain search and
+assignment changes, ACL updates, deactivation, activation and removal. T036 remains partial
+because real-API second-factor enrollment/suspension is not covered by that smoke flow. Browser
+acceptance tasks remain open where their broader listed cases are still missing.
+The shared multiple-domain picker dialog, acting,
 one-time sign-in links, webmail on behalf, and audit impersonation presentation are still pending.
 Navigation catalogue/sidebar changes are owned by the parallel navigation branch; domain-admin
 route metadata must adopt `domainAdmins` when that catalogue entry is integrated.

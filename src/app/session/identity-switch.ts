@@ -7,7 +7,7 @@ import { clearAllDrafts, setDraftOwner } from '@/shared/composables/draft-regist
 import { settleConfirm } from '@/shared/composables/useConfirm'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { routeAccess } from '../router/guards'
-import { focusPageHeading } from '../router/focus'
+import { focusPageHeadingWhenReady } from '../router/focus'
 import { acceptReturnTo } from '../router/return-to'
 import { sessionContext, type SessionContext } from './context'
 import { identityQuery, sessionQuery } from './queries'
@@ -28,6 +28,7 @@ export interface IdentitySwitch {
   refusedWrite?: boolean
 }
 let running: Promise<void> | null = null
+let stopFocus: (() => void) | null = null
 let pending: {
   options: IdentitySwitch
   context: SessionContext
@@ -37,6 +38,8 @@ let pending: {
 
 export function switchIdentity(options: IdentitySwitch, context = sessionContext()): Promise<void> {
   if (running) return running
+  stopFocus?.()
+  stopFocus = null
   const store = useSessionStore()
   const current = context.router.currentRoute.value.fullPath
   const origin = store.actingOrigin
@@ -111,7 +114,13 @@ async function run(operation: NonNullable<typeof pending>): Promise<void> {
     pending = null
     // A same-route switch has no navigation focus event. The new view mounts only now.
     await nextTick()
-    focusPageHeading()
+    const cancelFocus = focusPageHeadingWhenReady()
+    const stopWatchingRoute = ctx.router.afterEach(() => stopFocus?.())
+    stopFocus = () => {
+      cancelFocus()
+      stopWatchingRoute()
+      stopFocus = null
+    }
   } catch (error) {
     const problem = problemOf(error)
     if (problem?.status === 401) {

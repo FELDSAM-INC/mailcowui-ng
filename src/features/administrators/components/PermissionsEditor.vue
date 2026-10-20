@@ -24,7 +24,7 @@ function update(name: DomainAdminPermissionName, value: boolean) {
     >
       <label
         :for="`${idPrefix}-${flag}`"
-        class="min-w-0 text-sm text-gray-800 dark:text-gray-200"
+        class="flex min-h-11 min-w-0 items-center text-sm text-gray-800 dark:text-gray-200"
         >{{ resolveText(permissionLabels[flag], t) }}</label
       >
       <Switch

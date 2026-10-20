@@ -23,6 +23,15 @@ export interface SettingsPage {
 }
 export const settingsPages: readonly SettingsPage[] = [
   {
+    id: 'password-policy',
+    group: 'passwords',
+    routeName: 'system-settings-password-policy',
+    title: legacy('admin.password_settings'),
+    description: 'systemSettings.passwordPolicy.description',
+    auditTarget: 'passwordPolicy',
+    visible: () => true,
+  },
+  {
     id: 'ip-check',
     group: 'integrations',
     routeName: 'system-settings-ip-check',

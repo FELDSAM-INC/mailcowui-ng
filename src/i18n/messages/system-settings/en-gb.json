@@ -1,10 +1,16 @@
 {
   "systemSettings": {
     "groups": {
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "passwords": "Passwords"
     },
     "ipCheck": {
       "description": "Choose whether external services may resolve the server’s public IP addresses."
+    },
+    "passwordPolicy": {
+      "description": "Choose the rules checked when a new password is set.",
+      "rules": "Resulting rules",
+      "existingPasswords": "Existing passwords keep working. These rules apply the next time a password is set."
     }
   }
 }

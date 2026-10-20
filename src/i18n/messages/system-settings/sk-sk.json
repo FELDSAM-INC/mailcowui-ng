@@ -1,10 +1,16 @@
 {
   "systemSettings": {
     "groups": {
-      "integrations": "Integrácie"
+      "integrations": "Integrácie",
+      "passwords": "Heslá"
     },
     "ipCheck": {
       "description": "Zvoľte, či môžu externé služby zisťovať verejné IP adresy servera."
+    },
+    "passwordPolicy": {
+      "description": "Zvoľte pravidlá na kontrolu novo nastavených hesiel.",
+      "rules": "Výsledné pravidlá",
+      "existingPasswords": "Existujúce heslá zostávajú funkčné. Tieto pravidlá sa použijú pri ďalšom nastavení hesla."
     }
   }
 }

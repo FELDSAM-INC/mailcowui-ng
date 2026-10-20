@@ -67,13 +67,24 @@ describe('requested application navigation', () => {
       'rspamdUi',
       'quotaNotifications',
       'rspamdSettingsMap',
-      'passwordSettings',
       'customize',
       'systemMails',
       'globalFilterMaps',
     ])
     expect(unavailable.every((tab) => tab.to === undefined)).toBe(true)
     expect(sections.find((section) => section.id === 'access')?.to).toBe('/administrators/admins')
+  })
+
+  it('makes Password Settings an administrator Options tab', () => {
+    const section = activeSection('/system/password-policy', identity('admin'))
+    expect(section?.id).toBe('options')
+    expect(section?.tabs.find((tab) => tab.current)).toMatchObject({
+      id: 'passwordSettings',
+      to: '/system/password-policy',
+      disabled: false,
+    })
+    expect(activeSection('/system/password-policy', identity('domainAdmin'))).toBeUndefined()
+    expect(activeSection('/system/password-policy', identity('mailboxUser'))).toBeUndefined()
   })
 
   it.each(['/dns/dkim-import', '/dns/diagnostics/example.org'])(

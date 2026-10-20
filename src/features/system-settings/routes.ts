@@ -23,6 +23,12 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         component: () => import('./pages/SettingsOverviewPage.vue'),
       },
       {
+        path: 'password-policy',
+        name: 'system-settings-password-policy',
+        component: () => import('./pages/passwords/PasswordPolicyPage.vue'),
+        meta: { titleKey: legacy('admin.password_settings') },
+      },
+      {
         path: 'ip-check',
         name: 'system-settings-ip-check',
         component: () => import('./pages/integrations/IpCheckPage.vue'),

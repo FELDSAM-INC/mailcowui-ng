@@ -166,7 +166,12 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
           tab('fail2ban'),
           pending('quotaNotifications', legacy('admin.quota_notifications')),
           pending('rspamdSettingsMap', legacy('admin.rspamd_settings_map')),
-          pending('passwordSettings', legacy('admin.password_settings')),
+          {
+            id: 'passwordSettings',
+            labelKey: legacy('admin.password_settings'),
+            path: '/system/password-policy',
+            roles: ADMIN,
+          },
           pending('customize', legacy('admin.customize')),
         ],
       },

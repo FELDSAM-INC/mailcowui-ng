@@ -180,7 +180,8 @@ test('without the user flag the hub and direct link do not load app passwords', 
 }) => {
   await mockApi.use('account-mailbox-no-app-passwords-flag')
   await page.goto('account')
-  await expect(page.locator('[data-section="appPasswords"]')).toHaveCount(0)
+  await expect(page.locator('[data-section-nav]')).toBeVisible()
+  await expect(page.locator('[data-section-nav] a[href$="/account/app-passwords"]')).toHaveCount(0)
   await page.goto('account/app-passwords')
   await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()
   expect(
@@ -263,7 +264,7 @@ test('sort and filter changes are restored by browser Back with the remaining li
   await expect(page).toHaveURL(/size=50/)
 })
 
-test('SC-003 default creation and copy use four actions from My account', async ({
+test('SC-003 default creation and copy use four actions plus the mobile tab disclosure', async ({
   page,
   mockApi,
 }) => {
@@ -271,7 +272,15 @@ test('SC-003 default creation and copy use four actions from My account', async 
   await clipboard(page)
   await page.goto('account')
   let actions = 0
-  await page.locator('[data-sections] [data-section="appPasswords"]').click()
+  const navigation = page.locator('[data-section-nav]')
+  await expect(navigation).toBeVisible()
+  const toggle = navigation.getByRole('button')
+  const disclosure = await toggle.isVisible()
+  if (disclosure) {
+    await toggle.click()
+    actions++
+  }
+  await navigation.locator('a[href$="/account/app-passwords"]').click()
   actions++
   await page.getByRole('link', { name: 'Create app password' }).click()
   actions++
@@ -284,7 +293,7 @@ test('SC-003 default creation and copy use four actions from My account', async 
   await expect(copy).toBeFocused()
   await copy.click()
   actions++
-  expect(actions).toBe(4)
+  expect(actions).toBe(disclosure ? 5 : 4)
   expect(await page.evaluate(() => (window as unknown as { copied: string }).copied)).toHaveLength(
     32,
   )

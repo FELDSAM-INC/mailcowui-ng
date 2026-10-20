@@ -23,6 +23,8 @@
   },
   "a11y": {
     "appsMenu": "Nabídka {label}",
+    "collapseNavigation": "Collapse sidebar",
+    "expandNavigation": "Expand sidebar",
     "closeNavigation": "Zavřít navigaci",
     "errorPrefix": "Chyba:",
     "mainNavigation": "Hlavní navigace",

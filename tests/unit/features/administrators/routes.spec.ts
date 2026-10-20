@@ -29,9 +29,9 @@ it('resolves both account types under Administrators and keeps the tab active on
     const section = activeSection(`${listPath}/account`, identity)
     expect(section?.id).toBe('access')
     expect(section?.tabs.find((tab) => tab.current)).toMatchObject({
-      id: 'administrators',
+      id: entry,
       disabled: false,
-      to: '/administrators/admins',
+      to: listPath,
     })
   }
 })

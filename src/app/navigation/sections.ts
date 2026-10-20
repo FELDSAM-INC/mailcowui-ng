@@ -137,8 +137,8 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
         tabs: [
           tab('administrators', {
             pending: findEntry('administrators')?.status !== 'available',
-            matches: ['/administrators/domain-admins'],
           }),
+          tab('domainAdmins'),
           tab('apiKeys'),
           tab('identityProviders', {
             labelKey: legacy('admin.iam'),

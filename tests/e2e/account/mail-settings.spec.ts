@@ -68,7 +68,8 @@ test('SC-009 without settings flags the section is hidden and its direct URL rea
 }) => {
   await mockApi.use('account-mailbox-no-flags')
   await page.goto('account')
-  await expect(page.locator('[data-section="mailSettings"]')).toHaveCount(0)
+  await expect(page.locator('[data-section-nav]')).toBeVisible()
+  await expect(page.locator('[data-section-nav] a[href$="/account/mail-settings"]')).toHaveCount(0)
   await page.goto('account/mail-settings')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
   expect(await mockApi.countRequests('getMailboxMailSettings')).toBe(0)

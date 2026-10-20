@@ -24,7 +24,7 @@ async function openStep(page: Page, username = 'alice@example.org') {
   await expect(step(page).heading).toBeVisible()
 }
 
-test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under "Other methods", and TOTP lands on User Settings', async ({
+test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under "Other methods", and TOTP lands on Password', async ({
   page,
   mockApi,
   expectAccessible,

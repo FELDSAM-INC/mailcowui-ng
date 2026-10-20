@@ -1,3 +1,4 @@
+import { openAccountSections } from '../fixtures/flows'
 import { mockPushSettings } from '../../mocks/factories/push-settings'
 import { expect, test } from '../fixtures/test'
 
@@ -140,7 +141,7 @@ test('unsaved changes are guarded and own access without the pushover flag is re
 }) => {
   await mockApi.use('pushover-configured')
   await page.goto('account')
-  await page.locator('[data-section="pushNotifications"]').click()
+  await (await openAccountSections(page)).locator('a[href$="/account/push-notifications"]').click()
   await page.locator('input[name="title"]').fill('Unsaved')
   await page.goBack()
   const dialog = page.getByRole('alertdialog')
@@ -149,7 +150,7 @@ test('unsaved changes are guarded and own access without the pushover flag is re
   await expect(page.locator('input[name="title"]')).toHaveValue('Unsaved')
   await page.goBack()
   await dialog.getByRole('button', { name: 'Leave', exact: true }).click()
-  await expect(page).toHaveURL(/\/account$/)
+  await expect(page).toHaveURL(/\/account\/password$/)
   await mockApi.use('account-mailbox-no-flags')
   await page.goto('account/push-notifications')
   await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()

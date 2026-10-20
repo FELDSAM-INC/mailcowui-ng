@@ -454,7 +454,7 @@ section's responsive navigation style are reused.
   (BCC maps, Recipient maps, TLS policy maps).
 - **Quarantine** keeps its destinations and role filtering. Its tabs use the shared tab styling.
 - **System**: System & Containers, with System & Containers, Logs and Audit log tabs.
-- **System configuration**: Access (Administrators, API keys, Identity
+- **System configuration**: Access (Administrators, Domain administrators, API keys, Identity
   Provider, OAuth2 Apps, Rspamd UI), Options (ARC/DKIM keys, Forwarding Hosts, Fail2ban parameters,
   Quota notifications, Rspamd settings map, Password Settings, Customize), Routing
   (Sender-dependent transports, Transport Maps), System mails and Global filter maps.
@@ -462,7 +462,7 @@ section's responsive navigation style are reused.
 Home, Passkeys, User Settings and MTA-STS are absent from the sidebar. Account settings and passkeys
 remain in the username dropdown; their routes and the MTA-STS routes retain their access rules.
 `/` replaces itself with `/operations/dashboard` for administrators, `/domains` for domain
-administrators, or `/account` for mailbox users. Valid deep links and the existing mailbox webmail
+administrators, or `/account/password` for mailbox users. Valid deep links and the existing mailbox webmail
 forwarding hook retain precedence. The old `/routing` address now opens BCC maps.
 
 Sidebar section disclosures use TailAdmin's existing collapsible primitives. The desktop sidebar
@@ -478,8 +478,7 @@ so it cannot push the desktop sidebar's lower edge below the viewport.
 Unimplemented destinations are explicitly disabled, without a link action: Quota notifications,
 Rspamd settings map, Customize, System mails and Global filter maps. Password Settings opens
 the policy editor and recovery-email templates at `/system/password-policy`. Rspamd UI opens
-the web-interface password settings. Administrators contains both account types, with links
-between their lists.
+the web-interface password settings. Administrators and Domain administrators have separate tabs.
 Queue Manager is linked from the System &
 Containers page header; IP Check is linked from its public-addresses panel, and links back to the
 existing System settings overview. These contextual links preserve the requested sidebar order.
@@ -531,3 +530,28 @@ budgets passed; initial JavaScript is 202,544/204,800 bytes gzipped. These suppl
 settings wording that lacks approved Czech or Slovak translations retains explicit English
 source text, as recorded in the feature checkpoints. Logs are retained under
 `storage/app/restart-2026-10-20/reset-rspamd-integration` in the API workspace.
+
+
+### Owner follow-up: TailAdmin shell and account entry points
+
+The later owner request supersedes the five-tab Access grouping described in the earlier validation
+checkpoints: Domain administrators is now the second tab, immediately after Administrators.
+The redundant cross-links between the two lists are removed.
+
+The shell follows the [TailAdmin Free demo](https://free-demo.tailadmin.com/): desktop sidebar from
+the top of the viewport, operator logo above the independently scrolling navigation, header beside
+the sidebar, and a header button switching between the 290px sidebar and 90px icon rail. Existing
+navigation, collapsible groups, permission rules, mobile focus-trapped drawer, theme switch and
+branding are reused. Rail links retain accessible names. The compact logo uses the configured
+operator image; the branding API has no separate icon asset. Collapse/expand accessibility labels
+retain explicit English source fallback in Czech and Slovak until approved copy is available.
+
+The user menu's Language row shows the selected language and flag, opening the existing TailAdmin
+submenu primitive beside the menu; collision handling puts it to the left on desktop and keeps it
+within narrow viewports. Language names remain installation-provided. The user menu is loaded on
+signed-in use to preserve the initial JavaScript budget.
+
+User Settings opens Password directly. `/account` remains a redirect for saved addresses; its
+former overview/cards page is removed. Passkeys keeps `/passkeys` and now shares the account layout
+and tabs. Mailbox information and webmail access remain available within the Mail apps tab.
+Validation of this follow-up is recorded with its release checkpoint.

@@ -1,10 +1,10 @@
 // T025: My account in the shell (FR-001, FR-002, FR-006, research R4; decision D1): reachable from
-// the user menu for every role, the hub per role, the capabilities error, and
+// the user menu for every role, the Password landing and tabs per role, the capabilities error, and
 // Mail setup › Filters availability (US10).
 import { expect, test } from '../fixtures/test'
-import { isNarrow, openNavigation } from '../fixtures/flows'
+import { isNarrow, openAccountSections, openNavigation } from '../fixtures/flows'
 
-const heading = { level: 1, name: 'User Settings' } as const
+const heading = { level: 1, name: 'Change password' } as const
 
 for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admin']) {
   test(`FR-001 My account is reached through the user menu and omitted from the sidebar (${scenario})`, async ({
@@ -20,11 +20,11 @@ for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admi
     await page.getByRole('button', { name: /^Account menu of / }).click()
     await page.getByRole('menuitem', { name: 'User Settings' }).click()
     await expect(page.getByRole('heading', heading)).toBeVisible()
-    await expect(page).toHaveURL(/\/ng\/account$/)
+    await expect(page).toHaveURL(/\/ng\/account\/password$/)
   })
 }
 
-test('FR-002 the hub of an administrator lists the password, second factors and passkeys only', async ({
+test('FR-002 administrator account tabs contain password, second factors and passkeys without an overview', async ({
   page,
   mockApi,
   expectAccessible,
@@ -34,10 +34,16 @@ test('FR-002 the hub of an administrator lists the password, second factors and 
   await page.goto('account')
   const main = page.getByRole('main')
   await expect(main.getByRole('heading', heading)).toBeVisible()
-  const sections = main.locator('[data-sections] a')
+  const navigation = await openAccountSections(page)
+  const sections = navigation.getByRole('link')
   await expect(sections.first()).toBeVisible()
   const names = (await sections.allInnerTexts()).map((text) => text.trim())
-  expect(names).toContain('Passkeys')
+  expect(names).toEqual(['Change password', 'Two-factor authentication', 'Passkeys'])
+  await expect(navigation.locator('a[aria-current="page"]')).toHaveText('Change password')
+  await navigation.getByRole('link', { name: 'Passkeys', exact: true }).click()
+  await expect(page).toHaveURL(/\/ng\/passkeys$/)
+  await expect(page.locator('[data-section-nav] a[aria-current="page"]')).toHaveText('Passkeys')
+  await expect(page.locator('[data-mailbox-overview]')).toHaveCount(0)
   expect(names).not.toContain('Overview')
   await expectAccessible()
   await expectNoHorizontalScroll()

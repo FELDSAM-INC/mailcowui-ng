@@ -8,7 +8,7 @@ test('US5 overview preserves legacy storage, protocols, aliases and recovery add
   expectNoHorizontalScroll,
 }) => {
   await mockApi.use('account-mailbox-no-imap')
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   const overview = page.locator('[data-mailbox-overview]')
   await expect(overview.locator('[data-mailbox-address]')).toHaveText('anna@example.org')
   await expect(overview.locator('[data-quota-usage]')).toContainText('256 MiB / 1 GiB')
@@ -32,14 +32,14 @@ test('US5 unlimited quota and recovery email remain readable without editing fla
   expectAccessible,
 }) => {
   await mockApi.use('account-mailbox-unlimited-quota')
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   await expect(page.locator('[data-quota-usage]')).toContainText('256 MiB / ∞')
   await expect(page.getByRole('progressbar')).toHaveCount(0)
   await expectAccessible()
   await mockApi.use('account-mailbox-no-flags')
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   await expect(page.locator('[data-mailbox-overview]')).toContainText('anna.private@example.net')
-  await expect(page.locator('[data-sections]')).not.toContainText('Password recovery email')
+  await expect(page.locator('[data-section-nav]')).not.toContainText('Password recovery email')
 })
 
 test('US5 storage formats follow Czech locale', async ({ page, mockApi }) => {
@@ -48,7 +48,7 @@ test('US5 storage formats follow Czech locale', async ({ page, mockApi }) => {
       'anna@example.org': { preferences: { language: 'cs-cz', theme: 'light', etag: '"p"' } },
     },
   })
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   await expect(page.locator('[data-quota-usage]')).toContainText('1\u00a0234')
   await expect(page.locator('[data-quota-usage]')).toContainText('256 MiB / 1 GiB')
 })
@@ -65,7 +65,7 @@ test('US5 opens the reserved webmail tab with its legacy cookie and no opener', 
       body: '<!doctype html><title>Webmail</title><p>Webmail opened</p>',
     }),
   )
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   const popupPromise = page.waitForEvent('popup')
   await page
     .locator('[data-webmail-action]')
@@ -90,7 +90,7 @@ test('US5 a blocked popup offers a safe link and a failed request closes the bla
   await page.addInitScript(() => {
     window.open = () => null
   })
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   const action = page.locator('[data-webmail-action]')
   await action.getByRole('button', { name: 'Webmail', exact: true }).click()
   await expect(action).toContainText('The browser blocked the new tab.')
@@ -132,7 +132,7 @@ for (const scenario of ['account-groupware-disabled', 'account-mailbox-impersona
     expectAccessible,
   }) => {
     await mockApi.use(scenario)
-    await page.goto('account')
+    await page.goto('account/mail-apps')
     await expect(page.locator('[data-mailbox-address]')).toBeVisible()
     await expect(page.locator('[data-webmail-action]')).toHaveCount(0)
     await expectAccessible()
@@ -140,7 +140,7 @@ for (const scenario of ['account-groupware-disabled', 'account-mailbox-impersona
   })
 }
 
-test('US5 the mailbox default landing shows the overview and offers webmail', async ({
+test('US5 the mailbox opens Password by default and reads its overview on Mail apps', async ({
   page,
   mockApi,
   expectAccessible,
@@ -149,12 +149,15 @@ test('US5 the mailbox default landing shows the overview and offers webmail', as
   await mockApi.use('account-mailbox')
   await page.goto('')
   await expectLanding(page, 'mailboxUser')
-  const card = page.locator('[data-mailbox-overview]')
-  await expect(card).toContainText('256 MiB / 1 GiB')
-  await expect(card.getByRole('button', { name: 'Webmail', exact: true })).toBeVisible()
+  await expect(page.locator('[data-mailbox-overview]')).toHaveCount(0)
+  // Password uses the same overview query for its app-password hint; Mail apps reuses it.
+  await expect.poll(() => mockApi.countRequests('getOwnMailboxOverview')).toBe(1)
+  await page.goto('account/mail-apps')
+  const overview = page.locator('[data-mailbox-overview]')
+  await expect(overview).toContainText('256 MiB / 1 GiB')
+  await expect(overview.getByRole('button', { name: 'Webmail', exact: true })).toBeVisible()
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await expect(page.locator('[data-mailbox-address]')).toBeVisible()
   expect(await mockApi.countRequests('getOwnMailboxOverview')).toBe(1)
 })
 
@@ -183,7 +186,7 @@ test('US5 default sign-in forwards in the same tab, while a deep link returns to
   expect(await mockApi.countRequests('createWebmailHandOff')).toBe(0)
 })
 
-test('US5 a forwarding failure lands on User Settings with an announcement', async ({
+test('US5 a forwarding failure lands on Password with an announcement', async ({
   page,
   mockApi,
 }) => {
@@ -192,13 +195,13 @@ test('US5 a forwarding failure lands on User Settings with an announcement', asy
   await page.goto('')
   await submitPassword(page, 'anna@example.org')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
+  await expect(page.locator('[data-own-password]')).toBeVisible()
   await expect(page.locator('[data-live="assertive"]')).toContainText(
     'Webmail could not be opened.',
   )
 })
 
-test('US5 reauthentication returns to User Settings without applying the forwarding preference', async ({
+test('US5 reauthentication returns to Password without applying the forwarding preference', async ({
   page,
   mockApi,
 }) => {
@@ -209,12 +212,12 @@ test('US5 reauthentication returns to User Settings without applying the forward
   await page.clock.install()
   await page.goto('')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
+  await expect(page.locator('[data-own-password]')).toBeVisible()
   await mockApi.patch({ expireSession: true })
   await page.clock.fastForward('03:00')
   await expect(page.getByRole('button', { name: 'Login', exact: true })).toBeVisible()
   await submitPassword(page, 'anna@example.org')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
+  await expect(page.locator('[data-own-password]')).toBeVisible()
   expect(await mockApi.countRequests('createWebmailHandOff')).toBe(0)
 })

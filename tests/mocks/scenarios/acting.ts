@@ -45,7 +45,7 @@ export const actingScenarios: Record<string, ScenarioDefinition> = {
     setup: (state) => {
       ready(state)
       findAccount(state, 'alice@example.org')!.active = false
-      state.mailboxes[0]!.active = false
+      state.mailboxes[0]!.status = 'inactive'
     },
   },
 }

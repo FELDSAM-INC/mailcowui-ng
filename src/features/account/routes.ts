@@ -1,10 +1,11 @@
 // The routes of My account (UI 005 data-model §5). Every page is lazy-loaded together with the
 // feature's own strings. The section routes are children of the hub's layout, so the section
-// navigation stays beside them from `lg` up; each names its section (`meta.accountSection`), and
+// navigation stays above every page, including Passkeys; each names its section, and
 // the layout shows "no access" in place when the account may not use it.
 import type { RouteRecordRaw } from 'vue-router'
 
 import { legacy, loadFeatureMessages } from '@/i18n'
+import { passkeysRoutes } from '@/features/passkeys'
 
 export { mailboxSelfServiceRoutes } from './mailbox-routes'
 
@@ -28,6 +29,7 @@ export const accountRoutes: RouteRecordRaw[] = [
     component: accountPage(() => import('./components/layout/AccountLayout.vue')),
     meta: { layout: 'shell', access: 'session', navEntry: 'account' },
     children: [
+      ...passkeysRoutes,
       {
         path: 'filters',
         name: 'account-filters',
@@ -74,8 +76,7 @@ export const accountRoutes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'account',
-        component: accountPage(() => import('./pages/AccountHomePage.vue')),
-        meta: { titleKey: legacy('header.user_settings') },
+        redirect: { name: 'account-password' },
       },
       {
         path: 'app-passwords',

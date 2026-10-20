@@ -209,7 +209,7 @@ test('Edge FR-042 a signed-in browser is warned and its session ends without lea
   await mockApi.use('account-password-reset-signed-in')
   const other = await context.newPage()
   await other.goto('account')
-  await expect(other.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
+  await expect(other.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
   await page.goto('reset-password?token=333333-ANNA00-333333-333333-333333')
   await expect(page.locator('[data-reset-signed-in]')).toContainText('including this one')
   await page.getByRole('button', { name: 'Continue' }).click()

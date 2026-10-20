@@ -19,7 +19,6 @@ import { filterRoutes } from '@/features/filters/routes'
 import { identityProviderRoutes } from '@/features/identity-providers'
 import { mailboxRoutes } from '@/features/mailboxes'
 import { operationsRoutes } from '@/features/operations'
-import { passkeysRoutes } from '@/features/passkeys'
 import { quarantineRoutes } from '@/features/quarantine/routes'
 import { rateLimitRoutes } from '@/features/rate-limits/routes'
 import { spamFilterRoutes } from '@/features/spam-filter/routes'
@@ -39,7 +38,6 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...authRoutes,
   ...administratorRoutes,
   ...homeRoutes,
-  ...passkeysRoutes,
   ...apiKeysRoutes,
   ...auditLogRoutes,
   ...domainRoutes,

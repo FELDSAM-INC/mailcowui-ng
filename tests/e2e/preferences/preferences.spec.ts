@@ -21,6 +21,7 @@ async function chooseInMenu(page: Page, name: string) {
     await page.getByRole('menuitemcheckbox', { name, exact: true }).click()
     return
   }
+  await page.locator('[data-language-submenu-trigger]').click()
   await page.getByRole('menuitemradio', { name }).click()
 }
 
@@ -100,10 +101,10 @@ test('US6-AS2 FR-059 the dark theme applies at once with the dark logo and is sa
 }) => {
   await mockApi.use('admin-active')
   await page.goto('')
-  await expect(page.locator('header img[src*="logos/light"]')).toBeVisible()
+  await expect(page.locator('img:visible[src*="logos/light"]')).toBeVisible()
   await chooseInMenu(page, 'Dark')
   await expect(page.locator('html')).toHaveClass(/dark/)
-  await expect(page.locator('header img[src*="logos/dark"]')).toBeVisible()
+  await expect(page.locator('img:visible[src*="logos/dark"]')).toBeVisible()
   await expect
     .poll(async () => (await preferenceRequests(mockApi)).map((r) => r.body))
     .toEqual([{ theme: 'dark' }])

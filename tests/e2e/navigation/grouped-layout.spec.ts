@@ -95,7 +95,14 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
   for (const [path, expected, disabled] of [
     [
       'api-keys',
-      ['Administrators', 'API keys', 'Identity Provider', 'OAuth2 Apps', 'Rspamd UI'],
+      [
+        'Administrators',
+        'Domain administrators',
+        'API keys',
+        'Identity Provider',
+        'OAuth2 Apps',
+        'Rspamd UI',
+      ],
       0,
     ],
     [
@@ -132,7 +139,7 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
   }
 })
 
-test('Access groups both account types under Administrators and keeps their details selected', async ({
+test('Access gives Domain Administrators its second tab and keeps details selected', async ({
   page,
   mockApi,
   expectAccessible,
@@ -145,17 +152,14 @@ test('Access groups both account types under Administrators and keeps their deta
   await expect(page).toHaveURL(/\/administrators\/admins$/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   const tabs = page.locator('[data-section-navigation]')
-  await page.locator('[data-account-type-link]').click()
-  await expect(page.locator('[data-account-row]')).toHaveCount(3)
-  await page.locator('[data-account-type-link]').click()
-  await expect(page).toHaveURL(/\/administrators\/admins$/)
-  await page.locator('[data-account-type-link]').click()
+  if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
+  await tabs.getByRole('link', { name: 'Domain administrators', exact: true }).click()
   await expect(page.locator('[data-account-row]')).toHaveCount(3)
   await page.locator('[data-account-row]').first().getByRole('link').first().click()
   await expect(page.locator('#section-account')).toBeVisible()
   await expect(
     tabs.getByRole('link', {
-      name: 'Administrators',
+      name: 'Domain administrators',
       exact: true,
       includeHidden: true,
     }),
@@ -179,7 +183,7 @@ test('theme switch stays outside the username dropdown and language choices carr
   await page.goto('domains')
   await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
   // The logo must fit the remaining header space when all three controls are present.
-  const logo = await page.locator('header img').boundingBox()
+  const logo = await page.locator('header img, [data-sidebar-logo] img').boundingBox()
   const themeBox = await page.getByRole('switch', { name: 'Dark', exact: true }).boundingBox()
   expect(logo && themeBox && logo.x + logo.width <= themeBox.x).toBe(true)
   const theme = page.getByRole('switch', { name: 'Dark', exact: true })
@@ -198,14 +202,61 @@ test('theme switch stays outside the username dropdown and language choices carr
   await expect(page.getByRole('menuitem', { name: 'User Settings', exact: true })).toBeVisible()
   await expect(page.getByRole('menuitem', { name: 'Passkeys', exact: true })).toBeVisible()
   const czech = page.getByRole('menuitemradio', { name: 'Čeština (Czech)', exact: true })
+  await expect(czech).toBeHidden()
+  await expect(page.locator('[data-current-language]')).toContainText('English')
+  await page.locator('[data-language-submenu-trigger]').click()
   await expect(czech).toBeVisible()
+  if (!isNarrow(page)) {
+    const submenu = await page.locator('[data-language-submenu]').boundingBox()
+    const trigger = await page.locator('[data-language-submenu-trigger]').boundingBox()
+    expect(submenu && trigger && submenu.x + submenu.width < trigger.x).toBe(true)
+  }
   await expect(czech.locator('[data-language-flag]')).toHaveText('🇨🇿')
   await czech.click()
   await expect(page.locator('html')).toHaveAttribute('lang', 'cs-CZ')
   await expect(page.getByRole('heading', { level: 1, name: 'Domény' })).toBeVisible()
   await expectNoHorizontalScroll()
   await page.getByRole('button', { name: 'Nabídka účtu admin' }).click()
+  await expect(page.locator('[data-current-language]')).toContainText('Čeština')
+  await page.locator('[data-language-submenu-trigger]').click()
   await expectAccessible()
   await expectTouchTargets()
   await page.screenshot({ path: test.info().outputPath('language-menu.png') })
+})
+
+test('TailAdmin desktop rail starts at the top and collapses beside the header', async ({
+  page,
+  mockApi,
+  expectAccessible,
+  expectNoHorizontalScroll,
+  expectTouchTargets,
+}) => {
+  test.skip(isNarrow(page), 'desktop sidebar; mobile drawer covered separately')
+  await mockApi.use('admin-active')
+  await page.goto('domains')
+  await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
+  const sidebar = page.locator('[data-desktop-sidebar]')
+  const header = page.getByRole('banner')
+  const expanded = await sidebar.boundingBox()
+  const topbar = await header.boundingBox()
+  expect(expanded?.y).toBe(0)
+  expect(expanded?.width).toBe(290)
+  expect(topbar?.x).toBe(expanded!.x + expanded!.width)
+  await expect(header.locator('img')).toHaveCount(0)
+  await expect(page.locator('[data-sidebar-logo] img')).toBeVisible()
+  await page.getByRole('button', { name: 'Collapse sidebar' }).click()
+  await expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+  expect((await sidebar.boundingBox())?.width).toBe(90)
+  expect((await header.boundingBox())?.x).toBe(90)
+  const access = sidebar.getByRole('link', { name: 'Access', exact: true })
+  await access.click()
+  await expect(page).toHaveURL(/\/administrators\/admins$/)
+  await expect(sidebar).toHaveAttribute('data-collapsed', 'true')
+  await expectAccessible()
+  await expectNoHorizontalScroll()
+  await expectTouchTargets()
+  await page.screenshot({ path: test.info().outputPath('collapsed-sidebar.png') })
+  await page.getByRole('button', { name: 'Expand sidebar' }).click()
+  await expect(sidebar).toHaveAttribute('data-collapsed', 'false')
+  await page.screenshot({ path: test.info().outputPath('expanded-sidebar.png') })
 })

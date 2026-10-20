@@ -23,7 +23,7 @@ async function setup() {
     routes: [
       { path: '/', name: 'home', component: {} },
       { path: '/mailboxes', name: 'mailboxes', component: {} },
-      { path: '/account', name: 'account', component: {} },
+      { path: '/account/password', name: 'account', component: {} },
     ],
   })
   await router.push('/mailboxes?q=alice&page=2')
@@ -41,7 +41,7 @@ it('captures the initiating route before the request, clears private caches and 
     { kind: 'mailboxUser', address: 'alice@example.org', domain: 'example.org' },
     router.currentRoute.value.fullPath,
   )
-  await router.push('/account')
+  await router.push('/account/password')
   await request
   expect(useSessionStore().actingOrigin).toBe('/mailboxes?q=alice&page=2')
   expect(queryClient.getQueryData(['private-admin-list'])).toBeUndefined()
@@ -57,7 +57,7 @@ it('captures the initiating route before the request, clears private caches and 
   expect(queryClient.getQueryData<Identity>(queryKeys.identity())?.username).toBe(
     'alice@example.org',
   )
-  expect(router.currentRoute.value.fullPath).toBe('/account')
+  expect(router.currentRoute.value.fullPath).toBe('/account/password')
   await returnFromActing()
   expect(router.currentRoute.value.fullPath).toBe('/mailboxes?q=alice&page=2')
   expect(queryClient.getQueryData<Identity>(queryKeys.identity())?.username).toBe('admin')

@@ -43,7 +43,7 @@ for (const scenario of [
     await expect(page.getByRole('button', { name: 'Copy the generated password' })).toBeVisible()
     await form(page).save.click()
     await expect(page.getByRole('heading', screen)).toHaveCount(0)
-    await expect(page).toHaveURL(/\/ng\/account$/)
+    await expect(page).toHaveURL(/\/ng\/account\/password$/)
   })
 }
 

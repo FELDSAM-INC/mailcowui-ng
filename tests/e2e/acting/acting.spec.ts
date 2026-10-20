@@ -59,6 +59,7 @@ test('US2-AS1/AS3 mailbox Login shows a persistent banner and returns to the exa
   await expect(banner).toContainText('alice@example.org')
   await expect(banner).toContainText('mailbox user')
   await expect(banner).toContainText('admin')
+  await expect(page).toHaveURL(/\/account\/password$/)
   await expect(page).toHaveTitle(/^Acting as alice@example.org/)
   await expect(page.locator('[data-row-actions]')).toHaveCount(0)
   await expectAccessible()

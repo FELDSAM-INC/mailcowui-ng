@@ -5,7 +5,7 @@
 // place of the route component, so no section data is requested (FR-045).
 import { computed, defineAsyncComponent, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterView, useRoute } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { useStatusMessage } from '@/shared/composables/useStatusMessage'
@@ -21,11 +21,12 @@ import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
 import AppsMenu from '../shell/AppsMenu.vue'
+import BrandLogo from '../shell/BrandLogo.vue'
 import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'
 import SectionTabs from '../shell/SectionTabs.vue'
 import SkipLink from '../shell/SkipLink.vue'
-import UserMenu from '../shell/UserMenu.vue'
+const UserMenu = defineAsyncComponent(() => import('../shell/UserMenu.vue'))
 import IdentityTransition from '../shell/IdentityTransition.vue'
 import ShellNotice from '../shell/ShellNotice.vue'
 import StickyHeader from '../shell/StickyHeader.vue'
@@ -42,6 +43,7 @@ const identity = computed(() => (session.identityTransition ? undefined : identi
 const allowed = computed(() => routeAccess(route, identity.value) === 'allowed')
 
 const drawerOpen = ref(false)
+const sidebarCollapsed = ref(false)
 const header = ref<{ menuButton: HTMLButtonElement | null } | null>(null)
 const menuButton = computed(() => header.value?.menuButton ?? null)
 
@@ -54,42 +56,58 @@ const statusMessages = useStatusMessage().messages
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col bg-gray-50 dark:bg-gray-950">
+  <div class="flex min-h-dvh bg-gray-50 dark:bg-gray-950">
     <SkipLink />
-    <StickyHeader>
-      <ActingBanner v-if="identity?.impersonation" :impersonation="identity.impersonation" />
-      <AppHeader
-        ref="header"
-        :show-menu-button="!wide"
-        :menu-open="drawerOpen"
-        @open-menu="drawerOpen = true"
+    <aside
+      v-if="wide"
+      id="desktop-navigation"
+      data-desktop-sidebar
+      :data-collapsed="sidebarCollapsed"
+      class="sticky top-0 flex h-dvh shrink-0 flex-col self-start border-e border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+      :class="sidebarCollapsed ? 'w-[90px]' : 'w-[290px]'"
+    >
+      <RouterLink
+        to="/"
+        data-sidebar-logo
+        class="flex h-24 shrink-0 items-center rounded-lg px-5 focus-visible:outline-2 focus-visible:outline-brand-500"
+        :class="sidebarCollapsed ? 'justify-center' : ''"
       >
-        <template #actions>
-          <ThemeToggle />
-          <AppsMenu v-if="identity" :username="identity.username" />
-          <UserMenu
-            v-if="identity"
-            :identity="identity"
-            :signing-out="signingOut"
-            @sign-out="signOut"
-          />
-        </template>
-      </AppHeader>
-    </StickyHeader>
+        <BrandLogo :compact="sidebarCollapsed" />
+      </RouterLink>
+      <div
+        data-sidebar-scroll
+        class="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6"
+      >
+        <NavigationList :identity="identity" :collapsed="sidebarCollapsed" />
+      </div>
+    </aside>
     <NavigationDrawer
       v-if="!wide"
       v-model:open="drawerOpen"
       :identity="identity"
       :return-focus="menuButton"
     />
-    <div class="flex w-full flex-1">
-      <aside
-        v-if="wide"
-        data-sidebar-scroll
-        class="custom-scrollbar sticky top-(--shell-sticky-height) h-[calc(100dvh-var(--shell-sticky-height))] w-72 shrink-0 self-start overflow-y-auto overscroll-contain border-e border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
-      >
-        <NavigationList :identity="identity" />
-      </aside>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <StickyHeader>
+        <ActingBanner v-if="identity?.impersonation" :impersonation="identity.impersonation" />
+        <AppHeader
+          ref="header"
+          :desktop="wide"
+          :menu-open="wide ? !sidebarCollapsed : drawerOpen"
+          @open-menu="wide ? (sidebarCollapsed = !sidebarCollapsed) : (drawerOpen = true)"
+        >
+          <template #actions>
+            <ThemeToggle />
+            <AppsMenu v-if="identity" :username="identity.username" />
+            <UserMenu
+              v-if="identity"
+              :identity="identity"
+              :signing-out="signingOut"
+              @sign-out="signOut"
+            />
+          </template>
+        </AppHeader>
+      </StickyHeader>
       <main id="main" tabindex="-1" class="min-w-0 flex-1 px-4 py-6 focus:outline-none sm:px-6">
         <div class="mx-auto w-full max-w-7xl min-w-0" data-shell-content>
           <AnnouncementBanner class="mb-6 rounded-xl border" />
@@ -135,8 +153,8 @@ const statusMessages = useStatusMessage().messages
           </div>
         </div>
       </main>
+      <AppFooter />
     </div>
-    <AppFooter />
   </div>
 </template>
 

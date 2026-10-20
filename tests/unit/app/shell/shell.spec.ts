@@ -101,7 +101,15 @@ describe('navigation (FR-043, FR-046)', () => {
     expect(labels).toContain('Access')
     expect(labels).not.toContain('Spam filter')
     expect(nav.get('a[aria-current="page"]').text()).toBe('Domains')
-    expect(wrapper.find('button[aria-label="Toggle navigation"]').exists()).toBe(false)
+    const toggle = wrapper.get('button[aria-label="Collapse sidebar"]')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    await toggle.trigger('click')
+    expect(wrapper.get('[data-desktop-sidebar]').attributes('data-collapsed')).toBe('true')
+    expect(toggle.attributes('aria-label')).toBe('Expand sidebar')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(nav.findAll('a').map((link) => link.text())).toEqual(labels)
+    await toggle.trigger('click')
+    expect(wrapper.get('[data-desktop-sidebar]').attributes('data-collapsed')).toBe('false')
     wrapper.unmount()
   })
 
@@ -244,9 +252,9 @@ describe('user menu (FR-042)', () => {
     expect(menu).not.toBeNull()
     expect(menu.textContent).toContain('reseller')
     expect(menu.textContent).toContain('Domain administrator')
-    const items = [...menu.querySelectorAll('[role="menuitem"]')].map((item) =>
-      item.textContent?.trim(),
-    )
+    const items = [
+      ...menu.querySelectorAll('[role="menuitem"]:not([data-language-submenu-trigger])'),
+    ].map((item) => item.textContent?.trim())
     // UI 005 (FR-001): My account, legacy's "User Settings", above Passkeys.
     expect(items).toEqual(['User Settings', 'Passkeys', 'Sign out'])
     wrapper.unmount()

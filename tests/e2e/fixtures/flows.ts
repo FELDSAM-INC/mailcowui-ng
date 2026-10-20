@@ -12,7 +12,11 @@ export const isNarrow = (page: Page) => (page.viewportSize()?.width ?? 0) < 1024
 /** Default landing now opens the role's working section; Home is no longer a page. */
 export async function expectLanding(page: Page, role: Role = 'admin'): Promise<void> {
   const path =
-    role === 'admin' ? '/operations/dashboard' : role === 'domainAdmin' ? '/domains' : '/account'
+    role === 'admin'
+      ? '/operations/dashboard'
+      : role === 'domainAdmin'
+        ? '/domains'
+        : '/account/password'
   await expect(page).toHaveURL((url) => url.pathname === `/ng${path}`)
   await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toBeVisible()
 }
@@ -65,3 +69,13 @@ export async function signOutFromMenu(page: Page): Promise<void> {
 
 export const politeRegion = (page: Page) => page.locator('[data-live="polite"]')
 export const assertiveRegion = (page: Page) => page.locator('[data-live="assertive"]')
+
+/** Account tabs use the shared narrow-screen disclosure. */
+export async function openAccountSections(page: Page): Promise<Locator> {
+  const navigation = page.locator('[data-section-nav]')
+  await expect(navigation).toBeVisible()
+  const toggle = navigation.getByRole('button')
+  if ((await toggle.isVisible()) && (await toggle.getAttribute('aria-expanded')) === 'false')
+    await toggle.click()
+  return navigation
+}

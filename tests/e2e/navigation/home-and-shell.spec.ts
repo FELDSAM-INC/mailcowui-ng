@@ -40,7 +40,7 @@ test('administrator and mailbox default landings replace the old homepage', asyn
   await mockApi.use('mailbox-no-spam-flags')
   await page.goto('')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
 })
 
 for (const [scenario, type] of [

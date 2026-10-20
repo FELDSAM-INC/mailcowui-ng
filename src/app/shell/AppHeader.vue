@@ -9,7 +9,7 @@ import { MenuIcon } from '@/shared/icons'
 
 import BrandLogo from './BrandLogo.vue'
 
-defineProps<{ showMenuButton: boolean; menuOpen: boolean }>()
+defineProps<{ desktop: boolean; menuOpen: boolean }>()
 defineEmits<{ openMenu: [] }>()
 const { t } = useI18n()
 const menuButton = ref<HTMLButtonElement | null>(null)
@@ -21,18 +21,28 @@ defineExpose({ menuButton })
     class="flex h-16 items-center gap-2 border-b border-gray-200 bg-white px-2 sm:px-4 dark:border-gray-800 dark:bg-gray-900"
   >
     <button
-      v-if="showMenuButton"
       ref="menuButton"
       type="button"
-      class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-white/5"
-      :aria-label="t('a11y.openNavigation')"
+      class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-white/5"
+      :aria-label="
+        t(
+          desktop
+            ? menuOpen
+              ? 'a11y.collapseNavigation'
+              : 'a11y.expandNavigation'
+            : 'a11y.openNavigation',
+        )
+      "
       :aria-expanded="menuOpen ? 'true' : 'false'"
-      aria-haspopup="dialog"
+      :aria-haspopup="desktop ? undefined : 'dialog'"
+      :aria-controls="desktop ? 'desktop-navigation' : undefined"
+      data-navigation-toggle
       @click="$emit('openMenu')"
     >
       <MenuIcon class="size-6" />
     </button>
     <RouterLink
+      v-if="!desktop"
       to="/"
       class="flex min-h-11 min-w-0 items-center rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-brand-500"
     >

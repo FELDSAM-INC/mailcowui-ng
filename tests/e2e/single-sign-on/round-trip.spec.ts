@@ -105,7 +105,7 @@ test.describe('the single sign-on round trip', () => {
     expect(Date.now() - returnedAt).toBeLessThan(3000)
   })
 
-  test('SC-011 with site storage blocked the landing is User Settings', async ({
+  test('SC-011 with site storage blocked the landing is Password', async ({
     page,
     mockApi,
     fakeProvider,

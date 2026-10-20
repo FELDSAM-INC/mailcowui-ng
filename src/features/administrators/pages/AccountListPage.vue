@@ -294,12 +294,6 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
       ><template #actions
         ><RouterLink
           v-if="allowed"
-          data-account-type-link
-          :to="role === 'admin' ? '/administrators/domain-admins' : '/administrators/admins'"
-          :class="buttonVariants({ variant: 'outline' })"
-          >{{ lt(role === 'admin' ? 'admin.domain_admins' : 'admin.admins') }}</RouterLink
-        ><RouterLink
-          v-if="allowed"
           :to="{ name: role === 'admin' ? 'admin-create' : 'domain-admin-create' }"
           :class="buttonVariants({ variant: 'default' })"
           >{{ lt(role === 'admin' ? 'admin.add_admin' : 'admin.add_domain_admin') }}</RouterLink
@@ -409,7 +403,7 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
             <th class="p-3 text-start" :aria-sort="ariaSort('username')">
               <button
                 type="button"
-                class="min-h-11 text-start font-semibold"
+                class="min-h-11 min-w-11 text-start font-semibold"
                 @click="sortColumn('username')"
               >
                 {{ lt('admin.username') }}
@@ -422,7 +416,7 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
             >
               <button
                 type="button"
-                class="min-h-11 text-start font-semibold"
+                class="min-h-11 min-w-11 text-start font-semibold"
                 @click="sortColumn('domainCount')"
               >
                 {{ lt('admin.admin_domains') }}
@@ -432,7 +426,7 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
             <th class="p-3 text-start" :aria-sort="ariaSort('active')">
               <button
                 type="button"
-                class="min-h-11 text-start font-semibold"
+                class="min-h-11 min-w-11 text-start font-semibold"
                 @click="sortColumn('active')"
               >
                 {{ lt('admin.active') }}

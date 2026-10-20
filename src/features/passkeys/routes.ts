@@ -6,6 +6,12 @@ export const passkeysRoutes: RouteRecordRaw[] = [
     path: '/passkeys',
     name: 'passkeys',
     component: () => import('./pages/PasskeysPage.vue'),
-    meta: { layout: 'shell', access: 'session', navEntry: 'passkeys', titleKey: 'passkeys.title' },
+    meta: {
+      accountSection: 'passkeys',
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'passkeys',
+      titleKey: 'passkeys.title',
+    },
   },
 ]

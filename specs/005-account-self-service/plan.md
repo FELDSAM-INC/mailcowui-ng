@@ -1371,3 +1371,14 @@ including My account at 87–90 performance/100 accessibility and sign-in at 213
 script bytes against 215,040. The full Lighthouse command still exits 1 for aliases; it is not
 reported as entirely green. No performance, accessibility, payload or throttling limit changed.
 See the quickstart validation log for the 30 measurements and remaining feature scope.
+
+
+## Owner navigation follow-up — 2026-10-20
+
+The owner removed the User Settings overview screen. `/account` redirects to Password, and the
+username dropdown links directly to `/account/password`. The section-card hub and its extra tab
+are removed. Passkeys retains its address and permissions while sharing AccountLayout and the
+same tabs above the page. The mailbox overview and webmail action move to the Mail apps tab, so
+removing the redundant entry screen does not discard those account functions. These changes
+supersede earlier hub/overview placement requirements; section access rules and API calls are
+unchanged. New browser checks use tabs instead of the removed cards.

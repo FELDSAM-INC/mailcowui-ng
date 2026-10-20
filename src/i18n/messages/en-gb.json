@@ -23,6 +23,8 @@
   },
   "a11y": {
     "appsMenu": "{label} menu",
+    "collapseNavigation": "Collapse sidebar",
+    "expandNavigation": "Expand sidebar",
     "closeNavigation": "Close navigation",
     "errorPrefix": "Error:",
     "mainNavigation": "Main navigation",

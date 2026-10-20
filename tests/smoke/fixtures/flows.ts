@@ -16,7 +16,7 @@ export async function signOut(page: Page) {
 
 export async function expectHome(page: Page, username: string) {
   const path = username.includes('@')
-    ? '/account'
+    ? '/account/password'
     : username === 'reseller'
       ? '/domains'
       : '/operations/dashboard'

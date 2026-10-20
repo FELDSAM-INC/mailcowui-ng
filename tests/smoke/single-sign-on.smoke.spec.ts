@@ -3,7 +3,7 @@
 // mailcow-rest-v2) as the identity provider and signs in as its user anna@example.org, whose mailbox
 // is created from the mapped template and removed afterwards. On a mailcow host it uses the stored
 // configuration with SMOKE_SSO_USERNAME and SMOKE_SSO_PASSWORD. The user signs in on the real
-// Keycloak page, lands on User Settings with a clean address and no code or state in this tab's storage,
+// Keycloak page, lands on Password with a clean address and no code or state in this tab's storage,
 // and signs out with the provider note.
 import { expect, test } from '@playwright/test'
 
@@ -52,7 +52,7 @@ test.describe('@sso single sign-on through Keycloak', () => {
     await page.locator('#username').fill(username)
     await page.locator('#password').fill(password)
     await page.locator('#kc-login').click()
-    await expect(page).toHaveURL(/\/ng\/account$/, { timeout: 30_000 })
+    await expect(page).toHaveURL(/\/ng\/account\/password$/, { timeout: 30_000 })
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     expect(page.url()).not.toMatch(/[?&](code|state)=/)
     const stored = await page.evaluate(() => JSON.stringify({ ...sessionStorage, ...localStorage }))

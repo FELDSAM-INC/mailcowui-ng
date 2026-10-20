@@ -37,7 +37,7 @@ test('US2-AS9 FR-058 the methods in order, and TOTP lifts the restriction', asyn
   await page.getByLabel('Six-digit code').fill(totpCode(key, Date.now()))
   await page.getByRole('button', { name: 'Confirm' }).click()
   await expect(page.getByRole('heading', screen)).toHaveCount(0)
-  await expect(page).toHaveURL(/\/ng\/account$/)
+  await expect(page).toHaveURL(/\/ng\/account\/password$/)
 })
 
 test('FR-057 without passkey support the other methods replace the classic link; Yubico lifts it', async ({

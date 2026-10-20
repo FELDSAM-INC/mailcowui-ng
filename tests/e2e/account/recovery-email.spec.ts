@@ -73,8 +73,8 @@ test('US3-AS2 without the pwReset flag the section is absent; the address an adm
 }) => {
   await mockApi.use('account-mailbox-no-pw-reset')
   await page.goto('account')
-  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
-  await expect(page.locator('[data-section="recoveryEmail"]')).toHaveCount(0)
+  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+  await expect(page.locator('[data-section-nav] a[href$="/account/recovery-email"]')).toHaveCount(0)
   await page.goto('account/recovery-email')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
 })

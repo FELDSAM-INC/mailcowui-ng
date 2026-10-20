@@ -57,7 +57,14 @@ describe('requested application navigation', () => {
     expect(activeSection('/routing/forwarding-hosts', who)?.id).toBe('options')
     expect(
       activeSection('/administrators/domain-admins/reseller', who)?.tabs.map((tab) => tab.id),
-    ).toEqual(['administrators', 'apiKeys', 'identityProviders', 'oauth2Apps', 'rspamdUi'])
+    ).toEqual([
+      'administrators',
+      'domainAdmins',
+      'apiKeys',
+      'identityProviders',
+      'oauth2Apps',
+      'rspamdUi',
+    ])
     expect(
       activeSection('/identity-providers/oauth2-apps/42', who)?.tabs.find((tab) => tab.current)?.id,
     ).toBe('oauth2Apps')
@@ -135,7 +142,7 @@ describe('requested application navigation', () => {
   it.each([
     ['admin', '/operations/dashboard'],
     ['domainAdmin', '/domains'],
-    ['mailboxUser', '/account'],
+    ['mailboxUser', '/account/password'],
   ] as const)('lands %s on the working section instead of Home', (role, path) => {
     expect(defaultLandingPath(identity(role))).toBe(path)
   })

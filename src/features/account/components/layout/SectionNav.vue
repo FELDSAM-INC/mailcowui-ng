@@ -4,7 +4,6 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { legacy } from '@/i18n'
 import SectionNavigation from '@/shared/components/SectionNavigation.vue'
 
 import type { AccountSection } from '../../sections'
@@ -13,12 +12,6 @@ const props = defineProps<{ sections: readonly AccountSection[]; label: string }
 const route = useRoute()
 const router = useRouter()
 const items = computed(() => [
-  {
-    id: 'account',
-    labelKey: legacy('header.user_settings'),
-    to: router.resolve({ name: 'account' }).fullPath,
-    current: route.name === 'account',
-  },
   ...props.sections.map((section) => ({
     id: section.id,
     labelKey: section.title,

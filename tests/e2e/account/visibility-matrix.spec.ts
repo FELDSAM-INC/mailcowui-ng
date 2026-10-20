@@ -8,7 +8,7 @@ const denied = [
   ['pushover', 'pushNotifications', 'push-notifications', 'getPushNotificationSettings'],
 ] as const
 
-for (const [flag, section, path, operation] of denied) {
+for (const [flag, _section, path, operation] of denied) {
   test(`FR-002 ${flag} off hides its section and refuses the direct route before reading data`, async ({
     page,
     mockApi,
@@ -16,8 +16,8 @@ for (const [flag, section, path, operation] of denied) {
     await mockApi.use('account-mailbox')
     await mockApi.setFlags('anna@example.org', { [flag]: false })
     await page.goto('account')
-    await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
-    await expect(page.locator(`[data-section="${section}"]`)).toHaveCount(0)
+    await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+    await expect(page.locator(`[data-section-nav] a[href$="/account/${path}"]`)).toHaveCount(0)
     await page.goto(`account/${path}`)
     await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
     expect(await mockApi.countRequests(operation)).toBe(0)
@@ -36,8 +36,8 @@ test('FR-002 settings require an allowed part; the four separate flags are cover
     sogoProfileReset: false,
   })
   await page.goto('account')
-  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
-  await expect(page.locator('[data-section="mailSettings"]')).toHaveCount(0)
+  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+  await expect(page.locator('[data-section-nav] a[href$="/account/mail-settings"]')).toHaveCount(0)
   await page.goto('account/mail-settings')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
   expect(await mockApi.countRequests('getMailboxMailSettings')).toBe(0)
@@ -74,9 +74,9 @@ test('external credentials show the existing notice and refuse recovery and fact
 }) => {
   await mockApi.use('account-external-source')
   await page.goto('account')
-  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
-  for (const section of ['recoveryEmail', 'twoFactor'])
-    await expect(page.locator(`[data-section="${section}"]`)).toHaveCount(0)
+  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+  for (const path of ['recovery-email', 'two-factor'])
+    await expect(page.locator(`[data-section-nav] a[href$="/account/${path}"]`)).toHaveCount(0)
   await page.goto('account/password')
   await expect(page.getByRole('main')).toContainText('Your organisation manages the password')
   await expect(page.locator('input[type="password"]')).toHaveCount(0)

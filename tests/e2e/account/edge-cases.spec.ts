@@ -2,11 +2,11 @@
 // filter and push dirty guards by their feature specs. R13 forbids drafts after unmount/auth loss.
 import type { Page } from '@playwright/test'
 
-import { MOCK_PASSWORD, politeRegion, submitPassword } from '../fixtures/flows'
+import { MOCK_PASSWORD, openAccountSections, politeRegion, submitPassword } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
 const reads = [
-  { path: 'account', api: '/me/mailbox', ready: '[data-mailbox-address]' },
+  { path: 'account/mail-apps', api: '/me/mailbox', ready: '[data-mailbox-address]' },
   { path: 'account/password', api: '/me/password-policy', ready: '[data-password-policy]' },
   { path: 'pending-actions', api: '/me/password-policy', ready: '[data-password-policy]' },
   { path: 'account/recovery-email', api: '/me/recovery-email', ready: '[data-recovery-email]' },
@@ -55,7 +55,7 @@ const reads = [
 ] as const
 
 for (const { path, api, ready } of reads) {
-  test(`FR-010 ${path} exposes busy status and recovers from an offline read`, async ({
+  test(`FR-010 ${path} (${api}) exposes busy status and recovers from an offline read`, async ({
     page,
     mockApi,
   }) => {
@@ -161,32 +161,27 @@ test('FR-011 recovery success is polite and keeps keyboard focus on the submit c
 
 const drafts: {
   path: string
-  section: string
   parent: string
   fill: (page: Page) => Promise<void>
 }[] = [
   {
     path: 'recovery-email',
-    section: 'recoveryEmail',
-    parent: 'account',
+    parent: 'account/password',
     fill: (page) => page.getByLabel('Email', { exact: true }).fill('draft@example.net'),
   },
   {
     path: 'two-factor/add/totp',
-    section: 'twoFactor',
     parent: 'account/two-factor',
     fill: (page) => page.getByLabel('An identifier for your key').fill('Draft app'),
   },
   {
     path: 'app-passwords/new',
-    section: 'appPasswords',
     parent: 'account/app-passwords',
     fill: (page) => page.getByLabel('App name', { exact: true }).fill('Draft app'),
   },
   {
     path: 'temporary-aliases',
-    section: 'temporaryAliases',
-    parent: 'account',
+    parent: 'account/password',
     fill: (page) =>
       (async () => {
         await page.getByText('Generate random alias', { exact: true }).click()
@@ -197,12 +192,14 @@ const drafts: {
       })(),
   },
 ]
-for (const { path, section, parent, fill } of drafts) {
+for (const { path, parent, fill } of drafts) {
   test(`FR-015 ${path} asks before abandoning changed input`, async ({ page, mockApi }) => {
     await mockApi.use('account-mailbox')
     await page.goto('account')
-    await page.locator(`[data-sections] [data-section="${section}"]`).click()
-    if (parent !== 'account') await page.locator(`a[href$="/account/${path}"]`).click()
+    const navigation = await openAccountSections(page)
+    const sectionPath = parent === 'account/password' ? `account/${path}` : parent
+    await navigation.locator(`a[href$="/${sectionPath}"]`).click()
+    if (parent !== 'account/password') await page.locator(`a[href$="/account/${path}"]`).click()
     await fill(page)
     await page.goBack()
     const dialog = page.getByRole('alertdialog', { name: 'Leave without saving?' })

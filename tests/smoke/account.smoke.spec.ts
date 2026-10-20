@@ -23,7 +23,7 @@ test('@005 @local-stack US5 alice reads her overview and opens webmail with the 
   test.setTimeout(90_000)
   requireLocalStack(baseURL)
   await signInAlice(page)
-  await page.goto('account')
+  await page.goto('account/mail-apps')
   const overview = page.locator('[data-mailbox-overview]')
   await expect(overview.locator('[data-mailbox-address]')).toHaveText(alice.username)
   const response = await page.request.get('/api/v2/me/mailbox')

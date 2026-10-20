@@ -6,8 +6,8 @@ import { totpCode } from '../../support/totp'
 import { expect, test } from '../fixtures/test'
 
 const SCREENS = [
-  ['default landing', 'account-mailbox', '', '[data-mailbox-overview]'],
-  ['account', 'account-mailbox', 'account', '[data-sections]'],
+  ['default landing', 'account-mailbox', '', '[data-own-password]'],
+  ['account', 'account-mailbox', 'account', '[data-section-nav]'],
   ['password', 'account-mailbox', 'account/password', 'input[autocomplete="current-password"]'],
   ['recovery', 'account-mailbox', 'account/recovery-email', 'input[type="email"]'],
   ['second factors', 'account-mailbox', 'account/two-factor', '[data-second-factors]'],

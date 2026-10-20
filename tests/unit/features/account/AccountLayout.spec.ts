@@ -8,7 +8,6 @@ import { defineComponent, h } from 'vue'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 
 import { setSessionContext } from '@/app/session/context'
-import AccountHomePage from '@/features/account/pages/AccountHomePage.vue'
 import AccountLayout from '@/features/account/components/layout/AccountLayout.vue'
 import { createAppChannel } from '@/shared/platform/broadcast'
 
@@ -28,13 +27,18 @@ function router() {
     history: createMemoryHistory('/ng/'),
     routes: [
       { path: '/', name: 'home', component: Section },
-      { path: '/passkeys', name: 'passkeys', component: Section },
       {
         path: '/account',
         component: AccountLayout,
         meta: { layout: 'shell', access: 'session', navEntry: 'account' },
         children: [
-          { path: '', name: 'account', component: AccountHomePage },
+          { path: '', name: 'account', redirect: { name: 'account-password' } },
+          {
+            path: '/passkeys',
+            name: 'passkeys',
+            component: Section,
+            meta: { accountSection: 'passkeys' },
+          },
           {
             path: 'password',
             name: 'account-password',
@@ -138,30 +142,29 @@ describe('AccountLayout', () => {
     const { wrapper } = await mountAt('/account/password')
     await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
     expect(wrapper.findAll('[data-section-nav] a').map((link) => link.attributes('href'))).toEqual([
-      '/ng/account',
       '/ng/account/password',
       '/ng/passkeys',
     ])
   })
 })
 
-describe('AccountHomePage', () => {
-  it('lists only the registered sections the account may open, in the classic order', async () => {
-    useScenario('account-mailbox')
-    const { wrapper } = await mountAt('/account')
-    await vi.waitFor(() => expect(wrapper.findAll('[data-section]').length).toBeGreaterThan(0))
-    expect(
-      wrapper.findAll('[data-section]').map((item) => item.attributes('data-section')),
-    ).toEqual(['mailApps', 'password', 'passkeys', 'appPasswords'])
-    expect(wrapper.find('h1').text()).toBe('User Settings')
+describe('account entry points', () => {
+  it('opens Password directly instead of the removed overview', async () => {
+    useScenario('account-admin')
+    const { wrapper, router } = await mountAt('/account')
+    await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
+    expect(router.currentRoute.value.name).toBe('account-password')
+    expect(wrapper.get('[data-section-nav] [aria-current="page"]').text()).toBe('Change password')
+    expect(wrapper.find('[data-sections]').exists()).toBe(false)
   })
 
-  it('leaves out sections the account may not use', async () => {
+  it('keeps the same account navigation above Passkeys', async () => {
     useScenario('account-admin')
-    const { wrapper } = await mountAt('/account')
-    await vi.waitFor(() => expect(wrapper.findAll('[data-section]').length).toBeGreaterThan(0))
-    expect(
-      wrapper.findAll('[data-section]').map((item) => item.attributes('data-section')),
-    ).toEqual(['password', 'passkeys'])
+    const { wrapper, router } = await mountAt('/passkeys')
+    await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
+    const nav = wrapper.get('[data-section-nav]')
+    expect(nav.get('[aria-current="page"]').text()).toBe('Passkeys')
+    await nav.get('a[href="/ng/account/password"]').trigger('click')
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('account-password'))
   })
 })

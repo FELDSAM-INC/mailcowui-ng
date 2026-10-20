@@ -38,7 +38,7 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
   await submitPassword(page, 'alice@example.org')
   await page.getByLabel('Six-digit code').fill('123456')
   await page.getByRole('button', { name: 'Login', exact: true }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
   await page
     .locator('[data-announcement]')
     .getByRole('button', { name: 'Hide announcement' })
@@ -47,7 +47,7 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
   await page.getByRole('button', { name: /^Account menu of/ }).click()
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click()
-  await expect(page.getByRole('heading', { level: 1, name: 'User Settings' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
   const token = (await mockApi.requests()).find((r) => r.headers['x-csrf-token'])?.headers[
     'x-csrf-token'
   ]

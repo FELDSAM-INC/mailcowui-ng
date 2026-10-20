@@ -63,6 +63,8 @@ const nodeGlobals = Object.fromEntries(
 const browserGlobals = Object.fromEntries(
   ['window', 'document', 'localStorage', 'matchMedia'].map((name) => [name, 'readonly' as const]),
 )
+const unsafeHtmlMessage =
+  'Render operator HTML through SanitizedHtml; use DOM nodes for the sandboxed email preview.'
 
 export default withVueTs(
   {
@@ -89,6 +91,14 @@ export default withVueTs(
     files: ['**/*.vue'],
     rules: {
       'vue/no-v-html': 'error',
+      'vue/no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "VAttribute[directive=false][key.name='srcdoc'], VAttribute[directive=true][key.argument.name='srcdoc']",
+          message: unsafeHtmlMessage,
+        },
+      ],
       'vue/no-static-inline-styles': 'error',
       'vue/block-lang': ['error', { script: { lang: 'ts' } }],
       'vue/component-api-style': ['error', ['script-setup']],
@@ -97,6 +107,35 @@ export default withVueTs(
       'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
       // FormField renders the `<label for>` of the control in its slot (UI 002).
       'vuejs-accessibility/form-control-has-label': ['error', { labelComponents: ['FormField'] }],
+    },
+  },
+  {
+    name: 'mailcowui-ng/html-safety',
+    files: ['**/*.{js,mjs,cjs,ts,vue}'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        { property: 'srcdoc', message: unsafeHtmlMessage },
+        { object: 'document', property: 'write', message: unsafeHtmlMessage },
+        { object: 'document', property: 'writeln', message: unsafeHtmlMessage },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name='setAttribute'][arguments.0.value=/^srcdoc$/i], CallExpression[callee.property.value='setAttribute'][arguments.0.value=/^srcdoc$/i]",
+          message: unsafeHtmlMessage,
+        },
+        {
+          selector: "Property[key.name='srcdoc'], Property[key.value='srcdoc']",
+          message: unsafeHtmlMessage,
+        },
+        {
+          selector:
+            "MemberExpression:matches([property.name=/^write(ln)?$/], [property.value=/^write(ln)?$/])[object.type='MemberExpression']:matches([object.property.name=/^(document|contentDocument|ownerDocument)$/], [object.property.value=/^(document|contentDocument|ownerDocument)$/])",
+          message: unsafeHtmlMessage,
+        },
+      ],
     },
   },
   {

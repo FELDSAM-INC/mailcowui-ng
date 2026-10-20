@@ -222,7 +222,14 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
         id: 'globalFilterMaps',
         labelKey: legacy('admin.rspamd_global_filters'),
         icon: FilterIcon,
-        tabs: [pending('globalFilterMaps', legacy('admin.rspamd_global_filters'))],
+        tabs: [
+          tab('system', {
+            id: 'globalFilterMaps',
+            labelKey: legacy('admin.rspamd_global_filters'),
+            path: '/system/filter-maps',
+            roles: ADMIN,
+          }),
+        ],
       },
     ],
   },

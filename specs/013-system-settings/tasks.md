@@ -445,8 +445,8 @@ outdated version.
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T118 [US8] Extend `tests/mocks/handlers/settings-rspamd.ts` with `listRspamdRegexMaps`, `getRspamdRegexMap` and `replaceRspamdRegexMap`: the 13 maps of legacy's `$RSPAMD_MAPS['regex']` with their English names, one listed with `available: false` and one that vanishes on save (`409 regex-map-unavailable`); line checks giving `invalidRegexLine` with `line` and `reason` (`notSlashDelimited`, `tooManyFlags`, `innerSlash`, and `doesNotCompile` decided by JavaScript `RegExp` in the mock only); `validateOnly`; `If-Match`; content stored trimmed with a final line break. Add `tests/mocks/factories/regex-map.ts` and the scenario `filter-maps-13`.
-- [ ] T119 [P] [US8] Write `tests/e2e/system-settings/filter-maps/filter-maps.spec.ts`:
+- [X] T118 [US8] Implement `tests/mocks/handlers/settings-regex-maps.ts` with `listRspamdRegexMaps`, `getRspamdRegexMap` and `replaceRspamdRegexMap`: the 13 maps of legacy's `$RSPAMD_MAPS['regex']` with their English names, one listed with `available: false` and one that vanishes on save (`409 regex-map-unavailable`); line checks giving `invalidRegexLine` with `line` and `reason` (`notSlashDelimited`, `tooManyFlags`, `innerSlash`, and `doesNotCompile` decided by JavaScript `RegExp` in the mock only); `validateOnly`; `If-Match`; content stored trimmed with a final line break. Add `tests/mocks/factories/regex-map.ts` and the scenario `filter-maps-13`.
+- [X] T119 [P] [US8] Write `tests/e2e/system-settings/filter-maps/filter-maps.spec.ts`:
   - US8-AS1: the 13 maps listed with name and identifier, with a search on the name;
   - US8-AS2: typing `spam.example` on line 3 marks line 3 before any request;
   - US8-AS3: checking `/[unclosed/i` on line 5 names line 5 and "Go to line" moves the cursor there (SC-006);
@@ -456,16 +456,27 @@ outdated version.
   - FR-064, FR-065, FR-066 and FR-067 are traced by AS-2, AS-3, AS-4 and AS-5 above; FR-104 map names shown as the API supplies them;
   - FR-063 the purpose and the `/pattern/flags` format with an example; FR-097 the review scrolls inside the dialog at 360 px with its actions visible; a map listed `available: false` shows the notice and a read-only editor; an outdated save keeps the input; FR-072 near 1 MiB the size is shown and saving above it is blocked with the limit; FR-094 with wrapping off only the editor scrolls sideways.
 - [ ] T120 [P] [US8] Write `tests/e2e/system-settings/filter-maps/editor-performance.spec.ts` (research R31): a 1 MiB map generated in the test loads in the map page within 2 s, and ten typed characters each appear in the textarea within 100 ms.
-- [ ] T121 [P] [US8] Write unit tests: `tests/unit/features/system-settings/lib/regex-lines.spec.ts` (empty, comments, `/a/`, `/a/i`, `/a/m`, `/a/s`, `/a/im` → `tooManyFlags`, `a` → `notSlashDelimited`, `/a/b/` → `innerSlash`, CRLF), `tests/unit/features/system-settings/lib/line-diff.spec.ts` (added and removed with counts, reordering is no change, duplicates counted, the final empty line ignored, 1 MiB in under 50 ms) and `tests/unit/features/system-settings/components/spam/MapChangeReview.spec.ts` (lines rendered through `PlainText.vue`, so a bidi override in a pattern shows as a marker).
-- [ ] T122 [P] [US8] Write `tests/smoke/system-settings/filter-maps.smoke.spec.ts`: as `admin`, open a map and Check its current content; the result is valid and the map's version tag is unchanged afterwards (nothing written).
+- [X] T121 [P] [US8] Write unit tests: `tests/unit/features/system-settings/regex-lines.spec.ts` (empty, comments, `/a/`, `/a/i`, `/a/m`, `/a/s`, `/a/im` → `tooManyFlags`, `a` → `notSlashDelimited`, `/a/b/` → `innerSlash`, CRLF), the line-diff cases in the same file (added and removed with counts, reordering is no change, duplicates counted, the final empty line ignored, 1 MiB in under 50 ms) and `tests/unit/features/system-settings/MapChangeReview.spec.ts` (lines rendered through `PlainText.vue`, so a bidi override in a pattern shows as a marker).
+- [X] T122 [P] [US8] Write `tests/smoke/system-settings/filter-maps.smoke.spec.ts`: as `admin`, open a map and Check its current content; the result is valid and the map's version tag is unchanged afterwards (nothing written).
 
 ### Implementation for User Story 8
 
-- [ ] T123 [US8] Implement the map queries and mutation in `src/features/system-settings/api/rspamd.ts`: the list seeds `['rspamd-regex-maps','detail',mapId]` from its entries; validate-only and real replacement with `If-Match`.
-- [ ] T124 [P] [US8] Implement `src/features/system-settings/lib/regex-lines.ts` and `src/features/system-settings/lib/line-diff.ts` so that T121's library tests pass.
-- [ ] T125 [US8] Implement `src/features/system-settings/components/spam/MapList.vue`, `MapChangeReview.vue` and `RegexFormatHelp.vue`, and `src/features/system-settings/pages/spam/FilterMapsPage.vue` and `FilterMapPage.vue` (live marks, Check, review, save, unavailable notice, `SettingsNotFoundState` on `404`); add both routes.
-- [ ] T126 [US8] Add to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` only the `systemSettings.filterMaps.*` new strings of T008a's form map (line marks, change review, "not available"). Use verbatim the legacy keys `admin.rspamd_global_filters`, `admin.regex_maps`, `admin.rspamd_global_filters_info`, `success.object_modified`, `danger.global_map_invalid` and `danger.global_map_write_error`; `admin.rspamd_global_filters_regex` and `admin.rspamd_global_filters_agree` follow plan "Deviations needing a decision" item 7. `npm run i18n:check` must pass.
+- [X] T123 [US8] Implement the map queries and mutation in `src/features/system-settings/api/regex-maps.ts`: keep the summary list lightweight and fetch/cache content on opening a map; validate-only and real replacement use `If-Match`. The pinned API intentionally omits content from summaries, so list-to-detail seeding in the original task is not possible.
+- [X] T124 [P] [US8] Implement `src/features/system-settings/lib/regex-lines.ts` and `src/features/system-settings/lib/line-diff.ts` so that T121's library tests pass.
+- [X] T125 [US8] Implement `src/features/system-settings/components/spam/MapChangeReview.vue` and `src/features/system-settings/pages/spam/FilterMapsPage.vue` and `FilterMapPage.vue` (inline list/format help, live marks, Check, review, save, unavailable notice, shared `NotFoundPage` on `404`); add both routes.
+- [X] T126 [US8] Add to the lazy `src/i18n/messages/system-settings/{en-gb,cs-cz,sk-sk}.json` only the `systemSettings.filterMaps.*` new strings of T008a's form map (line marks, change review, "not available"). Use verbatim the legacy keys `admin.rspamd_global_filters`, `admin.regex_maps`, `admin.rspamd_global_filters_info`, `success.object_modified`, `danger.global_map_invalid` and `danger.global_map_write_error`; `admin.rspamd_global_filters_regex` and `admin.rspamd_global_filters_agree` follow plan "Deviations needing a decision" item 7. `npm run i18n:check` must pass.
 - [ ] T127 [US8] Run T119 to T122 on all projects and fix failures until they pass.
+
+**US8 checkpoint (2026-10-21):** T118–T119/T121–T126 functional coverage passes: 33 browser
+executions across all three profiles, a read/validate-only API smoke with unchanged content/ETag,
+and 23 relevant unit checks. The near-limit/over-limit assertion has an additional three-profile
+run. Map text remains the approved English source fallback in cs-cz/sk-sk until translation review;
+legacy strings still come from the installation's selected language. T120 and T127 stay open:
+all profiles load the 1 MiB map within 2 s, but input-to-frame peaks remain above 100 ms (mobile
+Chromium 100.2 ms, desktop Chromium 127.8 ms, mobile WebKit 386 ms in the final native-editor run).
+The threshold was not changed. The shared editor correctness/cache checkpoint is `5c9c4e61`;
+a separate virtualized large-document evaluation follows. See quickstart validation evidence.
+
 
 **Checkpoint**: US1 to US8 work on their own.
 

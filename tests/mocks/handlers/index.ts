@@ -2,6 +2,7 @@ import { actingValidityProblem, impersonationHandlers } from './impersonation'
 import { settingsQuotaHandlers } from './settings-quota-notifications'
 import { rspamdRulesHandlers } from './settings-rspamd-rules'
 import { settingsPresetHandlers } from './settings-presets'
+import { regexMapHandlers } from './settings-regex-maps'
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
 import { settingsPasswordHandlers } from './settings-password'
@@ -143,6 +144,7 @@ export const areaHandlers: RequestHandler[] = [
   ...selfServiceHandlers,
   ...settingsServerHandlers,
   ...settingsRspamdHandlers,
+  ...regexMapHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

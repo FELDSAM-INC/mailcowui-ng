@@ -48,6 +48,18 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         meta: { titleKey: 'nav.rspamdUi' },
       },
       {
+        path: 'filter-maps',
+        name: 'system-settings-filter-maps',
+        component: () => import('./pages/spam/FilterMapsPage.vue'),
+        meta: { titleKey: legacy('admin.rspamd_global_filters') },
+      },
+      {
+        path: 'filter-maps/:mapId',
+        name: 'system-settings-filter-map',
+        component: () => import('./pages/spam/FilterMapPage.vue'),
+        meta: { titleKey: legacy('admin.regex_maps') },
+      },
+      {
         path: '',
         name: 'system-settings',
         component: () => import('./pages/SettingsOverviewPage.vue'),

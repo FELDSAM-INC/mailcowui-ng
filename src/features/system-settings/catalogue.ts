@@ -41,6 +41,15 @@ export const settingsPages: readonly SettingsPage[] = [
     visible: () => true,
   },
   {
+    id: 'filter-maps',
+    group: 'spam-filtering',
+    routeName: 'system-settings-filter-maps',
+    title: legacy('admin.rspamd_global_filters'),
+    description: 'systemSettings.filterMaps.description',
+    auditTarget: 'rspamdRegexMap',
+    visible: () => true,
+  },
+  {
     id: 'password-policy',
     group: 'passwords',
     routeName: 'system-settings-password-policy',

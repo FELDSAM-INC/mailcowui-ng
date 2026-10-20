@@ -8,6 +8,8 @@ import type {
   QuotaNotificationSettings,
   QuotaNotificationRecipients,
 } from '@/api'
+import { regexMaps } from '../factories/regex-map'
+import type { RspamdRegexMap } from '@/api'
 
 import { settingsCapabilities } from '../factories/settings'
 import type { ScenarioDefinition } from './index'
@@ -19,9 +21,11 @@ export interface SettingsState {
   passwordReset: PasswordResetNotification
   quota: QuotaNotificationSettings
   quotaCopies: Record<string, QuotaNotificationRecipients>
+  regexMaps: RspamdRegexMap[]
   revision: number
 }
 export interface SettingsPatch {
+  regexMaps?: RspamdRegexMap[]
   capabilities?: Partial<SettingsCapabilities>
   ipCheck?: Partial<IpCheckSetting>
   passwordReset?: Partial<PasswordResetNotification>
@@ -59,11 +63,13 @@ export function initialSettingsState(): SettingsState {
       },
     },
     revision: 1,
+    regexMaps: regexMaps(),
   }
 }
 export function applySettingsPatch(state: ScenarioState, patch: SettingsPatch): void {
   if (patch.quota) Object.assign(state.settings.quota, patch.quota)
   if (patch.quotaCopies) Object.assign(state.settings.quotaCopies, patch.quotaCopies)
+  if (patch.regexMaps) state.settings.regexMaps = patch.regexMaps
   if (patch.ipCheck) Object.assign(state.settings.ipCheck, patch.ipCheck)
   if (patch.passwordReset) Object.assign(state.settings.passwordReset, patch.passwordReset)
   if (patch.capabilities) Object.assign(state.settings.capabilities, patch.capabilities)
@@ -122,6 +128,10 @@ export const systemSettingsScenarios: Record<string, ScenarioDefinition> = {
         },
       },
     },
+  },
+  'filter-maps-13': {
+    description: 'Thirteen configured maps, including one unavailable map.',
+    overrides: { signedInAs: 'admin' },
   },
   'settings-admin-defaults': {
     description: 'System settings with the server defaults.',

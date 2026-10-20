@@ -59,6 +59,26 @@
       "unexpectedBracket": "Unexpected closing bracket",
       "unclosedString": "Unclosed quoted string",
       "invalidStructure": "The rule contains an unbalanced structure."
+    },
+    "filterMaps": {
+      "description": "Review and edit the server’s global regular-expression maps.",
+      "search": "Search maps",
+      "count": "{count} maps",
+      "unavailable": "This map is not available on this server; nothing was changed.",
+      "format": "Each line can be empty, a comment starting with #, or /pattern/ with at most one flag: i, m or s. For example:",
+      "review": "Review map changes",
+      "added": "Added lines ({count})",
+      "removed": "Removed lines ({count})",
+      "reload": "Rspamd reloads changed maps automatically; no restart is needed.",
+      "valid": "The map is valid. Nothing was saved.",
+      "outdated": "This map changed after you opened it. Your content has been kept. Review the changes again before saving, or discard your changes.",
+      "reasons": {
+        "notSlashDelimited": "Use /pattern/ with at most one flag: i, m or s.",
+        "tooManyFlags": "Use at most one flag: i, m or s.",
+        "innerSlash": "The pattern must not contain another slash.",
+        "doesNotCompile": "The server could not compile this regular expression."
+      },
+      "moreLines": "Show more lines"
     }
   }
 }

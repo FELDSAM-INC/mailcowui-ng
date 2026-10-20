@@ -769,6 +769,7 @@ export type {
   SettingsValidationResult,
   RspamdEffectiveSettingsMap,
   RspamdRegexMap,
+  RspamdRegexMapSummary,
   RspamdRegexMapReplaceRequest,
   RspamdUiPasswordRequest,
   GlobalSieveFilter,

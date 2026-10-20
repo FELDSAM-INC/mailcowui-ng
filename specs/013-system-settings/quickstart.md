@@ -136,3 +136,44 @@ Validation artifacts are in
 `/home/feldsam/Projects/mailcow-rest-v2/storage/app/restart-2026-10-20/u013/`.
 
 No push or deployment was performed from this worktree. UI005 files were not edited.
+
+
+### Filter maps and shared editor checkpoint (2026-10-21)
+
+The map list loads the pinned API's lightweight summaries; opening a map fetches its content.
+The original T123 suggestion to seed detail caches from list content cannot apply to this contract.
+Editing supports immediate structural marks, server PCRE checks, explicit change review, versioned
+save, unavailable maps, missing-map navigation, and preserved drafts after conflict or server errors.
+Legacy invalid-ID/write-error messages keep the API's English diagnostic text out of the UI.
+The cs-cz/sk-sk new map strings intentionally retain the approved English source fallback pending
+translation review; existing legacy keys use the installation's own selected-language translations.
+
+The shared editor checkpoint `5c9c4e61` caches logical-line heights, updates only changed lines,
+skips hidden mirror work for plain templates, and keeps gutter positions correct after wrapping,
+Unicode, blank lines, edits, scrolling, and viewport changes. Structural map validation also updates
+only the affected lines synchronously. No work is deferred until after typing to conceal latency.
+
+- Relevant units: **23/23 passed**, including the one-MiB line diff under 50 ms.
+- Functional/layout browser checks: **33/33 passed**, all three profiles, zero retries.
+  Near-limit and over-limit status assertions additionally run on all three profiles.
+- Real API smoke: **1/1 passed**, read plus `validateOnly`; content and ETag unchanged.
+  The isolated u005-smoke stack had no available map file. An absent-only fixture was created in
+  its verified bind-mounted `storage/dev-mailcow/rspamd_custom_maps` directory, and removed in a
+  `finally` block with absence verified. No existing file was overwritten, no real map PUT was
+  allowed, and no service was restarted. The first fixture-free attempt exposed this environment
+  prerequisite and is not counted as a product failure.
+- Separate fresh app/test typechecks, focused lint, i18n structure and production build passed.
+  Initial JavaScript: **202,641 / 204,800 bytes gzip**. Runtime dependencies did not change.
+- **T120/T127 remain open.** The one-MiB map opens under 2 s, but each of the three native-editor
+  timing cases still exceeds the unchanged 100 ms input-to-frame limit: mobile Chromium peaks
+  at 100.2 ms, desktop Chromium 127.8 ms, and mobile WebKit 386 ms. The measurements include
+  a long-task observer where the browser supports it. Standalone native textarea measurements
+  show that WebKit's own large-document editing already exceeds 100 ms without application code.
+
+Evidence: `/tmp/u013-map-final-units.log`, `/tmp/u013-maps-functional.log`,
+`/tmp/u013-maps-size.log`, `/tmp/u013-maps-smoke2.log`, `/tmp/u013-maps-final-lint2.log`,
+`/tmp/u013-maps-release-{app,tests}.log`, `/tmp/u013-maps-release-{build,budget,i18n}.log`, and
+`/tmp/u013-editor-browser2.log`. Browser traces/results are under
+`test-results/u013-maps-checkpoint`, `test-results/u013-maps-size`, and
+`test-results/u013-editor-cache2`. The native performance failure is retained for follow-up;
+this checkpoint does not claim full US8 completion.

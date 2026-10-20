@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import type { Admin, DomainAdmin } from '@/api'
 import { csrfToken, requireLocalStack } from './fixtures/account-api'
 import { signIn, uniqueName } from './fixtures/domains-api'
+import { pickDomain } from '../support/domain-picker'
 
 async function removeCreated(page: Page, path: string, username: string): Promise<void> {
   const url = `/api/v2/${path}/${encodeURIComponent(username)}`
@@ -24,6 +25,7 @@ for (const kind of ['admin', 'domainAdmin'] as const) {
     const path = kind === 'admin' ? 'admins' : 'domain-admins',
       username = uniqueName(`smoke-${kind.toLowerCase()}`)
     await signIn(page, 'admin')
+    if (kind === 'domainAdmin') await page.setViewportSize({ width: 360, height: 780 })
     try {
       if (kind === 'admin') {
         await page.goto('administrators/admins')
@@ -38,8 +40,7 @@ for (const kind of ['admin', 'domainAdmin'] as const) {
       await page.goto(`administrators/${path}/-/new`)
       await page.locator('input[name="accountUsername"]').fill(username)
       if (kind === 'domainAdmin') {
-        await page.getByRole('combobox', { name: /Domain assignments/ }).fill('example.org')
-        await page.getByRole('option', { name: 'example.org', exact: true }).click()
+        await pickDomain(page, 'account-create-domains', 'example.org')
       }
       await page.locator('[data-generate]').click()
       await page.getByRole('button', { name: 'Add', exact: true }).click()
@@ -53,8 +54,7 @@ for (const kind of ['admin', 'domainAdmin'] as const) {
           .locator('#section-account')
           .getByRole('button', { name: /^Edit / })
           .click()
-        await page.getByRole('combobox', { name: /Domains/ }).fill('example.net')
-        await page.getByRole('option', { name: 'example.net', exact: true }).click()
+        await pickDomain(page, 'account-edit-domains', 'example.net')
         await page.getByRole('button', { name: 'Save changes', exact: true }).click()
         await expect(page).not.toHaveURL(/edit=/)
         await page

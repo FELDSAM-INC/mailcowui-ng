@@ -10,13 +10,15 @@
 // - Multiple mode (filters): the chosen names are removable chips above the field.
 // - States: searching, no match, and an error with a retry.
 import { useInfiniteQuery } from '@tanstack/vue-query'
-import { computed, ref, useId, watch } from 'vue'
+import { computed, onScopeDispose, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
 
 import { CloseIcon } from '../icons'
+import { useMediaQuery } from '../composables/useMediaQuery'
 import { buttonVariants } from '../ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '../ui/dialog'
 import FormField from './FormField.vue'
 
 export interface DomainPickerOption {
@@ -60,6 +62,10 @@ const props = withDefaults(
     sources: readonly DomainPickerSource[]
     modelValue: string | null | readonly string[]
     multiple?: boolean
+    /** UI 007: stage multiple choices in a full-screen phone dialog; other callers stay inline. */
+    staged?: boolean
+    /** Errors keyed by ASCII name, so removing a chip cannot move an error to another name. */
+    itemErrors?: Readonly<Record<string, readonly string[]>>
     placeholder?: string
     description?: string
     errors?: readonly string[]
@@ -73,6 +79,8 @@ const props = withDefaults(
   }>(),
   {
     multiple: false,
+    staged: false,
+    itemErrors: () => ({}),
     placeholder: undefined,
     description: undefined,
     errors: undefined,
@@ -93,6 +101,9 @@ const listId = useId()
 const optionPrefix = useId()
 const container = ref<HTMLElement | null>(null)
 const open = ref(false)
+const wide = useMediaQuery('(min-width: 768px)')
+const mobileDialog = computed(() => props.multiple && props.staged && !wide.value)
+const draft = ref<string[]>([])
 const search = ref('')
 const active = ref(-1)
 const known = ref<Record<string, string>>({})
@@ -106,10 +117,23 @@ const selected = computed<string[]>(() =>
       : [],
 )
 const readable = (name: string) => known.value[name] ?? props.labels[name] ?? name
+const chosen = computed(() => (mobileDialog.value && open.value ? draft.value : selected.value))
+const chipId = (name: string) => `${props.id}-chip-${encodeURIComponent(name)}`
 const text = ref(props.multiple ? '' : selected.value[0] ? readable(selected.value[0]) : '')
 
 watch(selected, (names) => {
   if (!props.multiple && !open.value) text.value = names[0] ? readable(names[0]) : ''
+})
+watch(open, (value) => {
+  if (!mobileDialog.value) return
+  draft.value = value ? [...selected.value] : []
+  text.value = ''
+  search.value = ''
+  if (timer) clearTimeout(timer)
+})
+watch(mobileDialog, () => close())
+onScopeDispose(() => {
+  if (timer) clearTimeout(timer)
 })
 
 // One infinite query per source; the number of sources is fixed for a mounted picker.
@@ -149,7 +173,7 @@ const groups = computed<Group[]>(() => {
         ...option,
         index: index++,
         reason: props.disabledReason?.(option) ?? null,
-        chosen: selected.value.includes(option.name),
+        chosen: chosen.value.includes(option.name),
       }))
     return { id: source.id, label: source.label, entries }
   })
@@ -202,8 +226,22 @@ function onFocus() {
 }
 
 function close() {
+  if (timer) clearTimeout(timer)
   open.value = false
   active.value = -1
+}
+
+function toggleDraft(entry: Entry) {
+  if (entry.reason) return
+  known.value = { ...known.value, [entry.name]: entry.nameUnicode }
+  draft.value = draft.value.includes(entry.name)
+    ? draft.value.filter((name) => name !== entry.name)
+    : [...draft.value, entry.name]
+}
+function applyDraft() {
+  for (const name of draft.value) emit('pick', { name, nameUnicode: readable(name) })
+  emit('update:modelValue', [...draft.value])
+  close()
 }
 
 function choose(entry: Entry) {
@@ -272,6 +310,7 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 function onFocusOut(event: FocusEvent) {
+  if (mobileDialog.value) return
   const next = event.relatedTarget
   if (next instanceof Node && container.value?.contains(next)) return
   close()
@@ -304,18 +343,141 @@ function retry() {
       >
         <li v-for="name in selected" :key="name" class="max-w-full min-w-0">
           <button
+            :id="chipId(name)"
             type="button"
+            :title="name"
             :aria-label="t('pickers.remove', { name: readable(name) })"
+            :aria-describedby="itemErrors[name]?.length ? `${chipId(name)}-errors` : undefined"
+            :class="itemErrors[name]?.length ? 'border-error-500 dark:border-error-400' : ''"
             class="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-gray-300 bg-white px-3 text-sm text-gray-800 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
             @click="remove(name)"
           >
             <span class="min-w-0 wrap-anywhere">{{ readable(name) }}</span>
             <CloseIcon class="size-4 shrink-0" />
           </button>
+          <ul
+            v-if="itemErrors[name]?.length"
+            :id="`${chipId(name)}-errors`"
+            data-picker-item-errors
+            class="mt-1 max-w-full text-sm wrap-anywhere text-error-700 dark:text-error-400"
+          >
+            <li v-for="message in itemErrors[name]" :key="message">{{ message }}</li>
+          </ul>
         </li>
       </ul>
+      <Dialog v-if="mobileDialog" v-model:open="open">
+        <DialogTrigger as-child>
+          <button
+            v-bind="field"
+            type="button"
+            :aria-required="undefined"
+            data-picker-open
+            aria-haspopup="dialog"
+            :class="buttonVariants({ variant: 'outline', class: 'self-start' })"
+          >
+            {{ t('pickers.chooseDomains') }}
+          </button>
+        </DialogTrigger>
+        <DialogContent full-screen class="gap-0 overflow-hidden p-0 sm:p-0">
+          <div class="flex shrink-0 flex-col gap-4 p-4">
+            <DialogTitle class="pe-14 text-xl">{{ label }}</DialogTitle>
+            <DialogDescription class="sr-only">{{
+              description ?? placeholder ?? label
+            }}</DialogDescription>
+            <label class="flex flex-col gap-1 text-sm">
+              {{ lt('datatables.search') }}
+              <input
+                v-model="text"
+                type="search"
+                data-picker-search
+                autocomplete="off"
+                autocapitalize="none"
+                spellcheck="false"
+                :placeholder="placeholder"
+                :maxlength="DOMAIN_MAX_LENGTH"
+                class="form-control"
+                @input="onInput"
+              />
+            </label>
+          </div>
+          <div
+            class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 pb-4"
+          >
+            <template v-if="expanded">
+              <fieldset v-for="group in groups" :key="group.id" class="min-w-0">
+                <legend :class="grouped && group.label ? 'mb-2 font-semibold' : 'sr-only'">
+                  {{ group.label ?? label }}
+                </legend>
+                <label
+                  v-for="entry in group.entries"
+                  :key="entry.name"
+                  class="flex min-h-11 items-center gap-3 rounded-lg py-2 text-gray-800 dark:text-gray-200"
+                >
+                  <input
+                    type="checkbox"
+                    :value="entry.name"
+                    :checked="entry.chosen"
+                    :disabled="!!entry.reason"
+                    class="size-5 shrink-0 accent-brand-500"
+                    @change="toggleDraft(entry)"
+                  />
+                  <span class="min-w-0 flex-1 wrap-anywhere">
+                    <span class="block font-medium">{{ entry.nameUnicode }}</span>
+                    <span
+                      v-if="entry.nameUnicode !== entry.name"
+                      class="block text-sm text-gray-600 dark:text-gray-400"
+                      >{{ entry.name }}</span
+                    >
+                    <span v-if="entry.note" class="block text-sm">{{ entry.note }}</span>
+                    <span v-if="entry.reason" class="block text-sm">{{ entry.reason }}</span>
+                  </span>
+                </label>
+              </fieldset>
+            </template>
+            <p v-if="searching" role="status">{{ lt('datatables.loadingRecords') }}</p>
+            <div
+              v-else-if="failed"
+              role="alert"
+              class="flex flex-col items-start gap-3 text-error-700 dark:text-error-400"
+            >
+              <p>{{ t('states.list.error') }}</p>
+              <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="retry">
+                {{ t('common.retry') }}
+              </button>
+            </div>
+            <p v-else-if="noMatch" role="status">{{ lt('datatables.zeroRecords') }}</p>
+            <button
+              v-if="expanded && more.length"
+              type="button"
+              data-load-more
+              :class="buttonVariants({ variant: 'outline', class: 'self-start' })"
+              :disabled="loadingMore"
+              :aria-busy="loadingMore ? 'true' : undefined"
+              @click="loadMore"
+            >
+              {{ t('pickers.loadMore') }}
+            </button>
+          </div>
+          <div
+            class="flex shrink-0 flex-wrap justify-end gap-3 border-t border-gray-200 p-4 dark:border-gray-700"
+          >
+            <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="close">
+              {{ lt('footer.cancel') }}
+            </button>
+            <button
+              type="button"
+              data-picker-done
+              :class="buttonVariants({ variant: 'default' })"
+              @click="applyDraft"
+            >
+              {{ t('pickers.done') }}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
       <input
+        v-else
         v-bind="field"
         v-model="text"
         type="text"
@@ -336,7 +498,7 @@ function retry() {
         @keydown="onKeydown"
       />
     </FormField>
-    <div v-if="open" class="flex flex-col gap-2">
+    <div v-if="open && !mobileDialog" class="flex flex-col gap-2">
       <div
         v-if="expanded"
         :id="listId"

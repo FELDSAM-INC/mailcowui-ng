@@ -23,6 +23,8 @@ const props = withDefaults(
     errors?: (path: string) => string[]
     activeDisabledReason?: string | null
     maxUsernameLength?: number
+    domainErrors?: Readonly<Record<string, readonly string[]>>
+    domainLabels?: Readonly<Record<string, string>>
   }>(),
   {
     policy: null,
@@ -30,6 +32,8 @@ const props = withDefaults(
     errors: () => [],
     activeDisabledReason: null,
     maxUsernameLength: 255,
+    domainErrors: () => ({}),
+    domainLabels: () => ({}),
   },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: AccountForm] }>()
@@ -98,7 +102,10 @@ function update<K extends keyof AccountForm>(key: K, value: AccountForm[K]) {
       :model-value="modelValue.domains"
       :sources="sources"
       multiple
+      staged
       required
+      :item-errors="domainErrors"
+      :labels="domainLabels"
       :errors="errors('domains')"
       :placeholder="lt('admin.search_domain_da')"
       @update:model-value="update('domains', Array.isArray($event) ? $event : [])"

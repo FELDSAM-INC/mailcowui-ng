@@ -29,6 +29,7 @@ const { t } = useI18n()
 const router = useRouter(),
   client = useQueryClient()
 const form = ref(formFromAccount())
+const submittedDomains = ref<string[]>([])
 const defaults = ref(formFromAccount())
 const capabilities = useAccountCapabilities(),
   policy = usePasswordPolicy()
@@ -63,7 +64,7 @@ const problems = useProblemForm({
   formKey: 'accounts.form',
   fieldId: (path) =>
     path.startsWith('domains')
-      ? 'account-create-domains'
+      ? domainErrorField(path)
       : path === 'password'
         ? 'account-create-new-password'
         : path === 'password2'
@@ -75,11 +76,22 @@ const problems = useProblemForm({
     path === 'username'
       ? form.value.username
       : path.startsWith('domains.')
-        ? form.value.domains[Number(path.split('.')[1])]
+        ? submittedDomains.value[Number(path.split('.')[1])]
         : undefined,
   problemFields: { 'account-exists': 'username' },
   problemParams: () => ({ username: form.value.username }),
 })
+const domainErrors = computed(() =>
+  Object.fromEntries(
+    submittedDomains.value.map((name, index) => [name, problems.errorsFor(`domains.${index}`)]),
+  ),
+)
+function domainErrorField(path: string) {
+  const name = submittedDomains.value[Number(path.split('.')[1])]
+  return name && form.value.domains.includes(name)
+    ? `account-create-domains-chip-${encodeURIComponent(name)}`
+    : 'account-create-domains'
+}
 function errors(path: string): string[] {
   return path === 'domains'
     ? problems.summary.value
@@ -89,6 +101,7 @@ function errors(path: string): string[] {
 }
 async function submit() {
   if (request.pending.value) return
+  submittedDomains.value = [...form.value.domains]
   const invalid = validateAccountForm(
     form.value,
     props.role,
@@ -161,6 +174,7 @@ async function submit() {
           id-prefix="account-create"
           :policy="policy.data.value"
           :errors="errors"
+          :domain-errors="domainErrors"
           :max-username-length="capabilities.data.value?.usernameMaxLength"
         />
       </fieldset>

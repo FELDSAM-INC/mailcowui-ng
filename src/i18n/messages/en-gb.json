@@ -791,6 +791,8 @@
     "unknown": "Unknown passkey, registered {date}"
   },
   "pickers": {
+    "chooseDomains": "Choose domains",
+    "done": "Done",
     "loadMore": "Load more",
     "remove": "Remove {name}"
   },

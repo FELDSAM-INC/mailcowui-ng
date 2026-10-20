@@ -56,6 +56,12 @@ const policy = usePasswordPolicy(),
 const form = ref(formFromAccount(props.account)),
   original = shallowRef(props.account),
   version = shallowRef(props.account)
+const submittedDomains = ref<string[]>([])
+const domainLabels = computed(() =>
+  'domains' in props.account
+    ? Object.fromEntries(props.account.domains.map((item) => [item.domain, item.domainUnicode]))
+    : {},
+)
 const status = shallowRef<SectionStatus | null>(null),
   changes = ref<SectionChange[] | null>(null)
 const request = useSecretRequest(updateAccountWithPassword),
@@ -107,7 +113,7 @@ const problems = useProblemForm({
   formKey: 'accounts.form',
   fieldId: (path) =>
     path.startsWith('domains')
-      ? 'account-edit-domains'
+      ? domainErrorField(path)
       : path === 'password'
         ? 'account-edit-new-password'
         : path === 'password2'
@@ -119,11 +125,22 @@ const problems = useProblemForm({
     path === 'username'
       ? form.value.username
       : path.startsWith('domains.')
-        ? form.value.domains[Number(path.split('.')[1])]
+        ? submittedDomains.value[Number(path.split('.')[1])]
         : undefined,
   problemFields: { 'account-exists': 'username' },
   problemParams: () => ({ username: form.value.username }),
 })
+const domainErrors = computed(() =>
+  Object.fromEntries(
+    submittedDomains.value.map((name, index) => [name, problems.errorsFor(`domains.${index}`)]),
+  ),
+)
+function domainErrorField(path: string) {
+  const name = submittedDomains.value[Number(path.split('.')[1])]
+  return name && form.value.domains.includes(name)
+    ? `account-edit-domains-chip-${encodeURIComponent(name)}`
+    : 'account-edit-domains'
+}
 function errors(path: string) {
   return path === 'domains'
     ? problems.summary.value
@@ -136,6 +153,7 @@ const activeReason = computed(() =>
 )
 async function submit() {
   if (!props.editable || save.pending.value) return
+  submittedDomains.value = [...form.value.domains]
   const invalid = validateAccountForm(
     form.value,
     props.role,
@@ -302,6 +320,8 @@ function discard() {
           :policy="policy.data.value"
           :product-name="branding.productName"
           :errors="errors"
+          :domain-errors="domainErrors"
+          :domain-labels="domainLabels"
           :active-disabled-reason="activeReason"
           :max-username-length="caps.data.value?.usernameMaxLength"
         >

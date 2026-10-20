@@ -791,6 +791,8 @@
     "unknown": "Neznámý přístupový klíč, zaregistrován {date}"
   },
   "pickers": {
+    "chooseDomains": "Vybrat domény",
+    "done": "Hotovo",
     "loadMore": "Načíst další",
     "remove": "Odebrat {name}"
   },

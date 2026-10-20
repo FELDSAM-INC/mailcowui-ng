@@ -35,9 +35,25 @@ The two disposable-account flows in `tests/smoke/administrators.smoke.spec.ts` a
 the isolated real API, served by production preview with the production security headers. They
 create, change and remove unique accounts; seeded account metadata stays unchanged.
 
+The staged domain picker checkpoint completes T032/T040. Administrator create and edit forms use
+a full-screen phone dialog: Done applies the draft, while Cancel, Escape and close discard it.
+Other picker callers keep their existing presentation. Search and paging request 25 domains at a
+time; per-domain server errors stay attached to the submitted ASCII name and retain other choices
+and passwords. Unicode labels retain the ASCII title and request value.
+
+The focused picker/administrator unit run passed 63 tests. The production browser run of
+`tests/e2e/administrators/{crud,domain-picker}.spec.ts` passed 43 cases on the three profiles, with
+two expected desktop skips for phone-only dialog cases. It covers 3,000-domain search/paging,
+Done/Cancel/Escape, focus restoration, fetch failure/retry, removed-domain errors, both themes,
+axe, 320-pixel reflow and touch targets. Both real-API disposable-account smoke cases pass; the
+domain administrator case creates and edits assignments at 360 pixels. Typecheck, ESLint,
+formatting, i18n and the production build pass. Initial JavaScript is 199,193 / 204,800 gzip bytes;
+all chunk budgets pass.
+
 Account creation is at `/administrators/domain-admins/-/new` or `/administrators/admins/-/new`.
-The remaining acceptance cases, stories and full-screen domain-picker extension described below
-are not yet implemented.
+The acting-session, one-time sign-in, webmail-on-behalf and impersonation-audit stories remain,
+along with the broader acceptance cases still unchecked in `tasks.md`. Physical phone timings
+and screen-reader validation have not been performed.
 
 ## Prerequisites
 

@@ -1,4 +1,5 @@
 import { expect, test } from '../fixtures/test'
+import { pickDomain } from '../../support/domain-picker'
 
 test.afterEach(async ({ expectAccessible, expectNoHorizontalScroll, expectTouchTargets }, info) => {
   if (info.status !== info.expectedStatus) return
@@ -38,8 +39,7 @@ for (const role of ['admin', 'domainAdmin'] as const) {
     await page.goto(`administrators/${path}/-/new`)
     await page.locator('input[name="accountUsername"]').fill(`browser-${path}`)
     if (role === 'domainAdmin') {
-      await page.getByRole('combobox', { name: /Domain assignments/ }).fill('example.org')
-      await page.getByRole('option', { name: 'example.org', exact: true }).click()
+      await pickDomain(page, 'account-create-domains', 'example.org')
     }
     await page.locator('[data-generate]').click()
     await expect(page.locator('input[autocomplete="new-password"]').first()).not.toHaveValue('')

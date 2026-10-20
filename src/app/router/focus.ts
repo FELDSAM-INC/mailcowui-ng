@@ -61,15 +61,97 @@ export function focusPageHeadingWhenReady(): () => void {
   return stop
 }
 
-export function installFocusManagement(router: Router): void {
-  let first = true
-  router.afterEach((to, from, failure) => {
-    if (failure) return
-    if (first) {
-      first = false
-      return
-    }
-    if (to.path === from.path) return
-    void nextTick(() => nextTick(focusPageHeading))
+/** A fragment is an element id, never a CSS selector. Invalid encodings have no target. */
+function fragmentId(hash: string): string | undefined {
+  if (!hash.startsWith('#') || hash.length === 1) return undefined
+  try {
+    return decodeURIComponent(hash.slice(1))
+  } catch {
+    return undefined
+  }
+}
+
+export function fragmentElement(hash: string): HTMLElement | undefined {
+  const id = fragmentId(hash)
+  const element = id ? document.getElementById(id) : null
+  return element?.closest('main') ? element : undefined
+}
+
+/** Lazy sections follow their data. Stop waiting on navigation or deliberate user interaction. */
+function focusFragmentWhenReady(hash: string): () => void {
+  if (!fragmentId(hash)) {
+    focusPageHeading()
+    return () => {}
+  }
+  let observer: MutationObserver | undefined
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const stop = () => {
+    observer?.disconnect()
+    observer = undefined
+    clearTimeout(timer)
+    timer = undefined
+    document.removeEventListener('focusin', stop)
+    document.removeEventListener('pointerdown', stop)
+    document.removeEventListener('keydown', stop)
+  }
+  const focus = () => {
+    const element = fragmentElement(hash)
+    // A section wrapper can exist during loading; wait for its real heading to arrive.
+    const headingSelector = 'h1, h2, h3, h4, h5, h6, [role="heading"]'
+    const target = element?.matches(headingSelector)
+      ? element
+      : element?.querySelector<HTMLElement>(headingSelector)
+    if (!target) return false
+    stop()
+    if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
+    target.focus({ preventScroll: true })
+    // Native scrolling honours the shell's sticky-header scroll padding. Back/Forward keeps
+    // the router's restored position, and lazy targets receive the same treatment as ready ones.
+    if (!restored) target.scrollIntoView?.({ block: 'start' })
+    return true
+  }
+  if (focus()) return stop
+  observer = new MutationObserver(focus)
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['id'],
   })
+  timer = setTimeout(() => {
+    stop()
+    focusPageHeading()
+  }, 3000)
+  document.addEventListener('focusin', stop)
+  document.addEventListener('pointerdown', stop)
+  document.addEventListener('keydown', stop)
+  return stop
+}
+
+export function installFocusManagement(router: Router): () => void {
+  let first = true
+  let navigation = 0
+  let stopWaiting = () => {}
+  const removeHook = router.afterEach((to, from, failure) => {
+    if (failure) return
+    stopWaiting()
+    const current = ++navigation
+    const initial = first
+    first = false
+    // A first visit leaves ordinary focus alone. Deep links and hash-only navigation still
+    // need section focus; query-only changes must retain the search/editing field's focus.
+    if ((initial && !to.hash) || (to.path === from.path && to.hash === from.hash)) return
+    void nextTick(() =>
+      nextTick(() => {
+        if (current !== navigation) return
+        if (to.hash) stopWaiting = focusFragmentWhenReady(to.hash)
+        else focusPageHeading()
+      }),
+    )
+  })
+  return () => {
+    navigation++
+    stopWaiting()
+    removeHook()
+  }
 }

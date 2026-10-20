@@ -8,7 +8,7 @@ import {
   type RouterScrollBehavior,
 } from 'vue-router'
 
-import { noteScrollRestored } from './focus'
+import { fragmentElement, noteScrollRestored } from './focus'
 import { buildRoutes } from './routes'
 
 type ScrollResult = ReturnType<RouterScrollBehavior>
@@ -26,7 +26,12 @@ export function appScrollBehavior(
 ): ScrollResult {
   noteScrollRestored(!!saved)
   if (saved) return saved
-  if (to.hash) return { el: to.hash }
+  if (to.hash) {
+    if (to.path === from.path && to.hash === from.hash) return false
+    // Safe decoding and id lookup; a lazy target is scrolled by the focus observer when ready.
+    const element = fragmentElement(to.hash)
+    return element ? { el: element } : false
+  }
   if (to.path === from.path) return to.query.page !== from.query.page ? { top: 0 } : false
   return { top: 0 }
 }

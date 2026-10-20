@@ -104,7 +104,18 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
       { ...single('mailboxes'), tabs: [tab('mailboxes'), tab('mailboxTemplates')] },
       { ...single('aliases'), tabs: [tab('aliases'), tab('aliasDomains')] },
       single('resources'),
-      single('filters'),
+      {
+        ...single('filters'),
+        tabs: [
+          tab('filters'),
+          {
+            id: 'globalSieve',
+            labelKey: 'nav.globalSieve',
+            path: '/system/global-sieve-filters',
+            roles: ADMIN,
+          },
+        ],
+      },
       single('syncJobs'),
       emailRouting,
     ],

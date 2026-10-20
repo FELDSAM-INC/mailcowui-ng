@@ -23,6 +23,15 @@ export interface SettingsPage {
 }
 export const settingsPages: readonly SettingsPage[] = [
   {
+    id: 'global-sieve',
+    group: 'mail-filtering',
+    routeName: 'system-settings-global-sieve',
+    title: 'systemSettings.globalSieve.title',
+    description: 'systemSettings.globalSieve.description',
+    auditTarget: 'globalSieveFilter',
+    visible: () => true,
+  },
+  {
     id: 'quota-notifications',
     group: 'notifications',
     routeName: 'system-settings-quota-notifications',

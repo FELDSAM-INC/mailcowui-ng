@@ -18,6 +18,12 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'global-sieve-filters',
+        name: 'system-settings-global-sieve',
+        component: () => import('./pages/mail-filtering/GlobalSieveFiltersPage.vue'),
+        meta: { titleKey: 'systemSettings.globalSieve.title' },
+      },
+      {
         path: 'rspamd-rules',
         name: 'rspamd-rules',
         component: () => import('./pages/spam/RspamdRulesPage.vue'),

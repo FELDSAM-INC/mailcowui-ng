@@ -3,6 +3,8 @@ import { assignDomains } from './domains-base'
 // UI 013 R30: only data used by implemented settings is seeded; later slices extend this store.
 import type {
   IpCheckSetting,
+  GlobalSieveFilter,
+  DovecotRestartOutcome,
   PasswordResetNotification,
   SettingsCapabilities,
   QuotaNotificationSettings,
@@ -16,6 +18,10 @@ import type { ScenarioDefinition } from './index'
 import type { ScenarioState } from './state'
 
 export interface SettingsState {
+  globalFilters: GlobalSieveFilter[]
+  missingGlobalFilters: string[]
+  globalRestart: DovecotRestartOutcome['outcome']
+  restartCount: number
   capabilities: SettingsCapabilities
   ipCheck: IpCheckSetting
   passwordReset: PasswordResetNotification
@@ -25,6 +31,9 @@ export interface SettingsState {
   revision: number
 }
 export interface SettingsPatch {
+  globalFilters?: GlobalSieveFilter[]
+  missingGlobalFilters?: string[]
+  globalRestart?: DovecotRestartOutcome['outcome']
   regexMaps?: RspamdRegexMap[]
   capabilities?: Partial<SettingsCapabilities>
   ipCheck?: Partial<IpCheckSetting>
@@ -34,6 +43,17 @@ export interface SettingsPatch {
 }
 export function initialSettingsState(): SettingsState {
   return {
+    globalFilters: [
+      { id: 'prefilter', script: 'keep;\n', etag: '"global-pre-1"' },
+      {
+        id: 'postfilter',
+        script: 'require "fileinto";\nfileinto "Junk";\n',
+        etag: '"global-post-1"',
+      },
+    ],
+    missingGlobalFilters: [],
+    globalRestart: 'done',
+    restartCount: 0,
     capabilities: settingsCapabilities(),
     ipCheck: { enabled: false, etag: '"ip-check-1"' },
     passwordReset: {
@@ -67,6 +87,9 @@ export function initialSettingsState(): SettingsState {
   }
 }
 export function applySettingsPatch(state: ScenarioState, patch: SettingsPatch): void {
+  if (patch.globalFilters) state.settings.globalFilters = patch.globalFilters
+  if (patch.missingGlobalFilters) state.settings.missingGlobalFilters = patch.missingGlobalFilters
+  if (patch.globalRestart) state.settings.globalRestart = patch.globalRestart
   if (patch.quota) Object.assign(state.settings.quota, patch.quota)
   if (patch.quotaCopies) Object.assign(state.settings.quotaCopies, patch.quotaCopies)
   if (patch.regexMaps) state.settings.regexMaps = patch.regexMaps
@@ -76,6 +99,18 @@ export function applySettingsPatch(state: ScenarioState, patch: SettingsPatch): 
 }
 
 export const systemSettingsScenarios: Record<string, ScenarioDefinition> = {
+  'global-sieve-default': {
+    description: 'Global Sieve scripts',
+    overrides: { signedInAs: 'admin' },
+  },
+  'global-sieve-restart-fails': {
+    description: 'Saved script with failed restart',
+    overrides: { signedInAs: 'admin', settings: { globalRestart: 'failed' } },
+  },
+  'global-sieve-file-missing': {
+    description: 'Global post-filter file absent',
+    overrides: { signedInAs: 'admin', settings: { missingGlobalFilters: ['postfilter'] } },
+  },
   'quota-defaults': {
     setup: setupQuotaDomains,
     description: 'Default quota notifications.',

@@ -4,7 +4,8 @@
       "integrations": "Integrácie",
       "passwords": "Heslá",
       "spam-filtering": "Spam filtering",
-      "notifications": "Upozornenia"
+      "notifications": "Upozornenia",
+      "mail-filtering": "Mail filtering"
     },
     "ipCheck": {
       "description": "Zvoľte, či môžu externé služby zisťovať verejné IP adresy servera."
@@ -79,6 +80,24 @@
         "doesNotCompile": "The server could not compile this regular expression."
       },
       "moreLines": "Show more lines"
+    },
+    "globalSieve": {
+      "title": "Global Sieve filters",
+      "description": "Manage filters that apply before and after every mailbox’s own filters.",
+      "prefilter": "Global pre-filter",
+      "postfilter": "Global post-filter",
+      "prefilterHelp": "Runs before every mailbox’s own filters.",
+      "postfilterHelp": "Runs after every mailbox’s own filters. The default script files spam into the Junk folder.",
+      "confirm": "Save global filter?",
+      "apply": "Apply the saved filter",
+      "now": "Restart the mail service now",
+      "later": "Apply at the next restart",
+      "interruption": "Restarting the mail service briefly interrupts IMAP, POP3 and mail delivery for every user.",
+      "empty": "An empty script means no global filter at this stage.",
+      "deferred": "The script is saved and takes effect at the next restart of the mail service.",
+      "valid": "The script is valid. Nothing was saved or restarted.",
+      "unavailable": "This filter file is not available on this server. Nothing was saved or restarted.",
+      "outdated": "This filter changed after you opened it. Your script has been kept. Save again to use the current version, or cancel to discard your changes."
     }
   }
 }

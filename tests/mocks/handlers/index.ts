@@ -1,3 +1,4 @@
+import { globalFilterHandlers } from './settings-global-filters'
 import { actingValidityProblem, impersonationHandlers } from './impersonation'
 import { settingsQuotaHandlers } from './settings-quota-notifications'
 import { rspamdRulesHandlers } from './settings-rspamd-rules'
@@ -80,6 +81,7 @@ import { transportHandlers } from './transports'
 
 /** The typed handlers of every area. Stories add their modules here. */
 export const areaHandlers: RequestHandler[] = [
+  ...globalFilterHandlers,
   ...rspamdRulesHandlers,
   ...settingsPresetHandlers,
   ...authHandlers,

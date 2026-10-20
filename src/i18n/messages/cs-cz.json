@@ -765,7 +765,8 @@
       "systemConfiguration": "Nastavení systému"
     },
     "unavailable": "Zatím není k dispozici",
-    "rspamdUi": "Rspamd UI"
+    "rspamdUi": "Rspamd UI",
+    "globalSieve": "Global Sieve filters"
   },
   "passkeys": {
     "add": {

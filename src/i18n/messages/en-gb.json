@@ -765,7 +765,8 @@
       "systemConfiguration": "System configuration"
     },
     "unavailable": "Not available yet",
-    "rspamdUi": "Rspamd UI"
+    "rspamdUi": "Rspamd UI",
+    "globalSieve": "Global Sieve filters"
   },
   "passkeys": {
     "add": {

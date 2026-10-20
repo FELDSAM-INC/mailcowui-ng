@@ -479,6 +479,11 @@ the subsequent opt-in large-map editor (R17a) passes both Chromium timing cases,
 WebKit cold first key is 161 ms and 104 ms in the two final one-worker runs. All 42 functional
 browser cases pass; frame-content assertions confirm rendering was not deferred. T120/T127 remain
 open with the same 100 ms gate and no synthetic warm-up. See quickstart validation evidence.
+The later quiet-window comparison on main `23975541` launches a fresh browser process per case:
+first keys are 126/114/162 ms with tracing and 143/164/142 ms without tracing. All six cases still
+fail the unchanged limit, despite passing opening and visible-prefix checks. T120/T127 remain
+open; disabling tracing is not a remedy. The temporary diagnostic places the delay after the
+editor's synchronous update, pending investigation of initial layout/paint readiness.
 
 
 **Checkpoint**: US1 to US8 work on their own.

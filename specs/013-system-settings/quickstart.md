@@ -221,6 +221,36 @@ focused editor units, fresh app/test typechecks, lint, formatting, i18n and prod
 The two new recovery strings use the explicit English source fallback in cs-cz/sk-sk. The unchanged
 cold-input gate above remains open. Evidence: `/tmp/u013-editor-fallback-{browser,unit,app,tests,lint,formatcheck,i18n,build,budget}.log`.
 
+### Cold first-frame investigation (2026-10-21)
+
+T120/T127 remain open. A temporary diagnostic on the recovery build recorded the first WebKit
+character in the DOM after 1 ms, the editor transaction complete after 10 ms, and its Vue/UTF-8
+update complete after 19 ms. The next animation-frame callback arrived after 123 ms. A second
+fresh context in the same browser process measured 17 ms, so repeating contexts alone can hide
+the cold-process problem. No synthetic edits or typing warm-up were used.
+
+A subsequent controlled comparison used the copied, unchanged main `23975541` production build,
+with other agents' browsers, builds, typechecks and Lighthouse stopped. Every case launched a
+fresh browser process, used one worker and zero retries, and retained the same 1 MiB document,
+2 s opening limit, first keystroke, ten visible-prefix assertions and 100 ms input-to-frame limit.
+
+| Fresh-process pair | Tracing enabled: first key | Tracing disabled: first key |
+| --- | ---: | ---: |
+| 1 | 126 ms | 143 ms |
+| 2 | 114 ms | 164 ms |
+| 3 | 162 ms | 142 ms |
+
+All six opening checks and all sixty visible-prefix assertions passed; all six first-key timing
+checks failed. Tracing does not explain the delay, so neither tracing configuration nor the
+performance threshold was changed. The temporary profiler was removed from the source tree.
+Initial layout/paint readiness still needs investigation; physical IME and real screen-reader
+checks also remain outstanding. No new product behavior is claimed by this checkpoint.
+
+Evidence: `/tmp/u013-editor-latency-profile.log`, `/tmp/u013-editor-ab-{1,2,3}-{retain-on-failure,off}.log`,
+`/tmp/u013-editor-ab-timings.json`, and `test-results/editor-{profile,ab-*}` in the
+`013-editor-latency` worktree. Two preliminary launches overlapped another agent's typecheck,
+were stopped, and are excluded from these measurements.
+
 
 ### CORS and License checkpoint (2026-10-21)
 

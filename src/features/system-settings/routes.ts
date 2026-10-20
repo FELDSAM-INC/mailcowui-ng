@@ -18,6 +18,12 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'rspamd-web-interface',
+        name: 'system-settings-rspamd-web-interface',
+        component: () => import('./pages/spam/RspamdWebInterfacePage.vue'),
+        meta: { titleKey: 'nav.rspamdUi' },
+      },
+      {
         path: '',
         name: 'system-settings',
         component: () => import('./pages/SettingsOverviewPage.vue'),

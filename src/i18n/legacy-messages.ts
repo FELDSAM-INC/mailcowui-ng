@@ -368,6 +368,9 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   // UI 005: a new password the policy refuses (`password_check()`), on the own, forced and reset forms.
   'account.password.form.errors.newPassword.tooShort': 'danger.password_complexity',
   'account.password.form.errors.newPassword.missingCharacterClass': 'danger.password_complexity',
+  // UI 013: classic Rspamd UI password validation, never including a submitted value.
+  'systemSettings.rspamdUi.form.errors.password.required': 'danger.password_empty',
+  'systemSettings.rspamdUi.form.errors.password.tooShort': 'danger.rspamd_ui_pw_length',
 }
 
 /**

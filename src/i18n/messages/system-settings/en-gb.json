@@ -2,7 +2,8 @@
   "systemSettings": {
     "groups": {
       "integrations": "Integrations",
-      "passwords": "Passwords"
+      "passwords": "Passwords",
+      "spam-filtering": "Spam filtering"
     },
     "ipCheck": {
       "description": "Choose whether external services may resolve the server’s public IP addresses."
@@ -11,6 +12,12 @@
       "description": "Choose the rules checked when a new password is set.",
       "rules": "Resulting rules",
       "existingPasswords": "Existing passwords keep working. These rules apply the next time a password is set."
+    },
+    "rspamdUi": {
+      "description": "Set the password for the Rspamd web interface.",
+      "restarted": "Rspamd restarted.",
+      "serviceFailure": "The change could not be confirmed. The new password may take effect at Rspamd’s next start.",
+      "outcomeUnknown": "It is unknown whether the password was set. Setting it again is safe."
     }
   }
 }

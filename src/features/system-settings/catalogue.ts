@@ -32,6 +32,15 @@ export const settingsPages: readonly SettingsPage[] = [
     visible: () => true,
   },
   {
+    id: 'rspamd-web-interface',
+    group: 'spam-filtering',
+    routeName: 'system-settings-rspamd-web-interface',
+    title: 'nav.rspamdUi',
+    description: 'systemSettings.rspamdUi.description',
+    auditTarget: 'rspamdUiPassword',
+    visible: () => true,
+  },
+  {
     id: 'ip-check',
     group: 'integrations',
     routeName: 'system-settings-ip-check',

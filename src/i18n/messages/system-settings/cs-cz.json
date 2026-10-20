@@ -2,7 +2,8 @@
   "systemSettings": {
     "groups": {
       "integrations": "Integrace",
-      "passwords": "Hesla"
+      "passwords": "Hesla",
+      "spam-filtering": "Spam filtering"
     },
     "ipCheck": {
       "description": "Zvolte, zda mohou externí služby zjišťovat veřejné IP adresy serveru."
@@ -11,6 +12,12 @@
       "description": "Zvolte pravidla pro kontrolu nově nastavených hesel.",
       "rules": "Výsledná pravidla",
       "existingPasswords": "Stávající hesla zůstávají funkční. Tato pravidla se použijí při příštím nastavení hesla."
+    },
+    "rspamdUi": {
+      "description": "Set the password for the Rspamd web interface.",
+      "restarted": "Rspamd restarted.",
+      "serviceFailure": "The change could not be confirmed. The new password may take effect at Rspamd’s next start.",
+      "outcomeUnknown": "It is unknown whether the password was set. Setting it again is safe."
     }
   }
 }

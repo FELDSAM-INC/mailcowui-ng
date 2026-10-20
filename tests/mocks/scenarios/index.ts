@@ -3,6 +3,7 @@ import {
   initialSettingsState,
   systemSettingsScenarios,
 } from './system-settings'
+import { settingsRspamdScenarios } from './settings-rspamd'
 // Scenario registry of the mock API (research R22). It aggregates one module per area, so that
 // parallel stories never edit the same scenario file: each story adds `./<area>.ts` and one line
 // below.
@@ -106,6 +107,7 @@ export interface ScenarioDefinition {
 }
 
 export const scenarios: Record<string, ScenarioDefinition> = {
+  ...settingsRspamdScenarios,
   ...baseScenarios,
   ...administratorScenarios,
   ...signInScenarios,

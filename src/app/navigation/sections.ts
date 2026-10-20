@@ -150,7 +150,12 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
             labelKey: legacy('admin.oauth2_apps'),
             path: '/identity-providers/oauth2-apps',
           }),
-          pending('rspamdUi', 'nav.rspamdUi'),
+          {
+            id: 'rspamdUi',
+            labelKey: 'nav.rspamdUi',
+            path: '/system/rspamd-web-interface',
+            roles: ADMIN,
+          },
         ],
       },
       {

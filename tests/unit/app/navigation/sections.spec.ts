@@ -67,7 +67,6 @@ describe('requested application navigation', () => {
     const sections = sidebarSections(identity('admin')).flatMap((group) => group.items)
     const unavailable = sections.flatMap((section) => section.tabs).filter((tab) => tab.disabled)
     expect(unavailable.map((tab) => tab.id)).toEqual([
-      'rspamdUi',
       'quotaNotifications',
       'rspamdSettingsMap',
       'customize',
@@ -113,6 +112,18 @@ describe('requested application navigation', () => {
         .map((item) => item.id),
     ).toEqual(['quarantine', 'spamFilter'])
     expect(sidebarSections(null)).toEqual([])
+  })
+
+  it('offers the delivered Rspamd UI page only to administrators in Access', () => {
+    const section = activeSection('/system/rspamd-web-interface', identity('admin'))
+    expect(section?.id).toBe('access')
+    expect(section?.tabs.find((tab) => tab.id === 'rspamdUi')).toMatchObject({
+      to: '/system/rspamd-web-interface',
+      current: true,
+      disabled: false,
+    })
+    expect(activeSection('/system/rspamd-web-interface', identity('domainAdmin'))).toBeUndefined()
+    expect(activeSection('/system/rspamd-web-interface', identity('mailboxUser'))).toBeUndefined()
   })
 
   it('preserves direct access to settings removed from the sidebar', () => {

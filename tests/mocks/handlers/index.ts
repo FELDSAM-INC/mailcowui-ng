@@ -1,4 +1,5 @@
 import { settingsServerHandlers } from './settings-server'
+import { settingsRspamdHandlers } from './settings-rspamd'
 // Mock API handlers (research R22), shared by every transport: Vitest (msw/node), the Node mock
 // server for development, end-to-end tests and Lighthouse.
 //
@@ -131,6 +132,7 @@ export const areaHandlers: RequestHandler[] = [
   // UI 005: one module per area under ./self-service/.
   ...selfServiceHandlers,
   ...settingsServerHandlers,
+  ...settingsRspamdHandlers,
 ]
 
 export type StateResolver = (request: Request) => ScenarioState | null

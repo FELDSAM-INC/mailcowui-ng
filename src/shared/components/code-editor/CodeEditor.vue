@@ -14,7 +14,19 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { utf8ByteLength } from '@/shared/validation/utf8'
 import { buttonVariants } from '@/shared/ui/button'
 import { measureLines, updateLineLayout, visibleLines } from './line-layout'
-const LargeCodeEditor = defineAsyncComponent(() => import('./LargeCodeEditor.vue'))
+import EditorLoadState from './EditorLoadState.vue'
+const loadFailure = ref<Error>()
+const nativeFallback = ref(false)
+const LargeCodeEditor = defineAsyncComponent({
+  loader: () =>
+    import('./LargeCodeEditor.vue').catch((error: Error) => {
+      loadFailure.value = error
+      throw error
+    }),
+  loadingComponent: EditorLoadState,
+  errorComponent: EditorLoadState,
+  delay: 0,
+})
 
 const props = withDefaults(
   defineProps<{
@@ -49,7 +61,8 @@ const wrap = ref(true)
 const numbers = ref<{ line: number; top: number }[]>([])
 const used = computed(() => utf8ByteLength(props.modelValue))
 // Choose once per mounted document: switching surfaces mid-edit would lose native undo/IME state.
-const virtual = props.virtualizeLarge && used.value >= 128 * 1024
+const initiallyLarge = props.virtualizeLarge && used.value >= 128 * 1024
+const virtual = computed(() => initiallyLarge && !nativeFallback.value)
 const largeEditor = ref<InstanceType<typeof LargeCodeEditor>>()
 const description = computed(() =>
   [
@@ -142,7 +155,7 @@ function schedule() {
 }
 async function goToLine(line: number) {
   await nextTick()
-  if (virtual) {
+  if (virtual.value) {
     largeEditor.value?.goToLine(line)
     announce(t('codeEditor.line', { line: format.number(line) }))
     return
@@ -163,6 +176,11 @@ async function goToLine(line: number) {
 }
 defineExpose({ goToLine })
 watch(() => [props.modelValue, wrap.value, props.lineNumbers], schedule)
+watch(input, (element) => {
+  observer?.disconnect()
+  if (element) observer?.observe(element)
+  schedule()
+})
 onMounted(() => {
   observer = new ResizeObserver(schedule)
   if (input.value) observer.observe(input.value)
@@ -182,8 +200,13 @@ onBeforeUnmount(() => {
       class="block text-sm font-medium text-gray-800 dark:text-gray-200"
       >{{ label }}</component
     >
+    <EditorLoadState
+      v-if="virtual && loadFailure"
+      :error="loadFailure"
+      @fallback="nativeFallback = true"
+    />
     <LargeCodeEditor
-      v-if="virtual"
+      v-else-if="virtual"
       :id="id"
       ref="largeEditor"
       :model-value="modelValue"

@@ -1218,6 +1218,8 @@
     "signOutCompletely": "Úplně se odhlásit"
   },
   "codeEditor": {
+    "loadFailed": "The enhanced editor could not be loaded. You can continue with the basic editor; large files may respond more slowly.",
+    "useBasic": "Use basic editor",
     "wrap": "Wrap lines",
     "tabHint": "Tab moves to the next control.",
     "size": "{used} of {max}",

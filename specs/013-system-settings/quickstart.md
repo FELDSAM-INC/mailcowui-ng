@@ -209,3 +209,14 @@ stable for the visit, including when typed or pasted text crosses that threshold
 Evidence: `/tmp/u013-large-editor-final-{unit2,app,tests,lint2,formatcheck,build,budget,licenses,audit}.log`,
 `/tmp/u013-large-editor-final-{functional,perf,visible}.log`; the failing cold-key traces are
 retained in `test-results/u013-large-editor-final-perf` and `test-results/u013-large-editor-final-visible`.
+
+
+The follow-up lazy-download recovery shows an announced loading state, then offers **Use basic
+editor** if the enhanced editor cannot be downloaded. It retains the full map and uses the native
+editor already in the application; it warns that large files may respond more slowly. A reload-only
+attempt failed in WebKit because the browser retained the failed module, so recovery no longer
+requires that module or another network request. The regression aborts the chunk, chooses the native
+fallback, edits and validates a map successfully on all three profiles (**3/3 passed**). Seven
+focused editor units, fresh app/test typechecks, lint, formatting, i18n and production build pass.
+The two new recovery strings use the explicit English source fallback in cs-cz/sk-sk. The unchanged
+cold-input gate above remains open. Evidence: `/tmp/u013-editor-fallback-{browser,unit,app,tests,lint,formatcheck,i18n,build,budget}.log`.

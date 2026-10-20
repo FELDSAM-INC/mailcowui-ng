@@ -7,6 +7,23 @@
 import type { LegacyKey } from './legacy'
 
 export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
+  // UI013: classic names keep the server-provided translations.
+  'enums.auditTargetType.uiTexts': 'admin.ui_texts',
+  'enums.auditTargetType.loginPage': 'admin.login_page',
+  'enums.auditTargetType.appLinks': 'admin.app_links',
+  'enums.auditTargetType.ipCheck': 'admin.ip_check',
+  'enums.auditTargetType.passwordPolicy': 'admin.password_settings',
+  'enums.auditTargetType.quotaNotification': 'admin.quota_notifications',
+  'enums.auditTargetType.rspamdSettingsRule': 'admin.rspamd_settings_map',
+  'enums.auditTargetType.rspamdRegexMap': 'admin.regex_maps',
+  'enums.auditTargetType.legacyApiCors': 'admin.cors_settings',
+  'enums.auditTargetType.massMailJob': 'admin.sys_mails',
+  'enums.auditTargetType.license': 'admin.guid_and_license',
+  'auditLog.settings.fields.sender': 'admin.from',
+  'auditLog.settings.fields.subject': 'admin.subject',
+  'auditLog.settings.fields.description': 'edit.description',
+  'auditLog.settings.fields.active': 'admin.active',
+
   // UI007: account outcomes and the flat classic domain-administrator ACL labels.
   'accounts.form.errors.username.invalidFormat': 'danger.username_invalid',
   'accounts.form.errors.username.reserved': 'danger.username_invalid',
@@ -46,7 +63,6 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'problem.csrf-token-mismatch': 'warning.session_token',
   'problem.forbidden': 'danger.access_denied',
   'problem.demo-mode': 'danger.demo_mode_enabled',
-  'enums.auditTargetType.ipCheck': 'admin.ip_check',
   'problem.second-factor-required': 'info.awaiting_tfa_confirmation',
   'problem.sign-in-failed': 'danger.login_failed',
   'problem.temporary-verification-failure': 'danger.temp_error',

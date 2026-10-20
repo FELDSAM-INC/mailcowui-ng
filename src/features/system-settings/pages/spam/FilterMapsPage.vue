@@ -7,6 +7,7 @@ import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import PageHeader from '@/shared/components/PageHeader.vue'
+import HistoryLink from '@/shared/components/HistoryLink.vue'
 import ListState from '@/shared/components/ListState.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import SearchField from '@/shared/components/SearchField.vue'
@@ -39,7 +40,9 @@ watch(
 </script>
 <template>
   <section class="min-w-0 space-y-4">
-    <PageHeader :title="lt('admin.rspamd_global_filters')" />
+    <PageHeader :title="lt('admin.rspamd_global_filters')"
+      ><template #actions><HistoryLink target-type="rspamdRegexMap" /></template
+    ></PageHeader>
     <LegacyText k="admin.rspamd_global_filters_info" as="p" />
     <SearchField
       id="map-search"

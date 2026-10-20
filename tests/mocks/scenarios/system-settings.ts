@@ -1,3 +1,4 @@
+import { settingsAuditRecords } from '../factories/settings-audit'
 import { mockDomain } from '../factories/domain'
 import { assignDomains } from './domains-base'
 // UI 013 R30: only data used by implemented settings is seeded; later slices extend this store.
@@ -99,6 +100,13 @@ export function applySettingsPatch(state: ScenarioState, patch: SettingsPatch): 
 }
 
 export const systemSettingsScenarios: Record<string, ScenarioDefinition> = {
+  'audit-settings-records': {
+    description: 'Every settings audit kind and representative refusals',
+    overrides: { signedInAs: 'admin' },
+    setup: (state) => {
+      state.auditEvents = settingsAuditRecords(state.now())
+    },
+  },
   'global-sieve-default': {
     description: 'Global Sieve scripts',
     overrides: { signedInAs: 'admin' },

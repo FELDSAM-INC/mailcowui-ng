@@ -229,7 +229,71 @@
       "old": "Old value",
       "new": "New value",
       "countersExisted": "Counters existed",
-      "logEntriesRemoved": "Log entries removed"
+      "logEntriesRemoved": "Log entries removed",
+      "oldBytes": "Previous size",
+      "newBytes": "New size",
+      "dovecotRestart": "Mail service restart",
+      "restartDetail": "Restart details",
+      "passwordChanged": "Password",
+      "rspamdConfirmed": "Rspamd confirmed the change",
+      "footerMigrated": "Footer from the classic interface migrated",
+      "selection": "Recipient selection",
+      "recipientCount": "Recipients",
+      "counts": "Delivery results",
+      "result": "Result",
+      "subject": "Subject"
+    },
+    "settings": {
+      "changedSize": "changed ({old} → {new})",
+      "dimensions": "{width} × {height} px",
+      "fields": {
+        "pageTitle": "Page title",
+        "productName": "Product name",
+        "appsHeading": "App menu heading",
+        "announcement_type": "Announcement type",
+        "announcement_active": "Announcement active",
+        "announcement_text": "Announcement text",
+        "loginHelpHtml": "Login help",
+        "footerHtml": "Footer",
+        "hideAdminLogin": "Hide administrator login",
+        "hideDomainAdminLogin": "Hide domain administrator login",
+        "hideMailboxUserLogin": "Hide mailbox login",
+        "forceSingleSignOn": "Force single sign-on",
+        "links": "App links",
+        "light": "Light theme",
+        "dark": "Dark theme",
+        "enabled": "Enabled",
+        "minLength": "Minimum password length",
+        "requireLetters": "Require letters",
+        "requireDigits": "Require digits",
+        "requireSpecialCharacters": "Require special characters",
+        "requireMixedCase": "Require upper and lower case",
+        "textTemplate": "Text template",
+        "htmlTemplate": "HTML template",
+        "recipients": "Recipients",
+        "content": "Content",
+        "script": "Script",
+        "allowedOrigins": "Allowed origins",
+        "allowedMethods": "Allowed methods",
+        "domains": "Domains",
+        "domainCount": "Domain count",
+        "includeCount": "Included mailboxes",
+        "excludeCount": "Excluded mailboxes",
+        "pending": "Pending",
+        "delivered": "Delivered",
+        "failed": "Failed",
+        "skipped": "Skipped"
+      },
+      "restart": {
+        "done": "Mail service restarted",
+        "failed": "Restart failed; the script is saved and applies at the next restart",
+        "deferred": "Saved; applies at the next restart"
+      },
+      "license": {
+        "valid": "Valid",
+        "invalid": "Invalid",
+        "unreachable": "Verification service unreachable"
+      }
     }
   },
   "auth": {
@@ -545,7 +609,29 @@
       "ssoTokenIssue": "One-time sign-in link issued",
       "impersonationStart": "Acting as another account started",
       "impersonationEnd": "Acting as another account ended",
-      "webmailSignInOnBehalf": "Webmail opened for another account"
+      "webmailSignInOnBehalf": "Webmail opened for another account",
+      "logoReplacement": "Logo replaced",
+      "logoDeletion": "Logo removed",
+      "uiTextsUpdate": "UI labels and texts changed",
+      "loginPageUpdate": "Login page changed",
+      "appLinksUpdate": "App links changed",
+      "brandColorsUpdate": "Brand colours changed",
+      "ipCheckUpdate": "IP check preference changed",
+      "passwordPolicyUpdate": "Password policy changed",
+      "passwordResetNotificationUpdate": "Password reset email changed",
+      "quotaNotificationUpdate": "Quota notification changed",
+      "quotaNotificationRecipientsUpdate": "Quota notification recipients changed",
+      "rspamdSettingsRuleCreation": "Rspamd settings rule created",
+      "rspamdSettingsRuleUpdate": "Rspamd settings rule changed",
+      "rspamdSettingsRuleDeletion": "Rspamd settings rule deleted",
+      "rspamdRegexMapReplacement": "Global filter map replaced",
+      "globalSieveFilterReplacement": "Global Sieve filter replaced",
+      "rspamdUiPasswordChange": "Rspamd web interface password changed",
+      "legacyApiCorsUpdate": "Classic API CORS settings changed",
+      "massMailJobCreation": "Mass mail queued",
+      "massMailJobCompletion": "Mass mail completed",
+      "massMailJobCancellation": "Mass mail cancelled",
+      "licenseVerification": "License verified"
     },
     "auditFailureReason": {
       "featureDisabled": "Feature disabled",
@@ -584,7 +670,9 @@
       "partiallyCompleted": "Partly completed",
       "serviceFailure": "Service failure",
       "rulesNotRestored": "Default regex filters were not restored in time",
-      "accountNotEligible": "Account cannot reset its password"
+      "accountNotEligible": "Account cannot reset its password",
+      "demoMode": "Not allowed in demo mode",
+      "fileUnavailable": "File unavailable"
     },
     "auditOutcome": {
       "failure": "Failure"
@@ -614,7 +702,13 @@
       "sieveFilter": "Filter",
       "groupwareData": "Groupware data",
       "ssoToken": "One-time sign-in link",
-      "impersonation": "Acting session"
+      "impersonation": "Acting session",
+      "logo": "Logo",
+      "brandColors": "Brand colours",
+      "passwordResetNotification": "Password reset email",
+      "quotaNotificationRecipients": "Quota notification recipients",
+      "globalSieveFilter": "Global Sieve filter",
+      "rspamdUiPassword": "Rspamd web interface password"
     },
     "authMethod": {
       "directoryPassword": "Directory password",

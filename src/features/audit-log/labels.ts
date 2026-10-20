@@ -6,6 +6,7 @@ import type { AuditActor, AuditEvent } from '@/api'
 import { hasMessage, i18n, text } from '@/i18n'
 import { formatBytes, formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
+import { settingsDetailRow, settingsTargetLink } from './details/system-settings'
 
 /** A route to an audit target, as `RouterLink` takes it. */
 export interface AuditLink {
@@ -107,6 +108,8 @@ const TARGET_ROUTES: Record<string, (id: string) => AuditLink> = {
 
 /** The page of an event's target, or null for a deleted or unknown one. */
 export function auditTargetLink(event: AuditEvent): AuditLink | null {
+  const setting = settingsTargetLink(event)
+  if (setting) return setting
   const target = event.target
   if (!target?.id || event.eventType.endsWith('Deletion')) return null
   return TARGET_ROUTES[target.type]?.(target.id) ?? null
@@ -211,6 +214,8 @@ function selfServiceSizeChange(event: AuditEvent, change: unknown): string | nul
  */
 export function auditDetailRows(event: AuditEvent, flag: FlagText = String): AuditDetailRow[] {
   return Object.entries(event.details).map(([key, value]) => {
+    const setting = settingsDetailRow(event, key, value, flag)
+    if (setting) return setting
     if (key === 'changes' && isRecord(value)) {
       return {
         key,

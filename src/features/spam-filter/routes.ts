@@ -4,14 +4,16 @@
 // (legacy form map D9), not a route.
 import type { RouteRecordRaw } from 'vue-router'
 
-import { quarantinePage } from '@/features/quarantine'
-import { legacy } from '@/i18n'
+import { legacy, loadFeatureMessages } from '@/i18n'
 
 export const spamFilterRoutes: RouteRecordRaw[] = [
   {
     path: '/spam-filter',
     name: 'spam-filter',
-    component: quarantinePage(() => import('./pages/SpamFilterPage.vue')),
+    component: () =>
+      Promise.all([import('./pages/SpamFilterPage.vue'), loadFeatureMessages('quarantine')]).then(
+        ([module]) => module,
+      ),
     meta: {
       layout: 'shell',
       access: 'session',

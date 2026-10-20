@@ -279,3 +279,57 @@ Logs are `integrated-unit-final.log`, `integrated-browser.log`, `host-regression
 `storage/app/restart-2026-10-20/u006/` in the API checkout. Failing runs and their browser traces
 are retained alongside the passing follow-ups. This validation does not close every acceptance
 case in the original task list or the physical-device/live-mailcow/manual checks above.
+
+**2026-10-20, release loading improvements**: the first integrated Lighthouse run found a
+217,621-byte sign-in script transfer and quarantine performance of 71–73. Route registration now
+uses the three declarative route entry points, keeping notification forms and API composables out
+of the shell. Common collection controls and form-feedback helpers have separate lazy chunks;
+the four UI 006 message files that always load together now share one chunk per locale. Sign-in
+does not import the collection chunk. The entry remains **189,635 / 204,800 bytes gzipped**.
+
+The quarantine page reserves its translated notice's space and keeps the footer below the
+viewport while reads are pending, reducing measured layout shift from 0.112 to 0.001. Mobile
+cards mount their collapsed metadata only when the native disclosure opens. A delayed-response
+browser regression failed before the layout fix; a component regression observed 100 premature
+metadata fields before the disclosure fix. The final component run passes **10 tests**. The
+list/bulk/loading browser run passes **50 checks**, with one desktop skip for the phone-only
+keyboard disclosure case, including both-theme axe, touch targets, paging and reopening details.
+
+The release-wide Lighthouse collection ran all nine canonical scenarios three times on the
+quiet machine, with the pinned Chromium image and the existing mobile/4G settings. Its only
+failed assertions are the previously reported domains and aliases performance checks:
+
+| Page | Performance, three runs | Accessibility |
+|---|---|---|
+| Quarantine | 80, 79, 79 | 100 |
+| Dashboard | 84, 83, 85 | 100 |
+| Relayhosts | 81, 80, 80 | 99 |
+| Mailboxes | 81, 80, 81 | 99 |
+| DKIM | 83, 84, 83 | 100 |
+| Aliases | 77, 75, 74 | 99 |
+| Domains | 76, 77, 78 | 99 |
+| Home | 80, 80, 81 | 100 |
+| Sign-in | 88, 88, 88 | 100 |
+
+The existing LHCI aggregation passes quarantine's performance-80 assertion; two individual runs
+remain at 79. Sign-in transfers **208,730 / 215,040 script bytes** and home 197,194. Every
+accessibility and shell-transfer assertion passes. This is not a green full Lighthouse run:
+the two existing list failures remain under the owner's already authorized maildev staging
+exception. No threshold or aggregation setting was changed. Results and all 27 JSON/HTML reports
+are retained in `release-lighthouse.log` and `release-lighthouse-reports/` under the same artifact
+root.
+
+The final source passes type checking, changed-code ESLint/Prettier, the bundle budget and
+**19 component/budget tests in two files**. All **three real-API smoke tests pass together**
+against the final `mailcowui-ng:u006-release` Docker image after resetting only the isolated
+`u006-smoke` fixtures. They cover message bytes/delivery, saved notification/score/policy/rate
+settings, rejected invalid templates and statistics. Logs are `release-{type,lint,format,budget,
+unit,image,smoke}.log`.
+
+The final production-bundle regression passes **259 browser checks**, with two viewport-specific
+skips, across mobile Chromium, desktop Chromium and mobile WebKit. It covers quarantine list,
+disclosures, bulk actions, loading and host integration; spam policy, rate limits and password
+sign-in; and the domain, alias, DKIM and monitoring dashboard screens that use the repackaged
+shared controls. Both-theme axe, reflow, touch targets and CSP remain enforced. No failures or
+retries occurred. See `release-browser.log`; this run follows the earlier integration coverage
+rather than replacing it. Deployment is recorded in the following release note.

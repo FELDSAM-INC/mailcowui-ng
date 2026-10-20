@@ -64,6 +64,25 @@ export default defineConfig({
             // share it, and the shell became a dozen small initial chunks, each a request of its own
             // with the full security headers.
             { name: 'shell', tags: ['$initial'], priority: 5 },
+            // Sign-in also uses form feedback. Keep it separate from collection controls.
+            {
+              name: 'form-feedback',
+              test: /[\\/]src[\\/]shared[\\/](components[\\/](FormField|ProblemMessage|ErrorSummary)\.vue|composables[\\/]useProblemForm\.ts)$/,
+              priority: 2,
+            },
+            // Lists use these controls together. Keep them in one lazy chunk instead of a request
+            // per tiny component; the higher-priority shell group still owns initial modules.
+            {
+              name: 'collection-ui',
+              test: /[\\/]src[\\/]shared[\\/](components[\\/](ActiveFilterChips|BulkActionBar|BulkResultSummary|PaginationBar|SearchField|ListState|DomainPicker|LocaleNumberField|DateTime|PlainText|AclReadOnlyNote|FilterPanel)\.vue|composables[\\/](useListState|useBulkSelection|useStickyBarFocus)\.ts)$/,
+              priority: 1,
+            },
+            // These four areas load their strings together. Ship one lazy file per locale.
+            {
+              name: (id) => `quarantine-messages-${id.split(/[\\/]/).at(-1)?.replace('.json', '')}`,
+              test: /[\\/]src[\\/]i18n[\\/]messages[\\/](quarantine|quarantine-admin|spam-filter|rate-limits)[\\/]/,
+              priority: 1,
+            },
           ],
         },
       },

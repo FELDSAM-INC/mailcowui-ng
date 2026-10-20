@@ -176,7 +176,7 @@ async function refresh() {
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-4">
+  <section class="mx-auto flex min-h-dvh w-full max-w-7xl min-w-0 flex-col gap-4">
     <QuarantineSectionNav />
     <PageHeader :title="lt('quarantine.quarantine')">
       <template #actions>

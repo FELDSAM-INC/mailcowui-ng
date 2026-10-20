@@ -6,6 +6,15 @@ another UI spec, this document applies, and the next change to that spec aligns 
 reads this document next to the constitution. The API side has its own rules in
 `../mailcow-rest-v2/docs/conventions.md`.
 
+## Feature entry points
+
+Other features use a feature through its `index.ts`. The application's route registry
+(`src/app/router/routes.ts`) may also import its declarative `routes.ts`, whose components and
+messages stay lazy. This narrow exception avoids loading the feature's public form components
+and API composables while registering routes. ESLint permits it only in the route registry;
+other deep imports remain forbidden. Route modules must not import another feature's form/API
+barrel just to reuse a page loader.
+
 ## Wording
 
 These rules apply to the app's new strings. Text with a classic-interface equivalent always comes

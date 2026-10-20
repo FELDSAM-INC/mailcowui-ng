@@ -139,6 +139,18 @@ export default withVueTs(
     },
   },
   {
+    // The app's route registry can import declarative routes directly. Importing a feature's
+    // form/API barrel here would pull those exports into the initial chunk even for sign-in.
+    name: 'mailcowui-ng/route-registration',
+    files: ['src/app/router/routes.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports([
+        generatedApi,
+        { ...featureDeepImport, regex: '^@/features/(?![^/]+/routes$)[^/]+/.+' },
+      ]),
+    },
+  },
+  {
     // Unit tests mirror src/ and test a feature's parts directly.
     name: 'mailcowui-ng/boundaries-tests',
     files: ['tests/**/*.ts'],

@@ -59,6 +59,39 @@ test('US1 filters: apply once, restore the view on reload, and clear with a chip
   await expect(page.locator('[data-quarantine-item]')).toHaveCount(25)
 })
 
+test('mobile card details open by keyboard after scrolling and reset when paging', async ({
+  page,
+  mockApi,
+  expectAccessible,
+  expectNoHorizontalScroll,
+  expectTouchTargets,
+}) => {
+  test.skip((page.viewportSize()?.width ?? 0) >= 768, 'Cards are the mobile layout')
+  await mockApi.use('quarantine-mailbox-user')
+  await page.goto('quarantine')
+  const item = page.locator('[data-quarantine-item="6"]')
+  const details = item.locator('details')
+  const summary = details.locator('summary')
+  await expect(item).toBeAttached()
+  await expect(details.locator('dd')).toHaveCount(0)
+  await summary.focus()
+  await page.keyboard.press('Enter')
+  await expect(details.locator('[data-virus]')).toBeVisible()
+  await expect(details.locator('[data-notified]')).toBeVisible()
+  await expectAccessible()
+  await expectNoHorizontalScroll()
+  await expectTouchTargets()
+  await summary.press('Space')
+  await expect(details.locator('dd')).toHaveCount(0)
+  await summary.press('Enter')
+  await expect(details.locator('[data-virus]')).toBeVisible()
+  await page.getByRole('button', { name: 'Next', exact: true }).click()
+  await expect(page.locator('[data-quarantine-item]')).toHaveCount(5)
+  await page.getByRole('button', { name: 'Previous', exact: true }).click()
+  await expect(item).toBeAttached()
+  await expect(details.locator('dd')).toHaveCount(0)
+})
+
 test('US1 list: empty, inactive and read-only quarantine remain usable', async ({
   page,
   mockApi,

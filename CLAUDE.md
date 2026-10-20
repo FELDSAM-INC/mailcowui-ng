@@ -35,7 +35,8 @@ below apply to every feature.
     `src/api/`.
   - `src/app/`: router, navigation catalogue, shell, session, preferences and branding.
   - `src/features/<name>/`: one area per feature. Other code reaches it only through its
-    `index.ts`.
+    `index.ts`. The app's route registry may import a feature's declarative `routes.ts` directly
+    to keep form/API exports out of the initial JavaScript.
   - `src/shared/`: code with at least two uses, including the TailAdmin primitives in `ui/`.
   - `src/i18n/`: translations.
   - `contract/`: the vendored, pinned API contract.

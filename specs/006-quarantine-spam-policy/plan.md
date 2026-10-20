@@ -1027,3 +1027,24 @@ view.
 No new deviation from the constitution. UI 001's two rows still apply: brand colours until API 013,
 and the smoke suite as a non-blocking job until the API implementation runs in its dev stack. For
 this feature the smoke job can become blocking as soon as API 006 runs there (task T140).
+
+Integration measurement on 2026-10-20 found that importing UI 006's public barrels while
+registering routes pulled notification forms and API composables into sign-in's initial chunk.
+Lighthouse measured 217,621 script-transfer bytes, above the owner-approved 215,040 allowance.
+The route registry now imports the three declarative `routes.ts` modules directly; ESLint and
+the conventions document this narrow public-entry exception. Other cross-feature code still
+uses `index.ts`. The simpler barrel-only arrangement was measured failing the transfer budget;
+raising that budget again or moving form behavior into the router would not address the cause.
+
+The release build also groups the common collection controls into one lazy chunk and keeps
+sign-in's form feedback in a separate, smaller chunk. The four UI 006 message files loaded by
+`loadFeatureMessages('quarantine')` share one emitted chunk per language. These are packaging
+changes; the source modules, route loading, language behavior and performance thresholds remain
+intact. The page reserves notice space during loading, and collapsed phone-card metadata mounts
+on disclosure. See the quickstart for the failing measurements and release validation.
+
+The 27-run release measurement passes the new quarantine gate and all shell-transfer and
+accessibility assertions. The existing domains and aliases performance failures remain; the
+maildev release carries forward the owner's staging exception already recorded for monitoring.
+The threshold stays at 80. The quickstart records every page's three scores rather than describing
+the full Lighthouse run as green.

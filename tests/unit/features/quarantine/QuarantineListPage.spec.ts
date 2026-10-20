@@ -91,6 +91,20 @@ describe('QuarantineListPage', () => {
     expect(wrapper.findAll('[data-quarantine-item]')).toHaveLength(5)
   })
 
+  it('renders collapsed card metadata only when its disclosure is opened', async () => {
+    const { wrapper } = await open()
+    const first = wrapper.get('[data-quarantine-item="30"] details')
+    expect(wrapper.findAll('[data-quarantine-item] details dd')).toHaveLength(0)
+    const disclosure = first.element as HTMLDetailsElement
+    disclosure.open = true
+    await first.trigger('toggle')
+    expect(first.find('[data-virus]').exists()).toBe(true)
+    expect(wrapper.find('[data-quarantine-item="29"] details dd').exists()).toBe(false)
+    disclosure.open = false
+    await first.trigger('toggle')
+    expect(first.find('dd').exists()).toBe(false)
+  })
+
   it('restores filters and sort from the address, and ignores mailbox scope filters', async () => {
     const read = vi.spyOn(api, 'GET')
     const { wrapper } = await open(
@@ -101,6 +115,9 @@ describe('QuarantineListPage', () => {
       params: { query: { limit: 25, offset: 0, virus: true, sort: 'id', order: 'asc' } },
     })
     expect(wrapper.findAll('[data-quarantine-item]')).toHaveLength(1)
+    const details = wrapper.get('[data-quarantine-item] details')
+    ;(details.element as HTMLDetailsElement).open = true
+    await details.trigger('toggle')
     expect(wrapper.find('[data-virus="true"]').exists()).toBe(true)
   })
 

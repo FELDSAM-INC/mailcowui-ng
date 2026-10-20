@@ -12,6 +12,7 @@ import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { defaultOrder, type QuarantineSort } from '../../list-state'
+import QuarantineCardDetails from './QuarantineCardDetails.vue'
 import QuarantineItemValue from './QuarantineItemValue.vue'
 
 const props = defineProps<{
@@ -170,12 +171,7 @@ function sortBy(field: QuarantineSort) {
           </dd>
         </template>
       </dl>
-      <details class="mt-3">
-        <summary
-          class="flex min-h-11 cursor-pointer items-center font-medium text-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-200"
-        >
-          {{ t('quarantineUi.list.details') }}
-        </summary>
+      <QuarantineCardDetails>
         <dl class="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-x-3 gap-y-2 text-sm">
           <template v-for="field in cardDetails" :key="field">
             <dt class="font-medium text-gray-800 dark:text-gray-200">{{ label(field) }}</dt>
@@ -184,7 +180,7 @@ function sortBy(field: QuarantineSort) {
             </dd>
           </template>
         </dl>
-      </details>
+      </QuarantineCardDetails>
       <div class="mt-3 flex flex-wrap gap-2">
         <RouterLink :to="itemRoute(item)" :class="buttonVariants({ variant: 'outline' })">{{
           lt('quarantine.show_item')

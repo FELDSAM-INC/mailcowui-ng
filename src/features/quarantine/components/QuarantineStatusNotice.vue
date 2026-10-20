@@ -46,6 +46,16 @@ const args = computed(() =>
       as="p"
       class="text-gray-700 dark:text-gray-300"
     />
+    <!-- Reserve the translated notice's space while its settings load. The placeholder stays
+         invisible and out of the accessibility tree; the list already announces loading. -->
+    <LegacyText
+      v-else
+      aria-hidden="true"
+      k="quarantine.settings_info"
+      :args="['…', '…']"
+      as="p"
+      class="invisible"
+    />
     <details data-qinfo class="group rounded-xl border border-gray-200 dark:border-gray-800">
       <summary
         class="flex min-h-11 cursor-pointer items-center gap-2 px-3 font-medium text-gray-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-200"

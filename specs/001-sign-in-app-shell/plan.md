@@ -454,7 +454,7 @@ section's responsive navigation style are reused.
   (BCC maps, Recipient maps, TLS policy maps).
 - **Quarantine** keeps its destinations and role filtering. Its tabs use the shared tab styling.
 - **System**: System & Containers, with System & Containers, Logs and Audit log tabs.
-- **System configuration**: Access (Administrators, Domain administrators, API keys, Identity
+- **System configuration**: Access (Administrators, API keys, Identity
   Provider, OAuth2 Apps, Rspamd UI), Options (ARC/DKIM keys, Forwarding Hosts, Fail2ban parameters,
   Quota notifications, Rspamd settings map, Password Settings, Customize), Routing
   (Sender-dependent transports, Transport Maps), System mails and Global filter maps.
@@ -476,8 +476,10 @@ restored after using the outside dark-mode switch. The announcement is inside th
 so it cannot push the desktop sidebar's lower edge below the viewport.
 
 Unimplemented destinations are explicitly disabled, without a link action: Rspamd UI, Quota
-notifications, Rspamd settings map, Password Settings, Customize, System mails and Global filter
-maps. UI007's two administrator tabs are available. Queue Manager is linked from the System &
+notifications, Rspamd settings map, Customize, System mails and Global filter maps. Password
+Settings now opens the policy editor at `/system/password-policy`; its reset-email section is
+still in progress. Administrators contains both account types, with links between their lists.
+Queue Manager is linked from the System &
 Containers page header; IP Check is linked from its public-addresses panel, and links back to the
 existing System settings overview. These contextual links preserve the requested sidebar order.
 Account sections also use the shared tabs above their full-width content; mailbox-scoped account
@@ -496,8 +498,8 @@ bytes gzipped against the 204,800-byte budget. Screenshots and logs are retained
 `storage/app/restart-2026-10-20/navigation` in the API workspace.
 
 Integration checkpoint: the UI007 CRUD routes and quarantine scope-filter fix are now combined
-with this navigation. Both administrator tabs are available, Access opens `/administrators/admins`,
-and domain-administrator detail routes retain their correct tab. Identity transitions still unmount
+with this navigation. Access opens `/administrators/admins`, and domain-administrator detail routes
+retain the Administrators tab. Identity transitions still unmount
 the previous route and suppress its tabs. Validation: 170 focused unit tests, 72 browser checks
 across mobile Chromium, desktop Chromium and mobile WebKit, and four isolated real-API smoke
 checks passed. Typecheck, lint, translations, production build and bundle budgets passed; combined
@@ -509,3 +511,13 @@ The account-width and contextual-link follow-up passed 62 focused unit tests and
 checks across all three profiles, including dark/light accessibility, reflow, touch targets,
 mailbox context, permission checks and unsaved-change prompts. Its validation evidence is in
 `storage/app/restart-2026-10-20/navigation/entry-links` in the API workspace.
+
+The password-policy and staged domain-picker integration passed 159 focused unit checks and
+70 browser checks, with two expected desktop skips for phone-only dialogs. The Access correction
+uses exactly the five requested tabs: both administrator account types remain under Administrators,
+with contextual links between their lists. Its final validation passed 18 browser cases and
+13 navigation unit checks; the preceding component and route run passed 75 unit checks.
+Typecheck, lint, translation validation, production build and bundle budgets passed. Initial
+JavaScript is 202,397/204,800 bytes gzipped. Logs are retained under
+`storage/app/restart-2026-10-20/policy-picker-integration` in the API workspace. Password policy and
+mobile domain assignment also passed their isolated real-API smoke checks before integration.

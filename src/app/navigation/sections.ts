@@ -135,8 +135,10 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
         labelKey: legacy('admin.access'),
         icon: UsersIcon,
         tabs: [
-          tab('administrators', { pending: findEntry('administrators')?.status !== 'available' }),
-          tab('domainAdmins', { pending: findEntry('domainAdmins')?.status !== 'available' }),
+          tab('administrators', {
+            pending: findEntry('administrators')?.status !== 'available',
+            matches: ['/administrators/domain-admins'],
+          }),
           tab('apiKeys'),
           tab('identityProviders', {
             labelKey: legacy('admin.iam'),

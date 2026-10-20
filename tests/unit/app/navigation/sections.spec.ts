@@ -56,6 +56,9 @@ describe('requested application navigation', () => {
     ])
     expect(activeSection('/routing/forwarding-hosts', who)?.id).toBe('options')
     expect(
+      activeSection('/administrators/domain-admins/reseller', who)?.tabs.map((tab) => tab.id),
+    ).toEqual(['administrators', 'apiKeys', 'identityProviders', 'oauth2Apps', 'rspamdUi'])
+    expect(
       activeSection('/identity-providers/oauth2-apps/42', who)?.tabs.find((tab) => tab.current)?.id,
     ).toBe('oauth2Apps')
   })

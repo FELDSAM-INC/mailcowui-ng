@@ -95,14 +95,7 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
   for (const [path, expected, disabled] of [
     [
       'api-keys',
-      [
-        'Administrators',
-        'Domain administrators',
-        'API keys',
-        'Identity Provider',
-        'OAuth2 Apps',
-        'Rspamd UI',
-      ],
+      ['Administrators', 'API keys', 'Identity Provider', 'OAuth2 Apps', 'Rspamd UI'],
       1,
     ],
     [
@@ -116,7 +109,7 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
         'Password Settings',
         'Customize',
       ],
-      4,
+      3,
     ],
   ] as const) {
     await page.goto(path)
@@ -139,7 +132,7 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
   }
 })
 
-test('Access opens the implemented account tabs and keeps domain administrator details selected', async ({
+test('Access groups both account types under Administrators and keeps their details selected', async ({
   page,
   mockApi,
   expectAccessible,
@@ -152,14 +145,17 @@ test('Access opens the implemented account tabs and keeps domain administrator d
   await expect(page).toHaveURL(/\/administrators\/admins$/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   const tabs = page.locator('[data-section-navigation]')
-  if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
-  await tabs.getByRole('link', { name: 'Domain administrators', exact: true }).click()
+  await page.locator('[data-account-type-link]').click()
+  await expect(page.locator('[data-account-row]')).toHaveCount(3)
+  await page.locator('[data-account-type-link]').click()
+  await expect(page).toHaveURL(/\/administrators\/admins$/)
+  await page.locator('[data-account-type-link]').click()
   await expect(page.locator('[data-account-row]')).toHaveCount(3)
   await page.locator('[data-account-row]').first().getByRole('link').first().click()
   await expect(page.locator('#section-account')).toBeVisible()
   await expect(
     tabs.getByRole('link', {
-      name: 'Domain administrators',
+      name: 'Administrators',
       exact: true,
       includeHidden: true,
     }),

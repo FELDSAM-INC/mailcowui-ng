@@ -16,7 +16,7 @@ it('keeps the valid username new available and reserves the non-username creatio
   expect(administratorRoutes.every((route) => route.meta?.roles?.join() === 'admin')).toBe(true)
 })
 
-it('resolves both available Access tabs to their account pages and keeps the tab active on detail', () => {
+it('resolves both account types under Administrators and keeps the tab active on detail', () => {
   const router = createRouter({ history: createMemoryHistory(), routes: buildRoutes() })
   const identity = { role: 'admin' } as Identity
   for (const [path, name, entry] of [
@@ -29,9 +29,9 @@ it('resolves both available Access tabs to their account pages and keeps the tab
     const section = activeSection(`${listPath}/account`, identity)
     expect(section?.id).toBe('access')
     expect(section?.tabs.find((tab) => tab.current)).toMatchObject({
-      id: entry,
+      id: 'administrators',
       disabled: false,
-      to: listPath,
+      to: '/administrators/admins',
     })
   }
 })

@@ -294,6 +294,12 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
       ><template #actions
         ><RouterLink
           v-if="allowed"
+          data-account-type-link
+          :to="role === 'admin' ? '/administrators/domain-admins' : '/administrators/admins'"
+          :class="buttonVariants({ variant: 'outline' })"
+          >{{ lt(role === 'admin' ? 'admin.domain_admins' : 'admin.admins') }}</RouterLink
+        ><RouterLink
+          v-if="allowed"
           :to="{ name: role === 'admin' ? 'admin-create' : 'domain-admin-create' }"
           :class="buttonVariants({ variant: 'default' })"
           >{{ lt(role === 'admin' ? 'admin.add_admin' : 'admin.add_domain_admin') }}</RouterLink

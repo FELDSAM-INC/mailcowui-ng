@@ -1121,5 +1121,14 @@
   },
   "userMenu": {
     "signOutCompletely": "Úplně se odhlásit"
+  },
+  "codeEditor": {
+    "wrap": "Wrap lines",
+    "tabHint": "Tab moves to the next control.",
+    "size": "{used} of {max}",
+    "overLimit": "{used} exceeds the {max} limit. Shorten the content before saving.",
+    "line": "Line {line}",
+    "goToLine": "Go to line {line}",
+    "moreErrors": "{count} more lines have errors."
   }
 }

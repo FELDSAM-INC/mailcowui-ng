@@ -10,6 +10,12 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
+import {
+  NotificationBulkAction,
+  useNotificationBulk,
+  useQuarantineCapabilities,
+  type NotificationBulkChoice,
+} from '@/features/quarantine'
 import type { MailboxAuthSource } from '@/api'
 import { lt, text } from '@/i18n'
 import { useFormat } from '@/i18n/format'
@@ -57,9 +63,18 @@ const display = useMailboxFieldDisplay()
 const wide = useMediaQuery('(min-width: 768px)')
 const capabilities = useMailboxCapabilities()
 const identity = useIdentityQuery()
+const quarantineCapabilities = useQuarantineCapabilities()
 // US6: an explicit selection mode on the current page, cleared (and announced) when the page,
 // search, filters, sort or size change.
-const selection = useBulkSelection({ limit: () => capabilities.data.value?.bulkLimit })
+const selection = useBulkSelection({
+  limit: () => {
+    const limits = [
+      capabilities.data.value?.bulkLimit,
+      quarantineCapabilities.data.value?.bulkLimit,
+    ].filter((value): value is number => value !== undefined)
+    return limits.length ? Math.min(...limits) : undefined
+  },
+})
 const list = useMailboxListState({
   onReset: () => {
     if (selection.count.value > 0) announce(t('bulk.selected', { count: 0 }))
@@ -80,6 +95,13 @@ const mailboxes = computed(() => query.data.value?.data ?? [])
 const total = computed(() => query.data.value?.meta.total ?? 0)
 
 const bulk = useMailboxBulk({ selection, entries: () => mailboxes.value })
+const notificationBulk = useNotificationBulk({
+  selection,
+  entries: () => mailboxes.value,
+  label: readableAddress,
+  refresh: () => query.refetch(),
+})
+const bulkBusy = computed(() => bulk.phase.value === 'running' || notificationBulk.busy.value)
 const pageIds = computed(() => mailboxes.value.map((mailbox) => mailbox.address))
 const allSelected = computed(
   () =>
@@ -101,9 +123,14 @@ function toggleSelecting() {
 }
 /** Lets the menu close and return the focus to its trigger before the confirmation opens. */
 function runBulk(choice: MailboxBulkChoice) {
+  notificationBulk.close()
   void nextTick(() => requestAnimationFrame(() => void bulk.run(choice)))
 }
-useLeaveGuard(() => bulk.phase.value === 'running', {
+function runNotificationBulk(choice: NotificationBulkChoice) {
+  bulk.close()
+  void nextTick(() => requestAnimationFrame(() => void notificationBulk.run(choice)))
+}
+useLeaveGuard(() => bulkBusy.value, {
   titleKey: 'domains.bulk.leaveTitle',
   messageKey: 'domains.bulk.leaveRunning',
 })
@@ -302,13 +329,13 @@ function refresh() {
       </p>
 
       <div
-        v-if="bulk.phase.value === 'running'"
+        v-if="bulkBusy"
         data-bulk-progress
         role="status"
         class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
       >
         <SyncIcon class="size-5 motion-safe:animate-spin" />
-        {{ t('bulk.progress', { count: bulk.running.value }) }}
+        {{ t('bulk.progress', { count: bulk.running.value + notificationBulk.running.value }) }}
       </div>
       <BulkResultSummary
         v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
@@ -317,6 +344,17 @@ function refresh() {
         @close="bulk.close"
         @refresh="refresh"
       />
+      <BulkResultSummary
+        v-else-if="
+          notificationBulk.phase.value === 'results' && notificationBulk.rows.value.length > 0
+        "
+        :rows="notificationBulk.rows.value"
+        :message="notificationBulk.message"
+        @retry="notificationBulk.retry"
+        @close="notificationBulk.close"
+        @refresh="refresh"
+      />
+      <ProblemMessage :problem="notificationBulk.problem.value" />
       <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
 
       <div v-if="noMatches" data-empty="noMatch" class="flex flex-col items-start gap-3 py-6">
@@ -401,7 +439,7 @@ function refresh() {
       :count="selection.count.value"
       :actions="[]"
       :limit-message="limitMessage"
-      :busy="bulk.phase.value === 'running'"
+      :busy="bulkBusy"
       @clear="selection.clear()"
     >
       <template #default="{ disabled }">
@@ -410,6 +448,7 @@ function refresh() {
           :protocols="canBulkProtocols(identity.data.value)"
           @run="runBulk"
         />
+        <NotificationBulkAction :disabled="disabled" @run="runNotificationBulk" />
       </template>
     </BulkActionBar>
   </section>

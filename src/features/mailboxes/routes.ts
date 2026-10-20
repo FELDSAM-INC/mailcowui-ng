@@ -6,7 +6,10 @@ import { legacy, loadFeatureMessages } from '@/i18n'
 
 /** A page and the mailbox strings, loaded together. */
 function page<T>(load: () => Promise<T>): () => Promise<T> {
-  return () => Promise.all([load(), loadFeatureMessages('mailboxes')]).then(([module]) => module)
+  return () =>
+    Promise.all([load(), loadFeatureMessages('mailboxes'), loadFeatureMessages('quarantine')]).then(
+      ([module]) => module,
+    )
 }
 
 export const mailboxRoutes: RouteRecordRaw[] = [

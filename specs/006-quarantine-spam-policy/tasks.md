@@ -208,18 +208,18 @@ mock baseline.
 
 ### Mock baseline and fixtures
 
-- [ ] T025 Create the contract-valid factories:
+- [x] T025 Create the contract-valid factories:
   - `tests/mocks/factories/quarantine-item.ts`: items and details for every action, the virus flag, notified, score or `null`, an empty subject, `contentStatus` `available`, `tooLarge` and `missing`, `parserFallback`, attachments or `null`, `authenticatedSender` for administrators, recipients with each `source`, symbols with positive, negative and zero scores, and fuzzy hashes;
   - `tests/mocks/factories/hostile-messages.ts`: at least 50 vectors as research R9 lists, each usable as a subject, From header, sender, symbol option, file name and text part, within the contract's lengths;
   - `tests/mocks/factories/quarantine-settings.ts` (full and public, defaults of a fresh server, custom values, a custom template);
   - `tests/mocks/factories/spam-policy-entry.ts`, `tests/mocks/factories/spam-score.ts`, `tests/mocks/factories/rate-limit.ts` and `tests/mocks/factories/spam-statistics.ts`;
   - capabilities with the spec's defaults: bulk limit 100, page sizes 25 and 1000, a content limit of 10 MiB, scores 0–5000 with step 0.1, patterns of 100 characters from `a-z0-9@_.*-`, rate limits 1–2147483647 per second, minute, hour or day, the settings limits, and virus scanning on.
-- [ ] T026 Create the baseline handlers and scenarios:
+- [x] T026 Create the baseline handlers and scenarios:
   - `tests/mocks/handlers/quarantine.ts` with `getQuarantineCapabilities` and `getQuarantineSettings` (`visibility: full` for administrators, the public subset for others);
   - register it in `tests/mocks/handlers/index.ts`;
   - `tests/mocks/scenarios/quarantine.ts` with a base state (capabilities, active settings, and the identities of the UI 002–004 scenarios for scope, P20), registered in `tests/mocks/scenarios/index.ts`;
   - failure injection by operationId as UI 001's scenario state offers it.
-- [ ] T027 [P] Create the end-to-end fixtures and add them to `tests/e2e/fixtures/test.ts`:
+- [x] T027 [P] Create the end-to-end fixtures and add them to `tests/e2e/fixtures/test.ts`:
   - `tests/e2e/fixtures/requests.ts`: records every request and fails the test on any URL outside `/ng/` and `/api/v2/`. It installs a `window.__xss` canary in an init script and fails the test if the canary is set;
   - `tests/e2e/fixtures/downloads.ts`: `expectDownload(page, action)` returns the suggested file name and bytes from Playwright's `download` event, and asserts that the page URL did not change and that no new page opened.
 
@@ -269,19 +269,19 @@ sent, and that no markup is ever rendered (spec US1).
 
 ### Tests for User Story 1 (write first; must fail)
 
-- [ ] T039 [US1] Extend `tests/mocks/handlers/quarantine.ts`:
+- [x] T039 [US1] Extend `tests/mocks/handlers/quarantine.ts`:
   - `listQuarantineItems`: scope per role; `q` over subject, sender, recipient and queue ID; the filters `recipient`, `domain`, `action` (exploded), `virus`, `notified`, `from` (inclusive), `to` (exclusive), `minScore` and `maxScore` (unscored left out); the 10 sort keys with ties by `id` desc and unscored first when ascending by score; `limit` and `offset`; `meta.total`;
   - `getQuarantineItem`: `404` outside the scope; `attachments: null` without `quarantineAttachments`; `authenticatedSender` only for administrators; `tooLarge` with `content: null`;
   - `releaseQuarantineItem` (`learnAsHam` default true), `learnQuarantineItemAsSpam` and `deleteQuarantineItem`: `If-Match`/`412`; `403 permission-flag-required` with `requiredFlags`; the item removed on success with an action report;
   - injections: learning failed, fuzzy failed or skipped, busy (`409` with `Retry-After: 5`, then gone or available on the next read), delivery refused (`smtpCode` 550, `smtpResponse` with a right-to-left override), and temporary failure with `dependency` and `step`;
   - `downloadQuarantineAttachment` and `downloadQuarantineMessage`: binary bodies with the four headers, `409 quarantine-message-too-large` with `size` and `limit`, and `403` with `requiredFlags` (`quarantine` first, then `quarantineAttachments`).
-- [ ] T040 [US1] Add these scenarios to `tests/mocks/scenarios/quarantine.ts`:
+- [x] T040 [US1] Add these scenarios to `tests/mocks/scenarios/quarantine.ts`:
   - `quarantine-mailbox-user`: alice with all flags and 30 items (rejected, junk, subject rewritten, `other` with `filterAction` `soft reject`, virus, attachments, over 10 MiB, unparseable, no score or subject, markup, script and right-to-left text);
   - `quarantine-user-no-actions`, `quarantine-user-no-attachments` and `quarantine-user-no-flags`;
   - `quarantine-inactive` (retention 0);
   - `quarantine-hostile`: every vector of the hostile factory as an item;
   - `quarantine-empty`.
-- [ ] T041 [P] [US1] Write `tests/e2e/quarantine/list.spec.ts`. It covers:
+- [x] T041 [P] [US1] Write `tests/e2e/quarantine/list.spec.ts`. It covers:
   - US1-AS1: 25 newest of 30, total 30, a way to the rest, and every card value with the arrival time in the locale;
   - US1-AS11 and FR-008: the inactive notice with the legacy text; the legacy `quarantine.settings_info` with the retention and the maximum size in MiB when active; the collapsible explanation verbatim with its markup;
   - FR-009: page sizes 25, 50 and 100, and first, previous, next and last page;
@@ -357,13 +357,13 @@ sent, and that no markup is ever rendered (spec US1).
 
 ### Implementation for User Story 1
 
-- [ ] T049 [US1] Extend `src/features/quarantine/api.ts` with:
+- [x] T049 [US1] Extend `src/features/quarantine/api.ts` with:
   - the list and detail queries (detail `gcTime` 60 s);
   - the release, learn and delete mutations with `If-Match` and the invalidation of data-model §3 (the detail removed, the list invalidated);
   - the download fetchers using `parseAs: 'blob'`.
-- [ ] T050 [US1] Implement `src/features/quarantine/list-state.ts`: the `useListState` schema of data-model §6, the mapping to `listQuarantineItems` parameters, and the day-range conversion.
-- [ ] T051 [P] [US1] Implement `src/features/quarantine/symbols.ts`, `src/features/quarantine/content-preview.ts` and `src/features/quarantine/action-outcome.ts`. T046 must pass.
-- [ ] T052 [P] [US1] Implement the list components in `src/features/quarantine/components/`:
+- [x] T050 [US1] Implement `src/features/quarantine/list-state.ts`: the `useListState` schema of data-model §6, the mapping to `listQuarantineItems` parameters, and the day-range conversion.
+- [x] T051 [P] [US1] Implement `src/features/quarantine/symbols.ts`, `src/features/quarantine/content-preview.ts` and `src/features/quarantine/action-outcome.ts`. T046 must pass.
+- [x] T052 [P] [US1] Implement the list components in `src/features/quarantine/components/`:
   - `QuarantineStatusNotice.vue`, with the collapsible help text;
   - `QuarantineFilters.vue`: inside the shared `FilterPanel.vue` (P24: full screen below `md`), the action, virus, notification, day and score fields (`LocaleNumberField`), and `ActiveFilterChips`;
   - `QuarantineSortControl.vue`;
@@ -379,7 +379,7 @@ sent, and that no markup is ever rendered (spec US1).
     Cards and table cells share `components/list/QuarantineItemValue.vue`; the responsive list is
     `components/list/QuarantineItemList.vue`. Nine page/filter unit tests pass. The browser checks
     and their limits are recorded in the quickstart validation log. Bulk selection remains T065–T067.
-- [ ] T054 [P] [US1] Implement the item sections in `src/features/quarantine/components/`:
+- [x] T054 [P] [US1] Implement the item sections in `src/features/quarantine/components/`:
   - `ItemSummary.vue`: recipients with their header and envelope marked, size, sending server, IDs, notification state, and `authenticatedSender` for administrators;
   - `FilterResult.vue`: score, badge, virus state, and symbols with `Intl` `signDisplay: 'exceptZero'` and their options listed;
   - `FuzzyHashes.vue`, with copy buttons;
@@ -387,14 +387,14 @@ sent, and that no markup is ever rendered (spec US1).
   - `AttachmentList.vue`: name, type, size, hash with copy, VT link and download.
 
   Every message string goes through `PlainText`. T047's section tests must pass.
-- [ ] T055 [P] [US1] Implement the dialogs in `src/features/quarantine/components/`: `ReleaseDialog.vue`, `LearnSpamDialog.vue`, `RemoveItemDialog.vue`, `DownloadWarningDialog.vue` and `ActionOutcomeMessage.vue` (the success message with its warnings, announced, and not dismissed while focused or hovered, FR-071).
-- [ ] T056 [US1] Implement:
+- [x] T055 [P] [US1] Implement the dialogs in `src/features/quarantine/components/`: `ReleaseDialog.vue`, `LearnSpamDialog.vue`, `RemoveItemDialog.vue`, `DownloadWarningDialog.vue` and `ActionOutcomeMessage.vue` (the success message with its warnings, announced, and not dismissed while focused or hovered, FR-071).
+- [x] T056 [US1] Implement:
   - `src/features/quarantine/composables/useItemAction.ts`;
   - `src/features/quarantine/composables/useBusyRecheck.ts`;
   - `src/features/quarantine/downloads.ts`: `saveApiFile` wrappers with the fallback names `quarantine-<itemId>.eml` and `attachment-<position>`, and the virus warning first.
 
   T047's `useItemAction` test must pass.
-- [ ] T057 [US1] Implement `src/features/quarantine/components/ItemActionBar.vue` (sticky below `md`, `scroll-padding-bottom` while shown, a "More" menu) and `src/features/quarantine/pages/QuarantineItemPage.vue`:
+- [x] T057 [US1] Implement `src/features/quarantine/components/ItemActionBar.vue` (sticky below `md`, `scroll-padding-bottom` while shown, a "More" menu) and `src/features/quarantine/pages/QuarantineItemPage.vue`:
   - the sections of FR-019;
   - the "actions are disabled" notice (research R13);
   - loading, error and "not found";
@@ -402,7 +402,7 @@ sent, and that no markup is ever rendered (spec US1).
   - focus on the heading.
 
   Register the `quarantine-item` route (`/quarantine/:itemId(\d+)`, after the literal routes).
-- [ ] T058 [US1] Add only the form map's new strings for the list, filters, item, actions, downloads and status (the step lines, the learning switch, the virus acknowledgement, the added item fields) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+- [x] T058 [US1] Add only the form map's new strings for the list, filters, item, actions, downloads and status (the step lines, the learning switch, the virus acknowledgement, the added item fields) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
   - Use the `quarantine.*` keys of research R27 verbatim, `quarantine.qinfo` and `quarantine.settings_info` with their markup through `SanitizedHtml.vue`, and the legacy `success.*`, `danger.*` and `warning.*` outcomes of research R24.
   - No `legacy-map.json` entry, no import, and no new key where a legacy key has the meaning.
   - `npm run i18n:check` must pass for every key used so far.
@@ -482,7 +482,7 @@ connection, and compare the results with the mock (spec US2).
   - the recipient filter (`type="email"`);
   - the domain filter (`identity.scope.domains` for domain administrators, `DomainPicker` for administrators);
   - the recipient column for administrators and domain administrators.
-- [ ] T068 [US2] Add the recipient link to `src/features/quarantine/components/ItemSummary.vue`: for administrators and domain administrators, query `getMailbox` (UI 003's key) and link to `spam-filter-mailbox` only on `200`; otherwise show the address as `PlainText`.
+- [x] T068 [US2] Add the recipient link to `src/features/quarantine/components/ItemSummary.vue`: for administrators and domain administrators, query `getMailbox` (UI 003's key) and link to `spam-filter-mailbox` only on `200`; otherwise show the address as `PlainText`.
 - [x] T069 [US2] Add the form map's new `quarantine.bulk.*` strings (limit, typed count, virus count, summary and the per-row warnings), the domain filter label and the busy texts to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Per-item lines use the legacy outcome messages and the recipient filter uses `quarantine.rcpt`. `npm run i18n:check` must pass.
   - Continuation (2026-10-20): reuse `bulk.*`, legacy action/outcome labels, and the saved
     `quarantineUi.bulk.virusCount`; no new translation text. The unused-key failure is resolved.
@@ -503,7 +503,7 @@ US3).
 
 ### Tests for User Story 3 (write first; must fail)
 
-- [ ] T070 [US3] Extend `tests/mocks/handlers/quarantine.ts`:
+- [x] T070 [US3] Extend `tests/mocks/handlers/quarantine.ts`:
   - `getMailboxQuarantineNotificationSettings` and `updateMailboxQuarantineNotificationSettings`: merge patch, `If-Match`/`412`; `403 attribute-not-permitted` with `attributes` and `requiredFlags` for a mailbox user changing a member without its flag (a member sent with its current value is accepted); `404` for resources and outside the scope; `category: null` when none is stored;
   - `applyQuarantineNotificationBulkAction`: `frequency` and/or `category`; `notFound` outside the scope; `422 tooMany`; `403` for mailbox users.
 
@@ -530,11 +530,11 @@ US3).
 
 ### Implementation for User Story 3
 
-- [ ] T075 [US3] Add the notification settings query, the patch mutation and the bulk mutation to `src/features/quarantine/api.ts`, with the invalidation of data-model §3, including UI 003's mailbox detail and list keys (FR-086).
-- [ ] T076 [US3] Implement `src/features/quarantine/components/NotificationSettingsPanel.vue` (on `EditableSection`) and `src/features/quarantine/pages/NotificationsPage.vue`. Register the `quarantine-notifications` route (`meta.roles: ['mailboxUser']`, `meta.sectionNav`) before `quarantine-item`.
-- [ ] T077 [US3] Mount `NotificationSettingsPanel` in the `notifications` slot of `src/features/spam-filter/pages/ObjectSpamFilterPage.vue` for the kind `mailbox` (`id="notifications"`). Export the panel from `src/features/quarantine/index.ts`.
-- [ ] T078 [US3] Implement `src/features/quarantine/composables/useNotificationBulk.ts` and `src/features/quarantine/components/NotificationBulkAction.vue`, export them from `src/features/quarantine/index.ts`, and render the two items in `src/features/mailboxes/components/list/MailboxBulkActions.vue` (UI 003's designated area, P17) for administrators and domain administrators.
-- [ ] T079 [US3] Add the form map's new `quarantine.notifications.*` and bulk action strings (the effect timing, "Not set" if approved, the bulk summary) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim `user.quarantine_notification`, `user.quarantine_notification_info`, `user.quarantine_category`, `user.quarantine_category_info`, `user.never`, `user.hourly`, `user.daily`, `user.weekly`, `user.q_reject`, `user.q_add_header`, `user.q_all`, `mailbox.quarantine_notification` and `success.mailbox_modified` (no `legacy-map.json`, no import). `npm run i18n:check` must pass.
+- [x] T075 [US3] Add the notification settings query, the patch mutation and the bulk mutation to `src/features/quarantine/api.ts`, with the invalidation of data-model §3, including UI 003's mailbox detail and list keys (FR-086).
+- [x] T076 [US3] Implement `src/features/quarantine/components/NotificationSettingsPanel.vue` (on `EditableSection`) and `src/features/quarantine/pages/NotificationsPage.vue`. Register the `quarantine-notifications` route (`meta.roles: ['mailboxUser']`, `meta.sectionNav`) before `quarantine-item`.
+- [x] T077 [US3] Mount `NotificationSettingsPanel` in the `notifications` slot of `src/features/spam-filter/pages/ObjectSpamFilterPage.vue` for the kind `mailbox` (`id="notifications"`). Export the panel from `src/features/quarantine/index.ts`.
+- [x] T078 [US3] Implement `src/features/quarantine/composables/useNotificationBulk.ts` and `src/features/quarantine/components/NotificationBulkAction.vue`, export them from `src/features/quarantine/index.ts`, and render the two items in `src/features/mailboxes/components/list/MailboxBulkActions.vue` (UI 003's designated area, P17) for administrators and domain administrators.
+- [x] T079 [US3] Add the form map's new `quarantine.notifications.*` and bulk action strings (the effect timing, "Not set" if approved, the bulk summary) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use verbatim `user.quarantine_notification`, `user.quarantine_notification_info`, `user.quarantine_category`, `user.quarantine_category_info`, `user.never`, `user.hourly`, `user.daily`, `user.weekly`, `user.q_reject`, `user.q_add_header`, `user.q_all`, `mailbox.quarantine_notification` and `success.mailbox_modified` (no `legacy-map.json`, no import). `npm run i18n:check` must pass.
 
 **Checkpoint**: US3 works on its own.
 
@@ -551,7 +551,7 @@ entries, at both widths, in Czech and English (spec US4).
 
 ### Tests for User Story 4 (write first; must fail)
 
-- [ ] T080 [US4] Create `tests/mocks/handlers/spam-policy.ts` and register it:
+- [x] T080 [US4] Create `tests/mocks/handlers/spam-policy.ts` and register it:
   - `getMailboxSpamScore`, `setMailboxSpamScore` (`If-Match`/`412`; `422` `outOfRange`, `notMultipleOf` and `mustNotExceed`; equal values stored with the reject value + 0.1) and `resetMailboxSpamScore`, with defaults and `fallback`, and one stored value reported as custom;
   - `listMailboxSpamPolicyEntries`: own and inherited domain entries (`own: false`, `owner`); `list` and `ownership` filters; `q`; sort `pattern`, `createdAt` and `id`; paging;
   - `createMailboxSpamPolicyEntry`: trimmed and lower-cased; `422` `invalidFormat` (`senderPattern`) and `tooLong`; `409 spam-policy-entry-exists` with `list` and `entryId`; `201` with `Location` and `ETag`;
@@ -594,21 +594,21 @@ entries, at both widths, in Czech and English (spec US4).
 
 ### Implementation for User Story 4
 
-- [ ] T085 [US4] Implement:
+- [x] T085 [US4] Implement:
   - `src/features/spam-filter/api.ts`: the spam score query and mutations, and the mailbox entry list, create and delete through `owner.ts`, with data-model §3's invalidation;
   - `src/features/spam-filter/spam-score.ts`;
   - `src/features/spam-filter/pattern.ts`;
   - `src/features/spam-filter/lists-state.ts`: two prefixed `useListState` schemas plus `list`.
 
   T083's pure-module tests must pass.
-- [ ] T086 [P] [US4] Implement `src/features/spam-filter/components/ScoreBand.vue` and `src/features/spam-filter/components/SpamScorePanel.vue` (`EditableSection`, two `LocaleNumberField`s, the "+0.1" note, the confirmed reset, defaults and the fallback note).
-- [ ] T087 [P] [US4] Implement in `src/features/spam-filter/`:
+- [x] T086 [P] [US4] Implement `src/features/spam-filter/components/ScoreBand.vue` and `src/features/spam-filter/components/SpamScorePanel.vue` (`EditableSection`, two `LocaleNumberField`s, the "+0.1" note, the confirmed reset, defaults and the fallback note).
+- [x] T087 [P] [US4] Implement in `src/features/spam-filter/`:
   - `components/PolicyListsPanel.vue`, `components/PolicyList.vue` and `components/PolicyListSwitch.vue`;
   - `components/PolicyEntryAddForm.vue` and `components/PolicyEntryRow.vue`;
   - `components/RemoveEntriesDialog.vue` and `components/RemoveEntriesReport.vue`;
   - `composables/useRemoveEntries.ts`.
-- [ ] T088 [US4] Implement `src/features/spam-filter/pages/SpamFilterPage.vue` (the own mailbox: spam score panel and lists panel). Register the `spam-filter` route (`/spam-filter`, `meta.navEntry: 'spamFilter'`), and set the catalogue entry `spamFilter` to `available` in `src/app/navigation/catalogue.ts`, with UI 001's visibility test table updated.
-- [ ] T089 [US4] Add the form map's new `spamFilter.*` strings (score field labels, server-default note, band, removal summary) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+- [x] T088 [US4] Implement `src/features/spam-filter/pages/SpamFilterPage.vue` (the own mailbox: spam score panel and lists panel). Register the `spam-filter` route (`/spam-filter`, `meta.navEntry: 'spamFilter'`), and set the catalogue entry `spamFilter` to `available` in `src/app/navigation/catalogue.ts`, with UI 001's visibility test table updated.
+- [x] T089 [US4] Add the form map's new `spamFilter.*` strings (score field labels, server-default note, band, removal summary) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
   - Use the `user.spamfilter*` keys of research R27 and `user.spam_score_reset` verbatim, `user.spamfilter_wl_desc` and `user.spamfilter_bl_desc` with their markup through `SanitizedHtml.vue`, and `danger.policy_list_from_exists`, `danger.policy_list_from_invalid`, `success.mailbox_modified` and `success.item_deleted` for the outcomes.
   - No `legacy-map.json` entry and no import. `npm run i18n:check` must pass.
 
@@ -629,7 +629,7 @@ the owner links (spec US5).
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T090 [US5] Extend `tests/mocks/handlers/spam-policy.ts`:
+- [x] T090 [US5] Extend `tests/mocks/handlers/spam-policy.ts`:
   - the list, create and delete operations for domains and alias domains, whose inherited entries are the domain's mailbox entries;
   - `forbidden` for mailbox users;
   - `permission-flag-required` (`spamPolicy`) for domain administrators without the flag.
@@ -650,13 +650,13 @@ the owner links (spec US5).
 
 ### Implementation for User Story 5
 
-- [ ] T094 [US5] Add the domain and alias domain list, create and delete operations to `src/features/spam-filter/api.ts` through `owner.ts`. A domain or alias domain change also invalidates the mailbox entry lists of that domain (data-model §3).
-- [ ] T095 [US5] Mount the panels in `src/features/spam-filter/pages/ObjectSpamFilterPage.vue`:
+- [x] T094 [US5] Add the domain and alias domain list, create and delete operations to `src/features/spam-filter/api.ts` through `owner.ts`. A domain or alias domain change also invalidates the mailbox entry lists of that domain (data-model §3).
+- [x] T095 [US5] Mount the panels in `src/features/spam-filter/pages/ObjectSpamFilterPage.vue`:
   - for a mailbox, `SpamScorePanel` (`id="spam-score"`) and `PolicyListsPanel` (`id="lists"`);
   - for a domain and an alias domain, `PolicyListsPanel`.
 
   The inherited owner links follow `canReadPolicy`.
-- [ ] T096 [US5] Add the form map's new `spamFilter.object.*` strings (page titles per kind, "Set for mailboxes", "Set for <domain>", the precedence note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use `edit.spam_filter`, `user.spamfilter_table_domain_policy` and `success.domain_modified` verbatim. `npm run i18n:check` must pass.
+- [x] T096 [US5] Add the form map's new `spamFilter.object.*` strings (page titles per kind, "Set for mailboxes", "Set for <domain>", the precedence note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use `edit.spam_filter`, `user.spamfilter_table_domain_policy` and `success.domain_modified` verbatim. `npm run i18n:check` must pass.
 
 **Checkpoint**: US4 and US5 work on their own (US5 reuses US4's panels).
 
@@ -674,7 +674,7 @@ value, and reset existing and unknown buckets (spec US6).
 
 ### Tests for User Story 6 (write first; must fail)
 
-- [ ] T097 [US6] Create `tests/mocks/handlers/rate-limits.ts` and register it:
+- [x] T097 [US6] Create `tests/mocks/handlers/rate-limits.ts` and register it:
   - get, set and remove for the three kinds: `If-Match`/`412`; `422` `outOfRange` and `notInList`; `invalidStoredValue`; for a mailbox, `effectiveLimit` and `effectiveSource` (`mailbox`, `domain`, `none`);
   - removal when not set answers `204` and changes nothing;
   - `listRateLimits`: `kind`, `q`, sort `object` and `kind`, paging and scope;
@@ -714,14 +714,14 @@ value, and reset existing and unknown buckets (spec US6).
 
 ### Implementation for User Story 6
 
-- [ ] T102 [US6] Implement `src/features/rate-limits/api.ts`. Its invalidation follows data-model §3, including the domain, alias domain and mailbox detail and list keys of UI 002–004 for FR-086, and a domain change invalidates its mailboxes' limits. Also implement `src/features/rate-limits/rate-limit.ts`, `src/features/rate-limits/bucket-id.ts`, `src/features/rate-limits/list-state.ts`, `src/features/rate-limits/routes.ts` and `src/features/rate-limits/index.ts`. T100's pure-module tests must pass.
-- [ ] T103 [P] [US6] Implement `src/features/rate-limits/components/RateLimitPanel.vue`, `RateLimitForm.vue` (`LocaleNumberField` and a native `<select>` of `capabilities.rateLimit.frames`) and `RemoveLimitDialog.vue`. Export the panel, and mount it in the `rate-limit` slot of `src/features/spam-filter/pages/ObjectSpamFilterPage.vue` for all three kinds (`id="rate-limit"`).
-- [ ] T104 [P] [US6] Implement in `src/features/rate-limits/components/`:
+- [x] T102 [US6] Implement `src/features/rate-limits/api.ts`. Its invalidation follows data-model §3, including the domain, alias domain and mailbox detail and list keys of UI 002–004 for FR-086, and a domain change invalidates its mailboxes' limits. Also implement `src/features/rate-limits/rate-limit.ts`, `src/features/rate-limits/bucket-id.ts`, `src/features/rate-limits/list-state.ts`, `src/features/rate-limits/routes.ts` and `src/features/rate-limits/index.ts`. T100's pure-module tests must pass.
+- [x] T103 [P] [US6] Implement `src/features/rate-limits/components/RateLimitPanel.vue`, `RateLimitForm.vue` (`LocaleNumberField` and a native `<select>` of `capabilities.rateLimit.frames`) and `RemoveLimitDialog.vue`. Export the panel, and mount it in the `rate-limit` slot of `src/features/spam-filter/pages/ObjectSpamFilterPage.vue` for all three kinds (`id="rate-limit"`).
+- [x] T104 [P] [US6] Implement in `src/features/rate-limits/components/`:
   - `RateLimitList.vue`: cards and table, each entry linking to its object's page;
   - `SetRateLimitDialog.vue` and `MailboxSearchPicker.vue` (a Reka `Combobox` without its viewport, infinite over `listMailboxes`);
   - `ResetBucketDialog.vue`, with `useResetRateLimitBucket`.
-- [ ] T105 [US6] Implement `src/features/rate-limits/pages/RateLimitsPage.vue`. Register the `quarantine-rate-limits` route (`meta.navEntry: 'quarantine'`, `meta.roles: ['admin', 'domainAdmin']`, `meta.sectionNav` "Rate limits") before `quarantine-item`.
-- [ ] T106 [US6] Add the form map's new `rateLimits.*` strings (the overview and "Remove limit", if approved) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+- [x] T105 [US6] Implement `src/features/rate-limits/pages/RateLimitsPage.vue`. Register the `quarantine-rate-limits` route (`meta.navEntry: 'quarantine'`, `meta.roles: ['admin', 'domainAdmin']`, `meta.sectionNav` "Rate limits") before `quarantine-item`.
+- [x] T106 [US6] Add the form map's new `rateLimits.*` strings (the overview and "Remove limit", if approved) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
   - Use verbatim `ratelimit.disabled`, `ratelimit.second`, `ratelimit.minute`, `ratelimit.hour`, `ratelimit.day`, `edit.ratelimit`, `edit.mbox_rl_info`, `admin.reset_limit`, `danger.rl_timeframe`, `success.rl_saved`, `success.hash_deleted`, `warning.hash_not_found`, and `admin.hash_remove_info` whole with its markup.
   - No `legacy-map.json` entry and no import. `npm run i18n:check` must pass.
 
@@ -741,7 +741,7 @@ confirm that the page is not offered (spec US7).
 
 ### Tests for User Story 7 (write first; must fail)
 
-- [ ] T107 [US7] Extend `tests/mocks/handlers/quarantine.ts` with `updateQuarantineSettings`:
+- [x] T107 [US7] Extend `tests/mocks/handlers/quarantine.ts` with `updateQuarantineSettings`:
   - merge patch and `If-Match`/`412`;
   - `null` or an empty value restores the defaults, and an empty template restores the default template (`notificationTemplateIsDefault`);
   - `422` per field: `outOfRange`, `notMultipleOf` (`factor` 1048576), `invalidFormat` (`email`), `tooLong` (subject; template with `unit: bytes`), `notFound` (`excludedDomains.<n>`), and `invalidTemplate` with `reason` and `line`;
@@ -770,15 +770,15 @@ confirm that the page is not offered (spec US7).
   - `ExcludedDomainsPicker.spec.ts`: missing entries flagged; the picker excludes them; `IdnText` names;
   - `TemplateSection.spec.ts`: source only; the size through `utf8ByteLength`; the placeholder copy buttons; the restore confirmation; the notes;
   - `NotificationMailSection.spec.ts`: email inputs; the "unsigned, unchecked" warnings; the subject length from the capabilities.
-- [ ] T110 [P] [US7] Write `tests/smoke/quarantine-settings.smoke.spec.ts` (`@006`). As `admin`, the settings show "active" (seeded retention 20 and 15 MiB). Saving the template `{% for x in meta %}` shows "syntax error, line 1", and the stored template is unchanged after a reload.
+- [x] T110 [P] [US7] Write `tests/smoke/quarantine-settings.smoke.spec.ts` (`@006`). As `admin`, the settings show "active" (seeded retention 20 and 15 MiB). Saving the template `{% for x in meta %}` shows "syntax error, line 1", and the stored template is unchanged after a reload.
 
 ### Implementation for User Story 7
 
-- [ ] T111 [US7] Add the settings mutation to `src/features/quarantine/api.ts` (writing `['quarantine','settings']` from the response), and implement `src/features/quarantine/settings-form.ts`.
-- [ ] T112 [P] [US7] Implement `src/features/quarantine/components/settings/StorageSection.vue`, `ReleaseSection.vue`, `NotificationMailSection.vue` and `ExcludedDomainsPicker.vue` (`DomainPicker` in multiple mode with both sources, and `IdnText`), each on `EditableSection`.
-- [ ] T113 [P] [US7] Implement `src/features/quarantine/components/settings/TemplateSection.vue`, `TemplatePlaceholders.vue` and `TemplateSizeIndicator.vue`.
-- [ ] T114 [US7] Implement `src/features/quarantine/pages/QuarantineSettingsPage.vue` (the active state and the four sections). Register the `quarantine-settings` route (`meta.roles: ['admin']`, `meta.sectionNav` "Settings") before `quarantine-item`.
-- [ ] T115 [US7] Add the form map's new `quarantine.settings.*` strings (the effect timing, the placeholder reference and the template notes) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
+- [x] T111 [US7] Add the settings mutation to `src/features/quarantine/api.ts` (writing `['quarantine','settings']` from the response), and implement `src/features/quarantine/settings-form.ts`.
+- [x] T112 [P] [US7] Implement `src/features/quarantine/components/settings/StorageSection.vue`, `ReleaseSection.vue`, `NotificationMailSection.vue` and `ExcludedDomainsPicker.vue` (`DomainPicker` in multiple mode with both sources, and `IdnText`), each on `EditableSection`.
+- [x] T113 [P] [US7] Implement `src/features/quarantine/components/settings/TemplateSection.vue`, `TemplatePlaceholders.vue` and `TemplateSizeIndicator.vue`.
+- [x] T114 [US7] Implement `src/features/quarantine/pages/QuarantineSettingsPage.vue` (the active state and the four sections). Register the `quarantine-settings` route (`meta.roles: ['admin']`, `meta.sectionNav` "Settings") before `quarantine-item`.
+- [x] T115 [US7] Add the form map's new `quarantine.settings.*` strings (the effect timing, the placeholder reference and the template notes) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`.
   - Use verbatim `admin.quarantine`, `admin.quarantine_release_format`, `admin.quarantine_release_format_raw`, `admin.quarantine_release_format_att`, `admin.quarantine_notification_sender`, `admin.quarantine_notification_subject`, `admin.quarantine_exclude_domains`, `tfa.select`, `admin.save` and `success.saved_settings`.
   - Use whole, with their `<br><small>` help through `SanitizedHtml.vue`, as the field labels: `admin.quarantine_retention_size`, `admin.quarantine_max_size`, `admin.quarantine_max_score`, `admin.quarantine_max_age`, `admin.quarantine_bcc`, `admin.quarantine_redirect` and `admin.quarantine_notification_html`.
   - No `legacy-map.json` entry and no import. `npm run i18n:check` must pass.
@@ -797,7 +797,7 @@ the spam filter unreachable. As a domain administrator, confirm that it is not o
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T116 [US8] Extend `tests/mocks/handlers/spam-policy.ts` with `getSpamFilterActionStatistics` (counts, `total`, `countedSince` and `spamFilterRunningSince` set or `null`, `503` with `dependency: spamFilter`), and add the scenarios `spam-statistics` (120, 30, 0, 250, 600), `spam-statistics-zero` and `spam-statistics-unavailable` to `tests/mocks/scenarios/spam-filter.ts`.
+- [x] T116 [US8] Extend `tests/mocks/handlers/spam-policy.ts` with `getSpamFilterActionStatistics` (counts, `total`, `countedSince` and `spamFilterRunningSince` set or `null`, `503` with `dependency: spamFilter`), and add the scenarios `spam-statistics` (120, 30, 0, 250, 600), `spam-statistics-zero` and `spam-statistics-unavailable` to `tests/mocks/scenarios/spam-filter.ts`.
 - [ ] T117 [P] [US8] Write `tests/e2e/quarantine/statistics.spec.ts`. It covers:
   - US8-AS1: each action with its count, its percentage of 1,000 and a bar, all in text and in the locale's number format;
   - US8-AS2: "temporarily unavailable" with a working retry;
@@ -810,8 +810,8 @@ the spam filter unreachable. As a domain administrator, confirm that it is not o
 
 ### Implementation for User Story 8
 
-- [ ] T120 [US8] Implement the statistics query in `src/features/quarantine/api.ts` (key `['spam-policy','statistics']`; the quarantine feature never imports from `spam-filter` or `rate-limits`, research R4), `src/features/quarantine/statistics.ts`, `src/features/quarantine/components/statistics/ActionStatisticsList.vue` and `src/features/quarantine/pages/SpamFilterStatisticsPage.vue`. Register the `quarantine-statistics` route (`meta.roles: ['admin']`, `meta.sectionNav` "Statistics") before `quarantine-item`.
-- [ ] T121 [US8] Add the form map's new `quarantine.statistics.*` strings (total, period lines, the reset note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`; the action names are shown as the API reports them, as in legacy's chart. `npm run i18n:check` must pass.
+- [x] T120 [US8] Implement the statistics query in `src/features/quarantine/api.ts` (key `['spam-policy','statistics']`; the quarantine feature never imports from `spam-filter` or `rate-limits`, research R4), `src/features/quarantine/statistics.ts`, `src/features/quarantine/components/statistics/ActionStatisticsList.vue` and `src/features/quarantine/pages/SpamFilterStatisticsPage.vue`. Register the `quarantine-statistics` route (`meta.roles: ['admin']`, `meta.sectionNav` "Statistics") before `quarantine-item`.
+- [x] T121 [US8] Add the form map's new `quarantine.statistics.*` strings (total, period lines, the reset note) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`; the action names are shown as the API reports them, as in legacy's chart. `npm run i18n:check` must pass.
 
 **Checkpoint**: US8 works on its own.
 
@@ -828,7 +828,7 @@ the filters and the presentation of each kind of record from the mock (spec US9)
 
 ### Tests for User Story 9 (write first; must fail)
 
-- [ ] T122 [US9] Create `tests/mocks/factories/quarantine-audit.ts` with records of the 12 event types: a release with steps, records of one bulk action sharing `bulkRequestId`, a settings change with the template's sizes, entry creation and removal, rate limit changes, a bucket reset, and failures with their `failureReason`. A record's `recipient` carries a right-to-left override. Extend `tests/mocks/handlers/audit.ts` so that the `targetType` and `targetId` filters work for them, and add the scenario `quarantine-audit` to `tests/mocks/scenarios/quarantine.ts`.
+- [x] T122 [US9] Create `tests/mocks/factories/quarantine-audit.ts` with records of the 12 event types: a release with steps, records of one bulk action sharing `bulkRequestId`, a settings change with the template's sizes, entry creation and removal, rate limit changes, a bucket reset, and failures with their `failureReason`. A record's `recipient` carries a right-to-left override. Extend `tests/mocks/handlers/audit.ts` so that the `targetType` and `targetId` filters work for them, and add the scenario `quarantine-audit` to `tests/mocks/scenarios/quarantine.ts`.
 - [ ] T123 [P] [US9] Write `tests/e2e/audit-log/quarantine-history.spec.ts`. It covers:
   - US9-AS1: the release record shows the actor, time, client address, event label and outcome, with the details (queue ID, recipient, sender, action, steps) as generic key–value text, the recipient's override as a marker, and no subject or content;
   - US9-AS2: the template record shows its old and new sizes in the generic view;
@@ -844,17 +844,17 @@ the filters and the presentation of each kind of record from the mock (spec US9)
 
 ### Implementation for User Story 9
 
-- [ ] T125 [US9] Add the 12 event types and 7 target types to `src/features/audit-log/labels.ts`, and render the values of `src/features/audit-log/components/AuditEventDetails.vue`'s generic view through `PlainText` (research R23).
+- [x] T125 [US9] Add the 12 event types and 7 target types to `src/features/audit-log/labels.ts`, and render the values of `src/features/audit-log/components/AuditEventDetails.vue`'s generic view through `PlainText` (research R23).
   - Check `docs/audit-events.md` in mailcow-rest-v2 at the pinned commit. If it has API 006's section (API gap G3), add translated labels `auditLog.detailKey.<key>` for the documented keys, and translate enumeration values where the section names them. Unknown keys stay verbatim (API convention "Audit record details").
   - If the section is missing, keep the generic view and note G3 as still open for API 006 in `specs/006-quarantine-spam-policy/plan.md`.
-- [ ] T126 [US9] Place `HistoryLink` for administrators (research R23 table):
+- [x] T126 [US9] Place `HistoryLink` for administrators (research R23 table):
   - `src/features/quarantine/pages/QuarantineSettingsPage.vue`;
   - `src/features/quarantine/components/NotificationSettingsPanel.vue` (mailbox page only);
   - `src/features/spam-filter/components/SpamScorePanel.vue` (mailbox page only);
   - `src/features/spam-filter/components/PolicyEntryRow.vue` (own entries);
   - `src/features/rate-limits/components/RateLimitPanel.vue` and `src/features/rate-limits/components/RateLimitList.vue`;
   - `src/features/spam-filter/components/ObjectHistoryMenu.vue`, which groups the object page's links.
-- [ ] T127 [US9] Add the `auditLog.event.*` and `auditLog.target.*` messages for the 006 values, and any failure reason the records use, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Confirm that they are listed in `src/i18n/coverage.json` (T003). `npm run i18n:check` must pass.
+- [x] T127 [US9] Add the `auditLog.event.*` and `auditLog.target.*` messages for the 006 values, and any failure reason the records use, to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Confirm that they are listed in `src/i18n/coverage.json` (T003). `npm run i18n:check` must pass.
 
 **Checkpoint**: All user stories work on their own.
 
@@ -880,11 +880,11 @@ that every panel exists (research R26, FR-006, FR-086). The mailbox list bulk ac
   - `tests/unit/features/alias-domains/AliasDomainDetailPage.spec.ts`.
 
   Write `tests/unit/features/spam-filter/SpamFilterLink.spec.ts`: rendered only with `canReadPolicy` or `canReadRateLimits`, and the right route per kind with an optional fragment.
-- [ ] T130 Implement `src/features/spam-filter/components/SpamFilterLink.vue` and export it from `src/features/spam-filter/index.ts`.
-- [ ] T131 Add the "Spam filter and limits" section entry after Groupware, and the Delivery rate limit link, to `src/features/domains/pages/DomainDetailPage.vue` (P16).
-- [ ] T132 Add the entry to `src/features/mailboxes/components/display/MailboxSectionNav.vue`, and fill the `to` of the notification and rate limit entries in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue` (P17).
-- [ ] T133 Add the link to `src/features/alias-domains/pages/AliasDomainDetailPage.vue`, and point its rate limit note and its creation report's rate limit hint at `spam-filter-alias-domain` with `#rate-limit` (P18). Do the same for the rate limit hints of UI 002's and UI 003's creation reports, where they exist.
-- [ ] T134 Add the entry point labels (`spamFilter.entry.*`) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass. T128 and T129 must pass.
+- [x] T130 Implement `src/features/spam-filter/components/SpamFilterLink.vue` and export it from `src/features/spam-filter/index.ts`.
+- [x] T131 Add the "Spam filter and limits" section entry after Groupware, and the Delivery rate limit link, to `src/features/domains/pages/DomainDetailPage.vue` (P16).
+- [x] T132 Add the entry to `src/features/mailboxes/components/display/MailboxSectionNav.vue`, and fill the `to` of the notification and rate limit entries in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue` (P17).
+- [x] T133 Add the link to `src/features/alias-domains/pages/AliasDomainDetailPage.vue`, and point its rate limit note and its creation report's rate limit hint at `spam-filter-alias-domain` with `#rate-limit` (P18). Do the same for the rate limit hints of UI 002's and UI 003's creation reports, where they exist.
+- [x] T134 Add the entry point labels (`spamFilter.entry.*`) to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` must pass. T128 and T129 must pass.
 
 **Checkpoint**: Every host screen links to this feature, and no link appears where the target is
 not reachable.
@@ -904,7 +904,7 @@ not reachable.
   - `localStorage`, `sessionStorage` and IndexedDB hold only UI 001's allowed keys (FR-085);
   - after sign-out, Back shows no quarantine content, and the query cache holds no item detail.
 - [ ] T137 Run `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JavaScript is unchanged and at most 204,800 bytes gzipped, and `/ng/quarantine` scores at least 0.9 for performance and accessibility (SC-010). Typical fixes: lazy dialogs, and splitting the settings page chunk.
-- [ ] T138 [P] Add the plan's three parity notes to the "Legacy Parity" tables of `specs/006-quarantine-spam-policy/spec.md`: visible bidi and control markers, the statistics period, and downloads always saved.
+- [x] T138 [P] Add the plan's three parity notes to the "Legacy Parity" tables of `specs/006-quarantine-spam-policy/spec.md`: visible bidi and control markers, the statistics period, and downloads always saved.
 - [ ] T139 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone with `npm run preview:mock` on the local network. Record:
   - the SC-001 and SC-010 timings;
   - a VoiceOver and TalkBack pass through US1, US2, US4 and US7;
@@ -1065,3 +1065,19 @@ Edits to the shared files listed above run one at a time.
 - Never add a hand-written API type, a `v-html`, an inline style or script, a storage key, an
   automatic repeat of an item action, a timer refresh, or a hard-coded limit that the capabilities
   carry. Never render message data except through `PlainText`.
+
+### 2026-10-20 implementation reconciliation
+
+The checked implementation tasks follow the approved legacy form map above. Spam policy is a
+section of the existing domain, alias-domain and mailbox pages, after rate limits. Notification
+settings save as a companion of the mailbox section; its bulk menu uses the mailbox selection.
+There are no separate object pages, learning switches, template size indicators, or extra removal
+buttons. Those superseded component names in the original tasks are not additional features.
+
+Browser coverage is grouped by behavior in `tests/e2e/quarantine/`,
+`tests/e2e/spam-filter/policy.spec.ts`, `tests/e2e/rate-limits/limits.spec.ts` and
+`tests/e2e/audit-log/quarantine-history.spec.ts`. The isolated API round trips are in
+`tests/smoke/quarantine.smoke.spec.ts`. Broader acceptance tasks remain open where the original
+checklist requires additional cases, physical devices, moderated users, or live-host parity.
+See the quickstart validation log for executed evidence; checked implementation does not claim
+those manual checks were performed.

@@ -131,6 +131,7 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
       :data-entry="entryKey(item)"
       class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
     >
+      <!-- eslint-disable-next-line vuejs-accessibility/heading-has-content -- PlainText renders the accessible object name. -->
       <h2 class="text-base font-semibold break-all text-gray-900 dark:text-white">
         <PlainText :value="item.object" />
       </h2>

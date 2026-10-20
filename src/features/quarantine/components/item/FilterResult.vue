@@ -13,6 +13,7 @@ import PlainText from '@/shared/components/PlainText.vue'
 
 import { formatSymbolScore, sortSymbols } from '../../symbols'
 import ActionBadge from '../ActionBadge.vue'
+import ExpandableText from './ExpandableText.vue'
 
 const props = defineProps<{
   item: Pick<QuarantineItemDetails, 'score' | 'action' | 'filterAction' | 'symbols'>
@@ -59,7 +60,7 @@ const tone = (score: number) =>
           class="mt-1 flex flex-col gap-0.5 text-xs text-gray-700 dark:text-gray-300"
         >
           <li v-for="(option, position) in symbol.options" :key="position">
-            <PlainText :value="option" />
+            <ExpandableText :value="option" />
           </li>
         </ul>
       </li>

@@ -209,3 +209,33 @@ recipient integration, smoke tests and the feature's final integration/release c
 open. T060, T062 and T064 are not completed by the bulk slice. The owner's performance minimum of
 80 and shell script-transfer allowance of 210 KiB are already on UI main; preserve those policies
 when this older worktree is eventually integrated.
+
+**2026-10-20, item actions and host integration**: resumed past the earlier checkpoint. The
+mailbox, domain and alias-domain pages now mount the spam-filter section in legacy order. The
+mailbox's two notification fields save with its existing Save action and their own version tag;
+the mailbox list offers the notification bulk menu. Single-message and bulk-notification actions
+lock during confirmation and sending, retain explicit retry targets, and do not resend unknown
+outcomes. Administrators have a notification History link in the mailbox section.
+
+The initial 57 item/action/download/host integration checks pass on Chromium at 360 px and desktop
+and WebKit at 360 px. The policy/settings/notification/rate-limit run passed 27 checks; the six
+selector corrections passed in the subsequent focused run. The hostile corpus covers 61 vectors.
+It exposed a WebKit stall on headers and symbol options with 5,000 lines: these metadata fields
+now have bounded, expandable plain-text previews. The focused six-case check including that
+vector passes on all three profiles, without changing timeouts or retries.
+
+The feature unit suites passed 163 tests before the additional settings/statistics/cache/preview
+checks. New regressions cover duplicate submission, changes during confirmation, retry scope,
+notification version conflicts, byte limits and bounded metadata rendering. All three isolated
+API smoke cases passed across the initial and focused HTTPS runs: message download and delivery
+to Mailpit; mailbox notifications, scores, policy and rate limit round trips; invalid template
+rejection and statistics matching the API. The dev API supplies deterministic statistics; this
+is not a real Rspamd parity measurement.
+
+Smoke runs use `SMOKE_BASE_URL=https://web/ng/ SMOKE_IGNORE_HTTPS_ERRORS=1` inside the isolated
+`u006-smoke_default` Docker network. HTTP on the service hostname cannot retain the API's Secure
+cookie. The opt-in certificate exception is confined to the smoke browser. No deployed mailbox
+or message was modified. Logs and failure traces are retained under the API checkout's ignored
+`storage/app/restart-2026-10-20/u006/`. Final integration checks and deployment are recorded below
+when complete. Physical-device, assistive-technology, moderated-user and live-mailcow comparisons
+remain outside these automated results.

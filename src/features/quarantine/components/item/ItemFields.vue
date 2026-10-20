@@ -20,6 +20,7 @@ import PlainText from '@/shared/components/PlainText.vue'
 
 import { recipientMailboxOptions } from '../../api'
 import NotifiedBadge from '../NotifiedBadge.vue'
+import ExpandableText from './ExpandableText.vue'
 import VirusBadge from '../VirusBadge.vue'
 
 const props = defineProps<{
@@ -54,7 +55,7 @@ const HEADING = 'text-lg font-semibold text-gray-900 dark:text-white'
   <section aria-labelledby="qitem-subject" class="flex flex-col gap-1">
     <h2 id="qitem-subject" :class="HEADING">{{ lt('quarantine.subj') }}</h2>
     <p data-field="subject" class="text-gray-900 dark:text-white">
-      <PlainText :value="subject || '-'" />
+      <ExpandableText :value="subject || '-'" />
     </p>
   </section>
   <section aria-labelledby="qitem-recipients" class="flex flex-col gap-1">
@@ -87,7 +88,7 @@ const HEADING = 'text-lg font-semibold text-gray-900 dark:text-white'
   <section aria-labelledby="qitem-from" class="flex flex-col gap-1">
     <h2 id="qitem-from" :class="HEADING">{{ lt('quarantine.sender_header') }}</h2>
     <p data-field="from" class="text-gray-900 dark:text-white">
-      <PlainText :value="item.content?.from || '-'" />
+      <ExpandableText :value="item.content?.from || '-'" />
     </p>
   </section>
   <section aria-labelledby="qitem-sender" class="flex flex-col gap-1">

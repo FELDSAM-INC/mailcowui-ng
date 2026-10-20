@@ -18,6 +18,7 @@ import { useIdentityQuery } from '@/app/session/queries'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { feature004Permissions } from '@/features/aliases-common'
 import { RateLimitSection } from '@/features/rate-limits'
+import { SpamFilterSection } from '@/features/spam-filter'
 import { lt } from '@/i18n'
 import CreationReport from '@/shared/components/CreationReport.vue'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
@@ -179,5 +180,6 @@ const subtitle = computed(() => {
     />
     <!-- UI 006: legacy's rate limit form below the edit form, reached with `#rate-limit`. -->
     <RateLimitSection v-if="!showOnly" kind="aliasDomain" :object="aliasDomain.name" />
+    <SpamFilterSection v-if="!showOnly" kind="aliasDomain" :owner="aliasDomain.name" />
   </article>
 </template>

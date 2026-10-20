@@ -3,7 +3,7 @@
 // section with its own save (owner rule 1:1, legacy form map): the identity provider, full name,
 // tags, quota in MiB with its "max." badge and "0 = ∞"; the sender-dependent transports (UI 009's
 // choice for administrators and `mailboxRelayhost`, saved with the section); the tagged mail handling, quarantine
-// notification and category and encryption policy, read-only until UI 005 and UI 006; for the
+// notification and category saved with the section, and the encryption policy; for the
 // built-in source the password with its repeat, check and policy, and the recovery e-mail; the
 // allowed protocols; then the status, forced password change, forced 2FA enrollment and SOGo access
 // with their legacy help, the save, and the creation and modification times. UI 004 adds "Allow to
@@ -13,6 +13,15 @@ import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useBranding } from '@/app/branding/public-config'
+import {
+  canChangeCategory,
+  canChangeFrequency,
+  canSeeHistory,
+  NotificationOptionGroup,
+  useNotificationEditor,
+} from '@/features/quarantine'
+import { combineCompanions } from '@/shared/components/editable-section'
+import { problemOf } from '@/api'
 import { RelayhostAssignmentField, useRelayhostAssignment } from '@/features/routing'
 import { ExternalSenderField, SenderAclField, useSenderSettings } from '@/features/sender-settings'
 import { lt } from '@/i18n'
@@ -146,9 +155,23 @@ const relayhostField = useRelayhostAssignment({
   enabled: () => canSeeRelayhost(props.identity),
 })
 
+const notifications = useNotificationEditor({
+  mailbox: () => props.mailbox.address,
+  canChange: (field) =>
+    field === 'frequency'
+      ? canChangeFrequency(props.identity, props.mailbox.address)
+      : canChangeCategory(props.identity, props.mailbox.address),
+})
+watch(
+  () => props.editing,
+  (editing) => {
+    if (!editing) notifications.close()
+  },
+)
+
 const s = useMailboxSection<Form>(props, emit as never, {
   id: 'mailbox',
-  companion: relayhostField.companion,
+  companion: combineCompanions(relayhostField.companion, notifications.companion),
   fields: FIELDS,
   toForm,
   validate,
@@ -303,6 +326,12 @@ const times = computed(() => [
     @discard="both.discard"
   >
     <template #header-actions>
+      <HistoryLink
+        target-type="quarantineNotificationSettings"
+        :target-id="mailbox.address"
+        :label="`${t('history.link')}: ${lt('user.quarantine_notification')}`"
+        :allowed="canSeeHistory(identity)"
+      />
       <!-- UI 004 US8: the history of "Allow to send as" and the external sender addresses. -->
       <HistoryLink
         target-type="mailboxSenderSettings"
@@ -372,21 +401,30 @@ const times = computed(() => [
         :help-keys="['user.tag_help_explain', 'user.tag_help_example']"
         readonly
       />
-      <LegacyRadioGroup
-        id-prefix="section-mailbox-quarantineNotification"
-        legend-key="user.quarantine_notification"
-        :model-value="mailbox.quarantineNotification"
-        :options="QUARANTINE_NOTIFICATION_OPTIONS"
-        :help-keys="['user.quarantine_notification_info']"
-        readonly
-      />
-      <LegacyRadioGroup
-        id-prefix="section-mailbox-quarantineCategory"
-        legend-key="user.quarantine_category"
-        :model-value="mailbox.quarantineCategory"
-        :options="QUARANTINE_CATEGORY_OPTIONS"
-        :help-keys="['user.quarantine_category_info']"
-        readonly
+      <template v-if="notifications.query.data.value">
+        <NotificationOptionGroup
+          id-prefix="section-mailbox-quarantine"
+          field="frequency"
+          :model-value="notifications.frequency.value"
+          :readonly="!notifications.editable('frequency')"
+          @update:model-value="notifications.choose('frequency', $event)"
+        />
+        <NotificationOptionGroup
+          id-prefix="section-mailbox-quarantine"
+          field="category"
+          :model-value="notifications.category.value"
+          :readonly="!notifications.editable('category')"
+          @update:model-value="notifications.choose('category', $event)"
+        />
+      </template>
+      <p v-else-if="notifications.query.isPending.value" role="status">
+        {{ lt('datatables.loadingRecords') }}
+      </p>
+      <ProblemMessage
+        v-else
+        :problem="problemOf(notifications.query.error.value)"
+        retry
+        @retry="notifications.query.refetch()"
       />
       <TlsPolicyField
         id-prefix="section-mailbox-tls"

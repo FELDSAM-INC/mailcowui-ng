@@ -70,6 +70,8 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         browserName: 'chromium',
         baseURL: process.env.SMOKE_BASE_URL ?? `http://localhost:${smokeWebPort}/ng/`,
+        // Opt in only for the isolated dev stack's self-signed HTTPS certificate.
+        ignoreHTTPSErrors: process.env.SMOKE_IGNORE_HTTPS_ERRORS === '1',
         // UI 012 (T101): the dev stack's API sends the browser to its Keycloak by service name
         // (http://keycloak:8080) and back to http://localhost/ng/sso/return without a port, so the
         // browser maps both to the published ports.

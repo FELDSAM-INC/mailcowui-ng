@@ -9,10 +9,7 @@ import { defineComponent, h } from 'vue'
 import { isApiProblem, type QuarantineItemDetails } from '@/api'
 import type { ItemActionKind } from '@/features/quarantine/api'
 import { fetchQuarantineItem } from '@/features/quarantine/api'
-import {
-  useItemAction,
-  type RereadResult,
-} from '@/features/quarantine/composables/useItemAction'
+import { useItemAction, type RereadResult } from '@/features/quarantine/composables/useItemAction'
 
 import { mockState, server, useScenario } from '../../../mocks/node'
 import { mountWithApp } from '../../support/mount'
@@ -23,11 +20,9 @@ afterEach(() => {
 
 const actionRequests = () =>
   mockState().requests.filter((request) =>
-    [
-      'releaseQuarantineItem',
-      'learnQuarantineItemAsSpam',
-      'deleteQuarantineItem',
-    ].includes(request.operationId ?? ''),
+    ['releaseQuarantineItem', 'learnQuarantineItemAsSpam', 'deleteQuarantineItem'].includes(
+      request.operationId ?? '',
+    ),
   )
 const reads = () =>
   mockState().requests.filter((request) => request.operationId === 'getQuarantineItem')
@@ -68,6 +63,29 @@ async function setup(
 }
 
 describe('useItemAction', () => {
+  it('accepts only one action while its confirmation is pending', async () => {
+    let answer!: (confirmed: boolean) => void
+    const ask = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          answer = resolve
+        }),
+    )
+    const { action } = await setup('quarantine-mailbox-user', 2, ask)
+    const first = action.run('delete')
+    const second = action.run('delete')
+    expect(ask).toHaveBeenCalledOnce()
+    answer(true)
+    await Promise.all([first, second])
+    expect(actionRequests()).toHaveLength(1)
+  })
+
+  it('prevents duplicate immediate deliveries before the first await resolves', async () => {
+    const { action } = await setup('quarantine-mailbox-user', 2)
+    await Promise.all([action.run('release'), action.run('release')])
+    expect(actionRequests()).toHaveLength(1)
+  })
+
   it('delivers with learning and If-Match, then returns with legacy’s alerts', async () => {
     const { item, action, finished } = await setup('quarantine-mailbox-user', 2)
     await action.run('release')

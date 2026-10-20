@@ -26,7 +26,7 @@ import { useIdentityQuery } from '@/app/session/queries'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import AclReadOnlyNote from '@/shared/components/AclReadOnlyNote.vue'
-import PlainText from '@/shared/components/PlainText.vue'
+import ExpandableText from '../components/item/ExpandableText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { ChevronLeftIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -141,7 +141,7 @@ function onAction(choice: ItemBarAction) {
   )
 }
 
-const busy = computed(() => action.sending.value || downloading.value)
+const busy = computed(() => action.busy.value || action.waiting.value || downloading.value)
 </script>
 
 <template>
@@ -177,7 +177,7 @@ const busy = computed(() => action.sending.value || downloading.value)
         data-item-subject
         class="text-lg wrap-anywhere text-gray-700 dark:text-gray-300"
       >
-        <PlainText :value="(item.content?.subject ?? item.subject) || '-'" />
+        <ExpandableText :value="(item.content?.subject ?? item.subject) || '-'" />
       </p>
     </header>
 

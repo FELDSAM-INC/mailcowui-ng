@@ -52,7 +52,8 @@ export function useNotificationBulk<E extends NotificationBulkEntry>(
 ) {
   const { t } = useI18n()
   const client = useQueryClient()
-  const phase = ref<'idle' | 'running' | 'results'>('idle')
+  const phase = ref<'idle' | 'confirming' | 'running' | 'results'>('idle')
+  const busy = computed(() => phase.value === 'confirming' || phase.value === 'running')
   const rows = shallowRef<BulkRow[]>([])
   const running = ref(0)
   const problem = shallowRef<ApiProblem | null>(null)
@@ -75,55 +76,82 @@ export function useNotificationBulk<E extends NotificationBulkEntry>(
   }
 
   async function run(choice: NotificationBulkChoice, retrying = false) {
-    if (phase.value === 'running') return
-    if (retrying) await options.refresh?.()
-    const ids = options.selection.ids.value
-    const mailboxes = options.entries().filter((entry) => ids.has(entry.address))
-    if (mailboxes.length === 0) return
-    if (!retrying && !(await ask(choice, mailboxes))) return
-    last = choice
-    problem.value = null
-    phase.value = 'running'
-    running.value = mailboxes.length
-    announce(t('bulk.progress', { count: mailboxes.length }))
-    const entries = mailboxes.map((entry) => ({ name: entry.address, unicodeName: labelOf(entry) }))
+    if (busy.value) return
+    const previousPhase = phase.value
+    const retryIds = new Set(rows.value.filter(isRetryable).map((row) => row.id))
+    if (retrying && ![...retryIds].some((id) => options.selection.isSelected(id))) return
+    phase.value = 'confirming'
     try {
-      const result = await applyNotificationBulk(
-        client,
-        notificationBulkRequest(
-          choice,
-          mailboxes.map((entry) => entry.address),
-        ),
-      )
-      rows.value = rowsFromBulkResult(result, entries)
-      options.selection.keep(rows.value.filter(isRetryable).map((row) => row.id))
-    } catch (error) {
-      const failure = problemOf(error)!
-      if (failure.kind === 'network') {
-        rows.value = unknownRows(entries)
-        options.selection.clear()
-      } else {
-        rows.value = []
-        problem.value = failure
+      if (retrying) await options.refresh?.()
+      const mailboxes = options
+        .entries()
+        .filter(
+          (entry) =>
+            options.selection.isSelected(entry.address) &&
+            (!retrying || retryIds.has(entry.address)),
+        )
+      if (mailboxes.length === 0 || (!retrying && !(await ask(choice, mailboxes)))) {
+        phase.value = previousPhase
+        return
       }
+      if (mailboxes.some((entry) => !options.selection.isSelected(entry.address))) {
+        phase.value = previousPhase
+        return
+      }
+      last = choice
+      problem.value = null
+      phase.value = 'running'
+      running.value = mailboxes.length
+      announce(t('bulk.progress', { count: mailboxes.length }))
+      const entries = mailboxes.map((entry) => ({
+        name: entry.address,
+        unicodeName: labelOf(entry),
+      }))
+      try {
+        const result = await applyNotificationBulk(
+          client,
+          notificationBulkRequest(
+            choice,
+            mailboxes.map((entry) => entry.address),
+          ),
+        )
+        rows.value = rowsFromBulkResult(result, entries)
+        options.selection.keep(rows.value.filter(isRetryable).map((row) => row.id))
+      } catch (error) {
+        const failure = problemOf(error)!
+        if (failure.kind === 'network') {
+          rows.value = unknownRows(entries)
+          options.selection.clear()
+          // A lost answer may have followed a successful write. Re-read without resending it.
+          await options.refresh?.().catch(() => undefined)
+        } else {
+          rows.value = []
+          problem.value = failure
+        }
+      }
+      phase.value = 'results'
     } finally {
       running.value = 0
+      if (phase.value === 'confirming') phase.value = previousPhase
     }
-    phase.value = 'results'
   }
 
   return {
     phase,
+    busy,
     rows,
     running,
     problem,
-    canRetry: computed(() => rows.value.some(isRetryable) && options.selection.count.value > 0),
+    canRetry: computed(() =>
+      rows.value.some((row) => isRetryable(row) && options.selection.isSelected(row.id)),
+    ),
     /** Legacy's message of a done mailbox; other rows show their problem. */
     message: (row: BulkRow) =>
       row.outcome === 'done' ? lt('success.mailbox_modified', row.id) : null,
     run: (choice: NotificationBulkChoice) => run(choice),
     retry: () => (last ? run(last, true) : Promise.resolve()),
     close() {
+      if (busy.value) return
       phase.value = 'idle'
       rows.value = []
       problem.value = null

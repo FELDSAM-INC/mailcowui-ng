@@ -20,6 +20,7 @@ import { CheckDnsAction, DomainDkimSection, DomainMtaStsSection } from '@/featur
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { mailboxCreateLink, mailboxListLink } from '@/features/mailboxes'
 import { RateLimitSection } from '@/features/rate-limits'
+import { SpamFilterSection } from '@/features/spam-filter'
 import { buttonVariants } from '@/shared/ui/button'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -254,6 +255,7 @@ watch(
     <DomainDkimSection v-if="!showOnly" :name="domain.name" kind="domain" />
     <!-- UI 006: legacy's "Rate limit" tab (`#dratelimit`), reached with `#rate-limit`. -->
     <RateLimitSection v-if="!showOnly" kind="domain" :object="domain.name" />
+    <SpamFilterSection v-if="!showOnly" kind="domain" :owner="domain.name" />
     <!-- UI 010: legacy's MTA-STS tab, before "Domain wide footer". -->
     <DomainMtaStsSection v-if="!showOnly" :domain="domain.name" />
     <FooterSection

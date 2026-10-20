@@ -28,6 +28,7 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
 import { RateLimitSection } from '@/features/rate-limits'
+import { SpamFilterSection } from '@/features/spam-filter'
 import { MailboxSyncJobsLink } from '@/features/sync-jobs'
 
 import { useMailbox } from '../api'
@@ -257,6 +258,7 @@ const subtitle = computed(() => {
     />
     <!-- UI 006: legacy's "Rate limit" tab (`#mrl`), reached with `#rate-limit`. -->
     <RateLimitSection v-if="!showOnly" kind="mailbox" :object="mailbox.address" />
+    <SpamFilterSection v-if="!showOnly" kind="mailbox" :owner="mailbox.address" />
     <RenameSection v-if="!showOnly" :mailbox="mailbox" @dirty="dirty = $event" />
   </article>
 </template>

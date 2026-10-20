@@ -17,12 +17,7 @@ import { computed, ref, shallowRef } from 'vue'
 import { problemOf, type QuarantineItem } from '@/api'
 import { text } from '@/i18n'
 
-import {
-  deletedLines,
-  reportLines,
-  toProblemOutcome,
-  type OutcomeLine,
-} from '../action-outcome'
+import { deletedLines, reportLines, toProblemOutcome, type OutcomeLine } from '../action-outcome'
 import { runItemAction, type ItemActionKind } from '../api'
 import { askItemAction } from '../confirmations'
 import { useBusyRecheck } from './useBusyRecheck'
@@ -43,15 +38,14 @@ export interface ItemActionOptions {
   ask?: (kind: ItemActionKind, item: ActionItem) => Promise<boolean>
 }
 
-export const goneLines = (): OutcomeLine[] => [
-  { kind: 'danger', text: text('problem.status.404') },
-]
+export const goneLines = (): OutcomeLine[] => [{ kind: 'danger', text: text('problem.status.404') }]
 
 export function useItemAction(options: ItemActionOptions) {
   const client = useQueryClient()
   const ask = options.ask ?? askItemAction
   const recheck = useBusyRecheck()
   const sending = ref(false)
+  const confirming = ref(false)
   const lines = shallowRef<OutcomeLine[]>([])
   /** The action a temporary failure left for the user to retry. */
   const retryKind = ref<ItemActionKind | null>(null)
@@ -64,9 +58,14 @@ export function useItemAction(options: ItemActionOptions) {
 
   async function run(kind: ItemActionKind) {
     const item = options.item()
-    if (!item || sending.value) return
+    if (!item || sending.value || confirming.value) return
     recheck.cancel()
-    if (!(await ask(kind, item))) return
+    confirming.value = true
+    try {
+      if (!(await ask(kind, item))) return
+    } finally {
+      confirming.value = false
+    }
     sending.value = true
     retryKind.value = null
     lines.value = []
@@ -95,7 +94,7 @@ export function useItemAction(options: ItemActionOptions) {
     waiting: recheck.pending,
     lines,
     retryKind,
-    busy: computed(() => sending.value),
+    busy: computed(() => sending.value || confirming.value),
     run,
     retry: () => (retryKind.value ? run(retryKind.value) : Promise.resolve()),
     dismiss() {

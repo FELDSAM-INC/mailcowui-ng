@@ -333,3 +333,24 @@ sign-in; and the domain, alias, DKIM and monitoring dashboard screens that use t
 shared controls. Both-theme axe, reflow, touch targets and CSP remain enforced. No failures or
 retries occurred. See `release-browser.log`; this run follows the earlier integration coverage
 rather than replacing it. Deployment is recorded in the following release note.
+
+**2026-10-20, deployed to maildev**: UI main was fast-forwarded and pushed through `3de1d64a`.
+The standard deployment script built its clean Git archive and installed
+`mailcowui-ng:3de1d64a` at **https://maildev.feldhost.cz/ng/**. Only `ng-mailcow` was recreated;
+API `mailcow-rest-v2:b3dc2ab` remains running and healthy. Compose validation, container health,
+HTTP 200 and the production CSP check pass. Previous UI image `mailcowui-ng:5e3c1e89` remains on
+the host for rollback.
+
+Live public administrator sign-in checks pass on mobile Chromium, desktop Chromium and mobile
+WebKit: fields visible, submit enabled, no horizontal overflow or JavaScript errors, the CSP
+recorder clean, and API readiness HTTP 200. No credentials were submitted. The probe uses the
+repository's existing CSP recorder (including its documented WebKit native-control exception)
+and matches the `username` autocomplete token, allowing conditional passkey autofill's
+`username webauthn`. The earlier standalone probe failures are retained separately; they did not
+require an application change. Logs: `deploy-maildev.log`, `deploy-maildev-browser.log` and
+`deploy-maildev-health.log` under the same artifact root.
+
+This deployment includes the implemented quarantine, spam policy, notification and rate-limit
+flows described above. The original checklist's remaining acceptance cases, physical devices,
+assistive-technology and live authenticated parity checks remain open. The separate UI 005
+account/self-service worktree is still unfinished and is not part of this release.

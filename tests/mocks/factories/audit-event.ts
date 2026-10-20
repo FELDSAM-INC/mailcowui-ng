@@ -25,6 +25,104 @@ export function auditEvent(overrides: Partial<AuditEvent> = {}): AuditEvent {
   }
 }
 
+/** API 005: every target ID is the mailbox; object IDs and redacted changes are details. */
+export function selfServiceAuditEvents(mailbox: string, now: number): AuditEvent[] {
+  const kinds: [AuditEvent['eventType'], NonNullable<AuditEvent['target']>['type']][] = [
+    ['ownPasswordChange', 'accountPassword'],
+    ['appPasswordCreation', 'appPassword'],
+    ['ownSecondFactorEnrolment', 'secondFactor'],
+    ['ownSecondFactorRemoval', 'secondFactor'],
+    ['ownRecoveryEmailChange', 'recoveryEmail'],
+    ['passwordResetRequest', 'passwordReset'],
+    ['passwordResetCompletion', 'passwordReset'],
+    ['appPasswordUpdate', 'appPassword'],
+    ['appPasswordDeletion', 'appPassword'],
+    ['temporaryAliasCreation', 'temporaryAlias'],
+    ['temporaryAliasUpdate', 'temporaryAlias'],
+    ['temporaryAliasDeletion', 'temporaryAlias'],
+    ['sieveFilterCreation', 'sieveFilter'],
+    ['sieveFilterUpdate', 'sieveFilter'],
+    ['sieveFilterDeletion', 'sieveFilter'],
+    ['pushNotificationSettingsUpdate', 'pushNotificationSettings'],
+    ['pushNotificationSettingsDeletion', 'pushNotificationSettings'],
+    ['pushNotificationVerification', 'pushNotificationSettings'],
+    ['mailSettingsUpdate', 'mailSettings'],
+    ['recentLoginsClear', 'recentLogins'],
+    ['activeSyncCacheReset', 'groupwareData'],
+    ['groupwareProfileReset', 'groupwareData'],
+    ['webmailHandOff', 'webmailHandOff'],
+  ]
+  const details: Partial<Record<AuditEvent['eventType'], AuditEvent['details']>> = {
+    ownPasswordChange: { password: 'changed', forcedChangeResolved: false, sessionsEnded: 2 },
+    appPasswordCreation: {
+      appPasswordId: 2,
+      values: { name: 'Phone', protocols: ['imap', 'smtp'], active: true },
+      passwordGenerated: true,
+    },
+    appPasswordUpdate: { appPasswordId: 2, changes: { password: 'changed' } },
+    appPasswordDeletion: { appPasswordId: 3 },
+    ownSecondFactorEnrolment: {
+      secondFactorId: 21,
+      secondFactorType: 'totp',
+      restrictionLifted: false,
+    },
+    ownSecondFactorRemoval: { secondFactorId: 22, secondFactorType: 'webauthn' },
+    passwordResetCompletion: { password: 'changed', forcedChangeResolved: false, sessionsEnded: 3 },
+    temporaryAliasCreation: {
+      temporaryAlias: 'bavoki.rumesa@example.org',
+      values: { description: 'Shop', permanent: true, expiresAt: null },
+    },
+    sieveFilterCreation: {
+      sieveFilterId: 1,
+      values: { description: 'Sort mail', kind: 'prefilter', active: true, script: { size: 120 } },
+    },
+    sieveFilterUpdate: {
+      sieveFilterId: 1,
+      changes: { script: { changed: true, oldSize: 120, newSize: 240 } },
+    },
+    pushNotificationSettingsUpdate: {
+      changes: {
+        token: 'set',
+        userKey: 'changed',
+        text: { changed: true, oldSize: 12, newSize: 24 },
+      },
+      created: false,
+    },
+    recentLoginsClear: { removedRecentLogins: 3, removedSignInRecords: 1 },
+  }
+  const events = kinds.map(([eventType, type], index) =>
+    auditEvent({
+      eventType,
+      occurredAt: new Date(now - index * 60_000).toISOString(),
+      actor: { username: mailbox, role: 'mailboxUser', apiKeyId: null },
+      target: {
+        type,
+        id: mailbox,
+        name:
+          type === 'appPassword'
+            ? 'Phone'
+            : type === 'temporaryAlias'
+              ? 'bavoki.rumesa@example.org'
+              : type === 'sieveFilter'
+                ? 'Sort mail'
+                : null,
+      },
+      details: details[eventType] ?? {},
+    }),
+  )
+  events.push(
+    auditEvent({
+      eventType: 'ownPasswordChange',
+      occurredAt: new Date(now - 24 * 60_000).toISOString(),
+      target: { type: 'accountPassword', id: mailbox, name: null },
+      outcome: 'failure',
+      failureReason: 'currentPasswordIncorrect',
+      details: { status: 403, problemType: '/api/v2/problems/current-password-incorrect' },
+    }),
+  )
+  return events
+}
+
 /** The records API 002 writes for a domain, its footer and a template (UI 002 research D28). */
 export type DomainAuditKind =
   | 'domainCreation'

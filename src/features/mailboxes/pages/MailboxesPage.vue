@@ -34,6 +34,7 @@ import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import type { PageSize } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -64,6 +65,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 const capabilities = useMailboxCapabilities()
 const identity = useIdentityQuery()
 const quarantineCapabilities = useQuarantineCapabilities()
+const selfServiceCapabilities = useSelfServiceCapabilities()
 // US6: an explicit selection mode on the current page, cleared (and announced) when the page,
 // search, filters, sort or size change.
 const selection = useBulkSelection({
@@ -71,6 +73,7 @@ const selection = useBulkSelection({
     const limits = [
       capabilities.data.value?.bulkLimit,
       quarantineCapabilities.data.value?.bulkLimit,
+      selfServiceCapabilities.data.value?.bulkLimit,
     ].filter((value): value is number => value !== undefined)
     return limits.length ? Math.min(...limits) : undefined
   },
@@ -445,6 +448,7 @@ function refresh() {
       <template #default="{ disabled }">
         <MailboxBulkActions
           :disabled="disabled"
+          :tls="selfServiceCapabilities.data.value?.bulkLimit !== undefined"
           :protocols="canBulkProtocols(identity.data.value)"
           @run="runBulk"
         />

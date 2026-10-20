@@ -6,6 +6,7 @@
 // and continues with the next action or lands as after sign-in.
 import { computed, ref, useId } from 'vue'
 
+import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import { changeOwnPassword, useOwnPasswordPolicy } from '@/features/account'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
@@ -71,6 +72,21 @@ async function submit() {
 <template>
   <form class="flex flex-col gap-4" novalidate data-forced-password @submit.prevent="submit">
     <ErrorSummary :id="form.summaryId" :items="form.summary.value" />
+    <p
+      v-if="policyQuery.isPending.value"
+      data-password-policy-loading
+      role="status"
+      aria-busy="true"
+      class="text-sm text-gray-700 dark:text-gray-300"
+    >
+      {{ lt('footer.loading') }}
+    </p>
+    <ProblemMessage
+      v-else-if="policyQuery.isError.value"
+      :problem="problemOf(policyQuery.error.value)"
+      retry
+      @retry="policyQuery.refetch()"
+    />
     <NewPasswordFields
       ref="fields"
       v-model:password="password"

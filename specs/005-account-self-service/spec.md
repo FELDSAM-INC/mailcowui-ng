@@ -1142,6 +1142,9 @@ from upstream only in the recent-login service label (`WEBUI`). "Matched" keeps 
 | Sieve presets in the add-filter modal; global prefilter and postfilter | FR-096 | Moved | UI feature 013 |
 | Admin own password (through "edit admin") and domain-admin "change password" link | FR-021 | Improved | One own-password screen for every role |
 | Admins reaching a user's app passwords, temporary aliases or recent logins only by logging in as the user | FR-003, FR-004 | Improved | Mailbox context, without impersonation |
+| TOTP QR image and secret display | FR-046, FR-048, FR-113 | Improved | The server SVG is sanitized locally without an image request; the grouped key and authenticator-app link remain when the SVG cannot be shown safely (plan R10) |
+| Browser session after password reset | FR-041, FR-042 | Improved | The resetting browser and its other tabs follow the API's session termination before returning to sign-in (plan R12) |
+| Apple profile filename and embedded password | FR-103 to FR-105 | Improved | The download retains the server's product-based filename and tells the user to delete the file after installation (plan R21) |
 
 Legacy translation keys used verbatim (constitution IV 1.3.0; the plan's legacy form map is
 authoritative): the `user.*` keys for password, recovery e-mail,

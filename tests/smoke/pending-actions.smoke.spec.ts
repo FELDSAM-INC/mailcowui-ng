@@ -22,7 +22,9 @@ test('@005 @local-stack US1-AS5 bob completes the forced password change and sig
   const before = await readMailbox(administrator, bob.username)
   try {
     expect(before.forcePasswordChange).toBe(true)
-    await signIn(page, bob.username, bob.password)
+    // Keep this flow inside the app after the restriction is cleared. Without a return target,
+    // the normal default sign-in landing may hand a mailbox session to webmail.
+    await signIn(page, bob.username, bob.password, 'sign-in?returnTo=%2F')
     await expect(page.getByRole('heading', { level: 1, name: 'Actions required' })).toBeVisible()
     await expect(page.getByRole('link', { name: /classic interface/ })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Check again' })).toHaveCount(0)
@@ -35,7 +37,7 @@ test('@005 @local-stack US1-AS5 bob completes the forced password change and sig
     await expectHome(page, bob.username)
     expect((await readMailbox(administrator, bob.username)).forcePasswordChange).toBe(false)
     await signOut(page)
-    await signIn(page, bob.username, next)
+    await signIn(page, bob.username, next, 'sign-in?returnTo=%2F')
     await expectHome(page, bob.username)
     await signOut(page)
   } finally {

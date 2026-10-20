@@ -31,6 +31,7 @@ import type {
   MailboxTaggedMailHandling,
   MailboxUserPermissions,
   IdentityProviderType,
+  Identity,
   MtaStsMode,
   Oauth2ClientCapabilities,
   Passkey,
@@ -97,6 +98,8 @@ export interface MockAccount {
    * Keycloak mailboxes sign in with their password through the provider.
    */
   source?: 'mailcow' | IdentityProviderType
+  /** UI 005 hides own webmail actions during an impersonation (UI 007 owns webmail-as). */
+  impersonation?: Identity['impersonation']
 }
 
 export type MockAuthMethod =

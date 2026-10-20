@@ -4,11 +4,11 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router'
 import type { AppPassword, AppPasswordResult } from '@/api'
 import NoAccessState from '@/app/states/NoAccessState.vue'
 import { lt } from '@/i18n'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import MailboxContextHeader from '../components/layout/MailboxContextHeader.vue'
 import OneTimeSecretDialog from '@/shared/components/OneTimeSecretDialog.vue'
 import AppPasswordForm from '../components/app-passwords/AppPasswordForm.vue'
 import { useAppPasswordContext } from '../composables/useAppPasswordContext'
-const { access, mailbox, mailboxContext, location } = useAppPasswordContext()
+const { access, mailbox, location } = useAppPasswordContext()
 const router = useRouter()
 const secret = ref<string | null>(null)
 const createdId = ref<number | null>(null)
@@ -40,10 +40,7 @@ onBeforeRouteUpdate(guard)
 </script>
 <template>
   <section class="flex flex-col gap-5">
-    <PageHeader
-      :title="lt('add.app_password')"
-      :description="mailboxContext ? mailbox : undefined"
-    />
+    <MailboxContextHeader :title="lt('add.app_password')" />
     <NoAccessState v-if="!access.canChange.value" />
     <AppPasswordForm
       v-else

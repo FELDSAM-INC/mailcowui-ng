@@ -1,5 +1,74 @@
 {
   "account": {
+    "push": {
+      "token": "API Token/Key (Application)",
+      "userKey": "User/Group Key",
+      "stored": "A value is stored. Leave empty to keep it.",
+      "titlePlaceholder": "Mail",
+      "textPlaceholder": "You've got mail 📧",
+      "sendersPlaceholder": "sender1{'@'}example.com, sender2{'@'}example.com",
+      "senderPatternPlaceholder": "/(.*{'@'}example\\.org${'|'}^foo{'@'}example\\.com$)/i",
+      "verify": {
+        "accepted": "Pushover API OK",
+        "rejected": "Pushover API ERR"
+      },
+      "errors": {
+        "invalidRegex": "Invalid regex"
+      },
+      "sounds": {
+        "pushover": "Pushover (default)",
+        "bike": "Bike",
+        "bugle": "Bugle",
+        "cashregister": "Cash Register",
+        "classical": "Classical",
+        "cosmic": "Cosmic",
+        "falling": "Falling",
+        "gamelan": "Gamelan",
+        "incoming": "Incoming",
+        "intermission": "Intermission",
+        "magic": "Magic",
+        "mechanical": "Mechanical",
+        "pianobar": "Piano Bar",
+        "siren": "Siren",
+        "spacealarm": "Space Alarm",
+        "tugboat": "Tug Boat",
+        "alien": "Alien Alarm (long)",
+        "climb": "Climb (long)",
+        "persistent": "Persistent (long)",
+        "echo": "Pushover Echo (long)",
+        "updown": "Up Down (long)",
+        "vibrate": "Vibrate Only",
+        "none": "None (silent)"
+      }
+    },
+    "recentLogins": {
+      "internal": "Web/EAS/Internal ({address})",
+      "appPasswordFallback": "App"
+    },
+    "mailApps": {
+      "guide": { "title": "Server settings" },
+      "encryption": { "tls": "SSL/TLS", "starttls": "STARTTLS" },
+      "auth": { "normalPassword": "Normal password" },
+      "protocol": { "caldav": "CalDAV", "carddav": "CardDAV" },
+      "appPasswordOnly": "Only an app password that allows {protocol} works here.",
+      "profile": { "deleteAfterInstall": "Delete the file after installing it." }
+    },
+    "overview": {
+      "protocol": {
+        "allowed": "allowed",
+        "notAllowed": "not allowed"
+      }
+    },
+    "webmail": {
+      "blocked": "The browser blocked the new tab. Open webmail here:",
+      "failed": "Webmail could not be opened. You can try again from your account."
+    },
+    "mailSettings": {
+      "changedElsewhere": "These settings were changed elsewhere. The saved values are shown; choose again to make a change."
+    },
+    "devices": {
+      "sogoAcknowledge": "I understand that my contacts and calendars will be deleted"
+    },
     "twoFactor": {
       "type": {
         "u2f": "Fido U2F",
@@ -65,6 +134,8 @@
     }
   },
   "filters": {
+    "columns": { "type": "Type", "script": "Script" },
+    "form": { "title": "Filter", "script": "Script", "bytes": "{used} of {max} bytes" },
     "kind": {
       "prefilter": "Prefilter",
       "postfilter": "Postfilter"

@@ -7,8 +7,9 @@ import { isApiProblem, problemOf, type AppPassword } from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
+import type { BulkRow } from '@/shared/components/bulk-row'
 import LegacyText from '@/shared/components/LegacyText.vue'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import MailboxContextHeader from '../components/layout/MailboxContextHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
@@ -25,7 +26,7 @@ import { APP_PASSWORD_PROTOCOL_ORDER, appPasswordProtocolListKey } from '../labe
 import { useAppPasswordListState, type AppPasswordSort } from '../list-state'
 const { t } = useI18n()
 const client = useQueryClient()
-const { access, mailbox, mailboxContext, location } = useAppPasswordContext()
+const { access, mailbox, location } = useAppPasswordContext()
 const selection = useBulkSelection()
 const list = useAppPasswordListState({ onReset: selection.clear })
 const query = useAppPasswords(mailbox, list.params)
@@ -48,6 +49,13 @@ const sortLabels = {
   active: 'user.active',
 } as const
 const selected = computed(() => rows.value.filter((item) => selection.isSelected(String(item.id))))
+const outcomeMessage = (row: BulkRow) =>
+  row.outcome === 'done'
+    ? lt(
+        lastAction.value === 'remove' ? 'success.app_passwd_removed' : 'success.object_modified',
+        row.id,
+      )
+    : null
 const protocols = (item: AppPassword) =>
   APP_PASSWORD_PROTOCOL_ORDER.filter((p) => item.protocols.includes(p))
     .map((p) => t(appPasswordProtocolListKey(p)))
@@ -118,7 +126,7 @@ watch([total, () => list.state.value.page], ([count, page]) => {
 <template>
   <NotFoundPage v-if="notFound" />
   <section v-else class="flex flex-col gap-5">
-    <PageHeader :title="lt('user.app_passwds')" :description="mailboxContext ? mailbox : undefined">
+    <MailboxContextHeader :title="lt('user.app_passwds')">
       <template #actions
         ><RouterLink
           v-if="access.canChange.value"
@@ -127,7 +135,7 @@ watch([total, () => list.state.value.page], ([count, page]) => {
           >{{ lt('user.create_app_passwd') }}</RouterLink
         ></template
       >
-    </PageHeader>
+    </MailboxContextHeader>
     <LegacyText k="user.app_hint" as="p" class="text-gray-700 dark:text-gray-300" />
     <SearchField
       id="app-password-search"
@@ -219,6 +227,7 @@ watch([total, () => list.state.value.page], ([count, page]) => {
     <BulkResultSummary
       v-if="runner.rows.value.length"
       :rows="runner.rows.value"
+      :message="outcomeMessage"
       @close="runner.clear"
       @retry="run(lastAction)"
       @refresh="query.refetch()"

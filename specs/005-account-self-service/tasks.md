@@ -165,11 +165,11 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - `NoAccessState` shows a reason key when given;
   - the hub lists only sections whose routes are registered, grouped as FR-002 lists them, and hides empty groups;
   - from `lg` up the section navigation stays visible beside the content.
-- [ ] T024 [P] Write `tests/unit/features/account/mailbox-context.spec.ts`:
+- [x] T024 [P] Write `tests/unit/features/account/mailbox-context.spec.ts`:
   - `useAccountContext` resolves `own` (the identity's username) and `mailbox` (the route's address, lower-cased);
-  - the "Self-service" group added to UI 003's `sections.ts` and `MailboxSectionNav.vue` lists only sections whose routes are registered;
+  - under approved D6, the existing mailbox action area lists only registered self-service routes through `MailboxAccountLinks.vue` (UI003 has no `MailboxSectionNav.vue`);
   - `MailboxContextHeader.vue` names the mailbox in each section heading;
-  - a `readOnly` section renders `ReadOnlyNotice` naming the flag;
+  - a `readOnly` section renders the shared `AclReadOnlyNote` naming the flag;
   - groupware is hidden when disabled.
 - [x] T025 [P] Write `tests/e2e/account/my-account-shell.spec.ts`:
   - FR-001: "My account" in the navigation and the user menu, reachable in at most two interactions from any screen, for each role;
@@ -196,7 +196,7 @@ section registry and visibility, the My account hub and the mailbox-context grou
   - `src/features/account/index.ts`.
 
   Register the routes in `src/app/router/routes.ts`, set the catalogue's `account` entry to `available`, add "My account" above "Passkeys" in `src/app/shell/UserMenu.vue`, and add the optional reason key to `src/app/states/NoAccessState.vue`. T023 must pass.
-- [ ] T036 Add the "Self-service" group to UI 003's designated section list: spread `mailboxSelfServiceRoutes` into the children of `mailbox-detail` in `src/features/mailboxes/routes.ts`, and `mailboxSelfServiceSections` into `src/features/mailboxes/sections.ts`, rendered by `src/features/mailboxes/components/display/MailboxSectionNav.vue` (UI 003 data-model §8). Only sections with registered routes appear. T024 must pass.
+- [x] T036 Add the registered self-service routes to UI003's existing mailbox action area through `MailboxAccountLinks.vue`, preserving its current layout (approved D6). `mailboxSelfServiceRoutes` are registered in the app route map, with a lazy `MailboxAccountLayout.vue` and the mailbox subtitle in `MailboxContextHeader.vue`. Tagging/TLS stay in the existing mailbox section; Pushover stays in its managed section; the Settings link reaches groupware resets only when groupware is enabled. T024 and the three-project mailbox-navigation browser suite pass.
 - [x] T037 Add the `account.hub.*`, `account.readOnly.*` and `selfService.dependency.*` new strings that the legacy form map (T010a) lists to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use legacy keys verbatim for the rest: the section names (`user.mailbox_general`, `user.mailbox_details`, `user.mailbox_settings`, `user.app_passwds`, `user.spam_aliases`, `edit.pushover` and the others of the map), the permission flag labels (`acl.app_passwds`, `acl.spam_alias`, `acl.filters`, `acl.pushover`, `acl.delimiter_action`, `acl.tls_policy`, `acl.eas_reset`, `acl.sogo_profile_reset`, `acl.pw_reset`), `mailbox.filters` for `nav.filters`, and `login.mobileconfig_info`. `npm run i18n:check` must pass, and T025 must pass.
 
 **Checkpoint**: The foundation is ready. My account opens for every role with an empty hub (no
@@ -496,9 +496,10 @@ presentation, and `ProtocolSelect.vue` implements the legacy control. Unit cover
 The shared secret-dialog tests remain in `OneTimeSecretDialog.spec.ts` and `CopyButton.spec.ts`,
 extended by `secrets.spec.ts`; the earlier shared promotion was reused.
 
-T024/T036 remain open for the full mailbox-context section group. This release registers the
-app-password pages through `mailbox-routes.ts`, a lazy `MailboxAccountLayout.vue`, and an
-App passwords action on the mailbox detail. Later self-service sections remain unregistered.
+T024/T036 now follow approved D6 and the current UI003 action areas rather than the obsolete
+section-group scaffold. The mailbox action links expose the registered app-password, alias,
+recent-login, filter and groupware-settings routes. Embedded tagging/TLS and Pushover retain
+their original mailbox sections.
 
 **Checkpoint**: All P1 stories (US1 to US4) work once their acceptance and smoke checks above pass.
 
@@ -515,13 +516,13 @@ from a deep link.
 
 ### Tests for User Story 5 (write first; must fail)
 
-- [ ] T081 [US5] Extend `tests/mocks/handlers/self-service/overview.ts` with `createWebmailHandOff`:
+- [x] T081 [US5] Extend `tests/mocks/handlers/self-service/overview.ts` with `createWebmailHandOff`:
   - `Set-Cookie: MCSESSID=…; Path=/; HttpOnly; SameSite=Lax`, `Cache-Control: no-store` and `url: /SOGo/so/`;
   - `groupware-disabled`, `forbidden` for other roles, and `pending-action-required` when restricted;
   - a recent-login entry `SSO` added to the state.
 
   Create `tests/mocks/scenarios/overview.ts` (registered in the index) with `mailbox-no-imap`, `mailbox-webmail-redirect`, `mailbox-unlimited-quota` and `mailbox-impersonated` (an identity with feature 007's `impersonation` member, present at the pin).
-- [ ] T082 [P] [US5] Write `tests/e2e/account/overview-webmail.spec.ts`. It covers:
+- [x] T082 [P] [US5] Write `tests/e2e/account/overview-webmail.spec.ts`. It covers:
   - US5-AS1: "256 MiB of 1 GiB used (25 %)" with a bar that has a text equivalent, also in Czech number formatting;
   - US5-AS2: "IMAP: not allowed" in text;
   - US5-AS3: Webmail opens a new page at `/SOGo/so/` (route stub); with `window.open` returning `null`, an "Open webmail" link appears;
@@ -533,19 +534,19 @@ from a deep link.
   - US3-AS2 (overview part): the recovery address set by an administrator is shown without `pwReset`;
   - FR-098: no Webmail action on `mailbox-impersonated`;
   - Edge: a failed hand-off closes the blank tab and shows the problem.
-- [ ] T083 [P] [US5] Write these unit tests:
+- [x] T083 [P] [US5] Write these unit tests:
   - `tests/unit/features/account/useWebmailHandOff.spec.ts`: `window.open` called synchronously in the click, `opener` cleared, `location.replace`, a blocked tab gives the link, a failure closes the tab;
   - `tests/unit/features/account/webmail-forwarding.spec.ts`: the conditions role, intent, pending actions, `redirectAfterSignIn` and `webmail.enabled`; a failure lands normally;
   - `tests/unit/features/account/QuotaUsage.spec.ts`: percentage, unlimited, text equivalent, `aria-valuenow`;
   - `tests/unit/features/account/ProtocolAccessList.spec.ts`.
-- [ ] T084 [P] [US5] Add to `tests/smoke/account.smoke.spec.ts`: alice's overview shows her address and quota; Webmail opens a new page at `/SOGo/so/` and the context holds the legacy session cookie (the page's status is not asserted when the dev stack runs without SOGo).
+- [x] T084 [P] [US5] Add to `tests/smoke/account.smoke.spec.ts`: alice's overview shows her address and quota; Webmail opens a new page at `/SOGo/so/` and the context holds the legacy session cookie (the page's status is not asserted when the dev stack runs without SOGo).
 
 ### Implementation for User Story 5
 
-- [ ] T085 [US5] Implement `src/features/account/api/webmail.ts`, `src/features/account/composables/useWebmailHandOff.ts` and `src/features/account/components/overview/WebmailAction.vue` (research R20).
-- [ ] T086 [P] [US5] Implement `src/features/account/components/overview/MailboxOverview.vue`, `QuotaUsage.vue`, `ProtocolAccessList.vue`, `AddressLists.vue` and `MailboxHomeCard.vue`, and show the overview at the top of `src/features/account/pages/AccountHomePage.vue` for mailbox users. Sizes come from the byte formatter in `src/i18n/format.ts`; add `formatBytes` there if UI 002 or 003 did not.
-- [ ] T087 [US5] Implement `src/features/account/webmail-forwarding.ts`, register it as a landing hook in `src/app/session/landing.ts`, and show `MailboxHomeCard` for mailbox users in `src/features/home/pages/HomePage.vue`.
-- [ ] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.overview`, `user.protocols`, `user.open_webmail_sso`, `user.direct_protocol_access` (HTML, through `SanitizedHtml.vue`), the `user.*` keys of `user/tab-user-details.twig`, and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in). `npm run i18n:check` must pass.
+- [x] T085 [US5] Implement `src/features/account/api/webmail.ts`, `src/features/account/composables/useWebmailHandOff.ts` and `src/features/account/components/overview/WebmailAction.vue` (research R20).
+- [x] T086 [P] [US5] Implement `src/features/account/components/overview/MailboxOverview.vue`, `QuotaUsage.vue`, `ProtocolAccessList.vue`, `AddressLists.vue` and `MailboxHomeCard.vue`, and show the overview at the top of `src/features/account/pages/AccountHomePage.vue` for mailbox users. Sizes come from the byte formatter in `src/i18n/format.ts`; add `formatBytes` there if UI 002 or 003 did not.
+- [x] T087 [US5] Implement `src/features/account/webmail-forwarding.ts`, register it as a landing hook in `src/app/session/landing.ts`, and show `MailboxHomeCard` for mailbox users in `src/features/home/pages/HomePage.vue`.
+- [x] T088 [US5] Add the `account.overview.*` and `account.webmail.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.overview`, `user.protocols`, `user.open_webmail_sso`, `user.direct_protocol_access` (HTML, through `SanitizedHtml.vue`), the `user.*` keys of `user/tab-user-details.twig`, and `edit.sogo_access` (the overview's statement that the mailbox goes straight to webmail after sign-in). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US5 work on their own.
 
@@ -561,7 +562,7 @@ permanent with one failing, delete them. Repeat in the mailbox context.
 
 ### Tests for User Story 6 (write first; must fail)
 
-- [ ] T089 [US6] Implement `tests/mocks/handlers/self-service/temporary-aliases.ts`:
+- [x] T089 [US6] Implement `tests/mocks/handlers/self-service/temporary-aliases.ts`:
   - `listTemporaryAliases`: `q`, `permanent`, `sort`, `order`, paging; expired aliases are not listed;
   - `createTemporaryAlias`: `notInList` with `allowed` for a foreign domain; `lifetimeHours` within 1–87,600; `permanent`; description; a random readable address; `503 temporary-failure` with `dependency: addressGeneration` by switch;
   - `updateTemporaryAlias` (`lifetimeHours` or `permanent: true`) and `deleteTemporaryAlias`, with `If-Match`, `412`, and `404` for an expired alias;
@@ -573,7 +574,7 @@ permanent with one failing, delete them. Repeat in the mailbox context.
   - `temporary-aliases-many`: 30 aliases, permanent and expiring, the mailbox domain plus one alias domain, and one alias whose change fails by failure injection;
   - `temporary-aliases-single-domain`;
   - `temporary-alias-expired-meanwhile`.
-- [ ] T090 [P] [US6] Write `tests/e2e/account/temporary-aliases.spec.ts`. It covers:
+- [x] T090 [P] [US6] Write `tests/e2e/account/temporary-aliases.spec.ts`. It covers:
   - US6-AS1: the empty state with legacy `user.spam_aliases_info`;
   - US6-AS2: domain, "Shop" and one year (preselected from the capabilities) show the new address with a copy button, and it appears in the list with its expiry;
   - US6-AS3: two selected and "Expire in 1 week" report the result per alias, and the failed one stays selected;
@@ -586,16 +587,16 @@ permanent with one failing, delete them. Repeat in the mailbox context.
   - FR-019: the selection clears on page, sort or filter change; a dropped connection (`route.abort`) is reported as "outcome unknown" and not retried;
   - Edge: an alias that expired meanwhile reports "not found" and disappears;
   - FR-124: the selection mode at 360 px.
-- [ ] T091 [P] [US6] Write `tests/e2e/mailbox-self-service/temporary-aliases.spec.ts`: an administrator and a domain administrator generate an alias in the mailbox context with the domain choice; UI 003's FR-040 count links to the section and is updated after the generation.
-- [ ] T092 [P] [US6] Write `tests/unit/features/account/validity.spec.ts` (presets, range filter, default), `tests/unit/features/account/GenerateAliasPanel.spec.ts`, and extend `tests/unit/features/account/list-state.spec.ts` with the alias parameters.
-- [ ] T093 [P] [US6] Add to `tests/smoke/account.smoke.spec.ts`: alice generates an alias valid for one day, makes it permanent and deletes it.
+- [x] T091 [P] [US6] Write `tests/e2e/mailbox-self-service/temporary-aliases.spec.ts`: an administrator and a domain administrator generate an alias in the mailbox context with the domain choice; UI 003's FR-040 count links to the section and is updated after the generation.
+- [x] T092 [P] [US6] Write `tests/unit/features/account/validity.spec.ts` (presets, range filter, default), `tests/unit/features/account/GenerateAliasPanel.spec.ts`, and extend `tests/unit/features/account/list-state.spec.ts` with the alias parameters.
+- [x] T093 [P] [US6] Add to `tests/smoke/account.smoke.spec.ts`: alice generates an alias valid for one day, makes it permanent and deletes it.
 
 ### Implementation for User Story 6
 
-- [ ] T094 [US6] Implement `src/features/account/api/temporary-aliases.ts` (including `listTemporaryAliasDomains` with `limit: 1000`), `src/features/account/validity.ts`, and the alias schema in `src/features/account/list-state.ts`.
-- [ ] T095 [P] [US6] Implement `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`, `TemporaryAliasCard.vue`, `TemporaryAliasTable.vue`, `TemporaryAliasFilters.vue`, `GenerateAliasPanel.vue` and `ValiditySelect.vue`. Selection and outcomes use UI 002's `useBulkSelection`, `BulkActionBar` and `BulkResultSummary` with `usePerItemRunner` (T029).
-- [ ] T096 [US6] Implement `src/features/account/pages/TemporaryAliasesPage.vue` for both contexts. Add `account-temporary-aliases` to `src/features/account/routes.ts` and `mailbox-temporary-aliases` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entry for active temporary aliases in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
-- [ ] T097 [US6] Add the `account.temporaryAliases.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.spam_aliases`, `user.spam_aliases_info` (HTML, through `SanitizedHtml.vue`), `user.alias_create_random`, `user.description`, `user.expire_in` and the validity labels (`user.hour`, `user.day`, `user.week`, `user.month`, `user.year`, `user.years`, `user.expire_never`), and the table columns of `draw_tla_table()`. No hand-written value for keys missing upstream. `npm run i18n:check` must pass.
+- [x] T094 [US6] Implement `src/features/account/api/temporary-aliases.ts` (including `listTemporaryAliasDomains` with `limit: 1000`), `src/features/account/validity.ts`, and the alias schema in `src/features/account/list-state.ts`.
+- [x] T095 [P] [US6] Implement `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`, `TemporaryAliasCard.vue`, `TemporaryAliasTable.vue`, `TemporaryAliasFilters.vue`, `GenerateAliasPanel.vue` and `ValiditySelect.vue`. Selection and outcomes use UI 002's `useBulkSelection`, `BulkActionBar` and `BulkResultSummary` with `usePerItemRunner` (T029).
+- [x] T096 [US6] Implement `src/features/account/pages/TemporaryAliasesPage.vue` for both contexts. Add `account-temporary-aliases` to `src/features/account/routes.ts` and `mailbox-temporary-aliases` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entry for active temporary aliases in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
+- [x] T097 [US6] Add the `account.temporaryAliases.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.spam_aliases`, `user.spam_aliases_info` (HTML, through `SanitizedHtml.vue`), `user.alias_create_random`, `user.description`, `user.expire_in` and the validity labels (`user.hour`, `user.day`, `user.week`, `user.month`, `user.year`, `user.years`, `user.expire_never`), and the table columns of `draw_tla_table()`. No hand-written value for keys missing upstream. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US6 work on their own.
 
@@ -612,7 +613,7 @@ Turn each flag off and confirm the control is absent. As an administrator, enfor
 
 ### Tests for User Story 7 (write first; must fail)
 
-- [ ] T098 [US7] Implement:
+- [x] T098 [US7] Implement:
   - `tests/mocks/handlers/self-service/mail-settings.ts`:
     - `getMailboxMailSettings` and `updateMailboxMailSettings`: `delimiterAction` and `tlsPolicy` flags, with values equal to the current one needing no flag; `If-Match` and `412`; `503 temporary-failure` with `dependency: sharedStore`;
     - `applyMailboxMailSettingsBulkAction`: up to the bulk limit; per-item `notFound`, `outdated` (the version compared as the pinned contract documents, research R16) and `failed`; one result per distinct mailbox; `forbidden` for mailbox users;
@@ -627,14 +628,14 @@ Turn each flag off and confirm the control is absent. As an administrator, enfor
   - `pushover-configured`, `pushover-unconfigured`, `pushover-outage`;
   - `mail-settings-changed-elsewhere`, `mail-settings-store-outage`, `mailbox-no-mail-flags`;
   - `mailbox-list-tls`: UI 003's mailbox list with 30 mailboxes, one deleted after listing.
-- [ ] T099 [P] [US7] Write `tests/e2e/account/mail-settings.spec.ts`. It covers:
+- [x] T099 [P] [US7] Write `tests/e2e/account/mail-settings.spec.ts`. It covers:
   - US7-AS1: "In subject" is saved and announced, and the help shows `anna+shop@example.org`;
   - US7-AS2: the bounce warning is visible without interaction;
   - FR-014: the pending state, and the return to the stored value with an announced error on `mail-settings-store-outage`;
   - FR-016: on `mail-settings-changed-elsewhere`, the reloaded value with "changed elsewhere";
   - FR-075: the alias-coverage note;
   - SC-009: on `mailbox-no-mail-flags` both controls are absent.
-- [ ] T100 [P] [US7] Write `tests/e2e/account/push-notifications.spec.ts`. It covers:
+- [x] T100 [P] [US7] Write `tests/e2e/account/push-notifications.spec.ts`. It covers:
   - US7-AS3: the token and key fields are empty and say a value is stored;
   - US7-AS4: a 29-character token shows the error on the token field;
   - US7-AS5: "Verify credentials" announces the verdict and the reason when negative;
@@ -645,24 +646,24 @@ Turn each flag off and confirm the control is absent. As an administrator, enfor
   - FR-080: verifying unconfigured settings says to save first;
   - Edge: `pushover-outage` names the Pushover service with "Try again";
   - FR-015: the unsaved-changes warning.
-- [ ] T101 [P] [US7] Write `tests/e2e/mailbox-self-service/mail-settings.spec.ts`. It covers:
+- [x] T101 [P] [US7] Write `tests/e2e/mailbox-self-service/mail-settings.spec.ts`. It covers:
   - an administrator changes tagging, TLS and Pushover of `anna@example.org` in the mailbox context;
   - on `domain-admin-no-flags`, Pushover is read-only with the notice;
   - UI 003's FR-040 summaries link to the sections;
   - US7-AS7 on `mailbox-list-tls`: select 30 and enforce outbound TLS: "29 changed, 1 not found", the not-found mailbox stays selected, every target carries the listed version tag (`mockApi.requests()`), and an explicit confirmation precedes the request. This part depends on API gap AG1 (T107).
-- [ ] T102 [P] [US7] Write these unit tests:
+- [x] T102 [P] [US7] Write these unit tests:
   - `tests/unit/features/account/TaggedMailSetting.spec.ts` and `tests/unit/features/account/TlsPolicySetting.spec.ts`: the single-setting state machine of data-model §7;
   - `tests/unit/features/account/PushNotificationsForm.spec.ts`: write-only fields, senders parsed one per line, the stored custom sound added to the list, members omitted when empty;
   - `tests/unit/features/account/BulkTlsDialog.spec.ts`: at least one change, versions per item, the bulk limit from the capabilities.
-- [ ] T103 [P] [US7] Add to `tests/smoke/account.smoke.spec.ts`: alice switches tagged mail to "In subfolder" and back. Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` enforces outbound TLS on alice through the bulk action and turns it off again (skipped while API gap AG1 is open).
+- [x] T103 [P] [US7] Add to `tests/smoke/account.smoke.spec.ts`: alice switches tagged mail to "In subfolder" and back. Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` enforces outbound TLS on alice through the bulk action and turns it off again (skipped while API gap AG1 is open).
 
 ### Implementation for User Story 7
 
-- [ ] T104 [US7] Implement `src/features/account/api/mail-settings.ts` and `src/features/account/api/push-notifications.ts` (`replacePushNotificationSettings` through `useSecretRequest` because it carries the token and key; the rest as TanStack operations; invalidation of data-model §3).
-- [ ] T105 [P] [US7] Implement `src/features/account/components/mail-settings/TaggedMailSetting.vue` and `TlsPolicySetting.vue`, and `src/features/account/components/push/PushNotificationsForm.vue` and `WriteOnlySecretField.vue`.
-- [ ] T106 [US7] Implement `src/features/account/pages/MailSettingsPage.vue` (anchors `#tagged-mail`, `#tls-policy`) and `src/features/account/pages/PushNotificationsPage.vue` for both contexts. Add `account-mail-settings` and `account-push-notifications` to `src/features/account/routes.ts`, and `mailbox-mail-settings` and `mailbox-push-notifications` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entries for tagging, TLS and push notifications in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
-- [ ] T107 [US7] Implement `src/features/account/components/mail-settings/BulkTlsDialog.vue` and add the bulk TLS action to UI 003's bulk menu (`src/features/mailboxes/components/list/MailboxBulkActions.vue` and `src/features/mailboxes/bulk.ts`), with UI 002's `useBulkSelection` taking `bulkLimit` from the self-service capabilities, `applyMailboxMailSettingsBulkAction`, the listed version tag per target and `BulkResultSummary`. **Depends on API gap AG1** being fixed in the pinned contract (plan). If it is still open at implementation time, leave this task open, do not omit the version tag, and register no action (owner question 2).
-- [ ] T108 [US7] Add the `account.mailSettings.*`, `account.push.*` and `account.bulkTls.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: the `user.*` tagging and TLS keys of `user/tab-user-settings.twig` (`user.tag_handling`, `user.tag_in_subfolder`, `user.tag_in_subject`, `user.tag_in_none`, `user.tag_help_explain`, `user.tag_help_example`, `user.tls_policy`, `user.tls_enforce_in`, `user.tls_enforce_out`), `user.tls_policy_warning`, the `user.pushover_*` keys of `user/Pushover.twig` including `user.pushover_info` (`%s` the mailbox), the `edit.pushover_*` keys including `edit.pushover_vars`, the bulk menu's `mailbox.tls_enforce_in`, `mailbox.tls_enforce_out`, `mailbox.activate` and `mailbox.deactivate`, `danger.pushover_key`, `danger.pushover_token` and `danger.pushover_credentials_missing`. Values with HTML go through `SanitizedHtml.vue`. `npm run i18n:check` must pass.
+- [x] T104 [US7] Implement `src/features/account/api/mail-settings.ts` and `src/features/account/api/push-notifications.ts` (`replacePushNotificationSettings` through `useSecretRequest` because it carries the token and key; the rest as TanStack operations; invalidation of data-model §3).
+- [x] T105 [P] [US7] Implement `src/features/account/components/mail-settings/TaggedMailSetting.vue` and `TlsPolicySetting.vue`, and `src/features/account/components/push/PushNotificationsForm.vue` and `WriteOnlySecretField.vue`.
+- [x] T106 [US7] Implement `src/features/account/pages/MailSettingsPage.vue` (anchors `#tagged-mail`, `#tls-policy`) and `src/features/account/pages/PushNotificationsPage.vue` for both contexts. Add `account-mail-settings` and `account-push-notifications` to `src/features/account/routes.ts`, and `mailbox-mail-settings` and `mailbox-push-notifications` to `src/features/account/mailbox-routes.ts`. Fill the `to` of UI 003's FR-040 entries for tagging, TLS and push notifications in `src/features/mailboxes/components/display/ManagedSettingsGroup.vue`.
+- [x] T107 [US7] Implement `src/features/account/components/mail-settings/BulkTlsDialog.vue` and add the bulk TLS action to UI 003's bulk menu (`src/features/mailboxes/components/list/MailboxBulkActions.vue` and `src/features/mailboxes/bulk.ts`), with UI 002's `useBulkSelection` taking `bulkLimit` from the self-service capabilities, `applyMailboxMailSettingsBulkAction`, the listed version tag per target and `BulkResultSummary`. **Depends on API gap AG1** being fixed in the pinned contract (plan). If it is still open at implementation time, leave this task open, do not omit the version tag, and register no action (owner question 2).
+- [x] T108 [US7] Add the `account.mailSettings.*`, `account.push.*` and `account.bulkTls.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: the `user.*` tagging and TLS keys of `user/tab-user-settings.twig` (`user.tag_handling`, `user.tag_in_subfolder`, `user.tag_in_subject`, `user.tag_in_none`, `user.tag_help_explain`, `user.tag_help_example`, `user.tls_policy`, `user.tls_enforce_in`, `user.tls_enforce_out`), `user.tls_policy_warning`, the `user.pushover_*` keys of `user/Pushover.twig` including `user.pushover_info` (`%s` the mailbox), the `edit.pushover_*` keys including `edit.pushover_vars`, the bulk menu's `mailbox.tls_enforce_in`, `mailbox.tls_enforce_out`, `mailbox.activate` and `mailbox.deactivate`, `danger.pushover_key`, `danger.pushover_token` and `danger.pushover_credentials_missing`. Values with HTML go through `SanitizedHtml.vue`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US7 work on their own (bulk TLS once AG1 is fixed).
 
@@ -678,14 +679,14 @@ administrator, read and clear in the mailbox context.
 
 ### Tests for User Story 8 (write first; must fail)
 
-- [ ] T109 [US8] Implement `tests/mocks/handlers/self-service/recent-logins.ts`:
+- [x] T109 [US8] Implement `tests/mocks/handlers/self-service/recent-logins.ts`:
   - `listRecentLogins`: `days` 1–31 (`outOfRange`); `service` compared case-insensitively; `q`; `sort`, `order`, paging; `internal` and `country`; `appPassword.name` `null` after deletion; `503`;
   - `clearRecentLogins`.
 
   Create `tests/mocks/scenarios/recent-logins.ts` (registered in the index) with:
   - `recent-logins`: internal and public addresses, countries, one public address without a country, app password names including a deleted one, entries older than a week within a month;
   - `recent-logins-empty`.
-- [ ] T110 [P] [US8] Write `tests/e2e/account/recent-logins.spec.ts`. It covers:
+- [x] T110 [P] [US8] Write `tests/e2e/account/recent-logins.spec.ts`. It covers:
   - US8-AS1: newest first with address, country, service, time and the app password's name;
   - US8-AS2: "1 month" adds the older entries;
   - US8-AS3: clear, confirmed with the note about the classic interface (FR-084), then the empty state;
@@ -694,16 +695,16 @@ administrator, read and clear in the mailbox context.
   - FR-083: periods within the range with the default, the service filter, the sorts, and the state in the address;
   - Edge: a missing country is simply left out;
   - FR-085: administrators have no recent logins in My account.
-- [ ] T111 [P] [US8] Write `tests/e2e/mailbox-self-service/recent-logins.spec.ts`: an administrator and a domain administrator read and clear a mailbox's recent logins in the mailbox context.
-- [ ] T112 [P] [US8] Write `tests/unit/features/account/recent-login-period.spec.ts` and `tests/unit/features/account/RecentLoginCard.spec.ts` (internal; the country name through `Intl.DisplayNames` per locale; service labels; an unknown code shown as sent).
-- [ ] T113 [P] [US8] Add to `tests/smoke/account.smoke.spec.ts`: alice's recent logins list the seeded entries and a `WEBUI` entry of the smoke sign-in.
+- [x] T111 [P] [US8] Write `tests/e2e/mailbox-self-service/recent-logins.spec.ts`: an administrator and a domain administrator read and clear a mailbox's recent logins in the mailbox context.
+- [x] T112 [P] [US8] Write `tests/unit/features/account/recent-login-period.spec.ts` and `tests/unit/features/account/RecentLoginCard.spec.ts` (internal; the country name through `Intl.DisplayNames` per locale; service labels; an unknown code shown as sent).
+- [x] T113 [P] [US8] Add to `tests/smoke/account.smoke.spec.ts`: alice's recent logins list the seeded entries and a `WEBUI` entry of the smoke sign-in.
 
 ### Implementation for User Story 8
 
-- [ ] T114 [US8] Implement `src/features/account/api/recent-logins.ts`, `src/features/account/recent-login-period.ts`, and the recent-login schema in `src/features/account/list-state.ts`.
-- [ ] T115 [P] [US8] Implement `src/features/account/components/recent-logins/RecentLoginList.vue`, `RecentLoginCard.vue`, `RecentLoginTable.vue` and `RecentLoginFilters.vue`.
-- [ ] T116 [US8] Implement `src/features/account/pages/RecentLoginsPage.vue` for both contexts. Add `account-recent-logins` to `src/features/account/routes.ts` and `mailbox-recent-logins` to `src/features/account/mailbox-routes.ts`.
-- [ ] T117 [US8] Add the `account.recentLogins.*` and `selfService.service.*` new strings of the legacy form map to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use the legacy recent-login keys verbatim (`user.recent_successful_connections`, `user.login_history`, `user.clear_recent_successful_connections`, `user.day`, `user.week`, `user.weeks`, `user.month`). `npm run i18n:check` must pass.
+- [x] T114 [US8] Implement `src/features/account/api/recent-logins.ts`, `src/features/account/recent-login-period.ts`, and the recent-login schema in `src/features/account/list-state.ts`.
+- [x] T115 [P] [US8] Implement `src/features/account/components/recent-logins/RecentLoginList.vue`, `RecentLoginCard.vue`, `RecentLoginTable.vue` and `RecentLoginFilters.vue`.
+- [x] T116 [US8] Implement `src/features/account/pages/RecentLoginsPage.vue` for both contexts. Add `account-recent-logins` to `src/features/account/routes.ts` and `mailbox-recent-logins` to `src/features/account/mailbox-routes.ts`.
+- [x] T117 [US8] Add the `account.recentLogins.*` and `selfService.service.*` new strings of the legacy form map to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Use the legacy recent-login keys verbatim (`user.recent_successful_connections`, `user.login_history`, `user.clear_recent_successful_connections`, `user.day`, `user.week`, `user.weeks`, `user.month`). `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US8 work on their own.
 
@@ -721,13 +722,13 @@ with the scenario, copy each value, download each profile variant.
 
 ### Tests for User Story 9 (write first; must fail)
 
-- [ ] T118 [US9] Extend `tests/mocks/handlers/self-service/overview.ts` with:
+- [x] T118 [US9] Extend `tests/mocks/handlers/self-service/overview.ts` with:
   - `getOwnClientConfiguration`: DAV and ActiveSync `null` without groupware;
   - `getOwnAppleProfile`: a plist from `tests/mocks/factories/apple-profile.ts` with `Content-Type: application/x-apple-aspen-config`, `Content-Disposition: attachment; filename="<product>.mobileconfig"` and `Cache-Control: no-store`; `emailAndDav` refused with `groupware-disabled`;
   - `createOwnAppleProfileWithAppPassword`: `appPasswds` required (`permission-flag-required`); the new app password added to the state and embedded in the plist; `201` with `Location`.
 
   Create `tests/mocks/scenarios/mail-apps.ts` (registered in the index) with `mailbox-no-pop3`, `mailbox-2fa-on`, and `profile-flag-withdrawn` (the flag removed after the page loaded).
-- [ ] T119 [P] [US9] Write `tests/e2e/account/mail-apps.spec.ts`. It covers:
+- [x] T119 [P] [US9] Write `tests/e2e/account/mail-apps.spec.ts`. It covers:
   - US9-AS1: each protocol's server, ports with encryption, authentication and username, each copy announced;
   - US9-AS2 on `mailbox-no-pop3`: the POP3 note;
   - US9-AS3: "E-mail, calendars and contacts" downloads (`page.waitForEvent('download')`, the `.mobileconfig` name), with the iPhone, iPad and Mac note;
@@ -740,18 +741,18 @@ with the scenario, copy each value, download each profile variant.
   - the preselection `?variant=email&appPassword=1` preselects without downloading or creating anything (UI 014 FR-050);
   - Edge: on `profile-flag-withdrawn` the refusal is explained and the option hidden;
   - Edge: an app password created by the request stays listed even when the download is cancelled.
-- [ ] T120 [P] [US9] Write these unit tests:
+- [x] T120 [P] [US9] Write these unit tests:
   - `tests/unit/shared/platform/download.spec.ts`: an object URL created, a temporary `<a download>` clicked and removed, the URL revoked after one second, the file name from `Content-Disposition` with the fallback;
   - `tests/unit/features/account/useProfileDownload.spec.ts`: a direct client call with `parseAs: 'blob'`, nothing cached, the invalidations after the app-password variant, the problem mapping;
   - `tests/unit/features/account/ClientSetupGuide.spec.ts`: encryption labels, `null` services hidden, protocol notes.
-- [ ] T121 [P] [US9] Add to `tests/smoke/account.smoke.spec.ts`: alice downloads the e-mail profile (content type and `.mobileconfig` name), and the guide shows the IMAP host and ports.
+- [x] T121 [P] [US9] Add to `tests/smoke/account.smoke.spec.ts`: alice downloads the e-mail profile (content type and `.mobileconfig` name), and the guide shows the IMAP host and ports.
 
 ### Implementation for User Story 9
 
-- [ ] T122 [US9] Implement `src/features/account/api/client-setup.ts`, `src/shared/platform/download.ts` (the canonical download helper of `docs/conventions.md`; reuse it if an earlier feature created it) and `src/features/account/composables/useProfileDownload.ts` (both profile requests through `useSecretRequest` with `parseAs: 'blob'`, research R21).
-- [ ] T123 [P] [US9] Implement `src/features/account/components/mail-apps/ClientSetupGuide.vue`, `ProtocolCard.vue` and `AppleProfileDownloads.vue`.
-- [ ] T124 [US9] Implement `src/features/account/pages/MailAppsPage.vue`, with the preselection read and removed from the address, and add the `account-mail-apps` route to `src/features/account/routes.ts`. Its section passes the `login.mobileconfig_info` reason to `NoAccessState` for other roles.
-- [ ] T125 [US9] Add the `account.mailApps.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.apple_connection_profile`, `user.apple_connection_profile_mailonly`, `user.apple_connection_profile_complete`, `user.apple_connection_profile_with_app_password`, `user.email`, `user.email_and_dav`, `user.with_app_password` and `user.client_configuration`. `npm run i18n:check` must pass.
+- [x] T122 [US9] Implement `src/features/account/api/client-setup.ts`, `src/shared/platform/download.ts` (the canonical download helper of `docs/conventions.md`; reuse it if an earlier feature created it) and `src/features/account/composables/useProfileDownload.ts` (both profile requests through `useSecretRequest` with `parseAs: 'blob'`, research R21).
+- [x] T123 [P] [US9] Implement `src/features/account/components/mail-apps/ClientSetupGuide.vue`, `ProtocolCard.vue` and `AppleProfileDownloads.vue`.
+- [x] T124 [US9] Implement `src/features/account/pages/MailAppsPage.vue`, with the preselection read and removed from the address, and add the `account-mail-apps` route to `src/features/account/routes.ts`. Its section passes the `login.mobileconfig_info` reason to `NoAccessState` for other roles.
+- [x] T125 [US9] Add the `account.mailApps.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.apple_connection_profile`, `user.apple_connection_profile_mailonly`, `user.apple_connection_profile_complete`, `user.apple_connection_profile_with_app_password`, `user.email`, `user.email_and_dav`, `user.with_app_password` and `user.client_configuration`. `npm run i18n:check` must pass.
 
 **Checkpoint**: All P2 stories (US5 to US9) work.
 
@@ -768,7 +769,7 @@ read filters and the active script.
 
 ### Tests for User Story 10 (write first; must fail)
 
-- [ ] T126 [US10] Implement `tests/mocks/handlers/self-service/sieve-filters.ts`:
+- [x] T126 [US10] Implement `tests/mocks/handlers/self-service/sieve-filters.ts`:
   - `listSieveFilters`: `mailbox`, `kind`, `active`, `q`, `sort`, `order`, paging; `forbidden` for mailbox users;
   - `listMailboxSieveFilters`;
   - `createSieveFilter`, `getSieveFilter`, `updateSieveFilter` and `deleteSieveFilter`:
@@ -785,7 +786,7 @@ read filters and the active script.
   - `filters-domain-admin` and `filters-domain-admin-no-flag`;
   - `mailbox-filters-and-script`: two administrator filters and an active script;
   - `mailbox-no-active-script`, `active-script-unavailable`.
-- [ ] T127 [P] [US10] Write `tests/e2e/filters/filters.spec.ts`. It covers:
+- [x] T127 [P] [US10] Write `tests/e2e/filters/filters.spec.ts`. It covers:
   - US10-AS1: a syntax error shows the parser's message on the script field on "Check" and on save, and nothing is saved;
   - US10-AS2: activating a second prefilter shows the warning naming "Spam to folder", and the list reflects the change;
   - US10-AS3: selecting filters and "Deactivate" reports a per-filter result when one fails;
@@ -797,19 +798,19 @@ read filters and the active script.
   - `filters-domain-admin` (flag on) can manage;
   - Edge: an oversized script shows the size error on the field;
   - Edge: switching the kind of an active filter warns before saving.
-- [ ] T128 [P] [US10] Write `tests/e2e/mailbox-self-service/filters.spec.ts` (the list, creation with the mailbox preset, the active script panel) and `tests/e2e/account/own-filters.spec.ts`. The latter covers:
+- [x] T128 [P] [US10] Write `tests/e2e/mailbox-self-service/filters.spec.ts` (the list, creation with the mailbox preset, the active script panel) and `tests/e2e/account/own-filters.spec.ts`. The latter covers:
   - US10-AS4 on `mailbox-no-active-script`: both filters read-only and "No active filter available";
   - FR-089: scripts on demand in a monospaced block with copy, and the active script with its name;
   - `active-script-unavailable` names the mail server with "Try again".
-- [ ] T129 [P] [US10] Write `tests/unit/features/filters/ScriptEditor.spec.ts` (the byte counter against `limits.sieveScriptMaxBytes`, attributes), `tests/unit/features/filters/ActivationWarning.spec.ts` (the named or general warning), `tests/unit/features/filters/FilterForm.spec.ts`, `tests/unit/features/filters/list-state.spec.ts` and `tests/unit/shared/components/MailboxSearchPicker.spec.ts` (debounced search, load more, empty and error states, keyboard, no `ComboboxViewport`).
-- [ ] T130 [P] [US10] Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` creates a postfilter for alice with an invalid script (the parser message appears), fixes and saves it, deactivates and deletes it; `reseller` lists the filters of its domains.
+- [x] T129 [P] [US10] Write `tests/unit/features/filters/ScriptEditor.spec.ts` (the byte counter against `limits.sieveScriptMaxBytes`, attributes), `tests/unit/features/filters/ActivationWarning.spec.ts` (the named or general warning), `tests/unit/features/filters/FilterForm.spec.ts`, `tests/unit/features/filters/list-state.spec.ts` and `tests/unit/shared/components/MailboxSearchPicker.spec.ts` (debounced search, load more, empty and error states, keyboard, no `ComboboxViewport`).
+- [x] T130 [P] [US10] Add to `tests/smoke/mailbox-self-service.smoke.spec.ts`: `admin` creates a postfilter for alice with an invalid script (the parser message appears), fixes and saves it, deactivates and deletes it; `reseller` lists the filters of its domains.
 
 ### Implementation for User Story 10
 
-- [ ] T131 [US10] Implement `src/features/filters/api.ts` (lists, CRUD, validation, active script, with the invalidation of data-model §3), `src/features/filters/list-state.ts` and `src/features/filters/index.ts`.
-- [ ] T132 [P] [US10] Implement `src/features/filters/components/FilterList.vue`, `FilterCard.vue`, `FilterTable.vue`, `FilterFilters.vue`, `FilterForm.vue`, `ScriptEditor.vue`, `ScriptBlock.vue`, `ActivationWarning.vue`, `ActiveScriptPanel.vue` and `FilterMailboxField.vue`, and `src/shared/components/MailboxSearchPicker.vue` (canonical name; created here because no earlier-implemented feature has it, modelled on the promoted `DomainPicker`, research R19). Selection and outcomes use `useBulkSelection`, `BulkActionBar`, `usePerItemRunner` and `BulkResultSummary`.
-- [ ] T133 [US10] Implement `src/features/filters/pages/FiltersPage.vue`, `MailboxFiltersPage.vue` and `FilterFormPage.vue`, and `src/features/filters/routes.ts` (`filters`, `filter-create`, `filter-detail`). Register them in `src/app/router/routes.ts` and set the catalogue's `filters` entry to `available`. Add `mailbox-filters`, `mailbox-filter-create` and `mailbox-filter-detail` to `src/features/account/mailbox-routes.ts`. Implement `src/features/account/pages/OwnFiltersPage.vue` and add the `account-filters` route to `src/features/account/routes.ts`.
-- [ ] T134 [US10] Add the `filters.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `mailbox.filters`, `mailbox.add_filter`, `mailbox.sieve_info` (HTML, through `SanitizedHtml.vue`), `mailbox.set_prefilter`, `mailbox.set_postfilter`, the table columns of `draw_filter_table()`, `add.sieve_desc`, `add.sieve_type`, `add.validate`, `add.activate_filter_warn`, `edit.validate_save`, `danger.sieve_error` (`%s` the parser message), `user.active_sieve`, `user.show_sieve_filters` and `user.no_active_filter`. `npm run i18n:check` must pass.
+- [x] T131 [US10] Implement `src/features/filters/api.ts` (lists, CRUD, validation, active script, with the invalidation of data-model §3), `src/features/filters/list-state.ts` and `src/features/filters/index.ts`.
+- [x] T132 [P] [US10] Implement `src/features/filters/components/FilterList.vue`, `FilterCard.vue`, `FilterTable.vue`, `FilterFilters.vue`, `FilterForm.vue`, `ScriptEditor.vue`, `ScriptBlock.vue`, `ActivationWarning.vue`, `ActiveScriptPanel.vue` and `FilterMailboxField.vue`, and `src/shared/components/MailboxSearchPicker.vue` (canonical name; created here because no earlier-implemented feature has it, modelled on the promoted `DomainPicker`, research R19). Selection and outcomes use `useBulkSelection`, `BulkActionBar`, `usePerItemRunner` and `BulkResultSummary`.
+- [x] T133 [US10] Implement `src/features/filters/pages/FiltersPage.vue`, `MailboxFiltersPage.vue` and `FilterFormPage.vue`, and `src/features/filters/routes.ts` (`filters`, `filter-create`, `filter-detail`). Register them in `src/app/router/routes.ts` and set the catalogue's `filters` entry to `available`. Add `mailbox-filters`, `mailbox-filter-create` and `mailbox-filter-detail` to `src/features/account/mailbox-routes.ts`. Implement `src/features/account/pages/OwnFiltersPage.vue` and add the `account-filters` route to `src/features/account/routes.ts`.
+- [x] T134 [US10] Add the `filters.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `mailbox.filters`, `mailbox.add_filter`, `mailbox.sieve_info` (HTML, through `SanitizedHtml.vue`), `mailbox.set_prefilter`, `mailbox.set_postfilter`, the table columns of `draw_filter_table()`, `add.sieve_desc`, `add.sieve_type`, `add.validate`, `add.activate_filter_warn`, `edit.validate_save`, `danger.sieve_error` (`%s` the parser message), `user.active_sieve`, `user.show_sieve_filters` and `user.no_active_filter`. `npm run i18n:check` must pass.
 
 **Checkpoint**: US1 to US10 work on their own.
 
@@ -825,8 +826,8 @@ disable webmail, and confirm the control is absent.
 
 ### Tests for User Story 11 (write first; must fail)
 
-- [ ] T135 [US11] Implement `tests/mocks/handlers/self-service/groupware.ts`: `resetActiveSyncCache` and `resetGroupwareProfile` (`204`; the `easReset` and `sogoProfileReset` flags; `403 groupware-disabled`). Create `tests/mocks/scenarios/groupware.ts` (registered in the index) with `mailbox-no-reset-flags`.
-- [ ] T136 [P] [US11] Write `tests/e2e/account/devices.spec.ts` and `tests/e2e/mailbox-self-service/groupware.spec.ts`. They cover:
+- [x] T135 [US11] Implement `tests/mocks/handlers/self-service/groupware.ts`: `resetActiveSyncCache` and `resetGroupwareProfile` (`204`; the `easReset` and `sogoProfileReset` flags; `403 groupware-disabled`). Create `tests/mocks/scenarios/groupware.ts` (registered in the index) with `mailbox-no-reset-flags`.
+- [x] T136 [P] [US11] Add the groupware-reset browser coverage for both own and mailbox contexts to `tests/e2e/account/mail-settings.spec.ts`, following D1's decision to keep these resets in Settings rather than create a Devices route. It covers:
   - US11-AS1: the ActiveSync reset is confirmed and the success is announced, with legacy `user.eas_reset_help`;
   - US11-AS2: the SOGo confirmation states the irreversible deletion, and its button stays disabled until the acknowledgement is ticked;
   - US11-AS3: with webmail disabled, no groupware reset in the mailbox context;
@@ -834,12 +835,12 @@ disable webmail, and confirm the control is absent.
   - FR-088: a `groupware-disabled` refusal is explained;
   - SC-009 on `mailbox-no-reset-flags`: both resets absent;
   - an administrator resets both in the mailbox context.
-- [ ] T137 [P] [US11] Write `tests/unit/features/account/GroupwareResets.spec.ts` and `tests/unit/shared/components/confirm-acknowledgement.spec.ts` (UI 002's `ConfirmDialog` has only `requireTyped`): the confirm button is disabled until the box is ticked, the box is labelled, and focus behaves as in 001.
+- [x] T137 [P] [US11] Write `tests/unit/features/account/GroupwareResets.spec.ts` and `tests/unit/shared/components/confirm-acknowledgement.spec.ts` (UI 002's `ConfirmDialog` has only `requireTyped`): the confirm button is disabled until the box is ticked, the box is labelled, and focus behaves as in 001.
 
 ### Implementation for User Story 11
 
-- [ ] T138 [US11] Implement `src/features/account/api/groupware.ts`, `src/features/account/components/groupware/GroupwareResets.vue` and `src/features/account/pages/DevicesPage.vue`. Add `requireAcknowledgement` to UI 002's `src/shared/components/ConfirmDialog.vue`. Add `account-devices` to `src/features/account/routes.ts` and `mailbox-groupware` to `src/features/account/mailbox-routes.ts`.
-- [ ] T139 [US11] Add the `account.devices.*` messages to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`. Only the new strings of the legacy form map. Use verbatim by legacy key: `user.eas_reset`, `user.eas_reset_help` (HTML, through `SanitizedHtml.vue`), `user.eas_reset_now`, `user.sogo_profile_reset`, `user.sogo_profile_reset_help`, `user.sogo_profile_reset_now`, `success.eas_reset` (`%s` the mailbox) and `success.sogo_profile_reset` (`%s` the mailbox). `npm run i18n:check` must pass.
+- [x] T138 [US11] Implement `src/features/account/api/groupware.ts` and `src/features/account/components/groupware/GroupwareResets.vue`, integrated into the Settings section in both contexts per D1. Add `requireAcknowledgement` to UI 002's `src/shared/components/ConfirmDialog.vue`. Do not create a separate Devices route.
+- [x] T139 [US11] Use legacy `user.*` and `success.*` keys verbatim for the reset labels and confirmations, with the new SOGo acknowledgement translated in `src/i18n/messages/account/{en-gb,cs-cz,sk-sk}.json`. `npm run i18n:check` passes.
 
 **Checkpoint**: US1 to US11 work on their own.
 
@@ -856,23 +857,23 @@ types; use the History action of a mailbox's self-service group and of an app pa
 
 ### Tests for User Story 12 (write first; must fail)
 
-- [ ] T140 [US12] Extend `tests/mocks/factories/audit-event.ts` with self-service records (`target.id` the mailbox address, `target.name` the object label, the object ID in `details`, secrets as `set`/`changed`, scripts as `{changed, oldSize, newSize}`). Create `tests/mocks/scenarios/audit-self-service.ts` (registered in the index) with `audit-self-service`: records of a password change and an app password creation for `anna@example.org`, and every other self-service event type.
-- [ ] T141 [P] [US12] Write `tests/e2e/audit-log/self-service-history.spec.ts`. It covers:
+- [x] T140 [US12] Extend `tests/mocks/factories/audit-event.ts` with self-service records (`target.id` the mailbox address, `target.name` the object label, the object ID in `details`, secrets as `set`/`changed`, scripts as `{changed, oldSize, newSize}`). Create `tests/mocks/scenarios/audit-self-service.ts` (registered in the index) with `audit-self-service`: records of a password change and an app password creation for `anna@example.org`, and every other self-service event type.
+- [x] T141 [P] [US12] Write `tests/e2e/audit-log/self-service-history.spec.ts`. It covers:
   - US12-AS1: the mailbox's History opens the audit log with `targetId=anna@example.org`; both events appear with actor, time and address, and the password only as "changed";
   - US12-AS2: domain administrators get no History action;
   - FR-107: the target type filter offers the self-service types with labels, and event types and failure reasons are translated;
   - FR-108: History on an app password, a temporary alias and a filter opens `targetType` plus `targetId`;
   - script size changes are shown as text.
-- [ ] T142 [P] [US12] Extend `tests/unit/features/audit-log/labels.spec.ts`: every self-service event type, target type and failure reason has a label; unknown values get the generic label; `set`, `changed` and size details are formatted.
+- [x] T142 [P] [US12] Extend `tests/unit/features/audit-log/labels.spec.ts`: every self-service event type, target type and failure reason has a label; unknown values get the generic label; `set`, `changed` and size details are formatted.
 
 ### Implementation for User Story 12
 
-- [ ] T143 [US12] Extend `src/features/audit-log/labels.ts` (details formatting) and `src/features/audit-log/list-state.ts` (the self-service target types in the filter). Place `HistoryLink` (administrators only):
+- [x] T143 [US12] Extend `src/features/audit-log/labels.ts` (details formatting) and `src/features/audit-log/list-state.ts` (the self-service target types in the filter). Place `HistoryLink` (administrators only):
   - in `src/features/account/components/layout/MailboxContextHeader.vue`, so every mailbox-context section offers the mailbox's History;
   - in `src/features/account/pages/AppPasswordDetailPage.vue`;
   - on the items of `src/features/account/components/temporary-aliases/TemporaryAliasList.vue`;
   - in `src/features/filters/pages/FilterFormPage.vue`.
-- [ ] T144 [US12] Add the remaining `auditLog.*` detail strings to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (the labels came with T004). `npm run i18n:check` must pass.
+- [x] T144 [US12] Add the remaining `auditLog.*` detail strings to `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json` (the labels came with T004). `npm run i18n:check` must pass.
 
 **Checkpoint**: All user stories work on their own.
 
@@ -882,18 +883,18 @@ types; use the History action of a mailbox's self-service group and of an app pa
 
 **Purpose**: Cross-story verification, budgets, parity, validation on devices and release readiness.
 
-- [ ] T145 [P] Write and pass `tests/e2e/account/visibility-matrix.spec.ts` (SC-009, FR-002, FR-004, FR-006). For each flag of FR-002 turned off, the own-context section is absent and its direct address shows "no access". For each `da_acl` flag of FR-004, the mailbox-context section is read-only. `mailbox-external-source` shows only the external notice in place of password, recovery and two-factor. `capabilities-unavailable` shows the error states.
-- [ ] T146 [P] Write and pass `tests/e2e/account/secrets-audit.spec.ts` (SC-008, FR-109) after the flows of US1 (own and forced password), US2 (TOTP, Yubico), US3 (reset), US4 (app password), US7 (Pushover) and US9 (profile with app password):
+- [x] T145 [P] Write and pass `tests/e2e/account/visibility-matrix.spec.ts` (SC-009, FR-002, FR-004, FR-006). For each flag of FR-002 turned off, the own-context section is absent and its direct address shows "no access". For each `da_acl` flag of FR-004, the mailbox-context section is read-only. `mailbox-external-source` shows only the external notice in place of password, recovery and two-factor. `capabilities-unavailable` shows the error states.
+- [x] T146 [P] Write and pass `tests/e2e/account/secrets-audit.spec.ts` (SC-008, FR-109) after the flows of US1 (own and forced password), US2 (TOTP, Yubico), US3 (reset), US4 (app password), US7 (Pushover) and US9 (profile with app password):
   - `localStorage` and `sessionStorage` hold only UI 001's keys;
   - no stored value, `location.href`, `history.state` or console message contains a password, code, TOTP key or provisioning address, app password, Yubico key, Pushover credential or reset token.
-- [ ] T147 [P] Write and pass `tests/e2e/account/reflow-keyboard.spec.ts` for every screen and dialog of this feature:
+- [x] T147 [P] Write and pass `tests/e2e/account/reflow-keyboard.spec.ts` for every screen and dialog of this feature:
   - no horizontal scroll at 320 px and at 400 % zoom;
   - landscape on the mobile projects;
   - the focused element never hidden behind the sticky header;
   - no transition under `prefers-reduced-motion`;
   - the main paths of US1 to US4 completed with the keyboard alone, with visible focus;
   - at 360 px, every form's primary action is reachable without scrolling past an expanded explanation, and the TLS and SOGo warnings are visible without interaction (FR-112, FR-121 to FR-123, research R4).
-- [ ] T148 [P] Write and pass `tests/e2e/account/edge-cases.spec.ts`:
+- [x] T148 [P] Write and pass `tests/e2e/account/edge-cases.spec.ts`:
   - `pending-action-required` from any self-service screen returns to the pending-actions screen;
   - a session expiry while a form is open clears the secret inputs and keeps the others after re-authentication;
   - offline (`route.abort`) gives every view its error state with "Try again";
@@ -902,14 +903,14 @@ types; use the History action of a mailbox's self-service group and of an app pa
   - FR-011: every successful change is announced in the polite region while focus stays on the changed control;
   - FR-015: leaving the recovery e-mail form, a second-factor setup, the app password and filter forms and the alias generation panel with input asks for confirmation.
 - [x] T149 Add the `/ng/account` collection (scenario `account-mailbox`) to `scripts/run-lhci.mjs`. Run `npm run build && npm run budget:check && npm run lhci` and fix regressions until the initial JS is at most 204,800 bytes gzipped and `/ng/account` scores at least 0.8 for performance and 0.9 for accessibility (SC-011; owner decision, 2026-10-20).
-- [ ] T150 [P] Write and pass `tests/unit/i18n/legacy-reuse-005.spec.ts`: every legacy key listed in the spec's Legacy Parity section and in the plan's legacy form map is used by its legacy key and exists in the bundled `en-gb` snapshot, apart from the keys the spec names as not used, and no legacy value is copied into `src/i18n/messages/` (SC-007, constitution IV 1.3.0). Add the plan's three parity notes to the Legacy Parity table in `specs/005-account-self-service/spec.md` (SC-010).
-- [ ] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings (written by hand, never machine-translated) for the owner's review (UI 001 owner question 4).
+- [x] T150 [P] Write and pass `tests/unit/i18n/legacy-reuse-005.spec.ts`: every legacy key listed in the spec's Legacy Parity section and in the plan's legacy form map is used by its legacy key and exists in the bundled `en-gb` snapshot, apart from the keys the spec names as not used, and no legacy value is copied into `src/i18n/messages/` (SC-007, constitution IV 1.3.0). Add the plan's three parity notes to the Legacy Parity table in `specs/005-account-self-service/spec.md` (SC-010).
+- [x] T151 [P] Run `npm run i18n:check`, remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, and list the new cs-cz and sk-sk strings (written by hand, never machine-translated) for the owner's review (UI 001 owner question 4).
 - [ ] T152 Run quickstart.md Part B on a mid-range Android phone and an iPhone, and Part D on a mailcow host:
   - authenticator apps, a security key, a YubiKey, forced actions, the reset, webmail, and the Apple profiles on an iPhone, an iPad and a Mac;
   - VoiceOver and TalkBack passes.
 
   Record SC-001 to SC-004 and SC-011 to SC-013 in a "Validation log" section appended to `specs/005-account-self-service/quickstart.md`. If iOS does not open the profile installer from the blob download, record it and the Downloads fallback there (research R21).
-- [ ] T153 Run quickstart.md Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @005`, `scripts/smoke/stack-down.sh`) once API feature 005 runs in the dev stack. Confirm the status of API gaps AG1 and AG2 in the pinned contract and note it in the validation log.
+- [x] T153 Run quickstart.md Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- --grep @005`, `scripts/smoke/stack-down.sh`) once API feature 005 runs in the dev stack. Confirm the status of API gaps AG1 and AG2 in the pinned contract and note it in the validation log.
 - [x] T154 [P] In `docker/nginx/default.conf`, define the access log format of the `ng-mailcow` image with `$uri` instead of `$request_uri`, so that reset tokens of `/ng/reset-password?token=…` never reach its log (research R12, plan AG7). Extend the CI `image` job's container check in `.github/workflows/ci.yml` to request `/ng/reset-password?token=TEST` and assert that the log line contains no `TEST`.
 
 ---

@@ -1,5 +1,10 @@
 import { computed } from 'vue'
-import { componentsParametersAppPasswordSortValues, type AppPasswordListParams } from '@/api'
+import {
+  componentsParametersAppPasswordSortValues,
+  componentsParametersTemporaryAliasSortValues,
+  type AppPasswordListParams,
+  type TemporaryAliasListParams,
+} from '@/api'
 import {
   oneOf,
   text,
@@ -37,4 +42,35 @@ export function appPasswordListParams(
 export function useAppPasswordListState(options: ListStateOptions = {}) {
   const list = useListState(appPasswordListSchema, options)
   return { ...list, params: computed(() => appPasswordListParams(list.state.value)) }
+}
+
+export type TemporaryAliasSort = NonNullable<TemporaryAliasListParams['sort']>
+export interface TemporaryAliasFilters extends Record<string, unknown> {
+  q: string | undefined
+  permanent: 'true' | 'false' | undefined
+}
+export const temporaryAliasListSchema: ListSchema<TemporaryAliasFilters, TemporaryAliasSort> = {
+  filters: { q: text({ maxLength: SEARCH_MAX_LENGTH }), permanent: oneOf(['true', 'false']) },
+  sort: {
+    values: componentsParametersTemporaryAliasSortValues,
+    // Approved legacy form-map D22: latest validity first, permanent aliases last.
+    default: 'expiresAt',
+    defaultOrder: (sort) => (sort === 'address' ? 'asc' : 'desc'),
+  },
+}
+export function temporaryAliasListParams(
+  state: ListState<TemporaryAliasFilters, TemporaryAliasSort>,
+): TemporaryAliasListParams {
+  return {
+    ...(state.filters.q ? { q: state.filters.q } : {}),
+    ...(state.filters.permanent ? { permanent: state.filters.permanent === 'true' } : {}),
+    sort: state.sort ?? 'expiresAt',
+    order: state.order ?? 'desc',
+    limit: state.size,
+    offset: (state.page - 1) * state.size,
+  }
+}
+export function useTemporaryAliasListState(options: ListStateOptions = {}) {
+  const list = useListState(temporaryAliasListSchema, options)
+  return { ...list, params: computed(() => temporaryAliasListParams(list.state.value)) }
 }

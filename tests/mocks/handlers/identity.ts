@@ -45,6 +45,7 @@ export const identityHandlers = [
         permissions: account.permissions,
         pendingActions: account.pendingActions,
         preferences: effectivePreferences(state, account),
+        ...(account.impersonation ? { impersonation: account.impersonation } : {}),
       },
     })
   }),

@@ -4,7 +4,7 @@
 // know is shown with a generic label and the code, never hidden.
 import type { AuditActor, AuditEvent } from '@/api'
 import { hasMessage, i18n, text } from '@/i18n'
-import { formatBytes } from '@/i18n/format'
+import { formatBytes, formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 
 /** A route to an audit target, as `RouterLink` takes it. */
@@ -179,6 +179,30 @@ function changeText(path: string, value: unknown, flag: FlagText): string {
   return (CHANGE_ENUMS[path] && enumText(CHANGE_ENUMS[path], value)) ?? detailText(value, flag)
 }
 
+/** Only API redaction sentinels are translated; a user's description named "set" stays verbatim. */
+function redactionText(path: string, value: unknown): string | null {
+  if (!['password', 'token', 'userKey'].includes(path)) return null
+  if (value !== 'set' && value !== 'changed' && value !== 'generated') return null
+  return text(`auditLog.detailValues.${value}`)
+}
+
+function selfServiceSizeChange(event: AuditEvent, change: unknown): string | null {
+  if (!event.eventType.startsWith('sieveFilter') && !event.eventType.startsWith('pushNotification'))
+    return null
+  if (
+    !isRecord(change) ||
+    change.changed !== true ||
+    typeof change.oldSize !== 'number' ||
+    typeof change.newSize !== 'number'
+  )
+    return null
+  const locale = i18n.global.locale.value as AppLocale
+  return text('auditLog.detailValues.changedSize', {
+    old: formatNumber(change.oldSize, locale),
+    new: formatNumber(change.newSize, locale),
+  })
+}
+
 /**
  * The details of an event as text: `changes` one line per changed value with its old and new
  * value, `removed` and `creationReport` one line per entry, `copiedFromAliasId` as a link to that
@@ -190,13 +214,16 @@ export function auditDetailRows(event: AuditEvent, flag: FlagText = String): Aud
     if (key === 'changes' && isRecord(value)) {
       return {
         key,
-        lines: Object.entries(value).map(([path, change]) =>
-          isRecord(change) && 'old' in change && 'new' in change
-            ? `${path}: ${changeText(path, change.old, flag)} → ${changeText(path, change.new, flag)}`
-            : isRecord(change) && 'oldSize' in change && 'newSize' in change
-              ? `${path}: ${sizeText(change.oldSize)} → ${sizeText(change.newSize)}`
-              : `${path}: ${detailText(change, flag)}`,
-        ),
+        lines: Object.entries(value).map(([path, change]) => {
+          const formatted = redactionText(path, change) ?? selfServiceSizeChange(event, change)
+          return formatted !== null
+            ? `${path}: ${formatted}`
+            : isRecord(change) && 'old' in change && 'new' in change
+              ? `${path}: ${changeText(path, change.old, flag)} → ${changeText(path, change.new, flag)}`
+              : isRecord(change) && 'oldSize' in change && 'newSize' in change
+                ? `${path}: ${sizeText(change.oldSize)} → ${sizeText(change.newSize)}`
+                : `${path}: ${detailText(change, flag)}`
+        }),
       }
     }
     if (key === 'steps' && isRecord(value)) {
@@ -232,6 +259,6 @@ export function auditDetailRows(event: AuditEvent, flag: FlagText = String): Aud
     if (Array.isArray(value) && value.length > COLLAPSED_LINES) {
       return { key, lines: value.map((item) => detailText(item, flag)) }
     }
-    return { key, lines: [detailText(value, flag)] }
+    return { key, lines: [redactionText(key, value) ?? detailText(value, flag)] }
   })
 }

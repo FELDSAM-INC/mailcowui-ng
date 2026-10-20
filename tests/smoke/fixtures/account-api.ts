@@ -43,7 +43,9 @@ export async function restoreMailbox(
 }
 
 export async function signInAlice(page: Page, password = alice.password): Promise<void> {
-  await signIn(page, alice.username, password)
+  // A requested app landing deliberately bypasses Alice's configured webmail forwarding.
+  // The isolated stack has no SOGo; its hand-off is checked separately.
+  await signIn(page, alice.username, password, 'sign-in?returnTo=%2F')
   await expect(
     page.getByRole('heading', { level: 1, name: 'Two-factor authentication' }),
   ).toBeVisible()

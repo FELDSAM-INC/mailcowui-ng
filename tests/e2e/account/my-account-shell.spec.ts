@@ -1,8 +1,8 @@
 // T025: My account in the shell (FR-001, FR-002, FR-006, research R4; decision D1): reachable from
 // the navigation and the user menu for every role, the hub per role, the capabilities error, and
-// Mail setup › Filters as a placeholder until US10.
+// Mail setup › Filters availability (US10).
 import { expect, test } from '../fixtures/test'
-import { isNarrow, openNavigation } from '../fixtures/flows'
+import { openNavigation } from '../fixtures/flows'
 
 const heading = { level: 1, name: 'User Settings' } as const
 
@@ -56,7 +56,7 @@ test('Edge: a section that needs the unreadable capabilities shows its error sta
   await expectAccessible()
 })
 
-test('FR-044 Mail setup › Filters is a placeholder linking to the classic page until US10', async ({
+test('FR-044 Mail setup › Filters opens its native list', async ({
   page,
   mockApi,
   expectAccessible,
@@ -65,8 +65,10 @@ test('FR-044 Mail setup › Filters is a placeholder linking to the classic page
   await page.goto('filters')
   const main = page.getByRole('main')
   await expect(page.getByRole('heading', { level: 1, name: 'Filters' })).toBeVisible()
-  await expect(main).toContainText('This section comes in a later version of the app.')
-  await expect(main.getByRole('link').first()).toHaveAttribute('href', '/admin/mailbox')
-  if (isNarrow(page)) await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(main.getByRole('link', { name: 'Add filter', exact: true })).toHaveAttribute(
+    'href',
+    '/ng/filters/new',
+  )
+  await expect(main).not.toContainText('This section comes in a later version of the app.')
   await expectAccessible()
 })

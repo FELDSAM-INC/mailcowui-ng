@@ -6,8 +6,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute } from 'vue-router'
 import { isApiProblem, problemOf } from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
-import HistoryLink from '@/shared/components/HistoryLink.vue'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import MailboxContextHeader from '../components/layout/MailboxContextHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import OneTimeSecretDialog from '@/shared/components/OneTimeSecretDialog.vue'
 import { confirm } from '@/shared/composables/useConfirm'
@@ -20,7 +19,7 @@ import { APP_PASSWORD_PROTOCOL_ORDER, appPasswordProtocolListKey } from '../labe
 const { t } = useI18n()
 const route = useRoute()
 const client = useQueryClient()
-const { access, mailbox, mailboxContext, location } = useAppPasswordContext()
+const { access, mailbox, location } = useAppPasswordContext()
 const id = computed(() => Number(route.params.appPasswordId))
 const query = useAppPassword(mailbox, id)
 const item = computed(() => query.data.value)
@@ -93,14 +92,10 @@ onBeforeRouteUpdate(() => dialog.value?.requestClose() ?? true)
 <template>
   <NotFoundPage v-if="notFound" :back-to="location('list')" :back-label="lt('user.app_passwds')" />
   <section v-else class="flex flex-col gap-5">
-    <PageHeader
+    <MailboxContextHeader
       :title="`${lt('edit.app_passwd')}${item ? `: ${item.name}` : ''}`"
-      :description="mailboxContext ? mailbox : undefined"
-    >
-      <template #actions
-        ><HistoryLink v-if="item" target-type="appPassword" :target-id="String(item.id)"
-      /></template>
-    </PageHeader>
+      target-type="appPassword"
+    />
     <p
       v-if="query.isPending.value"
       role="status"

@@ -13,6 +13,7 @@ import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useBranding } from '@/app/branding/public-config'
+import { useMailSettingsEditor } from '@/features/account'
 import {
   canChangeCategory,
   canChangeFrequency,
@@ -162,16 +163,27 @@ const notifications = useNotificationEditor({
       ? canChangeFrequency(props.identity, props.mailbox.address)
       : canChangeCategory(props.identity, props.mailbox.address),
 })
+const mailSettings = useMailSettingsEditor({
+  mailbox: () => props.mailbox.address,
+  canChange: () => !!props.identity && props.identity.role !== 'mailboxUser',
+})
 watch(
   () => props.editing,
   (editing) => {
-    if (!editing) notifications.close()
+    if (!editing) {
+      notifications.close()
+      mailSettings.close()
+    }
   },
 )
 
 const s = useMailboxSection<Form>(props, emit as never, {
   id: 'mailbox',
-  companion: combineCompanions(relayhostField.companion, notifications.companion),
+  companion: combineCompanions(
+    relayhostField.companion,
+    notifications.companion,
+    mailSettings.companion,
+  ),
   fields: FIELDS,
   toForm,
   validate,
@@ -394,12 +406,24 @@ const times = computed(() => [
         hint="edit.mailbox_relayhost_info"
       />
       <LegacyRadioGroup
+        v-if="mailSettings.values.value"
         id-prefix="section-mailbox-taggedMail"
         legend-key="user.tag_handling"
-        :model-value="mailbox.taggedMailHandling"
+        :model-value="mailSettings.values.value.taggedMailHandling"
         :options="TAGGED_MAIL_OPTIONS"
         :help-keys="['user.tag_help_explain', 'user.tag_help_example']"
-        readonly
+        @update:model-value="
+          mailSettings.choose(
+            'taggedMailHandling',
+            $event as MailboxSectionProps['mailbox']['taggedMailHandling'],
+          )
+        "
+      />
+      <ProblemMessage
+        v-else-if="mailSettings.query.isError.value"
+        :problem="problemOf(mailSettings.query.error.value)"
+        retry
+        @retry="mailSettings.query.refetch()"
       />
       <template v-if="notifications.query.data.value">
         <NotificationOptionGroup
@@ -427,10 +451,12 @@ const times = computed(() => [
         @retry="notifications.query.refetch()"
       />
       <TlsPolicyField
+        v-if="mailSettings.values.value"
         id-prefix="section-mailbox-tls"
-        :inbound="mailbox.tlsEnforceInbound"
-        :outbound="mailbox.tlsEnforceOutbound"
-        readonly
+        :inbound="mailSettings.values.value.tlsEnforceInbound"
+        :outbound="mailSettings.values.value.tlsEnforceOutbound"
+        @update:inbound="mailSettings.choose('tlsEnforceInbound', $event)"
+        @update:outbound="mailSettings.choose('tlsEnforceOutbound', $event)"
       />
       <template v-if="controls.password">
         <PasswordFields

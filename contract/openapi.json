@@ -16741,7 +16741,7 @@
           "Rspamd settings"
         ],
         "summary": "List the global regex maps",
-        "description": "Lists the global regex maps that the operator's configuration makes editable (13 by default,\nfrom \"Header-From: Denylist\" to \"Monitoring Hosts\"), each with its content and version tag. A\nmap whose file is missing on this server is listed with `available: false`. `q` searches the name.\nAdministrators only, by session or by an administrator's key, read-only keys included.\n",
+        "description": "Lists the global regex maps that the operator's configuration makes editable (13 by default,\nfrom \"Header-From: Denylist\" to \"Monitoring Hosts\"), in the configured order unless `sort` is\ngiven, each with its size and version tag but without its content, which the single read\nreturns. A map whose file is missing on this server is listed with `available: false`. `q`\nsearches the name.\nAdministrators only, by session or by an administrator's key, read-only keys included.\n",
         "security": [
           {
             "sessionCookie": []
@@ -17258,7 +17258,7 @@
           "Mass mail"
         ],
         "summary": "List mass mail jobs",
-        "description": "Lists mass mail jobs, newest first by default, with their counts per outcome. `q` searches the\nsubject. Jobs are kept for the audit retention period. Administrators only, by session or by an\nadministrator's key, read-only keys included.\n",
+        "description": "Lists mass mail jobs, newest first by default, with their counts per outcome but without their\nbodies, which the single read returns. `q` searches the subject. Jobs are kept for the audit retention period. Administrators only, by session or by an\nadministrator's key, read-only keys included.\n",
         "security": [
           {
             "sessionCookie": []
@@ -17470,7 +17470,7 @@
           "Mass mail"
         ],
         "summary": "List a job's recipients",
-        "description": "Lists the job's recipients, sorted by address by default, each with its outcome and, for a\nfailure, Dovecot's reason. `q` searches the address. Administrators only, by session or by an\nadministrator's key.\n",
+        "description": "Lists the job's recipients, sorted by address by default, each with its outcome and, for a\nfailure, a stable `failureCode` and Dovecot's reply. `q` searches the address. Administrators only, by session or by an\nadministrator's key.\n",
         "security": [
           {
             "sessionCookie": []
@@ -20642,7 +20642,7 @@
       },
       "ValidationRuleCode": {
         "type": "string",
-        "description": "Stable code of a validation rule. Clients must treat unknown codes as a generic invalid value,\nbecause later features may add codes.\n\n- `required`: the field is missing, `null` or empty.\n- `invalidType`: wrong JSON type. Params: `expected` (`string`, `integer`, `boolean`, `array`,\n  `object`).\n- `tooShort` / `tooLong`: string length out of bounds. Params: `min` / `max`.\n- `tooMany`: too many list items. Params: `max`.\n- `outOfRange`: number out of bounds. Params: `min`, `max`.\n- `notInList`: value not among the allowed values. Params: `allowed`.\n- `invalidFormat`: value does not match a format. Params: `format`, one of `dateTime`\n  (RFC 3339), `ipNetwork` (IPv4 or IPv6 address or prefix), `ipAddress`, `totpCode` (six\n  digits), `yubicoOtp` (44 letters or digits), `base64url`, `webauthnCredential`, `requestId`\n  (32 lower-case hexadecimal digits).\n- `mustBeInFuture`: a time that must lie in the future does not.\n- `notFound`: the referenced object does not exist.\n- `notEligible`: the referenced object exists but cannot be used here. Params: `allowedRoles`.\n- Sync jobs (feature 008): `invalidFormat` also uses `format: hostName` (host name or IPv4\n  address); `notEligible` uses `kind` (`resource`, `alias`, `aliasDomainAddress`) for a sync-job\n  target that is not a mailbox; `optionNotAllowed` (an imapsync option not on the allow-list,\n  param `option`); `optionContainsSpace` (an option token containing a space, param `token`);\n  `customParamsNotPermitted` (custom imapsync parameters are restricted to administrators);\n  `invalidRegex` (not a valid regular expression); `immutable` (the value cannot be changed after\n  creation).\n- Domains (feature 002): `invalidFormat` also uses `format: domainName`, `dkimSelector` and\n  `email`; `tooLong` may carry `unit: bytes`; `immutable` also covers read-only members sent back\n  with a different value; `notMultipleOf` (a quota that is not a whole multiple of a unit, param\n  `factor`); `mustNotExceed` (a value above another field's value, params `field` and `value`);\n  `belowInUse` (a limit below current usage, param `inUse`); `reserved` (a name reserved by the\n  server, such as its own host name).\n- DKIM, MTA-STS and DNS (feature 010): `invalidFormat` also uses `format: mxHost` (a host name\n  with an optional `*.` prefix); `invalidPrivateKey` (not exactly one PEM-encoded PKCS #1 or\n  PKCS #8 private key); `encryptedPrivateKey` (the private key is encrypted);\n  `unsupportedKeyType` (not an RSA key, param `allowed`); `keyLengthOutOfRange` (key length in\n  bits outside `min` and `max`); `sameAsSource` (a copy target equal to its source). None of them\n  echoes the key text.\n- Mailboxes (feature 003): `invalidFormat` also uses `format: localPart`, `email` and\n  `attributeName`; `notEligible` uses `kind: aliasDomain` for a creation domain that is an alias\n  domain; `notMultipleOf` (param `factor: 1048576`) for quotas; `outOfRange` on a quota carries\n  `limit` (`maxMailboxQuota`, `domainQuotaLeft` or `largestAllowedQuota`) next to `min` and\n  `max` in bytes; `immutable` for any read-only member sent in a change; `tooShort` on a password\n  is the policy's minimum length; `missingCharacterClass` (a password lacks a class the policy\n  requires, param `characterClass`: `letter`, `digit`, `special` or `lowerAndUpper`);\n  `conflictsWith` (a value not allowed together with another field's value, params `field` and\n  `value`, for example a password with an external `authSource`); `unchanged` (a rename to the\n  current local part).\n- Identity providers and OAuth2 clients (feature 012): `invalidFormat` also uses `format:\n  httpUrl` (absolute `https` or `http` URL), `hostName` (also an IPv6 address for LDAP hosts),\n  `keycloakRealm`, `keycloakVersion`, `scopeList`, `ldapAttribute`, `ldapFilter`, `redirectUri`\n  (absolute URI with a scheme, no fragment, no whitespace) and `oauthErrorCode`; `notFound` on a\n  mapped or default template carries `resource: mailboxTemplate`; `conflictsWith` (params\n  `field: type`, `value`) for a member that is not a setting of the configuration's type, and\n  for an LDAP `attributeField` left empty while `importUsers` or `periodicSync` is on;\n  `immutable` for a different `type` in a change or a different OAuth2 `clientId` or `scope`;\n  `secretRequired` (the client secret or bind password must be sent, param `reason`:\n  `noStoredSecret`, `typeChanged` or `addressChanged`, with `field` naming the changed address\n  for the latter); `duplicate` (a value that must be unique appears twice, param\n  `duplicateOf` with the path of the first occurrence).\n- Administrators and domain administrators (feature 007): `invalidFormat` also uses `format:\n  accountUsername` (only `a-z`, `0-9`, `.`, `_`, `-`, with at least one letter or digit);\n  `reserved` (param `reserved: [api]`) for the username `api`; `notEligible` uses `kind:\n  aliasDomain` for an assigned domain that is an alias domain, and `reason` (`mailboxInactive`,\n  `loginDisabled`, `domainInactive`) for a mailbox whose webmail cannot be opened; `immutable` for a read-only member sent back with a different value; password rules\n  use feature 003's codes; `unknownField` (a member the schema does not define, for example an\n  unknown permission flag, named by its path).\n- Routing (feature 009): `invalidFormat` also uses `format: nextHop` (`host`, `host:port`,\n  `[host]` or `[host]:port`), `transportDestination`, `recipientMapDestination`,\n  `tlsPolicyDestination`, `tlsPolicyParameters`, `domainName`, `email` and `ipNetwork`;\n  `invalidRegex` for an MX-based transport pattern MariaDB cannot evaluate; `immutable` for a\n  read-only member sent back with a different value; `notFound` for an unknown or out-of-scope BCC\n  local destination or relayhost; `tooMany` (`max: 1`) for several BCC destinations;\n  `notResolvable` (a forwarding host name that resolves to no address); `invalidCharacter` (a value\n  containing a forbidden character, param `characters`, for example `[\":\"]` in an SMTP username);\n  `required` with param `because: password` for a password without a username.\n- Monitoring and operations (feature 011): `invalidFormat` also uses `format: ipNetworkOrHostname`\n  (allowlist entry), `ipNetwork` (denylist entry), `queueId` (hexadecimal Postfix queue ID) and\n  `logCursor` (a malformed `before` cursor); `outOfRange` on `maxBanTime` carries\n  `minField: banTime` when the ban time is the limit, and `mustNotExceed` (params `field:\n  maxBanTime`, `value`) is used on `banTime` when only the ban time was sent; `reserved` (param\n  `reserved`, the refused networks) for a denylist entry that would ban everything or mailcow's\n  internal network; `conflictsWith` (params `field`, `value`) for an entry on both lists;\n  `invalidRegex` (param `error`, the Python `re` compiler message) for a ban rule that does not\n  compile; `missingCaptureGroup` (a ban rule without a capture group for the client address).\n- Quarantine, spam policy and rate limits (feature 006): `invalidFormat` also uses `format:\n  email`, `domainName` and `senderPattern` (an allow or block list pattern with characters other\n  than `a-z`, `0-9`, `@`, `_`, `.`, `-`, `*`, or without a letter or digit); `notMultipleOf`\n  (param `factor`: `1048576` for the maximum message size, `0.1` for spam scores);\n  `mustNotExceed` (params `field: rejectScore` and `value`) for a junk score above the reject\n  score; `tooLong` with `unit: bytes` for the notification template; `tooMany` (param `max`, the\n  bulk limit) for bulk targets; `notFound` for an excluded domain that is neither a domain nor an\n  alias domain; `invalidTemplate` (a notification template the legacy notifier cannot use,\n  params `reason`: `syntax`, `security`, `render` or `timeout`, and `line` when known).\n- System settings (feature 013): `invalidFormat` also uses `format: email`, `singleLine` (no\n  line breaks or other control characters), `appLinkUrl` (absolute `http`/`https` URL or a path\n  starting with a single `/`), `hexColor` (`#RRGGBB`) and `origin` (`scheme://host[:port]` or\n  `*`); `tooLong` with `unit: bytes` for templates, rules, maps, scripts, bodies and logo files\n  (reported on `body`); `outOfRange` (`min: 3`, `max: 64`) for the password policy length;\n  `notFound` and `notEligible` (param `reason`: `notReceiving` or `outsideSelectedDomains`) for\n  mass mail selection entries; `unsupportedImageType` (param `allowed`, the accepted media types);\n  `invalidImage` (a raster image that does not decode); `imageDimensionsExceeded` (params\n  `maxWidth`, `maxHeight`, `width`, `height`); `unsafeSvgContent` (params `construct`, for example\n  `scriptElement`, `eventHandlerAttribute`, `scriptUrl`, `foreignContent`, `externalReference`,\n  `styleImport`, `doctype`, `notWellFormed` or `rootNotSvg`, and `line` when known);\n  `insufficientContrast` (params `ratio`, rounded down to two decimals, `minimum` and `surface`);\n  `invalidRegexLine` (params `line`, 1-based, and `reason`: `notSlashDelimited`, `tooManyFlags`,\n  `innerSlash` or `doesNotCompile`); feature 005's `sieveSyntax` for global Sieve filters (params\n  `message`, the legacy parser's message, and `line`); `unbalancedStructure` (params `line` and `construct`: `unclosedBrace`,\n  `unexpectedBrace`, `unclosedBracket`, `unexpectedBracket` or `unclosedString`);\n  `mutuallyExclusive` (param `with`, the other field); `tooFew` (param `min`) for a mass mail\n  selection without recipients.\n- Aliases, alias domains, resources and sender settings (feature 004): `invalidFormat` also uses\n  `format: aliasAddress` (an address or `@domain`), `emailOrDomain` (an external sender address\n  or domain), `senderPermission` (an address, a domain or `*`) and `resourceDescription` (a\n  description that yields 1 to 64 ASCII letters or digits for the derived address), next to\n  `email`, `domainName` and `dkimSelector`; `tooLong` carries `unit: bytes` for comments (`max`\n  160) and `unit: characters` for the joined destination list (`max` 65535); `notEligible` uses\n  `kind` (`resource` for a destination, `externalDestination` for an added external destination\n  while the server disables them for every role, `relayDomain` or `aliasDomain` for a target or\n  resource domain, `localDomain` for an external sender address in a domain of this server) and\n  `allowedRoles: [admin]` for \"any address\"; `conflictsWith` (params `field`, `value`) for a\n  destination equal to the alias's own address, an alias domain equal to its target, destinations\n  sent with a special action, and a booking limit sent with a rule other than `limited`;\n  `reserved` for an alias domain named like the server; `immutable` for a read-only member sent\n  back with a different value.\n- Account self-service (feature 005): password rules use feature 003's codes (`tooShort` with the\n  policy's `min`, `missingCharacterClass`); `preHashedPassword` (a new password that starts with\n  a hash-scheme prefix such as `{SSHA512}`, param `scheme`); `sieveSyntax` (a Sieve script the\n  legacy parser rejects, params `message`, the parser's message, and `line` when known);\n  `invalidFormat` also uses `format: email`, `pushoverCredential` (30 letters or digits),\n  `soundName` and `digits`; `invalidRegex` for a sender pattern that does not compile;\n  `secretRequired` (param `reason: noStoredSecret`) for a Pushover token or user key missing while\n  none is stored; `notInList` (param `allowed`) for a temporary-alias domain; `tooLong` with `unit:\n  bytes` for scripts and with `stored: true` for names whose HTML-encoded form exceeds 255;\n  `mutuallyExclusive` (param `with`) for `password` with `generatePassword`; `tooMany` (param `max`,\n  the bulk limit) for bulk targets.\n",
+        "description": "Stable code of a validation rule. Clients must treat unknown codes as a generic invalid value,\nbecause later features may add codes.\n\n- `required`: the field is missing, `null` or empty.\n- `invalidType`: wrong JSON type. Params: `expected` (`string`, `integer`, `boolean`, `array`,\n  `object`).\n- `tooShort` / `tooLong`: string length out of bounds. Params: `min` / `max`.\n- `tooMany`: too many list items. Params: `max`.\n- `outOfRange`: number out of bounds. Params: `min`, `max`.\n- `notInList`: value not among the allowed values. Params: `allowed`.\n- `invalidFormat`: value does not match a format. Params: `format`, one of `dateTime`\n  (RFC 3339), `ipNetwork` (IPv4 or IPv6 address or prefix), `ipAddress`, `totpCode` (six\n  digits), `yubicoOtp` (44 letters or digits), `base64url`, `webauthnCredential`, `requestId`\n  (32 lower-case hexadecimal digits).\n- `mustBeInFuture`: a time that must lie in the future does not.\n- `notFound`: the referenced object does not exist.\n- `notEligible`: the referenced object exists but cannot be used here. Params: `allowedRoles`.\n- Sync jobs (feature 008): `invalidFormat` also uses `format: hostName` (host name or IPv4\n  address); `notEligible` uses `kind` (`resource`, `alias`, `aliasDomainAddress`) for a sync-job\n  target that is not a mailbox; `optionNotAllowed` (an imapsync option not on the allow-list,\n  param `option`); `optionContainsSpace` (an option token containing a space, param `token`);\n  `customParamsNotPermitted` (custom imapsync parameters are restricted to administrators);\n  `invalidRegex` (not a valid regular expression); `immutable` (the value cannot be changed after\n  creation).\n- Domains (feature 002): `invalidFormat` also uses `format: domainName`, `dkimSelector` and\n  `email`; `tooLong` may carry `unit: bytes`; `immutable` also covers read-only members sent back\n  with a different value; `notMultipleOf` (a quota that is not a whole multiple of a unit, param\n  `factor`); `mustNotExceed` (a value above another field's value, params `field` and `value`);\n  `belowInUse` (a limit below current usage, param `inUse`); `reserved` (a name reserved by the\n  server, such as its own host name).\n- DKIM, MTA-STS and DNS (feature 010): `invalidFormat` also uses `format: mxHost` (a host name\n  with an optional `*.` prefix); `invalidPrivateKey` (not exactly one PEM-encoded PKCS #1 or\n  PKCS #8 private key); `encryptedPrivateKey` (the private key is encrypted);\n  `unsupportedKeyType` (not an RSA key, param `allowed`); `keyLengthOutOfRange` (key length in\n  bits outside `min` and `max`); `sameAsSource` (a copy target equal to its source). None of them\n  echoes the key text.\n- Mailboxes (feature 003): `invalidFormat` also uses `format: localPart`, `email` and\n  `attributeName`; `notEligible` uses `kind: aliasDomain` for a creation domain that is an alias\n  domain; `notMultipleOf` (param `factor: 1048576`) for quotas; `outOfRange` on a quota carries\n  `limit` (`maxMailboxQuota`, `domainQuotaLeft` or `largestAllowedQuota`) next to `min` and\n  `max` in bytes; `immutable` for any read-only member sent in a change; `tooShort` on a password\n  is the policy's minimum length; `missingCharacterClass` (a password lacks a class the policy\n  requires, param `characterClass`: `letter`, `digit`, `special` or `lowerAndUpper`);\n  `conflictsWith` (a value not allowed together with another field's value, params `field` and\n  `value`, for example a password with an external `authSource`); `unchanged` (a rename to the\n  current local part).\n- Identity providers and OAuth2 clients (feature 012): `invalidFormat` also uses `format:\n  httpUrl` (absolute `https` or `http` URL), `hostName` (also an IPv6 address for LDAP hosts),\n  `keycloakRealm`, `keycloakVersion`, `scopeList`, `ldapAttribute`, `ldapFilter`, `redirectUri`\n  (absolute URI with a scheme, no fragment, no whitespace) and `oauthErrorCode`; `notFound` on a\n  mapped or default template carries `resource: mailboxTemplate`; `conflictsWith` (params\n  `field: type`, `value`) for a member that is not a setting of the configuration's type, and\n  for an LDAP `attributeField` left empty while `importUsers` or `periodicSync` is on;\n  `immutable` for a different `type` in a change or a different OAuth2 `clientId` or `scope`;\n  `secretRequired` (the client secret or bind password must be sent, param `reason`:\n  `noStoredSecret`, `typeChanged` or `addressChanged`, with `field` naming the changed address\n  for the latter); `duplicate` (a value that must be unique appears twice, param\n  `duplicateOf` with the path of the first occurrence).\n- Administrators and domain administrators (feature 007): `invalidFormat` also uses `format:\n  accountUsername` (only `a-z`, `0-9`, `.`, `_`, `-`, with at least one letter or digit);\n  `reserved` (param `reserved: [api]`) for the username `api`; `notEligible` uses `kind:\n  aliasDomain` for an assigned domain that is an alias domain, and `reason` (`mailboxInactive`,\n  `loginDisabled`, `domainInactive`) for a mailbox whose webmail cannot be opened; `immutable` for a read-only member sent back with a different value; password rules\n  use feature 003's codes; `unknownField` (a member the schema does not define, for example an\n  unknown permission flag, named by its path).\n- Routing (feature 009): `invalidFormat` also uses `format: nextHop` (`host`, `host:port`,\n  `[host]` or `[host]:port`), `transportDestination`, `recipientMapDestination`,\n  `tlsPolicyDestination`, `tlsPolicyParameters`, `domainName`, `email` and `ipNetwork`;\n  `invalidRegex` for an MX-based transport pattern MariaDB cannot evaluate; `immutable` for a\n  read-only member sent back with a different value; `notFound` for an unknown or out-of-scope BCC\n  local destination or relayhost; `tooMany` (`max: 1`) for several BCC destinations;\n  `notResolvable` (a forwarding host name that resolves to no address); `invalidCharacter` (a value\n  containing a forbidden character, param `characters`, for example `[\":\"]` in an SMTP username);\n  `required` with param `because: password` for a password without a username.\n- Monitoring and operations (feature 011): `invalidFormat` also uses `format: ipNetworkOrHostname`\n  (allowlist entry), `ipNetwork` (denylist entry), `queueId` (hexadecimal Postfix queue ID) and\n  `logCursor` (a malformed `before` cursor); `outOfRange` on `maxBanTime` carries\n  `minField: banTime` when the ban time is the limit, and `mustNotExceed` (params `field:\n  maxBanTime`, `value`) is used on `banTime` when only the ban time was sent; `reserved` (param\n  `reserved`, the refused networks) for a denylist entry that would ban everything or mailcow's\n  internal network; `conflictsWith` (params `field`, `value`) for an entry on both lists;\n  `invalidRegex` (param `error`, the Python `re` compiler message) for a ban rule that does not\n  compile; `missingCaptureGroup` (a ban rule without a capture group for the client address).\n- Quarantine, spam policy and rate limits (feature 006): `invalidFormat` also uses `format:\n  email`, `domainName` and `senderPattern` (an allow or block list pattern with characters other\n  than `a-z`, `0-9`, `@`, `_`, `.`, `-`, `*`, or without a letter or digit); `notMultipleOf`\n  (param `factor`: `1048576` for the maximum message size, `0.1` for spam scores);\n  `mustNotExceed` (params `field: rejectScore` and `value`) for a junk score above the reject\n  score; `tooLong` with `unit: bytes` for the notification template; `tooMany` (param `max`, the\n  bulk limit) for bulk targets; `notFound` for an excluded domain that is neither a domain nor an\n  alias domain; `invalidTemplate` (a notification template the legacy notifier cannot use,\n  params `reason`: `syntax`, `security`, `render` or `timeout`, and `line` when known).\n- System settings (feature 013): `invalidFormat` also uses `format: email`, `singleLine` (no\n  line breaks or other control characters), `appLinkUrl` (absolute `http`/`https` URL or a path\n  starting with a single `/`), `hexColor` (`#RRGGBB`) and `origin` (`scheme://host[:port]` or\n  `*`); `tooLong` with `unit: bytes` for templates, rules, maps, scripts, bodies and logo files\n  (reported on `body`); `outOfRange` (`min: 3`, `max: 64`) for the password policy length;\n  `notFound` and `notEligible` (param `reason`: `notReceiving` or `outsideSelectedDomains`) for\n  mass mail selection entries; `unsupportedImageType` (param `allowed`, the accepted media types);\n  `invalidImage` (a raster image that does not decode); `imageDimensionsExceeded` (params\n  `maxWidth`, `maxHeight`, `width`, `height`); `unsafeSvgContent` (params `construct`, for example\n  `scriptElement`, `eventHandlerAttribute`, `scriptUrl`, `foreignContent`, `externalReference`,\n  `styleImport`, `doctype`, `notWellFormed` or `rootNotSvg`, and `line` when known);\n  `insufficientContrast` (params `ratio`, rounded down to two decimals, `minimum` and `surface`);\n  `invalidRegexLine` (params `line`, 1-based, and `reason`: `notSlashDelimited`, `tooManyFlags`,\n  `innerSlash` or `doesNotCompile`); feature 005's `sieveSyntax` for global Sieve filters (params\n  `message`, the legacy parser's message, and `line`); `unbalancedStructure` (params `line` and `construct`: `unclosedBrace`,\n  `unexpectedBrace`, `unclosedBracket`, `unexpectedBracket` or `unclosedString`);\n  `mutuallyExclusive` (param `with`, the other field); `tooFew` (param `min`) for a mass mail\n  selection without recipients and for an empty list of the legacy API's CORS methods.\n- Aliases, alias domains, resources and sender settings (feature 004): `invalidFormat` also uses\n  `format: aliasAddress` (an address or `@domain`), `emailOrDomain` (an external sender address\n  or domain), `senderPermission` (an address, a domain or `*`) and `resourceDescription` (a\n  description that yields 1 to 64 ASCII letters or digits for the derived address), next to\n  `email`, `domainName` and `dkimSelector`; `tooLong` carries `unit: bytes` for comments (`max`\n  160) and `unit: characters` for the joined destination list (`max` 65535); `notEligible` uses\n  `kind` (`resource` for a destination, `externalDestination` for an added external destination\n  while the server disables them for every role, `relayDomain` or `aliasDomain` for a target or\n  resource domain, `localDomain` for an external sender address in a domain of this server) and\n  `allowedRoles: [admin]` for \"any address\"; `conflictsWith` (params `field`, `value`) for a\n  destination equal to the alias's own address, an alias domain equal to its target, destinations\n  sent with a special action, and a booking limit sent with a rule other than `limited`;\n  `reserved` for an alias domain named like the server; `immutable` for a read-only member sent\n  back with a different value.\n- Account self-service (feature 005): password rules use feature 003's codes (`tooShort` with the\n  policy's `min`, `missingCharacterClass`); `preHashedPassword` (a new password that starts with\n  a hash-scheme prefix such as `{SSHA512}`, param `scheme`); `sieveSyntax` (a Sieve script the\n  legacy parser rejects, params `message`, the parser's message, and `line` when known);\n  `invalidFormat` also uses `format: email`, `pushoverCredential` (30 letters or digits),\n  `soundName` and `digits`; `invalidRegex` for a sender pattern that does not compile;\n  `secretRequired` (param `reason: noStoredSecret`) for a Pushover token or user key missing while\n  none is stored; `notInList` (param `allowed`) for a temporary-alias domain; `tooLong` with `unit:\n  bytes` for scripts and with `stored: true` for names whose HTML-encoded form exceeds 255;\n  `mutuallyExclusive` (param `with`) for `password` with `generatePassword`; `tooMany` (param `max`,\n  the bulk limit) for bulk targets.\n",
         "enum": [
           "required",
           "invalidType",
@@ -40013,6 +40013,46 @@
           }
         }
       },
+      "RspamdRegexMapSummary": {
+        "type": "object",
+        "description": "A global regex map as the list returns it: everything but its content, which\n`GET /settings/rspamd-regex-maps/{mapId}` returns (docs/api-gaps.md G17: lists stay light, also on\nslow connections). The version tag equals the one of the single read.\n",
+        "required": [
+          "id",
+          "name",
+          "available",
+          "sizeBytes",
+          "etag"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The map's file name, its stable identifier.",
+            "examples": [
+              "global_smtp_from_blacklist.map"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "English name from the operator's configuration.",
+            "examples": [
+              "Envelope Sender Denylist"
+            ]
+          },
+          "available": {
+            "type": "boolean",
+            "description": "`false` when the map file does not exist on this server; replacing it is then refused."
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Size of the map's content in bytes, 0 while the map is unavailable."
+          },
+          "etag": {
+            "type": "string",
+            "description": "Version tag of the stored content."
+          }
+        }
+      },
       "RspamdRegexMap": {
         "type": "object",
         "description": "A global regex map that the operator's configuration makes editable (legacy `$RSPAMD_MAPS['regex']`,\n13 by default), read from the map file Rspamd reads. Rspamd reloads a changed map without a\nrestart.\n",
@@ -40294,6 +40334,139 @@
           }
         }
       },
+      "MassMailJobSummary": {
+        "type": "object",
+        "description": "A mass mail job as the list returns it: everything but its bodies, which\n`GET /mass-mail-jobs/{jobId}` returns (gap G17: lists stay light, also on slow connections).\n",
+        "required": [
+          "id",
+          "status",
+          "sender",
+          "subject",
+          "selection",
+          "recipientCount",
+          "counts",
+          "createdBy",
+          "createdAt",
+          "startedAt",
+          "finishedAt",
+          "cancelledBy"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MassMailJobStatus"
+          },
+          "sender": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MassMailSelection"
+          },
+          "recipientCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "counts": {
+            "$ref": "#/components/schemas/MassMailRecipientCounts"
+          },
+          "createdBy": {
+            "$ref": "#/components/schemas/AccountRef"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "finishedAt": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cancelledBy": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AccountRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "MassMailJobCreateRequest": {
+        "type": "object",
+        "description": "A mass mail job. `expectedRecipients` is the recipient count of the preview the administrator\nconfirmed: when the selection yields another number at this moment, the job is refused with\n`/api/v2/problems/mass-mail-recipient-count-changed` and nothing is sent. A selection without\nrecipients is refused (rule code `tooFew` on `selection`).\n",
+        "required": [
+          "sender",
+          "subject",
+          "textBody",
+          "selection",
+          "expectedRecipients"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "sender": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Valid e-mail address without control characters. Legacy suggests `noreply@<server host name>`\n(see `GET /capabilities/settings`).\n",
+            "examples": [
+              "noreply@mail.example.org"
+            ]
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Without line breaks."
+          },
+          "textBody": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Plain-text body, at most 1 MiB (1,048,576 bytes)."
+          },
+          "htmlBody": {
+            "description": "Optional HTML body, at most 1 MiB. When given, both bodies are sent as alternatives.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "selection": {
+            "$ref": "#/components/schemas/MassMailSelection"
+          },
+          "expectedRecipients": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
       "MassMailJob": {
         "type": "object",
         "description": "A mass mail job. Each recipient receives one message addressed only to itself, delivered directly\ninto the mailbox through Dovecot's local delivery (LMTP), as legacy does: the message does not\npass Postfix or Rspamd, so it is never filtered, quarantined, signed or relayed. Messages carry\n`X-Mailer: MooMassMail`. Jobs are kept for the audit retention period (365 days by default) and\nchange only through their delivery progress and cancellation.\n",
@@ -40394,57 +40567,6 @@
           }
         }
       },
-      "MassMailJobCreateRequest": {
-        "type": "object",
-        "description": "A mass mail job. `expectedRecipients` is the recipient count of the preview the administrator\nconfirmed: when the selection yields another number at this moment, the job is refused with\n`/api/v2/problems/mass-mail-recipient-count-changed` and nothing is sent. A selection without\nrecipients is refused (rule code `tooFew` on `selection`).\n",
-        "required": [
-          "sender",
-          "subject",
-          "textBody",
-          "selection",
-          "expectedRecipients"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "sender": {
-            "type": "string",
-            "maxLength": 255,
-            "description": "Valid e-mail address without control characters. Legacy suggests `noreply@<server host name>`\n(see `GET /capabilities/settings`).\n",
-            "examples": [
-              "noreply@mail.example.org"
-            ]
-          },
-          "subject": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255,
-            "description": "Without line breaks."
-          },
-          "textBody": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Plain-text body, at most 1 MiB (1,048,576 bytes)."
-          },
-          "htmlBody": {
-            "description": "Optional HTML body, at most 1 MiB. When given, both bodies are sent as alternatives.",
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "selection": {
-            "$ref": "#/components/schemas/MassMailSelection"
-          },
-          "expectedRecipients": {
-            "type": "integer",
-            "minimum": 1
-          }
-        }
-      },
       "MassMailRunningProblem": {
         "description": "Problem of type `/api/v2/problems/mass-mail-already-running` (status `409`): another job is\nrunning. Nothing was sent.\n",
         "allOf": [
@@ -40530,12 +40652,25 @@
           "skipped"
         ]
       },
+      "MassMailRecipientFailureCode": {
+        "type": "string",
+        "description": "Why the delivery to a mass mail recipient failed, a stable code clients translate (gap G16), next\nto Dovecot's reply in `failureReason`:\n\n- `overQuota`: the mailbox is full (enhanced status `x.2.2`);\n- `mailboxUnavailable`: Dovecot refused the mailbox, for example because it was deleted or\n  deactivated after the job was created (enhanced status `5.1.x`, or a `550` reply);\n- `rejected`: any other permanent refusal;\n- `temporaryFailurePersisted`: Dovecot refused temporarily on every attempt (the first try and 3\n  retries within 5 minutes);\n- `connectionFailed`: Dovecot's local delivery could not be reached or did not answer within the\n  delivery deadline on every attempt;\n- `interrupted`: this API stopped while the delivery was in progress; it is never retried, so that\n  no recipient receives two copies.\n\nClients show unknown codes like `rejected`.\n",
+        "enum": [
+          "overQuota",
+          "mailboxUnavailable",
+          "rejected",
+          "temporaryFailurePersisted",
+          "connectionFailed",
+          "interrupted"
+        ]
+      },
       "MassMailRecipient": {
         "type": "object",
         "description": "One recipient of a mass mail job.",
         "required": [
           "address",
           "outcome",
+          "failureCode",
           "failureReason",
           "attempts",
           "lastAttemptAt"
@@ -40550,8 +40685,19 @@
           "outcome": {
             "$ref": "#/components/schemas/MassMailRecipientOutcome"
           },
+          "failureCode": {
+            "description": "For `failed`, the stable reason of the failure (gap G16); `null` otherwise.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MassMailRecipientFailureCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "failureReason": {
-            "description": "For `failed`: Dovecot's reply (for example an over-quota refusal), `interrupted` when this\nAPI stopped during the delivery, or the connection error. `null` otherwise.\n",
+            "description": "For `failed`: Dovecot's reply (for example an over-quota refusal), `interrupted` when this\nAPI stopped during the delivery, or the connection error, in English. `null` otherwise.\n",
             "oneOf": [
               {
                 "type": "string",
@@ -42249,15 +42395,31 @@
             }
           }
         },
-        "anyOf": [
+        "allOf": [
           {
-            "required": [
-              "tlsEnforceInbound"
-            ]
-          },
-          {
-            "required": [
-              "tlsEnforceOutbound"
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "tlsEnforceInbound": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tlsEnforceInbound"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "tlsEnforceOutbound": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tlsEnforceOutbound"
+                ]
+              }
             ]
           }
         ],
@@ -49807,7 +49969,7 @@
         }
       },
       "RspamdRegexMapListResponse": {
-        "description": "The editable global regex maps. Each entry carries its version tag.",
+        "description": "The editable global regex maps as summaries, without their content (gap G17). Each entry carries\nits version tag.\n",
         "content": {
           "application/json": {
             "schema": {
@@ -49820,7 +49982,7 @@
                 "data": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/RspamdRegexMap"
+                    "$ref": "#/components/schemas/RspamdRegexMapSummary"
                   }
                 },
                 "meta": {
@@ -50010,7 +50172,7 @@
         }
       },
       "MassMailJobListResponse": {
-        "description": "Mass mail jobs matching the filters.",
+        "description": "Mass mail jobs matching the filters, as summaries without their bodies (gap G17).",
         "content": {
           "application/json": {
             "schema": {
@@ -50023,7 +50185,7 @@
                 "data": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MassMailJob"
+                    "$ref": "#/components/schemas/MassMailJobSummary"
                   }
                 },
                 "meta": {
@@ -52636,6 +52798,7 @@
         "schema": {
           "type": "string",
           "enum": [
+            "id",
             "description",
             "mailbox",
             "kind",

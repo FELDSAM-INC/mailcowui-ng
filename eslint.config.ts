@@ -69,6 +69,7 @@ export default withVueTs(
     ignores: [
       'src/api/generated/**',
       'dist/**',
+      'dist-u005-*/**',
       'coverage/**',
       'playwright-report/**',
       'test-results/**',

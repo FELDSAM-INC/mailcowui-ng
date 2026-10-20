@@ -46,6 +46,7 @@ useLeaveGuard(
 )
 
 async function submit() {
+  if (request.pending.value) return
   saved.value = false
   const value = address.value.trim()
   const next: typeof errors.value = {}
@@ -161,7 +162,7 @@ async function submit() {
     <button
       type="submit"
       :class="buttonVariants({ class: 'w-full sm:w-auto sm:self-start' })"
-      :disabled="request.pending.value"
+      :aria-disabled="request.pending.value"
       :aria-busy="request.pending.value ? 'true' : 'false'"
     >
       {{ lt('user.save') }}

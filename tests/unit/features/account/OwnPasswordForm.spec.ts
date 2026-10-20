@@ -62,6 +62,29 @@ async function fill(wrapper: Awaited<ReturnType<typeof mountForm>>, next: string
 }
 
 describe('OwnPasswordForm', () => {
+  it('announces a pending policy read and retries a failure without remounting entered fields', async () => {
+    useScenario('account-domain-admin')
+    mockState().delays.getOwnPasswordPolicy = 200
+    mockState().failures.getOwnPasswordPolicy = { status: 500, times: 1 }
+    const wrapper = await mountForm(identity('domainAdmin', 'reseller'))
+    expect(
+      wrapper.find('[data-password-policy-loading][role="status"][aria-busy="true"]').exists(),
+    ).toBe(true)
+    await fill(wrapper, 'summer2026x', MOCK_PASSWORD)
+    await vi.waitFor(() => expect(wrapper.text()).toContain('Try again'))
+    const retry = wrapper.findAll('button').find((button) => button.text() === 'Try again')!
+    await retry.trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-password-policy]').exists()).toBe(true))
+    expect(
+      (wrapper.get('input[autocomplete="new-password"]').element as HTMLInputElement).value,
+    ).toBe('summer2026x')
+    expect(
+      (wrapper.get('input[autocomplete="current-password"]').element as HTMLInputElement).value,
+    ).toBe(MOCK_PASSWORD)
+    expect(wrapper.text()).not.toContain('Try again')
+    wrapper.unmount()
+  })
+
   it('orders the fields as legacy and ticks "Sign out my other sessions"', async () => {
     useScenario('account-domain-admin')
     const wrapper = await mountForm(identity('domainAdmin', 'reseller'))

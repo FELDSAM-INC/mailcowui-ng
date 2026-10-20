@@ -272,7 +272,9 @@ export function checkMessages({
 
 /** The number of plural choices of a vue-i18n message (`a | b | c`); 1 without choices. */
 export function choiceCount(message) {
-  return message.split('|').length
+  // Vue-i18n literal interpolation may itself contain a pipe (for example a regex placeholder).
+  // Skip quoted literals, including escaped quotes, before counting actual choice separators.
+  return message.replace(/\{\s*'(?:\\.|[^'\\])*'\s*\}/g, '').split('|').length
 }
 
 /** Text for comparing meanings: no markup, placeholders, punctuation, glyphs or case. */

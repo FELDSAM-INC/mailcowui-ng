@@ -2,7 +2,7 @@
 // credentials stay available and every newly created test entry is removed.
 import { expect, test } from '@playwright/test'
 
-import type { OwnSecondFactor } from '@/api'
+import type { MailboxOverview, OwnSecondFactor, TemporaryAlias } from '@/api'
 
 import { freshTotp } from '../support/totp'
 import { csrfToken, requireLocalStack, signInAlice } from './fixtures/account-api'
@@ -14,6 +14,42 @@ import {
 } from './fixtures/app-passwords-api'
 import { uniqueName } from './fixtures/domains-api'
 import { signOut } from './fixtures/flows'
+
+test('@005 @local-stack US5 alice reads her overview and opens webmail with the legacy session cookie', async ({
+  page,
+  context,
+  baseURL,
+}) => {
+  test.setTimeout(90_000)
+  requireLocalStack(baseURL)
+  await signInAlice(page)
+  await page.goto('account')
+  const overview = page.locator('[data-mailbox-overview]')
+  await expect(overview.locator('[data-mailbox-address]')).toHaveText(alice.username)
+  const response = await page.request.get('/api/v2/me/mailbox')
+  expect(response.status()).toBe(200)
+  const { data } = (await response.json()) as { data: MailboxOverview }
+  await expect(overview.locator('[data-quota-usage]')).toBeVisible()
+  if (data.quota.quotaBytes > 0) {
+    await expect(overview.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuenow',
+      String(Math.min(100, data.quota.percentUsed ?? 0)),
+    )
+  }
+  expect(data.webmail.enabled, 'The isolated smoke stack enables webmail hand-off').toBe(true)
+  const popupPromise = page.waitForEvent('popup')
+  await overview.getByRole('button', { name: 'Webmail', exact: true }).click()
+  const popup = await popupPromise
+  // The dev stack has no running SOGo; the hand-off path and cookie are still real API results.
+  await expect(popup).toHaveURL(/\/SOGo\/so\/?$/)
+  expect(await popup.evaluate(() => window.opener === null)).toBe(true)
+  const cookie = (await context.cookies()).find((item) => item.name === 'MCSESSID')
+  expect(cookie, 'The API grants the legacy browser session').toBeDefined()
+  expect(cookie?.httpOnly).toBe(true)
+  expect(cookie?.path).toBe('/')
+  await popup.close()
+  await signOut(page)
+})
 
 test('@005 @local-stack US2-AS1 US2-AS2 US2-AS6 alice adds and removes a second authenticator', async ({
   page,
@@ -54,6 +90,54 @@ test('@005 @local-stack US2-AS1 US2-AS2 US2-AS6 alice adds and removes a second 
         headers: { 'X-CSRF-Token': await csrfToken(page) },
       })
       expect(removed.status(), 'Remove the smoke authenticator').toBe(204)
+    }
+  }
+  await signOut(page)
+})
+
+test('@005 @local-stack US6 alice generates a one-day alias, makes it permanent and removes it', async ({
+  page,
+  baseURL,
+}) => {
+  test.setTimeout(90_000)
+  requireLocalStack(baseURL)
+  await signInAlice(page)
+  const description = uniqueName('Smoke alias')
+  const path = `/api/v2/mailboxes/${encodeURIComponent(alice.username)}/temporary-aliases`
+  const list = async () => {
+    const response = await page.request.get(`${path}?limit=1000`)
+    expect(response.status()).toBe(200)
+    return ((await response.json()) as { data: TemporaryAlias[] }).data
+  }
+  try {
+    await page.goto('account/temporary-aliases')
+    await page.getByText('Generate random alias', { exact: true }).click()
+    await page.getByLabel('Description', { exact: true }).fill(description)
+    await page.getByLabel('Period of validity', { exact: true }).selectOption('24')
+    await page.getByRole('button', { name: 'Add', exact: true }).click()
+    await expect(page.locator('[data-new-alias]')).toBeVisible()
+    const created = (await list()).find((entry) => entry.description === description)!
+    expect(created).toBeDefined()
+    expect(created.permanent).toBe(false)
+    expect(Math.abs(Date.parse(created.expiresAt!) - Date.now() - 24 * 3600000)).toBeLessThan(
+      60_000,
+    )
+    const row = page.locator('[data-entry]').filter({ hasText: created.address })
+    await row
+      .getByRole('combobox', { name: `Actions: ${created.address}`, exact: true })
+      .selectOption('permanent')
+    await expect(row).toContainText('Forever')
+    expect((await list()).find((entry) => entry.address === created.address)?.permanent).toBe(true)
+    await row.getByRole('button', { name: `Remove: ${created.address}`, exact: true }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
+    await expect(row).toHaveCount(0)
+    expect((await list()).some((entry) => entry.address === created.address)).toBe(false)
+  } finally {
+    for (const entry of (await list()).filter((item) => item.description === description)) {
+      const result = await page.request.delete(`${path}/${encodeURIComponent(entry.address)}`, {
+        headers: { 'X-CSRF-Token': await csrfToken(page), 'If-Match': entry.etag },
+      })
+      expect(result.status()).toBe(204)
     }
   }
   await signOut(page)

@@ -12,7 +12,7 @@ import { useQueryClient } from '@tanstack/vue-query'
 import { computed, nextTick, ref, shallowRef, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import type { Identity, OwnPasswordChangeResult } from '@/api'
+import { problemOf, type Identity, type OwnPasswordChangeResult } from '@/api'
 import { lt } from '@/i18n'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
@@ -167,6 +167,21 @@ defineExpose({ submit })
 <template>
   <form class="flex flex-col gap-4" novalidate data-own-password @submit.prevent="submit">
     <ErrorSummary :id="form.summaryId" :items="form.summary.value" />
+    <p
+      v-if="policyQuery.isPending.value"
+      data-password-policy-loading
+      role="status"
+      aria-busy="true"
+      class="text-sm text-gray-700 dark:text-gray-300"
+    >
+      {{ lt('footer.loading') }}
+    </p>
+    <ProblemMessage
+      v-else-if="policyQuery.isError.value"
+      :problem="problemOf(policyQuery.error.value)"
+      retry
+      @retry="policyQuery.refetch()"
+    />
     <div
       v-if="result"
       role="status"

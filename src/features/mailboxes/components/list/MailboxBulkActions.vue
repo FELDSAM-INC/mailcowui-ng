@@ -17,14 +17,38 @@ import {
 
 import { PROTOCOL_HEADERS, STATUS_ACTIONS, type MailboxBulkChoice } from '../../bulk'
 
-withDefaults(defineProps<{ disabled?: boolean; protocols?: boolean }>(), {
+withDefaults(defineProps<{ disabled?: boolean; protocols?: boolean; tls?: boolean }>(), {
   disabled: false,
   protocols: true,
+  tls: true,
 })
 const emit = defineEmits<{ run: [choice: MailboxBulkChoice] }>()
 </script>
 
 <template>
+  <template v-if="tls">
+    <DropdownMenu v-for="direction in ['inbound', 'outbound'] as const" :key="direction">
+      <DropdownMenuTrigger
+        :class="buttonVariants({ variant: 'outline' })"
+        :disabled="disabled"
+        :data-bulk-menu="`tls-${direction}`"
+      >
+        {{ lt(direction === 'inbound' ? 'mailbox.tls_enforce_in' : 'mailbox.tls_enforce_out') }}
+        <ChevronDownIcon class="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          v-for="enabled in [true, false]"
+          :key="String(enabled)"
+          class="min-h-11"
+          :data-bulk-action="`tls-${direction}-${enabled ? 'activate' : 'deactivate'}`"
+          @select="emit('run', { action: 'setTlsEnforcement', direction, enabled })"
+        >
+          {{ lt(enabled ? 'mailbox.activate' : 'mailbox.deactivate') }}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </template>
   <DropdownMenu>
     <DropdownMenuTrigger
       :class="buttonVariants({ variant: 'outline' })"

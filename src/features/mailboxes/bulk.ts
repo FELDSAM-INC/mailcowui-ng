@@ -10,6 +10,7 @@ import { readableAddress, type Mailbox, type Protocol } from './types'
 export type MailboxBulkChoice =
   | { action: 'activate' | 'disableLogin' | 'deactivate' | 'delete' }
   | { action: 'allowProtocol' | 'disallowProtocol'; protocol: Protocol }
+  | { action: 'setTlsEnforcement'; direction: 'inbound' | 'outbound'; enabled: boolean }
 
 /** The "Mailbox" group in legacy's order, with legacy's labels. */
 export const STATUS_ACTIONS: readonly {
@@ -36,13 +37,15 @@ export const protocolHeader = (protocol: Protocol) =>
 
 /** Actions that take something away need one explicit confirmation; deletion a typed count. */
 export function confirmationOf(choice: MailboxBulkChoice): 'none' | 'confirm' | 'typed' {
+  // UI005 D6 keeps the four legacy TLS quick actions immediate.
+  if (choice.action === 'setTlsEnforcement') return 'none'
   if (choice.action === 'delete') return 'typed'
   if (choice.action === 'activate' || choice.action === 'allowProtocol') return 'none'
   return 'confirm'
 }
 
 export function bulkRequest(
-  choice: MailboxBulkChoice,
+  choice: Exclude<MailboxBulkChoice, { action: 'setTlsEnforcement' }>,
   mailboxes: readonly Pick<Mailbox, 'address' | 'etag'>[],
 ): MailboxBulkActionRequest {
   const targets: BulkTarget[] = mailboxes.map((mailbox) => ({

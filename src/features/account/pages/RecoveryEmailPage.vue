@@ -16,6 +16,7 @@ const { t } = useI18n()
 const access = useSectionAccess(() => 'recoveryEmail')
 const query = useOwnRecoveryEmail()
 const username = computed(() => access.identity.data.value?.username ?? '')
+
 </script>
 
 <template>

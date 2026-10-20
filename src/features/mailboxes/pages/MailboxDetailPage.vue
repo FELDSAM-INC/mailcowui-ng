@@ -201,14 +201,13 @@ const subtitle = computed(() => {
     <template v-if="!showOnly">
       <PageHeader :title="lt('edit.mailbox')" :description="subtitle">
         <template #actions>
-          <HistoryLink
-            target-type="mailbox"
-            :target-id="mailbox.address"
-            :allowed="historyAllowed"
-          />
+          <HistoryLink :target-id="mailbox.address" :allowed="historyAllowed" />
           <!-- UI 008 (FR-004): the mailbox's sync jobs, for whoever may open them. -->
           <MailboxSyncJobsLink :address="mailbox.address" />
-          <MailboxAccountLinks :address="mailbox.address" />
+          <MailboxAccountLinks
+            :address="mailbox.address"
+            :active-temporary-aliases="mailbox.activeTemporaryAliases"
+          />
         </template>
       </PageHeader>
       <p

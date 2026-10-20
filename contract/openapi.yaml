@@ -12202,8 +12202,10 @@ paths:
       summary: List the global regex maps
       description: |
         Lists the global regex maps that the operator's configuration makes editable (13 by default,
-        from "Header-From: Denylist" to "Monitoring Hosts"), each with its content and version tag. A
-        map whose file is missing on this server is listed with `available: false`. `q` searches the name.
+        from "Header-From: Denylist" to "Monitoring Hosts"), in the configured order unless `sort` is
+        given, each with its size and version tag but without its content, which the single read
+        returns. A map whose file is missing on this server is listed with `available: false`. `q`
+        searches the name.
         Administrators only, by session or by an administrator's key, read-only keys included.
       security:
         - sessionCookie: []
@@ -12542,8 +12544,8 @@ paths:
         - Mass mail
       summary: List mass mail jobs
       description: |
-        Lists mass mail jobs, newest first by default, with their counts per outcome. `q` searches the
-        subject. Jobs are kept for the audit retention period. Administrators only, by session or by an
+        Lists mass mail jobs, newest first by default, with their counts per outcome but without their
+        bodies, which the single read returns. `q` searches the subject. Jobs are kept for the audit retention period. Administrators only, by session or by an
         administrator's key, read-only keys included.
       security:
         - sessionCookie: []
@@ -12694,7 +12696,7 @@ paths:
       summary: List a job's recipients
       description: |
         Lists the job's recipients, sorted by address by default, each with its outcome and, for a
-        failure, Dovecot's reason. `q` searches the address. Administrators only, by session or by an
+        failure, a stable `failureCode` and Dovecot's reply. `q` searches the address. Administrators only, by session or by an
         administrator's key.
       security:
         - sessionCookie: []
@@ -15134,7 +15136,7 @@ components:
           `message`, the legacy parser's message, and `line`); `unbalancedStructure` (params `line` and `construct`: `unclosedBrace`,
           `unexpectedBrace`, `unclosedBracket`, `unexpectedBracket` or `unclosedString`);
           `mutuallyExclusive` (param `with`, the other field); `tooFew` (param `min`) for a mass mail
-          selection without recipients.
+          selection without recipients and for an empty list of the legacy API's CORS methods.
         - Aliases, alias domains, resources and sender settings (feature 004): `invalidFormat` also uses
           `format: aliasAddress` (an address or `@domain`), `emailOrDomain` (an external sender address
           or domain), `senderPermission` (an address, a domain or `*`) and `resourceDescription` (a
@@ -31087,6 +31089,39 @@ components:
           minLength: 1
         active:
           type: boolean
+    RspamdRegexMapSummary:
+      type: object
+      description: |
+        A global regex map as the list returns it: everything but its content, which
+        `GET /settings/rspamd-regex-maps/{mapId}` returns (docs/api-gaps.md G17: lists stay light, also on
+        slow connections). The version tag equals the one of the single read.
+      required:
+        - id
+        - name
+        - available
+        - sizeBytes
+        - etag
+      properties:
+        id:
+          type: string
+          description: The map's file name, its stable identifier.
+          examples:
+            - global_smtp_from_blacklist.map
+        name:
+          type: string
+          description: English name from the operator's configuration.
+          examples:
+            - Envelope Sender Denylist
+        available:
+          type: boolean
+          description: '`false` when the map file does not exist on this server; replacing it is then refused.'
+        sizeBytes:
+          type: integer
+          minimum: 0
+          description: Size of the map's content in bytes, 0 while the map is unavailable.
+        etag:
+          type: string
+          description: Version tag of the stored content.
     RspamdRegexMap:
       type: object
       description: |
@@ -31330,6 +31365,102 @@ components:
         skipped:
           type: integer
           minimum: 0
+    MassMailJobSummary:
+      type: object
+      description: |
+        A mass mail job as the list returns it: everything but its bodies, which
+        `GET /mass-mail-jobs/{jobId}` returns (gap G17: lists stay light, also on slow connections).
+      required:
+        - id
+        - status
+        - sender
+        - subject
+        - selection
+        - recipientCount
+        - counts
+        - createdBy
+        - createdAt
+        - startedAt
+        - finishedAt
+        - cancelledBy
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9A-HJKMNP-TV-Z]{26}$
+        status:
+          $ref: '#/components/schemas/MassMailJobStatus'
+        sender:
+          type: string
+        subject:
+          type: string
+        selection:
+          $ref: '#/components/schemas/MassMailSelection'
+        recipientCount:
+          type: integer
+          minimum: 1
+        counts:
+          $ref: '#/components/schemas/MassMailRecipientCounts'
+        createdBy:
+          $ref: '#/components/schemas/AccountRef'
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        finishedAt:
+          oneOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+        cancelledBy:
+          oneOf:
+            - $ref: '#/components/schemas/AccountRef'
+            - type: 'null'
+    MassMailJobCreateRequest:
+      type: object
+      description: |
+        A mass mail job. `expectedRecipients` is the recipient count of the preview the administrator
+        confirmed: when the selection yields another number at this moment, the job is refused with
+        `/api/v2/problems/mass-mail-recipient-count-changed` and nothing is sent. A selection without
+        recipients is refused (rule code `tooFew` on `selection`).
+      required:
+        - sender
+        - subject
+        - textBody
+        - selection
+        - expectedRecipients
+      additionalProperties: false
+      properties:
+        sender:
+          type: string
+          maxLength: 255
+          description: |
+            Valid e-mail address without control characters. Legacy suggests `noreply@<server host name>`
+            (see `GET /capabilities/settings`).
+          examples:
+            - noreply@mail.example.org
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Without line breaks.
+        textBody:
+          type: string
+          minLength: 1
+          description: Plain-text body, at most 1 MiB (1,048,576 bytes).
+        htmlBody:
+          description: Optional HTML body, at most 1 MiB. When given, both bodies are sent as alternatives.
+          oneOf:
+            - type: string
+            - type: 'null'
+        selection:
+          $ref: '#/components/schemas/MassMailSelection'
+        expectedRecipients:
+          type: integer
+          minimum: 1
     MassMailJob:
       type: object
       description: |
@@ -31398,48 +31529,6 @@ components:
           oneOf:
             - $ref: '#/components/schemas/AccountRef'
             - type: 'null'
-    MassMailJobCreateRequest:
-      type: object
-      description: |
-        A mass mail job. `expectedRecipients` is the recipient count of the preview the administrator
-        confirmed: when the selection yields another number at this moment, the job is refused with
-        `/api/v2/problems/mass-mail-recipient-count-changed` and nothing is sent. A selection without
-        recipients is refused (rule code `tooFew` on `selection`).
-      required:
-        - sender
-        - subject
-        - textBody
-        - selection
-        - expectedRecipients
-      additionalProperties: false
-      properties:
-        sender:
-          type: string
-          maxLength: 255
-          description: |
-            Valid e-mail address without control characters. Legacy suggests `noreply@<server host name>`
-            (see `GET /capabilities/settings`).
-          examples:
-            - noreply@mail.example.org
-        subject:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: Without line breaks.
-        textBody:
-          type: string
-          minLength: 1
-          description: Plain-text body, at most 1 MiB (1,048,576 bytes).
-        htmlBody:
-          description: Optional HTML body, at most 1 MiB. When given, both bodies are sent as alternatives.
-          oneOf:
-            - type: string
-            - type: 'null'
-        selection:
-          $ref: '#/components/schemas/MassMailSelection'
-        expectedRecipients:
-          type: integer
-          minimum: 1
     MassMailRunningProblem:
       description: |
         Problem of type `/api/v2/problems/mass-mail-already-running` (status `409`): another job is
@@ -31501,12 +31590,38 @@ components:
         - delivered
         - failed
         - skipped
+    MassMailRecipientFailureCode:
+      type: string
+      description: |
+        Why the delivery to a mass mail recipient failed, a stable code clients translate (gap G16), next
+        to Dovecot's reply in `failureReason`:
+
+        - `overQuota`: the mailbox is full (enhanced status `x.2.2`);
+        - `mailboxUnavailable`: Dovecot refused the mailbox, for example because it was deleted or
+          deactivated after the job was created (enhanced status `5.1.x`, or a `550` reply);
+        - `rejected`: any other permanent refusal;
+        - `temporaryFailurePersisted`: Dovecot refused temporarily on every attempt (the first try and 3
+          retries within 5 minutes);
+        - `connectionFailed`: Dovecot's local delivery could not be reached or did not answer within the
+          delivery deadline on every attempt;
+        - `interrupted`: this API stopped while the delivery was in progress; it is never retried, so that
+          no recipient receives two copies.
+
+        Clients show unknown codes like `rejected`.
+      enum:
+        - overQuota
+        - mailboxUnavailable
+        - rejected
+        - temporaryFailurePersisted
+        - connectionFailed
+        - interrupted
     MassMailRecipient:
       type: object
       description: One recipient of a mass mail job.
       required:
         - address
         - outcome
+        - failureCode
         - failureReason
         - attempts
         - lastAttemptAt
@@ -31517,10 +31632,15 @@ components:
             - alice@example.org
         outcome:
           $ref: '#/components/schemas/MassMailRecipientOutcome'
+        failureCode:
+          description: For `failed`, the stable reason of the failure (gap G16); `null` otherwise.
+          oneOf:
+            - $ref: '#/components/schemas/MassMailRecipientFailureCode'
+            - type: 'null'
         failureReason:
           description: |
             For `failed`: Dovecot's reply (for example an over-quota refusal), `interrupted` when this
-            API stopped during the delivery, or the connection error. `null` otherwise.
+            API stopped during the delivery, or the connection error, in English. `null` otherwise.
           oneOf:
             - type: string
               maxLength: 1024
@@ -32816,11 +32936,20 @@ components:
           maxItems: 100
           items:
             $ref: '#/components/schemas/BulkTarget'
-      anyOf:
-        - required:
-            - tlsEnforceInbound
-        - required:
-            - tlsEnforceOutbound
+      allOf:
+        - anyOf:
+            - type: object
+              properties:
+                tlsEnforceInbound:
+                  type: boolean
+              required:
+                - tlsEnforceInbound
+            - type: object
+              properties:
+                tlsEnforceOutbound:
+                  type: boolean
+              required:
+                - tlsEnforceOutbound
       additionalProperties: false
     AppPasswordProtocol:
       type: string
@@ -38167,7 +38296,9 @@ components:
               data:
                 $ref: '#/components/schemas/RspamdSettingsRule'
     RspamdRegexMapListResponse:
-      description: The editable global regex maps. Each entry carries its version tag.
+      description: |
+        The editable global regex maps as summaries, without their content (gap G17). Each entry carries
+        its version tag.
       content:
         application/json:
           schema:
@@ -38179,7 +38310,7 @@ components:
               data:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RspamdRegexMap'
+                  $ref: '#/components/schemas/RspamdRegexMapSummary'
               meta:
                 $ref: '#/components/schemas/ListMeta'
     RspamdRegexMapResponse:
@@ -38305,7 +38436,7 @@ components:
               meta:
                 $ref: '#/components/schemas/ListMeta'
     MassMailJobListResponse:
-      description: Mass mail jobs matching the filters.
+      description: Mass mail jobs matching the filters, as summaries without their bodies (gap G17).
       content:
         application/json:
           schema:
@@ -38317,7 +38448,7 @@ components:
               data:
                 type: array
                 items:
-                  $ref: '#/components/schemas/MassMailJob'
+                  $ref: '#/components/schemas/MassMailJobSummary'
               meta:
                 $ref: '#/components/schemas/ListMeta'
     MassMailJobCreatedResponse:
@@ -40410,6 +40541,7 @@ components:
       schema:
         type: string
         enum:
+          - id
           - description
           - mailbox
           - kind

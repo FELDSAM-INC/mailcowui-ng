@@ -22,6 +22,17 @@ import { mountWithApp, testPlugins } from '../../support/mount'
 beforeAll(() => loadLegacy('en-gb'))
 
 describe('app passwords', () => {
+  it('uses the legacy empty-app-name message without sending an invalid request', async () => {
+    useScenario('account-mailbox')
+    const wrapper = mountWithApp(AppPasswordForm, {
+      props: { mailbox: 'anna@example.org', canChange: true },
+    })
+    await wrapper.get('form').trigger('submit')
+    expect(wrapper.text()).toContain('App name cannot be empty')
+    expect(
+      mockState().requests.filter((request) => request.operationId === 'createAppPassword'),
+    ).toHaveLength(0)
+  })
   it('creates and regenerates once without putting secrets into either cache', async () => {
     useScenario('account-mailbox')
     const client = testPlugins().queryClient

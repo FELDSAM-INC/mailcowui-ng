@@ -186,6 +186,12 @@
     "resultCount": "Records found: {total}",
     "title": "Audit log",
     "unknown": "Unknown ({code})",
+    "detailValues": {
+      "set": "set",
+      "changed": "changed",
+      "generated": "generated",
+      "changedSize": "changed ({old} → {new} bytes)"
+    },
     "detailKeys": {
       "changes": "Changes",
       "passwordSet": "Password set",
@@ -505,6 +511,7 @@
       "webmailHandOff": "Webmail opened"
     },
     "auditFailureReason": {
+      "featureDisabled": "Feature disabled",
       "accountInactive": "Account inactive",
       "attributeNotPermitted": "Change not permitted",
       "autoCreationOff": "Automatic mailbox creation is off",

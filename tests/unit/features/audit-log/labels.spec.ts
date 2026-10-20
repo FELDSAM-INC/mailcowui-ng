@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { AuditEvent } from '@/api'
+import { i18n, loadLocale } from '@/i18n'
 import AuditEventItem from '@/features/audit-log/components/AuditEventItem.vue'
 import {
   auditDetailRows,
@@ -16,8 +17,131 @@ import csCz from '@/i18n/messages/cs-cz.json'
 import skSk from '@/i18n/messages/sk-sk.json'
 
 import { mountWithApp } from '../../support/mount'
+import { auditEvent } from '../../../mocks/factories/audit-event'
 
 const tr = { t: text, te: hasMessage }
+
+const selfServiceTargets = [
+  'accountPassword',
+  'secondFactor',
+  'recoveryEmail',
+  'passwordReset',
+  'appPassword',
+  'temporaryAlias',
+  'sieveFilter',
+  'pushNotificationSettings',
+  'mailSettings',
+  'recentLogins',
+  'groupwareData',
+  'webmailHandOff',
+]
+const selfServiceEvents = [
+  'ownPasswordChange',
+  'ownSecondFactorEnrolment',
+  'ownSecondFactorRemoval',
+  'ownRecoveryEmailChange',
+  'passwordResetRequest',
+  'passwordResetCompletion',
+  'appPasswordCreation',
+  'appPasswordUpdate',
+  'appPasswordDeletion',
+  'temporaryAliasCreation',
+  'temporaryAliasUpdate',
+  'temporaryAliasDeletion',
+  'sieveFilterCreation',
+  'sieveFilterUpdate',
+  'sieveFilterDeletion',
+  'pushNotificationSettingsUpdate',
+  'pushNotificationSettingsDeletion',
+  'pushNotificationVerification',
+  'mailSettingsUpdate',
+  'recentLoginsClear',
+  'activeSyncCacheReset',
+  'groupwareProfileReset',
+  'webmailHandOff',
+]
+
+describe('UI 005 self-service audit', () => {
+  it('labels every self-service event, target and documented refusal', () => {
+    for (const code of selfServiceEvents)
+      expect(auditLabel('eventType', code, tr)).not.toContain('Unknown (')
+    for (const code of selfServiceTargets)
+      expect(auditLabel('targetType', code, tr)).not.toContain('Unknown (')
+    for (const code of [
+      'currentPasswordIncorrect',
+      'externalIdentitySource',
+      'featureDisabled',
+      'challengeExpired',
+      'registrationFailed',
+      'lastSecondFactor',
+      'secondFactorRequiredByPolicy',
+      'notConfigured',
+      'verificationUnavailable',
+      'unknownAccount',
+      'accountNotEligible',
+      'noRecoveryEmail',
+      'tokenLimitReached',
+      'messageNotSent',
+    ])
+      expect(auditLabel('failureReason', code, tr)).not.toContain('Unknown (')
+  })
+
+  it('formats redacted secrets and script size changes as text, without changing arbitrary text values', () => {
+    const event = auditEvent({
+      eventType: 'pushNotificationSettingsUpdate',
+      details: {
+        password: 'changed',
+        changes: {
+          token: 'set',
+          userKey: 'changed',
+          password: 'generated',
+          script: { changed: true, oldSize: 120, newSize: 240 },
+          description: { old: 'set', new: 'changed' },
+        },
+      },
+    })
+    expect(auditDetailRows(event)).toEqual([
+      { key: 'password', lines: ['changed'] },
+      {
+        key: 'changes',
+        lines: [
+          'token: set',
+          'userKey: changed',
+          'password: generated',
+          'script: changed (120 → 240 bytes)',
+          'description: set → changed',
+        ],
+      },
+    ])
+  })
+
+  it('localises redaction sentinels while preserving user-entered names', async () => {
+    await loadLocale(i18n, 'cs-cz')
+    i18n.global.locale.value = 'cs-cz'
+    const event = auditEvent({
+      eventType: 'pushNotificationSettingsUpdate',
+      details: {
+        password: 'changed',
+        changes: {
+          token: 'set',
+          script: { changed: true, oldSize: 1200, newSize: 2400 },
+          name: { old: 'set', new: 'changed' },
+        },
+      },
+    })
+    expect(auditDetailRows(event)).toEqual([
+      { key: 'password', lines: ['změněno'] },
+      {
+        key: 'changes',
+        lines: [
+          'token: nastaveno',
+          'script: změněno (1\u00a0200 → 2\u00a0400 bajtů)',
+          'name: set → changed',
+        ],
+      },
+    ])
+  })
+})
 
 describe('auditLabel', () => {
   it('translates known codes of every kind', () => {

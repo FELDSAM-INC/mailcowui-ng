@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 import {
   checkCoverage,
   checkMessages,
+  choiceCount,
   duplicateLegacyMeanings,
   enumValuesFromSchema,
   legacyKeysInSource,
@@ -20,6 +21,18 @@ import {
 } from '../../../scripts/i18n/lib.mjs'
 
 describe('placeholders and contract inputs', () => {
+  it('counts only plural separators outside quoted Vue-i18n literal interpolation', () => {
+    expect(choiceCount("name{'@'}(example.org{'|'}example.net)")).toBe(1)
+    expect(choiceCount("one {'a|b'} | few {'|'} | many")).toBe(3)
+    expect(choiceCount("one { 'a\\'|b' } | many")).toBe(2)
+    expect(choiceCount('{count} item | {count} items')).toBe(2)
+    const input = baseInput()
+    for (const locale of ['en-gb', 'cs-cz', 'sk-sk'] as const)
+      input.app[locale].regex = { placeholder: "name{'@'}(example.org{'|'}example.net)" }
+    input.usedKeys?.add('regex.placeholder')
+    expect(checkMessages(input).errors).toEqual([])
+  })
+
   it('extracts named and list placeholders but not literal interpolations', () => {
     expect(placeholders("Hello {name}, {0} {'{'} {count}")).toEqual(['0', 'count', 'name'])
     expect(placeholders('No placeholder')).toEqual([])

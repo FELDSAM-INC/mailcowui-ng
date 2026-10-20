@@ -14,6 +14,7 @@ import { authRoutes } from '@/features/auth'
 import { dnsRoutes } from '@/features/dns'
 import { domainRoutes } from '@/features/domains'
 import { homeRoutes } from '@/features/home'
+import { filterRoutes } from '@/features/filters/routes'
 import { identityProviderRoutes } from '@/features/identity-providers'
 import { mailboxRoutes } from '@/features/mailboxes'
 import { operationsRoutes } from '@/features/operations'
@@ -53,6 +54,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...rateLimitRoutes,
   ...spamFilterRoutes,
   // UI 005: My account.
+  ...filterRoutes,
   ...accountRoutes,
   ...mailboxSelfServiceRoutes,
 ]

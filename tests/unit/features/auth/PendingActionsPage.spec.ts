@@ -35,6 +35,26 @@ const headings = (wrapper: Awaited<ReturnType<typeof mountPage>>['wrapper']) =>
   wrapper.findAll('li h2').map((h) => h.text())
 
 describe('PendingActionsPage', () => {
+  it('UI005 retries an unreadable forced-password policy and preserves entered passwords', async () => {
+    useScenario('account-forced-password-policy')
+    mockState().delays.getOwnPasswordPolicy = 200
+    mockState().failures.getOwnPasswordPolicy = { status: 500, times: 1 }
+    const { wrapper } = await mountPage()
+    expect(
+      wrapper.find('[data-password-policy-loading][role="status"][aria-busy="true"]').exists(),
+    ).toBe(true)
+    const input = wrapper.get('input[autocomplete="new-password"]')
+    await input.setValue('summer2026x')
+    await vi.waitFor(() => expect(wrapper.text()).toContain('Try again'))
+    await wrapper
+      .findAll('button')
+      .find((button) => button.text() === 'Try again')!
+      .trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-password-policy]').exists()).toBe(true))
+    expect((input.element as HTMLInputElement).value).toBe('summer2026x')
+    wrapper.unmount()
+  })
+
   it('lists the password change first, the second-factor setup as the next step', async () => {
     useScenario('forced-both')
     installWebAuthn()

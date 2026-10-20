@@ -168,7 +168,7 @@ export const catalogue: readonly NavigationEntry[] = [
   entry('aliasDomains', '/alias-domains', LinkIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   entry('resources', '/resources', CalendarIcon, MANAGERS, '004', MAIL_SETUP, 'available'),
   // UI 005 (research R4): domain administrators without the filters flag read the list.
-  entry('filters', '/filters', FilterIcon, MANAGERS, '005', MAIL_SETUP),
+  entry('filters', '/filters', FilterIcon, MANAGERS, '005', MAIL_SETUP, 'available'),
   entry(
     'account',
     '/account',

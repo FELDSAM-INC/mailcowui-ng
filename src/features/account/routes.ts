@@ -29,6 +29,49 @@ export const accountRoutes: RouteRecordRaw[] = [
     meta: { layout: 'shell', access: 'session', navEntry: 'account' },
     children: [
       {
+        path: 'filters',
+        name: 'account-filters',
+        component: accountPage(() => import('./pages/OwnFiltersPage.vue')),
+        meta: { accountSection: 'activeScript', titleKey: legacy('user.active_sieve') },
+      },
+      {
+        path: 'push-notifications',
+        name: 'account-push-notifications',
+        component: accountPage(() => import('./pages/PushNotificationsPage.vue')),
+        meta: { accountSection: 'pushNotifications', titleKey: legacy('edit.pushover') },
+      },
+      {
+        path: 'recent-logins',
+        name: 'account-recent-logins',
+        component: accountPage(() => import('./pages/RecentLoginsPage.vue')),
+        meta: {
+          accountSection: 'recentLogins',
+          titleKey: legacy('user.recent_successful_connections'),
+        },
+      },
+      {
+        path: 'mail-apps',
+        name: 'account-mail-apps',
+        component: accountPage(() =>
+          Promise.all([import('./pages/MailAppsPage.vue'), loadFeatureMessages('mailboxes')]).then(
+            ([module]) => module,
+          ),
+        ),
+        meta: { accountSection: 'mailApps', titleKey: 'account.sections.mailApps' },
+      },
+      {
+        path: 'mail-settings',
+        name: 'account-mail-settings',
+        component: accountPage(() => import('./pages/MailSettingsPage.vue')),
+        meta: { accountSection: 'mailSettings', titleKey: legacy('user.mailbox_settings') },
+      },
+      {
+        path: 'temporary-aliases',
+        name: 'account-temporary-aliases',
+        component: accountPage(() => import('./pages/TemporaryAliasesPage.vue')),
+        meta: { accountSection: 'temporaryAliases', titleKey: legacy('user.spam_aliases') },
+      },
+      {
         path: '',
         name: 'account',
         component: accountPage(() => import('./pages/AccountHomePage.vue')),

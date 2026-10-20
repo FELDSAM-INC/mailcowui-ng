@@ -38,11 +38,13 @@ describe('MailboxDetailPage', () => {
     expect(wrapper.find('[data-mailbox-usage]').exists()).toBe(true)
     // UI 006: the rate limit section is loaded on its own.
     await vi.waitFor(() => expect(wrapper.find('#section-rate-limit').exists()).toBe(true))
-    const sections = wrapper.findAll('section[id^="section-"]').map((item) => item.attributes('id'))
+    // UI 005: the editable Pushover section is lazy-loaded in the same legacy position.
+    await vi.waitFor(() => expect(wrapper.find('section#pushover').exists()).toBe(true))
+    const sections = wrapper.findAll('section[id^="section-"], section#pushover').map((item) => item.attributes('id'))
     expect(sections).toEqual([
       'section-mailbox',
       'section-attributes',
-      'section-pushover',
+      'pushover',
       'section-acl',
       'section-rate-limit',
       'section-rename',

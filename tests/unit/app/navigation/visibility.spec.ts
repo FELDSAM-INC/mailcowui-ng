@@ -144,6 +144,7 @@ describe('navigation catalogue', () => {
       'fail2ban',
       // UI 005: My account.
       'account',
+      'filters',
     ])
     const delivered = catalogue.filter((entry) => entry.deliveredBy !== '001')
     for (const entry of delivered) {

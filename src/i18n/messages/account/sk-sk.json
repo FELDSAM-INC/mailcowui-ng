@@ -1,5 +1,74 @@
 {
   "account": {
+    "push": {
+      "token": "API Token/Key (Application)",
+      "userKey": "User/Group Key",
+      "stored": "Hodnota je uložená. Nechajte pole prázdne, ak ju nechcete zmeniť.",
+      "titlePlaceholder": "Mail",
+      "textPlaceholder": "You've got mail 📧",
+      "sendersPlaceholder": "sender1{'@'}example.com, sender2{'@'}example.com",
+      "senderPatternPlaceholder": "/(.*{'@'}example\\.org${'|'}^foo{'@'}example\\.com$)/i",
+      "verify": {
+        "accepted": "Pushover API OK",
+        "rejected": "Pushover API ERR"
+      },
+      "errors": {
+        "invalidRegex": "Neplatný regulárny výraz"
+      },
+      "sounds": {
+        "pushover": "Pushover (default)",
+        "bike": "Bike",
+        "bugle": "Bugle",
+        "cashregister": "Cash Register",
+        "classical": "Classical",
+        "cosmic": "Cosmic",
+        "falling": "Falling",
+        "gamelan": "Gamelan",
+        "incoming": "Incoming",
+        "intermission": "Intermission",
+        "magic": "Magic",
+        "mechanical": "Mechanical",
+        "pianobar": "Piano Bar",
+        "siren": "Siren",
+        "spacealarm": "Space Alarm",
+        "tugboat": "Tug Boat",
+        "alien": "Alien Alarm (long)",
+        "climb": "Climb (long)",
+        "persistent": "Persistent (long)",
+        "echo": "Pushover Echo (long)",
+        "updown": "Up Down (long)",
+        "vibrate": "Vibrate Only",
+        "none": "None (silent)"
+      }
+    },
+    "recentLogins": {
+      "internal": "Web/EAS/Internal ({address})",
+      "appPasswordFallback": "App"
+    },
+    "mailApps": {
+      "guide": { "title": "Nastavenia servera" },
+      "encryption": { "tls": "SSL/TLS", "starttls": "STARTTLS" },
+      "auth": { "normalPassword": "Bežné heslo" },
+      "protocol": { "caldav": "CalDAV", "carddav": "CardDAV" },
+      "appPasswordOnly": "Tu funguje iba heslo aplikácie, ktoré povoľuje {protocol}.",
+      "profile": { "deleteAfterInstall": "Po inštalácii súbor odstráňte." }
+    },
+    "overview": {
+      "protocol": {
+        "allowed": "povolené",
+        "notAllowed": "nepovolené"
+      }
+    },
+    "webmail": {
+      "blocked": "Prehliadač zablokoval novú kartu. Webmail otvorte tu:",
+      "failed": "Webmail sa nepodarilo otvoriť. Skúste to znova vo svojom účte."
+    },
+    "mailSettings": {
+      "changedElsewhere": "Tieto nastavenia boli zmenené inde. Zobrazujú sa uložené hodnoty; ak ich chcete zmeniť, vyberte ich znova."
+    },
+    "devices": {
+      "sogoAcknowledge": "Rozumiem, že moje kontakty a kalendáre budú vymazané"
+    },
     "twoFactor": {
       "type": {
         "u2f": "Fido U2F",
@@ -65,6 +134,8 @@
     }
   },
   "filters": {
+    "columns": { "type": "Typ", "script": "Skript" },
+    "form": { "title": "Filter", "script": "Skript", "bytes": "{used} z {max} bajtov" },
     "kind": {
       "prefilter": "Prefilter",
       "postfilter": "Postfilter"

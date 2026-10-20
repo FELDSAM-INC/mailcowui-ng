@@ -3,18 +3,20 @@
 // table, the ACL multi-select and the read-only Pushover tab (the Rate limit tab is UI 006's
 // section).
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { Identity } from '@/api'
+import { setSessionContext } from '@/app/session/context'
 import { fetchMailbox } from '@/features/mailboxes/api'
 import AclSection from '@/features/mailboxes/components/sections/AclSection.vue'
 import AttributesSection from '@/features/mailboxes/components/sections/AttributesSection.vue'
 import MailboxSection from '@/features/mailboxes/components/sections/MailboxSection.vue'
 import ManagedSections from '@/features/mailboxes/components/sections/ManagedSections.vue'
+import { createAppChannel } from '@/shared/platform/broadcast'
 
 import { permissionFlags } from '../../../../mocks/scenarios/accounts'
 import { mockState, useScenario } from '../../../../mocks/node'
-import { mountWithApp } from '../../../support/mount'
+import { mountWithApp, testPlugins } from '../../../support/mount'
 import { createTestRouter } from '../../../support/router'
 
 const identity = (role: Identity['role'], flags: Partial<Identity['permissions']> = {}) =>
@@ -29,6 +31,8 @@ const identity = (role: Identity['role'], flags: Partial<Identity['permissions']
 
 // The relayhost field's History link (UI 009 US9) asks the router for the audit log route.
 const withRouter = () => ({ plugins: [createTestRouter()] })
+
+afterEach(() => setSessionContext(null))
 
 async function load(address = 'anna@a.example') {
   useScenario('admin-edit')
@@ -139,9 +143,23 @@ describe('AclSection and Pushover', () => {
 
   // UI 006: the "Rate limit" tab is the rate limit area's section (tests/unit/features/rate-limits).
   it('shows Pushover read-only', async () => {
-    const mailbox = await load()
-    const pushover = mountWithApp(ManagedSections, { props: { mailbox, section: 'pushover' } })
-    expect(pushover.text()).toContain('Pushover')
-    expect(pushover.find('button').exists()).toBe(false)
+    const state = useScenario('domain-admin-edit')
+    state.accounts.find((account) => account.username === 'reseller')!.permissions.pushover = false
+    const mailbox = await fetchMailbox('anna@a.example')
+    const router = createTestRouter()
+    await router.push('/mailboxes/anna@a.example')
+    setSessionContext({
+      queryClient: testPlugins().queryClient,
+      router,
+      channel: createAppChannel('test'),
+    })
+    const pushover = mountWithApp(ManagedSections, {
+      props: { mailbox, section: 'pushover' },
+      global: { plugins: [router] },
+    })
+    await vi.waitFor(() => expect(pushover.text()).toContain('Pushover'))
+    await vi.waitFor(() => expect(pushover.find('input[name="token"]').exists()).toBe(true))
+    expect(pushover.get('input[name="token"]').attributes('disabled')).toBeDefined()
+    expect(pushover.find('button[type="submit"]').exists()).toBe(false)
   })
 })

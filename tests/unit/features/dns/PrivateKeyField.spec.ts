@@ -2,7 +2,7 @@
 // auto-completion or capitalisation; the UTF-8 size against the server's limit; a file checked by
 // size before it is read, and the file input reset afterwards.
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import PrivateKeyField from '@/features/dns/components/PrivateKeyField.vue'
 
@@ -40,10 +40,11 @@ describe('PrivateKeyField', () => {
     Object.defineProperty(input.element, 'files', { value: [file], configurable: true })
     await input.trigger('change')
     await flushPromises()
-    await new Promise((resolve) => setTimeout(resolve, 20))
-    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
-      '-----BEGIN PRIVATE KEY-----\nabc\n',
-    ])
+    await vi.waitFor(() =>
+      expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([
+        '-----BEGIN PRIVATE KEY-----\nabc\n',
+      ]),
+    )
     expect((input.element as HTMLInputElement).value).toBe('')
   })
 

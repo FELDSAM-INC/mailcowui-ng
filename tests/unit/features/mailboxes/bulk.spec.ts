@@ -133,6 +133,8 @@ describe('MailboxBulkActions', () => {
   it('offers legacy’s groups and leaves out the protocols without the flag', async () => {
     const wrapper = mountWithApp(MailboxBulkActions, { attachTo: document.body })
     expect(wrapper.findAll('[data-bulk-menu]').map((menu) => menu.text())).toEqual([
+      'Enforce TLS incoming',
+      'Enforce TLS outgoing',
       'Mailbox',
       'Allowed protocols',
     ])
@@ -152,6 +154,10 @@ describe('MailboxBulkActions', () => {
     expect(wrapper.emitted('run')?.[0]).toEqual([{ action: 'deactivate' }])
     wrapper.unmount()
     const limited = mountWithApp(MailboxBulkActions, { props: { protocols: false } })
-    expect(limited.findAll('[data-bulk-menu]')).toHaveLength(1)
+    expect(limited.findAll('[data-bulk-menu]').map((menu) => menu.attributes('data-bulk-menu'))).toEqual([
+      'tls-inbound',
+      'tls-outbound',
+      'mailbox',
+    ])
   })
 })

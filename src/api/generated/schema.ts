@@ -4816,8 +4816,8 @@ export interface paths {
         };
         /**
          * List mass mail jobs
-         * @description Lists mass mail jobs, newest first by default, with their counts per outcome. `q` searches the
-         *     subject. Jobs are kept for the audit retention period. Administrators only, by session or by an
+         * @description Lists mass mail jobs, newest first by default, with their counts per outcome but without their
+         *     bodies, which the single read returns. `q` searches the subject. Jobs are kept for the audit retention period. Administrators only, by session or by an
          *     administrator's key, read-only keys included.
          */
         get: operations["listMassMailJobs"];
@@ -4915,7 +4915,7 @@ export interface paths {
         /**
          * List a job's recipients
          * @description Lists the job's recipients, sorted by address by default, each with its outcome and, for a
-         *     failure, Dovecot's reason. `q` searches the address. Administrators only, by session or by an
+         *     failure, a stable `failureCode` and Dovecot's reply. `q` searches the address. Administrators only, by session or by an
          *     administrator's key.
          */
         get: operations["listMassMailJobRecipients"];
@@ -7489,8 +7489,10 @@ export interface paths {
         /**
          * List the global regex maps
          * @description Lists the global regex maps that the operator's configuration makes editable (13 by default,
-         *     from "Header-From: Denylist" to "Monitoring Hosts"), each with its content and version tag. A
-         *     map whose file is missing on this server is listed with `available: false`. `q` searches the name.
+         *     from "Header-From: Denylist" to "Monitoring Hosts"), in the configured order unless `sort` is
+         *     given, each with its size and version tag but without its content, which the single read
+         *     returns. A map whose file is missing on this server is listed with `available: false`. `q`
+         *     searches the name.
          *     Administrators only, by session or by an administrator's key, read-only keys included.
          */
         get: operations["listRspamdRegexMaps"];
@@ -13189,7 +13191,11 @@ export interface components {
             targets: components["schemas"]["BulkTarget"][];
             tlsEnforceInbound?: boolean;
             tlsEnforceOutbound?: boolean;
-        } | unknown | unknown;
+        } & ({
+            tlsEnforceInbound: boolean;
+        } | {
+            tlsEnforceOutbound: boolean;
+        });
         /**
          * @description JSON Merge Patch of the mail settings. Changing `taggedMailHandling` needs `delimiterAction`;
          *     changing a TLS value needs `tlsPolicy`. A value sent equal to its current value is not a change.
@@ -14098,6 +14104,25 @@ export interface components {
          * @enum {string}
          */
         MassMailJobStatus: "running" | "completed" | "cancelled";
+        /**
+         * @description A mass mail job as the list returns it: everything but its bodies, which
+         *     `GET /mass-mail-jobs/{jobId}` returns (gap G17: lists stay light, also on slow connections).
+         */
+        MassMailJobSummary: {
+            cancelledBy: components["schemas"]["AccountRef"] | null;
+            counts: components["schemas"]["MassMailRecipientCounts"];
+            /** Format: date-time */
+            createdAt: string;
+            createdBy: components["schemas"]["AccountRef"];
+            finishedAt: string | null;
+            id: string;
+            recipientCount: number;
+            selection: components["schemas"]["MassMailSelection"];
+            sender: string;
+            startedAt: string | null;
+            status: components["schemas"]["MassMailJobStatus"];
+            subject: string;
+        };
         /** @description One mailbox that the selection yields. */
         MassMailPreviewRecipient: {
             /** @example alice@example.org */
@@ -14114,9 +14139,11 @@ export interface components {
             /** @example alice@example.org */
             address: string;
             attempts: number;
+            /** @description For `failed`, the stable reason of the failure (gap G16); `null` otherwise. */
+            failureCode: components["schemas"]["MassMailRecipientFailureCode"] | null;
             /**
              * @description For `failed`: Dovecot's reply (for example an over-quota refusal), `interrupted` when this
-             *     API stopped during the delivery, or the connection error. `null` otherwise.
+             *     API stopped during the delivery, or the connection error, in English. `null` otherwise.
              */
             failureReason: string | null;
             lastAttemptAt: string | null;
@@ -14136,6 +14163,25 @@ export interface components {
             pending: number;
             skipped: number;
         };
+        /**
+         * @description Why the delivery to a mass mail recipient failed, a stable code clients translate (gap G16), next
+         *     to Dovecot's reply in `failureReason`:
+         *
+         *     - `overQuota`: the mailbox is full (enhanced status `x.2.2`);
+         *     - `mailboxUnavailable`: Dovecot refused the mailbox, for example because it was deleted or
+         *       deactivated after the job was created (enhanced status `5.1.x`, or a `550` reply);
+         *     - `rejected`: any other permanent refusal;
+         *     - `temporaryFailurePersisted`: Dovecot refused temporarily on every attempt (the first try and 3
+         *       retries within 5 minutes);
+         *     - `connectionFailed`: Dovecot's local delivery could not be reached or did not answer within the
+         *       delivery deadline on every attempt;
+         *     - `interrupted`: this API stopped while the delivery was in progress; it is never retried, so that
+         *       no recipient receives two copies.
+         *
+         *     Clients show unknown codes like `rejected`.
+         * @enum {string}
+         */
+        MassMailRecipientFailureCode: "overQuota" | "mailboxUnavailable" | "rejected" | "temporaryFailurePersisted" | "connectionFailed" | "interrupted";
         /**
          * @description `pending`: not delivered yet (including retries of a temporary refusal). `delivered`: Dovecot
          *     accepted the message into the mailbox. `failed`: Dovecot refused it, temporary refusals persisted
@@ -16772,6 +16818,29 @@ export interface components {
             content: string;
         };
         /**
+         * @description A global regex map as the list returns it: everything but its content, which
+         *     `GET /settings/rspamd-regex-maps/{mapId}` returns (docs/api-gaps.md G17: lists stay light, also on
+         *     slow connections). The version tag equals the one of the single read.
+         */
+        RspamdRegexMapSummary: {
+            /** @description `false` when the map file does not exist on this server; replacing it is then refused. */
+            available: boolean;
+            /** @description Version tag of the stored content. */
+            etag: string;
+            /**
+             * @description The map's file name, its stable identifier.
+             * @example global_smtp_from_blacklist.map
+             */
+            id: string;
+            /**
+             * @description English name from the operator's configuration.
+             * @example Envelope Sender Denylist
+             */
+            name: string;
+            /** @description Size of the map's content in bytes, 0 while the map is unavailable. */
+            sizeBytes: number;
+        };
+        /**
          * @description A rule of mailcow's Rspamd settings map (table `settingsmap`). Active rules reach Rspamd through
          *     mailcow's generated settings map at Rspamd's next refresh (within about a minute), without a
          *     restart.
@@ -18463,7 +18532,7 @@ export interface components {
          *       `message`, the legacy parser's message, and `line`); `unbalancedStructure` (params `line` and `construct`: `unclosedBrace`,
          *       `unexpectedBrace`, `unclosedBracket`, `unexpectedBracket` or `unclosedString`);
          *       `mutuallyExclusive` (param `with`, the other field); `tooFew` (param `min`) for a mass mail
-         *       selection without recipients.
+         *       selection without recipients and for an empty list of the legacy API's CORS methods.
          *     - Aliases, alias domains, resources and sender settings (feature 004): `invalidFormat` also uses
          *       `format: aliasAddress` (an address or `@domain`), `emailOrDomain` (an external sender address
          *       or domain), `senderPermission` (an address, a domain or `*`) and `resourceDescription` (a
@@ -20947,14 +21016,14 @@ export interface components {
                 };
             };
         };
-        /** @description Mass mail jobs matching the filters. */
+        /** @description Mass mail jobs matching the filters, as summaries without their bodies (gap G17). */
         MassMailJobListResponse: {
             headers: {
                 [name: string]: unknown;
             };
             content: {
                 "application/json": {
-                    data: components["schemas"]["MassMailJob"][];
+                    data: components["schemas"]["MassMailJobSummary"][];
                     meta: components["schemas"]["ListMeta"];
                 };
             };
@@ -22075,14 +22144,17 @@ export interface components {
                 };
             };
         };
-        /** @description The editable global regex maps. Each entry carries its version tag. */
+        /**
+         * @description The editable global regex maps as summaries, without their content (gap G17). Each entry carries
+         *     its version tag.
+         */
         RspamdRegexMapListResponse: {
             headers: {
                 [name: string]: unknown;
             };
             content: {
                 "application/json": {
-                    data: components["schemas"]["RspamdRegexMap"][];
+                    data: components["schemas"]["RspamdRegexMapSummary"][];
                     meta: components["schemas"]["ListMeta"];
                 };
             };
@@ -23340,7 +23412,7 @@ export interface components {
         /** @description Identifier of the Sieve filter (mailcow `sieve_filters.id`). A filter of another mailbox answers `404`. */
         SieveFilterId: number;
         /** @description Sort field. Default `mailbox`, then `description` as the second key. */
-        SieveFilterSort: "description" | "mailbox" | "kind" | "active" | "createdAt" | "modifiedAt";
+        SieveFilterSort: "id" | "description" | "mailbox" | "kind" | "active" | "createdAt" | "modifiedAt";
         /**
          * @description `id` of an allow or block list entry (mailcow's `filterconf.prefid`). The entry must belong to
          *     the owner named in the path: an entry of another owner, such as a domain entry addressed through
@@ -23655,11 +23727,13 @@ export type MailStorageUsage = components['schemas']['MailStorageUsage'];
 export type MassMailJob = components['schemas']['MassMailJob'];
 export type MassMailJobCreateRequest = components['schemas']['MassMailJobCreateRequest'];
 export type MassMailJobStatus = components['schemas']['MassMailJobStatus'];
+export type MassMailJobSummary = components['schemas']['MassMailJobSummary'];
 export type MassMailPreviewRecipient = components['schemas']['MassMailPreviewRecipient'];
 export type MassMailPreviewRequest = components['schemas']['MassMailPreviewRequest'];
 export type MassMailRecipient = components['schemas']['MassMailRecipient'];
 export type MassMailRecipientCountProblem = components['schemas']['MassMailRecipientCountProblem'];
 export type MassMailRecipientCounts = components['schemas']['MassMailRecipientCounts'];
+export type MassMailRecipientFailureCode = components['schemas']['MassMailRecipientFailureCode'];
 export type MassMailRecipientOutcome = components['schemas']['MassMailRecipientOutcome'];
 export type MassMailRunningProblem = components['schemas']['MassMailRunningProblem'];
 export type MassMailSelection = components['schemas']['MassMailSelection'];
@@ -23796,6 +23870,7 @@ export type RspamdHistoryEntry = components['schemas']['RspamdHistoryEntry'];
 export type RspamdHistorySymbol = components['schemas']['RspamdHistorySymbol'];
 export type RspamdRegexMap = components['schemas']['RspamdRegexMap'];
 export type RspamdRegexMapReplaceRequest = components['schemas']['RspamdRegexMapReplaceRequest'];
+export type RspamdRegexMapSummary = components['schemas']['RspamdRegexMapSummary'];
 export type RspamdSettingsRule = components['schemas']['RspamdSettingsRule'];
 export type RspamdSettingsRuleCreateRequest = components['schemas']['RspamdSettingsRuleCreateRequest'];
 export type RspamdSettingsRulePatch = components['schemas']['RspamdSettingsRulePatch'];
@@ -34836,6 +34911,7 @@ export const mailQueueActionResultActionValues: ReadonlyArray<FlattenedDeepRequi
 export const mailQueueBulkRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailQueueBulkRequest"]["action"]> = ["deliver", "hold", "release", "delete"];
 export const mailQueueNameValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailQueueName"]> = ["active", "deferred", "hold", "incoming", "maildrop"];
 export const massMailJobStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MassMailJobStatus"]> = ["running", "completed", "cancelled"];
+export const massMailRecipientFailureCodeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MassMailRecipientFailureCode"]> = ["overQuota", "mailboxUnavailable", "rejected", "temporaryFailurePersisted", "connectionFailed", "interrupted"];
 export const massMailRecipientOutcomeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MassMailRecipientOutcome"]> = ["pending", "delivered", "failed", "skipped"];
 export const monitoringLogRetentionPolicyValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MonitoringLogRetention"]["policy"]> = ["entries", "unbounded", "cleanedDaily"];
 export const monitoringOutcomeUnknownProblemStepValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MonitoringOutcomeUnknownProblem"]["step"]> = ["start", "stop", "restart", "deliver", "hold", "release", "delete", "flush", "purge", "rulesReset"];
@@ -34979,7 +35055,7 @@ export const componentsParametersResourceSortValues: ReadonlyArray<FlattenedDeep
 export const componentsParametersRspamdHistorySortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["RspamdHistorySort"]> = ["time", "score", "size", "scanTime"];
 export const componentsParametersRspamdRegexMapSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["RspamdRegexMapSort"]> = ["name", "id"];
 export const componentsParametersRspamdSettingsRuleSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["RspamdSettingsRuleSort"]> = ["id", "description", "active", "createdAt", "modifiedAt"];
-export const componentsParametersSieveFilterSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SieveFilterSort"]> = ["description", "mailbox", "kind", "active", "createdAt", "modifiedAt"];
+export const componentsParametersSieveFilterSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SieveFilterSort"]> = ["id", "description", "mailbox", "kind", "active", "createdAt", "modifiedAt"];
 export const componentsParametersSpamPolicyEntrySortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SpamPolicyEntrySort"]> = ["pattern", "createdAt", "id"];
 export const componentsParametersSyncJobSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SyncJobSort"]> = ["id", "mailbox", "remoteHost", "remoteUser", "intervalMinutes", "active", "lastRunAt", "lastResult", "createdAt", "modifiedAt"];
 export const componentsParametersTemporaryAliasSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["TemporaryAliasSort"]> = ["address", "expiresAt", "createdAt"];

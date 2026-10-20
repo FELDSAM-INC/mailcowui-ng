@@ -5,6 +5,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { text } from '@/i18n'
+import { MailboxHomeCard } from '@/features/account'
 
 import { useIdentityQuery } from '@/app/session/queries'
 import PageHeader from '@/shared/components/PageHeader.vue'
@@ -29,6 +30,7 @@ const description = computed(() =>
     <PageHeader :title="title" :description="description" />
     <template v-if="identity">
       <ScopeSummary :identity="identity" />
+      <MailboxHomeCard v-if="identity.role === 'mailboxUser'" />
       <SectionShortcuts :identity="identity" />
       <!-- Last: it appears after a request, so it must not move the content above (CLS). -->
       <PasskeySuggestion />

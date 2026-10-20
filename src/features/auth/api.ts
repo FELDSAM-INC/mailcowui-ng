@@ -115,6 +115,10 @@ async function takeSignedInSession(session: Session): Promise<void> {
     try {
       const identity = await ctx.queryClient.fetchQuery({ ...identityQuery(), staleTime: 0 })
       await applyProfileAfterSignIn(identity)
+      // A session expiry clears cached queries while mounted pages keep their observers. Those
+      // observers may retain an error result and will not refetch just because the identity has
+      // returned; refresh active page reads after authentication is restored.
+      await ctx.queryClient.invalidateQueries()
     } catch {
       // The guard reads the identity again on the next navigation.
     }

@@ -45,7 +45,10 @@ onScopeDispose(() => {
   disposed = true
 })
 const request = useSecretRequest(createAppPassword)
-const form = useProblemForm({ fieldId: (path) => (path === 'name' ? `${id}-name` : null) })
+const form = useProblemForm({
+  fieldId: (path) => (path === 'name' ? `${id}-name` : null),
+  formKey: 'account.appPasswords.form',
+})
 const dirty = computed(
   () =>
     name.value !== (baseline.value?.name ?? '') ||
@@ -84,7 +87,7 @@ async function submit() {
   saved.value = false
   form.clear()
   if (!name.value.trim()) {
-    await form.setClientErrors({ name: ['validation.required'] })
+    await form.setClientMessages({ name: [lt('danger.app_name_empty')] })
     return
   }
   saving.value = true

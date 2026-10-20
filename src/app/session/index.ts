@@ -7,6 +7,7 @@ import { usePreferencesStore } from '../preferences/store'
 import { setSessionContext, type SessionContext } from './context'
 import { connectCrossTab } from './cross-tab'
 import { installIdleTimer } from './idle-timer'
+import { registerLandingHook } from './landing'
 import { identityQuery, sessionQuery } from './queries'
 import { rerouteCurrent } from './reroute'
 import { endSession } from './session-end'
@@ -53,6 +54,23 @@ export function installSession(ctx: SessionContext): () => void {
   )
   const offCrossTab = connectCrossTab(ctx)
   const offIdle = installIdleTimer(ctx)
+  const offWebmail = registerLandingHook(
+    async (context) => {
+      if (
+        context.intent !== 'default' ||
+        context.session.state !== 'active' ||
+        context.session.role !== 'mailboxUser' ||
+        context.session.pendingActions.length > 0 ||
+        context.identity?.role !== 'mailboxUser' ||
+        context.identity.pendingActions.length > 0 ||
+        context.identity.impersonation
+      )
+        return false
+      const { forwardAfterSignIn } = await import('@/features/account')
+      return forwardAfterSignIn(context, ctx.queryClient)
+    },
+    { failureKey: 'account.webmail.failed' },
+  )
 
   const mirror = (session: Session | undefined) => {
     if (!session) return
@@ -73,6 +91,7 @@ export function installSession(ctx: SessionContext): () => void {
     offEnded()
     offCrossTab()
     offIdle()
+    offWebmail()
     offMirror()
   }
 }

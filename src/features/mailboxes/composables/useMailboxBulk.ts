@@ -11,6 +11,7 @@ import { computed, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { problemOf, queryKeys, type ApiProblem } from '@/api'
+import { applyMailboxMailSettingsBulk, mailSettingsBulkRequest } from '@/features/account'
 import { lt } from '@/i18n'
 import {
   isRetryable,
@@ -101,7 +102,13 @@ export function useMailboxBulk(options: {
     running.value = mailboxes.length
     announce(t('bulk.progress', { count: mailboxes.length }))
     try {
-      const result = await applyMailboxBulk(client, bulkRequest(choice, mailboxes))
+      const result =
+        choice.action === 'setTlsEnforcement'
+          ? await applyMailboxMailSettingsBulk(
+              client,
+              mailSettingsBulkRequest(choice.direction, choice.enabled, mailboxes),
+            )
+          : await applyMailboxBulk(client, bulkRequest(choice, mailboxes))
       rows.value = rowsFromBulkResult(result, bulkEntries(mailboxes))
       options.selection.keep(rows.value.filter(isRetryable).map((row) => row.id))
     } catch (error) {

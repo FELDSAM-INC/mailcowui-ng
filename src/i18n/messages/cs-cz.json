@@ -186,6 +186,12 @@
     "resultCount": "Nalezené záznamy: {total}",
     "title": "Protokol auditu",
     "unknown": "Neznámé ({code})",
+    "detailValues": {
+      "set": "nastaveno",
+      "changed": "změněno",
+      "generated": "vygenerováno",
+      "changedSize": "změněno ({old} → {new} bajtů)"
+    },
     "detailKeys": {
       "changes": "Změny",
       "passwordSet": "Heslo nastaveno",
@@ -505,6 +511,7 @@
       "webmailHandOff": "Webmail otevřen"
     },
     "auditFailureReason": {
+      "featureDisabled": "Funkce je vypnutá",
       "accountInactive": "Účet je neaktivní",
       "attributeNotPermitted": "Změna není povolena",
       "autoCreationOff": "Automatické vytváření schránek je vypnuto",

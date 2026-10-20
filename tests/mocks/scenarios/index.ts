@@ -66,6 +66,7 @@ import { signInScenarios } from './sign-in'
 import { apiKeyScenarios } from './api-keys'
 import { applySyncJobChanges, initialSyncJobState, syncJobScenarios } from './sync-jobs'
 import { auditIdentityProviderScenarios } from './audit-identity-provider'
+import { auditSelfServiceScenarios } from './audit-self-service'
 import { identityProviderScenarios } from './identity-provider'
 import { oauth2ClientScenarios } from './oauth2-clients'
 import { providerPasswordScenarios } from './provider-password'
@@ -129,6 +130,7 @@ export const scenarios: Record<string, ScenarioDefinition> = {
   ...providerPasswordScenarios,
   ...oauth2ClientScenarios,
   ...auditIdentityProviderScenarios,
+  ...auditSelfServiceScenarios,
   // UI 004
   ...feature004BaseScenarios,
   ...aliasesListScenarios,

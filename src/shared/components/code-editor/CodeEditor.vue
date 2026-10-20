@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  defineAsyncComponent,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useFormat } from '@/i18n/format'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { utf8ByteLength } from '@/shared/validation/utf8'
 import { buttonVariants } from '@/shared/ui/button'
 import { measureLines, updateLineLayout, visibleLines } from './line-layout'
+const LargeCodeEditor = defineAsyncComponent(() => import('./LargeCodeEditor.vue'))
 
 const props = withDefaults(
   defineProps<{
@@ -19,6 +28,7 @@ const props = withDefaults(
     disabled?: boolean
     lineNumbers?: boolean
     required?: boolean
+    virtualizeLarge?: boolean
   }>(),
   {
     marks: () => [],
@@ -27,6 +37,7 @@ const props = withDefaults(
     disabled: false,
     lineNumbers: true,
     required: false,
+    virtualizeLarge: false,
   },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -37,6 +48,18 @@ const mirror = ref<HTMLDivElement>()
 const wrap = ref(true)
 const numbers = ref<{ line: number; top: number }[]>([])
 const used = computed(() => utf8ByteLength(props.modelValue))
+// Choose once per mounted document: switching surfaces mid-edit would lose native undo/IME state.
+const virtual = props.virtualizeLarge && used.value >= 128 * 1024
+const largeEditor = ref<InstanceType<typeof LargeCodeEditor>>()
+const description = computed(() =>
+  [
+    t('codeEditor.tabHint'),
+    ...props.errors,
+    ...props.marks.map(
+      (mark) => t('codeEditor.line', { line: format.number(mark.line) }) + ': ' + mark.message,
+    ),
+  ].join(' '),
+)
 const invalid = computed(
   () => used.value > props.maxBytes || props.marks.length > 0 || props.errors.length > 0,
 )
@@ -119,6 +142,11 @@ function schedule() {
 }
 async function goToLine(line: number) {
   await nextTick()
+  if (virtual) {
+    largeEditor.value?.goToLine(line)
+    announce(t('codeEditor.line', { line: format.number(line) }))
+    return
+  }
   if (frame) cancelAnimationFrame(frame)
   measure(true)
   const element = input.value
@@ -148,10 +176,29 @@ onBeforeUnmount(() => {
 
 <template>
   <div data-code-editor class="min-w-0 space-y-2">
-    <label :for="id" class="block text-sm font-medium text-gray-800 dark:text-gray-200">{{
-      label
-    }}</label>
+    <component
+      :is="virtual ? 'p' : 'label'"
+      :for="virtual ? undefined : id"
+      class="block text-sm font-medium text-gray-800 dark:text-gray-200"
+      >{{ label }}</component
+    >
+    <LargeCodeEditor
+      v-if="virtual"
+      :id="id"
+      ref="largeEditor"
+      :model-value="modelValue"
+      :label="label"
+      :description="description"
+      :wrap="wrap"
+      :line-numbers="lineNumbers"
+      :readonly="readonly"
+      :disabled="disabled"
+      :required="required"
+      :invalid="invalid"
+      @update:model-value="emit('update:modelValue', $event)"
+    />
     <div
+      v-else
       class="relative flex min-w-0 overflow-hidden rounded-lg border border-gray-300 dark:border-gray-600"
     >
       <div

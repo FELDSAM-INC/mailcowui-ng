@@ -177,3 +177,35 @@ Evidence: `/tmp/u013-map-final-units.log`, `/tmp/u013-maps-functional.log`,
 `test-results/u013-maps-checkpoint`, `test-results/u013-maps-size`, and
 `test-results/u013-editor-cache2`. The native performance failure is retained for follow-up;
 this checkpoint does not claim full US8 completion.
+
+
+### Lazy large filter-map editor checkpoint (2026-10-21)
+
+R17a records why initially large filter maps now opt into a separate virtualized editor. The
+native editor remains the default for other callers and for maps initially below 128 KiB. Only
+large map visits download the approximately 90 KB gzip editor chunk. The editing engine remains
+stable for the visit, including when typed or pasted text crosses that threshold.
+
+- **23 relevant unit checks passed**: opt-in/default selection, stable editing surface, native
+  editor behavior, incremental validation and cached logical-line geometry.
+- **42 functional browser checks passed**, across all three profiles, including the nine new
+  large-editor checks and all existing map/layout regressions, with zero retries. They cover
+  readonly behavior, undo, Unicode, native Tab navigation, offscreen error repair, wrapping,
+  complete request content, strict CSP, both-theme axe and 320 px reflow.
+- Fresh app and test typechecks, focused lint, formatting, production build and dependency checks
+  pass. All 102 shipped packages are GPL-compatible; the production dependency audit reports no
+  known vulnerabilities. Initial JavaScript is **202,652 / 204,800 bytes gzip** at this branch base.
+- Both one-worker cold-input runs pass both Chromium profiles. WebKit still fails the unchanged
+  100 ms gate: first keys are **161 ms** and **104 ms**. The final run additionally asserts that
+  every measured frame already contains its typed prefix; all thirty frame assertions pass. Its
+  WebKit samples are 104, 32, 36, 14, 18, 29, 16, 16, 16, 13 ms. Every profile opens the one-MiB map
+  under 2 s. The cold-key variability is not resolved. **T120/T127 remain open.**
+- Timing starts at captured `beforeinput` before the editor's handler, includes the first key,
+  and retains long-task checks where supported. There are no synthetic edits or typing warm-ups.
+  The adapter performs initial layout before enabling editing, within the same open-time gate.
+- Manual physical-IME and screen-reader checks remain outstanding. This checkpoint does not claim
+  that the timing or manual accessibility gates are complete.
+
+Evidence: `/tmp/u013-large-editor-final-{unit2,app,tests,lint2,formatcheck,build,budget,licenses,audit}.log`,
+`/tmp/u013-large-editor-final-{functional,perf,visible}.log`; the failing cold-key traces are
+retained in `test-results/u013-large-editor-final-perf` and `test-results/u013-large-editor-final-visible`.

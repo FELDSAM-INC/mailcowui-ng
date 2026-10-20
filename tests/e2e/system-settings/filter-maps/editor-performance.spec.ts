@@ -19,16 +19,27 @@ test('one MiB editor opens promptly and typed characters appear without input la
   await page.getByRole('link', { name: /Large map/ }).click()
   const editor = page.locator('#regex-content')
   await editor.waitFor({ state: 'visible' })
-  expect(await editor.evaluate((input: HTMLTextAreaElement) => input.value.length)).toBe(
-    content.length,
-  )
+  const native = await editor.evaluate((element) => element instanceof HTMLTextAreaElement)
+  if (native)
+    expect(await editor.evaluate((input: HTMLTextAreaElement) => input.value.length)).toBe(
+      content.length,
+    )
+  else
+    await expect(page.locator('[data-large-code-editor]')).toHaveAttribute(
+      'data-editor-ready',
+      'true',
+    )
   expect(Date.now() - started).toBeLessThan(2000)
   await page.getByRole('button', { name: 'Edit', exact: true }).click()
   await editor.focus()
+  if (!native) {
+    await editor.press('Home')
+    await editor.press('ArrowRight')
+  }
   await editor.evaluate((input: HTMLTextAreaElement) => {
-    input.setSelectionRange(1, 1)
-    let start = 0
+    if (input instanceof HTMLTextAreaElement) input.setSelectionRange(1, 1)
     let typingSince = 0
+    let typed = ''
     if (PerformanceObserver.supportedEntryTypes.includes('longtask')) {
       const observer = new PerformanceObserver((entries) => {
         const tasks: number[] = JSON.parse(input.dataset.longTasks ?? '[]')
@@ -42,18 +53,25 @@ test('one MiB editor opens promptly and typed characters appear without input la
       })
       observer.observe({ type: 'longtask' })
     }
-    input.addEventListener('beforeinput', () => {
-      start = performance.now()
-      typingSince ||= start
-    })
-    input.addEventListener('input', () => {
-      const began = start
-      requestAnimationFrame(() => {
-        const timings: number[] = JSON.parse(input.dataset.timings ?? '[]')
-        timings.push(performance.now() - began)
-        input.dataset.timings = JSON.stringify(timings)
-      })
-    })
+    input.addEventListener(
+      'beforeinput',
+      (event) => {
+        typed += (event as InputEvent).data ?? ''
+        const expectedPrefix = '/' + typed
+        const began = performance.now()
+        typingSince ||= began
+        requestAnimationFrame(() => {
+          const timings: number[] = JSON.parse(input.dataset.timings ?? '[]')
+          timings.push(performance.now() - began)
+          const visible: boolean[] = JSON.parse(input.dataset.visibleFrames ?? '[]')
+          const value = input instanceof HTMLTextAreaElement ? input.value : input.textContent
+          visible.push(value?.startsWith(expectedPrefix) ?? false)
+          input.dataset.visibleFrames = JSON.stringify(visible)
+          input.dataset.timings = JSON.stringify(timings)
+        })
+      },
+      { capture: true },
+    )
   })
   await page.keyboard.type('abcdefghij', { delay: 50 })
   await expect
@@ -66,17 +84,33 @@ test('one MiB editor opens promptly and typed characters appear without input la
   const timings: number[] = await editor.evaluate((input: HTMLTextAreaElement) =>
     JSON.parse(input.dataset.timings!),
   )
+  const visibleFrames: boolean[] = await editor.evaluate((input: HTMLElement) =>
+    JSON.parse(input.dataset.visibleFrames ?? '[]'),
+  )
   const longTasks: number[] = await editor.evaluate((input: HTMLTextAreaElement) =>
     JSON.parse(input.dataset.longTasks ?? '[]'),
   )
   await test.info().attach('editor-timings.json', {
-    body: JSON.stringify({ timings, longTasks }),
+    body: JSON.stringify({
+      timings,
+      longTasks,
+      visibleFrames,
+    }),
     contentType: 'application/json',
   })
+  expect(visibleFrames).toEqual(Array<boolean>(10).fill(true))
   expect(Math.max(...timings), `input-to-frame timings: ${timings.join(', ')}`).toBeLessThan(100)
   expect(
     Math.max(0, ...longTasks),
     `long tasks during typing: ${longTasks.join(', ')}`,
   ).toBeLessThan(100)
-  expect(await page.locator('[data-line-gutter] > span').count()).toBeLessThan(40)
+  expect(await page.locator('[data-line-gutter] > span, .cm-gutterElement').count()).toBeLessThan(
+    80,
+  )
+  await page.getByRole('button', { name: 'Validate', exact: true }).click()
+  await expect(page.locator('[data-map-notice]')).toHaveText('The map is valid. Nothing was saved.')
+  const request = (await mockApi.requests()).find(
+    (request) => request.operationId === 'replaceRspamdRegexMap',
+  )
+  expect(request?.body).toEqual({ content: '/abcdefghij' + content.slice(1) })
 })

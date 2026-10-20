@@ -70,9 +70,10 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
 - **Alternatives considered**: Pinning the baseline exactly was rejected, because it could roll back
   operations that UI 002–012 pinned later.
 
-### R3. No new runtime dependency
+### R3. Runtime dependencies
 
-- **Decision**: 013 adds no runtime dependency. The editor is a native `<textarea>` (R17), the
+- **Decision, amended after the one-MiB gate failed**: small editors remain native; large filter
+  maps lazily load the three CodeMirror packages justified in R17. The
   e-mail preview uses DOMPurify, which UI 001 already ships (R21), the contrast maths is 60 lines
   (R13), and the line diff is a multiset comparison (R18). The feature offers no file download;
   copy actions use UI 001's `clipboard.ts`. Should one be added, it goes through
@@ -536,6 +537,37 @@ change a UI 001 artefact are collected in [plan.md](./plan.md#foundation-amendme
     screen readers. Revisit only if the 1 MiB responsiveness test of R31 fails.
   - Monaco: rejected (several MB, no mobile support).
   - A contenteditable editor of our own: rejected (IME, undo and accessibility risks).
+
+### R17a. Large filter-map editor checkpoint (2026-10-21)
+
+The native one-MiB gate failed even after incremental validation and cached line geometry.
+Standalone textarea profiling isolated a substantial WebKit editing cost without application
+code. Following R17's explicit revisit condition, initially large filter maps (at least 128 KiB
+UTF-8) opt into a lazy CodeMirror viewport; every other caller retains the native textarea.
+The engine is chosen once per document mount, preserving the editing surface and undo/composition
+state when typing crosses the threshold. Pasting a large document into an initially small editor
+therefore remains native for that visit.
+
+The exact runtime dependencies are `@codemirror/state` 6.7.6, `@codemirror/view` 6.43.15 and
+`@codemirror/commands` 6.11.1 (all MIT). Only state, viewport, standard editing commands and history
+are included; there is no syntax package, language service or network dependency. The viewport
+renders visible lines, as documented in the [official EditorView source](https://github.com/codemirror/view/blob/main/src/editorview.ts).
+The resulting editor is a separate approximately 90 KB gzip chunk; small-map browser tests assert
+that it is not downloaded. The initial 200 KiB budget is unchanged.
+
+The adapter mounts inside an open shadow root so style-mod uses constructed stylesheets under the
+existing strict CSP; mounting on the document would require a style nonce. Its accessible label
+and description live within that root. Tab leaves the editor, wrapping is on by default, readonly
+and disabled states are retained, and go-to-line selects the complete logical line. The full text
+still passes the same synchronous validator and generated API client. Effective-map copy fallback
+and other existing callers remain native until their integration is explicitly tested.
+
+Mount-time layout preparation completes before editing is enabled. The timing check starts on
+captured `beforeinput`, includes the cold first character, and checks ten input-to-frame samples
+plus long tasks where supported. It performs no synthetic edits or warm-up. Automated functional,
+keyboard, Unicode, undo and accessibility checks are covered; physical mobile IMEs and screen
+readers still require manual validation. Safari's remaining cold-key latency keeps T120/T127 open;
+this checkpoint improves the editor without relaxing or claiming completion of that gate.
 
 ### R18. Filter maps: live line check, server check and change review
 

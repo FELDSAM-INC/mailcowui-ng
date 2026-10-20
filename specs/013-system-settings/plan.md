@@ -34,7 +34,7 @@ pages in seven groups, and adds its entry points to earlier screens. It delivers
 
 The technical approach (details in [research.md](./research.md)):
 
-- **No new runtime dependency** (R3). One feature folder, `src/features/system-settings/`, driven by
+- **Native small editors and a lazy large-map editor** (R3, R17a). One feature folder, `src/features/system-settings/`, driven by
   a typed catalogue that feeds the overview, the switcher, the search and History (R4, R5).
 - **Editing** follows the conventions: sections with their own Save on UI 002's `EditableSection`,
   merge patches of changed fields only, `If-Match`, and outdated refusals that keep the input and
@@ -63,7 +63,7 @@ The technical approach (details in [research.md](./research.md)):
 
 **Language/Version**: TypeScript 5.9.3 (strict) and Vue 3.5 SFCs; Node.js 24 LTS (UI 001).
 
-**Primary Dependencies**: UI 001's ten runtime dependencies (001-R1); none added. DOMPurify (already
+**Primary Dependencies**: existing application dependencies plus the three exact CodeMirror packages for initially large filter maps (R17a). DOMPurify (already
 present) also serves the e-mail preview. Tooling unchanged.
 
 **Storage**: none on a server. In the browser: the query cache and component state. No new device
@@ -120,9 +120,9 @@ Lighthouse performance ≥ 80 and accessibility ≥ 90).
 | V. Security in the browser | The CSP stays strict: brand colours through CSSOM, e-mail previews in a script-less sandboxed frame with CSSOM styles and no remote resources, `v-html` only in `SanitizedHtml.vue` (R12, R15, R21). `img-src` gains `blob:` for pre-upload logo previews, which adds no inline script or style (R14). The Rspamd password is write-only, sent by a direct client call that bypasses every TanStack Query cache, kept only in component state and cleared after every attempt (R25, secrets rule of the conventions); mass mail content stays in memory (FR-108). Hiding is a convenience: the API enforces roles; 401, 403 and 404 are handled. | PASS |
 | VI. Test-first | `tasks.md` puts mocks and tests before implementation in every phase; end-to-end tests of every acceptance scenario on both viewports against a contract-validated mock; smoke tests against the real API (R30, R31). | PASS |
 | VII. Performance budgets | Lazy chunks for every page, the editor and the preview; the entry chunk grows by about 2 KB (R32). Queries follow 001-R9; the single periodic refresh (running job) is the condition-bound exception the conventions allow: it pauses when hidden, on request, and after the shared inactivity limit (R23, Complexity Tracking). | PASS (deviation recorded) |
-| VIII. Simplicity | No new dependency; textarea editor instead of CodeMirror; multiset diff; one feature folder; shared blocks only with two uses (code editor, e-mail preview, contrast maths, entry lists), each justified (R3, R17, R18, R26). | PASS |
+| VIII. Simplicity | Native textarea by default; lazy CodeMirror viewport only for initially large filter maps after the native one-MiB gate failed (R17a); multiset diff; one feature folder; shared blocks only with two uses (code editor, e-mail preview, contrast maths, entry lists), each justified (R3, R17, R18, R26). | PASS |
 | Technology constraints | Stack unchanged; Reka parts without viewports (pickers, dialogs); no CDN, no SSR, no backend code. | PASS |
-| Workflow and gates | Every CI gate of 001-R28 applies; Lighthouse gains a settings URL (R32). Commits to `main`. GPL-3.0 compatibility unchanged (no new dependency). | PASS |
+| Workflow and gates | Every CI gate of 001-R28 applies; Lighthouse gains a settings URL (R32). Commits to `main`. GPL-3.0 compatibility checked, including the MIT CodeMirror packages (R17a). | PASS |
 | `docs/conventions.md` | Wording ("the classic interface"); lists in the address with 25/50/100 and cards/tables (one documented exception, Complexity Tracking); sections with own Save and outdated handling; confirmations (one explicit confirmation for mass mail); write-only secret (Rspamd password); History by target type and ID with this feature's labels; problems and rule codes translated, through the legacy `danger.*` messages where the meaning matches; capabilities and limits from the API; entry points added through earlier screens' section areas. | PASS (deviation recorded) |
 
 **Post-design re-check (after Phase 1)**: PASS. The data model, contracts README and quickstart add

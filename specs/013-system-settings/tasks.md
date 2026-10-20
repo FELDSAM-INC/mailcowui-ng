@@ -475,7 +475,10 @@ legacy strings still come from the installation's selected language. T120 and T1
 all profiles load the 1 MiB map within 2 s, but input-to-frame peaks remain above 100 ms (mobile
 Chromium 100.2 ms, desktop Chromium 127.8 ms, mobile WebKit 386 ms in the final native-editor run).
 The threshold was not changed. The shared editor correctness/cache checkpoint is `5c9c4e61`;
-a separate virtualized large-document evaluation follows. See quickstart validation evidence.
+the subsequent opt-in large-map editor (R17a) passes both Chromium timing cases, but its final
+WebKit cold first key is 161 ms and 104 ms in the two final one-worker runs. All 42 functional
+browser cases pass; frame-content assertions confirm rendering was not deferred. T120/T127 remain
+open with the same 100 ms gate and no synthetic warm-up. See quickstart validation evidence.
 
 
 **Checkpoint**: US1 to US8 work on their own.

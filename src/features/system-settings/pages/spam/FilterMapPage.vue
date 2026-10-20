@@ -232,6 +232,7 @@ useLeaveGuard(
       <CodeEditor
         id="regex-content"
         ref="editor"
+        virtualize-large
         :model-value="content"
         :label="lt('admin.regex_maps')"
         :max-bytes="capabilities.limits.rspamdRegexMapMaxBytes"

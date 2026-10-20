@@ -36,7 +36,7 @@ test('one MiB editor opens promptly and typed characters appear without input la
     await editor.press('Home')
     await editor.press('ArrowRight')
   }
-  await editor.evaluate((input: HTMLTextAreaElement) => {
+  await editor.evaluate((input: HTMLElement) => {
     if (input instanceof HTMLTextAreaElement) input.setSelectionRange(1, 1)
     let typingSince = 0
     let typed = ''

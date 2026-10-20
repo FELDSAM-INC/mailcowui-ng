@@ -58,6 +58,7 @@ export function jobOptions(id: string) {
   return queryOptions({
     queryKey: queryKeys.massMailJobs.detail(id),
     staleTime: 0,
+    gcTime: 0,
     queryFn: async ({ signal }) =>
       requireData(
         await api.GET('/mass-mail-jobs/{jobId}', { params: { path: { jobId: id } }, signal }),

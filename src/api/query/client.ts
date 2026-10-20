@@ -89,6 +89,10 @@ export function createQueryClient(options: { retryDelay?: number } = {}): QueryC
   // The session changes only through answers the app handles itself, and it is never garbage
   // collected: the idle timer and the guard read it even while no component observes it.
   client.setQueryDefaults(queryKeys.session(), { staleTime: Infinity, gcTime: Infinity })
+  // UI013 FR108: full job details contain message bodies. Apply the lifetime before any
+  // create/cancel response primes this key; later observers cannot shorten an existing GC timer.
+  // List summaries keep the ordinary cache policy.
+  client.setQueryDefaults(queryKeys.massMailJobs.details(), { gcTime: 0 })
   return client
 }
 

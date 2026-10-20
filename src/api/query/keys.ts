@@ -476,6 +476,7 @@ export const queryKeys = {
     lists: () => ['mass-mail-jobs', 'list'] as const,
     list: (params: MassMailJobListParams) => ['mass-mail-jobs', 'list', params] as const,
     running: () => ['mass-mail-jobs', 'running'] as const,
+    details: () => ['mass-mail-jobs', 'detail'] as const,
     detail: (id: string) => ['mass-mail-jobs', 'detail', id] as const,
     recipients: (id: string, params: MassMailRecipientListParams) =>
       ['mass-mail-jobs', 'recipients', id, params] as const,

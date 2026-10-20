@@ -52,3 +52,19 @@ routes are `system-settings-mass-mail-send`, `system-settings-mass-mail-jobs`, a
 `system-settings-mass-mail-job` with `jobId`. System mails navigation is enabled because those
 routes now exist; it uses the current shell tabs and content width. Audit labels/formatters are
 owned by the separate UI013 audit checkpoint and intentionally excluded from this feature commit.
+
+## Detail-cache lifetime follow-up — 2026-10-21
+
+Full job-detail queries are garbage-collected as soon as their final page observer leaves. The
+query-key family has this policy before a create/cancel response can prime its cache; otherwise
+TanStack retains the longer lifetime established by that first write. An active second observer
+continues to receive cancellation updates. Job lists retain their normal cache lifetime and
+body-free summaries. The generated summary contract includes selection metadata, so this change
+removes full detail objects rather than claiming to purge selections from saved job summaries.
+
+`mass-mail-cache.spec.ts` reproduced both retention paths before the fix and now exercises actual
+Vue query scopes. The cache, API, refresh, compose and query-client suites pass **26/26** checks.
+Scoped ESLint, Prettier, full typecheck, build and bundle budget pass; initial gzip is
+**187074 / 204800 bytes**. Logs are `/tmp/u013-mass-mail-cache-{red,units,lint,format,types,build,budget}.log`.
+This cache-only follow-up performs no API mutation and does not repeat the previously passing
+browser flows.

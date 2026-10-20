@@ -50,6 +50,15 @@ export const settingsPages: readonly SettingsPage[] = [
     visible: () => true,
   },
   {
+    id: 'mass-mail-send',
+    group: 'mass-mail',
+    routeName: 'system-settings-mass-mail-send',
+    title: legacy('admin.sys_mails'),
+    description: 'systemSettings.massMail.description',
+    auditTarget: 'massMailJob',
+    visible: () => true,
+  },
+  {
     id: 'quota-notifications',
     group: 'notifications',
     routeName: 'system-settings-quota-notifications',

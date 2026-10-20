@@ -147,6 +147,94 @@
       "singleLine": "Enter one line without control characters.",
       "neutral": "No type (neutral)",
       "announcementEmpty": "An empty or inactive announcement is hidden."
+    },
+    "massMail": {
+      "compose": "Napsat zprávu",
+      "jobs": "Hromadné zprávy",
+      "description": "Odešlete zprávu vybraným schránkám přijímajícím poštu a sledujte její doručení.",
+      "empty": "Zatím nebyla odeslána žádná hromadná zpráva. Napište zprávu uživatelům schránek.",
+      "recipients": "Příjemci",
+      "message": "Zpráva",
+      "preview": "Náhled příjemců",
+      "step": "Krok {step} ze 4",
+      "next": "Další",
+      "back": "Zpět",
+      "scope": "Rozsah schránek",
+      "all": "Všechny schránky přijímající poštu",
+      "domains": "Pouze tyto domény",
+      "none": "Bez dalších výjimek",
+      "include": "Pouze tyto schránky",
+      "exclude": "Všechny kromě těchto schránek",
+      "receivingOnly": "Neaktivní schránky, které nemohou přijímat poštu, a zdroje se nikdy nezahrnují.",
+      "paste": "Vložit adresy schránek",
+      "addAddresses": "Přidat adresy",
+      "count": "{count} příjemce | {count} příjemci | {count} příjemců",
+      "zero": "Tomuto výběru neodpovídá žádná schránka přijímající poštu.",
+      "searchRecipients": "Hledat příjemce",
+      "confirmTitle": "Odeslat tuto zprávu?",
+      "confirmNote": "Každý příjemce dostane jednu kopii přímo do schránky, bez antispamové kontroly. Odeslanou zprávu nelze vzít zpět.",
+      "sendCount": "Odeslat do {count} schránky | Odeslat do {count} schránek | Odeslat do {count} schránek",
+      "countChanged": "Počet příjemců se změnil. Zkontrolujte nový náhled a znovu potvrďte odeslání; nic nebylo odesláno.",
+      "runningConflict": "Hromadná zpráva se již odesílá. Nic nebylo odesláno.",
+      "viewJob": "Zobrazit probíhající odesílání",
+      "status": "Stav odesílání",
+      "allStatuses": "Všechny stavy",
+      "searchJobs": "Hledat podle předmětu",
+      "creator": "Vytvořil",
+      "createdAt": "Vytvořeno",
+      "startedAt": "Zahájeno",
+      "finishedAt": "Dokončeno",
+      "cancelledBy": "Zrušil",
+      "outcome": "Výsledek doručení",
+      "allOutcomes": "Všechny výsledky",
+      "pause": "Pozastavit automatické obnovování",
+      "resume": "Obnovit automatické obnovování",
+      "inactive": "Automatické obnovování bylo pozastaveno kvůli nečinnosti. Po návratu je můžete obnovit.",
+      "updated": "Naposledy aktualizováno",
+      "cancel": "Zrušit odesílání",
+      "cancelNote": "Čekající příjemci tuto zprávu nedostanou. Příjemcům, kteří ji již obdrželi, kopie zůstane.",
+      "alreadyCompleted": "Toto odesílání již skončilo. Níže jsou konečné výsledky.",
+      "statuses": {
+        "running": "Probíhá",
+        "completed": "Dokončeno",
+        "cancelled": "Zrušeno"
+      },
+      "outcomes": {
+        "pending": "Čeká",
+        "delivered": "Doručeno",
+        "failed": "Neúspěšné",
+        "skipped": "Přeskočeno"
+      },
+      "failures": {
+        "overQuota": "Schránka je plná",
+        "mailboxUnavailable": "Schránka není dostupná",
+        "rejected": "Doručení bylo odmítnuto",
+        "temporaryFailurePersisted": "Dočasná chyba doručení přetrvala",
+        "connectionFailed": "Doručovací služba nebyla dostupná",
+        "interrupted": "Doručení bylo přerušeno"
+      },
+      "form": {
+        "errors": {
+          "selection": {
+            "include": {
+              "notEligible": {
+                "reason": {
+                  "notReceiving": "Tato schránka nemůže přijímat poštu.",
+                  "outsideSelectedDomains": "Tato schránka nepatří do vybraných domén."
+                }
+              }
+            },
+            "exclude": {
+              "notEligible": {
+                "reason": {
+                  "notReceiving": "Tato schránka nemůže přijímat poštu.",
+                  "outsideSelectedDomains": "Tato schránka nepatří do vybraných domén."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

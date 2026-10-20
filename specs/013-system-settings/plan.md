@@ -270,7 +270,7 @@ History actions use the existing shared components.
 | Sieve presets / `modals/mailbox.twig`, `js/presets/sieveMailbox.js` | Header `mailbox.sieve_preset_header`; headlines `mailbox.sieve_preset_1` etc. | Insert example is added to UI005's existing form through its public entry point; no independent filter form. |
 | CORS / `admin/tab-config-admins.twig` | Title `admin.cors_settings`; origins textarea → `admin.allowed_origins`; methods multiple-select → `admin.allowed_methods`, source option order POST, GET, DELETE, PUT; save → `admin.save` | Literal HTTP method names are protocol data. Keep legacy controls until D9. `success.cors_headers_edited`, `danger.cors_invalid_origin`, `danger.cors_invalid_method`. API-v1 scope explanation is new. |
 | License / upstream `dashboard.twig` | Title `admin.guid_and_license`; GUID → `admin.guid`; customer → `admin.customer_id`; service → `admin.service_id`; verify → `admin.validate_license_now` | `admin.license_info` contains vendor links; keep verbatim until D6. Result/support/last verification are API-only states with new strings. Disabled feature makes the page unavailable. |
-| Mass mail / `admin/tab-sys-mails.twig` | Title `admin.sys_mails`; sender → `admin.from`; subject → `admin.subject`; include/exclude group → `admin.include_exclude`; include → `admin.includes`; exclude → `admin.excludes`; plain body → `admin.text`; HTML body → `admin.html` plus `admin.optional`; activation checkbox → `admin.activate_send`; send → `admin.send` | `admin.include_exclude_info`; `danger.from_invalid`, `danger.subject_empty`, `danger.text_empty`. Selection/preview/job deviations await D3; hard-coded classic completion messages do not become invented legacy keys. |
+| Mass mail / `admin/tab-sys-mails.twig` | Title `admin.sys_mails`; sender → `admin.from`; subject → `admin.subject`; include/exclude group → `admin.include_exclude`; include → `admin.includes`; exclude → `admin.excludes`; plain body → `admin.text`; HTML body → `admin.html` plus `admin.optional`; activation checkbox → `admin.activate_send`; send → `admin.send` | `admin.include_exclude_info`; `danger.from_invalid`, `danger.subject_empty`, `danger.text_empty`. Selection/preview/job changes follow D3’s implementation decision; hard-coded classic completion messages do not become invented legacy keys. |
 
 Implementation order: the first independent slice covers the capabilities boundary and IP check,
 which uses the delivered shared section and conflict primitives. The remaining phase-2 editor,
@@ -287,7 +287,8 @@ legacy form applies):
    seven new groups and seventeen pages with descriptions and a search. Page titles use the legacy
    card and menu keys; the groups, descriptions and search are new strings.
 2. **Colours page** (FR-024 to FR-031): no legacy counterpart (a new capability of API 013).
-3. **Mass mail jobs** (FR-087 to FR-089) and the recipient preview: no legacy counterpart; legacy
+3. **Mass mail jobs — implementation decision, 2026-10-21.** The existing authorization to finish the requested System mails destination covers the specified FR-080–FR-089 selection → preview → job flow. Keep the classic sender, subject, text and HTML order and meanings. Use one final confirmation containing the current recipient count in place of the activation checkbox; do not add a redundant confirmation. This resolves the deviation as an implementation decision, not a new user quotation.
+   The job list (FR-087 to FR-089) and the recipient preview have no legacy counterpart; legacy
    sends synchronously. Legacy's include/exclude multi-selects (`admin.includes`, `admin.excludes`,
    `admin.include_exclude_info`) become a domain limit, an include-or-exclude choice and searchable
    pickers, and the "Activate send button" checkbox (`admin.activate_send`) becomes a confirmation of
@@ -329,17 +330,8 @@ configuration.
 
 **Gap**:
 
-- **G1. Mass mail recipient failure reasons are free text.** US10-AS6 and FR-088 ask for "the
-  translated reason" of each failed recipient. `MassMailRecipient.failureReason` carries Dovecot's
-  English reply, the token `interrupted`, or a connection error, with no stable code.
-  - **Proposed to mailcow-rest-v2**: add `failureCode` (for example `overQuota`,
-    `mailboxUnavailable`, `rejected`, `temporaryFailurePersisted`, `interrupted`,
-    `connectionFailed`) next to `failureReason`, and list it in `docs/problems.md`.
-  - **Until then**: `interrupted` gets its own translated text; any other failure shows the
-    translated "Delivery failed" with the mail server's reply quoted verbatim (R10, R24). This shows
-    what the contract offers and does not guess codes, so it is not a workaround. The spec records
-    it as a plan-level clarification (FR-088, US10 AS-6). T040 specifies the gap in mailcow-rest-v2
-    before US10 starts. Not blocking.
+- **G1 — closed in the pinned API, verified 2026-10-21.** Contract `dd9a44e` includes required nullable `MassMailRecipient.failureCode` with `overQuota`, `mailboxUnavailable`, `rejected`, `temporaryFailurePersisted`, `connectionFailed` and `interrupted` (API gap G16). System mails translates these stable codes and uses a generic refusal for unknown codes. Following the implementation review, raw SMTP diagnostics are not rendered. The old free-text fallback below is superseded for this slice.
+- **Mass mail list projection, verified 2026-10-21.** The pin returns `MassMailJobSummary` without text or HTML bodies (API gap G17); only the detail read carries the bodies. Generated client types and mocks preserve this smaller response. No contract bump or invented operation is needed.
 
 **Observations** (no change needed for 013):
 

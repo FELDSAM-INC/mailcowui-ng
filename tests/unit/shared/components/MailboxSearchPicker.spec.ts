@@ -45,6 +45,24 @@ async function settle() {
 }
 
 describe('MailboxSearchPicker', () => {
+  it('filters receiving statuses and keeps entry errors attached to their addresses', async () => {
+    useScenario('mass-mail-120')
+    const wrapper = mountWithApp(MailboxSearchPicker, {
+      props: {
+        id: 'm',
+        label: 'Mailboxes',
+        multiple: true,
+        modelValue: ['ghost@example.org'],
+        status: ['active', 'loginDisabled'],
+        itemErrors: { 'ghost@example.org': ['Unknown mailbox'] },
+      },
+    })
+    expect(wrapper.get('[data-picker-chips]').text()).toContain('Unknown mailbox')
+    await wrapper.get('input').trigger('focus')
+    await vi.waitFor(() => expect(listRequests().length).toBeGreaterThan(0))
+    const url = new URL(listRequests().at(-1)!.path, 'http://localhost')
+    expect(url.searchParams.getAll('status')).toEqual(['active', 'loginDisabled'])
+  })
   it('lists the mailboxes in pages of 25 and loads more', async () => {
     seed()
     const wrapper = mountWithApp(MailboxSearchPicker, {

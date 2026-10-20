@@ -1,4 +1,5 @@
 import type { PasswordResetNotification, PasswordResetNotificationPatch } from '@/api'
+import { isEmailAddress } from '@/shared/validation/email'
 
 export const notificationFields = ['sender', 'subject', 'textTemplate', 'htmlTemplate'] as const
 export type NotificationDraft = Pick<PasswordResetNotification, (typeof notificationFields)[number]>
@@ -42,10 +43,7 @@ export function validateNotification(
   maxBytes: number,
 ): Partial<Record<keyof NotificationDraft, string>> {
   const errors: Partial<Record<keyof NotificationDraft, string>> = {}
-  if (
-    draft.sender !== '' &&
-    (!/^[^\s@]+@[^\s@]+$/.test(draft.sender) || /[\u0000-\u001f\u007f]/.test(draft.sender))
-  )
+  if (draft.sender !== '' && !isEmailAddress(draft.sender))
     errors.sender = 'validation.format.email'
   if (/[\u0000-\u001f\u007f]/.test(draft.subject)) errors.subject = 'emailTemplate.singleLine'
   else if ([...draft.subject].length > 255) errors.subject = 'validation.tooLong'

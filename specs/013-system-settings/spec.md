@@ -555,7 +555,7 @@ and inspect completed and cancelled jobs with every outcome, at 360 px and at de
    recipients as skipped.
 6. **Given** a completed job, **When** the administrator filters its recipients by "failed", **Then**
    each failed recipient is shown with its reason: translated where the API reports a known reason,
-   otherwise the mail server's reply (FR-088).
+   otherwise a generic translated failure label (FR-088; G1 is closed).
 7. **Given** an exclusion of `ghost@example.org`, which is not a receiving mailbox, **When** the
    preview is requested and the API refuses it, **Then** that entry is marked with a translated error.
 8. **Given** no job yet, **When** the administrator opens the mass mail jobs, **Then** an empty state
@@ -1161,8 +1161,8 @@ that domain administrators are never offered it.
   ends; the last update time MUST be shown. Leaving the page MUST NOT affect
   the delivery. Its recipients MUST be listable page by page, sorted by address, filtered by outcome
   and searchable by address, each with its outcome and, for failures, the reason: translated where
-  the API reports a known reason (`interrupted`), otherwise the mail server's reply, quoted (plan,
-  API gap G1). The bodies MUST be viewable, the HTML body only through the preview of FR-090.
+  the API reports a stable `failureCode`, otherwise a generic translated failure label. Raw SMTP
+  diagnostic text is not rendered (G1 closed by contract pin `dd9a44e`). The bodies MUST be viewable, the HTML body only through the preview of FR-090.
 - **FR-089**: Cancelling a running job MUST ask for confirmation, stating that pending recipients
   will not receive the message and that recipients who already received it keep it. After
   cancellation the job MUST show as cancelled with the pending recipients as skipped. When the API
@@ -1454,7 +1454,8 @@ recipient preview gains a search by address (FR-083). If the merged contract lac
 gap is specified in mailcow-rest-v2 first and the UI does not work around it. Planning found one
 gap in the merged contract: mass mail recipient failure reasons are free text without a stable code
 (plan, API gap G1). It is proposed to mailcow-rest-v2 before implementation; until it is closed,
-the app translates only the known reason `interrupted` and quotes other replies (FR-088).
+the app translates stable `failureCode` values and uses a generic translated fallback (FR-088).
+The pinned contract `dd9a44e` closes G1; raw SMTP diagnostics are not UI messages.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -1586,3 +1587,12 @@ the app translates only the known reason `interrupted` and quotes other replies 
   the examples (UI feature 005); identity-provider configuration (UI feature 012); scheduled mass
   mail, attachments and mass mail to addresses outside the server; bulk actions; legacy `/api/v1`
   keys.
+
+### System mails implementation decision — 2026-10-21
+
+The implemented US10 flow follows FR-080–089: recipient selection, message fields, preview, then one
+explicit Send confirmation showing the actual recipient count. This resolves plan D3 within the
+existing feature-completion authorization; it is an implementation decision, not a new user quote.
+The classic sender, subject, text and optional HTML field order and meanings remain. G1 is closed
+by the pinned generated `failureCode` enum; translated stable codes and a generic fallback replace
+the earlier interim proposal to quote SMTP replies. No maildev sending is used for validation.

@@ -1,6 +1,7 @@
 import { actingScenarios } from './acting'
 import { rspamdRulesScenarios } from './settings-rspamd-rules'
 import { settingsBrandingScenarios } from './settings-branding'
+import { massMailScenarios, initialMassMailState } from './mass-mail'
 import {
   applySettingsPatch,
   initialSettingsState,
@@ -112,6 +113,7 @@ export interface ScenarioDefinition {
 export const scenarios: Record<string, ScenarioDefinition> = {
   ...rspamdRulesScenarios,
   ...settingsRspamdScenarios,
+  ...massMailScenarios,
   ...baseScenarios,
   ...administratorScenarios,
   ...actingScenarios,
@@ -271,6 +273,7 @@ export function applyOverrides(
   applyFeature004Overrides(state, overrides)
   if (overrides.dns) applyDnsOverrides(state, overrides.dns)
   if (overrides.settings) applySettingsPatch(state, overrides.settings)
+  if (overrides.massMail) Object.assign(state.massMail, overrides.massMail)
   applyRoutingOverrides(state, overrides.routing)
   if (overrides.operations) applyOperationsPatch(state, overrides.operations)
   if (overrides.changeElsewhere) applyAdministratorChanges(state, overrides.changeElsewhere)
@@ -332,6 +335,7 @@ export function createScenarioState(
     ...initialDnsState(),
     ...initialRoutingState(),
     settings: initialSettingsState(),
+    massMail: initialMassMailState(),
     operations: initialOperationsState(),
     ...initialQuarantineState(),
     ...initialSelfServiceState(),

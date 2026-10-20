@@ -1013,3 +1013,14 @@ this checkpoint improves the editor without relaxing or claiming completion of t
   with an administrator scenario (`run-lhci.mjs`, 001-R26), so constitution VII is measured on a
   settings form too.
 - **Rationale**: Constitution VII; SC-014.
+
+### US10 implementation follow-up — 2026-10-21
+
+The generated contract at `dd9a44e` supplies the nullable `MassMailRecipient.failureCode` enum and
+body-free `MassMailJobSummary`. G1/G17 are closed. This supersedes the earlier interim R10/R24
+SMTP-reply display: the UI translates stable codes, falls back to a generic refusal label and
+never renders `failureReason`. The existing shared DomainPicker and MailboxSearchPicker cover
+the needed searchable multi-selection; the latter gains only status filtering and per-entry errors.
+Compose steps and job sections remain local to the three pages rather than introducing many
+single-use wrapper components. Shared CodeEditor, EmailPreviewDialog, useConfirm, useInactivity
+and the current shell tabs provide the existing behavior and width rules.

@@ -20,6 +20,8 @@ const props = withDefaults(
     multiple?: boolean
     /** Only mailboxes of these domains (ASCII or readable names). */
     domain?: string | readonly string[]
+    status?: MailboxListParams['status']
+    itemErrors?: Readonly<Record<string, readonly string[]>>
     placeholder?: string
     description?: string
     errors?: readonly string[]
@@ -32,6 +34,8 @@ const props = withDefaults(
   {
     multiple: false,
     domain: undefined,
+    status: undefined,
+    itemErrors: () => ({}),
     placeholder: undefined,
     description: undefined,
     errors: undefined,
@@ -62,6 +66,7 @@ function params(q: string, offset: number, limit: number): MailboxListParams {
     order: 'asc',
     ...(q ? { q } : {}),
     ...(domains.value.length > 0 ? { domain: domains.value } : {}),
+    ...(props.status?.length ? { status: props.status } : {}),
   }
 }
 
@@ -99,6 +104,7 @@ const reason = computed(() =>
     :placeholder="placeholder"
     :description="description"
     :errors="errors"
+    :item-errors="itemErrors"
     :required="required"
     :disabled-reason="reason"
     :labels="labels"

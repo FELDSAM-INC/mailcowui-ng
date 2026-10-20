@@ -147,6 +147,94 @@
       "singleLine": "Enter one line without control characters.",
       "neutral": "No type (neutral)",
       "announcementEmpty": "An empty or inactive announcement is hidden."
+    },
+    "massMail": {
+      "compose": "Compose",
+      "jobs": "Mass mail jobs",
+      "description": "Send a message to selected receiving mailboxes and follow its delivery.",
+      "empty": "No mass mail has been sent yet. Compose a message to notify your mailbox users.",
+      "recipients": "Recipients",
+      "message": "Message",
+      "preview": "Preview recipients",
+      "step": "Step {step} of 4",
+      "next": "Next",
+      "back": "Back",
+      "scope": "Mailbox scope",
+      "all": "All receiving mailboxes",
+      "domains": "Only these domains",
+      "none": "Nobody else excluded",
+      "include": "Only these mailboxes",
+      "exclude": "Everyone except these mailboxes",
+      "receivingOnly": "Inactive mailboxes that cannot receive mail and resources are never included.",
+      "paste": "Paste mailbox addresses",
+      "addAddresses": "Add addresses",
+      "count": "{count} recipient | {count} recipients",
+      "zero": "No receiving mailbox matches this selection.",
+      "searchRecipients": "Search recipients",
+      "confirmTitle": "Send this message?",
+      "confirmNote": "Each recipient receives one copy directly in their inbox, without spam filtering. A sent message cannot be recalled.",
+      "sendCount": "Send to {count} mailbox | Send to {count} mailboxes",
+      "countChanged": "The recipient count changed. Review the new preview and confirm again; nothing was sent.",
+      "runningConflict": "A mass mail job is already running. Nothing was sent.",
+      "viewJob": "View running job",
+      "status": "Job status",
+      "allStatuses": "All statuses",
+      "searchJobs": "Search subjects",
+      "creator": "Created by",
+      "createdAt": "Created",
+      "startedAt": "Started",
+      "finishedAt": "Finished",
+      "cancelledBy": "Cancelled by",
+      "outcome": "Recipient outcome",
+      "allOutcomes": "All outcomes",
+      "pause": "Pause automatic refresh",
+      "resume": "Resume automatic refresh",
+      "inactive": "Automatic refresh paused because of inactivity. Resume when you return.",
+      "updated": "Last updated",
+      "cancel": "Cancel delivery",
+      "cancelNote": "Pending recipients will not receive this message. Recipients who already received it keep their copy.",
+      "alreadyCompleted": "This job already completed. Its final results are shown below.",
+      "statuses": {
+        "running": "Running",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "outcomes": {
+        "pending": "Pending",
+        "delivered": "Delivered",
+        "failed": "Failed",
+        "skipped": "Skipped"
+      },
+      "failures": {
+        "overQuota": "Mailbox is full",
+        "mailboxUnavailable": "Mailbox is unavailable",
+        "rejected": "Delivery was refused",
+        "temporaryFailurePersisted": "Temporary delivery failure persisted",
+        "connectionFailed": "Mail delivery service could not be reached",
+        "interrupted": "Delivery was interrupted"
+      },
+      "form": {
+        "errors": {
+          "selection": {
+            "include": {
+              "notEligible": {
+                "reason": {
+                  "notReceiving": "This mailbox cannot receive mail.",
+                  "outsideSelectedDomains": "This mailbox is outside the selected domains."
+                }
+              }
+            },
+            "exclude": {
+              "notEligible": {
+                "reason": {
+                  "notReceiving": "This mailbox cannot receive mail.",
+                  "outsideSelectedDomains": "This mailbox is outside the selected domains."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

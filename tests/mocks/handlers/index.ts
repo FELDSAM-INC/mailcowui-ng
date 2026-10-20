@@ -5,6 +5,7 @@ import { rspamdRulesHandlers } from './settings-rspamd-rules'
 import { settingsPresetHandlers } from './settings-presets'
 import { regexMapHandlers } from './settings-regex-maps'
 import { settingsBrandingHandlers } from './settings-branding'
+import { massMailHandlers } from './mass-mail'
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
 import { settingsPasswordHandlers } from './settings-password'
@@ -109,6 +110,7 @@ export const areaHandlers: RequestHandler[] = [
   ...passwordPolicyHandlers,
   ...settingsPasswordHandlers,
   ...settingsQuotaHandlers,
+  ...massMailHandlers,
   ...syncJobHandlers,
   // UI 012
   ...identityProviderHandlers,

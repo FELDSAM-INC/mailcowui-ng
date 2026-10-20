@@ -783,6 +783,8 @@ export type {
   MassMailPreviewRequest,
   MassMailPreviewRecipient,
   MassMailJob,
+  MassMailJobSummary,
+  MassMailRecipientFailureCode,
   MassMailJobStatus,
   MassMailJobCreateRequest,
   MassMailRecipientCounts,

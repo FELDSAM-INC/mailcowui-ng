@@ -233,7 +233,20 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
         id: 'systemMails',
         labelKey: legacy('admin.sys_mails'),
         icon: MailIcon,
-        tabs: [pending('systemMails', legacy('admin.sys_mails'))],
+        tabs: [
+          tab('system', {
+            id: 'massMailSend',
+            path: '/system/mass-mail/send',
+            labelKey: 'systemSettings.massMail.compose',
+            roles: ADMIN,
+          }),
+          tab('system', {
+            id: 'massMailJobs',
+            path: '/system/mass-mail/jobs',
+            labelKey: 'systemSettings.massMail.jobs',
+            roles: ADMIN,
+          }),
+        ],
       },
       {
         id: 'globalFilterMaps',

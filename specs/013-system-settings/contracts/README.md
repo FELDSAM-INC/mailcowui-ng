@@ -161,3 +161,7 @@ Messages come from `problem.<name>` and `validation.<code>`, never from `title`,
 | `required`, `tooShort` | `min` | any field |
 
 Unknown codes are shown as a generic invalid value of that field (FR-092).
+
+### System mails implementation audit (2026-10-21)
+
+The seven mass-mail operations listed above exist unchanged in pin `dd9a44e`. G1 is closed by the required nullable `MassMailRecipient.failureCode` enum (API gap G16). The UI translates stable codes and shows a generic refusal for unknown codes; it does not render `failureReason`. Job lists use generated `MassMailJobSummary` without bodies (G17); the detail operation provides both bodies. Preview is a CSRF-protected POST that changes nothing; live verification previews only the isolated development stack. No maildev send is authorized or performed.

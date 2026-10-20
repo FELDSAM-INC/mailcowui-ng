@@ -24,6 +24,9 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'auditLog.settings.fields.description': 'edit.description',
   'auditLog.settings.fields.active': 'admin.active',
 
+  'systemSettings.massMail.form.errors.sender.invalidFormat': 'danger.from_invalid',
+  'systemSettings.massMail.form.errors.subject.required': 'danger.subject_empty',
+  'systemSettings.massMail.form.errors.textBody.required': 'danger.text_empty',
   // UI007: account outcomes and the flat classic domain-administrator ACL labels.
   'accounts.form.errors.username.invalidFormat': 'danger.username_invalid',
   'accounts.form.errors.username.reserved': 'danger.username_invalid',

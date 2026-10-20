@@ -67,6 +67,24 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         ],
       },
       {
+        path: 'mass-mail/send',
+        name: 'system-settings-mass-mail-send',
+        component: () => import('./pages/mass-mail/MassMailSendPage.vue'),
+        meta: { titleKey: legacy('admin.sys_mails') },
+      },
+      {
+        path: 'mass-mail/jobs',
+        name: 'system-settings-mass-mail-jobs',
+        component: () => import('./pages/mass-mail/MassMailJobsPage.vue'),
+        meta: { titleKey: 'systemSettings.massMail.jobs' },
+      },
+      {
+        path: 'mass-mail/jobs/:jobId([0-9A-HJKMNP-TV-Z]{26})',
+        name: 'system-settings-mass-mail-job',
+        component: () => import('./pages/mass-mail/MassMailJobPage.vue'),
+        meta: { titleKey: 'systemSettings.massMail.jobs' },
+      },
+      {
         path: 'rspamd-web-interface',
         name: 'system-settings-rspamd-web-interface',
         component: () => import('./pages/spam/RspamdWebInterfacePage.vue'),

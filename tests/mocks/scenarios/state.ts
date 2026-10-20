@@ -66,6 +66,7 @@ import type { MockDomainAdmin } from '../factories/domain-admin'
 import type { MockIdentityProvider } from '../factories/identity-provider'
 import type { MockOauth2Client } from '../factories/oauth2-client'
 import type { SettingsPatch, SettingsState } from './system-settings'
+import type { MassMailState } from './mass-mail'
 import type { OperationsPatch, OperationsState } from './operations/state'
 import type { PublicConfigVariant } from './public-config'
 import type { MockSelfServiceState, SelfServicePatch } from './self-service/state'
@@ -793,6 +794,7 @@ export interface ScenarioState {
   routing: MockRoutingState
   /** UI 011: capabilities, host clock, lags, injections and the data of each operations area. */
   settings: SettingsState
+  massMail: MassMailState
   operations: OperationsState
   publicConfig: PublicConfig
   idleTimeout: number
@@ -873,6 +875,7 @@ export interface ScenarioOverrides {
   routing?: RoutingOverrides
   /** UI 011: monitoring capabilities, host clock, lags, injections and area data (T013). */
   settings?: SettingsPatch
+  massMail?: Partial<MassMailState>
   operations?: OperationsPatch
   /** UI 006: quarantine, spam policy and rate limit data and injections. */
   quarantine?: QuarantinePatch

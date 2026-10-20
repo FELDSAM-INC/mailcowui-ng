@@ -147,6 +147,94 @@
       "singleLine": "Enter one line without control characters.",
       "neutral": "No type (neutral)",
       "announcementEmpty": "An empty or inactive announcement is hidden."
+    },
+    "massMail": {
+      "compose": "Napísať správu",
+      "jobs": "Hromadné správy",
+      "description": "Odošlite správu vybraným schránkam prijímajúcim poštu a sledujte jej doručenie.",
+      "empty": "Zatiaľ nebola odoslaná žiadna hromadná správa. Napíšte správu používateľom schránok.",
+      "recipients": "Príjemcovia",
+      "message": "Správa",
+      "preview": "Náhľad príjemcov",
+      "step": "Krok {step} zo 4",
+      "next": "Ďalej",
+      "back": "Späť",
+      "scope": "Rozsah schránok",
+      "all": "Všetky schránky prijímajúce poštu",
+      "domains": "Iba tieto domény",
+      "none": "Bez ďalších výnimiek",
+      "include": "Iba tieto schránky",
+      "exclude": "Všetky okrem týchto schránok",
+      "receivingOnly": "Neaktívne schránky, ktoré nemôžu prijímať poštu, a zdroje sa nikdy nezahŕňajú.",
+      "paste": "Vložiť adresy schránok",
+      "addAddresses": "Pridať adresy",
+      "count": "{count} príjemca | {count} príjemcovia | {count} príjemcov",
+      "zero": "Tomuto výberu nezodpovedá žiadna schránka prijímajúca poštu.",
+      "searchRecipients": "Hľadať príjemcov",
+      "confirmTitle": "Odoslať túto správu?",
+      "confirmNote": "Každý príjemca dostane jednu kópiu priamo do schránky, bez antispamovej kontroly. Odoslanú správu nemožno vziať späť.",
+      "sendCount": "Odoslať do {count} schránky | Odoslať do {count} schránok | Odoslať do {count} schránok",
+      "countChanged": "Počet príjemcov sa zmenil. Skontrolujte nový náhľad a znova potvrďte odoslanie; nič nebolo odoslané.",
+      "runningConflict": "Hromadná správa sa už odosiela. Nič nebolo odoslané.",
+      "viewJob": "Zobraziť prebiehajúce odosielanie",
+      "status": "Stav odosielania",
+      "allStatuses": "Všetky stavy",
+      "searchJobs": "Hľadať podľa predmetu",
+      "creator": "Vytvoril",
+      "createdAt": "Vytvorené",
+      "startedAt": "Začaté",
+      "finishedAt": "Dokončené",
+      "cancelledBy": "Zrušil",
+      "outcome": "Výsledok doručenia",
+      "allOutcomes": "Všetky výsledky",
+      "pause": "Pozastaviť automatické obnovovanie",
+      "resume": "Obnoviť automatické obnovovanie",
+      "inactive": "Automatické obnovovanie bolo pozastavené pre nečinnosť. Po návrate ho môžete obnoviť.",
+      "updated": "Naposledy aktualizované",
+      "cancel": "Zrušiť odosielanie",
+      "cancelNote": "Čakajúci príjemcovia túto správu nedostanú. Príjemcom, ktorí ju už dostali, kópia zostane.",
+      "alreadyCompleted": "Toto odosielanie sa už skončilo. Nižšie sú konečné výsledky.",
+      "statuses": {
+        "running": "Prebieha",
+        "completed": "Dokončené",
+        "cancelled": "Zrušené"
+      },
+      "outcomes": {
+        "pending": "Čaká",
+        "delivered": "Doručené",
+        "failed": "Neúspešné",
+        "skipped": "Preskočené"
+      },
+      "failures": {
+        "overQuota": "Schránka je plná",
+        "mailboxUnavailable": "Schránka nie je dostupná",
+        "rejected": "Doručenie bolo odmietnuté",
+        "temporaryFailurePersisted": "Dočasná chyba doručenia pretrvala",
+        "connectionFailed": "Doručovacia služba nebola dostupná",
+        "interrupted": "Doručenie bolo prerušené"
+      },
+      "form": {
+        "errors": {
+          "selection": {
+            "include": {
+              "notEligible": {
+                "reason": {
+                  "notReceiving": "Táto schránka nemôže prijímať poštu.",
+                  "outsideSelectedDomains": "Táto schránka nepatrí do vybraných domén."
+                }
+              }
+            },
+            "exclude": {
+              "notEligible": {
+                "reason": {
+                  "notReceiving": "Táto schránka nemôže prijímať poštu.",
+                  "outsideSelectedDomains": "Táto schránka nepatrí do vybraných domén."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

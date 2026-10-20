@@ -79,7 +79,11 @@ const describedBy = computed(() =>
         {{ lt(option.labelKey) }}
       </label>
     </div>
-    <div v-if="errors.length > 0" :id="`${groupId}-error`" class="text-sm text-red-700 dark:text-red-300">
+    <div
+      v-if="errors.length > 0"
+      :id="`${groupId}-error`"
+      class="text-sm text-red-700 dark:text-red-300"
+    >
       <p v-for="(message, index) in errors" :key="index" class="break-words">{{ message }}</p>
     </div>
     <LegacyText

@@ -903,7 +903,7 @@ not reachable.
 - [ ] T136 [P] Write and pass `tests/e2e/quarantine/storage-and-memory.spec.ts`. After the US1, US4 and US7 flows and a download:
   - `localStorage`, `sessionStorage` and IndexedDB hold only UI 001's allowed keys (FR-085);
   - after sign-out, Back shows no quarantine content, and the query cache holds no item detail.
-- [ ] T137 Run `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JavaScript is unchanged and at most 204,800 bytes gzipped, and `/ng/quarantine` scores at least 0.9 for performance and accessibility (SC-010). Typical fixes: lazy dialogs, and splitting the settings page chunk.
+- [ ] T137 Run `npm run build && npm run budget:check && npm run lhci`. Fix regressions until the initial JavaScript is at most 204,800 bytes gzipped, and `/ng/quarantine` scores at least 0.8 for performance and 0.9 for accessibility (SC-010, owner decision 2026-10-19). Typical fixes: lazy dialogs, and splitting the settings page chunk.
 - [x] T138 [P] Add the plan's three parity notes to the "Legacy Parity" tables of `specs/006-quarantine-spam-policy/spec.md`: visible bidi and control markers, the statistics period, and downloads always saved.
 - [ ] T139 Run `quickstart.md` Part B on a mid-range Android phone and an iPhone with `npm run preview:mock` on the local network. Record:
   - the SC-001 and SC-010 timings;

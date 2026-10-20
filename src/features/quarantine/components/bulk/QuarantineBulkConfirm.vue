@@ -20,11 +20,11 @@ const virusCount = computed(() => props.items.filter((item) => item.virus).lengt
     </p>
     <ul class="flex flex-col gap-3">
       <li v-for="item in items" :key="item.id" class="min-w-0 wrap-anywhere">
-        <p class="font-medium">
+        <p class="font-medium text-gray-800 dark:text-gray-200">
           {{ item.id }}:
           <PlainText :value="item.subject || '-'" class="text-gray-800 dark:text-gray-200" />
         </p>
-        <p>
+        <p class="text-gray-800 dark:text-gray-200">
           {{ lt('quarantine.rcpt') }}:
           <PlainText :value="item.recipient" class="text-gray-800 dark:text-gray-200" />
         </p>

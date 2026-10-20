@@ -254,31 +254,4 @@ export const rateLimitHandlers = [
   http.delete('/mailboxes/{mailbox}/rate-limit', ({ params, request, response }) =>
     response.untyped(removeHandler('mailbox')(request, params.mailbox)),
   ),
-
-  http.delete('/rate-limit-buckets/{bucketId}', ({ params, request, response }) => {
-    const state = scenario()
-    const refused = csrfProblem(state, request)
-    if (refused) return response.untyped(refused)
-    const account = requireAccount(state)
-    if (account instanceof Response) return response.untyped(account)
-    if (account.role !== 'admin') return response.untyped(forbidden())
-    const bucketId = params.bucketId
-    const target = { type: 'rateLimitBucket' as const, id: bucketId, name: bucketId }
-    if (!state.quarantine.buckets.includes(bucketId)) {
-      audit(state, account, {
-        eventType: 'rateLimitBucketReset',
-        target,
-        details: { problemType: 'about:blank', status: 404 },
-        failureReason: 'notFound',
-      })
-      return response.untyped(notFound())
-    }
-    state.quarantine.buckets = state.quarantine.buckets.filter((id) => id !== bucketId)
-    audit(state, account, {
-      eventType: 'rateLimitBucketReset',
-      target,
-      details: { countersExisted: true, logEntriesRemoved: 1 },
-    })
-    return response.untyped(new HttpResponse(null, { status: 204 }))
-  }),
 ]

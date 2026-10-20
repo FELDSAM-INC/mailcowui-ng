@@ -10,8 +10,7 @@ import type {
 import type { LegacyKey } from '@/i18n'
 
 export type NotificationBulkChoice =
-  | { frequency: QuarantineNotificationFrequency }
-  | { category: QuarantineNotificationCategory }
+  { frequency: QuarantineNotificationFrequency } | { category: QuarantineNotificationCategory }
 
 export interface NotificationBulkOption {
   choice: NotificationBulkChoice

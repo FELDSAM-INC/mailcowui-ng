@@ -97,7 +97,7 @@ describe('LogCellView', () => {
       props: { cell: { kind: 'multiline', value: '<img src=x onerror=alert(1)>‮line' } },
     })
     expect(markup.find('img').exists()).toBe(false)
-    expect(markup.find('[data-marker]').text()).toBe('U+202E')
+    expect(markup.find('[data-marker]').text()).toBe('Control character U+202E')
   })
 
   it('offers "Remove hash" only for a bucket hash', () => {

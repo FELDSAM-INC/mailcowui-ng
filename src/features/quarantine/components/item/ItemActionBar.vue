@@ -71,7 +71,8 @@ const more = computed(() => (wide.value ? [] : entries.value.slice(1)))
       :data-item-action="entry.id"
       :class="
         buttonVariants({
-          variant: entry.id === 'release' ? 'default' : entry.destructive ? 'destructive' : 'outline',
+          variant:
+            entry.id === 'release' ? 'default' : entry.destructive ? 'destructive' : 'outline',
         })
       "
       :disabled="busy"

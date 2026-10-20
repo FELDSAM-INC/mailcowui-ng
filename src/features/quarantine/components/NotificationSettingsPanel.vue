@@ -93,7 +93,11 @@ function discard() {
 const valueOf = (field: NotificationField) =>
   field === 'frequency' ? editor.frequency.value : editor.category.value
 const storedOf = (field: NotificationField) =>
-  settings.value ? (field === 'frequency' ? settings.value.frequency : settings.value.category) : null
+  settings.value
+    ? field === 'frequency'
+      ? settings.value.frequency
+      : settings.value.category
+    : null
 
 watch(
   () => editing.value && editor.dirty(),

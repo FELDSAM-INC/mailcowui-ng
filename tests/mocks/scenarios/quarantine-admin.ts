@@ -123,7 +123,8 @@ export const quarantineAdminScenarios: Record<string, ScenarioDefinition> = {
     },
   },
   'quarantine-settings-active': {
-    description: 'The administrator with the seeded settings: retention 20, 15 MiB, the rest unset.',
+    description:
+      'The administrator with the seeded settings: retention 20, 15 MiB, the rest unset.',
     overrides: asAdmin,
     setup: (state) => {
       setupQuarantineWorld(state)
@@ -190,7 +191,8 @@ export const quarantineAdminScenarios: Record<string, ScenarioDefinition> = {
     },
   },
   'quarantine-audit-domain-admin': {
-    description: 'The domain administrator in the quarantine world with the records of US9 (US9-AS3).',
+    description:
+      'The domain administrator in the quarantine world with the records of US9 (US9-AS3).',
     overrides: { signedInAs: QUARANTINE_DOMAIN_ADMIN },
     setup: (state) => {
       setupQuarantineWorld(state)

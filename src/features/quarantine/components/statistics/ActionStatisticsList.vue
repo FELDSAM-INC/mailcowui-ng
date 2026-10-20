@@ -40,7 +40,10 @@ const period = computed(() => [
     <table data-statistics class="w-full table-fixed border-collapse text-sm">
       <thead>
         <tr class="border-b border-gray-200 text-start dark:border-gray-800">
-          <th scope="col" class="w-2/5 py-2 pe-2 text-start font-medium text-gray-700 dark:text-gray-300">
+          <th
+            scope="col"
+            class="w-2/5 py-2 pe-2 text-start font-medium text-gray-700 dark:text-gray-300"
+          >
             {{ lt('quarantine.action') }}
           </th>
           <th scope="col" class="py-2 pe-2 text-end font-medium text-gray-700 dark:text-gray-300">
@@ -58,7 +61,10 @@ const period = computed(() => [
           :data-action="row.action"
           class="border-b border-gray-100 align-top dark:border-gray-800"
         >
-          <th scope="row" class="py-2 pe-2 text-start font-normal wrap-anywhere text-gray-900 dark:text-white">
+          <th
+            scope="row"
+            class="py-2 pe-2 text-start font-normal wrap-anywhere text-gray-900 dark:text-white"
+          >
             {{ t(row.labelKey) }}
             <span
               aria-hidden="true"

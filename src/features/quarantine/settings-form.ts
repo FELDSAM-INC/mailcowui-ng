@@ -92,7 +92,10 @@ export function settingsPatch(
   step: number,
 ): QuarantineSettingsPatch {
   const patch: QuarantineSettingsPatch = {}
-  if (form.retentionPerMailbox !== opened.retentionPerMailbox && form.retentionPerMailbox !== null) {
+  if (
+    form.retentionPerMailbox !== opened.retentionPerMailbox &&
+    form.retentionPerMailbox !== null
+  ) {
     patch.retentionPerMailbox = form.retentionPerMailbox
   }
   if (form.maxMessageSize !== opened.maxMessageSize && form.maxMessageSize !== null) {

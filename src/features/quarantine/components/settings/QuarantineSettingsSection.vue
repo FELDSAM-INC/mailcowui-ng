@@ -95,7 +95,12 @@ const base = shallowRef<QuarantineSettings>(props.settings)
 /** The form as opened: the patch holds the user's changes against it. */
 const opened = ref<SettingsForm>(toSettingsForm(props.settings, step.value))
 const form = ref<SettingsForm>(toSettingsForm(props.settings, step.value))
-const valid = reactive({ retentionPerMailbox: true, maxMessageSize: true, notificationScoreLimit: true, maxAgeDays: true })
+const valid = reactive({
+  retentionPerMailbox: true,
+  maxMessageSize: true,
+  notificationScoreLimit: true,
+  maxAgeDays: true,
+})
 const outdatedFields = shallowRef<SectionChange[] | null>(null)
 /** Names the server reported as no longer existing in the last save. */
 const reportedMissing = ref<string[]>([])
@@ -117,8 +122,7 @@ const problemForm = useProblemForm({
     return SETTINGS_FIELDS.includes(field) ? idOf(field) : null
   },
   fieldKind: (path) => (path === 'maxMessageSize' ? 'size' : undefined),
-  labelFor: (field) =>
-    field in LABELS ? plainLabel(LABELS[field as SettingsField]) : field,
+  labelFor: (field) => (field in LABELS ? plainLabel(LABELS[field as SettingsField]) : field),
 })
 
 const missing = computed(() => [
@@ -134,8 +138,7 @@ function errorsFor(field: SettingsField): string[] {
 
 const dirty = computed(
   () =>
-    editing.value &&
-    JSON.stringify(settingsPatch(opened.value, form.value, step.value)) !== '{}',
+    editing.value && JSON.stringify(settingsPatch(opened.value, form.value, step.value)) !== '{}',
 )
 watch(dirty, (value) => emit('dirty', value))
 
@@ -238,13 +241,11 @@ async function run() {
       emit('saved', result.result)
     } else if (result.status === 'outdated') {
       const latest = result.latest ?? base.value
-      outdatedFields.value = changedSince(base.value, latest, SETTINGS_FIELDS).map(
-        ({ field }) => ({
-          field,
-          label: plainLabel(LABELS[field]),
-          saved: changeValue(field, latest),
-        }),
-      )
+      outdatedFields.value = changedSince(base.value, latest, SETTINGS_FIELDS).map(({ field }) => ({
+        field,
+        label: plainLabel(LABELS[field]),
+        saved: changeValue(field, latest),
+      }))
     } else if (result.status === 'failed') {
       await showFailure(result.problem)
     }
@@ -606,7 +607,11 @@ const templateErrors = computed(() => errorsFor('notificationTemplate'))
           />
           <span :id="templateLabelId"><LegacyText k="admin.quarantine_notification_html" /></span>
         </button>
-        <div v-show="templateOpen" :id="`${idOf('notificationTemplate')}-panel`" class="flex flex-col gap-1.5">
+        <div
+          v-show="templateOpen"
+          :id="`${idOf('notificationTemplate')}-panel`"
+          class="flex flex-col gap-1.5"
+        >
           <textarea
             :id="idOf('notificationTemplate')"
             v-model="form.notificationTemplate"
@@ -617,7 +622,9 @@ const templateErrors = computed(() => errorsFor('notificationTemplate'))
             spellcheck="false"
             :aria-labelledby="templateLabelId"
             :aria-invalid="templateErrors.length > 0 ? 'true' : undefined"
-            :aria-describedby="templateErrors.length > 0 ? `${idOf('notificationTemplate')}-error` : undefined"
+            :aria-describedby="
+              templateErrors.length > 0 ? `${idOf('notificationTemplate')}-error` : undefined
+            "
             class="form-control min-h-60 font-mono text-xs"
           />
           <div
@@ -626,7 +633,8 @@ const templateErrors = computed(() => errorsFor('notificationTemplate'))
             class="text-sm text-red-700 dark:text-red-300"
           >
             <p v-for="(message, index) in templateErrors" :key="index" class="break-words">
-              <span class="sr-only">{{ `${t('a11y.errorPrefix')} ` }}</span>{{ message }}
+              <span class="sr-only">{{ `${t('a11y.errorPrefix')} ` }}</span
+              >{{ message }}
             </p>
           </div>
         </div>

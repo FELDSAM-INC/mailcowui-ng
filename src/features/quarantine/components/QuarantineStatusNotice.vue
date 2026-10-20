@@ -53,11 +53,7 @@ const args = computed(() =>
         <InfoIcon class="size-4 shrink-0" />
         {{ lt('quarantine.info') }}
       </summary>
-      <LegacyText
-        k="quarantine.qinfo"
-        as="p"
-        class="px-3 pb-3 text-gray-700 dark:text-gray-300"
-      />
+      <LegacyText k="quarantine.qinfo" as="p" class="px-3 pb-3 text-gray-700 dark:text-gray-300" />
     </details>
   </div>
 </template>

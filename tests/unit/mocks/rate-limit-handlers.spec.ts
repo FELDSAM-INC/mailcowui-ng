@@ -150,6 +150,28 @@ describe('listRateLimits', () => {
 })
 
 describe('resetRateLimitBucket', () => {
+  it('removes matching operations log entries and records the reset in history', async () => {
+    const state = useScenario('ops-rate-limits')
+    const entries = state.operations.logs.entries['rate-limits']
+    const bucketId = entries.find((entry) => entry.rateLimitHash)!.rateLimitHash!
+    const removed = entries.filter((entry) => entry.rateLimitHash === bucketId).length
+    state.quarantine.buckets.push(bucketId)
+    expect(
+      (await call('DELETE', `/rate-limit-buckets/${encodeURIComponent(bucketId)}`)).status,
+    ).toBe(204)
+    expect(state.operations.logs.entries['rate-limits']).toHaveLength(entries.length - removed)
+    expect(state.quarantine.buckets).not.toContain(bucketId)
+    expect(
+      state.auditEvents.find((event) => event.eventType === 'rateLimitBucketReset'),
+    ).toMatchObject({
+      target: { type: 'rateLimitBucket', id: bucketId },
+      details: { countersExisted: true, logEntriesRemoved: removed },
+    })
+    expect(
+      (await call('DELETE', `/rate-limit-buckets/${encodeURIComponent(bucketId)}`)).status,
+    ).toBe(404)
+  })
+
   it('resets a known bucket once, answers 404 for an unknown one, and refuses non-administrators', async () => {
     useScenario('quarantine-admin')
     expect((await call('DELETE', '/rate-limit-buckets/RLabc=')).status).toBe(204)

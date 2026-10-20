@@ -98,11 +98,13 @@ const rows = computed<Row[]>(() => [
             v-if="row.link"
             :to="row.link"
             class="text-brand-600 underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
-            ><PlainText :value="row.lines.join(' ')" /></RouterLink
-          >
+            ><PlainText :value="row.lines.join(' ')"
+          /></RouterLink>
           <PlainText v-else-if="row.lines.length === 1" :value="row.lines[0]" />
           <template v-else>
-            <span v-for="(line, at) in shownLines(row)" :key="at" class="block"><PlainText :value="line" /></span>
+            <span v-for="(line, at) in shownLines(row)" :key="at" class="block"
+              ><PlainText :value="line"
+            /></span>
             <button
               v-if="shownLines(row).length < row.lines.length"
               type="button"

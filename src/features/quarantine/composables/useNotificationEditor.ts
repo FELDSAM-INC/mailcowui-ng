@@ -81,7 +81,9 @@ export const NOTIFICATION_FIELD_INFO: Record<
 /** A stored value's label; a mailbox without a stored category has none ("-", D4). */
 export function notificationValueLabel(field: NotificationField, value: string | null): string {
   if (value === null) return '-'
-  return text(`enums.${field === 'frequency' ? 'quarantineNotificationFrequency' : 'quarantineNotificationCategory'}.${value}`)
+  return text(
+    `enums.${field === 'frequency' ? 'quarantineNotificationFrequency' : 'quarantineNotificationCategory'}.${value}`,
+  )
 }
 
 export type NotificationSaveOutcome = 'saved' | 'unchanged' | 'outdated' | 'failed'

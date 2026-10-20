@@ -4,7 +4,12 @@ import { expect, test } from '@playwright/test'
 
 import { expectDownload } from '../e2e/fixtures/downloads'
 import { signIn } from './fixtures/domains-api'
-import { createMailbox, deleteMailbox, uniqueLocalPart } from './fixtures/mailboxes-api'
+import {
+  createMailbox,
+  deleteMailbox,
+  SMOKE_DOMAIN,
+  uniqueLocalPart,
+} from './fixtures/mailboxes-api'
 
 test('@006 quarantine item, saved message and delivery without learning use the real API', async ({
   page,
@@ -32,9 +37,11 @@ test('@006 mailbox notifications, spam score, policy and rate limit round trips'
   page,
 }) => {
   await signIn(page, 'admin')
-  const mailbox = await createMailbox(page, uniqueLocalPart())
+  const localPart = uniqueLocalPart()
+  const address = `${localPart}@${SMOKE_DOMAIN}`
+  await createMailbox(page, localPart)
   try {
-    await page.goto(`mailboxes/${mailbox.address}`)
+    await page.goto(`mailboxes/${address}`)
     const section = page.locator('#section-mailbox')
     await section.getByRole('button', { name: 'Edit Edit mailbox', exact: true }).click()
     await section
@@ -42,9 +49,9 @@ test('@006 mailbox notifications, spam score, policy and rate limit round trips'
       .getByRole('radio', { name: 'Weekly', exact: true })
       .check()
     await section.getByRole('button', { name: 'Save changes', exact: true }).click()
-    await expect(section).toContainText(`Changes to mailbox ${mailbox.address} have been saved`)
+    await expect(section).toContainText(`Changes to mailbox ${address} have been saved`)
     const notifications = await page.request.get(
-      `/api/v2/mailboxes/${mailbox.address}/quarantine-notification-settings`,
+      `/api/v2/mailboxes/${address}/quarantine-notification-settings`,
     )
     expect((await notifications.json()).data.frequency).toBe('weekly')
     const spam = page.locator('[data-spam-filter-section]')
@@ -68,7 +75,7 @@ test('@006 mailbox notifications, spam score, policy and rate limit round trips'
     await expect(policy).toContainText('*@smoke.example')
     await expect(limit).toContainText('25')
   } finally {
-    await deleteMailbox(page, String(mailbox.address))
+    await deleteMailbox(page, address)
   }
 })
 

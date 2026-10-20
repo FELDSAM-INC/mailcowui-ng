@@ -46,7 +46,8 @@ npm run lhci                    # adds /ng/quarantine (mailbox user scenario)
   passing on both viewports, with no axe, CSP or mock contract violation.
 - `budget:check` reports an unchanged initial JavaScript size, and lazy chunks for the quarantine,
   spam filter and rate limit routes.
-- `lhci` reports at least 0.9 for performance and accessibility on `/ng/quarantine`.
+- `lhci` reports at least 0.8 for performance and 0.9 for accessibility on `/ng/quarantine`
+  (owner decision 2026-10-19).
 
 Focused runs:
 
@@ -239,3 +240,42 @@ or message was modified. Logs and failure traces are retained under the API chec
 `storage/app/restart-2026-10-20/u006/`. Final integration checks and deployment are recorded below
 when complete. Physical-device, assistive-technology, moderated-user and live-mailcow comparisons
 remain outside these automated results.
+
+**2026-10-20, integration with deployed monitoring**: rebased the feature onto UI main
+`8431c4eb`, preserving the performance-80, accessibility-90 and shell-transfer-210-KiB policies.
+The shared plain-text renderer retains monitoring's explicit element choice and the quarantine
+screen-reader description of control markers. Audit details retain monitoring's bounded list
+expansion. One shared bucket-reset mock now removes monitoring log entries and quarantine
+counters, records history and preserves the monitoring failure injections.
+
+Integration validation:
+
+- The full unit suite passes **3,633 tests in 415 files**, with **85.07% line coverage**, including
+  the stricter security-area thresholds. The final CSS-only contrast correction also passes
+  seven confirmation component tests.
+- Type checking, ESLint, changed-code formatting, contract generation/checksum, translations,
+  licenses and the configured dependency audit pass. Production dependencies have no reported
+  vulnerabilities. The audit still reports 21 development-tool findings (none critical), within
+  the existing development audit policy.
+- The feature/monitoring browser run passed 218 checks and skipped the desktop-only counterpart
+  of a phone-layout check. Three WebKit dark-theme failures exposed inherited text colors in
+  bulk confirmations; explicit colors on the affected paragraphs and list items fix them.
+- The host-screen browser run passed 285 checks and skipped three viewport-specific checks.
+  Twelve failures were obsolete global Save/History selectors, the old expectation that no spam
+  filter existed, or an audit request-count check made before the initial read completed.
+  Selectors now name the relevant section, and the request-count test waits for loaded records.
+  The focused **39-check** run passes on all three browser profiles, covering every failure from
+  both runs: **518 distinct selected browser checks pass across the runs, with four skips**.
+  Both-theme axe, touch targets, reflow and production CSP checks remain enabled. No retry count,
+  timeout or accessibility threshold was relaxed.
+- All **three real-API smoke cases pass together** against the integrated Docker image and API
+  `8ae22afa7fd271449c4c2fe23c3df7fe970a5464` in the isolated `u006-smoke` stack. The final
+  changes after that run affect confirmation text colors and test selectors only.
+- The final initial JavaScript is **195,519 / 204,800 bytes gzipped**; the existing dashboard and
+  chart chunk budgets also pass.
+
+Logs are `integrated-unit-final.log`, `integrated-browser.log`, `host-regression.log`,
+`final-focused-browser.log`, `integrated-smoke.log`, `theme-unit.log` and `final-budget.log` under
+`storage/app/restart-2026-10-20/u006/` in the API checkout. Failing runs and their browser traces
+are retained alongside the passing follow-ups. This validation does not close every acceptance
+case in the original task list or the physical-device/live-mailcow/manual checks above.

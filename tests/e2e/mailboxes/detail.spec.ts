@@ -61,7 +61,9 @@ test.describe('the mailbox page', () => {
     await expect(section).toContainText('Created on:')
     // UI 006 makes the rate limit editable in its own section (tests/e2e/rate-limits).
     await expect(page.locator('#rate-limit')).toContainText('Disabled')
-    await expect(page.getByRole('link', { name: 'History', exact: true })).toBeVisible()
+    await expect(
+      page.locator('header').getByRole('link', { name: 'History', exact: true }),
+    ).toBeVisible()
     await expectAccessible()
     await expectNoHorizontalScroll()
     if (isNarrow(page)) await expectTouchTargets()
@@ -103,7 +105,10 @@ test.describe('the mailbox page', () => {
     await expect(page).toHaveURL(/edit=mailbox/)
     await page.getByRole('textbox', { name: 'Full name', exact: true }).fill('Anna S.')
     await expectAccessible()
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(
       page
         .locator('section[id^="section-"]')
@@ -126,7 +131,10 @@ test.describe('the mailbox page', () => {
     await expect(page.locator('#section-mailbox')).toContainText('max. 10,240 MiB')
     await expect(page.locator('#section-mailbox')).toContainText('0 = ∞')
     await quota.fill('20480')
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(
       page.getByText('Quota exceeds the domain limit (max. 10240 MiB)').first(),
     ).toBeVisible()
@@ -143,7 +151,10 @@ test.describe('the mailbox page', () => {
     await edit(page, 'Edit mailbox')
     await mockApi.patch({ mailboxes: { set: { 'anna@a.example': { quota: 3 * GIB } } } })
     await page.getByRole('textbox', { name: 'Full name', exact: true }).fill('Anna New')
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     const notice = page.locator('[data-outdated]')
     await expect(notice).toContainText('Quota (MiB): now saved as 3 GiB')
     await expect(page.getByRole('textbox', { name: 'Full name', exact: true })).toHaveValue(
@@ -182,7 +193,10 @@ test.describe('the mailbox page', () => {
     expect(password.length).toBeGreaterThanOrEqual(16)
     await expect(section.getByLabel('Confirmation password (repeat)')).toHaveValue(password)
     await expect(section.getByLabel('Password', { exact: true })).toHaveAttribute('type', 'text')
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(
       page
         .locator('section[id^="section-"]')
@@ -204,7 +218,10 @@ test.describe('the mailbox page', () => {
     const section = page.locator('#section-mailbox')
     await section.getByLabel('Password', { exact: true }).fill('Secret-pass-1')
     await section.getByLabel('Confirmation password (repeat)').fill('Secret-pass-2')
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(section.getByText('Confirmation password does not match').first()).toBeVisible()
     expect(await updates(mockApi)).toHaveLength(0)
   })
@@ -299,13 +316,19 @@ test.describe('the mailbox page', () => {
     await section.getByRole('button', { name: 'Add row' }).click()
     await section.getByLabel('Attribute 2').fill('bad name')
     await section.getByLabel('Value 2').fill('x')
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(section.getByText('Use a name without spaces.').first()).toBeVisible()
     await section.getByLabel('Attribute 2').fill('department')
     await section.getByLabel('Value 2').fill('Sales')
     await section.getByRole('button', { name: 'Remove row 1' }).click()
     await expectAccessible()
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(
       page
         .locator('section[id^="section-"]')
@@ -330,7 +353,10 @@ test.describe('the mailbox page', () => {
       [...(element as HTMLSelectElement).selectedOptions].map((option) => option.value),
     )
     await select.selectOption([...selected, 'syncjobs'])
-    await page.getByRole('button', { name: 'Save changes', exact: true }).click()
+    await page
+      .locator('section[id^="section-"]')
+      .getByRole('button', { name: 'Save changes', exact: true })
+      .click()
     await expect(
       page
         .locator('section[id^="section-"]')

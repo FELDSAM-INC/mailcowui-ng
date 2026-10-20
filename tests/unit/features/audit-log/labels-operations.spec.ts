@@ -38,9 +38,7 @@ describe('UI 011 audit labels', () => {
   })
 
   it('translates the failure reasons of the feature', () => {
-    expect(auditLabel('failureReason', 'serviceFailure', tr)).toBe(
-      'The container service or Postfix reported an error',
-    )
+    expect(auditLabel('failureReason', 'serviceFailure', tr)).toBe('Service failure')
     expect(auditLabel('failureReason', 'rulesNotRestored', tr)).toBe(
       'Default regex filters were not restored in time',
     )

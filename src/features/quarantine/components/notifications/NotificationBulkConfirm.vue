@@ -21,7 +21,13 @@ const { t } = useI18n()
       class="max-h-60 overflow-y-auto rounded-lg focus-visible:outline-2 focus-visible:outline-brand-500"
     >
       <ul class="flex list-disc flex-col gap-0.5 ps-5">
-        <li v-for="address in addresses" :key="address" class="wrap-anywhere">{{ address }}</li>
+        <li
+          v-for="address in addresses"
+          :key="address"
+          class="text-gray-700 wrap-anywhere dark:text-gray-300"
+        >
+          {{ address }}
+        </li>
       </ul>
     </div>
   </div>

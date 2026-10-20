@@ -137,6 +137,7 @@ test('US8-AS6 a malformed address or a start after the end gives a message on th
 }) => {
   await mockApi.use('audit-records')
   await openLog(page)
+  await expect(summary(page)).toHaveText('Showing 1 to 25 of 41 entries')
   const before = (await mockApi.requests()).filter((r) => r.operationId === 'listAuditEvents')
   const form = await filters(page)
   await form.getByLabel('Client address').fill('999.1.1.1')

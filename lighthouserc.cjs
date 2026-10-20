@@ -48,6 +48,13 @@ module.exports = {
             'categories:accessibility': ['error', { minScore: 0.9 }],
           },
         },
+        {
+          matchingUrlPattern: '/ng/quarantine$',
+          assertions: {
+            'categories:performance': ['error', { minScore: 0.8 }],
+            'categories:accessibility': ['error', { minScore: 0.9 }],
+          },
+        },
         // UI 011 (research R22): the dashboard, whose charts are a lazy chunk of their own.
         {
           matchingUrlPattern: '/ng/operations/dashboard',

@@ -14,7 +14,8 @@ const props = defineProps<{ sort: QuarantineSort; order: SortOrder }>()
 const emit = defineEmits<{ change: [sort: QuarantineSort, order: SortOrder] }>()
 const { t } = useI18n()
 
-const label = (key: QuarantineSort) => (key === 'id' ? t('lists.id') : text(`quarantineUi.sort.${key}`))
+const label = (key: QuarantineSort) =>
+  key === 'id' ? t('lists.id') : text(`quarantineUi.sort.${key}`)
 
 const SELECT =
   'h-11 max-w-full rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white'

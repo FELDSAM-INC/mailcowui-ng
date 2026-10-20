@@ -167,6 +167,7 @@ useLeaveGuard(
         <EntryListField
           id="quota-copies-recipients"
           v-model="draft.recipients"
+          inputmode="email"
           :label="lt('edit.target_address')"
           :rows="10"
           :disabled="saving || !allowed || unavailable"

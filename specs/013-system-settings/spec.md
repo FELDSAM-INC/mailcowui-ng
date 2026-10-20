@@ -1298,7 +1298,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 
 | Legacy element | Legacy behaviour | Status | Requirements |
 |---|---|---|---|
-| System › Configuration with the menus Access, Options and Global filter maps, and the System mails tab | Tabs and drop-downs; on phones collapsed cards | Improved: one grouped settings area with search, a page switcher on phones and an address per page | FR-004 to FR-008 |
+| System › Configuration with the menus Access, Options and Global filter maps, and the System mails tab | Tabs and drop-downs; on phones collapsed cards | Revised by the owner: TailAdmin sidebar sections with shared content tabs, responsive tab disclosures and an address per page; the overview retains settings discovery | FR-004 to FR-008 |
 | Remembered active tab | Browser storage | Improved: every page has its own address | FR-006 |
 
 #### Options › Customize
@@ -1314,7 +1314,7 @@ Status: **Matched** (same capability), **Improved** (same capability, better beh
 | App links table: name, link, user link, "Hide for login", Remove row, Add row, Save | Rows on one wide table; mismatched rows saved nothing yet reported success | Improved: cards on phones, reordering, validation per entry, user link preview, limit | FR-039 to FR-041 |
 | Greyed-out built-in app links (`admin.merged_vars_hint`) | Read-only rows | Matched | FR-039 |
 | UI texts: website title, product name, "Apps" name, help text | Inputs with branded placeholders | Matched with the legacy labels verbatim; empty meaning explained; hard-coded brand placeholders dropped (constitution IV; plan "Deviations" item 5), `header.apps` placeholder kept | FR-016, FR-034 |
-| Announcement: type select, text "(HTML allowed)", active checkbox | The text is in fact shown escaped | Improved: preview; plain-text label pending (plan "Deviations" item 4) | FR-034, FR-037 |
+| Announcement: type select, text "(HTML allowed)", active checkbox | The text is in fact shown escaped | Improved: preview and the existing plain-text `admin.text` label, matching actual rendering (plan "Deviations" item 4) | FR-034, FR-037 |
 | Footer "(HTML allowed)" | Rendered raw by legacy | Improved: preview through the app's sanitiser | FR-036 |
 | Demo mode refusal | Error message after submitting | Improved: branding pages read-only with the reason in demo mode | FR-017, FR-033 |
 | No brand colours | — | Improved: new colours with live preview and contrast checks | FR-024 to FR-030 |

@@ -27,6 +27,7 @@ const props = withDefaults(
     /** A short marker for an entry, or null. */
     marker?: (value: string) => string | null
     placeholder?: string
+    inputmode?: 'text' | 'email' | 'url'
   }>(),
   {
     label: undefined,
@@ -38,6 +39,7 @@ const props = withDefaults(
     entryErrors: () => ({}),
     marker: undefined,
     placeholder: undefined,
+    inputmode: undefined,
   },
 )
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -99,6 +101,7 @@ const describedBy = computed(
       :rows="rows"
       :disabled="disabled"
       :placeholder="placeholder"
+      :inputmode="inputmode"
       autocapitalize="none"
       autocorrect="off"
       autocomplete="off"

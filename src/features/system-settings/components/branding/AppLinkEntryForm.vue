@@ -63,6 +63,7 @@ function paste(event: ClipboardEvent, field: string) {
           v-bind="control"
           :value="modelValue[field] ?? ''"
           type="text"
+          :inputmode="field === 'name' ? 'text' : 'url'"
           :disabled="disabled"
           autocapitalize="off"
           autocorrect="off"
@@ -78,7 +79,7 @@ function paste(event: ClipboardEvent, field: string) {
         type="checkbox"
         :checked="!modelValue.showOnLoginPage"
         :disabled="disabled"
-        class="size-5 shrink-0 accent-brand-600"
+        class="size-5 shrink-0 accent-accent"
         @change="update('showOnLoginPage', $event)"
       />{{ lt('admin.app_hide') }}</label
     >

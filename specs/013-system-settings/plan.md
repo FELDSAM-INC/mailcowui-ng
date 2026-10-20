@@ -281,12 +281,15 @@ claim those prerequisites or any later story complete. Only registered pages rec
 **Deviations needing a decision** (not built until the owner or orchestrator decides; until then the
 legacy form applies):
 
-1. **Structure of the settings area — approved by the orchestrator, 2026-10-20.** FR-004, data-model §10, research R5 and tasks T035/T038/T039 explicitly require the seven groups and seventeen pages. This approval covers grouping, not the unresolved form deviations below. (FR-004 to FR-008): legacy spreads the pages over the Access,
-   Options and Global filter maps menus and the System mails tab, and keeps Change logo, IP check,
-   Login page, App links and UI texts as cards of one Customize tab. The plan regroups them into
-   seven new groups and seventeen pages with descriptions and a search. Page titles use the legacy
-   card and menu keys; the groups, descriptions and search are new strings.
-2. **Colours page** (FR-024 to FR-031): no legacy counterpart (a new capability of API 013).
+1. **Structure of the settings area — revised by the owner, 2026-10-21.** The requested
+   TailAdmin sidebar sections and shared main-content tabs supersede the earlier seven-group
+   settings rail and phone page switcher. Access and Options remain under System configuration;
+   Customize contains its own shared tabs, and CORS/License keep contextual entry points. Each
+   destination retains its address. The internal catalogue can still group settings search results;
+   it does not introduce a second sidebar or restore the removed Home page.
+2. **Colours page — implemented under the existing completion scope.** API 013 exposes this new
+   capability, without a legacy counterpart. It appears in the shared Customize tabs and validates
+   both themes against the API's contrast references.
 3. **Mass mail jobs — implementation decision, 2026-10-21.** The existing authorization to finish the requested System mails destination covers the specified FR-080–FR-089 selection → preview → job flow. Keep the classic sender, subject, text and HTML order and meanings. Use one final confirmation containing the current recipient count in place of the activation checkbox; do not add a redundant confirmation. This resolves the deviation as an implementation decision, not a new user quotation.
    The job list (FR-087 to FR-089) and the recipient preview have no legacy counterpart; legacy
    sends synchronously. Legacy's include/exclude multi-selects (`admin.includes`, `admin.excludes`,
@@ -294,9 +297,9 @@ legacy form applies):
    pickers, and the "Activate send button" checkbox (`admin.activate_send`) becomes a confirmation of
    the count. The "Convert HTML to plain text" link (`admin.convert_html_to_text`) is dropped
    (earlier orchestrator decision).
-4. **Announcement text label** (FR-034): legacy's `admin.ui_header_announcement_content` says
-   "Text (HTML allowed)", but legacy shows the text escaped, and the plan treats it as plain text.
-   Verbatim, the label contradicts the behaviour.
+4. **Announcement text label — implemented.** The existing legacy `admin.text` labels this
+   plain-text field, matching the API and actual legacy rendering. The announcement help and type
+   labels remain verbatim; no new translation of a legacy label is introduced.
 5. **UI texts placeholders**: legacy hard-codes the brand ("FeldHost™ Mailhosting UI" in the fork,
    "mailcow UI" upstream) as the placeholder of the title and product name fields. The app cannot
    hard-code a brand (constitution IV); the apps heading keeps its legacy placeholder `header.apps`.
@@ -335,14 +338,19 @@ configuration.
 
 **Observations** (no change needed for 013):
 
-- **O1. Large list payloads**: `listRspamdRegexMaps` returns every map's content (up to 13 × 1 MiB),
-  and `listMassMailJobs` every job's bodies (up to 2 MiB each). A list without content would keep
-  the list pages light on phones. 013 seeds the map pages from the list to avoid a second download.
+- **O1. Large list payloads — resolved by API G17.** The pinned contract returns
+  `RspamdRegexMapSummary` with `sizeBytes` and `MassMailJobSummary` without message bodies.
+  Individual detail reads carry the content; the original all-bodies list concern is obsolete.
 - **O2. Free-text diagnostics**: `sieveSyntax.message` and `DovecotRestartOutcome.detail` are English
   by design. 013 quotes the parser message (FR-069 requires it) and does not show the detail.
 - **O3. Component naming**: the bundler hoists `AuditTarget.type` into a component named `type`, so
   the generated root type is `Type`. Naming the enumeration `AuditTargetType` in `api/components`
   would give clients a clear name. 013 aliases it in `src/api/index.ts`.
+
+T178 follow-up recorded in `mailcow-rest-v2/docs/api-gaps.md`, section "UI 013 follow-up
+observations", API documentation commit `1632488` (2026-10-21). O2 remains a future localization
+observation and O3 an optional schema naming proposal; neither claims an unimplemented contract
+change. O1 is already delivered in the UI's pin.
 
 ## Foundation amendments
 

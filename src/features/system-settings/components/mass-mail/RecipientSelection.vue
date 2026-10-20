@@ -116,6 +116,7 @@ function addPasted() {
           <textarea
             v-bind="control"
             v-model="pasted"
+            inputmode="email"
             rows="2"
             autocapitalize="off"
             autocorrect="off"

@@ -53,6 +53,7 @@ function normalize(event: FocusEvent) {
             type="text"
             inputmode="text"
             autocapitalize="off"
+            autocorrect="off"
             :spellcheck="false"
             autocomplete="off"
             :disabled="disabled"

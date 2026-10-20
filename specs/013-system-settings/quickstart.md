@@ -25,7 +25,7 @@ npm run test:unit -- tests/unit/features/system-settings tests/unit/shared tests
 npm run build && npm run budget:check
 npm run test:e2e -- tests/e2e/system-settings     # all three projects
 npm run test:e2e                                  # whole suite: limit-palette axe passes everywhere
-npm run lhci                                      # now also /ng/system/ui-texts
+npm run lhci                                      # also /ng/system/customize/ui-texts
 ```
 
 **Expected**:
@@ -41,7 +41,8 @@ npm run lhci                                      # now also /ng/system/ui-texts
   at 360 px and no touch target below 44 × 44 px.
 - `budget:check` reports the initial JavaScript still below 204,800 bytes gzipped and lists the
   settings page chunks, the editor chunk and the e-mail preview chunk separately.
-- `lhci` reports at least 0.9 for performance and accessibility on `/ng/system/ui-texts`.
+- `lhci` reports at least 0.8 for performance and 0.9 for accessibility on every collected URL,
+  including `/ng/system/customize/ui-texts` (owner's performance threshold).
 
 ## Part B: Manual checks per user story (mock API)
 
@@ -51,8 +52,8 @@ row at 360 px and on a desktop, in both themes.
 
 | Story | Scenario | Steps | Expected (spec reference) |
 |---|---|---|---|
-| US1 | `settings-admin-defaults` | Open System settings on a phone; type "announcement", then "uprava" in Czech, then "System mails"; open the page switcher on a page; reload a page | Groups and pages with descriptions; "UI texts › Announcement" opens with focus on that heading; diacritics ignored; legacy names found; switcher lists all pages with the current one marked; reload keeps the page (US1 AS-1 to AS-5, AS-7) |
-| US1 | `settings-domain-admin` | Open `/ng/system/logos` | "No access", no settings request (US1 AS-6) |
+| US1 | `settings-admin-defaults` | Open the settings overview on a phone; type "announcement", then "uprava" in Czech, then "System mails"; use the sidebar and the page's tabs; reload a page | Groups and pages with descriptions; "UI texts › Announcement" opens with focus on that heading; diacritics ignored; legacy names found; the owner's grouped sidebar and shared tabs mark the current destination; reload keeps the page (US1 AS-1 to AS-5, AS-7, revised navigation) |
+| US1 | `settings-domain-admin` | Open `/ng/system/customize/logos` | "No access", no settings request (US1 AS-6) |
 | US1 | `settings-capabilities-error` | Open System settings | Area error state with retry (FR-032) |
 | US2 | `settings-admin-defaults` | Logos: choose the 300 × 80 PNG, upload; choose the SVG with a script; choose an oversized PNG; delete the dark logo | Previews on light and dark at header and sign-in size before upload; details after upload; unsafe SVG refused naming the construct; size refused before upload with the limit; dark preview shows the default (US2 AS-1 to AS-4) |
 | US2 | `settings-admin-defaults` | UI texts: help text with a script; product name "Acme & Co Mail"; switch the warning announcement off; leave with unsaved changes | Script not shown, removal notice; literal name in header, sign-in and title; announcement gone; leave confirmation (US2 AS-5 to AS-8) |
@@ -73,9 +74,23 @@ row at 360 px and on a desktop, in both themes.
 ```bash
 export MAILCOW_REST_V2_DIR=../mailcow-rest-v2
 scripts/smoke/stack-up.sh
-npm run test:smoke -- tests/smoke/system-settings
+# Keep branding's evidence outside the next run's output directory. History reads that actual event.
+settings_smoke_dir="$(mktemp -d)"
+npm run test:smoke -- tests/smoke/system-settings/branding.smoke.spec.ts \
+  --retries=0 --output="$settings_smoke_dir/branding"
+export SMOKE_UI_TEXT_AUDIT_EVIDENCE="$(rg --files "$settings_smoke_dir/branding" | rg '/branding-audit-evidence\.json$')"
+test -f "$SMOKE_UI_TEXT_AUDIT_EVIDENCE"
+npm run test:smoke -- tests/smoke/system-settings --retries=0 \
+  --grep-invert='administrator changes and restores the product name' \
+  --output="$settings_smoke_dir/remaining"
 scripts/smoke/stack-down.sh
 ```
+
+Reuse an already-running isolated stack when one is provided, with its documented smoke URL;
+do not recreate it or stop another task's stack. The map and Global Sieve checks require an
+available map and both script files in that stack's configured bind mounts. If they are absent,
+provision only missing local fixtures and remove only those fixtures in cleanup. Existing files
+must remain unchanged. The validation entries below record those prerequisites and restorations.
 
 **Expected**: the capabilities load and the overview lists the pages; a UI text, a brand colour, a
 sign-in page option, CORS and the IP check are changed and restored, and the public configuration

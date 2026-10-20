@@ -128,7 +128,7 @@ const provider = computed(() => {
               :id="`login-page-${field}`"
               v-model="draft[field]"
               type="checkbox"
-              class="size-5 shrink-0 accent-brand-600"
+              class="size-5 shrink-0 accent-accent"
               :disabled="saving || capabilities.demoMode"
             /><LegacyText :k="labels[field]" />
           </label>

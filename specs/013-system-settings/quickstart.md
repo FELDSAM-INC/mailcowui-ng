@@ -220,3 +220,31 @@ fallback, edits and validates a map successfully on all three profiles (**3/3 pa
 focused editor units, fresh app/test typechecks, lint, formatting, i18n and production build pass.
 The two new recovery strings use the explicit English source fallback in cs-cz/sk-sk. The unchanged
 cold-input gate above remains open. Evidence: `/tmp/u013-editor-fallback-{browser,unit,app,tests,lint,formatcheck,i18n,build,budget}.log`.
+
+
+### CORS and License checkpoint (2026-10-21)
+
+- **118 focused unit checks pass**, including origin syntax/normalization, API requests and
+  refusals, all four license results, disabled-license no-request behavior, legacy form controls,
+  the shared capabilities layout/IP-check regression and contract-derived limits.
+- **39 browser checks pass**, across mobile Chromium, desktop Chromium and mobile WebKit, with
+  zero retries. The initial run passed 36; the remaining three required a selector correction to
+  include the shared screen-reader error prefix, and all three passed on the same frozen build.
+  Coverage includes normalization, pasted/empty/wildcard/invalid/over-limit origins, method choices,
+  saved versions and explicit conflict retry, dirty navigation, role denials, read retries, copy,
+  all license results, progress, feature-disabled refresh, both-theme axe and 320 px reflow.
+- **2 real-API smokes pass** on the existing isolated stack at port 18580. CORS adds one reserved
+  `.invalid` origin and restores/verifies the exact original origins and methods in `finally`.
+  License is read only: no request to `/license/verification` and no external verification call.
+  Preview 4241 and all browser containers were stopped afterward.
+- Fresh app/test typechecks, focused lint, formatting, i18n, production build and initial bundle
+  budget pass. The new strings keep an explicit English source fallback in cs-cz/sk-sk. No runtime
+  dependency or API contract change is needed. Root integrates contextual navigation separately.
+
+Evidence: `/tmp/u013-cors-license-{unitfinal,app2,tests2,tests-final,lint2,browser-lint,format-final,i18n,build2,budget}.log`,
+`/tmp/u013-cors-license-browser.log`, `/tmp/u013-cors-license-rerun.log` and
+`/tmp/u013-cors-license-smoke.log`. Browser artifacts are in `test-results/u013-cors-license`,
+`test-results/u013-cors-license-rerun` and `test-results/u013-cors-license-smoke`.
+The native multiple-select replaces the planned checkbox component per the owner-approved legacy
+form rule; whole US11 and global/manual release gates are assessed with the earlier Rspamd/IP-check
+slices rather than inferred from this checkpoint alone.

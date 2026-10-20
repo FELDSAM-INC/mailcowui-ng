@@ -235,6 +235,28 @@
           }
         }
       }
+    },
+    "cors": {
+      "description": "Origins and methods accepted by the classic API.",
+      "scope": "These CORS settings apply only to the classic /api/v1. API v2 accepts only same-origin requests.",
+      "empty": "An empty origin list allows only this server’s own origin: {origin}.",
+      "wildcard": "The wildcard * allows every origin, including when specific origins are also listed."
+    },
+    "license": {
+      "description": "Instance GUID and the last license verification result.",
+      "copyGuid": "Copy GUID",
+      "guidInvalid": "The GUID is marked invalid by mailcow.",
+      "result": "Last verification result",
+      "results": {
+        "valid": "Valid",
+        "invalid": "Invalid",
+        "unreachable": "License service unreachable",
+        "neverVerified": "Never verified"
+      },
+      "verifiedAt": "Last verified",
+      "supportLevel": "Support level",
+      "verifyHelp": "Only the GUID is sent to the mailcow license verification service when you verify it.",
+      "verifying": "Verifying the GUID…"
     }
   }
 }

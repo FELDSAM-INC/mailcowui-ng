@@ -189,3 +189,6 @@ export const F2B_IPV6_PREFIX_MAX = 128
 
 /** Fail2BanSettingsPatch allowlist.items.maxLength (and denylist) */
 export const F2B_LIST_ENTRY_MAX_LENGTH = 253
+
+/** LegacyApiCorsSettingsPatch.properties.allowedOrigins.items.maxLength */
+export const CORS_ORIGIN_MAX_LENGTH = 2048

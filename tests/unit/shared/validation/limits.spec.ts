@@ -48,6 +48,16 @@ function queryParameter(path: string, method: string, name: string): Json {
 describe('contract limits (data-model §6)', () => {
   const cases: [keyof typeof limits, unknown][] = [
     [
+      'CORS_ORIGIN_MAX_LENGTH',
+      schemaValue(
+        'LegacyApiCorsSettingsPatch',
+        'properties',
+        'allowedOrigins',
+        'items',
+        'maxLength',
+      ),
+    ],
+    [
       'USERNAME_MAX_LENGTH',
       schemaValue('PasswordSignInRequest', 'properties', 'username', 'maxLength'),
     ],

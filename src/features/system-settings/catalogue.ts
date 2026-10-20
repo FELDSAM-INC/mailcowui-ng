@@ -23,6 +23,24 @@ export interface SettingsPage {
 }
 export const settingsPages: readonly SettingsPage[] = [
   {
+    id: 'cors',
+    group: 'integrations',
+    routeName: 'system-settings-cors',
+    title: legacy('admin.cors_settings'),
+    description: 'systemSettings.cors.description',
+    auditTarget: 'legacyApiCors',
+    visible: () => true,
+  },
+  {
+    id: 'license',
+    group: 'integrations',
+    routeName: 'system-settings-license',
+    title: legacy('admin.guid_and_license'),
+    description: 'systemSettings.license.description',
+    auditTarget: 'license',
+    visible: (caps) => caps.licenseVerificationEnabled,
+  },
+  {
     id: 'global-sieve',
     group: 'mail-filtering',
     routeName: 'system-settings-global-sieve',

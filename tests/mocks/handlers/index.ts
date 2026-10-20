@@ -1,3 +1,5 @@
+import { settingsCorsHandlers } from './settings-cors'
+import { licenseHandlers } from './license'
 import { globalFilterHandlers } from './settings-global-filters'
 import { actingValidityProblem, impersonationHandlers } from './impersonation'
 import { settingsQuotaHandlers } from './settings-quota-notifications'
@@ -149,6 +151,8 @@ export const areaHandlers: RequestHandler[] = [
   // UI 005: one module per area under ./self-service/.
   ...selfServiceHandlers,
   ...settingsServerHandlers,
+  ...settingsCorsHandlers,
+  ...licenseHandlers,
   ...settingsRspamdHandlers,
   ...regexMapHandlers,
 ]

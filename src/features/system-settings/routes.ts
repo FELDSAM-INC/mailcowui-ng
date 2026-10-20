@@ -18,6 +18,18 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'cors',
+        name: 'system-settings-cors',
+        component: () => import('./pages/integrations/CorsPage.vue'),
+        meta: { titleKey: legacy('admin.cors_settings') },
+      },
+      {
+        path: 'license',
+        name: 'system-settings-license',
+        component: () => import('./pages/integrations/LicensePage.vue'),
+        meta: { titleKey: legacy('admin.guid_and_license') },
+      },
+      {
         path: 'global-sieve-filters',
         name: 'system-settings-global-sieve',
         component: () => import('./pages/mail-filtering/GlobalSieveFiltersPage.vue'),

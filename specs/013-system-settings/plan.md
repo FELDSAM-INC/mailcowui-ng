@@ -593,3 +593,24 @@ active state in `finally`; the version may differ when an originally absent Redi
 an explicit empty record. Typecheck, scoped lint, formatting, translation completeness and the
 production bundle budget pass (199,398 / 204,800 initial gzip bytes). Logs are in
 `storage/app/restart-2026-10-20/u013-password/quota-*.log` in the API workspace.
+
+
+### CORS and License slice decisions (2026-10-21)
+
+The owner rule to preserve the classic forms resolves D9 in favor of the existing controls:
+`CorsPage.vue` keeps the seven-row origins textarea and the native multiple-select, in source order
+POST, GET, DELETE, PUT. It does not introduce `MethodCheckboxes.vue` or a tag editor. Pasted commas,
+semicolons and whitespace are split before saving; origins are lower-cased and kept once each.
+The API-v1-only scope, empty-origin fallback and wildcard warning are API-only additions. Invalid
+stored origins stay visible and block the complete resulting form until repaired or removed.
+The success and invalid-origin/method messages use the original legacy keys from the form map.
+
+D6 retains `admin.license_info` verbatim, including the vendor links, through `LegacyText` and the
+existing sanitizer. GUID, customer ID, service ID and the verify action retain their legacy labels.
+Support level, last result/time, loading and GUID-transfer explanation have no legacy equivalent.
+Only an explicit verify action calls the server verification operation. A disabled capability hides
+the catalogue entry and direct navigation renders the existing not-found state without reading the
+license. A feature-disabled response invalidates capabilities and removes the page. Both new pages
+use generated contract types and existing query keys, history links and scoped admin route guards.
+New cs-cz/sk-sk strings use the explicit English source fallback pending the owner's translation
+review; no machine-translated legacy text is added.

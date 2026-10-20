@@ -4,6 +4,8 @@ import { assignDomains } from './domains-base'
 // UI 013 R30: only data used by implemented settings is seeded; later slices extend this store.
 import type {
   IpCheckSetting,
+  LegacyApiCorsSettings,
+  LicenseStatus,
   GlobalSieveFilter,
   DovecotRestartOutcome,
   PasswordResetNotification,
@@ -19,6 +21,9 @@ import type { ScenarioDefinition } from './index'
 import type { ScenarioState } from './state'
 
 export interface SettingsState {
+  cors: LegacyApiCorsSettings
+  license: LicenseStatus
+  licenseResult: LicenseStatus['lastVerification']['result']
   globalFilters: GlobalSieveFilter[]
   missingGlobalFilters: string[]
   globalRestart: DovecotRestartOutcome['outcome']
@@ -32,6 +37,9 @@ export interface SettingsState {
   revision: number
 }
 export interface SettingsPatch {
+  cors?: Partial<LegacyApiCorsSettings>
+  license?: Partial<LicenseStatus>
+  licenseResult?: LicenseStatus['lastVerification']['result']
   globalFilters?: GlobalSieveFilter[]
   missingGlobalFilters?: string[]
   globalRestart?: DovecotRestartOutcome['outcome']
@@ -44,6 +52,24 @@ export interface SettingsPatch {
 }
 export function initialSettingsState(): SettingsState {
   return {
+    cors: {
+      allowedOrigins: [],
+      allowedMethods: ['POST', 'GET', 'DELETE', 'PUT'],
+      serverOrigin: 'https://mail.example.org',
+      etag: '"cors-1"',
+    },
+    license: {
+      guid: 'a'.repeat(64),
+      guidValid: true,
+      lastVerification: {
+        result: 'valid',
+        verifiedAt: '2026-10-20T10:00:00Z',
+        customerId: 'customer-123',
+        serviceId: 'service-456',
+        supportLevel: 2,
+      },
+    },
+    licenseResult: 'valid',
     globalFilters: [
       { id: 'prefilter', script: 'keep;\n', etag: '"global-pre-1"' },
       {
@@ -88,6 +114,9 @@ export function initialSettingsState(): SettingsState {
   }
 }
 export function applySettingsPatch(state: ScenarioState, patch: SettingsPatch): void {
+  if (patch.cors) Object.assign(state.settings.cors, patch.cors)
+  if (patch.license) Object.assign(state.settings.license, patch.license)
+  if (patch.licenseResult) state.settings.licenseResult = patch.licenseResult
   if (patch.globalFilters) state.settings.globalFilters = patch.globalFilters
   if (patch.missingGlobalFilters) state.settings.missingGlobalFilters = patch.missingGlobalFilters
   if (patch.globalRestart) state.settings.globalRestart = patch.globalRestart
@@ -105,6 +134,22 @@ export const systemSettingsScenarios: Record<string, ScenarioDefinition> = {
     overrides: { signedInAs: 'admin' },
     setup: (state) => {
       state.auditEvents = settingsAuditRecords(state.now())
+    },
+  },
+  'cors-legacy-bare-host': {
+    description: 'Stored legacy CORS origin needs correction',
+    overrides: { signedInAs: 'admin', settings: { cors: { allowedOrigins: ['old.example.org'] } } },
+  },
+  'settings-license-valid': { description: 'A valid license', overrides: { signedInAs: 'admin' } },
+  'settings-license-unreachable': {
+    description: 'Verification service unreachable',
+    overrides: { signedInAs: 'admin', settings: { licenseResult: 'unreachable' } },
+  },
+  'settings-license-guid-invalid': {
+    description: 'GUID marked invalid',
+    overrides: {
+      signedInAs: 'admin',
+      settings: { license: { guid: null, guidValid: false }, licenseResult: 'invalid' },
     },
   },
   'global-sieve-default': {

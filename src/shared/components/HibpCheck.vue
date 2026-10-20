@@ -71,7 +71,7 @@ async function check() {
   <div class="flex flex-col items-start gap-1">
     <button
       type="button"
-      class="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
+      class="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
       :aria-busy="result === 'checking' ? 'true' : undefined"
       @click="check"
     >

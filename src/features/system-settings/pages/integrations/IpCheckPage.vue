@@ -116,7 +116,7 @@ useLeaveGuard(
                   v-model="draft.enabled"
                   type="checkbox"
                   :disabled="saving || capabilities.demoMode"
-                  class="size-11 shrink-0 accent-brand-600"
+                  class="size-11 shrink-0 accent-accent"
                 />
               </template>
             </FormField>

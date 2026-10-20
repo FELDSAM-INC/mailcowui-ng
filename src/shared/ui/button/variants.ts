@@ -9,7 +9,7 @@ const base =
 
 const variants: Record<ButtonVariant, string> = {
   default:
-    'bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 focus-visible:ring-3 focus-visible:ring-brand-500/20 disabled:bg-brand-200 disabled:text-white dark:bg-brand-500 dark:hover:bg-brand-600 dark:disabled:bg-brand-800 dark:disabled:text-brand-400',
+    'bg-accent text-accent-foreground shadow-theme-xs hover:bg-accent-hover focus-visible:ring-3 focus-visible:ring-brand-500/20 disabled:bg-brand-200 disabled:text-white dark:disabled:bg-brand-800 dark:disabled:text-brand-400',
   outline:
     'border-gray-300 bg-transparent text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 focus-visible:ring-3 focus-visible:ring-gray-300/50 disabled:border-gray-200 disabled:bg-white disabled:text-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white dark:disabled:border-gray-800 dark:disabled:bg-gray-900 dark:disabled:text-gray-600',
   ghost:
@@ -17,7 +17,7 @@ const variants: Record<ButtonVariant, string> = {
   // Deviation: red-700 instead of red-500, so that white text meets WCAG AA contrast (4.5:1).
   destructive:
     'bg-red-700 text-white shadow-theme-xs hover:bg-red-800 focus-visible:ring-3 focus-visible:ring-red-500/20 disabled:bg-red-200 disabled:text-white dark:bg-red-700 dark:hover:bg-red-800 dark:disabled:bg-red-950 dark:disabled:text-red-400',
-  link: 'h-auto! p-0! font-normal text-brand-500 underline-offset-4 hover:underline dark:text-brand-400',
+  link: 'h-auto! p-0! font-normal bg-white text-accent-text underline-offset-4 hover:underline dark:bg-gray-900',
 }
 
 // Deviation: every size is at least 44 × 44 px (constitution II, research R4 deviation 6).

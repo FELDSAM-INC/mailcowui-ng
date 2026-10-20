@@ -66,7 +66,7 @@ const SORTABLE: { key: PolicySort; label: LegacyKey }[] = [
   { key: 'createdAt', label: 'user.created_on' },
 ]
 const LINK =
-  'inline-flex min-h-11 max-w-full items-center break-all text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300'
+  'inline-flex min-h-11 max-w-full items-center break-all text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 '
 </script>
 
 <template>

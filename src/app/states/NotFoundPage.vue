@@ -17,7 +17,7 @@ const { t } = useI18n()
     <p class="mb-6 text-gray-700 dark:text-gray-300">{{ t('states.notFound.body') }}</p>
     <RouterLink
       :to="backTo ?? '/'"
-      class="inline-flex min-h-11 items-center rounded-lg bg-brand-500 px-4 font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+      class="inline-flex min-h-11 items-center rounded-lg bg-accent px-4 font-medium text-accent-foreground hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
     >
       {{ backTo ? (backLabel ?? t('common.back')) : t('common.goHome') }}
     </RouterLink>

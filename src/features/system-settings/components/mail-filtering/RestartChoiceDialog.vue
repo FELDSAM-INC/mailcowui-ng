@@ -23,7 +23,7 @@ const name = useId()
           type="radio"
           :name="name"
           :value="option"
-          class="size-5 shrink-0 accent-brand-500"
+          class="size-5 shrink-0 accent-accent"
           @change="emit('choice', choice === 'later')"
         />
         <span>{{ t(`systemSettings.globalSieve.${option}`) }}</span>

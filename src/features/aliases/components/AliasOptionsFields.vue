@@ -30,7 +30,7 @@ const INFO = 'text-sm text-gray-600 dark:text-gray-400'
         <input
           :id="`${idPrefix}-groupwareVisible`"
           type="checkbox"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
           :checked="groupwareVisible"
           :aria-describedby="`${idPrefix}-groupwareVisible-info`"
           @change="emit('update:groupwareVisible', checked($event))"
@@ -45,7 +45,7 @@ const INFO = 'text-sm text-gray-600 dark:text-gray-400'
       <input
         :id="`${idPrefix}-internal`"
         type="checkbox"
-        class="size-5 accent-brand-500"
+        class="size-5 accent-accent"
         :checked="internal"
         :aria-describedby="`${idPrefix}-internal-info`"
         @change="emit('update:internal', checked($event))"
@@ -59,7 +59,7 @@ const INFO = 'text-sm text-gray-600 dark:text-gray-400'
       <input
         :id="`${idPrefix}-senderAllowed`"
         type="checkbox"
-        class="size-5 accent-brand-500"
+        class="size-5 accent-accent"
         :checked="senderAllowed"
         :aria-describedby="`${idPrefix}-senderAllowed-info`"
         @change="emit('update:senderAllowed', checked($event))"

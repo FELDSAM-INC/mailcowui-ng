@@ -41,7 +41,7 @@ const lookup = (sha256: string) =>
           <button
             type="button"
             data-attachment-download
-            class="inline-flex min-h-11 max-w-full items-center gap-2 text-start font-medium text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-60 dark:text-brand-300"
+            class="inline-flex min-h-11 max-w-full items-center gap-2 text-start font-medium text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-60"
             :disabled="busy"
             @click="emit('download', attachment)"
           >
@@ -75,7 +75,7 @@ const lookup = (sha256: string) =>
           target="_blank"
           rel="noopener noreferrer"
           referrerpolicy="no-referrer"
-          class="inline-flex min-h-11 items-center self-start text-sm text-brand-700 underline underline-offset-2 hover:text-brand-800 dark:text-brand-300"
+          class="inline-flex min-h-11 items-center self-start text-sm text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline"
         >
           {{ lt('quarantine.check_hash') }}
           <span class="sr-only">{{ ` ${t('common.opensInNewTab')}` }}</span>

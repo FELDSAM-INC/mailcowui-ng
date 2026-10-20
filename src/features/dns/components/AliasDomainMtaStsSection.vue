@@ -25,7 +25,7 @@ const { t } = useI18n()
     </p>
     <RouterLink
       :to="{ name: 'domain-detail', params: { domain: targetDomain }, hash: '#mta-sts' }"
-      class="mt-2 inline-flex min-h-11 items-center break-all text-brand-700 underline underline-offset-2 dark:text-brand-300"
+      class="mt-2 inline-flex min-h-11 items-center break-all text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2"
     >
       {{ t('dns.mtaSts.alias.link', { targetDomain }) }}
     </RouterLink>

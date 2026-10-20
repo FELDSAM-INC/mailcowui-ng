@@ -62,7 +62,7 @@ const OPTIONS: RelayOption[] = ['backupMx', 'relayAllRecipients', 'relayUnknownO
         <input
           :id="`${idPrefix}-${option}`"
           type="checkbox"
-          class="size-5 shrink-0 accent-brand-500"
+          class="size-5 shrink-0 accent-accent"
           :checked="modelValue[option]"
           :aria-describedby="
             option === 'relayAllRecipients' ? `${idPrefix}-relayAll-info` : undefined

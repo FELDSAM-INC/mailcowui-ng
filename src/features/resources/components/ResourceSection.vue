@@ -307,7 +307,7 @@ const INPUT =
           :id="`${ID}-active`"
           v-model="form.active"
           type="checkbox"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
         />
         {{ lt('edit.active') }}
       </label>

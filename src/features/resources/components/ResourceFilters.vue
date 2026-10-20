@@ -92,7 +92,7 @@ const SELECT =
         >
           <input
             type="checkbox"
-            class="size-5 accent-brand-500"
+            class="size-5 accent-accent"
             :checked="filters.kind.includes(kind)"
             @change="toggleKind(kind, ($event.target as HTMLInputElement).checked)"
           />

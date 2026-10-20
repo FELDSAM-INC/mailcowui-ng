@@ -6,6 +6,7 @@ import {
   runMutation,
   type LogoSetting,
   type UiTextsPatch,
+  type BrandColorsPatch,
   type LoginPageSettingsPatch,
   type AppLinkSettingsPatch,
 } from '@/api'
@@ -114,6 +115,23 @@ export async function updateLoginPage(body: LoginPageSettingsPatch, ifMatch: str
 export async function updateAppLinks(body: AppLinkSettingsPatch, ifMatch: string) {
   return requireData(
     await api.PATCH('/settings/app-links', {
+      body,
+      headers: { 'Content-Type': 'application/merge-patch+json', 'If-Match': ifMatch },
+    }),
+  ).data
+}
+
+export function brandColorsOptions() {
+  return queryOptions({
+    queryKey: queryKeys.systemSettings.brandColors(),
+    staleTime: 30_000,
+    queryFn: async ({ signal }) =>
+      requireData(await api.GET('/settings/brand-colors', { signal })).data,
+  })
+}
+export async function updateBrandColors(body: BrandColorsPatch, ifMatch: string) {
+  return requireData(
+    await api.PATCH('/settings/brand-colors', {
       body,
       headers: { 'Content-Type': 'application/merge-patch+json', 'If-Match': ifMatch },
     }),

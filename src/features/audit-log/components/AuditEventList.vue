@@ -94,7 +94,7 @@ const detailsId = (id: string) => `audit-details-${id}`
             <TableCell class="px-2 py-1">
               <button
                 type="button"
-                class="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 font-medium whitespace-nowrap text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+                class="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 font-medium whitespace-nowrap text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
                 :aria-expanded="expanded.has(event.id) ? 'true' : 'false'"
                 :aria-controls="detailsId(event.id)"
                 @click="toggle(event.id)"

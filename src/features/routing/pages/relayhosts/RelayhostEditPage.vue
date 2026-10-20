@@ -172,7 +172,7 @@ const values = computed(() => edit.values.value)
           :id="`${ID}-active`"
           v-model="values.active"
           type="checkbox"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
         />
         <span>{{ lt('edit.active') }}</span>
       </label>

@@ -125,7 +125,7 @@ function sortBy(key: MailQueueSort) {
               :to="show(message)"
               :data-show-message="message.id"
               :aria-describedby="`queue-row-${message.id}`"
-              class="inline-flex min-h-11 items-center font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+              class="inline-flex min-h-11 items-center font-medium text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
             >
               {{ lt('queue.show_message') }}
             </RouterLink>

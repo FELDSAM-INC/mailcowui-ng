@@ -87,7 +87,7 @@ const id = computed(() => `domain-card-${props.domain.name.replace(/[^a-z0-9-]/g
       <TagChips :tags="domain.tags" @filter="emit('filterTag', $event)" />
       <button
         type="button"
-        class="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-2 text-sm font-medium text-brand-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400 dark:hover:bg-gray-800"
+        class="inline-flex min-h-11 items-center gap-2 self-start rounded-lg px-2 text-sm font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
         :aria-expanded="expanded ? 'true' : 'false'"
         :aria-controls="`${id}-details`"
         :aria-label="t('domains.list.detailsOf', { name: domain.unicodeName })"

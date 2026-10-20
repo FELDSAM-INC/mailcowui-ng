@@ -23,6 +23,15 @@ export interface SettingsPage {
 }
 export const settingsPages: readonly SettingsPage[] = [
   {
+    id: 'colours',
+    group: 'branding',
+    routeName: 'system-settings-colours',
+    title: 'systemSettings.colours.title',
+    description: 'systemSettings.colours.description',
+    auditTarget: 'brandColors',
+    visible: () => true,
+  },
+  {
     id: 'cors',
     group: 'integrations',
     routeName: 'system-settings-cors',

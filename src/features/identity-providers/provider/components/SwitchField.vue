@@ -16,7 +16,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
         :checked="modelValue"
         type="checkbox"
         role="switch"
-        class="size-5 shrink-0 accent-brand-500"
+        class="size-5 shrink-0 accent-accent"
         :aria-describedby="help ? `${id}-help` : undefined"
         @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
       />

@@ -63,7 +63,7 @@ const href = computed(() => safeHref(props.policy.policyUrl))
             :href="href"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex min-h-11 items-center gap-1 text-brand-700 underline underline-offset-2 dark:text-brand-300"
+            class="inline-flex min-h-11 items-center gap-1 text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2"
           >
             {{ policy.policyUrl }}
             <ExternalLinkIcon class="size-4 shrink-0" />

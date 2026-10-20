@@ -222,7 +222,7 @@ const values = computed(() => edit.values.value)
           :id="`${ID}-mxBased`"
           v-model="values.mxBased"
           type="checkbox"
-          class="mt-1 size-5 shrink-0 accent-brand-500"
+          class="mt-1 size-5 shrink-0 accent-accent"
         />
         <LegacyText k="edit.lookup_mx" class="wrap-anywhere" />
       </label>
@@ -233,7 +233,7 @@ const values = computed(() => edit.values.value)
           :id="`${ID}-active`"
           v-model="values.active"
           type="checkbox"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
         />
         <span>{{ lt('edit.active') }}</span>
       </label>

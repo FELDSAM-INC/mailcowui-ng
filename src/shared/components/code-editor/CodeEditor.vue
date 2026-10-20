@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
       />
     </div>
     <label class="flex min-h-11 items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
-      ><input v-model="wrap" type="checkbox" class="size-5 accent-brand-600" />{{
+      ><input v-model="wrap" type="checkbox" class="size-5 accent-accent" />{{
         t('codeEditor.wrap')
       }}</label
     >

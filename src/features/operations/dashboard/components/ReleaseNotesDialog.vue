@@ -42,7 +42,7 @@ const CONTENT_WIDE =
 const CONTENT_FULL =
   'fixed inset-0 z-101 flex h-dvh w-full flex-col gap-4 bg-white p-4 text-gray-700 outline-none dark:bg-gray-900 dark:text-gray-300'
 const NOTES =
-  'min-h-0 flex-1 overflow-y-auto wrap-anywhere [&_a]:text-brand-600 [&_a]:underline dark:[&_a]:text-brand-300 [&_blockquote]:border-s-4 [&_blockquote]:border-gray-300 [&_blockquote]:ps-3 [&_code]:font-mono [&_code]:text-sm [&_h1]:text-xl [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:font-semibold [&_li]:ms-5 [&_ol]:list-decimal [&_p]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-gray-100 [&_pre]:p-3 dark:[&_pre]:bg-gray-800 [&_table]:my-2 [&_td]:border [&_td]:border-gray-200 [&_td]:px-2 [&_th]:border [&_th]:border-gray-200 [&_th]:px-2 dark:[&_td]:border-gray-700 dark:[&_th]:border-gray-700 [&_ul]:list-disc'
+  'min-h-0 flex-1 overflow-y-auto wrap-anywhere [&_a]:text-accent-text [&_a]:bg-white dark:[&_a]:bg-gray-900 [&_a]:underline [&_blockquote]:border-s-4 [&_blockquote]:border-gray-300 [&_blockquote]:ps-3 [&_code]:font-mono [&_code]:text-sm [&_h1]:text-xl [&_h1]:font-semibold [&_h2]:mt-4 [&_h2]:text-lg [&_h2]:font-semibold [&_h3]:mt-3 [&_h3]:font-semibold [&_li]:ms-5 [&_ol]:list-decimal [&_p]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-gray-100 [&_pre]:p-3 dark:[&_pre]:bg-gray-800 [&_table]:my-2 [&_td]:border [&_td]:border-gray-200 [&_td]:px-2 [&_th]:border [&_th]:border-gray-200 [&_th]:px-2 dark:[&_td]:border-gray-700 dark:[&_th]:border-gray-700 [&_ul]:list-disc'
 </script>
 
 <template>
@@ -86,7 +86,7 @@ const NOTES =
             :href="url"
             target="_blank"
             rel="noopener noreferrer nofollow"
-            class="text-brand-600 underline dark:text-brand-300"
+            class="text-accent-text bg-white dark:bg-gray-900 underline"
             >{{ tag }}<span class="sr-only"> {{ t('common.opensInNewTab') }}</span></a
           >
         </p>

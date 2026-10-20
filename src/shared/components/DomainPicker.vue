@@ -418,7 +418,7 @@ function retry() {
                     :value="entry.name"
                     :checked="entry.chosen"
                     :disabled="!!entry.reason"
-                    class="size-5 shrink-0 accent-brand-500"
+                    class="size-5 shrink-0 accent-accent"
                     @change="toggleDraft(entry)"
                   />
                   <span class="min-w-0 flex-1 wrap-anywhere">

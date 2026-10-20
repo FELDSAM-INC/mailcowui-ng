@@ -23,7 +23,7 @@ const latest = computed(() => update.data.value?.latestRelease ?? null)
 const installedNotes = computed(() => update.data.value?.installedReleaseNotes ?? null)
 
 const LINK =
-  'inline-flex min-h-11 items-center font-semibold text-brand-600 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300'
+  'inline-flex min-h-11 items-center font-semibold text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-brand-500'
 </script>
 
 <template>

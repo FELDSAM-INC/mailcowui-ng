@@ -94,7 +94,7 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
         <button
           v-if="cardDetails.length > 0"
           type="button"
-          class="inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+          class="inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
           :aria-expanded="expanded.has(entry.id) ? 'true' : 'false'"
           :aria-controls="expanded.has(entry.id) ? detailsId(entry) : undefined"
           @click="emit('toggle', entry.id)"

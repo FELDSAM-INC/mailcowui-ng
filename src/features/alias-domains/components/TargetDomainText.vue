@@ -16,7 +16,7 @@ defineProps<{ aliasDomain: AliasDomain; linkDomains: boolean }>()
     <RouterLink
       v-if="linkDomains"
       :to="{ name: 'domain-detail', params: { domain: aliasDomain.targetDomain } }"
-      class="inline-flex min-h-11 max-w-full items-center text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
+      class="inline-flex min-h-11 max-w-full items-center text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
     >
       <DomainNameText
         :name="aliasDomain.targetDomain"

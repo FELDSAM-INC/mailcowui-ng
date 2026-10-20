@@ -41,7 +41,7 @@ const { t } = useI18n()
         {{ t('domains.delete.aliases', { count: preview.removals.aliases.count }) }}
         <details v-if="preview.removals.aliases.addresses.length > 0" class="mt-1">
           <summary
-            class="flex min-h-11 cursor-pointer items-center font-medium text-brand-700 dark:text-brand-300"
+            class="flex min-h-11 cursor-pointer items-center font-medium text-accent-text bg-white dark:bg-gray-900"
           >
             {{ t('domains.delete.showAliases') }}
           </summary>

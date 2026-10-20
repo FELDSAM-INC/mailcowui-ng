@@ -227,7 +227,7 @@ const required = (field: string) =>
           :id="id(field)"
           v-model="values[field]"
           type="checkbox"
-          class="size-5 shrink-0 accent-brand-500"
+          class="size-5 shrink-0 accent-accent"
         />
         <span class="min-w-0 wrap-anywhere">
           <FieldLabel :text="label(field)" :option="OPTION_NAMES[field]" />

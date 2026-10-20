@@ -353,7 +353,7 @@ function clear() {
                   v-model="draft.event"
                   type="checkbox"
                   :value="type"
-                  class="size-5 shrink-0 accent-brand-500"
+                  class="size-5 shrink-0 accent-accent"
                 />
                 <span class="min-w-0 wrap-anywhere">{{ label('eventType', type) }}</span>
               </label>

@@ -112,7 +112,7 @@ function toggleSource(value: MailboxAuthSource, checked: boolean) {
         >
           <input
             type="checkbox"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
             :data-status-filter="status"
             :checked="filters.status.includes(status)"
             @change="toggleStatus(status, ($event.target as HTMLInputElement).checked)"
@@ -141,7 +141,7 @@ function toggleSource(value: MailboxAuthSource, checked: boolean) {
         >
           <input
             type="checkbox"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
             :data-source-filter="source"
             :checked="filters.source.includes(source)"
             @change="toggleSource(source, ($event.target as HTMLInputElement).checked)"

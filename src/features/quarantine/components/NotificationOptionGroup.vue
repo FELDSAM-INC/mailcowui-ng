@@ -73,7 +73,7 @@ const describedBy = computed(() =>
           :name="groupId"
           :value="option.value"
           :checked="modelValue === option.value"
-          class="size-4 accent-brand-500"
+          class="size-4 accent-accent"
           @change="emit('update:modelValue', option.value)"
         />
         {{ lt(option.labelKey) }}

@@ -184,7 +184,7 @@ useLeaveGuard(
                 :name="item.field"
                 type="checkbox"
                 :disabled="saving || capabilities.demoMode"
-                class="size-5 shrink-0 accent-brand-600"
+                class="size-5 shrink-0 accent-accent"
               />
               {{ lt(item.label) }}
             </label>

@@ -108,7 +108,7 @@ function sortBy(field: QuarantineSort) {
           <RouterLink
             v-if="field === 'subject'"
             :to="itemRoute(item)"
-            class="inline-flex min-h-11 min-w-11 items-center text-brand-700 underline dark:text-brand-300"
+            class="inline-flex min-h-11 min-w-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
             ><PlainText :value="item.subject || '-'"
           /></RouterLink>
           <QuarantineItemValue v-else :item="item" :field="field" />
@@ -159,7 +159,7 @@ function sortBy(field: QuarantineSort) {
       <h2 class="font-semibold">
         <RouterLink
           :to="itemRoute(item)"
-          class="inline-flex min-h-11 min-w-11 max-w-full items-center text-brand-700 underline dark:text-brand-300"
+          class="inline-flex min-h-11 min-w-11 max-w-full items-center text-accent-text bg-white dark:bg-gray-900 underline"
           ><PlainText :value="item.subject || '-'"
         /></RouterLink>
       </h2>

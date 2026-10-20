@@ -146,12 +146,7 @@ async function submit() {
       class="-mt-2 text-sm text-gray-600 dark:text-gray-400"
     />
     <label class="flex min-h-11 cursor-pointer items-center gap-3 text-gray-800 dark:text-gray-200">
-      <input
-        :id="`${ID}-active`"
-        v-model="active"
-        type="checkbox"
-        class="size-5 accent-brand-500"
-      />
+      <input :id="`${ID}-active`" v-model="active" type="checkbox" class="size-5 accent-accent" />
       <span>{{ lt('add.active') }}</span>
     </label>
   </EntryCreateFrame>

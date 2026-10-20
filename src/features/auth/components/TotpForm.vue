@@ -68,7 +68,7 @@ function submit() {
             type="radio"
             :name="groupName"
             :value="method.id"
-            class="size-5 accent-brand-500"
+            class="size-5 accent-accent"
           />
           <span class="min-w-0 wrap-anywhere">{{ method.name }}</span>
         </label>

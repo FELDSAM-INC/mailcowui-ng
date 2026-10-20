@@ -147,7 +147,7 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
             <td class="px-2 py-3">
               <button
                 type="button"
-                class="min-h-6 text-start font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
+                class="min-h-6 text-start font-medium text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
                 :aria-label="`${label(texts.openLogs)}: ${jobLabel(job)}`"
                 @click="emit('openLog', job)"
               >

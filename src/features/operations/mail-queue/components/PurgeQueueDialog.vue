@@ -111,7 +111,7 @@ function onConfirm() {
               :id="acknowledgeId"
               v-model="acknowledged"
               type="checkbox"
-              class="mt-0.5 size-5 shrink-0 accent-brand-500"
+              class="mt-0.5 size-5 shrink-0 accent-accent"
             />
             <span>{{ t('operations.queue.purgeAcknowledge') }}</span>
           </label>

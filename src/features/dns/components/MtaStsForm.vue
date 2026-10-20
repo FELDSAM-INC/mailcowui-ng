@@ -150,7 +150,7 @@ const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
           id="mta-sts-active"
           v-model="model.active"
           type="checkbox"
-          class="size-5 shrink-0 accent-brand-500"
+          class="size-5 shrink-0 accent-accent"
           :aria-describedby="describedBy('mta-sts-active', 'active')"
         />
         <span>{{ lt('edit.active') }}</span>

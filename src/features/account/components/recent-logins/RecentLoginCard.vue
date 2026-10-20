@@ -30,7 +30,7 @@ const country = computed(() =>
     <RouterLink
       v-if="entry.appPassword?.name && appPasswordLink"
       :to="appPasswordLink"
-      class="inline-flex min-h-11 items-center text-brand-700 underline dark:text-brand-400"
+      class="inline-flex min-h-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
       >{{ entry.appPassword.name }}</RouterLink
     >
     <p v-else-if="entry.appPassword">

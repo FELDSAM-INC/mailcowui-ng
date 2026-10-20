@@ -76,7 +76,7 @@ function onAction(value: Exclude<GotoAction, 'none'>, checked: boolean) {
       >
         <input
           type="checkbox"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
           :checked="gotoAction === action.value"
           @change="onAction(action.value, ($event.target as HTMLInputElement).checked)"
         />

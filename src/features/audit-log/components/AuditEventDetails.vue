@@ -97,7 +97,7 @@ const rows = computed<Row[]>(() => [
           <RouterLink
             v-if="row.link"
             :to="row.link"
-            class="text-brand-600 underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+            class="text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-brand-500"
             ><PlainText :value="row.lines.join(' ')"
           /></RouterLink>
           <PlainText v-else-if="row.lines.length === 1" :value="row.lines[0]" />
@@ -108,7 +108,7 @@ const rows = computed<Row[]>(() => [
             <button
               v-if="shownLines(row).length < row.lines.length"
               type="button"
-              class="inline-flex min-h-11 items-center font-medium text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+              class="inline-flex min-h-11 items-center font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
               @click="expand(row.key)"
             >
               {{ t('auditLog.details.showAll', { count: row.lines.length }) }}
@@ -120,7 +120,7 @@ const rows = computed<Row[]>(() => [
   </section>
   <Collapsible v-else v-model:open="open">
     <CollapsibleTrigger
-      class="flex min-h-11 items-center gap-2 rounded-lg font-medium text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+      class="flex min-h-11 items-center gap-2 rounded-lg font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
     >
       {{ open ? t('auditLog.details.hide') : t('auditLog.details.show') }}
       <ChevronDownIcon

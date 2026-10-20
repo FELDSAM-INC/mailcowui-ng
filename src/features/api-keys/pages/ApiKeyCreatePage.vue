@@ -199,7 +199,7 @@ const hint = 'text-sm text-gray-600 dark:text-gray-400'
               type="radio"
               :value="level"
               :aria-describedby="`${ids.access}-${level}-hint`"
-              class="mt-0.5 size-5 shrink-0 accent-brand-500"
+              class="mt-0.5 size-5 shrink-0 accent-accent"
             />
             <span class="flex flex-col">
               <span class="font-medium">{{ text(`enums.apiKeyAccessLevel.${level}`) }}</span>

@@ -61,7 +61,7 @@ function choose(choice: ExpiryChoice) {
           :name="name"
           :value="choice"
           :checked="modelValue.choice === choice"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
           @change="choose(choice)"
         />
         {{ t(LABELS[choice]) }}

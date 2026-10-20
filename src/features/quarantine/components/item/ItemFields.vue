@@ -75,7 +75,7 @@ const HEADING = 'text-lg font-semibold text-gray-900 dark:text-white'
             params: { address: item.recipient },
             hash: '#spam-filter',
           }"
-          class="inline-flex min-h-11 max-w-full items-center text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+          class="inline-flex min-h-11 max-w-full items-center text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
         >
           <PlainText :value="recipient.address" />
         </RouterLink>

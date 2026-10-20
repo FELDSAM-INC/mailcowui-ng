@@ -14,6 +14,7 @@ import { isApiProblem, refreshCsrfToken } from '@/api'
 import { prefetchLegacy } from '@/i18n'
 import { DEFAULT_LOCALE, isAppLocale } from '@/i18n/locales'
 
+import { installBrandColors } from './branding/brand-colors'
 import { brandingFrom, publicConfigQuery } from './branding/public-config'
 import { rememberedLocale } from './preferences/locale'
 import { usePreferencesStore } from './preferences/store'
@@ -61,6 +62,7 @@ async function applyPreferences(ctx: BootstrapContext, signedIn: boolean): Promi
 
 export async function runBootstrap(ctx: BootstrapContext): Promise<BootstrapStatus> {
   context = ctx
+  installBrandColors(ctx.queryClient)
   if (status.value === 'ready') {
     ready = new Promise<void>((resolve) => {
       resolveReady = resolve

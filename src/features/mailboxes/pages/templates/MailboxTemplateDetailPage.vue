@@ -147,7 +147,7 @@ const items = computed(() => {
   <article v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
     <RouterLink
       :to="{ name: 'mailbox-templates' }"
-      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
+      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
     >
       <span aria-hidden="true">←&nbsp;</span>{{ lt('edit.previous') }}
     </RouterLink>

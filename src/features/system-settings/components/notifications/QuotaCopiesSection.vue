@@ -180,7 +180,7 @@ useLeaveGuard(
             v-model="draft.active"
             type="checkbox"
             :disabled="saving || !allowed || unavailable"
-            class="size-5 accent-brand-600"
+            class="size-5 accent-accent"
           />{{ lt('edit.active') }}</label
         >
         <p

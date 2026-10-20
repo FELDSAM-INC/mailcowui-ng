@@ -25,7 +25,7 @@ const { t } = useI18n()
     </div>
     <RouterLink
       to="/"
-      class="mt-6 inline-flex min-h-11 items-center rounded-lg bg-brand-500 px-4 font-medium text-white hover:bg-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+      class="mt-6 inline-flex min-h-11 items-center rounded-lg bg-accent px-4 font-medium text-accent-foreground hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
     >
       {{ t('common.goHome') }}
     </RouterLink>

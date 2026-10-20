@@ -19,6 +19,10 @@
 @custom-variant data-pressed (&:is([data-state='on'], [data-pressed]));
 
 @theme inline {
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-text: var(--accent-text);
+  --color-accent-hover: var(--accent-hover);
   --animate-collapsible-down: collapsible-down 300ms ease-in-out;
   --animate-collapsible-up: collapsible-up 300ms ease-in-out;
 
@@ -188,6 +192,11 @@
   }
 
   :root {
+    --accent: var(--brand-light, var(--color-brand-500));
+    --accent-foreground: var(--brand-light-foreground, #ffffff);
+    --accent-text: var(--brand-light, var(--color-brand-600));
+    --accent-hover: var(--brand-light-hover, var(--color-brand-600));
+    --color-focus: var(--color-brand-500);
     /* Height of the sticky shell header; focused elements never hide behind it (WCAG 2.4.11). */
     --header-height: 4rem;
     --shell-sticky-height: var(--header-height);
@@ -202,6 +211,11 @@
   }
 
   :root.dark {
+    --accent: var(--brand-dark, var(--color-brand-500));
+    --accent-foreground: var(--brand-dark-foreground, #ffffff);
+    --accent-text: var(--brand-dark, var(--color-brand-300));
+    --accent-hover: var(--brand-dark-hover, var(--color-brand-600));
+    --color-focus: var(--color-brand-400);
     --color-acting-bg: #4e1d09;
     --color-acting-fg: #fef0c7;
     --color-acting-border: #dc6803;
@@ -221,12 +235,12 @@
 
   /* Visible focus for every focusable element without its own focus style (constitution III). */
   :focus-visible {
-    outline: 2px solid var(--color-brand-500);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
 
   .dark :focus-visible {
-    outline-color: var(--color-brand-400);
+    outline-color: var(--color-focus);
   }
 
   /* Transitions and animations only when the device allows motion (FR-085). */
@@ -255,7 +269,7 @@
 
 /* A standalone text link with a 44 px touch target (research R21). */
 @utility text-link {
-  @apply inline-flex min-h-11 items-center font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300;
+  @apply inline-flex min-h-11 items-center font-medium text-accent-text bg-white underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:bg-gray-900;
 }
 
 /* Navigation menu classes from TailAdmin, with 44 px touch targets (research R4 deviation 6). */

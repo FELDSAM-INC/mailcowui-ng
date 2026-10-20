@@ -97,7 +97,7 @@ function onCloseAutoFocus(event: Event) {
           data-acknowledge
           class="inline-flex min-h-11 items-center gap-3 font-medium text-gray-800 dark:text-gray-200"
         >
-          <input v-model="acknowledged" type="checkbox" class="size-5 shrink-0 accent-brand-500" />
+          <input v-model="acknowledged" type="checkbox" class="size-5 shrink-0 accent-accent" />
           <span class="min-w-0">{{ shown.acknowledge.label }}</span>
         </label>
         <div v-if="shown?.requireTyped" class="flex flex-col gap-1.5">

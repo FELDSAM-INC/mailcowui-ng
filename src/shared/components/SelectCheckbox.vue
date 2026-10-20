@@ -11,7 +11,7 @@ const emit = defineEmits<{ change: [checked: boolean] }>()
   >
     <input
       type="checkbox"
-      class="size-5 accent-brand-500 disabled:cursor-not-allowed"
+      class="size-5 accent-accent disabled:cursor-not-allowed"
       :aria-label="label"
       :checked="checked"
       :disabled="disabled"

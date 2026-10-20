@@ -217,17 +217,12 @@ async function submit() {
         :id="`${ID}-mxBased`"
         v-model="mxBased"
         type="checkbox"
-        class="mt-1 size-5 shrink-0 accent-brand-500"
+        class="mt-1 size-5 shrink-0 accent-accent"
       />
       <LegacyText k="admin.lookup_mx" class="wrap-anywhere" />
     </label>
     <label class="flex min-h-11 cursor-pointer items-center gap-3 text-gray-800 dark:text-gray-200">
-      <input
-        :id="`${ID}-active`"
-        v-model="active"
-        type="checkbox"
-        class="size-5 accent-brand-500"
-      />
+      <input :id="`${ID}-active`" v-model="active" type="checkbox" class="size-5 accent-accent" />
       <span>{{ lt('admin.active') }}</span>
     </label>
     <LegacyText

@@ -42,7 +42,7 @@ const valueOf = (key: 'inbound' | 'outbound') =>
         <input
           :id="`${idPrefix}-${option.key}`"
           type="checkbox"
-          class="size-4 accent-brand-500"
+          class="size-4 accent-accent"
           :checked="valueOf(option.key)"
           @change="
             option.key === 'inbound'

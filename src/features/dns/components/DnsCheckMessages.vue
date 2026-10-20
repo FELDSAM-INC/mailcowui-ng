@@ -60,7 +60,7 @@ const views = computed(() =>
         :href="item.view.link"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex min-h-11 items-center gap-1 self-start text-brand-700 underline underline-offset-2 dark:text-brand-300"
+        class="inline-flex min-h-11 items-center gap-1 self-start text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2"
       >
         {{ t('dns.diagnostics.learnMore') }}
         <ExternalLinkIcon class="size-4" />

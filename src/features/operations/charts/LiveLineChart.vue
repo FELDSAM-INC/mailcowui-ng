@@ -175,7 +175,7 @@ const STROKES = ['stroke-chart-1', 'stroke-chart-2'] as const
       <div>
         <button
           type="button"
-          class="inline-flex min-h-11 items-center text-sm font-medium text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+          class="inline-flex min-h-11 items-center text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
           :aria-expanded="showTable"
           :aria-controls="`${id}-table`"
           @click="showTable = !showTable"

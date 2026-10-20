@@ -139,7 +139,7 @@ const detailsId = (key: string) => `${listId}-${key}`
       </dl>
       <button
         type="button"
-        class="mt-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium text-brand-600 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-300"
+        class="mt-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
         :aria-expanded="expanded.has(keyOf(entry, index)) ? 'true' : 'false'"
         :aria-controls="
           expanded.has(keyOf(entry, index)) ? detailsId(keyOf(entry, index)) : undefined

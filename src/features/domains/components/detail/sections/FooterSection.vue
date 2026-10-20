@@ -175,7 +175,7 @@ const TEXTAREA =
             id="section-footer-skipReplies"
             v-model="s.form.value.skipReplies"
             type="checkbox"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
           />
           <span>{{ lt('edit.domain_footer_skip_replies') }}</span>
         </label>

@@ -15,7 +15,7 @@ function skip(event: MouseEvent) {
 <template>
   <a
     href="#main"
-    class="sr-only z-200 rounded-lg bg-white px-4 py-3 font-medium text-brand-700 shadow-theme-lg focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:outline-2 focus:outline-brand-500 dark:bg-gray-900 dark:text-brand-300"
+    class="sr-only z-200 rounded-lg bg-white px-4 py-3 font-medium text-accent-text bg-white dark:bg-gray-900 shadow-theme-lg focus:not-sr-only focus:fixed focus:start-3 focus:top-3 focus:outline-2 focus:outline-brand-500 dark:bg-gray-900"
     @click="skip"
   >
     {{ t('a11y.skipToContent') }}

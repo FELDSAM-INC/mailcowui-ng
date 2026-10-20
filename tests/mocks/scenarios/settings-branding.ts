@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs'
-import type { LogoSetting, UiTexts } from '@/api'
+import type { BrandColors, LogoSetting, UiTexts } from '@/api'
+import { contrastRatio, foreground } from '@/shared/color/contrast'
 import type { ScenarioDefinition } from './index'
 import type { ScenarioState } from './state'
 
 interface BrandingState {
   logos: Record<LogoSetting['variant'], { metadata: LogoSetting; bytes: Uint8Array | null }>
   texts: UiTexts
+  colours: BrandColors
   revision: number
 }
 const stores = new WeakMap<ScenarioState, BrandingState>()
@@ -50,6 +52,12 @@ export function brandingState(state: ScenarioState): BrandingState {
       },
       etag: '"ui-texts-1"',
     },
+    colours: {
+      light: null,
+      dark: null,
+      effective: { light: null, dark: null },
+      etag: '"brand-colours-1"',
+    },
     revision: 1,
   }
   stores.set(state, result)
@@ -65,6 +73,31 @@ export function publishUiTexts(state: ScenarioState) {
     footerHtml: text.footerHtml || null,
     announcement: { ...text.announcement },
   })
+}
+export function publishBrandColors(state: ScenarioState) {
+  const colours = brandingState(state).colours
+  const cap = state.settings.capabilities.brandColors
+  const dark =
+    colours.dark ??
+    (colours.light &&
+    contrastRatio(colours.light, cap.darkReferenceSurface)! >= cap.minimumContrastRatio
+      ? colours.light
+      : null)
+  colours.effective = {
+    light: colours.light ? { color: colours.light, foreground: foreground(colours.light)! } : null,
+    dark: dark ? { color: dark, foreground: foreground(dark)! } : null,
+  }
+  state.publicConfig.brandColors = structuredClone(colours.effective)
+}
+function seedColours(light: string | null, dark: string | null): ScenarioDefinition {
+  return {
+    description: 'Theme-specific brand colours with the API effective-colour rules.',
+    overrides: { signedInAs: 'admin' },
+    setup(state) {
+      Object.assign(brandingState(state).colours, { light, dark })
+      publishBrandColors(state)
+    },
+  }
 }
 function seedLogo(state: ScenarioState, variant: LogoSetting['variant'], file: string) {
   const bytes = new Uint8Array(readFileSync(`tests/fixtures/logos/${file}`))
@@ -88,6 +121,11 @@ function seedLogo(state: ScenarioState, variant: LogoSetting['variant'], file: s
   }
 }
 export const settingsBrandingScenarios: Record<string, ScenarioDefinition> = {
+  'brand-colours-none': seedColours(null, null),
+  'brand-colours-set': seedColours('#1d4ed8', '#60a5fa'),
+  'brand-colours-light-only': seedColours('#1d4ed8', null),
+  'brand-colours-limit': seedColours('#767676', '#8f8f8f'),
+  'brand-colours-extreme': seedColours('#0f766e', '#f472b6'),
   'branding-light-logo': {
     description: 'A custom light logo and the deployment default for dark mode.',
     overrides: { signedInAs: 'admin' },

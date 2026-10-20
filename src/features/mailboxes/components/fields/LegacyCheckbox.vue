@@ -37,7 +37,7 @@ const describedBy = computed(
       <input
         :id="id"
         type="checkbox"
-        class="size-5 shrink-0 accent-brand-500 disabled:cursor-not-allowed"
+        class="size-5 shrink-0 accent-accent disabled:cursor-not-allowed"
         :checked="modelValue"
         :disabled="disabled || !!lockedBy"
         :aria-describedby="describedBy"

@@ -124,7 +124,7 @@ const LIMITS = ['maxAliases', 'maxMailboxes', 'maxMailboxQuota', 'domainQuota'] 
           <input
             :id="`${idPrefix}-gal`"
             type="checkbox"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
             :checked="modelValue.globalAddressList"
             :aria-describedby="`${idPrefix}-gal-help`"
             @change="update('globalAddressList', ($event.target as HTMLInputElement).checked)"
@@ -144,7 +144,7 @@ const LIMITS = ['maxAliases', 'maxMailboxes', 'maxMailboxQuota', 'domainQuota'] 
         <input
           :id="`${idPrefix}-active`"
           type="checkbox"
-          class="size-5 shrink-0 accent-brand-500"
+          class="size-5 shrink-0 accent-accent"
           :checked="modelValue.active"
           @change="update('active', ($event.target as HTMLInputElement).checked)"
         />

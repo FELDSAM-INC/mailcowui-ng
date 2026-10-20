@@ -133,7 +133,7 @@ const subtitle = computed(() =>
 const DT = 'text-sm text-gray-600 dark:text-gray-400'
 const DD = 'min-w-0 break-words text-gray-900 dark:text-white'
 const LINK =
-  'inline-flex min-h-11 items-center break-all text-brand-600 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400'
+  'inline-flex min-h-11 items-center break-all text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 '
 </script>
 
 <template>

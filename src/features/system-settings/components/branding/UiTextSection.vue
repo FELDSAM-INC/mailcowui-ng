@@ -261,7 +261,7 @@ async function save(retry = false) {
               v-model="draft.announcement.active"
               type="checkbox"
               :disabled="saving || capabilities.demoMode"
-              class="size-5 shrink-0 accent-brand-600"
+              class="size-5 shrink-0 accent-accent"
             />{{ label('announcement.active') }}</label
           >
           <div data-announcement-preview>

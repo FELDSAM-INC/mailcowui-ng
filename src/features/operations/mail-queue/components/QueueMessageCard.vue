@@ -52,7 +52,7 @@ const fmt = useFormat()
         />
         <details v-if="message.recipients.length > 1" class="mt-1">
           <summary
-            class="inline-flex min-h-11 cursor-pointer items-center font-medium text-brand-600 dark:text-brand-300"
+            class="inline-flex min-h-11 cursor-pointer items-center font-medium text-accent-text bg-white dark:bg-gray-900"
           >
             {{ t('operations.queue.moreRecipients', { count: message.recipients.length - 1 }) }}
           </summary>

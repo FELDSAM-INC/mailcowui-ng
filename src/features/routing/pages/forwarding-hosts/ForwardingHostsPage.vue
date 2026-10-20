@@ -164,7 +164,7 @@ const sorts = computed(() => forwardingHostSorts())
         v-if="entry.source !== ''"
         type="button"
         translate="no"
-        class="inline-flex min-h-11 min-w-11 items-center text-left wrap-anywhere text-brand-600 underline underline-offset-2 hover:text-brand-700 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-brand-400"
+        class="inline-flex min-h-11 min-w-11 items-center text-left wrap-anywhere text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
         :aria-pressed="source === entry.source ? 'true' : 'false'"
         @click="controller.list.setFilter('source', entry.source)"
       >

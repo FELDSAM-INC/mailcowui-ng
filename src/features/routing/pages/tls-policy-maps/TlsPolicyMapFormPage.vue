@@ -249,7 +249,7 @@ const errorsFor = (path: string) =>
           :id="`${ID}-active`"
           v-model="values.active"
           type="checkbox"
-          class="size-5 accent-brand-500"
+          class="size-5 accent-accent"
         />
         <span>{{ lt(creating ? 'add.active' : 'edit.active') }}</span>
       </label>

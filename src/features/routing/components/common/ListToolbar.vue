@@ -134,7 +134,7 @@ function removeChip(key: string) {
             >
               <input
                 type="checkbox"
-                class="size-5 accent-brand-500"
+                class="size-5 accent-accent"
                 :checked="selected(filter.key).includes(option.value)"
                 @change="
                   toggleCheck(filter.key, option.value, ($event.target as HTMLInputElement).checked)

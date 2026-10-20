@@ -462,7 +462,7 @@ const textareaClass =
             :id="fieldId('banTimeIncrement')"
             v-model="form.banTimeIncrement"
             type="checkbox"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
           />
           <span>{{ lt(LABELS.banTimeIncrement) }}</span>
         </label>
@@ -478,7 +478,7 @@ const textareaClass =
             type="checkbox"
             role="switch"
             :aria-describedby="`${fieldId('externallyEnforced')}-info`"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
           />
           <span>{{ lt(LABELS.externallyEnforced) }}</span>
         </label>

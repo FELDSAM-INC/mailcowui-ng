@@ -27,7 +27,7 @@ const currentLabel = computed(() =>
   ),
 )
 const linkClass =
-  'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-brand-50 aria-[current=page]:text-brand-700 dark:text-gray-300 dark:hover:bg-white/5 dark:aria-[current=page]:bg-brand-500/15 dark:aria-[current=page]:text-brand-300'
+  'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:hover:bg-accent-hover dark:text-gray-300 dark:hover:bg-white/5 dark:aria-[current=page]:bg-accent dark:aria-[current=page]:text-accent-foreground dark:aria-[current=page]:hover:bg-accent-hover'
 </script>
 
 <template>

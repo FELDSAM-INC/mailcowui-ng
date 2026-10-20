@@ -157,7 +157,7 @@ onMounted(() => {
             <RouterLink
               v-if="row.outcome === 'created'"
               :to="dkimKeyLocation(row.name)"
-              class="min-w-0 flex-1 font-medium break-all text-brand-700 underline underline-offset-2 dark:text-brand-300"
+              class="min-w-0 flex-1 font-medium break-all text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2"
             >
               {{ row.label }}
             </RouterLink>

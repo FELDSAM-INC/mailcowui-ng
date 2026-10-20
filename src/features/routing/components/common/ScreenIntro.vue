@@ -13,6 +13,6 @@ defineProps<{ hint: LegacyKey }>()
     :k="hint"
     as="p"
     data-screen-intro
-    class="text-sm wrap-anywhere text-gray-700 dark:text-gray-300 [&_a]:font-medium [&_a]:text-brand-600 [&_a]:underline dark:[&_a]:text-brand-400"
+    class="text-sm wrap-anywhere text-gray-700 dark:text-gray-300 [&_a]:font-medium [&_a]:text-accent-text [&_a]:bg-white dark:[&_a]:bg-gray-900 [&_a]:underline"
   />
 </template>

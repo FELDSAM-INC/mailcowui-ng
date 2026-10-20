@@ -282,6 +282,34 @@
       "limitError": "Keep at most 50 custom links.",
       "appLinkUrl": "Enter an http or https URL or a path starting with one /. Use %u only in User link. Spaces and control characters are not allowed.",
       "singleLine": "Enter this value on one line without control characters."
+    },
+    "colours": {
+      "title": "Colours",
+      "description": "Set accessible accent colours for the light and dark themes.",
+      "settings": "Brand colours",
+      "preview": "Colour preview",
+      "light": "Light theme colour",
+      "dark": "Dark theme colour",
+      "format": "Enter six hexadecimal digits, with or without #. Leave empty to use the default palette.",
+      "picker": "Choose {theme}",
+      "ratio": "{ratio}:1, minimum {minimum}:1, against {surface}.",
+      "passes": "Passes.",
+      "fails": "Fails.",
+      "needsContrast": "Choose a colour that meets the minimum contrast.",
+      "offer": "Use adjusted colour {colour}",
+      "darkUsesLight": "The dark theme uses the light theme colour because it meets the contrast requirement.",
+      "darkDefault": "The light colour does not meet the dark theme contrast requirement. The dark theme keeps the default palette.",
+      "previewDefault": "The preview keeps the default palette until this colour meets the contrast requirement.",
+      "classic": "These colours apply to this interface. The classic interface keeps its own palette. Clear a value to restore the default palette for that theme.",
+      "default": "Default palette",
+      "saved": "Brand colours saved.",
+      "sampleButton": "Primary button",
+      "sampleLink": "Example link",
+      "sampleNavigation": "Selected navigation",
+      "sampleSwitch": "Enabled switch"
     }
+  },
+  "validation": {
+    "insufficientContrast": "The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}."
   }
 }

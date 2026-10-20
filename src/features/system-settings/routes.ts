@@ -63,6 +63,12 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
         path: 'customize',
         component: () => import('./layouts/CustomizeLayout.vue'),
         children: [
+          {
+            path: 'colours',
+            name: 'system-settings-colours',
+            component: () => import('./pages/branding/ColoursPage.vue'),
+            meta: { titleKey: 'systemSettings.colours.title' },
+          },
           { path: '', redirect: { name: 'system-settings-logos' } },
           {
             path: 'login-page',

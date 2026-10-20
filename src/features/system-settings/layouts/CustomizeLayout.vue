@@ -14,6 +14,12 @@ const items = computed(() => [
     current: route.name === 'system-settings-logos',
   },
   {
+    id: 'colours',
+    labelKey: 'systemSettings.colours.title',
+    to: '/system/customize/colours',
+    current: route.name === 'system-settings-colours',
+  },
+  {
     id: 'ui-texts',
     labelKey: legacy('admin.ui_texts'),
     to: '/system/customize/ui-texts',

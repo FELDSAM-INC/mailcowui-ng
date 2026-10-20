@@ -134,7 +134,7 @@ const SELECT =
         >
           <input
             type="checkbox"
-            class="size-5 accent-brand-500"
+            class="size-5 accent-accent"
             :checked="filters.kind.includes(kind)"
             @change="toggle('kind', kind, ($event.target as HTMLInputElement).checked)"
           />
@@ -152,7 +152,7 @@ const SELECT =
         >
           <input
             type="checkbox"
-            class="size-5 accent-brand-500"
+            class="size-5 accent-accent"
             :checked="filters.destinationType.includes(type)"
             @change="toggle('destinationType', type, ($event.target as HTMLInputElement).checked)"
           />

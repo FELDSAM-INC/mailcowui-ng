@@ -344,7 +344,7 @@ const LIMITS = [
             id="section-domain-globalAddressList"
             v-model="s.form.value.globalAddressList"
             type="checkbox"
-            class="size-5 shrink-0 accent-brand-500"
+            class="size-5 shrink-0 accent-accent"
             aria-describedby="section-domain-gal-help"
             :disabled="!s.canEdit('globalAddressList')"
           />
@@ -364,7 +364,7 @@ const LIMITS = [
           id="section-domain-active"
           v-model="s.form.value.active"
           type="checkbox"
-          class="size-5 shrink-0 accent-brand-500"
+          class="size-5 shrink-0 accent-accent"
           :disabled="!s.canEdit('active')"
         />
         <span>{{ lt('edit.active') }}</span>

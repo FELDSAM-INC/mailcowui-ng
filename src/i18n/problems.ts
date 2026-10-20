@@ -220,6 +220,13 @@ export function violationParams(
     else if (key === 'max' && bytesMax) named[key] = size(value, true)
     else named[key] = formatNumber(value, locale)
   }
+  // UI 013: keep the authoritative measured contrast and reference in colour refusals.
+  if (violation.code === 'insufficientContrast') {
+    for (const key of ['ratio', 'minimum'] as const) {
+      if (typeof params[key] === 'number') named[key] = formatNumber(params[key], locale)
+    }
+    if (typeof params.surface === 'string') named.surface = params.surface
+  }
   // UI 006: a fractional factor (0.1, the spam score step) is a number, not a size.
   if (typeof params.factor === 'number') {
     named.factor =

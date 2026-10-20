@@ -1,11 +1,54 @@
 import { createHash } from 'node:crypto'
+import { contrastRatio, normalizeHex } from '@/shared/color/contrast'
 import type { LogoSetting } from '@/api'
 import { inspectLogo, unsafeSvg } from '../factories/logo-image'
-import { brandingState, publishUiTexts } from '../scenarios/settings-branding'
+import { brandingState, publishUiTexts, publishBrandColors } from '../scenarios/settings-branding'
 import { http, problem, scenario } from './context'
 import { addViolation, requireAdmin, validationFailed, type Violations } from './domain-rules'
 
 export const settingsBrandingHandlers = [
+  http.get('/settings/brand-colors', ({ response }) => {
+    const state = scenario(),
+      account = requireAdmin(state)
+    if (account instanceof Response) return response.untyped(account)
+    const data = brandingState(state).colours
+    return response(200).json({ data }, { headers: { ETag: data.etag } })
+  }),
+  http.patch('/settings/brand-colors', async ({ request, response }) => {
+    const state = scenario(),
+      account = requireAdmin(state)
+    if (account instanceof Response) return response.untyped(account)
+    if (state.settings.capabilities.demoMode) return response.untyped(problem(403, 'demo-mode'))
+    const store = brandingState(state),
+      before = store.colours
+    if (request.headers.get('if-match') !== before.etag) return response.untyped(problem(412, null))
+    const body = await request.json(),
+      errors: Violations = {},
+      cap = state.settings.capabilities.brandColors
+    for (const theme of ['light', 'dark'] as const) {
+      const value = body[theme],
+        surface = theme === 'light' ? cap.lightReferenceSurface : cap.darkReferenceSurface
+      if (value === undefined || value === null) continue
+      if (!/^#[0-9a-f]{6}$/i.test(value))
+        addViolation(errors, theme, 'invalidFormat', { format: 'hexColor' })
+      else {
+        const ratio = contrastRatio(value, surface)!
+        if (ratio < cap.minimumContrastRatio)
+          addViolation(errors, theme, 'insufficientContrast', {
+            ratio: Math.floor(ratio * 100) / 100,
+            minimum: cap.minimumContrastRatio,
+            surface,
+          })
+      }
+    }
+    if (Object.keys(errors).length) return response.untyped(validationFailed(errors))
+    store.colours = { ...before, etag: `"brand-colours-${++store.revision}"` }
+    for (const theme of ['light', 'dark'] as const)
+      if (body[theme] !== undefined)
+        store.colours[theme] = body[theme] === null ? null : normalizeHex(body[theme])
+    publishBrandColors(state)
+    return response(200).json({ data: store.colours }, { headers: { ETag: store.colours.etag } })
+  }),
   http.get('/settings/logos/{variant}', ({ params, response }) => {
     const state = scenario(),
       account = requireAdmin(state)

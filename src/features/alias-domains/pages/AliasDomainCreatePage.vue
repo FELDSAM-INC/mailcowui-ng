@@ -256,7 +256,7 @@ const retryable = computed(() => problems.formProblem.value?.kind === 'network')
           <input
             :id="`${ID}-active`"
             type="checkbox"
-            class="size-5 accent-brand-500"
+            class="size-5 accent-accent"
             :checked="form.active"
             @change="update('active', ($event.target as HTMLInputElement).checked)"
           />

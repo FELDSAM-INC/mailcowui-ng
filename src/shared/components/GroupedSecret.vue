@@ -6,7 +6,10 @@ import { computed, ref } from 'vue'
 
 import CopyButton from './CopyButton.vue'
 
-const props = defineProps<{ value: string; copyLabel: string }>()
+const props = withDefaults(
+  defineProps<{ value: string; copyLabel: string; showCopy?: boolean }>(),
+  { showCopy: true },
+)
 const target = ref<HTMLElement | null>(null)
 const groups = computed(() => props.value.match(/.{1,4}/g) ?? [])
 </script>
@@ -22,6 +25,6 @@ const groups = computed(() => props.value.match(/.{1,4}/g) ?? [])
         ><span v-if="index < groups.length - 1" class="sr-only">, </span></template
       ></code
     >
-    <CopyButton :text="value" :label="copyLabel" :select-target="target" />
+    <CopyButton v-if="showCopy" :text="value" :label="copyLabel" :select-target="target" />
   </div>
 </template>

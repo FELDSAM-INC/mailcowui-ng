@@ -6,6 +6,7 @@ import type { QueryClient } from '@tanstack/vue-query'
 import type { RouteLocationNormalizedGeneric, RouteLocationRaw, Router } from 'vue-router'
 
 import type { Identity, SessionState } from '@/api'
+import { captureResetToken } from '@/features/auth'
 
 import { canAccess } from '../navigation/visibility'
 import { identityQuery, isSignedIn, sessionQuery } from '../session/queries'
@@ -88,6 +89,12 @@ export function routeAccess(
 
 export function installGuards(router: Router, ctx: GuardContext): void {
   router.beforeEach(async (to) => {
+    // A fragment/query update of the same route skips beforeEnter. Scrub every reset link,
+    // including those updates, before waiting on bootstrap or the session.
+    if (to.name === 'password-reset') {
+      const clean = captureResetToken(to)
+      if (clean !== true) return clean
+    }
     await ctx.ready?.()
     const session = await ctx.queryClient.fetchQuery(sessionQuery())
     const target = routeForState(session.state, to, router)

@@ -14,7 +14,7 @@ import { lt, resolveText } from '@/i18n'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
-import { useSelfServiceCapabilities } from '../../api/capabilities'
+import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import { useOfferedSections } from '../../composables/useOfferedSections'
 import { findSection, ownVisibility } from '../../sections'
 import SectionNav from './SectionNav.vue'

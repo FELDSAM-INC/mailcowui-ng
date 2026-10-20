@@ -15,6 +15,7 @@ import {
   type PasswordResetCompletionRequest,
   type PasswordResetTokenInfo,
   type SecondFactorMethod,
+  type SecondFactorType,
   type SecondFactorVerification,
   type Writable,
 } from '@/api'
@@ -31,7 +32,7 @@ import {
   completePasswordReset,
   createPasswordResetWebAuthnChallenge,
 } from '../api'
-import { clearResetToken, takeResetToken } from '../reset-token'
+import { takeResetToken } from '../reset-token'
 
 export type ResetState =
   | 'checking'
@@ -49,6 +50,7 @@ export function usePasswordReset() {
   const state = ref<ResetState>('checking')
   const info = shallowRef<PasswordResetTokenInfo | null>(null)
   const methods = shallowRef<SecondFactorMethod[]>([])
+  const submittedMethod = ref<SecondFactorType | null>(null)
   const problem = shallowRef<ApiProblem | null>(null)
   /** The current session's username when a session is open (FR-042). */
   const signedInAs = ref<string | null>(null)
@@ -56,6 +58,8 @@ export function usePasswordReset() {
   let token: string | null = null
   /** The password of the password step, kept for the factor step only. */
   let password: string | null = null
+  let authenticator: AbortController | null = null
+  let active = true
 
   const check = useSecretRequest(checkPasswordResetToken, { sessionReactions: false })
   const complete = useSecretRequest(completePasswordReset, { sessionReactions: false })
@@ -76,7 +80,8 @@ export function usePasswordReset() {
   function forget() {
     token = null
     password = null
-    clearResetToken()
+    authenticator?.abort()
+    authenticator = null
   }
 
   function invalidate() {
@@ -104,6 +109,7 @@ export function usePasswordReset() {
     state.value = 'checking'
     problem.value = null
     const result = await check.run(token)
+    if (!active) return
     if (!result) return fail(check.problem.value)
     info.value = result.info
     skew.value = result.skew
@@ -143,6 +149,7 @@ export function usePasswordReset() {
 
   async function send(body: Writable<PasswordResetCompletionRequest>): Promise<void> {
     const done = await complete.run(body)
+    if (!active) return
     if (done) {
       forget()
       state.value = 'done'
@@ -174,6 +181,7 @@ export function usePasswordReset() {
   async function submitFactor(secondFactor: Writable<SecondFactorVerification>): Promise<void> {
     if (!token || !password || state.value !== 'factor' || throttle.active.value) return
     problem.value = null
+    submittedMethod.value = secondFactor.type
     state.value = 'completing'
     await send({ token, newPassword: password, secondFactor })
     if (state.value === 'completing') state.value = 'factor'
@@ -181,15 +189,27 @@ export function usePasswordReset() {
 
   /** A security key: the reset's own challenge, then the proof. */
   async function submitWebAuthn(): Promise<void> {
-    if (!token || state.value !== 'factor' || throttle.active.value || challenge.pending.value)
+    if (
+      !token ||
+      state.value !== 'factor' ||
+      throttle.active.value ||
+      challenge.pending.value ||
+      authenticator
+    )
       return
     const options = await challenge.run(token)
+    // The link may have expired or the page may have closed while the challenge was loading.
+    if (!token || state.value !== 'factor') return
     if (!options) return fail(challenge.problem.value)
+    const controller = new AbortController()
+    authenticator = controller
     try {
-      const credential = await getAssertion(options.publicKey)
+      const credential = await getAssertion(options.publicKey, { signal: controller.signal })
       await submitFactor({ type: 'webauthn', credential })
     } catch {
       // A cancelled prompt keeps the step.
+    } finally {
+      if (authenticator === controller) authenticator = null
     }
   }
 
@@ -208,12 +228,16 @@ export function usePasswordReset() {
     }
   }
 
-  onScopeDispose(forget)
+  onScopeDispose(() => {
+    active = false
+    forget()
+  })
 
   return {
     state,
     info,
     methods,
+    submittedMethod,
     problem,
     signedInAs,
     remaining: countdown.remaining,

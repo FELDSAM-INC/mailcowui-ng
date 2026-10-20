@@ -3,7 +3,7 @@
 // credential with the name and, outside forced setup, the current password. The waits are
 // announced ("touch your key", then "waiting for the server"); every failure is explained in plain
 // words and offers "Try again", which fetches new options. Nothing is kept after the component.
-import { ref, shallowRef } from 'vue'
+import { onScopeDispose, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem, OwnSecondFactor, WebAuthnCreationOptions } from '@/api'
@@ -45,6 +45,8 @@ export function useSecurityKeyEnrolment() {
   const problem = shallowRef<ApiProblem | null>(null)
   const optionsRequest = useSecretRequest(createSecondFactorWebAuthnOptions)
   const enrolRequest = useSecretRequest(enrolSecondFactor)
+  let disposed = false
+  let ceremony: AbortController | null = null
 
   function fail(text: string | null, failure: ApiProblem | null = null) {
     state.value = 'failed'
@@ -58,6 +60,7 @@ export function useSecurityKeyEnrolment() {
     currentPassword?: string
   }): Promise<OwnSecondFactor | null> {
     if (
+      disposed ||
       state.value === 'requesting' ||
       state.value === 'awaitingKey' ||
       state.value === 'verifying'
@@ -67,6 +70,7 @@ export function useSecurityKeyEnrolment() {
     problem.value = null
     state.value = 'requesting'
     const options = await optionsRequest.run()
+    if (disposed) return null
     if (!options) {
       fail(null, optionsRequest.problem.value)
       return null
@@ -74,12 +78,20 @@ export function useSecurityKeyEnrolment() {
     state.value = 'awaitingKey'
     announce(t('account.twoFactor.webauthn.touchKey'))
     let credential
+    const controller = new AbortController()
+    ceremony = controller
     try {
-      credential = await createRegistration(options.publicKey as WebAuthnCreationOptions)
+      credential = await createRegistration(options.publicKey as WebAuthnCreationOptions, {
+        signal: controller.signal,
+      })
     } catch (error) {
+      if (disposed) return null
       fail(t(securityKeyFailureKey(error) ?? 'passkeys.errors.generic'))
       return null
+    } finally {
+      if (ceremony === controller) ceremony = null
     }
+    if (disposed || controller.signal.aborted) return null
     state.value = 'verifying'
     announce(t('account.twoFactor.webauthn.waitingServer'))
     const entry = await enrolRequest.run({
@@ -88,6 +100,7 @@ export function useSecurityKeyEnrolment() {
       credential,
       ...(input.currentPassword !== undefined ? { currentPassword: input.currentPassword } : {}),
     })
+    if (disposed) return null
     if (entry) {
       state.value = 'done'
       return entry
@@ -106,6 +119,15 @@ export function useSecurityKeyEnrolment() {
     message.value = null
     problem.value = null
   }
+
+  onScopeDispose(() => {
+    disposed = true
+    ceremony?.abort()
+    optionsRequest.clear()
+    enrolRequest.clear()
+    message.value = null
+    problem.value = null
+  })
 
   return { state, message, problem, start, reset }
 }

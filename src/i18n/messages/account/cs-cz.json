@@ -46,6 +46,10 @@
       },
       "protocolShort": {
         "dav": "DAV"
+      },
+      "noProtocol": "Bez vybraného protokolu nebude toto heslo aplikace nikde fungovat.",
+      "regenerate": {
+        "body": "Současné heslo této aplikace přestane fungovat. Nové se zobrazí pouze jednou."
       }
     },
     "sections": {

@@ -127,14 +127,19 @@ export function problemMessage(
   tr: MessageTranslator,
   context: MessageContext = {},
 ): string {
+  const key = problemMessageKey(problem, tr.te)
   // UI 005 (research R6, FR-020): a temporary failure names the service that is unavailable, when
   // it is one the self-service operations name; any other keeps the generic message.
   const dependency = problem.is('temporary-failure') ? problem.dependency : null
   const label = dependency ? `selfService.dependency.${dependency}` : null
-  if (label && tr.te(label) && tr.te('problem.dependency-unavailable')) {
+  if (
+    key === 'problem.temporary-failure' &&
+    label &&
+    tr.te(label) &&
+    tr.te('problem.dependency-unavailable')
+  ) {
     return tr.t('problem.dependency-unavailable', { service: tr.t(label) })
   }
-  const key = problemMessageKey(problem, tr.te)
   const named = extensionParams(problem, tr, context)
   return Object.keys(named).length > 0 ? tr.t(key, named) : tr.t(key)
 }

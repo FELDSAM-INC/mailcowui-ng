@@ -29,6 +29,7 @@ import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
 import { RateLimitSection } from '@/features/rate-limits'
 import { SpamFilterSection } from '@/features/spam-filter'
+import { MailboxAccountLinks } from '@/features/account'
 import { MailboxSyncJobsLink } from '@/features/sync-jobs'
 
 import { useMailbox } from '../api'
@@ -207,6 +208,7 @@ const subtitle = computed(() => {
           />
           <!-- UI 008 (FR-004): the mailbox's sync jobs, for whoever may open them. -->
           <MailboxSyncJobsLink :address="mailbox.address" />
+          <MailboxAccountLinks :address="mailbox.address" />
         </template>
       </PageHeader>
       <p

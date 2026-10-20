@@ -3,8 +3,6 @@ import type { RouteRecordRaw } from 'vue-router'
 
 import { legacy, loadFeatureMessages, type TextRef } from '@/i18n'
 
-import { captureResetToken } from './reset-token'
-
 const SignInPage = () => import('./pages/SignInPage.vue')
 const SecondFactorPage = () => import('./pages/SecondFactorPage.vue')
 // UI 005 (research R8): the forced second-factor setup uses My account's enrolment, with its strings.
@@ -20,7 +18,7 @@ const PasswordResetRequestPage = () =>
     loadFeatureMessages('account'),
   ]).then(([module]) => module)
 const PasswordResetPage = () =>
-  Promise.all([import('./pages/PasswordResetPage.vue'), loadFeatureMessages('account')]).then(
+  Promise.all([import('./pages/PasswordResetRoute.vue'), loadFeatureMessages('account')]).then(
     ([module]) => module,
   )
 
@@ -78,7 +76,6 @@ export const authRoutes: RouteRecordRaw[] = [
     path: '/reset-password',
     name: 'password-reset',
     component: PasswordResetPage,
-    beforeEnter: captureResetToken,
     meta: { layout: 'auth', public: true, titleKey: legacy('login.reset_password') },
   },
 ]

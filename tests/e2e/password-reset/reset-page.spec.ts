@@ -92,6 +92,9 @@ test('US3-AS4 FR-038 the token leaves the address at once and the rules are show
     expect(page.url()).toMatch(/\/ng\/reset-password$/)
   }
   await expect(page.getByLabel('New Password', { exact: true })).toBeVisible()
+  await expect(page.locator('[data-reset-account]')).toContainText('carl@example.org')
+  await expect(page.locator('[data-reset-expiry]')).toContainText('minutes')
+  await expect(page.locator('[data-reset-expiry] time')).toHaveAttribute('datetime', /T/)
   await expect(page.getByLabel('Confirm new password')).toBeVisible()
   await expect(page.locator('[data-password-policy] li')).toHaveCount(1)
   const historyState = await page.evaluate(() => JSON.stringify(window.history.state))
@@ -108,6 +111,32 @@ test('US3-AS4 FR-038 the token leaves the address at once and the rules are show
   await expectAccessible()
   await page.locator('[data-reset-done]').getByRole('link', { name: 'Login' }).click()
   await expect(page.getByRole('button', { name: 'Login', exact: true })).toBeVisible()
+})
+
+test('FR-038 the displayed expiry ends the password and factor steps', async ({
+  page,
+  mockApi,
+  expectAccessible,
+}) => {
+  for (const token of [PLAIN, TOTP]) {
+    await mockApi.use('account-password-reset')
+    await page.clock.install()
+    await page.goto(`reset-password#token=${token}`)
+    await expect(page.locator('[data-reset-password]')).toBeVisible()
+    if (token === TOTP) {
+      await page.getByLabel('New Password', { exact: true }).fill('summer2026x')
+      await page.getByLabel('Confirm new password').fill('summer2026x')
+      await page.getByRole('button', { name: 'Reset Password' }).click()
+      await expect(page.locator('[data-reset-factor]')).toBeVisible()
+    }
+    await page.clock.fastForward(16 * 60_000)
+    await expect(page.locator('[data-reset-invalid]')).toBeVisible()
+    await expect(page.locator('input[type="password"]')).toHaveCount(0)
+    await expect(page.locator('[data-reset-expiry]')).toHaveCount(0)
+    await expectAccessible()
+    await page.clock.resume()
+    await page.goto('about:blank')
+  }
 })
 
 test('US3-AS5 an account with TOTP is asked for its code as at sign-in, with another try', async ({

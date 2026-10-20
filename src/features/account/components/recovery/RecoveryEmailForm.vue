@@ -105,7 +105,9 @@ async function submit() {
     >
       <p class="font-medium">{{ t('sections.outdated.title') }}</p>
       <p>
-        {{ t('sections.outdated.savedAs', { field: lt('user.email'), value: stored.address ?? '–' }) }}
+        {{
+          t('sections.outdated.savedAs', { field: lt('user.email'), value: stored.address ?? '–' })
+        }}
       </p>
     </div>
     <FormField

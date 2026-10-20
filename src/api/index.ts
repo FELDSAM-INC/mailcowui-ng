@@ -51,6 +51,7 @@ export type {
   BulkTarget,
   CsrfToken,
   Domain,
+  DomainAdmin,
   DomainAddressSample,
   DomainAttributeNotPermittedProblem,
   DomainBulkActionRequest,

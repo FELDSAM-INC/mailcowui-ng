@@ -4,7 +4,7 @@
 // component is lazy-loaded (constitution VII).
 import type { RouteRecordRaw } from 'vue-router'
 
-import { accountRoutes } from '@/features/account/routes'
+import { accountRoutes, mailboxSelfServiceRoutes } from '@/features/account/routes'
 import { aliasDomainRoutes } from '@/features/alias-domains'
 import { aliasRoutes } from '@/features/aliases'
 import { resourceRoutes } from '@/features/resources'
@@ -54,6 +54,7 @@ export const featureRoutes: RouteRecordRaw[] = [
   ...spamFilterRoutes,
   // UI 005: My account.
   ...accountRoutes,
+  ...mailboxSelfServiceRoutes,
 ]
 
 export function buildRoutes(): RouteRecordRaw[] {

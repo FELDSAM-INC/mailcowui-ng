@@ -2,6 +2,7 @@
 // tests/mocks/handlers/index.ts.
 import type { RequestHandler } from 'msw'
 
+import { appPasswordHandlers } from './app-passwords'
 import { capabilityHandlers } from './capabilities'
 import { overviewHandlers } from './overview'
 import { ownAccountHandlers, recoveryEmailHandlers } from './own-account'
@@ -10,6 +11,7 @@ import { secondFactorHandlers } from './second-factors'
 
 export const selfServiceHandlers: RequestHandler[] = [
   ...capabilityHandlers,
+  ...appPasswordHandlers,
   ...overviewHandlers,
   ...ownAccountHandlers,
   ...secondFactorHandlers,

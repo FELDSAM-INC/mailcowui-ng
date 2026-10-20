@@ -1178,11 +1178,12 @@ Gaps and observations found while planning:
 6. **AG6 – Per-object history** (observation): self-service audit records carry the object's ID only
    in `details`, so History on one app password, alias or filter filters by target type and mailbox
    (R22). Acceptable under FR-108 ("that mailbox or object").
-7. **AG7 – Reset token in access logs** (observation): the default `RESTV2_PW_RESET_PAGE`
-   (`/ng/reset-password?token={token}`) puts the token in a query string that nginx-mailcow logs, as
-   the classic reset link does. **Proposed**: default to `/ng/reset-password#token={token}`; a
-   fragment never reaches a server. The UI accepts both forms, and the `ng-mailcow` image logs the
-   path without the query (R12).
+7. **AG7 – Reset token in access logs — resolved for generated links**: API gap G27 changed
+   `RESTV2_PW_RESET_PAGE` to `/ng/reset-password#token={token}`. Verified in API
+   `config/restv2.php` and the running maildev API configuration on 2026-10-20. The fragment
+   never reaches a server. The UI accepts old query links too, and the `ng-mailcow` image logs
+   the path without query or Referer. An operator choosing a legacy query-based link must still
+   account for the upstream proxy's logging; this change does not rewrite upstream nginx logs.
 
 ## Owner-level questions (defaults applied)
 
@@ -1360,3 +1361,13 @@ research R1 with the behaviour the earlier plan describes, never as a renamed or
 No new violation. UI 001's two recorded deviations still apply unchanged: default brand colours
 until API 013, and the smoke suite as a non-blocking CI job until mailcow-rest-v2 runs its
 implementation in the dev stack.
+
+
+### Maildev staging validation, 2026-10-20
+
+The US1–US4 increment retains the owner's previously authorized alias-list performance exception
+for maildev: final runs score 74–77 against 80. The other nine configured URL assertions pass,
+including My account at 87–90 performance/100 accessibility and sign-in at 213,656 transferred
+script bytes against 215,040. The full Lighthouse command still exits 1 for aliases; it is not
+reported as entirely green. No performance, accessibility, payload or throttling limit changed.
+See the quickstart validation log for the 30 measurements and remaining feature scope.

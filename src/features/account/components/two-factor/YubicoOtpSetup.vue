@@ -12,6 +12,7 @@ import { useBranding } from '@/app/branding/public-config'
 import { lt } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
+import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useSecretRequest } from '@/shared/composables/useSecretRequest'
 import { buttonVariants } from '@/shared/ui/button'
@@ -188,6 +189,10 @@ async function submit() {
     >
       {{ failure }}
     </p>
+    <ProblemMessage
+      v-else-if="request.problem.value && !errors.password"
+      :problem="request.problem.value"
+    />
     <button
       type="submit"
       :class="buttonVariants({ class: 'w-full sm:w-auto sm:self-start' })"

@@ -6,10 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { Identity, PermissionFlags, Role } from '@/api'
 import { catalogue, placeholderRouteSpecs, type NavEntryId } from '@/app/navigation/catalogue'
-import {
-  CLASSIC_SIGN_IN,
-  classicSignIn,
-} from '@/app/navigation/classic-links'
+import { CLASSIC_SIGN_IN, classicSignIn } from '@/app/navigation/classic-links'
 import { canAccess, visibleEntries } from '@/app/navigation/visibility'
 
 const contract = JSON.parse(readFileSync('contract/openapi.json', 'utf8')) as {

@@ -1,5 +1,5 @@
-// The password reset token (UI 005 research R12, FR-038): the reset route's `beforeEnter` moves it
-// from `?token=` (the API's default reset page) or `#token=` into this in-memory holder and returns
+// The password reset token (UI 005 research R12, FR-038): the global navigation guard moves it
+// from `?token=` or `#token=` (the API's default reset page) into this in-memory holder and returns
 // the route without query and hash, replacing the history entry, so the token leaves the address
 // bar before the page renders. The page reads it once; it is cleared on completion, on "request a
 // new link" and when the page goes away. Never storage, never a URL afterwards.
@@ -26,7 +26,7 @@ function tokenOf(to: RouteLocationNormalizedGeneric): string | null {
   }
 }
 
-/** The reset route's `beforeEnter`. */
+/** Called on every navigation to the reset route, including query/fragment changes. */
 export function captureResetToken(to: RouteLocationNormalizedGeneric): true | RouteLocationRaw {
   if (!Object.hasOwn(to.query, 'token') && !to.hash.startsWith('#token=')) return true
   // Invalid links still lose their token and must never reuse a previously captured value.
@@ -40,8 +40,4 @@ export function takeResetToken(): string | null {
   const token = held
   held = null
   return token
-}
-
-export function clearResetToken(): void {
-  held = null
 }

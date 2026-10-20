@@ -29,10 +29,21 @@ async function run<T>(
   ceremony: 'get' | 'create',
   request: (signal: AbortSignal) => Promise<Credential | null>,
   serialize: (credential: PublicKeyCredential) => T,
+  callerSignal?: AbortSignal,
 ): Promise<T> {
+  if (callerSignal?.aborted) {
+    throw new WebAuthnCeremonyError('aborted', callerSignal.reason)
+  }
   abortCeremony()
   const controller = new AbortController()
   current = controller
+  // The caller owns only this controller. A late cleanup of an older component must not
+  // cancel a newer ceremony, which may already have replaced this one.
+  const cancel = () => {
+    if (current === controller) current = null
+    controller.abort(new DOMException('The ceremony was aborted by the app.', 'AbortError'))
+  }
+  callerSignal?.addEventListener('abort', cancel, { once: true })
   try {
     let credential: Credential | null
     try {
@@ -43,20 +54,27 @@ async function run<T>(
       // a silent `cancelled`, like a dismissed prompt: nobody in the app aborted it.
       const kind = classifyWebAuthnError(error, ceremony)
       const byApp = controller.signal.aborted
-      throw new WebAuthnCeremonyError(kind === 'aborted' && !byApp ? 'cancelled' : kind, error)
+      throw new WebAuthnCeremonyError(
+        byApp ? 'aborted' : kind === 'aborted' ? 'cancelled' : kind,
+        error,
+      )
+    }
+    if (controller.signal.aborted) {
+      throw new WebAuthnCeremonyError('aborted', controller.signal.reason)
     }
     if (credential === null || credential.type !== 'public-key') {
       throw new WebAuthnCeremonyError('unknown', credential)
     }
     return serialize(credential as PublicKeyCredential)
   } finally {
+    callerSignal?.removeEventListener('abort', cancel)
     if (current === controller) current = null
   }
 }
 
 export function getAssertion(
   options: WebAuthnRequestOptions,
-  init: { mediation?: CredentialMediationRequirement } = {},
+  init: { mediation?: CredentialMediationRequirement; signal?: AbortSignal } = {},
 ): Promise<WebAuthnAuthenticationResponse> {
   return run(
     'get',
@@ -67,15 +85,18 @@ export function getAssertion(
         ...(init.mediation ? { mediation: init.mediation } : {}),
       }),
     serializeAssertion,
+    init.signal,
   )
 }
 
 export function createRegistration(
   options: WebAuthnCreationOptions,
+  init: { signal?: AbortSignal } = {},
 ): Promise<WebAuthnRegistrationResponse> {
   return run(
     'create',
     (signal) => navigator.credentials.create({ publicKey: toCreationOptions(options), signal }),
     serializeRegistration,
+    init.signal,
   )
 }

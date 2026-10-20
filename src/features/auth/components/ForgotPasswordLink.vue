@@ -5,11 +5,16 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import { useSelfServiceCapabilities } from '@/features/account'
+import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import LegacyText from '@/shared/components/LegacyText.vue'
 
 const capabilities = useSelfServiceCapabilities()
-const available = computed(() => capabilities.data.value?.passwordReset.available === true)
+const available = computed(
+  () =>
+    !capabilities.isPending.value &&
+    !capabilities.isError.value &&
+    capabilities.data.value?.passwordReset.available === true,
+)
 </script>
 
 <template>

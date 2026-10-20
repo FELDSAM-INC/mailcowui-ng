@@ -6,12 +6,12 @@
 // policy; then, for an account with second factors, the factor step of sign-in. Invalid and expired
 // links offer a new one; an account with only deprecated factors is told to ask an administrator.
 // The reset never signs in: it offers the sign-in screen.
-import { onMounted } from 'vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { lt } from '@/i18n'
+import { useFormat } from '@/i18n/format'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import NewPasswordFields from '@/shared/components/password/NewPasswordFields.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -27,10 +27,22 @@ import { usePasswordReset } from '../composables/usePasswordReset'
 import { groupMethods } from '../composables/useSecondFactor'
 
 const { t } = useI18n()
+const format = useFormat()
 const reset = usePasswordReset()
 const password = ref('')
 const password2 = ref('')
 const fields = ref<{ validate(): boolean; reset(): void } | null>(null)
+const validLink = computed(() =>
+  ['warning', 'password', 'completing', 'factor'].includes(reset.state.value),
+)
+
+watch(reset.state, (state) => {
+  if (['invalid', 'unavailable', 'askAdministrator', 'done'].includes(state)) {
+    password.value = ''
+    password2.value = ''
+    fields.value?.reset()
+  }
+})
 
 onMounted(() => void reset.start())
 
@@ -61,7 +73,11 @@ const self = computed(
 const factorMessage = computed(() => {
   const failure = reset.problem.value
   if (!failure) return null
-  if (failure.is('second-factor-failed')) return lt('danger.totp_verification_failed')
+  if (failure.is('second-factor-failed')) {
+    if (reset.submittedMethod.value === 'yubiOtp') return lt('danger.yotp_verification_failed')
+    if (reset.submittedMethod.value === 'webauthn') return lt('danger.webauthn_verification_failed')
+    return lt('danger.totp_verification_failed')
+  }
   if (failure.is('temporary-verification-failure')) {
     return `${lt('danger.temp_error')}: ${t('selfService.dependency.yubico')}`
   }
@@ -94,6 +110,24 @@ async function submitPassword() {
       tabindex="-1"
       class="text-2xl font-semibold text-gray-900 focus:outline-none dark:text-white"
     />
+    <dl
+      v-if="validLink && reset.info.value"
+      class="flex flex-col gap-2 text-sm text-gray-700 dark:text-gray-300"
+    >
+      <div data-reset-account>
+        <dt class="font-medium">{{ lt('login.username') }}</dt>
+        <dd class="break-words [overflow-wrap:anywhere]">{{ reset.info.value.address }}</dd>
+      </div>
+      <div data-reset-expiry>
+        <dt class="font-medium">{{ lt('user.expire_in') }}</dt>
+        <dd>{{ format.duration(reset.remaining.value) }}</dd>
+        <dd>
+          <time :datetime="reset.info.value.expiresAt">
+            {{ format.dateTime(reset.info.value.expiresAt) }}
+          </time>
+        </dd>
+      </div>
+    </dl>
     <div v-if="reset.state.value === 'checking'" role="status" aria-busy="true">
       {{ lt('footer.loading') }}
     </div>

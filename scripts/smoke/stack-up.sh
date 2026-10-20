@@ -9,8 +9,9 @@
 # It runs as its own Compose project (SMOKE_PROJECT) on its own ports (SMOKE_WEB_PORT, and
 # SMOKE_WEB_TLS_PORT for the API's HTTPS listener, which would otherwise take the developer's 18443;
 # SMOKE_KEYCLOAK_PORT for the Keycloak of SMOKE_IDP=1, which would otherwise take 8081).
-# UI 006 (research R28): the API's `mail` profile (mailpit) receives quarantine releases; its web UI
-# is published on SMOKE_MAILPIT_PORT instead of the API's fixed 8025. SMOKE_MAIL=0 leaves it out.
+# UI 005/006: the API's `mail` profile (mailpit) receives password-reset messages and quarantine
+# releases; its web UI is published on SMOKE_MAILPIT_PORT instead of the API's fixed 8025.
+# SMOKE_MAIL=0 leaves it out.
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -68,11 +69,16 @@ compose run --rm app sh -c 'test -f .env || cp .env.example .env'
 compose run --rm app sh -c \
   "grep -q '^RESTV2_FAKE_OUTBOUND=' .env && sed -i 's/^RESTV2_FAKE_OUTBOUND=.*/RESTV2_FAKE_OUTBOUND=y/' .env || echo RESTV2_FAKE_OUTBOUND=y >> .env"
 compose run --rm app php artisan key:generate --force
-# UI 006 (research R28): quarantine releases go to mailpit, so that a release can succeed.
+# UI 005/006: both kinds of outgoing mail go to Mailpit. The isolated API uses its committed
+# upstream-template fixtures because it has no real mailcow template mount.
 if [[ "${SMOKE_MAIL:-1}" != "0" ]]; then
   compose run --rm app sh -c \
     "sed -i -e 's/^RESTV2_RELEASE_SMTP_HOST=.*/RESTV2_RELEASE_SMTP_HOST=mailpit/' \
-      -e 's/^RESTV2_RELEASE_SMTP_PORT=.*/RESTV2_RELEASE_SMTP_PORT=1025/' .env"
+      -e 's/^RESTV2_RELEASE_SMTP_PORT=.*/RESTV2_RELEASE_SMTP_PORT=1025/' \
+      -e '/^RESTV2_SMTP_HOST=/d' -e '/^RESTV2_SMTP_PORT=/d' \
+      -e '/^RESTV2_MAILCOW_TPLS_DIR=/d' .env
+    printf '%s\n' RESTV2_SMTP_HOST=mailpit RESTV2_SMTP_PORT=1025 \
+      RESTV2_MAILCOW_TPLS_DIR=tests/fixtures/mailcow-tpls >> .env"
   compose --profile mail up -d mailpit
 fi
 # The dev database with the DevelopmentSeeder accounts and API 006's quarantine seed.

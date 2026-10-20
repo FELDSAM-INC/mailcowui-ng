@@ -46,6 +46,10 @@
       },
       "protocolShort": {
         "dav": "DAV"
+      },
+      "noProtocol": "With no protocol selected, this app password works nowhere.",
+      "regenerate": {
+        "body": "The current password of this app password stops working. The new one is shown once."
       }
     },
     "sections": {

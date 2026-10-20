@@ -164,8 +164,7 @@ export function mailboxEtag(mailbox: MockMailbox): string {
 
 /** The version tag of a mailbox's mail settings (contract `Mailbox.mailSettingsVersion`, API 005). */
 export function mailSettingsVersion(mailbox: MockMailbox): string {
-  const stored = [mailbox.taggedMailHandling, mailbox.tlsEnforceInbound, mailbox.tlsEnforceOutbound]
-  return `"s${createHash('sha256').update(JSON.stringify(stored)).digest('hex').slice(0, 23)}"`
+  return mailSettingsEtag(mailbox)
 }
 
 /** The domain of a mailbox, or a placeholder for mailboxes whose domain was removed. */
@@ -219,7 +218,6 @@ export function mailboxView(
     taggedMailHandling: mailbox.taggedMailHandling,
     tlsEnforceInbound: mailbox.tlsEnforceInbound,
     tlsEnforceOutbound: mailbox.tlsEnforceOutbound,
-    mailSettingsVersion: mailSettingsEtag(mailbox),
     quarantineNotification: mailbox.quarantineNotification,
     quarantineCategory: mailbox.quarantineCategory,
     rateLimit: ownLimit ? { ...ownLimit } : domainLimit ? { ...domainLimit } : null,

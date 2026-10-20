@@ -2,3 +2,4 @@
 // single sign-on return that `src/main.ts` runs first. Other code reaches the feature only here.
 export { authRoutes } from './routes'
 export { captureSingleSignOnReturn } from './sso/capture'
+export { captureResetToken } from './reset-token'

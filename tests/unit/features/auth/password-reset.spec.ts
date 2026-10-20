@@ -1,5 +1,5 @@
 // The password reset (UI 005 T064, research R12, data-model §7): the token leaves the address in
-// `beforeEnter` (query or fragment) and is read once; the reset page's state machine with the
+// the global guard (query or fragment) and is read once; the reset page's state machine with the
 // password rules before the second factor, the factor step, invalid and expired links, the
 // administrator case, and the completion without session reactions ending this browser's session
 // in place.
@@ -13,6 +13,7 @@ import { sessionQuery } from '@/app/session/queries'
 import { usePasswordReset } from '@/features/auth/composables/usePasswordReset'
 import { captureResetToken, takeResetToken } from '@/features/auth/reset-token'
 import { createAppChannel } from '@/shared/platform/broadcast'
+import * as webauthn from '@/shared/platform/webauthn'
 
 import { mockState, server, useScenario } from '../../../mocks/node'
 import { withSetup } from '../../support/composable'
@@ -41,6 +42,17 @@ function hold(token: string) {
 }
 
 describe('captureResetToken', () => {
+  it('scrubs a second fragment link opened on the current reset route', async () => {
+    useScenario('account-password-reset')
+    const { router } = await context()
+    await router.push(`/reset-password#token=${PLAIN}`)
+    expect(router.currentRoute.value.fullPath).toBe('/reset-password')
+    expect(takeResetToken()).toBe(PLAIN)
+    await router.push(`/reset-password#token=${TOTP}`)
+    expect(router.currentRoute.value.fullPath).toBe('/reset-password')
+    expect(takeResetToken()).toBe(TOTP)
+  })
+
   it.each([
     { query: {}, hash: '#token=%E0%A4%A' },
     { query: {}, hash: '#token=' },
@@ -105,19 +117,19 @@ describe('usePasswordReset', () => {
     hold(PLAIN)
     const { result } = withSetup(() => usePasswordReset())
     await result.start()
-    mockState().selfService.resetAttempts[`complete:${PLAIN}`] = 10
+    mockState().selfService.resetAttempts.complete = 10
     await result.submitPassword('summer2026x')
     expect(result.problem.value?.is('too-many-requests')).toBe(true)
     expect(result.busy.value).toBe(true)
-    const attempts = mockState().selfService.resetAttempts[`complete:${PLAIN}`]
+    const attempts = mockState().selfService.resetAttempts.complete
     await result.submitPassword('summer2026x')
-    expect(mockState().selfService.resetAttempts[`complete:${PLAIN}`]).toBe(attempts)
+    expect(mockState().selfService.resetAttempts.complete).toBe(attempts)
     const now = Date.now()
     const retryAfter = result.problem.value!.retryAfter!
     const date = vi.spyOn(Date, 'now').mockReturnValue(now + (retryAfter + 1) * 1000)
     await vi.waitFor(() => expect(result.busy.value).toBe(false), { timeout: 2000 })
     date.mockRestore()
-    mockState().selfService.resetAttempts[`complete:${PLAIN}`] = 0
+    mockState().selfService.resetAttempts.complete = 0
     await result.submitPassword('summer2026x')
     expect(result.state.value).toBe('done')
   })
@@ -138,7 +150,7 @@ describe('usePasswordReset', () => {
 
   it('asks for the second factor after the password, and allows another try', async () => {
     useScenario('account-password-reset')
-    await context()
+    const { queryClient } = await context()
     hold(TOTP)
     const { result } = withSetup(() => usePasswordReset())
     await result.start()
@@ -152,6 +164,102 @@ describe('usePasswordReset', () => {
     expect(result.state.value).toBe('done')
     const bodies = mockState().requests.filter((r) => r.operationId === 'completePasswordReset')
     expect(bodies.every((r) => JSON.stringify(r.body).includes('[redacted]'))).toBe(true)
+    const caches = JSON.stringify([
+      queryClient
+        .getQueryCache()
+        .getAll()
+        .map((query) => query.state),
+      queryClient
+        .getMutationCache()
+        .getAll()
+        .map((mutation) => mutation.state),
+    ])
+    expect(caches).not.toContain(TOTP)
+    expect(caches).not.toContain('summer2026x')
+  })
+
+  it('forgets an expired link while waiting for a WebAuthn challenge', async () => {
+    useScenario('account-password-reset')
+    await context()
+    hold(TOTP)
+    const { result } = withSetup(() => usePasswordReset())
+    await result.start()
+    await result.submitPassword('summer2026x')
+    let release!: () => void
+    let requested!: () => void
+    const started = new Promise<void>((resolve) => {
+      requested = resolve
+    })
+    const waiting = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    server.use(
+      http.post('*/api/v2/password-resets/webauthn-challenge', async () => {
+        requested()
+        await waiting
+        return HttpResponse.json({
+          data: {
+            publicKey: {
+              challenge: 'Y2hhbGxlbmdl',
+              rpId: 'localhost',
+              userVerification: 'required',
+            },
+            expiresAt: new Date(Date.now() + 60_000).toISOString(),
+          },
+        })
+      }),
+    )
+    const get = vi
+      .spyOn(webauthn, 'getAssertion')
+      .mockRejectedValue(new DOMException('Cancelled', 'NotAllowedError'))
+    const checking = result.submitWebAuthn()
+    await started
+    const date = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 16 * 60_000)
+    await vi.waitFor(() => expect(result.state.value).toBe('invalid'), { timeout: 2000 })
+    release()
+    await checking
+    date.mockRestore()
+    expect(get).not.toHaveBeenCalled()
+    expect(result.state.value).toBe('invalid')
+  })
+
+  it('cancels only its own authenticator prompt when the reset page closes', async () => {
+    useScenario('account-password-reset')
+    await context()
+    hold(TOTP)
+    const { result, unmount } = withSetup(() => usePasswordReset())
+    await result.start()
+    await result.submitPassword('summer2026x')
+    server.use(
+      http.post('*/api/v2/password-resets/webauthn-challenge', () =>
+        HttpResponse.json({
+          data: {
+            publicKey: {
+              challenge: 'Y2hhbGxlbmdl',
+              rpId: 'localhost',
+              userVerification: 'required',
+            },
+            expiresAt: new Date(Date.now() + 60_000).toISOString(),
+          },
+        }),
+      ),
+    )
+    let reject!: (reason: unknown) => void
+    const get = vi.spyOn(webauthn, 'getAssertion').mockImplementation(
+      () =>
+        new Promise((_, fail) => {
+          reject = fail
+        }),
+    )
+    const abortAll = vi.spyOn(webauthn, 'abortCeremony')
+    const assertion = result.submitWebAuthn()
+    await vi.waitFor(() => expect(get).toHaveBeenCalledOnce())
+    const signal = get.mock.calls[0]?.[1]?.signal
+    unmount()
+    reject(new DOMException('Cancelled', 'AbortError'))
+    await assertion
+    expect(signal?.aborted).toBe(true)
+    expect(abortAll).not.toHaveBeenCalled()
   })
 
   it('shows the invalid state for missing, expired and used tokens', async () => {

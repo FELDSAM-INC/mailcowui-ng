@@ -9,7 +9,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { problemOf, type ApiProblem } from '@/api'
-import { useSelfServiceCapabilities } from '@/features/account'
+import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import { lt } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'

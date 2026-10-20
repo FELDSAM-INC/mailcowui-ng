@@ -6,15 +6,11 @@
 // `second-factor-failed` keeping the token valid, `second-factor-unavailable` for deprecated
 // entries only, the Yubico outage), then every token of the account is invalidated and every
 // session ended, this browser's too when it is signed in as that account.
-import type {
-  PasswordResetCompletionRequest,
-  PasswordResetRequest,
-  Writable,
-} from '@/api'
+import type { PasswordResetCompletionRequest, PasswordResetRequest, Writable } from '@/api'
 
 import { passwordPolicyView, passwordViolations } from '../../factories/password-policy'
 import { ownSecondFactors } from '../../factories/second-factor'
-import { CHALLENGE_LIFETIME_MS, requestOptions } from '../../factories/webauthn'
+import { challengeOf, CHALLENGE_LIFETIME_MS, requestOptions } from '../../factories/webauthn'
 import { accountSelfService } from '../../scenarios/self-service/state'
 import {
   endSession,
@@ -28,6 +24,13 @@ import { isPreHashed } from '../mailbox-rules'
 
 const MAX_ATTEMPTS = 10
 const ORDER = { webauthn: 0, totp: 1, yubiOtp: 2 } as const
+
+// A reset challenge belongs to this browser session and this token, independently of the
+// signed-in account's second-factor enrolment. Replacing the session discards its challenge.
+const resetChallenges = new WeakMap<
+  ScenarioState['session'],
+  { token: string; challenge: string; expiresAt: number }
+>()
 
 function throttled(state: ScenarioState, key: string): Response | null {
   const attempts = (state.selfService.resetAttempts[key] ?? 0) + 1
@@ -86,7 +89,7 @@ export const passwordResetHandlers = [
     const off = unavailable(state)
     if (off) return response.untyped(off)
     const body = (await request.json()) as unknown as { token: string }
-    const limit = throttled(state, `check:${body.token}`)
+    const limit = throttled(state, 'check')
     if (limit) return response.untyped(limit)
     const account = tokenAccount(state, body.token)
     if (account instanceof Response) return response.untyped(account)
@@ -107,15 +110,23 @@ export const passwordResetHandlers = [
     const state = scenario()
     const refused = csrfProblem(state, request)
     if (refused) return response.untyped(refused)
+    const off = unavailable(state)
+    if (off) return response.untyped(off)
     const body = (await request.json()) as unknown as { token: string }
+    const limit = throttled(state, 'check')
+    if (limit) return response.untyped(limit)
     const account = tokenAccount(state, body.token)
     if (account instanceof Response) return response.untyped(account)
+    if (!account.secondFactors.some((method) => method.type === 'webauthn')) {
+      return response.untyped(problem(400, 'invalid-reset-token'))
+    }
     const publicKey = requestOptions()
     const expiresAt = new Date(state.now() + CHALLENGE_LIFETIME_MS).toISOString()
-    accountSelfService(state, account.username).webauthnOptions = {
+    resetChallenges.set(state.session, {
+      token: body.token,
       challenge: publicKey.challenge,
       expiresAt: Date.parse(expiresAt),
-    }
+    })
     return response(200).json({ data: { publicKey, expiresAt } })
   }),
 
@@ -126,7 +137,7 @@ export const passwordResetHandlers = [
     const off = unavailable(state)
     if (off) return response.untyped(off)
     const body = (await request.json()) as unknown as Writable<PasswordResetCompletionRequest>
-    const limit = throttled(state, `complete:${body.token}`)
+    const limit = throttled(state, 'complete')
     if (limit) return response.untyped(limit)
     const account = tokenAccount(state, body.token)
     if (account instanceof Response) return response.untyped(account)
@@ -158,6 +169,8 @@ export const passwordResetHandlers = [
           problem(503, 'temporary-verification-failure', {}, { 'Retry-After': '30' }),
         )
       }
+      const challenge = resetChallenges.get(state.session)
+      if (factor.type === 'webauthn') resetChallenges.delete(state.session)
       const accepted =
         factor.type === 'totp'
           ? account.secondFactors.some(
@@ -170,7 +183,11 @@ export const passwordResetHandlers = [
             ? account.secondFactors.some(
                 (method) => method.type === 'yubiOtp' && method.secret === factor.otp,
               )
-            : account.secondFactors.some((method) => method.type === 'webauthn')
+            : account.secondFactors.some((method) => method.type === 'webauthn') &&
+              challenge !== undefined &&
+              challenge.token === body.token &&
+              challenge.expiresAt > state.now() &&
+              challengeOf(factor.credential.response.clientDataJSON) === challenge.challenge
       if (!accepted) return response.untyped(problem(401, 'second-factor-failed'))
     }
 

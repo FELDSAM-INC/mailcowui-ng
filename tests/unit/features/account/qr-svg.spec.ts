@@ -28,7 +28,10 @@ describe('parseQrDataUri', () => {
     ['a script', wrap('<script>alert(1)</script>')],
     ['foreignObject', wrap('<foreignObject><div>x</div></foreignObject>')],
     ['an event attribute', wrap('<rect x="0" y="0" width="1" height="1" onclick="x()"/>')],
-    ['an href', wrap('<a href="https://evil.example"><rect x="0" y="0" width="1" height="1"/></a>')],
+    [
+      'an href',
+      wrap('<a href="https://evil.example"><rect x="0" y="0" width="1" height="1"/></a>'),
+    ],
     ['a style', wrap('<rect x="0" y="0" width="1" height="1" style="fill:red"/>')],
     ['a url() fill', wrap('<rect x="0" y="0" width="1" height="1" fill="url(#g)"/>')],
     ['a rotate transform', wrap('<g transform="rotate(45)"></g>')],

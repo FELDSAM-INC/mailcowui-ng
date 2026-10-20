@@ -6,7 +6,7 @@ import { computed } from 'vue'
 
 import { useIdentityQuery } from '@/app/session/queries'
 
-import { useSelfServiceCapabilities } from '../api/capabilities'
+import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import {
   mailboxAccess,
   ownVisibility,

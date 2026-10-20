@@ -4,7 +4,6 @@ import { defineAsyncComponent } from 'vue'
 
 export { accountRoutes } from './routes'
 export { mailboxSelfServiceRoutes } from './mailbox-routes'
-export { useSelfServiceCapabilities } from './api/capabilities'
 // The pending-actions screen's forced password change (UI 001's auth feature).
 export { changeOwnPassword, useOwnPasswordPolicy } from './api/password'
 // The pending-actions screen's forced second-factor setup (research R8), loaded when shown so that
@@ -15,4 +14,8 @@ export const SecurityKeySetup = defineAsyncComponent(
 )
 export const YubicoOtpSetup = defineAsyncComponent(
   () => import('./components/two-factor/YubicoOtpSetup.vue'),
+)
+
+export const MailboxAccountLinks = defineAsyncComponent(
+  () => import('./components/layout/MailboxAccountLinks.vue'),
 )

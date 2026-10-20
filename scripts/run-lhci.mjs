@@ -38,6 +38,8 @@ const collections = [
   },
   // UI 006 (T008, SC-010): the quarantine of a mailbox user, 25 of 30 items.
   { url: `http://127.0.0.1:${previewPort}/ng/quarantine`, scenario: 'quarantine-mailbox-user' },
+  // UI 005: the mailbox user's account hub and available self-service sections.
+  { url: `http://127.0.0.1:${previewPort}/ng/account`, scenario: 'account-mailbox' },
 ]
 
 if (!existsSync(join(root, 'dist/index.html'))) {

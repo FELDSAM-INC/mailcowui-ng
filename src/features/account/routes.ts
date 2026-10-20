@@ -6,6 +6,8 @@ import type { RouteRecordRaw } from 'vue-router'
 
 import { legacy, loadFeatureMessages } from '@/i18n'
 
+export { mailboxSelfServiceRoutes } from './mailbox-routes'
+
 import type { AccountSectionId } from './sections'
 
 declare module 'vue-router' {
@@ -31,6 +33,24 @@ export const accountRoutes: RouteRecordRaw[] = [
         name: 'account',
         component: accountPage(() => import('./pages/AccountHomePage.vue')),
         meta: { titleKey: legacy('header.user_settings') },
+      },
+      {
+        path: 'app-passwords',
+        name: 'account-app-passwords',
+        component: accountPage(() => import('./pages/AppPasswordsPage.vue')),
+        meta: { accountSection: 'appPasswords', titleKey: legacy('user.app_passwds') },
+      },
+      {
+        path: 'app-passwords/new',
+        name: 'account-app-password-create',
+        component: accountPage(() => import('./pages/AppPasswordCreatePage.vue')),
+        meta: { accountSection: 'appPasswords', titleKey: legacy('add.app_password') },
+      },
+      {
+        path: 'app-passwords/:appPasswordId(\\d+)',
+        name: 'account-app-password-detail',
+        component: accountPage(() => import('./pages/AppPasswordDetailPage.vue')),
+        meta: { accountSection: 'appPasswords', titleKey: legacy('edit.app_passwd') },
       },
       {
         path: 'password',

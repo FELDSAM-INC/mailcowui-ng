@@ -34,17 +34,20 @@ export function useSecretRequest<A extends unknown[], R>(
   const pending = ref(false)
   const problem = shallowRef<ApiProblem | null>(null)
   const result = shallowRef<R | null>(null)
+  let disposed = false
 
   async function run(...args: A): Promise<R | null> {
-    if (pending.value) return null
+    if (disposed || pending.value) return null
     pending.value = true
     problem.value = null
     result.value = null
     try {
       const value = await request(...args)
+      if (disposed) return null
       result.value = value
       return value
     } catch (error) {
+      if (disposed) return null
       const failure = isApiProblem(error)
         ? error
         : ApiProblem.fromParts({ kind: 'network', cause: error })
@@ -61,7 +64,10 @@ export function useSecretRequest<A extends unknown[], R>(
     problem.value = null
   }
 
-  onScopeDispose(clear)
+  onScopeDispose(() => {
+    disposed = true
+    clear()
+  })
 
   return { pending, problem, result, run, clear }
 }

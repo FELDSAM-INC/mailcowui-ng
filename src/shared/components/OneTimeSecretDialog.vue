@@ -18,6 +18,9 @@ import {
 import { computed, ref, useId, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import { lt } from '@/i18n'
+import GroupedSecret from './GroupedSecret.vue'
+
 import { CopyIcon, WarningIcon } from '../icons'
 import { announce } from '../composables/useAnnouncer'
 import { confirm } from '../composables/useConfirm'
@@ -30,6 +33,8 @@ const props = defineProps<{
   secret: string | null
   title: string
   description?: string
+  username?: string
+  grouped?: boolean
   /** Shows the secret in a multi-line, read-only text area. */
   multiline?: boolean
   /** Offers the secret as a file; a download counts as saved. */
@@ -114,6 +119,7 @@ defineExpose({ requestClose })
       <DialogOverlay class="fixed inset-0 z-100 bg-black/50 dark:bg-black/70" />
       <DialogContent
         class="fixed start-1/2 top-1/2 z-101 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 text-gray-700 shadow-theme-lg outline-none sm:max-w-lg dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
+        :aria-describedby="description ? undefined : warningId"
         @escape-key-down="onEscape"
         @pointer-down-outside.prevent
         @interact-outside.prevent
@@ -131,10 +137,21 @@ defineExpose({ requestClose })
           <WarningIcon class="mt-0.5 size-5 shrink-0" />
           <p>{{ t('secrets.warning') }}</p>
         </div>
+        <p v-if="username" class="text-sm wrap-anywhere">
+          <span class="font-medium">{{ lt('user.username') }}</span
+          >: {{ username }}
+        </p>
         <div class="flex flex-col gap-1.5">
           <label :for="fieldId" class="text-sm font-medium text-gray-800 dark:text-gray-200">
             {{ t('secrets.label') }}
           </label>
+          <GroupedSecret
+            v-if="grouped && secret"
+            :value="secret"
+            :copy-label="t('secrets.copy')"
+            :show-copy="false"
+            aria-hidden="true"
+          />
           <div class="flex flex-col gap-2" :class="multiline ? '' : 'sm:flex-row'">
             <textarea
               v-if="multiline"
@@ -158,6 +175,8 @@ defineExpose({ requestClose })
               spellcheck="false"
               :aria-describedby="warningId"
               class="form-control min-w-0 flex-1 font-mono text-sm"
+              :class="grouped && outcome !== 'refused' ? 'sr-only' : ''"
+              :tabindex="grouped && outcome !== 'refused' ? -1 : undefined"
             />
             <div class="flex flex-wrap gap-2">
               <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="copy">

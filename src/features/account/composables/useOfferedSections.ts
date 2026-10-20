@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 
 import { useIdentityQuery } from '@/app/session/queries'
 
-import { useSelfServiceCapabilities } from '../api/capabilities'
+import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceCapabilities'
 import { ACCOUNT_SECTIONS, ownVisibility } from '../sections'
 
 export function useOfferedSections() {

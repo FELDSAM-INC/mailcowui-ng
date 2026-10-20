@@ -475,10 +475,11 @@ The menu retains a Device setting checkbox so the existing automatic theme prefe
 restored after using the outside dark-mode switch. The announcement is inside the content column,
 so it cannot push the desktop sidebar's lower edge below the viewport.
 
-Unimplemented destinations are explicitly disabled, without a link action: Rspamd UI, Quota
-notifications, Rspamd settings map, Customize, System mails and Global filter maps. Password
-Settings now opens the policy editor at `/system/password-policy`; its reset-email section is
-still in progress. Administrators contains both account types, with links between their lists.
+Unimplemented destinations are explicitly disabled, without a link action: Quota notifications,
+Rspamd settings map, Customize, System mails and Global filter maps. Password Settings opens
+the policy editor and recovery-email templates at `/system/password-policy`. Rspamd UI opens
+the web-interface password settings. Administrators contains both account types, with links
+between their lists.
 Queue Manager is linked from the System &
 Containers page header; IP Check is linked from its public-addresses panel, and links back to the
 existing System settings overview. These contextual links preserve the requested sidebar order.
@@ -521,3 +522,12 @@ Typecheck, lint, translation validation, production build and bundle budgets pas
 JavaScript is 202,397/204,800 bytes gzipped. Logs are retained under
 `storage/app/restart-2026-10-20/policy-picker-integration` in the API workspace. Password policy and
 mobile domain assignment also passed their isolated real-API smoke checks before integration.
+
+The Rspamd UI and recovery-email integration passed 68 focused unit checks, nine browser cases
+covering both settings pages and hostile preview isolation across all three profiles, and three
+exact Access/Options tab checks. Typecheck, lint, translations, production build and bundle
+budgets passed; initial JavaScript is 202,544/204,800 bytes gzipped. These supplement the workers'
+27 Rspamd and 51 recovery-email browser cases and their read-only real-API smoke checks. New
+settings wording that lacks approved Czech or Slovak translations retains explicit English
+source text, as recorded in the feature checkpoints. Logs are retained under
+`storage/app/restart-2026-10-20/reset-rspamd-integration` in the API workspace.

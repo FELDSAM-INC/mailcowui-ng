@@ -96,7 +96,7 @@ test('Access and Options show exact ordered tabs and clearly disable unfinished 
     [
       'api-keys',
       ['Administrators', 'API keys', 'Identity Provider', 'OAuth2 Apps', 'Rspamd UI'],
-      1,
+      0,
     ],
     [
       'dns/dkim-keys',

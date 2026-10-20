@@ -177,7 +177,13 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
             path: '/system/quota-notifications',
             roles: ['admin'],
           },
-          pending('rspamdSettingsMap', legacy('admin.rspamd_settings_map')),
+          {
+            id: 'rspamdSettingsMap',
+            labelKey: legacy('admin.rspamd_settings_map'),
+            path: '/system/rspamd-rules',
+            matches: ['/system/rspamd-effective-map'],
+            roles: ADMIN,
+          },
           {
             id: 'passwordSettings',
             labelKey: legacy('admin.password_settings'),

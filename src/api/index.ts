@@ -806,3 +806,5 @@ export {
   componentsParametersAdminSortValues,
   componentsParametersDomainAdminSortValues,
 } from './generated/schema'
+
+export { componentsParametersRspamdSettingsRuleSortValues } from './generated/schema'

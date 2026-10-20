@@ -18,6 +18,30 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'rspamd-rules',
+        name: 'rspamd-rules',
+        component: () => import('./pages/spam/RspamdRulesPage.vue'),
+        meta: { titleKey: legacy('admin.rspamd_settings_map') },
+      },
+      {
+        path: 'rspamd-rules/-/new',
+        name: 'rspamd-rule-create',
+        component: () => import('./pages/spam/RspamdRuleCreatePage.vue'),
+        meta: { titleKey: legacy('admin.add_settings_rule') },
+      },
+      {
+        path: 'rspamd-rules/:ruleId',
+        name: 'rspamd-rule-detail',
+        component: () => import('./pages/spam/RspamdRuleDetailPage.vue'),
+        meta: { titleKey: legacy('admin.rspamd_settings_map') },
+      },
+      {
+        path: 'rspamd-effective-map',
+        name: 'rspamd-effective-map',
+        component: () => import('./pages/spam/EffectiveSettingsMapPage.vue'),
+        meta: { titleKey: legacy('admin.active_rspamd_settings_map') },
+      },
+      {
         path: 'rspamd-web-interface',
         name: 'system-settings-rspamd-web-interface',
         component: () => import('./pages/spam/RspamdWebInterfacePage.vue'),

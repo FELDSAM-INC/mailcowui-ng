@@ -46,6 +46,19 @@
     "quotaCopies": {
       "empty": "Kópie zostávajú neaktívne, kým je zoznam príjemcov prázdny.",
       "unavailable": "Táto doména už nie je dostupná. Vaše zmeny neboli uložené."
+    },
+    "rules": {
+      "description": "Manage custom rules in the Rspamd settings map.",
+      "refreshNote": "Active rule changes reach Rspamd at its next refresh, usually within a minute.",
+      "deleteImpact": "Remove rule #{id}: {description}? Active rules stop applying at Rspamd’s next refresh.",
+      "replaceTitle": "Replace editor content?",
+      "replaceBody": "The example will replace the text currently in the editor.",
+      "unclosedBrace": "Unclosed brace",
+      "unclosedBracket": "Unclosed bracket",
+      "unexpectedBrace": "Unexpected closing brace",
+      "unexpectedBracket": "Unexpected closing bracket",
+      "unclosedString": "Unclosed quoted string",
+      "invalidStructure": "The rule contains an unbalanced structure."
     }
   }
 }

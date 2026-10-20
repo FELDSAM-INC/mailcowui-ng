@@ -1,4 +1,5 @@
 import { actingScenarios } from './acting'
+import { rspamdRulesScenarios } from './settings-rspamd-rules'
 import {
   applySettingsPatch,
   initialSettingsState,
@@ -108,6 +109,7 @@ export interface ScenarioDefinition {
 }
 
 export const scenarios: Record<string, ScenarioDefinition> = {
+  ...rspamdRulesScenarios,
   ...settingsRspamdScenarios,
   ...baseScenarios,
   ...administratorScenarios,

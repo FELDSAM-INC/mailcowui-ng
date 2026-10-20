@@ -107,3 +107,26 @@ describe('CopyButton', () => {
     wrapper.unmount()
   })
 })
+
+it.each(['input', 'textarea'] as const)(
+  'selects the native %s value when clipboard access is unavailable',
+  async (tag) => {
+    stubClipboard(undefined)
+    const control = document.createElement(tag)
+    control.value = 'map content\nsecond line'
+    control.readOnly = true
+    document.body.append(control)
+    const wrapper = mountWithApp(CopyButton, {
+      props: { text: control.value, label: 'Copy content', selectTarget: control },
+      attachTo: document.body,
+    })
+    await wrapper.get('button').trigger('click')
+    await flushPromises()
+    expect(document.activeElement).toBe(control)
+    expect(control.selectionStart).toBe(0)
+    expect(control.selectionEnd).toBe(control.value.length)
+    expect(control.tabIndex, 'Native controls remain in the keyboard Tab order').toBe(0)
+    wrapper.unmount()
+    control.remove()
+  },
+)

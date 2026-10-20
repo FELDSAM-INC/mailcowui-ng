@@ -1,5 +1,7 @@
 import { actingValidityProblem, impersonationHandlers } from './impersonation'
 import { settingsQuotaHandlers } from './settings-quota-notifications'
+import { rspamdRulesHandlers } from './settings-rspamd-rules'
+import { settingsPresetHandlers } from './settings-presets'
 import { settingsServerHandlers } from './settings-server'
 import { settingsRspamdHandlers } from './settings-rspamd'
 import { settingsPasswordHandlers } from './settings-password'
@@ -77,6 +79,8 @@ import { transportHandlers } from './transports'
 
 /** The typed handlers of every area. Stories add their modules here. */
 export const areaHandlers: RequestHandler[] = [
+  ...rspamdRulesHandlers,
+  ...settingsPresetHandlers,
   ...authHandlers,
   ...identityHandlers,
   ...impersonationHandlers,

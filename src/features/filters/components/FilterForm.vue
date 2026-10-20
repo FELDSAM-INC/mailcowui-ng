@@ -2,8 +2,9 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { problemOf, type SieveFilter, type SieveFilterKind } from '@/api'
+import { problemOf, type SieveFilter, type SieveFilterKind, type Preset } from '@/api'
 import { lt } from '@/i18n'
+import { PresetPicker } from '@/features/system-settings'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
 import MailboxSearchPicker from '@/shared/components/MailboxSearchPicker.vue'
@@ -15,11 +16,12 @@ import { useSelfServiceCapabilities } from '@/shared/composables/useSelfServiceC
 import { buttonVariants } from '@/shared/ui/button'
 import { createFilter, fetchFilter, updateFilter, validateScript } from '../api'
 import ActivationWarning from './ActivationWarning.vue'
-import ScriptEditor from './ScriptEditor.vue'
+import CodeEditor from '@/shared/components/code-editor/CodeEditor.vue'
+import { utf8ByteLength } from '@/shared/validation/utf8'
 
 const props = defineProps<{ mailbox?: string; stored?: SieveFilter }>()
 const emit = defineEmits<{ saved: [item: SieveFilter] }>()
-const { t } = useI18n()
+const { t, n } = useI18n()
 const client = useQueryClient()
 const capabilities = useSelfServiceCapabilities()
 const owner = ref<string | null>(props.stored?.mailbox ?? props.mailbox ?? null)
@@ -27,6 +29,7 @@ const description = ref(props.stored?.description ?? '')
 const kind = ref<SieveFilterKind>(props.stored?.kind ?? 'prefilter')
 const script = ref(props.stored?.script ?? '')
 const active = ref(props.stored?.active ?? true)
+const scriptBytes = computed(() => utf8ByteLength(script.value))
 const stored = shallowRef(props.stored)
 const checking = ref(false)
 const saving = ref(false)
@@ -126,6 +129,10 @@ async function submit() {
     saving.value = false
   }
 }
+function insertPreset(preset: Preset) {
+  script.value = preset.content
+  if (!description.value.trim()) description.value = preset.headline
+}
 function discard() {
   if (!stored.value) return
   description.value = stored.value.description
@@ -213,7 +220,17 @@ function discard() {
           ><input v-bind="control" v-model="description" class="form-control" maxlength="255"
         /></template>
       </FormField>
-      <ScriptEditor v-model="script" :max-bytes="maxBytes" :errors="form.errorsFor('script')" />
+      <CodeEditor
+        id="filter-script"
+        v-model="script"
+        :label="t('filters.form.script')"
+        :max-bytes="maxBytes"
+        :errors="form.errorsFor('script')"
+        required
+      />
+      <p data-script-bytes class="text-sm text-gray-600 dark:text-gray-400">
+        {{ t('filters.form.bytes', { used: n(scriptBytes), max: n(maxBytes) }) }}
+      </p>
       <ActivationWarning v-if="!props.stored" :active="active" />
       <label class="flex min-h-11 items-center gap-3 text-sm text-gray-800 dark:text-gray-200"
         ><input v-model="active" type="checkbox" class="size-5" />{{
@@ -247,5 +264,12 @@ function discard() {
         </button>
       </div>
     </fieldset>
+    <PresetPicker
+      v-if="!props.stored"
+      kind="sieve"
+      :replace="!!script"
+      :disabled="saving || checking"
+      @select="insertPreset"
+    />
   </form>
 </template>

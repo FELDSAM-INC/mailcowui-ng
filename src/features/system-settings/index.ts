@@ -9,3 +9,9 @@ export const QuotaCopiesSection = defineAsyncComponent(() =>
     loadFeatureMessages('system-settings'),
   ]).then(([component]) => component),
 )
+export const PresetPicker = defineAsyncComponent(() =>
+  Promise.all([
+    import('./components/spam/PresetPicker.vue'),
+    loadFeatureMessages('system-settings'),
+  ]).then(([component]) => component.default),
+)

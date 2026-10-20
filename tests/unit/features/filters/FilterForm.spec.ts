@@ -1,10 +1,22 @@
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as filterApi from '@/features/filters/api'
 import FilterForm from '@/features/filters/components/FilterForm.vue'
 import { mockSieveFilter, sieveFilterView } from '../../../mocks/factories/sieve-filter'
 import { useScenario } from '../../../mocks/node'
 import { mountWithApp } from '../../support/mount'
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
+  vi.stubGlobal('requestAnimationFrame', () => 1)
+  vi.stubGlobal('cancelAnimationFrame', () => {})
+})
 
 describe('legacy Sieve validation and submission', () => {
   it('enables creation only after validation and invalidates the check after any edit', async () => {
@@ -84,4 +96,20 @@ describe('legacy Sieve validation and submission', () => {
         .attributes('disabled'),
     ).toBeDefined()
   })
+})
+
+it('uses the shared editor while preserving the Sieve UTF-8 byte count', async () => {
+  useScenario('account-admin')
+  const wrapper = mountWithApp(FilterForm, { props: { mailbox: 'anna@example.org' } })
+  await wrapper.get('#filter-script').setValue('# Ž')
+  expect(wrapper.get('[data-script-bytes]').text()).toContain('4')
+  expect(wrapper.get('[data-script-bytes]').text()).toContain('65')
+  expect(wrapper.get('#filter-script').attributes()).toMatchObject({
+    wrap: 'soft',
+    autocapitalize: 'off',
+    autocorrect: 'off',
+    spellcheck: 'false',
+  })
+  await wrapper.get('[data-code-editor] input[type=checkbox]').setValue(false)
+  expect(wrapper.get('#filter-script').attributes('wrap')).toBe('off')
 })

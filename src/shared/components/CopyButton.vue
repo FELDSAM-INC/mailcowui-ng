@@ -52,6 +52,11 @@ function scheduleRevert() {
 function selectInPlace() {
   const target = props.selectTarget
   if (!target) return
+  if (target instanceof HTMLTextAreaElement || target instanceof HTMLInputElement) {
+    target.focus()
+    target.select()
+    return
+  }
   if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1')
   target.focus()
   const range = document.createRange()

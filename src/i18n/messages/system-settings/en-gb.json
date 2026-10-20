@@ -46,6 +46,19 @@
     "quotaCopies": {
       "empty": "Copies stay inactive while the recipient list is empty.",
       "unavailable": "This domain is no longer available. Your changes have not been saved."
+    },
+    "rules": {
+      "description": "Manage custom rules in the Rspamd settings map.",
+      "refreshNote": "Active rule changes reach Rspamd at its next refresh, usually within a minute.",
+      "deleteImpact": "Remove rule #{id}: {description}? Active rules stop applying at Rspamd’s next refresh.",
+      "replaceTitle": "Replace editor content?",
+      "replaceBody": "The example will replace the text currently in the editor.",
+      "unclosedBrace": "Unclosed brace",
+      "unclosedBracket": "Unclosed bracket",
+      "unexpectedBrace": "Unexpected closing brace",
+      "unexpectedBracket": "Unexpected closing bracket",
+      "unclosedString": "Unclosed quoted string",
+      "invalidStructure": "The rule contains an unbalanced structure."
     }
   }
 }

@@ -293,3 +293,23 @@ Evidence: `/tmp/u013-cors-license-{unitfinal,app2,tests2,tests-final,lint2,brows
 The native multiple-select replaces the planned checkbox component per the owner-approved legacy
 form rule; whole US11 and global/manual release gates are assessed with the earlier Rspamd/IP-check
 slices rather than inferred from this checkpoint alone.
+
+### Native WebKit timeline follow-up (2026-10-21)
+
+One further cold browser process used the same unchanged `23975541` build in an exclusive CPU
+window, with Playwright tracing disabled and WebKit's native Timeline instrument enabled. Its
+input-to-frame measurements were **141, 70, 34, 16, 16, 14, 13, 13, 14, 13 ms**; all ten
+visible-prefix checks passed. T120/T127 still fail their unchanged 100 ms first-input limit.
+
+The recorded first input handler and application update ended at 18.8 ms. Its layout took 0.8 ms;
+the pending animation-frame callback did not run until 139 ms, and the following paint took
+0.7 ms. Another real input was processed at 73–93 ms while the frame was pending. No recorded
+Timeline event exceeded 19 ms. The editor had also painted 44 ms before the first input.
+These observations narrow the next investigation to frame scheduling around Edit/focus/scroll;
+they do not establish a specific compositor cause or justify adding an arbitrary readiness delay.
+A small native-editor control is prepared but has not run. This instrumented sample is diagnostic
+evidence, not a performance pass; no product code or test threshold changed.
+
+Evidence: `/tmp/u013-editor-timeline.log` and the `timeline.json` / `timings.json` artifacts under
+`test-results/editor-timeline` in the `013-editor-latency` worktree. The diagnostic remains a
+temporary local test and is excluded from commits and release test counts.

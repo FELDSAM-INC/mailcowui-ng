@@ -243,3 +243,15 @@ aggregation, although its individual runs vary. This is not a fully green Lighth
 Evidence: `u005/lighthouse-final.log`, `lighthouse-summary.json` and
 `lighthouse-final-reports/`. Performance remains 80, accessibility 90, initial gzip 200 KiB and
 shell script transfer 210 KiB; none of the thresholds or throttling settings changed.
+
+**Deployment, 2026-10-20:** UI main was fast-forwarded and pushed as `ddf44e59`, then the standard
+script installed `mailcowui-ng:ddf44e59` on `maildev.feldhost.cz`. Only `ng-mailcow` was recreated.
+The container is healthy and `/ng/` returns HTTP 200 with the required CSP. API
+`mailcow-rest-v2:b3dc2ab` remains healthy; database, schema, Redis and migrations report OK.
+The previous UI image `mailcowui-ng:3de1d64a` is retained for rollback.
+
+Live browser checks pass on mobile Chromium (360 px), desktop Chromium and mobile WebKit:
+administrator sign-in fields and enabled submit, invalid reset-link screen, no horizontal
+scrolling, no JavaScript/CSP errors, and API readiness. No live credentials were submitted.
+Logs: `u005/deploy-maildev.log`, `deploy-maildev-browser.log` and `deploy-postflight.log`.
+These checks do not replace the remaining authenticated live-host/device acceptance work.

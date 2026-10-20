@@ -1,4 +1,14 @@
 {
+  "acting": {
+    "notice": {
+      "changedInAnotherTab": "Účet sa zmenil na inej karte.",
+      "endedByServer": "Prihlásenie za iný účet sa skončilo.",
+      "writeNotCarriedOut": "Vaša posledná akcia nebola vykonaná."
+    }
+  },
+  "shellNotice": {
+    "dismiss": "Zavrieť oznámenie"
+  },
   "a11y": {
     "appsMenu": "Ponuka {label}",
     "closeNavigation": "Zavrieť navigáciu",
@@ -215,7 +225,8 @@
       "sessionEnded": "Vaša relácia sa skončila. Prihláste sa, prosím, znova.",
       "signInTimedOut": "Časový limit prihlásenia vypršal. Prihláste sa, prosím, znova.",
       "signedOut": "Boli ste odhlásení.",
-      "signedOutSso": "Odhlásili ste sa z tejto aplikácie. V prihlasovacej službe vašej organizácie ste stále prihlásení; na zdieľanom zariadení sa odhláste aj tam."
+      "signedOutSso": "Odhlásili ste sa z tejto aplikácie. V prihlasovacej službe vašej organizácie ste stále prihlásení; na zdieľanom zariadení sa odhláste aj tam.",
+      "selfDeactivated": "Váš účet bol deaktivovaný. Pred ďalším prihlásením ho musí aktivovať iný správca."
     },
     "passkey": {
       "chooseAgain": "Zvoľte prístupový kľúč znova.",
@@ -508,7 +519,19 @@
       "recentLoginsClear": "Nedávne prihlásenia vymazané",
       "activeSyncCacheReset": "Vyrovnávacia pamäť zariadení ActiveSync obnovená",
       "groupwareProfileReset": "Profil SOGo obnovený",
-      "webmailHandOff": "Webmail otvorený"
+      "webmailHandOff": "Webmail otvorený",
+      "adminCreation": "Správca vytvorený",
+      "adminUpdate": "Správca zmenený",
+      "adminDeletion": "Správca odstránený",
+      "adminSecondFactorSuspension": "Dvojfaktorové overovanie správcu pozastavené",
+      "domainAdminCreation": "Správca domény vytvorený",
+      "domainAdminUpdate": "Správca domény zmenený",
+      "domainAdminDeletion": "Správca domény odstránený",
+      "domainAdminSecondFactorSuspension": "Dvojfaktorové overovanie správcu domény pozastavené",
+      "ssoTokenIssue": "Jednorazový prihlasovací odkaz vydaný",
+      "impersonationStart": "Prihlásenie za iný účet začaté",
+      "impersonationEnd": "Prihlásenie za iný účet ukončené",
+      "webmailSignInOnBehalf": "Webmail otvorený za iný účet"
     },
     "auditFailureReason": {
       "featureDisabled": "Funkcia je vypnutá",
@@ -575,7 +598,9 @@
       "spamPolicyEntry": "Položka bielej alebo čiernej listiny",
       "rateLimitBucket": "Hash obmedzenia prenosu",
       "sieveFilter": "Filter",
-      "groupwareData": "Dáta groupwaru"
+      "groupwareData": "Dáta groupwaru",
+      "ssoToken": "Jednorazový prihlasovací odkaz",
+      "impersonation": "Prihlásenie za iný účet"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresára",
@@ -583,7 +608,8 @@
       "passkey": "Prístupový kľúč",
       "passwordAndSecondFactor": "Heslo a druhý faktor",
       "providerPassword": "Heslo cez poskytovateľa identít",
-      "providerPasswordAndSecondFactor": "Heslo cez poskytovateľa identít a druhý faktor"
+      "providerPasswordAndSecondFactor": "Heslo cez poskytovateľa identít a druhý faktor",
+      "ssoToken": "Jednorazový prihlasovací odkaz"
     },
     "resourceKind": {
       "group": "Skupina",
@@ -846,7 +872,12 @@
     "second-factor-enrolment-expired": "Platnosť nastavenia vypršala. Začnite znova.",
     "second-factor-enrolment-failed": "Druhý faktor sa nepodarilo overiť. Nič nebolo uložené.",
     "groupware-disabled": "Webmail, obnovenie groupwaru a profil s kalendármi nie sú na tomto serveri k dispozícii.",
-    "dependency-unavailable": "Nič nebolo zmenené. Dočasne nedostupné: {service}. Skúste to prosím o chvíľu znova."
+    "dependency-unavailable": "Nič nebolo zmenené. Dočasne nedostupné: {service}. Skúste to prosím o chvíľu znova.",
+    "already-impersonating": "Už ste prihlásení za iný účet.",
+    "impersonation-ended": "Prihlásenie za iný účet sa skončilo.",
+    "not-allowed-while-impersonating": "Nie je dostupné pri prihlásení za iného používateľa.",
+    "webmail-on-behalf-disabled": "Otvorenie webmailu za iný účet je zakázané.",
+    "account-inactive": "Tento účet nie je aktívny."
   },
   "roles": {
     "mailboxUser": "Používateľ schránky"
@@ -881,6 +912,7 @@
     "saving": "Ukladá sa…"
   },
   "session": {
+    "switching": "Prepínanie účtu…",
     "idle": {
       "body": "Z bezpečnostných dôvodov budete pre nečinnosť odhlásení o {time}.",
       "remaining": "Do odhlásenia zostáva {time}.",
@@ -1014,7 +1046,8 @@
     "invalidTemplate": "Túto šablónu nemožno použiť.",
     "preHashedPassword": "Heslo nesmie začínať schémou hashu, ako je {scheme}.",
     "tooLongStored": "Tento názov je po zakódovaní špeciálnych znakov príliš dlhý (najviac {max} znakov).",
-    "mutuallyExclusive": "Použite len jednu z týchto hodnôt."
+    "mutuallyExclusive": "Použite len jednu z týchto hodnôt.",
+    "unknownField": "Toto pole nie je rozpoznané."
   },
   "domainTemplates": {
     "create": {

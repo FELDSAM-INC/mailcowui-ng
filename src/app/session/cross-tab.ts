@@ -2,35 +2,40 @@
 // timer; a sign-in or a lifted restriction in another tab makes this tab refetch its session; a
 // sign-out there ends the session here. As a fallback, an identity refresh that reports another
 // account discards the previous account's data.
-import { onActivity, queryKeys, type Identity } from '@/api'
+import { onActivity, queryKeys, identityKey, problemOf, type Identity } from '@/api'
 import { setDraftOwner } from '@/shared/composables/draft-registry'
 
 import type { SessionContext } from './context'
-import { identityQuery, isSignedIn, sessionQuery } from './queries'
+import { fetchIdentity, sessionQuery } from './queries'
 import { rerouteCurrent } from './reroute'
 import { endSession } from './session-end'
 import { useSessionStore } from './store'
+import { switchIdentity } from './identity-switch'
 
 const isIdentityKey = (key: readonly unknown[]) => key[0] === queryKeys.identity()[0]
 
 /** Clears the cache, refetches the session (and identity) and lets the guard re-route. */
 export async function refreshAfterSessionChange(ctx: SessionContext): Promise<void> {
-  ctx.queryClient.clear()
+  if (useSessionStore().identityTransition) return
+  const previous = ctx.queryClient.getQueryData<Identity>(queryKeys.identity())
   try {
-    const session = await ctx.queryClient.fetchQuery(sessionQuery())
-    if (isSignedIn(session)) await ctx.queryClient.fetchQuery(identityQuery())
-  } catch {
-    // The next navigation fetches again; the guard handles the failure.
+    // Read outside the cache so a changed identity cannot repaint the mounted old screen first.
+    const identity = await fetchIdentity()
+    if (identityKey(identity) !== identityKey(previous)) {
+      await switchIdentity({ reason: 'changedInAnotherTab', identity }, ctx)
+      return
+    }
+    ctx.queryClient.setQueryData(queryKeys.identity(), identity)
+    await ctx.queryClient.fetchQuery({ ...sessionQuery(), staleTime: 0 })
+    await rerouteCurrent(ctx.router)
+  } catch (error) {
+    if (problemOf(error)?.status === 401) await endSession(ctx)
   }
-  await rerouteCurrent(ctx.router)
 }
 
-/** Discards the previous account's data when an identity refresh reports another account. */
+/** A refresh can change the acting instance even when username and role are unchanged. */
 export function watchIdentityChanges(ctx: SessionContext): () => void {
-  const cached = ctx.queryClient.getQueryData<Identity>(queryKeys.identity())
-  let known: Pick<Identity, 'username' | 'role'> | null = cached
-    ? { username: cached.username, role: cached.role }
-    : null
+  let known = identityKey(ctx.queryClient.getQueryData<Identity>(queryKeys.identity()))
   return ctx.queryClient.getQueryCache().subscribe((event) => {
     if (!isIdentityKey(event.query.queryKey)) return
     if (event.type === 'removed') {
@@ -39,17 +44,12 @@ export function watchIdentityChanges(ctx: SessionContext): () => void {
     }
     if (event.type !== 'updated' || event.action.type !== 'success') return
     const next = event.action.data as Identity
-    // UI 004 (research R10): the draft registry follows the signed-in account; another account's
-    // drafts are discarded.
-    setDraftOwner(next.username)
-    const changed = known && (known.username !== next.username || known.role !== next.role)
-    known = { username: next.username, role: next.role }
-    if (!changed) return
-    ctx.queryClient.removeQueries({ predicate: (query) => !isIdentityKey(query.queryKey) })
-    void ctx.queryClient
-      .fetchQuery(sessionQuery())
-      .catch(() => undefined)
-      .then(() => rerouteCurrent(ctx.router))
+    const key = identityKey(next)
+    const changed = known !== null && known !== key
+    known = key
+    if (useSessionStore().identityTransition) return
+    if (changed) void switchIdentity({ reason: 'changedInAnotherTab', identity: next }, ctx)
+    else setDraftOwner(next.username)
   })
 }
 

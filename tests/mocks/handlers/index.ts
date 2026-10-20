@@ -23,6 +23,8 @@ import { applyIdleTimeout, type ScenarioState } from '../scenarios/state'
 import { aliasDomainHandlers } from './alias-domains'
 import { aliasHandlers } from './aliases'
 import { apiKeyHandlers } from './api-keys'
+import { adminHandlers } from './admins'
+import { domainAdminHandlers } from './domain-admins'
 import { auditHandlers } from './audit'
 import { authHandlers } from './auth'
 import { containerHandlers } from './containers'
@@ -76,6 +78,8 @@ export const areaHandlers: RequestHandler[] = [
   ...publicConfigHandlers,
   ...passkeyHandlers,
   ...apiKeyHandlers,
+  ...adminHandlers,
+  ...domainAdminHandlers,
   ...auditHandlers,
   ...domainHandlers,
   ...domainTemplateHandlers,

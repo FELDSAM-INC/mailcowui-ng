@@ -1,4 +1,14 @@
 {
+  "acting": {
+    "notice": {
+      "changedInAnotherTab": "The account changed in another tab.",
+      "endedByServer": "Acting as another account has ended.",
+      "writeNotCarriedOut": "Your last action was not carried out."
+    }
+  },
+  "shellNotice": {
+    "dismiss": "Dismiss notice"
+  },
   "a11y": {
     "appsMenu": "{label} menu",
     "closeNavigation": "Close navigation",
@@ -215,7 +225,8 @@
       "sessionEnded": "Your session has ended. Please sign in again.",
       "signInTimedOut": "The sign-in timed out. Please sign in again.",
       "signedOut": "You have signed out.",
-      "signedOutSso": "You have signed out of this app. You are still signed in at your organisation's sign-in service; on a shared device, sign out there too."
+      "signedOutSso": "You have signed out of this app. You are still signed in at your organisation's sign-in service; on a shared device, sign out there too.",
+      "selfDeactivated": "Your account was deactivated. Another administrator must activate it before you can sign in again."
     },
     "passkey": {
       "chooseAgain": "Choose your passkey again.",
@@ -508,7 +519,19 @@
       "recentLoginsClear": "Recent logins cleared",
       "activeSyncCacheReset": "ActiveSync device cache reset",
       "groupwareProfileReset": "SOGo profile reset",
-      "webmailHandOff": "Webmail opened"
+      "webmailHandOff": "Webmail opened",
+      "adminCreation": "Administrator created",
+      "adminUpdate": "Administrator updated",
+      "adminDeletion": "Administrator removed",
+      "adminSecondFactorSuspension": "Administrator two-factor authentication suspended",
+      "domainAdminCreation": "Domain administrator created",
+      "domainAdminUpdate": "Domain administrator updated",
+      "domainAdminDeletion": "Domain administrator removed",
+      "domainAdminSecondFactorSuspension": "Domain administrator two-factor authentication suspended",
+      "ssoTokenIssue": "One-time sign-in link issued",
+      "impersonationStart": "Acting as another account started",
+      "impersonationEnd": "Acting as another account ended",
+      "webmailSignInOnBehalf": "Webmail opened for another account"
     },
     "auditFailureReason": {
       "featureDisabled": "Feature disabled",
@@ -575,7 +598,9 @@
       "spamPolicyEntry": "Allowlist or denylist entry",
       "rateLimitBucket": "Rate limit hash",
       "sieveFilter": "Filter",
-      "groupwareData": "Groupware data"
+      "groupwareData": "Groupware data",
+      "ssoToken": "One-time sign-in link",
+      "impersonation": "Acting session"
     },
     "authMethod": {
       "directoryPassword": "Directory password",
@@ -583,7 +608,8 @@
       "passkey": "Passkey",
       "passwordAndSecondFactor": "Password and second factor",
       "providerPassword": "Password through the identity provider",
-      "providerPasswordAndSecondFactor": "Password through the identity provider and second factor"
+      "providerPasswordAndSecondFactor": "Password through the identity provider and second factor",
+      "ssoToken": "One-time sign-in link"
     },
     "resourceKind": {
       "group": "Group",
@@ -846,7 +872,12 @@
     "second-factor-enrolment-expired": "The setup expired. Start again.",
     "second-factor-enrolment-failed": "The second factor could not be verified. Nothing was saved.",
     "groupware-disabled": "Webmail, the groupware resets and the calendar profile are not available on this server.",
-    "dependency-unavailable": "Nothing was changed. Temporarily unavailable: {service}. Please try again in a moment."
+    "dependency-unavailable": "Nothing was changed. Temporarily unavailable: {service}. Please try again in a moment.",
+    "already-impersonating": "You are already acting as another account.",
+    "impersonation-ended": "Acting as another account has ended.",
+    "not-allowed-while-impersonating": "Not available while acting as another user.",
+    "webmail-on-behalf-disabled": "Opening webmail for another account is disabled.",
+    "account-inactive": "This account is inactive."
   },
   "roles": {
     "mailboxUser": "Mailbox user"
@@ -881,6 +912,7 @@
     "saving": "Saving…"
   },
   "session": {
+    "switching": "Switching account…",
     "idle": {
       "body": "For your security, you will be signed out in {time} because of inactivity.",
       "remaining": "{time} left before you are signed out.",
@@ -1014,7 +1046,8 @@
     "invalidTemplate": "This template cannot be used.",
     "preHashedPassword": "The password may not start with a hash scheme such as {scheme}.",
     "tooLongStored": "This name is too long once special characters are encoded (at most {max} characters).",
-    "mutuallyExclusive": "Use only one of these values."
+    "mutuallyExclusive": "Use only one of these values.",
+    "unknownField": "This field is not recognised."
   },
   "domainTemplates": {
     "create": {

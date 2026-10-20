@@ -71,7 +71,8 @@ The catalogue rows, in navigation order:
 | `passkeys` | `/passkeys` | ✓ | ✓ | ✓ | 001 | available |
 | `quarantine` | `/quarantine` | ✓ | ✓ | ✓ | 006 | placeholder |
 | `spamFilter` | `/spam-filter` | — | — | `spamScore` or `spamPolicy` | 006 | placeholder |
-| `administrators` | `/administrators` | ✓ | — | — | 007 | placeholder |
+| `domainAdmins` | `/administrators/domain-admins` | ✓ | — | — | 007 | placeholder |
+| `administrators` | `/administrators/admins` | ✓ | — | — | 007 | placeholder |
 | `syncJobs` | `/sync-jobs` | ✓ | `syncjobs` | `syncjobs` | 008 | placeholder |
 | `routing` | `/routing` | ✓ | `bccMaps` | — | 009 | placeholder |
 | `dns` | `/dns` | ✓ | ✓ | — | 010 | placeholder |
@@ -139,7 +140,7 @@ These come from `src/api/query/keys.ts`.
 |---|---|---|---|---|
 | `['public-config']` | `getPublicConfig` | 5 min | at bootstrap; when the sign-in screen opens after a sign-out | `cache: 'no-cache'` lets the ETag and `304` work. A failure falls back to the FR-003 defaults. |
 | `['session']` | `getSession` | ∞ | at bootstrap; on "Stay signed in"; after `second-factor-required`, `pending-action-required` and cross-tab messages | sign-in responses write it with `setQueryData` |
-| `['identity']` | `getIdentity` | 5 min | after a sign-in step that results in `active` or `restricted`; at bootstrap when signed in; on a shell navigation when older than 5 min (FR-050); after `forbidden` and `pending-action-required`; on "Check again", together with `session` | a change of `username` or `role` clears the cache (FR-037) |
+| `['identity']` | `getIdentity` | 5 min | after a sign-in step that results in `active` or `restricted`; at bootstrap when signed in; on a shell navigation when older than 5 min (FR-050); after `forbidden` and `pending-action-required`; on "Check again", together with `session` | a change of `username|role|impersonation.id` unmounts the page and clears the cache (FR-037, UI 007 R4) |
 | `['passkeys','list',{limit,offset,sort:'registeredAt',order:'desc'}]` | `listPasskeys` | 30 s | on the passkeys page; on the home screen with `limit: 1` for the suggestion (FR-047) | — |
 | `['api-keys','list',ApiKeyListParams]` | `listApiKeys` | 30 s | on the API keys page | params come from the address (§5) |
 | `['api-keys','detail',apiKeyId]` | `getApiKey` | 30 s | on the detail page | the revoke response writes it with `setQueryData` |

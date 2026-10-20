@@ -21,7 +21,6 @@ import {
   type MailboxListParams,
   type MailboxRenameRequest,
   type MailboxTagParams,
-  type PasswordPolicy,
   type Writable,
 } from '@/api'
 
@@ -127,16 +126,7 @@ export function tagsOptions(params: MailboxTagParams) {
   })
 }
 
-/** Read whenever a password form opens (FR-030). */
-export function passwordPolicyOptions() {
-  return queryOptions({
-    queryKey: queryKeys.passwordPolicy(),
-    queryFn: async (): Promise<PasswordPolicy> =>
-      requireData(await api.GET('/password-policy')).data,
-    staleTime: 0,
-    refetchOnMount: 'always' as const,
-  })
-}
+export { passwordPolicyOptions } from '@/shared/composables/usePasswordPolicy'
 
 // Cache rules shared by the mutations
 

@@ -7,6 +7,41 @@
 import type { LegacyKey } from './legacy'
 
 export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
+  // UI007: account outcomes and the flat classic domain-administrator ACL labels.
+  'accounts.form.errors.username.invalidFormat': 'danger.username_invalid',
+  'accounts.form.errors.username.reserved': 'danger.username_invalid',
+  'accounts.form.errors.domains.invalidFormat': 'danger.domain_invalid',
+  'accounts.form.errors.domains.notFound': 'danger.domain_invalid',
+  'accounts.form.errors.domains.notEligible': 'danger.domain_invalid',
+  'accounts.form.errors.password.tooShort': 'danger.password_complexity',
+  'accounts.form.errors.password.missingCharacterClass': 'danger.password_complexity',
+  'problem.account-exists': 'danger.object_exists',
+  'problem.last-active-admin': 'warning.no_active_admin',
+  'problem.cannot-delete-own-account': 'warning.cannot_delete_self',
+  'accounts.secondFactorStatus.active': 'mailbox.active',
+  'accounts.secondFactorStatus.none': 'mailbox.inactive',
+  'enums.auditTargetType.admin': 'admin.admin',
+  'enums.auditTargetType.domainAdmin': 'admin.domain_admin',
+  'permissions.flag.syncjobs': 'acl.syncjobs',
+  'permissions.flag.quarantine': 'acl.quarantine',
+  'permissions.flag.loginAs': 'acl.login_as',
+  'permissions.flag.sogoAccess': 'acl.sogo_access',
+  'permissions.flag.appPasswds': 'acl.app_passwds',
+  'permissions.flag.bccMaps': 'acl.bcc_maps',
+  'permissions.flag.pushover': 'acl.pushover',
+  'permissions.flag.filters': 'acl.filters',
+  'permissions.flag.ratelimit': 'acl.ratelimit',
+  'permissions.flag.spamPolicy': 'acl.spam_policy',
+  'permissions.flag.extendSenderAcl': 'acl.extend_sender_acl',
+  'permissions.flag.unlimitedQuota': 'acl.unlimited_quota',
+  'permissions.flag.protocolAccess': 'acl.protocol_access',
+  'permissions.flag.smtpIpAccess': 'acl.smtp_ip_access',
+  'permissions.flag.aliasDomains': 'acl.alias_domains',
+  'permissions.flag.mailboxRelayhost': 'acl.mailbox_relayhost',
+  'permissions.flag.domainRelayhost': 'acl.domain_relayhost',
+  'permissions.flag.domainDesc': 'acl.domain_desc',
+  'permissions.flag.aliasExternalGoto': 'acl.alias_external_goto',
+
   // Problems: the classic `danger.*`, `warning.*` and `info.*` message of the same meaning.
   'problem.csrf-token-mismatch': 'warning.session_token',
   'problem.forbidden': 'danger.access_denied',
@@ -343,6 +378,12 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
  * them.
  */
 export const LEGACY_ARGS: Readonly<Partial<Record<string, readonly string[]>>> = {
+  'problem.account-exists': ['username'],
+  'accounts.form.errors.username.invalidFormat': ['entry'],
+  'accounts.form.errors.username.reserved': ['entry'],
+  'accounts.form.errors.domains.invalidFormat': ['entry'],
+  'accounts.form.errors.domains.notFound': ['entry'],
+  'accounts.form.errors.domains.notEligible': ['entry'],
   'problem.address-in-use': ['address'],
   'problem.address-in-use.holder.alias': ['address'],
   'problem.address-in-use.holder.temporaryAlias': ['address'],

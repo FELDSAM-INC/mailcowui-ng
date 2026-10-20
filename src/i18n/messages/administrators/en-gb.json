@@ -1,0 +1,50 @@
+{
+  "accounts": {
+    "secondFactorStatus": {
+      "suspended": "Suspended until next sign-in"
+    },
+    "usernameHint": "Use letters a–z, numbers, dots, underscores and hyphens; include at least one letter or number.",
+    "preHashedPassword": "A password with a supported hash-scheme prefix is stored as given.",
+    "passkeys": "({count} active passkeys)",
+    "assignment": {
+      "missing": "This assigned domain no longer exists.",
+      "catchAll": "This is a non-domain assignment from the classic interface; it does not grant access to real domains.",
+      "more": "+{count} more",
+      "none": "No domains are assigned."
+    },
+    "confirm": {
+      "renameTitle": "Rename account",
+      "rename": "Rename {username} to {next}? Existing sessions and acting sessions end. API keys are revoked permanently. Passkeys and second factors follow the new name.",
+      "renameOwn": "Rename your account from {username} to {next}? This browser stays signed in under the new name. Other sessions end and API keys are revoked permanently.",
+      "deactivate": "Deactivate {username}? This account cannot sign in and its current sessions and API keys stop working until it is activated again.",
+      "deactivateOwn": "Deactivate your account {username}? This browser will be signed out. Another active administrator must activate your account before you can sign in again.",
+      "removeDomainAdmin": "Remove {username}, assigned to {domains}? API keys are revoked permanently, passkeys and second factors are removed, and sessions end. Domains and mailboxes remain.",
+      "removeAdmin": "Remove administrator {username}? API keys are revoked permanently, passkeys and second factors are removed, and sessions end. Domains and mailboxes remain.",
+      "suspend": "Suspend second factors for {username}? Existing factors stop working until the next successful password sign-in. Passkeys remain available."
+    },
+    "backToList": "Back to accounts",
+    "you": "You",
+    "count": "Accounts: {count}",
+    "domainCount": "Number of domains",
+    "filters": {
+      "pending": "Required sign-in action",
+      "permission": "Permission",
+      "permissionValue": "Permission enabled"
+    },
+    "bulk": {
+      "ownExcluded": "Your own account was left out of this action.",
+      "delete": "Remove {count} accounts? API keys are revoked permanently, passkeys and second factors are removed, and sessions end. Domains and mailboxes remain.",
+      "deactivate": "Deactivate {count} accounts? Their sessions end and they cannot sign in until activated again.",
+      "suspendSecondFactors": "Suspend second factors for {count} accounts? Passkeys remain available."
+    },
+    "empty": {
+      "domainAdmin": "Domain administrators manage mailboxes and aliases in the domains assigned to them.",
+      "admin": "Administrators manage the whole installation."
+    }
+  },
+  "administrators": {
+    "permissions": {
+      "title": "ACL"
+    }
+  }
+}

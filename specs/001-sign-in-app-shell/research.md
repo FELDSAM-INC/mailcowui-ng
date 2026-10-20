@@ -314,6 +314,8 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
 
 ### R8. HTTP behaviour: CSRF, retries and problems
 
+**UI 007 amendment**: [R5](../007-administrators-domain-admins/research.md#r5-anti-forgery-retry-after-an-identity-change) adds a direct identity read after refreshing the token. A clone is replayed only when its original identity key is unchanged; otherwise it is discarded and the R4 switch runs.
+
 - **Decision**: `openapi-fetch` middleware, in this order.
   1. **Activity** (`src/api/activity.ts`): every response except `401 unauthenticated` records
      "the session was used now" for the idle timer (R12), because the API renews the idle timer on
@@ -499,6 +501,8 @@ from. `package.json` lists them exactly (`save-exact`), and `package-lock.json` 
   fetching before the first write was rejected because of the competing-sessions race above.
 
 ### R12. Idle timeout warning and cross-tab coordination
+
+**UI 007 amendment**: [R4](../007-administrators-domain-admins/research.md#r4-the-identity-switch-protocol) compares `username|role|impersonation.id`. On `session-changed`, read identity before deciding: a changed key unmounts and clears through the switch protocol; an equal key refreshes session without unmounting. Focus never sends a request.
 
 - **Decision**:
   - **Deadline** = `lastActivityAt + Session.idleTimeout`. `lastActivityAt` is the time of the

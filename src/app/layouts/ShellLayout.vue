@@ -24,9 +24,13 @@ import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'
 import SkipLink from '../shell/SkipLink.vue'
 import UserMenu from '../shell/UserMenu.vue'
+import IdentityTransition from '../shell/IdentityTransition.vue'
+import ShellNotice from '../shell/ShellNotice.vue'
+import { useSessionStore } from '../session/store'
 import NoAccessState from '../states/NoAccessState.vue'
 
 const { t } = useI18n()
+const session = useSessionStore()
 const route = useRoute()
 const wide = useMediaQuery('(min-width: 1024px)')
 const identityQuery = useIdentityQuery()
@@ -112,7 +116,9 @@ const statusMessages = useStatusMessage().messages
         >
           <StatusMessageHost v-if="statusMessages.length" />
         </div>
-        <RouterView v-if="allowed" />
+        <ShellNotice />
+        <IdentityTransition v-if="session.identityTransition" />
+        <RouterView v-else-if="allowed" />
         <NoAccessState v-else />
       </main>
     </div>

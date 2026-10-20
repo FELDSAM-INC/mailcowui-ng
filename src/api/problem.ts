@@ -20,7 +20,7 @@ import type {
 } from './generated/schema'
 
 /** `problem`: a problem response; `network`: no response; `unavailable`: a non-problem 5xx. */
-export type ProblemKind = 'problem' | 'network' | 'unavailable'
+export type ProblemKind = 'identityChanged' | 'problem' | 'network' | 'unavailable'
 
 const PROBLEM_PREFIX = '/api/v2/problems/'
 

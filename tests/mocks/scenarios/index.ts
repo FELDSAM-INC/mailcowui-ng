@@ -15,6 +15,11 @@ import { standardAccounts, adminAccount, domainAdminAccount, mailboxAccount } fr
 import { auditLogScenarios } from './audit-log'
 import { baseScenarios } from './base'
 import {
+  administratorScenarios,
+  initialAdministratorState,
+  applyAdministratorChanges,
+} from './administrators'
+import {
   applyDomainMutations,
   applyFooterMutations,
   applyTemplateMutations,
@@ -102,6 +107,7 @@ export interface ScenarioDefinition {
 
 export const scenarios: Record<string, ScenarioDefinition> = {
   ...baseScenarios,
+  ...administratorScenarios,
   ...signInScenarios,
   ...passkeySignInScenarios,
   ...navigationScenarios,
@@ -259,6 +265,7 @@ export function applyOverrides(
   if (overrides.settings) applySettingsPatch(state, overrides.settings)
   applyRoutingOverrides(state, overrides.routing)
   if (overrides.operations) applyOperationsPatch(state, overrides.operations)
+  if (overrides.changeElsewhere) applyAdministratorChanges(state, overrides.changeElsewhere)
   applyQuarantineOverrides(state, overrides)
   if (overrides.selfService) applySelfServiceOverrides(state, overrides.selfService)
   if (overrides.signedInAs) {
@@ -295,6 +302,7 @@ export function createScenarioState(
     violations: new ViolationRecorder(),
     now,
     ...initialDomainState(),
+    ...initialAdministratorState(),
     ...initialMailboxState(),
     syncJobs: initialSyncJobState(),
     identityProvider: initialIdentityProvider(),

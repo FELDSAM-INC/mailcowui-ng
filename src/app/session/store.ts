@@ -1,7 +1,8 @@
 // Client state of the session lifecycle (data-model §4, research R10). Server state (the session
 // and the identity) lives in the query cache; nothing here is ever written to device storage.
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
+import type { ApiProblem } from '@/api'
 
 export type SessionNotice =
   | 'signedOut'
@@ -12,6 +13,8 @@ export type SessionNotice =
   // UI 012: the single sign-on session ended (FR-052); signed out of one (FR-053).
   | 'ssoSessionEnded'
   | 'signedOutSso'
+  | 'ssoLinkInvalid'
+  | 'selfDeactivated'
 
 /**
  * UI 005 (research R20): whether the sign-in started from an app address (`requested`: a bookmark,
@@ -23,6 +26,13 @@ export type LandingIntent = 'default' | 'requested'
 export const DEFAULT_IDLE_TIMEOUT = 10_800
 
 export const useSessionStore = defineStore('session', () => {
+  const identityTransition = ref(false)
+  const identityTransitionProblem = shallowRef<ApiProblem | null>(null)
+  const actingOrigin = ref<string | null>(null)
+  const shellNotice = ref<{
+    key: 'acting.notice.changedInAnotherTab' | 'acting.notice.endedByServer'
+    refusedWrite?: boolean
+  } | null>(null)
   /** Kept when a sign-in returns to the password step (FR-024, FR-025). Memory only (FR-091). */
   const keptUsername = ref<string | null>(null)
   /** A validated in-app path to open after sign-in (FR-031, FR-092). */
@@ -55,6 +65,10 @@ export const useSessionStore = defineStore('session', () => {
 
   /** Forgets everything of the previous session (sign-out, session end). */
   function reset() {
+    identityTransition.value = false
+    identityTransitionProblem.value = null
+    actingOrigin.value = null
+    shellNotice.value = null
     keptUsername.value = null
     returnTo.value = null
     idleWarningOpen.value = false
@@ -62,6 +76,10 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   return {
+    identityTransition,
+    identityTransitionProblem,
+    actingOrigin,
+    shellNotice,
     keptUsername,
     returnTo,
     notice,

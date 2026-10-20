@@ -8,6 +8,8 @@ import { ApiProblem } from '../problem'
 import { queryKeys } from './keys'
 
 export interface SessionReactions {
+  /** UI007: the server restored the original actor; the refused request must never replay. */
+  impersonationEnded?(problem: ApiProblem): void
   /** `unauthenticated`: the session has ended (FR-034). */
   unauthenticated(problem: ApiProblem): void
   /** `second-factor-required`: refresh the session and go to the second-factor step. */
@@ -40,7 +42,8 @@ export function setSessionReactions(next: SessionReactions | null): void {
  */
 export function reportSessionProblem(error: unknown): void {
   if (!(error instanceof ApiProblem) || !reactions) return
-  if (error.is('unauthenticated')) reactions.unauthenticated(error)
+  if (error.is('impersonation-ended')) reactions.impersonationEnded?.(error)
+  else if (error.is('unauthenticated')) reactions.unauthenticated(error)
   else if (error.is('identity-provider-session-ended')) {
     if (reactions.identityProviderSessionEnded) reactions.identityProviderSessionEnded(error)
     else reactions.unauthenticated(error)

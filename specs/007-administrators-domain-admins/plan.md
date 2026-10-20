@@ -226,36 +226,116 @@ placeholder); a permission save → `success.acl_saved` (the username); a starte
 session → `success.logged_in_as` (the new username). Bulk items use the same keys; only the summary
 line is new.
 
-**Legacy form map**: written into this section by task T006a before any screen is built (screen →
-legacy template → field or element → legacy key, with the messages and placeholder sources).
+### Legacy form map (T006a, inspected 2026-10-20)
 
-**Deviations needing a decision** (not built until the owner or orchestrator decides):
+The sources below were read from `../mailhosting/data/web/`. This map governs implementation;
+the owner's one-to-one form rule takes precedence over the older creation/section proposals in
+the spec and research. Strings are references, never copies of the installation's values.
 
-1. **Password repeat field**: legacy's add modals and edit pages have `admin.password_repeat` /
-   `edit.password_repeat` ("Confirmation password (repeat)") with `danger.password_mismatch`.
-   FR-014 and R14 use one field with show and hide, and the spec's parity table drops the repeat
-   field. It needs no API support (the comparison is local), and UI 005's `NewPasswordFields` has a
-   `confirm` mode. **Proposed**: mirror legacy with `confirm`.
-2. **Permission editor layout**: legacy lists the 19 `acl.*` flags flat, in the `da_acl` column
-   order (`syncjobs`, `quarantine`, `login_as`, `sogo_access`, `app_passwds`, `bcc_maps`,
-   `pushover`, `filters`, `ratelimit`, `spam_policy`, `extend_sender_acl`, `unlimited_quota`,
-   `protocol_access`, `smtp_ip_access`, `alias_domains`, `mailbox_relayhost`, `domain_relayhost`,
-   `domain_desc`, `alias_external_goto`), without explanations. FR-027 and FR-028 (R16) regroup
-   them under four new group names and add 19 new explanation strings. **Until decided**: switches
-   in legacy order with the `acl.*` labels and no explanations; the groups and explanations wait.
-3. **"Sign in as" label**: the classic "Login" button is untranslated hard-coded English, so no
-   human translation exists. Options: the legacy key `login.login` ("Login", the sign-in button's
-   text, translated in every language) or the new string "Sign in as". **Until decided**: the new
-   string, with the target username as its accessible description.
-4. **Have I Been Pwned check** (`data-hibp`, `footer.hibp_check`, `footer.hibp_ok`,
-   `footer.hibp_nok`): **decided by the owner (2026-10-18): kept as in legacy**, reusing UI 003's
-   shared `HibpCheck` on the administrator and domain administrator password fields.
-5. **Creation form extras**: legacy's add modals have no sign-in requirements and no permissions;
-   FR-011 adds both (labelled with legacy keys, see above). Confirm as an API-added improvement.
-6. **Field order on the detail screen**: legacy orders username, domains, password, active, then
-   the two-factor and sign-in checkboxes. FR-018 and FR-020 put status and the password form in the
-   Account section, above Domains. **Proposed**: accept the sections and keep legacy's order inside
-   each section.
+| Screen / element in display order | Classic source | Legacy key / value source | API / behavior |
+|---|---|---|---|
+| Domain administrators heading | `admin/tab-config-admins.twig` | `admin.domain_admins` | `listDomainAdmins` |
+| Administrators heading | same | `admin.admin_details` | `listAdmins` |
+| Selection toggle / action menu | same | `mailbox.toggle_all`, `mailbox.quick_actions` | Current-page explicit selection |
+| Bulk actions in order | same | `mailbox.activate`, `mailbox.deactivate`, `tfa.disable_tfa`, `mailbox.remove` | API bulk operation, listed `etag` per target |
+| Add account action | same | `admin.add_domain_admin` / `admin.add_admin` | Full-screen creation instead of modal |
+| Domain administrator columns | `js/site/admin.js`, `draw_domain_admins` | `admin.username`, `admin.admin_domains`, `tfa.tfa`, `admin.active`, `admin.action` | Same card reading order on phones |
+| Administrator columns | same, `draw_admins` | `admin.username`, `tfa.tfa`, `admin.active`, `admin.action` | Same card reading order on phones |
+| Row edit / remove | same | `admin.edit`, `admin.remove` | Detail / named impact confirmation |
+| Domain administrator Login | same (hard-coded Login) | `login.login`, translated equivalent | Start acting, target is accessible description |
+| Search / pagination | DataTables | `datatables.search`, `datatables.paginate.*`, `datatables.info`, `datatables.lengthMenu` | Shared URL list state, 25/50/100 |
+| Create domain administrator title | `modals/admin.twig`, `#addDomainAdminModal` | `admin.add_domain_admin` | `createDomainAdmin` |
+| Create administrator title | same, `#addAdminModal` | `admin.add_admin` | `createAdmin` |
+| 1. Username | same | `admin.username`; literal hint `↳ a-z - _ .` | Lower-case on blur, trim, retain server validation |
+| 2. Domains (domain administrator only) | same | `admin.admin_domains`; picker placeholder `admin.search_domain_da` | Shared multiple DomainPicker, primary domains only |
+| 3. Password / generate | same | `admin.password`, `admin.generate`; empty placeholder | Shared NewPasswordFields, policy hints, HIBP |
+| 4. Repeat password | same | `admin.password_repeat` | Local comparison, never sent |
+| 5. Active | same | `admin.active`, checked initially | `active` |
+| Submit | same | `admin.add` | Secret-bearing direct request; no mutation cache |
+| Domain administrator detail title | `edit/domainadmin.twig` | `edit.domain_admin` | `getDomainAdmin` |
+| Administrator detail title | `edit/admin.twig` | `edit.admin` | `getAdmin` |
+| 1. Username | both detail templates | `edit.username`; literal hint `↳ a-z - _ .` | Rename via patch; own rename uses identity switch |
+| 2. Domains (domain administrator only) | `edit/domainadmin.twig` | `edit.domains` | Replace domain assignments; retain warnings for non-domain assignments |
+| 3. Password / generate | both | `edit.password`, `edit.generate`; empty placeholder | Empty means unchanged; HIBP remains |
+| 4. Repeat password | both | `edit.password_repeat` | Local comparison only |
+| 5. Active | both | `edit.active` | Deactivation impact confirmation; protect own/last active admin |
+| 6. Suspend second factors | both | `tfa.disable_tfa` | Separate suspend endpoint, confirmation notes passkeys remain |
+| 7. Require second factor setup | both | `tfa.force_tfa`, `tfa.force_tfa_info` | `forceSecondFactorSetup` |
+| 8. Require password update | both | `edit.force_pw_update`, `edit.force_pw_update_info` | `forcePasswordChange`; `%s` is branding product name |
+| Save | both | `edit.save` | Changed fields only; `If-Match`; 412 retains draft |
+| ACL section after account fields | `edit/domainadmin.twig`, second form | Literal heading ACL → `administrators.permissions.title` | `get/updateDomainAdmin`, permissions patch |
+| ACL save | same | `admin.save` | Only changed permission members |
+| Remove confirmation | `modals/footer.twig` | `footer.confirm_delete`, `footer.delete_these_items`, `footer.delete_now`, `footer.cancel` | Username/domain impact; typed count for bulk |
+| History | shared convention | Shared HistoryLink label | `targetType=admin/domainAdmin`, username |
+| Created / modified metadata | API additions | `mailbox.created_on`, `mailbox.last_modified` | Locale dates; not editable |
+| Mailbox Login action | `js/site/mailbox.js` (hard-coded Login) | `login.login`; mailbox accessible description | `startImpersonation` |
+| Open webmail on behalf | classic SOGo action | `user.open_webmail_sso` | API hand-off with opener cleared |
+| Password breach check | `data-hibp` / footer | `footer.hibp_check`, `footer.hibp_ok`, `footer.hibp_nok` | Existing user-triggered HIBP component |
+
+ACL flags keep this exact legacy order, with their `acl.*` label and no invented groups or help:
+
+| API member | Legacy key |
+|---|---|
+| syncjobs | `acl.syncjobs` |
+| quarantine | `acl.quarantine` |
+| loginAs | `acl.login_as` |
+| sogoAccess | `acl.sogo_access` |
+| appPasswds | `acl.app_passwds` |
+| bccMaps | `acl.bcc_maps` |
+| pushover | `acl.pushover` |
+| filters | `acl.filters` |
+| ratelimit | `acl.ratelimit` |
+| spamPolicy | `acl.spam_policy` |
+| extendSenderAcl | `acl.extend_sender_acl` |
+| unlimitedQuota | `acl.unlimited_quota` |
+| protocolAccess | `acl.protocol_access` |
+| smtpIpAccess | `acl.smtp_ip_access` |
+| aliasDomains | `acl.alias_domains` |
+| mailboxRelayhost | `acl.mailbox_relayhost` |
+| domainRelayhost | `acl.domain_relayhost` |
+| domainDesc | `acl.domain_desc` |
+| aliasExternalGoto | `acl.alias_external_goto` |
+
+The generated `DomainAdminPermissionName` is authoritative for API spelling; the table's legacy
+order remains stable if a generated camel-case spelling differs.
+
+| Outcome / field problem | Legacy key | Placeholder source |
+|---|---|---|
+| Create domain administrator | `success.domain_admin_added` | Created username |
+| Change domain administrator | `success.domain_admin_modified` | Saved username |
+| Remove domain administrator | `success.domain_admin_removed` | Removed username |
+| Create administrator | `success.admin_added` | Created username |
+| Change administrator | `success.admin_modified` | No placeholder |
+| Remove administrator | `success.admin_removed` | Removed username |
+| Save ACL | `success.acl_saved` | Username |
+| Start / end acting | `success.logged_in_as` | Adopted username |
+| Username reserved / accountUsername format | `danger.username_invalid` | Submitted username |
+| Account exists | `danger.object_exists` | Submitted username |
+| Domain assignment invalid / ineligible / missing | `danger.domain_invalid` | Domain at the reported index |
+| Password rules | `danger.password_complexity` + `admin.password_policy_*` | Policy rule parameters |
+| Password mismatch | `danger.password_mismatch` | None |
+| Last active administrator | `warning.no_active_admin` | None |
+| Own-account deletion | `warning.cannot_delete_self` | None |
+| Refused permission save | `danger.access_denied` | None |
+
+Only additions without a classic equivalent use new en-gb/cs-cz/sk-sk strings: acting banner and
+return control, switch/retry status and notices, one-time-link display/countdown/landing, audit
+impersonation fields, You marker, suspended status/passkey count, missing-domain/non-domain
+warnings, filters without an equivalent, impact confirmations and version-conflict detail. All
+ordinary fields, actions, help, success and refusal messages use the keys above. HTML uses
+SanitizedHtml/LegacyText and `%s`/`%d` are filled by the legacy formatter.
+
+### Implementation defaults for earlier deviations
+
+The explicit instruction to continue with legacy forms resolves routine implementation choices:
+password confirmation and HIBP stay; permissions stay flat in classic order; Login uses
+`login.login`; the detail keeps classic field order, followed by its ACL form. Creation retains
+classic fields, with defaults supplied by the API; forced sign-in requirements and permissions
+remain editable on detail. Separate save sections, bulk mode, changed-field patches, typed
+confirmations and version-conflict handling remain the established conventions. These defaults
+supersede older contradictory acceptance descriptions; their intended server capabilities remain
+reachable. The one-time-link landing uses the already documented generic target description while
+non-consuming inspection is absent from the contract (G1).
 
 ## Dependencies on earlier features
 

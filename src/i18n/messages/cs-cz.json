@@ -1,4 +1,14 @@
 {
+  "acting": {
+    "notice": {
+      "changedInAnotherTab": "Účet se změnil v jiné kartě.",
+      "endedByServer": "Přihlášení za jiný účet skončilo.",
+      "writeNotCarriedOut": "Vaše poslední akce nebyla provedena."
+    }
+  },
+  "shellNotice": {
+    "dismiss": "Zavřít oznámení"
+  },
   "a11y": {
     "appsMenu": "Nabídka {label}",
     "closeNavigation": "Zavřít navigaci",
@@ -215,7 +225,8 @@
       "sessionEnded": "Vaše relace skončila. Přihlaste se prosím znovu.",
       "signInTimedOut": "Časový limit přihlášení vypršel. Přihlaste se prosím znovu.",
       "signedOut": "Byli jste odhlášeni.",
-      "signedOutSso": "Odhlásili jste se z této aplikace. U přihlašovací služby vaší organizace jste stále přihlášeni; na sdíleném zařízení se odhlaste i tam."
+      "signedOutSso": "Odhlásili jste se z této aplikace. U přihlašovací služby vaší organizace jste stále přihlášeni; na sdíleném zařízení se odhlaste i tam.",
+      "selfDeactivated": "Váš účet byl deaktivován. Před dalším přihlášením jej musí aktivovat jiný správce."
     },
     "passkey": {
       "chooseAgain": "Zvolte přístupový klíč znovu.",
@@ -508,7 +519,19 @@
       "recentLoginsClear": "Nedávná přihlášení vymazána",
       "activeSyncCacheReset": "Mezipaměť zařízení ActiveSync obnovena",
       "groupwareProfileReset": "Profil SOGo obnoven",
-      "webmailHandOff": "Webmail otevřen"
+      "webmailHandOff": "Webmail otevřen",
+      "adminCreation": "Správce vytvořen",
+      "adminUpdate": "Správce změněn",
+      "adminDeletion": "Správce odstraněn",
+      "adminSecondFactorSuspension": "Dvoufaktorové ověřování správce pozastaveno",
+      "domainAdminCreation": "Správce domény vytvořen",
+      "domainAdminUpdate": "Správce domény změněn",
+      "domainAdminDeletion": "Správce domény odstraněn",
+      "domainAdminSecondFactorSuspension": "Dvoufaktorové ověřování správce domény pozastaveno",
+      "ssoTokenIssue": "Jednorázový přihlašovací odkaz vydán",
+      "impersonationStart": "Přihlášení za jiný účet zahájeno",
+      "impersonationEnd": "Přihlášení za jiný účet ukončeno",
+      "webmailSignInOnBehalf": "Webmail otevřen za jiný účet"
     },
     "auditFailureReason": {
       "featureDisabled": "Funkce je vypnutá",
@@ -575,7 +598,9 @@
       "spamPolicyEntry": "Položka seznamu povolení nebo zákazů",
       "rateLimitBucket": "Hash omezení přenosu",
       "sieveFilter": "Filtr",
-      "groupwareData": "Data groupwaru"
+      "groupwareData": "Data groupwaru",
+      "ssoToken": "Jednorázový přihlašovací odkaz",
+      "impersonation": "Přihlášení za jiný účet"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresáře",
@@ -583,7 +608,8 @@
       "passkey": "Přístupový klíč",
       "passwordAndSecondFactor": "Heslo a druhý faktor",
       "providerPassword": "Heslo přes poskytovatele identit",
-      "providerPasswordAndSecondFactor": "Heslo přes poskytovatele identit a druhý faktor"
+      "providerPasswordAndSecondFactor": "Heslo přes poskytovatele identit a druhý faktor",
+      "ssoToken": "Jednorázový přihlašovací odkaz"
     },
     "resourceKind": {
       "group": "Skupina",
@@ -846,7 +872,12 @@
     "second-factor-enrolment-expired": "Platnost nastavení vypršela. Začněte znovu.",
     "second-factor-enrolment-failed": "Druhý faktor se nepodařilo ověřit. Nic nebylo uloženo.",
     "groupware-disabled": "Webmail, obnovení groupwaru a profil s kalendáři nejsou na tomto serveru k dispozici.",
-    "dependency-unavailable": "Nic nebylo změněno. Dočasně nedostupné: {service}. Zkuste to prosím za chvíli znovu."
+    "dependency-unavailable": "Nic nebylo změněno. Dočasně nedostupné: {service}. Zkuste to prosím za chvíli znovu.",
+    "already-impersonating": "Již jste přihlášeni za jiný účet.",
+    "impersonation-ended": "Přihlášení za jiný účet skončilo.",
+    "not-allowed-while-impersonating": "Není dostupné při přihlášení za jiného uživatele.",
+    "webmail-on-behalf-disabled": "Otevření webmailu za jiný účet je zakázáno.",
+    "account-inactive": "Tento účet není aktivní."
   },
   "roles": {
     "mailboxUser": "Uživatel schránky"
@@ -881,6 +912,7 @@
     "saving": "Ukládá se…"
   },
   "session": {
+    "switching": "Přepínání účtu…",
     "idle": {
       "body": "Z bezpečnostních důvodů budete kvůli nečinnosti odhlášeni za {time}.",
       "remaining": "Do odhlášení zbývá {time}.",
@@ -1014,7 +1046,8 @@
     "invalidTemplate": "Tuto šablonu nelze použít.",
     "preHashedPassword": "Heslo nesmí začínat schématem hashe, jako je {scheme}.",
     "tooLongStored": "Tento název je po zakódování zvláštních znaků příliš dlouhý (nejvýše {max} znaků).",
-    "mutuallyExclusive": "Použijte jen jednu z těchto hodnot."
+    "mutuallyExclusive": "Použijte jen jednu z těchto hodnot.",
+    "unknownField": "Toto pole není rozpoznáno."
   },
   "domainTemplates": {
     "create": {

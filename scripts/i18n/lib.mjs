@@ -56,6 +56,8 @@ export function enumValuesFromSchema(schemaTs) {
  * tables, so TypeScript checks them.
  */
 export const ENUM_NAMESPACES = {
+  domainAdminPermissionNameValues: 'permissions.flag',
+  accountSecondFactorStatusValues: 'accounts.secondFactorStatus',
   validationRuleCodeValues: 'validation',
   auditEventTypeValues: 'enums.auditEventType',
   auditFailureReasonValues: 'enums.auditFailureReason',
@@ -112,7 +114,14 @@ export function requiredKeys({ enums, problemNames }) {
 }
 
 /** Message namespaces whose keys are built at runtime; never reported as unused. */
-export const DYNAMIC_NAMESPACES = ['problem.', 'validation.', 'enums.', 'roles.', 'themes.']
+export const DYNAMIC_NAMESPACES = [
+  'problem.',
+  'validation.',
+  'enums.',
+  'roles.',
+  'themes.',
+  'accounts.secondFactorStatus.',
+]
 
 const LEGACY_USES = [
   // lt('section.key', …) and legacy('section.key', …)

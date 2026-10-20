@@ -8,6 +8,26 @@ user story against the mock API, Part C the smoke suite against a real mailcow-r
 and Part D the address that billing panels use. Setup, tooling and commands are UI 001's
 quickstart; only what this feature adds is listed here.
 
+## Current implementation checkpoint (2026-10-20)
+
+The R5 identity/CSRF foundation and both account CRUD screens are implemented. Run their focused
+checks with:
+
+```bash
+npx vitest run tests/unit/api tests/unit/app/session tests/unit/app/layouts \
+  tests/unit/app/shell/ShellNotice.spec.ts tests/unit/i18n/legacy-keys-007.spec.ts \
+  tests/unit/scripts/i18n-tools.spec.ts tests/unit/features/administrators \
+  tests/unit/mocks/administrator-handlers.spec.ts tests/unit/features/mailboxes --maxWorkers=2
+npm run typecheck
+npm run i18n:check
+```
+
+The checkpoint passed 438 focused tests. The new browser file is
+`tests/e2e/administrators/crud.spec.ts`; the real-API file is
+`tests/smoke/administrators.smoke.spec.ts`. Both are awaiting their first runs. Account creation is
+at `/administrators/domain-admins/-/new` or `/administrators/admins/-/new`. The remaining stories
+and the full-screen domain-picker extension described below are not yet implemented.
+
 ## Prerequisites
 
 - The UI 001 prerequisites (Node.js 24 LTS, npm, Playwright browsers).

@@ -726,8 +726,10 @@ and the persistence of filters across reloads.
   displayed account data, show the sign-in screen with a translated message that the session has
   ended, and return to the same page after the next sign-in.
 - **FR-035**: When a write is refused because of an anti-forgery check, the app MUST obtain a fresh
-  token and retry the request once without user action. If the retry fails too, the app MUST
-  treat the session as ended (FR-034).
+  token and re-read the identity. It MUST retry once without user action only when the identity
+  key (`username|role|impersonation.id`) matches the account that prepared the write. A changed
+  key discards the write and switches identity (UI 007 research R4/R5); a second token refusal
+  or an unauthenticated identity read ends the session (FR-034).
 - **FR-036**: Every signed-in screen, including the pending-actions screen, MUST offer "Sign out".
   It MUST end the server session without asking for confirmation, discard all account data held by
   the app, and show the sign-in screen with a confirmation. The browser's Back button MUST NOT
@@ -737,6 +739,8 @@ and the persistence of filters across reloads.
 - **FR-037**: When the app learns that its session has ended or now belongs to another account,
   for example after a sign-out or a new sign-in in another tab, it MUST discard the previous
   account's data and show the state of the current session, at the latest on its next request.
+  Account changes compare `username|role|impersonation.id`; restarting acting as the same
+  username is a change too (UI 007 research R4). The old page unmounts before its cache clears.
 
 #### Restricted sessions
 
@@ -811,7 +815,8 @@ and the persistence of filters across reloads.
 | Passkeys | ✓ | ✓ | ✓ | 001 | — |
 | Quarantine | ✓ | ✓ | ✓ | 006 | Quarantine |
 | Spam filter | — | — | spam score or spam policy | 006 | User settings › Spam filter |
-| Administrators and domain administrators | ✓ | — | — | 007 | System › Configuration › Access |
+| Domain administrators | ✓ | — | — | 007 | System › Configuration › Access |
+| Administrators | ✓ | — | — | 007 | System › Configuration › Access |
 | Sync jobs | ✓ | sync jobs | sync jobs | 008 | Mail setup › Sync jobs, User settings › Sync jobs |
 | Routing and address rewriting | ✓ | BCC maps | — | 009 | System › Configuration › Routing, Mail setup › Address rewriting |
 | DKIM, MTA-STS and DNS | ✓ | ✓ | — | 010 | System › Configuration › ARC/DKIM keys, DNS diagnostics |
@@ -954,7 +959,7 @@ and the persistence of filters across reloads.
 | Temporary verification failure | Keep the step open, retry or choose another method (FR-027). |
 | Too many requests | Say when to retry, using the server's retry hint; disable the action until then; announce re-enabling. |
 | Unauthenticated | Session ended (FR-034). |
-| Anti-forgery check failed | Refresh the token and retry once, then session ended (FR-035). |
+| Anti-forgery check failed | Refresh the token and re-read identity; retry once only for the same identity key (FR-035, UI 007 R5). |
 | Pending action required | Show the pending-actions screen (FR-038). |
 | Forbidden | "No permission" in context and identity refresh (FR-045). |
 | Passkey registration failed | Explain and offer to try again (FR-053). |

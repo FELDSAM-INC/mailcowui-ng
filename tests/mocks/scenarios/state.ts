@@ -2,6 +2,8 @@
 // accounts and data, the public configuration, the session (state, CSRF token, last activity,
 // pending sign-in and challenges), behaviour switches and failure injection by operationId.
 import type {
+  AccountCapabilities,
+  Impersonation,
   AliasCapabilities,
   AliasDestinationType,
   AliasDomainCreationReport,
@@ -59,6 +61,8 @@ import type {
 } from '@/api'
 
 import { type ViolationRecorder } from '../contract/validator'
+import type { MockAdmin } from '../factories/admin'
+import type { MockDomainAdmin } from '../factories/domain-admin'
 import type { MockIdentityProvider } from '../factories/identity-provider'
 import type { MockOauth2Client } from '../factories/oauth2-client'
 import type { SettingsPatch, SettingsState } from './system-settings'
@@ -140,6 +144,7 @@ export interface MockChallenge {
 }
 
 export interface MockSession {
+  impersonation?: Impersonation
   state: SessionState
   username: string | null
   authMethod: MockAuthMethod | null
@@ -463,6 +468,8 @@ export type AliasDomainCreationOutcomes = Partial<{
  * sender settings by mailbox.
  */
 export interface ChangesElsewhere {
+  admin?: Record<string, Partial<Omit<MockAdmin, 'username'>>>
+  domainAdmin?: Record<string, Partial<Omit<MockDomainAdmin, 'username'>>>
   alias?: Record<string, Partial<Omit<MockAlias, 'id'>>>
   aliasDomain?: Record<string, Partial<Omit<MockAliasDomain, 'name'>>>
   resource?: Record<string, Partial<Omit<MockResource, 'address'>>>
@@ -731,6 +738,13 @@ export interface QuarantinePatch {
 }
 
 export interface ScenarioState {
+  admins: MockAdmin[]
+  domainAdmins: MockDomainAdmin[]
+  accountDefaults: AccountCapabilities
+  ssoTokens: { token: string; username: string; issuedAt: number; used: boolean }[]
+  allowAdminEmailLogin: boolean
+  groupwareEnabled: boolean
+  invalidateImpersonation: boolean
   id: string
   name: string
   accounts: MockAccount[]

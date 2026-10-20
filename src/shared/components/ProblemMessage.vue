@@ -37,7 +37,7 @@ const showRequestId = computed(() => {
 
 <template>
   <div
-    v-if="problem"
+    v-if="problem && problem.kind !== 'identityChanged'"
     role="alert"
     class="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
   >

@@ -156,7 +156,7 @@ describe('cross-tab coherence (FR-037)', () => {
     const stop = connectCrossTab(ctx)
     useScenario('anonymous-default', { signedInAs: 'reseller' })
     await ctx.queryClient.fetchQuery({ ...identityQuery(), staleTime: 0 })
-    await flushPromises()
+    await waitUntil(() => !useSessionStore().identityTransition)
     expect(ctx.queryClient.getQueryData(['passkeys', 'list', { limit: 25 }])).toBeUndefined()
     expect((ctx.queryClient.getQueryData(queryKeys.identity()) as Identity).username).toBe(
       'reseller',
@@ -319,7 +319,9 @@ describe('UI 012: the end of a single sign-on session (FR-052, FR-053)', () => {
     expect(useSessionStore().notice).toBe('signedOutSso')
 
     const password = await signedInAt('/domains')
-    await signOut(password)
+    const uninstall = installSession(password)
+    expect(await signOut(password)).toEqual({ ok: true })
     expect(useSessionStore().notice).toBe('signedOut')
+    uninstall()
   })
 })

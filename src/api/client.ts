@@ -5,7 +5,13 @@
 import createClient, { type Middleware } from 'openapi-fetch'
 
 import { recordActivity } from './activity'
-import { ensureCsrfToken, refreshCsrfToken, setCsrfFetcher } from './csrf'
+import {
+  ensureCsrfToken,
+  refreshCsrfToken,
+  setCsrfFetcher,
+  requestIdentityKey,
+  refuseChangedIdentity,
+} from './csrf'
 import type { paths } from './generated/schema'
 import { ApiProblem, peekProblemName, problemFromResponse } from './problem'
 
@@ -43,26 +49,45 @@ const cacheMiddleware: Middleware = {
   },
 }
 
-const replayClones = new Map<string, Request>()
+const replayClones = new Map<string, { request: Request; owner: string | null }>()
 
 const csrfMiddleware: Middleware = {
+  onError({ id }) {
+    // A failed transport has no response hook; do not retain cloned request bodies.
+    replayClones.delete(id)
+  },
   async onRequest({ request, id }) {
     if (!UNSAFE_METHODS.has(request.method)) return undefined
+    const owner = requestIdentityKey()
     const token = await ensureCsrfToken()
     const headers = new Headers(request.headers)
     headers.set(CSRF_HEADER, token)
     const withToken = new Request(request, { headers })
-    replayClones.set(id, withToken.clone())
+    replayClones.set(id, { request: withToken.clone(), owner })
     return withToken
   },
   async onResponse({ response, id, options }) {
-    const clone = replayClones.get(id)
+    const saved = replayClones.get(id)
     replayClones.delete(id)
-    if (!clone || response.status !== 403) return undefined
+    if (!saved || response.status !== 403) return undefined
     if ((await peekProblemName(response)) !== 'csrf-token-mismatch') return undefined
 
-    // FR-035: fetch a new token and replay the original request once, with its original body.
+    // UI007 R5: the cloned write belongs to the identity that prepared it. Refreshing a
+    // token alone must never allow that write to run as another account.
     const token = await refreshCsrfToken()
+    let identity
+    try {
+      identity = requireData(await api.GET('/me')).data
+    } catch (error) {
+      if (error instanceof ApiProblem && error.status === 401)
+        emitSessionEnded(
+          error.is('identity-provider-session-ended') ? 'identityProviderSessionEnded' : undefined,
+        )
+      throw error
+    }
+    if (await refuseChangedIdentity(saved.owner, identity))
+      throw ApiProblem.fromParts({ kind: 'identityChanged' })
+    const clone = saved.request
     const headers = new Headers(clone.headers)
     headers.set(CSRF_HEADER, token)
     let replay: Response

@@ -4,6 +4,7 @@
 // component is lazy-loaded (constitution VII).
 import type { RouteRecordRaw } from 'vue-router'
 
+import { administratorRoutes } from '@/features/administrators/routes'
 import { accountRoutes, mailboxSelfServiceRoutes } from '@/features/account/routes'
 import { aliasDomainRoutes } from '@/features/alias-domains'
 import { aliasRoutes } from '@/features/aliases'
@@ -36,6 +37,7 @@ const NotFoundPage = () => import('../states/NotFoundPage.vue')
 /** Routes of the features, from their `routes.ts` (US1 adds auth and home, and so on). */
 export const featureRoutes: RouteRecordRaw[] = [
   ...authRoutes,
+  ...administratorRoutes,
   ...homeRoutes,
   ...passkeysRoutes,
   ...apiKeysRoutes,

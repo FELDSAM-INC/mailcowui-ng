@@ -484,3 +484,16 @@ describe('UI 005: plural forms and the enumerations of the self-service screens 
     }
   })
 })
+
+describe('UI007 account enumeration coverage', () => {
+  it.each([
+    ['domainAdminPermissionNameValues', 'loginAs', 'permissions.flag.loginAs'],
+    ['accountSecondFactorStatusValues', 'suspended', 'accounts.secondFactorStatus.suspended'],
+  ])('requires every %s value and fails when its message is missing', (name, value, key) => {
+    const required = requiredKeys({ enums: { [name]: [value] }, problemNames: [] })
+    expect(required).toContain(key)
+    const input = baseInput()
+    input.required = [key]
+    expect(checkMessages(input).errors.join('\n')).toContain(key)
+  })
+})

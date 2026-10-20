@@ -123,8 +123,27 @@ export type MassMailPreviewParams = NonNullable<
 >
 export type DomainPickerParams = Pick<DomainListParams, 'q'>
 export type MailboxPickerParams = Pick<MailboxListParams, 'q' | 'domain' | 'status'>
+export type AdminListParams = NonNullable<operations['listAdmins']['parameters']['query']>
+export type DomainAdminListParams = NonNullable<
+  operations['listDomainAdmins']['parameters']['query']
+>
 
 export const queryKeys = {
+  admins: {
+    all: () => ['admins'] as const,
+    lists: () => ['admins', 'list'] as const,
+    list: (params: AdminListParams) => ['admins', 'list', params] as const,
+    details: () => ['admins', 'detail'] as const,
+    detail: (username: string) => ['admins', 'detail', username.toLowerCase()] as const,
+    activeCount: () => ['admins', 'active-count'] as const,
+  },
+  domainAdmins: {
+    all: () => ['domain-admins'] as const,
+    lists: () => ['domain-admins', 'list'] as const,
+    list: (params: DomainAdminListParams) => ['domain-admins', 'list', params] as const,
+    details: () => ['domain-admins', 'detail'] as const,
+    detail: (username: string) => ['domain-admins', 'detail', username.toLowerCase()] as const,
+  },
   publicConfig: () => ['public-config'] as const,
   session: () => ['session'] as const,
   identity: () => ['identity'] as const,
@@ -173,6 +192,7 @@ export const queryKeys = {
   },
   // UI 004 (data-model §3): the feature's capabilities, and one prefix per area.
   capabilities: {
+    accounts: () => ['capabilities', 'accounts'] as const,
     aliases: () => ['capabilities', 'aliases'] as const,
     // UI 005: read signed out on the sign-in screens and signed in everywhere else; the cache is
     // cleared at every sign-in and sign-out, so the two answers never mix.

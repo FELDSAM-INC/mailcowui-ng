@@ -12,6 +12,7 @@ import { legacyRaw, lt } from './legacy'
 import { formatLegacy, type LegacyArg } from './legacy-format'
 import { LEGACY_ARGS, LEGACY_TEXTS } from './legacy-messages'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
+import type enGbAdministrators from './messages/administrators/en-gb.json'
 import type enGbAccount from './messages/account/en-gb.json'
 import type enGbAliases from './messages/aliases/en-gb.json'
 import type enGbDnsDiagnostics from './messages/dns-diagnostics/en-gb.json'
@@ -33,6 +34,7 @@ import type enGbSpamFilter from './messages/spam-filter/en-gb.json'
 import type enGbSyncJobs from './messages/sync-jobs/en-gb.json'
 
 export type MessageSchema = typeof enGb &
+  typeof enGbAdministrators &
   typeof enGbAccount &
   typeof enGbDomains &
   typeof enGbMailboxes &
@@ -116,6 +118,11 @@ const featureLoaders = {
     'en-gb': () => import('./messages/system-settings/en-gb.json').then((m) => m.default),
     'cs-cz': () => import('./messages/system-settings/cs-cz.json').then((m) => m.default),
     'sk-sk': () => import('./messages/system-settings/sk-sk.json').then((m) => m.default),
+  },
+  administrators: {
+    'en-gb': () => import('./messages/administrators/en-gb.json').then((m) => m.default),
+    'cs-cz': () => import('./messages/administrators/cs-cz.json').then((m) => m.default),
+    'sk-sk': () => import('./messages/administrators/sk-sk.json').then((m) => m.default),
   },
   domains: {
     'en-gb': () => import('./messages/domains/en-gb.json').then((m) => m.default),

@@ -1,11 +1,19 @@
 // Wires the session lifecycle into the app (research R8, R11, R12): the session-level reactions
 // of the query and mutation caches, the client's session-ended signal, cross-tab messages, and
 // the mirrors of the session in client state (idle lifetime, preferences saving).
-import { onSessionEnded, queryKeys, setSessionReactions, type Session } from '@/api'
+import {
+  onSessionEnded,
+  queryKeys,
+  setSessionReactions,
+  setIdentityChangeHandler,
+  type Identity,
+  type Session,
+} from '@/api'
 
 import { usePreferencesStore } from '../preferences/store'
 import { setSessionContext, type SessionContext } from './context'
 import { connectCrossTab } from './cross-tab'
+import { switchIdentity } from './identity-switch'
 import { installIdleTimer } from './idle-timer'
 import { registerLandingHook } from './landing'
 import { identityQuery, sessionQuery } from './queries'
@@ -30,7 +38,13 @@ export function installSession(ctx: SessionContext): () => void {
   const store = useSessionStore()
   const preferences = usePreferencesStore()
 
+  setIdentityChangeHandler({
+    current: () => ctx.queryClient.getQueryData<Identity>(queryKeys.identity()),
+    changed: ({ identity, refusedWrite }) =>
+      switchIdentity({ reason: 'changedInAnotherTab', identity, refusedWrite }, ctx),
+  })
   setSessionReactions({
+    impersonationEnded: () => void switchIdentity({ reason: 'actingEndedByServer' }, ctx),
     unauthenticated: () => void endSession(ctx),
     secondFactorRequired: () => void refetchAndReroute(ctx, false),
     pendingActionRequired: () => void refetchAndReroute(ctx, true),
@@ -87,6 +101,7 @@ export function installSession(ctx: SessionContext): () => void {
 
   return () => {
     setSessionReactions(null)
+    setIdentityChangeHandler(null)
     setSessionContext(null)
     offEnded()
     offCrossTab()

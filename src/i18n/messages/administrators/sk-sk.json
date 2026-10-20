@@ -1,0 +1,50 @@
+{
+  "accounts": {
+    "secondFactorStatus": {
+      "suspended": "Pozastavené do ďalšieho prihlásenia"
+    },
+    "usernameHint": "Použite písmená a–z, číslice, bodky, podčiarkovníky a pomlčky; aspoň jeden znak musí byť písmeno alebo číslica.",
+    "preHashedPassword": "Heslo s podporovanou predponou hashovacej schémy sa uloží v zadanom tvare.",
+    "passkeys": "(aktívne prístupové kľúče: {count})",
+    "assignment": {
+      "missing": "Táto priradená doména už neexistuje.",
+      "catchAll": "Toto je pôvodné priradenie, ktoré nie je doménou; neudeľuje prístup ku skutočným doménam.",
+      "more": "+{count} ďalších",
+      "none": "Nie sú priradené žiadne domény."
+    },
+    "confirm": {
+      "renameTitle": "Premenovať účet",
+      "rename": "Premenovať {username} na {next}? Existujúce relácie vrátane prihlásenia za tento účet sa ukončia. Kľúče API budú trvalo zneplatnené. Prístupové kľúče a druhé faktory prejdú pod nový názov.",
+      "renameOwn": "Premenovať svoj účet z {username} na {next}? Tento prehliadač zostane prihlásený pod novým názvom. Ostatné relácie sa ukončia a kľúče API budú trvalo zneplatnené.",
+      "deactivate": "Deaktivovať {username}? Účet sa nebude môcť prihlásiť a jeho relácie a kľúče API prestanú fungovať, kým nebude znovu aktivovaný.",
+      "deactivateOwn": "Deaktivovať svoj účet {username}? Tento prehliadač bude odhlásený. Pred ďalším prihlásením musí účet aktivovať iný aktívny správca.",
+      "removeDomainAdmin": "Odobrať {username} s priradenými doménami {domains}? Kľúče API budú trvalo zneplatnené, prístupové kľúče a druhé faktory odstránené a relácie ukončené. Domény a schránky zostanú zachované.",
+      "removeAdmin": "Odobrať správcu {username}? Kľúče API budú trvalo zneplatnené, prístupové kľúče a druhé faktory odstránené a relácie ukončené. Domény a schránky zostanú zachované.",
+      "suspend": "Pozastaviť druhé faktory účtu {username}? Existujúce faktory prestanú fungovať do ďalšieho úspešného prihlásenia heslom. Prístupové kľúče zostanú dostupné."
+    },
+    "backToList": "Späť na účty",
+    "you": "Vy",
+    "count": "Účty: {count}",
+    "domainCount": "Počet domén",
+    "filters": {
+      "pending": "Požadovaný krok pri prihlásení",
+      "permission": "Oprávnenie",
+      "permissionValue": "Oprávnenie povolené"
+    },
+    "bulk": {
+      "ownExcluded": "Váš vlastný účet bol z tejto akcie vynechaný.",
+      "delete": "Odobrať účty v počte {count}? Kľúče API budú trvalo zneplatnené, prístupové kľúče a druhé faktory odstránené a relácie ukončené. Domény a schránky zostanú zachované.",
+      "deactivate": "Deaktivovať účty v počte {count}? Ich relácie sa ukončia a až do opätovnej aktivácie sa nebudú môcť prihlásiť.",
+      "suspendSecondFactors": "Pozastaviť druhé faktory pri účtoch v počte {count}? Prístupové kľúče zostanú dostupné."
+    },
+    "empty": {
+      "domainAdmin": "Správcovia domén spravujú schránky a aliasy v doménach, ktoré im boli priradené.",
+      "admin": "Správcovia spravujú celú inštaláciu."
+    }
+  },
+  "administrators": {
+    "permissions": {
+      "title": "ACL"
+    }
+  }
+}

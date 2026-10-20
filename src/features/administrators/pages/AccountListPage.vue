@@ -1,0 +1,564 @@
+<script setup lang="ts">
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { problemOf, type AccountBulkActionRequest, type ApiProblem, type DomainAdmin } from '@/api'
+import { useIdentityQuery } from '@/app/session/queries'
+import { lt, resolveText } from '@/i18n'
+import ActiveFilterChips from '@/shared/components/ActiveFilterChips.vue'
+import BulkActionBar from '@/shared/components/BulkActionBar.vue'
+import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
+import ListState from '@/shared/components/ListState.vue'
+import PageHeader from '@/shared/components/PageHeader.vue'
+import PaginationBar from '@/shared/components/PaginationBar.vue'
+import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
+import {
+  isRetryable,
+  rowsFromBulkResult,
+  unknownRows,
+  type BulkRow,
+} from '@/shared/components/bulk-row'
+import { announce } from '@/shared/composables/useAnnouncer'
+import { useBulkSelection } from '@/shared/composables/useBulkSelection'
+import { useConfirm } from '@/shared/composables/useConfirm'
+import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
+import { useListState, type ListSchema } from '@/shared/composables/useListState'
+import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+import { buttonVariants } from '@/shared/ui/button'
+import {
+  activeAdminCountOptions,
+  accountListOptions,
+  applyAccountBulkAction,
+  useAccountCapabilities,
+  type AccountRole,
+  type ManagedAccount,
+} from '../api'
+import { planBulk } from '../bulk'
+import AccountActionsMenu from '../components/AccountActionsMenu.vue'
+import AccountFilters from '../components/AccountFilters.vue'
+import AccountStatusBadge from '../components/AccountStatusBadge.vue'
+import DomainAssignmentList from '../components/DomainAssignmentList.vue'
+import SecondFactorStatusBadge from '../components/SecondFactorStatusBadge.vue'
+import { takeAccountFlash } from '../flash'
+import {
+  adminListSchema,
+  domainAdminListSchema,
+  toAccountParams,
+  type AccountFilters as Filters,
+  type AccountSort,
+} from '../list-state'
+import { permissionLabels } from '../permissions'
+import { useAccountActions } from '../useAccountActions'
+const props = defineProps<{ role: AccountRole }>()
+const { t } = useI18n(),
+  route = useRoute(),
+  router = useRouter(),
+  client = useQueryClient(),
+  confirm = useConfirm(),
+  identity = useIdentityQuery()
+const caps = useAccountCapabilities(),
+  selection = useBulkSelection({ limit: () => caps.data.value?.bulkLimit ?? 100 })
+const schema = props.role === 'admin' ? adminListSchema : domainAdminListSchema
+const list = useListState(schema as ListSchema<Partial<Filters>, AccountSort>, {
+  onReset: () => selection.clear(),
+})
+const state = list.state,
+  params = computed(() => toAccountParams(state.value))
+const query = useQuery(
+  computed(() => ({
+    ...accountListOptions(props.role, params.value),
+    placeholderData: keepPreviousData,
+  })),
+)
+const entries = computed(() => query.data.value?.data ?? []),
+  total = computed(() => query.data.value?.meta.total ?? 0)
+const count = useQuery(
+  computed(() => ({ ...activeAdminCountOptions(), enabled: props.role === 'admin' })),
+)
+const allowed = computed(() => identity.data.value?.role === 'admin')
+const wide = useMediaQuery('(min-width: 768px)'),
+  running = ref(false),
+  rows = ref<BulkRow[]>([]),
+  failure = shallowRef<ApiProblem | null>(null),
+  notice = ref(takeAccountFlash(''))
+const actions = useAccountActions({
+  role: () => props.role,
+  allowed: () => allowed.value,
+  ownUsername: () => identity.data.value?.username ?? '',
+  activeAdminCount: () => count.data.value ?? 1,
+  context: () => route.fullPath,
+})
+const leave = useLeaveGuard(
+  () => running.value || actions.pending.value,
+  'domains.bulk.leaveRunning',
+)
+void leave
+const search = ref(state.value.filters.q ?? '')
+let timer: ReturnType<typeof setTimeout> | undefined
+watch(
+  () => state.value.filters.q,
+  (value) => {
+    if (search.value.trim() !== (value ?? '')) search.value = value ?? ''
+  },
+)
+onScopeDispose(() => clearTimeout(timer))
+function onSearch(event: Event) {
+  search.value = (event.target as HTMLInputElement).value
+  clearTimeout(timer)
+  timer = setTimeout(
+    () => void list.setFilter('q', search.value.trim() || undefined, { typing: true }),
+    300,
+  )
+}
+function clearFilters() {
+  clearTimeout(timer)
+  search.value = ''
+  void list.setFilters({
+    q: undefined,
+    status: undefined,
+    tfa: undefined,
+    pending: undefined,
+    domain: [],
+    permission: undefined,
+    permissionValue: 'on',
+  })
+}
+const chips = computed(() => {
+  const f = state.value.filters,
+    result = []
+  if (f.q) result.push({ key: 'q', label: f.q })
+  if (f.status)
+    result.push({
+      key: 'status',
+      label: lt(f.status === 'active' ? 'mailbox.active' : 'mailbox.inactive'),
+    })
+  if (f.tfa)
+    result.push({
+      key: 'tfa',
+      label: `${lt('tfa.tfa')}: ${f.tfa === 'suspended' ? t('accounts.secondFactorStatus.suspended') : lt(f.tfa === 'active' ? 'mailbox.active' : 'mailbox.inactive')}`,
+    })
+  if (f.pending)
+    result.push({
+      key: 'pending',
+      label: lt(f.pending === 'passwordChange' ? 'edit.force_pw_update' : 'tfa.force_tfa'),
+    })
+  for (const name of f.domain ?? []) result.push({ key: `domain:${name}`, label: name })
+  if (f.permission)
+    result.push({
+      key: 'permission',
+      label: `${resolveText(permissionLabels[f.permission], t)}: ${t(f.permissionValue === 'off' ? 'lists.filters.no' : 'lists.filters.yes')}`,
+    })
+  return result
+})
+function removeChip(key: string) {
+  if (key.startsWith('domain:'))
+    void list.setFilter(
+      'domain',
+      state.value.filters.domain?.filter((value) => value !== key.slice(7)),
+    )
+  else if (key === 'permission')
+    void list.setFilters({ permission: undefined, permissionValue: 'on' })
+  else void list.setFilter(key, undefined)
+}
+const sortLabels = computed(() => ({
+  username: lt('admin.username'),
+  active: lt('admin.active'),
+  createdAt: lt('mailbox.created_on'),
+  modifiedAt: lt('mailbox.last_modified'),
+  domainCount: t('accounts.domainCount'),
+}))
+const ariaSort = (sort: AccountSort) =>
+  state.value.sort === sort
+    ? state.value.order === 'desc'
+      ? ('descending' as const)
+      : ('ascending' as const)
+    : ('none' as const)
+function sortColumn(sort: AccountSort) {
+  void list.setSort(sort, state.value.sort === sort && state.value.order === 'asc' ? 'desc' : 'asc')
+}
+const own = (account: ManagedAccount) =>
+  props.role === 'admin' && account.username === identity.data.value?.username
+const lastActive = (account: ManagedAccount) =>
+  props.role === 'admin' && account.active && (count.data.value ?? 1) <= 1
+const detail = (account: ManagedAccount, edit = false) =>
+  router.resolve({
+    name: props.role === 'admin' ? 'admin-detail' : 'domain-admin-detail',
+    params: { username: account.username },
+    query: edit ? { edit: 'account' } : undefined,
+  }).fullPath
+const allIds = computed(() => entries.value.map((item) => item.username))
+const bulkActions = computed(() => [
+  { id: 'activate', label: lt('mailbox.activate') },
+  { id: 'deactivate', label: lt('mailbox.deactivate') },
+  { id: 'suspendSecondFactors', label: lt('tfa.disable_tfa') },
+  { id: 'delete', label: lt('mailbox.remove'), destructive: true },
+])
+let lastAction: AccountBulkActionRequest['action'] | null = null
+async function bulk(action: AccountBulkActionRequest['action']) {
+  if (running.value || !allowed.value || query.isPlaceholderData.value) return
+  const context = route.fullPath,
+    role = props.role
+  const selected = entries.value.filter((item) => selection.isSelected(item.username))
+  const plan = planBulk({
+    role,
+    action,
+    selected,
+    ownUsername: identity.data.value?.username ?? '',
+    activeAdminCount: count.data.value ?? 1,
+    bulkLimit: caps.data.value?.bulkLimit ?? 100,
+  })
+  notice.value = plan.excludedOwn ? t('accounts.bulk.ownExcluded') : null
+  rows.value = plan.skippedNoSecondFactor.map((id) => ({ id, label: id, outcome: 'skipped' }))
+  if (plan.blocked) {
+    notice.value =
+      plan.blocked === 'lastActiveAdmin'
+        ? lt('warning.no_active_admin')
+        : t('bulk.limitReached', { max: caps.data.value?.bulkLimit ?? 100 })
+    return
+  }
+  if (!plan.targets.length) return
+  if (
+    plan.needsConfirmation &&
+    !(await confirm({
+      title:
+        action === 'delete'
+          ? lt('footer.confirm_delete')
+          : bulkActions.value.find((item) => item.id === action)!.label,
+      description: t(`accounts.bulk.${action}`, { count: plan.targets.length }),
+      confirmLabel:
+        action === 'delete'
+          ? lt('footer.delete_now')
+          : bulkActions.value.find((item) => item.id === action)!.label,
+      destructive: true,
+      ...(plan.needsConfirmation === 'typedCount'
+        ? {
+            requireTyped: {
+              accepted: [String(plan.targets.length)],
+              labelKey: 'bulk.confirm.typeCount',
+              labelParams: { count: plan.targets.length },
+            },
+          }
+        : {}),
+    }))
+  )
+    return
+  if (running.value || !allowed.value || route.fullPath !== context) return
+  const rechecked = planBulk({
+    role,
+    action,
+    selected: entries.value.filter((item) =>
+      plan.targets.some((target) => target.id === item.username),
+    ),
+    ownUsername: identity.data.value?.username ?? '',
+    activeAdminCount: count.data.value ?? 1,
+    bulkLimit: caps.data.value?.bulkLimit ?? 100,
+  })
+  if (rechecked.blocked || rechecked.targets.length !== plan.targets.length) return
+  running.value = true
+  failure.value = null
+  lastAction = action
+  const names = plan.targets.map((target) => ({ name: target.id, unicodeName: target.id }))
+  try {
+    const result = await applyAccountBulkAction(client, role, { action, targets: plan.targets })
+    rows.value = [...rows.value, ...rowsFromBulkResult(result, names)]
+    selection.keep(rows.value.filter(isRetryable).map((row) => row.id))
+  } catch (error) {
+    failure.value = problemOf(error)
+    if (failure.value?.kind === 'network') {
+      rows.value = [...rows.value, ...unknownRows(names)]
+      selection.clear()
+    }
+  } finally {
+    running.value = false
+  }
+}
+async function retryBulk() {
+  if (!lastAction || running.value) return
+  const refreshed = await query.refetch()
+  if (!refreshed.error) await bulk(lastAction)
+}
+const filterKey = computed(() => JSON.stringify(state.value.filters))
+let announced = filterKey.value
+watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
+  if (data && !placeholder && filterKey.value !== announced) {
+    announced = filterKey.value
+    announce(t('accounts.count', { count: data.meta.total }))
+  }
+})
+</script>
+<template>
+  <section class="mx-auto flex w-full max-w-7xl flex-col gap-4">
+    <PageHeader :title="lt(role === 'admin' ? 'admin.admin_details' : 'admin.domain_admins')"
+      ><template #actions
+        ><RouterLink
+          v-if="allowed"
+          :to="{ name: role === 'admin' ? 'admin-create' : 'domain-admin-create' }"
+          :class="buttonVariants({ variant: 'default' })"
+          >{{ lt(role === 'admin' ? 'admin.add_admin' : 'admin.add_domain_admin') }}</RouterLink
+        ></template
+      ></PageHeader
+    >
+    <div class="flex flex-wrap items-end gap-3">
+      <label class="flex min-w-0 flex-1 flex-col gap-1 text-sm"
+        >{{ lt('datatables.search')
+        }}<input
+          type="search"
+          :value="search"
+          maxlength="255"
+          class="form-control"
+          @input="onSearch" /></label
+      ><button
+        type="button"
+        :class="buttonVariants({ variant: 'outline' })"
+        :disabled="query.isFetching.value"
+        @click="query.refetch()"
+      >
+        {{ t('bulk.refreshList') }}</button
+      ><button
+        v-if="allowed"
+        type="button"
+        data-selection-mode
+        :class="buttonVariants({ variant: 'outline' })"
+        :disabled="running"
+        @click="selection.active.value ? selection.leave() : selection.enter()"
+      >
+        {{ t(selection.active.value ? 'bulk.exitSelection' : 'bulk.select') }}
+      </button>
+    </div>
+    <AccountFilters
+      :role="role"
+      :filters="state.filters"
+      :active-count="chips.filter((chip) => chip.key !== 'q').length"
+      @apply="list.setFilters"
+      @clear="clearFilters"
+    />
+    <ActiveFilterChips :chips="chips" @remove="removeChip" @clear="clearFilters" />
+    <div class="flex flex-wrap gap-3">
+      <label class="flex min-w-0 flex-col gap-1 text-sm"
+        >{{ t('lists.sort.label')
+        }}<select
+          data-account-sort
+          :value="state.sort"
+          class="form-control"
+          @change="list.setSort(($event.target as HTMLSelectElement).value as AccountSort)"
+        >
+          <option v-for="value in schema.sort?.values" :key="value" :value="value">
+            {{ sortLabels[value] }}
+          </option>
+        </select></label
+      ><label class="flex flex-col gap-1 text-sm"
+        >{{ t('lists.sort.order')
+        }}<select
+          :value="state.order"
+          class="form-control"
+          @change="
+            list.setSort(state.sort!, ($event.target as HTMLSelectElement).value as 'asc' | 'desc')
+          "
+        >
+          <option value="asc">{{ t('lists.sort.asc') }}</option>
+          <option value="desc">{{ t('lists.sort.desc') }}</option>
+        </select></label
+      >
+    </div>
+    <p v-if="notice || actions.notice.value" role="status">{{ notice ?? actions.notice.value }}</p>
+    <ProblemMessage :problem="failure ?? actions.problem.value" />
+    <p v-if="query.error.value && query.data.value" role="alert">{{ t('lists.refreshFailed') }}</p>
+    <ListState
+      :loading="query.isPending.value"
+      :empty="!entries.length"
+      :problem="query.data.value ? null : problemOf(query.error.value)"
+      :empty-text="lt(chips.length ? 'datatables.zeroRecords' : 'datatables.emptyTable')"
+      @retry="query.refetch()"
+    >
+      <template #empty
+        ><p>{{ lt(chips.length ? 'datatables.zeroRecords' : 'datatables.emptyTable') }}</p>
+        <p v-if="!chips.length" class="mt-2">
+          {{ t(role === 'domainAdmin' ? 'accounts.empty.domainAdmin' : 'accounts.empty.admin') }}
+        </p>
+        <button
+          v-else
+          type="button"
+          :class="buttonVariants({ variant: 'outline', class: 'mt-3' })"
+          @click="clearFilters"
+        >
+          {{ t('lists.chips.clearAll') }}
+        </button></template
+      >
+      <div v-if="selection.active.value" class="flex items-center gap-2">
+        <SelectCheckbox
+          :label="t('bulk.selectAll')"
+          :checked="selection.allSelected(allIds)"
+          :disabled="running || query.isPlaceholderData.value"
+          @change="$event ? selection.selectPage(allIds) : selection.clear()"
+        /><span>{{ lt('mailbox.toggle_all') }}</span>
+      </div>
+      <table v-if="wide" class="w-full table-fixed text-start text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-800">
+            <th v-if="selection.active.value" class="w-12">
+              <span class="sr-only">{{ t('bulk.select') }}</span>
+            </th>
+            <th class="p-3 text-start" :aria-sort="ariaSort('username')">
+              <button
+                type="button"
+                class="min-h-11 text-start font-semibold"
+                @click="sortColumn('username')"
+              >
+                {{ lt('admin.username') }}
+              </button>
+            </th>
+            <th
+              v-if="role === 'domainAdmin'"
+              class="p-3 text-start"
+              :aria-sort="ariaSort('domainCount')"
+            >
+              <button
+                type="button"
+                class="min-h-11 text-start font-semibold"
+                @click="sortColumn('domainCount')"
+              >
+                {{ lt('admin.admin_domains') }}
+              </button>
+            </th>
+            <th class="p-3 text-start">{{ lt('tfa.tfa') }}</th>
+            <th class="p-3 text-start" :aria-sort="ariaSort('active')">
+              <button
+                type="button"
+                class="min-h-11 text-start font-semibold"
+                @click="sortColumn('active')"
+              >
+                {{ lt('admin.active') }}
+              </button>
+            </th>
+            <th class="w-16 p-3 text-start">{{ lt('admin.action') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="account in entries"
+            :key="account.username"
+            :data-account-row="account.username"
+            class="border-b border-gray-200 dark:border-gray-800"
+          >
+            <td v-if="selection.active.value">
+              <SelectCheckbox
+                :label="t('bulk.selectItem', { name: account.username })"
+                :checked="selection.isSelected(account.username)"
+                :disabled="
+                  running || !selection.canSelect(account.username) || query.isPlaceholderData.value
+                "
+                described-by="bulk-limit-message"
+                @change="selection.toggle(account.username)"
+              />
+            </td>
+            <td class="p-3">
+              <RouterLink
+                :to="detail(account)"
+                class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
+                >{{ account.username }}</RouterLink
+              ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
+            </td>
+            <td v-if="'domains' in account" class="p-3">
+              <DomainAssignmentList
+                :assignments="(account as DomainAdmin).domains"
+                :account-active="account.active"
+                :limit="3"
+              />
+            </td>
+            <td class="p-3"><SecondFactorStatusBadge :status="account.secondFactorStatus" /></td>
+            <td class="p-3"><AccountStatusBadge :active="account.active" /></td>
+            <td class="p-1">
+              <AccountActionsMenu
+                v-if="allowed"
+                :account="account"
+                :detail-to="detail(account, true)"
+                :own="own(account)"
+                :last-active="lastActive(account)"
+                :busy="running || actions.pending.value"
+                @action="actions.run($event, account)"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <ul v-else class="flex flex-col gap-3">
+        <li
+          v-for="account in entries"
+          :key="account.username"
+          :data-account-row="account.username"
+          class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+        >
+          <div class="flex items-center gap-2">
+            <SelectCheckbox
+              v-if="selection.active.value"
+              :label="t('bulk.selectItem', { name: account.username })"
+              :checked="selection.isSelected(account.username)"
+              :disabled="
+                running || !selection.canSelect(account.username) || query.isPlaceholderData.value
+              "
+              described-by="bulk-limit-message"
+              @change="selection.toggle(account.username)"
+            /><RouterLink
+              :to="detail(account)"
+              class="inline-flex min-h-11 min-w-0 flex-1 items-center wrap-anywhere font-semibold underline underline-offset-4"
+              >{{ account.username
+              }}<span v-if="own(account)" class="ms-2 text-xs">{{
+                t('accounts.you')
+              }}</span></RouterLink
+            ><AccountActionsMenu
+              v-if="allowed"
+              :account="account"
+              :detail-to="detail(account, true)"
+              :own="own(account)"
+              :last-active="lastActive(account)"
+              :busy="running || actions.pending.value"
+              @action="actions.run($event, account)"
+            />
+          </div>
+          <dl class="mt-3 grid gap-2 text-sm">
+            <template v-if="'domains' in account"
+              ><dt class="font-medium">{{ lt('admin.admin_domains') }}</dt>
+              <dd>
+                <DomainAssignmentList
+                  :assignments="(account as DomainAdmin).domains"
+                  :account-active="account.active"
+                  :limit="3"
+                /></dd
+            ></template>
+            <dt class="font-medium">{{ lt('tfa.tfa') }}</dt>
+            <dd><SecondFactorStatusBadge :status="account.secondFactorStatus" /></dd>
+            <dt class="font-medium">{{ lt('admin.active') }}</dt>
+            <dd><AccountStatusBadge :active="account.active" /></dd>
+          </dl>
+        </li>
+      </ul>
+    </ListState>
+    <PaginationBar
+      :total="total"
+      :page="state.page"
+      :size="state.size"
+      @update:page="list.setPage"
+      @update:size="list.setSize($event as 25 | 50 | 100)"
+    />
+    <BulkResultSummary
+      v-if="rows.length"
+      :rows="rows"
+      @close="rows = []"
+      @retry="retryBulk"
+      @refresh="query.refetch()"
+    />
+    <BulkActionBar
+      v-if="selection.active.value"
+      :count="selection.count.value"
+      :actions="bulkActions"
+      :busy="running || query.isPlaceholderData.value"
+      :limit-message="
+        selection.limitReached.value ? t('bulk.limitReached', { max: selection.limit.value }) : null
+      "
+      @action="bulk($event as AccountBulkActionRequest['action'])"
+      @clear="selection.clear()"
+    />
+  </section>
+</template>

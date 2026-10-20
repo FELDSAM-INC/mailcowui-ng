@@ -127,7 +127,19 @@
       "recentLoginsClear",
       "activeSyncCacheReset",
       "groupwareProfileReset",
-      "webmailHandOff"
+      "webmailHandOff",
+      "adminCreation",
+      "adminUpdate",
+      "adminDeletion",
+      "adminSecondFactorSuspension",
+      "domainAdminCreation",
+      "domainAdminUpdate",
+      "domainAdminDeletion",
+      "domainAdminSecondFactorSuspension",
+      "ssoTokenIssue",
+      "impersonationStart",
+      "impersonationEnd",
+      "webmailSignInOnBehalf"
     ],
     "AuditTarget.type": [
       "apiKey",
@@ -182,7 +194,11 @@
       "recentLogins",
       "groupwareData",
       "webmailHandOff",
-      "ipCheck"
+      "ipCheck",
+      "admin",
+      "domainAdmin",
+      "ssoToken",
+      "impersonation"
     ],
     "AuditFailureReason": [
       "invalidCredentials",
@@ -242,7 +258,8 @@
       "directoryPassword",
       "directoryPasswordAndSecondFactor",
       "providerPassword",
-      "providerPasswordAndSecondFactor"
+      "providerPasswordAndSecondFactor",
+      "ssoToken"
     ],
     "ValidationRuleCode": [
       "required",
@@ -278,7 +295,8 @@
       "invalidTemplate",
       "preHashedPassword",
       "sieveSyntax",
-      "mutuallyExclusive"
+      "mutuallyExclusive",
+      "unknownField"
     ],
     "problemTypes": [
       "api-key-expired",
@@ -353,7 +371,15 @@
       "second-factor-required-by-policy",
       "push-notifications-not-configured",
       "groupware-disabled",
-      "demo-mode"
+      "demo-mode",
+      "account-exists",
+      "last-active-admin",
+      "cannot-delete-own-account",
+      "already-impersonating",
+      "impersonation-ended",
+      "not-allowed-while-impersonating",
+      "webmail-on-behalf-disabled",
+      "account-inactive"
     ]
   },
   "complete": {

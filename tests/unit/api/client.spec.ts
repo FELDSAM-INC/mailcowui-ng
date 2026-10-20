@@ -14,6 +14,8 @@ import {
   problemName,
 } from '@/api'
 
+import { setIdentityChangeHandler } from '@/api/csrf'
+
 import { mockState, server, useScenario } from '../../mocks/node'
 
 const API = '*/api/v2'
@@ -30,10 +32,16 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  setIdentityChangeHandler(null)
   clearCsrfToken()
 })
 
 describe('CSRF token', () => {
+  beforeEach(async () => {
+    useScenario('admin-active')
+    const identity = (await api.GET('/me')).data!.data
+    setIdentityChangeHandler({ current: () => identity, changed: () => {} })
+  })
   it('sends X-CSRF-Token on POST, PATCH and DELETE only', async () => {
     useScenario('admin-active')
     await api.GET('/session')

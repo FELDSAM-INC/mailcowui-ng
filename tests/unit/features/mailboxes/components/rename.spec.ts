@@ -7,6 +7,8 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
+import { clearCsrfToken } from '@/api'
+
 import { fetchMailbox } from '@/features/mailboxes/api'
 import RenameReport from '@/features/mailboxes/components/dialogs/RenameReport.vue'
 import RenameSection from '@/features/mailboxes/components/sections/RenameSection.vue'
@@ -26,6 +28,8 @@ function router() {
 }
 
 async function mount(address: string) {
+  // Each mount starts a fresh server session, independent of the previous component.
+  clearCsrfToken()
   useScenario('admin-rename')
   const mailbox = await fetchMailbox(address)
   const r = router()

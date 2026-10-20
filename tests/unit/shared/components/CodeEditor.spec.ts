@@ -44,3 +44,22 @@ it('does not allow read-only maps to be typed into', () => {
   })
   expect(wrapper.get('textarea').attributes()).toHaveProperty('readonly')
 })
+it('does not build a hidden document mirror when line numbers are disabled', () => {
+  let run: FrameRequestCallback = () => {}
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    run = callback
+    return 1
+  })
+  const wrapper = mountWithApp(CodeEditor, {
+    props: {
+      id: 'plain',
+      label: 'Template',
+      modelValue: 'text\n'.repeat(200_000),
+      maxBytes: 1_048_576,
+      lineNumbers: false,
+    },
+  })
+  run(0)
+  expect(wrapper.get('.invisible').element.childNodes).toHaveLength(0)
+  expect(wrapper.find('[data-line-gutter]').exists()).toBe(false)
+})

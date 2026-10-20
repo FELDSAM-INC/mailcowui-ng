@@ -5,7 +5,7 @@ import { useFormat } from '@/i18n/format'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { utf8ByteLength } from '@/shared/validation/utf8'
 import { buttonVariants } from '@/shared/ui/button'
-import { lineOffsets, visibleLines } from './line-layout'
+import { measureLines, updateLineLayout, visibleLines } from './line-layout'
 
 const props = withDefaults(
   defineProps<{
@@ -40,70 +40,101 @@ const used = computed(() => utf8ByteLength(props.modelValue))
 const invalid = computed(
   () => used.value > props.maxBytes || props.marks.length > 0 || props.errors.length > 0,
 )
-let offsets = [0]
+let layout = measureLines('', () => 24)
 let frame = 0
 let observer: ResizeObserver | undefined
 let textNode: Text | undefined
 let mirrored = ''
-const tops = new Map<number, number>()
+let geometry = ''
+let paddingTop = 0
+let paddingY = 0
+let contentWidth = 0
+let lineHeight = 24
+let characterWidth = 0
 function top(index: number): number {
-  if (!input.value || !mirror.value || !textNode) return 0
-  const cached = tops.get(index)
-  if (cached !== undefined) return cached
-  const range = document.createRange()
-  const offset = offsets[index] ?? 0
-  range.setStart(textNode, offset)
-  range.setEnd(textNode, Math.min(offset + 1, textNode.length))
-  const y = range.getBoundingClientRect().top - mirror.value.getBoundingClientRect().top
-  tops.set(index, y)
-  return y
+  return paddingTop + (layout.tops[index] ?? 0)
 }
-function measure() {
+function measure(force = false) {
   frame = 0
   const element = input.value
   const copy = mirror.value
   if (!element || !copy) return
+  if (!props.lineNumbers && !force) {
+    numbers.value = []
+    return
+  }
+  const style = getComputedStyle(element)
   const width = `${element.clientWidth}px`
-  if (
-    mirrored !== props.modelValue ||
-    !textNode ||
-    copy.style.width !== width ||
-    copy.style.whiteSpace !== (wrap.value ? 'pre-wrap' : 'pre')
-  ) {
-    mirrored = props.modelValue
-    offsets = lineOffsets(mirrored)
-    // A sentinel gives the trailing empty line a measurable native line box.
-    textNode = document.createTextNode(mirrored + '\u200b')
-    copy.replaceChildren(textNode)
+  const nextGeometry = [width, wrap.value, style.font, style.lineHeight, style.letterSpacing].join(
+    '|',
+  )
+  const resized = geometry !== nextGeometry || !textNode
+  if (resized) {
+    geometry = nextGeometry
+    paddingTop = Number.parseFloat(style.paddingTop) || 0
+    paddingY = paddingTop + (Number.parseFloat(style.paddingBottom) || 0)
+    contentWidth =
+      element.clientWidth -
+      (Number.parseFloat(style.paddingLeft) || 0) -
+      (Number.parseFloat(style.paddingRight) || 0)
+    lineHeight = Number.parseFloat(style.lineHeight) || 24
     copy.style.width = width
     copy.style.whiteSpace = wrap.value ? 'pre-wrap' : 'pre'
-    tops.clear()
+    textNode ??= document.createTextNode('')
+    if (textNode.parentNode !== copy) copy.replaceChildren(textNode)
+    // Native font metrics keep the no-wrap fast path exact for ASCII in this monospace editor.
+    textNode.data = 'M'
+    const range = document.createRange()
+    range.selectNodeContents(textNode)
+    characterWidth = range.getBoundingClientRect().width
+    layout.heights.clear()
+  }
+  // textarea.value has the browser's LF normalization, which selection offsets also use.
+  const value = props.modelValue.replace(/\r\n?/g, '\n')
+  if (resized || mirrored !== value) {
+    mirrored = value
+    const measureLine = (line: string) => {
+      if (
+        !wrap.value ||
+        !line ||
+        (characterWidth > 0 &&
+          line.length * characterWidth < contentWidth - 1 &&
+          /^[\u0020-\u007e]*$/.test(line))
+      )
+        return lineHeight
+      // Only one logical line enters the mirror, and only when its text/geometry is new.
+      textNode!.data = line
+      return Math.max(lineHeight, copy.getBoundingClientRect().height - paddingY)
+    }
+    layout = resized
+      ? measureLines(value, measureLine)
+      : updateLineLayout(layout, value, measureLine)
   }
   numbers.value = props.lineNumbers
-    ? visibleLines(offsets.length, top, element.scrollTop, element.clientHeight)
+    ? visibleLines(layout.offsets.length, top, element.scrollTop, element.clientHeight)
     : []
 }
 function schedule() {
-  if (!frame) frame = requestAnimationFrame(measure)
+  if (!frame) frame = requestAnimationFrame(() => measure())
 }
 async function goToLine(line: number) {
   await nextTick()
   if (frame) cancelAnimationFrame(frame)
-  measure()
+  measure(true)
   const element = input.value
   if (!element) return
-  const index = Math.max(0, Math.min(offsets.length - 1, line - 1))
+  const index = Math.max(0, Math.min(layout.offsets.length - 1, line - 1))
   element.focus()
   element.setSelectionRange(
-    offsets[index]!,
-    (offsets[index + 1] ?? props.modelValue.length + 1) - 1,
+    layout.offsets[index]!,
+    (layout.offsets[index + 1] ?? element.value.length + 1) - 1,
   )
   element.scrollTop = Math.max(0, top(index) - element.clientHeight / 3)
   schedule()
   announce(t('codeEditor.line', { line: format.number(index + 1) }))
 }
 defineExpose({ goToLine })
-watch(() => [props.modelValue, wrap.value], schedule)
+watch(() => [props.modelValue, wrap.value, props.lineNumbers], schedule)
 onMounted(() => {
   observer = new ResizeObserver(schedule)
   if (input.value) observer.observe(input.value)

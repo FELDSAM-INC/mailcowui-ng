@@ -1,4 +1,4 @@
-import { expectLanding, submitPassword } from '../fixtures/flows'
+import { expectLanding, openAccountSections, submitPassword } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
 test('US5 overview preserves legacy storage, protocols, aliases and recovery address', async ({
@@ -152,7 +152,8 @@ test('US5 the mailbox opens Password by default and reads its overview on Mail a
   await expect(page.locator('[data-mailbox-overview]')).toHaveCount(0)
   // Password uses the same overview query for its app-password hint; Mail apps reuses it.
   await expect.poll(() => mockApi.countRequests('getOwnMailboxOverview')).toBe(1)
-  await page.goto('account/mail-apps')
+  const navigation = await openAccountSections(page)
+  await navigation.locator('a[href$="/account/mail-apps"]').click()
   const overview = page.locator('[data-mailbox-overview]')
   await expect(overview).toContainText('256 MiB / 1 GiB')
   await expect(overview.getByRole('button', { name: 'Webmail', exact: true })).toBeVisible()

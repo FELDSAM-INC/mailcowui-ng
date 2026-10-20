@@ -20,7 +20,7 @@ import { useSignOut } from '../session/sign-out'
 import AnnouncementBanner from '../shell/AnnouncementBanner.vue'
 import AppFooter from '../shell/AppFooter.vue'
 import AppHeader from '../shell/AppHeader.vue'
-import AppsMenu from '../shell/AppsMenu.vue'
+const AppsMenu = defineAsyncComponent(() => import('../shell/AppsMenu.vue'))
 import BrandLogo from '../shell/BrandLogo.vue'
 import NavigationDrawer from '../shell/NavigationDrawer.vue'
 import NavigationList from '../shell/NavigationList.vue'

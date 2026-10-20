@@ -475,8 +475,8 @@ The menu retains a Device setting checkbox so the existing automatic theme prefe
 restored after using the outside dark-mode switch. The announcement is inside the content column,
 so it cannot push the desktop sidebar's lower edge below the viewport.
 
-Unimplemented destinations are explicitly disabled, without a link action: Quota notifications,
-Rspamd settings map, Customize, System mails and Global filter maps. Password Settings opens
+Unimplemented destinations are explicitly disabled, without a link action: Rspamd settings map,
+Customize, System mails and Global filter maps. Quota notifications is now available. Password Settings opens
 the policy editor and recovery-email templates at `/system/password-policy`. Rspamd UI opens
 the web-interface password settings. Administrators and Domain administrators have separate tabs.
 Queue Manager is linked from the System &
@@ -555,3 +555,24 @@ User Settings opens Password directly. `/account` remains a redirect for saved a
 former overview/cards page is removed. Passkeys keeps `/passkeys` and now shares the account layout
 and tabs. Mailbox information and webmail access remain available within the Mail apps tab.
 Validation of this follow-up is recorded with its release checkpoint.
+
+
+Release validation — 2026-10-21: the combined TailAdmin shell, account navigation, acting sessions
+and quota notification changes passed 204 focused unit checks, 156 integrated browser checks,
+and the desktop expanded/collapsed rail check. The earlier shell/preferences suite passed 57
+checks, with two expected mobile skips for the desktop rail; the separate language keyboard/touch
+suite passed six checks. All three browser profiles were exercised (desktop Chromium, mobile
+Chromium, mobile WebKit), including accessibility, responsive widths, tabs, preference persistence,
+account role guards, previews and acting-session return. A native 44px minimum width was added to
+administrator-table sort buttons after the rail accessibility check exposed the narrow Active
+header. The final desktop screenshots were visually reviewed.
+
+Four read-only/session-only local API smoke cases passed: administrator navigation and account
+entry points, reseller access, and both acting-session flows with owner restoration. The mailbox
+acting smoke follows the Mail apps tab without reloading, preserving its intentionally in-memory
+origin. The quota checkpoint separately passed two reversible local API smoke checks and restored
+its test settings. Typecheck (including a fresh forced run), focused lint, formatting, translations,
+production build and bundle budgets passed. The initial JavaScript is 186,395/204,800 bytes gzipped;
+the signed-in Apps and user menus load lazily. Physical-device/screen-reader acceptance remains
+separate from these browser checks. Logs and screenshots are retained in the API workspace under
+`storage/app/restart-2026-10-20/navigation` and `storage/app/restart-2026-10-20/tailadmin-shell`.

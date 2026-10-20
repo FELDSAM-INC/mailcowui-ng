@@ -27,7 +27,7 @@ test('US2-AS1/AS3 admin acts as a mailbox on two screens and returns to the filt
     await expect(banner).toContainText('admin')
     await expect(page).toHaveURL(/\/account\/password$/)
     await expect(page.locator('main')).toContainText('Not available while acting as another user')
-    await page.goto('account/mail-apps')
+    await page.locator('[data-section-nav] a[href$="/account/mail-apps"]').click()
     await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
     await expect(banner).toBeVisible()
     await page.locator('[data-acting-return]').click()

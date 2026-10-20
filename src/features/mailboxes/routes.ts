@@ -36,7 +36,7 @@ export const mailboxRoutes: RouteRecordRaw[] = [
     },
   },
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)',
     name: 'mailbox-detail',
     component: page(() => import('./pages/MailboxDetailPage.vue')),
     meta: {

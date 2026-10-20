@@ -78,9 +78,9 @@ Logs, traces and screenshots are saved outside the UI worktree under
 `mailcow-rest-v2/storage/app/restart-2026-10-20/rspamd-rules/`. The frozen browser build is
 `dist-u013-rules`; all associated containers and previews were stopped after validation.
 
-The existing mailbox route regex accepts literal `@` but rejects a manually percent-encoded
-`%40` path before parameter decoding. App-generated named links use the working literal form;
-the shared route issue was reported separately and is outside this checkpoint.
+The mailbox address route now accepts both literal `@` and percent-encoded `%40` paths.
+The follow-up covers all mailbox detail/account routes with 12 regression tests and the
+domain-administrator Sieve preset flow on all three browser profiles.
 
 T108's assertion that Global Sieve offers no examples belongs to the forthcoming US9 page;
 that page is not registered at this baseline, so this checkpoint does not invent a test of a

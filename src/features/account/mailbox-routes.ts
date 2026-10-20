@@ -6,7 +6,7 @@ function page<T>(load: () => Promise<T>): () => Promise<T> {
 }
 export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)/filters',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)/filters',
     component: page(() => import('./components/layout/MailboxAccountLayout.vue')),
     meta: { layout: 'shell', access: 'session', navEntry: 'mailboxes', accountSection: 'filters' },
     children: [
@@ -31,7 +31,7 @@ export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)/push-notifications',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)/push-notifications',
     component: page(() => import('./components/layout/MailboxAccountLayout.vue')),
     meta: {
       layout: 'shell',
@@ -49,7 +49,7 @@ export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)/recent-logins',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)/recent-logins',
     component: page(() => import('./components/layout/MailboxAccountLayout.vue')),
     meta: {
       layout: 'shell',
@@ -67,7 +67,7 @@ export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)/mail-settings',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)/mail-settings',
     component: page(() => import('./components/layout/MailboxAccountLayout.vue')),
     meta: {
       layout: 'shell',
@@ -85,7 +85,7 @@ export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)/temporary-aliases',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)/temporary-aliases',
     component: page(() => import('./components/layout/MailboxAccountLayout.vue')),
     meta: {
       layout: 'shell',
@@ -103,7 +103,7 @@ export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/mailboxes/:address([^/]+@[^/]+)/app-passwords',
+    path: '/mailboxes/:address([^/]+@[^/]+|[^/]+%40[^/]+)/app-passwords',
     component: page(() => import('./components/layout/MailboxAccountLayout.vue')),
     meta: {
       layout: 'shell',

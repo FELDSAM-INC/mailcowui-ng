@@ -7,7 +7,8 @@ for (const scenario of ['filters-many', 'filters-domain-admin'])
     expectNoHorizontalScroll,
   }) => {
     await mockApi.use(scenario)
-    await page.goto('mailboxes/anna@example.org/filters/new')
+    const mailbox = scenario === 'filters-domain-admin' ? 'anna%40example.org' : 'anna@example.org'
+    await page.goto(`mailboxes/${mailbox}/filters/new`)
     await expect(page.locator('[data-preset]')).toHaveCount(8)
     await page.locator('[data-preset="sieve_1"] button').click()
     await expect(page.locator('#filter-description')).toHaveValue(

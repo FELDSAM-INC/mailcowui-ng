@@ -73,11 +73,7 @@ describe('requested application navigation', () => {
   it('shows unfinished destinations as disabled, without a navigable target', () => {
     const sections = sidebarSections(identity('admin')).flatMap((group) => group.items)
     const unavailable = sections.flatMap((section) => section.tabs).filter((tab) => tab.disabled)
-    expect(unavailable.map((tab) => tab.id)).toEqual([
-      'customize',
-      'systemMails',
-      'globalFilterMaps',
-    ])
+    expect(unavailable.map((tab) => tab.id)).toEqual(['customize', 'systemMails'])
     expect(unavailable.every((tab) => tab.to === undefined)).toBe(true)
     expect(sections.find((section) => section.id === 'access')?.to).toBe('/administrators/admins')
   })

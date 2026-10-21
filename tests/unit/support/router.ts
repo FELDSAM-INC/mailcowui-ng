@@ -57,7 +57,11 @@ const STORY_ROUTES: RouteRecordRaw[] = [
 ]
 
 export function createTestRouter(): Router {
-  const routes = buildRoutes().map((route) => ({ ...route, component: Stub }) as RouteRecordRaw)
+  // Account and settings tabs nest their pages. Stub those too: route-only tests must not load
+  // production page chunks (especially when coverage instruments a child's imports).
+  const stubRoute = (route: RouteRecordRaw): RouteRecordRaw =>
+    ({ ...route, component: Stub, children: route.children?.map(stubRoute) }) as RouteRecordRaw
+  const routes = buildRoutes().map(stubRoute)
   const router = createRouter({ history: createMemoryHistory('/ng/'), routes })
   for (const route of STORY_ROUTES) {
     if (!router.hasRoute(route.name as string)) router.addRoute(route)

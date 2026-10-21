@@ -57,16 +57,16 @@ const number = (value: number | null) =>
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
-    <table class="w-full table-fixed text-start text-sm">
-      <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+  <div class="table-frame">
+    <table class="data-table w-full table-fixed text-start text-sm">
+      <thead>
         <tr>
           <th v-if="selectable" scope="col" class="w-14 px-3 py-2"><slot name="select-all" /></th>
           <th
             v-for="column in COLUMNS"
             :key="column.key"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :class="column.key === 'name' ? 'w-1/3' : ''"
             :aria-sort="column.sortable ? ariaSort(column.key) : undefined"
           >
@@ -90,7 +90,7 @@ const number = (value: number | null) =>
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr v-for="entry in entries" :key="entry.name" :data-entry="entry.name" class="align-top">
           <td v-if="selectable" class="px-3 py-2"><slot name="select" :entry="entry" /></td>
           <td class="px-3 py-2 font-medium text-gray-900 dark:text-white">

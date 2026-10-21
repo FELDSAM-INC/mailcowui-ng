@@ -46,26 +46,26 @@ function sortBy(key: ResourceSort) {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-    <table class="w-full table-fixed text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full table-fixed text-sm">
       <caption class="sr-only">
         {{
           lt('mailbox.resources')
         }}
       </caption>
-      <thead class="border-b border-gray-200 text-gray-600 dark:border-gray-800 dark:text-gray-400">
+      <thead class="border-b border-gray-200 dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-14 px-2 py-2"><slot name="select-all" /></th>
           <th
             v-for="column in COLUMNS"
             :key="column.key"
             scope="col"
-            class="px-2 py-2 text-start align-bottom font-medium"
+            class="px-2 py-2 text-start align-bottom"
             :aria-sort="ariaSort(column.sort)"
           >
             <button
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start font-medium break-words hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.sort)"
             >
               {{ resolveText(column.label, t) }}
@@ -74,7 +74,7 @@ function sortBy(key: ResourceSort) {
               }}</span>
             </button>
           </th>
-          <th scope="col" class="w-16 px-2 py-2 text-end font-medium">
+          <th scope="col" class="w-16 px-2 py-2 text-end">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>

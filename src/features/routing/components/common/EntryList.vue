@@ -52,19 +52,14 @@ const LINK =
 </script>
 
 <template>
-  <div
-    v-if="wide"
-    class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
-  >
-    <table class="w-full table-auto text-sm">
+  <div v-if="wide" class="table-frame">
+    <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
           caption
         }}
       </caption>
-      <thead
-        class="border-b border-gray-200 text-start text-gray-600 dark:border-gray-800 dark:text-gray-400"
-      >
+      <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2">
             <slot name="select-all" />
@@ -73,14 +68,14 @@ const LINK =
             v-for="column in columns"
             :key="column.key"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :aria-sort="ariaSort(column)"
             :data-column="column.key"
           >
             <button
               v-if="column.sort"
               type="button"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column)"
             >
               {{ column.label }}
@@ -90,7 +85,7 @@ const LINK =
             </button>
             <template v-else>{{ column.label }}</template>
           </th>
-          <th v-if="$slots.actions" scope="col" class="px-3 py-2 text-end font-medium">
+          <th v-if="$slots.actions" scope="col" class="px-3 py-2 text-end">
             {{ actionsLabel }}
           </th>
         </tr>

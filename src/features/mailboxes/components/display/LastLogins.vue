@@ -9,7 +9,14 @@ import type { MailboxLastLogins, MailboxProtocolAccess } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 
-const props = defineProps<{ logins: MailboxLastLogins; access: MailboxProtocolAccess }>()
+const props = withDefaults(
+  defineProps<{
+    logins: MailboxLastLogins
+    access: MailboxProtocolAccess
+    compact?: boolean
+  }>(),
+  { compact: false },
+)
 const { t } = useI18n()
 const fmt = useFormat()
 const lines = computed(() =>
@@ -20,16 +27,27 @@ const lines = computed(() =>
     { key: 'sso', value: props.logins.webmailSso },
   ].filter((line): line is { key: string; value: string | null } => line !== null),
 )
+const latest = computed(() =>
+  lines.value.reduce<(typeof lines.value)[number] | null>((previous, line) => {
+    if (!line.value || !Number.isFinite(Date.parse(line.value))) return previous
+    return !previous?.value || Date.parse(line.value) > Date.parse(previous.value) ? line : previous
+  }, null),
+)
+const lineText = (line: (typeof lines.value)[number]) =>
+  t(`mailboxes.lastLogin.${line.key}`, {
+    time: line.value ? fmt.dateTime(line.value) : lt('user.no_record'),
+  })
 </script>
 
 <template>
-  <ul class="flex flex-col gap-0.5 text-sm">
-    <li v-for="line in lines" :key="line.key" :data-login="line.key">
-      {{
-        t(`mailboxes.lastLogin.${line.key}`, {
-          time: line.value ? fmt.dateTime(line.value) : lt('user.no_record'),
-        })
-      }}
-    </li>
-  </ul>
+  <component :is="compact ? 'details' : 'div'">
+    <summary v-if="compact" class="min-h-11 cursor-pointer content-center whitespace-nowrap">
+      {{ latest ? lineText(latest) : lt('user.no_record') }}
+    </summary>
+    <ul class="flex flex-col gap-0.5 text-sm" :class="compact ? 'whitespace-nowrap' : ''">
+      <li v-for="line in lines" :key="line.key" :data-login="line.key">
+        {{ lineText(line) }}
+      </li>
+    </ul>
+  </component>
 </template>

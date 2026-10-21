@@ -27,8 +27,17 @@ test.describe('operations navigation @operations', () => {
     const menu = page.getByRole('button', { name: NAVIGATION })
     if (await menu.isVisible()) await menu.click()
     const group = page.getByRole('list', { name: 'System', exact: true })
-    await expect(group.getByRole('link')).toHaveText(['System & Containers'])
-    await group.getByRole('link').click()
+    await expect(group.getByRole('link')).toHaveText(['System & Containers', 'Queue Manager'])
+    await group.getByRole('link', { name: 'Queue Manager', exact: true }).click()
+    await expect(page).toHaveURL(/\/ng\/operations\/mail-queue$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'Queue Manager' })).toBeVisible()
+    await expect(page.locator('[data-section-navigation]')).toHaveCount(0)
+    if (await menu.isVisible()) await menu.click()
+    await expect(group.getByRole('link', { name: 'Queue Manager', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    await group.getByRole('link', { name: 'System & Containers', exact: true }).click()
     const tabs = page.locator('[data-section-navigation]')
     if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
     await expect(tabs.getByRole('link')).toHaveText(['System & Containers', 'Logs', 'Audit log'])
@@ -36,7 +45,7 @@ test.describe('operations navigation @operations', () => {
     await expect(page).toHaveURL(/\/ng\/operations\/logs\/postfix/)
     await expectAccessible()
     await expectNoHorizontalScroll()
-    // The queue remains directly addressable, and Fail2ban is in the Options group.
+    // Queue deep links remain available, and Fail2ban is in the Options group.
     for (const [, path] of SCREENS.slice(2)) {
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

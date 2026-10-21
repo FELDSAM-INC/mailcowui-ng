@@ -39,29 +39,27 @@ function sortBy(key: Oauth2ClientSort) {
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-    <table class="w-full table-fixed text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full table-fixed text-sm">
       <caption class="sr-only">
         {{
           lt('admin.oauth2_apps')
         }}
       </caption>
-      <thead
-        class="border-b border-gray-200 text-start text-gray-600 dark:border-gray-800 dark:text-gray-400"
-      >
+      <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-16 px-3 py-2"><slot name="select-all" /></th>
           <th
             v-for="column in COLUMNS"
             :key="column"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :class="column === 'id' ? 'w-20' : column === 'clientId' ? 'w-44' : ''"
             :aria-sort="ariaSort(column)"
           >
             <button
               type="button"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column)"
             >
               {{ resolveText(SORT_LABELS[column], t) }}
@@ -70,7 +68,7 @@ function sortBy(key: Oauth2ClientSort) {
               }}</span>
             </button>
           </th>
-          <th scope="col" class="w-56 px-3 py-2 text-end font-medium">{{ lt('admin.action') }}</th>
+          <th scope="col" class="w-56 px-3 py-2 text-end">{{ lt('admin.action') }}</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">

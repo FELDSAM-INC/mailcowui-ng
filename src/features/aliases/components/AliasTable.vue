@@ -41,23 +41,28 @@ interface Column {
 }
 
 const COLUMNS: Column[] = [
-  { key: 'id', label: 'lists.id', sort: 'id', className: 'hidden xl:table-cell' },
-  { key: 'address', label: legacy('mailbox.alias'), sort: 'address' },
-  { key: 'destinations', label: legacy('mailbox.target_address') },
-  { key: 'domain', label: legacy('mailbox.domain'), sort: 'domain' },
-  { key: 'groupwareVisible', label: legacy('mailbox.sogo_visible'), sort: 'groupwareVisible' },
+  { key: 'id', label: 'lists.id', sort: 'id', className: 'hidden w-12 xl:table-cell' },
+  { key: 'address', label: legacy('mailbox.alias'), sort: 'address', className: 'w-48' },
+  { key: 'destinations', label: legacy('mailbox.target_address'), className: 'w-48' },
+  { key: 'domain', label: legacy('mailbox.domain'), sort: 'domain', className: 'w-40' },
+  {
+    key: 'groupwareVisible',
+    label: legacy('mailbox.sogo_visible'),
+    sort: 'groupwareVisible',
+    className: 'w-20',
+  },
   {
     key: 'publicComment',
     label: legacy('mailbox.public_comment'),
-    className: 'hidden xl:table-cell',
+    className: 'hidden w-32 xl:table-cell',
   },
   {
     key: 'privateComment',
     label: legacy('mailbox.private_comment'),
-    className: 'hidden xl:table-cell',
+    className: 'hidden w-32 xl:table-cell',
   },
-  { key: 'internal', label: legacy('mailbox.internal'), sort: 'internal' },
-  { key: 'active', label: legacy('mailbox.active'), sort: 'active' },
+  { key: 'internal', label: legacy('mailbox.internal'), sort: 'internal', className: 'w-20' },
+  { key: 'active', label: legacy('mailbox.active'), sort: 'active', className: 'w-20' },
 ]
 
 const columns = () =>
@@ -79,28 +84,28 @@ const comment = (value: string) => value || '-'
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-    <table class="w-full table-fixed text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full min-w-[70rem] table-fixed text-sm">
       <caption class="sr-only">
         {{
           lt('mailbox.aliases')
         }}
       </caption>
-      <thead class="border-b border-gray-200 text-gray-600 dark:border-gray-800 dark:text-gray-400">
+      <thead class="border-b border-gray-200 dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-14 px-2 py-2"><slot name="select-all" /></th>
           <th
             v-for="column in columns()"
             :key="column.key"
             scope="col"
-            class="px-2 py-2 text-start align-bottom font-medium"
+            class="px-2 py-2 text-start align-bottom"
             :class="column.className"
             :aria-sort="ariaSort(column.sort)"
           >
             <button
               v-if="column.sort"
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start font-medium break-words hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.sort)"
             >
               {{ resolveText(column.label, t) }}
@@ -110,7 +115,7 @@ const comment = (value: string) => value || '-'
             </button>
             <span v-else class="break-words">{{ resolveText(column.label, t) }}</span>
           </th>
-          <th scope="col" class="w-16 px-2 py-2 text-end font-medium">
+          <th scope="col" class="w-16 px-2 py-2 text-end">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>
@@ -127,7 +132,12 @@ const comment = (value: string) => value || '-'
                 :to="{ name: 'alias-detail', params: { aliasId: alias.id } }"
                 class="inline-flex min-h-11 max-w-full items-center font-medium text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
               >
-                <AddressText :address="alias.address" :address-unicode="alias.addressUnicode" />
+                <AddressText
+                  class="table-identity"
+                  :title="alias.address"
+                  :address="alias.address"
+                  :address-unicode="alias.addressUnicode"
+                />
               </RouterLink>
               <AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" />
               <dl class="flex flex-col gap-0.5 text-xs text-gray-600 xl:hidden dark:text-gray-400">
@@ -150,16 +160,20 @@ const comment = (value: string) => value || '-'
             <DestinationSummary :alias="alias" />
           </td>
           <td class="px-2 py-3 text-gray-900 dark:text-white">
-            <AliasDomainText :alias="alias" />
+            <AliasDomainText class="table-identity" :title="alias.domainUnicode" :alias="alias" />
           </td>
           <td v-if="groupwareEnabled" class="px-2 py-3" data-field="groupwareVisible">
             <YesNoMark :value="alias.groupwareVisible" />
           </td>
           <td class="hidden px-2 py-3 break-words text-gray-900 xl:table-cell dark:text-white">
-            {{ comment(alias.publicComment) }}
+            <div class="table-preview" :title="alias.publicComment">
+              {{ comment(alias.publicComment) }}
+            </div>
           </td>
           <td class="hidden px-2 py-3 break-words text-gray-900 xl:table-cell dark:text-white">
-            {{ comment(alias.privateComment) }}
+            <div class="table-preview" :title="alias.privateComment">
+              {{ comment(alias.privateComment) }}
+            </div>
           </td>
           <td class="px-2 py-3" data-field="internal"><YesNoMark :value="alias.internal" /></td>
           <td class="px-2 py-3" data-field="active"><YesNoMark :value="alias.active" /></td>

@@ -17,7 +17,7 @@ const emit = defineEmits<{ remove: [mailbox: Mailbox, trigger: HTMLElement] }>()
 </script>
 
 <template>
-  <div data-row-actions class="flex flex-wrap justify-end gap-2">
+  <div data-row-actions class="table-actions flex flex-wrap justify-end gap-2">
     <RouterLink
       :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
       :class="buttonVariants({ variant: 'outline', size: 'sm' })"

@@ -394,95 +394,99 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
           @change="$event ? selection.selectPage(allIds) : selection.clear()"
         /><span>{{ lt('mailbox.toggle_all') }}</span>
       </div>
-      <table v-if="wide" class="w-full table-fixed text-start text-sm">
-        <thead>
-          <tr class="border-b border-gray-200 dark:border-gray-800">
-            <th v-if="selection.active.value" class="w-12">
-              <span class="sr-only">{{ t('bulk.select') }}</span>
-            </th>
-            <th class="p-3 text-start" :aria-sort="ariaSort('username')">
-              <button
-                type="button"
-                class="min-h-11 min-w-11 text-start font-semibold"
-                @click="sortColumn('username')"
+      <div v-if="wide" class="table-frame">
+        <table class="data-table w-full table-fixed text-start text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 dark:border-gray-800">
+              <th v-if="selection.active.value" class="w-12">
+                <span class="sr-only">{{ t('bulk.select') }}</span>
+              </th>
+              <th class="p-3 text-start" :aria-sort="ariaSort('username')">
+                <button
+                  type="button"
+                  class="min-h-11 min-w-11 text-start"
+                  @click="sortColumn('username')"
+                >
+                  {{ lt('admin.username') }}
+                </button>
+              </th>
+              <th
+                v-if="role === 'domainAdmin'"
+                class="p-3 text-start"
+                :aria-sort="ariaSort('domainCount')"
               >
-                {{ lt('admin.username') }}
-              </button>
-            </th>
-            <th
-              v-if="role === 'domainAdmin'"
-              class="p-3 text-start"
-              :aria-sort="ariaSort('domainCount')"
+                <button
+                  type="button"
+                  class="min-h-11 min-w-11 text-start"
+                  @click="sortColumn('domainCount')"
+                >
+                  {{ lt('admin.admin_domains') }}
+                </button>
+              </th>
+              <th class="p-3 text-start">{{ lt('tfa.tfa') }}</th>
+              <th class="p-3 text-start" :aria-sort="ariaSort('active')">
+                <button
+                  type="button"
+                  class="min-h-11 min-w-11 text-start"
+                  @click="sortColumn('active')"
+                >
+                  {{ lt('admin.active') }}
+                </button>
+              </th>
+              <th class="w-16 p-3 text-start">{{ lt('admin.action') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="account in entries"
+              :key="account.username"
+              :data-account-row="account.username"
+              class="border-b border-gray-200 dark:border-gray-800"
             >
-              <button
-                type="button"
-                class="min-h-11 min-w-11 text-start font-semibold"
-                @click="sortColumn('domainCount')"
-              >
-                {{ lt('admin.admin_domains') }}
-              </button>
-            </th>
-            <th class="p-3 text-start">{{ lt('tfa.tfa') }}</th>
-            <th class="p-3 text-start" :aria-sort="ariaSort('active')">
-              <button
-                type="button"
-                class="min-h-11 min-w-11 text-start font-semibold"
-                @click="sortColumn('active')"
-              >
-                {{ lt('admin.active') }}
-              </button>
-            </th>
-            <th class="w-16 p-3 text-start">{{ lt('admin.action') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="account in entries"
-            :key="account.username"
-            :data-account-row="account.username"
-            class="border-b border-gray-200 dark:border-gray-800"
-          >
-            <td v-if="selection.active.value">
-              <SelectCheckbox
-                :label="t('bulk.selectItem', { name: account.username })"
-                :checked="selection.isSelected(account.username)"
-                :disabled="
-                  running || !selection.canSelect(account.username) || query.isPlaceholderData.value
-                "
-                described-by="bulk-limit-message"
-                @change="selection.toggle(account.username)"
-              />
-            </td>
-            <td class="p-3">
-              <RouterLink
-                :to="detail(account)"
-                class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
-                >{{ account.username }}</RouterLink
-              ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
-            </td>
-            <td v-if="'domains' in account" class="p-3">
-              <DomainAssignmentList
-                :assignments="(account as DomainAdmin).domains"
-                :account-active="account.active"
-                :limit="3"
-              />
-            </td>
-            <td class="p-3"><SecondFactorStatusBadge :status="account.secondFactorStatus" /></td>
-            <td class="p-3"><AccountStatusBadge :active="account.active" /></td>
-            <td class="p-1">
-              <AccountActionsMenu
-                v-if="allowed"
-                :account="account"
-                :detail-to="detail(account, true)"
-                :own="own(account)"
-                :last-active="lastActive(account)"
-                :busy="running || actions.pending.value"
-                @action="actions.run($event, account)"
-              />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              <td v-if="selection.active.value">
+                <SelectCheckbox
+                  :label="t('bulk.selectItem', { name: account.username })"
+                  :checked="selection.isSelected(account.username)"
+                  :disabled="
+                    running ||
+                    !selection.canSelect(account.username) ||
+                    query.isPlaceholderData.value
+                  "
+                  described-by="bulk-limit-message"
+                  @change="selection.toggle(account.username)"
+                />
+              </td>
+              <td class="p-3">
+                <RouterLink
+                  :to="detail(account)"
+                  class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
+                  >{{ account.username }}</RouterLink
+                ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
+              </td>
+              <td v-if="'domains' in account" class="p-3">
+                <DomainAssignmentList
+                  :assignments="(account as DomainAdmin).domains"
+                  :account-active="account.active"
+                  :limit="3"
+                />
+              </td>
+              <td class="p-3"><SecondFactorStatusBadge :status="account.secondFactorStatus" /></td>
+              <td class="p-3"><AccountStatusBadge :active="account.active" /></td>
+              <td class="p-1">
+                <AccountActionsMenu
+                  v-if="allowed"
+                  :account="account"
+                  :detail-to="detail(account, true)"
+                  :own="own(account)"
+                  :last-active="lastActive(account)"
+                  :busy="running || actions.pending.value"
+                  @action="actions.run($event, account)"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <ul v-else class="flex flex-col gap-3">
         <li
           v-for="account in entries"

@@ -46,7 +46,7 @@ const detailsId = (id: string) => `audit-details-${id}`
       <AuditEventItem :event="event" />
     </li>
   </ul>
-  <div v-else class="surface overflow-x-auto p-0! sm:p-0!">
+  <div v-else class="table-frame">
     <Table class="text-start text-sm">
       <caption class="sr-only">
         {{
@@ -60,7 +60,7 @@ const detailsId = (id: string) => `audit-details-${id}`
             :key="column.key"
             is-header
             scope="col"
-            class="px-4 py-3 text-start font-medium text-gray-700 dark:text-gray-300"
+            class="px-4 py-3 text-start"
           >
             {{ resolveText(column.label, t) }}
           </TableCell>

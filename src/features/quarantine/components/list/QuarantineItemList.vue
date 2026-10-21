@@ -42,6 +42,19 @@ const columns = computed<QuarantineSort[]>(() => [
   'notified',
   'arrivedAt',
 ])
+// Wide data columns have room for addresses/subjects; compact scalar columns keep their share small.
+const columnWidths: Partial<Record<QuarantineSort, string>> = {
+  id: 'w-12',
+  queueId: 'w-28',
+  sender: 'w-36',
+  subject: 'w-48',
+  action: 'w-24',
+  recipient: 'w-36',
+  virus: 'w-24',
+  score: 'w-14',
+  notified: 'w-20',
+  arrivedAt: 'w-32',
+}
 const cardSummary: QuarantineSort[] = ['sender', 'action', 'score', 'arrivedAt']
 const cardDetails = computed(() =>
   columns.value.filter((field) => field !== 'subject' && !cardSummary.includes(field)),
@@ -62,88 +75,92 @@ function sortBy(field: QuarantineSort) {
 </script>
 
 <template>
-  <table
-    v-if="wide"
-    :aria-label="lt('quarantine.quarantine')"
-    class="w-full table-fixed text-start text-sm"
-  >
-    <thead>
-      <tr class="border-b border-gray-200 dark:border-gray-800">
-        <th v-if="selectable" scope="col" class="w-11">
-          <span class="sr-only">{{ t('bulk.select') }}</span>
-        </th>
-        <th
-          v-for="field in columns"
-          :key="field"
-          scope="col"
-          class="px-2 text-start align-bottom font-medium text-gray-800 dark:text-gray-200"
-          :aria-sort="field === sort ? (order === 'asc' ? 'ascending' : 'descending') : 'none'"
-        >
-          <button
-            type="button"
-            class="min-h-11 w-full break-words text-start focus-visible:outline-2 focus-visible:outline-brand-500"
-            @click="sortBy(field)"
+  <div v-if="wide" class="table-frame">
+    <table
+      :aria-label="lt('quarantine.quarantine')"
+      class="data-table w-full table-fixed text-start text-sm"
+      :class="scoped ? 'min-w-[85rem]' : 'min-w-[76rem]'"
+    >
+      <thead>
+        <tr class="border-b border-gray-200 dark:border-gray-800">
+          <th v-if="selectable" scope="col" class="w-11">
+            <span class="sr-only">{{ t('bulk.select') }}</span>
+          </th>
+          <th
+            v-for="field in columns"
+            :key="field"
+            scope="col"
+            :class="columnWidths[field]"
+            class="px-2 text-start align-bottom"
+            :aria-sort="field === sort ? (order === 'asc' ? 'ascending' : 'descending') : 'none'"
           >
-            {{ label(field) }}
-          </button>
-        </th>
-        <th scope="col" class="px-2 text-start text-gray-800 dark:text-gray-200">
-          {{ lt('quarantine.action') }}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="item in items"
-        :key="item.id"
-        :data-quarantine-item="item.id"
-        class="border-b border-gray-200 align-top dark:border-gray-800"
-      >
-        <td v-if="selectable"><slot name="select" :item="item" /></td>
-        <td
-          v-for="field in columns"
-          :key="field"
-          class="px-2 py-3 wrap-anywhere text-gray-800 dark:text-gray-200"
-        >
-          <RouterLink
-            v-if="field === 'subject'"
-            :to="itemRoute(item)"
-            class="inline-flex min-h-11 min-w-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
-            ><PlainText :value="item.subject || '-'"
-          /></RouterLink>
-          <QuarantineItemValue v-else :item="item" :field="field" />
-        </td>
-        <td class="px-2 py-3">
-          <div class="flex flex-col items-start gap-2">
-            <RouterLink
-              :to="itemRoute(item)"
-              :class="
-                buttonVariants({
-                  variant: 'outline',
-                  class: 'h-auto min-h-11 max-w-full whitespace-normal',
-                })
-              "
-              >{{ lt('quarantine.show_item') }}</RouterLink
-            >
             <button
-              v-if="canRemove"
               type="button"
-              :disabled="busy"
-              :class="
-                buttonVariants({
-                  variant: 'outline',
-                  class: 'h-auto min-h-11 max-w-full whitespace-normal',
-                })
-              "
-              @click="emit('remove', item)"
+              class="min-h-11 w-full break-words text-start focus-visible:outline-2 focus-visible:outline-brand-500"
+              @click="sortBy(field)"
             >
-              {{ lt('quarantine.remove') }}
+              {{ label(field) }}
             </button>
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          </th>
+          <th scope="col" class="w-48 px-2 text-start">
+            {{ lt('quarantine.action') }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in items"
+          :key="item.id"
+          :data-quarantine-item="item.id"
+          class="border-b border-gray-200 align-top dark:border-gray-800"
+        >
+          <td v-if="selectable"><slot name="select" :item="item" /></td>
+          <td
+            v-for="field in columns"
+            :key="field"
+            class="px-2 py-3 wrap-anywhere text-gray-800 dark:text-gray-200"
+            :class="['queueId', 'id', 'score'].includes(field) ? 'whitespace-nowrap' : ''"
+          >
+            <RouterLink
+              v-if="field === 'subject'"
+              :to="itemRoute(item)"
+              class="inline-flex min-h-11 min-w-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
+              ><PlainText :value="item.subject || '-'"
+            /></RouterLink>
+            <QuarantineItemValue v-else :item="item" :field="field" />
+          </td>
+          <td class="px-2 py-3">
+            <div class="table-actions flex flex-col items-start gap-2">
+              <RouterLink
+                :to="itemRoute(item)"
+                :class="
+                  buttonVariants({
+                    variant: 'outline',
+                    class: 'h-auto min-h-11 max-w-full whitespace-normal',
+                  })
+                "
+                >{{ lt('quarantine.show_item') }}</RouterLink
+              >
+              <button
+                v-if="canRemove"
+                type="button"
+                :disabled="busy"
+                :class="
+                  buttonVariants({
+                    variant: 'outline',
+                    class: 'h-auto min-h-11 max-w-full whitespace-normal',
+                  })
+                "
+                @click="emit('remove', item)"
+              >
+                {{ lt('quarantine.remove') }}
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <ul v-else :aria-label="lt('quarantine.quarantine')" class="flex flex-col gap-3">
     <li
       v-for="item in items"

@@ -79,22 +79,20 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-    <table class="w-full table-auto text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
           lt('mailbox.domains')
         }}
       </caption>
-      <thead
-        class="border-b border-gray-200 text-start text-gray-600 dark:border-gray-800 dark:text-gray-400"
-      >
+      <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2"><slot name="select-all" /></th>
-          <th scope="col" class="px-3 py-2 text-start font-medium" :aria-sort="ariaSort('name')">
+          <th scope="col" class="px-3 py-2 text-start" :aria-sort="ariaSort('name')">
             <button
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
               @click="sortBy('name')"
             >
               {{ lt('mailbox.domain') }}
@@ -107,14 +105,14 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
             v-for="column in COLUMNS"
             :key="column.key"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :class="column.wide ? 'hidden xl:table-cell' : ''"
             :aria-sort="column.sort ? ariaSort(column.sort) : undefined"
           >
             <button
               v-if="column.sort"
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.sort)"
             >
               {{ resolveText(column.labelKey, t) }}
@@ -134,13 +132,18 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
           <tr :data-entry="domain.name" class="align-top">
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :domain="domain" /></td>
             <td class="max-w-72 px-3 py-3">
-              <div class="flex flex-col gap-1.5">
+              <div class="table-record flex flex-col gap-1.5">
                 <div class="flex items-start gap-2">
                   <RouterLink
                     :to="{ name: 'domain-detail', params: { domain: domain.name } }"
                     class="inline-flex min-h-11 min-w-0 items-center font-semibold text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
                   >
-                    <DomainNameText :name="domain.name" :unicode-name="domain.unicodeName" />
+                    <DomainNameText
+                      class="table-identity"
+                      :title="domain.name"
+                      :name="domain.name"
+                      :unicode-name="domain.unicodeName"
+                    />
                   </RouterLink>
                   <slot name="actions" :domain="domain" />
                 </div>

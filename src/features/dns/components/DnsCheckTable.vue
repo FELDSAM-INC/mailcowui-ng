@@ -19,30 +19,30 @@ function label(check: DnsCheck): string {
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
-    <table class="w-full table-fixed text-start text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full table-fixed text-start text-sm">
       <caption class="sr-only">
         {{
           caption
         }}
       </caption>
-      <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+      <thead>
         <tr>
-          <th scope="col" class="w-1/4 px-3 py-2 text-start font-medium">
+          <th scope="col" class="w-1/4 px-3 py-2 text-start">
             {{ lt('diagnostics.dns_records_name') }}
           </th>
-          <th scope="col" class="w-20 px-3 py-2 text-start font-medium">
+          <th scope="col" class="w-20 px-3 py-2 text-start">
             {{ lt('diagnostics.dns_records_type') }}
           </th>
-          <th scope="col" class="px-3 py-2 text-start font-medium">
+          <th scope="col" class="px-3 py-2 text-start">
             {{ lt('diagnostics.dns_records_data') }}
           </th>
-          <th scope="col" class="px-3 py-2 text-start font-medium">
+          <th scope="col" class="px-3 py-2 text-start">
             {{ lt('diagnostics.dns_records_status') }}
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr
           v-for="check in checks"
           :key="check.id"

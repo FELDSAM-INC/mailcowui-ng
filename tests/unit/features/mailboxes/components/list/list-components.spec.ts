@@ -16,6 +16,7 @@ import MailboxTable from '@/features/mailboxes/components/list/MailboxTable.vue'
 import { NO_FILTERS } from '@/features/mailboxes/list-state'
 
 import { useScenario } from '../../../../../mocks/node'
+import { installMatchMedia } from '../../../../support/media'
 import { mountWithApp } from '../../../../support/mount'
 
 const router = () =>
@@ -86,6 +87,31 @@ describe('MailboxRowActions', () => {
 })
 
 describe('MailboxTable', () => {
+  it('uses login disclosures only on wide fine-pointer desktops and restores the full list', async () => {
+    const query = '(min-width: 1024px) and (hover: hover) and (pointer: fine)'
+    const media = installMatchMedia({ [query]: true })
+    const list = await mailboxes('anna@')
+    const wrapper = mountWithApp(MailboxTable, {
+      props: {
+        mailboxes: list,
+        columns: COLUMNS.filter((column) => column.default),
+        sort: 'address',
+        order: 'asc',
+      },
+      ...withRouter(),
+    })
+    await flushPromises()
+    const logins = wrapper.get('[data-cell="lastMailLogin"]')
+    expect(logins.find('details > summary').exists()).toBe(true)
+    const protocols = logins.findAll('[data-login]').map((line) => line.text())
+    media.set(query, false)
+    await flushPromises()
+    expect(logins.find('details').exists()).toBe(false)
+    expect(logins.find('summary').exists()).toBe(false)
+    expect(logins.findAll('[data-login]').map((line) => line.text())).toEqual(protocols)
+    wrapper.unmount()
+  })
+
   it('has legacy’s headers, sorts from them with aria-sort and shows chosen columns', async () => {
     const list = await mailboxes('anna')
     const columns = COLUMNS.filter((column) => column.default || column.id === 'tags')

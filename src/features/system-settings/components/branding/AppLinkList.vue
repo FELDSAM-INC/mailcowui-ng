@@ -178,55 +178,57 @@ async function remove(index: number) {
             </div>
           </dl>
         </div>
-        <table
-          class="hidden w-full table-fixed border-collapse text-left text-sm md:table"
-          data-link-table
-        >
-          <caption class="sr-only">
-            {{
-              lt('admin.app_links')
-            }}
-          </caption>
-          <thead>
-            <tr>
-              <th
-                v-for="label in [
-                  'admin.app_name',
-                  'admin.link',
-                  'admin.user_link',
-                  'admin.app_hide',
-                ]"
-                :key="label"
-                scope="col"
-                class="p-2 align-top wrap-anywhere"
+        <div class="table-frame hidden md:block">
+          <table
+            class="data-table w-full table-fixed border-collapse text-left text-sm"
+            data-link-table
+          >
+            <caption class="sr-only">
+              {{
+                lt('admin.app_links')
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th
+                  v-for="label in [
+                    'admin.app_name',
+                    'admin.link',
+                    'admin.user_link',
+                    'admin.app_hide',
+                  ]"
+                  :key="label"
+                  scope="col"
+                  class="p-2 align-top wrap-anywhere"
+                >
+                  {{ lt(label) }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="(link, index) in modelValue"
+                :key="index"
+                class="border-t border-gray-200 dark:border-gray-700"
               >
-                {{ lt(label) }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(link, index) in modelValue"
-              :key="index"
-              class="border-t border-gray-200 dark:border-gray-700"
-            >
-              <th scope="row" class="p-2 align-top wrap-anywhere font-normal">{{ link.name }}</th>
-              <td class="p-2 align-top wrap-anywhere">{{ link.url }}</td>
-              <td class="p-2 align-top wrap-anywhere">
-                <p>{{ link.signedInUrl || t('systemSettings.appLinks.sameAsLinkValue') }}</p>
-                <p class="mt-2 text-xs">
-                  {{ t('systemSettings.appLinks.preview', { username }) }}
-                  {{
-                    appLinkPreview(link, username) ?? t('systemSettings.appLinks.previewInvalid')
-                  }}
-                </p>
-              </td>
-              <td class="p-2 align-top">
-                {{ t(link.showOnLoginPage ? 'lists.filters.no' : 'lists.filters.yes') }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <th scope="row" class="p-2 align-top wrap-anywhere font-normal">{{ link.name }}</th>
+                <td class="p-2 align-top wrap-anywhere">{{ link.url }}</td>
+                <td class="p-2 align-top wrap-anywhere">
+                  <p>{{ link.signedInUrl || t('systemSettings.appLinks.sameAsLinkValue') }}</p>
+                  <p class="mt-2 text-xs">
+                    {{ t('systemSettings.appLinks.preview', { username }) }}
+                    {{
+                      appLinkPreview(link, username) ?? t('systemSettings.appLinks.previewInvalid')
+                    }}
+                  </p>
+                </td>
+                <td class="p-2 align-top">
+                  {{ t(link.showOnLoginPage ? 'lists.filters.no' : 'lists.filters.yes') }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </template>
     </template>
   </div>

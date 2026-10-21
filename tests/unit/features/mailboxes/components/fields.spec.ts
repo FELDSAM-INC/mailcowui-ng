@@ -18,6 +18,7 @@ import { TAGGED_MAIL_OPTIONS } from '@/features/mailboxes/components/fields/opti
 import PasswordFields from '@/features/mailboxes/components/fields/PasswordFields.vue'
 import StatusSelect from '@/features/mailboxes/components/fields/StatusSelect.vue'
 import TlsPolicyField from '@/features/mailboxes/components/fields/TlsPolicyField.vue'
+import { formatDateTime } from '@/i18n/format'
 
 import { mountWithApp } from '../../../support/mount'
 
@@ -236,5 +237,67 @@ describe('display', () => {
     expect(lines[0]).toMatch(/^IMAP @ /)
     expect(lines[1]).toBe('SMTP @ No record')
     expect(lines[2]).toBe('SSO @ No record')
+  })
+
+  it('summarizes the latest permitted login by its instant and discloses every protocol', async () => {
+    const wrapper = mountWithApp(LastLogins, {
+      props: {
+        compact: true,
+        logins: {
+          imap: '2026-10-17T12:00:00+03:00',
+          pop3: '2026-10-21T12:00:00Z',
+          smtp: '2026-10-17T10:00:00Z',
+          webmailSso: null,
+        },
+        access: { imap: true, pop3: false, smtp: true, sieve: true, activeSync: true, dav: true },
+      },
+    })
+    expect(wrapper.get('summary').text()).toBe(
+      `SMTP @ ${formatDateTime('2026-10-17T10:00:00Z', 'en-gb')}`,
+    )
+    const disclosure = wrapper.get('details').element as HTMLDetailsElement
+    expect(disclosure.open).toBe(false)
+    await wrapper.get('summary').trigger('click')
+    expect(disclosure.open).toBe(true)
+    expect(wrapper.findAll('[data-login]').map((line) => line.attributes('data-login'))).toEqual([
+      'imap',
+      'smtp',
+      'sso',
+    ])
+    expect(wrapper.get('[data-login="imap"]').text()).toBe(
+      `IMAP @ ${formatDateTime('2026-10-17T12:00:00+03:00', 'en-gb')}`,
+    )
+    expect(wrapper.get('[data-login="sso"]').text()).toBe('SSO @ No record')
+  })
+
+  it('uses No record when only a disabled protocol has a login', () => {
+    const wrapper = mountWithApp(LastLogins, {
+      props: {
+        compact: true,
+        logins: { imap: null, pop3: '2026-10-21T12:00:00Z', smtp: null, webmailSso: null },
+        access: { imap: true, pop3: false, smtp: true, sieve: true, activeSync: true, dav: true },
+      },
+    })
+    expect(wrapper.get('summary').text()).toBe('No record')
+    expect(wrapper.find('[data-login="pop3"]').exists()).toBe(false)
+    expect(wrapper.findAll('li').map((line) => line.text())).toEqual([
+      'IMAP @ No record',
+      'SMTP @ No record',
+      'SSO @ No record',
+    ])
+  })
+
+  it('includes SSO in the compact summary even when mail protocols are disabled', () => {
+    const wrapper = mountWithApp(LastLogins, {
+      props: {
+        compact: true,
+        logins: { imap: null, pop3: null, smtp: null, webmailSso: '2026-10-21T12:00:00Z' },
+        access: { imap: false, pop3: false, smtp: false, sieve: true, activeSync: true, dav: true },
+      },
+    })
+    expect(wrapper.get('summary').text()).toBe(
+      `SSO @ ${formatDateTime('2026-10-21T12:00:00Z', 'en-gb')}`,
+    )
+    expect(wrapper.findAll('li')).toHaveLength(1)
   })
 })

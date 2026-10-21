@@ -135,8 +135,8 @@ onScopeDispose(() => {
             <JobProgress :counts="job.counts" />
           </li>
         </ul>
-        <div class="hidden overflow-x-auto md:block">
-          <table class="w-full text-start">
+        <div class="table-frame hidden md:block">
+          <table class="data-table w-full text-start">
             <thead>
               <tr>
                 <th scope="col" class="p-3 text-start">{{ lt('admin.subject') }}</th>

@@ -29,74 +29,75 @@ const identity = useIdentityQuery()
 const historyAllowed = computed(() => identity.data.value?.role === 'admin')
 </script>
 <template>
-  <table
-    v-if="wide"
-    class="w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
-    data-temporary-alias-list
-  >
-    <thead>
-      <tr class="border-b border-gray-200 dark:border-gray-800">
-        <th v-if="selection" class="w-14 p-2">
-          <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
-        </th>
-        <th class="p-2 text-start">{{ lt('user.alias') }}</th>
-        <th class="p-2 text-start">{{ lt('user.description') }}</th>
-        <th class="p-2 text-start">{{ lt('user.alias_valid_until') }}</th>
-        <th class="p-2 text-start">{{ lt('user.created_on') }}</th>
-        <th class="w-44 p-2 text-start">{{ lt('user.action') }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="item in items"
-        :key="item.address"
-        :data-entry="item.address"
-        class="border-b border-gray-200 dark:border-gray-800"
-      >
-        <td v-if="selection" class="p-2">
-          <label class="flex size-11 items-center justify-center"
-            ><span class="sr-only">{{ item.address }}</span
-            ><input
-              type="checkbox"
-              class="size-5"
-              :checked="selected.includes(item.address)"
-              :disabled="busy"
-              @change="emit('toggle', item.address)"
-          /></label>
-        </td>
-        <td class="p-2"><AliasAddress :address="item.address" /></td>
-        <td class="p-2 wrap-anywhere">{{ item.description || '–' }}</td>
-        <td class="p-2"><AliasExpiry :expires-at="item.expiresAt" /></td>
-        <td class="p-2"><DateTime :value="item.createdAt" /></td>
-        <td class="p-2">
-          <div class="flex flex-col items-start gap-2">
-            <ValidityActions
-              v-if="canChange && limits"
-              :limits="limits"
-              :address="item.address"
-              :disabled="busy"
-              @change="emit('validity', item, $event)"
-            />
-            <button
-              v-if="canChange"
-              type="button"
-              :class="buttonVariants({ variant: 'outline', size: 'sm' })"
-              :disabled="busy"
-              :aria-label="`${lt('user.remove')}: ${item.address}`"
-              @click="emit('remove', item)"
-            >
-              {{ lt('user.remove') }}
-            </button>
-            <HistoryLink
-              target-type="temporaryAlias"
-              :target-id="item.mailbox"
-              :allowed="historyAllowed"
-            />
-          </div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div v-if="wide" class="table-frame">
+    <table
+      class="data-table w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
+      data-temporary-alias-list
+    >
+      <thead>
+        <tr class="border-b border-gray-200 dark:border-gray-800">
+          <th v-if="selection" class="w-14 p-2">
+            <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
+          </th>
+          <th class="p-2 text-start">{{ lt('user.alias') }}</th>
+          <th class="p-2 text-start">{{ lt('user.description') }}</th>
+          <th class="p-2 text-start">{{ lt('user.alias_valid_until') }}</th>
+          <th class="p-2 text-start">{{ lt('user.created_on') }}</th>
+          <th class="w-44 p-2 text-start">{{ lt('user.action') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="item in items"
+          :key="item.address"
+          :data-entry="item.address"
+          class="border-b border-gray-200 dark:border-gray-800"
+        >
+          <td v-if="selection" class="p-2">
+            <label class="flex size-11 items-center justify-center"
+              ><span class="sr-only">{{ item.address }}</span
+              ><input
+                type="checkbox"
+                class="size-5"
+                :checked="selected.includes(item.address)"
+                :disabled="busy"
+                @change="emit('toggle', item.address)"
+            /></label>
+          </td>
+          <td class="p-2"><AliasAddress :address="item.address" /></td>
+          <td class="p-2 wrap-anywhere">{{ item.description || '–' }}</td>
+          <td class="p-2"><AliasExpiry :expires-at="item.expiresAt" /></td>
+          <td class="p-2"><DateTime :value="item.createdAt" /></td>
+          <td class="p-2">
+            <div class="flex flex-col items-start gap-2">
+              <ValidityActions
+                v-if="canChange && limits"
+                :limits="limits"
+                :address="item.address"
+                :disabled="busy"
+                @change="emit('validity', item, $event)"
+              />
+              <button
+                v-if="canChange"
+                type="button"
+                :class="buttonVariants({ variant: 'outline', size: 'sm' })"
+                :disabled="busy"
+                :aria-label="`${lt('user.remove')}: ${item.address}`"
+                @click="emit('remove', item)"
+              >
+                {{ lt('user.remove') }}
+              </button>
+              <HistoryLink
+                target-type="temporaryAlias"
+                :target-id="item.mailbox"
+                :allowed="historyAllowed"
+              />
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <ul v-else class="flex flex-col gap-3" data-temporary-alias-list>
     <li
       v-for="item in items"

@@ -249,69 +249,70 @@ watch([total, () => list.state.value.page], ([count, page]) => {
     <p v-else-if="!rows.length" role="status" class="text-gray-700 dark:text-gray-300">
       {{ lt(list.activeFilters.value.length ? 'datatables.zeroRecords' : 'datatables.emptyTable') }}
     </p>
-    <table
-      v-else-if="wide"
-      class="w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
-      data-app-password-list
-    >
-      <thead>
-        <tr class="border-b border-gray-200 dark:border-gray-800">
-          <th v-if="selection.active.value" class="w-14 p-2">
-            <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
-          </th>
-          <th class="w-16 p-2 text-start">{{ t('lists.id') }}</th>
-          <th class="p-2 text-start">{{ lt('user.app_name') }}</th>
-          <th class="p-2 text-start">{{ lt('user.allowed_protocols') }}</th>
-          <th class="w-24 p-2 text-start">{{ lt('user.active') }}</th>
-          <th class="w-44 p-2 text-start">{{ lt('user.action') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="item in rows"
-          :key="item.id"
-          :data-entry="item.id"
-          class="border-b border-gray-200 dark:border-gray-800"
-        >
-          <td v-if="selection.active.value" class="p-2">
-            <label class="flex size-11 items-center justify-center"
-              ><span class="sr-only">{{ item.name }}</span
-              ><input
-                type="checkbox"
-                class="size-5"
-                :checked="selection.isSelected(String(item.id))"
-                :disabled="runner.running.value"
-                @change="selection.toggle(String(item.id))"
-            /></label>
-          </td>
-          <td class="p-2">{{ item.id }}</td>
-          <td class="p-2 wrap-anywhere">{{ item.name }}</td>
-          <td class="p-2 wrap-anywhere">
-            <code>{{ protocols(item) }}</code>
-          </td>
-          <td class="p-2">{{ lt(item.active ? 'user.active' : 'mailbox.inactive') }}</td>
-          <td class="p-2">
-            <div class="flex flex-wrap gap-1">
-              <RouterLink
-                :to="location('detail', item.id)"
-                :aria-label="`${lt('user.edit')}: ${item.name}`"
-                :class="buttonVariants({ variant: 'outline', size: 'sm' })"
-                >{{ lt('user.edit') }}</RouterLink
-              ><button
-                v-if="access.canChange.value"
-                type="button"
-                :disabled="runner.running.value"
-                :aria-label="`${lt('user.remove')}: ${item.name}`"
-                :class="buttonVariants({ variant: 'outline', size: 'sm' })"
-                @click="run('remove', [item])"
-              >
-                {{ lt('user.remove') }}
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else-if="wide" class="table-frame">
+      <table
+        class="data-table w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
+        data-app-password-list
+      >
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-800">
+            <th v-if="selection.active.value" class="w-14 p-2">
+              <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
+            </th>
+            <th class="w-16 p-2 text-start">{{ t('lists.id') }}</th>
+            <th class="p-2 text-start">{{ lt('user.app_name') }}</th>
+            <th class="p-2 text-start">{{ lt('user.allowed_protocols') }}</th>
+            <th class="w-24 p-2 text-start">{{ lt('user.active') }}</th>
+            <th class="w-44 p-2 text-start">{{ lt('user.action') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="item in rows"
+            :key="item.id"
+            :data-entry="item.id"
+            class="border-b border-gray-200 dark:border-gray-800"
+          >
+            <td v-if="selection.active.value" class="p-2">
+              <label class="flex size-11 items-center justify-center"
+                ><span class="sr-only">{{ item.name }}</span
+                ><input
+                  type="checkbox"
+                  class="size-5"
+                  :checked="selection.isSelected(String(item.id))"
+                  :disabled="runner.running.value"
+                  @change="selection.toggle(String(item.id))"
+              /></label>
+            </td>
+            <td class="p-2">{{ item.id }}</td>
+            <td class="p-2 wrap-anywhere">{{ item.name }}</td>
+            <td class="p-2 wrap-anywhere">
+              <code>{{ protocols(item) }}</code>
+            </td>
+            <td class="p-2">{{ lt(item.active ? 'user.active' : 'mailbox.inactive') }}</td>
+            <td class="p-2">
+              <div class="flex flex-wrap gap-1">
+                <RouterLink
+                  :to="location('detail', item.id)"
+                  :aria-label="`${lt('user.edit')}: ${item.name}`"
+                  :class="buttonVariants({ variant: 'outline', size: 'sm' })"
+                  >{{ lt('user.edit') }}</RouterLink
+                ><button
+                  v-if="access.canChange.value"
+                  type="button"
+                  :disabled="runner.running.value"
+                  :aria-label="`${lt('user.remove')}: ${item.name}`"
+                  :class="buttonVariants({ variant: 'outline', size: 'sm' })"
+                  @click="run('remove', [item])"
+                >
+                  {{ lt('user.remove') }}
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <ul v-else class="flex flex-col gap-3" data-app-password-list>
       <li
         v-for="item in rows"

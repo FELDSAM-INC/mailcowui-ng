@@ -128,6 +128,7 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
           tab('auditLog'),
         ],
       },
+      single('mailQueue'),
     ],
   },
   {

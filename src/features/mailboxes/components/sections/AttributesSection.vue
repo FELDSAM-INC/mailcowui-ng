@@ -100,20 +100,24 @@ const CELL = 'form-control'
     @save-again="s.saveAgain"
     @discard="s.discard"
   >
-    <table v-if="stored.length > 0" class="w-full table-fixed text-sm">
-      <thead>
-        <tr class="text-start text-gray-600 dark:text-gray-400">
-          <th scope="col" class="w-2/5 pb-2 text-start font-normal">{{ lt('user.attribute') }}</th>
-          <th scope="col" class="pb-2 text-start font-normal">{{ lt('user.value') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="[name, value] in stored" :key="name" class="align-top">
-          <td class="py-1 pe-3 break-words text-gray-900 dark:text-white">{{ name }}</td>
-          <td class="py-1 break-words text-gray-900 dark:text-white">{{ value }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="stored.length > 0" class="table-frame">
+      <table class="data-table w-full table-fixed text-sm">
+        <thead>
+          <tr class="text-start">
+            <th scope="col" class="w-2/5 pb-2 text-start">
+              {{ lt('user.attribute') }}
+            </th>
+            <th scope="col" class="pb-2 text-start">{{ lt('user.value') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="[name, value] in stored" :key="name" class="align-top">
+            <td class="py-1 pe-3 break-words text-gray-900 dark:text-white">{{ name }}</td>
+            <td class="py-1 break-words text-gray-900 dark:text-white">{{ value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <p v-else class="text-sm text-gray-700 dark:text-gray-300">{{ lt('user.no_record') }}</p>
     <template #form>
       <ErrorSummary :id="s.problemForm.summaryId" :items="s.problemForm.summary.value" />

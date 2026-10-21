@@ -35,23 +35,25 @@ const { t } = useI18n()
         })
       }}
     </p>
-    <table v-if="report.steps.length > 0" class="w-full text-start">
-      <caption class="text-start font-medium">
-        {{
-          t('mailboxes.rename.report.steps')
-        }}
-      </caption>
-      <tbody>
-        <tr v-for="item in report.steps" :key="item.step" :data-step="item.step">
-          <th scope="row" class="py-1 pe-3 text-start font-normal">
-            {{ text(renameStepKey(item.step)) }}
-          </th>
-          <td class="py-1" :data-outcome="item.outcome">
-            {{ text(renameOutcomeKey(item.outcome)) }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="report.steps.length > 0" class="table-frame">
+      <table class="data-table w-full text-start">
+        <caption class="text-start font-medium">
+          {{
+            t('mailboxes.rename.report.steps')
+          }}
+        </caption>
+        <tbody>
+          <tr v-for="item in report.steps" :key="item.step" :data-step="item.step">
+            <th scope="row" class="py-1 pe-3 text-start font-normal">
+              {{ text(renameStepKey(item.step)) }}
+            </th>
+            <td class="py-1" :data-outcome="item.outcome">
+              {{ text(renameOutcomeKey(item.outcome)) }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div>
       <button
         type="button"

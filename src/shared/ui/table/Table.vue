@@ -8,7 +8,7 @@ const attrs = useAttrs()
 </script>
 
 <template>
-  <table v-bind="{ ...attrs, class: undefined }" :class="['min-w-full', attrs.class]">
+  <table v-bind="{ ...attrs, class: undefined }" :class="['data-table min-w-full', attrs.class]">
     <slot />
   </table>
 </template>

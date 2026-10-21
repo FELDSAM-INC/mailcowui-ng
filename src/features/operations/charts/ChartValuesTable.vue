@@ -22,8 +22,8 @@ const time = computed(
 </script>
 
 <template>
-  <div class="max-w-full overflow-x-auto">
-    <table class="w-full text-start text-sm">
+  <div class="table-frame max-w-full">
+    <table class="data-table w-full text-start text-sm">
       <caption class="sr-only">
         {{
           caption
@@ -31,13 +31,8 @@ const time = computed(
       </caption>
       <thead>
         <tr class="border-b border-gray-200 dark:border-gray-800">
-          <th scope="col" class="px-2 py-1 text-start font-medium">{{ lt('admin.time') }}</th>
-          <th
-            v-for="item in props.series"
-            :key="item.name"
-            scope="col"
-            class="px-2 py-1 text-end font-medium"
-          >
+          <th scope="col" class="px-2 py-1 text-start">{{ lt('admin.time') }}</th>
+          <th v-for="item in props.series" :key="item.name" scope="col" class="px-2 py-1 text-end">
             {{ item.name }}
           </th>
         </tr>

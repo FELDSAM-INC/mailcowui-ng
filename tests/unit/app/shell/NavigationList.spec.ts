@@ -26,9 +26,9 @@ function identity(role: Identity['role']): Identity {
   }
 }
 
-async function mountList(role: Identity['role']) {
+async function mountList(role: Identity['role'], path = '/operations/logs') {
   const router = createTestRouter()
-  await router.push('/operations/logs')
+  await router.push(path)
   await router.isReady()
   const wrapper = mountWithApp(NavigationList, {
     props: { identity: identity(role) },
@@ -48,12 +48,20 @@ describe('NavigationList groups', () => {
     expect(list.attributes('aria-labelledby')).toBe(heading.attributes('id'))
     expect(list.findAll('a').map((link) => [link.text(), link.attributes('href')])).toEqual([
       ['System & Containers', '/ng/operations/dashboard'],
+      ['Queue Manager', '/ng/operations/mail-queue'],
     ])
     expect(list.get('a[aria-current="page"]').text()).toBe('System & Containers')
     expect(wrapper.find('a[href="/ng/"]').exists()).toBe(false)
     expect(wrapper.find('a[href="/ng/passkeys"]').exists()).toBe(false)
     expect(wrapper.find('a[href="/ng/account"]').exists()).toBe(false)
     expect(wrapper.find('a[href="/ng/dns/mta-sts-policies"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
+  it('highlights the separate Queue Manager entry for a message deep link', async () => {
+    const wrapper = await mountList('admin', '/operations/mail-queue/messages/4ABCD123')
+    const group = wrapper.get('[data-nav-group="system"]')
+    expect(group.get('a[aria-current="page"]').text()).toBe('Queue Manager')
     wrapper.unmount()
   })
 

@@ -130,11 +130,6 @@ function toggle(name: string) {
           :class="buttonVariants({ variant: 'link' })"
           >{{ lt('admin.guid_and_license') }}</RouterLink
         >
-        <RouterLink
-          :to="{ name: 'operations-mail-queue' }"
-          :class="buttonVariants({ variant: 'link' })"
-          >{{ lt('queue.queue_manager') }}</RouterLink
-        >
       </template>
     </PageHeader>
     <LiveUpdatesBar

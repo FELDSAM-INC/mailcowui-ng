@@ -77,32 +77,34 @@ const width = (share: number) => `${Math.max(0, Math.min(100, Math.round(share *
         {{ showTable ? t('operations.charts.hideTable') : t('operations.charts.showTable') }}
       </button>
     </div>
-    <table v-if="showTable" :id="tableId" class="w-full text-sm">
-      <caption class="text-start font-medium text-gray-900 dark:text-white">
-        {{
-          lt('debug.chart_this_server')
-        }}
-      </caption>
-      <thead class="text-gray-600 dark:text-gray-400">
-        <tr>
-          <th scope="col" class="px-2 py-2 text-start font-medium">{{ lt('admin.action') }}</th>
-          <th scope="col" class="px-2 py-2 text-end font-medium">
-            {{ t('operations.rspamd.messages') }}
-          </th>
-          <th scope="col" class="px-2 py-2 text-end font-medium">
-            {{ t('operations.rspamd.share') }}
-          </th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="row in rows" :key="row.action" class="text-gray-900 dark:text-white">
-          <th scope="row" class="px-2 py-2 text-start font-normal wrap-anywhere">
-            <PlainText :value="row.action" />
-          </th>
-          <td class="px-2 py-2 text-end tabular-nums">{{ number(row.count) }}</td>
-          <td class="px-2 py-2 text-end tabular-nums">{{ percent(row.share) }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="showTable" class="table-frame">
+      <table :id="tableId" class="data-table w-full text-sm">
+        <caption class="text-start font-medium text-gray-900 dark:text-white">
+          {{
+            lt('debug.chart_this_server')
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="px-2 py-2 text-start">{{ lt('admin.action') }}</th>
+            <th scope="col" class="px-2 py-2 text-end">
+              {{ t('operations.rspamd.messages') }}
+            </th>
+            <th scope="col" class="px-2 py-2 text-end">
+              {{ t('operations.rspamd.share') }}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+          <tr v-for="row in rows" :key="row.action" class="text-gray-900 dark:text-white">
+            <th scope="row" class="px-2 py-2 text-start font-normal wrap-anywhere">
+              <PlainText :value="row.action" />
+            </th>
+            <td class="px-2 py-2 text-end tabular-nums">{{ number(row.count) }}</td>
+            <td class="px-2 py-2 text-end tabular-nums">{{ percent(row.share) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>

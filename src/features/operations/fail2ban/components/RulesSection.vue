@@ -330,72 +330,76 @@ const isNotRestored = computed(
       >
         {{ message }}
       </p>
-      <table class="w-full table-auto text-sm">
-        <thead class="text-start text-gray-600 dark:text-gray-400">
-          <tr>
-            <th scope="col" class="w-14 px-1 py-2 text-start font-medium">
-              {{ t('operations.fail2ban.ruleId') }}
-            </th>
-            <th :id="regexpHeaderId" scope="col" class="px-1 py-2 text-start font-medium">
-              {{ t('operations.fail2ban.ruleRegexp') }}
-            </th>
-            <th scope="col" class="w-px px-1 py-2">
-              <span class="sr-only">{{ lt('admin.remove_row') }}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, index) in rows" :key="row.key" :data-rule="index" class="align-top">
-            <td :id="`${id}-number-${row.key}`" class="px-1 py-1 text-center font-mono">
-              {{ row.number ?? '+' }}
-            </td>
-            <td class="px-1 py-1">
-              <input
-                :id="inputId(index)"
-                v-model="row.pattern"
-                type="text"
-                autocomplete="off"
-                autocapitalize="none"
-                autocorrect="off"
-                spellcheck="false"
-                :aria-labelledby="`${regexpHeaderId} ${id}-number-${row.key}`"
-                :aria-invalid="problems.errorsFor(`rules.${index}`).length > 0 ? 'true' : undefined"
-                :aria-describedby="
-                  problems.errorsFor(`rules.${index}`).length > 0
-                    ? `${inputId(index)}-error`
-                    : undefined
-                "
-                class="form-control font-mono text-sm"
-              />
-              <div
-                v-if="problems.errorsFor(`rules.${index}`).length > 0"
-                :id="`${inputId(index)}-error`"
-                class="mt-1 text-sm text-red-700 dark:text-red-300"
-              >
-                <p v-for="message in problems.errorsFor(`rules.${index}`)" :key="message">
-                  {{ message }}
-                </p>
-                <PlainText
-                  v-if="compilerMessages[index]"
-                  :value="compilerMessages[index]"
-                  as="p"
-                  class="font-mono text-xs"
+      <div class="table-frame">
+        <table class="data-table w-full table-auto text-sm">
+          <thead class="text-start">
+            <tr>
+              <th scope="col" class="w-14 px-1 py-2 text-start">
+                {{ t('operations.fail2ban.ruleId') }}
+              </th>
+              <th :id="regexpHeaderId" scope="col" class="px-1 py-2 text-start">
+                {{ t('operations.fail2ban.ruleRegexp') }}
+              </th>
+              <th scope="col" class="w-px px-1 py-2">
+                <span class="sr-only">{{ lt('admin.remove_row') }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, index) in rows" :key="row.key" :data-rule="index" class="align-top">
+              <td :id="`${id}-number-${row.key}`" class="px-1 py-1 text-center font-mono">
+                {{ row.number ?? '+' }}
+              </td>
+              <td class="px-1 py-1">
+                <input
+                  :id="inputId(index)"
+                  v-model="row.pattern"
+                  type="text"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  autocorrect="off"
+                  spellcheck="false"
+                  :aria-labelledby="`${regexpHeaderId} ${id}-number-${row.key}`"
+                  :aria-invalid="
+                    problems.errorsFor(`rules.${index}`).length > 0 ? 'true' : undefined
+                  "
+                  :aria-describedby="
+                    problems.errorsFor(`rules.${index}`).length > 0
+                      ? `${inputId(index)}-error`
+                      : undefined
+                  "
+                  class="form-control font-mono text-sm"
                 />
-              </div>
-            </td>
-            <td class="px-1 py-1">
-              <button
-                type="button"
-                :class="buttonVariants({ variant: 'outline' })"
-                :aria-describedby="`${id}-number-${row.key}`"
-                @click="removeRow(row.key)"
-              >
-                {{ lt('admin.remove_row') }}
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                <div
+                  v-if="problems.errorsFor(`rules.${index}`).length > 0"
+                  :id="`${inputId(index)}-error`"
+                  class="mt-1 text-sm text-red-700 dark:text-red-300"
+                >
+                  <p v-for="message in problems.errorsFor(`rules.${index}`)" :key="message">
+                    {{ message }}
+                  </p>
+                  <PlainText
+                    v-if="compilerMessages[index]"
+                    :value="compilerMessages[index]"
+                    as="p"
+                    class="font-mono text-xs"
+                  />
+                </div>
+              </td>
+              <td class="px-1 py-1">
+                <button
+                  type="button"
+                  :class="buttonVariants({ variant: 'outline' })"
+                  :aria-describedby="`${id}-number-${row.key}`"
+                  @click="removeRow(row.key)"
+                >
+                  {{ lt('admin.remove_row') }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div class="flex flex-wrap gap-2">
         <template v-if="outdated">
           <button

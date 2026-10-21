@@ -181,32 +181,27 @@ const detailsId = (key: string) => `${listId}-${key}`
     </li>
   </ul>
 
-  <div
-    v-else
-    class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
-  >
-    <table data-history-table class="w-full table-fixed text-sm">
+  <div v-else class="table-frame">
+    <table data-history-table class="data-table w-full table-fixed text-sm">
       <caption class="sr-only">
         {{
           lt('debug.history_all_servers')
         }}
       </caption>
-      <thead
-        class="border-b border-gray-200 text-start text-gray-600 dark:border-gray-800 dark:text-gray-400"
-      >
+      <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th
             v-for="column in TABLE"
             :key="column.key"
             scope="col"
-            class="px-2 py-2 text-start font-medium"
+            class="px-2 py-2 text-start"
             :aria-sort="ariaSort(column.sort)"
           >
             <button
               v-if="column.sort"
               type="button"
               :data-sort="column.sort"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.sort)"
             >
               {{ label(column.key) }}

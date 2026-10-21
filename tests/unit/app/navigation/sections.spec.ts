@@ -18,7 +18,7 @@ describe('requested application navigation', () => {
         ['domains', 'mailboxes', 'aliases', 'resources', 'filters', 'syncJobs', 'emailRouting'],
       ],
       ['quarantine', ['quarantine']],
-      ['system', ['systemContainers']],
+      ['system', ['systemContainers', 'mailQueue']],
       ['configuration', ['access', 'options', 'systemRouting', 'systemMails', 'globalFilterMaps']],
     ])
     expect(groups.flatMap((group) => group.items).map((item) => item.id)).not.toEqual(
@@ -76,6 +76,21 @@ describe('requested application navigation', () => {
     expect(unavailable).toEqual([])
     expect(sections.find((section) => section.id === 'access')?.to).toBe('/administrators/admins')
   })
+
+  it.each(['/operations/mail-queue', '/operations/mail-queue/messages/4ABCD123'])(
+    'keeps Queue Manager separate and active at %s for administrators only',
+    (path) => {
+      const section = activeSection(path, identity('admin'))
+      expect(section).toMatchObject({
+        id: 'mailQueue',
+        to: '/operations/mail-queue',
+        current: true,
+      })
+      expect(section?.tabs.map((tab) => tab.id)).toEqual(['mailQueue'])
+      expect(activeSection(path, identity('domainAdmin'))).toBeUndefined()
+      expect(activeSection(path, identity('mailboxUser'))).toBeUndefined()
+    },
+  )
 
   it('keeps contextual CORS and License pages within their existing tabs', () => {
     expect(

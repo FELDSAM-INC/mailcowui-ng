@@ -23,14 +23,12 @@ const ariaSort = (column: ApiKeySort) =>
   props.sort === column ? (props.order === 'asc' ? 'ascending' : 'descending') : 'none'
 
 const cell = 'px-3 py-3 align-top text-sm text-gray-800 dark:text-gray-200'
-const head = 'px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-gray-300'
+const head = 'px-3 py-2 text-start text-sm'
 </script>
 
 <template>
-  <div
-    class="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
-  >
-    <table class="w-full border-collapse">
+  <div class="table-frame">
+    <table class="data-table w-full border-collapse">
       <caption class="sr-only">
         {{
           t('apiKeys.title')
@@ -54,7 +52,7 @@ const head = 'px-3 py-2 text-start text-sm font-medium text-gray-700 dark:text-g
             <th v-if="column.sortable" scope="col" :class="head" :aria-sort="ariaSort(column.key)">
               <button
                 type="button"
-                class="inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-brand-500 dark:hover:text-white"
+                class="inline-flex min-h-11 items-center gap-1 rounded-lg px-1 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-brand-500 dark:hover:text-white"
                 @click="emit('sort', column.key)"
               >
                 {{ text(`apiKeys.columns.${column.key}`) }}

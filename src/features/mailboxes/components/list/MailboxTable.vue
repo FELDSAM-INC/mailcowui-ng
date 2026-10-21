@@ -7,8 +7,9 @@ import { RouterLink } from 'vue-router'
 
 import { lt } from '@/i18n'
 import type { SortOrder } from '@/shared/composables/useListState'
+import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
-import type { ColumnSpec } from '../../columns'
+import type { ColumnId, ColumnSpec } from '../../columns'
 import type { MailboxSort } from '../../labels'
 import { readableAddress, type Mailbox } from '../../types'
 import MailboxCell from './MailboxCell.vue'
@@ -24,6 +25,23 @@ const props = withDefaults(
   { selectable: false },
 )
 const emit = defineEmits<{ sort: [sort: MailboxSort, order: SortOrder] }>()
+const compact = useMediaQuery('(min-width: 1024px) and (hover: hover) and (pointer: fine)')
+const desktopWidths: Partial<Record<ColumnId, string>> = {
+  address: 'min-w-48',
+  quota: 'min-w-32',
+  lastMailLogin: 'min-w-56',
+  passwordChangedAt: 'min-w-40',
+  inUse: 'min-w-20',
+  messages: 'min-w-16',
+  status: 'min-w-20',
+  displayName: 'min-w-40',
+  domain: 'min-w-48',
+  createdAt: 'min-w-40',
+  modifiedAt: 'min-w-40',
+}
+const columnWidth = (id: ColumnId) => (compact.value ? desktopWidths[id] : undefined)
+const singleLine = (id: ColumnId) =>
+  compact.value && ['quota', 'passwordChangedAt', 'createdAt', 'modifiedAt'].includes(id)
 
 function ariaSort(key: MailboxSort | undefined) {
   if (!key) return undefined
@@ -39,18 +57,14 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
 </script>
 
 <template>
-  <div
-    class="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
-  >
-    <table class="w-full table-auto text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
           lt('mailbox.mailboxes')
         }}
       </caption>
-      <thead
-        class="border-b border-gray-200 text-start text-gray-600 dark:border-gray-800 dark:text-gray-400"
-      >
+      <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2"><slot name="select-all" /></th>
           <th
@@ -58,13 +72,14 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             :key="column.id"
             scope="col"
             :data-column="column.id"
-            class="px-3 py-2 text-start align-bottom font-medium"
+            class="px-3 py-2 text-start align-bottom"
+            :class="columnWidth(column.id)"
             :aria-sort="ariaSort(column.sort)"
           >
             <button
               v-if="column.sort"
               type="button"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.sort)"
             >
               {{ header(column) }}
@@ -74,7 +89,7 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             </button>
             <template v-else>{{ header(column) }}</template>
           </th>
-          <th scope="col" class="px-3 py-2 text-end align-bottom font-medium">
+          <th scope="col" class="px-3 py-2 text-end align-bottom">
             {{ lt('mailbox.action') }}
           </th>
         </tr>
@@ -92,7 +107,11 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             :key="column.id"
             :data-cell="column.id"
             class="px-3 py-3 text-gray-900 dark:text-white"
-            :class="column.id === 'address' || column.id === 'displayName' ? 'max-w-72' : ''"
+            :class="[
+              columnWidth(column.id),
+              column.id === 'address' || column.id === 'displayName' ? 'max-w-72' : '',
+              singleLine(column.id) ? 'whitespace-nowrap' : '',
+            ]"
           >
             <RouterLink
               v-if="column.id === 'address'"
@@ -101,7 +120,7 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             >
               {{ readableAddress(mailbox) }}
             </RouterLink>
-            <MailboxCell v-else :mailbox="mailbox" :column="column.id" />
+            <MailboxCell v-else :mailbox="mailbox" :column="column.id" :compact-logins="compact" />
           </td>
           <td class="px-3 py-3">
             <slot name="actions" :mailbox="mailbox" />

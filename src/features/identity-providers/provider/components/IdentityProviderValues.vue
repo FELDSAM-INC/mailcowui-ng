@@ -128,26 +128,28 @@ const appReturnUrls = computed(() =>
           </dd>
         </div>
       </dl>
-      <table v-if="config.attributeMapping.length > 0" class="w-full table-fixed text-start">
-        <thead>
-          <tr class="text-gray-600 dark:text-gray-400">
-            <th scope="col" class="pb-1 text-start font-normal">{{ lt('user.attribute') }}</th>
-            <th scope="col" class="pb-1 text-start font-normal">{{ lt('mailbox.template') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="(entry, index) in config.attributeMapping"
-            :key="index"
-            class="border-t border-gray-100 text-gray-900 dark:border-gray-800 dark:text-white"
-          >
-            <td class="py-1 pe-3 break-words [overflow-wrap:anywhere]">
-              {{ entry.attributeValue }}
-            </td>
-            <td class="py-1 break-words [overflow-wrap:anywhere]">{{ entry.template }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-if="config.attributeMapping.length > 0" class="table-frame">
+        <table class="data-table w-full table-fixed text-start">
+          <thead>
+            <tr>
+              <th scope="col" class="pb-1 text-start">{{ lt('user.attribute') }}</th>
+              <th scope="col" class="pb-1 text-start">{{ lt('mailbox.template') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(entry, index) in config.attributeMapping"
+              :key="index"
+              class="border-t border-gray-100 text-gray-900 dark:border-gray-800 dark:text-white"
+            >
+              <td class="py-1 pe-3 break-words [overflow-wrap:anywhere]">
+                {{ entry.attributeValue }}
+              </td>
+              <td class="py-1 break-words [overflow-wrap:anywhere]">{{ entry.template }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <p v-else class="text-gray-900 dark:text-white">{{ none() }}</p>
     </div>
     <dl class="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">

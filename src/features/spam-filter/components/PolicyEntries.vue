@@ -70,17 +70,14 @@ const LINK =
 </script>
 
 <template>
-  <div
-    v-if="wide"
-    class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
-  >
-    <table class="w-full table-fixed text-sm" :data-entries="list">
+  <div v-if="wide" class="table-frame">
+    <table class="data-table w-full table-fixed text-sm" :data-entries="list">
       <caption class="sr-only">
         {{
           lt(CAPTION[list])
         }}
       </caption>
-      <thead class="border-b border-gray-200 text-gray-600 dark:border-gray-800 dark:text-gray-400">
+      <thead class="border-b border-gray-200 dark:border-gray-800">
         <tr>
           <th v-if="showSelect" scope="col" class="w-14 px-2 py-2">
             <SelectCheckbox
@@ -89,17 +86,17 @@ const LINK =
               @change="emit('toggleAll', $event)"
             />
           </th>
-          <th scope="col" class="w-16 px-2 py-2 text-start align-bottom font-medium">
+          <th scope="col" class="w-16 px-2 py-2 text-start align-bottom">
             {{ t('lists.id') }}
           </th>
           <th
             scope="col"
-            class="px-2 py-2 text-start align-bottom font-medium"
+            class="px-2 py-2 text-start align-bottom"
             :aria-sort="ariaSort('pattern')"
           >
             <button
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start font-medium break-words hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
               @click="sortBy('pattern')"
             >
               {{ lt(SORTABLE[0]!.label) }}
@@ -108,17 +105,17 @@ const LINK =
               }}</span>
             </button>
           </th>
-          <th scope="col" class="px-2 py-2 text-start align-bottom font-medium">
+          <th scope="col" class="px-2 py-2 text-start align-bottom">
             {{ t('spamFilter.lists.scope') }}
           </th>
           <th
             scope="col"
-            class="w-32 px-2 py-2 text-start align-bottom font-medium"
+            class="w-32 px-2 py-2 text-start align-bottom"
             :aria-sort="ariaSort('createdAt')"
           >
             <button
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start font-medium break-words hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
               @click="sortBy('createdAt')"
             >
               {{ lt(SORTABLE[1]!.label) }}

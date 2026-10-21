@@ -50,15 +50,15 @@ function onSort(key: MtaStsSort) {
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
-    <table class="w-full table-fixed text-start text-sm">
-      <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+  <div class="table-frame">
+    <table class="data-table w-full table-fixed text-start text-sm">
+      <thead>
         <tr>
           <th
             v-for="column in COLUMNS"
             :key="column.key"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :class="column.key === 'domain' ? 'w-1/4' : ''"
             :aria-sort="column.sortable ? ariaSort(column.key) : undefined"
           >
@@ -79,7 +79,7 @@ function onSort(key: MtaStsSort) {
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr v-for="policy in policies" :key="policy.domain" :data-entry="policy.domain">
           <td class="px-3 py-2 font-medium text-gray-900 dark:text-white">
             <RouterLink

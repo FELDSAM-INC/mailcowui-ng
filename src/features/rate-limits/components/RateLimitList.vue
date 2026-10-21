@@ -51,19 +51,15 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
 </script>
 
 <template>
-  <div
-    v-if="wide"
-    data-rate-limit-table
-    class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800"
-  >
-    <table class="w-full table-fixed text-start text-sm">
-      <thead class="bg-gray-50 text-gray-700 dark:bg-gray-900 dark:text-gray-300">
+  <div v-if="wide" data-rate-limit-table class="table-frame">
+    <table class="data-table w-full table-fixed text-start text-sm">
+      <thead>
         <tr>
           <th
             v-for="key in SORTABLE"
             :key="key"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :class="key === 'object' ? 'w-1/3' : ''"
             :aria-sort="ariaSort(key)"
           >
@@ -80,13 +76,13 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
               />
             </button>
           </th>
-          <th scope="col" class="px-3 py-2 text-start font-medium">{{ lt('edit.ratelimit') }}</th>
-          <th scope="col" class="px-3 py-2 text-start font-medium">
+          <th scope="col" class="px-3 py-2 text-start">{{ lt('edit.ratelimit') }}</th>
+          <th scope="col" class="px-3 py-2 text-start">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-950">
+      <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr v-for="item in items" :key="entryKey(item)" :data-entry="entryKey(item)">
           <td class="px-3 py-2 font-medium break-all text-gray-900 dark:text-white">
             <PlainText :value="item.object" />

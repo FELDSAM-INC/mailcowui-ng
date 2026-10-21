@@ -19,7 +19,9 @@ import LastLogins from '../display/LastLogins.vue'
 import MailboxStatusBadge from '../display/MailboxStatusBadge.vue'
 import QuotaText from '../display/QuotaText.vue'
 
-defineProps<{ mailbox: Mailbox; column: ColumnId }>()
+withDefaults(defineProps<{ mailbox: Mailbox; column: ColumnId; compactLogins?: boolean }>(), {
+  compactLogins: false,
+})
 const { t } = useI18n()
 const fmt = useFormat()
 const display = useMailboxFieldDisplay()
@@ -53,6 +55,7 @@ const date = (value: string | null) => (value ? fmt.dateTime(value) : '-')
     v-else-if="column === 'lastMailLogin'"
     :logins="mailbox.lastLogins"
     :access="mailbox.protocolAccess"
+    :compact="compactLogins"
   />
   <span v-else-if="column === 'passwordChangedAt'">{{ date(mailbox.passwordChangedAt) }}</span>
   <InUseBar v-else-if="column === 'inUse'" :percent="mailbox.percentUsed" />

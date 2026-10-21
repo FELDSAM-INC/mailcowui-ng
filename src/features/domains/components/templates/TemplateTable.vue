@@ -68,16 +68,14 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
 </script>
 
 <template>
-  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-    <table class="w-full table-auto text-sm">
+  <div class="table-frame">
+    <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
           lt('mailbox.domain_templates')
         }}
       </caption>
-      <thead
-        class="border-b border-gray-200 text-start text-gray-600 dark:border-gray-800 dark:text-gray-400"
-      >
+      <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th scope="col" class="w-12 px-3 py-2">
             <span class="sr-only">{{ t('domains.list.details') }}</span>
@@ -87,12 +85,12 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
             v-for="column in SORTABLE"
             :key="column.key"
             scope="col"
-            class="px-3 py-2 text-start font-medium"
+            class="px-3 py-2 text-start"
             :aria-sort="ariaSort(column.key)"
           >
             <button
               type="button"
-              class="inline-flex min-h-11 items-center gap-1 font-medium hover:text-gray-900 dark:hover:text-white"
+              class="inline-flex min-h-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
               @click="sortBy(column.key)"
             >
               {{ resolveText(column.label, t) }}
@@ -101,15 +99,10 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
               }}</span>
             </button>
           </th>
-          <th
-            v-for="column in columns"
-            :key="column.key"
-            scope="col"
-            class="px-3 py-2 text-start font-medium"
-          >
+          <th v-for="column in columns" :key="column.key" scope="col" class="px-3 py-2 text-start">
             {{ column.label }}
           </th>
-          <th scope="col" class="px-3 py-2 text-end font-medium">
+          <th scope="col" class="px-3 py-2 text-end">
             {{ lt('mailbox.action') }}
           </th>
         </tr>

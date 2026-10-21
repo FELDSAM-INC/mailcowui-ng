@@ -39,6 +39,9 @@ test('domain administrator permission is read-only in mailbox context and off-sc
   await expect(page.locator('[data-filter-id]')).toHaveCount(20)
   await expect(page.getByRole('link', { name: 'Add filter', exact: true })).toHaveCount(0)
   await page.locator('[data-filter-id="1"]').getByRole('link').click()
+  // The list also contains script previews; wait for the selected detail before reading one.
+  await expect(page).toHaveURL(/mailboxes\/anna(@|%40)example\.org\/filters\/1$/)
+  await expect(page.locator('[data-filter-list]')).toHaveCount(0)
   await expect(page.locator('[data-filter-form]')).toHaveCount(0)
   await expect(page.locator('pre')).toContainText('fileinto')
   await expectAccessible()

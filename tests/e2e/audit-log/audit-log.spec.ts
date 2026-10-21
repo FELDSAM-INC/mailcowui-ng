@@ -45,7 +45,7 @@ test('US8-AS1 SC-011 failed sign-ins from an address show the attempted username
   await mockApi.use('audit-records')
   await openLog(page)
   const form = await filters(page)
-  await form.getByRole('checkbox', { name: 'Sign-in' }).check()
+  await form.getByRole('checkbox', { name: 'Sign-in', exact: true }).check()
   await form.getByLabel('Outcome').selectOption('failure')
   await form.getByLabel('Client address').fill('192.0.2.10')
   await expectAccessible()
@@ -114,14 +114,16 @@ test('US8-AS5 a reload or the shared address keeps the filters', async ({
   await mockApi.use('audit-records')
   await openLog(page)
   const form = await filters(page)
-  await form.getByRole('checkbox', { name: 'Sign-in' }).check()
+  await form.getByRole('checkbox', { name: 'Sign-in', exact: true }).check()
   await form.getByLabel('Outcome').selectOption('failure')
   await apply(page)
   await expect(summary(page)).toHaveText('Showing 1 to 12 of 12 entries')
   await expect(page).toHaveURL(/event=signIn/)
   await page.reload()
   await expect(summary(page)).toHaveText('Showing 1 to 12 of 12 entries')
-  await expect((await filters(page)).getByRole('checkbox', { name: 'Sign-in' })).toBeChecked()
+  await expect(
+    (await filters(page)).getByRole('checkbox', { name: 'Sign-in', exact: true }),
+  ).toBeChecked()
 
   const other = await context.newPage()
   await other.goto(page.url())
@@ -231,7 +233,7 @@ test('FR-073 presets, several event types, and chips removed one by one and all 
   }
   await expect(page).toHaveURL(/range=30d/)
 
-  await form.getByRole('checkbox', { name: 'Sign-in' }).check()
+  await form.getByRole('checkbox', { name: 'Sign-in', exact: true }).check()
   await form.getByRole('checkbox', { name: 'Sign-out' }).check()
   await form.getByLabel('Outcome').selectOption('success')
   await apply(page)

@@ -4,7 +4,7 @@
 import { ALIAS_004, DOMAIN_ADMIN_004 } from '../../mocks/scenarios/feature-004-base'
 import { ALIASES_60, TWELVE_DESTINATIONS } from '../../mocks/scenarios/aliases-list'
 import { expect, test } from '../fixtures/test'
-import { isNarrow, listReady, entryIds } from './helpers'
+import { listReady, entryIds } from './helpers'
 import { openNavigation } from '../fixtures/flows'
 
 test.describe('alias page and access', () => {
@@ -89,7 +89,7 @@ test.describe('alias page and access', () => {
     expect(feature004).toEqual([])
   })
 
-  test('FR-001 administrators and domain administrators find the three entries', async ({
+  test('FR-001 administrators and domain administrators find aliases, their domain tab and resources', async ({
     page,
     mockApi,
   }) => {
@@ -97,10 +97,21 @@ test.describe('alias page and access', () => {
       await mockApi.use(scenario)
       await page.goto('')
       const navigation = await openNavigation(page)
-      for (const name of ['Aliases', 'Domain aliases', 'Resources']) {
+      for (const name of ['Aliases', 'Resources']) {
         await expect(navigation.getByRole('link', { name, exact: true })).toBeVisible()
       }
-      if (isNarrow(page)) await page.keyboard.press('Escape')
+      await expect(
+        navigation.getByRole('link', { name: 'Domain aliases', exact: true }),
+      ).toHaveCount(0)
+      await navigation.getByRole('link', { name: 'Aliases', exact: true }).click()
+      await expect(page).toHaveURL(/\/ng\/aliases$/)
+      const tabs = page.locator('[data-section-navigation]')
+      if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
+      await tabs.getByRole('link', { name: 'Domain aliases', exact: true }).click()
+      await expect(page).toHaveURL(/\/ng\/alias-domains$/)
+      await expect(
+        tabs.getByRole('link', { name: 'Domain aliases', exact: true, includeHidden: true }),
+      ).toHaveAttribute('aria-current', 'page')
     }
   })
 

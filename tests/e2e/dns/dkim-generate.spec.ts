@@ -262,7 +262,9 @@ test.describe('DKIM generation', () => {
       timeout: FIRST_LOAD,
     })
     const navigation = await openNavigation(page)
-    await navigation.getByRole('link', { name: 'ARC/DKIM keys' }).click()
+    await navigation.getByRole('link', { name: 'Options', exact: true }).click()
+    await expect(page).toHaveURL(/\/dns\/dkim-keys$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible()
     await listReady(page)
     await openSelection(page)
     await selectAllOnPage(page)

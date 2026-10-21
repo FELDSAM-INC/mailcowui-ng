@@ -3,7 +3,8 @@
 // deletion with the classic confirmation, the classic removal of selected templates with the bulk
 // operation (gap G40), and access.
 import { expect, test } from '../fixtures/test'
-import { entry, entryNames, isMobile, isNarrow, listReady, resultCount } from '../domains/helpers'
+import { openNavigation } from '../fixtures/flows'
+import { entry, entryNames, isNarrow, listReady, resultCount } from '../domains/helpers'
 
 test.describe('template list', () => {
   test('FR-049 reachable from the navigation and the domain list; 33 templates by name with Default marked', async ({
@@ -25,16 +26,17 @@ test.describe('template list', () => {
     await expectNoHorizontalScroll()
 
     await page.goto('')
-    if (isMobile(page)) {
-      await page.getByRole('button', { name: 'Toggle navigation' }).click()
-      await page.getByRole('dialog').getByRole('link', { name: 'Domain Templates' }).click()
-    } else {
-      await page
-        .getByRole('navigation', { name: 'Main navigation' })
-        .getByRole('link', { name: 'Domain Templates' })
-        .click()
-    }
+    const navigation = await openNavigation(page)
+    await navigation.getByRole('link', { name: 'Domains', exact: true }).click()
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Domains', exact: true }),
+    ).toBeVisible()
+    const tabs = page.getByRole('navigation', { name: 'Domains', exact: true })
+    const toggle = tabs.getByRole('button')
+    if (await toggle.isVisible()) await toggle.click()
+    await tabs.getByRole('link', { name: 'Domain Templates', exact: true }).click()
     await expect(page).toHaveURL(/\/ng\/domain-templates$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'Domain Templates' })).toBeVisible()
   })
 
   test('FR-049 the search, every sort key, the order and the page size are in the address', async ({

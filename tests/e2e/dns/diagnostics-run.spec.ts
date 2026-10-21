@@ -23,10 +23,12 @@ async function runs(mockApi: MockApi): Promise<number> {
     .length
 }
 
-/** From the DKIM entry of a name to its diagnostics, inside the app (no page load). */
+/** Options opens its ARC/DKIM tab; stay inside the app so held diagnostics survive navigation. */
 async function openFromEntry(page: Page, name: string) {
   const navigation = await openNavigation(page)
-  await navigation.getByRole('link', { name: 'ARC/DKIM keys' }).click()
+  await navigation.getByRole('link', { name: 'Options', exact: true }).click()
+  await expect(page).toHaveURL(/\/dns\/dkim-keys$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible()
   await page.locator(`[data-entry="${name}"]`).getByRole('link').first().click()
   await expect(page.getByRole('heading', { level: 1, name })).toBeVisible()
   await page.getByRole('link', { name: 'DNS', exact: true }).click()

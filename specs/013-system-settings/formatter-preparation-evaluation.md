@@ -88,3 +88,58 @@ background refreshes, and offline-paused reads. It should not attach to API quer
 introduce a whitelist of benchmark URLs. A slow empty/error response could still make the
 preparation unused, since its outcome is not yet known; this is a limited remaining cost.
 This alternative was assessed from source only. It has not been implemented or measured.
+
+## Scoped list candidate: implemented and evaluated separately
+
+The subsequent private candidate `2186752f`, based on `2da5d7f0`, implemented that narrower
+alternative for Domains and Aliases only. A task prepares the existing cached default formatter
+while the list query is both pending and fetching. It uses the active language and rechecks the
+query and language when the task runs. A settled/paused read, a language change, or page disposal
+cancels queued work. Global bootstrap and unrelated pages remain unchanged. A slow empty or
+failed response can still make this preparation unused.
+
+The helper and cache tests were observed failing before implementation. All 62 focused unit
+tests then passed, including real `/domains` request dispatch before preparation, skipping cached
+and background reads, cancellation, language changes, and normal list behavior. Scoped lint and
+formatting passed. Semantic application/test typechecking passed with separate build information,
+including after rebasing onto the final control. The production build and all bundle budgets
+passed; initial JavaScript was 189,565 of 204,800 bytes, 21 bytes above the matching control.
+
+### Matched cold list timing
+
+This comparison used three alternating control/candidate pairs for each list, 12 fresh Chromium
+processes in an exclusive CPU window. Throttling, viewport, entry-asset verification and real
+25-row/two-frame readiness were unchanged from the earlier experiment. The control was a frozen
+copy of `2da5d7f0` (`index-BKTQarJc.js`); the candidate was `index-CVzIrrB3.js`. Both included the
+same initial-scroll fix, so the scoped hook was the only production difference.
+
+| Page | Content ready, control | Content ready, candidate | Difference | FCP, control | FCP, candidate |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Domains | 3681.5 ms | 3651.2 ms | -30.3 ms | 3048 ms | 3056 ms |
+| Aliases | 3630.5 ms | 3561.8 ms | -68.7 ms | 3084 ms | 3076 ms |
+
+The paired content differences were -113.1/-0.1/-30.3 ms for Domains and
+-18.3/-84.8/-67.6 ms for Aliases. This is a small, consistent content-readiness improvement in
+these samples; it does not establish a first-paint improvement.
+
+### Candidate Lighthouse and decision
+
+Six candidate collections used the unchanged Lighthouse settings, three per list:
+
+| Page | Performance | Accessibility | Median FCP | Median LCP | Median TBT |
+| --- | --- | --- | ---: | ---: | ---: |
+| Domains | 75, 74, 74 | 99 in all three | 2921.8 ms | 4253.3 ms | 297.5 ms |
+| Aliases | 74, 72, 72 | 99 in all three | 2959.2 ms | 4170.0 ms | 375.8 ms |
+
+Neither list clears the existing 80 performance gate. The earlier `19af02f7` Lighthouse archive
+predates the initial-scroll change and is not a matched Lighthouse control for this candidate;
+the poorer scores cannot be attributed solely to the formatter hook. The paired real timing
+above does isolate its effect, but the modest gain does not establish sufficient overall benefit
+to merge this extra scheduling. Leave this candidate unmerged, with no gate or threshold change.
+
+The private commit and its patch remain available for reproduction. Evidence is archived in the
+API repository at
+`storage/app/restart-2026-10-20/settings-integration/list-formatter-preparation-2da5d7f0/`:
+the candidate patch, exact runner, all 12 timing samples, six Lighthouse JSON/HTML reports, and
+the failing/passing unit, lint, typecheck, build and budget logs. No further timing runs are part
+of this bounded experiment.

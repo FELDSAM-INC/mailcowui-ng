@@ -53,6 +53,52 @@ async function longestMotion(page: Page): Promise<number> {
 }
 
 test.describe('mailbox screens: reflow, motion and keyboard', () => {
+  test('the mailbox heading and all header actions wrap within a short viewport', async ({
+    page,
+    mockApi,
+    expectNoHorizontalScroll,
+  }) => {
+    await mockApi.use('admin-edit')
+    await page.goto('mailboxes/anna@a.example')
+    const header = page.getByRole('main').locator('header')
+    const title = header.getByRole('heading', { level: 1, name: 'Edit mailbox' })
+    const address = header.getByRole('paragraph').filter({ hasText: /^anna@a\.example$/ })
+    await expect(header.getByRole('link', { name: 'Filters', exact: true })).toBeVisible()
+
+    for (const width of [320, 780, 1366]) {
+      await page.setViewportSize({ width, height: 320 })
+      await expectNoHorizontalScroll(page, { widths: [width] })
+      await expect(title).toBeVisible()
+      await expect(address).toBeVisible()
+      await expect
+        .poll(async () => (await title.boundingBox())?.width ?? 0)
+        .toBeGreaterThanOrEqual(200)
+      await expect
+        .poll(async () => (await title.boundingBox())?.height ?? Infinity)
+        .toBeLessThanOrEqual(64)
+      const bounds = await header.evaluate((element) => {
+        const headerRect = element.getBoundingClientRect()
+        return [...element.querySelectorAll('a, button')].map((action) => {
+          const rect = action.getBoundingClientRect()
+          return {
+            left: rect.left - headerRect.left,
+            right: rect.right - headerRect.right,
+          }
+        })
+      })
+      expect(bounds.length).toBeGreaterThan(0)
+      for (const action of bounds) {
+        expect(action.left).toBeGreaterThanOrEqual(-1)
+        expect(action.right).toBeLessThanOrEqual(1)
+      }
+      const lastAction = header.getByRole('link', { name: 'Filters', exact: true })
+      await title.focus()
+      await lastAction.focus()
+      await expect(lastAction).toBeFocused()
+      await expect(lastAction).toBeInViewport()
+    }
+  })
+
   for (const screen of SCREENS) {
     test(`FR-068 ${screen.name} reflows at 320 px and at 400 % zoom`, async ({
       page,

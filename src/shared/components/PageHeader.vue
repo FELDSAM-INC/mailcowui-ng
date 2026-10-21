@@ -4,8 +4,10 @@ defineProps<{ title: string; description?: string }>()
 </script>
 
 <template>
-  <header class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-    <div class="min-w-0">
+  <header
+    class="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between"
+  >
+    <div class="min-w-0 sm:flex-1 sm:basis-64">
       <h1
         tabindex="-1"
         class="text-2xl font-semibold wrap-anywhere text-gray-900 focus:outline-none dark:text-white"
@@ -16,7 +18,7 @@ defineProps<{ title: string; description?: string }>()
         {{ description }}
       </p>
     </div>
-    <div v-if="$slots.actions" class="flex shrink-0 flex-wrap gap-2">
+    <div v-if="$slots.actions" class="flex min-w-0 max-w-full flex-wrap gap-2">
       <slot name="actions" />
     </div>
   </header>

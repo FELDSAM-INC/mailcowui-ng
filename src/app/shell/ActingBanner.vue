@@ -53,8 +53,10 @@ const when = computed(() => {
           >
             <UserCircleIcon class="size-5 shrink-0" />
             <span class="min-w-0 flex-1">
-              <span class="block text-sm">{{ t('acting.banner.label') + ' ' }}</span>
-              <span v-if="expanded" class="block wrap-anywhere">{{ target.username + ', ' }}</span>
+              <span class="block text-sm text-acting-fg">{{ t('acting.banner.label') + ' ' }}</span>
+              <span v-if="expanded" class="block wrap-anywhere text-acting-fg">{{
+                target.username + ', '
+              }}</span>
               <span v-else class="flex min-w-0"
                 ><span class="min-w-0 truncate text-acting-fg">{{
                   split < 0 ? target.username : target.username.slice(0, split)
@@ -64,7 +66,9 @@ const when = computed(() => {
                 }}</span
                 ><span class="shrink-0">{{ ', ' }}</span></span
               >
-              <span class="block text-xs">{{ t(`acting.role.${target.role}`) }}</span>
+              <span class="block text-xs text-acting-fg">{{
+                t(`acting.role.${target.role}`)
+              }}</span>
             </span>
           </button>
         </h2>

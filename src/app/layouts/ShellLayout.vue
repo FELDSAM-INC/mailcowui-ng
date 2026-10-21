@@ -3,7 +3,7 @@
 // header, the navigation (a static list from lg, a drawer below), the announcement, the main
 // content and the operator's footer. A section the catalogue denies renders NoAccessState in
 // place of the route component, so no section data is requested (FR-045).
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 
@@ -45,6 +45,10 @@ const identity = computed(() => (session.identityTransition ? undefined : identi
 const allowed = computed(() => routeAccess(route, identity.value) === 'allowed')
 
 const drawerOpen = ref(false)
+const drawerUsed = ref(false)
+watch(drawerOpen, (open) => {
+  if (open) drawerUsed.value = true
+})
 const sidebarCollapsed = ref(false)
 const header = ref<{ menuButton: HTMLButtonElement | null } | null>(null)
 const menuButton = computed(() => header.value?.menuButton ?? null)
@@ -84,7 +88,7 @@ const statusMessages = useStatusMessage().messages
       </div>
     </aside>
     <NavigationDrawer
-      v-if="!wide"
+      v-if="!wide && drawerUsed"
       v-model:open="drawerOpen"
       :identity="identity"
       :return-focus="menuButton"

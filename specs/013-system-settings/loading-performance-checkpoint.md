@@ -62,3 +62,28 @@ The complete baseline reports and scores are archived under
 CPU-profile evidence is in `/tmp/ui-settings-startup-profile/`; browser logs are
 `/tmp/ui-settings-shell-render-browser.log` and `/tmp/ui-settings-language-tabs-final.log`, with
 failure and final artifacts preserved under `/tmp/ui013-shell-render-results/`.
+
+## Startup follow-up and current release gate
+
+The quiet three-URL comparison on `593d85a2` did not establish a performance win:
+root scored 79/79/77, Domains 76/73/73 and Aliases 75/73/71. Accessibility remained
+99–100. The reports, including failures, are preserved in
+`settings-integration/lighthouse-593d85a2-render/` under the API evidence directory.
+
+Startup now begins the identity read as soon as the session response allows it, while public
+configuration can still be loading. CSRF remains first; applying preferences and mounting the
+route still wait for both reads. A delayed-configuration regression verifies that identity can
+finish independently without declaring bootstrap ready early.
+
+Confirmation, idle-warning and mobile-navigation hosts now mount on first use and stay mounted
+afterward for closing/focus handling. Their imports remain static: an experimental lazy-import
+version passed interaction checks, but review identified an offline chunk-failure risk that
+could leave a confirmation promise pending or hide an idle warning. That version is not shipped.
+
+The integrated startup/loading/focus changes pass 40 focused units, app and test types, scoped
+lint, production build and the bundle budget (189,569 / 204,800 bytes gzip). All 18 integrated
+browser executions pass across the three profiles, with zero retries: first drawer opening,
+keyboard navigation, confirmation cancel/focus return, idle warning/stay/expiry, keyboard
+settings saves and the short-screen confirmation. Evidence is in `/tmp/ui013-first-use-browser/`.
+Quiet performance results for this integration are recorded separately as they finish. The 80/90
+Lighthouse thresholds remain unchanged, and no new deployment is claimed by this checkpoint.

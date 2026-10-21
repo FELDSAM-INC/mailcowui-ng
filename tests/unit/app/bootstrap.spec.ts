@@ -55,6 +55,29 @@ describe('bootstrap order', () => {
     expect(ops()).not.toContain('getIdentity')
   })
 
+  it('loads identity while public configuration is pending and waits for both before ready', async () => {
+    useScenario('admin-active')
+    const queryClient = createQueryClient({ retryDelay: 0 })
+    let releaseConfig!: () => void
+    const configPending = new Promise<void>((resolve) => {
+      releaseConfig = resolve
+    })
+    server.use(
+      http.get('*/api/v2/public-config', async () => {
+        await configPending
+        return HttpResponse.json({ data: mockState().publicConfig })
+      }),
+    )
+    const bootstrapping = runBootstrap({ queryClient })
+    try {
+      await vi.waitFor(() => expect(queryClient.getQueryData(queryKeys.identity())).toBeDefined())
+      expect(bootstrapStatus.value).toBe('pending')
+    } finally {
+      releaseConfig()
+    }
+    expect(await bootstrapping).toBe('ready')
+  })
+
   it('fetches the identity for a restricted session', async () => {
     useScenario('anonymous-default', { signedInAs: 'bob@example.org' })
     await runBootstrap({ queryClient: createQueryClient({ retryDelay: 0 }) })

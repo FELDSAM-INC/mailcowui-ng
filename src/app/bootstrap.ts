@@ -1,7 +1,7 @@
 // The start sequence (research R11), run before the router resolves its first navigation:
 //   1. GET /csrf-token alone: it starts the anonymous session and sets the cookie;
 //   2. then GET /session and GET /public-config in parallel;
-//   3. then GET /me for an active or restricted session.
+//   3. GET /me as soon as the session is active/restricted, alongside any pending public config.
 // A network error or any 5xx (including nginx's HTML 502 while the API is down) shows the
 // "service unavailable" page with a retry. A failed public configuration alone uses the FR-003
 // defaults. Language and theme are applied from the device, the server and the profile (R15, R16).
@@ -74,19 +74,21 @@ export async function runBootstrap(ctx: BootstrapContext): Promise<BootstrapStat
   try {
     await refreshCsrfToken()
     const [session] = await Promise.all([
-      ctx.queryClient.fetchQuery({ ...sessionQuery(), staleTime: 0 }),
+      ctx.queryClient.fetchQuery({ ...sessionQuery(), staleTime: 0 }).then(async (session) => {
+        if (isSignedIn(session)) {
+          try {
+            await ctx.queryClient.fetchQuery(identityQuery())
+          } catch (error) {
+            // A refused identity is left to the guard/session reactions; only an unreachable
+            // API stops startup. Public configuration need not delay this authenticated read.
+            if (notReady(error)) throw error
+          }
+        }
+        return session
+      }),
       ctx.queryClient.fetchQuery(publicConfigQuery()).catch(() => undefined),
     ])
     const signedIn = isSignedIn(session)
-    if (signedIn) {
-      try {
-        await ctx.queryClient.fetchQuery(identityQuery())
-      } catch (error) {
-        // A refused identity (for example an account deactivated meanwhile) is left to the guard
-        // and the session reactions; only an unreachable API stops the start.
-        if (notReady(error)) throw error
-      }
-    }
     await applyPreferences(ctx, signedIn)
     status.value = 'ready'
     resolveReady()

@@ -121,3 +121,30 @@ mobile, for the corrected DNS and Domain Templates navigation helpers (`03a479a8
 helpers now follow Options or the Domains content tabs and preserve in-app history/cache
 behavior. Their evidence is in `u013-dns-navigation/`. The broad frozen browser run continues
 separately; these focused corrections do not turn its preserved baseline failures into passes.
+
+## Session, layout and full unit checkpoint
+
+The frozen `ac4b6461` full unit run with V8 coverage finished with **4,608 passes and three
+failures across 585 files**. Two route-only tests still loaded nested production page chunks;
+the test router now stubs child routes too. Their 40-check coverage recheck passes with 99.29%
+line coverage for the two selected auth composables. The third test tried to edit quota copies
+before the separate capabilities read had completed; it now waits for the edit control, and all
+four component checks pass. This is not a claim that the complete coverage gate passed. The
+original full output and scoped recheck are in `settings-integration/coverage-ac4b6461/`.
+
+The broad browser run found two session defects. An anonymous cross-tab notification requested
+identity before checking session state, so no session refresh followed its 401 response. A
+same-URL identity transition could also bypass the route guard. Both are fixed in `68342f96`:
+signed-out tabs check session state first, and identity transitions rerun the guard before
+revealing the view. **81 distinct focused units and six browser executions pass**, including
+pending actions, passkey continuity, retained login input and cross-tab account replacement.
+The two affected security modules and tests pass scoped lint/types; the build is within budget.
+Evidence is in `settings-integration/session-fix-68342f96/` and `u013-session-fix/`.
+
+The shared page header now wraps crowded actions without squeezing its title or address.
+**30 browser checks pass** across all three profiles, including the mailbox desktop visibility
+failure, three landscape overflows, short-height keyboard focus, and shared content widths.
+Evidence is in `u013-full-browser/header-wrap/`. Sieve diagnostics now quote neutralized parser
+text with its English language boundary; **11 focused units and three browser checks pass**
+(`u013-full-browser/sieve-quote/`). The complete browser inventory and Lighthouse gate remain
+separate, ongoing release checks. No new deployment is claimed here.

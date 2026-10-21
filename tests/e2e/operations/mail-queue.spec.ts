@@ -11,6 +11,13 @@ const isNarrow = (page: Page) => (page.viewportSize()?.width ?? 0) < 768
 const entry = (page: Page, id: string) => page.locator(`[data-entry="${id}"]`)
 const bar = (page: Page) => page.getByRole('region', { name: 'Bulk actions' })
 
+async function revealQueueForScan(page: Page) {
+  // A bottom action scrolls the table controls partly behind the sticky header. Keep focus on
+  // the action, but reveal the full controls before measuring their targets and scanning them.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+}
+
 async function open(page: Page, mockApi: MockApi, scenario = 'admin-operations', path = '') {
   await mockApi.use(scenario)
   await page.goto(`operations/mail-queue${path}`)
@@ -92,6 +99,7 @@ test.describe('Queue Manager @operations', () => {
     page,
     mockApi,
     expectAccessible,
+    expectTouchTargets,
     expectNoHorizontalScroll,
   }) => {
     await open(page, mockApi, 'ops-queue-vanishing')
@@ -130,6 +138,8 @@ test.describe('Queue Manager @operations', () => {
     expect(await mockApi.countRequests('listMailQueueMessages', before)).toBeGreaterThan(0)
     await expect(entry(page, '6C1D3E5F20')).toHaveCount(0)
     await expect(page.getByRole('checkbox', { name: 'Select 4F2A1B3C9D' })).not.toBeChecked()
+    await revealQueueForScan(page)
+    await expectTouchTargets()
     await expectAccessible()
   })
 
@@ -188,6 +198,7 @@ test.describe('Queue Manager @operations', () => {
     page,
     mockApi,
     expectAccessible,
+    expectTouchTargets,
   }) => {
     await open(page, mockApi)
     const before = await mockApi.mark()
@@ -199,6 +210,8 @@ test.describe('Queue Manager @operations', () => {
     await expect
       .poll(() => mockApi.countRequests('listMailQueueMessages', before))
       .toBeGreaterThan(0)
+    await revealQueueForScan(page)
+    await expectTouchTargets()
     await expectAccessible()
   })
 
@@ -266,6 +279,7 @@ test.describe('Queue Manager @operations', () => {
     page,
     mockApi,
     expectAccessible,
+    expectTouchTargets,
   }) => {
     await open(page, mockApi, 'ops-queue-timeout')
     await select(page, '4F2A1B3C9D')
@@ -279,6 +293,8 @@ test.describe('Queue Manager @operations', () => {
       .poll(() => mockApi.countRequests('listMailQueueMessages', before))
       .toBeGreaterThan(0)
     expect(await requestsOf(mockApi, 'bulkMailQueueMessages')).toHaveLength(1)
+    await revealQueueForScan(page)
+    await expectTouchTargets()
     await expectAccessible()
   })
 

@@ -95,3 +95,29 @@ to 235–268 ms and its LCP was 3.93–4.00 s, but the overall performance gate 
 Evidence is archived under `settings-integration/lighthouse-19af02f7-startup/`. The broad
 browser regression starts from this frozen functional baseline; subsequent narrow startup
 changes receive their own targeted regression and performance measurements.
+
+
+## First-document scrolling and integrated regression checkpoint
+
+A fresh Aliases CPU profile on runtime `19af02f7` attributed 49.5 ms to the first number
+formatter construction and 36.3 ms to Vue Router's initial `window.scrollTo`. The latter
+forced layout while the first route mounted even though a fresh document already had its
+natural position. Commit `b805d541` avoids that redundant first-navigation scroll. Saved
+history positions and fragment targets still take precedence; subsequent route changes and
+pagination retain their existing scroll behavior. No new Lighthouse score is claimed here.
+The original profile and runner are archived under `settings-integration/aliases-profile-19af02f7/`.
+
+The integrated runtime at `2da5d7f0` passes **13 router units and 27 browser executions**
+across all three profiles, with zero failures, skips or retries. Coverage includes Back/reload
+restoration, delayed section focus and missing-fragment fallback, grouped Alias navigation,
+API-key filters, Audit Log filters, and the Pushover credential controls. The latter's
+visibility toggle now uses the existing 44-pixel icon button size; keyboard visibility and
+the unchanged four-palette axe checks pass. Fresh test types, scoped lint/formatting, build
+and bundle checks pass: **189,544 / 204,800 bytes gzip**. Evidence is under
+`settings-integration/regression-2da5d7f0/`.
+
+A further **13 browser executions pass**, with two existing desktop-only cases skipped on
+mobile, for the corrected DNS and Domain Templates navigation helpers (`03a479a8`). The
+helpers now follow Options or the Domains content tabs and preserve in-app history/cache
+behavior. Their evidence is in `u013-dns-navigation/`. The broad frozen browser run continues
+separately; these focused corrections do not turn its preserved baseline failures into passes.

@@ -181,7 +181,7 @@ export const settingsPages: readonly SettingsPage[] = [
       legacy('admin.text'),
       legacy('admin.html'),
       legacy('admin.include_exclude'),
-      'systemSettings.massMail.recipients',
+      legacy('admin.recipients'),
       'systemSettings.massMail.scope',
       'systemSettings.massMail.domains',
       'systemSettings.massMail.paste',

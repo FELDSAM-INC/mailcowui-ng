@@ -211,7 +211,7 @@ async function send() {
       >
         <section v-show="wide || step === 1" class="space-y-3">
           <h2 v-if="wide" class="text-xl font-semibold">
-            {{ t('systemSettings.massMail.recipients') }}
+            {{ lt('admin.recipients') }}
           </h2>
           <RecipientSelection
             v-model:draft="compose.draft"

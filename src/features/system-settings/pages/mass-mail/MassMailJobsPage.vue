@@ -150,7 +150,7 @@ onScopeDispose(() => {
                   {{ t('systemSettings.massMail.createdAt') }}
                 </th>
                 <th scope="col" class="p-3 text-start">
-                  {{ t('systemSettings.massMail.recipients') }}
+                  {{ lt('admin.recipients') }}
                 </th>
               </tr>
             </thead>

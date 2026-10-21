@@ -153,7 +153,6 @@
       "jobs": "Hromadné správy",
       "description": "Odošlite správu vybraným schránkam prijímajúcim poštu a sledujte jej doručenie.",
       "empty": "Zatiaľ nebola odoslaná žiadna hromadná správa. Napíšte správu používateľom schránok.",
-      "recipients": "Príjemcovia",
       "message": "Správa",
       "preview": "Náhľad príjemcov",
       "step": "Krok {step} zo 4",

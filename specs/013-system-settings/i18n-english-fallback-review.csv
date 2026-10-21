@@ -11,7 +11,6 @@ auditLog.settings.fields.content,Content,Content,Content,cs-cz;sk-sk,English sou
 auditLog.settings.fields.dark,Dark theme,Dark theme,Dark theme,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.delivered,Delivered,Delivered,Delivered,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.domainCount,Domain count,Domain count,Domain count,cs-cz;sk-sk,English source fallback; human review pending
-auditLog.settings.fields.domains,Domains,Domains,Domains,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.enabled,Enabled,Enabled,Enabled,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.excludeCount,Excluded mailboxes,Excluded mailboxes,Excluded mailboxes,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.failed,Failed,Failed,Failed,cs-cz;sk-sk,English source fallback; human review pending
@@ -20,23 +19,19 @@ auditLog.settings.fields.forceSingleSignOn,Force single sign-on,Force single sig
 auditLog.settings.fields.hideAdminLogin,Hide administrator login,Hide administrator login,Hide administrator login,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.hideDomainAdminLogin,Hide domain administrator login,Hide domain administrator login,Hide domain administrator login,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.hideMailboxUserLogin,Hide mailbox login,Hide mailbox login,Hide mailbox login,cs-cz;sk-sk,English source fallback; human review pending
-auditLog.settings.fields.htmlTemplate,HTML template,HTML template,HTML template,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.includeCount,Included mailboxes,Included mailboxes,Included mailboxes,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.light,Light theme,Light theme,Light theme,cs-cz;sk-sk,English source fallback; human review pending
-auditLog.settings.fields.links,App links,App links,App links,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.loginHelpHtml,Login help,Login help,Login help,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.minLength,Minimum password length,Minimum password length,Minimum password length,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.pageTitle,Page title,Page title,Page title,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.pending,Pending,Pending,Pending,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.productName,Product name,Product name,Product name,cs-cz;sk-sk,English source fallback; human review pending
-auditLog.settings.fields.recipients,Recipients,Recipients,Recipients,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.requireDigits,Require digits,Require digits,Require digits,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.requireLetters,Require letters,Require letters,Require letters,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.requireMixedCase,Require upper and lower case,Require upper and lower case,Require upper and lower case,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.requireSpecialCharacters,Require special characters,Require special characters,Require special characters,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.script,Script,Script,Script,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.fields.skipped,Skipped,Skipped,Skipped,cs-cz;sk-sk,English source fallback; human review pending
-auditLog.settings.fields.textTemplate,Text template,Text template,Text template,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.license.invalid,Invalid,Invalid,Invalid,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.license.unreachable,Verification service unreachable,Verification service unreachable,Verification service unreachable,cs-cz;sk-sk,English source fallback; human review pending
 auditLog.settings.license.valid,Valid,Valid,Valid,cs-cz;sk-sk,English source fallback; human review pending

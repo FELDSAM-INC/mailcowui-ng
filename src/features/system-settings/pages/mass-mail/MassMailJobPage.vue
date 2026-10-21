@@ -232,7 +232,7 @@ async function cancel() {
           ><dt class="font-medium">{{ t('systemSettings.massMail.cancelledBy') }}</dt>
           <dd>{{ query.data.value.cancelledBy.username }}</dd></template
         >
-        <dt class="font-medium">{{ t('systemSettings.massMail.recipients') }}</dt>
+        <dt class="font-medium">{{ lt('admin.recipients') }}</dt>
         <dd class="wrap-anywhere">
           <p v-if="!query.data.value.selection.domains?.length">
             {{ t('systemSettings.massMail.all') }}
@@ -243,7 +243,7 @@ async function cancel() {
         </dd>
       </dl>
       <section class="space-y-4">
-        <h2 class="text-xl font-semibold">{{ t('systemSettings.massMail.recipients') }}</h2>
+        <h2 class="text-xl font-semibold">{{ lt('admin.recipients') }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <FormField
             id="job-recipient-search"

@@ -55,7 +55,7 @@ translations:
 | `regex-map-unavailable`, `global-sieve-filter-unavailable`, `mass-mail-already-running`, `mass-mail-recipient-count-changed` | Linked to the existing feature messages; no duplicated wording. |
 | `unsafeSvgContent`, `invalidRegexLine`, `tooFew`, `feature-disabled` | Minimal generic messages where no equivalent legacy text exists. Numeric line/minimum parameters are preserved; raw server diagnostics are not shown. |
 
-`i18n-english-fallback-review.csv` is the review handoff for **240 keys** whose cs/sk text still
+`i18n-english-fallback-review.csv` is the review handoff for **235 keys** whose cs/sk text still
 matches the English source (including equivalent plural choices). It covers the settings module,
 shared editor/email-template messages, UI013 audit messages and new generic settings errors added
 since the first settings slice. Linked aliases and verbatim legacy mappings are omitted because
@@ -88,3 +88,37 @@ physical-device, moderated discovery and real-screen-reader gates remain outside
 - Browser log:
   `/home/feldsam/Projects/mailcow-rest-v2/storage/app/restart-2026-10-20/u013-discovery/search-browser.log`.
   The isolated browser/previews stopped after completion. No API settings writes were required.
+
+## Duplicate-label review follow-up (T180)
+
+The checker enforces unused-key removal as an error; the passing run has no unused-key errors.
+Its advisory duplicate list was then reviewed against T008a and the actual label contexts.
+Five dynamically named audit fields now reuse existing installation translations through
+`LEGACY_TEXTS`: Domains, App links, Recipients, Text Template and HTML Template. Static mass-mail
+recipient headings use `lt('admin.recipients')`, and the search catalogue uses the equivalent
+legacy TextRef. Their six copied values were removed from all three locale modules; no installation
+text was copied or globally reworded. The review CSV shrank from 240 to 235 candidates because five
+of those removed keys were in the original source-English review set.
+
+Four identical-English matches retain separate keys because their context differs:
+
+- `systemSettings.massMail.message` names the new compose workflow step; its actual sender,
+  subject and body controls still use the classic field labels from T008a.
+- `systemSettings.massMail.next` advances the compose workflow; `datatables.paginate.next` is
+  a paged-list action, not a compose step.
+- `systemSettings.massMail.statuses.running` names a delivery-job lifecycle state; the matching
+  classic strings describe a container or synchronization job.
+- `emailTemplate.defaultTemplate` identifies notification email content; the matching
+  `admin.iam_default_template` identifies an identity-provider mailbox template.
+
+The new `legacy-reuse-013.spec.ts` regression failed all three checks before the correction and
+now guards same-context aliases, removal in every locale, and this explicit exception list.
+The focused alias/audit/mass-mail/search/catalogue selection passes **26/26**. The checker passes
+with **2,026 new strings, 345 legacy aliases, 715 covered contract keys and zero uncovered values**;
+its reviewed different-context advisories remain visible. Logs are
+`/tmp/u013-legacy-cleanup-{red,units,i18n}.log`. Fresh app/test typechecks, scoped lint,
+formatting and whitespace checks also pass; their logs use the same prefix.
+
+T180's automated checks, duplicate review and owner-review handoff are complete. Human Czech and
+Slovak wording review of the remaining source-English candidates is a separate follow-up under
+the approved fallback policy; this checkpoint does not claim that review was performed.

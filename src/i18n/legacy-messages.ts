@@ -27,6 +27,11 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'auditLog.settings.fields.subject': 'admin.subject',
   'auditLog.settings.fields.description': 'edit.description',
   'auditLog.settings.fields.active': 'admin.active',
+  'auditLog.settings.fields.domains': 'edit.domains',
+  'auditLog.settings.fields.htmlTemplate': 'admin.password_reset_tmpl_html',
+  'auditLog.settings.fields.links': 'admin.app_links',
+  'auditLog.settings.fields.recipients': 'admin.recipients',
+  'auditLog.settings.fields.textTemplate': 'admin.password_reset_tmpl_text',
 
   'systemSettings.massMail.form.errors.sender.invalidFormat': 'danger.from_invalid',
   'systemSettings.massMail.form.errors.subject.required': 'danger.subject_empty',

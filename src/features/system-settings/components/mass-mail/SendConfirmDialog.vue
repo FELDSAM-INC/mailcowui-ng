@@ -14,7 +14,7 @@ const { t } = useI18n(),
       <dd class="wrap-anywhere">{{ message.sender }}</dd>
       <dt class="font-medium">{{ lt('admin.subject') }}</dt>
       <dd class="wrap-anywhere">{{ message.subject }}</dd>
-      <dt class="font-medium">{{ t('systemSettings.massMail.recipients') }}</dt>
+      <dt class="font-medium">{{ lt('admin.recipients') }}</dt>
       <dd class="wrap-anywhere">{{ summary }}</dd>
     </dl>
     <p>

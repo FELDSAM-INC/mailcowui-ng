@@ -104,8 +104,9 @@ instead of creating a separate seventeenth page. The old reset-email route redir
   T175's lint boundary and T182's combined safe smoke have their separate completed evidence.
 - T120/T127 editor latency, T176 Lighthouse and T076's full browser gate remain open until their
   stated checks pass. T181 requires physical-device, moderated-user and real screen-reader work.
-  T180's automated coverage and source-fallback review list are recorded in discovery evidence;
-  human Czech/Slovak wording review is not claimed complete.
+  T180's automated coverage, unused-key/duplicate review and source-fallback handoff are complete
+  in discovery evidence. Human Czech/Slovak wording review is a separate follow-up under the
+  approved English-source fallback; it is not a prerequisite for T180's handoff task.
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -697,7 +698,7 @@ documentation and release readiness.
 - [x] T177 [P] Add the plan's parity notes 1–4 to the "Legacy Parity" tables in `specs/013-system-settings/spec.md`.
 - [x] T178 [P] Propose observations O1–O3 to mailcow-rest-v2 as written in `specs/013-system-settings/plan.md` (API gap G1 was specified in T040), and record the reference in that section.
 - [x] T179 [P] Write and pass `tests/unit/features/system-settings/catalogue-complete.spec.ts`: all sixteen consolidated discovery page components exist; routes, translations and audit targets resolve; every catalogue section id is a heading/section id in its page. Password reset email is a section of Password Settings with its old route redirecting to the real anchor (completes T021's scan; see the completion reconciliation above).
-- [ ] T180 [P] Run `npm run i18n:check` (SC-013), remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, check that no new string duplicates a legacy key of T008a's form map, and list this feature's new cs-cz and sk-sk strings for the owner's review (plan, owner question 3).
+- [x] T180 [P] Run `npm run i18n:check` (SC-013), remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, check that no new string duplicates a legacy key of T008a's form map, and list this feature's new cs-cz and sk-sk strings for the owner's review (plan, owner question 3).
 - [ ] T181 Run quickstart Part B on a mid-range Android phone and an iPhone with `npm run preview:mock` on the local network: record SC-002 (logo, product name and brand colour in under 3 minutes) and SC-014 timings, run the moderated SC-001 test with at least five administrators who know the classic interface, and do a screen-reader pass of each story's main path with VoiceOver and TalkBack; record everything in the "Validation log" of `specs/013-system-settings/quickstart.md`.
 - [x] T182 Run quickstart Part C against the mailcow-rest-v2 dev stack and record the result in the "Validation log" of `specs/013-system-settings/quickstart.md`. Completed 16/16 on `19af02f7`, reusing the existing isolated stack and restoring all changed values and absent-only fixtures; the stack remains running as required by the revised recipe.
 

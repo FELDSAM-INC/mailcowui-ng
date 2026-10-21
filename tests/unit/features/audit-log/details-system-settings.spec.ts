@@ -49,8 +49,8 @@ describe('settings audit details', () => {
         key: 'changes',
         lines: [
           'From: old@example.org → new@example.org',
-          'HTML template: changed (1 KiB → 2 KiB)',
-          'Text template: changed',
+          'HTML Template: changed (1 KiB → 2 KiB)',
+          'Text Template: changed',
         ],
       },
       { key: 'password', lines: ['changed'] },

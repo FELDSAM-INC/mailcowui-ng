@@ -153,7 +153,6 @@
       "jobs": "Mass mail jobs",
       "description": "Send a message to selected receiving mailboxes and follow its delivery.",
       "empty": "No mass mail has been sent yet. Compose a message to notify your mailbox users.",
-      "recipients": "Recipients",
       "message": "Message",
       "preview": "Preview recipients",
       "step": "Step {step} of 4",

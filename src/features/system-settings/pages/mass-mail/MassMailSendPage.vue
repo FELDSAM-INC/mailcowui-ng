@@ -99,7 +99,12 @@ watch(compose.selectionKey, () => {
   Object.assign(previewParams, { page: 1, size: 25, q: '' })
   if (timer) clearTimeout(timer)
 })
-const steps = ['recipients', 'message', 'preview', 'send'] as const
+const stepTitles = computed(() => [
+  lt('admin.recipients'),
+  t('systemSettings.massMail.message'),
+  t('systemSettings.massMail.preview'),
+  lt('admin.send'),
+])
 watch(step, async () => {
   await nextTick()
   // API errors focus their field or summary after the selected step becomes visible.
@@ -241,7 +246,7 @@ async function send() {
     <template v-else>
       <p v-if="!wide" role="status">{{ t('systemSettings.massMail.step', { step }) }}</p>
       <h2 v-if="!wide" ref="heading" tabindex="-1" class="text-xl font-semibold">
-        {{ step === 4 ? lt('admin.send') : t(`systemSettings.massMail.${steps[step - 1]}`) }}
+        {{ stepTitles[step - 1] }}
       </h2>
       <ErrorSummary
         :id="form.summaryId"

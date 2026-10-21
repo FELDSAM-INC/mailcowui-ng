@@ -30,7 +30,7 @@ afterEach(() => {
   mounted.splice(0).forEach((wrapper) => wrapper.unmount())
   document.body.innerHTML = ''
 })
-async function setup(include = false) {
+async function mountPage() {
   useScenario('mass-mail-120')
   await loadFeatureMessages('system-settings')
   const router = createRouter({
@@ -57,6 +57,10 @@ async function setup(include = false) {
     global: { plugins: [router] },
   })
   mounted.push(wrapper)
+  return wrapper
+}
+async function setup(include = false) {
+  const wrapper = await mountPage()
   if (include) {
     await wrapper.get('#mass-list-mode').setValue('include')
     await wrapper.get('#mass-paste').setValue('user001@example.org')
@@ -75,7 +79,29 @@ async function setup(include = false) {
   await next().trigger('click')
   return { wrapper, send: wrapper.findAll('button').find((button) => button.text() === 'Send')! }
 }
-describe('mobile compose API errors (T020/T033)', () => {
+describe('mobile compose steps and API errors (T020/T033)', () => {
+  it('labels each step and restores the recipient heading when moving back', async () => {
+    const wrapper = await mountPage()
+    const heading = () => wrapper.get('h2[tabindex="-1"]')
+    const next = () => wrapper.get('[data-compose-step-actions] button:last-child')
+    const back = () => wrapper.get('[data-compose-step-actions] button:first-child')
+    expect(heading().text()).toBe(lt('admin.recipients'))
+    await next().trigger('click')
+    expect(heading().text()).toBe('Message')
+    await wrapper.get('#mass-subject').setValue('Draft notice')
+    await wrapper.get('#mass-textBody').setValue('Draft body')
+    await next().trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-recipient-count]').exists()).toBe(true))
+    expect(heading().text()).toBe('Preview recipients')
+    await next().trigger('click')
+    expect(heading().text()).toBe(lt('admin.send'))
+    await back().trigger('click')
+    await back().trigger('click')
+    await back().trigger('click')
+    expect(heading().text()).toBe(lt('admin.recipients'))
+    expect(document.activeElement).toBe(heading().element)
+  })
+
   it('reveals and focuses a single refused message field instead of the recipients step', async () => {
     const { wrapper, send } = await setup()
     ;(send.element as HTMLButtonElement).focus()

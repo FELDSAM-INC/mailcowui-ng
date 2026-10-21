@@ -78,12 +78,22 @@ describe('RuleForm (T109/T113)', () => {
   })
   it('preserves a conflicting draft and requires an explicit fresh-version save', async () => {
     const wrapper = await setup('rspamd-rules-outdated', true)
+    mockState().delays.getRspamdSettingsRule = 200
     await wrapper.get('#rule-description').setValue('My draft')
     await wrapper.get('form').trigger('submit')
     await vi.waitFor(() => expect(wrapper.find('[data-rule-outdated]').exists()).toBe(true))
     expect((wrapper.get('#rule-description').element as HTMLInputElement).value).toBe('My draft')
-    expect(wrapper.text()).toContain('Changed by another administrator')
+    // The conflict appears before its fresh version arrives. Retry only once the read finishes,
+    // as a user must: the containing fieldset stays disabled while the request is pending.
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-rule-outdated]').text()).toContain(
+        'Changed by another administrator',
+      )
+      expect((wrapper.get('fieldset').element as HTMLFieldSetElement).disabled).toBe(false)
+    })
+    expect((wrapper.get('#rule-description').element as HTMLInputElement).value).toBe('My draft')
     expect(wrapper.emitted('saved')).toBeUndefined()
+    expect(writes()).toHaveLength(1)
     await wrapper.get('form').trigger('submit')
     await vi.waitFor(() =>
       expect(wrapper.emitted('saved')?.[0]?.[0]).toMatchObject({ description: 'My draft' }),

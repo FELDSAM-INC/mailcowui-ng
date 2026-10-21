@@ -313,3 +313,36 @@ evidence, not a performance pass; no product code or test threshold changed.
 Evidence: `/tmp/u013-editor-timeline.log` and the `timeline.json` / `timings.json` artifacts under
 `test-results/editor-timeline` in the `013-editor-latency` worktree. The diagnostic remains a
 temporary local test and is excluded from commits and release test counts.
+
+### Native control and bounded transition comparison (2026-10-21)
+
+A fresh-process **4,091-byte native textarea** control on the same frozen build reproduced the
+delay: **175, 119, 62, 5, 3, 7, 3, 8, 3, 8 ms**. Its input handlers finished in under 2 ms and all
+ten visible-prefix checks passed. This control does not load CodeMirror, use contenteditable, or
+press Home/ArrowRight. Its first frame arrived about 199 ms after Edit, compared with about
+197 ms for the earlier large-editor sample. The delay therefore is not specific to the large
+editor's transactions or initial readiness.
+
+One bounded diagnostic then restricted only Edit's transition properties to colors and shadow,
+retaining its instantaneous pressed movement. Each size used another fresh browser process in
+an exclusive CPU window, with the same native Timeline instrument and unchanged first-input
+assertion. The runtime style override was diagnostic only and was not added to the product.
+
+| Surface | Original first input | Restricted transition first input | Restricted Edit-to-first-frame |
+| --- | ---: | ---: | ---: |
+| Small native textarea | 175 ms | 179 ms | approximately 202 ms |
+| Large virtual editor | 141 ms | 161 ms | approximately 203 ms |
+
+All twenty additional visible-prefix checks passed; both timing assertions failed. Restricting
+the transition did not resolve the delay. No editor readiness delay, synthetic warm-up, threshold
+change, or production workaround is justified by these samples. The remaining uncertainty is
+the origin of the cold frame-scheduling delay in pinned mobile WebKit's Edit/click/focus path;
+the observations do not prove a particular renderer defect or establish behavior on physical
+Safari devices. **T120/T127 remain open**, as do the previously recorded physical IME and
+screen-reader checks.
+
+Evidence: `/tmp/u013-editor-small-timeline.log`,
+`/tmp/u013-editor-{small,large}-transition-timeline.log`, and their `timeline.json` / `timings.json`
+artifacts under `test-results/editor-{small-timeline,small-transition-timeline,large-transition-timeline}`
+in `013-editor-latency`. Temporary diagnostics were moved out of the source tree; the original
+performance test remains unchanged. No additional product optimization is claimed.

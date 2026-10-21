@@ -35,7 +35,10 @@ for (const row of matrix) {
     await page.goto('domains/edit.example')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit domain' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Delete', exact: true })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: 'Edit Rate limit' })).toHaveCount(0)
+    // These scenarios all have ratelimit; domainDesc controls only the domain description.
+    await expect(
+      page.locator('#section-rate-limit').getByRole('button', { name: 'Edit Rate limit' }),
+    ).toBeVisible()
     await page.getByRole('button', { name: 'Edit Edit domain' }).click()
     await expect(page.locator('#section-domain-maxAliases')).toHaveCount(row.limits ? 1 : 0)
     await expect(page.locator('#section-domain-relay-backupMx')).toHaveCount(row.limits ? 1 : 0)

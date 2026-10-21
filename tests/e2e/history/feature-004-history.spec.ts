@@ -8,9 +8,15 @@ import type { Page } from '@playwright/test'
 
 const history = (page: Page) => page.getByRole('link', { name: /^History/ })
 
-async function openHistory(page: Page, from: string, name: RegExp = /^History$/) {
+async function openHistory(
+  page: Page,
+  from: string,
+  name: string | RegExp = /^History$/,
+  section?: string,
+) {
   await page.goto(from)
-  await page.getByRole('link', { name }).first().click()
+  const source = section ? page.locator(section) : page
+  await source.getByRole('link', { name, exact: true }).first().click()
   await expect(page).toHaveURL(/\/ng\/audit-log\?/)
 }
 
@@ -44,12 +50,22 @@ test.describe('feature 004 history', () => {
     mockApi,
   }) => {
     await mockApi.use('history-004')
-    for (const [from, target, name] of [
-      [`alias-domains/${HISTORY_004.aliasDomain.id}`, HISTORY_004.aliasDomain, /^History$/],
-      [`resources/${HISTORY_004.resource.id}`, HISTORY_004.resource, /^History$/],
-      [`mailboxes/${HISTORY_004.senderSettings.id}`, HISTORY_004.senderSettings, /^History: /],
+    for (const [from, target, name, section] of [
+      [
+        `alias-domains/${HISTORY_004.aliasDomain.id}`,
+        HISTORY_004.aliasDomain,
+        /^History$/,
+        undefined,
+      ],
+      [`resources/${HISTORY_004.resource.id}`, HISTORY_004.resource, /^History$/, undefined],
+      [
+        `mailboxes/${HISTORY_004.senderSettings.id}`,
+        HISTORY_004.senderSettings,
+        'History: Allow to send as',
+        '#section-mailbox',
+      ],
     ] as const) {
-      await openHistory(page, from, name)
+      await openHistory(page, from, name, section)
       const url = new URL(page.url())
       expect(url.searchParams.get('targetType')).toBe(target.type)
       expect(url.searchParams.get('targetId')).toBe(target.id)

@@ -163,7 +163,7 @@ test('US7-AS9 FR-063 domain administrators and mailbox users get no entry and "n
     await page.goto('api-keys')
     await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
     const navigation = await openNavigation(page)
-    await expect(navigation.getByRole('link', { name: 'API keys' })).toHaveCount(0)
+    await expect(navigation.getByRole('link', { name: 'Access', exact: true })).toHaveCount(0)
     await page.keyboard.press('Escape')
     const ops = (await mockApi.requests()).map((r) => r.operationId)
     expect(ops).not.toContain('listApiKeys')

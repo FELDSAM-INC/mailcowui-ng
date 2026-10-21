@@ -85,8 +85,8 @@ instead of creating a separate seventeenth page. The old reset-email route redir
 - T042/T044/T046/T047/T049/T050/T179 are verified by
   [settings discovery evidence](./evidence-settings-discovery.md): 147 focused unit checks, nine
   search browser executions, eighteen router-focus unit checks and six focus browser executions.
-  T041 still records the wider navigation matrix; T045's real-API search/role flow and T051's full
-  story gate remain open. Existing grouped-navigation/foundation tests replace only the obsolete
+  T045's real-API search/role flow now passes 2/2 (see the quickstart validation log). T041
+  still records the wider navigation matrix, and T051's full story gate remains open. Existing grouped-navigation/foundation tests replace only the obsolete
   dedicated navigation assertions.
 - T077–T085 are verified by [Login page/App links evidence](./evidence-login-app-links.md): 26
   unit checks, 39 distinct browser executions and one reversible local API smoke. Story-isolated
@@ -229,7 +229,7 @@ groups; repeat as a domain administrator and a mailbox user.
 - [x] T042 [P] [US1] Write `tests/unit/features/system-settings/search.spec.ts` (research R6): normalisation of Czech and Slovak diacritics and case; all query tokens must match; the ranking order; grouping by page with the matched section; English legacy names found in `cs-cz`; License excluded when hidden; the index rebuilt on a locale change; a search over the full index takes under 5 ms.
 - [x] T043 [P] [US1] Superseded by the owner's grouped sidebar and shared content tabs. Existing navigation role/group/current-link, responsive drawer and keyboard tests cover that design; do not add the originally planned `PageSwitcher.spec.ts` or `SettingsNav.spec.ts` for obsolete components. See the completion reconciliation above.
 - [x] T044 [P] [US1] Write `tests/unit/app/router/focus-hash.spec.ts`: a route with a hash focuses the element with that id when it is a heading with `tabindex="-1"`; it waits for the element through a `MutationObserver` for at most 3 s and otherwise focuses the `<h1>`; routes without a hash keep 001-R19's behaviour.
-- [ ] T045 [P] [US1] Write `tests/smoke/system-settings/navigation.smoke.spec.ts`: `admin` opens `/ng/system`, the overview lists the pages the dev stack's capabilities allow, and searching "announcement" opens UI texts; `reseller` sees "no access" at `/ng/system`.
+- [x] T045 [P] [US1] Write `tests/smoke/system-settings/navigation.smoke.spec.ts`: `admin` opens `/ng/system`, the overview lists the pages the dev stack's capabilities allow, and searching "announcement" opens UI texts; `reseller` sees "no access" at `/ng/system`.
 
 ### Implementation for User Story 1
 

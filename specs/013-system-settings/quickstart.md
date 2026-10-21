@@ -368,3 +368,23 @@ restart.
 
 Evidence: `mailcow-rest-v2/storage/app/restart-2026-10-20/settings-integration/`
 `combined-smoke-19af02f7/verification.json`, both JSON reports, audit evidence and the run log.
+
+
+### Full unit baseline and navigation smoke — 2026-10-21
+
+The full unit baseline on runtime `19af02f7` completed all 584 files: **4,582 passed and
+15 failed**, with no skips. Every failure was traced to an obsolete Home landing assertion,
+unrelated session scenarios combined inside a test, or a duplicate mock-scenario name.
+Commit `a68a340d` corrects those tests without weakening session identity protection. The
+13 affected files pass **131 focused checks** after the corrections; test TypeScript, scoped
+ESLint and formatting pass. The original failed full-run log is retained alongside the green
+reruns under `settings-integration/unit-regression-a68a340d/` in the API evidence directory.
+This was a no-coverage diagnostic run, not a claimed green full coverage gate.
+
+The previously missing T045 real-API navigation smoke now passes **2/2**, with one worker
+and zero retries, against the existing isolated API on port 18580 and the matching runtime
+`19af02f7`. The administrator sees exactly the capability-permitted settings destinations,
+searches “announcement”, and reaches the focused UI-text section; the domain administrator
+receives No access and no settings catalogue. Both sessions sign out. The checks write no
+settings, and their preview/browser stop afterward. Evidence is under
+`settings-integration/navigation-smoke-19af02f7/`.

@@ -3,6 +3,7 @@
 import {
   createRouter,
   createWebHistory,
+  START_LOCATION,
   type RouteLocationNormalized,
   type RouterHistory,
   type RouterScrollBehavior,
@@ -32,6 +33,9 @@ export function appScrollBehavior(
     const element = fragmentElement(to.hash)
     return element ? { el: element } : false
   }
+  // A fresh document already starts at its natural position. Avoid forcing layout with an
+  // unnecessary scrollTo while its first route mounts; saved history and fragments still win.
+  if (from === START_LOCATION) return false
   if (to.path === from.path) return to.query.page !== from.query.page ? { top: 0 } : false
   return { top: 0 }
 }

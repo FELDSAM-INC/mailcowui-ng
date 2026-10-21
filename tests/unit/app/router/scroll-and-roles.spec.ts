@@ -3,7 +3,12 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
-import { createMemoryHistory, createRouter, type RouteLocationNormalized } from 'vue-router'
+import {
+  createMemoryHistory,
+  createRouter,
+  START_LOCATION,
+  type RouteLocationNormalized,
+} from 'vue-router'
 
 import { queryKeys, type Identity, type Session } from '@/api'
 import ShellLayout from '@/app/layouts/ShellLayout.vue'
@@ -18,6 +23,22 @@ const route = (path: string, query: Record<string, string> = {}, hash = '') =>
   ({ path, query, hash, fullPath: path }) as unknown as RouteLocationNormalized
 
 describe('scroll behaviour', () => {
+  it('leaves a fresh document at its natural position, but honours initial history and fragments', () => {
+    expect(appScrollBehavior(route('/aliases'), START_LOCATION, null)).toBe(false)
+    expect(appScrollBehavior(route('/aliases'), START_LOCATION, { left: 0, top: 640 })).toEqual({
+      left: 0,
+      top: 640,
+    })
+    document.body.innerHTML = '<main><h2 id="section-example">Example</h2></main>'
+    expect(
+      appScrollBehavior(
+        route('/system/customize/ui-texts', {}, '#section-example'),
+        START_LOCATION,
+        null,
+      ),
+    ).toEqual({ el: document.getElementById('section-example') })
+  })
+
   it('returns the saved position on history navigation and the top otherwise', () => {
     expect(
       appScrollBehavior(route('/domains'), route('/domains/a.example'), { left: 0, top: 640 }),

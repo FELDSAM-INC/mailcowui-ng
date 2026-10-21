@@ -74,15 +74,38 @@ test.describe('DNS permissions', () => {
   test('FR-003 a role changed mid-session refreshes the actions', async ({ page, mockApi }) => {
     await mockApi.use('dns-admin')
     await page.goto('dns/dkim-keys/example.org')
+    const record = page.locator('[data-record-form="single"] code')
+    await expect(record).toBeVisible({ timeout: FIRST_LOAD })
+    const originalRecord = await record.innerText()
     await page.getByRole('button', { name: 'Remove' }).click({ timeout: FIRST_LOAD })
     await mockApi.patch({
       accounts: {
         admin: { role: 'domainAdmin', scope: { type: 'domains', domains: ['example.org'] } },
       },
     })
+    const refused = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'DELETE' &&
+        new URL(response.url()).pathname === '/api/v2/dkim-keys/example.org',
+    )
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
-    await expect(page.getByText('Access denied or invalid form data')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Remove' })).toHaveCount(0)
+    expect((await refused).status()).toBe(403)
+    // The refreshed role starts a full identity transition: its old page/error is discarded,
+    // then this still-allowed DNS entry is read again with domain-administrator permissions.
+    await expect(page.getByRole('alert')).toContainText('The account changed in another tab.')
+    await expect(page).toHaveURL(/\/dns\/dkim-keys\/example\.org$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'example.org' })).toBeVisible()
+    await expect(page.getByText('Key valid', { exact: true })).toBeVisible()
+    await expect(record).toHaveText(originalRecord)
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+    for (const name of [...ADMIN_ACTIONS, 'Private key', 'Publish DNS record again']) {
+      await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0)
+    }
+    for (const name of ['Import private key', 'Duplicate', 'History']) {
+      await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0)
+    }
+    await expect(page.getByRole('link', { name: 'DNS', exact: true })).toBeVisible()
+    expect(await mockApi.countRequests('deleteDkimKey')).toBe(1)
   })
 
   test('FR-004 a mailbox user gets "no access" on every DNS address', async ({ page, mockApi }) => {

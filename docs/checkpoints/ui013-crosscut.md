@@ -54,3 +54,14 @@ T182's later combined safe local smoke also passed all 16 executions, recorded i
 [quickstart validation log](../../specs/013-system-settings/quickstart.md). Its unavailable real
 effective-map dependency remains documented; successful generated-map data is covered by the
 contract-validated mock. The other cross-cut and manual gates are unchanged.
+
+
+T172 is now complete: the [storage catalogue checkpoint](./settings-storage-catalogue.md)
+replaces the representative denied-storage loop with actual control exercises on all sixteen
+consolidated settings destinations. All 51 storage/secret executions pass across three profiles.
+It also found and verified the mobile Recipients heading/reflow correction.
+
+T174 is complete against the [legacy value inventory](../../specs/013-system-settings/legacy-value-inventory.md)
+and its follow-up assertions for stored logo size, Apps title, license verification time and
+nonempty compose HTML. This supersedes those two tasks' earlier remaining-scope cells; T167–T171
+and the independent release/manual gates remain separate.

@@ -1,7 +1,7 @@
 import { expect, test } from '../../fixtures/test'
 import type { Page } from '@playwright/test'
 
-async function message(page: Page) {
+async function message(page: Page, html = '') {
   await expect(page.locator('[data-recipient-selection]')).toBeVisible()
   const next = page
     .locator('[data-compose-step-actions]')
@@ -12,6 +12,19 @@ async function message(page: Page) {
   }
   await page.getByLabel('Subject', { exact: true }).fill('Maintenance notice')
   await page.getByLabel('Text', { exact: true }).fill('Mail service maintenance starts tonight.')
+  if (html) {
+    await page.locator('#mass-htmlBody').fill(html)
+    await expect(page.locator('#mass-htmlBody')).toHaveValue(html)
+    await page.getByRole('button', { name: 'Preview HTML template', exact: true }).click()
+    await expect(page.frameLocator('iframe').locator('body')).toContainText(
+      'HTML maintenance notice',
+    )
+    await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click()
+    await expect(page.getByLabel('Text', { exact: true })).toHaveValue(
+      'Mail service maintenance starts tonight.',
+    )
+    await expect(page.locator('#mass-htmlBody')).toHaveValue(html)
+  }
   if (await next.isVisible()) await next.click()
   else await page.getByRole('button', { name: 'Preview recipients', exact: true }).click()
 }
@@ -24,7 +37,8 @@ test('previews receiving recipients and confirms the exact count before sending'
 }) => {
   await mockApi.use('mass-mail-120')
   await page.goto('system/mass-mail/send')
-  await message(page)
+  const html = '<p><strong>HTML maintenance notice</strong></p>'
+  await message(page, html)
   await expect(page.locator('[data-recipient-count]')).toContainText('120')
   await expect(page.locator('[data-recipient-preview] [data-recipient]')).toHaveCount(25)
   await page
@@ -56,6 +70,9 @@ test('previews receiving recipients and confirms the exact count before sending'
   await confirm.getByRole('button', { name: 'Send to 120 mailboxes' }).click()
   await expect(page).toHaveURL(/mass-mail\/jobs\/[0-9A-HJKMNP-TV-Z]{26}$/)
   expect(await mockApi.countRequests('createMassMailJob')).toBe(1)
+  expect(
+    (await mockApi.requests()).find((request) => request.operationId === 'createMassMailJob')?.body,
+  ).toMatchObject({ textBody: 'Mail service maintenance starts tonight.', htmlBody: html })
 })
 test('selection changes discard the preview; unknown entries are marked; draft leaving asks', async ({
   page,

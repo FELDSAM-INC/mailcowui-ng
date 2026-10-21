@@ -18,6 +18,7 @@ describe('Logo details and reset confirmation (T055)', () => {
     })
     await vi.waitFor(() => expect(wrapper.text()).toContain('image/png'))
     expect(wrapper.text()).toContain('300 × 80')
+    expect(wrapper.get('[data-logo-current]').text()).toContain('350 B')
     await wrapper.get('[data-logo-reset]').trigger('click')
     await flushPromises()
     expect(confirmState.value?.description).toContain('Normal')

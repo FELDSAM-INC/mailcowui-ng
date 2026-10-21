@@ -60,11 +60,11 @@ intentionally show sanitized content. A preview is not a replacement for access 
 | Dark logo image | Default dark variant in `branding-light-logo`, plus custom dark upload/reset flows; independent card and URL. | E logos dark-reset case; U branding API uploads the dark variant and reads its URL. |
 | Logo type | `image/png`, JPEG/GIF/SVG alternatives; stored metadata line in each card. | U `branding/LogoCard.spec.ts` checks `image/png`; E logos upload case. |
 | Logo width and height | PNG `300 × 80`, JPEG `200 × 60`, GIF `120 × 40`, SVG without declared dimensions. | U LogoCard checks the PNG dimensions; E logos “accepts … and describes stored dimensions” checks alternatives. |
-| Logo bytes | PNG fixture is 350 bytes; each card renders `format.bytes(sizeBytes)`, separately from dimensions. | Source binding inspected; API upload test compares exact returned file bytes. Limits/size formatting have shared and logo refusal assertions. No separate browser assertion of the literal stored “350 B” is claimed. |
+| Logo bytes | PNG fixture is 350 bytes; each card renders `format.bytes(sizeBytes)`, separately from dimensions. | U `branding/LogoCard.spec.ts` asserts the rendered literal `350 B` alongside MIME type and dimensions; API upload tests compare exact returned file bytes. Limits/size formatting retain their shared and logo refusal assertions. |
 | Logo default/set state | `isSet` chooses the metadata/preview or default explanation; reset refreshes the actual returned default. | E logos reset and dark-shell refresh cases. Approved limitation: API supplies no pre-deletion default URL; confirmation shows current image and restoration wording. |
 | Website title | `ui-texts-custom`: `Custom title`; `#ui-text-pageTitle`, read-only name row and document title. | E `branding/ui-texts.spec.ts` partial patch sets literal `<b>Acme Mail</b>` and asserts row/title; U `branding/UiTextSection.spec.ts` preserves it during product-only edits. |
 | Product name | `Custom Mail`, changed to `Acme & Co Mail`; `#ui-text-productName`, name row and signed-out shell. | E UI texts partial patch and sign-out assertions; U UiTextSection. |
-| Apps heading | `Our apps`; name row and `#ui-text-appsHeading`; empty uses the classic `header.apps` placeholder/fallback. | Source binding inspected; U `branding/ui-text-draft.spec.ts` covers section patches. Existing shell/app-menu tests cover public heading consumption. |
+| Apps heading | `Our apps`; name row and `#ui-text-appsHeading`; empty uses the classic `header.apps` placeholder/fallback. | U `stored-settings-parity.spec.ts` asserts a custom incoming title in the read view and input, then changes only the product name and checks that the Apps title survives in both the read view and published public configuration. Existing shell/app-menu tests cover public heading consumption. |
 | Login help HTML | `help-text-malicious` includes `<p>Help…</p>`, a safe contact link and refused executable markup; `#ui-text-loginHelpHtml`. | E UI texts sanitized-preview case verifies safe visible help, no executing elements and retained raw `<script>` in Edit; U HtmlFieldPreview/email sanitizer tests. |
 | Announcement type | `info`, `warning`, `danger`, `null` (neutral select option); `#ui-text-announcement-type`. | E UI texts “previews every announcement type”; P loads stored `danger` without changing it during activation. |
 | Announcement text | Plain text, including literal `<b>Planned outage</b>`; `#ui-text-announcement-text`, escaped banner. | P reopens inactive text, activates it with an `active`-only patch and verifies no injected `<b>`. Existing announcement/banner and UI-text tests cover active rendering. |
@@ -149,11 +149,11 @@ changes removes a stored script/map value.
 | Customer ID | `customer-123`; classic-labelled result row. | E License complete-result assertion. |
 | Service ID | `service-456`; classic-labelled result row. | E License complete-result assertion. |
 | Support level | 2, including explicit zero handling in the consumer; result row. | E License complete-result assertion; U LicenseResult covers absent values and result presentation. |
-| Last verification time | `2026-10-20T10:00:00Z`; formatted `<time datetime>` when supplied. | Source `<time :datetime>` binding inspected; U LicenseResult verifies that absent dates are omitted. No direct positive timestamp assertion is claimed. API-only detail, not a replacement classic setting. |
+| Last verification time | `2026-10-20T10:00:00Z`; formatted `<time datetime>` when supplied. | U LicenseResult checks the exact supplied datetime, readable year, returned customer/service identifiers and a zero support level, plus omission of absent dates. API-only detail, not a replacement classic setting. |
 | Mail sender | Capability-suggested `noreply@mail.example.org`, custom `noreply@localhost` refusal; `#mass-sender`. | E `mass-mail/compose.spec.ts` asserts confirmation sender; E validation checks refused stored draft/visible field; U compose API/component tests. |
 | Mail subject | `Maintenance notice`, custom `Draft notice`; `#mass-subject` and confirmation. | E compose confirmation; E `polish/storage-and-secrets.spec.ts` and U useMassMailCompose verify ephemeral draft handling. |
 | Plain body | `Mail service maintenance starts tonight.` / `Preserve this body`; `#mass-textBody`. | E compose enters/sends; E validation asserts retained exact body after refusal; U mass-mail request/selection tests. |
-| Optional HTML body | `htmlBody` CodeEditor, empty means no HTML; scriptless preview uses the existing email boundary. | U mass-mail validation checks the HTML byte limit; API/cache tests cover nullable content and lifetime. Shared email-preview isolation is tested on reset/quota consumers. Source binding keeps `htmlBody` distinct from `textBody`; no direct nonempty mass-mail HTML form-value assertion is claimed. |
+| Optional HTML body | `htmlBody` CodeEditor, empty means no HTML; scriptless preview uses the existing email boundary. | E `mass-mail/compose.spec.ts` fills a nonempty HTML body, checks the sandboxed preview and retained input, and asserts distinct exact HTML/plain-body values in the single job request across all three browser profiles. U validation/cache tests cover byte limits, nullable content and lifetime. |
 | Include/exclude mode and entries | Include or exclude choice, pasted/searched mailbox entries, refused indexed entries; RecipientSelection. | E compose unknown-entry/selection-change case; E validation mixed selection/message errors; U selection and composer tests preserve the selected list only. |
 | Domain limit | All receiving mailboxes or selected domains; domain picker and recipient preview. | U selection tests normalize/scope domains; E compose preview checks the receiving-only count and pagination/search. Added capability, not a dropped classic field. |
 | Activation and send | Final current-count confirmation replaces activation checkbox; expectedRecipients sent with the message. | E compose requires one explicit confirmation before the job and count-change case requires a new one; U useMassMailCompose. No real mail is sent by this audit. |
@@ -181,8 +181,25 @@ mock API. Scoped ESLint, formatting and the test TypeScript project also pass. T
 build, real API write, service restart or mail job is required for this test/document-only change.
 
 This closes the missing inventory/reconciliation work. The tables distinguish direct assertions
-from inspected bindings, such as the literal stored-logo byte count. They do not claim that every
+from inspected bindings. The four value-assertion gaps identified in this first checkpoint are now
+closed by the follow-up below. They do not claim that every
 scalar has a separate three-browser assertion or that the frozen broad gate has completed; that
 gate remains the release runner's evidence. Existing cs/sk English fallbacks still await human
 wording review. T174 should be assessed against this combined inventory and per-story evidence,
 not an absent old filename or a nonexistent seventeenth navigation page.
+
+
+## Integrated value-assertion follow-up
+
+The remaining four source-only bindings now have direct assertions: the stored logo's literal
+350 B size, an incoming Apps title preserved through an unrelated name save, a positive license
+verification datetime (also retaining support level zero), and nonempty compose HTML preserved
+through preview and submitted separately from plain text. The three selected unit files pass
+11/11 checks; the enhanced compose case passes all three browser profiles with zero retries.
+Test types, scoped lint and formatting pass. These assertions use contract fixtures, not live mail.
+
+T174 is complete against this combined field inventory and the existing per-story checks. The
+nonexistent aggregate fixture/old test filename is replaced by the actual story fixtures and
+consumers listed above. This does not claim the separate frozen release run or manual translation
+review has finished. Follow-up browser evidence is in `u013-storage-catalogue/run2` and unit/static
+logs in `u013-storage-catalogue/parity` under the API checkpoint directory.

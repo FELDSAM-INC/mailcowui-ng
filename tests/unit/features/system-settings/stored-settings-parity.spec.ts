@@ -146,6 +146,30 @@ describe('T174 stored settings values', () => {
     })
   })
 
+  it('shows a stored Apps title and preserves it when another name changes', async () => {
+    const state = useScenario('ui-texts-custom')
+    brandingState(state).texts.appsHeading = 'Team applications'
+    publishUiTexts(state)
+    const wrapper = await page(UiTextsPage)
+    await vi.waitFor(() =>
+      expect(wrapper.find('#section-names').text()).toContain('Team applications'),
+    )
+    await wrapper.get('#section-names button').trigger('click')
+    expect((wrapper.get('#ui-text-appsHeading').element as HTMLInputElement).value).toBe(
+      'Team applications',
+    )
+    await wrapper.get('#ui-text-productName').setValue('Operations mail')
+    await wrapper.get('#section-names form').trigger('submit')
+    await vi.waitFor(() => expect(wrapper.find('#section-names form').exists()).toBe(false))
+    expect(
+      state.requests
+        .filter((request) => request.operationId === 'updateUiTexts')
+        .map((request) => request.body),
+    ).toEqual([{ productName: 'Operations mail' }])
+    expect(wrapper.get('#section-names').text()).toContain('Team applications')
+    expect(state.publicConfig.appsLabel).toBe('Team applications')
+  })
+
   it('reopens an inactive announcement with its stored type and literal text, then activates without rewriting them', async () => {
     const state = useScenario('ui-texts-custom')
     brandingState(state).texts.announcement = {

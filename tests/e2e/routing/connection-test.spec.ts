@@ -56,6 +56,7 @@ test.describe('connection test', () => {
     await expect(polite(page)).toContainText('Please wait...')
     const summary = page.getByRole('region', { name: 'Test result' })
     await expect(summary.getByRole('heading', { name: 'Accepted' })).toBeVisible()
+    await expect(summary.getByRole('heading', { name: 'Accepted' })).toBeFocused()
     await expect(summary).toContainText('Reached: Message')
     await expect(summary).toContainText('Used (STARTTLS)')
     await expect(summary).toContainText('Succeeded')
@@ -81,9 +82,46 @@ test.describe('connection test', () => {
       await page.getByRole('button', { name: 'Run test' }).click()
       const verdict = page.getByRole('heading', { name: 'Not accepted' })
       await expect(verdict).toBeInViewport()
+      await expect(verdict).toBeFocused()
       await expect(page.getByText(`Failed at: ${label}`)).toBeInViewport()
     }
     await expect(page.getByText('554 5.7.1 Spam').first()).toBeVisible()
+  })
+
+  test('a pending result preserves focus and scroll after the user leaves the form', async ({
+    page,
+    mockApi,
+  }) => {
+    await mockApi.use('routing-tests')
+    let release!: () => void
+    const held = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    let received!: () => void
+    const ready = new Promise<void>((resolve) => {
+      received = resolve
+    })
+    await page.route('**/relayhosts/1/connection-test', async (route) => {
+      const response = await route.fetch()
+      received()
+      await held
+      await route.fulfill({ response })
+    })
+    try {
+      await page.goto('routing/relayhosts/1/test')
+      await page.getByRole('button', { name: 'Run test' }).click()
+      await ready
+      const previous = page.getByRole('link', { name: 'Previous page', exact: true })
+      await previous.focus()
+      await expect(previous).toBeFocused()
+      const scroll = await page.evaluate(() => window.scrollY)
+      release()
+      await expect(page.getByRole('heading', { name: 'Accepted', exact: true })).toBeVisible()
+      await expect(previous).toBeFocused()
+      expect(await page.evaluate(() => window.scrollY)).toBe(scroll)
+    } finally {
+      release()
+    }
   })
 
   test('US4-AS4 the login failure names the step and the server’s reply', async ({

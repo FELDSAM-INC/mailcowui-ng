@@ -2,10 +2,11 @@
 // transcript's markers and plain text, the watchdog that ends a test without answer, and the page
 // with its form, verdict, steps, transcript and copy action.
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, effectScope, h } from 'vue'
 
 import type { RoutingConnectionTestResult } from '@/api'
+import * as connectionTestApi from '@/features/routing/api/connection-test'
 import { stepTimeline, testSummary } from '@/features/routing/logic/test-summary'
 import { MARKERS, toPlainText } from '@/features/routing/logic/transcript'
 import {
@@ -164,6 +165,109 @@ describe('useConnectionTest', () => {
 })
 
 describe('ConnectionTestPage', { timeout: 60_000 }, () => {
+  const scroll = vi.fn()
+  const originalScroll = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollIntoView')
+  beforeEach(() => {
+    scroll.mockClear()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scroll,
+    })
+  })
+  afterEach(() => {
+    if (originalScroll)
+      Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', originalScroll)
+    else Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView')
+  })
+
+  function pendingResult() {
+    let resolve!: (value: RoutingConnectionTestResult) => void
+    const promise = new Promise<RoutingConnectionTestResult>((done) => {
+      resolve = done
+    })
+    return { promise, resolve }
+  }
+
+  it.each(['input', 'disabled submit blur', 'pointer submit without focus'] as const)(
+    'reveals the completed verdict while the form owns focus (%s)',
+    async (focus) => {
+      const { wrapper } = await mountRoute('/routing/relayhosts/1/test', {
+        scenario: 'routing-tests',
+      })
+      const result = pendingResult()
+      vi.spyOn(connectionTestApi, 'runConnectionTest').mockReturnValueOnce(result.promise)
+      const control = wrapper.get<HTMLElement>(
+        focus === 'input' ? '#connection-test-recipient' : '[data-test-form] button[type=submit]',
+      ).element
+      if (focus === 'pointer submit without focus') {
+        wrapper
+          .get('[data-test-form]')
+          .element.dispatchEvent(
+            new SubmitEvent('submit', { cancelable: true, submitter: control }),
+          )
+        await flushPromises()
+      } else {
+        control.focus()
+        await wrapper.get('[data-test-form]').trigger('submit')
+      }
+      expect(wrapper.get('[data-test-form] button').attributes('disabled')).toBeDefined()
+      if (focus === 'disabled submit blur') {
+        // jsdom cannot blur a disabled control; reproduce the browser's blur to body.
+        ;(control as HTMLButtonElement).disabled = false
+        control.blur()
+        ;(control as HTMLButtonElement).disabled = true
+        expect(document.activeElement).toBe(document.body)
+      }
+      scroll.mockClear()
+      result.resolve(base)
+      await until(() => expect(wrapper.find('[data-test-summary] h3').exists()).toBe(true))
+      await settle()
+      const verdict = wrapper.get('[data-test-summary] h3').element
+      expect(document.activeElement).toBe(verdict)
+      expect(scroll).toHaveBeenCalledWith({ block: 'start' })
+      expect(scroll.mock.contexts).toContain(verdict)
+    },
+  )
+
+  it('does not move focus or scroll after the user leaves the pending form', async () => {
+    const { wrapper } = await mountRoute('/routing/relayhosts/1/test', {
+      scenario: 'routing-tests',
+    })
+    const result = pendingResult()
+    vi.spyOn(connectionTestApi, 'runConnectionTest').mockReturnValueOnce(result.promise)
+    wrapper.get<HTMLInputElement>('#connection-test-recipient').element.focus()
+    await wrapper.get('[data-test-form]').trigger('submit')
+    const outside = wrapper.get<HTMLAnchorElement>('a').element
+    outside.focus()
+    scroll.mockClear()
+    result.resolve(base)
+    await until(() => expect(wrapper.find('[data-test-summary] h3').exists()).toBe(true))
+    await settle()
+    expect(document.activeElement).toBe(outside)
+    expect(scroll).not.toHaveBeenCalled()
+  })
+
+  it('does not reveal a late result after leaving the page', async () => {
+    const { wrapper, router } = await mountRoute('/routing/relayhosts/1/test', {
+      scenario: 'routing-tests',
+    })
+    const result = pendingResult()
+    const request = vi
+      .spyOn(connectionTestApi, 'runConnectionTest')
+      .mockReturnValueOnce(result.promise)
+    wrapper.get<HTMLInputElement>('#connection-test-recipient').element.focus()
+    await wrapper.get('[data-test-form]').trigger('submit')
+    await flushPromises()
+    await router.push('/audit-log')
+    await settle()
+    expect(request.mock.calls[0]![3].aborted).toBe(true)
+    scroll.mockClear()
+    result.resolve(base)
+    await settle()
+    expect(wrapper.find('[data-test-summary]').exists()).toBe(false)
+    expect(scroll).not.toHaveBeenCalled()
+  })
+
   it('runs a relayhost test and shows the verdict, the steps and the transcript', async () => {
     const copy = vi.spyOn(clipboard, 'copyText').mockResolvedValue('copied')
     const { wrapper } = await mountRoute('/routing/relayhosts/1/test', {

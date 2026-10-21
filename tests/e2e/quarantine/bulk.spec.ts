@@ -17,6 +17,9 @@ test('US2 bulk: mixed outcomes retain only failed targets and preserve learning 
   expectTouchTargets,
   guardRequests,
 }) => {
+  // Three UI states each run four axe palettes (light/dark × saved/limit). Allow runner time
+  // for all 12 analyses without changing the app waits or any product performance threshold.
+  test.setTimeout(60_000)
   void guardRequests
   await mockApi.use('quarantine-bulk-failures')
   await page.goto('quarantine?size=50')

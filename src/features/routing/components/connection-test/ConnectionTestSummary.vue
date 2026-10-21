@@ -3,7 +3,7 @@
 // an icon and text, the step reached or failed with its reason, the server's last reply
 // (untranslated), then the server and whether an MX lookup found it, TLS, login, the addresses used
 // and the time. Values from the server are shown as returned.
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { RoutingConnectionTestResult } from '@/api'
@@ -17,6 +17,15 @@ const props = defineProps<{ result: RoutingConnectionTestResult }>()
 const { t } = useI18n()
 const view = computed(() => testSummary(props.result))
 const stepLabel = computed(() => t(`routing.connectionTest.step.${view.value.step}`))
+const verdict = ref<HTMLHeadingElement | null>(null)
+
+function reveal() {
+  verdict.value?.focus({ preventScroll: true })
+  // The shell's scroll-padding-top keeps the verdict and failed step below its sticky header.
+  verdict.value?.scrollIntoView({ block: 'start' })
+}
+
+defineExpose({ reveal })
 </script>
 
 <template>
@@ -27,6 +36,8 @@ const stepLabel = computed(() => t(`routing.connectionTest.step.${view.value.ste
   >
     <h2 id="test-result-title" class="sr-only">{{ t('routing.connectionTest.result') }}</h2>
     <h3
+      ref="verdict"
+      tabindex="-1"
       class="flex items-center gap-2 text-lg font-semibold"
       :class="
         view.verdict === 'accepted'

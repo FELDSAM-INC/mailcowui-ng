@@ -6,7 +6,7 @@
 // legacy prefills it) with `admin.transport_test_rcpt_info`; `admin.relay_run`; then the result,
 // verdict first, the steps and the transcript. Nothing runs on load: a test sends real mail.
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
@@ -86,11 +86,34 @@ const test = useConnectionTest({
 const form = useProblemForm({
   fieldId: (path) => (path === 'sender' || path === 'recipient' ? `${ID}-${path}` : null),
 })
+const formRoot = ref<HTMLFormElement | null>(null)
+const summary = ref<{ reveal(): void } | null>(null)
+let ownsResultFocus = false
+let disposed = false
+
+function clearResultFocus() {
+  ownsResultFocus = false
+  document.removeEventListener('focusin', onPendingFocus)
+}
+
+function onPendingFocus(event: FocusEvent) {
+  // Disabling Run test can blur it to body. Deliberate focus outside the form relinquishes
+  // ownership, so a slow test cannot pull the user back from another control.
+  if (event.target !== document.body && !formRoot.value?.contains(event.target as Node)) {
+    clearResultFocus()
+  }
+}
+
+onScopeDispose(() => {
+  disposed = true
+  clearResultFocus()
+})
 
 /** legacy accepts what PHP's e-mail filter accepts; the app checks one `@` with text on both sides. */
 const looksLikeEmail = (value: string) => /^[^\s@]+@[^\s@]+$/.test(value)
 
-async function run() {
+async function run(event: Event) {
+  if (test.running.value) return
   const body: RoutingConnectionTestRequest = {}
   const errors: Record<string, string[]> = {}
   for (const [field, value] of [
@@ -106,17 +129,31 @@ async function run() {
     return
   }
   form.clear()
-  await test.run(body)
-  if (test.result.value) {
-    announce(
-      t(
-        `routing.connectionTest.verdict.${test.result.value.accepted ? 'accepted' : 'notAccepted'}`,
-      ),
-    )
-  } else if (test.state.value === 'noResult') {
-    announce(t('routing.connectionTest.noResult'), { assertive: true })
-  } else if (test.problem.value) {
-    await form.setProblem(test.problem.value)
+  clearResultFocus()
+  // Safari pointer activation need not focus the submit button; its submitter still identifies
+  // the user's request. Keyboard submission can instead leave focus on a field in the form.
+  ownsResultFocus =
+    !!formRoot.value?.contains(document.activeElement) ||
+    (event instanceof SubmitEvent && !!formRoot.value?.contains(event.submitter))
+  if (ownsResultFocus) document.addEventListener('focusin', onPendingFocus)
+  try {
+    await test.run(body)
+    if (disposed) return
+    if (test.result.value) {
+      announce(
+        t(
+          `routing.connectionTest.verdict.${test.result.value.accepted ? 'accepted' : 'notAccepted'}`,
+        ),
+      )
+      await nextTick()
+      if (ownsResultFocus) summary.value?.reveal()
+    } else if (test.state.value === 'noResult') {
+      announce(t('routing.connectionTest.noResult'), { assertive: true })
+    } else if (test.problem.value) {
+      await form.setProblem(test.problem.value)
+    }
+  } finally {
+    clearResultFocus()
   }
 }
 </script>
@@ -136,6 +173,7 @@ async function run() {
     </RouterLink>
     <PageHeader :title="t('routing.connectionTest.title')" :description="description" />
     <form
+      ref="formRoot"
       data-test-form
       class="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
       novalidate
@@ -209,7 +247,7 @@ async function run() {
       {{ t('routing.connectionTest.noResult') }}
     </p>
     <template v-if="test.result.value">
-      <ConnectionTestSummary :result="test.result.value" />
+      <ConnectionTestSummary ref="summary" :result="test.result.value" />
       <ConnectionTestSteps :result="test.result.value" />
       <ConnectionTranscript :lines="test.result.value.transcript" />
     </template>

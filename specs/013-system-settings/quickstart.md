@@ -346,3 +346,25 @@ Evidence: `/tmp/u013-editor-small-timeline.log`,
 artifacts under `test-results/editor-{small-timeline,small-transition-timeline,large-transition-timeline}`
 in `013-editor-latency`. Temporary diagnostics were moved out of the source tree; the original
 performance test remains unchanged. No additional product optimization is claimed.
+
+
+### Combined real-API settings smoke (2026-10-21, T182)
+
+The frozen `19af02f79d2534a322d89b73ca95998ffce41e0f` build passed **16/16** settings
+smoke cases against the existing isolated API stack on localhost:18580, with zero retries,
+failures or skips. Branding ran first and supplied its fresh audit event to the History case;
+the remaining fifteen cases then ran sequentially.
+
+All original-setting restoration assertions passed (product name, colours, CORS, password
+policy, quota copies, IP check and login flag). The inactive Rspamd rule was deleted and its
+absence verified. Map/Sieve contents and versions remained unchanged. Three absent-only test
+fixtures were removed afterward; no changed fixture was deleted. Browser and preview stopped,
+and the pre-existing API stack was left running.
+
+The effective Rspamd settings-map dependency is unavailable in this local stack: its GET returned
+the documented 503, and the error/retry state passed. This run does not claim a successful map
+response from that dependency, a real mass-mail send, external license verification, or a service
+restart.
+
+Evidence: `mailcow-rest-v2/storage/app/restart-2026-10-20/settings-integration/`
+`combined-smoke-19af02f7/verification.json`, both JSON reports, audit evidence and the run log.

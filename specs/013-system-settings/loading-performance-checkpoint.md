@@ -87,3 +87,11 @@ keyboard navigation, confirmation cancel/focus return, idle warning/stay/expiry,
 settings saves and the short-screen confirmation. Evidence is in `/tmp/ui013-first-use-browser/`.
 Quiet performance results for this integration are recorded separately as they finish. The 80/90
 Lighthouse thresholds remain unchanged, and no new deployment is claimed by this checkpoint.
+
+
+The subsequent quiet three-URL collection on `19af02f7` scored root **80/80/80**, Domains
+**77/78/77** and Aliases **76/74/73**, with accessibility 99–100. Domains blocking time fell
+to 235–268 ms and its LCP was 3.93–4.00 s, but the overall performance gate remains open.
+Evidence is archived under `settings-integration/lighthouse-19af02f7-startup/`. The broad
+browser regression starts from this frozen functional baseline; subsequent narrow startup
+changes receive their own targeted regression and performance measurements.

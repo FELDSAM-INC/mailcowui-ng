@@ -660,7 +660,7 @@ documentation and release readiness.
 - [ ] T179 [P] Write and pass `tests/unit/features/system-settings/catalogue-complete.spec.ts`: all seventeen page components exist and every catalogue section id is a heading id in its page (completes T021's scan).
 - [ ] T180 [P] Run `npm run i18n:check` (SC-013), remove the unused keys it reports from `src/i18n/messages/{en-gb,cs-cz,sk-sk}.json`, check that no new string duplicates a legacy key of T008a's form map, and list this feature's new cs-cz and sk-sk strings for the owner's review (plan, owner question 3).
 - [ ] T181 Run quickstart Part B on a mid-range Android phone and an iPhone with `npm run preview:mock` on the local network: record SC-002 (logo, product name and brand colour in under 3 minutes) and SC-014 timings, run the moderated SC-001 test with at least five administrators who know the classic interface, and do a screen-reader pass of each story's main path with VoiceOver and TalkBack; record everything in the "Validation log" of `specs/013-system-settings/quickstart.md`.
-- [ ] T182 Run quickstart Part C (`scripts/smoke/stack-up.sh`, `npm run test:smoke -- tests/smoke/system-settings`, `scripts/smoke/stack-down.sh`) against the mailcow-rest-v2 dev stack once its 013 implementation runs, and record the result in the "Validation log" of `specs/013-system-settings/quickstart.md`.
+- [x] T182 Run quickstart Part C against the mailcow-rest-v2 dev stack and record the result in the "Validation log" of `specs/013-system-settings/quickstart.md`. Completed 16/16 on `19af02f7`, reusing the existing isolated stack and restoring all changed values and absent-only fixtures; the stack remains running as required by the revised recipe.
 
 ---
 

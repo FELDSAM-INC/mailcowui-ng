@@ -96,6 +96,42 @@ test.describe('mailbox list', () => {
     )
   })
 
+  test('FR-008 Columns keeps its last option reachable in short landscape viewports', async ({
+    page,
+    mockApi,
+    expectAccessible,
+  }) => {
+    // Three viewport states retain the full palette/theme accessibility scan.
+    test.setTimeout(90_000)
+    await mockApi.use('admin-mailboxes-30')
+    await page.setViewportSize({ width: 1366, height: 900 })
+    await open(page)
+    const trigger = page.getByRole('button', { name: 'Columns', exact: true })
+    for (const viewport of [
+      { width: 1366, height: 900 },
+      { width: 780, height: 360 },
+      { width: 780, height: 225 },
+    ]) {
+      await page.setViewportSize(viewport)
+      await trigger.click()
+      const menu = page.getByRole('menu')
+      const last = menu.getByRole('menuitemcheckbox', { name: 'Tags', exact: true })
+      await page.keyboard.press('End')
+      await expect(last).toBeFocused()
+      await expect(last).toBeInViewport({ ratio: 1 })
+      const bounds = await menu.boundingBox()
+      expect(bounds).not.toBeNull()
+      expect(bounds!.y).toBeGreaterThanOrEqual(-1)
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height + 1)
+      const checked = await last.getAttribute('aria-checked')
+      await page.keyboard.press('Space')
+      await expect(last).toHaveAttribute('aria-checked', checked === 'true' ? 'false' : 'true')
+      await expectAccessible()
+      await page.keyboard.press('Escape')
+      await expect(trigger).toBeFocused()
+    }
+  })
+
   test('US1-AS3 FR-009 "ANNA" finds three, in the address, as a new history entry that Back undoes', async ({
     page,
     mockApi,

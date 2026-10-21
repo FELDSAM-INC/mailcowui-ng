@@ -39,7 +39,7 @@ function toggle(id: ColumnId, checked: boolean) {
       <ListIcon />
       {{ t('mailboxes.columns.label') }}
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="max-h-[70vh] overflow-y-auto">
+    <DropdownMenuContent align="end">
       <DropdownMenuCheckboxItem
         v-for="column in OPTIONAL"
         :key="column.id"

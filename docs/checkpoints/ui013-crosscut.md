@@ -42,3 +42,15 @@ The second full run passed 24/30. It exposed that request completion and form cl
 - Evidence is under `storage/app/restart-2026-10-20/u013-polish/` in the API workspace. Each browser run's artifacts/log remain separate. The browser container and previews are stopped. No new real API writes or smoke runs were required for these client-side changes; T182 remains explicitly separate in the audit table.
 
 This checkpoint does not mark all of T167–T174 or T182 complete. The table above records the remaining catalogue-wide, manual and combined-smoke checks.
+
+## Subsequent completion
+
+T173 is now complete: the [freshness and individual History checkpoint](../../specs/013-system-settings/freshness-history-checkpoint.md)
+adds the missing in-app effective-map refresh after an active rule save, with the query freshness
+window held open. Its three browser profiles pass alongside the prior cache, dependent-page and
+job-refresh evidence. This supersedes T173's remaining-scope cell above.
+
+T182's later combined safe local smoke also passed all 16 executions, recorded in the feature's
+[quickstart validation log](../../specs/013-system-settings/quickstart.md). Its unavailable real
+effective-map dependency remains documented; successful generated-map data is covered by the
+contract-validated mock. The other cross-cut and manual gates are unchanged.

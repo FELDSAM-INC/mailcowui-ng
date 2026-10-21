@@ -9,6 +9,7 @@ import CodeEditor from '@/shared/components/code-editor/CodeEditor.vue'
 import CopyButton from '@/shared/components/CopyButton.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import { buttonVariants } from '@/shared/ui/button'
 import { effectiveMapOptions } from '../../api/rspamd-rules'
 const { t } = useI18n()
@@ -31,9 +32,7 @@ const container = ref<HTMLElement>()
     >
       {{ lt('admin.refresh') }}
     </button>
-    <p v-if="query.isPending.value" role="status" aria-busy="true">
-      {{ lt('datatables.loadingRecords') }}
-    </p>
+    <SettingsLoading v-if="query.isPending.value" editor :fields="0" />
     <ProblemMessage
       v-else-if="query.isError.value"
       :problem="problemOf(query.error.value)"

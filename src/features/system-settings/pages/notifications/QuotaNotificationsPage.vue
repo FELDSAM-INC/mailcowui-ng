@@ -12,6 +12,7 @@ import HistoryLink from '@/shared/components/HistoryLink.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import TemplateField from '@/shared/components/email/TemplateField.vue'
 import EmailPreviewDialog from '@/shared/components/email/EmailPreviewDialog.vue'
 import { buttonVariants } from '@/shared/ui/button'
@@ -105,7 +106,7 @@ useLeaveGuard(
       ><template #actions><HistoryLink target-type="quotaNotification" /></template
     ></PageHeader>
     <LegacyText k="admin.quota_notifications_info" as="p" />
-    <p v-if="query.isPending.value" role="status">{{ lt('footer.loading') }}</p>
+    <SettingsLoading v-if="query.isPending.value" :sections="2" />
     <ProblemMessage
       v-else-if="!query.data.value"
       :problem="problemOf(query.error.value)"

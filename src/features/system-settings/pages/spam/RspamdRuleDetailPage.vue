@@ -8,6 +8,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import { buttonVariants } from '@/shared/ui/button'
 import { ruleOptions } from '../../api/rspamd-rules'
 import RuleForm from '../../components/spam/RuleForm.vue'
@@ -46,9 +47,7 @@ const deletion = useRuleRemoval(async () => {
       ><template v-if="query.data.value" #actions
         ><HistoryLink target-type="rspamdSettingsRule" :target-id="String(id)" /></template
     ></PageHeader>
-    <p v-if="query.isPending.value" role="status" aria-busy="true">
-      {{ lt('datatables.loadingRecords') }}
-    </p>
+    <SettingsLoading v-if="query.isPending.value" editor :fields="2" />
     <ProblemMessage
       v-else-if="query.isError.value"
       :problem="problemOf(query.error.value)"

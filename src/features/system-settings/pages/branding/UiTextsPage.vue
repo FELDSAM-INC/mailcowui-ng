@@ -7,6 +7,7 @@ import { lt } from '@/i18n'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { uiTextsOptions } from '../../api/branding'
 import UiTextSection from '../../components/branding/UiTextSection.vue'
@@ -32,7 +33,7 @@ useLeaveGuard(
     <PageHeader :title="lt('admin.ui_texts')"
       ><template #actions><HistoryLink target-type="uiTexts" /></template
     ></PageHeader>
-    <p v-if="query.isPending.value" role="status" aria-busy="true">{{ lt('footer.loading') }}</p>
+    <SettingsLoading v-if="query.isPending.value" :sections="4" :fields="2" />
     <ProblemMessage
       v-else-if="!query.data.value"
       :problem="problemOf(query.error.value)"

@@ -8,7 +8,7 @@
 // - Status messages are inline and stay until the parent clears them (FR-067).
 // - After an outdated save, the changed fields are listed with their new saved values, with
 //   "Save again" and "Discard my changes" (FR-037). Nothing is merged or sent on its own.
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
@@ -56,16 +56,46 @@ const reasonId = computed(() => `section-${props.sectionId}-reason`)
 const isOutdated = computed(() => props.versionChanged || (props.outdated?.length ?? 0) > 0)
 const layout = computed(() => (props.editing && !wide.value ? 'full' : 'inline'))
 
+// Disabling a focused Save button can move native focus to body before editing closes.
+// Remember where the save began, but abandon restoration if the user focuses elsewhere.
+let savedFocusInSection = false
+function clearSavedFocus() {
+  savedFocusInSection = false
+  document.removeEventListener('focusin', onPendingFocus)
+}
+function onPendingFocus(event: FocusEvent) {
+  if (event.target !== document.body && !root.value?.contains(event.target as Node)) {
+    clearSavedFocus()
+  }
+}
+watch(
+  () => props.saving,
+  (saving) => {
+    if (saving) {
+      clearSavedFocus()
+      savedFocusInSection = !!root.value?.contains(document.activeElement)
+      if (savedFocusInSection) document.addEventListener('focusin', onPendingFocus)
+    }
+    // Pending may finish before the caller closes the form in a later microtask. Keep this
+    // anchor until the form closes, the next save starts, or focus intentionally moves away.
+  },
+)
+onBeforeUnmount(clearSavedFocus)
+
 watch(
   () => props.editing,
   async (editing) => {
-    const hadFocus = !editing && root.value?.contains(document.activeElement)
+    const hadFocus =
+      !editing &&
+      (root.value?.contains(document.activeElement) ||
+        (savedFocusInSection && document.activeElement === document.body))
     await nextTick()
     // Opening moves the focus to the heading; closing does too when the focus was in the form,
     // which is gone now, so that it never falls back to the page (UI 004, FR-062).
-    if (editing || (hadFocus && !root.value?.contains(document.activeElement))) {
+    if (editing || (hadFocus && document.activeElement === document.body)) {
       heading.value?.focus()
     }
+    if (!editing) clearSavedFocus()
   },
 )
 

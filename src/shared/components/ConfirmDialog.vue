@@ -13,7 +13,7 @@ import {
   AlertDialogRoot,
   AlertDialogTitle,
 } from 'reka-ui'
-import { computed, ref, shallowRef, useId, watch } from 'vue'
+import { computed, nextTick, ref, shallowRef, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
@@ -63,11 +63,37 @@ function onConfirm() {
   settleConfirm(true)
 }
 
-function onCloseAutoFocus(event: Event) {
+function onFocusIn(event: FocusEvent) {
+  const target = event.target
+  const content = event.currentTarget
+  if (!(target instanceof HTMLElement) || !(content instanceof HTMLElement)) return
+  const field = target.getBoundingClientRect()
+  const viewport = content.getBoundingClientRect()
+  // Reka intentionally uses preventScroll when focusing Cancel. In a short viewport that
+  // action can be below the visible portion of this scrollable dialog.
+  if (field.top < viewport.top || field.bottom > viewport.bottom) {
+    target.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }
+}
+
+async function onCloseAutoFocus(event: Event) {
   event.preventDefault()
   const target = returnFocus
   returnFocus = null
-  if (target?.isConnected) target.focus()
+  const active = document.activeElement
+  const closingDialog = active?.closest('[role="alertdialog"]')
+  const canRestore = active === document.body || active === target || !!closingDialog
+  // Callers can disable their trigger while awaiting confirmation. Let their finally block
+  // reenable it before restoring focus, without overriding a deliberate move elsewhere.
+  await nextTick()
+  const current = document.activeElement
+  if (
+    !open.value &&
+    target?.isConnected &&
+    canRestore &&
+    (current === document.body || current === active || closingDialog?.contains(current))
+  )
+    target.focus()
 }
 </script>
 
@@ -80,6 +106,7 @@ function onCloseAutoFocus(event: Event) {
       <AlertDialogContent
         class="fixed start-1/2 top-1/2 z-101 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-2xl border border-gray-200 bg-white p-6 text-sm text-gray-700 shadow-theme-lg outline-none sm:max-w-lg rtl:translate-x-1/2 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300"
         @close-auto-focus="onCloseAutoFocus"
+        @focusin="onFocusIn"
       >
         <AlertDialogTitle class="text-lg font-semibold break-words text-gray-900 dark:text-white">
           {{ shown?.title }}

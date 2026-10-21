@@ -11,6 +11,7 @@ import HistoryLink from '@/shared/components/HistoryLink.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { buttonVariants } from '@/shared/ui/button'
 import { licenseOptions, verifyLicense } from '../../api/license'
@@ -74,7 +75,7 @@ async function verify() {
       <PageHeader :title="lt('admin.guid_and_license')"
         ><template #actions><HistoryLink target-type="license" /></template
       ></PageHeader>
-      <p v-if="query.isPending.value" role="status" aria-busy="true">{{ lt('footer.loading') }}</p>
+      <SettingsLoading v-if="query.isPending.value" :fields="2" />
       <ProblemMessage
         v-else-if="!query.data.value"
         :problem="problemOf(query.error.value)"

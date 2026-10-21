@@ -16,6 +16,7 @@ import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import PlainText from '@/shared/components/PlainText.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
 import CodeEditor from '@/shared/components/code-editor/CodeEditor.vue'
 import { buttonVariants } from '@/shared/ui/button'
@@ -195,7 +196,7 @@ useLeaveGuard(
     <PageHeader :title="query.data.value?.name ?? lt('admin.regex_maps')"
       ><template #actions><HistoryLink target-type="rspamdRegexMap" :target-id="id" /></template
     ></PageHeader>
-    <p v-if="query.isPending.value" role="status" aria-busy="true">{{ lt('footer.loading') }}</p>
+    <SettingsLoading v-if="query.isPending.value" editor :fields="0" />
     <ProblemMessage
       v-else-if="!query.data.value"
       :problem="problemOf(query.error.value)"

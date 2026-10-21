@@ -2,9 +2,9 @@
 import { useQuery } from '@tanstack/vue-query'
 import { useI18n } from 'vue-i18n'
 import { problemOf, type SettingsCapabilities } from '@/api'
-import { lt } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
+import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import { globalFiltersOptions } from '../../api/global-filters'
 import GlobalSieveFilterForm from '../../components/mail-filtering/GlobalSieveFilterForm.vue'
 defineProps<{ capabilities: SettingsCapabilities }>()
@@ -15,7 +15,7 @@ const query = useQuery(globalFiltersOptions())
 <template>
   <section class="min-w-0 space-y-4">
     <PageHeader :title="t('systemSettings.globalSieve.title')" />
-    <p v-if="query.isPending.value" role="status" aria-busy="true">{{ lt('footer.loading') }}</p>
+    <SettingsLoading v-if="query.isPending.value" editor :sections="2" :fields="0" />
     <ProblemMessage
       v-else-if="!query.data.value"
       :problem="problemOf(query.error.value)"

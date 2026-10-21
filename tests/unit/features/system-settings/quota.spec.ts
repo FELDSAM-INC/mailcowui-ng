@@ -18,6 +18,14 @@ const saved: QuotaNotificationSettings = {
   etag: '"quota-1"',
 }
 describe('quota settings drafts', () => {
+  it('accepts the contract recipient length and rejects the next character', () => {
+    const suffix = '@example.org'
+    const maximum = `${'a'.repeat(255 - suffix.length)}${suffix}`
+    expect(validateCopies({ recipients: maximum, active: true }, 100)).toEqual({})
+    expect(validateCopies({ recipients: `a${maximum}`, active: true }, 100)).toEqual({
+      'recipients.0': 'validation.tooLong',
+    })
+  })
   it('does not resend projected defaults while editing another field', () => {
     expect(quotaPatch({ ...quotaDraft(saved), subject: 'Warning' }, saved)).toEqual({
       subject: 'Warning',

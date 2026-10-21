@@ -21,6 +21,23 @@ const violation = (
 
 describe('UI013 and sync-job contract message coverage', () => {
   it.each(['en-gb', 'cs-cz', 'sk-sk'] as const)(
+    'preserves precise settings format guidance in %s',
+    async (locale) => {
+      await loadLocale(i18n, locale)
+      i18n.global.locale.value = locale
+      for (const [format, expected] of [
+        ['singleLine', text('systemSettings.appLinks.singleLine')],
+        ['appLinkUrl', text('systemSettings.appLinks.appLinkUrl')],
+        ['hexColor', text('systemSettings.colours.format')],
+        ['origin', lt('danger.cors_invalid_origin')],
+      ]) {
+        const rule = violation('invalidFormat', { format })
+        expect(violationMessageKey(rule, hasMessage)).toBe(`validation.format.${format}`)
+        expect(violationMessage(rule, tr())).toBe(expected)
+      }
+    },
+  )
+  it.each(['en-gb', 'cs-cz', 'sk-sk'] as const)(
     'resolves every newly covered rule without server prose in %s',
     async (locale) => {
       await loadLocale(i18n, locale)

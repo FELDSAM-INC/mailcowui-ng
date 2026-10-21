@@ -315,6 +315,11 @@
     }
   },
   "validation": {
+    "format": {
+      "singleLine": "@:systemSettings.appLinks.singleLine",
+      "appLinkUrl": "@:systemSettings.appLinks.appLinkUrl",
+      "hexColor": "@:systemSettings.colours.format"
+    },
     "insufficientContrast": "The measured contrast is {ratio}:1; at least {minimum}:1 is required against {surface}.",
     "unsafeSvgContent": "This SVG contains scripts, external resources or unsupported markup.",
     "invalidRegexLine": "The regular expression on line {line} is not valid.",

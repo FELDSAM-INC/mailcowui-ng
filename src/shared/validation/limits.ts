@@ -192,3 +192,9 @@ export const F2B_LIST_ENTRY_MAX_LENGTH = 253
 
 /** LegacyApiCorsSettingsPatch.properties.allowedOrigins.items.maxLength */
 export const CORS_ORIGIN_MAX_LENGTH = 2048
+
+/** AppLinkSettingsEntry.properties.url.maxLength (and signedInUrl.oneOf[0]) */
+export const APP_LINK_URL_MAX_LENGTH = 2048
+
+/** QuotaNotificationRecipientsPatch.properties.recipients.items.maxLength */
+export const QUOTA_COPY_RECIPIENT_MAX_LENGTH = 255

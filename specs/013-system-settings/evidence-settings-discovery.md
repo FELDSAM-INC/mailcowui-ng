@@ -122,3 +122,23 @@ formatting and whitespace checks also pass; their logs use the same prefix.
 T180's automated checks, duplicate review and owner-review handoff are complete. Human Czech and
 Slovak wording review of the remaining source-English candidates is a separate follow-up under
 the approved fallback policy; this checkpoint does not claim that review was performed.
+
+
+## Contract limits and precise validation follow-up (T034; partial T020/T033)
+
+The five-minute settings-capabilities query already existed in
+`src/features/system-settings/api/capabilities.ts`. The remaining fixed limits are now shared
+constants: app link URL 2,048 and quota-copy recipient 255, alongside the existing CORS-origin
+2,048 limit. Schema assertions cover both public and signed-in app link URLs and the recipient
+array item. The validators and displayed limits use those constants. The quota boundary test
+accepts exactly 255 characters and rejects 256.
+
+Server `invalidFormat` values `singleLine`, `appLinkUrl` and `hexColor` now link to the existing
+feature guidance; `origin` reuses `danger.cors_invalid_origin` through the legacy alias table.
+No new prose or copied installation text was introduced. The regression verifies the resolved
+message in English, Czech and Slovak. It failed before implementation along with the missing
+constants/schema checks (seven red assertions). The focused limits/formats/quota/app-link suite
+passes 115/115. Logs: `/tmp/u013-limits-formats-{red,units,i18n,lint,types}.log`.
+
+T034 is complete. T020/T033 remain open pending the separate Sieve quote semantics and remaining
+parameter-matrix audit; this checkpoint does not infer them complete from enum coverage.

@@ -1,9 +1,10 @@
 import type { AppLinkSettingsEntry } from '@/api'
 import { safeHref } from '@/shared/security/safe-url'
+import { APP_LINK_URL_MAX_LENGTH } from '@/shared/validation/limits'
 
 export type AppLinkError = 'required' | 'singleLine' | 'appLinkUrl' | 'tooLong' | 'limit'
 export function appLinkUrlError(value: string, signedIn = false): AppLinkError | null {
-  if ([...value].length > 2048) return 'tooLong'
+  if ([...value].length > APP_LINK_URL_MAX_LENGTH) return 'tooLong'
   if (/\s|[\u0000-\u001f\u007f]/u.test(value) || (!signedIn && value.includes('%u')))
     return 'appLinkUrl'
   // Substitute before parsing, since a username placeholder can occur in the URL's host.

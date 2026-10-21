@@ -13,6 +13,7 @@ import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SettingsLoading from '../../components/common/SettingsLoading.vue'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
+import { APP_LINK_URL_MAX_LENGTH } from '@/shared/validation/limits'
 import { appLinksOptions, updateAppLinks, invalidateBranding } from '../../api/branding'
 import AppLinkList from '../../components/branding/AppLinkList.vue'
 import BuiltInAppLinks from '../../components/branding/BuiltInAppLinks.vue'
@@ -60,7 +61,7 @@ useLeaveGuard(
 )
 function errorText(rule: AppLinkError, path: string) {
   if (rule === 'tooLong')
-    return t('validation.tooLong', { max: path.endsWith('.name') ? 255 : 2048 })
+    return t('validation.tooLong', { max: path.endsWith('.name') ? 255 : APP_LINK_URL_MAX_LENGTH })
   if (rule === 'required') return t('validation.required')
   return t(`systemSettings.appLinks.${rule === 'limit' ? 'limitError' : rule}`)
 }

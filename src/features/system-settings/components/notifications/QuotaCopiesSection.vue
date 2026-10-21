@@ -13,6 +13,7 @@ import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { parseEntryList } from '@/shared/validation/entry-list'
+import { QUOTA_COPY_RECIPIENT_MAX_LENGTH } from '@/shared/validation/limits'
 import { settingsCapabilitiesOptions } from '../../api/capabilities'
 import { quotaCopiesOptions, updateQuotaCopies } from '../../api/notifications'
 import { useSettingsSection } from '../../composables/useSettingsSection'
@@ -89,7 +90,13 @@ async function save(retry = false) {
       Object.fromEntries(
         Object.entries(errors).map(([field, key]) => [
           field,
-          [t(key, { max: format.number(field === 'recipients' ? limit.value! : 255) })],
+          [
+            t(key, {
+              max: format.number(
+                field === 'recipients' ? limit.value! : QUOTA_COPY_RECIPIENT_MAX_LENGTH,
+              ),
+            }),
+          ],
         ]),
       ),
     )

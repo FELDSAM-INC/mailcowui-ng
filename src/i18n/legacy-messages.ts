@@ -7,6 +7,7 @@
 import type { LegacyKey } from './legacy'
 
 export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
+  'validation.format.origin': 'danger.cors_invalid_origin',
   // UI013: keep the classic image validation wording; detailed logo limits stay in the form.
   'validation.unsupportedImageType': 'danger.invalid_mime_type',
   'validation.invalidImage': 'danger.img_invalid',

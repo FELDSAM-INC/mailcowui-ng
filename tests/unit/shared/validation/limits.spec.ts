@@ -48,6 +48,24 @@ function queryParameter(path: string, method: string, name: string): Json {
 describe('contract limits (data-model §6)', () => {
   const cases: [keyof typeof limits, unknown][] = [
     [
+      'APP_LINK_URL_MAX_LENGTH',
+      schemaValue('AppLinkSettingsEntry', 'properties', 'url', 'maxLength'),
+    ],
+    [
+      'APP_LINK_URL_MAX_LENGTH',
+      schemaValue('AppLinkSettingsEntry', 'properties', 'signedInUrl', 'oneOf', '0', 'maxLength'),
+    ],
+    [
+      'QUOTA_COPY_RECIPIENT_MAX_LENGTH',
+      schemaValue(
+        'QuotaNotificationRecipientsPatch',
+        'properties',
+        'recipients',
+        'items',
+        'maxLength',
+      ),
+    ],
+    [
       'CORS_ORIGIN_MAX_LENGTH',
       schemaValue(
         'LegacyApiCorsSettingsPatch',

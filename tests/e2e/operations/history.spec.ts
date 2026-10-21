@@ -98,9 +98,7 @@ test.describe('operations history @operations', () => {
       'Default regex filters were not restored in time',
     )
     await page.goto('audit-log?targetType=container&targetId=clamd-mailcow')
-    await expect(records(page).first()).toContainText(
-      'The container service or Postfix reported an error',
-    )
+    await expect(records(page).first()).toContainText('Service failure')
     await page.goto('audit-log?targetType=container&targetId=nginx-mailcow')
     await expect(records(page).first()).toContainText('Outcome unknown')
     const toggle = page.getByRole('button', { name: 'Filters', exact: true })

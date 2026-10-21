@@ -19,6 +19,8 @@ const ADMIN = [
   'Access',
   'Options',
   'Routing',
+  'System mails',
+  'Global filter maps',
 ]
 const DOMAIN_ADMIN = [
   'Domains',
@@ -66,7 +68,7 @@ for (const [scenario, expected] of CASES) {
   })
 }
 
-test('unfinished destinations are visible but disabled with no link action', async ({
+test('implemented system destinations expose their available navigation links', async ({
   page,
   mockApi,
   expectAccessible,
@@ -76,10 +78,13 @@ test('unfinished destinations are visible but disabled with no link action', asy
   await mockApi.use('admin-active')
   await page.goto('domains')
   const navigation = await openNavigation(page)
-  for (const id of ['systemMails', 'globalFilterMaps']) {
+  for (const [id, path] of [
+    ['systemMails', '/ng/system/mass-mail/send'],
+    ['globalFilterMaps', '/ng/system/filter-maps'],
+  ] as const) {
     const item = navigation.locator(`[data-nav-item="${id}"]`)
-    await expect(item).toHaveAttribute('aria-disabled', 'true')
-    await expect(item).not.toHaveAttribute('href')
+    await expect(item).toHaveAttribute('href', path)
+    await expect(item).not.toHaveAttribute('aria-disabled', 'true')
   }
   await expectAccessible()
   await expectNoHorizontalScroll()

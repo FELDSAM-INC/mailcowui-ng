@@ -36,7 +36,15 @@ test.describe('the mailbox page', () => {
   }) => {
     await mockApi.use('admin-edit')
     await open(page)
-    await expect(page.getByText('anna@a.example', { exact: true })).toBeVisible()
+    await expect(
+      page
+        .getByRole('main')
+        .locator('header')
+        .getByRole('paragraph')
+        .filter({
+          hasText: /^anna@a\.example$/,
+        }),
+    ).toBeVisible()
     const usage = page.locator('[data-mailbox-usage]')
     await expect(usage.locator('[data-figure="quota"]')).toContainText('1.5 GiB/2 GiB')
     await expect(usage.locator('[data-figure="inUse"]')).toContainText('75%')
@@ -45,8 +53,7 @@ test.describe('the mailbox page', () => {
     await expect(usage.locator('[data-login="sso"]')).toContainText('SSO @ No record')
     // UI 006: the rate limit section is loaded on its own.
     await expect(page.locator('#rate-limit h2')).toBeVisible()
-    const headings = await page.locator('section[id^="section-"] h2').allTextContents()
-    expect(headings.map((text) => text.trim())).toEqual([
+    await expect(page.locator('section[id^="section-"] h2, #pushover > h2')).toHaveText([
       'Edit mailbox',
       'Custom attributes',
       'Pushover',

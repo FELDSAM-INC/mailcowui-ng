@@ -130,7 +130,7 @@ test.describe('mailbox mass actions', () => {
     await confirmButton.click()
     await expect(results(page)).toContainText('2 done')
     await expect(results(page)).toContainText('1 failed')
-    await expect(results(page)).toContainText('temporarily unavailable')
+    await expect(results(page)).toContainText('Temporarily unavailable: Mail server.')
     await expect(entry(page, box(3))).toBeVisible()
     await expect(entry(page, box(1))).toHaveCount(0)
     await expect(page.getByRole('checkbox', { name: `Select ${box(3)}` })).toBeChecked()

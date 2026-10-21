@@ -17,12 +17,15 @@ test.describe('OAuth2 apps list', () => {
     await page.goto('identity-providers/oauth2-apps')
     await expect(page.getByRole('heading', { level: 1, name: 'OAuth2 Apps' })).toBeVisible()
     await listReady(page)
-    const nav = page.getByRole('navigation', { name: 'Identity providers and OAuth2' })
+    const nav = page.getByRole('navigation', { name: 'Access', exact: true })
+    const toggle = nav.getByRole('button')
+    if (await toggle.isVisible()) await toggle.click()
     await expect(nav.getByRole('link', { name: 'OAuth2 Apps' })).toHaveAttribute(
       'aria-current',
       'page',
     )
     await expect(nav.getByRole('link', { name: 'Identity Provider' })).toBeVisible()
+    if (await toggle.isVisible()) await toggle.click()
     await expect(page.getByRole('main')).toContainText(
       'The OAuth2 implementation supports the grant type "Authorization Code"',
     )

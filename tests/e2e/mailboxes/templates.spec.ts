@@ -7,7 +7,8 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
-import { entry, isMobile, isNarrow, listReady, resultCount } from '../domains/helpers'
+import { openNavigation } from '../fixtures/flows'
+import { entry, isNarrow, listReady, resultCount } from '../domains/helpers'
 
 const GIB = 1024 ** 3
 
@@ -33,15 +34,14 @@ async function requestsOf(mockApi: Requests, operationId: string) {
 
 async function openNavEntry(page: Page) {
   await page.goto('')
-  if (isMobile(page)) {
-    await page.getByRole('button', { name: 'Toggle navigation' }).click()
-    await page.getByRole('dialog').getByRole('link', { name: 'Mailbox Templates' }).click()
-  } else {
-    await page
-      .getByRole('navigation', { name: 'Main navigation' })
-      .getByRole('link', { name: 'Mailbox Templates' })
-      .click()
-  }
+  const navigation = await openNavigation(page)
+  await navigation.getByRole('link', { name: 'Mailboxes', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Mailboxes', exact: true }),
+  ).toBeVisible()
+  const tabs = page.locator('[data-section-navigation]')
+  if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
+  await tabs.getByRole('link', { name: 'Mailbox Templates', exact: true }).click()
   await expect(page).toHaveURL(/\/ng\/mailbox-templates$/)
   await expect(page.getByRole('heading', { level: 1, name: 'Mailbox Templates' })).toBeVisible()
 }

@@ -40,7 +40,9 @@ describe('MailboxDetailPage', () => {
     await vi.waitFor(() => expect(wrapper.find('#section-rate-limit').exists()).toBe(true))
     // UI 005: the editable Pushover section is lazy-loaded in the same legacy position.
     await vi.waitFor(() => expect(wrapper.find('section#pushover').exists()).toBe(true))
-    const sections = wrapper.findAll('section[id^="section-"], section#pushover').map((item) => item.attributes('id'))
+    const sections = wrapper
+      .findAll('section[id^="section-"], section#pushover')
+      .map((item) => item.attributes('id'))
     expect(sections).toEqual([
       'section-mailbox',
       'section-attributes',

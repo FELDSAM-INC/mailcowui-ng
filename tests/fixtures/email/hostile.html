@@ -1,16 +1,45 @@
-<!doctype html><html><head>
-<base href="https://preview-evil.invalid/">
-<meta http-equiv="refresh" content="0;url=https://preview-evil.invalid/redirect">
-<link rel="stylesheet" href="https://preview-evil.invalid/styles.css">
-<style>@import url("https://preview-evil.invalid/import.css"); p { color: rgb(12, 34, 56); background-image: url("https://preview-evil.invalid/css"); } @font-face { font-family: Bad; src: url("https://preview-evil.invalid/font"); }</style>
-</head><body background="https://preview-evil.invalid/background">
-<script>window.__pwned = true; parent.__pwned = true; alert('preview');</script>
-<form action="https://preview-evil.invalid/form"><input name="secret"><button>Send</button></form>
-<iframe src="https://preview-evil.invalid/frame"></iframe>
-<p style="font-weight:bold;background:url('https://preview-evil.invalid/inline')" onclick="alert('clicked')">Hello {{username}} at {{hostname}}</p>
-<p>{{date}} — {{token_lifetime}} — {{username2}}</p>
-<a href="{{link}}">Reset password</a><a href="javascript:alert('link')">Unsafe link</a>
-<img src="https://preview-evil.invalid/image" onerror="window.__pwned=true" alt="Remote logo">
-<img src="data:image/svg+xml,%3Csvg onload='alert(1)'/%3E" alt="Inline logo">
-<svg onload="alert('svg')"><image href="https://preview-evil.invalid/svg"></image></svg>
-</body></html>
+<!doctype html>
+<html>
+  <head>
+    <base href="https://preview-evil.invalid/" />
+    <meta http-equiv="refresh" content="0;url=https://preview-evil.invalid/redirect" />
+    <link rel="stylesheet" href="https://preview-evil.invalid/styles.css" />
+    <style>
+      @import url('https://preview-evil.invalid/import.css');
+      p {
+        color: rgb(12, 34, 56);
+        background-image: url('https://preview-evil.invalid/css');
+      }
+      @font-face {
+        font-family: Bad;
+        src: url('https://preview-evil.invalid/font');
+      }
+    </style>
+  </head>
+  <body background="https://preview-evil.invalid/background">
+    <script>
+      window.__pwned = true
+      parent.__pwned = true
+      alert('preview')
+    </script>
+    <form action="https://preview-evil.invalid/form">
+      <input name="secret" /><button>Send</button>
+    </form>
+    <iframe src="https://preview-evil.invalid/frame"></iframe>
+    <p
+      style="font-weight: bold; background: url('https://preview-evil.invalid/inline')"
+      onclick="alert('clicked')"
+    >
+      Hello {{username}} at {{hostname}}
+    </p>
+    <p>{{date}} — {{token_lifetime}} — {{username2}}</p>
+    <a href="{{link}}">Reset password</a><a href="javascript:alert('link')">Unsafe link</a>
+    <img
+      src="https://preview-evil.invalid/image"
+      onerror="window.__pwned = true"
+      alt="Remote logo"
+    />
+    <img src="data:image/svg+xml,%3Csvg onload='alert(1)'/%3E" alt="Inline logo" />
+    <svg onload="alert('svg')"><image href="https://preview-evil.invalid/svg"></image></svg>
+  </body>
+</html>

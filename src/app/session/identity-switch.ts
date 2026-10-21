@@ -115,7 +115,15 @@ async function run(operation: NonNullable<typeof pending>): Promise<void> {
       )
         target = landing
     }
-    await ctx.router.replace(target)
+    // A cross-tab change can keep this URL while changing its allowed session state. Run the
+    // guard even on the same route, before revealing the new identity's view.
+    const destination = ctx.router.resolve(target)
+    await ctx.router.replace({
+      path: destination.path,
+      query: destination.query,
+      hash: destination.hash,
+      force: true,
+    })
     if (options.reason === 'changedInAnotherTab')
       store.shellNotice = {
         key: 'acting.notice.changedInAnotherTab',

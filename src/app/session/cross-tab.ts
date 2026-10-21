@@ -6,7 +6,7 @@ import { onActivity, queryKeys, identityKey, problemOf, type Identity } from '@/
 import { setDraftOwner } from '@/shared/composables/draft-registry'
 
 import type { SessionContext } from './context'
-import { fetchIdentity, sessionQuery } from './queries'
+import { fetchIdentity, fetchSession, isSignedIn, sessionQuery } from './queries'
 import { rerouteCurrent } from './reroute'
 import { endSession } from './session-end'
 import { useSessionStore } from './store'
@@ -19,6 +19,17 @@ export async function refreshAfterSessionChange(ctx: SessionContext): Promise<vo
   if (useSessionStore().identityTransition) return
   const previous = ctx.queryClient.getQueryData<Identity>(queryKeys.identity())
   try {
+    // Signed-out tabs have no identity to compare. A notification can arrive before another
+    // tab finishes signing in; read the session first instead of sending /me an anonymous
+    // request. Keep the same cache observers and sign-in view while it remains signed out.
+    if (!previous) {
+      const session = await fetchSession()
+      if (!isSignedIn(session)) {
+        ctx.queryClient.setQueryData(queryKeys.session(), session)
+        await rerouteCurrent(ctx.router)
+        return
+      }
+    }
     // Read outside the cache so a changed identity cannot repaint the mounted old screen first.
     const identity = await fetchIdentity()
     if (identityKey(identity) !== identityKey(previous)) {

@@ -7,7 +7,11 @@ import { alicePasskeys, PASSKEY_IDS } from '../../mocks/scenarios/passkeys'
 import { expect, test } from '../fixtures/test'
 import { expectLanding, assertiveRegion, politeRegion, signOutFromMenu } from '../fixtures/flows'
 
-const cards = (page: Page) => page.getByRole('main').getByRole('listitem')
+const cards = (page: Page) =>
+  page
+    .getByRole('main')
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { level: 2 }) })
 const addButton = (page: Page) => page.getByRole('button', { name: 'Add a passkey' })
 
 test('US4-AS1 FR-051 without passkeys the page explains passkeys and offers to add one', async ({

@@ -75,7 +75,11 @@ test('FR-066 FR-091 a passkey registration and an API key secret leave nothing i
   })
   await page.goto('passkeys')
   await page.getByRole('button', { name: 'Add a passkey' }).click()
-  await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(1)
+  const passkeys = page
+    .getByRole('main')
+    .getByRole('listitem')
+    .filter({ has: page.getByRole('heading', { level: 2 }) })
+  await expect(passkeys).toHaveCount(1)
 
   await page.goto('api-keys/new')
   await page.getByRole('textbox', { name: 'Name' }).fill('Storage check')

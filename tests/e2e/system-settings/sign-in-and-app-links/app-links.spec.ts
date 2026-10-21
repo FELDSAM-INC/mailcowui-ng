@@ -216,6 +216,7 @@ test('T079 stored long names stay literal and relative URL help remains visible'
   mockApi,
   expectAccessible,
   expectNoHorizontalScroll,
+  expectTouchTargets,
 }) => {
   await mockApi.use('app-links-three')
   await page.goto(path)
@@ -225,9 +226,27 @@ test('T079 stored long names stay literal and relative URL help remains visible'
   await page.locator('#app-link-0-name').fill(name)
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(section.locator('form')).toHaveCount(0)
+  const savedHeading = section.getByRole('heading', { name: 'App links', exact: true })
+  await expect(savedHeading).toBeFocused()
   await expect(section).toContainText(name)
   await expect(section.locator('b')).toHaveCount(0)
   await expect(page.locator('main')).toContainText('one / on this mailcow host')
   await expectNoHorizontalScroll(page, { widths: [320, 360] })
+  // Resizing after the saved section receives focus can leave a full-size tab trigger partly
+  // behind the sticky header. Check actual target sizes and scan with the controls unobscured.
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await expect(savedHeading).toBeFocused()
+  await expectTouchTargets()
   await expectAccessible()
+  const tabs = page.getByRole('navigation', { name: 'Customize', exact: true })
+  const trigger = tabs.getByRole('button', { name: 'App links', exact: true })
+  if (await trigger.isVisible()) {
+    await trigger.focus()
+    await page.keyboard.press('Enter')
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    await expect(tabs.getByRole('link', { name: 'App links', exact: true })).toBeVisible()
+    await page.keyboard.press('Space')
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    await expect(trigger).toBeFocused()
+  }
 })

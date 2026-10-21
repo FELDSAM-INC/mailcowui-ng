@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US5, BCC maps (T080): the classic BCC card as a list for administrators and domain
 // administrators, orphaned maps for administrators, legacy's add form with the grouped local
 // destination picker, the edit form, legacy's quick actions including the type switches, and the
@@ -124,7 +125,7 @@ test.describe('BCC maps', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/bcc-maps')
     await listReady(page)
-    await entry(page, 2).getByRole('link', { name: 'Edit: alice@example.org' }).click()
+    await clickRowAction(page, entry(page, 2), 'Edit: alice@example.org')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit object' })).toBeVisible()
     await expect(page.getByText('alice@example.org').first()).toBeVisible()
     await expect(page.getByLabel('BCC destination')).toHaveValue('alice-copy@archive.example')
@@ -200,7 +201,7 @@ test.describe('BCC maps', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/bcc-maps')
     await listReady(page)
-    await entry(page, 5).getByRole('button', { name: 'Remove: @gone.example' }).click()
+    await clickRowAction(page, entry(page, 5), 'Remove: @gone.example')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(entry(page, 5)).toHaveCount(0)
     await expect(polite(page)).toContainText('BCC map entries deleted: 5')

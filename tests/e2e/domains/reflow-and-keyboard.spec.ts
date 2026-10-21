@@ -74,7 +74,8 @@ const SCREENS: Screen[] = [
     scenario: 'templates',
     path: 'domain-templates?q=small',
     open: async (page) => {
-      await page.getByRole('button', { name: 'Remove: Small' }).click()
+      await page.getByRole('button', { name: 'Actions for Small' }).click()
+      await page.getByRole('menuitem', { name: 'Remove: Small' }).click()
       await expect(page.getByRole('alertdialog')).toBeVisible()
     },
   },

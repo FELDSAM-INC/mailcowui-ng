@@ -430,6 +430,17 @@
   font-size: 0.875rem;
   line-height: 1.25rem;
 
+  & .table-controls-cell {
+    width: 1%;
+    text-align: end;
+    white-space: nowrap;
+  }
+
+  /* Fixed-layout tables cannot grow their last column to the controls' intrinsic width. */
+  &[class~='table-fixed'] .table-controls-cell {
+    width: var(--table-controls-width, 7.5rem);
+  }
+
   & > thead {
     border-bottom: 1px solid var(--color-line);
     background-color: var(--color-row-hover);
@@ -458,6 +469,10 @@
 
   /* Keep phone and touch layouts generous. Density applies only to wide mouse-driven views. */
   @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+    &[class~='table-fixed'] .table-controls-cell {
+      width: var(--table-controls-width, 6rem);
+    }
+
     & > thead > tr > th,
     & > tbody > tr > td,
     & > tbody > tr > th {

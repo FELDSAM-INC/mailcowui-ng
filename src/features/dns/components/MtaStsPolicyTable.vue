@@ -9,6 +9,8 @@ import { lt, text } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
+import RowControls from '@/shared/components/RowControls.vue'
+import RowAction from '@/shared/components/RowAction.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
 
@@ -77,6 +79,9 @@ function onSort(key: MtaStsSort) {
             </button>
             <template v-else>{{ header(column.key) }}</template>
           </th>
+          <th scope="col" class="table-controls-cell px-3 py-2 text-end">
+            {{ lt('mailbox.action') }}
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -99,6 +104,16 @@ function onSort(key: MtaStsSort) {
           </td>
           <td class="px-3 py-2 font-mono break-all text-gray-900 dark:text-white">
             {{ policy.policyId }}
+          </td>
+          <td class="table-controls-cell px-3 py-2">
+            <RowControls>
+              <RowAction
+                :menu="false"
+                :label="lt('mailbox.edit')"
+                :to="{ name: 'domain-detail', params: { domain: policy.domain }, hash: '#mta-sts' }"
+                :aria-label="`${lt('mailbox.edit')}: ${policy.displayDomain}`"
+              />
+            </RowControls>
           </td>
         </tr>
       </tbody>

@@ -19,6 +19,9 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { usePerItemRunner } from '@/shared/composables/usePerItemRunner'
 import { buttonVariants } from '@/shared/ui/button'
+import RowAction from '@/shared/components/RowAction.vue'
+import RowActions from '@/shared/components/RowActions.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import { deleteAppPassword, updateAppPassword, useAppPasswords } from '../api/app-passwords'
 import AppPasswordDeleteList from '../components/app-passwords/AppPasswordDeleteList.vue'
 import { useAppPasswordContext } from '../composables/useAppPasswordContext'
@@ -263,7 +266,7 @@ watch([total, () => list.state.value.page], ([count, page]) => {
             <th class="p-2 text-start">{{ lt('user.app_name') }}</th>
             <th class="p-2 text-start">{{ lt('user.allowed_protocols') }}</th>
             <th class="w-24 p-2 text-start">{{ lt('user.active') }}</th>
-            <th class="w-44 p-2 text-start">{{ lt('user.action') }}</th>
+            <th class="table-controls-cell p-2 text-end">{{ lt('user.action') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -290,24 +293,30 @@ watch([total, () => list.state.value.page], ([count, page]) => {
               <code>{{ protocols(item) }}</code>
             </td>
             <td class="p-2">{{ lt(item.active ? 'user.active' : 'mailbox.inactive') }}</td>
-            <td class="p-2">
-              <div class="flex flex-wrap gap-1">
-                <RouterLink
-                  :to="location('detail', item.id)"
-                  :aria-label="`${lt('user.edit')}: ${item.name}`"
-                  :class="buttonVariants({ variant: 'outline', size: 'sm' })"
-                  >{{ lt('user.edit') }}</RouterLink
-                ><button
-                  v-if="access.canChange.value"
-                  type="button"
-                  :disabled="runner.running.value"
-                  :aria-label="`${lt('user.remove')}: ${item.name}`"
-                  :class="buttonVariants({ variant: 'outline', size: 'sm' })"
-                  @click="run('remove', [item])"
+            <td class="table-controls-cell p-2">
+              <RowControls>
+                <RowActions
+                  v-slot="{ menu }"
+                  :count="access.canChange.value ? 2 : 1"
+                  :label="`${lt('user.action')}: ${item.name}`"
                 >
-                  {{ lt('user.remove') }}
-                </button>
-              </div>
+                  <RowAction
+                    :menu="menu"
+                    :to="location('detail', item.id)"
+                    :label="lt('user.edit')"
+                    :aria-label="`${lt('user.edit')}: ${item.name}`"
+                  />
+                  <RowAction
+                    v-if="access.canChange.value"
+                    :menu="menu"
+                    :disabled="runner.running.value"
+                    destructive
+                    :label="lt('user.remove')"
+                    :aria-label="`${lt('user.remove')}: ${item.name}`"
+                    @select="run('remove', [item])"
+                  />
+                </RowActions>
+              </RowControls>
             </td>
           </tr>
         </tbody>

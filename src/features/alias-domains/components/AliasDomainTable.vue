@@ -9,6 +9,7 @@ import type { AliasDomain } from '@/api'
 import { YesNoMark } from '@/features/aliases-common'
 import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 
 import type { AliasDomainSort } from '../list-state'
@@ -72,7 +73,7 @@ function sortBy(key: AliasDomainSort) {
               }}</span>
             </button>
           </th>
-          <th scope="col" class="w-16 px-2 py-2 text-end">
+          <th scope="col" class="table-controls-cell px-2 py-2 text-end">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>
@@ -92,7 +93,9 @@ function sortBy(key: AliasDomainSort) {
             <TargetDomainText :alias-domain="item" :link-domains="linkDomains" />
           </td>
           <td class="px-2 py-3" data-field="active"><YesNoMark :value="item.active" /></td>
-          <td class="px-2 py-3 text-end"><slot name="actions" :alias-domain="item" /></td>
+          <td class="table-controls-cell px-2 py-3">
+            <RowControls><slot name="actions" :alias-domain="item" /></RowControls>
+          </td>
         </tr>
       </tbody>
     </table>

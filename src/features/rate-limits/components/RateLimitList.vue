@@ -3,15 +3,17 @@
 // with the columns `rateLimits.list.object`, `mailbox.kind` and `edit.ratelimit` (object and kind
 // sortable, with `aria-sort`), and cards below md. The limit reads as the sections show it ("100
 // msgs / hour"), a stored value in an invalid format with its text. Each entry opens its object's
-// page at the rate limit section (`mailbox.edit`); administrators also get its History.
+// page at the rate limit section (`mailbox.edit`), where its History remains available.
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import type { RateLimit } from '@/api'
 import { lt, text } from '@/i18n'
 import { DEFAULT_LOCALE, isAppLocale } from '@/i18n/locales'
-import HistoryLink from '@/shared/components/HistoryLink.vue'
 import PlainText from '@/shared/components/PlainText.vue'
+import RowAction from '@/shared/components/RowAction.vue'
+import RowActions from '@/shared/components/RowActions.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon, WarningIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -25,7 +27,6 @@ const props = defineProps<{
   wide: boolean
   sort: RateLimitSort
   order: SortOrder
-  historyAllowed: boolean
 }>()
 const emit = defineEmits<{ sort: [sort: RateLimitSort, order: SortOrder] }>()
 const { t, locale } = useI18n()
@@ -77,7 +78,7 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
             </button>
           </th>
           <th scope="col" class="px-3 py-2 text-start">{{ lt('edit.ratelimit') }}</th>
-          <th scope="col" class="px-3 py-2 text-start">
+          <th scope="col" class="table-controls-cell px-3 py-2 text-end">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>
@@ -101,20 +102,21 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
               </span>
             </span>
           </td>
-          <td class="px-3 py-2">
-            <div class="flex flex-wrap justify-end gap-2">
-              <RouterLink
-                :to="hostLocation(item.kind, item.object)"
-                :class="buttonVariants({ variant: 'outline', size: 'sm' })"
+          <td class="table-controls-cell px-3 py-2">
+            <RowControls>
+              <RowActions
+                v-slot="{ menu }"
+                :count="1"
+                :label="`${lt('mailbox.action')}: ${item.object}`"
               >
-                {{ lt('mailbox.edit') }}
-              </RouterLink>
-              <HistoryLink
-                :target-id="item.object"
-                target-type="rateLimit"
-                :allowed="historyAllowed"
-              />
-            </div>
+                <RowAction
+                  :menu="menu"
+                  :to="hostLocation(item.kind, item.object)"
+                  :label="lt('mailbox.edit')"
+                  :aria-label="`${lt('mailbox.edit')}: ${item.object}`"
+                />
+              </RowActions>
+            </RowControls>
           </td>
         </tr>
       </tbody>
@@ -160,7 +162,6 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
         >
           {{ lt('mailbox.edit') }}
         </RouterLink>
-        <HistoryLink :target-id="item.object" target-type="rateLimit" :allowed="historyAllowed" />
       </div>
     </li>
   </ul>

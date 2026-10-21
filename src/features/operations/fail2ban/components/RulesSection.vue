@@ -23,6 +23,7 @@ import { useFormat } from '@/i18n/format'
 import { useProblemMessages } from '@/i18n/problems'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import PlainText from '@/shared/components/PlainText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -340,7 +341,7 @@ const isNotRestored = computed(
               <th :id="regexpHeaderId" scope="col" class="px-1 py-2 text-start">
                 {{ t('operations.fail2ban.ruleRegexp') }}
               </th>
-              <th scope="col" class="w-px px-1 py-2">
+              <th scope="col" class="table-controls-cell px-1 py-2">
                 <span class="sr-only">{{ lt('admin.remove_row') }}</span>
               </th>
             </tr>
@@ -386,15 +387,17 @@ const isNotRestored = computed(
                   />
                 </div>
               </td>
-              <td class="px-1 py-1">
-                <button
-                  type="button"
-                  :class="buttonVariants({ variant: 'outline' })"
-                  :aria-describedby="`${id}-number-${row.key}`"
-                  @click="removeRow(row.key)"
+              <td class="table-controls-cell px-1 py-1">
+                <RowControls
+                  ><button
+                    type="button"
+                    :class="buttonVariants({ variant: 'outline' })"
+                    :aria-describedby="`${id}-number-${row.key}`"
+                    @click="removeRow(row.key)"
+                  >
+                    {{ lt('admin.remove_row') }}
+                  </button></RowControls
                 >
-                  {{ lt('admin.remove_row') }}
-                </button>
               </td>
             </tr>
           </tbody>

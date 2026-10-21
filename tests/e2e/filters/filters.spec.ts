@@ -31,8 +31,10 @@ test('filters list defaults to descending IDs, pages, searches and restores URL 
   await expect(page.getByRole('main')).toContainText('No matching records found')
   await page.goBack()
   await expect(page.locator(rows)).toHaveCount(1)
-  await page.locator(rows).locator('summary').click()
-  await expect(page.locator(rows).locator('pre')).toContainText('fileinto')
+  const expand = page.locator(rows).locator('[data-row-expand]')
+  if (await expand.count()) await expand.click()
+  else await page.locator(rows).locator('summary').click()
+  await expect(page.getByRole('main').locator('pre')).toContainText('fileinto')
   await page.evaluate(() => window.scrollTo(0, 0))
   await expectAccessible()
 })
@@ -129,14 +131,24 @@ test('bulk actions show each result and a retry; deletion names entries and requ
   // Keep the final row above the sticky bar before measuring pointer targets. The preceding
   // action leaves this row below the viewport; keyboard focus must reveal its complete actions.
   const lastRow = page.locator('[data-filter-id="1"]')
-  await lastRow.getByRole('button', { name: 'Remove: Spam to folder', exact: true }).focus()
+  const lastControl = lastRow
+    .locator('[data-row-action-trigger]')
+    .or(lastRow.getByRole('button', { name: 'Remove: Spam to folder', exact: true }))
+  await lastControl.focus()
   await expect
     .poll(() =>
-      lastRow.getByRole('link').evaluate((element) => {
+      lastControl.evaluate((element) => {
         const bounds = element.getBoundingClientRect()
         const bar = document.querySelector('[data-bulk-bar]')!.getBoundingClientRect()
+        const target = matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)')
+          .matches
+          ? 32
+          : 44
         return (
-          bounds.width >= 44 && bounds.height >= 44 && bounds.top >= 64 && bounds.bottom <= bar.top
+          bounds.width >= target &&
+          bounds.height >= target &&
+          bounds.top >= 64 &&
+          bounds.bottom <= bar.top
         )
       }),
     )
@@ -158,10 +170,7 @@ test('bulk actions show each result and a retry; deletion names entries and requ
   await expect(page.locator('[data-filter-id="2"]')).toHaveCount(0)
   await expect(outcomes).toContainText('Deleted filters ID 1')
   await expect(outcomes).toContainText('Deleted filters ID 2')
-  await page
-    .locator('[data-filter-id="3"]')
-    .getByRole('button', { name: 'Remove: Rule 03', exact: true })
-    .click()
+  await clickRowAction(page, page.locator('[data-filter-id="3"]'), 'Remove: Rule 03')
   await expect(dialog.getByRole('textbox')).toHaveCount(0)
   await dialog.getByRole('button', { name: 'Delete now', exact: true }).click()
   await expect(page.locator('[data-filter-id="3"]')).toHaveCount(0)
@@ -233,3 +242,4 @@ test('failed list reads retry and missing detail IDs show not found', async ({
   await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible()
   await expectAccessible()
 })
+import { clickRowAction } from '../fixtures/row-actions'

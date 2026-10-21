@@ -1,7 +1,8 @@
 // The template components (UI 002 T081, FR-050, FR-053), which mirror the classic list and forms:
 // the columns and their order, the Default mark, the actions, the details, and the fields of the
 // add and edit forms in the legacy order with the legacy labels.
-import { describe, expect, it } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import type { DomainCapabilities, DomainTemplate } from '@/api'
@@ -82,7 +83,6 @@ describe('TemplateTable', () => {
     })
     const headers = wrapper.findAll('th').map((th) => th.text().replace(/[▲▼]/g, '').trim())
     expect(headers).toEqual([
-      'Details',
       'ID',
       'Template',
       'Max. aliases',
@@ -112,11 +112,34 @@ describe('TemplateTable', () => {
     })
     expect(wrapper.find('[data-column="domainQuota"]').exists()).toBe(false)
     expect(wrapper.find('[data-default-badge]').exists()).toBe(true)
-    await wrapper.get('button[aria-expanded]').trigger('click')
+    const row = wrapper.get('tbody tr[data-entry]')
+    expect(row.find('td:first-child button[aria-expanded]').exists()).toBe(false)
+    await row.get('td:last-child button[aria-expanded]').trigger('click')
     const details = wrapper.get('[data-entry-details]')
+    expect(Number(details.attributes('colspan'))).toBe(row.findAll('td').length)
     expect(details.find('[data-column="domainQuota"]').text()).toContain('10 GiB')
     expect(details.find('[data-column="relayUnknownOnly"]').exists()).toBe(true)
     expect(details.text()).toContain('10 msgs / hour')
+  })
+
+  it('keeps selection first and expansion before actions in the final column', async () => {
+    installMatchMedia({})
+    const wrapper = mountWithApp(TemplateTable, {
+      ...withRouter(),
+      props: { templates: [template()], sort: 'name', order: 'asc', selectable: true },
+      slots: { select: '<input type="checkbox" />', actions: '<button data-action>Edit</button>' },
+    })
+    const row = wrapper.get('tbody tr[data-entry]')
+    expect(row.get('td:first-child input').attributes('type')).toBe('checkbox')
+    const controls = row.get('td:last-child .table-row-controls')
+    expect(controls.findAll('button').map((button) => button.attributes('data-action'))).toEqual([
+      undefined,
+      '',
+    ])
+    await controls.get('button[aria-expanded]').trigger('click')
+    expect(Number(wrapper.get('[data-entry-details]').attributes('colspan'))).toBe(
+      row.findAll('td').length,
+    )
   })
 })
 
@@ -140,19 +163,30 @@ describe('TemplateCard and TemplateEntryDetails', () => {
 })
 
 describe('TemplateEntryActions', () => {
-  it('offers Edit and Remove, and only Edit for the Default template (FR-053)', async () => {
-    const wrapper = mountWithApp(TemplateEntryActions, {
+  it('puts Edit and Remove in a menu, but shows Edit directly for Default', async () => {
+    const regular = mountWithApp(TemplateEntryActions, {
       ...withRouter(),
       props: { template: template() },
+      attachTo: document.body,
     })
-    expect(wrapper.text()).toContain('Edit')
-    await wrapper.get('button').trigger('click')
-    expect(wrapper.emitted('delete')).toHaveLength(1)
-    const protectedOne = mountWithApp(TemplateEntryActions, {
+    expect(regular.find('a').exists()).toBe(false)
+    const trigger = regular.get('[data-row-action-trigger]')
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['Edit', 'Remove'])
+    items[1]!.click()
+    await vi.waitFor(() => expect(regular.emitted('delete')).toHaveLength(1))
+    expect(document.activeElement).toBe(trigger.element)
+    regular.unmount()
+    const fallback = mountWithApp(TemplateEntryActions, {
       ...withRouter(),
-      props: { template: template({ isDefault: true, name: 'Default' }) },
+      props: { template: template({ id: 1, name: 'Default', isDefault: true }) },
     })
-    expect(protectedOne.find('button').exists()).toBe(false)
+    expect(fallback.find('[data-row-action-trigger]').exists()).toBe(false)
+    expect(fallback.get('a').text()).toBe('Edit')
+    expect(fallback.get('a').attributes('aria-label')).toBe('Edit: Default')
+    fallback.unmount()
   })
 })
 

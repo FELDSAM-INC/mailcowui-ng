@@ -1,7 +1,5 @@
 <script setup lang="ts">
-// The sort control of the alias cards (FR-014): every sort key of the contract (the groupware key
-// only with the groupware) and the order, labelled with the columns' legacy keys. Wide screens sort
-// from the table headers.
+// Every alias sort key stays available, including secondary fields shown in expandable rows.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

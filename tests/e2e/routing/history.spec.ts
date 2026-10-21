@@ -7,6 +7,7 @@ import type { Page } from '@playwright/test'
 import { ROUTING_SCREENS, type RoutingScreenId } from '../../../src/features/routing/screens'
 import { expect, test } from '../fixtures/test'
 import { entry, listReady } from './helpers'
+import { clickRowAction } from '../fixtures/row-actions'
 
 async function expectAuditFilter(page: Page, targetType: string, targetId: string) {
   await expect(page).toHaveURL(/\/ng\/audit-log\?/)
@@ -65,7 +66,7 @@ const CASES: {
 
 test.describe('routing history', () => {
   for (const item of CASES) {
-    test(`US9-AS1 FR-064 History on a ${item.targetType} opens the audit log filtered to it`, async ({
+    test(`US9-AS1 FR-064 ${item.targetType} rows omit History and editable entries keep it on their form`, async ({
       page,
       mockApi,
     }) => {
@@ -73,8 +74,10 @@ test.describe('routing history', () => {
       await mockApi.use('routing-admin-default')
       await page.goto(item.path)
       await listReady(page)
-      const link = entry(page, item.id).getByRole('link', { name: /^History: / })
-      await link.click()
+      await expect(entry(page, item.id).getByRole('link', { name: /History/ })).toHaveCount(0)
+      if (item.screen === 'forwardingHosts') return
+      await clickRowAction(page, entry(page, item.id), /^Edit:/)
+      await page.getByRole('main').getByRole('link', { name: 'History', exact: true }).click()
       await expectAuditFilter(page, item.targetType, item.id)
     })
   }

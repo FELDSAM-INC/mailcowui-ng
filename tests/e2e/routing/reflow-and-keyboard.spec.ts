@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 T115: every routing screen, form, dialog, picker, test page and section reflows at 320 px
 // and at 400 % zoom, works in landscape on phones, never hides the focused element behind the
 // sticky header or the sticky action bar, and runs no transition under reduced motion; long hosts,
@@ -94,9 +95,7 @@ const SCREENS: Screen[] = [
     scenario: 'routing-admin-default',
     path: 'routing/relayhosts',
     open: async (page) => {
-      await entry(page, 1)
-        .getByRole('button', { name: /^Remove: / })
-        .click()
+      await clickRowAction(page, entry(page, 1), /^Remove: /)
       await expect(page.getByRole('alertdialog')).toBeVisible()
     },
   },
@@ -483,7 +482,13 @@ test.describe('keyboard only', () => {
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(remove).toBeFocused()
     await page.keyboard.press('Escape')
-    const history = entry(page, 1).getByRole('link', { name: /^History: / })
+    const actions = entry(page, 1).locator('[data-row-action-trigger]')
+    await actions.focus()
+    await page.keyboard.press('Enter')
+    const edit = page.getByRole('menuitem', { name: /^Edit:/ })
+    await edit.focus()
+    await page.keyboard.press('Enter')
+    const history = page.getByRole('main').getByRole('link', { name: 'History', exact: true })
     await history.focus()
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/audit-log\?targetType=recipientMap&targetId=1$/)

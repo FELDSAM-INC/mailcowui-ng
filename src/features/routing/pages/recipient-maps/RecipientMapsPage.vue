@@ -23,15 +23,12 @@ import {
   recipientMapSorts,
 } from '../../components/recipient-maps/recipient-map-columns'
 import { useEntryDeletion } from '../../composables/useEntryDeletion'
-import { useRoutingIdentity } from '../../composables/useRoutingIdentity'
 import { useRoutingList } from '../../composables/useRoutingList'
-import { historyTarget } from '../../history'
 import { useRecipientMapListState } from '../../list-states/recipient-maps'
 import { BULK_ACTIONS, targetOf } from '../../logic/bulk-actions'
 
 const { t } = useI18n()
 const client = useQueryClient()
-const { canSeeHistory } = useRoutingIdentity()
 
 const controller = useRoutingList<
   RecipientMap,
@@ -106,7 +103,6 @@ const edit = (item: RecipientMap) => ({
         section="mailbox"
         :edit-to="edit(entry)"
         removable
-        :history="canSeeHistory ? historyTarget('recipientMap', entry) : null"
         @remove="deletion.start(entry)"
       />
     </template>

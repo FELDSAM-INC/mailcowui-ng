@@ -1,63 +1,37 @@
 <script setup lang="ts">
-// The actions of a resource entry (FR-015), the classic table's action column as a menu behind
-// a 44 × 44 trigger: Edit (`mailbox.edit`), which opens the page with its section open, and Remove
-// (`mailbox.remove`). Deletion lives only in the list, as in legacy.
-import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
-
 import type { Resource } from '@/api'
 import { lt } from '@/i18n'
-import { HorizontalDotsIcon, TrashIcon } from '@/shared/icons'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu'
+import RowActions from '@/shared/components/RowActions.vue'
+import RowAction from '@/shared/components/RowAction.vue'
+import { TrashIcon } from '@/shared/icons'
 
-const props = defineProps<{ resource: Resource }>()
+defineProps<{ resource: Resource }>()
 const emit = defineEmits<{ delete: [resource: Resource] }>()
 const { t } = useI18n()
-const router = useRouter()
-const root = ref<HTMLElement | null>(null)
-
-function onEdit() {
-  void router.push({
-    name: 'resource-detail',
-    params: { resourceAddress: props.resource.address },
-    query: { edit: 'resource' },
-  })
-}
-
-async function onDelete() {
-  // Let the menu close and put the focus back on its trigger first, so the dialog returns it there.
-  await nextTick()
-  requestAnimationFrame(() => {
-    root.value?.querySelector<HTMLElement>('button')?.focus()
-    emit('delete', props.resource)
-  })
-}
 </script>
 
 <template>
-  <span ref="root" class="contents">
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        :aria-label="t('lists.actionsFor', { name: resource.description })"
-        class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
-      >
-        <HorizontalDotsIcon class="size-5" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" class="max-w-[min(20rem,calc(100vw-2rem))]">
-        <DropdownMenuItem class="min-h-11" @select="onEdit">
-          {{ lt('mailbox.edit') }}
-        </DropdownMenuItem>
-        <DropdownMenuItem class="min-h-11" @select="onDelete">
-          <TrashIcon />
-          {{ lt('mailbox.remove') }}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </span>
+  <RowActions
+    v-slot="{ menu }"
+    :count="2"
+    :label="t('lists.actionsFor', { name: resource.description })"
+  >
+    <RowAction
+      :menu="menu"
+      :label="lt('mailbox.edit')"
+      :to="{
+        name: 'resource-detail',
+        params: { resourceAddress: resource.address },
+        query: { edit: 'resource' },
+      }"
+    />
+    <RowAction
+      :menu="menu"
+      :label="lt('mailbox.remove')"
+      destructive
+      @select="emit('delete', resource)"
+      ><TrashIcon />{{ lt('mailbox.remove') }}</RowAction
+    >
+  </RowActions>
 </template>

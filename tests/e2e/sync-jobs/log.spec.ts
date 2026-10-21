@@ -1,12 +1,13 @@
-// UI 008 US5 the run log (T062): opened from "Check log" and "Open logs" in the list, verbatim
+// UI 008 US5 the run log (T062): opened from the row menu, verbatim
 // and read-only with markers for bidi characters, full screen at 360 px and a dialog on desktop,
 // wrapping by default, copying, the empty states and the running notice, markup shown as text,
 // fetched only when opened, closed by Back with the list kept, opened by address, and a job gone.
 import { expect, test } from '../fixtures/test'
+import { clickRowAction } from '../fixtures/row-actions'
 import { entry, isNarrow, listReady, requestsOf } from './helpers'
 
 test.describe('sync job run log', () => {
-  test('US1-AS5 FR-041 FR-046 "Check log" and "Open logs" open the log; the list requests none', async ({
+  test('US1-AS5 FR-041 FR-046 row menu opens the log; the list requests none', async ({
     page,
     mockApi,
     expectAccessible,
@@ -15,7 +16,7 @@ test.describe('sync job run log', () => {
     await page.goto('sync-jobs?q=erik&sort=id&order=asc')
     await listReady(page)
     expect(await requestsOf(mockApi, 'getSyncJobLog')).toEqual([])
-    await entry(page, 12).getByRole('button', { name: 'Check log' }).click()
+    await clickRowAction(page, entry(page, 12), 'Open logs')
     const dialog = page.getByRole('dialog', { name: 'Log' })
     await expect(dialog).toBeVisible()
     await expect(page).toHaveURL(/log=12/)
@@ -24,10 +25,8 @@ test.describe('sync job run log', () => {
     await page.goBack()
     await expect(dialog).toHaveCount(0)
     await expect(page).toHaveURL(/q=erik/)
-    await expect(entry(page, 12).getByRole('button', { name: 'Check log' })).toBeFocused()
-    await entry(page, 12)
-      .getByRole('button', { name: /^Open logs/ })
-      .click()
+    await expect(entry(page, 12).locator('[data-row-action-trigger]')).toBeFocused()
+    await clickRowAction(page, entry(page, 12), 'Open logs')
     await expect(page.getByRole('dialog', { name: 'Log' })).toBeVisible()
   })
 
@@ -130,8 +129,8 @@ test.describe('sync job run log', () => {
     await mockApi.use('sync-jobs-admin')
     await page.goto('sync-jobs?q=previous')
     await listReady(page)
-    const opener = entry(page, 2).getByRole('button', { name: /^Open logs/ })
-    await opener.click()
+    const opener = entry(page, 2).locator('[data-row-action-trigger]')
+    await clickRowAction(page, entry(page, 2), 'Open logs')
     await page
       .getByRole('dialog')
       .getByRole('button', { name: 'Close', exact: true })

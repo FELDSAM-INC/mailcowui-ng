@@ -149,7 +149,7 @@ describe('ListToolbar', () => {
 })
 
 describe('EntryActions, ScreenIntro, StatusText, FormActionBar', () => {
-  it('shows legacy buttons named after the entry and emits removal', async () => {
+  it('groups multiple actions in a named menu without row History and emits removal', async () => {
     const router = createTestRouter()
     const wrapper = mountWithApp(EntryActions, {
       props: {
@@ -158,20 +158,32 @@ describe('EntryActions, ScreenIntro, StatusText, FormActionBar', () => {
         testTo: '/routing',
         editTo: '/routing',
         removable: true,
-        history: { targetType: 'relayhost', targetId: '2' },
       },
       global: { plugins: [router] },
+      attachTo: document.body,
     })
     await flushPromises()
-    const labels = wrapper.findAll('a, button').map((item) => item.attributes('aria-label'))
-    expect(labels).toEqual([
-      'Test: relay.example',
-      'Edit: relay.example',
-      'Remove: relay.example',
-      'History: relay.example',
-    ])
-    await wrapper.find('[data-action="remove"]').trigger('click')
+    expect(wrapper.findAll('button')).toHaveLength(1)
+    await wrapper.get('[data-row-action-trigger]').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+    const labels = items.map((item) => item.getAttribute('aria-label'))
+    expect(labels).toEqual(['Test: relay.example', 'Edit: relay.example', 'Remove: relay.example'])
+    items.find((item) => item.dataset.action === 'remove')!.click()
+    await vi.waitFor(() => expect(wrapper.emitted('remove')).toHaveLength(1))
+    wrapper.unmount()
+  })
+
+  it('renders a lone action directly without an empty menu or expander', async () => {
+    const wrapper = mountWithApp(EntryActions, {
+      props: { name: '192.0.2.1', section: 'admin', removable: true },
+      global: { plugins: [createTestRouter()] },
+    })
+    expect(wrapper.find('[data-row-action-trigger]').exists()).toBe(false)
+    expect(wrapper.get('button').attributes('aria-label')).toBe('Remove: 192.0.2.1')
+    await wrapper.get('button').trigger('click')
     expect(wrapper.emitted('remove')).toHaveLength(1)
+    wrapper.unmount()
   })
 
   it('renders legacy hints with markup through the sanitiser and yes/no as legacy glyphs', () => {

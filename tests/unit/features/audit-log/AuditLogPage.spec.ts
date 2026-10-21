@@ -34,7 +34,7 @@ describe('AuditLogPage', () => {
     const { wrapper } = await mountPage('/audit-log')
     expect(wrapper.text()).toContain('Showing 1 to 25 of 41 entries')
     expect(wrapper.findAll('tbody tr[data-record]')).toHaveLength(25)
-    const toggle = wrapper.get('tbody tr[data-record] button')
+    const toggle = wrapper.get('tbody tr[data-record] td:last-child .table-row-controls button')
     await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     expect(wrapper.find(`#${toggle.attributes('aria-controls')}`).text()).toContain('Request ID')

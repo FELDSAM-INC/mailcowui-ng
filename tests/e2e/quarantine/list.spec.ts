@@ -130,14 +130,14 @@ test('US1 list: removing an item asks first and sends its version once', async (
   await mockApi.use('quarantine-mailbox-user')
   await page.goto('quarantine')
   const item = page.locator('[data-quarantine-item="30"]')
-  await item.getByRole('button', { name: 'Remove', exact: true }).click()
+  await clickRowAction(page, item, /^Remove(?:\: 30)?$/)
   await expect(page.getByRole('alertdialog')).toBeVisible()
   expect(
     (await mockApi.requests()).filter((request) => request.operationId === 'deleteQuarantineItem'),
   ).toHaveLength(0)
   await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click()
   await expect(item).toBeVisible()
-  await item.getByRole('button', { name: 'Remove', exact: true }).click()
+  await clickRowAction(page, item, /^Remove(?:\: 30)?$/)
   await page
     .getByRole('alertdialog')
     .getByRole('button', { name: 'Delete now', exact: true })
@@ -182,3 +182,4 @@ test('US2 list: administrators filter by recipient and sort the results in eithe
   await expectAccessible()
   await expectNoHorizontalScroll()
 })
+import { clickRowAction } from '../fixtures/row-actions'

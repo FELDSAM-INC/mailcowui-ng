@@ -1,6 +1,7 @@
 // UI 008 US1, the sync job list (T023): cards and table, the classic columns and values, results
 // in English and Czech, the list states, search, filters, sort, paging, the address and refresh.
 import { expect, test } from '../fixtures/test'
+import { rowAction } from '../fixtures/row-actions'
 import { entries, entry, entryIds, isNarrow, listReady, openFilters, requestsOf } from './helpers'
 
 test.describe('sync job list', () => {
@@ -21,7 +22,8 @@ test.describe('sync job list', () => {
     await expect(card).toContainText('alice@example.org')
     await expect(card).toContainText('Wrong username or password')
     await expect(card).toContainText('Waiting')
-    await expect(card.getByRole('button', { name: 'Open logs' })).toBeVisible()
+    await expect(await rowAction(page, card, 'Open logs')).toBeVisible()
+    await page.keyboard.press('Escape')
     await expectAccessible()
     await expectTouchTargets()
     await expectNoHorizontalScroll(page, { widths: [360, 320] })
@@ -48,7 +50,6 @@ test.describe('sync job list', () => {
       'Server',
       'Last run',
       'Last run result',
-      'Log',
       'Active',
       'Status',
       'Action',

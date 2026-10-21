@@ -11,7 +11,7 @@ import { RouterLink } from 'vue-router'
 import { lt, legacy, resolveText, type TextRef } from '@/i18n'
 import type { Domain } from '@/api'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { ChevronDownIcon } from '@/shared/icons'
+import RowControls from '@/shared/components/RowControls.vue'
 
 import { useDomainFormat } from '../../format'
 import type { DomainSort } from '../../list-state'
@@ -122,8 +122,8 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
             </button>
             <template v-else>{{ resolveText(column.labelKey, t) }}</template>
           </th>
-          <th scope="col" class="w-12 px-3 py-2">
-            <span class="sr-only">{{ t('domains.list.details') }}</span>
+          <th scope="col" class="table-controls-cell px-3 py-2">
+            {{ lt('mailbox.action') }}
           </th>
         </tr>
       </thead>
@@ -145,13 +145,11 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
                       :unicode-name="domain.unicodeName"
                     />
                   </RouterLink>
-                  <slot name="actions" :domain="domain" />
                 </div>
                 <div class="flex flex-wrap gap-1.5">
                   <ActiveBadge :active="domain.active" />
                   <RelayBadge :domain="domain" />
                 </div>
-                <TagChips :tags="domain.tags" :max="3" @filter="emit('filterTag', $event)" />
               </div>
             </td>
             <td class="px-3 py-3">
@@ -198,20 +196,15 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
             <td class="hidden px-3 py-3 text-gray-900 xl:table-cell dark:text-white">
               {{ format.rateLimit(domain.rateLimit) }}
             </td>
-            <td class="px-3 py-3">
-              <button
-                type="button"
-                class="inline-flex size-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
-                :aria-expanded="expanded.has(domain.name) ? 'true' : 'false'"
-                :aria-controls="`${rowId(domain.name)}-details`"
-                :aria-label="t('domains.list.detailsOf', { name: domain.unicodeName })"
-                @click="toggle(domain.name)"
+            <td class="table-controls-cell px-3 py-3">
+              <RowControls
+                :expanded="expanded.has(domain.name)"
+                :controls="`${rowId(domain.name)}-details`"
+                :label="t('domains.list.detailsOf', { name: domain.unicodeName })"
+                @toggle="toggle(domain.name)"
               >
-                <ChevronDownIcon
-                  class="size-5 motion-safe:transition-transform"
-                  :class="expanded.has(domain.name) ? 'rotate-180' : ''"
-                />
-              </button>
+                <slot name="actions" :domain="domain" />
+              </RowControls>
             </td>
           </tr>
           <tr v-if="expanded.has(domain.name)" :id="`${rowId(domain.name)}-details`">
@@ -221,6 +214,16 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
               :data-entry-details="domain.name"
             >
               <DomainEntryDetails :domain="domain" :can-see-domain-admins="canSeeDomainAdmins" />
+              <div v-if="domain.tags.length" class="mt-3">
+                <div class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+                  {{ lt('add.tags') }}
+                </div>
+                <TagChips
+                  :tags="domain.tags"
+                  :max="domain.tags.length"
+                  @filter="emit('filterTag', $event)"
+                />
+              </div>
             </td>
           </tr>
         </template>

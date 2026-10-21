@@ -92,8 +92,14 @@ describe('Oauth2ClientsPage', () => {
     const { wrapper } = await mountAt('/identity-providers/oauth2-apps', Oauth2ClientsPage)
     await vi.waitFor(() => expect(wrapper.findAll('[data-entry]')).toHaveLength(2))
     mockState().oauth2Clients[0] = scenarioClient(1, { version: 5 })
-    await wrapper.get(`button[aria-label="Remove: ${fixedClientId(1)}"]`).trigger('click')
-    expect(confirmState.value?.title).toBe(lt('footer.confirm_delete'))
+    await wrapper
+      .get(`[data-entry="1"] [data-row-action-trigger]`)
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    document
+      .querySelector<HTMLElement>(`[role="menuitem"][aria-label="Remove: ${fixedClientId(1)}"]`)!
+      .click()
+    await vi.waitFor(() => expect(confirmState.value?.title).toBe(lt('footer.confirm_delete')))
     settleConfirm(true)
     await vi.waitFor(() => expect(confirmState.value?.description).toContain('changed elsewhere'))
     settleConfirm(true)

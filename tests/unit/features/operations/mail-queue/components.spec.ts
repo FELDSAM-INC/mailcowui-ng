@@ -120,6 +120,11 @@ describe('QueueMessageTable', () => {
     expect(wrapper.emitted('sort')).toEqual([['arrivalTime', 'desc']])
     await wrapper.findAll('thead button')[3]!.trigger('click')
     expect(wrapper.emitted('sort')![1]).toEqual(['size', 'asc'])
+    const controls = wrapper.get('tbody tr td:last-child .table-row-controls')
+    expect(controls.find('[aria-expanded]').exists()).toBe(false)
+    expect(controls.get('[data-show-message]').attributes('href')).toBe(
+      '/ng/operations/mail-queue/messages/4F2A1B3C9D',
+    )
   })
 })
 

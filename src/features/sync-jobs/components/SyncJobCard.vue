@@ -16,7 +16,6 @@ import SyncJobResult from './SyncJobResult.vue'
 import SyncJobStateBadges from './SyncJobStateBadges.vue'
 
 const props = defineProps<{ job: SyncJob; role: Role }>()
-const emit = defineEmits<{ openLog: [job: SyncJob] }>()
 const { t } = useI18n()
 const fmt = useFormat()
 const texts = computed(() => listTexts(props.role))
@@ -64,22 +63,7 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.result) }}</dt>
         <dd class="text-gray-900 dark:text-white">
-          <SyncJobResult
-            :run="job.runStatus"
-            :role="role"
-            log-link
-            @open-log="emit('openLog', job)"
-          />
-        </dd>
-        <dt class="text-gray-600 dark:text-gray-400">{{ t('syncJobs.columns.log') }}</dt>
-        <dd>
-          <button
-            type="button"
-            class="min-h-11 text-start font-medium text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-            @click="emit('openLog', job)"
-          >
-            {{ label(texts.openLogs) }}
-          </button>
+          <SyncJobResult :run="job.runStatus" :role="role" />
         </dd>
         <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.active) }}</dt>
         <dd class="text-gray-900 dark:text-white">

@@ -7,8 +7,8 @@ import { useI18n } from 'vue-i18n'
 import type { AuditEvent } from '@/api'
 import { legacy, resolveText, type TextRef } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { ChevronDownIcon } from '@/shared/icons'
 import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/shared/ui/table'
 
 import { useAuditLabels } from '../labels'
@@ -64,7 +64,7 @@ const detailsId = (id: string) => `audit-details-${id}`
           >
             {{ resolveText(column.label, t) }}
           </TableCell>
-          <TableCell is-header scope="col" class="px-4 py-3">
+          <TableCell is-header scope="col" class="table-controls-cell px-4 py-3">
             <span class="sr-only">{{ t('auditLog.columns.details') }}</span>
           </TableCell>
         </TableRow>
@@ -91,22 +91,15 @@ const detailsId = (id: string) => `audit-details-${id}`
             <TableCell class="px-4 py-3 text-gray-900 dark:text-white">
               {{ event.failureReason ? labels.label('failureReason', event.failureReason) : '–' }}
             </TableCell>
-            <TableCell class="px-2 py-1">
-              <button
-                type="button"
-                class="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 font-medium whitespace-nowrap text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-                :aria-expanded="expanded.has(event.id) ? 'true' : 'false'"
-                :aria-controls="detailsId(event.id)"
-                @click="toggle(event.id)"
-              >
-                {{
+            <TableCell class="table-controls-cell px-2 py-1">
+              <RowControls
+                :expanded="expanded.has(event.id)"
+                :controls="detailsId(event.id)"
+                :label="
                   expanded.has(event.id) ? t('auditLog.details.hide') : t('auditLog.details.show')
-                }}
-                <ChevronDownIcon
-                  class="size-4 shrink-0"
-                  :class="expanded.has(event.id) ? 'rotate-180' : ''"
-                />
-              </button>
+                "
+                @toggle="toggle(event.id)"
+              />
             </TableCell>
           </TableRow>
           <TableRow

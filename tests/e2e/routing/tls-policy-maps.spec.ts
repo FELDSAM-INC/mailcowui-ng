@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US6, TLS policy maps (T090): the classic columns, search, the several-policy and active
 // filters, legacy's add and edit forms with the raw policy values, refusals with legacy's messages
 // at their fields, deletion and bulk actions.
@@ -104,7 +105,7 @@ test.describe('TLS policy maps', () => {
     await expect(page).toHaveURL(/routing\/tls-policy-maps$/)
     await expect(polite(page)).toContainText('TLS policy map entry "may.example" has been saved')
     await listReady(page)
-    await entry(page, 3).getByRole('button', { name: 'Remove: encrypt.example' }).click()
+    await clickRowAction(page, entry(page, 3), 'Remove: encrypt.example')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(polite(page)).toContainText('TLS policy map ID 3 has been deleted')
     await page.getByRole('button', { name: 'Select', exact: true }).click()

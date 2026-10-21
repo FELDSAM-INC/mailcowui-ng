@@ -51,7 +51,13 @@ describe('MailboxTemplatesPage', () => {
     expect(wrapper.findAll('[data-entry]')).toHaveLength(25)
     expect(wrapper.text()).toContain('Add Template')
     expect(wrapper.findAll('button').some((button) => button.text() === 'Select')).toBe(true)
-    expect(wrapper.find('[aria-label="Remove: Package 01"]').exists()).toBe(true)
+    const menu = wrapper.get('[aria-label="Actions for Package 01"]')
+    await menu.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(
+      document.querySelector('[role="menuitem"][aria-label="Remove: Package 01"]'),
+    ).not.toBeNull()
+    await menu.trigger('keydown', { key: 'Escape' })
     expect(wrapper.find('[aria-label="Edit: Default"]').exists()).toBe(true)
     expect(wrapper.find('[aria-label="Remove: Default"]').exists()).toBe(false)
   })
@@ -77,8 +83,12 @@ describe('MailboxTemplatesPage', () => {
     useScenario('admin-templates')
     const ask = vi.spyOn(confirmModule, 'confirm').mockResolvedValue(true)
     const { wrapper } = await mountAt(MailboxTemplatesPage, '/mailbox-templates?q=small')
-    await vi.waitFor(() => expect(wrapper.find('[aria-label="Remove: Small"]').exists()).toBe(true))
-    await wrapper.get('[aria-label="Remove: Small"]').trigger('click')
+    await vi.waitFor(() =>
+      expect(wrapper.find('[aria-label="Actions for Small"]').exists()).toBe(true),
+    )
+    await wrapper.get('[aria-label="Actions for Small"]').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    document.querySelector<HTMLElement>('[role="menuitem"][aria-label="Remove: Small"]')!.click()
     await vi.waitFor(() => expect(requests('deleteMailboxTemplate')).toHaveLength(1))
     expect(ask.mock.calls[0]![0].content?.props).toEqual({ names: ['Small'] })
     expect(requests('deleteMailboxTemplate')[0]!.headers['if-match']).toMatch(/^"t/)

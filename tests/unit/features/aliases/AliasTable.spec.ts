@@ -35,43 +35,42 @@ const mountTable = (groupwareEnabled: boolean | undefined) =>
   })
 
 describe('AliasTable', () => {
-  it('has the classic columns with aria-sort on the sortable ones', async () => {
+  it('keeps primary columns sortable and secondary values collapsed behind the final control', async () => {
     const wrapper = mountTable(true)
     const headers = wrapper.findAll('th')
-    const text = headers.map((header) => header.text())
-    for (const label of [
+    expect(headers.map((header) => header.text().replace(/[▲▼]/g, '').trim())).toEqual([
       'ID',
       'Alias',
       'Goto address',
       'Domain',
-      'Alias is visible in SOGo',
-      'Public comment',
-      'Private comment',
-      'Internal',
       'Active',
-    ]) {
-      expect(text.some((item) => item.startsWith(label))).toBe(true)
-    }
-    const sortable = headers.filter((header) => header.attributes('aria-sort') !== undefined)
-    expect(sortable.map((header) => header.text().replace(/[▲▼]/g, '').trim())).toEqual([
-      'ID',
-      'Alias',
-      'Domain',
-      'Alias is visible in SOGo',
-      'Internal',
-      'Active',
+      'Action',
     ])
-    expect(headers.find((header) => header.text().startsWith('ID'))!.attributes('aria-sort')).toBe(
-      'descending',
+    const row = wrapper.get('tbody tr[data-entry]')
+    expect(row.find('[data-field="internal"]').exists()).toBe(false)
+    expect(wrapper.find('[data-entry-details]').exists()).toBe(false)
+    const expand = row.get('td:last-child [data-row-expand]')
+    expect(expand.attributes('aria-expanded')).toBe('false')
+    await expand.trigger('click')
+    expect(expand.attributes('aria-expanded')).toBe('true')
+    const details = wrapper.get('[data-entry-details]')
+    expect(details.text()).toContain('Alias is visible in SOGo')
+    expect(details.text()).toContain('Public comment')
+    expect(details.text()).toContain('Private comment')
+    expect(details.find('[data-field="internal"]').exists()).toBe(true)
+    expect(Number(details.element.closest('td')?.getAttribute('colspan'))).toBe(
+      row.findAll('td').length,
     )
-    await headers
-      .find((header) => header.text().startsWith('Alias'))!
-      .get('button')
-      .trigger('click')
+    await expand.trigger('click')
+    expect(wrapper.find('[data-entry-details]').exists()).toBe(false)
+    expect(headers[0]!.attributes('aria-sort')).toBe('descending')
+    await headers[1]!.get('button').trigger('click')
     expect(wrapper.emitted('sort')?.[0]).toEqual(['address', 'asc'])
   })
 
-  it('has no groupware column while the groupware is disabled', () => {
-    expect(mountTable(false).text()).not.toContain('SOGo')
+  it('has no groupware field in expanded details while groupware is disabled', async () => {
+    const wrapper = mountTable(false)
+    await wrapper.get('[data-row-expand]').trigger('click')
+    expect(wrapper.text()).not.toContain('SOGo')
   })
 })

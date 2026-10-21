@@ -8,17 +8,17 @@ import { COLUMNS, OPTIONAL_COLUMNS, readColumns, writeColumns } from '@/features
 afterEach(() => vi.restoreAllMocks())
 
 describe('columns', () => {
-  it('lists legacy’s visible columns as defaults and its row details as optional', () => {
+  it('keeps operational columns visible and secondary fields available as optional columns', () => {
     expect(COLUMNS.filter((column) => column.default).map((column) => column.id)).toEqual([
       'address',
       'quota',
       'lastMailLogin',
-      'passwordChangedAt',
       'inUse',
       'messages',
       'status',
     ])
     expect(OPTIONAL_COLUMNS).toEqual([
+      'passwordChangedAt',
       'displayName',
       'domain',
       'authSource',

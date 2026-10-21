@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US8, forwarding hosts (T103): the classic columns with the spam filter in text, the
 // source filter, legacy's add form with every resulting address reported, names that do not
 // resolve and DNS outages, legacy's quick actions and deletion.
@@ -104,7 +105,7 @@ test.describe('forwarding hosts', () => {
       .getByRole('button', { name: 'Close' })
       .click()
     await page.getByRole('button', { name: 'Done selecting' }).click()
-    await entry(page, '203.0.113.9').getByRole('button', { name: 'Remove: 203.0.113.9' }).click()
+    await clickRowAction(page, entry(page, '203.0.113.9'), 'Remove: 203.0.113.9')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(polite(page)).toContainText('Forwarding host 203.0.113.9 has been removed')
   })

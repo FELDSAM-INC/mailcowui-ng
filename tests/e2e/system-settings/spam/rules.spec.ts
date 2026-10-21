@@ -1,4 +1,5 @@
 import { expect, test } from '../../fixtures/test'
+import { clickRowAction } from '../../fixtures/row-actions'
 
 const rows = '[data-rule-id]'
 test('T107 empty map adds a checked active rule with line navigation and refresh guidance', async ({
@@ -145,7 +146,7 @@ test('T107 outdated deletion rereads the rule and asks for a fresh confirmation'
 }) => {
   await mockApi.use('rspamd-rules-outdated')
   await page.goto('system/rspamd-rules')
-  await page.getByRole('button', { name: 'Remove: Rule 01', exact: true }).click()
+  await clickRowAction(page, page.locator('[data-rule-id="1"]'), 'Remove: Rule 01')
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toContainText('Remove rule #1: Rule 01?')
   await expect(dialog).toContainText('next refresh')

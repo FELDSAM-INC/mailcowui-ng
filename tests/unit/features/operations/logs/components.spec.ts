@@ -146,6 +146,14 @@ describe('LogEntryList', () => {
     await wrapper.get('[data-sort-time]').trigger('click')
     expect(wrapper.emitted('sort')).toEqual([['asc']])
     const row = wrapper.get(`[data-entry="${entry.id}"]`)
+    expect(row.find('td:first-child [aria-expanded]').exists()).toBe(false)
+    const controls = row.get('td:last-child .table-row-controls')
+    expect(controls.findAll('button').map((button) => button.attributes('data-reset'))).toEqual([
+      undefined,
+      '',
+    ])
+    await controls.get('[aria-expanded]').trigger('click')
+    expect(wrapper.emitted('toggle')).toEqual([[entry.id]])
     expect(
       row
         .get('td')
@@ -156,11 +164,24 @@ describe('LogEntryList', () => {
     expect(wrapper.emitted('reset')).toEqual([[entry.rateLimitHash]])
     await wrapper.setProps({ expanded: new Set([entry.id]) })
     expect(
+      Number(wrapper.get('[data-details]').element.closest('td')!.getAttribute('colspan')),
+    ).toBe(row.findAll('td').length)
+    expect(
       wrapper
         .get('[data-details]')
         .findAll('dt')
         .map((term) => term.text()),
     ).toEqual(['Msg ID', 'Header From', 'Subject', 'Hash', 'Rspamd QID', 'IP'])
+  })
+
+  it('adds an end expansion column only when the log has details or actions', () => {
+    const plain = list('postfix', [logEntry('postfix', 1, BASE)], { wide: true })
+    expect(plain.find('.table-row-controls').exists()).toBe(false)
+    const detailed = list('legacy-ui-activity', [logEntry('legacy-ui-activity', 1, BASE)], {
+      wide: true,
+    })
+    expect(detailed.find('tbody tr td:last-child [aria-expanded]').exists()).toBe(true)
+    expect(detailed.find('tbody tr td:first-child [aria-expanded]').exists()).toBe(false)
   })
 
   it('shows "err" for a missing hash and offers no reset', async () => {

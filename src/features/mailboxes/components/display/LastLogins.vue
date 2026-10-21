@@ -40,14 +40,12 @@ const lineText = (line: (typeof lines.value)[number]) =>
 </script>
 
 <template>
-  <component :is="compact ? 'details' : 'div'">
-    <summary v-if="compact" class="min-h-11 cursor-pointer content-center whitespace-nowrap">
-      {{ latest ? lineText(latest) : lt('user.no_record') }}
-    </summary>
-    <ul class="flex flex-col gap-0.5 text-sm" :class="compact ? 'whitespace-nowrap' : ''">
-      <li v-for="line in lines" :key="line.key" :data-login="line.key">
-        {{ lineText(line) }}
-      </li>
-    </ul>
-  </component>
+  <span v-if="compact" class="whitespace-nowrap">{{
+    latest ? lineText(latest) : lt('user.no_record')
+  }}</span>
+  <ul v-else class="flex flex-col gap-0.5 text-sm">
+    <li v-for="line in lines" :key="line.key" :data-login="line.key">
+      {{ lineText(line) }}
+    </li>
+  </ul>
 </template>

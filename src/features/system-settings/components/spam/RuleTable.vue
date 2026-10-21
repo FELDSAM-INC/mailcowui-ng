@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 import type { RspamdSettingsRule } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import PlainText from '@/shared/components/PlainText.vue'
-import { buttonVariants } from '@/shared/ui/button'
+import RowAction from '@/shared/components/RowAction.vue'
+import RowActions from '@/shared/components/RowActions.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { RuleSort } from '../../rule-list-state'
 defineProps<{
   items: RspamdSettingsRule[]
@@ -55,7 +56,7 @@ const label = (value: RuleSort) =>
               {{ label(column) }}
             </button>
           </th>
-          <th class="w-44 p-2 text-start">{{ lt('mailbox.action') }}</th>
+          <th class="table-controls-cell p-2 text-end">{{ lt('mailbox.action') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -70,23 +71,29 @@ const label = (value: RuleSort) =>
           <td class="p-2">{{ lt(item.active ? 'mailbox.active' : 'mailbox.inactive') }}</td>
           <td class="p-2">{{ format.dateTime(item.createdAt) }}</td>
           <td class="p-2">{{ item.modifiedAt ? format.dateTime(item.modifiedAt) : '—' }}</td>
-          <td class="p-2">
-            <div class="table-actions flex flex-wrap gap-2">
-              <RouterLink
-                :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
-                :aria-label="`${lt('mailbox.edit')}: ${item.description}`"
-                :class="buttonVariants({ variant: 'outline' })"
-                >{{ lt('mailbox.edit') }}</RouterLink
-              ><button
-                type="button"
-                :disabled="busy"
-                :aria-label="`${lt('mailbox.remove')}: ${item.description}`"
-                :class="buttonVariants({ variant: 'outline' })"
-                @click="$emit('remove', item)"
+          <td class="table-controls-cell p-2">
+            <RowControls>
+              <RowActions
+                v-slot="{ menu }"
+                :count="2"
+                :label="`${lt('mailbox.action')}: ${item.description}`"
               >
-                {{ lt('mailbox.remove') }}
-              </button>
-            </div>
+                <RowAction
+                  :menu="menu"
+                  :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
+                  :label="lt('mailbox.edit')"
+                  :aria-label="`${lt('mailbox.edit')}: ${item.description}`"
+                />
+                <RowAction
+                  :menu="menu"
+                  :disabled="busy"
+                  destructive
+                  :label="lt('mailbox.remove')"
+                  :aria-label="`${lt('mailbox.remove')}: ${item.description}`"
+                  @select="$emit('remove', item)"
+                />
+              </RowActions>
+            </RowControls>
           </td>
         </tr>
       </tbody>

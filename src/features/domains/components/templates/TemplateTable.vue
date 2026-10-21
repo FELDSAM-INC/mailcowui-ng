@@ -13,7 +13,7 @@ import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import type { DomainTemplate } from '@/api'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { ChevronDownIcon } from '@/shared/icons'
+import RowControls from '@/shared/components/RowControls.vue'
 
 import { useDomainFormat } from '../../format'
 import type { TemplateSort } from '../../templates-list-state'
@@ -64,7 +64,7 @@ const SORTABLE: readonly { key: 'id' | 'name'; label: TextRef }[] = [
   { key: 'id', label: 'lists.id' },
   { key: 'name', label: legacy('mailbox.template') },
 ]
-const columnCount = computed(() => columns.value.length + 4 + (props.selectable ? 1 : 0))
+const columnCount = computed(() => columns.value.length + 3 + (props.selectable ? 1 : 0))
 </script>
 
 <template>
@@ -77,9 +77,6 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
       </caption>
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
-          <th scope="col" class="w-12 px-3 py-2">
-            <span class="sr-only">{{ t('domains.list.details') }}</span>
-          </th>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2"><slot name="select-all" /></th>
           <th
             v-for="column in SORTABLE"
@@ -102,7 +99,7 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
           <th v-for="column in columns" :key="column.key" scope="col" class="px-3 py-2 text-start">
             {{ column.label }}
           </th>
-          <th scope="col" class="px-3 py-2 text-end">
+          <th scope="col" class="table-controls-cell px-3 py-2 text-end">
             {{ lt('mailbox.action') }}
           </th>
         </tr>
@@ -110,21 +107,6 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="template in templates" :key="template.id">
           <tr :data-entry="template.id" class="align-top">
-            <td class="px-3 py-3">
-              <button
-                type="button"
-                class="inline-flex size-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
-                :aria-expanded="expanded.has(template.id) ? 'true' : 'false'"
-                :aria-controls="`template-row-${template.id}-details`"
-                :aria-label="t('domainTemplates.list.detailsOf', { name: template.name })"
-                @click="toggle(template.id)"
-              >
-                <ChevronDownIcon
-                  class="size-5 motion-safe:transition-transform"
-                  :class="expanded.has(template.id) ? 'rotate-180' : ''"
-                />
-              </button>
-            </td>
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :template="template" /></td>
             <td class="px-3 py-3 text-gray-900 dark:text-white">{{ template.id }}</td>
             <td class="max-w-64 px-3 py-3">
@@ -146,7 +128,16 @@ const columnCount = computed(() => columns.value.length + 4 + (props.selectable 
             >
               {{ column.value(template) }}
             </td>
-            <td class="px-3 py-3"><slot name="actions" :template="template" /></td>
+            <td class="table-controls-cell px-3 py-3">
+              <RowControls
+                :expanded="expanded.has(template.id)"
+                :controls="`template-row-${template.id}-details`"
+                :label="t('domainTemplates.list.detailsOf', { name: template.name })"
+                @toggle="toggle(template.id)"
+              >
+                <slot name="actions" :template="template" />
+              </RowControls>
+            </td>
           </tr>
           <tr v-if="expanded.has(template.id)" :id="`template-row-${template.id}-details`">
             <td

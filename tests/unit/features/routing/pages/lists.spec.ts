@@ -3,6 +3,7 @@
 // as bulk actions, the forwarding host source filter and addition outcome, the relayhost usage view
 // and the index page.
 import { describe, expect, it, vi } from 'vitest'
+import type { DOMWrapper } from '@vue/test-utils'
 
 import { useForwardingHostResults } from '@/features/routing/composables/useForwardingHostResults'
 import * as announcer from '@/shared/composables/useAnnouncer'
@@ -30,19 +31,33 @@ async function confirmNow() {
   await settle()
 }
 
+type ActionRow = Pick<DOMWrapper<Element>, 'find' | 'findAll'>
+async function rowActions(row: ActionRow): Promise<HTMLElement[]> {
+  const trigger = row.find('[data-row-action-trigger]')
+  if (trigger.exists()) {
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await settle()
+    return [...document.querySelectorAll<HTMLElement>('[role="menuitem"][data-action]')]
+  }
+  return row.findAll('[data-action]').map((item) => item.element as HTMLElement)
+}
+
+async function removeRow(row: ActionRow) {
+  const actions = await rowActions(row)
+  actions.find((action) => action.dataset.action === 'remove')!.click()
+  await settle()
+}
+
 describe('routing list screens', { timeout: 60_000 }, () => {
-  it('lists the relayhosts with Test, Edit, Remove and History and deletes one after confirming', async () => {
+  it('lists the relayhosts with Test, Edit and Remove in a menu and deletes one after confirming', async () => {
     const announce = vi.spyOn(announcer, 'announce')
     const { wrapper } = await mountRoute('/routing/relayhosts')
     await listed(wrapper)
     expect(wrapper.text()).toContain('[smtp.example.net]:587')
     const row = wrapper.get('[data-entry="2"]')
-    expect(row.findAll('[data-action]').map((item) => item.attributes('data-action'))).toEqual([
-      'test',
-      'edit',
-      'remove',
-    ])
-    await row.get('[data-action="remove"]').trigger('click')
+    const actions = await rowActions(row)
+    expect(actions.map((item) => item.dataset.action)).toEqual(['test', 'edit', 'remove'])
+    actions.find((item) => item.dataset.action === 'remove')!.click()
     await confirmNow()
     await until(() => expect(mockState().routing.relayhosts.some((r) => r.id === 2)).toBe(false))
     expect(announce).toHaveBeenCalledWith(expect.stringContaining('2'))
@@ -100,9 +115,7 @@ describe('routing list screens', { timeout: 60_000 }, () => {
     await listed(wrapper)
     expect(wrapper.text()).toContain(text)
     const first = wrapper.find('[data-entry] [data-entry-actions]')
-    expect(first.findAll('[data-action]').map((item) => item.attributes('data-action'))).toEqual(
-      actions,
-    )
+    expect((await rowActions(first)).map((item) => item.dataset.action)).toEqual(actions)
   })
 
   it('shows the cards below md', async () => {
@@ -121,7 +134,7 @@ describe('routing list screens', { timeout: 60_000 }, () => {
     const { wrapper } = await mountRoute(path)
     await listed(wrapper)
     const before = mockState().routing[collection].length
-    await wrapper.get(`[data-entry="${id}"] [data-action="remove"]`).trigger('click')
+    await removeRow(wrapper.get(`[data-entry="${id}"]`))
     await confirmNow()
     await until(() => expect(mockState().routing[collection]).toHaveLength(before - 1))
   })

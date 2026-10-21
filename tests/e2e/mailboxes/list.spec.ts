@@ -5,6 +5,7 @@ import type { Page } from '@playwright/test'
 
 import { entries, entry, entryNames, isNarrow, listReady, openFilters } from '../domains/helpers'
 import { expect, test } from '../fixtures/test'
+import { rowAction } from '../fixtures/row-actions'
 
 async function open(page: Page, query = '') {
   await page.goto(`mailboxes${query}`)
@@ -38,7 +39,8 @@ test.describe('mailbox list', () => {
     expect(names[0]).toBe('anna@a.example')
     await expect(page.getByText('Showing 1 to 25 of 30 entries')).toBeVisible()
     const anna = entry(page, 'anna@a.example')
-    await expect(anna.getByRole('link', { name: 'Edit anna@a.example' })).toBeVisible()
+    await expect(await rowAction(page, anna, 'Edit anna@a.example')).toBeVisible()
+    await page.keyboard.press('Escape')
     if (isNarrow(page)) {
       await expect(anna.getByRole('heading', { name: 'anna@a.example' })).toBeVisible()
       await expect(anna).toContainText('Anna Smith')
@@ -52,13 +54,12 @@ test.describe('mailbox list', () => {
         'Username',
         'Quota',
         'Last mail login',
-        'Last password change',
         'In use (%)',
         'Message #',
         'Active',
         'Action',
       ])
-      await expect(anna.locator('[data-login="imap"]')).toContainText('IMAP @')
+      await expect(anna.locator('[data-cell="lastMailLogin"]')).toContainText('IMAP @')
     }
     await expectAccessible()
     await expectNoHorizontalScroll()

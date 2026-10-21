@@ -1,43 +1,52 @@
 <script setup lang="ts">
-// Legacy's row actions (`draw_mailbox_table`, `item.action`): "Edit" opens the mailbox and
-// "Remove" starts its deletion (US4), side by side as legacy's button group. The address follows
-// each label for assistive technology, so the actions of different rows are told apart. Later
-// features add theirs (data-model §8).
-import { RouterLink } from 'vue-router'
-
-import { SignInAsAction } from '@/features/acting'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useIdentityQuery } from '@/app/session/queries'
+import { canSignInAs, SignInAsAction } from '@/features/acting'
 import { lt } from '@/i18n'
+import RowActions from '@/shared/components/RowActions.vue'
+import RowAction from '@/shared/components/RowAction.vue'
 import { PencilIcon, TrashIcon } from '@/shared/icons'
-import { buttonVariants } from '@/shared/ui/button'
-
 import { readableAddress, type Mailbox } from '../../types'
 
-withDefaults(defineProps<{ mailbox: Mailbox; removable?: boolean }>(), { removable: false })
+const props = withDefaults(defineProps<{ mailbox: Mailbox; removable?: boolean }>(), {
+  removable: false,
+})
 const emit = defineEmits<{ remove: [mailbox: Mailbox, trigger: HTMLElement] }>()
+const { t } = useI18n()
+const identity = useIdentityQuery()
+const target = computed(() => ({
+  kind: 'mailboxUser' as const,
+  address: props.mailbox.address,
+  domain: props.mailbox.domain,
+}))
+const count = computed(
+  () => 1 + Number(props.removable) + Number(canSignInAs(identity.data.value, target.value)),
+)
 </script>
 
 <template>
-  <div data-row-actions class="table-actions flex flex-wrap justify-end gap-2">
-    <RouterLink
+  <RowActions
+    v-slot="{ menu }"
+    :count="count"
+    :label="t('lists.actionsFor', { name: readableAddress(mailbox) })"
+  >
+    <RowAction
+      :menu="menu"
       :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
-      :class="buttonVariants({ variant: 'outline', size: 'sm' })"
+      :label="`${lt('mailbox.edit')} ${readableAddress(mailbox)}`"
     >
-      <PencilIcon />
-      {{ lt('mailbox.edit') }}
-      <span class="sr-only">{{ readableAddress(mailbox) }}</span>
-    </RouterLink>
-    <SignInAsAction
-      :target="{ kind: 'mailboxUser', address: mailbox.address, domain: mailbox.domain }"
-    />
-    <button
+      <PencilIcon />{{ lt('mailbox.edit') }}
+    </RowAction>
+    <SignInAsAction :target="target" :menu="menu" />
+    <RowAction
       v-if="removable"
-      type="button"
-      :class="buttonVariants({ variant: 'destructive', size: 'sm' })"
-      @click="emit('remove', mailbox, $event.currentTarget as HTMLElement)"
+      :menu="menu"
+      destructive
+      :label="`${lt('mailbox.remove')} ${readableAddress(mailbox)}`"
+      @select="emit('remove', mailbox, $event)"
     >
-      <TrashIcon />
-      {{ lt('mailbox.remove') }}
-      <span class="sr-only">{{ readableAddress(mailbox) }}</span>
-    </button>
-  </div>
+      <TrashIcon />{{ lt('mailbox.remove') }}
+    </RowAction>
+  </RowActions>
 </template>

@@ -19,14 +19,13 @@ import StatusText from '../../components/common/StatusText.vue'
 import { useEntryDeletion } from '../../composables/useEntryDeletion'
 import { useRoutingIdentity } from '../../composables/useRoutingIdentity'
 import { useRoutingList } from '../../composables/useRoutingList'
-import { historyTarget } from '../../history'
 import { useBccMapListState } from '../../list-states/bcc-maps'
 import { BULK_ACTIONS, targetOf } from '../../logic/bulk-actions'
 import { conflictText } from '../../problems'
 
 const { t } = useI18n()
 const client = useQueryClient()
-const { identity, isAdmin, canWriteBcc, canSeeHistory } = useRoutingIdentity()
+const { identity, isAdmin, canWriteBcc } = useRoutingIdentity()
 
 const controller = useRoutingList<BccMap, ReturnType<typeof useBccMapListState>['params']['value']>(
   {
@@ -161,7 +160,6 @@ const edit = (item: BccMap) => ({ name: 'routing-bcc-map-edit', params: { bccMap
         section="mailbox"
         :edit-to="canWriteBcc ? edit(entry) : null"
         :removable="canWriteBcc"
-        :history="canSeeHistory ? historyTarget('bccMap', entry) : null"
         @remove="deletion.start(entry)"
       />
     </template>

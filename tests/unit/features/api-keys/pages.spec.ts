@@ -59,6 +59,11 @@ describe('ApiKeysPage', () => {
     useScenario('api-keys-many')
     const { wrapper, router } = await mountAt('/api-keys', ApiKeysPage)
     await vi.waitFor(() => expect(wrapper.findAll('tbody tr')).toHaveLength(25))
+    const first = wrapper.get('tbody tr')
+    const edit = first.get('td:last-child .table-row-controls a')
+    expect(edit.text()).toBe('Edit')
+    expect(edit.attributes('href')).toBe(first.get('td:first-child a').attributes('href'))
+    expect(first.find('td:last-child [aria-expanded]').exists()).toBe(false)
     const name = wrapper.findAll('th button').find((b) => b.text().startsWith('Name'))!
     await name.trigger('click')
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual({ sort: 'name' }))

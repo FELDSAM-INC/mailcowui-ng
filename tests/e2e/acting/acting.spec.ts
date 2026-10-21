@@ -1,4 +1,5 @@
 import { test, expect } from '../fixtures/test'
+import { clickRowAction, rowAction } from '../fixtures/row-actions'
 
 test('US2-AS7 failed Return can retry, while Sign out completely ends both identities', async ({
   page,
@@ -7,7 +8,11 @@ test('US2-AS7 failed Return can retry, while Sign out completely ends both ident
 }) => {
   await mockApi.use('acting-admin')
   await page.goto('mailboxes?q=alice')
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   await expect(page.locator('[data-acting-banner]')).toBeVisible()
   await mockApi.failNext('endImpersonation', { status: 500 })
   await page.locator('[data-acting-return]').click()
@@ -18,7 +23,11 @@ test('US2-AS7 failed Return can retry, while Sign out completely ends both ident
     .getByRole('button', { name: 'Try again', exact: true })
     .click()
   await expect(page).toHaveURL(/\/mailboxes\?q=alice$/)
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   await expect(page.locator('[data-acting-banner]')).toBeVisible()
   await page.getByRole('button', { name: 'Account menu of alice@example.org' }).click()
   await page.getByRole('menuitem', { name: 'Sign out completely', exact: true }).click()
@@ -36,7 +45,11 @@ for (const scenario of ['acting-target-forced', 'acting-target-inactive']) {
   }) => {
     await mockApi.use(scenario)
     await page.goto('mailboxes?q=alice')
-    await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+    await clickRowAction(
+      page,
+      page.locator('[data-entry="alice@example.org"]'),
+      'Login alice@example.org',
+    )
     await expect(page.locator('[data-acting-banner]')).toBeVisible()
     await expect(page).not.toHaveURL(/pending-actions/)
     await expectAccessible()
@@ -54,7 +67,11 @@ test('US2-AS1/AS3 mailbox Login shows a persistent banner and returns to the exa
 }) => {
   await mockApi.use('acting-admin')
   await page.goto('mailboxes?q=alice')
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   const banner = page.locator('[data-acting-banner]')
   await expect(banner).toContainText('alice@example.org')
   await expect(banner).toContainText('mailbox user')
@@ -82,12 +99,20 @@ test('US2-AS1/AS3 mailbox Login shows a persistent banner and returns to the exa
   await expect(banner).toHaveCount(0)
   await expect(page).not.toHaveTitle(/^Acting as/)
   await page.goto('mailboxes?q=alice')
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   await expect(banner).toBeVisible()
   await page.locator('[data-acting-return]').click()
   await expect(page).toHaveURL(/\/mailboxes\?q=alice$/)
   await expect(
-    page.getByRole('button', { name: 'Login alice@example.org', exact: true }),
+    await rowAction(
+      page,
+      page.locator('[data-entry="alice@example.org"]'),
+      'Login alice@example.org',
+    ),
   ).toBeVisible()
 })
 
@@ -103,7 +128,11 @@ test('US2-AS5 domain administrator list and detail expose Login without nested a
   await page.getByRole('menuitem', { name: 'Login reseller', exact: true }).click()
   await expect(page.locator('[data-acting-banner]')).toContainText('domain administrator')
   await page.goto('mailboxes')
+  const rowMenus = page.locator('[data-row-action-trigger]')
+  if (await rowMenus.count()) await rowMenus.first().click()
+  await expect(page.getByRole('menuitem', { name: /^Login / })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Login / })).toHaveCount(0)
+  await page.keyboard.press('Escape')
   await expectAccessible()
   await expectTouchTargets()
   await page.locator('[data-acting-return]').click()
@@ -122,14 +151,26 @@ test('US2-AS4 loginAs controls scoped mailbox actions and refusals preserve the 
   await mockApi.use('acting-reseller-no-login-as')
   await page.goto('mailboxes?q=alice')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  const rowMenus = page.locator('[data-row-action-trigger]')
+  if (await rowMenus.count()) await rowMenus.first().click()
+  await expect(page.getByRole('menuitem', { name: /^Login / })).toHaveCount(0)
   await expect(page.getByRole('button', { name: /^Login / })).toHaveCount(0)
+  await page.keyboard.press('Escape')
   await mockApi.use('acting-reseller-login-as')
   await page.reload()
   await expect(
-    page.getByRole('button', { name: 'Login alice@example.org', exact: true }),
+    await rowAction(
+      page,
+      page.locator('[data-entry="alice@example.org"]'),
+      'Login alice@example.org',
+    ),
   ).toBeVisible()
   await mockApi.failNext('startImpersonation', { status: 409, type: 'already-impersonating' })
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   await expect(page.getByRole('alert')).toContainText('already')
   await expect(page.locator('[data-acting-banner]')).toHaveCount(0)
   await expect(page).toHaveURL(/\/mailboxes\?q=alice$/)
@@ -143,7 +184,11 @@ test('US2-AS9 server-ended acting refuses the write once and restores the owner'
 }) => {
   await mockApi.use('acting-admin')
   await page.goto('mailboxes?q=alice')
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   await expect(page.locator('[data-acting-banner]')).toBeVisible()
   await mockApi.patch({ invalidateImpersonation: true })
   const mark = await mockApi.mark()
@@ -170,7 +215,11 @@ test('FR-054 acting and returning update another tab without exposing the previo
   const other = await context.newPage()
   await other.goto('administrators/admins')
   await expect(other.getByRole('heading', { level: 1 })).toBeVisible()
-  await page.getByRole('button', { name: 'Login alice@example.org', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry="alice@example.org"]'),
+    'Login alice@example.org',
+  )
   await expect(other.locator('[data-acting-banner]')).toContainText('alice@example.org')
   await expect(other.locator('[data-account-row]')).toHaveCount(0)
   await expectAccessible(other)
@@ -187,8 +236,13 @@ test('FR-053 stale CSRF never replays a write after an out-of-band identity swit
   await mockApi.use('acting-admin')
   await page.goto('mailboxes?q=alice')
   await expect(
-    page.getByRole('button', { name: 'Login alice@example.org', exact: true }),
+    await rowAction(
+      page,
+      page.locator('[data-entry="alice@example.org"]'),
+      'Login alice@example.org',
+    ),
   ).toBeVisible()
+  await page.keyboard.press('Escape')
   const csrf = (await (await page.request.get('/api/v2/csrf-token')).json()) as {
     data: { token: string }
   }

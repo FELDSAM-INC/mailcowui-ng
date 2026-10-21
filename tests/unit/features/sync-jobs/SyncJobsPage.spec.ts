@@ -123,12 +123,11 @@ describe('SyncJobsPage', () => {
 
   it('opens the log of a job as a view parameter and closes it again', async () => {
     const { wrapper, router } = await open('/sync-jobs?q=previous')
-    const openLog = wrapper
-      .get('[data-entry="2"]')
-      .findAll('button')
-      .find((item) => item.text().trim() === 'Open logs')
-    expect(openLog).toBeDefined()
-    await openLog!.trigger('click')
+    await wrapper
+      .get('[data-entry="2"] [data-row-action-trigger]')
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    document.querySelector<HTMLElement>('[role="menuitem"][aria-label="Open logs"]')!.click()
     await settle(() => expect(router.currentRoute.value.query.log).toBe('2'))
     await settle(() => expect(document.querySelector('[role="dialog"]')).not.toBeNull())
     router.back()

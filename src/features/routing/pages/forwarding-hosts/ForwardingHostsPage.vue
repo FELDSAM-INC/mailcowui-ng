@@ -177,7 +177,6 @@ const sorts = computed(() => forwardingHostSorts())
         :name="entry.address"
         section="admin"
         removable
-        :history="canSeeHistory ? historyTarget('forwardingHost', entry) : null"
         @remove="deletion.start(entry)"
       />
     </template>

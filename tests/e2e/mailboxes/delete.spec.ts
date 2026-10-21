@@ -5,13 +5,12 @@ import type { Page } from '@playwright/test'
 
 import { entry, listReady } from '../domains/helpers'
 import { expect, test } from '../fixtures/test'
+import { clickRowAction } from '../fixtures/row-actions'
 
 async function remove(page: Page, address: string) {
   await page.goto(`mailboxes?q=${address.split('@')[0]}`)
   await listReady(page)
-  await entry(page, address)
-    .getByRole('button', { name: `Remove ${address}` })
-    .click()
+  await clickRowAction(page, entry(page, address), `Remove ${address}`)
 }
 
 const dialog = (page: Page) => page.getByRole('alertdialog')
@@ -116,7 +115,7 @@ test.describe('mailbox deletion', () => {
     await remove(page, 'big@a.example')
     await dialog(page).getByRole('button', { name: 'Delete now' }).click()
     await entry(page, 'big@a.example')
-      .getByRole('button', { name: 'Remove big@a.example' })
+      .getByRole('button', { name: 'Actions for big@a.example' })
       .click({ timeout: 1000 })
       .catch(() => undefined)
     await expect(page.locator('[data-success]')).toBeVisible()

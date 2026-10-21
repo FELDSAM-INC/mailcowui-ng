@@ -12,6 +12,7 @@ import { lt, resolveText, legacy, type TextRef } from '@/i18n'
 import { formatBytes, formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import PlainText from '@/shared/components/PlainText.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
 
@@ -211,36 +212,18 @@ const detailsId = (key: string) => `${listId}-${key}`
             </button>
             <template v-else>{{ label(column.key) }}</template>
           </th>
+          <th scope="col" class="table-controls-cell px-2 py-2 text-end">
+            <span class="sr-only">{{ t('domains.list.details') }}</span>
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="(entry, index) in entries" :key="keyOf(entry, index)">
           <tr :data-entry="keyOf(entry, index)" class="align-top text-gray-900 dark:text-white">
             <td class="px-2 py-2" data-cell="time">
-              <div class="flex items-start gap-1">
-                <button
-                  type="button"
-                  class="-my-2 inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
-                  :aria-label="
-                    expanded.has(keyOf(entry, index))
-                      ? t('auditLog.details.hide')
-                      : t('auditLog.details.show')
-                  "
-                  :aria-expanded="expanded.has(keyOf(entry, index)) ? 'true' : 'false'"
-                  :aria-controls="
-                    expanded.has(keyOf(entry, index)) ? detailsId(keyOf(entry, index)) : undefined
-                  "
-                  @click="emit('toggle', keyOf(entry, index))"
-                >
-                  <ChevronDownIcon
-                    class="size-4"
-                    :class="expanded.has(keyOf(entry, index)) ? 'rotate-180' : ''"
-                  />
-                </button>
-                <time :datetime="entry.time" class="min-w-0 tabular-nums">{{
-                  formatLogTime(entry.time, loc)
-                }}</time>
-              </div>
+              <time :datetime="entry.time" class="min-w-0 tabular-nums">{{
+                formatLogTime(entry.time, loc)
+              }}</time>
             </td>
             <td class="px-2 py-2 wrap-anywhere" data-cell="ip">
               <PlainText :value="entry.clientAddress" />
@@ -266,9 +249,23 @@ const detailsId = (key: string) => `${listId}-${key}`
             <td class="px-2 py-2 tabular-nums wrap-anywhere" data-cell="scanTime">
               {{ scanTime(entry) }}
             </td>
+            <td class="table-controls-cell px-2 py-2 text-end">
+              <RowControls
+                :expanded="expanded.has(keyOf(entry, index))"
+                :controls="
+                  expanded.has(keyOf(entry, index)) ? detailsId(keyOf(entry, index)) : undefined
+                "
+                :label="
+                  expanded.has(keyOf(entry, index))
+                    ? t('auditLog.details.hide')
+                    : t('auditLog.details.show')
+                "
+                @toggle="emit('toggle', keyOf(entry, index))"
+              />
+            </td>
           </tr>
           <tr v-if="expanded.has(keyOf(entry, index))" :id="detailsId(keyOf(entry, index))">
-            <td :colspan="TABLE.length" class="px-2 py-2">
+            <td :colspan="TABLE.length + 1" class="px-2 py-2">
               <dl data-details class="grid gap-2 sm:grid-cols-2">
                 <div v-for="key in TABLE_DETAILS" :key="key" class="min-w-0">
                   <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">

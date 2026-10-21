@@ -114,10 +114,10 @@ test('table controls are compact with a mouse and retain touch targets on phones
   await mockApi.use('admin-mailboxes-30')
   await page.goto('mailboxes')
   const row = page.locator('[data-entry="anna@a.example"]')
-  const edit = row.getByRole('link', { name: 'Edit anna@a.example', exact: true })
-  await expect(edit).toBeVisible()
+  const actions = row.getByRole('button', { name: 'Actions for anna@a.example', exact: true })
+  await expect(actions).toBeVisible()
   if (testInfo.project.name !== 'desktop-chromium') {
-    expect((await edit.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+    expect((await actions.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     await expect(page.locator('main table')).toHaveCount(0)
   }
 
@@ -130,26 +130,35 @@ test('table controls are compact with a mouse and retain touch targets on phones
   )
   expect(compact).toBe(testInfo.project.name === 'desktop-chromium')
   const sort = table.locator('th[data-column="inUse"]').getByRole('button')
-  for (const control of [sort, edit]) {
+  for (const control of [sort, actions]) {
     const height = (await control.boundingBox())!.height
     if (compact) expect(height).toBeCloseTo(32, 0)
     else expect(height).toBeGreaterThanOrEqual(44)
   }
 
   const login = row.locator('[data-cell="lastMailLogin"]')
+  await expect(login.locator('details')).toHaveCount(0)
+  if (compact) await expect(login.locator('ul')).toHaveCount(0)
+  else await expect(login.locator('ul')).toBeVisible()
+  const expand = row.locator('td:last-child [data-row-expand]')
+  const details = page.locator('[data-entry-details="anna@a.example"]')
+  await expect(details).toHaveCount(0)
+  await expand.click()
+  await expect(details).toBeVisible()
+  await expect(details).toContainText('Anna Smith')
   if (compact) {
-    await expect(login.locator('details')).not.toHaveAttribute('open')
-    await expect(login.locator('ul')).toBeHidden()
-    await login.locator('summary').click()
-    await expect(login.locator('ul')).toBeVisible()
-    await expect(login.locator('[data-login="imap"]')).toBeVisible()
-    await expect(login.locator('[data-login="sso"]')).toBeVisible()
-    await login.locator('summary').click()
-    await expect(login.locator('ul')).toBeHidden()
-  } else {
-    await expect(login.locator('details')).toHaveCount(0)
-    await expect(login.locator('ul')).toBeVisible()
+    await expect(details.locator('[data-login="imap"]')).toBeVisible()
+    await expect(details.locator('[data-login="sso"]')).toBeVisible()
   }
+  await expand.click()
+  await expect(details).toHaveCount(0)
+  await actions.click()
+  await expect(
+    page.getByRole('menuitem', { name: 'Edit anna@a.example', exact: true }),
+  ).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: /History/i })).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(actions).toBeFocused()
 
   await sort.click()
   await expect(table.locator('th[data-column="inUse"]')).toHaveAttribute('aria-sort', 'ascending')

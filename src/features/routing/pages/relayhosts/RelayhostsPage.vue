@@ -27,15 +27,12 @@ import {
   relayhostSorts,
 } from '../../components/relayhosts/relayhost-columns'
 import { useEntryDeletion } from '../../composables/useEntryDeletion'
-import { useRoutingIdentity } from '../../composables/useRoutingIdentity'
 import { useRoutingList } from '../../composables/useRoutingList'
-import { historyTarget } from '../../history'
 import { useRelayhostListState } from '../../list-states/relayhosts'
 import { BULK_ACTIONS, targetOf } from '../../logic/bulk-actions'
 
 const { t } = useI18n()
 const client = useQueryClient()
-const { canSeeHistory } = useRoutingIdentity()
 const router = useRouter()
 
 const controller = useRoutingList<
@@ -137,7 +134,6 @@ const usage = (item: Relayhost) => ({
         "
         :edit-to="edit(entry)"
         removable
-        :history="canSeeHistory ? historyTarget('relayhost', entry) : null"
         @remove="deletion.start(entry)"
       />
     </template>

@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 T114: relayhost and transport passwords stay secret (SC-003, FR-025, FR-028, FR-075). No
 // seeded or typed password appears in the page, in browser storage or in the history state; a
 // typed password travels only in the body of its own write; password fields are empty after a
@@ -93,9 +94,7 @@ test.describe('credential secrecy', () => {
     }
     await page.goto('routing/relayhosts')
     await listReady(page)
-    await entry(page, 1)
-      .getByRole('button', { name: /^Remove: / })
-      .click()
+    await clickRowAction(page, entry(page, 1), /^Remove: /)
     await expect(page.getByRole('alertdialog')).toBeVisible()
     await expectNoSecretsInPage(page, SEEDED)
     await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel' }).click()

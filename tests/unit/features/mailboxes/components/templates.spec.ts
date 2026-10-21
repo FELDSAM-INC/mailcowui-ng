@@ -2,8 +2,9 @@
 // in legacy order with the groupware switch, the flags' locks and the quota slot; the card with the
 // one-line protocol summary and the forced flags as text; the table's classic columns by width with
 // the sortable headers; the entry actions; and the child row's values.
-import { describe, expect, it } from 'vitest'
-import { defineComponent, h } from 'vue'
+import { flushPromises } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
+import { h } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import type { MailboxCapabilities } from '@/api'
@@ -203,14 +204,13 @@ describe('TemplateTable', () => {
       props: { templates: [template()], sort: 'name', order: 'asc' },
       ...withRouter(),
     })
-    expect(headers(md)).toEqual(['Details', 'ID', 'Template ▲', 'Quota', 'Active', 'Action'])
+    expect(headers(md)).toEqual(['ID', 'Template ▲', 'Quota', 'Active', 'Action'])
     installMatchMedia({ '(min-width: 1280px)': true, '(min-width: 1536px)': true })
     const wide = mountWithApp(TemplateTable, {
       props: { templates: [template()], sort: 'id', order: 'desc', actions: false },
       ...withRouter(),
     })
     expect(headers(wide)).toEqual([
-      'Details',
       'ID ▼',
       'Template',
       'Quota',
@@ -225,9 +225,34 @@ describe('TemplateTable', () => {
       'SOGO',
       'TFA',
       'Active',
+      'Details',
     ])
     expect(wide.get('th[aria-sort="descending"]').text()).toContain('ID')
   })
+
+  it.each([true, false])(
+    'keeps expansion at the end and accurate colspan with actions=%s',
+    async (actions) => {
+      installMatchMedia({})
+      const wrapper = mountWithApp(TemplateTable, {
+        props: { templates: [template()], sort: 'name', order: 'asc', actions, selectable: true },
+        slots: {
+          select: '<input type="checkbox" />',
+          actions: '<button data-action>Edit</button>',
+        },
+        ...withRouter(),
+      })
+      const row = wrapper.get('tbody tr[data-entry]')
+      expect(row.get('td:first-child input').attributes('type')).toBe('checkbox')
+      const controls = row.get('td:last-child .table-row-controls')
+      expect(controls.find('[data-action]').exists()).toBe(actions)
+      expect(controls.findAll('button')[0]!.attributes('aria-expanded')).toBe('false')
+      await controls.get('button[aria-expanded]').trigger('click')
+      expect(Number(wrapper.get('[data-entry-details]').attributes('colspan'))).toBe(
+        row.findAll('td').length,
+      )
+    },
+  )
 
   it('sorts from the headers', async () => {
     installMatchMedia({})
@@ -246,23 +271,29 @@ describe('TemplateTable', () => {
 })
 
 describe('TemplateEntryActions', () => {
-  it('offers Edit for every template and Remove for all but Default', async () => {
+  it('puts Edit and Remove in a menu, but shows Edit directly for Default', async () => {
     const regular = mountWithApp(TemplateEntryActions, {
-      props: { template: template() },
       ...withRouter(),
+      props: { template: template() },
+      attachTo: document.body,
     })
-    await regular.get('button').trigger('click')
-    expect(regular.emitted('delete')).toHaveLength(1)
-    const fallback = mountWithApp(
-      defineComponent({
-        setup: () => () =>
-          h(TemplateEntryActions, {
-            template: template({ id: 1, name: 'Default', isDefault: true }),
-          }),
-      }),
-      withRouter(),
-    )
-    expect(fallback.find('button').exists()).toBe(false)
+    expect(regular.find('a').exists()).toBe(false)
+    const trigger = regular.get('[data-row-action-trigger]')
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['Edit', 'Remove'])
+    items[1]!.click()
+    await vi.waitFor(() => expect(regular.emitted('delete')).toHaveLength(1))
+    expect(document.activeElement).toBe(trigger.element)
+    regular.unmount()
+    const fallback = mountWithApp(TemplateEntryActions, {
+      ...withRouter(),
+      props: { template: template({ id: 1, name: 'Default', isDefault: true }) },
+    })
+    expect(fallback.find('[data-row-action-trigger]').exists()).toBe(false)
+    expect(fallback.get('a').text()).toBe('Edit')
     expect(fallback.get('a').attributes('aria-label')).toBe('Edit: Default')
+    fallback.unmount()
   })
 })

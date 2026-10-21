@@ -16,7 +16,6 @@ import {
   QuarantineSectionNav,
   canChangeRateLimits,
   canResetBucket,
-  canSeeHistory,
   missingFlag,
 } from '@/features/quarantine'
 import { lt, text } from '@/i18n'
@@ -48,7 +47,6 @@ const identityQuery = useIdentityQuery()
 const identity = computed(() => identityQuery.data.value)
 const changeable = computed(() => canChangeRateLimits(identity.value))
 const resettable = computed(() => canResetBucket(identity.value))
-const historyAllowed = computed(() => canSeeHistory(identity.value))
 const aclFlag = computed(() => missingFlag(identity.value, 'changeRateLimits'))
 
 const list = useRateLimitListState()
@@ -238,7 +236,6 @@ const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
           :wide="wide"
           :sort="state.sort ?? 'object'"
           :order="state.order ?? 'asc'"
-          :history-allowed="historyAllowed"
           @sort="(sort, order) => list.setSort(sort, order)"
         />
         <PaginationBar

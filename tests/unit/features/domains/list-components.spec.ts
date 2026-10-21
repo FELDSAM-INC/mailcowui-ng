@@ -128,6 +128,33 @@ describe('DomainCard', () => {
 })
 
 describe('DomainTable', () => {
+  it('keeps tags hidden until the final controls expand the row', async () => {
+    const wrapper = mountWithApp(DomainTable, {
+      ...withRouter,
+      props: {
+        domains: [domain({ tags: ['gold', 'customer'] })],
+        sort: 'name',
+        order: 'asc',
+        canSeeDomainAdmins: false,
+      },
+      slots: { actions: '<button data-action-menu>Actions</button>' },
+    })
+    expect(wrapper.find('button[aria-label="Filter by tag gold"]').exists()).toBe(false)
+    const controls = wrapper.get('tbody tr > td:last-child .table-row-controls')
+    expect(
+      controls
+        .findAll('button')
+        .map((button) => button.attributes('data-row-expand') !== undefined),
+    ).toEqual([true, false])
+    await controls.get('[data-row-expand]').trigger('click')
+    await wrapper
+      .get('[data-entry-details] button[aria-label="Filter by tag gold"]')
+      .trigger('click')
+    expect(wrapper.emitted('filterTag')).toEqual([['gold']])
+    await controls.get('[data-row-expand]').trigger('click')
+    expect(wrapper.find('[data-entry-details]').exists()).toBe(false)
+  })
+
   it('has header cells, aria-sort on the sorted column and sorts from the headers', async () => {
     const wrapper = mountWithApp(DomainTable, {
       ...withRouter,

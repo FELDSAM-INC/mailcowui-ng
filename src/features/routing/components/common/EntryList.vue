@@ -6,6 +6,7 @@
 import { computed } from 'vue'
 import { RouterLink, type RouteLocationRaw } from 'vue-router'
 
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
@@ -85,7 +86,7 @@ const LINK =
             </button>
             <template v-else>{{ column.label }}</template>
           </th>
-          <th v-if="$slots.actions" scope="col" class="px-3 py-2 text-end">
+          <th v-if="$slots.actions" scope="col" class="table-controls-cell px-3 py-2 text-end">
             {{ actionsLabel }}
           </th>
         </tr>
@@ -110,7 +111,9 @@ const LINK =
               <template v-else>{{ column.text?.(entry) }}</template>
             </slot>
           </td>
-          <td v-if="$slots.actions" class="px-3 py-3"><slot name="actions" :entry="entry" /></td>
+          <td v-if="$slots.actions" class="table-controls-cell px-3 py-3">
+            <RowControls><slot name="actions" :entry="entry" /></RowControls>
+          </td>
         </tr>
       </tbody>
     </table>

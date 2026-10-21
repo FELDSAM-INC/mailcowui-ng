@@ -11,6 +11,7 @@ import BulkActionBar from '@/shared/components/BulkActionBar.vue'
 import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
 import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
@@ -433,7 +434,7 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
                   {{ lt('admin.active') }}
                 </button>
               </th>
-              <th class="w-16 p-3 text-start">{{ lt('admin.action') }}</th>
+              <th class="table-controls-cell p-3 text-end">{{ lt('admin.action') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -472,16 +473,18 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
               </td>
               <td class="p-3"><SecondFactorStatusBadge :status="account.secondFactorStatus" /></td>
               <td class="p-3"><AccountStatusBadge :active="account.active" /></td>
-              <td class="p-1">
-                <AccountActionsMenu
-                  v-if="allowed"
-                  :account="account"
-                  :detail-to="detail(account, true)"
-                  :own="own(account)"
-                  :last-active="lastActive(account)"
-                  :busy="running || actions.pending.value"
-                  @action="actions.run($event, account)"
-                />
+              <td class="table-controls-cell p-1">
+                <RowControls>
+                  <AccountActionsMenu
+                    v-if="allowed"
+                    :account="account"
+                    :detail-to="detail(account, true)"
+                    :own="own(account)"
+                    :last-active="lastActive(account)"
+                    :busy="running || actions.pending.value"
+                    @action="actions.run($event, account)"
+                  />
+                </RowControls>
               </td>
             </tr>
           </tbody>

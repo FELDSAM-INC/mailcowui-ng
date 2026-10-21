@@ -21,16 +21,13 @@ import RoutingListScreen from '../../components/common/RoutingListScreen.vue'
 import StatusText from '../../components/common/StatusText.vue'
 import { transportColumns, transportSorts } from '../../components/transports/transport-columns'
 import { useEntryDeletion } from '../../composables/useEntryDeletion'
-import { useRoutingIdentity } from '../../composables/useRoutingIdentity'
 import { useRoutingList } from '../../composables/useRoutingList'
-import { historyTarget } from '../../history'
 import { useTransportListState } from '../../list-states/transports'
 import { BULK_ACTIONS, targetOf } from '../../logic/bulk-actions'
 
 const { t } = useI18n()
 const client = useQueryClient()
 const router = useRouter()
-const { canSeeHistory } = useRoutingIdentity()
 
 const controller = useRoutingList<
   Transport,
@@ -129,7 +126,6 @@ const testTo = (item: Transport) =>
         :test-to="testTo(entry)"
         :edit-to="edit(entry)"
         removable
-        :history="canSeeHistory ? historyTarget('transport', entry) : null"
         @remove="deletion.start(entry)"
       />
     </template>

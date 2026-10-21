@@ -83,6 +83,11 @@ describe('DkimKeysPage', () => {
     const { wrapper } = await mountList()
     expect(names(wrapper)).toContain('example.org')
     expect(names(wrapper)).toContain('example.net')
+    const row = wrapper.get('tbody tr[data-entry="example.org"]')
+    const action = row.get('td:last-child .table-row-controls a')
+    expect(action.text()).toBe('Edit')
+    expect(action.attributes('href')).toBe('/dns/dkim-keys/example.org')
+    expect(row.find('td:last-child [aria-expanded]').exists()).toBe(false)
     expect(wrapper.get('[data-result-count]').text()).toMatch(/\d/)
     await vi.waitFor(() =>
       expect(wrapper.get('[data-dkim-settings]').attributes('aria-busy')).toBeUndefined(),

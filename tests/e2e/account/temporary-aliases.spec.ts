@@ -39,13 +39,16 @@ test('empty explanation, legacy generation defaults, raw copy, permanence and co
   const row = page.locator('[data-entry]').filter({ hasText: address })
   await expect(row).toContainText('Shop')
   await expect(row.locator('time')).toHaveCount(3)
-  await row
-    .getByRole('combobox', { name: `Actions: ${address}`, exact: true })
-    .selectOption('permanent')
+  if (await row.locator('[data-row-action-trigger]').count())
+    await clickRowAction(page, row, 'Never Expire')
+  else
+    await row
+      .getByRole('combobox', { name: `Actions: ${address}`, exact: true })
+      .selectOption('permanent')
   await expect(row).toContainText('Forever')
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await row.getByRole('button', { name: `Remove: ${address}`, exact: true }).click()
+  await clickRowAction(page, row, `Remove: ${address}`)
   await expect(page.getByRole('alertdialog')).toContainText(address)
   await page.getByRole('button', { name: 'Delete now', exact: true }).click()
   await expect(row).toHaveCount(0)
@@ -189,7 +192,9 @@ test('an alias expired meanwhile reports not found and disappears after refresh'
       },
     },
   })
-  await row.getByRole('combobox', { name: /^Actions:/ }).selectOption('permanent')
+  if (await row.locator('[data-row-action-trigger]').count())
+    await clickRowAction(page, row, 'Never Expire')
+  else await row.getByRole('combobox', { name: /^Actions:/ }).selectOption('permanent')
   await expect(page.getByRole('region', { name: 'Results', exact: true })).toContainText(
     'not found',
   )
@@ -212,3 +217,4 @@ test('the spamAlias flag gates own access and generation failures retain the dra
   await page.goto('account/temporary-aliases')
   await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()
 })
+import { clickRowAction } from '../fixtures/row-actions'

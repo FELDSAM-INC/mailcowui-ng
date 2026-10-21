@@ -7,6 +7,8 @@ import { RouterLink } from 'vue-router'
 import type { ApiKey } from '@/api'
 import { lt, text } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
+import RowControls from '@/shared/components/RowControls.vue'
+import RowAction from '@/shared/components/RowAction.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
 
@@ -67,6 +69,9 @@ const head = 'px-3 py-2 text-start text-sm'
             </th>
             <th v-else scope="col" :class="head">{{ text(`apiKeys.columns.${column.key}`) }}</th>
           </template>
+          <th scope="col" class="table-controls-cell px-3 py-2 text-end text-sm">
+            {{ lt('mailbox.action') }}
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -88,6 +93,16 @@ const head = 'px-3 py-2 text-start text-sm'
             <template v-else>{{ lt('user.expire_never') }}</template>
           </td>
           <td :class="cell"><LastUse :api-key="apiKey" /></td>
+          <td :class="cell" class="table-controls-cell">
+            <RowControls>
+              <RowAction
+                :menu="false"
+                :label="lt('mailbox.edit')"
+                :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
+                :aria-label="`${lt('mailbox.edit')}: ${apiKey.name}`"
+              />
+            </RowControls>
+          </td>
         </tr>
       </tbody>
     </table>

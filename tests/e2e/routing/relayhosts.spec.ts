@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US1, Sender-dependent transports (T027): the classic list's columns as cards and a table,
 // the hint, search, filters, sort and paging in the address, the add and edit forms with
 // write-only passwords, deletion with the usage as impact, bulk actions with per-entry results,
@@ -210,7 +211,7 @@ test.describe('Sender-dependent transports', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/relayhosts')
     await listReady(page)
-    await entry(page, 2).getByRole('button', { name: 'Remove: relay.example.com' }).click()
+    await clickRowAction(page, entry(page, 2), 'Remove: relay.example.com')
     const dialog = page.getByRole('alertdialog', { name: 'Confirm deletion' })
     await expect(dialog).toContainText('example.org')
     await expect(dialog).toContainText('example.net')
@@ -221,7 +222,7 @@ test.describe('Sender-dependent transports', () => {
     await expectAccessible()
     await dialog.getByRole('button', { name: 'Cancel' }).click()
     await expect(entry(page, 2)).toBeVisible()
-    await entry(page, 2).getByRole('button', { name: 'Remove: relay.example.com' }).click()
+    await clickRowAction(page, entry(page, 2), 'Remove: relay.example.com')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(entry(page, 2)).toHaveCount(0)
     await expect(polite(page)).toContainText('Map entry 2 has been removed')
@@ -325,7 +326,7 @@ test.describe('Sender-dependent transports', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/relayhosts')
     await listReady(page)
-    await entry(page, 2).getByRole('link', { name: 'Edit: relay.example.com' }).click()
+    await clickRowAction(page, entry(page, 2), 'Edit: relay.example.com')
     await page.getByLabel('Username').fill('typed')
     await page.getByRole('link', { name: 'Previous page' }).click()
     const dialog = page.getByRole('alertdialog', { name: 'Leave without saving?' })

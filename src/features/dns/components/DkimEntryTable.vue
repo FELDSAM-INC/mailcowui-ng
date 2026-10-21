@@ -9,6 +9,8 @@ import { lt, text } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
+import RowControls from '@/shared/components/RowControls.vue'
+import RowAction from '@/shared/components/RowAction.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
 
@@ -85,7 +87,7 @@ const number = (value: number | null) =>
             </button>
             <template v-else>{{ header(column.key) }}</template>
           </th>
-          <th scope="col" class="w-16 px-3 py-2">
+          <th scope="col" class="table-controls-cell px-3 py-2">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
         </tr>
@@ -122,7 +124,18 @@ const number = (value: number | null) =>
             {{ number(entry.key?.keyLength ?? null) }}
             <span class="sr-only">{{ lt('admin.dkim_key_length') }}</span>
           </td>
-          <td class="px-3 py-2"><slot name="actions" :entry="entry" /></td>
+          <td class="table-controls-cell px-3 py-2">
+            <RowControls>
+              <slot name="actions" :entry="entry">
+                <RowAction
+                  :menu="false"
+                  :label="lt('mailbox.edit')"
+                  :aria-label="`${lt('mailbox.edit')}: ${entry.displayName}`"
+                  :to="dkimKeyLocation(entry.name)"
+                />
+              </slot>
+            </RowControls>
+          </td>
         </tr>
       </tbody>
     </table>

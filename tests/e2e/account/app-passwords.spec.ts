@@ -81,7 +81,11 @@ test('creates once, copies raw, edits, regenerates and deletes, with keyboard an
   await page.evaluate(() => document.documentElement.classList.add('dark'))
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await page.getByRole('button', { name: 'Remove: Mobile phone', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry]').filter({ hasText: 'Mobile phone' }),
+    'Remove: Mobile phone',
+  )
   await expect(page.getByRole('alertdialog')).toContainText('Mobile phone')
   await page.getByRole('button', { name: 'Delete now' }).click()
   await expect(page.locator('[data-app-password-list]')).toHaveCount(0)
@@ -111,7 +115,11 @@ test('copy refusal exposes and selects the raw secret, and Back asks before disc
   await page.getByRole('button', { name: 'Yes, I have saved it' }).click()
   await expect(page).toHaveURL(/account\/app-passwords$/)
   await expect(page.locator('[role="dialog"]')).toHaveCount(0)
-  await page.getByRole('link', { name: 'Edit: Uncopied', exact: true }).click()
+  await clickRowAction(
+    page,
+    page.locator('[data-entry]').filter({ hasText: 'Uncopied' }),
+    'Edit: Uncopied',
+  )
   await expect(page.getByRole('button', { name: 'generate', exact: true })).toBeVisible()
   await expect(page.locator('[role="dialog"]')).toHaveCount(0)
 })
@@ -301,3 +309,4 @@ test('SC-003 default creation and copy use four actions plus the mobile tab disc
     (await mockApi.requests()).filter((request) => request.operationId === 'createAppPassword'),
   ).toHaveLength(1)
 })
+import { clickRowAction } from '../fixtures/row-actions'

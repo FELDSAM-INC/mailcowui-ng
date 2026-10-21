@@ -56,8 +56,7 @@ describe('SyncJobCard', () => {
     expect(wrapper.text()).toContain('Owner')
     expect(wrapper.text()).toContain('alice@example.org')
     expect(wrapper.text()).toContain('Check log')
-    await wrapper.get('[data-result] button').trigger('click')
-    expect(wrapper.emitted('openLog')).toHaveLength(1)
+    expect(wrapper.find('[data-result] button').exists()).toBe(false)
   })
 
   it('shows the remote username and encryption instead of the owner to mailbox users', () => {
@@ -85,7 +84,6 @@ describe('SyncJobTable', () => {
       'Server',
       'Last run',
       'Last run result',
-      'Log',
       'Active',
       'Status',
       'Action',

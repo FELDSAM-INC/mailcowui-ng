@@ -1,6 +1,6 @@
 // The columns of the wide mailbox list (UI 003 FR-008, data-model §2 and §4), from the classic
-// `draw_mailbox_table()`: its visible columns, in its order, are shown by default; its row details
-// (`className: 'none'`) are offered by the column chooser. Headers are legacy's keys, or legacy's
+// `draw_mailbox_table()`: operational fields stay visible; secondary fields such as password
+// changes appear in row details and can be promoted through the column chooser. Headers are legacy's keys, or legacy's
 // hard-coded protocol names. The chosen optional columns are a device convenience in
 // `mailcowui-ng.mailboxes.columns`; unknown ids are ignored and failing storage gives the defaults.
 import type { LegacyKey } from '@/i18n'
@@ -42,7 +42,7 @@ export interface ColumnSpec {
   default: boolean
 }
 
-/** Every column in legacy's order: the defaults first, then the row details. */
+/** Column order stays stable when a secondary field is promoted to the main row. */
 export const COLUMNS: readonly ColumnSpec[] = [
   { id: 'address', label: 'mailbox.username', sort: 'address', default: true },
   { id: 'quota', label: 'mailbox.domain_quota', sort: 'quotaUsed', default: true },
@@ -51,7 +51,7 @@ export const COLUMNS: readonly ColumnSpec[] = [
     id: 'passwordChangedAt',
     label: 'mailbox.last_pw_change',
     sort: 'passwordChangedAt',
-    default: true,
+    default: false,
   },
   { id: 'inUse', label: 'mailbox.in_use', sort: 'percentUsed', default: true },
   { id: 'messages', label: 'mailbox.msg_num', sort: 'messageCount', default: true },

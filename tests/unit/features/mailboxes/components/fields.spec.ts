@@ -239,7 +239,7 @@ describe('display', () => {
     expect(lines[2]).toBe('SSO @ No record')
   })
 
-  it('summarizes the latest permitted login by its instant and discloses every protocol', async () => {
+  it('summarizes the latest permitted login by its instant and restores every protocol in full mode', async () => {
     const wrapper = mountWithApp(LastLogins, {
       props: {
         compact: true,
@@ -252,13 +252,10 @@ describe('display', () => {
         access: { imap: true, pop3: false, smtp: true, sieve: true, activeSync: true, dav: true },
       },
     })
-    expect(wrapper.get('summary').text()).toBe(
-      `SMTP @ ${formatDateTime('2026-10-17T10:00:00Z', 'en-gb')}`,
-    )
-    const disclosure = wrapper.get('details').element as HTMLDetailsElement
-    expect(disclosure.open).toBe(false)
-    await wrapper.get('summary').trigger('click')
-    expect(disclosure.open).toBe(true)
+    expect(wrapper.text()).toBe(`SMTP @ ${formatDateTime('2026-10-17T10:00:00Z', 'en-gb')}`)
+    expect(wrapper.find('details').exists()).toBe(false)
+    expect(wrapper.find('ul').exists()).toBe(false)
+    await wrapper.setProps({ compact: false })
     expect(wrapper.findAll('[data-login]').map((line) => line.attributes('data-login'))).toEqual([
       'imap',
       'smtp',
@@ -278,13 +275,9 @@ describe('display', () => {
         access: { imap: true, pop3: false, smtp: true, sieve: true, activeSync: true, dav: true },
       },
     })
-    expect(wrapper.get('summary').text()).toBe('No record')
+    expect(wrapper.text()).toBe('No record')
     expect(wrapper.find('[data-login="pop3"]').exists()).toBe(false)
-    expect(wrapper.findAll('li').map((line) => line.text())).toEqual([
-      'IMAP @ No record',
-      'SMTP @ No record',
-      'SSO @ No record',
-    ])
+    expect(wrapper.find('ul').exists()).toBe(false)
   })
 
   it('includes SSO in the compact summary even when mail protocols are disabled', () => {
@@ -295,9 +288,7 @@ describe('display', () => {
         access: { imap: false, pop3: false, smtp: false, sieve: true, activeSync: true, dav: true },
       },
     })
-    expect(wrapper.get('summary').text()).toBe(
-      `SSO @ ${formatDateTime('2026-10-21T12:00:00Z', 'en-gb')}`,
-    )
-    expect(wrapper.findAll('li')).toHaveLength(1)
+    expect(wrapper.text()).toBe(`SSO @ ${formatDateTime('2026-10-21T12:00:00Z', 'en-gb')}`)
+    expect(wrapper.find('ul').exists()).toBe(false)
   })
 })

@@ -348,10 +348,16 @@ function openLog(id: number) {
           :order="state.order ?? 'desc'"
           :selectable="selection.active.value"
           @sort="(sort, order) => list.setSort(sort, order)"
-          @open-log="(job) => openLog(job.id)"
         >
           <template #actions="{ job }">
-            <SyncJobRowActions :job="job" :role="role" can-remove @remove="actions.removeOne" />
+            <SyncJobRowActions
+              :job="job"
+              :role="role"
+              can-remove
+              can-open-log
+              @remove="actions.removeOne"
+              @open-log="openLog($event.id)"
+            />
           </template>
           <template #select-all>
             <SelectCheckbox

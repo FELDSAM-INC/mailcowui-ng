@@ -8,6 +8,7 @@ import { RouterLink } from 'vue-router'
 
 import { lt, resolveText } from '@/i18n'
 import type { Oauth2Client } from '@/api'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 
 import { SORT_LABELS } from '../columns'
@@ -68,7 +69,9 @@ function sortBy(key: Oauth2ClientSort) {
               }}</span>
             </button>
           </th>
-          <th scope="col" class="w-56 px-3 py-2 text-end">{{ lt('admin.action') }}</th>
+          <th scope="col" class="table-controls-cell px-3 py-2 text-end">
+            {{ lt('admin.action') }}
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -86,7 +89,9 @@ function sortBy(key: Oauth2ClientSort) {
           <td class="min-w-0 px-3 py-3 text-gray-900 dark:text-white">
             <RedirectUriList :uris="client.redirectUris" />
           </td>
-          <td class="px-3 py-3"><slot name="actions" :client="client" /></td>
+          <td class="table-controls-cell px-3 py-3">
+            <RowControls><slot name="actions" :client="client" /></RowControls>
+          </td>
         </tr>
       </tbody>
     </table>

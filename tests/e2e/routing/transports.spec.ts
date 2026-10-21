@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US3, Transport Maps (T054): the classic columns with the MX-based mark in text, search,
 // filters and sort in the address, the add form with several destinations and one outcome each,
 // the shared next hop credentials (inherited, refused when different, the other transports named
@@ -166,7 +167,7 @@ test.describe('Transport Maps', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/transports')
     await listReady(page)
-    await entry(page, 3).getByRole('button', { name: 'Remove: example.com' }).click()
+    await clickRowAction(page, entry(page, 3), 'Remove: example.com')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(entry(page, 3)).toHaveCount(0)
     await expect(polite(page)).toContainText('Map entry 3 has been removed')

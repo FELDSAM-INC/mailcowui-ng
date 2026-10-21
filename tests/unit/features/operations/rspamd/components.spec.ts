@@ -117,6 +117,7 @@ describe('RspamdHistoryList', () => {
       'Score',
       'Msg size',
       'Scan Time',
+      'Details',
     ])
     expect(wrapper.findAll('th[aria-sort]').map((cell) => cell.attributes('aria-sort'))).toEqual([
       'none',
@@ -131,5 +132,13 @@ describe('RspamdHistoryList', () => {
     expect(wrapper.get('[data-entry] [data-cell="score"]').text()).toContain(
       'below the required score',
     )
+    const row = wrapper.get('tbody tr[data-entry]')
+    expect(row.find('td:first-child [aria-expanded]').exists()).toBe(false)
+    await row.get('td:last-child [aria-expanded]').trigger('click')
+    expect(wrapper.emitted('toggle')).toEqual([[row.attributes('data-entry')]])
+    await wrapper.setProps({ expanded: new Set([row.attributes('data-entry')!]) })
+    expect(
+      Number(wrapper.get('[data-details]').element.closest('td')!.getAttribute('colspan')),
+    ).toBe(row.findAll('td').length)
   })
 })

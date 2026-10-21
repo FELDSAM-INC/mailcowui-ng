@@ -2,7 +2,7 @@
 // opens the mailbox with separate actions; the table's legacy headers, `aria-sort` and optional
 // columns; the filters' panel, statuses and sources labelled with the product name.
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import { fetchMailboxes } from '@/features/mailboxes/api'
@@ -71,23 +71,33 @@ describe('MailboxCard', () => {
 })
 
 describe('MailboxRowActions', () => {
-  it('offers Edit, and Remove when removable, each naming the mailbox for assistive technology', async () => {
+  it('offers Edit and Remove in a menu named for the mailbox, with a stable dialog focus target', async () => {
     const [anna] = await mailboxes('anna@')
     const wrapper = mountWithApp(MailboxRowActions, {
       props: { mailbox: anna!, removable: true },
+      attachTo: document.body,
       ...withRouter(),
     })
     await flushPromises()
-    expect(wrapper.get('a').text()).toBe('Edit anna@a.example')
-    await wrapper.get('button').trigger('click')
-    expect(wrapper.emitted('remove')?.[0]?.[0]).toMatchObject({ address: 'anna@a.example' })
-    const readOnly = mountWithApp(MailboxRowActions, { props: { mailbox: anna! }, ...withRouter() })
-    expect(readOnly.find('button').exists()).toBe(false)
+    const trigger = wrapper.get('[data-row-action-trigger]')
+    expect(trigger.attributes('aria-label')).toBe('Actions for anna@a.example')
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const edit = document.querySelector('[role="menuitem"][aria-label="Edit anna@a.example"]')!
+    expect(edit.getAttribute('href')).toBe('/ng/mailboxes/anna@a.example')
+    const remove = document.querySelector<HTMLElement>(
+      '[role="menuitem"][aria-label="Remove anna@a.example"]',
+    )!
+    remove.click()
+    await vi.waitFor(() => expect(wrapper.emitted('remove')).toHaveLength(1))
+    expect(wrapper.emitted('remove')?.[0]).toEqual([anna, trigger.element])
+    expect(document.activeElement).toBe(trigger.element)
+    wrapper.unmount()
   })
 })
 
 describe('MailboxTable', () => {
-  it('uses login disclosures only on wide fine-pointer desktops and restores the full list', async () => {
+  it('puts secondary fields and full login history behind the final row expander', async () => {
     const query = '(min-width: 1024px) and (hover: hover) and (pointer: fine)'
     const media = installMatchMedia({ [query]: true })
     const list = await mailboxes('anna@')
@@ -102,12 +112,19 @@ describe('MailboxTable', () => {
     })
     await flushPromises()
     const logins = wrapper.get('[data-cell="lastMailLogin"]')
-    expect(logins.find('details > summary').exists()).toBe(true)
-    const protocols = logins.findAll('[data-login]').map((line) => line.text())
+    expect(logins.find('details').exists()).toBe(false)
+    expect(logins.text()).toContain('IMAP @')
+    expect(wrapper.find('[data-entry-details]').exists()).toBe(false)
+    const expand = wrapper.get('tbody tr > td:last-child [data-row-expand]')
+    await expand.trigger('click')
+    const details = wrapper.get('[data-entry-details]')
+    expect(details.text()).toContain('Anna Smith')
+    const protocols = details.findAll('[data-login]').map((line) => line.text())
+    expect(protocols.length).toBeGreaterThan(1)
+    await expand.trigger('click')
+    expect(wrapper.find('[data-entry-details]').exists()).toBe(false)
     media.set(query, false)
     await flushPromises()
-    expect(logins.find('details').exists()).toBe(false)
-    expect(logins.find('summary').exists()).toBe(false)
     expect(logins.findAll('[data-login]').map((line) => line.text())).toEqual(protocols)
     wrapper.unmount()
   })
@@ -125,7 +142,6 @@ describe('MailboxTable', () => {
       'Username',
       'Quota',
       'Last mail login',
-      'Last password change',
       'In use (%)',
       'Message #',
       'Active',
@@ -239,7 +255,10 @@ describe('ColumnChooser', () => {
     await wrapper.get('button').trigger('keydown', { key: 'Enter' })
     await flushPromises()
     const items = [...document.body.querySelectorAll('[data-column-option]')]
-    expect(items.length).toBe(16)
+    expect(items.length).toBe(17)
+    expect(
+      document.body.querySelector('[data-column-option="passwordChangedAt"]')?.textContent,
+    ).toBe('Last password change')
     const domain = document.body.querySelector('[data-column-option="domain"]')!
     expect(domain.getAttribute('aria-checked')).toBe('true')
     ;(document.body.querySelector('[data-column-option="createdAt"]') as HTMLElement).click()

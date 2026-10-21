@@ -25,10 +25,7 @@ test.describe('connection test', () => {
   }) => {
     await mockApi.use('routing-tests')
     await page.goto('routing/relayhosts')
-    await page
-      .locator('[data-entry="1"]')
-      .getByRole('link', { name: /^Test:/ })
-      .click()
+    await clickRowAction(page, page.locator('[data-entry="1"]'), /^Test:/)
     await expect(page).toHaveURL(/routing\/relayhosts\/1\/test$/)
     await expect(page.getByRole('heading', { level: 1, name: 'Transport' })).toBeVisible()
     await expect(page.getByText('[smtp.example.net]:587')).toBeVisible()
@@ -254,12 +251,9 @@ test.describe('connection test', () => {
   test('FR-043 every relayhost and transport offers the test', async ({ page, mockApi }) => {
     await mockApi.use('routing-tests')
     await page.goto('routing/transports')
-    await expect(
-      page.locator('[data-entry="22"]').getByRole('link', { name: /^Test:/ }),
-    ).toBeVisible()
+    await expect(await rowAction(page, page.locator('[data-entry="22"]'), /^Test:/)).toBeVisible()
     await page.goto('routing/relayhosts')
-    await expect(
-      page.locator('[data-entry="3"]').getByRole('link', { name: /^Test:/ }),
-    ).toBeVisible()
+    await expect(await rowAction(page, page.locator('[data-entry="3"]'), /^Test:/)).toBeVisible()
   })
 })
+import { clickRowAction, rowAction } from '../fixtures/row-actions'

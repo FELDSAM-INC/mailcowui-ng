@@ -10,7 +10,7 @@ import type { Role, SyncJob } from '@/api'
 import { resolveText, type TextRef } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { ChevronDownIcon } from '@/shared/icons'
+import RowControls from '@/shared/components/RowControls.vue'
 
 import type { SyncJobSort } from '../list-state'
 import { jobLabel, listTexts } from '../presentation'
@@ -30,7 +30,6 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   sort: [sort: SyncJobSort, order: SortOrder]
-  openLog: [job: SyncJob]
 }>()
 const { t } = useI18n()
 const fmt = useFormat()
@@ -38,8 +37,7 @@ const expanded = ref(new Set<number>())
 const texts = computed(() => listTexts(props.role))
 const manager = computed(() => props.role !== 'mailboxUser')
 
-type Column =
-  'id' | 'owner' | 'server' | 'username' | 'lastRun' | 'result' | 'log' | 'active' | 'status'
+type Column = 'id' | 'owner' | 'server' | 'username' | 'lastRun' | 'result' | 'active' | 'status'
 interface ColumnSpec {
   key: Column
   label: TextRef
@@ -57,7 +55,6 @@ const columns = computed<ColumnSpec[]>(() => [
     : [{ key: 'username' as const, label: texts.value.username, sort: 'remoteUser' as const }]),
   { key: 'lastRun', label: texts.value.lastRun, sort: 'lastRunAt' },
   { key: 'result', label: texts.value.result, sort: 'lastResult' },
-  { key: 'log', label: 'syncJobs.columns.log' },
   { key: 'active', label: texts.value.active, sort: 'active' },
   { key: 'status', label: texts.value.status },
 ])
@@ -115,7 +112,9 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
             </button>
             <template v-else>{{ label(column.label) }}</template>
           </th>
-          <th scope="col" class="px-2 py-2 text-end">{{ label(texts.action) }}</th>
+          <th scope="col" class="table-controls-cell px-2 py-2 text-end">
+            {{ label(texts.action) }}
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -135,22 +134,7 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
             <td v-if="!manager" class="max-w-48 px-2 py-3 wrap-anywhere">{{ job.remoteUser }}</td>
             <td class="px-2 py-3"><SyncJobLastRun :run="job.runStatus" :role="role" /></td>
             <td class="max-w-56 px-2 py-3">
-              <SyncJobResult
-                :run="job.runStatus"
-                :role="role"
-                log-link
-                @open-log="emit('openLog', job)"
-              />
-            </td>
-            <td class="px-2 py-3">
-              <button
-                type="button"
-                class="min-h-6 text-start font-medium text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-                :aria-label="`${label(texts.openLogs)}: ${jobLabel(job)}`"
-                @click="emit('openLog', job)"
-              >
-                {{ label(texts.openLogs) }}
-              </button>
+              <SyncJobResult :run="job.runStatus" :role="role" />
             </td>
             <td class="px-2 py-3">
               <SyncJobStateBadges
@@ -167,23 +151,15 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
                 :role="role"
               />
             </td>
-            <td class="px-2 py-1">
-              <div class="flex items-center justify-end">
-                <button
-                  type="button"
-                  class="inline-flex size-11 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
-                  :aria-expanded="expanded.has(job.id) ? 'true' : 'false'"
-                  :aria-controls="`sync-job-details-${job.id}`"
-                  :aria-label="t('syncJobs.list.detailsOf', { name: jobLabel(job) })"
-                  @click="toggle(job.id)"
-                >
-                  <ChevronDownIcon
-                    class="size-5 motion-safe:transition-transform"
-                    :class="expanded.has(job.id) ? 'rotate-180' : ''"
-                  />
-                </button>
+            <td class="table-controls-cell px-2 py-1">
+              <RowControls
+                :expanded="expanded.has(job.id)"
+                :controls="`sync-job-details-${job.id}`"
+                :label="t('syncJobs.list.detailsOf', { name: jobLabel(job) })"
+                @toggle="toggle(job.id)"
+              >
                 <slot name="actions" :job="job" />
-              </div>
+              </RowControls>
             </td>
           </tr>
           <tr v-if="expanded.has(job.id)" :id="`sync-job-details-${job.id}`">

@@ -56,6 +56,11 @@ describe('MTA-STS policy entries', () => {
     expect(wrapper.emitted('sort')?.[0]).toEqual(['policyId', 'asc'])
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
     expect(wrapper.text()).toContain('Inactive')
+    const first = wrapper.get('tbody tr')
+    const edit = first.get('td:last-child .table-row-controls a')
+    expect(edit.text()).toBe('Edit')
+    expect(edit.attributes('href')).toBe(first.get('td:first-child a').attributes('href'))
+    expect(first.find('td:last-child [aria-expanded]').exists()).toBe(false)
   })
 })
 

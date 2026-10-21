@@ -8,6 +8,7 @@ import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { resolveText, type TextRef } from '@/i18n'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon } from '@/shared/icons'
 
@@ -40,6 +41,7 @@ const action = computed(() => byKey.value.get('action'))
 const visible = (column: LogColumn) => column.key !== 'stripe' && column.key !== 'action'
 const tableColumns = computed(() => props.type.columns.filter((c) => visible(c) && !c.detail))
 const tableDetails = computed(() => props.type.columns.filter((c) => visible(c) && c.detail))
+const hasControls = computed(() => tableDetails.value.length > 0 || !!action.value)
 const cardHead = computed(() =>
   props.type.card.head.map((key) => byKey.value.get(key)).filter((c): c is LogColumn => !!c),
 )
@@ -131,7 +133,11 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
   </ul>
 
   <div v-else class="table-frame">
-    <table data-log-table class="data-table w-full table-fixed text-sm">
+    <table
+      data-log-table
+      class="data-table w-full table-fixed text-sm"
+      :style="action ? { '--table-controls-width': '12rem' } : undefined"
+    >
       <caption class="sr-only">
         {{
           title
@@ -158,8 +164,8 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
             </button>
             <template v-else>{{ label(column.label) }}</template>
           </th>
-          <th v-if="action" scope="col" class="px-2 py-2 text-end">
-            {{ label(action.label) }}
+          <th v-if="hasControls" scope="col" class="table-controls-cell px-2 py-2 text-end">
+            {{ action ? label(action.label) : t('domains.list.details') }}
           </th>
         </tr>
       </thead>
@@ -173,33 +179,27 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
               :class="index === 0 ? stripe(entry) : ''"
               :data-cell="column.key"
             >
-              <div v-if="index === 0" class="flex items-start gap-1">
-                <button
-                  v-if="tableDetails.length > 0"
-                  type="button"
-                  class="-my-2 inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-800"
-                  :aria-label="
-                    expanded.has(entry.id) ? t('auditLog.details.hide') : t('auditLog.details.show')
-                  "
-                  :aria-expanded="expanded.has(entry.id) ? 'true' : 'false'"
-                  :aria-controls="expanded.has(entry.id) ? detailsId(entry) : undefined"
-                  @click="emit('toggle', entry.id)"
-                >
-                  <ChevronDownIcon
-                    class="size-4"
-                    :class="expanded.has(entry.id) ? 'rotate-180' : ''"
-                  />
-                </button>
-                <span class="min-w-0"><LogCellView :cell="column.cell(entry)" /></span>
-              </div>
-              <LogCellView v-else :cell="column.cell(entry)" />
+              <LogCellView :cell="column.cell(entry)" />
             </td>
-            <td v-if="action" class="px-2 py-2 text-end">
-              <LogCellView :cell="action.cell(entry)" @reset="(hash) => emit('reset', hash)" />
+            <td v-if="hasControls" class="table-controls-cell px-2 py-2 text-end">
+              <RowControls
+                :expanded="tableDetails.length > 0 ? expanded.has(entry.id) : undefined"
+                :controls="expanded.has(entry.id) ? detailsId(entry) : undefined"
+                :label="
+                  expanded.has(entry.id) ? t('auditLog.details.hide') : t('auditLog.details.show')
+                "
+                @toggle="emit('toggle', entry.id)"
+              >
+                <LogCellView
+                  v-if="action"
+                  :cell="action.cell(entry)"
+                  @reset="(hash) => emit('reset', hash)"
+                />
+              </RowControls>
             </td>
           </tr>
           <tr v-if="tableDetails.length > 0 && expanded.has(entry.id)" :id="detailsId(entry)">
-            <td :colspan="tableColumns.length + (action ? 1 : 0)" class="px-2 py-2">
+            <td :colspan="tableColumns.length + (hasControls ? 1 : 0)" class="px-2 py-2">
               <dl data-details class="grid gap-2 sm:grid-cols-2">
                 <div v-for="column in tableDetails" :key="column.key" class="min-w-0">
                   <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">

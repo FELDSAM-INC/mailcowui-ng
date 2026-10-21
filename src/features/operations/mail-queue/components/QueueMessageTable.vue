@@ -3,7 +3,7 @@
 // arrival time, message size, sender, the recipients as "address (reason)" lines, and the action
 // "Show message". The headers of the sortable columns sort the list (`aria-sort`). Slots:
 // `select-all`, `select` (selection mode).
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import type { MailQueueMessage } from '@/api'
@@ -11,6 +11,8 @@ import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import PlainText from '@/shared/components/PlainText.vue'
 import RelativeTime from '@/shared/components/RelativeTime.vue'
+import RowControls from '@/shared/components/RowControls.vue'
+import RowAction from '@/shared/components/RowAction.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 
 import type { MailQueueSort } from '../list-state'
@@ -89,7 +91,9 @@ function sortBy(key: MailQueueSort) {
             </button>
             <template v-else>{{ label(column.label) }}</template>
           </th>
-          <th scope="col" class="px-2 py-2 text-end">{{ lt('admin.action') }}</th>
+          <th scope="col" class="table-controls-cell px-2 py-2 text-end">
+            {{ lt('admin.action') }}
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -118,15 +122,16 @@ function sortBy(key: MailQueueSort) {
               </li>
             </ul>
           </td>
-          <td class="px-2 py-1 text-end">
-            <RouterLink
-              :to="show(message)"
-              :data-show-message="message.id"
-              :aria-describedby="`queue-row-${message.id}`"
-              class="inline-flex min-h-11 items-center font-medium text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-            >
-              {{ lt('queue.show_message') }}
-            </RouterLink>
+          <td class="table-controls-cell px-2 py-1 text-end">
+            <RowControls>
+              <RowAction
+                :menu="false"
+                :label="lt('queue.show_message')"
+                :to="show(message)"
+                :data-show-message="message.id"
+                :aria-describedby="`queue-row-${message.id}`"
+              />
+            </RowControls>
           </td>
         </tr>
       </tbody>

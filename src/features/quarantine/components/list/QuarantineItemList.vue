@@ -7,6 +7,9 @@ import { RouterLink } from 'vue-router'
 import type { QuarantineItem } from '@/api'
 import { lt, text } from '@/i18n'
 import PlainText from '@/shared/components/PlainText.vue'
+import RowAction from '@/shared/components/RowAction.vue'
+import RowActions from '@/shared/components/RowActions.vue'
+import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { buttonVariants } from '@/shared/ui/button'
@@ -102,7 +105,7 @@ function sortBy(field: QuarantineSort) {
               {{ label(field) }}
             </button>
           </th>
-          <th scope="col" class="w-48 px-2 text-start">
+          <th scope="col" class="table-controls-cell px-2 text-end">
             {{ lt('quarantine.action') }}
           </th>
         </tr>
@@ -129,33 +132,30 @@ function sortBy(field: QuarantineSort) {
             /></RouterLink>
             <QuarantineItemValue v-else :item="item" :field="field" />
           </td>
-          <td class="px-2 py-3">
-            <div class="table-actions flex flex-col items-start gap-2">
-              <RouterLink
-                :to="itemRoute(item)"
-                :class="
-                  buttonVariants({
-                    variant: 'outline',
-                    class: 'h-auto min-h-11 max-w-full whitespace-normal',
-                  })
-                "
-                >{{ lt('quarantine.show_item') }}</RouterLink
+          <td class="table-controls-cell px-2 py-3">
+            <RowControls>
+              <RowActions
+                v-slot="{ menu }"
+                :count="canRemove ? 2 : 1"
+                :label="`${lt('quarantine.action')}: ${item.id}`"
               >
-              <button
-                v-if="canRemove"
-                type="button"
-                :disabled="busy"
-                :class="
-                  buttonVariants({
-                    variant: 'outline',
-                    class: 'h-auto min-h-11 max-w-full whitespace-normal',
-                  })
-                "
-                @click="emit('remove', item)"
-              >
-                {{ lt('quarantine.remove') }}
-              </button>
-            </div>
+                <RowAction
+                  :menu="menu"
+                  :to="itemRoute(item)"
+                  :label="lt('quarantine.show_item')"
+                  :aria-label="`${lt('quarantine.show_item')}: ${item.id}`"
+                />
+                <RowAction
+                  v-if="canRemove"
+                  :menu="menu"
+                  :disabled="busy"
+                  destructive
+                  :label="lt('quarantine.remove')"
+                  :aria-label="`${lt('quarantine.remove')}: ${item.id}`"
+                  @select="emit('remove', item)"
+                />
+              </RowActions>
+            </RowControls>
           </td>
         </tr>
       </tbody>

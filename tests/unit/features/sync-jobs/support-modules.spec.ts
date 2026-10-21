@@ -3,7 +3,7 @@
 // domain filter, the routes that load the feature's strings with their pages, and the row menu with
 // the classic Edit and Remove.
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import FieldLabel from '@/features/sync-jobs/components/FieldLabel.vue'
@@ -86,6 +86,45 @@ describe('SyncJobRowActions', () => {
       item.textContent?.trim(),
     )
     expect(items).toEqual(['Edit', 'Remove'])
+    wrapper.unmount()
+  })
+  it('shows Edit directly when removal is not permitted', async () => {
+    const router = createRouter({
+      history: createMemoryHistory('/ng/'),
+      routes: [{ path: '/:any(.*)*', component: { render: () => null } }],
+    })
+    const job = syncJobView(mockSyncJob({ id: 4, mailbox: 'alice@example.org' }))
+    const wrapper = mountWithApp(SyncJobRowActions, {
+      props: { job, role: 'domainAdmin', canRemove: false },
+      global: { plugins: [router] },
+    })
+    expect(wrapper.find('[data-row-action-trigger]').exists()).toBe(false)
+    expect(wrapper.find('button').exists()).toBe(false)
+    expect(wrapper.get('a').text()).toBe('Edit')
+    await wrapper.get('a').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/sync-jobs/4')
+    wrapper.unmount()
+  })
+  it('opens logs from the menu after returning focus to its trigger', async () => {
+    const router = createRouter({
+      history: createMemoryHistory('/ng/'),
+      routes: [{ path: '/:any(.*)*', component: { render: () => null } }],
+    })
+    const job = syncJobView(mockSyncJob({ id: 4, mailbox: 'alice@example.org' }))
+    const wrapper = mountWithApp(SyncJobRowActions, {
+      props: { job, role: 'admin', canRemove: true, canOpenLog: true },
+      global: { plugins: [router] },
+      attachTo: document.body,
+    })
+    const trigger = wrapper.get('[data-row-action-trigger]')
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]
+    expect(items.map((item) => item.textContent?.trim())).toEqual(['Edit', 'Open logs', 'Remove'])
+    items[1]!.click()
+    await vi.waitFor(() => expect(wrapper.emitted('openLog')).toEqual([[job]]))
+    expect(document.activeElement).toBe(trigger.element)
     wrapper.unmount()
   })
 })

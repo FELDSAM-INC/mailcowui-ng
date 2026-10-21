@@ -410,7 +410,6 @@ function toggleSelecting() {
         @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })"
       />
       <AliasSortControl
-        v-if="!wide"
         :sort="state.sort ?? 'id'"
         :order="state.order ?? 'desc'"
         :groupware-enabled="groupwareEnabled"

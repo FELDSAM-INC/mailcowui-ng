@@ -23,15 +23,12 @@ import {
   tlsPolicyMapSorts,
 } from '../../components/tls-policy-maps/tls-policy-map-columns'
 import { useEntryDeletion } from '../../composables/useEntryDeletion'
-import { useRoutingIdentity } from '../../composables/useRoutingIdentity'
 import { useRoutingList } from '../../composables/useRoutingList'
-import { historyTarget } from '../../history'
 import { useTlsPolicyMapListState } from '../../list-states/tls-policy-maps'
 import { BULK_ACTIONS, targetOf } from '../../logic/bulk-actions'
 
 const { t } = useI18n()
 const client = useQueryClient()
-const { canSeeHistory } = useRoutingIdentity()
 
 const controller = useRoutingList<
   TlsPolicyMap,
@@ -118,7 +115,6 @@ const edit = (item: TlsPolicyMap) => ({
         section="mailbox"
         :edit-to="edit(entry)"
         removable
-        :history="canSeeHistory ? historyTarget('tlsPolicyMap', entry) : null"
         @remove="deletion.start(entry)"
       />
     </template>

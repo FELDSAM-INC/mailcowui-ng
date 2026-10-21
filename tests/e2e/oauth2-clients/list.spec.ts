@@ -43,8 +43,10 @@ test.describe('OAuth2 apps list', () => {
       }
       await expect(page.getByRole('columnheader', { name: 'Client secret' })).toHaveCount(0)
     }
-    await expect(wiki.getByRole('link', { name: `Edit: ${fixedClientId(3)}` })).toBeVisible()
-    await expect(wiki.getByRole('button', { name: `Remove: ${fixedClientId(3)}` })).toBeVisible()
+    await wiki.getByRole('button', { name: `Actions for ${fixedClientId(3)}` }).click()
+    await expect(page.getByRole('menuitem', { name: `Edit: ${fixedClientId(3)}` })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: `Remove: ${fixedClientId(3)}` })).toBeVisible()
+    await page.keyboard.press('Escape')
     // No stored secret is ever shown (owner decision).
     await expect(page.locator('body')).not.toContainText('00000000f00d0003')
     await expectAccessible()

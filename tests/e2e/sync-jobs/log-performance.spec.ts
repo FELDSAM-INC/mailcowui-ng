@@ -15,11 +15,9 @@ test.describe('large run log', () => {
     await page.locator('[data-entry="1"]').waitFor()
     const cdp = await page.context().newCDPSession(page)
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
+    await page.locator('[data-entry="1"] [data-row-action-trigger]').click()
     const started = Date.now()
-    await page
-      .locator('[data-entry="1"]')
-      .getByRole('button', { name: /^Open logs/ })
-      .click()
+    await page.getByRole('menuitem', { name: 'Open logs', exact: true }).click()
     const region = page.getByRole('dialog').getByRole('region')
     await expect(region.locator('[data-chunk]').first()).toContainText('msg INBOX/000001', {
       timeout: 3_000,

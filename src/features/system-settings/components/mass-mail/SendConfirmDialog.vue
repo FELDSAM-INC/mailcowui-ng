@@ -10,14 +10,14 @@ const { t } = useI18n(),
 <template>
   <div class="space-y-4" data-send-confirm>
     <dl class="grid min-w-0 gap-2">
-      <dt class="font-medium">{{ lt('admin.from') }}</dt>
-      <dd class="wrap-anywhere">{{ message.sender }}</dd>
-      <dt class="font-medium">{{ lt('admin.subject') }}</dt>
-      <dd class="wrap-anywhere">{{ message.subject }}</dd>
-      <dt class="font-medium">{{ lt('admin.recipients') }}</dt>
-      <dd class="wrap-anywhere">{{ summary }}</dd>
+      <dt class="font-medium text-gray-700 dark:text-gray-300">{{ lt('admin.from') }}</dt>
+      <dd class="wrap-anywhere text-gray-700 dark:text-gray-300">{{ message.sender }}</dd>
+      <dt class="font-medium text-gray-700 dark:text-gray-300">{{ lt('admin.subject') }}</dt>
+      <dd class="wrap-anywhere text-gray-700 dark:text-gray-300">{{ message.subject }}</dd>
+      <dt class="font-medium text-gray-700 dark:text-gray-300">{{ lt('admin.recipients') }}</dt>
+      <dd class="wrap-anywhere text-gray-700 dark:text-gray-300">{{ summary }}</dd>
     </dl>
-    <p>
+    <p class="text-gray-700 dark:text-gray-300">
       {{
         t(
           'systemSettings.massMail.count',
@@ -26,6 +26,6 @@ const { t } = useI18n(),
         )
       }}
     </p>
-    <p>{{ t('systemSettings.massMail.confirmNote') }}</p>
+    <p class="text-gray-700 dark:text-gray-300">{{ t('systemSettings.massMail.confirmNote') }}</p>
   </div>
 </template>

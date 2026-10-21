@@ -13,6 +13,11 @@ export interface MessageDraft {
   textBody: string
   htmlBody: string
 }
+/** The editable compose step for an authoritative API field path. */
+export function composeStepForField(path: string): 1 | 2 | null {
+  if (path === 'selection' || path.startsWith('selection.')) return 1
+  return ['sender', 'subject', 'textBody', 'htmlBody'].includes(path) ? 2 : null
+}
 const unique = (items: readonly string[]) => [
   ...new Set(items.map((item) => item.trim().toLowerCase()).filter(Boolean)),
 ]

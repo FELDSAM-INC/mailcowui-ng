@@ -21,6 +21,26 @@ const violation = (
 
 describe('UI013 and sync-job contract message coverage', () => {
   it.each(['en-gb', 'cs-cz', 'sk-sk'] as const)(
+    'names both eligibility reasons on indexed include/exclude entries in %s',
+    async (locale) => {
+      await loadLocale(i18n, locale)
+      i18n.global.locale.value = locale
+      for (const list of ['include', 'exclude']) {
+        for (const reason of ['notReceiving', 'outsideSelectedDomains']) {
+          const context = { formKey: 'systemSettings.massMail.form', path: `selection.${list}.2` }
+          const rule = violation('notEligible', { reason })
+          const key = `systemSettings.massMail.form.errors.selection.${list}.notEligible.reason.${reason}`
+          expect(violationMessageKey(rule, hasMessage, context)).toBe(key)
+          const message = violationMessage(rule, tr(), context)
+          expect(message).toBe(text(key))
+          expect(message).not.toContain('allowedRoles')
+          expect(message).not.toContain('PRIVATE SERVER DIAGNOSTIC')
+        }
+      }
+    },
+  )
+
+  it.each(['en-gb', 'cs-cz', 'sk-sk'] as const)(
     'preserves precise settings format guidance in %s',
     async (locale) => {
       await loadLocale(i18n, locale)

@@ -8,6 +8,7 @@ import {
 } from '@/api'
 import { createJob, previewOptions, type previewRecipients } from '../api/mass-mail'
 import {
+  composeStepForField,
   selectionFromDraft,
   selectionKey,
   type SelectionDraft,
@@ -77,6 +78,14 @@ export function useMassMailCompose(options: ComposeOptions) {
     options.client.removeQueries({ queryKey: ['mass-mail-preview'] })
   })
 
+  function revealInvalidStep(failure: ApiProblem) {
+    const steps = [...failure.fieldErrors.keys()].map(composeStepForField)
+    // Selection takes precedence when both sections were refused; summary links expose the
+    // message errors without requiring another send attempt.
+    if (steps.includes(1)) step.value = 1
+    else if (steps.includes(2)) step.value = 2
+  }
+
   async function preview(params: MassMailPreviewParams = {}) {
     if (disposed) return
     const request = ++previewRequest
@@ -93,7 +102,7 @@ export function useMassMailCompose(options: ComposeOptions) {
     } catch (error) {
       if (disposed || requestedRevision !== revision || request !== previewRequest) return
       problem.value = problemOf(error)
-      if (problem.value?.fieldErrors.size) step.value = 1
+      if (problem.value) revealInvalidStep(problem.value)
     } finally {
       if (!disposed && request === previewRequest) pending.value = false
     }
@@ -146,7 +155,7 @@ export function useMassMailCompose(options: ComposeOptions) {
       } else if (failure?.is('mass-mail-already-running')) {
         const id = failure.extensions.runningJobId
         if (typeof id === 'string' && /^[0-9A-HJKMNP-TV-Z]{26}$/.test(id)) runningJobId.value = id
-      } else if (failure?.fieldErrors.size) step.value = 1
+      } else if (failure) revealInvalidStep(failure)
       return null
     } finally {
       if (!disposed) sending.value = false

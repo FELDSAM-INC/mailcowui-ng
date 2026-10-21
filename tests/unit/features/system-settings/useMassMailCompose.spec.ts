@@ -24,6 +24,26 @@ function setup() {
   }
 }
 describe('mass mail compose transitions', () => {
+  it('returns an authoritative sender refusal to the message step without losing the draft', async () => {
+    const { compose, stop } = setup()
+    try {
+      // The client deliberately accepts local domains; the API remains authoritative.
+      compose.draft.sender = 'noreply@localhost'
+      await compose.preview()
+      compose.step.value = 4
+      compose.confirm()
+      expect(await compose.send()).toBeNull()
+      expect(compose.problem.value?.fieldErrors.has('sender')).toBe(true)
+      expect(compose.step.value).toBe(2)
+      expect(compose.draft.sender).toBe('noreply@localhost')
+      expect(compose.draft.textBody).toBe('A notice')
+      expect(compose.confirmation.value).toBeNull()
+      expect(mockState().massMail.jobs).toHaveLength(0)
+    } finally {
+      stop()
+    }
+  })
+
   it('never sends until a current recipient preview is explicitly confirmed', async () => {
     const { compose, stop } = setup()
     expect(await compose.send()).toBeNull()

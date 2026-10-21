@@ -70,6 +70,25 @@ function mountForm() {
 }
 
 describe('useProblemForm', () => {
+  it('can render and announce a delayed refusal without stealing intentional focus', async () => {
+    const { wrapper, form } = mountForm()
+    const outside = document.createElement('button')
+    document.body.append(outside)
+    outside.focus()
+    try {
+      await form().setProblem(validationProblem({ name: [violation('required')] }), {
+        focus: false,
+      })
+      expect(wrapper.get('#key-name-error').text()).toContain('This field is required.')
+      expect(document.activeElement).toBe(outside)
+      await new Promise((resolve) => setTimeout(resolve, 60))
+      expect(wrapper.get('[data-live="assertive"]').text()).toContain('This field is required.')
+    } finally {
+      wrapper.unmount()
+      outside.remove()
+    }
+  })
+
   it('maps field errors by their dot path, including list entries', async () => {
     const { wrapper, form } = mountForm()
     await form().setProblem(

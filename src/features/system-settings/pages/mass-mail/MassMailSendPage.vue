@@ -19,7 +19,7 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useMassMailCompose } from '../../composables/useMassMailCompose'
-import { validateMassMail } from '../../lib/selection'
+import { composeStepForField, validateMassMail } from '../../lib/selection'
 import RecipientSelection from '../../components/mass-mail/RecipientSelection.vue'
 import RecipientPreview from '../../components/mass-mail/RecipientPreview.vue'
 import SendConfirmDialog from '../../components/mass-mail/SendConfirmDialog.vue'
@@ -56,11 +56,44 @@ const form = useProblemForm({
             ? `mass-${path}`
             : null,
 })
-watch(compose.problem, (problem) => {
-  void form.setProblem(problem)
-})
 const heading = ref<HTMLElement>(),
+  sendButton = ref<HTMLButtonElement>(),
   previewHtml = ref(false)
+let canFocusFailure = true
+let requestOrigin: Element | null = null
+let closingDialog: Element | null = null
+function pendingFocus(event: FocusEvent) {
+  const target = event.target as Node | null
+  if (
+    target !== document.body &&
+    target !== requestOrigin &&
+    target !== sendButton.value &&
+    !closingDialog?.contains(target)
+  )
+    canFocusFailure = false
+}
+function stopTrackingFocus() {
+  document.removeEventListener('focusin', pendingFocus)
+}
+watch(
+  [pending, sending],
+  (busy, before) => {
+    if (busy.some(Boolean) === before.some(Boolean)) return
+    stopTrackingFocus()
+    if (busy.some(Boolean)) {
+      canFocusFailure = true
+      requestOrigin = document.activeElement
+      // The confirmation can still be closing when sending begins. Its own focus and the return
+      // to Send belong to this action; moving to another control relinquishes focus ownership.
+      closingDialog = requestOrigin?.closest('[role="alertdialog"]') ?? null
+      document.addEventListener('focusin', pendingFocus)
+    }
+  },
+  { flush: 'sync' },
+)
+watch(compose.problem, (problem) => {
+  void form.setProblem(problem, { focus: canFocusFailure })
+})
 const previewParams = reactive({ page: 1, size: 25, q: '' })
 watch(compose.selectionKey, () => {
   Object.assign(previewParams, { page: 1, size: 25, q: '' })
@@ -69,8 +102,23 @@ watch(compose.selectionKey, () => {
 const steps = ['recipients', 'message', 'preview', 'send'] as const
 watch(step, async () => {
   await nextTick()
-  heading.value?.focus()
+  // API errors focus their field or summary after the selected step becomes visible.
+  if (!compose.problem.value?.fieldErrors.size) heading.value?.focus()
 })
+async function revealErrorField(event: MouseEvent) {
+  const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null
+  const fieldId = link?.getAttribute('href')?.slice(1)
+  const item = form.summary.value.find((entry) => entry.fieldId === fieldId)
+  const targetStep = item ? composeStepForField(item.path) : null
+  if (!targetStep || !fieldId) return
+  event.preventDefault()
+  event.stopPropagation()
+  step.value = targetStep
+  await nextTick()
+  const field = document.getElementById(fieldId)
+  field?.focus()
+  field?.scrollIntoView?.({ block: 'center' })
+}
 useLeaveGuard(
   computed(() => compose.dirty.value || sending.value),
   'leaveGuard.body',
@@ -78,6 +126,7 @@ useLeaveGuard(
 let timer: ReturnType<typeof setTimeout> | undefined
 onScopeDispose(() => {
   if (timer) clearTimeout(timer)
+  stopTrackingFocus()
 })
 async function valid() {
   form.clear()
@@ -194,7 +243,11 @@ async function send() {
       <h2 v-if="!wide" ref="heading" tabindex="-1" class="text-xl font-semibold">
         {{ step === 4 ? lt('admin.send') : t(`systemSettings.massMail.${steps[step - 1]}`) }}
       </h2>
-      <ErrorSummary :id="form.summaryId" :items="form.summary.value" />
+      <ErrorSummary
+        :id="form.summaryId"
+        :items="form.summary.value"
+        @click.capture="revealErrorField"
+      />
       <ProblemMessage v-if="!runningJobId" :problem="form.formProblem.value" />
       <p v-if="countChanged" role="alert">{{ t('systemSettings.massMail.countChanged') }}</p>
       <div v-if="runningJobId" data-running-conflict role="alert" class="space-y-2">
@@ -301,6 +354,7 @@ async function send() {
         <h2 v-if="wide" class="text-xl font-semibold">{{ lt('admin.send') }}</h2>
         <p class="wrap-anywhere">{{ summary }}</p>
         <button
+          ref="sendButton"
           type="button"
           :class="buttonVariants({ variant: 'default' })"
           :disabled="

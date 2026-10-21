@@ -112,24 +112,25 @@ export function useProblemForm(options: ProblemFormOptions) {
     return errors.value.get(path) ?? []
   }
 
-  async function focusAndAnnounce() {
+  async function focusAndAnnounce(focus = true) {
     await nextTick()
     const items = summary.value
     if (items.length > 1) {
-      document.getElementById(summaryId)?.focus()
+      if (focus) document.getElementById(summaryId)?.focus()
       announce(t('forms.errorSummary.title'), { assertive: true })
     } else if (items.length === 1) {
       const item = items[0]!
-      document.getElementById(item.fieldId)?.focus()
+      if (focus) document.getElementById(item.fieldId)?.focus()
       announce(item.messages.join(' '), { assertive: true })
     } else if (formProblem.value) {
       announce(problemMessage(formProblem.value), { assertive: true })
     }
   }
 
-  function setProblem(next: ApiProblem | null): Promise<void> {
+  /** A delayed response still announces its error after the caller relinquishes focus. */
+  function setProblem(next: ApiProblem | null, options: { focus?: boolean } = {}): Promise<void> {
     problem.value = next
-    return focusAndAnnounce()
+    return focusAndAnnounce(options.focus ?? true)
   }
 
   function setClientErrors(next: Record<string, string[]>): Promise<void> {

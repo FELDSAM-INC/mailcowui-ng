@@ -40,7 +40,7 @@ watch(total, (count) => {
     ></PageHeader>
     <RouterLink
       :to="{ name: 'rspamd-effective-map' }"
-      class="inline-flex min-h-11 items-center underline"
+      class="inline-flex min-h-11 items-center text-gray-800 underline dark:text-gray-100"
       >{{ lt('admin.active_rspamd_settings_map') }}</RouterLink
     >
     <RuleFilters :list="list" />

@@ -28,7 +28,7 @@ const label = (value: RuleSort) =>
     @search="list.setFilter('q', $event || undefined, { typing: true })"
   />
   <div class="flex flex-wrap items-end gap-3">
-    <label class="flex min-h-11 flex-col gap-1 text-sm"
+    <label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-100"
       >{{ lt('admin.active')
       }}<select
         class="form-control"
@@ -45,7 +45,7 @@ const label = (value: RuleSort) =>
         <option value="no">{{ t('lists.filters.no') }}</option>
       </select></label
     >
-    <label class="flex min-h-11 flex-col gap-1 text-sm"
+    <label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-100"
       >{{ t('lists.sort.label')
       }}<select
         class="form-control"

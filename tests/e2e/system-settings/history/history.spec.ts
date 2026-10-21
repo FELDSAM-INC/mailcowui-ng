@@ -109,6 +109,51 @@ test('implemented settings History actions select the right target', async ({ pa
   }
 })
 
+for (const [scenario, path, targetType, targetId] of [
+  ['rspamd-rules-30', 'system/rspamd-rules/1', 'rspamdSettingsRule', '1'],
+  [
+    'mass-mail-completed',
+    'system/mass-mail/jobs/01JQ0000000000000000000001',
+    'massMailJob',
+    '01JQ0000000000000000000001',
+  ],
+  ['quota-defaults', 'domains/example.net', 'quotaNotificationRecipients', 'example.net'],
+] as const) {
+  test(`FR-091 ${targetType} History retains the individual resource filter`, async ({
+    page,
+    mockApi,
+    expectAccessible,
+    expectNoHorizontalScroll,
+    expectTouchTargets,
+  }) => {
+    // Both the source page and Audit Log retain all four palette accessibility scans.
+    test.setTimeout(60_000)
+    await mockApi.use(scenario)
+    await page.goto(path)
+    const link = page.locator(`main a[href*="targetType=${targetType}"]`).first()
+    await expect(link).toBeVisible()
+    await expectAccessible()
+    await expectNoHorizontalScroll()
+    await expectTouchTargets()
+    await link.click()
+    await expect(page.getByRole('heading', { name: 'Audit log', exact: true })).toBeVisible()
+    const filters = new URL(page.url()).searchParams
+    expect(filters.get('targetType')).toBe(targetType)
+    expect(filters.get('targetId')).toBe(targetId)
+    // Check the API filter as well: a correct address must not conceal a broader audit query.
+    const reads = (await mockApi.requests()).filter((row) => row.operationId === 'listAuditEvents')
+    expect(reads.length).toBeGreaterThan(0)
+    for (const read of reads) {
+      const query = new URL(read.path, page.url()).searchParams
+      expect(query.get('targetType')).toBe(targetType)
+      expect(query.get('targetId')).toBe(targetId)
+    }
+    await expectAccessible()
+    await expectNoHorizontalScroll()
+    await expectTouchTargets()
+  })
+}
+
 test('global Sieve restart detail quotes markup and exposes bidi controls', async ({
   page,
   mockApi,

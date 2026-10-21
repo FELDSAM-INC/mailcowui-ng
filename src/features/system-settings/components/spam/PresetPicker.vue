@@ -75,8 +75,8 @@ async function insert(preset: Preset) {
           }}
         </button>
         <details>
-          <summary class="min-h-11 cursor-pointer py-3 text-sm">
-            <PlainText :value="title(preset)" />
+          <summary class="min-h-11 cursor-pointer py-3 text-sm text-gray-800 dark:text-gray-100">
+            <PlainText :value="title(preset)" class="text-gray-800 dark:text-gray-100" />
           </summary>
           <pre
             class="max-h-60 overflow-auto whitespace-pre-wrap break-words font-mono text-sm text-gray-800 dark:text-gray-200"

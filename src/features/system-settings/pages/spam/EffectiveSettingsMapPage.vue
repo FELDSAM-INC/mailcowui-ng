@@ -20,7 +20,7 @@ const container = ref<HTMLElement>()
   <section class="min-w-0 space-y-5">
     <RouterLink
       :to="{ name: 'rspamd-rules' }"
-      class="inline-flex min-h-11 items-center underline"
+      class="inline-flex min-h-11 items-center text-gray-800 underline dark:text-gray-100"
       >{{ lt('admin.rspamd_settings_map') }}</RouterLink
     >
     <PageHeader :title="lt('admin.active_rspamd_settings_map')" />

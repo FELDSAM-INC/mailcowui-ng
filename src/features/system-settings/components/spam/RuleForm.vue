@@ -203,7 +203,7 @@ function insert(preset: Preset) {
           :disabled="pending"
           required
         />
-        <label class="flex min-h-11 items-center gap-3 text-sm"
+        <label class="flex min-h-11 items-center gap-3 text-sm text-gray-800 dark:text-gray-100"
           ><input id="rule-active" v-model="active" type="checkbox" class="size-5" />{{
             lt('admin.active')
           }}</label

@@ -131,7 +131,7 @@ describe('submitting (FR-017, FR-018, FR-019)', () => {
     const { wrapper, router, password } = await setup('domainAdmin')
     await password.setValue(MOCK_PASSWORD)
     await wrapper.get('form').trigger('submit')
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/domains'))
     const attempt = mockState().requests.find((r) => r.operationId === 'createSession')
     expect(attempt?.body).toMatchObject({ username: 'reseller', role: 'domainAdmin' })
     expect(store.keptUsername).toBeNull()

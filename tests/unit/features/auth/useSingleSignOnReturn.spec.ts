@@ -77,11 +77,11 @@ describe('useSingleSignOnReturn', () => {
     })
   })
 
-  it('lands on home without a kept address', async () => {
+  it('lands on Password without a kept address', async () => {
     useScenario('sso-available')
     capture(`?code=c&state=${pendingState()}`)
     const { router } = await setup()
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/account/password'))
   })
 
   it.each([
@@ -144,7 +144,7 @@ describe('useSingleSignOnReturn', () => {
   it('opens the app without parameters when a session exists', async () => {
     useScenario('sso-signed-in')
     const { router } = await setup()
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/account/password'))
   })
 
   it('tries again with a new start and the kept address, never resending the code', async () => {

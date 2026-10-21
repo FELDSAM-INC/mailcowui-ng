@@ -59,6 +59,9 @@ describe('Pushover settings', () => {
     await expect(verifyPushSettings(testPlugins().queryClient, mailbox)).rejects.toMatchObject({
       status: 503,
     })
+  })
+
+  it('requires permission to replace Pushover settings', async () => {
     useScenario('account-domain-admin-no-flags')
     await expect(replacePushSettings(mailbox, fields, '"po-none"')).rejects.toMatchObject({
       status: 403,

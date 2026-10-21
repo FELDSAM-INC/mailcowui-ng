@@ -22,11 +22,13 @@ describe('Sieve contract mock', () => {
   beforeEach(() => {
     useScenario('account-admin')
   })
-  it('reserves seeded IDs and permits read-only domain administrators to validate without saving', async () => {
+  it('reserves seeded IDs when creating a filter', async () => {
     useScenario('filters-many')
     const added = await create()
     expect(added.id).toBeGreaterThan(40)
     expect(new Set(mockState().selfService.sieveFilters.map((item) => item.id)).size).toBe(41)
+  })
+  it('permits read-only domain administrators to validate without saving', async () => {
     useScenario('filters-domain-admin-no-flag')
     expect(
       requireData(await api.POST('/sieve-filters/validation', { body: { script: 'keep;' } })).data

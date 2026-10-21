@@ -135,7 +135,7 @@ export const administratorScenarios: Record<string, ScenarioDefinition> = {
     ...base(three),
     overrides: { signedInAs: 'admin', failures: { getDomainAdmin: { status: 500 } } },
   },
-  'capabilities-unavailable': {
+  'account-capabilities-read-error': {
     ...base(three),
     overrides: { signedInAs: 'admin', failures: { getAccountCapabilities: { status: 500 } } },
   },

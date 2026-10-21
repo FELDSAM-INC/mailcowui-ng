@@ -66,7 +66,7 @@ describe('usePasskeySignIn', () => {
     answerWith(webauthn, SEEDED_CREDENTIALS.admin)
     const { result, router } = await setup('domainAdmin')
     await result.signIn()
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/domains'))
     const ops = mockState().requests.map((r) => r.operationId)
     expect(ops).toEqual(
       expect.arrayContaining(['createPasskeyChallenge', 'createSessionWithPasskey']),

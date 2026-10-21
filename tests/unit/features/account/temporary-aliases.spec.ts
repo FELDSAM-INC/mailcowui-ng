@@ -76,7 +76,7 @@ describe('temporary aliases', () => {
     ).rejects.toMatchObject({ status: 404 })
     expect((await listTemporaryAliases(mailbox, { q: item.address })).data).toEqual([])
   })
-  it('enforces allowed domains, the user flag, mailbox scope and address-generation availability', async () => {
+  it('enforces allowed domains and address-generation availability', async () => {
     useScenario('temporary-aliases-empty')
     const client = testPlugins().queryClient
     await expect(
@@ -99,14 +99,20 @@ describe('temporary aliases', () => {
     await expect(
       createTemporaryAlias(client, mailbox, { domain: 'example.org' }),
     ).rejects.toMatchObject({ status: 503 })
+  })
+  it('enforces the mailbox user flag and own mailbox scope', async () => {
     useScenario('account-mailbox-no-flags')
+    const client = testPlugins().queryClient
     await expect(
       createTemporaryAlias(client, mailbox, { domain: 'example.org' }),
     ).rejects.toMatchObject({ status: 403 })
     await expect(listTemporaryAliases('alice@example.org', {})).rejects.toMatchObject({
       status: 404,
     })
+  })
+  it('permits domain administrators within their assigned mailbox scope', async () => {
     useScenario('account-domain-admin-no-flags')
+    const client = testPlugins().queryClient
     await expect(
       createTemporaryAlias(client, mailbox, { domain: 'example.org', permanent: true }),
     ).resolves.toMatchObject({ permanent: true })

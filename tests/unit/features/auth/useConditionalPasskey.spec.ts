@@ -266,7 +266,7 @@ describe('one pending request while the sign-in screen is shown (UI 001 fix, iOS
     window.dispatchEvent(new Event('focus'))
     const request = held[0]!
     request.resolve(credentialFor(SEEDED_CREDENTIALS.alice, request.options))
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/account/password'))
     expect(
       mockState()
         .requests.filter((r) => r.operationId === 'createSessionWithPasskey')

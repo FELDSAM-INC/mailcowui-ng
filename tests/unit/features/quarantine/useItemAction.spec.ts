@@ -98,7 +98,7 @@ describe('useItemAction', () => {
     ])
   })
 
-  it('releases without learning and removes, each with its alert', async () => {
+  it('releases without learning and returns to the list when the item is gone', async () => {
     const first = await setup('quarantine-mailbox-user', 2)
     await first.action.run('releaseWithoutLearning')
     expect(actionRequests().at(-1)!.body).toEqual({ learnAsHam: false })
@@ -106,6 +106,8 @@ describe('useItemAction', () => {
     await first.action.run('delete')
     // The item is gone now: the removal answers 404 and returns to the list.
     expect(first.gone).toHaveBeenCalledTimes(1)
+  })
+  it('removes an item with its success alert', async () => {
     const second = await setup('quarantine-mailbox-user', 3)
     await second.action.run('delete')
     expect(second.finished).toHaveBeenCalledWith([

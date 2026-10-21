@@ -79,7 +79,7 @@ describe('PendingActionsPage', () => {
     await inputs[1]!.setValue('summer2026x')
     const before = mockState().requests.length
     await wrapper.get('[data-forced-password]').trigger('submit')
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/account/password'))
     const ops = mockState()
       .requests.slice(before)
       .map((r) => r.operationId)
@@ -147,6 +147,6 @@ describe('PendingActionsPage', () => {
     await inputs[2]!.setValue('secret')
     await inputs[3]!.setValue('cccccbcgujhingjrdejhgfnuetrgigvejhhgbkugdedf')
     await wrapper.get('[data-yubico-setup]').trigger('submit')
-    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/'))
+    await vi.waitFor(() => expect(router.currentRoute.value.path).toBe('/account/password'))
   })
 })

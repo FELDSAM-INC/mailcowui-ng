@@ -112,20 +112,18 @@ describe('routing list screens', { timeout: 60_000 }, () => {
     expect(ids(wrapper).length).toBeGreaterThan(0)
   })
 
-  it('deletes a transport, a BCC map, a recipient map and a forwarding host', async () => {
-    for (const [path, id, collection] of [
-      ['/routing/transports', '3', 'transports'],
-      ['/routing/bcc-maps', '5', 'bccMaps'],
-      ['/routing/recipient-maps', '1', 'recipientMaps'],
-      ['/routing/forwarding-hosts', '203.0.113.9', 'forwardingHosts'],
-    ] as const) {
-      const { wrapper } = await mountRoute(path)
-      await listed(wrapper)
-      const before = mockState().routing[collection].length
-      await wrapper.get(`[data-entry="${id}"] [data-action="remove"]`).trigger('click')
-      await confirmNow()
-      await until(() => expect(mockState().routing[collection]).toHaveLength(before - 1))
-    }
+  it.each([
+    ['/routing/transports', '3', 'transports'],
+    ['/routing/bcc-maps', '5', 'bccMaps'],
+    ['/routing/recipient-maps', '1', 'recipientMaps'],
+    ['/routing/forwarding-hosts', '203.0.113.9', 'forwardingHosts'],
+  ] as const)('deletes an entry from %s after confirmation', async (path, id, collection) => {
+    const { wrapper } = await mountRoute(path)
+    await listed(wrapper)
+    const before = mockState().routing[collection].length
+    await wrapper.get(`[data-entry="${id}"] [data-action="remove"]`).trigger('click')
+    await confirmNow()
+    await until(() => expect(mockState().routing[collection]).toHaveLength(before - 1))
   })
 
   it('filters forwarding hosts by a source and shows an addition’s outcome once', async () => {

@@ -65,3 +65,11 @@ T174 is complete against the [legacy value inventory](../../specs/013-system-set
 and its follow-up assertions for stored logo size, Apps title, license verification time and
 nonempty compose HTML. This supersedes those two tasks' earlier remaining-scope cells; T167–T171
 and the independent release/manual gates remain separate.
+
+
+T168 is complete against the [role/capability checkpoint](./ui013-permissions.md): 21 additional
+browser executions cover remaining inherited-route denials, own-domain quota copies with every
+permission flag off, mailbox denial and scoped filter creation without the filters flag. Existing
+story checks provide the positive administrator and permitted Sieve paths and History rules.
+The original failed frozen filter-detail navigation check remains preserved separately; the
+focused correction waits for the intended detail route before inspecting its script.

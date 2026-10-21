@@ -98,11 +98,12 @@ instead of creating a separate seventeenth page. The old reset-email route redir
   was verified with contract-validated mocks. The later
   [Global Sieve checkpoint](./global-sieve-checkpoint.md) covers T108's absence of presets on that
   page. Split API/handler modules and page-level orchestration replace pass-through wrappers.
-- T167–T171 remain partial according to the [cross-cut evidence audit](../../docs/checkpoints/ui013-crosscut.md).
+- T167 and T169–T171 remain partial according to the [cross-cut evidence audit](../../docs/checkpoints/ui013-crosscut.md).
   Focused story/polish passes do not close catalogue-wide state, role, short-height, keyboard,
   input matrices. T172 is complete in the [storage catalogue checkpoint](../../docs/checkpoints/settings-storage-catalogue.md),
   and T174 in the [legacy value inventory](./legacy-value-inventory.md). T173 is completed by the
   [freshness and History checkpoint](./freshness-history-checkpoint.md). T161/T166's full History gate is also still open.
+  T168 is complete against the [role and capability checkpoint](../../docs/checkpoints/ui013-permissions.md).
   T175's lint boundary and T182's combined safe smoke have their separate completed evidence.
 - T020/T033 are complete after the [structured-error audit](./structured-errors-audit.md) and
   integrated compose-error visibility correction. Distributed consuming components replace the
@@ -691,7 +692,7 @@ it.
 documentation and release readiness.
 
 - [ ] T167 [P] Write and pass `tests/e2e/system-settings/polish/page-states.spec.ts`, table-driven over the catalogue (FR-015): each page's loading state in the shape of its content (delayed responses), its error state with a translated message and a working retry (`503` and `500` injection), and the empty states with their add action for app links, settings rules, filter maps, mass mail jobs, job recipients, copy recipients and CORS origins.
-- [ ] T168 [P] Write and pass `tests/e2e/system-settings/polish/permissions.spec.ts` (FR-002, SC-012): for an administrator, a domain administrator with and without the filters flag, and a mailbox user, exactly the capabilities of FR-002's table are offered: the settings area, the quota copies of own or all domains, the Sieve examples where UI 005 offers the editor, and History.
+- [x] T168 [P] Write and pass `tests/e2e/system-settings/polish/permissions.spec.ts` (FR-002, SC-012): for an administrator, a domain administrator with and without the filters flag, and a mailbox user, exactly the capabilities of FR-002's table are offered: the settings area, the quota copies of own or all domains, the Sieve examples where UI 005 offers the editor, and History.
 - [ ] T169 [P] Write and pass `tests/e2e/system-settings/polish/reflow-and-zoom.spec.ts` (FR-094, FR-097, SC-005): every page, step and dialog of this feature at 320 px and at the equivalent of 400 % zoom on a 1,280 px screen without page scroll; an editor with wrapping off scrolls only inside; in landscape on the mobile projects; the focused element is never hidden behind the header or a section's sticky action bar (WCAG 2.4.11); no transition under `prefers-reduced-motion: reduce`.
 - [ ] T170 [P] Write and pass `tests/e2e/system-settings/polish/keyboard-only.spec.ts` (FR-098, FR-101): each story's main path with the keyboard alone, with focus visible at every step: search and results, the page switcher, section edit and save, entry editing and removal, app link reordering, the colour field and picker, the editors (Tab leaves them), "Go to line", every dialog (Escape closes unless busy; focus returns).
 - [ ] T171 [P] Write and pass `tests/e2e/system-settings/polish/input-attributes.spec.ts` (FR-096, FR-099): address fields use `type="email"`, link fields `type="url"`, number fields `inputmode="numeric"`, and addresses, origins, links, colours and hex values have `autocapitalize="off"` and `autocorrect="off"`; contrast verdicts, line marks, entry validity, job statuses, outcome counts and progress have text equivalents.

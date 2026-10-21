@@ -55,6 +55,10 @@ describe('quota notification copies', () => {
     const wrapper = await setup('quota-defaults')
     expect(wrapper.find('a').exists()).toBe(true)
     mockState().settings.capabilities.limits.quotaNotificationRecipientsMax = 1
+    // The saved value and the administrator's edit capabilities are independent reads.
+    await vi.waitFor(() =>
+      expect(wrapper.find('#section-quota-copies button').exists()).toBe(true),
+    )
     await wrapper.get('#section-quota-copies button').trigger('click')
     await wrapper.get('#quota-copies-recipients').setValue('one@example.org two@example.org')
     await wrapper.get('form').trigger('submit')

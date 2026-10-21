@@ -220,12 +220,17 @@ test.describe('Fail2ban parameters @operations', () => {
     await open(page, mockApi)
     await edit(page)
     await page.getByLabel('Max. attempts', { exact: true }).fill('3')
-    await page.locator('header a[href="/ng/"]').click()
+    const logo = page.locator('[data-shell-logo]:visible')
+    await expect(logo).toHaveCount(1)
+    await logo.click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Leave without saving?')
     await dialog.getByRole('button', { name: 'Stay' }).click()
     await expect(page).toHaveURL(/operations\/fail2ban/)
     await expect(page.getByLabel('Max. attempts', { exact: true })).toHaveValue('3')
+    await logo.click()
+    await dialog.getByRole('button', { name: 'Leave', exact: true }).click()
+    await expect(page).toHaveURL(/operations\/dashboard$/)
   })
 
   test('US5-AS7 FR-070 a new ban list address only after a confirmation, then shown with Copy', async ({

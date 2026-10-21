@@ -9,7 +9,7 @@ import { MenuIcon } from '@/shared/icons'
 
 import BrandLogo from './BrandLogo.vue'
 
-defineProps<{ desktop: boolean; menuOpen: boolean }>()
+defineProps<{ desktop: boolean; menuOpen: boolean; homePath: string }>()
 defineEmits<{ openMenu: [] }>()
 const { t } = useI18n()
 const menuButton = ref<HTMLButtonElement | null>(null)
@@ -43,7 +43,8 @@ defineExpose({ menuButton })
     </button>
     <RouterLink
       v-if="!desktop"
-      to="/"
+      :to="homePath"
+      data-shell-logo
       class="flex min-h-11 min-w-0 items-center rounded-lg px-1 focus-visible:outline-2 focus-visible:outline-brand-500"
     >
       <BrandLogo class="max-w-full" text-class="truncate" />

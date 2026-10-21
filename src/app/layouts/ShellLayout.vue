@@ -12,6 +12,7 @@ import { useStatusMessage } from '@/shared/composables/useStatusMessage'
 import { CloseIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
+import { defaultLandingPath } from '../navigation/landing'
 import { usePreferencesStore } from '../preferences/store'
 import ThemeToggle from '../preferences/ThemeToggle.vue'
 import { routeAccess } from '../router/guards'
@@ -42,6 +43,9 @@ const route = useRoute()
 const wide = useMediaQuery('(min-width: 1024px)')
 const identityQuery = useIdentityQuery()
 const identity = computed(() => (session.identityTransition ? undefined : identityQuery.data.value))
+// A known identity can link directly to its landing page, avoiding a second leave confirmation
+// when the guarded root route redirects. An unresolved identity still uses the guarded root.
+const homePath = computed(() => (identity.value ? defaultLandingPath(identity.value) : '/'))
 const allowed = computed(() => routeAccess(route, identity.value) === 'allowed')
 
 const drawerOpen = ref(false)
@@ -73,7 +77,8 @@ const statusMessages = useStatusMessage().messages
       :class="sidebarCollapsed ? 'w-[90px]' : 'w-[290px]'"
     >
       <RouterLink
-        to="/"
+        :to="homePath"
+        data-shell-logo
         data-sidebar-logo
         class="flex h-24 shrink-0 items-center rounded-lg px-5 focus-visible:outline-2 focus-visible:outline-brand-500"
         :class="sidebarCollapsed ? 'justify-center' : ''"
@@ -99,6 +104,7 @@ const statusMessages = useStatusMessage().messages
         <AppHeader
           ref="header"
           :desktop="wide"
+          :home-path="homePath"
           :menu-open="wide ? !sidebarCollapsed : drawerOpen"
           @open-menu="wide ? (sidebarCollapsed = !sidebarCollapsed) : (drawerOpen = true)"
         >

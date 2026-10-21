@@ -7,6 +7,8 @@ import { type Router } from 'vue-router'
 import { queryKeys, type Identity, type PublicConfig, type Session } from '@/api'
 import AuthLayout from '@/app/layouts/AuthLayout.vue'
 import ShellLayout from '@/app/layouts/ShellLayout.vue'
+import { installGuards } from '@/app/router/guards'
+import { useSessionStore } from '@/app/session/store'
 import { installFocusManagement } from '@/app/router/focus'
 import { installTitle } from '@/app/router/title'
 import { i18n } from '@/i18n'
@@ -93,6 +95,55 @@ describe('skip link', () => {
 })
 
 describe('navigation (FR-043, FR-046)', () => {
+  it.each([
+    ['admin', '/operations/dashboard'],
+    ['domainAdmin', '/domains'],
+    ['mailboxUser', '/account/password'],
+  ] as const)(
+    'links the %s logo directly to its role landing in both layouts',
+    async (role, path) => {
+      for (const wide of [false, true]) {
+        const { wrapper } = await mountShell({ role, wide })
+        const logo = wrapper.get(wide ? '[data-sidebar-logo]' : 'header a')
+        expect(logo.attributes('href')).toBe(`/ng${path}`)
+        wrapper.unmount()
+      }
+    },
+  )
+
+  it('updates the logo destination when the current identity changes', async () => {
+    const { wrapper } = await mountShell({ role: 'admin', wide: false })
+    testPlugins().queryClient.setQueryData(
+      queryKeys.identity(),
+      identity('mailboxUser', 'alice@example.org'),
+    )
+    await flushPromises()
+    expect(wrapper.get('header a').attributes('href')).toBe('/ng/account/password')
+    wrapper.unmount()
+  })
+
+  it('keeps the guarded root fallback while an identity switch is unresolved', async () => {
+    const { wrapper } = await mountShell({ role: 'admin', wide: true })
+    useSessionStore().identityTransition = true
+    await nextTick()
+    expect(wrapper.get('[data-shell-logo]').attributes('href')).toBe('/ng/')
+    wrapper.unmount()
+  })
+
+  it('still enforces newly required pending actions when the logo is followed', async () => {
+    const { wrapper, router } = await mountShell({ role: 'admin', wide: false })
+    const { queryClient } = testPlugins()
+    installGuards(router, { queryClient })
+    queryClient.setQueryData(queryKeys.session(), {
+      ...session('admin', 'admin'),
+      state: 'restricted',
+      pendingActions: ['passwordChange'],
+    } satisfies Session)
+    await wrapper.get('[data-shell-logo]').trigger('click')
+    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('pending-actions'))
+    wrapper.unmount()
+  })
+
   it('is a static list from the lg breakpoint, with the catalogue entries', async () => {
     const { wrapper } = await mountShell({ wide: true })
     const nav = wrapper.get('nav[aria-label="Main navigation"]')

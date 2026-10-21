@@ -15,6 +15,10 @@ import { utf8ByteLength } from '@/shared/validation/utf8'
 import { buttonVariants } from '@/shared/ui/button'
 import { measureLines, updateLineLayout, visibleLines } from './line-layout'
 import EditorLoadState from './EditorLoadState.vue'
+type EditorMark = { line: number; message: string }
+defineSlots<{
+  'mark-message'?: (props: { mark: EditorMark; index: number }) => unknown
+}>()
 const loadFailure = ref<Error>()
 const nativeFallback = ref(false)
 const LargeCodeEditor = defineAsyncComponent({
@@ -34,7 +38,7 @@ const props = withDefaults(
     modelValue: string
     label: string
     maxBytes: number
-    marks?: readonly { line: number; message: string }[]
+    marks?: readonly EditorMark[]
     errors?: readonly string[]
     readonly?: boolean
     disabled?: boolean
@@ -291,13 +295,13 @@ onBeforeUnmount(() => {
       </p>
       <ul v-if="marks.length" class="space-y-2">
         <li
-          v-for="mark in marks.slice(0, 100)"
+          v-for="(mark, index) in marks.slice(0, 100)"
           :key="`${mark.line}-${mark.message}`"
           class="flex flex-wrap items-center gap-2 text-red-700 dark:text-red-300"
         >
           <span
             >{{ t('codeEditor.line', { line: format.number(mark.line) }) }}:
-            {{ mark.message }}</span
+            <slot name="mark-message" :mark="mark" :index="index">{{ mark.message }}</slot></span
           ><button
             type="button"
             :class="buttonVariants({ variant: 'outline', size: 'sm' })"

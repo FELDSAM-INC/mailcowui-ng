@@ -76,9 +76,14 @@ it('quotes untrusted parser messages visibly and clears obsolete marks after edi
   await vi.waitFor(() => expect(wrapper.text()).toContain('[U+202E]'))
   expect(wrapper.text()).toContain('<img src=x>')
   expect(wrapper.find('img').exists()).toBe(false)
+  const diagnostic = wrapper.get('q[lang="en"]')
+  expect(diagnostic.text()).toBe('<img src=x>[U+202E] parser detail')
+  expect(diagnostic.text()).not.toContain('Sieve parser error')
+  expect(diagnostic.element.parentElement?.textContent).toContain('Sieve parser error:')
   expect(wrapper.text()).toContain('Go to line 2')
   await wrapper.get('textarea').setValue('keep;')
   expect(wrapper.text()).not.toContain('parser detail')
+  expect(wrapper.find('q').exists()).toBe(false)
 })
 
 it('keeps a draft after cancelling confirmation and blocks oversized UTF-8 before requests', async () => {

@@ -41,7 +41,7 @@ test('shows both global filters with consistent tabs, no presets and safe script
   await pre.getByRole('button', { name: 'Edit', exact: true }).click()
   await pre.locator('textarea').fill('# comment\nkeep')
   await pre.getByRole('button', { name: 'Validate', exact: true }).click()
-  await expect(pre.getByText(/Expected semicolon after keep/)).toBeVisible()
+  await expect(pre.locator('q[lang=en]')).toHaveText(/Expected semicolon after keep/)
   await pre.getByRole('button', { name: 'Go to line 2', exact: true }).click()
   await expect(pre.locator('textarea')).toBeFocused()
   expect(

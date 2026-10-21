@@ -1,4 +1,5 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
+import { h } from 'vue'
 import { mountWithApp } from '../../support/mount'
 import CodeEditor from '@/shared/components/code-editor/CodeEditor.vue'
 beforeEach(() => {
@@ -13,6 +14,25 @@ beforeEach(() => {
   vi.stubGlobal('cancelAnimationFrame', () => {})
 })
 afterEach(() => vi.restoreAllMocks())
+it('allows semantic mark content without changing its plain accessible description', () => {
+  const wrapper = mountWithApp(CodeEditor, {
+    props: {
+      id: 'quoted',
+      label: 'Script',
+      modelValue: 'keep',
+      maxBytes: 100,
+      marks: [{ line: 1, message: 'Parser: untrusted detail' }],
+    },
+    slots: {
+      'mark-message': ({ mark, index }) =>
+        h('q', { lang: 'en', 'data-index': index }, mark.message),
+    },
+  })
+  expect(wrapper.get('q[lang=en]').text()).toBe('Parser: untrusted detail')
+  expect(wrapper.get('q').attributes('data-index')).toBe('0')
+  expect(wrapper.text()).toContain('Go to line 1')
+  expect(wrapper.get('textarea').attributes('aria-invalid')).toBe('true')
+})
 it('keeps text inert and Tab native, wraps initially, and reports byte limits and marks', async () => {
   const wrapper = mountWithApp(CodeEditor, {
     props: {

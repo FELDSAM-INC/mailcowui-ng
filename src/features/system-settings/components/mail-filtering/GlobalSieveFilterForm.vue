@@ -34,7 +34,10 @@ const editing = ref(false)
 const reviewing = ref(false)
 const notice = ref('')
 const failure = shallowRef<ApiProblem | null>(null)
-const marks = ref<{ line: number; message: string }[]>([])
+const marks = ref<{ line: number; message: string; diagnostic: string }[]>([])
+// Keep the installation's prefix/suffix around its placeholder, while only the parser's
+// untranslated diagnostic receives English quotation semantics. No response enters markup.
+const parserLabelParts = computed(() => lt('danger.sieve_error', '\uFFFC').split('\uFFFC'))
 const editor = ref<InstanceType<typeof CodeEditor>>()
 const version = useVersionedSave({
   current: () => base.value,
@@ -149,21 +152,19 @@ async function submit(checkOnly: boolean) {
       failure.value = result.problem
       for (const violation of result.problem.fieldErrors.get('script') ?? []) {
         const line = Number(violation.params?.line)
-        if (violation.code === 'sieveSyntax' && Number.isInteger(line) && line > 0)
+        if (violation.code === 'sieveSyntax' && Number.isInteger(line) && line > 0) {
+          const diagnostic = neutralise(
+            typeof violation.params?.message === 'string' ? violation.params.message : '',
+            { multiline: false },
+          )
+            .map((part) => (part.kind === 'text' ? part.value : `[${part.codePoint}]`))
+            .join('')
           marks.value.push({
             line,
-            message: neutralise(
-              lt(
-                'danger.sieve_error',
-                typeof violation.params?.message === 'string' ? violation.params.message : '',
-              ),
-              {
-                multiline: false,
-              },
-            )
-              .map((part) => (part.kind === 'text' ? part.value : `[${part.codePoint}]`))
-              .join(''),
+            diagnostic,
+            message: lt('danger.sieve_error', `“${diagnostic}”`),
           })
+        }
       }
     }
   } catch (error) {
@@ -206,7 +207,15 @@ useLeaveGuard(
       :marks="marks"
       :readonly="!editing"
       :disabled="busy"
-    />
+    >
+      <template #mark-message="{ index }">
+        <template v-for="(part, partIndex) in parserLabelParts" :key="partIndex"
+          >{{ part
+          }}<q v-if="partIndex < parserLabelParts.length - 1" lang="en"
+            ><PlainText :value="marks[index]?.diagnostic" /></q
+        ></template>
+      </template>
+    </CodeEditor>
     <p v-if="failure && marks.length" role="alert">
       <PlainText :value="problemMessage(failure)" />
     </p>

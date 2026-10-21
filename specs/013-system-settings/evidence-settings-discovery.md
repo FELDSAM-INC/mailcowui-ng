@@ -142,3 +142,34 @@ passes 115/115. Logs: `/tmp/u013-limits-formats-{red,units,i18n,lint,types}.log`
 
 T034 is complete. T020/T033 remain open pending the separate Sieve quote semantics and remaining
 parameter-matrix audit; this checkpoint does not infer them complete from enum coverage.
+
+
+## Sieve parser quotation semantics (T020/T033 follow-up)
+
+Global Sieve validation now renders the parser diagnostic inside `<q lang="en">`, with the
+installation's unchanged `danger.sieve_error` prefix and suffix outside that quotation. The
+returned diagnostic is inert text: bidi/control characters are visibly neutralized, markup is
+never interpreted, and the line number and Go to line action remain available. Editing the
+script removes obsolete diagnostics. The editor's plain description remains available to its
+large-document surface.
+
+`CodeEditor` exposes an optional typed `mark-message` slot with the original text fallback;
+existing regex/rules consumers retain their text rendering. The global Sieve consumer provides
+the semantic quotation. Two regressions were observed failing before implementation; the
+focused Sieve/native/large-editor selection then passed **11/11**. App/test types, scoped lint,
+format and the private build pass. Its initial JavaScript is **189,561/204,800 bytes** and all
+chunk budgets pass; this is a private older baseline, not the newer release performance build.
+Logs: `/tmp/u013-sieve-quote-{red,units,lint,types,build,budget}.log`.
+The existing safe-validation browser flow passes **3/3** across mobile Chromium, desktop
+Chromium and mobile WebKit with two workers and zero retries. It verifies the semantic quote,
+line selection, clearing after edits and both-theme accessibility/reflow. Artifacts:
+`storage/app/restart-2026-10-20/u013-full-browser/sieve-quote/` in the API workspace. Its container
+and dedicated 4090/4256 servers stopped after the run.
+
+The remaining parameter audit finds existing, deliberate feature-specific presentation: logo
+SVG constructs in `LogoCard.vue`, regex reasons in `FilterMapPage.vue`, structural constructs in
+`RuleForm.vue`, and recipient-eligibility reasons in mass-mail form error mappings. The shared
+problem tests already exercise byte-size formatting, email format selection and unknown-rule
+fallback, and `problems-colours.spec.ts` covers contrast values. These do not need another generic
+parameter namespace merely to match an earlier planned filename. Exhaustive returned-reason
+matrices are not claimed by the focused quotation checks, so T020/T033 remain unchecked here.

@@ -123,7 +123,7 @@ const toggleClass = () =>
             <slot />
           </div>
           <div
-            class="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-[#1E2635]"
+            class="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-surface"
           >
             <button
               type="submit"

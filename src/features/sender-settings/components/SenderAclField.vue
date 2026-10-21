@@ -172,7 +172,7 @@ const fieldErrors = computed(() => props.state.problems.errorsFor('explicitPermi
     <div
       v-if="anyAddress"
       data-sender-check-disabled
-      class="inline-flex items-center gap-2 self-start rounded-lg bg-red-600 px-3 py-1 text-sm font-medium text-white dark:bg-red-700"
+      class="inline-flex items-center gap-2 self-start rounded-lg bg-danger px-3 py-1 text-sm font-medium text-danger-foreground"
     >
       <LegacyText k="edit.sender_acl_disabled" />
     </div>

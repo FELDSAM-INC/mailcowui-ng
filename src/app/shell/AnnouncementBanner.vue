@@ -41,7 +41,7 @@ const ICONS = {
 const STYLES: Record<NonNullable<AnnouncementType> | 'neutral', string> = {
   neutral:
     'border-gray-200 bg-gray-50 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100',
-  info: 'border-blue-light-100 bg-blue-light-50 text-blue-light-950 dark:border-blue-light-700 dark:bg-blue-light-950 dark:text-blue-light-50',
+  info: 'border-blue-light-100 bg-blue-light-50 text-blue-light-950 dark:border-blue-light-700 dark:bg-blue-light-950 dark:text-info',
   warning:
     'border-warning-200 bg-warning-50 text-warning-900 dark:border-warning-900 dark:bg-warning-950 dark:text-warning-100',
   danger:

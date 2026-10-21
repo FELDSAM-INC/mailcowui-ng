@@ -29,7 +29,7 @@ watch(source, () => {
   />
   <span
     v-else
-    class="min-w-0 font-semibold break-words text-gray-900 dark:text-white"
+    class="min-w-0 font-semibold break-words text-mailcow-brand"
     :class="textClass"
     :aria-label="compact ? branding.productName : undefined"
     >{{ branding.productName }}</span

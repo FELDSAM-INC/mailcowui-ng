@@ -1,5 +1,5 @@
 // UI 011 (FR-083, WCAG 1.4.11, T027): the two chart series colours have at least 3:1 contrast
-// against the card surface in the light theme (white) and the dark theme (gray-900).
+// against the semantic card surface in each theme.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -8,9 +8,10 @@ import { describe, expect, it } from 'vitest'
 const css = readFileSync(join(process.cwd(), 'src/styles/main.css'), 'utf8')
 
 function token(block: string, name: string): string {
-  const match = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(block)
+  const pattern = new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6}|var\\(--([\\w-]+)\\))`)
+  const match = pattern.exec(block) ?? pattern.exec(theme)
   if (!match) throw new Error(`--${name} not found`)
-  return match[1]!
+  return match[2] ? token(block, match[2]) : match[1]!
 }
 
 function luminance(hex: string): number {
@@ -30,13 +31,13 @@ const darkBlock = dark.slice(0, dark.indexOf('}'))
 
 describe('chart palette', () => {
   it.each(['color-chart-1', 'color-chart-2'])('%s reaches 3:1 on the light card', (name) => {
-    expect(contrast(token(theme, name), token(theme, 'color-white'))).toBeGreaterThanOrEqual(3)
+    expect(contrast(token(theme, name), token(theme, 'color-surface'))).toBeGreaterThanOrEqual(3)
   })
 
   it.each(['color-chart-1', 'color-chart-2'])('%s reaches 3:1 on the dark card', (name) => {
-    expect(contrast(token(darkBlock, name), token(theme, 'color-gray-900'))).toBeGreaterThanOrEqual(
-      3,
-    )
+    expect(
+      contrast(token(darkBlock, name), token(darkBlock, 'color-surface')),
+    ).toBeGreaterThanOrEqual(3)
   })
 
   it('differs between the two series', () => {

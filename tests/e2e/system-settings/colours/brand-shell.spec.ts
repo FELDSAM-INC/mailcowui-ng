@@ -122,7 +122,7 @@ test('T068 clearing colours restores defaults while focus and status colours sta
   await theme(page, false)
   await expect(section.getByRole('button', { name: 'Save changes', exact: true })).toHaveCSS(
     'background-color',
-    'rgb(70, 95, 255)',
+    'rgb(24, 121, 78)',
   )
   expect(
     await page.locator('html').evaluate((node) => node.style.getPropertyValue('--brand-light')),
@@ -198,7 +198,7 @@ test('T068 a public configuration without brandColors retains the built-in palet
   await theme(page, false)
   await expect(page.getByRole('button', { name: 'Save changes', exact: true })).toHaveCSS(
     'background-color',
-    'rgb(70, 95, 255)',
+    'rgb(24, 121, 78)',
   )
   expect(
     await page.locator('html').evaluate((node) => node.style.getPropertyValue('--brand-light')),

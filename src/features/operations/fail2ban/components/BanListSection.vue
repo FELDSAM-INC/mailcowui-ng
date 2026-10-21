@@ -260,7 +260,7 @@ function retry() {
         <li
           v-for="ban in permanentBans"
           :key="ban.network"
-          class="rounded-lg bg-red-700 px-2 py-1 font-mono text-sm font-medium wrap-anywhere text-white"
+          class="rounded-lg bg-danger px-2 py-1 font-mono text-sm font-medium wrap-anywhere text-danger-foreground"
         >
           {{ ban.network }}
         </li>

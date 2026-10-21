@@ -19,16 +19,32 @@ const valid = computed(() =>
     ? props.colour
     : null,
 )
+const palette = computed(() =>
+  props.theme === 'dark'
+    ? {
+        primary: '#53c58a',
+        foreground: '#14181d',
+        info: '#88bfff',
+        ink: '#eef2f5',
+        surface: '#222932',
+      }
+    : {
+        primary: '#18794e',
+        foreground: '#ffffff',
+        info: '#2563b4',
+        ink: '#19242d',
+        surface: '#ffffff',
+      },
+)
 const variables = computed(() => ({
-  '--accent': valid.value ?? 'var(--color-brand-500)',
-  '--accent-foreground': valid.value ? foreground(valid.value)! : '#ffffff',
-  '--accent-text':
-    valid.value ?? (props.theme === 'dark' ? 'var(--color-brand-300)' : 'var(--color-brand-600)'),
+  '--accent': valid.value ?? palette.value.primary,
+  '--accent-foreground': valid.value ? foreground(valid.value)! : palette.value.foreground,
+  '--accent-text': valid.value ?? palette.value.info,
   '--accent-hover': valid.value
     ? hoverColor(valid.value, foreground(valid.value)!)!
-    : 'var(--color-brand-600)',
-  backgroundColor: props.surface,
-  color: props.theme === 'dark' ? '#ffffff' : '#101828',
+    : `color-mix(in srgb, ${palette.value.primary} 88%, ${props.theme === 'dark' ? '#ffffff' : '#000000'})`,
+  backgroundColor: palette.value.surface,
+  color: palette.value.ink,
   colorScheme: props.theme,
 }))
 </script>

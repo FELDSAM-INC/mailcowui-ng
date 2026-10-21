@@ -45,9 +45,6 @@
 }
 
 @theme {
-  --color-acting-bg: #fffaeb;
-  --color-acting-fg: #7a2e0e;
-  --color-acting-border: #fdb022;
   --font-*: initial;
   --font-sans:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Liberation Sans', Arial, sans-serif;
@@ -75,92 +72,184 @@
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
 
+  /* Shared semantic palette. Yellow identifies Mailcow; green is the action colour. */
+  --color-page: #f6f8fa;
+  --color-surface: #ffffff;
+  --color-line: #dce2e8;
+  --color-ink: #19242d;
+  --color-muted: #586675;
+  --color-primary: #18794e;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: color-mix(in srgb, var(--color-primary) 88%, #000000);
+  --color-mailcow-brand: #d4a72c;
+  --color-info: #2563b4;
+  --color-danger: #c43d4b;
+  --color-danger-foreground: #ffffff;
+  --color-danger-hover: color-mix(in srgb, var(--color-danger) 88%, #000000);
+  --color-row-hover: #f0f4f7;
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
-  --color-black: #101828;
+  --color-black: #14181d;
 
-  /*
-    Default brand colours until API feature 013 offers branding colours (FR-004). They stay
-    custom properties, so feature 013 can set them at runtime through CSSOM (research R16).
-    brand-500 on white is 4.8:1; dark-mode text uses brand-300 or brand-400 for AA contrast.
-  */
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  /* Compatibility with TailAdmin's neutral utilities throughout existing screens. */
+  --color-gray-25: #fafbfc;
+  --color-gray-50: var(--color-page);
+  --color-gray-100: var(--color-row-hover);
+  --color-gray-200: var(--color-line);
+  --color-gray-300: var(--color-line);
+  --color-gray-400: #8a96a2;
+  --color-gray-500: var(--color-muted);
+  --color-gray-600: var(--color-muted);
+  --color-gray-700: var(--color-ink);
+  --color-gray-800: var(--color-ink);
+  --color-gray-900: var(--color-ink);
+  --color-gray-950: #14181d;
+  --color-gray-dark: #222932;
 
-  /* UI 011 (FR-083): the two series of the live charts, at least 3:1 on the card surface in both
-     themes (WCAG 1.4.11); the dark values are set on :root.dark below. */
-  --color-chart-1: #465fff;
-  --color-chart-2: #c4320a;
+  /* Existing brand-* utilities denote selection/focus, so they follow action green. */
+  --color-brand-25: color-mix(in srgb, var(--color-primary) 3%, var(--color-surface));
+  --color-brand-50: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+  --color-brand-100: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+  --color-brand-200: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
+  --color-brand-300: color-mix(in srgb, var(--color-primary) 55%, var(--color-surface));
+  --color-brand-400: var(--color-primary);
+  --color-brand-500: var(--color-primary);
+  --color-brand-600: var(--color-primary);
+  --color-brand-700: var(--color-primary);
+  --color-brand-800: color-mix(in srgb, var(--color-primary) 80%, #000000);
+  --color-brand-900: color-mix(in srgb, var(--color-primary) 30%, #000000);
+  --color-brand-950: color-mix(in srgb, var(--color-primary) 15%, #000000);
 
-  --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
-  --color-gray-dark: #1a2231;
+  --color-error-25: color-mix(in srgb, var(--color-danger) 3%, var(--color-surface));
+  --color-error-50: color-mix(in srgb, var(--color-danger) 7%, var(--color-surface));
+  --color-error-100: color-mix(in srgb, var(--color-danger) 14%, var(--color-surface));
+  --color-error-200: color-mix(in srgb, var(--color-danger) 28%, var(--color-surface));
+  --color-error-300: color-mix(in srgb, var(--color-danger) 55%, var(--color-surface));
+  --color-error-400: var(--color-danger);
+  --color-error-500: var(--color-danger);
+  --color-error-600: var(--color-danger);
+  --color-error-700: var(--color-danger);
+  --color-error-800: color-mix(in srgb, var(--color-danger) 80%, #000000);
+  --color-error-900: color-mix(in srgb, var(--color-danger) 30%, #000000);
+  --color-error-950: color-mix(in srgb, var(--color-danger) 15%, #000000);
 
-  --color-success-25: #f6fef9;
-  --color-success-50: #ecfdf3;
-  --color-success-100: #d1fadf;
-  --color-success-200: #a6f4c5;
-  --color-success-300: #6ce9a6;
-  --color-success-400: #32d583;
-  --color-success-500: #12b76a;
-  --color-success-600: #039855;
-  --color-success-700: #027a48;
-  --color-success-800: #05603a;
-  --color-success-900: #054f31;
-  --color-success-950: #053321;
+  --color-warning-25: color-mix(in srgb, var(--color-mailcow-brand) 3%, var(--color-surface));
+  --color-warning-50: color-mix(in srgb, var(--color-mailcow-brand) 7%, var(--color-surface));
+  --color-warning-100: color-mix(in srgb, var(--color-mailcow-brand) 14%, var(--color-surface));
+  --color-warning-200: color-mix(in srgb, var(--color-mailcow-brand) 28%, var(--color-surface));
+  --color-warning-300: color-mix(in srgb, var(--color-mailcow-brand) 55%, var(--color-surface));
+  --color-warning-400: var(--color-mailcow-brand);
+  --color-warning-500: var(--color-mailcow-brand);
+  --color-warning-600: var(--color-mailcow-brand);
+  --color-warning-700: var(--color-mailcow-brand);
+  --color-warning-800: color-mix(in srgb, var(--color-mailcow-brand) 80%, #000000);
+  --color-warning-900: color-mix(in srgb, var(--color-mailcow-brand) 30%, #000000);
+  --color-warning-950: color-mix(in srgb, var(--color-mailcow-brand) 15%, #000000);
 
-  --color-error-25: #fffbfa;
-  --color-error-50: #fef3f2;
-  --color-error-100: #fee4e2;
-  --color-error-200: #fecdca;
-  --color-error-300: #fda29b;
-  --color-error-400: #f97066;
-  --color-error-500: #f04438;
-  --color-error-600: #d92d20;
-  --color-error-700: #b42318;
-  --color-error-800: #912018;
-  --color-error-900: #7a271a;
-  --color-error-950: #55160c;
+  --color-blue-light-25: color-mix(in srgb, var(--color-info) 3%, var(--color-surface));
+  --color-blue-light-50: color-mix(in srgb, var(--color-info) 7%, var(--color-surface));
+  --color-blue-light-100: color-mix(in srgb, var(--color-info) 14%, var(--color-surface));
+  --color-blue-light-200: color-mix(in srgb, var(--color-info) 28%, var(--color-surface));
+  --color-blue-light-300: color-mix(in srgb, var(--color-info) 55%, var(--color-surface));
+  --color-blue-light-400: var(--color-info);
+  --color-blue-light-500: var(--color-info);
+  --color-blue-light-600: var(--color-info);
+  --color-blue-light-700: var(--color-info);
+  --color-blue-light-800: color-mix(in srgb, var(--color-info) 80%, #000000);
+  --color-blue-light-900: color-mix(in srgb, var(--color-info) 30%, #000000);
+  --color-blue-light-950: color-mix(in srgb, var(--color-info) 15%, #000000);
 
-  --color-warning-25: #fffcf5;
-  --color-warning-50: #fffaeb;
-  --color-warning-100: #fef0c7;
-  --color-warning-200: #fedf89;
-  --color-warning-300: #fec84b;
-  --color-warning-400: #fdb022;
-  --color-warning-500: #f79009;
-  --color-warning-600: #dc6803;
-  --color-warning-700: #b54708;
-  --color-warning-800: #93370d;
-  --color-warning-900: #7a2e0e;
-  --color-warning-950: #4e1d09;
+  --color-success-50: var(--color-brand-50);
+  --color-success-100: var(--color-brand-100);
+  --color-success-200: var(--color-brand-200);
+  --color-success-300: var(--color-brand-300);
+  --color-success-400: var(--color-brand-400);
+  --color-success-500: var(--color-brand-500);
+  --color-success-600: var(--color-brand-600);
+  --color-success-700: var(--color-brand-700);
+  --color-success-800: var(--color-brand-800);
+  --color-success-900: var(--color-brand-900);
+  --color-success-950: var(--color-brand-950);
 
-  --color-blue-light-50: #f0f9ff;
-  --color-blue-light-100: #e0f2fe;
-  --color-blue-light-500: #0ba5ec;
-  --color-blue-light-700: #026aa2;
-  --color-blue-light-950: #062c41;
+  --color-green-50: var(--color-brand-50);
+  --color-green-100: var(--color-brand-100);
+  --color-green-200: var(--color-brand-200);
+  --color-green-300: var(--color-brand-300);
+  --color-green-400: var(--color-brand-400);
+  --color-green-500: var(--color-brand-500);
+  --color-green-600: var(--color-brand-600);
+  --color-green-700: var(--color-brand-700);
+  --color-green-800: var(--color-brand-800);
+  --color-green-900: var(--color-brand-900);
+  --color-green-950: var(--color-brand-950);
+
+  --color-red-50: var(--color-error-50);
+  --color-red-100: var(--color-error-100);
+  --color-red-200: var(--color-error-200);
+  --color-red-300: var(--color-error-300);
+  --color-red-400: var(--color-error-400);
+  --color-red-500: var(--color-error-500);
+  --color-red-600: var(--color-error-600);
+  --color-red-700: var(--color-error-700);
+  --color-red-800: var(--color-error-800);
+  --color-red-900: var(--color-error-900);
+  --color-red-950: var(--color-error-950);
+
+  --color-amber-50: var(--color-warning-50);
+  --color-amber-100: var(--color-warning-100);
+  --color-amber-200: var(--color-warning-200);
+  --color-amber-300: var(--color-warning-300);
+  --color-amber-400: var(--color-warning-400);
+  --color-amber-500: var(--color-warning-500);
+  --color-amber-600: var(--color-warning-600);
+  --color-amber-700: var(--color-warning-700);
+  --color-amber-800: var(--color-warning-800);
+  --color-amber-900: var(--color-warning-900);
+  --color-amber-950: var(--color-warning-950);
+
+  --color-orange-50: var(--color-warning-50);
+  --color-orange-100: var(--color-warning-100);
+  --color-orange-200: var(--color-warning-200);
+  --color-orange-300: var(--color-warning-300);
+  --color-orange-400: var(--color-warning-400);
+  --color-orange-500: var(--color-warning-500);
+  --color-orange-600: var(--color-warning-600);
+  --color-orange-700: var(--color-warning-700);
+  --color-orange-800: var(--color-warning-800);
+  --color-orange-900: var(--color-warning-900);
+  --color-orange-950: var(--color-warning-950);
+
+  --color-blue-50: var(--color-blue-light-50);
+  --color-blue-100: var(--color-blue-light-100);
+  --color-blue-200: var(--color-blue-light-200);
+  --color-blue-300: var(--color-blue-light-300);
+  --color-blue-400: var(--color-blue-light-400);
+  --color-blue-500: var(--color-blue-light-500);
+  --color-blue-600: var(--color-blue-light-600);
+  --color-blue-700: var(--color-blue-light-700);
+  --color-blue-800: var(--color-blue-light-800);
+  --color-blue-900: var(--color-blue-light-900);
+  --color-blue-950: var(--color-blue-light-950);
+
+  --color-sky-50: var(--color-blue-light-50);
+  --color-sky-100: var(--color-blue-light-100);
+  --color-sky-200: var(--color-blue-light-200);
+  --color-sky-300: var(--color-blue-light-300);
+  --color-sky-400: var(--color-blue-light-400);
+  --color-sky-500: var(--color-blue-light-500);
+  --color-sky-600: var(--color-blue-light-600);
+  --color-sky-700: var(--color-blue-light-700);
+  --color-sky-800: var(--color-blue-light-800);
+  --color-sky-900: var(--color-blue-light-900);
+  --color-sky-950: var(--color-blue-light-950);
+
+  --color-success-25: var(--color-brand-25);
+  --color-chart-1: var(--color-primary);
+  --color-chart-2: var(--color-info);
+  --color-acting-bg: var(--color-warning-50);
+  --color-acting-fg: var(--color-ink);
+  --color-acting-border: var(--color-mailcow-brand);
 
   --shadow-theme-md:
     0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
@@ -170,7 +259,7 @@
   --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
   --shadow-theme-xl:
     0px 20px 24px -4px rgba(16, 24, 40, 0.08), 0px 8px 8px -4px rgba(16, 24, 40, 0.03);
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+  --shadow-focus-ring: 0px 0px 0px 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
 
   --z-index-1: 1;
   --z-index-9: 9;
@@ -182,20 +271,20 @@
 }
 
 @layer base {
-  /* Tailwind v4 compatibility: keep TailAdmin's default border colour. */
+  /* Tailwind v4 compatibility: use the shared separator colour by default. */
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-line, currentColor);
   }
 
   :root {
-    --accent: var(--brand-light, var(--color-brand-500));
-    --accent-foreground: var(--brand-light-foreground, #ffffff);
-    --accent-text: var(--brand-light, var(--color-brand-600));
-    --accent-hover: var(--brand-light-hover, var(--color-brand-600));
+    --accent: var(--brand-light, var(--color-primary));
+    --accent-foreground: var(--brand-light-foreground, var(--color-primary-foreground));
+    --accent-text: var(--brand-light, var(--color-info));
+    --accent-hover: var(--brand-light-hover, var(--color-primary-hover));
     --color-focus: var(--color-brand-500);
     /* Height of the sticky shell header; focused elements never hide behind it (WCAG 2.4.11). */
     --header-height: 4rem;
@@ -211,17 +300,59 @@
   }
 
   :root.dark {
-    --accent: var(--brand-dark, var(--color-brand-500));
-    --accent-foreground: var(--brand-dark-foreground, #ffffff);
-    --accent-text: var(--brand-dark, var(--color-brand-300));
-    --accent-hover: var(--brand-dark-hover, var(--color-brand-600));
-    --color-focus: var(--color-brand-400);
-    --color-acting-bg: #4e1d09;
-    --color-acting-fg: #fef0c7;
-    --color-acting-border: #dc6803;
+    --color-page: #14181d;
+    --color-surface: #222932;
+    --color-line: #384450;
+    --color-ink: #eef2f5;
+    --color-muted: #aab5c1;
+    --color-primary: #53c58a;
+    --color-primary-foreground: #14181d;
+    --color-primary-hover: color-mix(in srgb, var(--color-primary) 88%, #ffffff);
+    --color-mailcow-brand: #f5d76e;
+    --color-info: #88bfff;
+    --color-danger: #f17b7b;
+    --color-danger-foreground: #14181d;
+    --color-danger-hover: color-mix(in srgb, var(--color-danger) 88%, #ffffff);
+    --color-row-hover: #2b3540;
+
+    --color-white: var(--color-ink);
+    --color-gray-100: var(--color-ink);
+    --color-gray-200: var(--color-ink);
+    --color-gray-300: var(--color-muted);
+    --color-gray-400: var(--color-muted);
+    --color-gray-500: #82909f;
+    --color-gray-600: #586675;
+    --color-gray-700: var(--color-line);
+    --color-gray-800: var(--color-line);
+    --color-gray-900: var(--color-surface);
+    --color-gray-950: var(--color-page);
+    --color-brand-100: var(--color-primary);
+    --color-brand-200: var(--color-primary);
+    --color-brand-300: var(--color-primary);
+    --color-brand-900: color-mix(in srgb, var(--color-primary) 30%, var(--color-page));
+    --color-brand-950: color-mix(in srgb, var(--color-primary) 15%, var(--color-page));
+    --color-error-100: var(--color-danger);
+    --color-error-200: var(--color-danger);
+    --color-error-300: var(--color-danger);
+    --color-error-900: color-mix(in srgb, var(--color-danger) 30%, var(--color-page));
+    --color-error-950: color-mix(in srgb, var(--color-danger) 15%, var(--color-page));
+    --color-warning-100: var(--color-mailcow-brand);
+    --color-warning-200: var(--color-mailcow-brand);
+    --color-warning-300: var(--color-mailcow-brand);
+    --color-warning-900: color-mix(in srgb, var(--color-mailcow-brand) 30%, var(--color-page));
+    --color-warning-950: color-mix(in srgb, var(--color-mailcow-brand) 15%, var(--color-page));
+    --color-blue-light-100: var(--color-info);
+    --color-blue-light-200: var(--color-info);
+    --color-blue-light-300: var(--color-info);
+    --color-blue-light-900: color-mix(in srgb, var(--color-info) 30%, var(--color-page));
+    --color-blue-light-950: color-mix(in srgb, var(--color-info) 15%, var(--color-page));
+
+    --accent: var(--brand-dark, var(--color-primary));
+    --accent-foreground: var(--brand-dark-foreground, var(--color-primary-foreground));
+    --accent-text: var(--brand-dark, var(--color-info));
+    --accent-hover: var(--brand-dark-hover, var(--color-primary-hover));
+    --color-focus: var(--color-primary);
     color-scheme: dark;
-    --color-chart-1: #7592ff;
-    --color-chart-2: #fd853a;
   }
 
   button:not(:disabled),
@@ -230,7 +361,19 @@
   }
 
   body {
-    @apply relative z-1 bg-gray-50 font-sans font-normal text-gray-800 dark:bg-gray-950 dark:text-white/90;
+    @apply relative z-1 bg-page font-sans font-normal text-ink;
+  }
+
+  /* Tables share the card surface; only body rows receive the subtle hover fill. */
+  table {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  @media (hover: hover) {
+    tbody > tr:hover {
+      background-color: var(--color-row-hover);
+    }
   }
 
   /* Visible focus for every focusable element without its own focus style (constitution III). */
@@ -259,7 +402,7 @@
 /* Text inputs and native selects (research R18), at least 44 px high (research R21). The 16 px
    text keeps iOS from zooming into a focused field. */
 @utility form-control {
-  @apply h-11 w-full min-w-0 rounded-[10px] border border-gray-300 bg-white px-4 py-2 text-base text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-gray-100 aria-invalid:border-red-600 aria-invalid:ring-3 aria-invalid:ring-red-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-500/40 dark:disabled:bg-gray-800 dark:aria-invalid:border-red-400;
+  @apply h-11 w-full min-w-0 rounded-[10px] border border-gray-300 bg-white px-4 py-2 text-base text-gray-800 shadow-theme-xs outline-hidden focus:border-brand-300 focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-gray-100 aria-invalid:border-red-600 aria-invalid:ring-3 aria-invalid:ring-red-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:focus:border-brand-500/40 dark:disabled:bg-gray-800 dark:aria-invalid:border-red-400;
 }
 
 /* A card on the page background: sign-in steps, sections and dialogs. */

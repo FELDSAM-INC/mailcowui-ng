@@ -8,7 +8,7 @@ const base =
 
 const variants: Record<AlertVariant, string> = {
   default:
-    'bg-white text-gray-700 border-gray-200 dark:border-gray-800 dark:bg-[#1E2634] dark:text-gray-300',
+    'bg-white text-gray-700 border-gray-200 dark:border-gray-800 dark:bg-surface dark:text-gray-300',
   success:
     'bg-green-50 border-green-500 *:[svg]:text-green-500 dark:bg-green-500/10 dark:border-green-500/30 dark:*:[svg]:text-green-400',
   warning:

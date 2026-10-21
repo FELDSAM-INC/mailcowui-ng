@@ -134,7 +134,7 @@ const RADIO =
         />
         <div
           data-dialog-actions
-          class="sticky bottom-0 -mx-6 mt-auto flex flex-col-reverse gap-2 border-t border-gray-200 bg-white px-6 py-3 sm:static sm:mx-0 sm:flex-row sm:justify-end sm:border-0 sm:p-0 dark:border-gray-800 dark:bg-[#1E2635]"
+          class="sticky bottom-0 -mx-6 mt-auto flex flex-col-reverse gap-2 border-t border-gray-200 bg-white px-6 py-3 sm:static sm:mx-0 sm:flex-row sm:justify-end sm:border-0 sm:p-0 dark:border-gray-800 dark:bg-surface"
         >
           <button
             type="button"

@@ -33,6 +33,31 @@ test('stored credentials stay blank, custom sounds remain available and comma-se
   )
   await form.getByText('Advanced settings', { exact: true }).click()
   await expect(form.locator('input[name="senderPattern"]')).toBeVisible()
+  // Opening the lower disclosure scrolls earlier fields behind the sticky header. Check the
+  // credential field and its toggle when reached by keyboard, then scan the expanded form from
+  // the top so an unrelated control is not measured at that incidental clipping boundary.
+  const userKey = form.locator('input[name="userKey"]')
+  for (let step = 0; step < 12; step++) {
+    if (await userKey.evaluate((element) => element === document.activeElement)) break
+    await page.keyboard.press('Shift+Tab')
+  }
+  for (const control of [userKey, form.locator('button[aria-controls$="-userKey"]')]) {
+    await expect(control).toBeFocused()
+    await expect
+      .poll(() =>
+        control.evaluate((element) => {
+          const box = element.getBoundingClientRect()
+          const header = document.querySelector('header')!.getBoundingClientRect()
+          return box.top >= header.bottom && box.bottom <= innerHeight
+        }),
+      )
+      .toBe(true)
+    const box = (await control.boundingBox())!
+    expect(box.width).toBeGreaterThanOrEqual(44)
+    expect(box.height).toBeGreaterThanOrEqual(44)
+    await page.keyboard.press('Tab')
+  }
+  await page.evaluate(() => window.scrollTo(0, 0))
   await expectAccessible()
   await expectNoHorizontalScroll()
   await form.locator('input[name="senders"]').fill('one@example.org, two@example.org')

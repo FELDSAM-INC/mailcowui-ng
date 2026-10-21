@@ -44,7 +44,7 @@ const { t } = useI18n()
         <button
           type="button"
           :disabled="disabled"
-          :class="buttonVariants({ variant: 'outline' })"
+          :class="buttonVariants({ variant: 'outline', size: 'icon' })"
           :aria-label="t('auth.signIn.showPassword')"
           :aria-pressed="shown"
           :aria-controls="id"

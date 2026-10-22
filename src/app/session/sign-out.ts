@@ -16,6 +16,7 @@ import {
 } from '@/api'
 
 import { clearAllDrafts } from '@/shared/composables/draft-registry'
+import { invalidateSessionScope } from '@/api/session-scope'
 
 import { sessionContext, type SessionContext } from './context'
 import { anonymousSession, cachedSession } from './queries'
@@ -38,6 +39,7 @@ export async function signOut(ctx: SessionContext): Promise<SignOutResult> {
     if (!problem.is('unauthenticated')) return { ok: false, problem }
   }
 
+  invalidateSessionScope()
   const store = useSessionStore()
   const idleTimeout = cachedSession(ctx.queryClient)?.idleTimeout ?? store.idleTimeout
   // UI 004 (research R10): a sign-out discards every kept form draft.

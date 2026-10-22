@@ -99,6 +99,7 @@ export function useVersionedSave<T extends { etag: string }>(options: VersionedS
       latest.value = undefined
       return { status: 'saved', result }
     } catch (error) {
+      if (isApiProblem(error) && error.kind === 'identityChanged') return { status: 'cancelled' }
       if (isPreconditionFailed(error)) return { status: 'outdated', latest: await reload() }
       problem.value = asProblem(error)
       return { status: 'failed', problem: problem.value }

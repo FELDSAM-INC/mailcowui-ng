@@ -23,6 +23,7 @@ import {
   type MailboxTagParams,
   type Writable,
 } from '@/api'
+import { captureSessionScope } from '@/api/session-scope'
 
 import type { DomainPickerSource } from '@/shared/components/DomainPicker.vue'
 
@@ -226,11 +227,13 @@ export async function updateMailboxWithPassword(
   patch: Patch,
   ifMatch: string,
 ): Promise<Mailbox> {
+  const scope = captureSessionScope()
   try {
-    const mailbox = await sendMailboxPatch(address, patch, ifMatch)
-    await afterMailboxChange(client, mailbox, patch)
+    const mailbox = await scope.run(() => sendMailboxPatch(address, patch, ifMatch))
+    await scope.run(() => afterMailboxChange(client, mailbox, patch))
     return mailbox
   } catch (error) {
+    scope.assertCurrent()
     onMailboxError(client, address, error)
     throw error
   }

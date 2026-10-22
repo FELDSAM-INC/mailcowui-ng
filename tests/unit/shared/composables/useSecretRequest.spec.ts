@@ -4,10 +4,50 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { ApiProblem, setSessionReactions } from '@/api'
 import { useSecretRequest } from '@/shared/composables/useSecretRequest'
+import { invalidateSessionScope } from '@/api/session-scope'
 
 import { withSetup } from '../../support/composable'
 
 describe('useSecretRequest', () => {
+  it.each(['success', 'failure'])(
+    'discards a late secret %s after the session changes',
+    async (outcome) => {
+      let finish!: () => void
+      const unauthenticated = vi.fn()
+      setSessionReactions({
+        unauthenticated,
+        forbidden: vi.fn(),
+        secondFactorRequired: vi.fn(),
+        pendingActionRequired: vi.fn(),
+      })
+      const { result, unmount } = withSetup(() =>
+        useSecretRequest(
+          () =>
+            new Promise<string>((resolve, reject) => {
+              finish = () =>
+                outcome === 'success'
+                  ? resolve('old-account-secret')
+                  : reject(
+                      ApiProblem.fromParts({
+                        kind: 'problem',
+                        status: 401,
+                        type: '/api/v2/problems/unauthenticated',
+                      }),
+                    )
+            }),
+        ),
+      )
+      const running = result.run()
+      invalidateSessionScope()
+      finish()
+      expect(await running).toBeNull()
+      expect(result.result.value).toBeNull()
+      expect(result.problem.value).toBeNull()
+      expect(unauthenticated).not.toHaveBeenCalled()
+      unmount()
+      setSessionReactions(null)
+    },
+  )
   it('runs the request and keeps its result in component state', async () => {
     const { result } = withSetup(() =>
       useSecretRequest((value: string) => Promise.resolve({ secret: value })),

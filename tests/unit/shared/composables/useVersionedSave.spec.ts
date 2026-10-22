@@ -31,6 +31,16 @@ function setup(initial: Item | null = { name: 'old', etag: '"1"' }) {
 }
 
 describe('useVersionedSave', () => {
+  it('treats identity changes as cancellation without showing an error or reloading', async () => {
+    const { current, refetch } = setup()
+    const save = useVersionedSave({ current: () => current.value, refetch })
+    const result = await save.save({}, () =>
+      Promise.reject(ApiProblem.fromParts({ kind: 'identityChanged' })),
+    )
+    expect(result).toEqual({ status: 'cancelled' })
+    expect(save.problem.value).toBeNull()
+    expect(refetch).not.toHaveBeenCalled()
+  })
   it('sends If-Match with the version that was read', async () => {
     const { current, refetch } = setup()
     const send = vi.fn((_input: { name: string }, ifMatch: string) =>

@@ -10,11 +10,21 @@ import FormField from '@/shared/components/FormField.vue'
 import LiveAnnouncer from '@/shared/components/LiveAnnouncer.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
+import { liveMessages } from '@/shared/composables/useAnnouncer'
 
 import { mountWithApp } from '../../support/mount'
 
 const violation = (code: string, params: Record<string, unknown> = {}): FieldViolation =>
   ({ code, params, message: 'English' }) as FieldViolation
+
+it('does not show or announce an identity-change cancellation', async () => {
+  const { wrapper, form } = mountForm()
+  const previousMessage = liveMessages.assertive.value
+  await form().setProblem(ApiProblem.fromParts({ kind: 'identityChanged' }))
+  expect(form().hasErrors.value).toBe(false)
+  expect(liveMessages.assertive.value).toBe(previousMessage)
+  wrapper.unmount()
+})
 
 function validationProblem(errors: Record<string, FieldViolation[]>) {
   return ApiProblem.fromParts({

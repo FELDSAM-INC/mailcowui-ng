@@ -129,6 +129,7 @@ export function useProblemForm(options: ProblemFormOptions) {
 
   /** A delayed response still announces its error after the caller relinquishes focus. */
   function setProblem(next: ApiProblem | null, options: { focus?: boolean } = {}): Promise<void> {
+    if (next?.kind === 'identityChanged') return Promise.resolve()
     problem.value = next
     return focusAndAnnounce(options.focus ?? true)
   }

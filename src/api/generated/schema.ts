@@ -7919,7 +7919,7 @@ export interface paths {
          *
          *     Rescheduling changes only the run status, so it neither requires nor checks `If-Match` and does
          *     not change the version tag. Audited. Refusals: `403` (no sync-jobs permission, or a read-only
-         *     key) and `404` (unknown or out of scope).
+         *     key), `404` (unknown or out of scope), and `422` (unsafe stored custom parameters).
          */
         post: operations["rescheduleSyncJob"];
         delete?: never;
@@ -23007,6 +23007,19 @@ export interface components {
                 "application/problem+json": components["schemas"]["Problem"];
             };
         };
+        /**
+         * @description A non-empty request body was sent without a JSON content type (type `about:blank`).
+         *     Send the media type documented by the operation, normally `application/json` or
+         *     `application/merge-patch+json`. No resource changes are applied.
+         */
+        UnsupportedMediaType: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
         /** @description Validation failed (type `/api/v2/problems/validation-failed`). See `errors`. */
         ValidationFailed: {
             headers: {
@@ -24264,6 +24277,7 @@ export type ResponseTransportResponse = components['responses']['TransportRespon
 export type ResponseTransportWriteResponse = components['responses']['TransportWriteResponse'];
 export type ResponseUiTextsResponse = components['responses']['UiTextsResponse'];
 export type ResponseUnauthorized = components['responses']['Unauthorized'];
+export type ResponseUnsupportedMediaType = components['responses']['UnsupportedMediaType'];
 export type ResponseValidationFailed = components['responses']['ValidationFailed'];
 export type ResponseWatchdogLogEntryListResponse = components['responses']['WatchdogLogEntryListResponse'];
 export type ResponseWebAuthnChallengeResponse = components['responses']['WebAuthnChallengeResponse'];
@@ -24453,6 +24467,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["AdminConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -24541,6 +24556,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["AdminConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -24591,6 +24607,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -24647,6 +24664,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["AliasDomainForbidden"];
             409: components["responses"]["AliasDomainConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["AliasDomainTemporaryFailure"];
@@ -24737,6 +24755,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["AliasDomainConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["AliasDomainTemporaryFailure"];
@@ -24798,6 +24817,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SpamFilterTemporaryFailure"];
@@ -24902,6 +24922,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["SpamPolicyEntryConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -24988,6 +25009,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -25065,6 +25087,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["AliasForbidden"];
             409: components["responses"]["AliasConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -25152,6 +25175,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["AliasConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -25203,6 +25227,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -25258,6 +25283,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -25500,6 +25526,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["RoutingForbidden"];
             409: components["responses"]["RoutingConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -25579,6 +25606,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["RoutingConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -25601,6 +25629,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["RoutingForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26032,6 +26061,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["DkimKeyConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["DkimTemporaryFailure"];
@@ -26132,6 +26162,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["DkimKeyConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["DkimTemporaryFailure"];
@@ -26205,6 +26236,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             409: components["responses"]["DkimKeyConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["DkimTemporaryFailure"];
@@ -26253,6 +26285,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26368,6 +26401,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["DomainAdminConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26455,6 +26489,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["DomainAdminConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26528,6 +26563,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26610,6 +26646,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["DomainTemplateConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26689,6 +26726,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["DomainTemplateConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26710,6 +26748,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26774,6 +26813,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["DomainExistsConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["DomainTemporaryFailure"];
@@ -26866,6 +26906,7 @@ export interface operations {
             403: components["responses"]["DomainForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -26948,6 +26989,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27008,6 +27050,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -27069,6 +27112,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SpamFilterTemporaryFailure"];
@@ -27160,6 +27204,7 @@ export interface operations {
             403: components["responses"]["RoutingForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27232,6 +27277,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["SpamPolicyEntryConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27318,6 +27364,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27520,6 +27567,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["MonitoringTemporaryFailure"];
@@ -27590,6 +27638,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["MonitoringTemporaryFailure"];
@@ -27650,6 +27699,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -27739,6 +27789,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -27761,6 +27812,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27889,6 +27941,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             409: components["responses"]["IdentityProviderInUse"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27942,6 +27995,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["IdentityProviderNotConfigured"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -27963,6 +28017,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -28798,6 +28853,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["MailQueueConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             502: components["responses"]["MailQueueActionFailed"];
@@ -28902,6 +28958,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["MailboxTemplateConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -28981,6 +29038,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["MailboxTemplateConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29002,6 +29060,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29068,6 +29127,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["MailboxForbidden"];
             409: components["responses"]["MailboxConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["MailboxTemporaryFailure"];
@@ -29161,6 +29221,7 @@ export interface operations {
             403: components["responses"]["MailboxForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["MailboxTemporaryFailure"];
@@ -29278,6 +29339,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29373,6 +29435,7 @@ export interface operations {
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29479,6 +29542,7 @@ export interface operations {
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SelfServiceTemporaryFailure"];
@@ -29539,6 +29603,7 @@ export interface operations {
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29655,6 +29720,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29717,6 +29783,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SpamFilterTemporaryFailure"];
@@ -29875,6 +29942,7 @@ export interface operations {
             403: components["responses"]["RoutingForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -29912,6 +29980,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["MailboxConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["MailboxRenameFailed"];
             503: components["responses"]["MailboxTemporaryFailure"];
@@ -29973,6 +30042,7 @@ export interface operations {
             403: components["responses"]["MailboxSenderSettingsForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30042,6 +30112,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30137,6 +30208,7 @@ export interface operations {
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30211,6 +30283,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["SpamPolicyEntryConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30339,6 +30412,7 @@ export interface operations {
             403: components["responses"]["SpamFilterForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30476,6 +30550,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SelfServiceTemporaryFailure"];
@@ -30581,6 +30656,7 @@ export interface operations {
             403: components["responses"]["SelfServiceForbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30626,6 +30702,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["MailboxForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30647,6 +30724,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30700,6 +30778,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["MassMailConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30805,6 +30884,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30879,6 +30959,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -30945,6 +31026,7 @@ export interface operations {
             400: components["responses"]["PasskeyRegistrationRejected"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31022,6 +31104,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31058,6 +31141,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31119,6 +31203,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31162,6 +31247,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31214,6 +31300,7 @@ export interface operations {
             400: components["responses"]["OwnSecondFactorEnrolmentRejected"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31276,6 +31363,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31378,6 +31466,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["MtaStsPolicyConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31439,6 +31528,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31492,6 +31582,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31569,6 +31660,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31642,6 +31734,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -31707,6 +31800,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -31729,6 +31823,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["PasswordResetForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31751,6 +31846,7 @@ export interface operations {
             400: components["responses"]["PasswordResetRejected"];
             401: components["responses"]["PasswordResetSecondFactorRejected"];
             403: components["responses"]["PasswordResetForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31774,6 +31870,7 @@ export interface operations {
             400: components["responses"]["PasswordResetRejected"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["PasswordResetForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31796,6 +31893,7 @@ export interface operations {
             400: components["responses"]["PasswordResetRejected"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["PasswordResetForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -31975,6 +32073,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SpamFilterForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32115,6 +32214,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["QuarantineConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SpamFilterTemporaryFailure"];
@@ -32168,6 +32268,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SpamFilterForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32235,6 +32336,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SpamFilterForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SpamFilterTemporaryFailure"];
@@ -32257,6 +32359,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SpamFilterForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SpamFilterTemporaryFailure"];
@@ -32368,6 +32471,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["RoutingConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -32447,6 +32551,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["RoutingConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -32469,6 +32574,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32554,6 +32660,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32631,6 +32738,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32656,6 +32764,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32716,6 +32825,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32777,6 +32887,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["ResourceConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32866,6 +32977,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -32887,6 +32999,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -33020,6 +33133,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["SignInRejected"];
             403: components["responses"]["SignInForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -33076,6 +33190,7 @@ export interface operations {
             403: components["responses"]["ImpersonationForbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["ImpersonationConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -33112,6 +33227,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["SignInRejected"];
             403: components["responses"]["SignInForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -33164,6 +33280,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["SignInRejected"];
             403: components["responses"]["SignInForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -33235,6 +33352,7 @@ export interface operations {
             401: components["responses"]["SingleSignOnRejected"];
             403: components["responses"]["SignInForbidden"];
             409: components["responses"]["SingleSignOnNotAvailable"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["IdentityProviderUnavailable"];
@@ -33257,6 +33375,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["SingleSignOnRejected"];
             403: components["responses"]["SignInForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -33278,6 +33397,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["SignInRejected"];
             403: components["responses"]["SignInForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             429: components["responses"]["TooManyRequests"];
             500: components["responses"]["InternalError"];
@@ -33323,6 +33443,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["BrandingForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33368,6 +33489,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["BrandingForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33466,6 +33588,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             409: components["responses"]["GlobalSieveFilterUnavailable"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -33510,6 +33633,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["BrandingForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33555,6 +33679,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33600,6 +33725,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["BrandingForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33726,6 +33852,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33771,6 +33898,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -33883,6 +34011,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["RspamdRegexMapUnavailable"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -33945,6 +34074,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34045,6 +34175,7 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34082,6 +34213,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             502: components["responses"]["RspamdUiPasswordServiceFailure"];
@@ -34128,6 +34260,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["BrandingForbidden"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["SettingsTemporaryFailure"];
@@ -34186,6 +34319,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SelfServiceForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34269,6 +34403,7 @@ export interface operations {
             403: components["responses"]["SyncJobForbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["SyncJobExists"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["SyncJobValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34356,6 +34491,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["SyncJobExists"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["SyncJobValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34401,6 +34537,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SyncJobForbidden"];
             404: components["responses"]["NotFound"];
+            422: components["responses"]["SyncJobValidationFailed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -34421,6 +34558,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SyncJobForbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["SyncJobValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34476,6 +34614,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["RoutingConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34554,6 +34693,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["RoutingConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34575,6 +34715,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34635,6 +34776,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             409: components["responses"]["RoutingConflict"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -34714,6 +34856,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["RoutingConflict"];
             412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["RoutingTemporaryFailure"];
@@ -34740,6 +34883,7 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
@@ -34761,6 +34905,7 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+            415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };

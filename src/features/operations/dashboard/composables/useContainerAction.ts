@@ -17,6 +17,7 @@ import {
   type Container,
   type ContainerAction,
 } from '@/api'
+import { captureSessionScope } from '@/api/session-scope'
 import { lt } from '@/i18n'
 import { useProblemMessages } from '@/i18n/problems'
 import { announce } from '@/shared/composables/useAnnouncer'
@@ -101,9 +102,10 @@ export function useContainerAction(container: () => Container) {
   }
 
   async function readAgain(name: string) {
+    const scope = captureSessionScope()
     status.value = 'readingState'
     try {
-      writeContainer(client, await fetchContainer(name))
+      writeContainer(client, await scope.run(() => fetchContainer(name)))
     } catch {
       // The container is shown as listed; the list keeps polling.
     }
@@ -162,6 +164,7 @@ export function useContainerAction(container: () => Container) {
       })
     } catch (error) {
       const problem = problemOf(error)!
+      if (problem.kind === 'identityChanged') return
       if (problem.kind === 'network' || problem.is('outcome-unknown')) {
         report(name, {
           tone: 'warning',

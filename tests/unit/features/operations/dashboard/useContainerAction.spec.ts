@@ -3,7 +3,8 @@
 // container and no repeat, refusals as translated messages, the missing audit record, and the
 // outcome as a status message when the card is gone.
 import { flushPromises } from '@vue/test-utils'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { http, HttpResponse } from 'msw'
 import { nextTick } from 'vue'
 
 import { type Container } from '@/api'
@@ -16,6 +17,8 @@ import { mockState, useScenario } from '../../../../mocks/node'
 import { withSetup } from '../../../support/composable'
 import { testPlugins } from '../../../support/mount'
 import { operationsKeys } from '@/features/operations/query-keys'
+import { invalidateSessionScope } from '@/api/session-scope'
+import { server } from '../../../../mocks/node'
 
 afterEach(() => {
   settleConfirm(false)
@@ -48,6 +51,31 @@ async function settle() {
 }
 
 describe('useContainerAction', () => {
+  it('discards an old action outcome instead of announcing it after an account switch', async () => {
+    const { result, unmount, queryClient } = await setup('sogo-mailcow')
+    let release!: () => void
+    const pending = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const received = vi.fn()
+    server.use(
+      http.post('*/api/v2/containers/sogo-mailcow/start', async () => {
+        received()
+        await pending
+        return HttpResponse.error()
+      }),
+    )
+    const running = result.run('start')
+    await vi.waitFor(() => expect(received).toHaveBeenCalledOnce())
+    unmount()
+    invalidateSessionScope()
+    queryClient.clear()
+    release()
+    await running
+    expect(useStatusMessage().messages.value).toHaveLength(0)
+    expect(result.outcome.value).toBeNull()
+    expect(queryClient.getQueryData(operationsKeys.monitoring.containers())).toBeUndefined()
+  })
   it('starts without a confirmation and writes the container into the list', async () => {
     const { result, queryClient } = await setup('sogo-mailcow', 'admin-operations')
     const run = result.run('start')

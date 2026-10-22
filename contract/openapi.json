@@ -8,7 +8,7 @@
       "name": "GPL-3.0-only",
       "identifier": "GPL-3.0-only"
     },
-    "description": "mailcow REST API v2 runs next to the legacy mailcow UI and `/api/v1`, which keep working\nunchanged. It is the only backend of the mailcowui-ng web app. This document is the source of\ntruth: the implementation mirrors it exactly, and undocumented behaviour is a bug.\n\n## Conventions\n\n- Names are camelCase. Booleans are `true`/`false`. Times are RFC 3339 in UTC.\n- A single resource is returned as `{\"data\": {...}}`. A list is returned as\n  `{\"data\": [...], \"meta\": {\"total\", \"limit\", \"offset\"}}` and accepts `limit` (default 25, at\n  most 1,000), `offset`, `sort`, `order`, a substring search `q` and the documented filters.\n- Create returns `201` with a `Location` header, read and update return `200`, delete returns\n  `204`. Non-CRUD actions are sub-resources (for example `POST /api-keys/{apiKeyId}/revocation`)\n  and return `200` with the affected resource or the ceremony data.\n- `PATCH` takes JSON Merge Patch (RFC 7396, `application/merge-patch+json`).\n- Mutable resources carry a version tag: a strong ETag over their stored settings, never over\n  usage data. A single read returns it in the `ETag` header, and every representation,\n  including each list entry, carries the same value in `etag`. Writes accept `If-Match` and\n  answer `412` when it does not match. The legacy UI edits the same rows, so clients should\n  send it.\n\n## Errors\n\nEvery error is an RFC 9457 problem (`application/problem+json`) with `type`, `title`,\n`status`, `detail` and `requestId`. Problem types that clients act on are relative URI\nreferences of the form `/api/v2/problems/{name}`, documented in `docs/problems.md` and served\nas HTML by `GET /problems/{problemType}`. Compare `type` as an exact string. Other problems\nuse `about:blank` and are identified by their status (`400` malformed request, `404` unknown\nresource or path, `405` method not allowed, `409` conflict described in `detail`, `412`\nprecondition failed, `500` unexpected failure).\n\nErrors are never localised: the API ignores `Accept-Language`. `title` and `detail` are\nEnglish and meant for logs and scripts. A validation problem (`422`) carries an `errors` map\nfrom each invalid field to a list of violations, each with a stable rule `code` and its\n`params`, so that clients build translated messages themselves.\n\n## Authentication\n\n**Browser clients** use a same-origin session cookie (`sessionCookie`, `Secure`, `HttpOnly`,\n`SameSite=Strict`). Every state-changing request made with a session, including sign-in, must\ncarry the session's anti-forgery token in the `X-CSRF-Token` header (`csrfToken`), whatever\nits content type. The flow is:\n\n1. `GET /csrf-token` starts an anonymous session and returns its token. The token stays valid\n   for the lifetime of the session, including across sign-in. A `403` with type\n   `/api/v2/problems/csrf-token-mismatch` means the session ended or its identity changed (the\n   token is renewed when an impersonation starts or ends). Fetch a new token and re-read\n   `GET /me`. Retry the write once only if the identity is unchanged; otherwise discard it, so\n   that a write prepared under one identity is never sent under another.\n2. Sign in with a passkey (`POST /session/passkey-challenge`, then\n   `POST /session/passkey-assertion`) or with a password (`POST /session`).\n3. If the password step answers with state `pendingSecondFactor`, complete one of the listed\n   methods (`POST /session/pending-sign-in/second-factor`, after\n   `POST /session/pending-sign-in/webauthn-challenge` for WebAuthn) or cancel it\n   (`DELETE /session/pending-sign-in`).\n4. Sign out with `DELETE /session`.\n\n**Automation clients** send an API key in the `X-API-Key` header (`apiKeyAuth`). A request\nwith a key never creates a session and needs no anti-forgery token. When a request carries\nboth a key and a session cookie, the key decides and the cookie is ignored. Any request that\ncarries a non-empty `X-API-Key` header is authenticated by that key, and an invalid, expired\nor revoked key, or a key used from a disallowed address, is reported to mailcow's fail2ban.\nThe System operations (health checks, the contract, the documentation and the problem pages)\nignore `X-API-Key`.\n\n## Recommended presentation of sign-in methods\n\nClients should offer **passkey sign-in first** whenever the device supports WebAuthn\n(`PublicKeyCredential` is available), and username and password second. Passkeys registered\nin the legacy UI under the names \"FIDO2\" or \"Touch ID\" are ordinary passkeys and need no\nspecial handling. In the second-factor step, `PendingSignIn.methods` is already in the\nrecommended order: WebAuthn security keys and passkeys first, TOTP second, Yubico OTP last.\nMethods with `tier: primary` are offered directly; methods with `tier: advanced` belong behind\nan \"other methods\" option.\n\n## Restricted sessions\n\nWhen mailcow forces an account to change its password or to set up a second factor, the\nsession is restricted (`state: restricted`, non-empty `pendingActions`). It can read\n`GET /me` and `GET /capabilities/self-service` and sign out. While `passwordChange` is\npending it can read `GET /me/password-policy` and change the password (`PUT /me/password`);\nwhile `secondFactorSetup` is pending it can list and enrol second factors\n(`/me/second-factors`) and, when that is the only pending action, register a passkey.\nOperations that need no signed-in account stay available: `GET /csrf-token`, `GET /session`,\nsign-in and its steps, the public configuration, the documentation and the health checks.\nEvery other operation answers `403` with type `/api/v2/problems/pending-action-required`.\nAPI keys are never restricted: `Identity.pendingActions` is empty for them. Pending actions are re-evaluated from mailcow's\ndata on every request, so a restriction lifts as soon as it is resolved in either UI.\n"
+    "description": "mailcow REST API v2 runs next to the legacy mailcow UI and `/api/v1`, which keep working\nunchanged. It is the only backend of the mailcowui-ng web app. This document is the source of\ntruth: the implementation mirrors it exactly, and undocumented behaviour is a bug.\n\n## Conventions\n\n- Names are camelCase. Booleans are `true`/`false`. Times are RFC 3339 in UTC.\n- A single resource is returned as `{\"data\": {...}}`. A list is returned as\n  `{\"data\": [...], \"meta\": {\"total\", \"limit\", \"offset\"}}` and accepts `limit` (default 25, at\n  most 1,000), `offset`, `sort`, `order`, a substring search `q` and the documented filters.\n- Create returns `201` with a `Location` header, read and update return `200`, delete returns\n  `204`. Non-CRUD actions are sub-resources (for example `POST /api-keys/{apiKeyId}/revocation`)\n  and return `200` with the affected resource or the ceremony data.\n- `PATCH` takes JSON Merge Patch (RFC 7396, `application/merge-patch+json`).\n- Operations with JSON request bodies require a JSON `Content-Type` for every non-empty\n  body. A non-JSON or missing content type answers `415` before field validation or resource\n  changes. Raw uploads use the media types documented by their operation.\n- Mutable resources carry a version tag: a strong ETag over their stored settings, never over\n  usage data. A single read returns it in the `ETag` header, and every representation,\n  including each list entry, carries the same value in `etag`. Writes accept `If-Match` and\n  answer `412` when it does not match. The legacy UI edits the same rows, so clients should\n  send it.\n\n## Errors\n\nEvery error is an RFC 9457 problem (`application/problem+json`) with `type`, `title`,\n`status`, `detail` and `requestId`. Problem types that clients act on are relative URI\nreferences of the form `/api/v2/problems/{name}`, documented in `docs/problems.md` and served\nas HTML by `GET /problems/{problemType}`. Compare `type` as an exact string. Other problems\nuse `about:blank` and are identified by their status (`400` malformed request, `404` unknown\nresource or path, `405` method not allowed, `409` conflict described in `detail`, `412`\nprecondition failed, `415` unsupported request body media type, `500` unexpected failure).\n\nErrors are never localised: the API ignores `Accept-Language`. `title` and `detail` are\nEnglish and meant for logs and scripts. A validation problem (`422`) carries an `errors` map\nfrom each invalid field to a list of violations, each with a stable rule `code` and its\n`params`, so that clients build translated messages themselves.\n\n## Authentication\n\n**Browser clients** use a same-origin session cookie (`sessionCookie`, `Secure`, `HttpOnly`,\n`SameSite=Strict`). Every state-changing request made with a session, including sign-in, must\ncarry the session's anti-forgery token in the `X-CSRF-Token` header (`csrfToken`), whatever\nits content type. The flow is:\n\n1. `GET /csrf-token` starts an anonymous session and returns its token. The token stays valid\n   for the lifetime of the session, including across sign-in. A `403` with type\n   `/api/v2/problems/csrf-token-mismatch` means the session ended or its identity changed (the\n   token is renewed when an impersonation starts or ends). Fetch a new token and re-read\n   `GET /me`. Retry the write once only if the identity is unchanged; otherwise discard it, so\n   that a write prepared under one identity is never sent under another.\n2. Sign in with a passkey (`POST /session/passkey-challenge`, then\n   `POST /session/passkey-assertion`) or with a password (`POST /session`).\n3. If the password step answers with state `pendingSecondFactor`, complete one of the listed\n   methods (`POST /session/pending-sign-in/second-factor`, after\n   `POST /session/pending-sign-in/webauthn-challenge` for WebAuthn) or cancel it\n   (`DELETE /session/pending-sign-in`).\n4. Sign out with `DELETE /session`.\n\n**Automation clients** send an API key in the `X-API-Key` header (`apiKeyAuth`). A request\nwith a key never creates a session and needs no anti-forgery token. When a request carries\nboth a key and a session cookie, the key decides and the cookie is ignored. Any request that\ncarries a non-empty `X-API-Key` header is authenticated by that key, and an invalid, expired\nor revoked key, or a key used from a disallowed address, is reported to mailcow's fail2ban.\nThe System operations (health checks, the contract, the documentation and the problem pages)\nignore `X-API-Key`.\n\n## Recommended presentation of sign-in methods\n\nClients should offer **passkey sign-in first** whenever the device supports WebAuthn\n(`PublicKeyCredential` is available), and username and password second. Passkeys registered\nin the legacy UI under the names \"FIDO2\" or \"Touch ID\" are ordinary passkeys and need no\nspecial handling. In the second-factor step, `PendingSignIn.methods` is already in the\nrecommended order: WebAuthn security keys and passkeys first, TOTP second, Yubico OTP last.\nMethods with `tier: primary` are offered directly; methods with `tier: advanced` belong behind\nan \"other methods\" option.\n\n## Restricted sessions\n\nWhen mailcow forces an account to change its password or to set up a second factor, the\nsession is restricted (`state: restricted`, non-empty `pendingActions`). It can read\n`GET /me` and `GET /capabilities/self-service` and sign out. While `passwordChange` is\npending it can read `GET /me/password-policy` and change the password (`PUT /me/password`);\nwhile `secondFactorSetup` is pending it can list and enrol second factors\n(`/me/second-factors`) and, when that is the only pending action, register a passkey.\nOperations that need no signed-in account stay available: `GET /csrf-token`, `GET /session`,\nsign-in and its steps, the public configuration, the documentation and the health checks.\nEvery other operation answers `403` with type `/api/v2/problems/pending-action-required`.\nAPI keys are never restricted: `Identity.pendingActions` is empty for them. Pending actions are re-evaluated from mailcow's\ndata on every request, so a restriction lifts as soon as it is resolved in either UI.\n"
   },
   "servers": [
     {
@@ -337,6 +337,9 @@
           "403": {
             "$ref": "#/components/responses/SignInForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -481,6 +484,9 @@
           "403": {
             "$ref": "#/components/responses/SignInForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -562,6 +568,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SignInForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -679,6 +688,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -771,6 +783,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -892,6 +907,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -1053,6 +1071,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -1801,6 +1822,9 @@
           "409": {
             "$ref": "#/components/responses/SyncJobExists"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/SyncJobValidationFailed"
           },
@@ -1897,6 +1921,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SyncJobForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/SyncJobValidationFailed"
@@ -2012,6 +2039,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/SyncJobValidationFailed"
           },
@@ -2115,7 +2145,7 @@
           "Sync jobs"
         ],
         "summary": "Reschedule a sync job",
-        "description": "Clears the job's last run time and last result (legacy \"Schedule next\"), so the imapsync runner\nselects it on its next cycle if it is active and not running. This API never starts a run\nitself. A run in progress is not interrupted: it finishes, writes its own status, and the next\ncycle runs the job again.\n\nRescheduling changes only the run status, so it neither requires nor checks `If-Match` and does\nnot change the version tag. Audited. Refusals: `403` (no sync-jobs permission, or a read-only\nkey) and `404` (unknown or out of scope).\n",
+        "description": "Clears the job's last run time and last result (legacy \"Schedule next\"), so the imapsync runner\nselects it on its next cycle if it is active and not running. This API never starts a run\nitself. A run in progress is not interrupted: it finishes, writes its own status, and the next\ncycle runs the job again.\n\nRescheduling changes only the run status, so it neither requires nor checks `If-Match` and does\nnot change the version tag. Audited. Refusals: `403` (no sync-jobs permission, or a read-only\nkey), `404` (unknown or out of scope), and `422` (unsafe stored custom parameters).\n",
         "security": [
           {
             "sessionCookie": [],
@@ -2137,6 +2167,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/SyncJobValidationFailed"
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
@@ -2272,6 +2305,9 @@
           "409": {
             "$ref": "#/components/responses/DomainExistsConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -2323,6 +2359,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -2421,6 +2460,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -2608,6 +2650,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -2794,6 +2839,9 @@
           "409": {
             "$ref": "#/components/responses/DomainTemplateConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -2842,6 +2890,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -2943,6 +2994,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -3217,6 +3271,9 @@
           "409": {
             "$ref": "#/components/responses/AliasConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -3297,6 +3354,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -3398,6 +3458,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -3622,6 +3685,9 @@
           "409": {
             "$ref": "#/components/responses/AliasDomainConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -3673,6 +3739,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -3777,6 +3846,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -3967,6 +4039,9 @@
           "409": {
             "$ref": "#/components/responses/ResourceConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -4015,6 +4090,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -4113,6 +4191,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -4253,6 +4334,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -4509,6 +4593,9 @@
           "409": {
             "$ref": "#/components/responses/MailboxConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -4645,6 +4732,9 @@
           "403": {
             "$ref": "#/components/responses/MailboxForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -4745,6 +4835,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -4905,6 +4998,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -5013,6 +5109,9 @@
           "409": {
             "$ref": "#/components/responses/MailboxTemplateConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -5061,6 +5160,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -5162,6 +5264,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -5297,6 +5402,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -5472,6 +5580,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -5523,6 +5634,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -5680,6 +5794,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -5753,6 +5870,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -6007,6 +6127,9 @@
           "409": {
             "$ref": "#/components/responses/MtaStsPolicyConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -6104,6 +6227,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -6247,6 +6373,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -6304,6 +6433,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -6398,6 +6530,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -6509,6 +6644,9 @@
           "409": {
             "$ref": "#/components/responses/SingleSignOnNotAvailable"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -6557,6 +6695,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SignInForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -6666,6 +6807,9 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -6714,6 +6858,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -6812,6 +6959,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -7085,6 +7235,9 @@
           "409": {
             "$ref": "#/components/responses/AdminConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -7130,6 +7283,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -7228,6 +7384,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -7520,6 +7679,9 @@
           "409": {
             "$ref": "#/components/responses/DomainAdminConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -7568,6 +7730,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -7669,6 +7834,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -7851,6 +8019,9 @@
           "403": {
             "$ref": "#/components/responses/SignInForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -7935,6 +8106,9 @@
           },
           "409": {
             "$ref": "#/components/responses/ImpersonationConflict"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -9987,6 +10161,9 @@
           "409": {
             "$ref": "#/components/responses/MailQueueConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -10226,6 +10403,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -10363,6 +10543,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -10792,6 +10975,9 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -10893,6 +11079,9 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -10990,6 +11179,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -11163,6 +11355,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -11261,6 +11456,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -11358,6 +11556,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -11487,6 +11688,9 @@
           "409": {
             "$ref": "#/components/responses/RoutingConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -11538,6 +11742,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -11640,6 +11847,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -11741,6 +11951,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -11885,6 +12098,9 @@
           "409": {
             "$ref": "#/components/responses/RoutingConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -12020,6 +12236,9 @@
           "403": {
             "$ref": "#/components/responses/RoutingForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -12120,6 +12339,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -12276,6 +12498,9 @@
           "409": {
             "$ref": "#/components/responses/RoutingConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -12327,6 +12552,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -12428,6 +12656,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -12599,6 +12830,9 @@
           "409": {
             "$ref": "#/components/responses/RoutingConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -12647,6 +12881,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -12748,6 +12985,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -12914,6 +13154,9 @@
           "403": {
             "$ref": "#/components/responses/Forbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -12965,6 +13208,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -13066,6 +13312,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -13339,6 +13588,9 @@
           "403": {
             "$ref": "#/components/responses/SpamFilterForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -13463,6 +13715,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -13514,6 +13769,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SpamFilterForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -13673,6 +13931,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -13902,6 +14163,9 @@
           "403": {
             "$ref": "#/components/responses/SpamFilterForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -13999,6 +14263,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -14134,6 +14401,9 @@
           },
           "409": {
             "$ref": "#/components/responses/SpamPolicyEntryConflict"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -14355,6 +14625,9 @@
           "409": {
             "$ref": "#/components/responses/SpamPolicyEntryConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -14575,6 +14848,9 @@
           "409": {
             "$ref": "#/components/responses/SpamPolicyEntryConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -14757,6 +15033,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -15000,6 +15279,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -15149,6 +15431,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -15297,6 +15582,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -15511,6 +15799,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -15770,6 +16061,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -15862,6 +16156,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -15956,6 +16253,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -16048,6 +16348,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -16142,6 +16445,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -16235,6 +16541,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -16327,6 +16636,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -16431,6 +16743,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -16550,6 +16865,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -16682,6 +17000,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -16912,6 +17233,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -16992,6 +17316,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -17182,6 +17509,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -17349,6 +17679,9 @@
           "409": {
             "$ref": "#/components/responses/MassMailConflict"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -17408,6 +17741,9 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -17708,6 +18044,9 @@
           "403": {
             "$ref": "#/components/responses/SelfServiceForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -17839,6 +18178,9 @@
           "403": {
             "$ref": "#/components/responses/SelfServiceForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -17950,6 +18292,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SelfServiceForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -18105,6 +18450,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -18247,6 +18595,9 @@
           "403": {
             "$ref": "#/components/responses/SelfServiceForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -18326,6 +18677,9 @@
           "403": {
             "$ref": "#/components/responses/PasswordResetForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -18374,6 +18728,9 @@
           },
           "403": {
             "$ref": "#/components/responses/PasswordResetForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -18424,6 +18781,9 @@
           "403": {
             "$ref": "#/components/responses/PasswordResetForbidden"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -18472,6 +18832,9 @@
           },
           "403": {
             "$ref": "#/components/responses/PasswordResetForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -18527,6 +18890,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SelfServiceForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -18647,6 +19013,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -18746,6 +19115,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -18908,6 +19280,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -19010,6 +19385,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -19205,6 +19583,9 @@
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -19394,6 +19775,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -19716,6 +20100,9 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
+          },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
           },
@@ -19815,6 +20202,9 @@
           },
           "412": {
             "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -20038,6 +20428,9 @@
           },
           "403": {
             "$ref": "#/components/responses/SelfServiceForbidden"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMediaType"
           },
           "422": {
             "$ref": "#/components/responses/ValidationFailed"
@@ -43690,6 +44083,16 @@
       },
       "SignInForbidden": {
         "description": "The sign-in request is refused. Possible types:\n- `/api/v2/problems/csrf-token-mismatch`: missing or wrong `X-CSRF-Token`. Call\n  `GET /csrf-token` first.\n- `/api/v2/problems/session-required`: the request carries an API key; sign-in is for browser\n  sessions only.\n- `/api/v2/problems/second-factor-unavailable`: the password is correct, but the account's only\n  active second factors are deprecated U2F or HOTP entries. An administrator must reset them.\n- `/api/v2/problems/insufficient-key-scope` and `/api/v2/problems/api-key-source-not-allowed`:\n  the request carries a read-only API key, or a key used from a disallowed address.\n",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "UnsupportedMediaType": {
+        "description": "A non-empty request body was sent without a JSON content type (type `about:blank`).\nSend the media type documented by the operation, normally `application/json` or\n`application/merge-patch+json`. No resource changes are applied.\n",
         "content": {
           "application/problem+json": {
             "schema": {

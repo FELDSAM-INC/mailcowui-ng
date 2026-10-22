@@ -3,6 +3,7 @@
 // screen explains what happened, the current page is kept for after the next sign-in, and a new
 // anti-forgery token is fetched for the new anonymous session.
 import { clearCsrfToken, queryKeys, refreshCsrfToken } from '@/api'
+import { invalidateSessionScope } from '@/api/session-scope'
 
 import { markSessionEnded } from '@/shared/composables/draft-registry'
 
@@ -38,6 +39,7 @@ export function endSession(ctx: SessionContext, options: EndSessionOptions = {})
 async function run(ctx: SessionContext, options: EndSessionOptions): Promise<void> {
   const session = cachedSession(ctx.queryClient)
   if (session?.state === 'anonymous') return
+  invalidateSessionScope()
 
   // UI 004 (research R10): forms that unmount now keep their input for the same account.
   markSessionEnded()

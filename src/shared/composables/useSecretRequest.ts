@@ -7,6 +7,7 @@
 import { onScopeDispose, ref, shallowRef, type Ref, type ShallowRef } from 'vue'
 
 import { ApiProblem, isApiProblem, reportSessionProblem } from '@/api'
+import { captureSessionScope } from '@/api/session-scope'
 
 export interface SecretRequest<A extends unknown[], R> {
   pending: Ref<boolean>
@@ -38,19 +39,21 @@ export function useSecretRequest<A extends unknown[], R>(
 
   async function run(...args: A): Promise<R | null> {
     if (disposed || pending.value) return null
+    const scope = captureSessionScope()
     pending.value = true
     problem.value = null
     result.value = null
     try {
       const value = await request(...args)
-      if (disposed) return null
+      if (disposed || !scope.isCurrent()) return null
       result.value = value
       return value
     } catch (error) {
-      if (disposed) return null
+      if (disposed || !scope.isCurrent()) return null
       const failure = isApiProblem(error)
         ? error
         : ApiProblem.fromParts({ kind: 'network', cause: error })
+      if (failure.kind === 'identityChanged') return null
       problem.value = failure
       if (options.sessionReactions !== false) reportSessionProblem(failure)
       return null

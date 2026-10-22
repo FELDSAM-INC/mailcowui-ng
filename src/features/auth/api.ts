@@ -22,6 +22,7 @@ import {
   type WebAuthnChallenge,
   type Writable,
 } from '@/api'
+import { invalidateSessionScope } from '@/api/session-scope'
 import { applyProfileAfterSignIn } from '@/app/preferences/sync'
 import { sessionContext } from '@/app/session/context'
 import {
@@ -109,6 +110,7 @@ export async function reportSingleSignOnProviderError(
 /** The steps every signed-in session takes: identity, profile preferences, the other tabs. */
 async function takeSignedInSession(session: Session): Promise<void> {
   const ctx = sessionContext()
+  if (isSignedIn(session)) invalidateSessionScope()
   ctx.queryClient.setQueryData(queryKeys.session(), session)
   if (isSignedIn(session)) {
     useSessionStore().keptUsername = null

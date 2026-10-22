@@ -15,9 +15,13 @@ import {
 import type { paths } from './generated/schema'
 import { ApiProblem, peekProblemName, problemFromResponse } from './problem'
 import { reportSessionProblem } from './query/client'
+import { captureSessionScope } from './session-scope'
 
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const CSRF_HEADER = 'X-CSRF-Token'
+const responseScopes = new WeakMap<Response, ReturnType<typeof captureSessionScope>>()
+type RequestOwner = { owner: string | null; scope: ReturnType<typeof captureSessionScope> }
+const requestOwners = new WeakMap<Request, RequestOwner>()
 
 /** UI 012: why the session ended, when it was not a plain `unauthenticated` (FR-052). */
 export type SessionEndReason = 'identityProviderSessionEnded'
@@ -44,13 +48,15 @@ function apiBaseUrl(): string {
 /** `no-store` for everything except the public configuration, which revalidates with its ETag. */
 const cacheMiddleware: Middleware = {
   onRequest({ request, schemaPath }) {
-    return new Request(request, {
+    const cached = new Request(request, {
       cache: schemaPath === '/public-config' ? 'no-cache' : 'no-store',
     })
+    requestOwners.set(cached, requestOwners.get(request)!)
+    return cached
   },
 }
 
-const replayClones = new Map<string, { request: Request; owner: string | null }>()
+const replayClones = new Map<string, RequestOwner & { request: Request }>()
 
 const csrfMiddleware: Middleware = {
   onError({ id }) {
@@ -59,26 +65,29 @@ const csrfMiddleware: Middleware = {
   },
   async onRequest({ request, id }) {
     if (!UNSAFE_METHODS.has(request.method)) return undefined
-    const owner = requestIdentityKey()
-    const token = await ensureCsrfToken()
+    const { scope, owner } = requestOwners.get(request)!
+    const token = await scope.run(ensureCsrfToken)
     const headers = new Headers(request.headers)
     headers.set(CSRF_HEADER, token)
     const withToken = new Request(request, { headers })
-    replayClones.set(id, { request: withToken.clone(), owner })
+    requestOwners.set(withToken, { scope, owner })
+    replayClones.set(id, { request: withToken.clone(), owner, scope })
     return withToken
   },
   async onResponse({ response, id, options }) {
     const saved = replayClones.get(id)
     replayClones.delete(id)
     if (!saved || response.status !== 403) return undefined
-    if ((await peekProblemName(response)) !== 'csrf-token-mismatch') return undefined
+    const { scope } = saved
+    if ((await scope.run(() => peekProblemName(response))) !== 'csrf-token-mismatch')
+      return undefined
 
     // UI007 R5: the cloned write belongs to the identity that prepared it. Refreshing a
     // token alone must never allow that write to run as another account.
-    const token = await refreshCsrfToken()
+    const token = await scope.run(refreshCsrfToken)
     let identity
     try {
-      identity = requireData(await api.GET('/me')).data
+      identity = requireData(await scope.run(() => api.GET('/me'))).data
     } catch (error) {
       if (error instanceof ApiProblem && error.status === 401)
         emitSessionEnded(
@@ -93,11 +102,14 @@ const csrfMiddleware: Middleware = {
     headers.set(CSRF_HEADER, token)
     let replay: Response
     try {
-      replay = await options.fetch(new Request(clone, { headers }))
+      const request = new Request(clone, { headers })
+      requestOwners.set(request, { scope, owner: saved.owner })
+      replay = await scope.run(() => options.fetch(request))
     } catch (error) {
+      scope.assertCurrent()
       throw ApiProblem.fromParts({ kind: 'network', cause: error })
     }
-    const name = await peekProblemName(replay)
+    const name = await scope.run(() => peekProblemName(replay))
     if (
       (replay.status === 403 && name === 'csrf-token-mismatch') ||
       (replay.status === 401 && name === 'unauthenticated')
@@ -112,18 +124,29 @@ const csrfMiddleware: Middleware = {
 
 const activityMiddleware: Middleware = {
   async onResponse({ response }) {
+    const scope = responseScopes.get(response)
+    scope?.assertCurrent()
     if (response.status === 401 && (await peekProblemName(response)) === 'unauthenticated') {
       return undefined
     }
+    scope?.assertCurrent()
     recordActivity()
     return undefined
   },
 }
 
 const problemMiddleware: Middleware = {
+  onRequest({ request }) {
+    // Capture synchronously in the first middleware, before openapi-fetch yields. Otherwise an
+    // identity switch during earlier middleware could prepare an old write with the new token.
+    requestOwners.set(request, { scope: captureSessionScope(), owner: requestIdentityKey() })
+  },
   async onResponse({ response }) {
+    const scope = responseScopes.get(response) ?? captureSessionScope()
+    scope.assertCurrent()
     if (response.status >= 400) {
-      const problem = await problemFromResponse(response)
+      const problem = await scope.run(() => problemFromResponse(response))
+      scope.assertCurrent()
       // Acting can end on any operation, including direct versioned writes outside query caches.
       if (problem.is('impersonation-ended')) reportSessionProblem(problem)
       throw problem
@@ -141,7 +164,14 @@ export const api = createClient<paths>({
   baseUrl: apiBaseUrl(),
   credentials: 'same-origin',
   // Resolved per call, so test doubles and interceptors installed later still apply.
-  fetch: (request: Request) => globalThis.fetch(request),
+  // Refuse a late response before middleware can replay it or report an ended session for the
+  // account that replaced its owner. Mutation/secret helpers also guard after body parsing.
+  fetch: async (request: Request) => {
+    const scope = requestOwners.get(request)?.scope ?? captureSessionScope()
+    const response = await scope.run(() => globalThis.fetch(request))
+    responseScopes.set(response, scope)
+    return response
+  },
 })
 
 // openapi-fetch runs onRequest in this order and onResponse in reverse: the token replay sees the
@@ -156,6 +186,8 @@ setCsrfFetcher(async () => {
 
 /** The `data` of a successful call; calls that fail throw ApiProblem before this point. */
 export function requireData<T>(result: { data?: T; response: Response }): T {
+  // A response can arrive before the switch while its streamed body finishes afterwards.
+  responseScopes.get(result.response)?.assertCurrent()
   if (result.data === undefined) {
     throw ApiProblem.fromParts({ kind: 'problem', status: result.response.status })
   }

@@ -2,6 +2,7 @@
 import { nextTick } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 import { problemOf, queryKeys, refreshCsrfToken, setCsrfToken, type Identity } from '@/api'
+import { invalidateSessionScope } from '@/api/session-scope'
 import { i18n, lt } from '@/i18n'
 import { clearAllDrafts, setDraftOwner } from '@/shared/composables/draft-registry'
 import { settleConfirm } from '@/shared/composables/useConfirm'
@@ -66,6 +67,7 @@ export function retryIdentitySwitch(): Promise<void> {
   return running
 }
 async function run(operation: NonNullable<typeof pending>): Promise<void> {
+  invalidateSessionScope()
   const { options, context: ctx, origin, current } = operation
   const store = useSessionStore()
   store.identityTransition = true

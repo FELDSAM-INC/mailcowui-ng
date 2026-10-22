@@ -43,6 +43,7 @@ test.describe('resources: list and page', () => {
     await page.getByRole('searchbox', { name: 'Search:' }).fill('desk')
     await expect(page).toHaveURL(/q=desk/)
     await expect(page.locator('[data-entry]')).toHaveCount(5)
+    await expect(page.locator('[data-live="polite"]')).toHaveText('Showing 1 to 5 of 5 entries')
     await page.goto('resources?kind=location')
     await listReady(page)
     await expect(entry(page, RESOURCES_004.meetingRoom)).toBeVisible()

@@ -42,6 +42,7 @@ test.describe('domain aliases: list and page', () => {
     await page.getByRole('searchbox', { name: 'Search:' }).fill('legacy')
     await expect(page).toHaveURL(/q=legacy/)
     await expect(page.locator('[data-entry]')).toHaveCount(1)
+    await expect(page.locator('[data-live="polite"]')).toHaveText('Showing 1 to 1 of 1 entries')
     await page.goto('alias-domains?active=false')
     await listReady(page)
     await expect(page.locator('[data-entry]')).toHaveCount(0)

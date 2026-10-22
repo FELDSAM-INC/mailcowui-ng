@@ -9,7 +9,7 @@
 // (US6, research R16): "Toggle all" for the page up to the bulk limit, the bar inside the
 // capabilities gate, the confirmations, one result per alias and the copies of each alias.
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
@@ -32,9 +32,10 @@ import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
-import { announce } from '@/shared/composables/useAnnouncer'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import type { PageSize } from '@/shared/composables/useListState'
 import { CloseIcon, PlusIcon, SyncIcon } from '@/shared/icons'
@@ -100,7 +101,9 @@ const query = useQuery(
   computed(() => ({ ...aliasListOptions(params.value), placeholderData: keepPreviousData })),
 )
 const aliases = computed(() => query.data.value?.data ?? [])
-const total = computed(() => query.data.value?.meta.total ?? 0)
+const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, listState } =
+  useListQueryState(query, list.hasSearchOrFilters)
+useFilteredListAnnouncement(query, state)
 
 /** Readable names of the domains picked in the filters, for their chips. */
 const labels = ref<Record<string, string>>({})
@@ -193,38 +196,7 @@ function removeChip(key: string) {
   if (chip) updateFilters(chip.change)
 }
 
-// FR-010: the result count is announced after a search or filter change, without moving focus.
-const filterKey = computed(() => JSON.stringify(state.value.filters))
-let announcedFor = filterKey.value
 const number = (value: number) => formatNumber(value, locale.value as AppLocale)
-watch(
-  () => [query.data.value, query.isPlaceholderData.value] as const,
-  ([data, placeholder]) => {
-    if (!data || placeholder || filterKey.value === announcedFor) return
-    announcedFor = filterKey.value
-    const from = data.meta.total === 0 ? 0 : (state.value.page - 1) * state.value.size + 1
-    announce(
-      data.meta.total === 0
-        ? lt('datatables.infoEmpty')
-        : lt('datatables.info', {
-            _START_: number(from),
-            _END_: number(Math.min(data.meta.total, state.value.page * state.value.size)),
-            _TOTAL_: number(data.meta.total),
-          }),
-    )
-  },
-)
-
-const initialLoading = computed(() => query.isPending.value)
-const loadFailed = computed(() => query.isError.value && !query.data.value)
-const refreshFailed = computed(() => query.isError.value && !!query.data.value)
-const empty = computed(
-  () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-)
-const noMatches = computed(() => empty.value && list.hasSearchOrFilters.value)
-const listState = computed(() =>
-  initialLoading.value ? 'loading' : loadFailed.value ? 'error' : empty.value ? 'empty' : 'ready',
-)
 
 function refresh() {
   void query.refetch()

@@ -1,11 +1,10 @@
 <script setup lang="ts">
-// The existing Routing tabs, now reused by every top-level content group. Narrow screens use a
-// disclosure; wider screens wrap the same links, preserving 44 px targets without sideways scroll.
-import { computed, ref, useId } from 'vue'
+// Shared section links stay visible at every width. Only the tab row scrolls on small screens;
+// desktop links wrap, and the current destination stays in view without scrolling the page.
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import { resolveText, type TextRef } from '@/i18n'
-import { ChevronDownIcon } from '@/shared/icons'
 
 const props = defineProps<{
   label: string
@@ -17,46 +16,53 @@ const props = defineProps<{
     disabled?: boolean
   }[]
 }>()
-const { t } = useI18n()
-const id = useId()
-const open = ref(false)
-const currentLabel = computed(() =>
-  resolveText(
-    props.items.find((item) => item.current)?.labelKey ?? props.items[0]?.labelKey ?? '',
-    t,
-  ),
+const { t, locale } = useI18n()
+const links = ref<HTMLUListElement | null>(null)
+function revealCurrent() {
+  const list = links.value
+  if (!list || list.scrollWidth <= list.clientWidth) return
+  const selected = list.querySelector<HTMLElement>('[aria-current="page"]')
+  if (!selected) return
+  const bounds = list.getBoundingClientRect()
+  const current = selected.getBoundingClientRect()
+  // Keep focus outlines inside the scrollport. scrollIntoView would also move the page.
+  const left = current.left - bounds.left - 4
+  const right = current.right - bounds.right + 4
+  if (left < 0) list.scrollBy({ left })
+  else if (right > 0) list.scrollBy({ left: right })
+}
+watch([links, () => props.items, locale], revealCurrent, { flush: 'post' })
+watch(
+  links,
+  (list, _, onCleanup) => {
+    if (!list || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(revealCurrent)
+    observer.observe(list)
+    onCleanup(() => observer.disconnect())
+  },
+  { flush: 'post' },
 )
 const linkClass =
-  'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:hover:bg-accent-hover dark:text-gray-300 dark:hover:bg-white/5 dark:aria-[current=page]:bg-accent dark:aria-[current=page]:text-accent-foreground dark:aria-[current=page]:hover:bg-accent-hover'
+  'inline-flex min-h-11 items-center whitespace-nowrap rounded-lg px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:hover:bg-accent-hover dark:text-gray-300 dark:hover:bg-white/5 dark:aria-[current=page]:bg-accent dark:aria-[current=page]:text-accent-foreground dark:aria-[current=page]:hover:bg-accent-hover'
 </script>
 
 <template>
-  <nav v-if="items.length > 1" :aria-label="label" data-section-navigation>
-    <button
-      type="button"
-      class="inline-flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 text-start text-sm font-medium text-gray-800 md:hidden dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-      :aria-expanded="open ? 'true' : 'false'"
-      :aria-controls="id"
-      @click="open = !open"
-    >
-      <span class="min-w-0 wrap-anywhere">{{ currentLabel }}</span>
-      <ChevronDownIcon
-        class="size-4 shrink-0 motion-safe:transition-transform"
-        :class="open ? 'rotate-180' : ''"
-      />
-    </button>
+  <nav
+    v-if="items.length > 1"
+    :aria-label="label"
+    class="min-w-0 max-w-full"
+    data-section-navigation
+  >
     <ul
-      :id="id"
-      class="mt-2 flex-col gap-1 md:mt-0 md:flex md:flex-row md:flex-wrap"
-      :class="open ? 'flex' : 'hidden'"
+      ref="links"
+      class="flex max-w-full gap-1 overflow-x-auto p-1 [scrollbar-width:thin] md:flex-wrap md:overflow-visible"
     >
-      <li v-for="item in items" :key="item.id">
+      <li v-for="item in items" :key="item.id" class="shrink-0">
         <RouterLink
           v-if="item.to && !item.disabled"
           :to="item.to"
           :class="linkClass"
           :aria-current="item.current ? 'page' : undefined"
-          @click="open = false"
           >{{ resolveText(item.labelKey, t) }}</RouterLink
         >
         <span
@@ -64,7 +70,7 @@ const linkClass =
           role="link"
           aria-disabled="true"
           :title="t('nav.unavailable')"
-          class="inline-flex min-h-11 cursor-not-allowed items-center rounded-lg px-3 text-sm text-gray-500 dark:text-gray-400"
+          class="inline-flex min-h-11 cursor-not-allowed items-center whitespace-nowrap rounded-lg px-3 text-sm text-gray-500 dark:text-gray-400"
           >{{ resolveText(item.labelKey, t)
           }}<span class="sr-only"> — {{ t('nav.unavailable') }}</span></span
         >

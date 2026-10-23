@@ -70,13 +70,10 @@ export async function signOutFromMenu(page: Page): Promise<void> {
 export const politeRegion = (page: Page) => page.locator('[data-live="polite"]')
 export const assertiveRegion = (page: Page) => page.locator('[data-live="assertive"]')
 
-/** Account tabs use the shared narrow-screen disclosure. */
+/** Account tabs are directly available in the shared section navigation. */
 export async function openAccountSections(page: Page): Promise<Locator> {
   const navigation = page.locator('[data-section-nav]')
   await expect(navigation).toBeVisible()
-  const toggle = navigation.getByRole('button')
-  if ((await toggle.isVisible()) && (await toggle.getAttribute('aria-expanded')) === 'false')
-    await toggle.click()
   return navigation
 }
 

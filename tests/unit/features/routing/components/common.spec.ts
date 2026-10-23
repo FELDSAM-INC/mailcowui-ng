@@ -210,7 +210,7 @@ describe('EntryActions, ScreenIntro, StatusText, FormActionBar', () => {
 })
 
 describe('RoutingSectionNav', () => {
-  it('links the available screens with aria-current, behind a disclosure below md', async () => {
+  it('links available screens directly through the shared section navigation', async () => {
     useScenario('routing-admin-default')
     setMatchMedia(false)
     const router = createTestRouter()
@@ -221,10 +221,7 @@ describe('RoutingSectionNav', () => {
     await vi.waitFor(() => expect(wrapper.find('nav').exists()).toBe(true))
     const current = wrapper.find('a[aria-current="page"]')
     expect(current.text()).toBe('Sender-dependent transports')
-    const toggle = wrapper.find('button')
-    expect(toggle.text()).toBe('Sender-dependent transports')
-    expect(wrapper.find('ul').classes()).toContain('hidden')
-    await toggle.trigger('click')
-    expect(wrapper.find('ul').classes()).toContain('flex')
+    expect(wrapper.find('button').exists()).toBe(false)
+    expect(wrapper.findAll('a').length).toBeGreaterThan(1)
   })
 })

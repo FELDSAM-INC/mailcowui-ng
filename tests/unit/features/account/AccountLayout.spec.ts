@@ -128,13 +128,11 @@ describe('AccountLayout', () => {
     expect(navigation.element.parentElement).toBe(
       wrapper.get('[data-account-content]').element.parentElement,
     )
-    expect(navigation.get('button').attributes('aria-expanded')).toBe('false')
-    await navigation.get('button').trigger('click')
-    expect(navigation.get('button').attributes('aria-expanded')).toBe('true')
+    expect(navigation.find('button').exists()).toBe(false)
     await navigation.get('a[href="/ng/account/app-passwords"]').trigger('click')
     await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('account-app-passwords'))
     expect(navigation.get('[aria-current="page"]').text()).toBe('App passwords')
-    expect(navigation.get('button').attributes('aria-expanded')).toBe('false')
+    expect(navigation.find('button').exists()).toBe(false)
   })
 
   it('offers only permitted account sections in the shared navigation', async () => {

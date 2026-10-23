@@ -15,6 +15,14 @@ and API composables while registering routes. ESLint permits it only in the rout
 other deep imports remain forbidden. Route modules must not import another feature's form/API
 barrel just to reuse a page loader.
 
+## Section navigation
+
+Use `shared/components/SectionNavigation.vue` for section and sub-section links. Tabs stay visible
+at every viewport size; do not replace them with a mobile dropdown. Below `md`, keep them on one
+row and allow only the tab bar to scroll horizontally when needed. On desktop, longer groups wrap.
+Keep 44 px touch targets, the current page marker and ordinary link keyboard behaviour. Reveal the
+current tab when the route or available width changes without moving the page vertically.
+
 ## Mobile data tables
 
 Below the table breakpoint, use `shared/components/DataCard.vue` for each row. Domains and

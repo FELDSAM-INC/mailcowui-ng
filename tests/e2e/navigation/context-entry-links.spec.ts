@@ -1,13 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
-
-async function openAccountTabs(page: Page) {
-  const navigation = page.locator('[data-section-nav]')
-  const toggle = navigation.getByRole('button')
-  if (await toggle.isVisible()) await toggle.click()
-  return navigation
-}
+import { openAccountSections as openAccountTabs } from '../fixtures/flows'
 
 async function expectContentWidth(page: Page, selector: string) {
   const shell = await page.locator('[data-shell-content]').boundingBox()
@@ -63,9 +57,7 @@ test('account tabs use the shared navigation above the full-width page on every 
   await expect(page).toHaveURL(/\/account\/app-passwords$/)
   await expect(page.locator('[data-app-password-list]')).toBeVisible()
   await expect(navigation.locator('a[aria-current="page"]')).toHaveText('App passwords')
-  if ((page.viewportSize()?.width ?? 0) < 768) {
-    await expect(navigation.getByRole('button')).toHaveAttribute('aria-expanded', 'false')
-  }
+  await expect(navigation.getByRole('button')).toHaveCount(0)
   await expectContentWidth(page, '[data-account-content]')
 })
 

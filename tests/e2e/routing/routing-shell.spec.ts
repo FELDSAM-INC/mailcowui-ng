@@ -3,7 +3,7 @@
 // domain administrator goes straight to the BCC maps, with or without the BCC maps permission; a
 // mailbox user gets "no access" and no routing request.
 import { expect, test } from '../fixtures/test'
-import { isNarrow, listReady } from './helpers'
+import { listReady } from './helpers'
 
 test.describe('routing shell', () => {
   test('the old Routing address opens BCC maps and exposes only email routing tabs', async ({
@@ -18,7 +18,7 @@ test.describe('routing shell', () => {
     await expect(page).toHaveURL(/routing\/bcc-maps$/)
     await listReady(page)
     const nav = page.getByRole('navigation', { name: 'Routing', exact: true })
-    if (isNarrow(page)) await nav.getByRole('button').click()
+    await expect(nav.getByRole('button')).toHaveCount(0)
     await expect(nav.getByRole('link')).toHaveText([
       'BCC maps',
       'Recipient maps',

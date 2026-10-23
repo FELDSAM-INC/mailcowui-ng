@@ -4,14 +4,13 @@
 // each linking to its domain or mailbox page.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { RouterLink, useRoute } from 'vue-router'
 
 import { problemOf, type RelayhostUsageEntry } from '@/api'
+import ListState from '@/shared/components/ListState.vue'
 import { lt } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
-import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import type { PageSize } from '@/shared/composables/useListState'
 
 import { relayhostUsageOptions, useRelayhost } from '../../api/relayhosts'
@@ -21,7 +20,6 @@ import ListToolbar from '../../components/common/ListToolbar.vue'
 import { relayhostName } from '../../components/relayhosts/relayhost-columns'
 import { useRelayhostUsageState } from '../../list-states/relayhost-usage'
 
-const { t } = useI18n()
 const route = useRoute()
 const id = computed(() => Number(route.params.relayhostId))
 const relayhost = useRelayhost(id)
@@ -98,37 +96,43 @@ const listState = computed(() =>
       @sort="(sort, order) => list.setSort(sort as 'kind' | 'name', order)"
       @clear="list.clearFilters()"
     />
-    <p v-if="query.isPending.value" role="status" aria-busy="true">
-      {{ lt('datatables.loadingRecords') }}
-    </p>
-    <div v-else-if="query.isError.value && !query.data.value" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="query.refetch()" />
-    </div>
-    <p v-else-if="total === 0" class="text-gray-700 dark:text-gray-300">
-      {{ lt(list.hasFilters.value ? 'datatables.zeroRecords' : 'datatables.emptyTable') }}
-    </p>
-    <template v-else>
-      <EntryList
-        :entries="entries"
-        :columns="columns"
-        :id-of="(item) => `${item.kind}:${item.name}`"
-        :edit-to="target"
-        :caption="lt('admin.in_use_by')"
-        :actions-label="lt('admin.action')"
-        :sort="state.sort ?? 'kind'"
-        :order="state.order ?? 'asc'"
-        @sort="(sort, order) => list.setSort(sort as 'kind' | 'name', order)"
-      />
-      <PaginationBar
-        :total="total"
-        :page="state.page"
-        :size="state.size"
-        @update:page="list.setPage"
-        @update:size="(size) => list.setSize(size as PageSize)"
-      />
-    </template>
+    <ListState
+      :loading="query.isPending.value"
+      :failed="query.isError.value && !query.data.value"
+      :problem="problemOf(query.error.value)"
+      :empty="total === 0"
+      @retry="query.refetch()"
+    >
+      <template #loading>
+        <p role="status" aria-busy="true">
+          {{ lt('datatables.loadingRecords') }}
+        </p>
+      </template>
+      <template #empty-state>
+        <p class="text-gray-700 dark:text-gray-300">
+          {{ lt(list.hasFilters.value ? 'datatables.zeroRecords' : 'datatables.emptyTable') }}
+        </p>
+      </template>
+      <template #default>
+        <EntryList
+          :entries="entries"
+          :columns="columns"
+          :id-of="(item) => `${item.kind}:${item.name}`"
+          :edit-to="target"
+          :caption="lt('admin.in_use_by')"
+          :actions-label="lt('admin.action')"
+          :sort="state.sort ?? 'kind'"
+          :order="state.order ?? 'asc'"
+          @sort="(sort, order) => list.setSort(sort as 'kind' | 'name', order)"
+        />
+        <PaginationBar
+          :total="total"
+          :page="state.page"
+          :size="state.size"
+          @update:page="list.setPage"
+          @update:size="(size) => list.setSize(size as PageSize)"
+        />
+      </template>
+    </ListState>
   </section>
 </template>

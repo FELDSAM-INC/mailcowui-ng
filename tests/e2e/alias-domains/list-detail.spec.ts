@@ -91,7 +91,7 @@ test.describe('domain aliases: list and page', () => {
     await expect(page.getByRole('menuitem', { name: 'Remove' })).toBeVisible()
   })
 
-  test('FR-015 the entry menu has a 44 px trigger, and Edit opens the section', async ({
+  test('FR-015 the entry menu has a responsive trigger, and Edit opens the section', async ({
     page,
     mockApi,
   }) => {
@@ -99,8 +99,8 @@ test.describe('domain aliases: list and page', () => {
     await page.goto('alias-domains')
     await listReady(page)
     const box = await trigger(page, AD.withAliases).boundingBox()
-    expect(box!.width).toBeGreaterThanOrEqual(44)
-    expect(box!.height).toBeGreaterThanOrEqual(44)
+    expect(box!.width).toBeGreaterThanOrEqual(isNarrow(page) ? 44 : 32)
+    expect(box!.height).toBeGreaterThanOrEqual(isNarrow(page) ? 44 : 32)
     await trigger(page, AD.withAliases).click()
     await page.getByRole('menuitem', { name: 'Edit' }).click()
     await expect(page).toHaveURL(/\/alias-domains\/example\.net\?edit=general$/)

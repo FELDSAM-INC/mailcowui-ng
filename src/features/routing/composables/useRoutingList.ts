@@ -9,14 +9,15 @@ import {
   type QueryClient,
   type QueryKey,
 } from '@tanstack/vue-query'
-import { computed, watch, type Component, type ComputedRef } from 'vue'
+import { computed, type Component, type ComputedRef } from 'vue'
 
 import type { BulkResult, BulkTarget } from '@/api'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import type { BulkRow } from '@/shared/components/bulk-row'
-import { announce } from '@/shared/composables/useAnnouncer'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import type { ListStateOptions, PageSize, SortOrder } from '@/shared/composables/useListState'
 import { useI18n } from 'vue-i18n'
@@ -83,18 +84,8 @@ export function useRoutingList<T, P>(spec: RoutingListSpec<T, P>) {
     })),
   )
   const entries = computed<T[]>(() => query.data.value?.data ?? [])
-  const total = computed(() => query.data.value?.meta.total ?? 0)
-
-  const initialLoading = computed(() => query.isPending.value)
-  const loadFailed = computed(() => query.isError.value && !query.data.value)
-  const refreshFailed = computed(() => query.isError.value && !!query.data.value)
-  const empty = computed(
-    () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-  )
-  const noMatches = computed(() => empty.value && list.hasFilters.value)
-  const listState = computed(() =>
-    initialLoading.value ? 'loading' : loadFailed.value ? 'error' : empty.value ? 'empty' : 'ready',
-  )
+  const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, listState } =
+    useListQueryState(query, list.hasFilters)
 
   /** Legacy's DataTables summary ("Showing 1 to 25 of 60 entries"), announced after a filter change. */
   const summary = computed(() => {
@@ -107,16 +98,7 @@ export function useRoutingList<T, P>(spec: RoutingListSpec<T, P>) {
       _TOTAL_: number(total.value),
     })
   })
-  let announcedFor = JSON.stringify(list.state.value.filters)
-  watch(
-    () => [query.data.value, query.isPlaceholderData.value] as const,
-    ([data, placeholder]) => {
-      const filters = JSON.stringify(list.state.value.filters)
-      if (!data || placeholder || filters === announcedFor) return
-      announcedFor = filters
-      announce(summary.value)
-    },
-  )
+  useFilteredListAnnouncement(query, list.state, () => summary.value)
 
   const bulk = useRoutingBulk<T>({
     collection: spec.collection,

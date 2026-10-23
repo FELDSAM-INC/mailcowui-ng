@@ -15,6 +15,7 @@ import { useI18n } from 'vue-i18n'
 import { problemOf, type PermissionFlags, type SpamPolicyEntry, type SpamPolicyList } from '@/api'
 import { useIdentityQuery } from '@/app/session/queries'
 import { canReadPolicy, useQuarantineCapabilities } from '@/features/quarantine'
+import ListState from '@/shared/components/ListState.vue'
 import { lt, type LegacyKey } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
@@ -27,7 +28,7 @@ import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
-import { announce } from '@/shared/composables/useAnnouncer'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
 import type { PageSize, SortOrder } from '@/shared/composables/useListState'
@@ -135,23 +136,14 @@ function retry() {
 }
 
 // The result count is announced after a search, without moving the focus.
-let announcedFor = state.value.filters.q
-watch(
-  () => [total.value, ownQuery.isPlaceholderData.value] as const,
-  ([count, placeholder]) => {
-    if (count === undefined || placeholder || state.value.filters.q === announcedFor) return
-    announcedFor = state.value.filters.q
-    const from = count === 0 ? 0 : (state.value.page - 1) * state.value.size + 1
-    announce(
-      count === 0
-        ? lt('datatables.infoEmpty')
-        : lt('datatables.info', {
-            _START_: number(from),
-            _END_: number(Math.min(count, state.value.page * state.value.size)),
-            _TOTAL_: number(count),
-          }),
-    )
+useFilteredListAnnouncement(
+  {
+    data: computed(() =>
+      total.value === undefined ? undefined : { meta: { total: total.value } },
+    ),
+    isPlaceholderData: ownQuery.isPlaceholderData,
   },
+  state,
 )
 
 /** An inherited entry's owner links to its page for administrators and domain administrators. */
@@ -342,85 +334,78 @@ const SELECT =
       @close="removal.close()"
     />
 
-    <p
-      v-if="loading && entries.length === 0"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="py-4 text-sm text-gray-600 dark:text-gray-400"
+    <ListState
+      :loading="loading && entries.length === 0"
+      :failed="loadFailed"
+      :problem="problemOf(failure)"
+      :empty="empty"
+      :error-attrs="{ 'data-list-error': '' }"
+      :no-matches="empty && searching"
+      empty-layout="compact"
+      :clear-label="t('lists.search.clear')"
+      :no-matches-attrs="{ 'data-empty': 'noMatch' }"
+      :empty-attrs="{ 'data-empty': 'none' }"
+      @clear="listState.setFilter('q', undefined)"
+      @retry="retry"
     >
-      {{ lt('datatables.loadingRecords') }}
-    </p>
-    <div v-else-if="loadFailed" data-list-error class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(failure)" retry @retry="retry" />
-    </div>
-    <div
-      v-else-if="empty && searching"
-      data-empty="noMatch"
-      class="flex flex-col items-start gap-3 py-2"
-    >
-      <p class="text-sm text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-      <button
-        type="button"
-        :class="buttonVariants({ variant: 'outline' })"
-        @click="listState.setFilter('q', undefined)"
-      >
-        {{ t('lists.search.clear') }}
-      </button>
-    </div>
-    <p v-else-if="empty" data-empty="none" class="py-2 text-sm text-gray-700 dark:text-gray-300">
-      {{ lt('datatables.emptyTable') }}
-    </p>
-    <template v-else>
-      <ProblemMessage v-if="failure" :problem="problemOf(failure)" retry @retry="retry" />
-      <PolicyEntries
-        :list="list"
-        :entries="entries"
-        :sort="state.sort ?? 'pattern'"
-        :order="state.order ?? 'asc'"
-        :selectable="canChange"
-        :is-selected="selection.isSelected"
-        :can-select="selection.canSelect"
-        :owner-link="ownerLink"
-        :limit-id="limitId"
-        @toggle="selection.toggle"
-        @toggle-all="toggleAll"
-        @sort="(sort, order) => listState.setSort(sort, order)"
-      />
-      <div v-if="canChange && ownRows.length > 0" class="flex flex-col gap-1">
-        <div class="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            data-remove-selected
-            :class="buttonVariants({ variant: 'destructive' })"
-            :disabled="selection.count.value === 0 || removal.phase.value === 'running'"
-            @click="removeSelected"
-          >
-            {{ lt('mailbox.remove') }}
-          </button>
-          <span
-            v-if="selection.count.value > 0"
-            aria-live="polite"
-            class="text-sm text-gray-700 dark:text-gray-300"
-            >{{ t('bulk.selected', { count: number(selection.count.value) }) }}</span
-          >
-        </div>
-        <p v-if="limitMessage" :id="limitId" class="text-sm text-gray-700 dark:text-gray-300">
-          {{ limitMessage }}
+      <template #loading>
+        <p
+          data-list-loading
+          role="status"
+          aria-busy="true"
+          class="py-4 text-sm text-gray-600 dark:text-gray-400"
+        >
+          {{ lt('datatables.loadingRecords') }}
         </p>
-      </div>
-      <PaginationBar
-        v-if="total !== undefined"
-        :total="total"
-        :page="state.page"
-        :size="state.size"
-        :page-sizes="listState.pageSizes"
-        @update:page="listState.setPage"
-        @update:size="(size) => listState.setSize(size as PageSize)"
-      />
-    </template>
+      </template>
+      <template #default>
+        <ProblemMessage v-if="failure" :problem="problemOf(failure)" retry @retry="retry" />
+        <PolicyEntries
+          :list="list"
+          :entries="entries"
+          :sort="state.sort ?? 'pattern'"
+          :order="state.order ?? 'asc'"
+          :selectable="canChange"
+          :is-selected="selection.isSelected"
+          :can-select="selection.canSelect"
+          :owner-link="ownerLink"
+          :limit-id="limitId"
+          @toggle="selection.toggle"
+          @toggle-all="toggleAll"
+          @sort="(sort, order) => listState.setSort(sort, order)"
+        />
+        <div v-if="canChange && ownRows.length > 0" class="flex flex-col gap-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              data-remove-selected
+              :class="buttonVariants({ variant: 'destructive' })"
+              :disabled="selection.count.value === 0 || removal.phase.value === 'running'"
+              @click="removeSelected"
+            >
+              {{ lt('mailbox.remove') }}
+            </button>
+            <span
+              v-if="selection.count.value > 0"
+              aria-live="polite"
+              class="text-sm text-gray-700 dark:text-gray-300"
+              >{{ t('bulk.selected', { count: number(selection.count.value) }) }}</span
+            >
+          </div>
+          <p v-if="limitMessage" :id="limitId" class="text-sm text-gray-700 dark:text-gray-300">
+            {{ limitMessage }}
+          </p>
+        </div>
+        <PaginationBar
+          v-if="total !== undefined"
+          :total="total"
+          :page="state.page"
+          :size="state.size"
+          :page-sizes="listState.pageSizes"
+          @update:page="listState.setPage"
+          @update:size="(size) => listState.setSize(size as PageSize)"
+        />
+      </template>
+    </ListState>
   </section>
 </template>

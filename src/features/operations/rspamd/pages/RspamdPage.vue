@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 
 import type { ApiProblem } from '@/api'
 import { problemOf } from '@/api'
+import ListState from '@/shared/components/ListState.vue'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
@@ -217,65 +218,44 @@ watch(
         </div>
       </div>
 
-      <div
-        v-if="history.isPending.value && history.isFetching.value"
-        role="status"
-        aria-busy="true"
-        class="py-8 text-center text-gray-600 dark:text-gray-400"
+      <ListState
+        :loading="history.isPending.value && history.isFetching.value"
+        :failed="!!historyProblem"
+        :problem="unreachable(historyProblem) ? null : historyProblem"
+        :empty="entries.length === 0"
+        :error-attrs="{ class: 'flex flex-col items-start gap-3', 'data-history-error': '' }"
+        retry-placement="separate"
+        empty-layout="centered-actions"
+        :no-matches="!!state.filters.q && entries.length === 0"
+        :clear-label="t('lists.search.clear')"
+        :no-matches-attrs="{ 'data-history-empty': '' }"
+        :empty-attrs="{ 'data-history-empty': '' }"
+        :error-text="
+          unreachable(historyProblem) ? t('operations.rspamd.unavailable') : t('states.list.error')
+        "
+        @clear="list.setFilter('q', undefined)"
+        @retry="history.refetch()"
       >
-        {{ lt('datatables.loadingRecords') }}
-      </div>
-      <div v-else-if="historyProblem" class="flex flex-col items-start gap-3" data-history-error>
-        <p role="alert" class="font-medium text-gray-900 dark:text-white">
-          {{
-            unreachable(historyProblem)
-              ? t('operations.rspamd.unavailable')
-              : t('states.list.error')
-          }}
-        </p>
-        <ProblemMessage v-if="!unreachable(historyProblem)" :problem="historyProblem" />
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="history.refetch()"
-        >
-          {{ t('common.retry') }}
-        </button>
-      </div>
-      <div
-        v-else-if="entries.length === 0"
-        data-history-empty
-        class="flex flex-col items-center gap-3 py-8 text-center text-gray-600 dark:text-gray-400"
-      >
-        <p>{{ state.filters.q ? lt('datatables.zeroRecords') : lt('datatables.emptyTable') }}</p>
-        <button
-          v-if="state.filters.q"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="list.setFilter('q', undefined)"
-        >
-          {{ t('lists.search.clear') }}
-        </button>
-      </div>
-      <template v-else>
-        <RspamdHistoryList
-          :entries="entries"
-          :expanded="expanded"
-          :wide="wide"
-          :sort="sort"
-          :order="order"
-          @toggle="toggle"
-          @sort="(next, nextOrder) => list.setSort(next, nextOrder)"
-        />
-        <PaginationBar
-          :total="total"
-          :page="state.page"
-          :size="state.size"
-          :page-sizes="list.pageSizes"
-          @update:page="list.setPage"
-          @update:size="(size) => list.setSize(size as PageSize)"
-        />
-      </template>
+        <template #default>
+          <RspamdHistoryList
+            :entries="entries"
+            :expanded="expanded"
+            :wide="wide"
+            :sort="sort"
+            :order="order"
+            @toggle="toggle"
+            @sort="(next, nextOrder) => list.setSort(next, nextOrder)"
+          />
+          <PaginationBar
+            :total="total"
+            :page="state.page"
+            :size="state.size"
+            :page-sizes="list.pageSizes"
+            @update:page="list.setPage"
+            @update:size="(size) => list.setSize(size as PageSize)"
+          />
+        </template>
+      </ListState>
     </section>
   </section>
 </template>

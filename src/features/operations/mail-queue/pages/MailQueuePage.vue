@@ -7,11 +7,14 @@
 // own address (`/operations/mail-queue/messages/<id>`) over the list. The list never refreshes on
 // its own, except after an action.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref } from 'vue'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
+import ListState from '@/shared/components/ListState.vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 
 import { problemOf, type MailQueueMessage } from '@/api'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import BulkActionBar from '@/shared/components/BulkActionBar.vue'
@@ -21,7 +24,6 @@ import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
-import { announce } from '@/shared/composables/useAnnouncer'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
@@ -64,7 +66,10 @@ const query = useQuery(
 )
 const messages = computed(() => query.data.value?.data ?? [])
 const meta = computed(() => query.data.value?.meta)
-const total = computed(() => meta.value?.total ?? 0)
+const { total, initialLoading, loadFailed, empty, noMatches, listState } = useListQueryState(
+  query,
+  () => !!state.value.filters.q,
+)
 const queued = computed(() => meta.value?.queueCounts.total)
 
 const stoppedContainer = computed(() => {
@@ -76,33 +81,17 @@ const stoppedContainer = computed(() => {
   return actions.stoppedContainer.value
 })
 
-const initialLoading = computed(() => query.isPending.value)
-const loadFailed = computed(() => query.isError.value && !query.data.value)
-const empty = computed(
-  () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-)
-const noMatches = computed(() => empty.value && !!state.value.filters.q)
-
 // FR-086: the new count after a search is announced, without moving the focus.
-let announcedFor = state.value.filters.q
-watch(
-  () => [query.data.value, query.isPlaceholderData.value] as const,
-  ([data, placeholder]) => {
-    if (!data || placeholder || state.value.filters.q === announcedFor) return
-    announcedFor = state.value.filters.q
-    const shown = data.data.length
-    announce(
-      data.meta.total === 0
-        ? lt('datatables.zeroRecords')
-        : lt('datatables.info', {
-            _START_: fmt.number(data.meta.offset + 1),
-            _END_: fmt.number(data.meta.offset + shown),
-            _TOTAL_: fmt.number(data.meta.total),
-          }),
-    )
-  },
-)
-
+useFilteredListAnnouncement(query, state, (data) => {
+  const shown = data.data.length
+  return data.meta.total === 0
+    ? lt('datatables.zeroRecords')
+    : lt('datatables.info', {
+        _START_: fmt.number(data.meta.offset + 1),
+        _END_: fmt.number(data.meta.offset + shown),
+        _TOTAL_: fmt.number(data.meta.total),
+      })
+})
 function onSearch(q: string) {
   void list.setFilter('q', q || undefined, { typing: true })
 }
@@ -212,10 +201,7 @@ function purge() {
 </script>
 
 <template>
-  <section
-    class="mx-auto flex w-full max-w-7xl flex-col gap-4"
-    :data-list-state="initialLoading ? 'loading' : loadFailed ? 'error' : empty ? 'empty' : 'ready'"
-  >
+  <section class="mx-auto flex w-full max-w-7xl flex-col gap-4" :data-list-state="listState">
     <header class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div class="flex min-w-0 flex-wrap items-center gap-3">
         <h1
@@ -358,89 +344,47 @@ function purge() {
         @close="actions.close"
       />
 
-      <div
-        v-if="initialLoading"
-        data-list-loading
-        role="status"
-        aria-busy="true"
-        class="flex flex-col gap-3"
+      <ListState
+        :loading="initialLoading"
+        :failed="loadFailed"
+        :problem="problemOf(query.error.value)"
+        :empty="empty"
+        :no-matches="noMatches"
+        :skeleton="32"
+        empty-layout="plain"
+        :empty-attrs="{ 'data-empty': '' }"
+        :clear-label="t('lists.search.clear')"
+        @clear="list.setFilter('q', undefined)"
+        @retry="refresh"
       >
-        <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-        <div
-          v-for="index in 3"
-          :key="index"
-          aria-hidden="true"
-          class="h-32 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-        />
-      </div>
-
-      <div v-else-if="loadFailed" class="flex flex-col gap-3">
-        <p role="alert" class="font-medium text-gray-900 dark:text-white">
-          {{ t('states.list.error') }}
-        </p>
-        <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="refresh" />
-      </div>
-
-      <div v-else-if="noMatches" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="list.setFilter('q', undefined)"
-        >
-          {{ t('lists.search.clear') }}
-        </button>
-      </div>
-
-      <p v-else-if="empty" data-empty class="py-6 text-gray-700 dark:text-gray-300">
-        {{ lt('datatables.emptyTable') }}
-      </p>
-
-      <template v-else>
-        <div v-if="selection.active.value && !wide" class="flex items-center gap-2">
-          <SelectCheckbox
-            :label="lt('mailbox.toggle_all')"
-            :checked="allSelected"
-            @change="toggleAll"
-          />
-          <span aria-hidden="true" class="text-sm text-gray-700 dark:text-gray-300">{{
-            lt('mailbox.toggle_all')
-          }}</span>
-        </div>
-        <QueueMessageTable
-          v-if="wide"
-          :messages="messages"
-          :sort="state.sort ?? 'arrivalTime'"
-          :order="state.order ?? 'asc'"
-          :selectable="selection.active.value"
-          :show="showLocation"
-          @sort="setSort"
-        >
-          <template #select-all>
+        <template #default>
+          <div v-if="selection.active.value && !wide" class="flex items-center gap-2">
             <SelectCheckbox
               :label="lt('mailbox.toggle_all')"
               :checked="allSelected"
               @change="toggleAll"
             />
-          </template>
-          <template #select="{ message }">
-            <SelectCheckbox
-              :label="t('bulk.selectItem', { name: message.id })"
-              :checked="selection.isSelected(message.id)"
-              :disabled="!selection.canSelect(message.id)"
-              described-by="bulk-limit-message"
-              @change="selection.toggle(message.id)"
-            />
-          </template>
-        </QueueMessageTable>
-        <ul v-else :aria-label="lt('queue.queue_manager')" class="flex flex-col gap-3">
-          <QueueMessageCard
-            v-for="message in messages"
-            :key="message.id"
-            :message="message"
-            :show="showLocation(message)"
+            <span aria-hidden="true" class="text-sm text-gray-700 dark:text-gray-300">{{
+              lt('mailbox.toggle_all')
+            }}</span>
+          </div>
+          <QueueMessageTable
+            v-if="wide"
+            :messages="messages"
+            :sort="state.sort ?? 'arrivalTime'"
+            :order="state.order ?? 'asc'"
+            :selectable="selection.active.value"
+            :show="showLocation"
+            @sort="setSort"
           >
-            <template v-if="selection.active.value" #select>
+            <template #select-all>
+              <SelectCheckbox
+                :label="lt('mailbox.toggle_all')"
+                :checked="allSelected"
+                @change="toggleAll"
+              />
+            </template>
+            <template #select="{ message }">
               <SelectCheckbox
                 :label="t('bulk.selectItem', { name: message.id })"
                 :checked="selection.isSelected(message.id)"
@@ -449,17 +393,35 @@ function purge() {
                 @change="selection.toggle(message.id)"
               />
             </template>
-          </QueueMessageCard>
-        </ul>
-        <PaginationBar
-          :total="total"
-          :page="state.page"
-          :size="state.size"
-          :page-sizes="list.pageSizes"
-          @update:page="list.setPage"
-          @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
-        />
-      </template>
+          </QueueMessageTable>
+          <ul v-else :aria-label="lt('queue.queue_manager')" class="flex flex-col gap-3">
+            <QueueMessageCard
+              v-for="message in messages"
+              :key="message.id"
+              :message="message"
+              :show="showLocation(message)"
+            >
+              <template v-if="selection.active.value" #select>
+                <SelectCheckbox
+                  :label="t('bulk.selectItem', { name: message.id })"
+                  :checked="selection.isSelected(message.id)"
+                  :disabled="!selection.canSelect(message.id)"
+                  described-by="bulk-limit-message"
+                  @change="selection.toggle(message.id)"
+                />
+              </template>
+            </QueueMessageCard>
+          </ul>
+          <PaginationBar
+            :total="total"
+            :page="state.page"
+            :size="state.size"
+            :page-sizes="list.pageSizes"
+            @update:page="list.setPage"
+            @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
+          />
+        </template>
+      </ListState>
 
       <div v-if="!initialLoading && !loadFailed" class="flex flex-wrap gap-2">
         <button

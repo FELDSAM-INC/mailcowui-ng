@@ -11,6 +11,7 @@ import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import { lt } from '@/i18n'
 import BulkActionBar from '@/shared/components/BulkActionBar.vue'
 import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
+import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -158,71 +159,44 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
       @clear="c.list.clearFilters()"
     />
 
-    <div
-      v-if="c.initialLoading.value"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="flex flex-col gap-3"
+    <ListState
+      :loading="c.initialLoading.value"
+      :failed="c.loadFailed.value"
+      :problem="problemOf(c.query.error.value)"
+      :empty="c.empty.value"
+      :no-matches="c.noMatches.value"
+      :skeleton="28"
+      empty-layout="actions"
+      :refresh-failed="c.refreshFailed.value"
+      :refresh-text="t('routing.common.refreshFailed')"
+      :no-matches-attrs="{ 'data-no-matches': '' }"
+      :empty-attrs="{ 'data-empty': '' }"
+      :clear-label="t('lists.chips.clearAll')"
+      @clear="c.list.clearFilters()"
+      @retry="c.refresh()"
     >
-      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-      <div
-        v-for="index in 3"
-        :key="index"
-        aria-hidden="true"
-        class="h-28 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-      />
-    </div>
-
-    <div v-else-if="c.loadFailed.value" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(c.query.error.value)" retry @retry="c.refresh()" />
-    </div>
-
-    <template v-else>
-      <p
-        v-if="c.refreshFailed.value"
-        role="alert"
-        class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {{ t('routing.common.refreshFailed') }}
-      </p>
-      <slot name="before-list" />
-
-      <div
-        v-if="bulk.phase.value === 'running'"
-        data-bulk-progress
-        role="status"
-        class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
-      >
-        <SyncIcon class="size-5 motion-safe:animate-spin" />
-        {{ t('bulk.progress', { count: bulk.running.value }) }}
-      </div>
-      <BulkResultSummary
-        v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
-        :rows="bulk.rows.value"
-        :message="bulk.message"
-        @retry="bulk.retry()"
-        @refresh="c.refresh()"
-        @close="bulk.close()"
-      />
-      <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
-
-      <div v-if="c.noMatches.value" data-no-matches class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="c.list.clearFilters()"
+      <template #before-content>
+        <slot name="before-list" />
+        <div
+          v-if="bulk.phase.value === 'running'"
+          data-bulk-progress
+          role="status"
+          class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
         >
-          {{ t('lists.chips.clearAll') }}
-        </button>
-      </div>
-
-      <div v-else-if="c.empty.value" data-empty class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
+          <SyncIcon class="size-5 motion-safe:animate-spin" />
+          {{ t('bulk.progress', { count: bulk.running.value }) }}
+        </div>
+        <BulkResultSummary
+          v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
+          :rows="bulk.rows.value"
+          :message="bulk.message"
+          @retry="bulk.retry()"
+          @refresh="c.refresh()"
+          @close="bulk.close()"
+        />
+        <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
+      </template>
+      <template #empty-actions>
         <RouterLink
           v-if="writable && addTo"
           :to="addTo"
@@ -231,9 +205,8 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
           <PlusIcon />
           {{ addLabel }}
         </RouterLink>
-      </div>
-
-      <template v-else>
+      </template>
+      <template #default>
         <div v-if="selection.active.value && !wide" class="flex items-center gap-2">
           <SelectCheckbox :label="t('bulk.selectAll')" :checked="allSelected" @change="toggleAll" />
           <span aria-hidden="true" class="text-sm text-gray-700 dark:text-gray-300">{{
@@ -262,7 +235,7 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
               >
                 {{ column.text?.(entry) }}
               </RouterLink>
-              <template v-else>{{ column.text?.(entry) }}</template>
+              <template v-else>{{ column.text?.(entry) }} </template>
             </slot>
           </template>
           <template #select-all>
@@ -294,7 +267,7 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
           @update:size="(size) => c.list.setSize(size as PageSize)"
         />
       </template>
-    </template>
+    </ListState>
     <BulkActionBar
       v-if="selection.active.value"
       :count="selection.count.value"

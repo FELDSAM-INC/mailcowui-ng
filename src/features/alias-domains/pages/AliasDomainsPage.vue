@@ -32,6 +32,7 @@ import type { BulkRow } from '@/shared/components/bulk-row'
 import type { DomainPickerOption } from '@/shared/components/DomainPicker.vue'
 import type { FilterChip } from '@/shared/components/filter-chip'
 import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
+import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -292,71 +293,44 @@ function toggleSelecting() {
       @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })"
     />
 
-    <div
-      v-if="initialLoading"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="flex flex-col gap-3"
+    <ListState
+      :loading="initialLoading"
+      :failed="loadFailed"
+      :problem="problemOf(query.error.value)"
+      :empty="empty"
+      :no-matches="noMatches"
+      :skeleton="28"
+      empty-layout="actions"
+      :refresh-failed="refreshFailed"
+      :refresh-text="t('lists.refreshFailed')"
+      :no-matches-attrs="{ 'data-empty': 'noMatch' }"
+      :empty-attrs="{ 'data-empty': 'none' }"
+      :clear-label="t('lists.filters.clear')"
+      @clear="updateFilters(NO_FILTERS)"
+      @retry="refresh"
     >
-      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-      <div
-        v-for="index in 3"
-        :key="index"
-        aria-hidden="true"
-        class="h-28 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-      />
-    </div>
-
-    <div v-else-if="loadFailed" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="refresh" />
-    </div>
-
-    <template v-else>
-      <p
-        v-if="refreshFailed"
-        role="alert"
-        class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {{ t('lists.refreshFailed') }}
-      </p>
-
-      <div
-        v-if="bulk.phase.value === 'running'"
-        data-bulk-progress
-        role="status"
-        class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
-      >
-        <SyncIcon class="size-5 motion-safe:animate-spin" />
-        {{ t('bulk.progress', { count: number(bulk.running.value) }) }}
-      </div>
-      <BulkResultSummary
-        v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
-        data-bulk-summary
-        :rows="bulk.rows.value"
-        :message="bulkMessage"
-        @retry="bulk.retry"
-        @refresh="bulk.refresh"
-        @close="bulk.close"
-      />
-      <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
-
-      <div v-if="noMatches" data-empty="noMatch" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="updateFilters(NO_FILTERS)"
+      <template #before-content>
+        <div
+          v-if="bulk.phase.value === 'running'"
+          data-bulk-progress
+          role="status"
+          class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
         >
-          {{ t('lists.filters.clear') }}
-        </button>
-      </div>
-
-      <div v-else-if="empty" data-empty="none" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
+          <SyncIcon class="size-5 motion-safe:animate-spin" />
+          {{ t('bulk.progress', { count: number(bulk.running.value) }) }}
+        </div>
+        <BulkResultSummary
+          v-else-if="bulk.phase.value === 'results' && bulk.rows.value.length > 0"
+          data-bulk-summary
+          :rows="bulk.rows.value"
+          :message="bulkMessage"
+          @retry="bulk.retry"
+          @refresh="bulk.refresh"
+          @close="bulk.close"
+        />
+        <ProblemMessage v-if="bulk.problem.value" :problem="bulk.problem.value" />
+      </template>
+      <template #empty-actions>
         <RouterLink
           v-if="permissions.canAddAliasDomain"
           :to="{ name: 'alias-domain-create' }"
@@ -365,9 +339,8 @@ function toggleSelecting() {
           <PlusIcon />
           {{ lt('mailbox.add_domain_alias') }}
         </RouterLink>
-      </div>
-
-      <template v-else>
+      </template>
+      <template #default>
         <div v-if="selection.active.value && !wide" class="flex items-center gap-2">
           <SelectCheckbox
             :label="lt('mailbox.toggle_all')"
@@ -416,7 +389,7 @@ function toggleSelecting() {
           @update:size="(size) => list.setSize(size as PageSize)"
         />
       </template>
-    </template>
+    </ListState>
 
     <CapabilitiesGate v-if="selection.active.value">
       <BulkActionBar

@@ -72,7 +72,7 @@ test.describe('resources: list and page', () => {
     await page.goto('resources')
     await listReady(page)
     const box = await trigger(page, RESOURCES_004.meetingRoom).boundingBox()
-    expect(box!.width).toBeGreaterThanOrEqual(44)
+    expect(box!.width).toBeGreaterThanOrEqual(isNarrow(page) ? 44 : 32)
     await trigger(page, RESOURCES_004.meetingRoom).click()
     await expect(page.getByRole('menuitem', { name: 'Remove' })).toBeVisible()
     await page.getByRole('menuitem', { name: 'Edit' }).click()

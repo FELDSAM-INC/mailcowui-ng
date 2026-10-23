@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n'
 
 import { useBranding } from '@/app/branding/public-config'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
+import ListState from '@/shared/components/ListState.vue'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
@@ -202,51 +203,36 @@ const unavailable = computed(() => log.problem.value?.status === 503)
       <span>{{ t('operations.live.failed') }}</span>
     </p>
 
-    <div
-      v-if="log.loading.value"
-      role="status"
-      aria-busy="true"
-      class="py-8 text-center text-gray-600 dark:text-gray-400"
+    <ListState
+      :loading="log.loading.value"
+      :failed="loadFailed"
+      :problem="unavailable ? null : log.problem.value"
+      :empty="log.entries.value.length === 0"
+      :error-attrs="{ class: 'flex flex-col items-start gap-3', 'data-log-error': '' }"
+      retry-placement="separate"
+      empty-layout="centered-actions"
+      :no-matches="!!q && log.entries.value.length === 0"
+      :clear-label="t('lists.search.clear')"
+      :no-matches-attrs="{ 'data-log-empty': '' }"
+      :empty-attrs="{ 'data-log-empty': '' }"
+      :error-text="unavailable ? t('operations.logs.unavailable') : t('states.list.error')"
+      @clear="list.setFilter('q', undefined)"
+      @retry="log.retry()"
     >
-      {{ lt('datatables.loadingRecords') }}
-    </div>
-    <div v-else-if="loadFailed" class="flex flex-col items-start gap-3" data-log-error>
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ unavailable ? t('operations.logs.unavailable') : t('states.list.error') }}
-      </p>
-      <ProblemMessage v-if="!unavailable" :problem="log.problem.value" />
-      <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="log.retry()">
-        {{ t('common.retry') }}
-      </button>
-    </div>
-    <div
-      v-else-if="log.entries.value.length === 0"
-      data-log-empty
-      class="flex flex-col items-center gap-3 py-8 text-center text-gray-600 dark:text-gray-400"
-    >
-      <p>{{ q ? lt('datatables.zeroRecords') : lt('datatables.emptyTable') }}</p>
-      <button
-        v-if="q"
-        type="button"
-        :class="buttonVariants({ variant: 'outline' })"
-        @click="list.setFilter('q', undefined)"
-      >
-        {{ t('lists.search.clear') }}
-      </button>
-    </div>
-    <template v-else>
-      <LogEntryList
-        :type="type"
-        :title="title"
-        :entries="log.entries.value"
-        :expanded="expanded"
-        :wide="wide"
-        :order="order"
-        @toggle="toggle"
-        @reset="rateLimits.reset"
-        @sort="(next) => list.setSort('time', next)"
-      />
-      <p data-log-count class="mt-3 text-sm text-gray-600 dark:text-gray-400">{{ countText }}</p>
-    </template>
+      <template #default>
+        <LogEntryList
+          :type="type"
+          :title="title"
+          :entries="log.entries.value"
+          :expanded="expanded"
+          :wide="wide"
+          :order="order"
+          @toggle="toggle"
+          @reset="rateLimits.reset"
+          @sort="(next) => list.setSort('time', next)"
+        />
+        <p data-log-count class="mt-3 text-sm text-gray-600 dark:text-gray-400">{{ countText }}</p>
+      </template>
+    </ListState>
   </section>
 </template>

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 import { i18n, loadLegacy } from '@/i18n'
 import * as announcer from '@/shared/composables/useAnnouncer'
@@ -24,6 +24,60 @@ function setup() {
 }
 
 describe('useFilteredListAnnouncement', () => {
+  it('waits for both totals when a policy list combines its own and inherited results', async () => {
+    const ownTotal = ref<number>()
+    const inheritedTotal = ref<number>()
+    const state = ref({ filters: { q: '' }, page: 1, size: 25 })
+    const announce = vi.spyOn(announcer, 'announce').mockImplementation(() => undefined)
+    const host = withSetup(() =>
+      useFilteredListAnnouncement(
+        {
+          data: computed(() =>
+            ownTotal.value === undefined || inheritedTotal.value === undefined
+              ? undefined
+              : { meta: { total: ownTotal.value + inheritedTotal.value } },
+          ),
+          isPlaceholderData: ref(false),
+        },
+        state,
+      ),
+    )
+    state.value.filters.q = 'example'
+    ownTotal.value = 2
+    await nextTick()
+    expect(announce).not.toHaveBeenCalled()
+    inheritedTotal.value = 1
+    await nextTick()
+    expect(announce).toHaveBeenCalledExactlyOnceWith('Showing 1 to 3 of 3 entries')
+    host.unmount()
+  })
+
+  it('preserves a feature summary using the returned offset and row count', async () => {
+    const query = {
+      data: ref<{ meta: { total: number; offset: number }; data: string[] }>(),
+      isPlaceholderData: ref(false),
+    }
+    const state = ref({ filters: { q: '' }, page: 2, size: 25 })
+    const announce = vi.spyOn(announcer, 'announce').mockImplementation(() => undefined)
+    const host = withSetup(() =>
+      useFilteredListAnnouncement(query, state, (data) =>
+        data.meta.total === 0
+          ? 'No matching records found'
+          : `${data.meta.offset + 1}–${data.meta.offset + data.data.length} / ${data.meta.total}`,
+      ),
+    )
+    state.value.filters.q = 'queued'
+    query.data.value = { meta: { total: 50, offset: 7 }, data: ['one', 'two'] }
+    await nextTick()
+    expect(announce).toHaveBeenCalledExactlyOnceWith('8–9 / 50')
+
+    state.value.filters.q = 'missing'
+    query.data.value = { meta: { total: 0, offset: 0 }, data: [] }
+    await nextTick()
+    expect(announce).toHaveBeenLastCalledWith('No matching records found')
+    host.unmount()
+  })
+
   it('waits for filtered results and ignores the initial load, filter typing and placeholder data', async () => {
     const { query, state, announce, unmount } = setup()
     query.data.value = { meta: { total: 91 } }

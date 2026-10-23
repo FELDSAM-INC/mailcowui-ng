@@ -7,6 +7,7 @@
 // create action (US2), selection mode (US4), the log viewer (US5) and deletion (US6).
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed, defineAsyncComponent, shallowRef, watch } from 'vue'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
@@ -18,13 +19,14 @@ import { useFormat } from '@/i18n/format'
 import ActiveFilterChips, { type FilterChip } from '@/shared/components/ActiveFilterChips.vue'
 import BulkActionBar from '@/shared/components/BulkActionBar.vue'
 import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
+import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
-import { announce } from '@/shared/composables/useAnnouncer'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -76,7 +78,8 @@ const query = useQuery(
 )
 const jobs = computed(() => query.data.value?.data ?? [])
 watch(jobs, (value) => (pageJobs.value = value), { immediate: true })
-const total = computed(() => query.data.value?.meta.total ?? 0)
+const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, listState } =
+  useListQueryState(query, () => list.hasSearchOrFilters.value)
 const countText = computed(() => t('syncJobs.list.count', { count: fmt.number(total.value) }))
 
 function onSearch(q: string) {
@@ -128,27 +131,7 @@ const chips = computed<FilterChip[]>(() => {
 })
 
 // FR-009: the match count is announced after a search or filter change, without moving focus.
-const filterKey = computed(() => JSON.stringify(state.value.filters))
-let announcedFor = filterKey.value
-watch(
-  () => [query.data.value, query.isPlaceholderData.value] as const,
-  ([data, placeholder]) => {
-    if (!data || placeholder || filterKey.value === announcedFor) return
-    announcedFor = filterKey.value
-    announce(countText.value)
-  },
-)
-
-const initialLoading = computed(() => query.isPending.value)
-const loadFailed = computed(() => query.isError.value && !query.data.value)
-const refreshFailed = computed(() => query.isError.value && !!query.data.value)
-const empty = computed(
-  () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-)
-const noMatches = computed(() => empty.value && list.hasSearchOrFilters.value)
-const listState = computed(() =>
-  initialLoading.value ? 'loading' : loadFailed.value ? 'error' : empty.value ? 'empty' : 'ready',
-)
+useFilteredListAnnouncement(query, state, () => countText.value)
 
 function reload() {
   refresh.noteManualRefresh()
@@ -255,79 +238,54 @@ function openLog(id: number) {
       @resume="refresh.resume()"
     />
 
-    <div
-      v-if="initialLoading"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="flex flex-col gap-3"
+    <ListState
+      :loading="initialLoading"
+      :failed="loadFailed"
+      :problem="problemOf(query.error.value)"
+      :empty="empty"
+      :no-matches="noMatches"
+      :skeleton="32"
+      empty-layout="actions"
+      :refresh-failed="refreshFailed"
+      :refresh-text="t('syncJobs.list.refreshFailed')"
+      :empty-attrs="{ 'data-empty': '' }"
+      :clear-label="t('syncJobs.list.clearAll')"
+      @clear="clearAll"
+      @retry="reload"
     >
-      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-      <div
-        v-for="index in 3"
-        :key="index"
-        aria-hidden="true"
-        class="h-32 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-      />
-    </div>
-
-    <div v-else-if="loadFailed" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="reload" />
-    </div>
-
-    <template v-else>
-      <p
-        v-if="refreshFailed"
-        role="alert"
-        class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {{ t('syncJobs.list.refreshFailed') }}
-      </p>
-
-      <p
-        v-if="actions.status.value"
-        role="status"
-        class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200"
-      >
-        {{ actions.status.value }}
-      </p>
-      <div
-        v-if="actions.phase.value === 'running'"
-        data-bulk-progress
-        role="status"
-        class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
-      >
-        <SyncIcon class="size-5 motion-safe:animate-spin" />
-        {{ t('bulk.progress', { count: actions.running.value }) }}
-      </div>
-      <BulkResultSummary
-        v-else-if="actions.phase.value === 'results' && actions.rows.value.length > 0"
-        :rows="actions.rows.value"
-        @retry="actions.retry"
-        @refresh="reload"
-        @close="actions.close"
-      />
-      <ProblemMessage v-if="actions.problem.value" :problem="actions.problem.value" />
-
-      <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearAll">
-          {{ t('syncJobs.list.clearAll') }}
-        </button>
-      </div>
-
-      <div v-else-if="empty" data-empty class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
+      <template #before-content>
+        <p
+          v-if="actions.status.value"
+          role="status"
+          class="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200"
+        >
+          {{ actions.status.value }}
+        </p>
+        <div
+          v-if="actions.phase.value === 'running'"
+          data-bulk-progress
+          role="status"
+          class="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-200"
+        >
+          <SyncIcon class="size-5 motion-safe:animate-spin" />
+          {{ t('bulk.progress', { count: actions.running.value }) }}
+        </div>
+        <BulkResultSummary
+          v-else-if="actions.phase.value === 'results' && actions.rows.value.length > 0"
+          :rows="actions.rows.value"
+          @retry="actions.retry"
+          @refresh="reload"
+          @close="actions.close"
+        />
+        <ProblemMessage v-if="actions.problem.value" :problem="actions.problem.value" />
+      </template>
+      <template #empty-actions>
         <RouterLink :to="createLocation" :class="buttonVariants({ variant: 'default' })">
           <PlusIcon />
           {{ lt('user.create_syncjob') }}
         </RouterLink>
-      </div>
-
-      <template v-else>
+      </template>
+      <template #default>
         <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
           {{ countText }}
         </p>
@@ -385,7 +343,7 @@ function openLog(id: number) {
           @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
         />
       </template>
-    </template>
+    </ListState>
 
     <SyncJobLogDialog
       v-if="logViewer.openId.value !== undefined"

@@ -90,7 +90,9 @@ describe('MailboxTemplatesPage', () => {
     await flushPromises()
     document.querySelector<HTMLElement>('[role="menuitem"][aria-label="Remove: Small"]')!.click()
     await vi.waitFor(() => expect(requests('deleteMailboxTemplate')).toHaveLength(1))
-    expect(ask.mock.calls[0]![0].content?.props).toEqual({ names: ['Small'] })
+    expect(ask.mock.calls[0]![0].content?.props).toEqual(
+      expect.objectContaining({ names: ['Small'] }),
+    )
     expect(requests('deleteMailboxTemplate')[0]!.headers['if-match']).toMatch(/^"t/)
     await vi.waitFor(() => expect(wrapper.text()).toContain('No matching records found'))
   })

@@ -130,8 +130,11 @@ test.describe('template list', () => {
     await mockApi.use('templates')
     await page.goto('domain-templates?sort=id')
     await listReady(page)
-    await expect(entry(page, '1').getByRole('button', { name: /^Remove/ })).toHaveCount(0)
-    await entry(page, '2').getByRole('button', { name: 'Remove: Small' }).click()
+    await expect(entry(page, '1').getByRole('button', { name: 'Actions for Default' })).toHaveCount(
+      0,
+    )
+    await entry(page, '2').getByRole('button', { name: 'Actions for Small' }).click()
+    await page.getByRole('menuitem', { name: 'Remove: Small', exact: true }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByRole('heading', { name: 'Confirm deletion' })).toBeVisible()
     await expect(dialog).toContainText('Please confirm your changes to the following object id')
@@ -157,7 +160,8 @@ test.describe('template list', () => {
     await page.goto('domain-templates?sort=id')
     await listReady(page)
     await mockApi.mutateTemplate(2, { maxAliases: 77 })
-    await entry(page, '2').getByRole('button', { name: 'Remove: Small' }).click()
+    await entry(page, '2').getByRole('button', { name: 'Actions for Small' }).click()
+    await page.getByRole('menuitem', { name: 'Remove: Small', exact: true }).click()
     const dialog = page.getByRole('alertdialog')
     await dialog.getByRole('button', { name: 'Delete now' }).click()
     await expect(dialog).toContainText('The template changed in the meantime.')

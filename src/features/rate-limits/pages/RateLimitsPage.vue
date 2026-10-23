@@ -8,6 +8,7 @@
 // legacy's "Prohibited by ACL". Mailbox users never reach the page (`meta.roles`).
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, watch } from 'vue'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useI18n } from 'vue-i18n'
 
 import { problemOf } from '@/api'
@@ -21,9 +22,9 @@ import {
 import { lt, text } from '@/i18n'
 import AclReadOnlyNote from '@/shared/components/AclReadOnlyNote.vue'
 import OutcomeAlert from '@/shared/components/OutcomeAlert.vue'
+import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
-import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import type { PageSize, SortOrder } from '@/shared/composables/useListState'
@@ -53,18 +54,8 @@ const list = useRateLimitListState()
 const state = computed(() => list.state.value)
 const query = useQuery(computed(() => rateLimitListOptions(list.params.value)))
 const items = computed(() => query.data.value?.data ?? [])
-const total = computed(() => query.data.value?.meta.total ?? 0)
-
-const initialLoading = computed(() => query.isPending.value)
-const loadFailed = computed(() => query.isError.value && !query.data.value)
-const refreshFailed = computed(() => query.isError.value && !!query.data.value)
-const empty = computed(
-  () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-)
-const noMatches = computed(() => empty.value && list.hasSearchOrFilters.value)
-const listState = computed(() =>
-  initialLoading.value ? 'loading' : loadFailed.value ? 'error' : empty.value ? 'empty' : 'ready',
-)
+const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, listState } =
+  useListQueryState(query, () => list.hasSearchOrFilters.value)
 
 const kindLabel = (kind: RateLimitKind) => text(`enums.rateLimitObjectKind.${kind}`)
 const sortLabel = (sort: RateLimitSort) =>
@@ -190,47 +181,23 @@ const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
       </div>
     </div>
 
-    <div
-      v-if="initialLoading"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="flex flex-col gap-3"
+    <ListState
+      :loading="initialLoading"
+      :failed="loadFailed"
+      :problem="problemOf(query.error.value)"
+      :empty="empty"
+      :no-matches="noMatches"
+      :skeleton="24"
+      empty-layout="plain"
+      :refresh-failed="refreshFailed"
+      :refresh-text="t('lists.refreshFailed')"
+      :no-matches-attrs="{ 'data-no-matches': '' }"
+      :empty-attrs="{ 'data-empty': '' }"
+      :clear-label="t('lists.filters.clear')"
+      @clear="clearAll"
+      @retry="query.refetch()"
     >
-      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-      <div
-        v-for="index in 3"
-        :key="index"
-        aria-hidden="true"
-        class="h-24 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-      />
-    </div>
-
-    <div v-else-if="loadFailed" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="query.refetch()" />
-    </div>
-
-    <template v-else>
-      <p
-        v-if="refreshFailed"
-        role="alert"
-        class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {{ t('lists.refreshFailed') }}
-      </p>
-      <div v-if="noMatches" data-no-matches class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearAll">
-          {{ t('lists.filters.clear') }}
-        </button>
-      </div>
-      <p v-else-if="empty" data-empty class="py-6 text-gray-700 dark:text-gray-300">
-        {{ lt('datatables.emptyTable') }}
-      </p>
-      <template v-else>
+      <template #default>
         <RateLimitList
           :items="items"
           :wide="wide"
@@ -247,7 +214,7 @@ const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
           @update:size="(size) => list.setSize(size as PageSize)"
         />
       </template>
-    </template>
+    </ListState>
 
     <SetRateLimitDialog v-if="changeable" v-model:open="setOpen" />
     <ResetBucketDialog v-if="resettable" v-model:open="resetOpen" @done="outcome = $event" />

@@ -2,7 +2,6 @@
   "syncJobs": {
     "columns": {
       "id": "ID",
-      "log": "Log",
       "minutes": "(min)",
       "server": "Server"
     },

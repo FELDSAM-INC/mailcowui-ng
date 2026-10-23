@@ -5,19 +5,20 @@
 // md up; opening an entry opens the domain page at its MTA-STS section; the four list states; a
 // refresh that keeps the results when it fails; the result count announced after a change.
 import { useQuery } from '@tanstack/vue-query'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import { problemOf } from '@/api'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
+import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
-import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import SearchField from '@/shared/components/SearchField.vue'
-import { announce } from '@/shared/composables/useAnnouncer'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
@@ -36,7 +37,8 @@ const state = computed(() => list.state.value)
 
 const query = useQuery(computed(() => mtaStsListOptions(list.params.value)))
 const policies = computed(() => query.data.value?.data ?? [])
-const total = computed(() => query.data.value?.meta.total ?? 0)
+const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, listState } =
+  useListQueryState(query, () => list.hasSearchOrFilters.value)
 const countText = computed(() =>
   t('dns.mtaSts.list.count', { count: formatNumber(total.value, locale.value as AppLocale) }),
 )
@@ -48,27 +50,7 @@ function clearAll() {
   void list.setFilters({ q: undefined, active: undefined, mode: undefined })
 }
 
-const filterKey = computed(() => JSON.stringify(state.value.filters))
-let announcedFor = filterKey.value
-watch(
-  () => [query.data.value, query.isPlaceholderData.value] as const,
-  ([data, placeholder]) => {
-    if (!data || placeholder || filterKey.value === announcedFor) return
-    announcedFor = filterKey.value
-    announce(countText.value)
-  },
-)
-
-const initialLoading = computed(() => query.isPending.value)
-const loadFailed = computed(() => query.isError.value && !query.data.value)
-const refreshFailed = computed(() => query.isError.value && !!query.data.value)
-const empty = computed(
-  () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-)
-const noMatches = computed(() => empty.value && list.hasSearchOrFilters.value)
-const listState = computed(() =>
-  initialLoading.value ? 'loading' : loadFailed.value ? 'error' : empty.value ? 'empty' : 'ready',
-)
+useFilteredListAnnouncement(query, state, () => countText.value)
 
 function refresh() {
   void query.refetch()
@@ -111,53 +93,28 @@ function refresh() {
       </div>
     </div>
 
-    <div
-      v-if="initialLoading"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="flex flex-col gap-3"
+    <ListState
+      :loading="initialLoading"
+      :failed="loadFailed"
+      :problem="problemOf(query.error.value)"
+      :empty="empty"
+      :no-matches="noMatches"
+      :skeleton="32"
+      empty-layout="actions"
+      :empty-text="t('dns.mtaSts.list.empty')"
+      :refresh-failed="refreshFailed"
+      :refresh-text="t('dns.dkim.list.refreshFailed')"
+      :empty-attrs="{ 'data-mta-sts-empty': '' }"
+      :clear-label="t('lists.chips.clearAll')"
+      @clear="clearAll"
+      @retry="refresh"
     >
-      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-      <div
-        v-for="index in 3"
-        :key="index"
-        aria-hidden="true"
-        class="h-32 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-      />
-    </div>
-
-    <div v-else-if="loadFailed" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="refresh" />
-    </div>
-
-    <template v-else>
-      <p
-        v-if="refreshFailed"
-        role="alert"
-        class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {{ t('dns.dkim.list.refreshFailed') }}
-      </p>
-
-      <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearAll">
-          {{ t('lists.chips.clearAll') }}
-        </button>
-      </div>
-
-      <div v-else-if="empty" data-mta-sts-empty class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ t('dns.mtaSts.list.empty') }}</p>
+      <template #empty-actions>
         <RouterLink :to="{ name: 'domains' }" :class="buttonVariants({ variant: 'outline' })">
           {{ lt('mailbox.domains') }}
         </RouterLink>
-      </div>
-
-      <template v-else>
+      </template>
+      <template #default>
         <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
           {{ countText }}
           <span v-if="query.isPlaceholderData.value" class="ms-2 text-gray-600 dark:text-gray-400">
@@ -183,6 +140,6 @@ function refresh() {
           @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
         />
       </template>
-    </template>
+    </ListState>
   </section>
 </template>

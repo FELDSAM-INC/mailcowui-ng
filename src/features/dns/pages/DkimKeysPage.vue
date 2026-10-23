@@ -8,17 +8,20 @@
 // for every name without a key (legacy's "Select domains with missing keys"), and the run's
 // progress and results, guarded against leaving while it runs.
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, shallowRef } from 'vue'
+import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
 
 import { isApiProblem, problemOf, type DkimDnsPublicationOutcome } from '@/api'
+import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
 import { lt } from '@/i18n'
 import { formatNumber } from '@/i18n/format'
 import type { AppLocale } from '@/i18n/locales'
 import BulkActionBar from '@/shared/components/BulkActionBar.vue'
 import BulkResultSummary from '@/shared/components/BulkResultSummary.vue'
 import { rowsFromBulkResult, unknownRows, type BulkRow } from '@/shared/components/bulk-row'
+import ListState from '@/shared/components/ListState.vue'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
@@ -67,7 +70,8 @@ const state = computed(() => list.state.value)
 
 const query = useQuery(computed(() => dkimListOptions(list.params.value)))
 const entries = computed(() => query.data.value?.data ?? [])
-const total = computed(() => query.data.value?.meta.total ?? 0)
+const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, listState } =
+  useListQueryState(query, () => list.hasSearchOrFilters.value)
 const countText = computed(() =>
   t('dns.dkim.list.count', { count: formatNumber(total.value, locale.value as AppLocale) }),
 )
@@ -96,27 +100,7 @@ function clearAll() {
 }
 
 // FR-008: the result count is announced after a search or filter change, without moving focus.
-const filterKey = computed(() => JSON.stringify(state.value.filters))
-let announcedFor = filterKey.value
-watch(
-  () => [query.data.value, query.isPlaceholderData.value] as const,
-  ([data, placeholder]) => {
-    if (!data || placeholder || filterKey.value === announcedFor) return
-    announcedFor = filterKey.value
-    announce(countText.value)
-  },
-)
-
-const initialLoading = computed(() => query.isPending.value)
-const loadFailed = computed(() => query.isError.value && !query.data.value)
-const refreshFailed = computed(() => query.isError.value && !!query.data.value)
-const empty = computed(
-  () => !!query.data.value && !query.isPlaceholderData.value && total.value === 0,
-)
-const noMatches = computed(() => empty.value && list.hasSearchOrFilters.value)
-const listState = computed(() =>
-  initialLoading.value ? 'loading' : loadFailed.value ? 'error' : empty.value ? 'empty' : 'ready',
-)
+useFilteredListAnnouncement(query, state, () => countText.value)
 
 function refresh() {
   void query.refetch()
@@ -368,78 +352,53 @@ onBeforeUnmount(() => run.stop())
       </div>
     </div>
 
-    <div
-      v-if="initialLoading"
-      data-list-loading
-      role="status"
-      aria-busy="true"
-      class="flex flex-col gap-3"
+    <ListState
+      :loading="initialLoading"
+      :failed="loadFailed"
+      :problem="problemOf(query.error.value)"
+      :empty="empty"
+      :no-matches="noMatches"
+      :skeleton="32"
+      empty-layout="actions"
+      :refresh-failed="refreshFailed"
+      :refresh-text="t('dns.dkim.list.refreshFailed')"
+      :empty-attrs="{ 'data-dkim-empty': '' }"
+      :clear-label="t('lists.chips.clearAll')"
+      @clear="clearAll"
+      @retry="refresh"
     >
-      <span class="sr-only">{{ lt('datatables.loadingRecords') }}</span>
-      <div
-        v-for="index in 3"
-        :key="index"
-        aria-hidden="true"
-        class="h-32 rounded-2xl border border-gray-200 bg-gray-100 motion-safe:animate-pulse dark:border-gray-800 dark:bg-gray-900"
-      />
-    </div>
-
-    <div v-else-if="loadFailed" class="flex flex-col gap-3">
-      <p role="alert" class="font-medium text-gray-900 dark:text-white">
-        {{ t('states.list.error') }}
-      </p>
-      <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="refresh" />
-    </div>
-
-    <template v-else>
-      <p
-        v-if="refreshFailed"
-        role="alert"
-        class="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
-      >
-        {{ t('dns.dkim.list.refreshFailed') }}
-      </p>
-
-      <p v-if="collecting" role="status" class="text-sm text-gray-700 dark:text-gray-300">
-        {{ t('dns.dkim.allMissing.collecting') }}
-      </p>
-      <ProblemMessage v-if="allMissingProblem" :problem="problemOf(allMissingProblem)" />
-      <p v-if="deleting" role="status" class="text-sm text-gray-700 dark:text-gray-300">
-        {{ t('bulk.progress', { count: selection.count.value }) }}
-      </p>
-      <BulkResultSummary
-        v-else-if="bulkRows.length > 0"
-        data-bulk-results
-        :rows="bulkRows"
-        :message="bulkMessage"
-        @retry="deleteSelected"
-        @refresh="refresh"
-        @close="bulkRows = []"
-      >
-        <template #item="{ row }">
-          <PublicationOutcome
-            v-if="bulkPublication[row.id]"
-            :outcome="bulkPublication[row.id]!"
-            :enabled="capabilities.data.value?.dkim.dnsPublicationEnabled ?? false"
-          />
-        </template>
-      </BulkResultSummary>
-
-      <div v-if="noMatches" class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.zeroRecords') }}</p>
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clearAll">
-          {{ t('lists.chips.clearAll') }}
-        </button>
-      </div>
-
-      <div v-else-if="empty" data-dkim-empty class="flex flex-col items-start gap-3 py-6">
-        <p class="text-gray-700 dark:text-gray-300">{{ lt('datatables.emptyTable') }}</p>
+      <template #before-content>
+        <p v-if="collecting" role="status" class="text-sm text-gray-700 dark:text-gray-300">
+          {{ t('dns.dkim.allMissing.collecting') }}
+        </p>
+        <ProblemMessage v-if="allMissingProblem" :problem="problemOf(allMissingProblem)" />
+        <p v-if="deleting" role="status" class="text-sm text-gray-700 dark:text-gray-300">
+          {{ t('bulk.progress', { count: selection.count.value }) }}
+        </p>
+        <BulkResultSummary
+          v-else-if="bulkRows.length > 0"
+          data-bulk-results
+          :rows="bulkRows"
+          :message="bulkMessage"
+          @retry="deleteSelected"
+          @refresh="refresh"
+          @close="bulkRows = []"
+        >
+          <template #item="{ row }">
+            <PublicationOutcome
+              v-if="bulkPublication[row.id]"
+              :outcome="bulkPublication[row.id]!"
+              :enabled="capabilities.data.value?.dkim.dnsPublicationEnabled ?? false"
+            />
+          </template>
+        </BulkResultSummary>
+      </template>
+      <template #empty-actions>
         <RouterLink :to="{ name: 'domains' }" :class="buttonVariants({ variant: 'outline' })">
           {{ lt('mailbox.domains') }}
         </RouterLink>
-      </div>
-
-      <template v-else>
+      </template>
+      <template #default>
         <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
           {{ countText }}
           <span v-if="query.isPlaceholderData.value" class="ms-2 text-gray-600 dark:text-gray-400">
@@ -492,7 +451,7 @@ onBeforeUnmount(() => run.stop())
           @update:size="(size) => list.setSize(size as 25 | 50 | 100)"
         />
       </template>
-    </template>
+    </ListState>
 
     <BulkActionBar
       v-if="selection.active.value"

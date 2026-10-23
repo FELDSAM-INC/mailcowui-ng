@@ -1,9 +1,8 @@
 <script setup lang="ts">
-// The confirmation of a template deletion (FR-055, US6-AS4): the templates by name, and that the
-// domains created from them keep their values.
+// Shared confirmation content; each feature supplies its existing pluralized keep-values text.
 import { useI18n } from 'vue-i18n'
 
-defineProps<{ names: readonly string[] }>()
+defineProps<{ names: readonly string[]; keepValuesKey: string }>()
 const { t } = useI18n()
 </script>
 
@@ -14,6 +13,6 @@ const { t } = useI18n()
         {{ name }}
       </li>
     </ul>
-    <p>{{ t('domainTemplates.delete.keepValues', names.length) }}</p>
+    <p>{{ t(keepValuesKey, names.length) }}</p>
   </div>
 </template>

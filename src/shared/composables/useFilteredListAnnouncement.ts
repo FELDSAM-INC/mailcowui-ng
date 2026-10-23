@@ -1,4 +1,4 @@
-import { computed, toValue, watch, type MaybeRefOrGetter } from 'vue'
+import { computed, toValue, watch, type MaybeRefOrGetter, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
@@ -15,9 +15,12 @@ interface FilteredListState {
 }
 
 /** Announce a changed filter's result count after real data arrives, without moving focus. */
-export function useFilteredListAnnouncement(
-  query: Pick<ListQueryStateSource, 'data' | 'isPlaceholderData'>,
+export function useFilteredListAnnouncement<
+  T extends NonNullable<ListQueryStateSource['data']['value']>,
+>(
+  query: { data: Readonly<Ref<T | undefined>>; isPlaceholderData: Readonly<Ref<boolean>> },
   state: MaybeRefOrGetter<FilteredListState>,
+  summary?: (data: T) => string,
 ) {
   const { locale } = useI18n()
   const filterKey = computed(() => JSON.stringify(toValue(state).filters))
@@ -31,6 +34,10 @@ export function useFilteredListAnnouncement(
     ([data, placeholder]) => {
       if (!data || placeholder || filterKey.value === announcedFor) return
       announcedFor = filterKey.value
+      if (summary) {
+        announce(summary(data))
+        return
+      }
       const { page, size } = toValue(state)
       const from = data.meta.total === 0 ? 0 : (page - 1) * size + 1
       announce(

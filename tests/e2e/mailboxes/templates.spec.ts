@@ -428,11 +428,13 @@ test.describe('mailbox templates', () => {
 
   test('History for administrators, and FR-004 an unknown template', async ({ page, mockApi }) => {
     await mockApi.use('admin-templates')
+    await page.goto('mailbox-templates')
+    await listReady(page)
     await page.goto('mailbox-templates/2')
     const history = page.getByRole('link', { name: 'History' })
     await expect(history).toHaveAttribute('href', /targetType=mailboxTemplate/)
     await expect(history).toHaveAttribute('href', /targetId=2/)
-    await page.getByRole('link', { name: 'Previous page' }).click()
+    await page.locator('[data-detail-back]').click()
     await expect(page).toHaveURL(/\/ng\/mailbox-templates$/)
 
     await page.goto('mailbox-templates/999')

@@ -21,7 +21,7 @@ for (const scenario of ['account-admin', 'account-domain-admin-no-flags']) {
     await expect(page.locator('[data-entry]')).toContainText('Mailbox shop')
     await expectAccessible()
     await expectNoHorizontalScroll()
-    await page.getByRole('link', { name: 'Previous page', exact: true }).click()
+    await page.locator('[data-detail-back]').click()
     await expect(
       page.getByRole('link', { name: 'Spam email aliases (1)', exact: true }),
     ).toBeVisible()

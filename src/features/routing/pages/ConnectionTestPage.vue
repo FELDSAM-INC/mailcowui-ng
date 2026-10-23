@@ -8,7 +8,7 @@
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, nextTick, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { isApiProblem, type RoutingConnectionTestRequest } from '@/api'
 import { lt } from '@/i18n'
@@ -165,12 +165,6 @@ async function run(event: Event) {
     :back-label="t('routing.common.backToList')"
   />
   <section v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <RouterLink
-      :to="{ name: listRoute }"
-      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-    >
-      <span aria-hidden="true">←&nbsp;</span>{{ lt('edit.previous') }}
-    </RouterLink>
     <PageHeader :title="t('routing.connectionTest.title')" :description="description" />
     <form
       ref="formRoot"

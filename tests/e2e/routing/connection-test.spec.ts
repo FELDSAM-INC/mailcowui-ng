@@ -108,7 +108,7 @@ test.describe('connection test', () => {
       await page.goto('routing/relayhosts/1/test')
       await page.getByRole('button', { name: 'Run test' }).click()
       await ready
-      const previous = page.getByRole('link', { name: 'Previous page', exact: true })
+      const previous = page.locator('[data-detail-back]')
       await previous.focus()
       await expect(previous).toBeFocused()
       const scroll = await page.evaluate(() => window.scrollY)

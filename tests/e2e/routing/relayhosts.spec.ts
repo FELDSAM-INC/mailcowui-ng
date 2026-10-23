@@ -324,7 +324,7 @@ test.describe('Sender-dependent transports', () => {
     await listReady(page)
     await clickRowAction(page, entry(page, 2), 'Edit: relay.example.com')
     await page.getByLabel('Username').fill('typed')
-    await page.getByRole('link', { name: 'Previous page' }).click()
+    await page.locator('[data-detail-back]').click()
     const dialog = page.getByRole('alertdialog', { name: 'Leave without saving?' })
     await expect(dialog).toBeVisible()
     await dialog.getByRole('button', { name: 'Stay' }).click()

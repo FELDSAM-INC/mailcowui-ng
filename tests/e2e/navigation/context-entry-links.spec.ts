@@ -87,7 +87,8 @@ test('mailbox-specific account pages keep their full width, mailbox context and 
   expectNoHorizontalScroll,
 }) => {
   await mockApi.use('account-domain-admin-no-flags')
-  await page.goto('mailboxes/anna@example.org/app-passwords')
+  await page.goto('mailboxes/anna@example.org')
+  await page.getByRole('link', { name: /^App passwords/ }).click()
   await expect(page.locator('[data-app-password-list]')).toBeVisible()
   await expect(page.locator('[data-acl-note]')).toContainText('Manage app passwords')
   await expect(page.getByRole('main').locator('header').first()).toContainText('anna@example.org')
@@ -96,6 +97,6 @@ test('mailbox-specific account pages keep their full width, mailbox context and 
   await expectContentWidth(page, '[data-app-password-list]')
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await page.getByRole('link', { name: 'Previous page', exact: true }).click()
+  await page.locator('[data-detail-back]').click()
   await expect(page).toHaveURL(/\/mailboxes\/anna@example.org$/)
 })

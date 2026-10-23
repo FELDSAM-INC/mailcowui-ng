@@ -10,7 +10,11 @@ import { ChevronDownIcon } from '@/shared/icons'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 import { sidebarSections } from '../navigation/sections'
 
-const props = defineProps<{ identity: Identity | null | undefined; collapsed?: boolean }>()
+const props = defineProps<{
+  identity: Identity | null | undefined
+  collapsed?: boolean
+  desktop?: boolean
+}>()
 defineEmits<{ navigate: [] }>()
 const { t } = useI18n()
 const route = useRoute()
@@ -26,7 +30,14 @@ watch(
 )
 
 const linkClass =
-  'flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-start font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:hover:bg-accent-hover dark:text-gray-300 dark:hover:bg-white/5 dark:aria-[current=page]:bg-accent dark:aria-[current=page]:text-accent-foreground dark:aria-[current=page]:hover:bg-accent-hover'
+  'flex min-h-11 w-full items-center gap-3 rounded-lg py-2 text-start font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 aria-[current=page]:bg-accent aria-[current=page]:text-accent-foreground aria-[current=page]:hover:bg-accent-hover dark:text-gray-300 dark:hover:bg-white/5 dark:aria-[current=page]:bg-accent dark:aria-[current=page]:text-accent-foreground dark:aria-[current=page]:hover:bg-accent-hover'
+// Keep the expanded text width throughout the desktop width transition. Clipping and fading
+// labels preserves row heights and icon positions, including when a translated label wraps.
+const labelClass = computed(() => [
+  'min-w-0 break-words',
+  props.desktop ? 'w-[189px] shrink-0 motion-safe:transition-opacity motion-safe:duration-150' : '',
+  props.collapsed ? 'opacity-0' : 'opacity-100',
+])
 </script>
 
 <template>
@@ -35,27 +46,39 @@ const linkClass =
       <Collapsible
         v-for="group in groups"
         :key="group.id"
-        :open="collapsed || (open[group.id] ?? true)"
+        :open="open[group.id] ?? true"
         :data-nav-group="group.id"
         @update:open="open[group.id] = $event"
       >
         <h2 v-if="group.labelKey" :id="`${groupId}-${group.id}`">
-          <span
-            v-if="collapsed"
-            class="flex h-11 items-center justify-center text-gray-400"
-            :title="resolveText(group.labelKey, t)"
-            ><span aria-hidden="true">•••</span
-            ><span class="sr-only">{{ resolveText(group.labelKey, t) }}</span></span
-          >
           <CollapsibleTrigger
-            v-else
-            class="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-3 text-start text-xs font-semibold tracking-wide text-gray-600 uppercase hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-400 dark:hover:bg-white/5"
+            :disabled="collapsed"
+            class="relative flex min-h-11 w-full items-center overflow-hidden rounded-lg py-2 text-start text-xs font-semibold tracking-wide text-gray-600 uppercase hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-400 dark:hover:bg-white/5"
+            :class="desktop ? 'px-3.5' : 'px-3'"
+            :title="resolveText(group.labelKey, t)"
           >
-            <span class="min-w-0 break-words">{{ resolveText(group.labelKey, t) }}</span>
-            <ChevronDownIcon
-              class="size-4 shrink-0 motion-safe:transition-transform"
-              :class="(open[group.id] ?? true) ? 'rotate-180' : ''"
-            />
+            <span
+              v-if="desktop"
+              aria-hidden="true"
+              class="absolute inset-y-0 start-3.5 flex w-5 items-center justify-center text-gray-400 motion-safe:transition-opacity motion-safe:duration-150"
+              :class="collapsed ? 'opacity-100' : 'opacity-0'"
+              >•••</span
+            >
+            <span
+              class="flex min-w-0 items-center justify-between gap-2"
+              :class="[
+                desktop
+                  ? 'w-[221px] shrink-0 motion-safe:transition-opacity motion-safe:duration-150'
+                  : 'w-full',
+                collapsed ? 'opacity-0' : 'opacity-100',
+              ]"
+            >
+              <span class="min-w-0 break-words">{{ resolveText(group.labelKey, t) }}</span>
+              <ChevronDownIcon
+                class="size-4 shrink-0 motion-safe:transition-transform"
+                :class="(open[group.id] ?? true) ? 'rotate-180' : ''"
+              />
+            </span>
           </CollapsibleTrigger>
         </h2>
         <CollapsibleContent>
@@ -69,14 +92,12 @@ const linkClass =
                 :to="item.to"
                 :data-nav-item="item.id"
                 :aria-current="item.current ? 'page' : undefined"
-                :class="[linkClass, collapsed ? 'justify-center px-0' : '']"
+                :class="[linkClass, desktop ? 'overflow-hidden px-3.5' : 'px-3']"
                 :title="collapsed ? resolveText(item.labelKey, t) : undefined"
                 @click="$emit('navigate')"
               >
                 <component :is="item.icon" class="size-5 shrink-0" />
-                <span :class="collapsed ? 'sr-only' : 'min-w-0 break-words'">{{
-                  resolveText(item.labelKey, t)
-                }}</span>
+                <span :class="labelClass">{{ resolveText(item.labelKey, t) }}</span>
               </RouterLink>
               <span
                 v-else
@@ -84,11 +105,11 @@ const linkClass =
                 aria-disabled="true"
                 :data-nav-item="item.id"
                 :title="`${resolveText(item.labelKey, t)} — ${t('nav.unavailable')}`"
-                :class="collapsed ? 'justify-center px-0' : 'px-3'"
+                :class="desktop ? 'overflow-hidden px-3.5' : 'px-3'"
                 class="flex min-h-11 cursor-not-allowed items-center gap-3 rounded-lg py-2 text-gray-500 dark:text-gray-400"
               >
                 <component :is="item.icon" class="size-5 shrink-0" />
-                <span :class="collapsed ? 'sr-only' : 'min-w-0 break-words'"
+                <span :class="labelClass"
                   >{{ resolveText(item.labelKey, t)
                   }}<span class="sr-only"> — {{ t('nav.unavailable') }}</span></span
                 >

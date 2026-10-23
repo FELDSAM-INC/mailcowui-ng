@@ -89,16 +89,20 @@ const statusMessages = useStatusMessage().messages
         :to="homePath"
         data-shell-logo
         data-sidebar-logo
-        class="flex h-24 shrink-0 items-center rounded-lg px-5 focus-visible:outline-2 focus-visible:outline-brand-500"
-        :class="sidebarCompact ? 'justify-center' : ''"
+        class="flex h-24 shrink-0 items-center overflow-hidden rounded-lg px-5 focus-visible:outline-2 focus-visible:outline-brand-500"
       >
-        <BrandLogo :compact="sidebarCompact" />
+        <div class="w-[249px] shrink-0">
+          <BrandLogo
+            :compact="sidebarCompact"
+            class="motion-safe:transition-[max-width] motion-safe:duration-300 motion-safe:ease-in-out"
+          />
+        </div>
       </RouterLink>
       <div
         data-sidebar-scroll
-        class="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6"
+        class="custom-scrollbar min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-6"
       >
-        <NavigationList :identity="identity" :collapsed="sidebarCompact" />
+        <NavigationList :identity="identity" :collapsed="sidebarCompact" desktop />
       </div>
     </aside>
     <NavigationDrawer

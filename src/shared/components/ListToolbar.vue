@@ -27,17 +27,21 @@ const wide = useMediaQuery('(min-width: 768px)')
 <template>
   <div data-list-toolbar class="flex w-full min-w-0 flex-col gap-3">
     <div
-      class="flex min-w-0 flex-wrap items-center justify-between gap-x-1 gap-y-2 md:justify-start md:gap-2 max-md:[&_button]:gap-1! max-md:[&_button]:min-w-11 max-md:[&_button]:px-1! max-md:[&_button]:py-1! max-md:[&_button]:text-xs! max-md:[&_button]:leading-4! max-md:[&_button_svg]:size-4! max-[360px]:[&_button]:px-0.5!"
+      class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-2 md:gap-2 max-md:[&>button]:grow max-md:[&>a]:grow max-md:[&_button]:gap-1! max-md:[&_button]:min-w-11 max-md:[&_button]:px-1! max-md:[&_button]:py-1! max-md:[&_button]:text-xs! max-md:[&_button]:leading-4! max-md:[&_button_svg]:size-4! max-[360px]:[&_button]:px-0.5!"
       data-list-controls
     >
       <div
         v-if="$slots.select"
         data-list-select
-        class="shrink-0 empty:hidden max-md:max-w-16 max-md:[&>button]:whitespace-normal!"
+        class="shrink-0 empty:hidden max-md:max-w-16 max-md:grow max-md:[&>button]:w-full max-md:[&>button]:whitespace-normal!"
       >
         <slot name="select" />
       </div>
-      <div v-if="$slots.filters" data-list-filters class="shrink-0 empty:hidden">
+      <div
+        v-if="$slots.filters"
+        data-list-filters
+        class="shrink-0 empty:hidden max-md:grow max-md:[&_button]:w-full"
+      >
         <slot name="filters" />
       </div>
       <div

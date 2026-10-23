@@ -26,8 +26,9 @@ current tab when the route or available width changes without moving the page ve
 ## List toolbars
 
 Use `shared/components/ListToolbar.vue` for list controls. On mobile the search occupies the full
-first row, followed by a justified row of compact labelled controls with 44 px touch height. Long
-translations or additional actions may wrap within that control row. Desktop keeps its inline layout.
+first row, followed by compact labelled controls that grow to fill the second row with a fixed
+4 px gap and 44 px touch height. Long translations or additional actions may wrap within that control
+row. Desktop keeps its inline layout.
 
 ## Mobile data tables
 

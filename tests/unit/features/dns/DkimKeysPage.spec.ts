@@ -1,3 +1,4 @@
+import { sortList } from '../../support/data-list'
 // The DKIM key list (T034, T045, T087; FR-005 to FR-015, FR-024, FR-038, FR-040, FR-092): the
 // entries with the server settings, search and the narrow sort control through the address, the
 // empty, no-match and error states, selection with generation and the typed bulk deletion, and
@@ -111,7 +112,7 @@ describe('DkimKeysPage', () => {
     useScenario('dns-admin')
     const { wrapper, router } = await mountList('/dns/dkim-keys?q=example.net', false)
     await vi.waitFor(() => expect(names(wrapper)).toEqual(['example.net']))
-    await wrapper.get('#dkim-sort').setValue('keyLength')
+    await sortList(wrapper, 'keyLength')
     await flushPromises()
     expect(router.currentRoute.value.query.sort).toBe('keyLength')
     wrapper.unmount()

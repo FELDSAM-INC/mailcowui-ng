@@ -1,3 +1,4 @@
+import { installMatchMedia } from '../../support/media'
 // The domain list components (UI 002 T036, FR-006 to FR-011, FR-072, FR-076).
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
@@ -206,6 +207,7 @@ describe('DomainEntryDetails', () => {
 
 describe('DomainFilters', () => {
   it('shows the number of active filters and clears them all', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(DomainFilters, {
       props: { active: 'inactive', relay: undefined, tags: ['gold'], activeCount: 2 },
     })

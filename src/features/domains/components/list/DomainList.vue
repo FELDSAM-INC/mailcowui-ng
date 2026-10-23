@@ -26,7 +26,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <DomainTable
-    v-if="wide"
+    :hidden="!wide"
     :domains="domains"
     :sort="sort"
     :order="order"
@@ -39,7 +39,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ domain }"><slot name="select" :domain="domain" /></template>
     <template #actions="{ domain }"><slot name="actions" :domain="domain" /></template>
   </DomainTable>
-  <ul v-else :aria-label="lt('mailbox.domains')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('mailbox.domains')" class="flex flex-col gap-3">
     <DomainCard
       v-for="domain in domains"
       :key="domain.name"

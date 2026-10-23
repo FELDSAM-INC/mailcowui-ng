@@ -25,7 +25,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <Oauth2ClientTable
-    v-if="wide"
+    :hidden="!wide"
     :clients="clients"
     :sort="sort"
     :order="order"
@@ -36,7 +36,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ client }"><slot name="select" :client="client" /></template>
     <template #actions="{ client }"><slot name="actions" :client="client" /></template>
   </Oauth2ClientTable>
-  <ul v-else :aria-label="lt('admin.oauth2_apps')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('admin.oauth2_apps')" class="flex flex-col gap-3">
     <Oauth2ClientCard v-for="client in clients" :key="client.id" :client="client">
       <template v-if="selectable" #select><slot name="select" :client="client" /></template>
       <template #actions><slot name="actions" :client="client" /></template>

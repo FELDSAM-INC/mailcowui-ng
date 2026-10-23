@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import SearchField from '@/shared/components/SearchField.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The authentication audit log (FR-071–FR-074, data-model §5): records newest first, 25 per page,
 // with filters in the page address, removable filter chips, loading, empty and error states, and
 // the number of matching records announced after a change of filters.
@@ -76,17 +80,34 @@ watch(
     announce(t('auditLog.resultCount', { total: data.meta.total }))
   },
 )
+
+useDataList('audit-log', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'desc',
+  change: (_key, order) => {
+    void list.setSort('occurredAt', order)
+  },
+}))
 </script>
 
 <template>
   <section class="mx-auto flex w-full max-w-6xl flex-col gap-6">
     <PageHeader :title="t('auditLog.title')" :description="t('auditLog.description')" />
-    <AuditFilters
-      :filters="filters"
-      :problem="problem"
-      @apply="change"
-      @clear="change(NO_FILTERS)"
-    />
+    <ListToolbar
+      ><template #filters
+        ><AuditFilters
+          :filters="filters"
+          :problem="problem"
+          @apply="change"
+          @clear="change(NO_FILTERS)" /></template
+      ><template #search
+        ><SearchField
+          id="audit-actor-search"
+          :label="t('auditLog.filters.actor')"
+          :description="t('auditLog.filters.actorHelp')"
+          :model-value="filters.actor ?? ''"
+          @search="(value) => change({ actor: value || undefined })" /></template
+    ></ListToolbar>
     <AuditFilterChips :filters="filters" @remove="change" @clear="change(NO_FILTERS)" />
     <div class="flex flex-col gap-4">
       <h2 class="sr-only">{{ t('auditLog.records') }}</h2>

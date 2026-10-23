@@ -63,8 +63,6 @@
         "privateKey": "soukromý klíč"
       },
       "filters": {
-        "title": "Filtry",
-        "withCount": "Filtry ({count})",
         "kind": "Typ",
         "all": "Vše",
         "complete": "Úplnost",

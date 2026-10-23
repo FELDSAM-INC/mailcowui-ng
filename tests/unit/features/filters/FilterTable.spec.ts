@@ -37,7 +37,7 @@ describe('FilterTable row controls', () => {
     expect(wrapper.get('pre').text()).toContain(item.script)
     expect(
       wrapper.get(`tr[id="${expand.attributes('aria-controls')}"] td`).attributes('colspan'),
-    ).toBe('6')
+    ).toBe('5')
     await controls.get('[data-row-action-trigger]').trigger('keydown', { key: 'Enter' })
     await flushPromises()
     const items = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')]

@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T">
+import { useDataList } from '@/shared/composables/useDataList'
+
 // A routing list screen (research R4, R5; legacy form map part 1a): the classic card's heading
 // and hint, the section navigation, search, filters and sort, the four list states (loading, error
 // with retry, "no entries yet" with the add action, "no entries match" with "clear"), the entries,
@@ -100,6 +102,8 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
   titleKey: 'routing.bulk.leaveTitle',
   messageKey: 'routing.bulk.leaveRunning',
 })
+
+useDataList(() => props.screen)
 </script>
 
 <template>
@@ -121,15 +125,7 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
           <PlusIcon />
           {{ addLabel }}
         </RouterLink>
-        <button
-          v-if="canSelect"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button
           type="button"
           :class="buttonVariants({ variant: 'outline' })"
@@ -157,7 +153,18 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
       @filter="(key, value) => c.list.setFilter(key, value)"
       @sort="(sort, order) => c.list.setSort(sort, order)"
       @clear="c.list.clearFilters()"
-    />
+      ><template #select
+        ><button
+          v-if="canSelect"
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ></ListToolbar
+    >
 
     <ListState
       :loading="c.initialLoading.value"

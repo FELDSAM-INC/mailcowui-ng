@@ -81,12 +81,11 @@ describe('SyncJobTable', () => {
     })
     const headers = wrapper.findAll('th').map((th) => th.text())
     expect(headers).toEqual([
-      'ID ▼',
+      'ID',
       'Owner',
       'Server',
       'Last run',
       'Last run result',
-      'Active',
       'Status',
       'Action',
     ])
@@ -132,6 +131,7 @@ describe('SyncJobList', () => {
 
 describe('SyncJobFilters', () => {
   it('offers the filters with the classic labels and emits changes', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(SyncJobFilters, {
       props: { role: 'admin', filters, activeCount: 0, sort: 'id', order: 'desc', showSort: true },
     })
@@ -140,28 +140,18 @@ describe('SyncJobFilters', () => {
     await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     const labels = wrapper.findAll('label').map((label) => label.text())
-    expect(labels).toEqual([
-      'Sort by',
-      'Order',
-      'Owner',
-      'Domain',
-      'Active',
-      'Status',
-      'Last run result',
-    ])
+    expect(labels).toEqual(['Owner', 'Domain', 'Active', 'Status', 'Last run result'])
     await wrapper.get('#sync-job-filter-running').setValue('yes')
     expect(wrapper.emitted('update')).toEqual([[{ running: 'yes' }]])
     await wrapper.get('#sync-job-filter-result').setValue('none')
     expect(wrapper.emitted('update')![1]).toEqual([{ result: 'none' }])
-    await wrapper.get('#sync-job-sort').setValue('lastRunAt')
-    expect(wrapper.emitted('sort')).toEqual([['lastRunAt', 'desc']])
-    await wrapper.get('#sync-job-order').setValue('asc')
-    expect(wrapper.emitted('sort')![1]).toEqual(['id', 'asc'])
+    expect(wrapper.find('#sync-job-sort').exists()).toBe(false)
     const options = wrapper.findAll('#sync-job-filter-result option').map((o) => o.text())
     expect(options).toEqual(['Any', 'Success', 'Failed', 'No result'])
   })
 
   it('counts the active filters, clears them, and drops the owner sort for mailbox users', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(SyncJobFilters, {
       props: {
         role: 'mailboxUser',

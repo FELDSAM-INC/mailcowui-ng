@@ -14,8 +14,6 @@
     "filters": {
       "any": "Libovolné",
       "clear": "Vymazat filtry",
-      "title": "Filtry",
-      "withCount": "Filtry ({count})",
       "chip": "{filter}: {value}"
     },
     "form": {
@@ -67,12 +65,7 @@
     "running": {
       "note": "Probíhající běh se nepřeruší a dokončí se sám."
     },
-    "sort": {
-      "asc": "Vzestupně",
-      "desc": "Sestupně",
-      "label": "Řadit podle",
-      "order": "Pořadí"
-    },
+    "sort": {},
     "create": {
       "loadFailed": "Formulář se nepodařilo načíst."
     },

@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import SearchField from '@/shared/components/SearchField.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The domain templates (UI 002 US6, FR-049, FR-050, FR-055, FR-056): a name search, the sort,
 // pages and page size in the address; cards below md and a table from md up with the Default
 // template marked; the four list states; single deletion from an entry's actions; and the classic
 // "Remove" of selected templates in selection mode, with the API's bulk operation (gap G40), a
 // result per template and a retry. The Default template is never selectable.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
@@ -21,23 +25,20 @@ import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { CloseIcon, PlusIcon, SyncIcon } from '@/shared/icons'
+import { PlusIcon, SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
-import { SEARCH_MAX_LENGTH } from '@/shared/validation/limits'
 
 import { problemOf } from '../api'
 import { useDomainCapabilities } from '../capabilities'
 import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import TemplateEntryActions from '../components/templates/TemplateEntryActions.vue'
 import TemplateList from '../components/templates/TemplateList.vue'
-import TemplateSortControl from '../components/templates/TemplateSortControl.vue'
+
 import { useTemplateBulkDelete } from '../composables/useTemplateBulkDelete'
 import { useTemplateDeletion } from '../composables/useTemplateDeletion'
 import { useDomainFormat } from '../format'
 import { templateListOptions } from '../templates-api'
 import { useTemplateListState } from '../templates-list-state'
-
-const SEARCH_DEBOUNCE_MS = 300
 
 const { t } = useI18n()
 const format = useDomainFormat()
@@ -61,28 +62,9 @@ const countText = computed(() =>
   t('domainTemplates.list.count', { count: format.count(total.value) }),
 )
 
-// Search: typing is debounced and written with router.replace (UI 001 R20).
-const search = ref(state.value.filters.q ?? '')
-let timer: ReturnType<typeof setTimeout> | undefined
-watch(
-  () => state.value.filters.q,
-  (q) => {
-    if ((q ?? '') !== search.value.trim()) search.value = q ?? ''
-  },
-)
-function onSearch(event: Event) {
-  search.value = (event.target as HTMLInputElement).value
-  clearTimeout(timer)
-  timer = setTimeout(() => {
-    void list.setFilter('q', search.value.trim() || undefined, { typing: true })
-  }, SEARCH_DEBOUNCE_MS)
-}
 function clearSearch() {
-  clearTimeout(timer)
-  search.value = ''
   void list.setFilter('q', undefined)
 }
-onBeforeUnmount(() => clearTimeout(timer))
 
 // FR-073: the result count is announced after a search, without moving focus.
 useFilteredListAnnouncement(query, state, () => countText.value)
@@ -121,6 +103,8 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
   titleKey: 'domains.bulk.leaveTitle',
   messageKey: 'domains.bulk.leaveRunning',
 })
+
+useDataList('domains-pages-templatelistpage')
 </script>
 
 <template>
@@ -134,14 +118,7 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
           <PlusIcon />
           {{ lt('mailbox.add_template') }}
         </RouterLink>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -150,37 +127,26 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
     </PageHeader>
 
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <div class="flex flex-col gap-1.5 md:max-w-md md:flex-1">
-        <label for="template-search" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ lt('datatables.search') }}
-        </label>
-        <div class="flex gap-2">
-          <input
-            id="template-search"
-            type="search"
-            :value="search"
-            :maxlength="SEARCH_MAX_LENGTH"
-            autocomplete="off"
-            spellcheck="false"
-            class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            @input="onSearch"
-          />
-          <button
-            v-if="search !== ''"
+      <ListToolbar
+        ><template #select
+          ><button
             type="button"
-            :class="buttonVariants({ variant: 'outline', size: 'icon' })"
-            :aria-label="t('lists.search.clear')"
-            @click="clearSearch"
+            :class="buttonVariants({ variant: 'outline' })"
+            :aria-pressed="selection.active.value ? 'true' : 'false'"
+            @click="toggleSelecting"
           >
-            <CloseIcon />
-          </button>
-        </div>
-      </div>
-      <TemplateSortControl
-        :sort="state.sort ?? 'name'"
-        :order="state.order ?? 'asc'"
-        @change="(sort, order) => list.setSort(sort, order)"
-      />
+            {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+          </button></template
+        ><template #search
+          ><SearchField
+            id="template-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            :delay="300"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+      ></ListToolbar>
     </div>
 
     <ListState

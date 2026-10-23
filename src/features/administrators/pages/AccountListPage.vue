@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import SearchField from '@/shared/components/SearchField.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
-import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { problemOf, type AccountBulkActionRequest, type ApiProblem, type DomainAdmin } from '@/api'
@@ -42,7 +50,7 @@ import {
 import { planBulk } from '../bulk'
 import AccountActionsMenu from '../components/AccountActionsMenu.vue'
 import AccountFilters from '../components/AccountFilters.vue'
-import AccountStatusBadge from '../components/AccountStatusBadge.vue'
+
 import DomainAssignmentList from '../components/DomainAssignmentList.vue'
 import SecondFactorStatusBadge from '../components/SecondFactorStatusBadge.vue'
 import { takeAccountFlash } from '../flash'
@@ -100,24 +108,14 @@ const leave = useLeaveGuard(
 )
 void leave
 const search = ref(state.value.filters.q ?? '')
-let timer: ReturnType<typeof setTimeout> | undefined
 watch(
   () => state.value.filters.q,
   (value) => {
     if (search.value.trim() !== (value ?? '')) search.value = value ?? ''
   },
 )
-onScopeDispose(() => clearTimeout(timer))
-function onSearch(event: Event) {
-  search.value = (event.target as HTMLInputElement).value
-  clearTimeout(timer)
-  timer = setTimeout(
-    () => void list.setFilter('q', search.value.trim() || undefined, { typing: true }),
-    300,
-  )
-}
+
 function clearFilters() {
-  clearTimeout(timer)
   search.value = ''
   void list.setFilters({
     q: undefined,
@@ -166,22 +164,7 @@ function removeChip(key: string) {
     void list.setFilters({ permission: undefined, permissionValue: 'on' })
   else void list.setFilter(key, undefined)
 }
-const sortLabels = computed(() => ({
-  username: lt('admin.username'),
-  active: lt('admin.active'),
-  createdAt: lt('mailbox.created_on'),
-  modifiedAt: lt('mailbox.last_modified'),
-  domainCount: t('accounts.domainCount'),
-}))
-const ariaSort = (sort: AccountSort) =>
-  state.value.sort === sort
-    ? state.value.order === 'desc'
-      ? ('descending' as const)
-      : ('ascending' as const)
-    : ('none' as const)
-function sortColumn(sort: AccountSort) {
-  void list.setSort(sort, state.value.sort === sort && state.value.order === 'asc' ? 'desc' : 'asc')
-}
+
 const own = (account: ManagedAccount) =>
   props.role === 'admin' && account.username === identity.data.value?.username
 const lastActive = (account: ManagedAccount) =>
@@ -291,6 +274,26 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
     announce(t('accounts.count', { count: data.meta.total }))
   }
 })
+
+const dataList = useDataList(
+  () => 'accounts-' + props.role,
+  () => ({
+    key: state.value.sort,
+    order: state.value.order ?? 'asc',
+    change: (key, order) => void list.setSort(key as AccountSort, order),
+  }),
+)
+
+const tableView = useDataColumns(
+  () =>
+    [
+      { id: 'username', label: lt('admin.username'), sort: 'username' },
+      { id: 'domainCount', label: lt('admin.admin_domains'), sort: 'domainCount' },
+      { id: 'secondFactor', label: lt('tfa.tfa') },
+    ].filter((column) => column.id !== 'domainCount' || props.role === 'domainAdmin'),
+  undefined,
+  dataList,
+)
 </script>
 <template>
   <section class="mx-auto flex w-full max-w-7xl flex-col gap-4">
@@ -305,67 +308,48 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
       ></PageHeader
     >
     <div class="flex flex-wrap items-end gap-3">
-      <label class="flex min-w-0 flex-1 flex-col gap-1 text-sm"
-        >{{ lt('datatables.search')
-        }}<input
-          type="search"
-          :value="search"
-          maxlength="255"
-          class="form-control"
-          @input="onSearch" /></label
-      ><button
-        type="button"
-        :class="buttonVariants({ variant: 'outline' })"
-        :disabled="query.isFetching.value"
-        @click="query.refetch()"
+      <ListToolbar
+        ><template #select
+          ><button
+            v-if="allowed"
+            type="button"
+            data-selection-mode
+            :class="buttonVariants({ variant: 'outline' })"
+            :disabled="running"
+            @click="selection.active.value ? selection.leave() : selection.enter()"
+          >
+            {{ t(selection.active.value ? 'bulk.exitSelection' : 'bulk.select') }}
+          </button></template
+        ><template #filters
+          ><AccountFilters
+            :role="role"
+            :filters="state.filters"
+            :active-count="chips.filter((chip) => chip.key !== 'q').length"
+            @apply="list.setFilters"
+            @clear="clearFilters" /></template
+        ><template #search
+          ><SearchField
+            id="account-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+        ><template #actions
+          ><button
+            type="button"
+            :class="buttonVariants({ variant: 'outline' })"
+            :disabled="query.isFetching.value"
+            @click="query.refetch()"
+          >
+            {{ t('bulk.refreshList') }}
+          </button></template
+        ></ListToolbar
       >
-        {{ t('bulk.refreshList') }}</button
-      ><button
-        v-if="allowed"
-        type="button"
-        data-selection-mode
-        :class="buttonVariants({ variant: 'outline' })"
-        :disabled="running"
-        @click="selection.active.value ? selection.leave() : selection.enter()"
-      >
-        {{ t(selection.active.value ? 'bulk.exitSelection' : 'bulk.select') }}
-      </button>
     </div>
-    <AccountFilters
-      :role="role"
-      :filters="state.filters"
-      :active-count="chips.filter((chip) => chip.key !== 'q').length"
-      @apply="list.setFilters"
-      @clear="clearFilters"
-    />
+
     <ActiveFilterChips :chips="chips" @remove="removeChip" @clear="clearFilters" />
-    <div class="flex flex-wrap gap-3">
-      <label class="flex min-w-0 flex-col gap-1 text-sm"
-        >{{ t('lists.sort.label')
-        }}<select
-          data-account-sort
-          :value="state.sort"
-          class="form-control"
-          @change="list.setSort(($event.target as HTMLSelectElement).value as AccountSort)"
-        >
-          <option v-for="value in schema.sort?.values" :key="value" :value="value">
-            {{ sortLabels[value] }}
-          </option>
-        </select></label
-      ><label class="flex flex-col gap-1 text-sm"
-        >{{ t('lists.sort.order')
-        }}<select
-          :value="state.order"
-          class="form-control"
-          @change="
-            list.setSort(state.sort!, ($event.target as HTMLSelectElement).value as 'asc' | 'desc')
-          "
-        >
-          <option value="asc">{{ t('lists.sort.asc') }}</option>
-          <option value="desc">{{ t('lists.sort.desc') }}</option>
-        </select></label
-      >
-    </div>
+
     <p v-if="notice || actions.notice.value" role="status">{{ notice ?? actions.notice.value }}</p>
     <ProblemMessage :problem="failure ?? actions.problem.value" />
     <p v-if="query.error.value && query.data.value" role="alert">{{ t('lists.refreshFailed') }}</p>
@@ -405,38 +389,10 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
               <th v-if="selection.active.value" class="w-12">
                 <span class="sr-only">{{ t('bulk.select') }}</span>
               </th>
-              <th class="p-3 text-start" :aria-sort="ariaSort('username')">
-                <button
-                  type="button"
-                  class="min-h-11 min-w-11 text-start"
-                  @click="sortColumn('username')"
-                >
-                  {{ lt('admin.username') }}
-                </button>
-              </th>
-              <th
-                v-if="role === 'domainAdmin'"
-                class="p-3 text-start"
-                :aria-sort="ariaSort('domainCount')"
-              >
-                <button
-                  type="button"
-                  class="min-h-11 min-w-11 text-start"
-                  @click="sortColumn('domainCount')"
-                >
-                  {{ lt('admin.admin_domains') }}
-                </button>
-              </th>
-              <th class="p-3 text-start">{{ lt('tfa.tfa') }}</th>
-              <th class="p-3 text-start" :aria-sort="ariaSort('active')">
-                <button
-                  type="button"
-                  class="min-h-11 min-w-11 text-start"
-                  @click="sortColumn('active')"
-                >
-                  {{ lt('admin.active') }}
-                </button>
-              </th>
+              <DataTableHeader column="username" />
+              <DataTableHeader v-if="role === 'domainAdmin'" column="domainCount" />
+              <DataTableHeader column="secondFactor" />
+
               <th class="table-controls-cell p-3 text-end">{{ lt('admin.action') }}</th>
             </tr>
           </thead>
@@ -460,22 +416,34 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
                   @change="selection.toggle(account.username)"
                 />
               </td>
-              <td class="p-3">
+              <td v-show="tableView.visible('username')" :data-column="'username'" class="p-3">
                 <RouterLink
                   :to="detail(account)"
                   class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
                   >{{ account.username }}</RouterLink
                 ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
+                <div class="mt-1"><ActiveBadge :active="account.active" /></div>
               </td>
-              <td v-if="'domains' in account" class="p-3">
+
+              <td
+                v-if="'domains' in account"
+                v-show="tableView.visible('domainCount')"
+                :data-column="'domainCount'"
+                class="p-3"
+              >
                 <DomainAssignmentList
                   :assignments="(account as DomainAdmin).domains"
                   :account-active="account.active"
                   :limit="3"
                 />
               </td>
-              <td class="p-3"><SecondFactorStatusBadge :status="account.secondFactorStatus" /></td>
-              <td class="p-3"><AccountStatusBadge :active="account.active" /></td>
+              <td
+                v-show="tableView.visible('secondFactor')"
+                :data-column="'secondFactor'"
+                class="p-3"
+              >
+                <SecondFactorStatusBadge :status="account.secondFactorStatus" />
+              </td>
               <td class="table-controls-cell p-1">
                 <RowControls>
                   <AccountActionsMenu
@@ -500,7 +468,8 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
           :data-account-row="account.username"
           :to="detail(account)"
         >
-          <template #title>
+          <template #badges><ActiveBadge :active="account.active" /></template
+          ><template #title>
             {{ account.username }}
             <span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
           </template>
@@ -540,8 +509,6 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
             </template>
             <dt class="font-medium">{{ lt('tfa.tfa') }}</dt>
             <dd><SecondFactorStatusBadge :status="account.secondFactorStatus" /></dd>
-            <dt class="font-medium">{{ lt('admin.active') }}</dt>
-            <dd><YesNoMark :value="account.active" /></dd>
           </DataCardFields>
         </DataCard>
       </ul>

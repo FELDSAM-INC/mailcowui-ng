@@ -9,12 +9,14 @@ import type { ListState } from '@/shared/composables/useListState'
 
 import { toAuditParams, type AuditFilterValues } from './list-state'
 
-export async function fetchAuditEvents(state: ListState<AuditFilterValues, never>) {
+export async function fetchAuditEvents(state: ListState<AuditFilterValues, 'occurredAt'>) {
   const query = toAuditParams(state)
   return requireData(await api.GET('/audit-events', { params: { query } }))
 }
 
-export function useAuditEvents(state: MaybeRefOrGetter<ListState<AuditFilterValues, never>>) {
+export function useAuditEvents(
+  state: MaybeRefOrGetter<ListState<AuditFilterValues, 'occurredAt'>>,
+) {
   const key = computed(() => {
     const current = toValue(state)
     // The preset token instead of the resolved start: stable while the address is unchanged.

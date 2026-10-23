@@ -27,7 +27,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <MailboxTable
-    v-if="wide"
+    :hidden="!wide"
     :mailboxes="mailboxes"
     :columns="columns"
     :sort="sort"
@@ -39,7 +39,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ mailbox }"><slot name="select" :mailbox="mailbox" /></template>
     <template #actions="{ mailbox }"><slot name="actions" :mailbox="mailbox" /></template>
   </MailboxTable>
-  <ul v-else :aria-label="lt('mailbox.mailboxes')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('mailbox.mailboxes')" class="flex flex-col gap-3">
     <MailboxCard v-for="mailbox in mailboxes" :key="mailbox.address" :mailbox="mailbox">
       <template v-if="selectable" #select><slot name="select" :mailbox="mailbox" /></template>
       <template #actions><slot name="actions" :mailbox="mailbox" /></template>

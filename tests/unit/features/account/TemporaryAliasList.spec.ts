@@ -65,7 +65,7 @@ describe('TemporaryAliasList actions', () => {
 
   it('keeps the mobile action menu beside the address', () => {
     const wrapper = render(false)
-    expect(wrapper.get('[data-card-header] [data-row-action-trigger]').exists()).toBe(true)
+    expect(wrapper.find('[data-card-header] [data-row-action-trigger]').exists()).toBe(true)
     expect(wrapper.find('select').exists()).toBe(false)
     wrapper.unmount()
   })

@@ -1,3 +1,4 @@
+import { sortList } from '../../support/data-list'
 // The MTA-STS policies overview (T066, FR-054 to FR-056): every policy in scope as a card or a
 // table row with the readable domain, the active badge, mode, MX hosts, max age and identifier,
 // linking to the domain page's MTA-STS section.
@@ -129,10 +130,10 @@ describe('MtaStsPoliciesPage', () => {
   it('shows cards and the sort control below md', async () => {
     const { wrapper, router } = await mountPage('dns-mta-sts', '/dns/mta-sts-policies', false)
     expect(wrapper.findAll('li[data-entry]')).toHaveLength(3)
-    await wrapper.get('#mta-sts-sort').setValue('policyId')
+    await sortList(wrapper, 'policyId')
     await settle(8)
     expect(router.currentRoute.value.query.sort).toBe('policyId')
-    await wrapper.get('#mta-sts-order').setValue('desc')
+    await sortList(wrapper, 'policyId')
     await settle(8)
     expect(router.currentRoute.value.query.order).toBe('desc')
   })

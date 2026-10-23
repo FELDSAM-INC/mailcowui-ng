@@ -45,12 +45,18 @@ describe('ApiKeysPage', () => {
     const { wrapper, router } = await mountAt('/api-keys', ApiKeysPage)
     await vi.waitFor(() => expect(wrapper.findAll('article')).toHaveLength(25))
     expect(wrapper.text()).toContain('Showing 1 to 25 of 60 entries')
-    const status = wrapper.findAll('select')[0]!
-    await status.setValue('revoked')
+    await wrapper.get('[data-filter-toggle]').trigger('click')
+    await flushPromises()
+    const status = document.querySelector<HTMLSelectElement>('[data-filter-panel] select')!
+    status.value = 'revoked'
+    status.dispatchEvent(new Event('change', { bubbles: true }))
+
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual({ status: 'revoked' }))
     await vi.waitFor(() => expect(wrapper.text()).toContain('Showing 1 to 12 of 12 entries'))
-    const clear = wrapper.findAll('button').find((b) => b.text() === 'Clear filters')
-    await clear!.trigger('click')
+    const clear = [
+      ...document.querySelectorAll<HTMLButtonElement>('[data-filter-panel] button'),
+    ].find((button) => button.textContent?.trim() === 'Clear filters')!
+    clear.click()
     await vi.waitFor(() => expect(router.currentRoute.value.query).toEqual({}))
   })
 

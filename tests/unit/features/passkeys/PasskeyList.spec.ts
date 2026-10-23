@@ -1,6 +1,7 @@
 // T104: the passkey list (FR-052): display names, notes for another host and inactive passkeys as
 // text, the authenticator and the registration date.
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 
 import PasskeyList from '@/features/passkeys/components/PasskeyList.vue'
 
@@ -16,7 +17,7 @@ describe('PasskeyList', () => {
     const wrapper = mountWithApp(PasskeyList, { props: { passkeys, total: 4 } })
     const items = wrapper.findAll('li')
     expect(items).toHaveLength(4)
-    expect(items[0]!.get('h2').text()).toMatch(/^Unknown passkey, registered /)
+    expect(items[0]!.get('h3').text()).toMatch(/^Unknown passkey, registered /)
     expect(items[1]!.text()).toContain('Inactive: it cannot be used to sign in')
     expect(items[2]!.text()).toContain('Works only on mail.example.net')
     expect(items[3]!.text()).toContain('iCloud Keychain')
@@ -25,9 +26,16 @@ describe('PasskeyList', () => {
 
   it('emits rename and remove for a passkey', async () => {
     const wrapper = mountWithApp(PasskeyList, { props: { passkeys, total: 4 } })
-    const buttons = wrapper.findAll('li')[3]!.findAll('button')
-    await buttons.find((b) => b.text().startsWith('Rename'))!.trigger('click')
-    await buttons.find((b) => b.text().startsWith('Remove'))!.trigger('click')
+    const card = wrapper.findAll('li')[3]!
+    for (const action of ['Rename', 'Remove']) {
+      await card.get('[data-row-action-trigger]').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+      const item = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+        (item) => item.textContent?.trim() === action,
+      )!
+      item.click()
+      await vi.waitFor(() => expect(wrapper.emitted(action.toLowerCase())).toHaveLength(1))
+    }
     expect(wrapper.emitted('rename')?.[0]?.[0]).toMatchObject({ name: 'Phone' })
     expect(wrapper.emitted('remove')?.[0]?.[0]).toMatchObject({ name: 'Phone' })
   })

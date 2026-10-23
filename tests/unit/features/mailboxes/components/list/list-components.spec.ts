@@ -206,6 +206,7 @@ describe('MailboxSortControl', () => {
 
 describe('MailboxFilters', () => {
   it('opens the panel, emits statuses and sources, and names the built-in source by the product', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     useScenario('admin-mailboxes-30')
     const wrapper = mountWithApp(MailboxFilters, {
       props: {
@@ -236,6 +237,7 @@ describe('MailboxFilters', () => {
   })
 
   it('hides the source filter without an identity provider and shows the sort below md', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     useScenario('admin-mailboxes-30')
     const wrapper = mountWithApp(MailboxFilters, {
       props: {
@@ -249,7 +251,7 @@ describe('MailboxFilters', () => {
     await flushPromises()
     expect(wrapper.get('button[aria-controls="mailbox-filters"]').text()).toBe('Filters')
     expect(wrapper.find('[data-source-filter]').exists()).toBe(false)
-    expect(wrapper.find('#mailbox-sort').exists()).toBe(true)
+    expect(wrapper.find('#mailbox-sort').exists()).toBe(false)
   })
 })
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDataList } from '@/shared/composables/useDataList'
+
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,6 +30,13 @@ watch(total, (count) => {
   if (count && (list.state.value.page - 1) * list.state.value.size >= count)
     void list.setPage(Math.ceil(count / list.state.value.size))
 })
+
+useDataList('rspamd-rules', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'asc',
+  change: (key, order) =>
+    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+}))
 </script>
 <template>
   <section class="min-w-0 space-y-5">
@@ -69,7 +78,7 @@ watch(total, (count) => {
       @retry="query.refetch()"
     >
       <RuleTable
-        v-if="wide"
+        :hidden="!wide"
         :items="query.data.value?.data ?? []"
         :sort="list.state.value.sort"
         :order="list.state.value.order"
@@ -77,7 +86,7 @@ watch(total, (count) => {
         @sort="list.setSort($event)"
         @remove="deletion.remove"
       />
-      <div v-else class="grid min-w-0 gap-3" data-rule-list>
+      <div v-if="!wide" class="grid min-w-0 gap-3" data-rule-list>
         <RuleCard
           v-for="item in query.data.value?.data"
           :key="item.id"

@@ -43,7 +43,7 @@ async function parse(query: string) {
     routes: [{ path: '/audit-log', component: { render: () => null } }],
   })
   await router.push(`/audit-log${query}`)
-  let list!: ReturnType<typeof useListState<AuditFilterValues>>
+  let list!: ReturnType<typeof useListState<AuditFilterValues, 'occurredAt'>>
   mount(
     defineComponent({
       setup() {

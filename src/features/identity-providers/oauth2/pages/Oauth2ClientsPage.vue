@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The OAuth2 apps (UI 012 US5, FR-054 to FR-057, FR-065), mirroring the classic tab
 // `templates/admin/tab-config-oauth2.twig` and `js/site/admin.js` draw_oauth2_clients: the classic
 // information text, a search, the sort, pages and page size in the address; the columns ID, Client
@@ -36,7 +39,7 @@ import { buttonVariants } from '@/shared/ui/button'
 import { oauth2ListOptions, useOauth2Capabilities } from '../api'
 import Oauth2ClientActions from '../components/Oauth2ClientActions.vue'
 import Oauth2ClientList from '../components/Oauth2ClientList.vue'
-import Oauth2ClientSortControl from '../components/Oauth2ClientSortControl.vue'
+
 import { BULK_LABELS, useOauth2Bulk, type Oauth2BulkAction } from '../composables/useOauth2Bulk'
 import { useOauth2Deletion } from '../composables/useOauth2Deletion'
 import { useOauth2ListState } from '../list-state'
@@ -116,6 +119,8 @@ onBeforeRouteLeave(async () => {
   if (!bulk.secret.value) return true
   return (await dialog.value?.requestClose()) ?? true
 })
+
+useDataList('identity-providers-oauth2-pages-oauth2clients')
 </script>
 
 <template>
@@ -129,14 +134,6 @@ onBeforeRouteLeave(async () => {
           <PlusIcon />
           {{ lt('admin.oauth2_add_client') }}
         </RouterLink>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
       </template>
     </PageHeader>
 
@@ -148,18 +145,23 @@ onBeforeRouteLeave(async () => {
     />
 
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <SearchField
-        id="oauth2-search"
-        class="md:max-w-md md:flex-1"
-        :label="lt('datatables.search')"
-        :model-value="state.filters.q ?? ''"
-        @search="onSearch"
-      />
-      <Oauth2ClientSortControl
-        :sort="state.sort ?? 'id'"
-        :order="state.order ?? 'asc'"
-        @change="(sort, order) => list.setSort(sort, order)"
-      />
+      <ListToolbar
+        ><template #select
+          ><button
+            type="button"
+            :class="buttonVariants({ variant: 'outline' })"
+            :aria-pressed="selection.active.value ? 'true' : 'false'"
+            @click="toggleSelecting"
+          >
+            {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+          </button></template
+        ><template #search
+          ><SearchField
+            id="oauth2-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="onSearch" /></template
+      ></ListToolbar>
     </div>
 
     <ListState

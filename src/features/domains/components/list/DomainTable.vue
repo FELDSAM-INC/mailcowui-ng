@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
 // The domain list as a table from md up (FR-007, FR-011, FR-072): header cells, sorting from the
 // headers of the visible sortable columns with `aria-sort`, and an expandable row for the values
 // that are not columns. The maximum mailbox quota and the rate limit are columns from xl up and in
@@ -24,6 +28,7 @@ import UsageMeter from './UsageMeter.vue'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     domains: readonly Domain[]
     sort: DomainSort
     order: SortOrder
@@ -58,11 +63,6 @@ const COLUMNS: Column[] = [
   { key: 'rateLimit', labelKey: legacy('edit.ratelimit'), wide: true },
 ]
 
-function ariaSort(key: DomainSort | undefined) {
-  if (!key || key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
 function sortBy(key: DomainSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
 }
@@ -76,10 +76,26 @@ function toggle(name: string) {
 
 const rowId = (name: string) => `domain-row-${name.replace(/[^a-z0-9-]/g, '-')}`
 const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
+
+const tableView = useDataColumns(
+  () => [
+    { id: 'name', label: lt('mailbox.domain'), sort: 'name' },
+    ...COLUMNS.map((column) => ({
+      id: column.key,
+      label: resolveText(column.labelKey, t),
+      sort: column.sort,
+    })),
+  ],
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
@@ -89,39 +105,16 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2"><slot name="select-all" /></th>
-          <th scope="col" class="px-3 py-2 text-start" :aria-sort="ariaSort('name')">
-            <button
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy('name')"
-            >
-              {{ lt('mailbox.domain') }}
-              <span aria-hidden="true">{{
-                sort === 'name' ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-          </th>
-          <th
+          <DataTableHeader
+            :column="String(tableView.columns.value[0]!.id)"
+            class="px-3 py-2 text-start"
+          />
+          <DataTableHeader
             v-for="column in COLUMNS"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-3 py-2 text-start"
-            :class="column.wide ? 'hidden xl:table-cell' : ''"
-            :aria-sort="column.sort ? ariaSort(column.sort) : undefined"
-          >
-            <button
-              v-if="column.sort"
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.sort)"
-            >
-              {{ resolveText(column.labelKey, t) }}
-              <span aria-hidden="true">{{
-                sort === column.sort ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-            <template v-else>{{ resolveText(column.labelKey, t) }}</template>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-3 py-2">
             {{ lt('mailbox.action') }}
           </th>
@@ -131,7 +124,11 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
         <template v-for="domain in domains" :key="domain.name">
           <tr :data-entry="domain.name" class="align-top">
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :domain="domain" /></td>
-            <td class="max-w-72 px-3 py-3">
+            <td
+              v-show="tableView.visible(String('name'))"
+              :data-column="String('name')"
+              class="max-w-72 px-3 py-3"
+            >
               <div class="table-record flex flex-col gap-1.5">
                 <div class="flex items-start gap-2">
                   <RouterLink
@@ -152,7 +149,11 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
                 </div>
               </div>
             </td>
-            <td class="px-3 py-3">
+            <td
+              v-show="tableView.visible(String('mailboxes'))"
+              :data-column="String('mailboxes')"
+              class="px-3 py-3"
+            >
               <UsageMeter
                 :label="lt('mailbox.mailboxes')"
                 :used="domain.usage.mailboxes"
@@ -162,7 +163,11 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
                 :show-label="false"
               />
             </td>
-            <td class="px-3 py-3">
+            <td
+              v-show="tableView.visible(String('aliases'))"
+              :data-column="String('aliases')"
+              class="px-3 py-3"
+            >
               <UsageMeter
                 :label="lt('mailbox.aliases')"
                 :used="domain.usage.aliases"
@@ -172,7 +177,11 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
                 :show-label="false"
               />
             </td>
-            <td class="px-3 py-3">
+            <td
+              v-show="tableView.visible(String('quota'))"
+              :data-column="String('quota')"
+              class="px-3 py-3"
+            >
               <UsageMeter
                 :label="lt('mailbox.domain_quota')"
                 :used="domain.usage.quotaAllocated"
@@ -182,7 +191,11 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
                 :show-label="false"
               />
             </td>
-            <td class="px-3 py-3 text-gray-900 dark:text-white">
+            <td
+              v-show="tableView.visible(String('storage'))"
+              :data-column="String('storage')"
+              class="px-3 py-3 text-gray-900 dark:text-white"
+            >
               <div>{{ format.size(domain.usage.storageUsed) }}</div>
               <div class="text-gray-600 dark:text-gray-400">
                 {{
@@ -190,10 +203,18 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
                 }}
               </div>
             </td>
-            <td class="hidden px-3 py-3 text-gray-900 xl:table-cell dark:text-white">
+            <td
+              v-show="tableView.visible(String('maxQuota'))"
+              :data-column="String('maxQuota')"
+              class="px-3 py-3 text-gray-900 dark:text-white"
+            >
               {{ format.quota(domain.maxMailboxQuota) }}
             </td>
-            <td class="hidden px-3 py-3 text-gray-900 xl:table-cell dark:text-white">
+            <td
+              v-show="tableView.visible(String('rateLimit'))"
+              :data-column="String('rateLimit')"
+              class="px-3 py-3 text-gray-900 dark:text-white"
+            >
               {{ format.rateLimit(domain.rateLimit) }}
             </td>
             <td class="table-controls-cell px-3 py-3">
@@ -209,7 +230,9 @@ const columnCount = () => COLUMNS.length + 2 + (props.selectable ? 1 : 0)
           </tr>
           <tr v-if="expanded.has(domain.name)" :id="`${rowId(domain.name)}-details`">
             <td
-              :colspan="columnCount()"
+              :colspan="
+                columnCount() - tableView.columns.value.length + tableView.visibleCount.value
+              "
               class="bg-gray-50 px-3 py-3 dark:bg-gray-950"
               :data-entry-details="domain.name"
             >

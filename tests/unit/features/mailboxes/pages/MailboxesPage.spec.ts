@@ -129,6 +129,6 @@ describe('MailboxesPage', () => {
     const { wrapper } = await mountAt('/mailboxes')
     await vi.waitFor(() => expect(wrapper.findAll('li[data-entry]')).toHaveLength(25))
     expect(wrapper.find('table').exists()).toBe(false)
-    expect(wrapper.find('#mailbox-sort').exists()).toBe(true)
+    expect(wrapper.find('[data-list-columns]').exists()).toBe(true)
   })
 })

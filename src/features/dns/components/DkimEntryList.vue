@@ -28,7 +28,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <DkimEntryTable
-    v-if="wide"
+    :hidden="!wide"
     :entries="entries"
     :sort="sort"
     :order="order"
@@ -40,7 +40,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ entry }"><slot name="select" :entry="entry" /></template>
     <template #actions="{ entry }"><slot name="actions" :entry="entry" /></template>
   </DkimEntryTable>
-  <ul v-else :aria-label="lt('admin.dkim_keys')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('admin.dkim_keys')" class="flex flex-col gap-3">
     <DkimEntryCard
       v-for="entry in entries"
       :key="entry.name"

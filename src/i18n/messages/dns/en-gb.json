@@ -63,8 +63,6 @@
         "privateKey": "private key"
       },
       "filters": {
-        "title": "Filters",
-        "withCount": "Filters ({count})",
         "kind": "Type",
         "all": "All",
         "complete": "Completeness",

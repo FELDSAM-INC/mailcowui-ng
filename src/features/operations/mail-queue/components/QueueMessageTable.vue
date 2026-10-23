@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
 // The queue as a table from md up (FR-051), with legacy's columns (`js/site/queue.js`): QID, Queue,
 // arrival time, message size, sender, the recipients as "address (reason)" lines, and the action
 // "Show message". The headers of the sortable columns sort the list (`aria-sort`). Slots:
@@ -20,6 +24,7 @@ import { recipientText } from '../presentation'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     messages: readonly MailQueueMessage[]
     sort: MailQueueSort
     order: SortOrder
@@ -49,19 +54,23 @@ const COLUMNS: Column[] = [
 
 const label = (ref: TextRef) => resolveText(ref, t)
 
-function ariaSort(key: MailQueueSort | undefined) {
-  if (!key) return undefined
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
 function sortBy(key: MailQueueSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
 }
+
+const tableView = useDataColumns(
+  () =>
+    COLUMNS.map((column) => ({ id: column.key, label: label(column.label), sort: column.sort })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
@@ -71,26 +80,12 @@ function sortBy(key: MailQueueSort) {
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-2 py-2"><slot name="select-all" /></th>
-          <th
+          <DataTableHeader
             v-for="column in COLUMNS"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-2 py-2 text-start"
-            :aria-sort="ariaSort(column.sort)"
-          >
-            <button
-              v-if="column.sort"
-              type="button"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.sort)"
-            >
-              {{ label(column.label) }}
-              <span aria-hidden="true">{{
-                sort === column.sort ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-            <template v-else>{{ label(column.label) }}</template>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-2 py-2 text-end">
             {{ lt('admin.action') }}
           </th>
@@ -105,17 +100,43 @@ function sortBy(key: MailQueueSort) {
         >
           <td v-if="selectable" class="px-2 py-2"><slot name="select" :message="message" /></td>
           <th
+            v-show="tableView.visible('id')"
             :id="`queue-row-${message.id}`"
+            :data-column="'id'"
             scope="row"
             class="px-2 py-3 text-start font-mono font-medium"
           >
             {{ message.id }}
           </th>
-          <td class="px-2 py-3">{{ message.queue }}</td>
-          <td class="px-2 py-3"><RelativeTime :value="message.arrivalTime" /></td>
-          <td class="px-2 py-3 whitespace-nowrap">{{ fmt.bytes(message.sizeBytes) }}</td>
-          <td class="max-w-48 px-2 py-3"><PlainText :value="message.sender" /></td>
-          <td class="max-w-80 px-2 py-3">
+          <td v-show="tableView.visible('queue')" :data-column="'queue'" class="px-2 py-3">
+            {{ message.queue }}
+          </td>
+          <td
+            v-show="tableView.visible('arrivalTime')"
+            :data-column="'arrivalTime'"
+            class="px-2 py-3"
+          >
+            <RelativeTime :value="message.arrivalTime" />
+          </td>
+          <td
+            v-show="tableView.visible('size')"
+            :data-column="'size'"
+            class="px-2 py-3 whitespace-nowrap"
+          >
+            {{ fmt.bytes(message.sizeBytes) }}
+          </td>
+          <td
+            v-show="tableView.visible('sender')"
+            :data-column="'sender'"
+            class="max-w-48 px-2 py-3"
+          >
+            <PlainText :value="message.sender" />
+          </td>
+          <td
+            v-show="tableView.visible('recipients')"
+            :data-column="'recipients'"
+            class="max-w-80 px-2 py-3"
+          >
             <ul class="flex flex-col divide-y divide-gray-200 dark:divide-gray-800">
               <li v-for="(recipient, index) in message.recipients" :key="index" class="py-0.5">
                 <PlainText :value="recipientText(recipient)" />

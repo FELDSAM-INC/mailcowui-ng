@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The mailbox list (US1, FR-005 to FR-014), the classic "Mailboxes" tab
 // (`mailbox/tab-mailboxes.twig`, `draw_mailbox_table()`): legacy's title, "Add mailbox" and
 // refresh; the server's search, filters, sort and paging in the address; cards below md and
@@ -6,7 +9,7 @@
 // the entries shown announced after a search or filter change. The search commits with a new
 // history entry 500 ms after the last keystroke (research R7), so Back restores the previous list.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useListQueryState } from '@/shared/composables/useListQueryState'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'
@@ -46,8 +49,8 @@ import { canBulkProtocols } from '../acl'
 import { mailboxListOptions } from '../api'
 import { authSourceOptions } from '../auth-source'
 import type { MailboxBulkChoice } from '../bulk'
-import { COLUMNS, readColumns, writeColumns, type ColumnId } from '../columns'
-import ColumnChooser from '../components/list/ColumnChooser.vue'
+import { COLUMNS } from '../columns'
+
 import MailboxBulkActions from '../components/list/MailboxBulkActions.vue'
 import MailboxFilters from '../components/list/MailboxFilters.vue'
 import MailboxList from '../components/list/MailboxList.vue'
@@ -144,13 +147,11 @@ useLeaveGuard(() => bulkBusy.value, {
 
 // Columns: legacy's visible ones, without the last logins when the server does not report them,
 // and the chosen row details.
-const chosen = ref<ColumnId[]>(readColumns())
-watch(chosen, (value) => writeColumns(value))
 const columns = computed(() =>
-  COLUMNS.filter((column) =>
-    column.default
-      ? column.id !== 'lastMailLogin' || capabilities.data.value?.lastLoginsReported !== false
-      : chosen.value.includes(column.id),
+  COLUMNS.filter(
+    (column) =>
+      column.id !== 'status' &&
+      (column.id !== 'lastMailLogin' || capabilities.data.value?.lastLoginsReported !== false),
   ),
 )
 
@@ -210,6 +211,8 @@ useFilteredListAnnouncement(query, state)
 function refresh() {
   void query.refetch()
 }
+
+useDataList('mailboxes-pages-mailboxes')
 </script>
 
 <template>
@@ -227,14 +230,7 @@ function refresh() {
           <PlusIcon />
           {{ lt('mailbox.add_mailbox') }}
         </RouterLink>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -242,29 +238,36 @@ function refresh() {
       </template>
     </PageHeader>
 
-    <SearchField
-      id="mailbox-search"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="(value) => list.setFilter('q', value || undefined)"
-    />
-    <div class="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
-      <MailboxFilters
-        class="md:flex-1"
-        :filters="state.filters"
-        :active-count="list.activeFilterCount.value"
-        :sources="sources"
-        :labels="labels"
-        :tag-max-length="capabilities.data.value?.tagMaxLength"
-        :show-sort="!wide"
-        :sort="state.sort ?? 'address'"
-        :order="state.order ?? 'asc'"
-        @pick="remember"
-        @update="updateFilters"
-        @sort="(sort, order) => list.setSort(sort, order)"
-      />
-      <ColumnChooser v-if="wide" v-model="chosen" />
-    </div>
+    <ListToolbar
+      ><template #select
+        ><button
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #filters
+        ><MailboxFilters
+          :filters="state.filters"
+          :active-count="list.activeFilterCount.value"
+          :sources="sources"
+          :labels="labels"
+          :tag-max-length="capabilities.data.value?.tagMaxLength"
+          :sort="state.sort ?? 'address'"
+          :order="state.order ?? 'asc'"
+          @pick="remember"
+          @update="updateFilters"
+          @sort="(sort, order) => list.setSort(sort, order)" /></template
+      ><template #search
+        ><SearchField
+          id="mailbox-search"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="(value) => list.setFilter('q', value || undefined)" /></template
+    ></ListToolbar>
+
     <ActiveFilterChips :chips="chips" @remove="removeChip" @clear="clearFilters" />
 
     <ListState

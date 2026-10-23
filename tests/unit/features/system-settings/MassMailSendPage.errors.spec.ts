@@ -164,8 +164,10 @@ describe('mobile compose steps and API errors (T020/T033)', () => {
     ;(send.element as HTMLButtonElement).focus()
     await send.trigger('click')
     await vi.waitFor(() => expect(send.attributes('disabled')).toBeDefined())
-    const outside = wrapper.get<HTMLAnchorElement>('a[href="/jobs"]')
-    outside.element.focus()
+    const outside = document.createElement('button')
+    outside.textContent = 'Navigation'
+    document.body.append(outside)
+    outside.focus()
     reject(
       ApiProblem.fromParts({
         kind: 'problem',
@@ -181,6 +183,6 @@ describe('mobile compose steps and API errors (T020/T033)', () => {
     )
     await vi.waitFor(() => expect(wrapper.find('#mass-sender-error').exists()).toBe(true))
     expect(wrapper.get('#mass-sender-error').isVisible()).toBe(true)
-    expect(document.activeElement).toBe(outside.element)
+    expect(document.activeElement).toBe(outside)
   })
 })

@@ -66,7 +66,7 @@ describe('EntryList', () => {
   it('renders a table from md up with aria-sort headers, the link on the primary column and actions', async () => {
     const wrapper = await mountList(true)
     const headers = wrapper.findAll('th')
-    expect(headers.map((header) => header.text())).toEqual(['ID ▲', 'Name', 'Value', 'Action'])
+    expect(headers.map((header) => header.text())).toEqual(['ID', 'Name', 'Value', 'Action'])
     expect(headers[0]!.attributes('aria-sort')).toBe('ascending')
     expect(headers[1]!.attributes('aria-sort')).toBe('none')
     expect(headers[2]!.attributes('aria-sort')).toBeUndefined()
@@ -89,8 +89,8 @@ describe('EntryList', () => {
 })
 
 describe('ListToolbar', () => {
-  it('emits searches, filters, sorts and chip removals', async () => {
-    setMatchMedia(false)
+  it('emits filters and chip removals with sorting delegated to the table', async () => {
+    setMatchMedia(true)
     const wrapper = mountWithApp(ListToolbar, {
       props: {
         idPrefix: 't',
@@ -123,8 +123,8 @@ describe('ListToolbar', () => {
       },
     })
     const toggle = wrapper.find('button[aria-expanded]')
-    expect(toggle.text()).toBe('Filters and sorting')
-    await toggle.trigger('click')
+    expect(toggle.text()).toBe('Filters (3)')
+    if (toggle.attributes('aria-expanded') !== 'true') await toggle.trigger('click')
     expect(toggle.attributes('aria-expanded')).toBe('true')
     await wrapper.find('#t-filter-active').setValue('')
     expect(wrapper.emitted('filter')![0]).toEqual(['active', undefined])
@@ -133,10 +133,7 @@ describe('ListToolbar', () => {
     expect(wrapper.emitted('filter')![1]).toEqual(['policy', ['dane', 'may']])
     await wrapper.find('#t-filter-nextHop').setValue(' relay.net ')
     expect(wrapper.emitted('filter')![2]).toEqual(['nextHop', 'relay.net'])
-    await wrapper.find('#t-sort').setValue('host')
-    expect(wrapper.emitted('sort')![0]).toEqual(['host', 'asc'])
-    await wrapper.find('#t-order').setValue('desc')
-    expect(wrapper.emitted('sort')![1]).toEqual(['id', 'desc'])
+    expect(wrapper.find('#t-sort').exists()).toBe(false)
     const chips = wrapper.findAll('[aria-label^="Remove filter"]')
     expect(chips.map((chip) => chip.text())).toEqual([
       'Active: Yes',

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+
 import RowAction from '@/shared/components/RowAction.vue'
 import RowActions from '@/shared/components/RowActions.vue'
 
@@ -22,6 +24,7 @@ const { t } = useI18n(),
     :title="item.description"
     :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
   >
+    <template #badges><ActiveBadge :active="item.active" /></template>
     <template #title><PlainText :value="item.description" /></template>
     <template #actions>
       <RowActions
@@ -51,10 +54,6 @@ const { t } = useI18n(),
         <dd>{{ item.id }}</dd>
       </div>
 
-      <div>
-        <dt class="font-medium">{{ lt('admin.active') }}</dt>
-        <dd><YesNoMark :value="item.active" /></dd>
-      </div>
       <div>
         <dt class="font-medium">{{ lt('mailbox.created_on') }}</dt>
         <dd>{{ format.dateTime(item.createdAt) }}</dd>

@@ -7,6 +7,7 @@ import { ApiProblem } from '@/api'
 import AuditFilters from '@/features/audit-log/components/AuditFilters.vue'
 import type { AuditFilterValues } from '@/features/audit-log/list-state'
 
+import { installMatchMedia } from '../../support/media'
 import { mountWithApp } from '../../support/mount'
 
 const empty: AuditFilterValues = {
@@ -22,6 +23,7 @@ const empty: AuditFilterValues = {
 }
 
 function mountFilters(filters: Partial<AuditFilterValues> = {}, problem: ApiProblem | null = null) {
+  installMatchMedia({ '(min-width: 768px)': true })
   return mountWithApp(AuditFilters, {
     props: { filters: { ...empty, ...filters }, problem, defaultOpen: true },
     attachTo: document.body,
@@ -126,7 +128,7 @@ describe('AuditFilters', () => {
 
   it('clears every filter', async () => {
     const wrapper = mountFilters({ outcome: 'success', actor: 'admin' })
-    const clear = wrapper.findAll('button').find((b) => b.text() === 'Clear filters')
+    const clear = wrapper.findAll('button').find((b) => b.text() === 'Clear all filters')
     await clear!.trigger('click')
     expect(wrapper.emitted('clear')).toHaveLength(1)
   })

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import FilterPanel from '@/shared/components/FilterPanel.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,7 +32,7 @@ import GenerateAliasPanel from '../components/temporary-aliases/GenerateAliasPan
 import TemporaryAliasList from '../components/temporary-aliases/TemporaryAliasList.vue'
 import ValidityActions from '../components/temporary-aliases/ValidityActions.vue'
 import { useSectionAccess } from '../composables/useSectionAccess'
-import { useTemporaryAliasListState, type TemporaryAliasSort } from '../list-state'
+import { useTemporaryAliasListState } from '../list-state'
 import { validityPatch, type AliasValidity } from '../validity'
 
 const { t } = useI18n()
@@ -69,11 +73,7 @@ function outcomeMessage(row: BulkRow): string | null {
     return lt('danger.validity_missing')
   return null
 }
-const sortLabels = {
-  expiresAt: 'user.alias_valid_until',
-  createdAt: 'user.created_on',
-  address: 'user.alias',
-} as const
+
 function toggleAll() {
   const ids = rows.value.map((item) => item.address)
   if (selection.allSelected(ids)) selection.clear()
@@ -135,6 +135,13 @@ function created(_item: TemporaryAlias) {
   // Make a generated address visible even when previous filters would hide it.
   void list.setFilters({ q: undefined, permanent: undefined })
 }
+
+useDataList('account-pages-temporaryaliasespage', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'asc',
+  change: (key, order) =>
+    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+}))
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
@@ -155,66 +162,49 @@ function created(_item: TemporaryAlias) {
         @created="created"
       />
     </details>
-    <SearchField
-      id="temporary-alias-search"
-      :model-value="list.state.value.filters.q ?? ''"
-      :label="lt('datatables.search')"
-      @search="list.setFilter('q', $event || undefined, { typing: true })"
-    />
-    <div class="flex flex-wrap gap-3">
-      <label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-200"
-        >{{ lt('user.forever') }}
-        <select
-          class="form-control"
-          :value="list.state.value.filters.permanent ?? ''"
-          @change="
-            list.setFilter(
-              'permanent',
-              (($event.target as HTMLSelectElement).value || undefined) as
-                'true' | 'false' | undefined,
-            )
-          "
+    <ListToolbar
+      ><template v-if="access.canChange.value" #select
+        ><button
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :disabled="runner.running.value"
+          @click="selection.active.value ? selection.leave() : selection.enter()"
         >
-          <option value="">{{ t('lists.filters.all') }}</option>
-          <option value="true">{{ t('lists.filters.yes') }}</option>
-          <option value="false">{{ t('lists.filters.no') }}</option>
-        </select>
-      </label>
-      <label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-200"
-        >{{ t('lists.sort.label') }}
-        <select
-          class="form-control"
-          :value="list.state.value.sort"
-          @change="list.setSort(($event.target as HTMLSelectElement).value as TemporaryAliasSort)"
-        >
-          <option v-for="(label, sort) in sortLabels" :key="sort" :value="sort">
-            {{ lt(label) }}
-          </option>
-        </select>
-      </label>
-      <button
-        type="button"
-        class="self-end"
-        :class="buttonVariants({ variant: 'outline' })"
-        @click="
-          list.setSort(
-            list.state.value.sort ?? 'expiresAt',
-            list.state.value.order === 'asc' ? 'desc' : 'asc',
-          )
-        "
-      >
-        {{ t(list.state.value.order === 'asc' ? 'lists.sort.asc' : 'lists.sort.desc') }}
-      </button>
-    </div>
+          {{ t(selection.active.value ? 'bulk.exitSelection' : 'bulk.select') }}
+        </button></template
+      ><template #filters
+        ><FilterPanel
+          id="account-pages-TemporaryAliasesPage"
+          :active-count="list.activeFilters.value.filter((item) => item !== 'q').length"
+          immediate
+          ><label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-200"
+            >{{ lt('user.forever') }}
+            <select
+              class="form-control"
+              :value="list.state.value.filters.permanent ?? ''"
+              @change="
+                list.setFilter(
+                  'permanent',
+                  (($event.target as HTMLSelectElement).value || undefined) as
+                    'true' | 'false' | undefined,
+                )
+              "
+            >
+              <option value="">{{ t('lists.filters.all') }}</option>
+              <option value="true">{{ t('lists.filters.yes') }}</option>
+              <option value="false">{{ t('lists.filters.no') }}</option>
+            </select>
+          </label></FilterPanel
+        ></template
+      ><template #search
+        ><SearchField
+          id="temporary-alias-search"
+          :model-value="list.state.value.filters.q ?? ''"
+          :label="lt('datatables.search')"
+          @search="list.setFilter('q', $event || undefined, { typing: true })" /></template
+    ></ListToolbar>
+
     <div v-if="access.canChange.value" class="flex flex-wrap gap-2">
-      <button
-        type="button"
-        :class="buttonVariants({ variant: 'outline' })"
-        :disabled="runner.running.value"
-        @click="selection.active.value ? selection.leave() : selection.enter()"
-      >
-        {{ t(selection.active.value ? 'bulk.exitSelection' : 'bulk.select') }}
-      </button>
       <button
         v-if="selection.active.value"
         type="button"

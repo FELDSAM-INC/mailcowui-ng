@@ -26,7 +26,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <AliasDomainTable
-    v-if="wide"
+    :hidden="!wide"
     :alias-domains="aliasDomains"
     :sort="sort"
     :order="order"
@@ -42,7 +42,7 @@ const wide = useMediaQuery('(min-width: 768px)')
       <slot name="actions" :alias-domain="aliasDomain" />
     </template>
   </AliasDomainTable>
-  <ul v-else :aria-label="lt('mailbox.domain_aliases')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('mailbox.domain_aliases')" class="flex flex-col gap-3">
     <AliasDomainCard
       v-for="item in aliasDomains"
       :key="item.name"

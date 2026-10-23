@@ -10,7 +10,7 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, shallowRef, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { lt } from '@/i18n'
 import { isApiProblem, problemOf, type Oauth2Client } from '@/api'
@@ -223,12 +223,6 @@ const definition = 'min-w-0 text-gray-900 dark:text-white'
     <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="query.refetch()" />
   </section>
   <article v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <RouterLink
-      :to="{ name: 'oauth2-clients' }"
-      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-    >
-      <span aria-hidden="true">←&nbsp;</span>{{ lt('edit.previous') }}
-    </RouterLink>
     <PageHeader :title="t('oauth2.title')" :description="client.clientId">
       <template #actions>
         <HistoryLink

@@ -14,8 +14,6 @@
     "filters": {
       "any": "Any",
       "clear": "Clear filters",
-      "title": "Filters",
-      "withCount": "Filters ({count})",
       "chip": "{filter}: {value}"
     },
     "form": {
@@ -67,12 +65,7 @@
     "running": {
       "note": "The run in progress is not interrupted and finishes on its own."
     },
-    "sort": {
-      "asc": "Ascending",
-      "desc": "Descending",
-      "label": "Sort by",
-      "order": "Order"
-    },
+    "sort": {},
     "create": {
       "loadFailed": "The form could not be loaded."
     },

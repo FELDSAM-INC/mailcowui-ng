@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+
 import RowAction from '@/shared/components/RowAction.vue'
 
 // An MTA-STS policy as a card below md (FR-055): a list item named by its heading (the readable
@@ -24,6 +26,7 @@ const { t, locale } = useI18n()
     :data-entry="policy.domain"
     :to="{ name: 'domain-detail', params: { domain: policy.domain }, hash: '#mta-sts' }"
   >
+    <template #badges><ActiveBadge :active="policy.active" /></template>
     <template #title>
       <DomainNameText :name="policy.domain" :unicode-name="policy.displayDomain" />
     </template>
@@ -37,10 +40,6 @@ const { t, locale } = useI18n()
       </RowAction>
     </template>
     <DataCardFields>
-      <div>
-        <dt>{{ lt('mailbox.active') }}</dt>
-        <dd><YesNoMark :value="policy.active" /></dd>
-      </div>
       <div>
         <dt class="text-gray-600 dark:text-gray-400">{{ lt('edit.mta_sts_mode') }}</dt>
         <dd class="font-mono text-gray-900 dark:text-white">{{ policy.mode }}</dd>

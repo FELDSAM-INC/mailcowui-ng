@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The MTA-STS policies (US4, FR-054 to FR-056; no classic counterpart, so its own texts are new
 // strings and its fields use the classic MTA-STS tab's labels): every policy in scope with search,
 // active and mode filters, sort, pages and page size in the address; cards below md and a table from
@@ -27,7 +30,7 @@ import { mtaStsListOptions } from '../api/mta-sts'
 import MtaStsFilters from '../components/MtaStsFilters.vue'
 import MtaStsPolicyCard from '../components/MtaStsPolicyCard.vue'
 import MtaStsPolicyTable from '../components/MtaStsPolicyTable.vue'
-import MtaStsSortControl from '../components/MtaStsSortControl.vue'
+
 import { useMtaStsListState, type MtaStsListFilters } from '../mta-sts/list-state'
 
 const { t, locale } = useI18n()
@@ -55,6 +58,8 @@ useFilteredListAnnouncement(query, state, () => countText.value)
 function refresh() {
   void query.refetch()
 }
+
+useDataList('dns-pages-mtastspolicies')
 </script>
 
 <template>
@@ -69,28 +74,23 @@ function refresh() {
     </PageHeader>
 
     <div class="flex flex-col gap-3">
-      <SearchField
-        id="mta-sts-search"
-        :label="lt('datatables.search')"
-        :model-value="state.filters.q ?? ''"
-        @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-      />
-      <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <MtaStsFilters
-          class="md:flex-1"
-          :active="state.filters.active"
-          :mode="state.filters.mode"
-          :active-count="list.activeFilterCount.value"
-          @update="updateFilters"
-          @clear="updateFilters({ active: undefined, mode: undefined })"
-        />
-        <MtaStsSortControl
-          class="md:hidden"
-          :sort="state.sort ?? 'domain'"
-          :order="state.order ?? 'asc'"
-          @change="(sort, order) => list.setSort(sort, order)"
-        />
-      </div>
+      <ListToolbar
+        ><template #filters
+          ><MtaStsFilters
+            :active="state.filters.active"
+            :mode="state.filters.mode"
+            :active-count="list.activeFilterCount.value"
+            @update="updateFilters"
+            @clear="updateFilters({ active: undefined, mode: undefined })" /></template
+        ><template #search
+          ><SearchField
+            id="mta-sts-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+      ></ListToolbar>
     </div>
 
     <ListState
@@ -122,13 +122,13 @@ function refresh() {
           </span>
         </p>
         <MtaStsPolicyTable
-          v-if="wide"
+          :hidden="!wide"
           :policies="policies"
           :sort="state.sort ?? 'domain'"
           :order="state.order ?? 'asc'"
           @sort="(sort, order) => list.setSort(sort, order)"
         />
-        <ul v-else :aria-label="lt('edit.mta_sts')" class="flex flex-col gap-3">
+        <ul v-if="!wide" :aria-label="lt('edit.mta_sts')" class="flex flex-col gap-3">
           <MtaStsPolicyCard v-for="policy in policies" :key="policy.domain" :policy="policy" />
         </ul>
         <PaginationBar

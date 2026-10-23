@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DetailBackLink from '../shell/DetailBackLink.vue'
 // The signed-in shell (FR-042–FR-046, research R19, R21; adapted from TailAdmin's AdminLayout):
 // header, the navigation (a static list from lg, a drawer below), the announcement, the main
 // content and the operator's footer. A section the catalogue denies renders NoAccessState in
@@ -171,6 +172,7 @@ const statusMessages = useStatusMessage().messages
           </div>
           <ShellNotice />
           <SectionTabs v-if="allowed && !session.identityTransition" :identity="identity" />
+          <DetailBackLink v-if="allowed && !session.identityTransition" />
           <div data-page-content>
             <IdentityTransition v-if="session.identityTransition" />
             <RouterView v-else-if="allowed" />

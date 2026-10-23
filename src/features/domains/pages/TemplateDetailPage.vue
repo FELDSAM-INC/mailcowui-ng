@@ -7,7 +7,7 @@
 // shows the not-found page with a way back to the list (FR-004).
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { lt } from '@/i18n'
 import { isApiProblem } from '@/api'
@@ -78,12 +78,6 @@ useStickyBarFocus()
     <ProblemMessage :problem="problemOf(query.error.value)" retry @retry="query.refetch()" />
   </section>
   <article v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <RouterLink
-      :to="{ name: 'domain-templates' }"
-      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-    >
-      <span aria-hidden="true">←&nbsp;</span>{{ lt('edit.previous') }}
-    </RouterLink>
     <PageHeader :title="lt('edit.title')" :description="template.name">
       <template #actions>
         <HistoryLink target-type="domainTemplate" :target-id="String(template.id)" />

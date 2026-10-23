@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
-import YesNoMark from '@/shared/components/YesNoMark.vue'
 
 // A sync job as a card below md (FR-005, FR-008): the classic "Server" value as heading with a link
 // to the job page, then the table's columns and its collapsed values, each labelled with the
@@ -34,7 +35,8 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
     :title="jobLabel(job)"
     :to="{ name: 'sync-job-detail', params: { syncJobId: job.id } }"
   >
-    <template v-if="$slots.select" #select><slot name="select" /></template>
+    <template #badges><ActiveBadge :active="job.active" /></template
+    ><template v-if="$slots.select" #select><slot name="select" /></template>
     <template v-if="$slots.actions" #actions><slot name="actions" /></template>
     <DataCardFields>
       <dt class="text-gray-600 dark:text-gray-400">{{ t('syncJobs.columns.id') }}</dt>
@@ -55,10 +57,7 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
       <dd class="text-gray-900 dark:text-white">
         <SyncJobResult :run="job.runStatus" :role="role" />
       </dd>
-      <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.active) }}</dt>
-      <dd class="text-gray-900 dark:text-white">
-        <YesNoMark data-active :value="job.active" />
-      </dd>
+
       <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.status) }}</dt>
       <dd>
         <SyncJobStateBadges :active="job.active" :running="job.runStatus.running" :role="role" />

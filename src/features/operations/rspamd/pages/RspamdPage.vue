@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // Rspamd's scan history and statistics (US6; FR-045 to FR-049 as plan "Decisions at implementation"
 // items 5, 6, 11, 12, 18 and 19 settle them): legacy's Rspamd tab with Refresh, the log choice and
 // `debug.log_info`; `debug.chart_this_server` with the per-action bars; `debug.history_all_servers`
@@ -27,7 +30,7 @@ import LogsIntro from '../../logs/components/LogsIntro.vue'
 import { useRspamdHistory, useRspamdStatistics } from '../api'
 import RspamdActionsChart from '../components/RspamdActionsChart.vue'
 import RspamdHistoryList from '../components/RspamdHistoryList.vue'
-import { RSPAMD_SORTS, useRspamdListState, type RspamdSort } from '../list-state'
+import { useRspamdListState, type RspamdSort } from '../list-state'
 import { RestartIcon } from '../../icons'
 
 const { t, locale } = useI18n()
@@ -74,13 +77,6 @@ function refresh() {
   void history.refetch()
 }
 
-const sortLabels: Record<RspamdSort, string> = {
-  time: lt('admin.time'),
-  score: lt('quarantine.spam_score'),
-  size: t('operations.rspamd.columns.size'),
-  scanTime: t('operations.rspamd.columns.scanTime'),
-}
-
 // FR-086: the number of matching scans is announced after a search.
 const number = (value: number) => formatNumber(value, locale.value as AppLocale)
 let announcedFor = state.value.filters.q ?? ''
@@ -102,6 +98,8 @@ watch(
     )
   },
 )
+
+useDataList('operations-rspamd-pages-rspamdpage')
 </script>
 
 <template>
@@ -158,55 +156,19 @@ watch(
         {{ lt('debug.history_all_servers') }}
       </h2>
       <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <SearchField
-          id="operations-rspamd-search"
-          class="md:w-96"
-          :label="lt('datatables.search')"
-          :model-value="state.filters.q ?? ''"
-          @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-        />
+        <ListToolbar
+          ><template #search
+            ><SearchField
+              id="operations-rspamd-search"
+              class="md:w-96"
+              :label="lt('datatables.search')"
+              :model-value="state.filters.q ?? ''"
+              @search="
+                (value) => list.setFilter('q', value || undefined, { typing: true })
+              " /></template
+        ></ListToolbar>
         <div class="flex flex-wrap items-end gap-3">
-          <template v-if="!wide">
-            <div class="flex flex-col gap-1.5">
-              <label
-                for="operations-rspamd-sort"
-                class="text-sm font-medium text-gray-800 dark:text-gray-200"
-              >
-                {{ t('operations.rspamd.sort.label') }}
-              </label>
-              <select
-                id="operations-rspamd-sort"
-                :value="sort"
-                class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                @change="
-                  list.setSort(($event.target as HTMLSelectElement).value as RspamdSort, order)
-                "
-              >
-                <option v-for="key in RSPAMD_SORTS" :key="key" :value="key">
-                  {{ sortLabels[key] }}
-                </option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <label
-                for="operations-rspamd-order"
-                class="text-sm font-medium text-gray-800 dark:text-gray-200"
-              >
-                {{ t('operations.rspamd.sort.order') }}
-              </label>
-              <select
-                id="operations-rspamd-order"
-                :value="order"
-                class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                @change="
-                  list.setSort(sort, ($event.target as HTMLSelectElement).value as SortOrder)
-                "
-              >
-                <option value="desc">{{ t('operations.logs.sort.desc') }}</option>
-                <option value="asc">{{ t('operations.logs.sort.asc') }}</option>
-              </select>
-            </div>
-          </template>
+          <template v-if="!wide"> </template>
           <LogQuickActions
             :more="false"
             details

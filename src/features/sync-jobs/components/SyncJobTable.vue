@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 // The sync job list as a table from md up (FR-005, FR-011): the classic columns of the role's table
 // with sortable headers (`aria-sort`), and the classic collapsed values (excludes, interval and,
 // for mailbox users, the encryption) in an expandable row. Slots: `select-all`, `select`, `actions`.
@@ -20,6 +26,7 @@ import SyncJobStateBadges from './SyncJobStateBadges.vue'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     jobs: readonly SyncJob[]
     role: Role
     sort: SyncJobSort
@@ -55,17 +62,11 @@ const columns = computed<ColumnSpec[]>(() => [
     : [{ key: 'username' as const, label: texts.value.username, sort: 'remoteUser' as const }]),
   { key: 'lastRun', label: texts.value.lastRun, sort: 'lastRunAt' },
   { key: 'result', label: texts.value.result, sort: 'lastResult' },
-  { key: 'active', label: texts.value.active, sort: 'active' },
+
   { key: 'status', label: texts.value.status },
 ])
 
 const label = (ref: TextRef) => resolveText(ref, t)
-
-function ariaSort(key: SyncJobSort | undefined) {
-  if (!key) return undefined
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
 
 function sortBy(key: SyncJobSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
@@ -79,10 +80,24 @@ function toggle(id: number) {
 }
 
 const columnCount = computed(() => columns.value.length + 1 + (props.selectable ? 1 : 0))
+
+const tableView = useDataColumns(
+  () =>
+    columns.value.map((column) => ({
+      id: column.key,
+      label: label(column.label),
+      sort: column.sort,
+    })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
@@ -92,26 +107,12 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-2 py-2"><slot name="select-all" /></th>
-          <th
+          <DataTableHeader
             v-for="column in columns"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-2 py-2 text-start"
-            :aria-sort="ariaSort(column.sort)"
-          >
-            <button
-              v-if="column.sort"
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.sort)"
-            >
-              {{ label(column.label) }}
-              <span aria-hidden="true">{{
-                sort === column.sort ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-            <template v-else>{{ label(column.label) }}</template>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-2 py-2 text-end">
             {{ label(texts.action) }}
           </th>
@@ -121,7 +122,11 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
         <template v-for="job in jobs" :key="job.id">
           <tr :data-entry="job.id" class="align-top text-gray-900 dark:text-white">
             <td v-if="selectable" class="px-2 py-2"><slot name="select" :job="job" /></td>
-            <td class="px-2 py-3">
+            <td
+              v-show="tableView.visible(String('id'))"
+              :data-column="String('id')"
+              class="px-2 py-3"
+            >
               <RouterLink
                 :to="{ name: 'sync-job-detail', params: { syncJobId: job.id } }"
                 class="inline-flex min-h-6 font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
@@ -129,22 +134,50 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
                 {{ job.id }}
               </RouterLink>
             </td>
-            <td v-if="manager" class="max-w-48 px-2 py-3 wrap-anywhere">{{ job.mailbox }}</td>
-            <td class="max-w-64 px-2 py-3 wrap-anywhere">{{ jobLabel(job) }}</td>
-            <td v-if="!manager" class="max-w-48 px-2 py-3 wrap-anywhere">{{ job.remoteUser }}</td>
-            <td class="px-2 py-3"><SyncJobLastRun :run="job.runStatus" :role="role" /></td>
-            <td class="max-w-56 px-2 py-3">
+            <td
+              v-show="tableView.visible(String('owner'))"
+              v-if="manager"
+              :data-column="String('owner')"
+              class="max-w-48 px-2 py-3 wrap-anywhere"
+            >
+              {{ job.mailbox }}
+            </td>
+            <td
+              v-show="tableView.visible(String('server'))"
+              :data-column="String('server')"
+              class="max-w-64 px-2 py-3 wrap-anywhere"
+            >
+              {{ jobLabel(job) }}
+              <div class="mt-1"><ActiveBadge :active="job.active" /></div>
+            </td>
+            <td
+              v-show="tableView.visible(String('username'))"
+              v-if="!manager"
+              :data-column="String('username')"
+              class="max-w-48 px-2 py-3 wrap-anywhere"
+            >
+              {{ job.remoteUser }}
+            </td>
+            <td
+              v-show="tableView.visible(String('lastRun'))"
+              :data-column="String('lastRun')"
+              class="px-2 py-3"
+            >
+              <SyncJobLastRun :run="job.runStatus" :role="role" />
+            </td>
+            <td
+              v-show="tableView.visible(String('result'))"
+              :data-column="String('result')"
+              class="max-w-56 px-2 py-3"
+            >
               <SyncJobResult :run="job.runStatus" :role="role" />
             </td>
-            <td class="px-2 py-3">
-              <SyncJobStateBadges
-                show="active"
-                :active="job.active"
-                :running="job.runStatus.running"
-                :role="role"
-              />
-            </td>
-            <td class="px-2 py-3">
+
+            <td
+              v-show="tableView.visible(String('status'))"
+              :data-column="String('status')"
+              class="px-2 py-3"
+            >
               <SyncJobStateBadges
                 :active="job.active"
                 :running="job.runStatus.running"
@@ -163,7 +196,10 @@ const columnCount = computed(() => columns.value.length + 1 + (props.selectable 
             </td>
           </tr>
           <tr v-if="expanded.has(job.id)" :id="`sync-job-details-${job.id}`">
-            <td :colspan="columnCount" class="bg-gray-50 px-4 py-3 dark:bg-gray-950">
+            <td
+              :colspan="columnCount - tableView.columns.value.length + tableView.visibleCount.value"
+              class="bg-gray-50 px-4 py-3 dark:bg-gray-950"
+            >
               <dl
                 :data-entry-details="job.id"
                 class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm"

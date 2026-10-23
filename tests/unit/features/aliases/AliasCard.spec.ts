@@ -65,7 +65,7 @@ describe('AliasCard', () => {
     expect(wrapper.text()).toContain('anna@example.org')
     expect(wrapper.text()).toContain('Target domain: example.org')
     expect(wrapper.text()).toContain('Sales team')
-    expect(wrapper.get('[data-field="active"]').text()).toContain('No')
+    expect(wrapper.get('[data-card-header]').text()).toContain('Inactive')
     expect(wrapper.find('[data-field="groupwareVisible"]').exists()).toBe(true)
     expect(wrapper.find('.menu').exists()).toBe(true)
   })

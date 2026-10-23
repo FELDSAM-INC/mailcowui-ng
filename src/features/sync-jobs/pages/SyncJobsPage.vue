@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The sync job list (UI 008 US1, FR-005 to FR-014), mirroring the classic "Sync jobs" tab of the
 // mailbox page (administrators, domain administrators) and of the user page (mailbox users): search,
 // filters, sort, page and size in the address; cards below md and a table from md up; the list
@@ -180,6 +183,8 @@ const logViewer = useLogViewer(list)
 function openLog(id: number) {
   void logViewer.open(id)
 }
+
+useDataList('sync-jobs-pages-syncjobs')
 </script>
 
 <template>
@@ -190,14 +195,7 @@ function openLog(id: number) {
           <PlusIcon />
           {{ lt('user.create_syncjob') }}
         </RouterLink>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="reload">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -206,23 +204,34 @@ function openLog(id: number) {
     </PageHeader>
 
     <div class="flex flex-col gap-3">
-      <SearchField
-        id="sync-job-search"
-        :label="lt('datatables.search')"
-        :model-value="state.filters.q ?? ''"
-        @search="onSearch"
-      />
-      <SyncJobFilters
-        :role="role"
-        :filters="state.filters"
-        :active-count="list.activeFilterCount.value"
-        :sort="state.sort ?? 'id'"
-        :order="state.order ?? 'desc'"
-        :show-sort="!wide"
-        @update="(change) => list.setFilters(change)"
-        @clear="list.setFilters(NO_FILTERS)"
-        @sort="(sort, order) => list.setSort(sort, order)"
-      />
+      <ListToolbar
+        ><template #select
+          ><button
+            type="button"
+            :class="buttonVariants({ variant: 'outline' })"
+            :aria-pressed="selection.active.value ? 'true' : 'false'"
+            @click="toggleSelecting"
+          >
+            {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+          </button></template
+        ><template #filters
+          ><SyncJobFilters
+            :role="role"
+            :filters="state.filters"
+            :active-count="list.activeFilterCount.value"
+            :sort="state.sort ?? 'id'"
+            :order="state.order ?? 'desc'"
+            @update="(change) => list.setFilters(change)"
+            @clear="list.setFilters(NO_FILTERS)"
+            @sort="(sort, order) => list.setSort(sort, order)" /></template
+        ><template #search
+          ><SearchField
+            id="sync-job-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="onSearch" /></template
+      ></ListToolbar>
+
       <ActiveFilterChips
         :chips="chips"
         @remove="(key) => list.setFilter(key as keyof SyncJobListFilters & string, undefined)"

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The resource list (US7, FR-042, FR-043), the classic "Resources" tab
 // (`mailbox/tab-resources.twig`, `draw_resource_table()`): legacy's title, "Add resource", refresh,
 // the booking legend, the server's search, the domain, kind and active filters and the sort in the
@@ -50,7 +53,7 @@ import BookingLegend from '../components/BookingLegend.vue'
 import ResourceEntryActions from '../components/ResourceEntryActions.vue'
 import ResourceFilters from '../components/ResourceFilters.vue'
 import ResourceList from '../components/ResourceList.vue'
-import ResourceSortControl from '../components/ResourceSortControl.vue'
+
 import { useResourceDeletion, type ResourceOutcome } from '../composables/useResourceDeletion'
 import { takeResourceListFlash } from '../flash'
 import { toResourceParams, useResourceListState, type ResourceListFilters } from '../list-state'
@@ -224,6 +227,8 @@ function toggleSelecting() {
   if (selection.active.value) selection.leave()
   else selection.enter()
 }
+
+useDataList('resources-pages-resources')
 </script>
 
 <template>
@@ -238,15 +243,7 @@ function toggleSelecting() {
           <PlusIcon />
           {{ lt('mailbox.add_resource') }}
         </RouterLink>
-        <button
-          v-if="permissions.canManageResources"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -264,29 +261,35 @@ function toggleSelecting() {
 
     <BookingLegend />
 
-    <SearchField
-      id="resource-search"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-    />
-    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-      <ResourceFilters
-        class="md:flex-1"
-        :filters="state.filters"
-        :active-count="filterCount"
-        :labels="labels"
-        @pick="remember"
-        @update="updateFilters"
-        @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })"
-      />
-      <ResourceSortControl
-        v-if="!wide"
-        :sort="state.sort ?? 'description'"
-        :order="state.order ?? 'asc'"
-        @change="(sort, order) => list.setSort(sort, order)"
-      />
-    </div>
+    <ListToolbar
+      ><template #select
+        ><button
+          v-if="permissions.canManageResources"
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #filters
+        ><ResourceFilters
+          :filters="state.filters"
+          :active-count="filterCount"
+          :labels="labels"
+          @pick="remember"
+          @update="updateFilters"
+          @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })" /></template
+      ><template #search
+        ><SearchField
+          id="resource-search"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="
+            (value) => list.setFilter('q', value || undefined, { typing: true })
+          " /></template
+    ></ListToolbar>
+
     <ActiveFilterChips
       :chips="chips"
       @remove="removeChip"

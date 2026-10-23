@@ -28,6 +28,7 @@ describe('allowlist (data-model §4)', () => {
       'mailcowui-ng.locale',
       'mailcowui-ng.mailboxes.columns',
       'mailcowui-ng.passkey-suggestion-dismissed',
+      'mailcowui-ng.table-columns',
       'mailcowui-ng.theme',
     ])
     expect([...ALLOWED_SESSION_KEYS].sort()).toEqual([

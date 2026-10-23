@@ -18,10 +18,7 @@
       },
       "more100": "+ 100",
       "more1000": "+ 1000",
-      "sort": {
-        "asc": "Vzestupně",
-        "desc": "Sestupně"
-      },
+      "sort": {},
       "columns": {
         "userAgent": "User-Agent",
         "ip": "IP",
@@ -55,10 +52,7 @@
       "noneScanned": "Zatím nebyly zkontrolovány žádné zprávy.",
       "above": "nad požadovaným skóre",
       "below": "pod požadovaným skóre",
-      "sort": {
-        "label": "Řadit podle",
-        "order": "Pořadí"
-      },
+      "sort": {},
       "columns": {
         "ip": "IP adresa",
         "to": "Komu",

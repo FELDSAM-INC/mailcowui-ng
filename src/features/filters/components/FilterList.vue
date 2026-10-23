@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDataList } from '@/shared/composables/useDataList'
+
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -140,6 +142,13 @@ watch([total, () => list.state.value.page], ([count, page]) => {
   if (count > 0 && (page - 1) * list.state.value.size >= count)
     void list.setPage(Math.ceil(count / list.state.value.size))
 })
+
+useDataList('sieve-filters', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'asc',
+  change: (key, order) =>
+    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+}))
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
@@ -157,7 +166,19 @@ watch([total, () => list.state.value.page], ([count, page]) => {
     </component>
     <AclReadOnlyNote v-if="!canChange && !mailbox" id="filters-read-only" flag="filters" />
     <LegacyText k="mailbox.sieve_info" as="p" class="text-sm text-gray-700 dark:text-gray-300" />
-    <FilterFilters :list="list" :mailbox-context="!!mailbox" />
+    <FilterFilters :list="list" :mailbox-context="!!mailbox"
+      ><template #select
+        ><button
+          v-if="canChange"
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :disabled="runner.running.value"
+          @click="selection.active.value ? selection.leave() : selection.enter()"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ></FilterFilters
+    >
     <div class="flex flex-wrap gap-2">
       <button
         type="button"
@@ -167,15 +188,7 @@ watch([total, () => list.state.value.page], ([count, page]) => {
       >
         {{ lt('admin.refresh') }}
       </button>
-      <button
-        v-if="canChange"
-        type="button"
-        :class="buttonVariants({ variant: 'outline' })"
-        :disabled="runner.running.value"
-        @click="selection.active.value ? selection.leave() : selection.enter()"
-      >
-        {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-      </button>
+
       <button
         v-if="selection.active.value"
         type="button"
@@ -221,7 +234,8 @@ watch([total, () => list.state.value.page], ([count, page]) => {
       {{ lt(list.activeFilters.value.length ? 'datatables.zeroRecords' : 'datatables.emptyTable') }}
     </p>
     <FilterTable
-      v-else-if="wide"
+      v-else
+      :hidden="!wide"
       :items="rows"
       :location="location"
       :selecting="selection.active.value"
@@ -232,7 +246,7 @@ watch([total, () => list.state.value.page], ([count, page]) => {
       @toggle="selection.toggle"
       @remove="run('remove', [$event])"
     />
-    <ul v-else class="flex min-w-0 flex-col gap-3" data-filter-list>
+    <ul v-if="!wide" class="flex min-w-0 flex-col gap-3" data-filter-list>
       <li v-for="item in rows" :key="item.id" :data-filter-id="item.id">
         <FilterCard
           :item="item"

@@ -43,7 +43,6 @@ describe('AliasTable', () => {
       'Alias',
       'Goto address',
       'Domain',
-      'Active',
       'Action',
     ])
     const row = wrapper.get('tbody tr[data-entry]')

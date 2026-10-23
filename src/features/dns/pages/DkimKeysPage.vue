@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The ARC/DKIM keys (US1, FR-005 to FR-015; legacy `admin/tab-config-dkim.twig`): every DKIM entry
 // in scope with the classic state toggles as filters, kind, completeness, selector and domain
 // filters, search, sort, pages and page size in the address; cards below md and a table from md up;
@@ -45,7 +48,7 @@ import NamePreview from '../components/NamePreview.vue'
 import RunDialog from '../components/RunDialog.vue'
 import DkimFilters from '../components/DkimFilters.vue'
 import DkimSettingsSummary from '../components/DkimSettingsSummary.vue'
-import DkimSortControl from '../components/DkimSortControl.vue'
+
 import {
   useDkimRun,
   useSingleGeneration,
@@ -277,6 +280,8 @@ const guard = useLeaveGuard(() => run.running.value, {
 })
 void guard
 onBeforeUnmount(() => run.stop())
+
+useDataList('dns-pages-dkimkeys')
 </script>
 
 <template>
@@ -301,15 +306,7 @@ onBeforeUnmount(() => run.stop())
         >
           {{ lt('admin.dkim_domains_wo_keys') }}
         </button>
-        <button
-          v-if="listActions.selectionGenerate"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -324,32 +321,37 @@ onBeforeUnmount(() => run.stop())
     />
 
     <div class="flex flex-col gap-3">
-      <SearchField
-        id="dkim-search"
-        :label="lt('datatables.search')"
-        :model-value="state.filters.q ?? ''"
-        @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-      />
-      <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <DkimFilters
-          class="md:flex-1"
-          :role="role"
-          :states="state.filters.state"
-          :kind="state.filters.kind"
-          :complete="state.filters.complete"
-          :selector="state.filters.selector"
-          :domain="state.filters.domain"
-          :active-count="list.activeFilterCount.value"
-          @update="updateFilters"
-          @clear="clearFilters"
-        />
-        <DkimSortControl
-          class="md:hidden"
-          :sort="state.sort ?? 'name'"
-          :order="state.order ?? 'asc'"
-          @change="(sort, order) => list.setSort(sort, order)"
-        />
-      </div>
+      <ListToolbar
+        ><template #select
+          ><button
+            v-if="listActions.selectionGenerate"
+            type="button"
+            :class="buttonVariants({ variant: 'outline' })"
+            :aria-pressed="selection.active.value ? 'true' : 'false'"
+            @click="toggleSelecting"
+          >
+            {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+          </button></template
+        ><template #filters
+          ><DkimFilters
+            :role="role"
+            :states="state.filters.state"
+            :kind="state.filters.kind"
+            :complete="state.filters.complete"
+            :selector="state.filters.selector"
+            :domain="state.filters.domain"
+            :active-count="list.activeFilterCount.value"
+            @update="updateFilters"
+            @clear="clearFilters" /></template
+        ><template #search
+          ><SearchField
+            id="dkim-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+      ></ListToolbar>
     </div>
 
     <ListState

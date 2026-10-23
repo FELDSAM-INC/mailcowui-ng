@@ -26,7 +26,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <TemplateTable
-    v-if="wide"
+    :hidden="!wide"
     :templates="templates"
     :sort="sort"
     :order="order"
@@ -38,7 +38,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ template }"><slot name="select" :template="template" /></template>
     <template #actions="{ template }"><slot name="actions" :template="template" /></template>
   </TemplateTable>
-  <ul v-else :aria-label="lt('mailbox.mailbox_templates')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('mailbox.mailbox_templates')" class="flex flex-col gap-3">
     <TemplateCard v-for="template in templates" :key="template.id" :template="template">
       <template v-if="selectable" #select><slot name="select" :template="template" /></template>
       <template v-if="actions" #actions><slot name="actions" :template="template" /></template>

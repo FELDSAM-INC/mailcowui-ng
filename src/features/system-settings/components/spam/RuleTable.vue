@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import { useI18n } from 'vue-i18n'
 import type { RspamdSettingsRule } from '@/api'
 import { lt } from '@/i18n'
@@ -9,6 +14,7 @@ import RowActions from '@/shared/components/RowActions.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { RuleSort } from '../../rule-list-state'
 defineProps<{
+  hidden?: boolean
   items: RspamdSettingsRule[]
   sort?: RuleSort
   order?: 'asc' | 'desc'
@@ -17,7 +23,7 @@ defineProps<{
 defineEmits<{ sort: [value: RuleSort]; remove: [item: RspamdSettingsRule] }>()
 const { t } = useI18n(),
   format = useFormat()
-const columns = ['id', 'description', 'active', 'createdAt', 'modifiedAt'] as const
+const columns = ['id', 'description', 'createdAt', 'modifiedAt'] as const
 const label = (value: RuleSort) =>
   value === 'id'
     ? t('lists.id')
@@ -30,32 +36,18 @@ const label = (value: RuleSort) =>
               ? 'mailbox.created_on'
               : 'mailbox.last_modified',
       )
+
+const tableView = useDataColumns(() => columns.map((id) => ({ id, label: label(id), sort: id })))
 </script>
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table
       class="data-table w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
       data-rule-list
     >
       <thead>
         <tr class="border-b border-gray-200 dark:border-gray-800">
-          <th
-            v-for="column in columns"
-            :key="column"
-            :aria-sort="
-              sort === column ? (order === 'desc' ? 'descending' : 'ascending') : undefined
-            "
-            class="p-2 text-start"
-            :class="column === 'id' ? 'w-16' : column === 'active' ? 'w-24' : ''"
-          >
-            <button
-              type="button"
-              class="min-h-11 min-w-11 text-start"
-              @click="$emit('sort', column)"
-            >
-              {{ label(column) }}
-            </button>
-          </th>
+          <DataTableHeader v-for="column in columns" :key="column" :column="column" />
           <th class="table-controls-cell p-2 text-end">{{ lt('mailbox.action') }}</th>
         </tr>
       </thead>
@@ -66,11 +58,22 @@ const label = (value: RuleSort) =>
           :data-rule-id="item.id"
           class="border-b border-gray-200 align-top dark:border-gray-800"
         >
-          <td class="p-2">{{ item.id }}</td>
-          <td class="p-2 wrap-anywhere"><PlainText :value="item.description" /></td>
-          <td class="p-2">{{ lt(item.active ? 'mailbox.active' : 'mailbox.inactive') }}</td>
-          <td class="p-2">{{ format.dateTime(item.createdAt) }}</td>
-          <td class="p-2">{{ item.modifiedAt ? format.dateTime(item.modifiedAt) : '—' }}</td>
+          <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">{{ item.id }}</td>
+          <td
+            v-show="tableView.visible('description')"
+            :data-column="'description'"
+            class="p-2 wrap-anywhere"
+          >
+            <PlainText :value="item.description" />
+            <div class="mt-1"><ActiveBadge :active="item.active" /></div>
+          </td>
+
+          <td v-show="tableView.visible('createdAt')" :data-column="'createdAt'" class="p-2">
+            {{ format.dateTime(item.createdAt) }}
+          </td>
+          <td v-show="tableView.visible('modifiedAt')" :data-column="'modifiedAt'" class="p-2">
+            {{ item.modifiedAt ? format.dateTime(item.modifiedAt) : '—' }}
+          </td>
           <td class="table-controls-cell p-2">
             <RowControls>
               <RowActions

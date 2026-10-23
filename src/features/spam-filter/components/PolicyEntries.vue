@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 // The entries of one list (UI 006 FR-046, legacy form map screen 5 and D16): a table from `md` up
@@ -56,19 +59,22 @@ const allSelected = computed(
 )
 const showSelect = computed(() => props.selectable && ownIds.value.length > 0)
 
-function ariaSort(key: PolicySort) {
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-function sortBy(key: PolicySort) {
-  emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
-}
-const SORTABLE: { key: PolicySort; label: LegacyKey }[] = [
-  { key: 'pattern', label: 'user.spamfilter_table_rule' },
-  { key: 'createdAt', label: 'user.created_on' },
-]
 const LINK =
   'inline-flex min-h-11 max-w-full items-center break-all text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 '
+
+const tableView = useDataColumns(
+  () => [
+    { id: 'id', label: t('lists.id'), sort: 'id' },
+    { id: 'pattern', label: lt('user.spamfilter_table_rule'), sort: 'pattern' },
+    { id: 'scope', label: t('spamFilter.lists.scope') },
+    { id: 'createdAt', label: lt('user.created_on'), sort: 'createdAt' },
+  ],
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key, order) => emit('sort', key as PolicySort, order),
+  }),
+)
 </script>
 
 <template>
@@ -88,44 +94,10 @@ const LINK =
               @change="emit('toggleAll', $event)"
             />
           </th>
-          <th scope="col" class="w-16 px-2 py-2 text-start align-bottom">
-            {{ t('lists.id') }}
-          </th>
-          <th
-            scope="col"
-            class="px-2 py-2 text-start align-bottom"
-            :aria-sort="ariaSort('pattern')"
-          >
-            <button
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy('pattern')"
-            >
-              {{ lt(SORTABLE[0]!.label) }}
-              <span aria-hidden="true">{{
-                sort === 'pattern' ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-          </th>
-          <th scope="col" class="px-2 py-2 text-start align-bottom">
-            {{ t('spamFilter.lists.scope') }}
-          </th>
-          <th
-            scope="col"
-            class="w-32 px-2 py-2 text-start align-bottom"
-            :aria-sort="ariaSort('createdAt')"
-          >
-            <button
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy('createdAt')"
-            >
-              {{ lt(SORTABLE[1]!.label) }}
-              <span aria-hidden="true">{{
-                sort === 'createdAt' ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-          </th>
+          <DataTableHeader column="id" />
+          <DataTableHeader column="pattern" />
+          <DataTableHeader column="scope" />
+          <DataTableHeader column="createdAt" />
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -146,8 +118,18 @@ const LINK =
               @change="emit('toggle', String(entry.id))"
             />
           </td>
-          <td class="px-2 py-3 text-gray-700 tabular-nums dark:text-gray-300">{{ entry.id }}</td>
-          <td class="px-2 py-3 break-all text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible('id')"
+            :data-column="'id'"
+            class="px-2 py-3 text-gray-700 tabular-nums dark:text-gray-300"
+          >
+            {{ entry.id }}
+          </td>
+          <td
+            v-show="tableView.visible('pattern')"
+            :data-column="'pattern'"
+            class="px-2 py-3 break-all text-gray-900 dark:text-white"
+          >
             <PlainText :value="entry.pattern" />
             <span
               v-if="!entry.own"
@@ -156,7 +138,11 @@ const LINK =
               >{{ lt('user.spamfilter_table_domain_policy') }}</span
             >
           </td>
-          <td class="px-2 py-3 text-gray-800 dark:text-gray-200">
+          <td
+            v-show="tableView.visible('scope')"
+            :data-column="'scope'"
+            class="px-2 py-3 text-gray-800 dark:text-gray-200"
+          >
             <RouterLink
               v-if="!entry.own && ownerLink(entry)"
               :to="ownerLink(entry)!"
@@ -166,7 +152,11 @@ const LINK =
             /></RouterLink>
             <span v-else class="break-all"><PlainText :value="entry.owner.name" /></span>
           </td>
-          <td class="px-2 py-3 text-gray-700 dark:text-gray-300">
+          <td
+            v-show="tableView.visible('createdAt')"
+            :data-column="'createdAt'"
+            class="px-2 py-3 text-gray-700 dark:text-gray-300"
+          >
             <DateTime :value="entry.createdAt" />
           </td>
         </tr>

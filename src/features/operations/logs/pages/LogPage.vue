@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // A log (US3; FR-030 to FR-044 as plan "Decisions at implementation" items 5, 6, 10, 11, 12 and 18
 // settle them): legacy's log tab with its name, Refresh, the log choice and `debug.log_info`, the
 // quick actions "+ 100", "+ 1000", Expand All and Collapse All, the search (`datatables.search`),
@@ -115,6 +118,8 @@ function refresh() {
 const loadFailed = computed(() => log.problem.value !== null && log.entries.value.length === 0)
 const updateFailed = computed(() => log.problem.value !== null && log.entries.value.length > 0)
 const unavailable = computed(() => log.problem.value?.status === 503)
+
+useDataList(() => 'logs-' + props.logType)
 </script>
 
 <template>
@@ -146,31 +151,18 @@ const unavailable = computed(() => log.problem.value?.status === 503)
     />
 
     <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <SearchField
-        id="operations-log-search"
-        class="md:w-96"
-        :label="lt('datatables.search')"
-        :model-value="q ?? ''"
-        @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-      />
+      <ListToolbar
+        ><template #search
+          ><SearchField
+            id="operations-log-search"
+            class="md:w-96"
+            :label="lt('datatables.search')"
+            :model-value="q ?? ''"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+      ></ListToolbar>
       <div class="flex flex-wrap items-end gap-3">
-        <div v-if="!wide" class="flex flex-col gap-1.5">
-          <label
-            for="operations-log-order"
-            class="text-sm font-medium text-gray-800 dark:text-gray-200"
-          >
-            {{ lt('admin.time') }}
-          </label>
-          <select
-            id="operations-log-order"
-            :value="order"
-            class="h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/20 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-            @change="list.setSort('time', ($event.target as HTMLSelectElement).value as SortOrder)"
-          >
-            <option value="desc">{{ t('operations.logs.sort.desc') }}</option>
-            <option value="asc">{{ t('operations.logs.sort.asc') }}</option>
-          </select>
-        </div>
         <LogQuickActions
           :details="hasDetails"
           :busy="log.loadingMore.value"

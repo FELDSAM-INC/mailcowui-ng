@@ -14,8 +14,14 @@ const wide = useMediaQuery('(min-width: 768px)')
 </script>
 
 <template>
-  <ApiKeyTable v-if="wide" :keys="keys" :sort="sort" :order="order" @sort="$emit('sort', $event)" />
-  <ul v-else class="flex flex-col gap-3">
+  <ApiKeyTable
+    :hidden="!wide"
+    :keys="keys"
+    :sort="sort"
+    :order="order"
+    @sort="$emit('sort', $event)"
+  />
+  <ul v-if="!wide" class="flex flex-col gap-3">
     <li v-for="apiKey in keys" :key="apiKey.id"><ApiKeyCard :api-key="apiKey" /></li>
   </ul>
 </template>

@@ -25,7 +25,6 @@
     "backToList": "Back to accounts",
     "you": "You",
     "count": "Accounts: {count}",
-    "domainCount": "Number of domains",
     "filters": {
       "pending": "Required sign-in action",
       "permission": "Permission",

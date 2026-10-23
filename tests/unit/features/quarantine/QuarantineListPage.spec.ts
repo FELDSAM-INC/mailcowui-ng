@@ -96,7 +96,7 @@ describe('QuarantineListPage', () => {
     expect(wrapper.get('h1').text()).toContain('Quarantine')
     expect(wrapper.get('[data-quarantine-active]').text()).toContain('20')
     expect(wrapper.get('[data-quarantine-active]').text()).toContain('15')
-    expect(cards[0]!.get('h2 a').attributes('href')).toBe('/quarantine/30')
+    expect(cards[0]!.get('h3 a').attributes('href')).toBe('/quarantine/30')
     await wrapper.get('button[aria-label="Next"]').trigger('click')
     await settle()
     expect(router.currentRoute.value.query.page).toBe('2')
@@ -105,16 +105,13 @@ describe('QuarantineListPage', () => {
 
   it('renders collapsed card metadata only when its disclosure is opened', async () => {
     const { wrapper } = await open()
-    const first = wrapper.get('[data-quarantine-item="30"] details')
-    expect(wrapper.findAll('[data-quarantine-item] details dd')).toHaveLength(0)
-    const disclosure = first.element as HTMLDetailsElement
-    disclosure.open = true
-    await first.trigger('toggle')
+    const first = wrapper.get('[data-quarantine-item="30"]')
+    expect(wrapper.findAll('[data-card-details]')).toHaveLength(0)
+    await first.get('[data-card-expand]').trigger('click')
     expect(first.find('[data-virus]').exists()).toBe(true)
-    expect(wrapper.find('[data-quarantine-item="29"] details dd').exists()).toBe(false)
-    disclosure.open = false
-    await first.trigger('toggle')
-    expect(first.find('dd').exists()).toBe(false)
+    expect(wrapper.find('[data-quarantine-item="29"] [data-card-details]').exists()).toBe(false)
+    await first.get('[data-card-expand]').trigger('click')
+    expect(first.find('[data-card-details]').exists()).toBe(false)
   })
 
   it('restores filters and sort from the address, and ignores mailbox scope filters', async () => {
@@ -127,9 +124,7 @@ describe('QuarantineListPage', () => {
       params: { query: { limit: 25, offset: 0, virus: true, sort: 'id', order: 'asc' } },
     })
     expect(wrapper.findAll('[data-quarantine-item]')).toHaveLength(1)
-    const details = wrapper.get('[data-quarantine-item] details')
-    ;(details.element as HTMLDetailsElement).open = true
-    await details.trigger('toggle')
+    await wrapper.get('[data-quarantine-item] [data-card-expand]').trigger('click')
     expect(wrapper.find('[data-virus="true"]').exists()).toBe(true)
   })
 
@@ -153,7 +148,7 @@ describe('QuarantineListPage', () => {
     expect(wrapper.find('[data-quarantine-item="11"] script').exists()).toBe(false)
     expect(wrapper.find('[data-quarantine-item="12"] img').exists()).toBe(false)
     expect(wrapper.get('[data-quarantine-item="13"]').text()).toContain('U+202E')
-    expect(wrapper.get('[data-quarantine-item="8"] h2').text()).toBe('-')
+    expect(wrapper.get('[data-quarantine-item="8"] h3').text()).toBe('-')
   })
 
   it('reloads an outdated removal before asking again with the new version', async () => {
@@ -164,12 +159,22 @@ describe('QuarantineListPage', () => {
     stored.subject = 'Changed message'
     const writes = () =>
       mockState().requests.filter((request) => request.operationId === 'deleteQuarantineItem')
-    await wrapper.get('[data-quarantine-item="30"] button').trigger('click')
+    await wrapper
+      .get('[data-quarantine-item="30"] [data-row-action-trigger]')
+      .trigger('keydown', { key: 'Enter' })
+    await settle()
+    document.querySelector<HTMLElement>('[role="menuitem"][aria-label="Remove: 30"]')!.click()
+    await vi.waitFor(() => expect(ask).toHaveBeenCalledTimes(1))
     await settle()
     expect(writes().map((request) => request.status)).toEqual([412])
-    expect(wrapper.get('[data-quarantine-item="30"] h2').text()).toBe('Changed message')
+    expect(wrapper.get('[data-quarantine-item="30"] h3').text()).toBe('Changed message')
     expect(ask).toHaveBeenCalledTimes(1)
-    await wrapper.get('[data-quarantine-item="30"] button').trigger('click')
+    await wrapper
+      .get('[data-quarantine-item="30"] [data-row-action-trigger]')
+      .trigger('keydown', { key: 'Enter' })
+    await settle()
+    document.querySelector<HTMLElement>('[role="menuitem"][aria-label="Remove: 30"]')!.click()
+    await vi.waitFor(() => expect(ask).toHaveBeenCalledTimes(2))
     await settle()
     expect(writes().map((request) => request.status)).toEqual([412, 204])
     expect(ask).toHaveBeenCalledTimes(2)

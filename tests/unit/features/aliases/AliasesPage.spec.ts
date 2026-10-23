@@ -1,3 +1,4 @@
+import { sortList } from '../../support/data-list'
 // The alias list (US1, US3, US6; FR-005 to FR-017, FR-029 to FR-032, FR-056 to FR-060): the classic
 // table, newest first, with legacy's hint; the search, filters, sort and page in the address with
 // their chips; the empty, no-match and error states; the single deletion and "Expand alias over
@@ -125,9 +126,9 @@ describe('AliasesPage: the list', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.query.sort).toBe('address'))
     const narrow = await mountList('/aliases', false)
     expect(narrow.wrapper.find('table').exists()).toBe(false)
-    await narrow.wrapper.get('#alias-sort').setValue('createdAt')
-    await vi.waitFor(() => expect(narrow.router.currentRoute.value.query.sort).toBe('createdAt'))
-    await narrow.wrapper.get('#alias-order').setValue('desc')
+    await sortList(narrow.wrapper, 'domain')
+    await vi.waitFor(() => expect(narrow.router.currentRoute.value.query.sort).toBe('domain'))
+    await sortList(narrow.wrapper, 'domain')
     await vi.waitFor(() => expect(narrow.router.currentRoute.value.query.order).toBe('desc'))
   })
 

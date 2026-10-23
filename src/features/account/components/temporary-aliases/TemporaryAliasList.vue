@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 import { computed, ref } from 'vue'
@@ -53,6 +56,13 @@ async function copyAddress(address: string) {
   }
   announce(t('common.copy.refused'), { assertive: true })
 }
+
+const tableView = useDataColumns(() => [
+  { id: 'address', label: lt('user.alias'), sort: 'address' },
+  { id: 'description', label: lt('user.description') },
+  { id: 'expiresAt', label: lt('user.alias_valid_until'), sort: 'expiresAt' },
+  { id: 'createdAt', label: lt('user.created_on'), sort: 'createdAt' },
+])
 </script>
 <template>
   <div v-if="wide" ref="listRoot" class="table-frame">
@@ -65,10 +75,10 @@ async function copyAddress(address: string) {
           <th v-if="selection" class="w-14 p-2">
             <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
           </th>
-          <th class="p-2 text-start">{{ lt('user.alias') }}</th>
-          <th class="p-2 text-start">{{ lt('user.description') }}</th>
-          <th class="p-2 text-start">{{ lt('user.alias_valid_until') }}</th>
-          <th class="p-2 text-start">{{ lt('user.created_on') }}</th>
+          <DataTableHeader column="address" />
+          <DataTableHeader column="description" />
+          <DataTableHeader column="expiresAt" />
+          <DataTableHeader column="createdAt" />
           <th class="table-controls-cell p-2 text-end">{{ lt('user.action') }}</th>
         </tr>
       </thead>
@@ -90,7 +100,7 @@ async function copyAddress(address: string) {
                 @change="emit('toggle', item.address)"
             /></label>
           </td>
-          <td class="p-2">
+          <td v-show="tableView.visible('address')" :data-column="'address'" class="p-2">
             <span :data-alias-address="item.address" class="wrap-anywhere">{{ item.address }}</span>
             <span
               v-if="copied?.address === item.address"
@@ -109,9 +119,19 @@ async function copyAddress(address: string) {
               }}
             </span>
           </td>
-          <td class="p-2 wrap-anywhere">{{ item.description || '–' }}</td>
-          <td class="p-2"><AliasExpiry :expires-at="item.expiresAt" /></td>
-          <td class="p-2"><DateTime :value="item.createdAt" /></td>
+          <td
+            v-show="tableView.visible('description')"
+            :data-column="'description'"
+            class="p-2 wrap-anywhere"
+          >
+            {{ item.description || '–' }}
+          </td>
+          <td v-show="tableView.visible('expiresAt')" :data-column="'expiresAt'" class="p-2">
+            <AliasExpiry :expires-at="item.expiresAt" />
+          </td>
+          <td v-show="tableView.visible('createdAt')" :data-column="'createdAt'" class="p-2">
+            <DateTime :value="item.createdAt" />
+          </td>
           <td class="table-controls-cell p-2">
             <RowControls>
               <RowActions

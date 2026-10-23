@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The alias list (US1, FR-005 to FR-017), the classic "Aliases" tab (`mailbox/tab-mbox-aliases.twig`,
 // `draw_alias_table()`): legacy's title, refresh and hint, the server's search, filters and sort in
 // the address, cards below md and a table from md up, the list states and DataTables' texts, and the
@@ -56,7 +59,7 @@ import AliasEntryActions from '../components/AliasEntryActions.vue'
 import CopyResults from '../components/CopyResults.vue'
 import AliasFilters from '../components/AliasFilters.vue'
 import AliasList from '../components/AliasList.vue'
-import AliasSortControl from '../components/AliasSortControl.vue'
+
 import { useAliasCopy } from '../composables/useAliasCopy'
 import { useAliasDeletion, type AliasOutcome } from '../composables/useAliasDeletion'
 import { takeAliasListFlash } from '../flash'
@@ -301,6 +304,8 @@ function toggleSelecting() {
   if (selection.active.value) selection.leave()
   else selection.enter()
 }
+
+useDataList('aliases-pages-aliases')
 </script>
 
 <template>
@@ -315,15 +320,7 @@ function toggleSelecting() {
           <PlusIcon />
           {{ lt('mailbox.add_alias') }}
         </RouterLink>
-        <button
-          v-if="permissions.canManageAliases"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -365,30 +362,36 @@ function toggleSelecting() {
       class="text-gray-700 dark:text-gray-300"
     />
 
-    <SearchField
-      id="alias-search"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-    />
-    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-      <AliasFilters
-        class="md:flex-1"
-        :filters="state.filters"
-        :active-count="filterCount"
-        :groupware-enabled="groupwareEnabled"
-        :labels="labels"
-        @pick="remember"
-        @update="updateFilters"
-        @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })"
-      />
-      <AliasSortControl
-        :sort="state.sort ?? 'id'"
-        :order="state.order ?? 'desc'"
-        :groupware-enabled="groupwareEnabled"
-        @change="(sort, order) => list.setSort(sort, order)"
-      />
-    </div>
+    <ListToolbar
+      ><template #select
+        ><button
+          v-if="permissions.canManageAliases"
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #filters
+        ><AliasFilters
+          :filters="state.filters"
+          :active-count="filterCount"
+          :groupware-enabled="groupwareEnabled"
+          :labels="labels"
+          @pick="remember"
+          @update="updateFilters"
+          @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })" /></template
+      ><template #search
+        ><SearchField
+          id="alias-search"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="
+            (value) => list.setFilter('q', value || undefined, { typing: true })
+          " /></template
+    ></ListToolbar>
+
     <ActiveFilterChips
       :chips="allChips"
       @remove="removeChip"

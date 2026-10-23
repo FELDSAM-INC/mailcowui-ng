@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import { ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
@@ -9,6 +14,7 @@ import RowActions from '@/shared/components/RowActions.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import ScriptBlock from './ScriptBlock.vue'
 defineProps<{
+  hidden?: boolean
   items: SieveFilter[]
   location: (item: SieveFilter) => RouteLocationRaw
   selecting: boolean
@@ -25,9 +31,16 @@ function toggleDetails(filterId: number) {
   if (expanded.value.has(filterId)) expanded.value.delete(filterId)
   else expanded.value.add(filterId)
 }
+
+const tableView = useDataColumns(() => [
+  { id: 'id', label: t('lists.id'), sort: 'id' },
+  { id: 'mailbox', label: lt('mailbox.owner'), sort: 'mailbox' },
+  { id: 'description', label: lt('mailbox.description'), sort: 'description' },
+  { id: 'kind', label: t('filters.columns.type'), sort: 'kind' },
+])
 </script>
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table
       class="data-table w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
       :style="!canChange ? { '--table-controls-width': '9rem' } : undefined"
@@ -38,11 +51,11 @@ function toggleDetails(filterId: number) {
           <th v-if="selecting" class="w-14 p-2">
             <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
           </th>
-          <th class="w-16 p-2 text-start">{{ t('lists.id') }}</th>
-          <th class="p-2 text-start">{{ lt('mailbox.owner') }}</th>
-          <th class="p-2 text-start">{{ lt('mailbox.description') }}</th>
-          <th class="w-24 p-2 text-start">{{ t('filters.columns.type') }}</th>
-          <th class="w-24 p-2 text-start">{{ lt('mailbox.active') }}</th>
+          <DataTableHeader column="id" />
+          <DataTableHeader column="mailbox" />
+          <DataTableHeader column="description" />
+          <DataTableHeader column="kind" />
+
           <th class="table-controls-cell p-2 text-end">{{ lt('mailbox.action') }}</th>
         </tr>
       </thead>
@@ -63,13 +76,26 @@ function toggleDetails(filterId: number) {
                   @change="$emit('toggle', String(item.id))"
               /></label>
             </td>
-            <td class="p-2">{{ item.id }}</td>
-            <td class="p-2 wrap-anywhere">{{ item.mailbox }}</td>
-            <td class="p-2 wrap-anywhere">
-              <p>{{ item.description }}</p>
+            <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">{{ item.id }}</td>
+            <td
+              v-show="tableView.visible('mailbox')"
+              :data-column="'mailbox'"
+              class="p-2 wrap-anywhere"
+            >
+              {{ item.mailbox }}
             </td>
-            <td class="p-2">{{ t(`filters.kind.${item.kind}`) }}</td>
-            <td class="p-2">{{ lt(item.active ? 'mailbox.active' : 'mailbox.inactive') }}</td>
+            <td
+              v-show="tableView.visible('description')"
+              :data-column="'description'"
+              class="p-2 wrap-anywhere"
+            >
+              <p>{{ item.description }}</p>
+              <div class="mt-1"><ActiveBadge :active="item.active" /></div>
+            </td>
+            <td v-show="tableView.visible('kind')" :data-column="'kind'" class="p-2">
+              {{ t(`filters.kind.${item.kind}`) }}
+            </td>
+
             <td class="table-controls-cell p-2">
               <RowControls
                 :expanded="expanded.has(item.id)"
@@ -102,7 +128,7 @@ function toggleDetails(filterId: number) {
             </td>
           </tr>
           <tr v-if="expanded.has(item.id)" :id="`${id}-script-${item.id}`">
-            <td :colspan="selecting ? 7 : 6" class="p-3">
+            <td :colspan="tableView.visibleCount.value + (selecting ? 2 : 1)" class="p-3">
               <ScriptBlock :script="item.script" />
             </td>
           </tr>

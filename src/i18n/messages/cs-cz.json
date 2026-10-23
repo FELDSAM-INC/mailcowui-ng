@@ -89,9 +89,7 @@
       "allAccessLevels": "Všechny úrovně přístupu",
       "allStatuses": "Všechny stavy",
       "clear": "Zrušit filtry",
-      "ownerHint": "Vyberte vlastníka, nebo napište uživatelské jméno a stiskněte Enter.",
-      "sort": "Řadit podle",
-      "title": "Filtry"
+      "ownerHint": "Vyberte vlastníka, nebo napište uživatelské jméno a stiskněte Enter."
     },
     "form": {
       "access": "Přístup",
@@ -133,16 +131,7 @@
       "description": "Zkopírujte nyní tajný údaj klíče „{name}“ a bezpečně jej uložte, například do nastavení programu.",
       "title": "Váš nový klíč API"
     },
-    "sorts": {
-      "createdAt_asc": "Od nejstarších",
-      "createdAt_desc": "Od nejnovějších",
-      "expiresAt_asc": "Platnost, nejdříve končící",
-      "expiresAt_desc": "Platnost, nejpozději končící",
-      "lastUsedAt_asc": "Naposledy použito, nejdávněji",
-      "lastUsedAt_desc": "Naposledy použito, nejnověji",
-      "name_asc": "Název, A až Z",
-      "name_desc": "Název, Z až A"
-    },
+    "sorts": {},
     "title": "Klíče API"
   },
   "auditLog": {
@@ -186,7 +175,6 @@
       "addressHelp": "Adresa IPv4 nebo IPv6 nebo síť, například 192.0.2.0/24.",
       "anyOutcome": "Libovolný výsledek",
       "anyTargetType": "Jakýkoli typ cíle",
-      "apply": "Použít filtry",
       "clear": "Zrušit filtry",
       "eventTypes": "Typy událostí",
       "from": "Od",
@@ -202,7 +190,6 @@
       },
       "targetId": "Cíl",
       "targetType": "Typ cíle",
-      "title": "Filtry",
       "to": "Do"
     },
     "notRecorded": "Nezaznamenáno",
@@ -838,7 +825,8 @@
       "order": "Pořadí"
     },
     "updating": "Aktualizuje se…",
-    "backToList": "Zpět na seznam"
+    "backToList": "Zpět na seznam",
+    "columns": "Sloupce"
   },
   "nav": {
     "apiKeys": "API klíče",

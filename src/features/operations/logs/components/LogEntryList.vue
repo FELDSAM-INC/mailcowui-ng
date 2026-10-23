@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 // The entries of a log (FR-031 to FR-033, FR-085; plan decisions 6 and 12): cards below md and a
@@ -64,8 +67,17 @@ function stripe(entry: LogEntry): string {
   return striped.value ? `border-s-4 ${stripeClass(hashOf(entry))}` : ''
 }
 
-const ariaSort = computed(() => (props.order === 'asc' ? 'ascending' : 'descending'))
 const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
+
+const tableView = useDataColumns(
+  () =>
+    tableColumns.value.map((column) => ({
+      id: column.key,
+      label: label(column.label),
+      sort: column.key === 'time' ? 'time' : undefined,
+    })),
+  () => ({ key: 'time', order: props.order, change: (_key, order) => emit('sort', order) }),
+)
 </script>
 
 <template>
@@ -131,25 +143,7 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
       </caption>
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
-          <th
-            v-for="column in tableColumns"
-            :key="column.key"
-            scope="col"
-            class="px-2 py-2 text-start"
-            :aria-sort="column.key === 'time' ? ariaSort : undefined"
-          >
-            <button
-              v-if="column.key === 'time'"
-              type="button"
-              data-sort-time
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
-              @click="emit('sort', order === 'desc' ? 'asc' : 'desc')"
-            >
-              {{ label(column.label) }}
-              <span aria-hidden="true">{{ order === 'asc' ? '▲' : '▼' }}</span>
-            </button>
-            <template v-else>{{ label(column.label) }}</template>
-          </th>
+          <DataTableHeader v-for="column in tableColumns" :key="column.key" :column="column.key" />
           <th v-if="hasControls" scope="col" class="table-controls-cell px-2 py-2 text-end">
             {{ action ? label(action.label) : t('domains.list.details') }}
           </th>
@@ -160,7 +154,9 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
           <tr :data-entry="entry.id" class="align-top text-gray-900 dark:text-white">
             <td
               v-for="(column, index) in tableColumns"
+              v-show="tableView.visible(column.key)"
               :key="column.key"
+              :data-column="column.key"
               class="min-w-0 px-2 py-2 wrap-anywhere"
               :class="index === 0 ? stripe(entry) : ''"
               :data-cell="column.key"
@@ -185,7 +181,7 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
             </td>
           </tr>
           <tr v-if="tableDetails.length > 0 && expanded.has(entry.id)" :id="detailsId(entry)">
-            <td :colspan="tableColumns.length + (hasControls ? 1 : 0)" class="px-2 py-2">
+            <td :colspan="tableView.visibleCount.value + (hasControls ? 1 : 0)" class="px-2 py-2">
               <dl data-details class="grid gap-2 sm:grid-cols-2">
                 <div v-for="column in tableDetails" :key="column.key" class="min-w-0">
                   <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">

@@ -16,6 +16,7 @@ import type { ScenarioOverrides } from '../../../../mocks/scenarios'
 import { mockState, useScenario } from '../../../../mocks/node'
 import { installMatchMedia } from '../../../support/media'
 import { mountWithApp } from '../../../support/mount'
+import { sortList } from '../../../support/data-list'
 import { createTestRouter } from '../../../support/router'
 
 const WIDE = '(min-width: 768px)'
@@ -116,15 +117,14 @@ describe('LogPage', () => {
   it('FR-036 oldest first continues by offset, and the order lives in the address', async () => {
     const { wrapper, router } = await mountLog('dovecot', { query: '?order=asc' })
     await settled(wrapper)
-    const select = wrapper.get<HTMLSelectElement>('#operations-log-order')
-    expect(select.element.value).toBe('asc')
+    expect(router.currentRoute.value.query.order).toBe('asc')
     quickActions(wrapper).vm.$emit('more', 100)
     await waitFor(() => expect(ids(wrapper)).toHaveLength(120))
     const next = requestsOf('listDovecotLog').at(-1)!
     expect(next.path).toContain('order=asc')
     expect(next.path).toContain('offset=50')
     expect(next.path).not.toContain('before=')
-    await select.setValue('desc')
+    await sortList(wrapper, 'time')
     await flushPromises()
     expect(router.currentRoute.value.query.order).toBeUndefined()
     wrapper.unmount()
@@ -253,7 +253,7 @@ describe('LogPage', () => {
     await settled(wrapper)
     expect(wrapper.find('#operations-log-order').exists()).toBe(false)
     expect(wrapper.get('h1').text()).toMatch(/ UI$/)
-    const sort = wrapper.get('[data-sort-time]')
+    const sort = wrapper.get('[data-sort="time"]')
     await sort.trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.query.order).toBe('asc')

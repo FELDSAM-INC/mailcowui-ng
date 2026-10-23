@@ -1,3 +1,4 @@
+import { sortList } from '../../support/data-list'
 import { beforeAll, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import AccountListPage from '@/features/administrators/pages/AccountListPage.vue'
@@ -36,6 +37,7 @@ async function setup(role: 'admin' | 'domainAdmin' = 'domainAdmin') {
     global: { plugins: [router], stubs: { DomainPicker: true } },
   })
   await vi.waitFor(() => expect(wrapper.find('[data-account-row]').exists()).toBe(true))
+  await vi.waitFor(() => expect(wrapper.find('[data-selection-mode]').exists()).toBe(true))
   return { wrapper, router }
 }
 it('debounces search into URL state, resets selection and sorts with server parameters', async () => {
@@ -45,7 +47,7 @@ it('debounces search into URL state, resets selection and sorts with server para
   await wrapper.get('input[type="search"]').setValue('team')
   await vi.waitFor(() => expect(router.currentRoute.value.query.q).toBe('team'))
   expect(wrapper.find('[data-bulk-bar]').text()).toContain('0')
-  await wrapper.get('[data-account-sort]').setValue('domainCount')
+  await sortList(wrapper, 'domainCount')
   await vi.waitFor(() => expect(router.currentRoute.value.query.sort).toBe('domainCount'))
 })
 it('uses listed versions for selected bulk targets and presents per-item results', async () => {

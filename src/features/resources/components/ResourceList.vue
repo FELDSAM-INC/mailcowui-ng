@@ -25,7 +25,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <ResourceTable
-    v-if="wide"
+    :hidden="!wide"
     :resources="resources"
     :sort="sort"
     :order="order"
@@ -36,7 +36,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ resource }"><slot name="select" :resource="resource" /></template>
     <template #actions="{ resource }"><slot name="actions" :resource="resource" /></template>
   </ResourceTable>
-  <ul v-else :aria-label="lt('mailbox.resources')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('mailbox.resources')" class="flex flex-col gap-3">
     <ResourceCard v-for="item in resources" :key="item.address" :resource="item">
       <template v-if="selectable" #select><slot name="select" :resource="item" /></template>
       <template #actions><slot name="actions" :resource="item" /></template>

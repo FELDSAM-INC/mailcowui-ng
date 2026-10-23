@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, ref, watch, shallowRef, watchEffect } from 'vue'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   problemOf,
@@ -147,14 +147,8 @@ async function cancel() {
 <template>
   <div class="min-w-0 space-y-4" data-mass-mail-job>
     <PageHeader :title="query.data.value?.subject ?? t('systemSettings.massMail.jobs')"
-      ><template #actions
-        ><HistoryLink target-type="massMailJob" :target-id="id" /><RouterLink
-          :to="{ name: 'system-settings-mass-mail-jobs' }"
-          :class="buttonVariants({ variant: 'outline' })"
-          >{{ t('systemSettings.massMail.jobs') }}</RouterLink
-        ></template
-      ></PageHeader
-    >
+      ><template #actions><HistoryLink target-type="massMailJob" :target-id="id" /></template
+    ></PageHeader>
     <p v-if="query.isPending.value" role="status">{{ lt('footer.loading') }}</p>
     <ProblemMessage
       v-else-if="!query.data.value"

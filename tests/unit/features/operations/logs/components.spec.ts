@@ -144,7 +144,7 @@ describe('LogEntryList', () => {
     const headers = wrapper.findAll('th').map((header) => header.text().replace(/[▲▼]/g, '').trim())
     expect(headers).toEqual(['Time', 'Rate name', 'Sender', 'Recipients', 'Auth. user', 'Action'])
     expect(wrapper.get('th[aria-sort]').attributes('aria-sort')).toBe('descending')
-    await wrapper.get('[data-sort-time]').trigger('click')
+    await wrapper.get('[data-sort="time"]').trigger('click')
     expect(wrapper.emitted('sort')).toEqual([['asc']])
     const row = wrapper.get(`[data-entry="${entry.id}"]`)
     expect(row.find('td:first-child [aria-expanded]').exists()).toBe(false)

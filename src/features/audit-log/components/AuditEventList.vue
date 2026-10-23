@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
 // The audit records (FR-072, conventions "Lists"): cards below the md breakpoint, a table from md
 // up. A table row expands into a row of its own with the details.
 import { reactive } from 'vue'
@@ -38,6 +41,14 @@ const COLUMNS: readonly { key: string; label: TextRef }[] = [
   { key: 'reason', label: 'auditLog.columns.reason' },
 ]
 const detailsId = (id: string) => `audit-details-${id}`
+
+const tableView = useDataColumns(() =>
+  COLUMNS.map((column) => ({
+    id: column.key,
+    label: resolveText(column.label, t),
+    sort: column.key === 'time' ? 'occurredAt' : undefined,
+  })),
+)
 </script>
 
 <template>
@@ -55,15 +66,7 @@ const detailsId = (id: string) => `audit-details-${id}`
       </caption>
       <TableHeader class="border-b border-gray-200 dark:border-gray-800">
         <TableRow>
-          <TableCell
-            v-for="column in COLUMNS"
-            :key="column.key"
-            is-header
-            scope="col"
-            class="px-4 py-3 text-start"
-          >
-            {{ resolveText(column.label, t) }}
-          </TableCell>
+          <DataTableHeader v-for="column in COLUMNS" :key="column.key" :column="column.key" />
           <TableCell is-header scope="col" class="table-controls-cell px-4 py-3">
             <span class="sr-only">{{ t('auditLog.columns.details') }}</span>
           </TableCell>
@@ -72,23 +75,52 @@ const detailsId = (id: string) => `audit-details-${id}`
       <TableBody>
         <template v-for="event in events" :key="event.id">
           <TableRow data-record class="border-b border-gray-100 align-top dark:border-gray-800">
-            <TableCell class="px-4 py-3 text-gray-900 dark:text-white">
+            <TableCell
+              v-show="tableView.visible('time')"
+              :data-column="'time'"
+              class="px-4 py-3 text-gray-900 dark:text-white"
+            >
               <DateTime :value="event.occurredAt" />
             </TableCell>
-            <TableCell class="px-4 py-3 font-medium wrap-anywhere text-gray-900 dark:text-white">
+            <TableCell
+              v-show="tableView.visible('event')"
+              :data-column="'event'"
+              class="px-4 py-3 font-medium wrap-anywhere text-gray-900 dark:text-white"
+            >
               {{ labels.label('eventType', event.eventType) }}
             </TableCell>
-            <TableCell class="px-4 py-3"><AuditOutcome :outcome="event.outcome" /></TableCell>
-            <TableCell class="px-4 py-3 wrap-anywhere text-gray-900 dark:text-white">
+            <TableCell
+              v-show="tableView.visible('outcome')"
+              :data-column="'outcome'"
+              class="px-4 py-3"
+              ><AuditOutcome :outcome="event.outcome"
+            /></TableCell>
+            <TableCell
+              v-show="tableView.visible('actor')"
+              :data-column="'actor'"
+              class="px-4 py-3 wrap-anywhere text-gray-900 dark:text-white"
+            >
               {{ labels.actor(event) }}
             </TableCell>
-            <TableCell class="px-4 py-3 wrap-anywhere text-gray-900 dark:text-white">
+            <TableCell
+              v-show="tableView.visible('address')"
+              :data-column="'address'"
+              class="px-4 py-3 wrap-anywhere text-gray-900 dark:text-white"
+            >
               {{ event.clientAddress }}
             </TableCell>
-            <TableCell class="px-4 py-3 text-gray-900 dark:text-white">
+            <TableCell
+              v-show="tableView.visible('method')"
+              :data-column="'method'"
+              class="px-4 py-3 text-gray-900 dark:text-white"
+            >
               {{ labels.method(event) }}
             </TableCell>
-            <TableCell class="px-4 py-3 text-gray-900 dark:text-white">
+            <TableCell
+              v-show="tableView.visible('reason')"
+              :data-column="'reason'"
+              class="px-4 py-3 text-gray-900 dark:text-white"
+            >
               {{ event.failureReason ? labels.label('failureReason', event.failureReason) : '–' }}
             </TableCell>
             <TableCell class="table-controls-cell px-2 py-1">
@@ -107,7 +139,7 @@ const detailsId = (id: string) => `audit-details-${id}`
             :id="detailsId(event.id)"
             class="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-white/5"
           >
-            <TableCell :colspan="COLUMNS.length + 1" class="px-4 py-3">
+            <TableCell :colspan="tableView.visibleCount.value + 1" class="px-4 py-3">
               <AuditEventDetails :event="event" variant="list" />
             </TableCell>
           </TableRow>

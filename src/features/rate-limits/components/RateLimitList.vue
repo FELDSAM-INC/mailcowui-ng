@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 // The limits of the Rate limits overview (FR-056, legacy form map screen 7): a table from md up
@@ -16,7 +19,7 @@ import RowAction from '@/shared/components/RowAction.vue'
 import RowActions from '@/shared/components/RowActions.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { ChevronDownIcon, WarningIcon } from '@/shared/icons'
+import { WarningIcon } from '@/shared/icons'
 
 import { hostLocation } from '../host'
 import type { RateLimitSort } from '../list-state'
@@ -37,18 +40,21 @@ const limitText = (item: RateLimit) =>
   item.invalidStoredValue === null ? formatLimit(item.limit, appLocale()) : null
 const header = (key: RateLimitSort) =>
   key === 'object' ? t('rateLimits.list.object') : lt('mailbox.kind')
-const SORTABLE: RateLimitSort[] = ['object', 'kind']
-
-function ariaSort(key: RateLimitSort) {
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
-function onSort(key: RateLimitSort) {
-  emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
-}
 
 const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
+
+const tableView = useDataColumns(
+  () => [
+    { id: 'object', label: header('object'), sort: 'object' },
+    { id: 'kind', label: header('kind'), sort: 'kind' },
+    { id: 'limit', label: lt('edit.ratelimit') },
+  ],
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key, order) => emit('sort', key as RateLimitSort, order),
+  }),
+)
 </script>
 
 <template>
@@ -56,28 +62,12 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
     <table class="data-table w-full table-fixed text-start text-sm">
       <thead>
         <tr>
-          <th
-            v-for="key in SORTABLE"
-            :key="key"
-            scope="col"
-            class="px-3 py-2 text-start"
-            :class="key === 'object' ? 'w-1/3' : ''"
-            :aria-sort="ariaSort(key)"
-          >
-            <button
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start"
-              @click="onSort(key)"
-            >
-              {{ header(key) }}
-              <ChevronDownIcon
-                v-if="key === sort"
-                class="size-4"
-                :class="order === 'asc' ? 'rotate-180' : ''"
-              />
-            </button>
-          </th>
-          <th scope="col" class="px-3 py-2 text-start">{{ lt('edit.ratelimit') }}</th>
+          <DataTableHeader
+            v-for="column in tableView.columns.value"
+            :key="column.id"
+            :column="column.id"
+          />
+
           <th scope="col" class="table-controls-cell px-3 py-2 text-end">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
@@ -85,11 +75,25 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr v-for="item in items" :key="entryKey(item)" :data-entry="entryKey(item)">
-          <td class="px-3 py-2 font-medium break-all text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible('object')"
+            :data-column="'object'"
+            class="px-3 py-2 font-medium break-all text-gray-900 dark:text-white"
+          >
             <PlainText :value="item.object" />
           </td>
-          <td class="px-3 py-2 text-gray-900 dark:text-white">{{ kindLabel(item) }}</td>
-          <td class="px-3 py-2 break-words text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible('kind')"
+            :data-column="'kind'"
+            class="px-3 py-2 text-gray-900 dark:text-white"
+          >
+            {{ kindLabel(item) }}
+          </td>
+          <td
+            v-show="tableView.visible('limit')"
+            :data-column="'limit'"
+            class="px-3 py-2 break-words text-gray-900 dark:text-white"
+          >
             <template v-if="limitText(item) !== null">{{ limitText(item) }}</template>
             <span
               v-else

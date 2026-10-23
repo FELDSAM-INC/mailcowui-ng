@@ -6,7 +6,8 @@
 // fields are the parent's (default slot) and work on a draft: "Apply filters" applies the draft in
 // one step, "Clear all filters" removes every filter. `open` tells the parent to start the draft
 // from the applied filters. In the dialog both actions close it; Escape closes without applying.
-import { ref, watch } from 'vue'
+import { inject, ref, watch } from 'vue'
+import { listToolbarTarget } from '@/shared/composables/useDataList'
 import { useI18n } from 'vue-i18n'
 
 import { useMediaQuery } from '../composables/useMediaQuery'
@@ -21,14 +22,20 @@ const props = withDefaults(
     activeCount: number
     /** The draft is invalid: Apply stays disabled (the fields show why). */
     applyDisabled?: boolean
+    /** Fields update the list directly; no draft/apply controls are needed. */
+    immediate?: boolean
+    defaultOpen?: boolean
+    /** Validation may be asynchronous; the parent calls done only after a valid submission. */
+    manualApply?: boolean
   }>(),
-  { applyDisabled: false },
+  { applyDisabled: false, immediate: false, defaultOpen: undefined, manualApply: false },
 )
-const emit = defineEmits<{ open: []; apply: []; clear: [] }>()
+const emit = defineEmits<{ open: []; apply: [done: () => void]; clear: [] }>()
 const { t } = useI18n()
+const toolbarTarget = inject(listToolbarTarget, undefined)
 const wide = useMediaQuery('(min-width: 768px)')
 
-const expanded = ref(props.activeCount > 0)
+const expanded = ref(props.defaultOpen ?? props.activeCount > 0)
 const dialogOpen = ref(false)
 
 const label = () =>
@@ -51,9 +58,19 @@ watch(wide, (isWide) => {
 
 function apply() {
   if (props.applyDisabled) return
-  emit('apply')
-  dialogOpen.value = false
+  const done = () => {
+    dialogOpen.value = false
+  }
+  emit('apply', done)
+  if (!props.manualApply) done()
 }
+
+defineExpose({
+  open: () => {
+    if (wide.value) expanded.value = true
+    else dialogOpen.value = true
+  },
+})
 
 function clear() {
   emit('clear')
@@ -78,30 +95,38 @@ const toggleClass = () =>
         <FilterIcon />
         {{ label() }}
       </button>
-      <form
-        v-show="expanded"
-        :id="id"
-        data-filter-panel
-        novalidate
-        class="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
-        @submit.prevent="apply"
+      <Teleport
+        :to="toolbarTarget?.element.value ?? 'body'"
+        :disabled="!toolbarTarget?.element.value"
+        defer
       >
-        <div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <slot />
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            :class="buttonVariants({ variant: 'default' })"
-            :disabled="applyDisabled"
+        <form
+          v-show="expanded"
+          :id="id"
+          data-filter-panel
+          novalidate
+          class="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+          @submit.prevent="apply"
+        >
+          <div
+            class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 [&>.grid]:col-span-full"
           >
-            {{ t('lists.filters.apply') }}
-          </button>
-          <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clear">
-            {{ t('lists.filters.clear') }}
-          </button>
-        </div>
-      </form>
+            <slot />
+          </div>
+          <div v-if="!immediate" class="flex flex-wrap gap-3">
+            <button
+              type="submit"
+              :class="buttonVariants({ variant: 'default' })"
+              :disabled="applyDisabled"
+            >
+              {{ t('lists.filters.apply') }}
+            </button>
+            <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clear">
+              {{ t('lists.filters.clear') }}
+            </button>
+          </div>
+        </form>
+      </Teleport>
     </template>
     <Dialog v-else v-model:open="dialogOpen">
       <DialogTrigger as-child>
@@ -123,6 +148,7 @@ const toggleClass = () =>
             <slot />
           </div>
           <div
+            v-if="!immediate"
             class="sticky bottom-0 -mx-4 mt-auto flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-surface"
           >
             <button

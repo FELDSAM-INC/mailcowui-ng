@@ -64,7 +64,9 @@ describe('AppLinkList', () => {
     expect(wrapper.text()).toContain('<b>Help</b>')
     expect(wrapper.text()).toContain('/help?u=a%2Bb%40example.org')
     expect(wrapper.find('b').exists()).toBe(false)
-    expect(wrapper.find('button').exists()).toBe(false)
+    expect(
+      wrapper.find('[data-add-link], [data-remove], [data-move-up], [data-move-down]').exists(),
+    ).toBe(false)
     wrapper.unmount()
   })
 })

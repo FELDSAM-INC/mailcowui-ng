@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDataList } from '@/shared/composables/useDataList'
+
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import { isApiProblem, problemOf, type ApiProblem, type RecentLogin } from '@/api'
@@ -84,6 +86,13 @@ watch([total, () => list.state.value.page], ([count, page]) => {
   if (count > 0 && (page - 1) * list.state.value.size >= count)
     void list.setPage(Math.ceil(count / list.state.value.size))
 })
+
+useDataList('recent-logins', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'asc',
+  change: (key, order) =>
+    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+}))
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
@@ -111,8 +120,10 @@ watch([total, () => list.state.value.page], ([count, page]) => {
       @retry="query.refetch()"
     />
     <p v-else-if="!rows.length" role="status">{{ lt('user.no_record') }}</p>
-    <RecentLoginTable v-else-if="wide" :entries="rows" :app-password-link="appPasswordLink" />
-    <RecentLoginList v-else :entries="rows" :app-password-link="appPasswordLink" />
+    <template v-else
+      ><RecentLoginTable :hidden="!wide" :entries="rows" :app-password-link="appPasswordLink" />
+      <RecentLoginList v-if="!wide" :entries="rows" :app-password-link="appPasswordLink"
+    /></template>
     <PaginationBar
       :total="total"
       :page="list.state.value.page"

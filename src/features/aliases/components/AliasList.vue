@@ -27,7 +27,7 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <AliasTable
-    v-if="wide"
+    :hidden="!wide"
     :aliases="aliases"
     :sort="sort"
     :order="order"
@@ -40,7 +40,7 @@ const wide = useMediaQuery('(min-width: 768px)')
     <template #select="{ alias }"><slot name="select" :alias="alias" /></template>
     <template #actions="{ alias }"><slot name="actions" :alias="alias" /></template>
   </AliasTable>
-  <ul v-else :aria-label="lt('mailbox.aliases')" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="lt('mailbox.aliases')" class="flex flex-col gap-3">
     <AliasCard
       v-for="alias in aliases"
       :key="alias.id"

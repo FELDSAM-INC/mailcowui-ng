@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 // Rspamd's scan history (FR-047, FR-048; plan decisions 12 and 18): cards below md and a table from
@@ -86,17 +90,20 @@ const TABLE: { key: string; sort?: RspamdSort }[] = [
 const TABLE_DETAILS = ['symbols', 'id', 'user']
 const CARD_DETAILS = ['ip', 'symbols', 'size', 'scanTime', 'id', 'user']
 
-function ariaSort(sort: RspamdSort | undefined) {
-  if (!sort) return undefined
-  if (sort !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
 function sortBy(sort: RspamdSort) {
   emit('sort', sort, sort === props.sort && props.order === 'asc' ? 'desc' : 'asc')
 }
 
 const detailsId = (key: string) => `${listId}-${key}`
+
+const tableView = useDataColumns(
+  () => TABLE.map((column) => ({ id: column.key, label: label(column.key), sort: column.sort })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
@@ -174,27 +181,12 @@ const detailsId = (key: string) => `${listId}-${key}`
       </caption>
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
-          <th
+          <DataTableHeader
             v-for="column in TABLE"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-2 py-2 text-start"
-            :aria-sort="ariaSort(column.sort)"
-          >
-            <button
-              v-if="column.sort"
-              type="button"
-              :data-sort="column.sort"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.sort)"
-            >
-              {{ label(column.key) }}
-              <span aria-hidden="true">{{
-                sort === column.sort ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-            <template v-else>{{ label(column.key) }}</template>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-2 py-2 text-end">
             <span class="sr-only">{{ t('domains.list.details') }}</span>
           </th>
@@ -203,33 +195,80 @@ const detailsId = (key: string) => `${listId}-${key}`
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="(entry, index) in entries" :key="keyOf(entry, index)">
           <tr :data-entry="keyOf(entry, index)" class="align-top text-gray-900 dark:text-white">
-            <td class="px-2 py-2" data-cell="time">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
+              :data-column="String(tableView.columns.value[0]!.id)"
+              class="px-2 py-2"
+              data-cell="time"
+            >
               <time :datetime="entry.time" class="min-w-0 tabular-nums">{{
                 formatLogTime(entry.time, loc)
               }}</time>
             </td>
-            <td class="px-2 py-2 wrap-anywhere" data-cell="ip">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[1]!.id))"
+              :data-column="String(tableView.columns.value[1]!.id)"
+              class="px-2 py-2 wrap-anywhere"
+              data-cell="ip"
+            >
               <PlainText :value="entry.clientAddress" />
             </td>
-            <td class="px-2 py-2 wrap-anywhere" data-cell="from">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[2]!.id))"
+              :data-column="String(tableView.columns.value[2]!.id)"
+              class="px-2 py-2 wrap-anywhere"
+              data-cell="from"
+            >
               <PlainText :value="entry.headerSender ?? entry.envelopeSender" />
             </td>
-            <td class="px-2 py-2 wrap-anywhere" data-cell="to">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[3]!.id))"
+              :data-column="String(tableView.columns.value[3]!.id)"
+              class="px-2 py-2 wrap-anywhere"
+              data-cell="to"
+            >
               <PlainText :value="recipients(entry)" />
             </td>
-            <td class="px-2 py-2 wrap-anywhere" data-cell="subject">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[4]!.id))"
+              :data-column="String(tableView.columns.value[4]!.id)"
+              class="px-2 py-2 wrap-anywhere"
+              data-cell="subject"
+            >
               <PlainText :value="entry.subject" />
             </td>
-            <td class="px-2 py-2" data-cell="action">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[5]!.id))"
+              :data-column="String(tableView.columns.value[5]!.id)"
+              class="px-2 py-2"
+              data-cell="action"
+            >
               <LogBadge :tone="actionTone(entry.action)"
                 ><PlainText :value="entry.action"
               /></LogBadge>
             </td>
-            <td class="px-2 py-2" data-cell="score">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[6]!.id))"
+              :data-column="String(tableView.columns.value[6]!.id)"
+              class="px-2 py-2"
+              data-cell="score"
+            >
               <RspamdScore :score="entry.score" :required="entry.requiredScore" />
             </td>
-            <td class="px-2 py-2 tabular-nums" data-cell="size">{{ size(entry) }}</td>
-            <td class="px-2 py-2 tabular-nums wrap-anywhere" data-cell="scanTime">
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[7]!.id))"
+              :data-column="String(tableView.columns.value[7]!.id)"
+              class="px-2 py-2 tabular-nums"
+              data-cell="size"
+            >
+              {{ size(entry) }}
+            </td>
+            <td
+              v-show="tableView.visible(String(tableView.columns.value[8]!.id))"
+              :data-column="String(tableView.columns.value[8]!.id)"
+              class="px-2 py-2 tabular-nums wrap-anywhere"
+              data-cell="scanTime"
+            >
               {{ scanTime(entry) }}
             </td>
             <td class="table-controls-cell px-2 py-2 text-end">
@@ -248,7 +287,12 @@ const detailsId = (key: string) => `${listId}-${key}`
             </td>
           </tr>
           <tr v-if="expanded.has(keyOf(entry, index))" :id="detailsId(keyOf(entry, index))">
-            <td :colspan="TABLE.length + 1" class="px-2 py-2">
+            <td
+              :colspan="
+                TABLE.length + 1 - tableView.columns.value.length + tableView.visibleCount.value
+              "
+              class="px-2 py-2"
+            >
               <dl data-details class="grid gap-2 sm:grid-cols-2">
                 <div v-for="key in TABLE_DETAILS" :key="key" class="min-w-0">
                   <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 // Legacy's column order on wide screens; subject headings and a details disclosure on phones.
@@ -15,7 +18,7 @@ import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
-import { defaultOrder, type QuarantineSort } from '../../list-state'
+import { type QuarantineSort } from '../../list-state'
 import QuarantineItemValue from './QuarantineItemValue.vue'
 
 const props = defineProps<{
@@ -46,18 +49,7 @@ const columns = computed<QuarantineSort[]>(() => [
   'arrivedAt',
 ])
 // Wide data columns have room for addresses/subjects; compact scalar columns keep their share small.
-const columnWidths: Partial<Record<QuarantineSort, string>> = {
-  id: 'w-12',
-  queueId: 'w-28',
-  sender: 'w-36',
-  subject: 'w-48',
-  action: 'w-24',
-  recipient: 'w-36',
-  virus: 'w-24',
-  score: 'w-14',
-  notified: 'w-20',
-  arrivedAt: 'w-32',
-}
+
 const cardSummary: QuarantineSort[] = ['sender', 'action', 'score', 'arrivedAt']
 const cardDetails = computed(() =>
   columns.value.filter((field) => field !== 'subject' && !cardSummary.includes(field)),
@@ -68,13 +60,15 @@ const itemRoute = (item: QuarantineItem) => ({
   name: 'quarantine-item',
   params: { itemId: item.id },
 })
-function sortBy(field: QuarantineSort) {
-  emit(
-    'sort',
-    field,
-    field === props.sort ? (props.order === 'asc' ? 'desc' : 'asc') : defaultOrder(field),
-  )
-}
+
+const tableView = useDataColumns(
+  () => columns.value.map((id) => ({ id, label: label(id), sort: id })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key, order) => emit('sort', key as QuarantineSort, order),
+  }),
+)
 </script>
 
 <template>
@@ -89,22 +83,7 @@ function sortBy(field: QuarantineSort) {
           <th v-if="selectable" scope="col" class="w-11">
             <span class="sr-only">{{ t('bulk.select') }}</span>
           </th>
-          <th
-            v-for="field in columns"
-            :key="field"
-            scope="col"
-            :class="columnWidths[field]"
-            class="px-2 text-start align-bottom"
-            :aria-sort="field === sort ? (order === 'asc' ? 'ascending' : 'descending') : 'none'"
-          >
-            <button
-              type="button"
-              class="min-h-11 w-full break-words text-start focus-visible:outline-2 focus-visible:outline-brand-500"
-              @click="sortBy(field)"
-            >
-              {{ label(field) }}
-            </button>
-          </th>
+          <DataTableHeader v-for="field in columns" :key="field" :column="field" />
           <th scope="col" class="table-controls-cell px-2 text-end">
             {{ lt('quarantine.action') }}
           </th>
@@ -120,7 +99,9 @@ function sortBy(field: QuarantineSort) {
           <td v-if="selectable"><slot name="select" :item="item" /></td>
           <td
             v-for="field in columns"
+            v-show="tableView.visible(field)"
             :key="field"
+            :data-column="field"
             class="px-2 py-3 wrap-anywhere text-gray-800 dark:text-gray-200"
             :class="['queueId', 'id', 'score'].includes(field) ? 'whitespace-nowrap' : ''"
           >

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+import { useDataColumns } from '@/shared/composables/useDataList'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import FilterPanel from '@/shared/components/FilterPanel.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
 import { useQueryClient } from '@tanstack/vue-query'
@@ -29,7 +37,7 @@ import { deleteAppPassword, updateAppPassword, useAppPasswords } from '../api/ap
 import AppPasswordDeleteList from '../components/app-passwords/AppPasswordDeleteList.vue'
 import { useAppPasswordContext } from '../composables/useAppPasswordContext'
 import { APP_PASSWORD_PROTOCOL_ORDER, appPasswordProtocolListKey } from '../labels'
-import { useAppPasswordListState, type AppPasswordSort } from '../list-state'
+import { useAppPasswordListState } from '../list-state'
 const { t } = useI18n()
 const client = useQueryClient()
 const { access, mailbox, location } = useAppPasswordContext()
@@ -47,13 +55,7 @@ onScopeDispose(() => {
 const runner = usePerItemRunner()
 useLeaveGuard(() => runner.running.value, 'domains.bulk.leaveRunning')
 const lastAction = ref<'activate' | 'deactivate' | 'remove'>('remove')
-const sorts = ['name', 'createdAt', 'modifiedAt', 'active'] as const
-const sortLabels = {
-  name: 'user.app_name',
-  createdAt: 'user.created_on',
-  modifiedAt: 'mailbox.last_modified',
-  active: 'user.active',
-} as const
+
 const selected = computed(() => rows.value.filter((item) => selection.isSelected(String(item.id))))
 const outcomeMessage = (row: BulkRow) =>
   row.outcome === 'done'
@@ -128,6 +130,23 @@ watch([total, () => list.state.value.page], ([count, page]) => {
   if (count > 0 && (page - 1) * list.state.value.size >= count)
     void list.setPage(Math.max(1, Math.ceil(count / list.state.value.size)))
 })
+
+const dataList = useDataList('account-pages-apppasswordspage', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'asc',
+  change: (key, order) =>
+    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+}))
+
+const tableView = useDataColumns(
+  () => [
+    { id: 'id', label: t('lists.id') },
+    { id: 'name', label: lt('user.app_name'), sort: 'name' },
+    { id: 'protocols', label: lt('user.allowed_protocols') },
+  ],
+  undefined,
+  dataList,
+)
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
@@ -143,65 +162,49 @@ watch([total, () => list.state.value.page], ([count, page]) => {
       >
     </MailboxContextHeader>
     <LegacyText k="user.app_hint" as="p" class="text-gray-700 dark:text-gray-300" />
-    <SearchField
-      id="app-password-search"
-      :model-value="list.state.value.filters.q ?? ''"
-      :label="lt('datatables.search')"
-      @search="list.setFilter('q', $event || undefined, { typing: true })"
-    />
-    <div class="flex flex-wrap gap-3">
-      <label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-200"
-        >{{ lt('user.active')
-        }}<select
-          class="form-control"
-          :value="list.state.value.filters.active ?? ''"
-          @change="
-            list.setFilter(
-              'active',
-              (($event.target as HTMLSelectElement).value || undefined) as 'yes' | 'no' | undefined,
-            )
-          "
+    <ListToolbar
+      ><template v-if="access.canChange.value" #select
+        ><button
+          type="button"
+          :disabled="runner.running.value"
+          :class="buttonVariants({ variant: 'outline' })"
+          @click="selection.active.value ? selection.leave() : selection.enter()"
         >
-          <option value="">{{ t('lists.filters.all') }}</option>
-          <option value="yes">{{ t('lists.filters.yes') }}</option>
-          <option value="no">{{ t('lists.filters.no') }}</option>
-        </select></label
-      >
-      <label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-200"
-        >{{ t('lists.sort.label')
-        }}<select
-          class="form-control"
-          :value="list.state.value.sort"
-          @change="list.setSort(($event.target as HTMLSelectElement).value as AppPasswordSort)"
-        >
-          <option v-for="sort in sorts" :key="sort" :value="sort">
-            {{ lt(sortLabels[sort]) }}
-          </option>
-        </select></label
-      >
-      <button
-        type="button"
-        class="self-end"
-        :class="buttonVariants({ variant: 'outline' })"
-        @click="
-          list.setSort(
-            list.state.value.sort ?? 'name',
-            list.state.value.order === 'asc' ? 'desc' : 'asc',
-          )
-        "
-      >
-        {{ t(list.state.value.order === 'asc' ? 'lists.sort.asc' : 'lists.sort.desc') }}
-      </button>
-    </div>
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #filters
+        ><FilterPanel
+          id="account-pages-AppPasswordsPage"
+          :active-count="list.activeFilters.value.filter((item) => item !== 'q').length"
+          immediate
+          ><label class="flex min-h-11 flex-col gap-1 text-sm text-gray-800 dark:text-gray-200"
+            >{{ lt('user.active')
+            }}<select
+              class="form-control"
+              :value="list.state.value.filters.active ?? ''"
+              @change="
+                list.setFilter(
+                  'active',
+                  (($event.target as HTMLSelectElement).value || undefined) as
+                    'yes' | 'no' | undefined,
+                )
+              "
+            >
+              <option value="">{{ t('lists.filters.all') }}</option>
+              <option value="yes">{{ t('lists.filters.yes') }}</option>
+              <option value="no">{{ t('lists.filters.no') }}</option>
+            </select></label
+          ></FilterPanel
+        ></template
+      ><template #search
+        ><SearchField
+          id="app-password-search"
+          :model-value="list.state.value.filters.q ?? ''"
+          :label="lt('datatables.search')"
+          @search="list.setFilter('q', $event || undefined, { typing: true })" /></template
+    ></ListToolbar>
+
     <div v-if="access.canChange.value" class="flex flex-wrap gap-2">
-      <button
-        type="button"
-        :disabled="runner.running.value"
-        :class="buttonVariants({ variant: 'outline' })"
-        @click="selection.active.value ? selection.leave() : selection.enter()"
-      >
-        {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-      </button>
       <template v-if="selection.active.value"
         ><button
           type="button"
@@ -265,10 +268,10 @@ watch([total, () => list.state.value.page], ([count, page]) => {
             <th v-if="selection.active.value" class="w-14 p-2">
               <span class="sr-only">{{ lt('mailbox.toggle_all') }}</span>
             </th>
-            <th class="w-16 p-2 text-start">{{ t('lists.id') }}</th>
-            <th class="p-2 text-start">{{ lt('user.app_name') }}</th>
-            <th class="p-2 text-start">{{ lt('user.allowed_protocols') }}</th>
-            <th class="w-24 p-2 text-start">{{ lt('user.active') }}</th>
+            <DataTableHeader column="id" />
+            <DataTableHeader column="name" />
+            <DataTableHeader column="protocols" />
+
             <th class="table-controls-cell p-2 text-end">{{ lt('user.action') }}</th>
           </tr>
         </thead>
@@ -290,12 +293,19 @@ watch([total, () => list.state.value.page], ([count, page]) => {
                   @change="selection.toggle(String(item.id))"
               /></label>
             </td>
-            <td class="p-2">{{ item.id }}</td>
-            <td class="p-2 wrap-anywhere">{{ item.name }}</td>
-            <td class="p-2 wrap-anywhere">
+            <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">{{ item.id }}</td>
+            <td v-show="tableView.visible('name')" :data-column="'name'" class="p-2 wrap-anywhere">
+              {{ item.name }}
+              <div class="mt-1"><ActiveBadge :active="item.active" /></div>
+            </td>
+            <td
+              v-show="tableView.visible('protocols')"
+              :data-column="'protocols'"
+              class="p-2 wrap-anywhere"
+            >
               <code>{{ protocols(item) }}</code>
             </td>
-            <td class="p-2">{{ lt(item.active ? 'user.active' : 'mailbox.inactive') }}</td>
+
             <td class="table-controls-cell p-2">
               <RowControls>
                 <RowActions
@@ -333,7 +343,8 @@ watch([total, () => list.state.value.page], ([count, page]) => {
         :title="item.name"
         :to="location('detail', item.id)"
       >
-        <template v-if="selection.active.value" #select>
+        <template #badges><ActiveBadge :active="item.active" /></template
+        ><template v-if="selection.active.value" #select>
           <label v-if="selection.active.value" class="flex min-h-11 items-center gap-3">
             <input
               type="checkbox"
@@ -379,10 +390,6 @@ watch([total, () => list.state.value.page], ([count, page]) => {
             <dd class="wrap-anywhere">
               <code>{{ protocols(item) }}</code>
             </dd>
-          </div>
-          <div>
-            <dt class="font-medium">{{ lt('user.active') }}</dt>
-            <dd><YesNoMark :value="item.active" /></dd>
           </div>
         </DataCardFields>
       </DataCard>

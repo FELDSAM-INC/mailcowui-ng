@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
+import MailboxStatusBadge from '../display/MailboxStatusBadge.vue'
+
 // The mailbox list as a table from md up (FR-008, FR-010): legacy's columns in its order with its
 // header keys, the sortable ones as header buttons with `aria-sort`, and legacy's "Action" column
 // last. The table scrolls inside its frame when the chosen columns are wider than the page.
@@ -19,6 +25,7 @@ import MailboxCell from './MailboxCell.vue'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     mailboxes: readonly Mailbox[]
     columns: readonly ColumnSpec[]
     sort: MailboxSort
@@ -34,7 +41,7 @@ const compact = useMediaQuery('(min-width: 1024px) and (hover: hover) and (point
 const details = computed(() =>
   COLUMNS.filter(
     (column) =>
-      !props.columns.some((visible) => visible.id === column.id) ||
+      (column.id !== 'status' && !tableView.visible(column.id)) ||
       (compact.value && column.id === 'lastMailLogin'),
   ),
 )
@@ -62,21 +69,30 @@ const columnWidth = (id: ColumnId) => (compact.value ? desktopWidths[id] : undef
 const singleLine = (id: ColumnId) =>
   compact.value && ['quota', 'passwordChangedAt', 'createdAt', 'modifiedAt'].includes(id)
 
-function ariaSort(key: MailboxSort | undefined) {
-  if (!key) return undefined
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
 function sortBy(key: MailboxSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
 }
 
 const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (column.text ?? ''))
+
+const tableView = useDataColumns(
+  () =>
+    props.columns.map((column) => ({
+      id: column.id,
+      label: header(column),
+      sort: column.sort,
+      defaultVisible: column.default,
+    })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
@@ -86,28 +102,14 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2"><slot name="select-all" /></th>
-          <th
+          <DataTableHeader
             v-for="column in columns"
             :key="column.id"
-            scope="col"
+            :column="String(column.id)"
             :data-column="column.id"
             class="px-3 py-2 text-start align-bottom"
             :class="columnWidth(column.id)"
-            :aria-sort="ariaSort(column.sort)"
-          >
-            <button
-              v-if="column.sort"
-              type="button"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 text-start hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.sort)"
-            >
-              {{ header(column) }}
-              <span aria-hidden="true">{{
-                sort === column.sort ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-            <template v-else>{{ header(column) }}</template>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-3 py-2 text-end align-bottom">
             {{ lt('mailbox.action') }}
           </th>
@@ -119,7 +121,9 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :mailbox="mailbox" /></td>
             <td
               v-for="column in columns"
+              v-show="tableView.visible(String(column.id))"
               :key="column.id"
+              :data-column="String(column.id)"
               :data-cell="column.id"
               class="px-3 py-3 text-gray-900 dark:text-white"
               :class="[
@@ -128,13 +132,17 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
                 singleLine(column.id) ? 'whitespace-nowrap' : '',
               ]"
             >
-              <RouterLink
+              <div
                 v-if="column.id === 'address'"
-                :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
-                class="inline-flex min-h-11 max-w-full items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+                class="table-record flex flex-col items-start gap-1.5"
               >
-                {{ readableAddress(mailbox) }}
-              </RouterLink>
+                <RouterLink
+                  :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
+                  class="inline-flex min-h-11 max-w-full items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+                >
+                  {{ readableAddress(mailbox) }} </RouterLink
+                ><MailboxStatusBadge :status="mailbox.status" />
+              </div>
               <MailboxCell
                 v-else
                 :mailbox="mailbox"
@@ -158,7 +166,13 @@ const header = (column: ColumnSpec) => (column.label ? lt(column.label) : (colum
             :id="detailsId(mailbox.address)"
           >
             <td
-              :colspan="columns.length + 1 + (selectable ? 1 : 0)"
+              :colspan="
+                columns.length +
+                1 +
+                (selectable ? 1 : 0) -
+                tableView.columns.value.length +
+                tableView.visibleCount.value
+              "
               class="bg-gray-50 px-3 py-3 dark:bg-gray-950"
             >
               <dl

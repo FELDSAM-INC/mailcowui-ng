@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import SearchField from '@/shared/components/SearchField.vue'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+import { useLocalDataList } from '@/shared/composables/useLocalDataList'
+
 import YesNoMark from '@/shared/components/YesNoMark.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
-import { nextTick, ref } from 'vue'
+import { nextTick, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AppLinkSettingsEntry } from '@/api'
 import { lt } from '@/i18n'
@@ -10,6 +15,7 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { buttonVariants } from '@/shared/ui/button'
 import { appLinkPreview, moveAppLink } from '../../lib/app-link-url'
 import AppLinkEntryForm from './AppLinkEntryForm.vue'
+const searchId = useId()
 const props = withDefaults(
   defineProps<{
     modelValue: readonly AppLinkSettingsEntry[]
@@ -77,6 +83,17 @@ async function remove(index: number) {
     ) ?? root.value?.querySelector<HTMLElement>('[data-add-link]')
   )?.focus()
 }
+
+const listing = useLocalDataList(
+  'app-links',
+  () => props.modelValue,
+  () => [
+    { id: 'name', label: lt('admin.app_name'), value: (item) => item.name },
+    { id: 'url', label: lt('admin.link'), value: (item) => item.url },
+    { id: 'signedInUrl', label: lt('admin.user_link'), value: (item) => item.signedInUrl },
+    { id: 'hidden', label: lt('admin.app_hide'), value: (item) => !item.showOnLoginPage },
+  ],
+)
 </script>
 <template>
   <div ref="root" class="min-w-0 space-y-4" data-app-link-list>
@@ -149,11 +166,19 @@ async function remove(index: number) {
       </p>
     </template>
     <template v-else>
+      <ListToolbar class="mb-3"
+        ><template #search
+          ><SearchField
+            :id="searchId"
+            :label="lt('datatables.search')"
+            :model-value="listing.search.value"
+            @search="listing.search.value = $event" /></template
+      ></ListToolbar>
       <p v-if="!modelValue.length">{{ t('systemSettings.appLinks.empty') }}</p>
       <template v-else>
         <div class="space-y-3 md:hidden" data-link-cards>
           <DataCard
-            v-for="(link, index) in modelValue"
+            v-for="(link, index) in listing.rows.value"
             :key="index"
             as="article"
             :title="link.name"
@@ -196,30 +221,33 @@ async function remove(index: number) {
             </caption>
             <thead>
               <tr>
-                <th
-                  v-for="label in [
-                    'admin.app_name',
-                    'admin.link',
-                    'admin.user_link',
-                    'admin.app_hide',
-                  ]"
-                  :key="label"
-                  scope="col"
-                  class="p-2 align-top wrap-anywhere"
-                >
-                  {{ lt(label) }}
-                </th>
+                <DataTableHeader
+                  v-for="column in listing.table.columns.value"
+                  :key="column.id"
+                  :column="column.id"
+                />
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="(link, index) in modelValue"
+                v-for="(link, index) in listing.rows.value"
                 :key="index"
                 class="border-t border-gray-200 dark:border-gray-700"
               >
-                <th scope="row" class="p-2 align-top wrap-anywhere font-normal">{{ link.name }}</th>
-                <td class="p-2 align-top wrap-anywhere">{{ link.url }}</td>
-                <td class="p-2 align-top wrap-anywhere">
+                <th
+                  v-show="listing.table.visible('name')"
+                  scope="row"
+                  class="p-2 align-top wrap-anywhere font-normal"
+                >
+                  {{ link.name }}
+                </th>
+                <td v-show="listing.table.visible('url')" class="p-2 align-top wrap-anywhere">
+                  {{ link.url }}
+                </td>
+                <td
+                  v-show="listing.table.visible('signedInUrl')"
+                  class="p-2 align-top wrap-anywhere"
+                >
                   <p>{{ link.signedInUrl || t('systemSettings.appLinks.sameAsLinkValue') }}</p>
                   <p class="mt-2 text-xs">
                     {{ t('systemSettings.appLinks.preview', { username }) }}
@@ -228,7 +256,7 @@ async function remove(index: number) {
                     }}
                   </p>
                 </td>
-                <td class="p-2 align-top">
+                <td v-show="listing.table.visible('hidden')" class="p-2 align-top">
                   {{ t(link.showOnLoginPage ? 'lists.filters.no' : 'lists.filters.yes') }}
                 </td>
               </tr>

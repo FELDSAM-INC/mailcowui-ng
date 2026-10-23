@@ -141,11 +141,6 @@ async function action(name: 'activate' | 'deactivate' | 'suspendSecondFactors' |
     @retry="query.refetch()"
   />
   <section v-else class="mx-auto flex w-full max-w-5xl flex-col gap-4">
-    <RouterLink
-      :to="{ name: listName }"
-      class="inline-flex min-h-11 items-center self-start underline underline-offset-4"
-      >{{ t('accounts.backToList') }}</RouterLink
-    >
     <PageHeader
       :title="lt(role === 'admin' ? 'edit.admin' : 'edit.domain_admin')"
       :description="account.username"

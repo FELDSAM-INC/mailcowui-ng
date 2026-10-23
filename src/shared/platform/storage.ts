@@ -8,6 +8,8 @@ export const ALLOWED_LOCAL_KEYS = [
   'mailcowui-ng.passkey-suggestion-dismissed',
   // UI 003 (data-model §4): the optional mailbox list columns shown, a JSON array of column ids.
   'mailcowui-ng.mailboxes.columns',
+  // Per-list column visibility, keyed by static list and column identifiers.
+  'mailcowui-ng.table-columns',
 ] as const
 
 export const ALLOWED_SESSION_KEYS = [

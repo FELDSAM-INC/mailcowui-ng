@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 
@@ -36,7 +38,10 @@ const comment = (value: string) => value || '-'
     <template #title>
       <AddressText :address="alias.address" :address-unicode="alias.addressUnicode" />
     </template>
-    <template #badges><AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" /></template>
+    <template #badges
+      ><AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" /><ActiveBadge
+        :active="alias.active"
+    /></template>
     <template v-if="$slots.select" #select><slot name="select" /></template>
     <template v-if="$slots.actions" #actions><slot name="actions" /></template>
     <DataCardFields>
@@ -73,10 +78,6 @@ const comment = (value: string) => value || '-'
       <div class="flex gap-1.5" data-field="internal">
         <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.internal') }}</dt>
         <dd class="text-gray-900 dark:text-white"><YesNoMark :value="alias.internal" /></dd>
-      </div>
-      <div class="flex gap-1.5" data-field="active">
-        <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.active') }}</dt>
-        <dd class="text-gray-900 dark:text-white"><YesNoMark :value="alias.active" /></dd>
       </div>
     </DataCardFields>
   </DataCard>

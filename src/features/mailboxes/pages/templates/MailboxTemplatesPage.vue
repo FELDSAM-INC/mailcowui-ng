@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The mailbox templates (US7, FR-058, FR-062, FR-063, FR-065): a name search, the sort, pages and
 // page size in the address; cards below md and a table from md up with the classic columns and
 // Default marked; the list states. Administrators add templates, delete one from its entry's
@@ -32,7 +35,7 @@ import { buttonVariants } from '@/shared/ui/button'
 
 import TemplateEntryActions from '../../components/templates/TemplateEntryActions.vue'
 import TemplateList from '../../components/templates/TemplateList.vue'
-import TemplateSortControl from '../../components/templates/TemplateSortControl.vue'
+
 import { useMailboxCapabilities } from '../../composables/useMailboxCapabilities'
 import { useTemplateListState } from '../../templates/list-state'
 import { useTemplateBulkDelete } from '../../templates/useTemplateBulkDelete'
@@ -107,6 +110,8 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
   titleKey: 'domains.bulk.leaveTitle',
   messageKey: 'domains.bulk.leaveRunning',
 })
+
+useDataList('mailboxes-pages-templates-mailboxtemplates')
 </script>
 
 <template>
@@ -121,14 +126,6 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
             <PlusIcon />
             {{ lt('mailbox.add_template') }}
           </RouterLink>
-          <button
-            type="button"
-            :class="buttonVariants({ variant: 'outline' })"
-            :aria-pressed="selection.active.value ? 'true' : 'false'"
-            @click="toggleSelecting"
-          >
-            {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-          </button>
         </template>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
@@ -138,18 +135,24 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
     </PageHeader>
 
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-      <SearchField
-        id="template-search"
-        class="md:max-w-md md:flex-1"
-        :label="lt('datatables.search')"
-        :model-value="state.filters.q ?? ''"
-        @search="search"
-      />
-      <TemplateSortControl
-        :sort="state.sort ?? 'name'"
-        :order="state.order ?? 'asc'"
-        @change="(sort, order) => list.setSort(sort, order)"
-      />
+      <ListToolbar
+        ><template #select
+          ><button
+            v-if="manage"
+            type="button"
+            :class="buttonVariants({ variant: 'outline' })"
+            :aria-pressed="selection.active.value ? 'true' : 'false'"
+            @click="toggleSelecting"
+          >
+            {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+          </button></template
+        ><template #search
+          ><SearchField
+            id="template-search"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="search" /></template
+      ></ListToolbar>
     </div>
 
     <ListState

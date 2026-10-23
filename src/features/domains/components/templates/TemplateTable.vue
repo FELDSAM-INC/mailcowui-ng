@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 // The templates as a table from md up (FR-050, FR-049, FR-072), with the classic list's columns
 // (`js/site/mailbox.js` draw_templates_domain_table): ID and template sortable from their headers
 // with `aria-sort`, then the limits, quotas, Global Address List, relay options, active state and
@@ -12,7 +18,7 @@ import { RouterLink } from 'vue-router'
 import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import type { DomainTemplate } from '@/api'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+
 import RowControls from '@/shared/components/RowControls.vue'
 
 import { useDomainFormat } from '../../format'
@@ -23,6 +29,7 @@ import TemplateEntryDetails from './TemplateEntryDetails.vue'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     templates: readonly DomainTemplate[]
     sort: TemplateSort
     order: SortOrder
@@ -33,21 +40,15 @@ const props = withDefaults(
 const emit = defineEmits<{ sort: [sort: TemplateSort, order: SortOrder] }>()
 const { t } = useI18n()
 const format = useDomainFormat()
-const xl = useMediaQuery('(min-width: 1280px)')
-const xxl = useMediaQuery('(min-width: 1536px)')
+
 const expanded = ref(new Set<number>())
 
 const all = computed(() => templateColumns(format))
-const shown = (from: 'md' | 'xl' | '2xl') => from === 'md' || (from === 'xl' ? xl.value : xxl.value)
-const columns = computed(() => all.value.filter((column) => shown(column.from)))
-const hidden = computed(() =>
-  all.value.filter((column) => !shown(column.from)).map((column) => column.key),
-)
 
-function ariaSort(key: TemplateSort) {
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
+const columns = computed(() => all.value.filter((column) => column.key !== 'active'))
+const hiddenColumns = computed(() =>
+  all.value.filter((column) => !tableView.visible(column.key)).map((column) => column.key),
+)
 
 function sortBy(key: TemplateSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
@@ -65,10 +66,30 @@ const SORTABLE: readonly { key: 'id' | 'name'; label: TextRef }[] = [
   { key: 'name', label: legacy('mailbox.template') },
 ]
 const columnCount = computed(() => columns.value.length + 3 + (props.selectable ? 1 : 0))
+
+const tableView = useDataColumns(
+  () => [
+    ...SORTABLE.map((column) => ({
+      id: column.key,
+      label: resolveText(column.label, t),
+      sort: column.key,
+    })),
+    ...columns.value.map((column) => ({
+      id: column.key,
+      label: column.label,
+      defaultVisible: column.from === 'md',
+    })),
+  ],
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-auto text-sm">
       <caption class="sr-only">
         {{
@@ -78,27 +99,18 @@ const columnCount = computed(() => columns.value.length + 3 + (props.selectable 
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-12 px-3 py-2"><slot name="select-all" /></th>
-          <th
+          <DataTableHeader
             v-for="column in SORTABLE"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-3 py-2 text-start"
-            :aria-sort="ariaSort(column.key)"
-          >
-            <button
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.key)"
-            >
-              {{ resolveText(column.label, t) }}
-              <span aria-hidden="true">{{
-                sort === column.key ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-          </th>
-          <th v-for="column in columns" :key="column.key" scope="col" class="px-3 py-2 text-start">
-            {{ column.label }}
-          </th>
+          />
+          <DataTableHeader
+            v-for="column in columns"
+            :key="column.key"
+            :column="String(column.key)"
+            class="px-3 py-2 text-start"
+          />
           <th scope="col" class="table-controls-cell px-3 py-2 text-end">
             {{ lt('mailbox.action') }}
           </th>
@@ -108,8 +120,18 @@ const columnCount = computed(() => columns.value.length + 3 + (props.selectable 
         <template v-for="template in templates" :key="template.id">
           <tr :data-entry="template.id" class="align-top">
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :template="template" /></td>
-            <td class="px-3 py-3 text-gray-900 dark:text-white">{{ template.id }}</td>
-            <td class="max-w-64 px-3 py-3">
+            <td
+              v-show="tableView.visible(String('id'))"
+              :data-column="String('id')"
+              class="px-3 py-3 text-gray-900 dark:text-white"
+            >
+              {{ template.id }}
+            </td>
+            <td
+              v-show="tableView.visible(String('name'))"
+              :data-column="String('name')"
+              class="max-w-64 px-3 py-3"
+            >
               <div class="flex flex-col items-start gap-1">
                 <RouterLink
                   :to="{ name: 'domain-template-detail', params: { templateId: template.id } }"
@@ -119,9 +141,11 @@ const columnCount = computed(() => columns.value.length + 3 + (props.selectable 
                 </RouterLink>
                 <DefaultBadge v-if="template.isDefault" />
               </div>
+              <div class="mt-1"><ActiveBadge :active="template.active" /></div>
             </td>
             <td
               v-for="column in columns"
+              v-show="tableView.visible(String(column.key))"
               :key="column.key"
               :data-column="column.key"
               class="px-3 py-3 text-gray-900 dark:text-white"
@@ -141,11 +165,11 @@ const columnCount = computed(() => columns.value.length + 3 + (props.selectable 
           </tr>
           <tr v-if="expanded.has(template.id)" :id="`template-row-${template.id}-details`">
             <td
-              :colspan="columnCount"
+              :colspan="columnCount - tableView.columns.value.length + tableView.visibleCount.value"
               class="bg-gray-50 px-3 py-3 dark:bg-gray-950"
               :data-entry-details="template.id"
             >
-              <TemplateEntryDetails :template="template" :hidden="hidden" />
+              <TemplateEntryDetails :template="template" :hidden="hiddenColumns" />
             </td>
           </tr>
         </template>

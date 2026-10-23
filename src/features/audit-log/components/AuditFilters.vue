@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import FilterPanel from '@/shared/components/FilterPanel.vue'
+
 // The audit filters (FR-073, data-model §6): time range (presets or a custom start and end in the
 // device's local time), event types (several at once), outcome, actor and client address. The
 // address and the range are checked before they are applied; server field errors of the list
@@ -11,11 +13,8 @@ import { ApiProblem, auditEventTypeValues, auditOutcomeValues, auditTargetTypeVa
 import { hasMessage } from '@/i18n'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
-import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
-import { ChevronDownIcon, FilterIcon } from '@/shared/icons'
-import { buttonVariants } from '@/shared/ui/button'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
+
 import { isIpNetwork } from '@/shared/validation/ip-network'
 import {
   AUDIT_ACTOR_MAX_LENGTH,
@@ -47,8 +46,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { label } = useAuditLabels()
-const wide = useMediaQuery('(min-width: 768px)')
-const open = ref(props.defaultOpen ?? wide.value)
+const panel = ref<{ open: () => void } | null>(null)
 const ids = {
   range: useId(),
   from: useId(),
@@ -129,10 +127,10 @@ const form = useProblemForm({ fieldId: (path) => FIELDS[path] ?? null })
 const addressErrors = () => [...form.errorsFor('address'), ...form.errorsFor('clientAddress')]
 
 watch(
-  () => props.problem,
-  (problem) => {
+  [() => props.problem, panel],
+  ([problem]) => {
     if (problem?.is('validation-failed') && problem.fieldErrors.size > 0) {
-      open.value = true
+      panel.value?.open()
       void form.setProblem(problem)
     }
   },
@@ -149,7 +147,7 @@ function violation(path: string, code: 'tooLong', params: Record<string, unknown
   })
 }
 
-async function submit() {
+async function submit(done: () => void) {
   const actor = draft.actor.trim()
   const address = draft.address.trim()
   const custom = draft.range === 'custom'
@@ -176,6 +174,7 @@ async function submit() {
     return
   }
   form.clear()
+  done()
   emit('apply', {
     range: draft.range || undefined,
     from: custom ? (localInputToIso(draft.from) ?? undefined) : undefined,
@@ -196,179 +195,143 @@ function clear() {
 </script>
 
 <template>
-  <section class="surface">
-    <Collapsible v-model:open="open">
-      <CollapsibleTrigger
-        class="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg font-semibold text-gray-900 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-      >
-        <span class="flex items-center gap-2">
-          <FilterIcon class="size-5 shrink-0" />
-          {{ t('auditLog.filters.title') }}
-        </span>
-        <ChevronDownIcon
-          class="size-5 shrink-0 motion-safe:transition-transform"
-          :class="open ? 'rotate-180' : ''"
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent class="motion-reduce:animate-none">
-        <form
-          novalidate
-          :aria-label="t('auditLog.filters.title')"
-          class="mt-4 flex flex-col gap-4"
-          @submit.prevent="submit"
+  <FilterPanel
+    id="audit-log-filters"
+    ref="panel"
+    :default-open="defaultOpen"
+    manual-apply
+    :active-count="
+      Object.values(filters).filter((value) => (Array.isArray(value) ? value.length : value)).length
+    "
+    @apply="submit"
+    @clear="clear"
+    ><ErrorSummary :id="form.summaryId" :items="form.summary.value" />
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <FormField :id="ids.range" v-slot="field" :label="t('auditLog.filters.range')">
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+        <select v-bind="field" v-model="draft.range" class="form-control">
+          <option value="">{{ t('auditLog.filters.ranges.any') }}</option>
+          <option v-for="range in AUDIT_RANGES" :key="range" :value="range">
+            {{ t(`auditLog.filters.ranges.${range}`) }}
+          </option>
+        </select>
+      </FormField>
+      <template v-if="draft.range === 'custom'">
+        <FormField
+          :id="ids.from"
+          v-slot="field"
+          :label="t('auditLog.filters.from')"
+          :errors="form.errorsFor('from')"
         >
-          <ErrorSummary :id="form.summaryId" :items="form.summary.value" />
-          <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <FormField :id="ids.range" v-slot="field" :label="t('auditLog.filters.range')">
-              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-              <select v-bind="field" v-model="draft.range" class="form-control">
-                <option value="">{{ t('auditLog.filters.ranges.any') }}</option>
-                <option v-for="range in AUDIT_RANGES" :key="range" :value="range">
-                  {{ t(`auditLog.filters.ranges.${range}`) }}
-                </option>
-              </select>
-            </FormField>
-            <template v-if="draft.range === 'custom'">
-              <FormField
-                :id="ids.from"
-                v-slot="field"
-                :label="t('auditLog.filters.from')"
-                :errors="form.errorsFor('from')"
-              >
-                <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-                <input
-                  v-bind="field"
-                  v-model="draft.from"
-                  type="datetime-local"
-                  class="form-control"
-                />
-              </FormField>
-              <FormField
-                :id="ids.to"
-                v-slot="field"
-                :label="t('auditLog.filters.to')"
-                :errors="form.errorsFor('to')"
-              >
-                <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-                <input
-                  v-bind="field"
-                  v-model="draft.to"
-                  type="datetime-local"
-                  class="form-control"
-                />
-              </FormField>
-            </template>
-            <FormField
-              :id="ids.outcome"
-              v-slot="field"
-              :label="t('auditLog.filters.outcome')"
-              :errors="form.errorsFor('outcome')"
-            >
-              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-              <select v-bind="field" v-model="draft.outcome" class="form-control">
-                <option value="">{{ t('auditLog.filters.anyOutcome') }}</option>
-                <option v-for="outcome in auditOutcomeValues" :key="outcome" :value="outcome">
-                  {{ label('outcome', outcome) }}
-                </option>
-              </select>
-            </FormField>
-            <FormField
-              :id="ids.actor"
-              v-slot="field"
-              :label="t('auditLog.filters.actor')"
-              :description="t('auditLog.filters.actorHelp')"
-              :errors="form.errorsFor('actor')"
-            >
-              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-              <input
-                v-bind="field"
-                v-model="draft.actor"
-                type="text"
-                :maxlength="AUDIT_ACTOR_MAX_LENGTH"
-                autocapitalize="none"
-                spellcheck="false"
-                class="form-control"
-              />
-            </FormField>
-            <FormField
-              :id="ids.address"
-              v-slot="field"
-              :label="t('auditLog.filters.address')"
-              :description="t('auditLog.filters.addressHelp')"
-              :errors="addressErrors()"
-            >
-              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-              <input
-                v-bind="field"
-                v-model="draft.address"
-                type="text"
-                :maxlength="AUDIT_ADDRESS_MAX_LENGTH"
-                autocapitalize="none"
-                spellcheck="false"
-                class="form-control"
-              />
-            </FormField>
-            <FormField
-              :id="ids.targetType"
-              v-slot="field"
-              :label="t('auditLog.filters.targetType')"
-            >
-              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-              <select v-bind="field" v-model="draft.targetType" class="form-control">
-                <option value="">{{ t('auditLog.filters.anyTargetType') }}</option>
-                <option v-for="type in targetTypes" :key="type" :value="type">
-                  {{ label('targetType', type) }}
-                </option>
-              </select>
-            </FormField>
-            <FormField
-              :id="ids.targetId"
-              v-slot="field"
-              :label="t('auditLog.filters.targetId')"
-              :errors="form.errorsFor('targetId')"
-            >
-              <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-              <input
-                v-bind="field"
-                v-model="draft.targetId"
-                type="text"
-                :maxlength="AUDIT_TARGET_ID_MAX_LENGTH"
-                autocapitalize="none"
-                spellcheck="false"
-                class="form-control"
-              />
-            </FormField>
-          </div>
-          <fieldset>
-            <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
-              {{ t('auditLog.filters.eventTypes') }}
-            </legend>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4">
-              <label
-                v-for="type in eventTypes"
-                :key="type"
-                class="flex min-h-11 items-center gap-3 text-gray-800 dark:text-gray-200"
-              >
-                <input
-                  v-model="draft.event"
-                  type="checkbox"
-                  :value="type"
-                  class="size-5 shrink-0 accent-accent"
-                />
-                <span class="min-w-0 wrap-anywhere">{{ label('eventType', type) }}</span>
-              </label>
-            </div>
-          </fieldset>
-          <div class="flex flex-wrap gap-3">
-            <button type="submit" :class="buttonVariants({})">
-              {{ t('auditLog.filters.apply') }}
-            </button>
-            <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="clear">
-              {{ t('auditLog.filters.clear') }}
-            </button>
-          </div>
-        </form>
-      </CollapsibleContent>
-    </Collapsible>
-  </section>
+          <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+          <input v-bind="field" v-model="draft.from" type="datetime-local" class="form-control" />
+        </FormField>
+        <FormField
+          :id="ids.to"
+          v-slot="field"
+          :label="t('auditLog.filters.to')"
+          :errors="form.errorsFor('to')"
+        >
+          <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+          <input v-bind="field" v-model="draft.to" type="datetime-local" class="form-control" />
+        </FormField>
+      </template>
+      <FormField
+        :id="ids.outcome"
+        v-slot="field"
+        :label="t('auditLog.filters.outcome')"
+        :errors="form.errorsFor('outcome')"
+      >
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+        <select v-bind="field" v-model="draft.outcome" class="form-control">
+          <option value="">{{ t('auditLog.filters.anyOutcome') }}</option>
+          <option v-for="outcome in auditOutcomeValues" :key="outcome" :value="outcome">
+            {{ label('outcome', outcome) }}
+          </option>
+        </select>
+      </FormField>
+      <FormField
+        :id="ids.actor"
+        v-slot="field"
+        :label="t('auditLog.filters.actor')"
+        :description="t('auditLog.filters.actorHelp')"
+        :errors="form.errorsFor('actor')"
+      >
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+        <input
+          v-bind="field"
+          v-model="draft.actor"
+          type="text"
+          :maxlength="AUDIT_ACTOR_MAX_LENGTH"
+          autocapitalize="none"
+          spellcheck="false"
+          class="form-control"
+        />
+      </FormField>
+      <FormField
+        :id="ids.address"
+        v-slot="field"
+        :label="t('auditLog.filters.address')"
+        :description="t('auditLog.filters.addressHelp')"
+        :errors="addressErrors()"
+      >
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+        <input
+          v-bind="field"
+          v-model="draft.address"
+          type="text"
+          :maxlength="AUDIT_ADDRESS_MAX_LENGTH"
+          autocapitalize="none"
+          spellcheck="false"
+          class="form-control"
+        />
+      </FormField>
+      <FormField :id="ids.targetType" v-slot="field" :label="t('auditLog.filters.targetType')">
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+        <select v-bind="field" v-model="draft.targetType" class="form-control">
+          <option value="">{{ t('auditLog.filters.anyTargetType') }}</option>
+          <option v-for="type in targetTypes" :key="type" :value="type">
+            {{ label('targetType', type) }}
+          </option>
+        </select>
+      </FormField>
+      <FormField
+        :id="ids.targetId"
+        v-slot="field"
+        :label="t('auditLog.filters.targetId')"
+        :errors="form.errorsFor('targetId')"
+      >
+        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
+        <input
+          v-bind="field"
+          v-model="draft.targetId"
+          type="text"
+          :maxlength="AUDIT_TARGET_ID_MAX_LENGTH"
+          autocapitalize="none"
+          spellcheck="false"
+          class="form-control"
+        />
+      </FormField>
+    </div>
+    <fieldset>
+      <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+        {{ t('auditLog.filters.eventTypes') }}
+      </legend>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4">
+        <label
+          v-for="type in eventTypes"
+          :key="type"
+          class="flex min-h-11 items-center gap-3 text-gray-800 dark:text-gray-200"
+        >
+          <input
+            v-model="draft.event"
+            type="checkbox"
+            :value="type"
+            class="size-5 shrink-0 accent-accent"
+          />
+          <span class="min-w-0 wrap-anywhere">{{ label('eventType', type) }}</span>
+        </label>
+      </div>
+    </fieldset></FilterPanel
+  >
 </template>

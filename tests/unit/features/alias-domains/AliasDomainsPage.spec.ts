@@ -1,3 +1,4 @@
+import { sortList } from '../../support/data-list'
 // The domain alias list (US4, US6; FR-033, FR-034, FR-029, FR-030, FR-056 to FR-060): the classic
 // table with "Add domain alias" only with `aliasDomains`, the sort, search and filters in the address
 // with their chips, the empty, no-match and error states, the single deletion with legacy's alerts
@@ -94,9 +95,9 @@ describe('AliasDomainsPage: the list', () => {
     const { wrapper, router } = await mountList('/alias-domains', false)
     expect(wrapper.find('table').exists()).toBe(false)
     expect(names(wrapper)).toEqual(['example.eu', 'example.net', 'legacy.example'])
-    await wrapper.get('#alias-domain-sort').setValue('createdAt')
-    await vi.waitFor(() => expect(router.currentRoute.value.query.sort).toBe('createdAt'))
-    await wrapper.get('#alias-domain-order').setValue('desc')
+    await sortList(wrapper, 'targetDomain')
+    await vi.waitFor(() => expect(router.currentRoute.value.query.sort).toBe('targetDomain'))
+    await sortList(wrapper, 'targetDomain')
     await vi.waitFor(() => expect(router.currentRoute.value.query.order).toBe('desc'))
   })
 

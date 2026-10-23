@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDataList } from '@/shared/composables/useDataList'
+
 // A relayhost's usage (UI 009 FR-023; the paged form of legacy's "In use by" cell): the domains and
 // mailboxes assigned to it, filtered by kind, searched by name, sorted and paged in the address,
 // each linking to its domain or mailbox page.
@@ -67,6 +69,8 @@ const target = (item: RelayhostUsageEntry) =>
 const listState = computed(() =>
   query.isPending.value ? 'loading' : query.isError.value && !query.data.value ? 'error' : 'ready',
 )
+
+useDataList('relayhost-usage')
 </script>
 
 <template>

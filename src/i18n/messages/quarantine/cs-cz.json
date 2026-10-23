@@ -3,9 +3,7 @@
     "nav": {
       "label": "Části karantény"
     },
-    "list": {
-      "details": "Podrobnosti"
-    },
+    "list": {},
     "filters": {
       "receivedFrom": "Od",
       "receivedTo": "Do",

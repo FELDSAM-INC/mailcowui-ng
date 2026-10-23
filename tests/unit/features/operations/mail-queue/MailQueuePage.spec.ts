@@ -1,3 +1,4 @@
+import { sortList } from '../../../support/data-list'
 // UI 011 US4 (FR-050 to FR-062): the Queue Manager page's wiring under the unit coverage — the
 // list with its total, the search with its announced count, the states (loading, empty, no match,
 // failure, Postfix stopped, truncated), selection mode with legacy's actions in one request each,
@@ -128,7 +129,7 @@ describe('MailQueuePage list', () => {
     expect(wrapper.find('[data-queue-legend]').exists()).toBe(true)
     expect(wrapper.findAll('[data-entry]')).toHaveLength(9)
     expect(wrapper.find('[data-queue-truncated]').exists()).toBe(false)
-    expect(wrapper.find('select#mail-queue-sort').exists()).toBe(true)
+    expect(wrapper.find('[data-list-columns]').exists()).toBe(true)
   })
 
   it('announces the new count once a search applies and keeps it in the address', async () => {
@@ -194,9 +195,9 @@ describe('MailQueuePage list', () => {
 describe('MailQueuePage sorting and paging', () => {
   it('sorts by the phone selects and keeps the sort in the address', async () => {
     const { wrapper, router } = await open()
-    await wrapper.get('select#mail-queue-sort').setValue('size')
+    await sortList(wrapper, 'size')
     await settle(() => expect(router.currentRoute.value.query.sort).toBe('size'))
-    await wrapper.get('select#mail-queue-order').setValue('desc')
+    await sortList(wrapper, 'size')
     await settle(() => expect(router.currentRoute.value.query.order).toBe('desc'))
     await settle(() =>
       expect(requests('listMailQueueMessages').at(-1)!.path).toContain('order=desc'),

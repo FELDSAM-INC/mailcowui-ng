@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The domain alias list (US4, FR-033, FR-034), the classic "Domain aliases" tab
 // (`mailbox/tab-domain-aliases.twig`, `draw_aliasdomain_table()`): legacy's title, "Add domain
 // alias" only with `aliasDomains` (hidden otherwise, as legacy's `data-acl`), refresh, the server's
@@ -52,7 +55,7 @@ import { aliasDomainListOptions, applyAliasDomainBulkAction } from '../api'
 import AliasDomainEntryActions from '../components/AliasDomainEntryActions.vue'
 import AliasDomainFilters from '../components/AliasDomainFilters.vue'
 import AliasDomainList from '../components/AliasDomainList.vue'
-import AliasDomainSortControl from '../components/AliasDomainSortControl.vue'
+
 import {
   useAliasDomainDeletion,
   type AliasDomainOutcome,
@@ -226,6 +229,8 @@ function toggleSelecting() {
   if (selection.active.value) selection.leave()
   else selection.enter()
 }
+
+useDataList('alias-domains-pages-aliasdomains')
 </script>
 
 <template>
@@ -240,15 +245,7 @@ function toggleSelecting() {
           <PlusIcon />
           {{ lt('mailbox.add_domain_alias') }}
         </RouterLink>
-        <button
-          v-if="permissions.canManageAliasDomains"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
+
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -264,29 +261,35 @@ function toggleSelecting() {
       @dismiss="outcome = null"
     />
 
-    <SearchField
-      id="alias-domain-search"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-    />
-    <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-      <AliasDomainFilters
-        class="md:flex-1"
-        :filters="state.filters"
-        :active-count="filterCount"
-        :labels="labels"
-        @pick="remember"
-        @update="updateFilters"
-        @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })"
-      />
-      <AliasDomainSortControl
-        v-if="!wide"
-        :sort="state.sort ?? 'name'"
-        :order="state.order ?? 'asc'"
-        @change="(sort, order) => list.setSort(sort, order)"
-      />
-    </div>
+    <ListToolbar
+      ><template #select
+        ><button
+          v-if="permissions.canManageAliasDomains"
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #filters
+        ><AliasDomainFilters
+          :filters="state.filters"
+          :active-count="filterCount"
+          :labels="labels"
+          @pick="remember"
+          @update="updateFilters"
+          @clear="updateFilters({ ...NO_FILTERS, q: state.filters.q })" /></template
+      ><template #search
+        ><SearchField
+          id="alias-domain-search"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="
+            (value) => list.setFilter('q', value || undefined, { typing: true })
+          " /></template
+    ></ListToolbar>
+
     <ActiveFilterChips
       :chips="chips"
       @remove="removeChip"

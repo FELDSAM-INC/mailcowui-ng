@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+
 import RowAction from '@/shared/components/RowAction.vue'
 import RowActions from '@/shared/components/RowActions.vue'
 
@@ -29,6 +31,7 @@ const { t } = useI18n()
     :to="location"
     :details-label="`${t('filters.columns.script')}: ${item.description}`"
   >
+    <template #badges><ActiveBadge :active="item.active" /></template>
     <template v-if="selecting" #select>
       <label class="flex size-11 items-center justify-center">
         <span class="sr-only">{{ item.description }}</span>
@@ -77,10 +80,6 @@ const { t } = useI18n()
       <div>
         <dt class="font-medium">{{ t('filters.columns.type') }}</dt>
         <dd>{{ t(`filters.kind.${item.kind}`) }}</dd>
-      </div>
-      <div>
-        <dt class="font-medium">{{ lt('mailbox.active') }}</dt>
-        <dd><YesNoMark :value="item.active" /></dd>
       </div>
     </DataCardFields>
     <template #details><ScriptBlock :script="item.script" /></template>

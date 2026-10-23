@@ -1,3 +1,4 @@
+import { sortList } from '../../../support/data-list'
 // UI 011 US6 (FR-045 to FR-049, T118/T124; plan decisions 5, 6, 11, 12, 18 and 19): the Rspamd
 // page against the contract-validated mock: the per-action bars with their summary and table, the
 // zero state, the scan history with search, sort and paging in the address, details and symbols in
@@ -144,16 +145,16 @@ describe('RspamdPage', () => {
   it('FR-047 sorts and orders on phones through the address', async () => {
     const { wrapper, router } = await mountRspamd()
     await historyReady(wrapper)
-    await wrapper.get('#operations-rspamd-sort').setValue('score')
+    await sortList(wrapper, 'score')
     await flushPromises()
     expect(router.currentRoute.value.query.sort).toBe('score')
     await historyReady(wrapper)
-    await wrapper.get('#operations-rspamd-order').setValue('asc')
+    await sortList(wrapper, 'score')
     await flushPromises()
-    expect(router.currentRoute.value.query.order).toBe('asc')
+    expect(router.currentRoute.value.query.order).toBeUndefined()
     await waitFor(() =>
       expect(requestsOf('listRspamdHistory').at(-1)!.path).toMatch(
-        /sort=score.*order=asc|order=asc.*sort=score/,
+        /sort=score.*order=desc|order=desc.*sort=score/,
       ),
     )
     wrapper.unmount()

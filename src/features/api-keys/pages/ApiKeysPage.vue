@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The API keys of the server (FR-063, FR-064, FR-069): filters, sort and page in the address, cards
 // below md and a table from md up, the loading, empty and error states, and the link to the API
 // documentation.
@@ -39,6 +41,8 @@ function sortBy(column: ApiKeySort) {
 function clearFilters() {
   void list.setFilters({ owner: undefined, status: undefined, access: undefined })
 }
+
+useDataList('api-keys')
 </script>
 
 <template>

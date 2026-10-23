@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The caller's quarantine, with its view in the address and no automatic polling.
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, ref, shallowRef, watch } from 'vue'
@@ -20,7 +23,7 @@ import SelectCheckbox from '@/shared/components/SelectCheckbox.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import type { PageSize } from '@/shared/composables/useListState'
-import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+
 import { buttonVariants } from '@/shared/ui/button'
 
 import type { OutcomeLine } from '../action-outcome'
@@ -36,7 +39,7 @@ import ActionOutcomeMessage from '../components/ActionOutcomeMessage.vue'
 import QuarantineBulkResultRow from '../components/bulk/QuarantineBulkResultRow.vue'
 import QuarantineFilters from '../components/list/QuarantineFilters.vue'
 import QuarantineItemList from '../components/list/QuarantineItemList.vue'
-import QuarantineSortControl from '../components/list/QuarantineSortControl.vue'
+
 import QuarantineSectionNav from '../components/QuarantineSectionNav.vue'
 import QuarantineStatusNotice from '../components/QuarantineStatusNotice.vue'
 import { useItemAction, type RereadResult } from '../composables/useItemAction'
@@ -48,7 +51,7 @@ import { canActOnItems, missingFlag } from '../permissions'
 const { t } = useI18n()
 const fmt = useFormat()
 const client = useQueryClient()
-const wide = useMediaQuery('(min-width: 768px)')
+
 const identity = useIdentityQuery()
 const scoped = computed(() => !!identity.data.value && identity.data.value.role !== 'mailboxUser')
 const scopeDomains = computed(() => {
@@ -177,6 +180,8 @@ async function refresh() {
   await query.refetch()
   announceCount()
 }
+
+useDataList('quarantine-pages-quarantinelist')
 </script>
 
 <template>
@@ -184,17 +189,6 @@ async function refresh() {
     <QuarantineSectionNav />
     <PageHeader :title="lt('quarantine.quarantine')">
       <template #actions>
-        <button
-          v-if="canRemove"
-          type="button"
-          data-select-mode
-          :disabled="busy || !capabilities.data.value"
-          :aria-pressed="selection.active.value"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
         <span
           v-if="query.data.value"
           class="self-center tabular-nums text-gray-800 dark:text-gray-200"
@@ -235,24 +229,33 @@ async function refresh() {
     >
       {{ t('common.retry') }}
     </button>
-    <SearchField
-      id="quarantine-search"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="list.setFilter('q', $event || undefined, { typing: true })"
-    />
-    <QuarantineFilters
-      :filters="state.filters"
-      :scoped="scoped"
-      :domains="scopeDomains"
-      @apply="list.setFilters"
-    />
-    <QuarantineSortControl
-      v-if="!wide"
-      :sort="state.sort ?? 'arrivedAt'"
-      :order="state.order ?? 'desc'"
-      @change="list.setSort"
-    />
+    <ListToolbar
+      ><template #select
+        ><button
+          v-if="canRemove"
+          type="button"
+          data-select-mode
+          :disabled="busy || !capabilities.data.value"
+          :aria-pressed="selection.active.value"
+          :class="buttonVariants({ variant: 'outline' })"
+          @click="toggleSelecting"
+        >
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #filters
+        ><QuarantineFilters
+          :filters="state.filters"
+          :scoped="scoped"
+          :domains="scopeDomains"
+          @apply="list.setFilters" /></template
+      ><template #search
+        ><SearchField
+          id="quarantine-search"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="list.setFilter('q', $event || undefined, { typing: true })" /></template
+    ></ListToolbar>
+
     <p v-if="bulk.phase.value === 'running'" role="status">
       {{ t('bulk.progress', { count: bulk.running.value }) }}
     </p>

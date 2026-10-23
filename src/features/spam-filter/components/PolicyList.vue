@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // One allow or block list of an owner (UI 006 FR-045 to FR-050, US4-AS6 to US4-AS9, US5; legacy
 // form map screen 5 and D16): legacy's heading and description (with its markup), the add field
 // and "Add item", the search, one table of the own entries followed by the entries shown read-only,
@@ -31,14 +34,13 @@ import SearchField from '@/shared/components/SearchField.vue'
 import { useFilteredListAnnouncement } from '@/shared/composables/useFilteredListAnnouncement'
 import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
-import type { PageSize, SortOrder } from '@/shared/composables/useListState'
-import { useMediaQuery } from '@/shared/composables/useMediaQuery'
+import type { PageSize } from '@/shared/composables/useListState'
 import { SyncIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { deleteEntry, entryListOptions, invalidateEntries } from '../api'
 import { useRemoveEntries } from '../composables/useRemoveEntries'
-import { pageRequests, usePolicyListState, type PolicySort } from '../lists-state'
+import { pageRequests, usePolicyListState } from '../lists-state'
 import { CREATED_KEY, hostLocation, REMOVED_KEY, type PolicyOwner } from '../owner'
 import PolicyEntries from './PolicyEntries.vue'
 import PolicyEntryAddForm from './PolicyEntryAddForm.vue'
@@ -62,7 +64,6 @@ const { problemMessage } = useProblemMessages()
 const client = useQueryClient()
 const identity = useIdentityQuery()
 const capabilities = useQuarantineCapabilities()
-const wide = useMediaQuery('(min-width: 768px)')
 
 const uid = `${props.list}-${useId()}`
 const headingId = `${uid}-title`
@@ -229,8 +230,8 @@ const limitMessage = computed(() =>
     ? t('bulk.limitReached', { max: number(selection.limit.value) })
     : null,
 )
-const SELECT =
-  'h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white'
+
+useDataList(() => 'spam-policy-' + props.list)
 </script>
 
 <template>
@@ -273,47 +274,16 @@ const SELECT =
       @dismiss="outcome = null"
     />
 
-    <SearchField
-      :id="`${uid}-search`"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="(value) => listState.setFilter('q', value || undefined, { typing: true })"
-    />
-    <div v-if="!wide" class="flex flex-wrap gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label :for="`${uid}-sort`" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ t('lists.sort.label') }}
-        </label>
-        <select
-          :id="`${uid}-sort`"
-          :value="state.sort"
-          :class="SELECT"
-          @change="listState.setSort(($event.target as HTMLSelectElement).value as PolicySort)"
-        >
-          <option value="pattern">{{ lt('user.spamfilter_table_rule') }}</option>
-          <option value="createdAt">{{ lt('user.created_on') }}</option>
-        </select>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label :for="`${uid}-order`" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ t('lists.sort.order') }}
-        </label>
-        <select
-          :id="`${uid}-order`"
-          :value="state.order"
-          :class="SELECT"
-          @change="
-            listState.setSort(
-              state.sort ?? 'pattern',
-              ($event.target as HTMLSelectElement).value as SortOrder,
-            )
-          "
-        >
-          <option value="asc">{{ t('lists.sort.asc') }}</option>
-          <option value="desc">{{ t('lists.sort.desc') }}</option>
-        </select>
-      </div>
-    </div>
+    <ListToolbar
+      ><template #search
+        ><SearchField
+          :id="`${uid}-search`"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="
+            (value) => listState.setFilter('q', value || undefined, { typing: true })
+          " /></template
+    ></ListToolbar>
 
     <div
       v-if="removal.phase.value === 'running'"

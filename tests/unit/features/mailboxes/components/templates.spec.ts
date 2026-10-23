@@ -153,7 +153,7 @@ describe('TemplateCard', () => {
     expect(wrapper.get('[data-column="protocols"]').text()).toContain('SMTP, IMAP, SIEVE and DAV')
     expect(wrapper.get('[data-column="webmailRedirect"]').text()).toBe('SOGO:✓Yes')
     expect(wrapper.get('[data-column="forceSecondFactorSetup"]').text()).toBe('TFA:✓Yes')
-    expect(wrapper.get('[data-column="status"]').text()).toContain('Inactive')
+    expect(wrapper.get('[data-card-header]').text()).toContain('Inactive')
     expect(wrapper.find('[data-default-badge]').exists()).toBe(false)
     await wrapper.get('button[aria-expanded]').trigger('click')
     expect(wrapper.get('[data-entry-details="3"]').text()).toContain('100 msgs / hour')
@@ -196,7 +196,10 @@ describe('TemplateEntryDetails', () => {
 
 describe('TemplateTable', () => {
   const headers = (wrapper: ReturnType<typeof mountWithApp>) =>
-    wrapper.findAll('th').map((th) => th.text())
+    wrapper
+      .findAll('th')
+      .filter((th) => th.isVisible())
+      .map((th) => th.text())
 
   it('shows quota and the active state from md, TLS and 2FA from xl, the protocols from 2xl', () => {
     installMatchMedia({ '(min-width: 1280px)': false, '(min-width: 1536px)': false })
@@ -204,29 +207,14 @@ describe('TemplateTable', () => {
       props: { templates: [template()], sort: 'name', order: 'asc' },
       ...withRouter(),
     })
-    expect(headers(md)).toEqual(['ID', 'Template ▲', 'Quota', 'Active', 'Action'])
+    expect(headers(md)).toEqual(['ID', 'Template', 'Quota', 'Action'])
     installMatchMedia({ '(min-width: 1280px)': true, '(min-width: 1536px)': true })
     const wide = mountWithApp(TemplateTable, {
       props: { templates: [template()], sort: 'id', order: 'desc', actions: false },
       ...withRouter(),
     })
-    expect(headers(wide)).toEqual([
-      'ID ▼',
-      'Template',
-      'Quota',
-      'Enforce TLS incoming',
-      'Enforce TLS outgoing',
-      'SMTP',
-      'IMAP',
-      'POP3',
-      'SIEVE',
-      'EAS',
-      'DAV',
-      'SOGO',
-      'TFA',
-      'Active',
-      'Details',
-    ])
+    expect(headers(wide)).toEqual(['ID', 'Template', 'Quota', 'Details'])
+    expect(wide.get('[data-column="imap"]').isVisible()).toBe(false)
     expect(wide.get('th[aria-sort="descending"]').text()).toContain('ID')
   })
 
@@ -249,7 +237,7 @@ describe('TemplateTable', () => {
       expect(controls.findAll('button')[0]!.attributes('aria-expanded')).toBe('false')
       await controls.get('button[aria-expanded]').trigger('click')
       expect(Number(wrapper.get('[data-entry-details]').attributes('colspan'))).toBe(
-        row.findAll('td').length,
+        row.findAll('td').filter((td) => td.isVisible()).length,
       )
     },
   )

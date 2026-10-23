@@ -1,3 +1,4 @@
+import { sortList } from '../../support/data-list'
 // The resource list (US7, US6; FR-042, FR-043, FR-029, FR-030, FR-056 to FR-060): the classic table
 // with the booking legend, the search, the domain, kind and active filters and the sort in the
 // address with their chips, the empty, no-match and error states, the single deletion with legacy's
@@ -94,9 +95,9 @@ describe('ResourcesPage: the list', () => {
     await vi.waitFor(() => expect(router.currentRoute.value.query.sort).toBe('kind'))
     const narrow = await mountList('/resources', false)
     expect(narrow.wrapper.find('table').exists()).toBe(false)
-    await narrow.wrapper.get('#resource-sort').setValue('domain')
+    await sortList(narrow.wrapper, 'domain')
     await vi.waitFor(() => expect(narrow.router.currentRoute.value.query.sort).toBe('domain'))
-    await narrow.wrapper.get('#resource-order').setValue('desc')
+    await sortList(narrow.wrapper, 'domain')
     await vi.waitFor(() => expect(narrow.router.currentRoute.value.query.order).toBe('desc'))
   })
 

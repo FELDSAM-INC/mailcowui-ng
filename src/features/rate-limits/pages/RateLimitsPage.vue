@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
+import FilterPanel from '@/shared/components/FilterPanel.vue'
+
 // The Rate limits overview (US6, FR-056 to FR-058; no classic counterpart, legacy form map screen 7
 // and D1): every limit in the caller's scope with the kind filter, the search on the object, sort
 // by object or kind, pages and page size in the address; cards below md and a table from md up;
@@ -27,7 +32,7 @@ import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import type { PageSize, SortOrder } from '@/shared/composables/useListState'
+import type { PageSize } from '@/shared/composables/useListState'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { rateLimitListOptions, type RateLimitKind } from '../api'
@@ -35,12 +40,7 @@ import RateLimitList from '../components/RateLimitList.vue'
 import ResetBucketDialog from '../components/ResetBucketDialog.vue'
 import SetRateLimitDialog from '../components/SetRateLimitDialog.vue'
 import type { ResetOutcome } from '../composables/useResetRateLimitBucket'
-import {
-  RATE_LIMIT_KINDS,
-  RATE_LIMIT_SORTS,
-  useRateLimitListState,
-  type RateLimitSort,
-} from '../list-state'
+import { RATE_LIMIT_KINDS, useRateLimitListState } from '../list-state'
 
 const { t } = useI18n()
 const wide = useMediaQuery('(min-width: 768px)')
@@ -58,8 +58,6 @@ const { total, initialLoading, loadFailed, refreshFailed, empty, noMatches, list
   useListQueryState(query, () => list.hasSearchOrFilters.value)
 
 const kindLabel = (kind: RateLimitKind) => text(`enums.rateLimitObjectKind.${kind}`)
-const sortLabel = (sort: RateLimitSort) =>
-  sort === 'object' ? t('rateLimits.list.object') : lt('mailbox.kind')
 
 function setKind(value: string) {
   void list.setFilter(
@@ -81,6 +79,8 @@ watch(resetOpen, (open) => {
 const SELECT =
   'h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white'
 const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
+
+useDataList('rate-limits-pages-ratelimitspage')
 </script>
 
 <template>
@@ -121,64 +121,39 @@ const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
     />
 
     <div class="flex flex-col gap-3 md:flex-row md:items-end">
-      <SearchField
-        id="rate-limits-search"
-        class="md:flex-1"
-        :label="lt('datatables.search')"
-        :model-value="state.filters.q ?? ''"
-        @search="(value) => list.setFilter('q', value || undefined, { typing: true })"
-      />
-      <div class="flex flex-col gap-1.5">
-        <label for="rate-limits-kind" :class="LABEL">{{ lt('mailbox.kind') }}</label>
-        <select
-          id="rate-limits-kind"
-          :value="state.filters.kind ?? ''"
-          :class="SELECT"
-          @change="setKind(($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">{{ t('lists.filters.all') }}</option>
-          <option v-for="kind in RATE_LIMIT_KINDS" :key="kind" :value="kind">
-            {{ kindLabel(kind) }}
-          </option>
-        </select>
-      </div>
-      <div v-if="!wide" class="flex flex-wrap gap-3">
-        <div class="flex flex-col gap-1.5">
-          <label for="rate-limits-sort" :class="LABEL">{{ t('lists.sort.label') }}</label>
-          <select
-            id="rate-limits-sort"
-            :value="state.sort ?? 'object'"
-            :class="SELECT"
-            @change="
-              list.setSort(
-                ($event.target as HTMLSelectElement).value as RateLimitSort,
-                state.order ?? 'asc',
-              )
-            "
-          >
-            <option v-for="sort in RATE_LIMIT_SORTS" :key="sort" :value="sort">
-              {{ sortLabel(sort) }}
-            </option>
-          </select>
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label for="rate-limits-order" :class="LABEL">{{ t('lists.sort.order') }}</label>
-          <select
-            id="rate-limits-order"
-            :value="state.order ?? 'asc'"
-            :class="SELECT"
-            @change="
-              list.setSort(
-                state.sort ?? 'object',
-                ($event.target as HTMLSelectElement).value as SortOrder,
-              )
-            "
-          >
-            <option value="asc">{{ t('lists.sort.asc') }}</option>
-            <option value="desc">{{ t('lists.sort.desc') }}</option>
-          </select>
-        </div>
-      </div>
+      <ListToolbar
+        ><template #filters
+          ><FilterPanel
+            id="rate-limits-filters"
+            immediate
+            :active-count="state.filters.kind ? 1 : 0"
+            ><div class="flex flex-col gap-1.5">
+              <label for="rate-limits-kind" :class="LABEL">{{ lt('mailbox.kind') }}</label>
+              <select
+                id="rate-limits-kind"
+                :value="state.filters.kind ?? ''"
+                :class="SELECT"
+                @change="setKind(($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">{{ t('lists.filters.all') }}</option>
+                <option v-for="kind in RATE_LIMIT_KINDS" :key="kind" :value="kind">
+                  {{ kindLabel(kind) }}
+                </option>
+              </select>
+            </div></FilterPanel
+          ></template
+        ><template #search
+          ><SearchField
+            id="rate-limits-search"
+            class="md:flex-1"
+            :label="lt('datatables.search')"
+            :model-value="state.filters.q ?? ''"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+      ></ListToolbar>
+
+      <div v-if="!wide" class="flex flex-wrap gap-3"></div>
     </div>
 
     <ListState

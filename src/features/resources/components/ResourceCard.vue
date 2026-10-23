@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 
@@ -8,7 +10,7 @@ import DataCardFields from '@/shared/components/DataCardFields.vue'
 import { computed } from 'vue'
 
 import type { Resource } from '@/api'
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+
 import { lt } from '@/i18n'
 import MessageText from '@/shared/components/MessageText.vue'
 
@@ -27,6 +29,7 @@ const DD = 'min-w-0 break-all text-gray-900 dark:text-white'
     :title="resource.description"
     :to="{ name: 'resource-detail', params: { resourceAddress: resource.address } }"
   >
+    <template #badges><ActiveBadge :active="resource.active" /></template>
     <template v-if="$slots.select" #select><slot name="select" /></template>
     <template v-if="$slots.actions" #actions><slot name="actions" /></template>
     <DataCardFields>
@@ -45,10 +48,6 @@ const DD = 'min-w-0 break-all text-gray-900 dark:text-white'
       <div class="flex min-w-0 flex-col items-start">
         <dt :class="DT">{{ lt('mailbox.multiple_bookings') }}</dt>
         <dd><BookingRuleBadge :resource="resource" /></dd>
-      </div>
-      <div class="flex gap-1.5" data-field="active">
-        <dt :class="DT">{{ lt('mailbox.active') }}</dt>
-        <dd class="text-gray-900 dark:text-white"><YesNoMark :value="resource.active" /></dd>
       </div>
     </DataCardFields>
   </DataCard>

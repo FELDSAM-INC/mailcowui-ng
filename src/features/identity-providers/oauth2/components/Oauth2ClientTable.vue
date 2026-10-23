@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
 // The OAuth2 clients as a table from md up (FR-055), with the classic list's columns ID, Client
 // ID, Redirect URI and Action (`admin.js` draw_oauth2_clients; no secret column, owner decision).
 // The first three sort from their headers with `aria-sort`. Slots: `select-all`, `select`,
@@ -17,6 +21,7 @@ import RedirectUriList from './RedirectUriList.vue'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     clients: readonly Oauth2Client[]
     sort: Oauth2ClientSort
     order: SortOrder
@@ -29,18 +34,27 @@ const { t } = useI18n()
 
 const COLUMNS: Oauth2ClientSort[] = ['id', 'clientId', 'redirectUri']
 
-function ariaSort(key: Oauth2ClientSort) {
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
 function sortBy(key: Oauth2ClientSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
 }
+
+const tableView = useDataColumns(
+  () =>
+    COLUMNS.map((column) => ({
+      id: column,
+      label: resolveText(SORT_LABELS[column], t),
+      sort: column,
+    })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-fixed text-sm">
       <caption class="sr-only">
         {{
@@ -50,25 +64,13 @@ function sortBy(key: Oauth2ClientSort) {
       <thead class="border-b border-gray-200 text-start dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-16 px-3 py-2"><slot name="select-all" /></th>
-          <th
+          <DataTableHeader
             v-for="column in COLUMNS"
             :key="column"
-            scope="col"
+            :column="String(column)"
             class="px-3 py-2 text-start"
             :class="column === 'id' ? 'w-20' : column === 'clientId' ? 'w-44' : ''"
-            :aria-sort="ariaSort(column)"
-          >
-            <button
-              type="button"
-              class="inline-flex min-h-11 min-w-11 items-center gap-1 hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column)"
-            >
-              {{ resolveText(SORT_LABELS[column], t) }}
-              <span aria-hidden="true">{{
-                sort === column ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-3 py-2 text-end">
             {{ lt('admin.action') }}
           </th>
@@ -77,8 +79,18 @@ function sortBy(key: Oauth2ClientSort) {
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr v-for="client in clients" :key="client.id" :data-entry="client.id" class="align-top">
           <td v-if="selectable" class="px-3 py-3"><slot name="select" :client="client" /></td>
-          <td class="px-3 py-3 text-gray-900 dark:text-white">{{ client.id }}</td>
-          <td class="px-3 py-3">
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
+            :data-column="String(tableView.columns.value[0]!.id)"
+            class="px-3 py-3 text-gray-900 dark:text-white"
+          >
+            {{ client.id }}
+          </td>
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[1]!.id))"
+            :data-column="String(tableView.columns.value[1]!.id)"
+            class="px-3 py-3"
+          >
             <RouterLink
               :to="{ name: 'oauth2-client-detail', params: { oauth2ClientId: client.id } }"
               class="inline-flex min-h-11 items-center font-mono break-all text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
@@ -86,7 +98,11 @@ function sortBy(key: Oauth2ClientSort) {
               {{ client.clientId }}
             </RouterLink>
           </td>
-          <td class="min-w-0 px-3 py-3 text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[2]!.id))"
+            :data-column="String(tableView.columns.value[2]!.id)"
+            class="min-w-0 px-3 py-3 text-gray-900 dark:text-white"
+          >
             <RedirectUriList :uris="client.redirectUris" />
           </td>
           <td class="table-controls-cell px-3 py-3">

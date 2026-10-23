@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import YesNoMark from '@/shared/components/YesNoMark.vue'
@@ -39,7 +41,9 @@ const flags = computed(() =>
     :details-id="`${id}-details`"
     :details-label="t('domainTemplates.list.detailsOf', { name: template.name })"
   >
-    <template v-if="template.isDefault" #badges><DefaultBadge /></template>
+    <template #badges
+      ><DefaultBadge v-if="template.isDefault" /><ActiveBadge :active="template.active"
+    /></template>
     <template v-if="$slots.select" #select><slot name="select" /></template>
     <template v-if="$slots.actions" #actions><slot name="actions" /></template>
     <DataCardFields>
@@ -60,7 +64,11 @@ const flags = computed(() =>
       </div>
     </DataCardFields>
     <DataCardFields inline>
-      <div v-for="column in flags" :key="column.key" :data-column="column.key">
+      <div
+        v-for="column in flags.filter((item) => item.key !== 'active')"
+        :key="column.key"
+        :data-column="column.key"
+      >
         <dt>{{ column.label }}</dt>
         <dd><YesNoMark :value="Boolean(template[column.key])" /></dd>
       </div>

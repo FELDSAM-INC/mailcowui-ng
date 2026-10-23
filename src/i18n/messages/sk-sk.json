@@ -89,9 +89,7 @@
       "allAccessLevels": "Všetky úrovne prístupu",
       "allStatuses": "Všetky stavy",
       "clear": "Zrušiť filtre",
-      "ownerHint": "Vyberte vlastníka alebo napíšte používateľské meno a stlačte Enter.",
-      "sort": "Zoradiť podľa",
-      "title": "Filtre"
+      "ownerHint": "Vyberte vlastníka alebo napíšte používateľské meno a stlačte Enter."
     },
     "form": {
       "access": "Prístup",
@@ -133,16 +131,7 @@
       "description": "Skopírujte teraz tajný údaj kľúča „{name}“ a bezpečne ho uložte, napríklad do nastavení programu.",
       "title": "Váš nový kľúč API"
     },
-    "sorts": {
-      "createdAt_asc": "Od najstarších",
-      "createdAt_desc": "Od najnovších",
-      "expiresAt_asc": "Platnosť, najskôr končiace",
-      "expiresAt_desc": "Platnosť, najneskôr končiace",
-      "lastUsedAt_asc": "Naposledy použité, najdávnejšie",
-      "lastUsedAt_desc": "Naposledy použité, najnovšie",
-      "name_asc": "Názov, A až Z",
-      "name_desc": "Názov, Z až A"
-    },
+    "sorts": {},
     "title": "Kľúče API"
   },
   "auditLog": {
@@ -186,7 +175,6 @@
       "addressHelp": "Adresa IPv4 alebo IPv6 alebo sieť, napríklad 192.0.2.0/24.",
       "anyOutcome": "Ľubovoľný výsledok",
       "anyTargetType": "Akýkoľvek typ cieľa",
-      "apply": "Použiť filtre",
       "clear": "Zrušiť filtre",
       "eventTypes": "Typy udalostí",
       "from": "Od",
@@ -202,7 +190,6 @@
       },
       "targetId": "Cieľ",
       "targetType": "Typ cieľa",
-      "title": "Filtre",
       "to": "Do"
     },
     "notRecorded": "Nezaznamenané",
@@ -838,7 +825,8 @@
       "order": "Poradie"
     },
     "updating": "Aktualizuje sa…",
-    "backToList": "Späť na zoznam"
+    "backToList": "Späť na zoznam",
+    "columns": "Stĺpce"
   },
   "nav": {
     "apiKeys": "API kľúče",

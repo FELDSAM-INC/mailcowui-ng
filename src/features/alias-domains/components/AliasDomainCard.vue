@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 
@@ -8,7 +10,7 @@ import DataCardFields from '@/shared/components/DataCardFields.vue'
 import { computed } from 'vue'
 
 import type { AliasDomain } from '@/api'
-import YesNoMark from '@/shared/components/YesNoMark.vue'
+
 import { lt } from '@/i18n'
 import DomainNameText from '@/shared/components/DomainNameText.vue'
 
@@ -24,6 +26,7 @@ const headingId = computed(() => `alias-domain-card-${props.aliasDomain.name}`)
     :title-id="headingId"
     :to="{ name: 'alias-domain-detail', params: { aliasDomain: aliasDomain.name } }"
   >
+    <template #badges><ActiveBadge :active="aliasDomain.active" /></template>
     <template #title>
       <DomainNameText :name="aliasDomain.name" :unicode-name="aliasDomain.nameUnicode" />
     </template>
@@ -35,10 +38,6 @@ const headingId = computed(() => `alias-domain-card-${props.aliasDomain.name}`)
         <dd class="min-w-0 text-gray-900 dark:text-white">
           <TargetDomainText :alias-domain="aliasDomain" :link-domains="linkDomains" />
         </dd>
-      </div>
-      <div class="flex gap-1.5" data-field="active">
-        <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.active') }}</dt>
-        <dd class="text-gray-900 dark:text-white"><YesNoMark :value="aliasDomain.active" /></dd>
       </div>
     </DataCardFields>
   </DataCard>

@@ -14,8 +14,6 @@
     "filters": {
       "any": "Ľubovoľné",
       "clear": "Vymazať filtre",
-      "title": "Filtre",
-      "withCount": "Filtre ({count})",
       "chip": "{filter}: {value}"
     },
     "form": {
@@ -67,12 +65,7 @@
     "running": {
       "note": "Prebiehajúci beh sa nepreruší a dokončí sa sám."
     },
-    "sort": {
-      "asc": "Vzostupne",
-      "desc": "Zostupne",
-      "label": "Zoradiť podľa",
-      "order": "Poradie"
-    },
+    "sort": {},
     "create": {
       "loadFailed": "Formulár sa nepodarilo načítať."
     },

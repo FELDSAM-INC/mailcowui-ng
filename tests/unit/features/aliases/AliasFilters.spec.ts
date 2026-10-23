@@ -1,3 +1,4 @@
+import { installMatchMedia } from '../../support/media'
 // The alias filters (T033, FR-011, FR-013): the domain pickers (domains and alias domains for
 // "Domain", domains for "Target domain"), the delivers-to mailbox picker, kind and destination type
 // with legacy's labels, the flags, the groupware filter only with the groupware, and "clear all".
@@ -34,6 +35,7 @@ const mountFilters = (groupwareEnabled: boolean | undefined, activeCount = 0) =>
 
 describe('AliasFilters', () => {
   it('offers the pickers, the kinds and destination types with legacy texts, and the flags', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountFilters(true, 2)
     expect(wrapper.get('button').text()).toBe('Filters (2)')
     const comboboxes = wrapper.findAll('[role="combobox"]')

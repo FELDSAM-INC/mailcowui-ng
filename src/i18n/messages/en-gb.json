@@ -89,9 +89,7 @@
       "allAccessLevels": "All access levels",
       "allStatuses": "All statuses",
       "clear": "Clear filters",
-      "ownerHint": "Choose an owner, or type a username and press Enter.",
-      "sort": "Sort by",
-      "title": "Filters"
+      "ownerHint": "Choose an owner, or type a username and press Enter."
     },
     "form": {
       "access": "Access",
@@ -133,16 +131,7 @@
       "description": "Copy the secret of “{name}” now and store it safely, for example in the program's settings.",
       "title": "Your new API key"
     },
-    "sorts": {
-      "createdAt_asc": "Oldest first",
-      "createdAt_desc": "Newest first",
-      "expiresAt_asc": "Expiry, soonest first",
-      "expiresAt_desc": "Expiry, latest first",
-      "lastUsedAt_asc": "Last used, least recently first",
-      "lastUsedAt_desc": "Last used, most recently first",
-      "name_asc": "Name, A to Z",
-      "name_desc": "Name, Z to A"
-    },
+    "sorts": {},
     "title": "API keys"
   },
   "auditLog": {
@@ -186,7 +175,6 @@
       "addressHelp": "An IPv4 or IPv6 address or a network, for example 192.0.2.0/24.",
       "anyOutcome": "Any outcome",
       "anyTargetType": "Any target type",
-      "apply": "Apply filters",
       "clear": "Clear filters",
       "eventTypes": "Event types",
       "from": "From",
@@ -202,7 +190,6 @@
       },
       "targetId": "Target",
       "targetType": "Target type",
-      "title": "Filters",
       "to": "To"
     },
     "notRecorded": "Not recorded",
@@ -838,7 +825,8 @@
       "order": "Order"
     },
     "updating": "Updating…",
-    "backToList": "Back to the list"
+    "backToList": "Back to the list",
+    "columns": "Columns"
   },
   "nav": {
     "apiKeys": "API keys",

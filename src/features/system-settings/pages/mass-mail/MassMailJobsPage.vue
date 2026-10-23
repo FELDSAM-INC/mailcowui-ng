@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import FilterPanel from '@/shared/components/FilterPanel.vue'
+import SearchField from '@/shared/components/SearchField.vue'
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+import { useDataList, useDataColumns } from '@/shared/composables/useDataList'
+
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 import DataCard from '@/shared/components/DataCard.vue'
-import { computed, onScopeDispose, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { RouterLink } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -19,13 +25,18 @@ import { jobListOptions, runningJobOptions } from '../../api/mass-mail'
 import JobProgress from '../../components/mass-mail/JobProgress.vue'
 const { t } = useI18n()
 const list = useListState({
+  sort: {
+    values: ['createdAt', 'status'] as const,
+    default: 'createdAt',
+    defaultOrder: () => 'desc',
+  },
   filters: { q: text({ maxLength: 255 }), status: oneOf(['running', 'completed', 'cancelled']) },
 })
 const params = computed(() => ({
   ...list.paging.value,
   ...list.state.value.filters,
-  sort: 'createdAt' as const,
-  order: 'desc' as const,
+  sort: list.state.value.sort ?? 'createdAt',
+  order: list.state.value.order ?? 'desc',
 }))
 const query = useQuery(computed(() => jobListOptions(params.value))),
   running = useQuery(runningJobOptions())
@@ -36,28 +47,31 @@ watch(
     search.value = value ?? ''
   },
 )
-let timer: ReturnType<typeof setTimeout> | undefined
-function searchChanged() {
-  if (timer) clearTimeout(timer)
-  timer = setTimeout(() => {
-    void list.setFilter('q', search.value || undefined, { typing: true })
-  }, 300)
-}
-onScopeDispose(() => {
-  if (timer) clearTimeout(timer)
-})
+
+const dataList = useDataList('mass-mail-jobs', () => ({
+  key: list.state.value.sort,
+  order: list.state.value.order ?? 'desc',
+  change: (key, order) => {
+    void list.setSort(key as 'createdAt' | 'status', order)
+  },
+}))
+const tableView = useDataColumns(
+  () => [
+    { id: 'subject', label: lt('admin.subject') },
+    { id: 'status', label: t('systemSettings.massMail.status'), sort: 'status' },
+    { id: 'creator', label: t('systemSettings.massMail.creator') },
+    { id: 'createdAt', label: t('systemSettings.massMail.createdAt'), sort: 'createdAt' },
+    { id: 'recipients', label: lt('admin.recipients') },
+  ],
+  undefined,
+  dataList,
+)
 </script>
 <template>
   <div class="min-w-0 space-y-4">
     <PageHeader :title="t('systemSettings.massMail.jobs')"
-      ><template #actions
-        ><HistoryLink target-type="massMailJob" /><RouterLink
-          :to="{ name: 'system-settings-mass-mail-send' }"
-          :class="buttonVariants({ variant: 'default' })"
-          >{{ t('systemSettings.massMail.compose') }}</RouterLink
-        ></template
-      ></PageHeader
-    >
+      ><template #actions><HistoryLink target-type="massMailJob" /></template
+    ></PageHeader>
     <RouterLink
       v-if="running.data.value?.data[0]"
       :to="{
@@ -67,40 +81,48 @@ onScopeDispose(() => {
       :class="buttonVariants({ variant: 'outline' })"
       >{{ t('systemSettings.massMail.viewJob') }}</RouterLink
     >
-    <div class="grid gap-4 sm:grid-cols-2">
-      <FormField id="mass-jobs-search" :label="t('systemSettings.massMail.searchJobs')"
-        ><template #default="control"
-          ><input
-            v-bind="control"
-            v-model="search"
-            type="search"
-            class="form-control"
-            @input="searchChanged" /></template></FormField
-      ><FormField id="mass-job-status" :label="t('systemSettings.massMail.status')"
-        ><template #default="control"
-          ><select
-            v-bind="control"
-            :value="list.state.value.filters.status ?? ''"
-            class="form-control"
-            @change="
-              list.setFilter(
-                'status',
-                (($event.target as HTMLSelectElement).value || undefined) as
-                  MassMailJobStatus | undefined,
-              )
-            "
-          >
-            <option value="">{{ t('systemSettings.massMail.allStatuses') }}</option>
-            <option
-              v-for="status in ['running', 'completed', 'cancelled']"
-              :key="status"
-              :value="status"
-            >
-              {{ t(`systemSettings.massMail.statuses.${status}`) }}
-            </option>
-          </select></template
-        ></FormField
-      >
+    <div>
+      <ListToolbar
+        ><template #filters
+          ><FilterPanel
+            id="mass-jobs-filters"
+            immediate
+            :active-count="list.state.value.filters.status ? 1 : 0"
+            ><FormField id="mass-job-status" :label="t('systemSettings.massMail.status')"
+              ><template #default="control"
+                ><select
+                  v-bind="control"
+                  :value="list.state.value.filters.status ?? ''"
+                  class="form-control"
+                  @change="
+                    list.setFilter(
+                      'status',
+                      (($event.target as HTMLSelectElement).value || undefined) as
+                        MassMailJobStatus | undefined,
+                    )
+                  "
+                >
+                  <option value="">{{ t('systemSettings.massMail.allStatuses') }}</option>
+                  <option
+                    v-for="status in ['running', 'completed', 'cancelled']"
+                    :key="status"
+                    :value="status"
+                  >
+                    {{ t(`systemSettings.massMail.statuses.${status}`) }}
+                  </option>
+                </select></template
+              ></FormField
+            ></FilterPanel
+          ></template
+        ><template #search
+          ><SearchField
+            id="mass-jobs-search"
+            :label="t('systemSettings.massMail.searchJobs')"
+            :model-value="list.state.value.filters.q ?? ''"
+            @search="
+              (value) => list.setFilter('q', value || undefined, { typing: true })
+            " /></template
+      ></ListToolbar>
     </div>
     <p v-if="query.isPending.value" role="status">{{ lt('footer.loading') }}</p>
     <ProblemMessage
@@ -141,19 +163,11 @@ onScopeDispose(() => {
           <table class="data-table w-full text-start">
             <thead>
               <tr>
-                <th scope="col" class="p-3 text-start">{{ lt('admin.subject') }}</th>
-                <th scope="col" class="p-3 text-start">
-                  {{ t('systemSettings.massMail.status') }}
-                </th>
-                <th scope="col" class="p-3 text-start">
-                  {{ t('systemSettings.massMail.creator') }}
-                </th>
-                <th scope="col" class="p-3 text-start" aria-sort="descending">
-                  {{ t('systemSettings.massMail.createdAt') }}
-                </th>
-                <th scope="col" class="p-3 text-start">
-                  {{ lt('admin.recipients') }}
-                </th>
+                <DataTableHeader column="subject" />
+                <DataTableHeader column="status" />
+                <DataTableHeader column="creator" />
+                <DataTableHeader column="createdAt" />
+                <DataTableHeader column="recipients" />
               </tr>
             </thead>
             <tbody>
@@ -162,7 +176,11 @@ onScopeDispose(() => {
                 :key="job.id"
                 class="border-t border-gray-200 dark:border-gray-800"
               >
-                <td class="max-w-xs p-3">
+                <td
+                  v-show="tableView.visible('subject')"
+                  :data-column="'subject'"
+                  class="max-w-xs p-3"
+                >
                   <RouterLink
                     :to="{ name: 'system-settings-mass-mail-job', params: { jobId: job.id } }"
                     :class="
@@ -174,10 +192,26 @@ onScopeDispose(() => {
                     >{{ job.subject }}</RouterLink
                   >
                 </td>
-                <td class="p-3">{{ t(`systemSettings.massMail.statuses.${job.status}`) }}</td>
-                <td class="p-3 wrap-anywhere">{{ job.createdBy.username }}</td>
-                <td class="p-3"><DateTime :value="job.createdAt" /></td>
-                <td class="min-w-64 p-3"><JobProgress :counts="job.counts" /></td>
+                <td v-show="tableView.visible('status')" :data-column="'status'" class="p-3">
+                  {{ t(`systemSettings.massMail.statuses.${job.status}`) }}
+                </td>
+                <td
+                  v-show="tableView.visible('creator')"
+                  :data-column="'creator'"
+                  class="p-3 wrap-anywhere"
+                >
+                  {{ job.createdBy.username }}
+                </td>
+                <td v-show="tableView.visible('createdAt')" :data-column="'createdAt'" class="p-3">
+                  <DateTime :value="job.createdAt" />
+                </td>
+                <td
+                  v-show="tableView.visible('recipients')"
+                  :data-column="'recipients'"
+                  class="min-w-64 p-3"
+                >
+                  <JobProgress :counts="job.counts" />
+                </td>
               </tr>
             </tbody>
           </table>

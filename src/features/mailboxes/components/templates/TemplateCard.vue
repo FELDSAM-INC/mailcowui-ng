@@ -65,7 +65,9 @@ const flags = computed(() => values.value.filter((item) => typeof item.value ===
     :details-id="`${id}-details`"
     :details-label="t('domainTemplates.list.detailsOf', { name: template.name })"
   >
-    <template v-if="template.isDefault" #badges><DefaultBadge /></template>
+    <template #badges
+      ><DefaultBadge v-if="template.isDefault" /><MailboxStatusBadge :status="template.status"
+    /></template>
     <template v-if="$slots.select" #select><slot name="select" /></template>
     <template v-if="$slots.actions" #actions><slot name="actions" /></template>
     <DataCardFields>
@@ -80,10 +82,6 @@ const flags = computed(() => values.value.filter((item) => typeof item.value ===
         <dd class="break-words text-gray-900 dark:text-white">
           {{ item.value }}
         </dd>
-      </div>
-      <div data-column="status" class="flex flex-wrap items-start gap-x-1">
-        <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.active') }}:</dt>
-        <dd><MailboxStatusBadge :status="template.status" /></dd>
       </div>
     </DataCardFields>
     <DataCardFields inline>

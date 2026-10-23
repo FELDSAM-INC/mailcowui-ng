@@ -83,7 +83,8 @@ const network: ParamSpec<string | undefined> = {
   isSet: (value) => value !== undefined,
 }
 
-export const auditListSchema: ListSchema<AuditFilterValues> = {
+export const auditListSchema: ListSchema<AuditFilterValues, 'occurredAt'> = {
+  sort: { values: ['occurredAt'], default: 'occurredAt', defaultOrder: () => 'desc' },
   filters: {
     range: oneOf(AUDIT_RANGES),
     from: custom(time),
@@ -99,7 +100,7 @@ export const auditListSchema: ListSchema<AuditFilterValues> = {
 
 /** The request parameters of a list state; presets are resolved against `now`. */
 export function toAuditParams(
-  state: ListState<AuditFilterValues, never>,
+  state: ListState<AuditFilterValues, 'occurredAt'>,
   now: number = Date.now(),
 ): AuditListParams {
   const { filters } = state
@@ -107,7 +108,7 @@ export function toAuditParams(
     limit: state.size,
     offset: (state.page - 1) * state.size,
     sort: 'occurredAt',
-    order: 'desc',
+    order: state.order ?? 'desc',
     ...resolveRange(filters, now),
   }
   if (filters.event.length > 0) params.eventType = [...filters.event]

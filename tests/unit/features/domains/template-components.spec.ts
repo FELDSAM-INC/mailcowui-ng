@@ -93,7 +93,6 @@ describe('TemplateTable', () => {
       'Relay domain',
       'Relay all recipients',
       'Relay unknown mailboxes',
-      'Active',
       'Action',
     ])
     const sorted = wrapper.findAll('th[aria-sort]')
@@ -110,13 +109,15 @@ describe('TemplateTable', () => {
         order: 'asc',
       },
     })
-    expect(wrapper.find('[data-column="domainQuota"]').exists()).toBe(false)
+    expect(wrapper.find('[data-column="domainQuota"]').isVisible()).toBe(false)
     expect(wrapper.find('[data-default-badge]').exists()).toBe(true)
     const row = wrapper.get('tbody tr[data-entry]')
     expect(row.find('td:first-child button[aria-expanded]').exists()).toBe(false)
     await row.get('td:last-child button[aria-expanded]').trigger('click')
     const details = wrapper.get('[data-entry-details]')
-    expect(Number(details.attributes('colspan'))).toBe(row.findAll('td').length)
+    expect(Number(details.attributes('colspan'))).toBe(
+      row.findAll('td').filter((td) => td.isVisible()).length,
+    )
     expect(details.find('[data-column="domainQuota"]').text()).toContain('10 GiB')
     expect(details.find('[data-column="relayUnknownOnly"]').exists()).toBe(true)
     expect(details.text()).toContain('10 msgs / hour')
@@ -138,7 +139,7 @@ describe('TemplateTable', () => {
     ])
     await controls.get('button[aria-expanded]').trigger('click')
     expect(Number(wrapper.get('[data-entry-details]').attributes('colspan'))).toBe(
-      row.findAll('td').length,
+      row.findAll('td').filter((td) => td.isVisible()).length,
     )
   })
 })
@@ -213,7 +214,6 @@ describe('DomainValueFields', () => {
       'Max. quota per mailbox (MiB)',
       'Total domain quota (MiB)',
       'Global Address List',
-      'Active',
       'Rate limit',
       'Selector',
       'DKIM key length (bits)',

@@ -6,7 +6,6 @@
 // unknown entry shows "not found" with the way back to the list; a failed read offers a retry.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import { isApiProblem, problemOf, type ApiProblem } from '@/api'
 import { lt } from '@/i18n'
@@ -74,12 +73,6 @@ useStickyBarFocus()
     <ProblemMessage :problem="problemOf(error)" retry @retry="emit('retry')" />
   </section>
   <article v-else class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <RouterLink
-      :to="{ name: listRoute }"
-      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-    >
-      <span aria-hidden="true">←&nbsp;</span>{{ lt('edit.previous') }}
-    </RouterLink>
     <PageHeader :title="lt('edit.title')" :description="description">
       <template v-if="history" #actions>
         <HistoryLink :target-type="history.targetType" :target-id="history.targetId" />

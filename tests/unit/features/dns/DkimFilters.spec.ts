@@ -1,3 +1,4 @@
+import { installMatchMedia } from '../../support/media'
 // The DKIM list filters (T035, FR-009, US1-AS6): the classic state toggles as filters, kind and
 // completeness, the selector and domain chips, the active count and "clear all"; administrators
 // only get "Key unused" and "No domain".
@@ -18,6 +19,7 @@ const base = {
 
 describe('DkimFilters', () => {
   it('offers every option to administrators', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(DkimFilters, { props: { ...base, role: 'admin' } })
     await wrapper.get('[aria-controls="dkim-filters"]').trigger('click')
     const labels = wrapper.findAll('label').map((label) => label.text())
@@ -26,6 +28,7 @@ describe('DkimFilters', () => {
   })
 
   it('leaves out "Key unused" and "No domain" for domain administrators', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(DkimFilters, { props: { ...base, role: 'domainAdmin' } })
     await wrapper.get('[aria-controls="dkim-filters"]').trigger('click')
     expect(wrapper.text()).not.toContain('Key unused')
@@ -33,6 +36,7 @@ describe('DkimFilters', () => {
   })
 
   it('updates states, kind and completeness and clears everything', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(DkimFilters, { props: { ...base, role: 'admin' } })
     await wrapper.get('[aria-controls="dkim-filters"]').trigger('click')
     await wrapper.get('input[value="missing"]').setValue(true)
@@ -44,6 +48,7 @@ describe('DkimFilters', () => {
   })
 
   it('names the active filters and shows selector and domain chips', async () => {
+    installMatchMedia({ '(min-width: 768px)': true })
     const wrapper = mountWithApp(DkimFilters, {
       props: {
         ...base,

@@ -232,14 +232,8 @@ async function send() {
 <template>
   <div class="min-w-0 space-y-4" data-mass-mail-compose>
     <PageHeader :title="lt('admin.sys_mails')"
-      ><template #actions
-        ><HistoryLink target-type="massMailJob" /><RouterLink
-          :to="{ name: 'system-settings-mass-mail-jobs' }"
-          :class="buttonVariants({ variant: 'outline' })"
-          >{{ t('systemSettings.massMail.jobs') }}</RouterLink
-        ></template
-      ></PageHeader
-    >
+      ><template #actions><HistoryLink target-type="massMailJob" /></template
+    ></PageHeader>
     <p v-if="capabilities.demoMode" data-mass-mail-demo role="status">
       {{ lt('danger.demo_mode_enabled') }}
     </p>

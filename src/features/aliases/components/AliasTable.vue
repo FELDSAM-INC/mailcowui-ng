@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 // Keep the primary alias values visible and reveal comments and secondary flags on demand.
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,6 +25,7 @@ import DestinationSummary from './DestinationSummary.vue'
 
 const props = withDefaults(
   defineProps<{
+    hidden?: boolean
     aliases: readonly Alias[]
     sort: AliasSort
     order: SortOrder
@@ -43,18 +50,11 @@ const COLUMNS: Column[] = [
   { key: 'address', label: legacy('mailbox.alias'), sort: 'address', className: 'w-64' },
   { key: 'destinations', label: legacy('mailbox.target_address'), className: 'w-64' },
   { key: 'domain', label: legacy('mailbox.domain'), sort: 'domain', className: 'w-48' },
-  { key: 'active', label: legacy('mailbox.active'), sort: 'active', className: 'w-20' },
 ]
 const expanded = ref(new Set<number>())
 function toggle(id: number) {
   if (expanded.value.has(id)) expanded.value.delete(id)
   else expanded.value.add(id)
-}
-
-function ariaSort(key: AliasSort | undefined) {
-  if (!key) return undefined
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
 }
 
 function sortBy(key: AliasSort) {
@@ -64,10 +64,24 @@ function sortBy(key: AliasSort) {
 }
 
 const comment = (value: string) => value || '-'
+
+const tableView = useDataColumns(
+  () =>
+    COLUMNS.map((column) => ({
+      id: column.key,
+      label: resolveText(column.label, t),
+      sort: column.sort,
+    })),
+  () => ({
+    key: props.sort,
+    order: props.order,
+    change: (key) => sortBy(key as Parameters<typeof sortBy>[0]),
+  }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full min-w-[54rem] table-fixed text-sm">
       <caption class="sr-only">
         {{
@@ -77,27 +91,13 @@ const comment = (value: string) => value || '-'
       <thead class="border-b border-gray-200 dark:border-gray-800">
         <tr>
           <th v-if="selectable" scope="col" class="w-14 px-2 py-2"><slot name="select-all" /></th>
-          <th
+          <DataTableHeader
             v-for="column in COLUMNS"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-2 py-2 text-start align-bottom"
             :class="column.className"
-            :aria-sort="ariaSort(column.sort)"
-          >
-            <button
-              v-if="column.sort"
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start break-words hover:text-gray-900 dark:hover:text-white"
-              @click="sortBy(column.sort)"
-            >
-              {{ resolveText(column.label, t) }}
-              <span aria-hidden="true">{{
-                sort === column.sort ? (order === 'asc' ? '▲' : '▼') : ''
-              }}</span>
-            </button>
-            <span v-else class="break-words">{{ resolveText(column.label, t) }}</span>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-2 py-2 text-end">
             <span class="sr-only">{{ lt('mailbox.action') }}</span>
           </th>
@@ -107,10 +107,18 @@ const comment = (value: string) => value || '-'
         <template v-for="alias in aliases" :key="alias.id">
           <tr :data-entry="alias.id" class="align-top">
             <td v-if="selectable" class="px-2 py-3"><slot name="select" :alias="alias" /></td>
-            <td class="px-2 py-3 text-gray-700 dark:text-gray-300">
+            <td
+              v-show="tableView.visible(String('id'))"
+              :data-column="String('id')"
+              class="px-2 py-3 text-gray-700 dark:text-gray-300"
+            >
               {{ alias.id }}
             </td>
-            <td class="px-2 py-3">
+            <td
+              v-show="tableView.visible(String('address'))"
+              :data-column="String('address')"
+              class="px-2 py-3"
+            >
               <div class="flex min-w-0 flex-col gap-1.5">
                 <RouterLink
                   :to="{ name: 'alias-detail', params: { aliasId: alias.id } }"
@@ -125,14 +133,23 @@ const comment = (value: string) => value || '-'
                 </RouterLink>
                 <AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" />
               </div>
+              <div class="mt-1"><ActiveBadge :active="alias.active" /></div>
             </td>
-            <td class="px-2 py-3 text-gray-900 dark:text-white">
+            <td
+              v-show="tableView.visible(String('destinations'))"
+              :data-column="String('destinations')"
+              class="px-2 py-3 text-gray-900 dark:text-white"
+            >
               <DestinationSummary :alias="alias" />
             </td>
-            <td class="px-2 py-3 text-gray-900 dark:text-white">
+            <td
+              v-show="tableView.visible(String('domain'))"
+              :data-column="String('domain')"
+              class="px-2 py-3 text-gray-900 dark:text-white"
+            >
               <AliasDomainText class="table-identity" :title="alias.domainUnicode" :alias="alias" />
             </td>
-            <td class="px-2 py-3" data-field="active"><YesNoMark :value="alias.active" /></td>
+
             <td class="table-controls-cell px-2 py-3">
               <RowControls
                 :expanded="expanded.has(alias.id)"
@@ -145,7 +162,16 @@ const comment = (value: string) => value || '-'
             </td>
           </tr>
           <tr v-if="expanded.has(alias.id)" :id="`alias-details-${alias.id}`">
-            <td :colspan="COLUMNS.length + 1 + Number(selectable)" class="px-4 py-3">
+            <td
+              :colspan="
+                COLUMNS.length +
+                1 +
+                Number(selectable) -
+                tableView.columns.value.length +
+                tableView.visibleCount.value
+              "
+              class="px-4 py-3"
+            >
               <dl class="grid gap-x-6 gap-y-3 sm:grid-cols-2" :data-entry-details="alias.id">
                 <div v-if="groupwareEnabled" data-field="groupwareVisible">
                   <dt class="text-muted">{{ lt('mailbox.sogo_visible') }}</dt>

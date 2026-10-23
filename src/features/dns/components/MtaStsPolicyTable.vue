@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import DataTableHeader from '@/shared/components/DataTableHeader.vue'
+
+import { useDataColumns } from '@/shared/composables/useDataList'
+
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
+
 // MTA-STS policies as a table from md up (FR-055): sortable headers with `aria-sort` for the
 // domain, mode, max age and identifier; the MX servers and the active state.
 import { useI18n } from 'vue-i18n'
@@ -12,12 +18,11 @@ import DomainNameText from '@/shared/components/DomainNameText.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import RowAction from '@/shared/components/RowAction.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { ChevronDownIcon } from '@/shared/icons'
 
 import type { MtaStsSort } from '../mta-sts/list-state'
-import MtaStsActiveBadge from './MtaStsActiveBadge.vue'
 
 const props = defineProps<{
+  hidden?: boolean
   policies: readonly MtaStsPolicy[]
   sort: MtaStsSort
   order: SortOrder
@@ -28,7 +33,7 @@ const { locale } = useI18n()
 type Column = MtaStsSort | 'mxHosts' | 'active'
 const COLUMNS: { key: Column; sortable: boolean }[] = [
   { key: 'domain', sortable: true },
-  { key: 'active', sortable: false },
+
   { key: 'mode', sortable: true },
   { key: 'mxHosts', sortable: false },
   { key: 'maxAge', sortable: true },
@@ -41,44 +46,33 @@ function header(key: Column): string {
   return text(`dns.mtaSts.sort.${key}`)
 }
 
-function ariaSort(key: Column) {
-  if (key !== props.sort) return 'none'
-  return props.order === 'asc' ? 'ascending' : 'descending'
-}
-
 function onSort(key: MtaStsSort) {
   emit('sort', key, key === props.sort && props.order === 'asc' ? 'desc' : 'asc')
 }
+
+const tableView = useDataColumns(
+  () =>
+    COLUMNS.map((column) => ({
+      id: column.key,
+      label: header(column.key),
+      sort: column.sortable ? column.key : undefined,
+    })),
+  () => ({ key: props.sort, order: props.order, change: (key) => onSort(key as MtaStsSort) }),
+)
 </script>
 
 <template>
-  <div class="table-frame">
+  <div v-if="!hidden" class="table-frame">
     <table class="data-table w-full table-fixed text-start text-sm">
       <thead>
         <tr>
-          <th
+          <DataTableHeader
             v-for="column in COLUMNS"
             :key="column.key"
-            scope="col"
+            :column="String(column.key)"
             class="px-3 py-2 text-start"
             :class="column.key === 'domain' ? 'w-1/4' : ''"
-            :aria-sort="column.sortable ? ariaSort(column.key) : undefined"
-          >
-            <button
-              v-if="column.sortable"
-              type="button"
-              class="inline-flex min-h-11 items-center gap-1 text-start"
-              @click="onSort(column.key as MtaStsSort)"
-            >
-              {{ header(column.key) }}
-              <ChevronDownIcon
-                v-if="column.key === sort"
-                class="size-4"
-                :class="order === 'asc' ? 'rotate-180' : ''"
-              />
-            </button>
-            <template v-else>{{ header(column.key) }}</template>
-          </th>
+          />
           <th scope="col" class="table-controls-cell px-3 py-2 text-end">
             {{ lt('mailbox.action') }}
           </th>
@@ -86,23 +80,46 @@ function onSort(key: MtaStsSort) {
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <tr v-for="policy in policies" :key="policy.domain" :data-entry="policy.domain">
-          <td class="px-3 py-2 font-medium text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
+            :data-column="String(tableView.columns.value[0]!.id)"
+            class="px-3 py-2 font-medium text-gray-900 dark:text-white"
+          >
             <RouterLink
               :to="{ name: 'domain-detail', params: { domain: policy.domain }, hash: '#mta-sts' }"
               class="inline-flex min-h-11 items-center underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
             >
               <DomainNameText :name="policy.domain" :unicode-name="policy.displayDomain" />
             </RouterLink>
+            <div class="mt-1"><ActiveBadge :active="policy.active" /></div>
           </td>
-          <td class="px-3 py-2"><MtaStsActiveBadge :active="policy.active" /></td>
-          <td class="px-3 py-2 font-mono text-gray-900 dark:text-white">{{ policy.mode }}</td>
-          <td class="px-3 py-2 font-mono break-all text-gray-900 dark:text-white">
+
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[1]!.id))"
+            :data-column="String(tableView.columns.value[1]!.id)"
+            class="px-3 py-2 font-mono text-gray-900 dark:text-white"
+          >
+            {{ policy.mode }}
+          </td>
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[2]!.id))"
+            :data-column="String(tableView.columns.value[2]!.id)"
+            class="px-3 py-2 font-mono break-all text-gray-900 dark:text-white"
+          >
             {{ policy.mxHosts.join(', ') }}
           </td>
-          <td class="px-3 py-2 text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[3]!.id))"
+            :data-column="String(tableView.columns.value[3]!.id)"
+            class="px-3 py-2 text-gray-900 dark:text-white"
+          >
             {{ formatNumber(policy.maxAge, locale as AppLocale) }}
           </td>
-          <td class="px-3 py-2 font-mono break-all text-gray-900 dark:text-white">
+          <td
+            v-show="tableView.visible(String(tableView.columns.value[4]!.id))"
+            :data-column="String(tableView.columns.value[4]!.id)"
+            class="px-3 py-2 font-mono break-all text-gray-900 dark:text-white"
+          >
             {{ policy.policyId }}
           </td>
           <td class="table-controls-cell px-3 py-2">

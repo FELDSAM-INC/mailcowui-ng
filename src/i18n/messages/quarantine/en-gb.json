@@ -3,9 +3,7 @@
     "nav": {
       "label": "Quarantine sections"
     },
-    "list": {
-      "details": "Details"
-    },
+    "list": {},
     "filters": {
       "receivedFrom": "From",
       "receivedTo": "To",

@@ -2,7 +2,8 @@
 // A list's search field (UI 004 research R7, FR-010): it searches when the form is submitted, at
 // once, or after a pause in typing (500 ms by default), and offers a clear action. The parent owns
 // the value in the page address and announces the result count after the list reloads.
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, ref, watch } from 'vue'
+import { listToolbarTarget } from '@/shared/composables/useDataList'
 import { useI18n } from 'vue-i18n'
 
 import { CloseIcon } from '../icons'
@@ -22,6 +23,7 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ search: [value: string] }>()
 const { t } = useI18n()
+const toolbar = inject(listToolbarTarget, undefined)
 
 const value = ref(props.modelValue)
 let timer: ReturnType<typeof setTimeout> | undefined
@@ -73,7 +75,7 @@ onBeforeUnmount(stop)
     <label
       :id="`${id}-label`"
       :for="id"
-      class="text-sm font-medium text-gray-800 dark:text-gray-200"
+      :class="toolbar ? 'sr-only' : 'text-sm font-medium text-gray-800 dark:text-gray-200'"
     >
       {{ label }}
     </label>
@@ -81,6 +83,7 @@ onBeforeUnmount(stop)
       <input
         :id="id"
         type="search"
+        :placeholder="toolbar ? label : undefined"
         :value="value"
         :maxlength="maxLength"
         autocomplete="off"
@@ -105,7 +108,7 @@ onBeforeUnmount(stop)
     <p
       v-if="description"
       :id="`${id}-description`"
-      class="text-sm text-gray-600 dark:text-gray-400"
+      :class="toolbar ? 'sr-only' : 'text-sm text-gray-600 dark:text-gray-400'"
     >
       {{ description }}
     </p>

@@ -34,7 +34,7 @@ const title = computed(() => resolveText(listTexts(props.role).title, t))
 
 <template>
   <SyncJobTable
-    v-if="wide"
+    :hidden="!wide"
     :jobs="jobs"
     :role="role"
     :sort="sort"
@@ -46,7 +46,7 @@ const title = computed(() => resolveText(listTexts(props.role).title, t))
     <template #select="{ job }"><slot name="select" :job="job" /></template>
     <template #actions="{ job }"><slot name="actions" :job="job" /></template>
   </SyncJobTable>
-  <ul v-else :aria-label="title" class="flex flex-col gap-3">
+  <ul v-if="!wide" :aria-label="title" class="flex flex-col gap-3">
     <SyncJobCard v-for="job in jobs" :key="job.id" :job="job" :role="role">
       <template v-if="selectable" #select><slot name="select" :job="job" /></template>
       <template #actions><slot name="actions" :job="job" /></template>

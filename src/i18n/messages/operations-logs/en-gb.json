@@ -18,10 +18,7 @@
       },
       "more100": "+ 100",
       "more1000": "+ 1000",
-      "sort": {
-        "asc": "Ascending",
-        "desc": "Descending"
-      },
+      "sort": {},
       "columns": {
         "userAgent": "User-Agent",
         "ip": "IP",
@@ -55,10 +52,7 @@
       "noneScanned": "No messages were scanned yet.",
       "above": "above the required score",
       "below": "below the required score",
-      "sort": {
-        "label": "Sort by",
-        "order": "Order"
-      },
+      "sort": {},
       "columns": {
         "ip": "IP address",
         "to": "To",

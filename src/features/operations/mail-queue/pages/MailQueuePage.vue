@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import ListToolbar from '@/shared/components/ListToolbar.vue'
+import { useDataList } from '@/shared/composables/useDataList'
+
 // The Queue Manager (UI 011 US4, FR-050 to FR-062), mirroring `templates/queue.twig`: the title
 // with the number of queued messages, Refresh, the explanation and the legend, the list with
 // legacy's search, sortable columns and pages (cards below md, a table from md up), selection mode
@@ -40,7 +43,7 @@ import QueueLegend from '../components/QueueLegend.vue'
 import QueueMessageCard from '../components/QueueMessageCard.vue'
 import QueueMessageTable from '../components/QueueMessageTable.vue'
 import { useQueueActions } from '../composables/useQueueActions'
-import { MAIL_QUEUE_SORTS, useMailQueueListState, type MailQueueSort } from '../list-state'
+import { useMailQueueListState, type MailQueueSort } from '../list-state'
 import { RestartIcon } from '../../icons'
 
 const props = defineProps<{ queueId?: string }>()
@@ -198,6 +201,8 @@ function flush() {
 function purge() {
   void actions.purge()
 }
+
+useDataList('operations-mail-queue-pages-mailqueuepage')
 </script>
 
 <template>
@@ -218,14 +223,6 @@ function purge() {
         >
       </div>
       <div class="flex shrink-0 flex-wrap gap-2">
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-pressed="selection.active.value ? 'true' : 'false'"
-          @click="toggleSelecting"
-        >
-          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
-        </button>
         <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
           <RestartIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
           {{ lt('admin.refresh') }}
@@ -236,63 +233,23 @@ function purge() {
 
     <QueueLegend />
 
-    <SearchField
-      id="mail-queue-search"
-      :label="lt('datatables.search')"
-      :model-value="state.filters.q ?? ''"
-      @search="onSearch"
-    />
-    <div v-if="!wide" class="grid grid-cols-2 gap-3">
-      <div class="flex flex-col gap-1.5">
-        <label for="mail-queue-sort" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ t('domains.sort.label') }}
-        </label>
-        <select
-          id="mail-queue-sort"
-          class="form-control"
-          :value="state.sort"
-          @change="
-            setSort(
-              ($event.target as HTMLSelectElement).value as MailQueueSort,
-              state.order ?? 'asc',
-            )
-          "
+    <ListToolbar
+      ><template #select
+        ><button
+          type="button"
+          :class="buttonVariants({ variant: 'outline' })"
+          :aria-pressed="selection.active.value ? 'true' : 'false'"
+          @click="toggleSelecting"
         >
-          <option v-for="sort in MAIL_QUEUE_SORTS" :key="sort" :value="sort">
-            {{
-              sort === 'id'
-                ? t('operations.queue.qid')
-                : sort === 'queue'
-                  ? t('operations.queue.queue')
-                  : sort === 'arrivalTime'
-                    ? lt('admin.arrival_time')
-                    : sort === 'size'
-                      ? lt('admin.message_size')
-                      : lt('admin.sender')
-            }}
-          </option>
-        </select>
-      </div>
-      <div class="flex flex-col gap-1.5">
-        <label for="mail-queue-order" class="text-sm font-medium text-gray-800 dark:text-gray-200">
-          {{ t('domains.sort.order') }}
-        </label>
-        <select
-          id="mail-queue-order"
-          class="form-control"
-          :value="state.order"
-          @change="
-            setSort(
-              state.sort ?? 'arrivalTime',
-              ($event.target as HTMLSelectElement).value as 'asc' | 'desc',
-            )
-          "
-        >
-          <option value="asc">{{ t('domains.sort.asc') }}</option>
-          <option value="desc">{{ t('domains.sort.desc') }}</option>
-        </select>
-      </div>
-    </div>
+          {{ selection.active.value ? t('bulk.exitSelection') : t('bulk.select') }}
+        </button></template
+      ><template #search
+        ><SearchField
+          id="mail-queue-search"
+          :label="lt('datatables.search')"
+          :model-value="state.filters.q ?? ''"
+          @search="onSearch" /></template
+    ></ListToolbar>
 
     <MailServiceStopped v-if="stoppedContainer" :container="stoppedContainer" />
 
@@ -369,7 +326,7 @@ function purge() {
             }}</span>
           </div>
           <QueueMessageTable
-            v-if="wide"
+            :hidden="!wide"
             :messages="messages"
             :sort="state.sort ?? 'arrivalTime'"
             :order="state.order ?? 'asc'"
@@ -394,7 +351,7 @@ function purge() {
               />
             </template>
           </QueueMessageTable>
-          <ul v-else :aria-label="lt('queue.queue_manager')" class="flex flex-col gap-3">
+          <ul v-if="!wide" :aria-label="lt('queue.queue_manager')" class="flex flex-col gap-3">
             <QueueMessageCard
               v-for="message in messages"
               :key="message.id"

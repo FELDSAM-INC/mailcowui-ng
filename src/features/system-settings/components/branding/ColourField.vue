@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { adjust, contrastRatio, normalizeHex } from '@/shared/color/contrast'
+import { adjust, foreground, normalizeHex } from '@/shared/color/contrast'
 import FormField from '@/shared/components/FormField.vue'
-import { buttonVariants } from '@/shared/ui/button'
 import ContrastReport from './ContrastReport.vue'
 const props = defineProps<{
   id: string
@@ -18,16 +17,13 @@ const emit = defineEmits<{ 'update:modelValue': [value: string | null] }>()
 const { t } = useI18n()
 const normalized = computed(() => normalizeHex(props.modelValue ?? ''))
 const invalid = computed(() => !!props.modelValue && !normalized.value)
-const failing = computed(
-  () => normalized.value && contrastRatio(normalized.value, props.surface)! < props.minimum,
-)
-const offer = computed(() =>
-  failing.value ? adjust(normalized.value!, props.surface, props.minimum) : null,
+const textColour = computed(() => normalized.value && foreground(normalized.value))
+const linkColour = computed(
+  () => normalized.value && adjust(normalized.value, props.surface, props.minimum),
 )
 const errors = computed(() => [
   ...(props.errors ?? []),
   ...(invalid.value ? [t('systemSettings.colours.format')] : []),
-  ...(failing.value ? [t('systemSettings.colours.needsContrast')] : []),
 ])
 function input(event: Event) {
   emit('update:modelValue', (event.target as HTMLInputElement).value || null)
@@ -73,21 +69,14 @@ function normalize(event: FocusEvent) {
         </div>
       </template>
     </FormField>
-    <ContrastReport v-if="normalized" :colour="normalized" :surface="surface" :minimum="minimum" />
-    <button
-      v-if="offer"
-      type="button"
-      data-adjust-colour
-      :disabled="disabled"
-      :class="
-        buttonVariants({
-          variant: 'outline',
-          class: 'h-auto min-h-11 whitespace-normal text-start',
-        })
-      "
-      @click="emit('update:modelValue', offer)"
-    >
-      {{ t('systemSettings.colours.offer', { colour: offer }) }}
-    </button>
+    <ContrastReport
+      v-if="normalized && textColour"
+      :colour="textColour"
+      :surface="normalized"
+      :minimum="minimum"
+    />
+    <p v-if="linkColour && linkColour !== normalized" class="text-sm text-muted">
+      {{ t('systemSettings.colours.linkAdjusted', { colour: linkColour }) }}
+    </p>
   </div>
 </template>

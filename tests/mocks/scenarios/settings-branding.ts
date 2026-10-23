@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import type { BrandColors, LogoSetting, UiTexts } from '@/api'
-import { contrastRatio, foreground } from '@/shared/color/contrast'
+import { foreground } from '@/shared/color/contrast'
 import type { ScenarioDefinition } from './index'
 import type { ScenarioState } from './state'
 
@@ -76,13 +76,7 @@ export function publishUiTexts(state: ScenarioState) {
 }
 export function publishBrandColors(state: ScenarioState) {
   const colours = brandingState(state).colours
-  const cap = state.settings.capabilities.brandColors
-  const dark =
-    colours.dark ??
-    (colours.light &&
-    contrastRatio(colours.light, cap.darkReferenceSurface)! >= cap.minimumContrastRatio
-      ? colours.light
-      : null)
+  const dark = colours.dark ?? colours.light
   colours.effective = {
     light: colours.light ? { color: colours.light, foreground: foreground(colours.light)! } : null,
     dark: dark ? { color: dark, foreground: foreground(dark)! } : null,

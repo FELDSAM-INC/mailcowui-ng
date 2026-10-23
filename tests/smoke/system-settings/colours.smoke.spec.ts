@@ -27,7 +27,7 @@ test('@013 @local-stack administrator changes, clears and restores brand colours
     expect(publicResponse.status()).toBe(200)
     expect(((await publicResponse.json()) as { data: PublicConfig }).data.brandColors).toEqual({
       light: { color: '#1d4ed8', foreground: '#ffffff' },
-      dark: null,
+      dark: { color: '#1d4ed8', foreground: '#ffffff' },
     })
     await section.getByRole('button', { name: /^Edit / }).click()
     await page.locator('#brand-colour-light').fill('')

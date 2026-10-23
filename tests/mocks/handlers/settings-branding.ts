@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { contrastRatio, normalizeHex } from '@/shared/color/contrast'
+import { normalizeHex } from '@/shared/color/contrast'
 import type { LogoSetting } from '@/api'
 import { inspectLogo, unsafeSvg } from '../factories/logo-image'
 import { brandingState, publishUiTexts, publishBrandColors } from '../scenarios/settings-branding'
@@ -23,23 +23,12 @@ export const settingsBrandingHandlers = [
       before = store.colours
     if (request.headers.get('if-match') !== before.etag) return response.untyped(problem(412, null))
     const body = await request.json(),
-      errors: Violations = {},
-      cap = state.settings.capabilities.brandColors
+      errors: Violations = {}
     for (const theme of ['light', 'dark'] as const) {
-      const value = body[theme],
-        surface = theme === 'light' ? cap.lightReferenceSurface : cap.darkReferenceSurface
+      const value = body[theme]
       if (value === undefined || value === null) continue
       if (!/^#[0-9a-f]{6}$/i.test(value))
         addViolation(errors, theme, 'invalidFormat', { format: 'hexColor' })
-      else {
-        const ratio = contrastRatio(value, surface)!
-        if (ratio < cap.minimumContrastRatio)
-          addViolation(errors, theme, 'insufficientContrast', {
-            ratio: Math.floor(ratio * 100) / 100,
-            minimum: cap.minimumContrastRatio,
-            surface,
-          })
-      }
     }
     if (Object.keys(errors).length) return response.untyped(validationFailed(errors))
     store.colours = { ...before, etag: `"brand-colours-${++store.revision}"` }

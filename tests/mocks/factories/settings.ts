@@ -17,7 +17,7 @@ export function settingsCapabilities(
     },
     brandColors: {
       lightReferenceSurface: '#ffffff',
-      darkReferenceSurface: '#1d2939',
+      darkReferenceSurface: '#222932',
       minimumContrastRatio: 4.5,
     },
     limits: {

@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/vue-query'
 import { queryKeys, type PublicConfig } from '@/api'
-import { hoverColor } from '@/shared/color/contrast'
+import { adjust, hoverColor, referenceSurfaces } from '@/shared/color/contrast'
 
 const subscriptions = new WeakMap<QueryClient, () => void>()
 /** CSSOM properties are CSP-compatible. CSS selects the theme without another API read. */
@@ -16,6 +16,7 @@ export function installBrandColors(client: QueryClient): () => void {
         '': value?.color,
         '-foreground': value?.foreground,
         '-hover': value && hoverColor(value.color, value.foreground),
+        '-text': value && adjust(value.color, referenceSurfaces[theme], 4.5),
       }
       for (const [suffix, colour] of Object.entries(properties)) {
         const property = `--brand-${theme}${suffix}`

@@ -50,18 +50,14 @@ works at 360 px width, meets WCAG 2.2 AA and is translated into English, Czech a
   (agent decision: API 013 FR-007 to FR-009 support partial changes with version tags; several
   saves need a warning or confirmation first (reset e-mail, Sieve restart, map review), which
   automatic saving cannot offer; consistency with UI 002's clarified behaviour.)
-- Q: How does the colour editor keep brand colours accessible before the API refuses them? → A: The
-  app computes the WCAG 2.2 contrast ratio while the user types, against the reference surfaces the
-  API documents (white and `#1D2939`). It shows the ratio, the 4.5:1 minimum and pass or fail in
-  text, blocks saving a failing colour, and offers the colour with the same hue and saturation and
-  the nearest lightness that passes. The API stays the authority, and its refusal is shown with the
-  measured ratio. (agent decision: API 013 FR-030 publishes the references and the formula, so
-  checking locally is input validation, not a workaround; offering an accessible variant lets
-  operators keep their brand while meeting constitution III.)
+- Q: How does the colour editor preserve bright branding colours? → A: Any valid six-digit accent
+  is saveable unchanged. Button text uses black or white, whichever contrasts more. Text-only links
+  use a separately derived shade against white in light mode and `#222932` in dark mode. The preview
+  reports the actual button-text contrast. (Owner correction, 2026-10-23: `#febc23` must stay yellow.)
 - Q: Which parts of the app carry the brand colour, and does this feature apply the colours in the
   shell? → A: Yes, this feature applies them. The effective colour and its foreground replace the
   default accent on primary buttons, links, the selected navigation entry and selected switches,
-  checkboxes and radio buttons, only on surfaces at least as contrasting as the reference surface.
+  checkboxes and radio buttons. Text-only links use an adjusted shade when needed.
   Status colours and the focus indicator keep the app's own style. (agent decision, confirmed by the
   orchestrator: UI 001 FR-004 defers the colours to this feature, and they arrive with API 013
   FR-029 to FR-033; limiting the colour to accent elements keeps every accepted colour within AA and
@@ -257,31 +253,25 @@ message, and the header, page title, sign-in screen and announcement after each 
 
 An administrator picks the company's colour for the light theme and, optionally, one for the dark
 theme. While they choose, a live preview shows buttons, links and the selected navigation entry in
-both themes, together with the contrast ratio against the reference surface and whether it passes,
-in text. A colour that would make text unreadable cannot be saved, and the app offers the closest
-colour that passes. After saving, the whole app uses the colours at once.
+both themes, together with the actual button-text contrast. Every valid six-digit accent is
+preserved; text-only links get a separately derived shade. After saving, the app uses the colours
+at once.
 
-**Why this priority**: The constitution requires colours from the API and WCAG 2.2 AA contrast in
-both themes. Brand colours are new: neither legacy nor any other feature can set them.
+**Why this priority**: Operators need to preserve their brand colours while keeping text readable.
 
-**Independent Test**: Against a mock API, enter colours that pass and fail in each theme, colours in
-upper and lower case and invalid values, set only a light colour, set both, clear both, and save
-each. Check the preview, the ratios, the offered adjustment, the values sent and the app's colours
-afterwards in both themes, with automated contrast checks.
+**Independent Test**: Enter bright yellow, dark blue and invalid values, set only a light colour,
+set both, clear both, and save each. Check that fills remain unchanged after save and reload,
+foregrounds adapt, text-only links use their own colour, and dark mode inherits when unset.
 
 **Acceptance Scenarios**:
 
-1. **Given** no brand colours, **When** the administrator enters `#1D4ED8` for the light theme,
-   **Then** the light preview uses it with white text on buttons and states a contrast of about
-   6.7:1 against white, which passes. The dark preview states that the colour reaches only about
-   2.2:1 on the dark surface and that the dark theme keeps the default palette unless a dark colour
-   is set.
-2. **Given** the light colour `#FFD700`, **When** it is entered, **Then** the app states a contrast of
-   about 1.4:1 against white, marks it as failing in text, does not allow it to be saved, and offers
-   an adjusted colour that reaches at least 4.5:1.
-3. **Given** the light colour `#1D4ED8`, **When** the administrator enters `#60A5FA` for the dark
-   theme, **Then** the dark preview uses it with black text on buttons and states about 5.8:1, which
-   passes.
+1. **Given** no brand colours, **When** the administrator enters `#1D4ED8`, **Then** both themes
+   preview blue controls with white text and a ratio of about 6.7:1. Dark text-only links adapt.
+2. **Given** `#FEBC23`, **When** it is entered, **Then** yellow buttons show black text with a ratio
+   of about 12.4:1, saving is allowed, and no replacement accent is offered. Light text-only links
+   use a darker shade without changing the chosen yellow.
+3. **Given** the light colour `#1D4ED8`, **When** `#60A5FA` is entered for the dark theme, **Then**
+   dark buttons use that colour with black text and a ratio of about 8.3:1.
 4. **Given** saved colours, **When** the save succeeds, **Then** the administrator's app uses them at
    once for primary buttons, links, the selected navigation entry and selected controls, in both
    themes, and other users see them after their next page load.
@@ -833,19 +823,14 @@ that domain administrators are never offered it.
   the dark theme. Each MUST be entered as a six-digit hexadecimal colour (`#RRGGBB`) in either letter
   case, typed or chosen with a colour picker, and MUST be clearable. A value without the leading `#`
   MUST be normalised; any other format MUST be refused before sending with a format hint.
-- **FR-025**: While a colour is entered, the app MUST compute its contrast ratio with the WCAG 2.2
-  formula against the reference surface the API documents (white for the light theme, `#1D2939` for
-  the dark theme) and show the ratio, rounded to one decimal, the minimum of 4.5:1 and whether it
-  passes, in text and not only by colour.
-- **FR-026**: A colour below 4.5:1 MUST NOT be saveable. The app MUST then offer an adjusted colour:
-  the colour with the same hue and saturation whose lightness is closest to the entered colour and
-  that reaches at least 4.5:1. Choosing the offer MUST replace the entered value.
-- **FR-027**: A live preview MUST show, for each theme, a sample of the header, a primary button with
-  its text, a link, a selected navigation entry and a selected switch, using the effective colour of
-  that theme and its foreground (black or white, whichever has the higher contrast). For the dark
-  theme without a dark colour, the preview MUST apply the API's rule: the light colour when it
-  reaches 4.5:1 on the dark reference surface, otherwise the default palette, and MUST say which
-  applies.
+- **FR-025**: While a colour is entered, the app MUST report contrast between its black or white
+  foreground and the unchanged fill, rounded to one decimal, with the minimum of 4.5:1.
+- **FR-026**: Any valid six-digit accent MUST be saveable unchanged. Text-only links MUST use a
+  separate shade derived with the same hue and saturation and the nearest lightness reaching the
+  required text contrast against the theme surface. This MUST NOT replace the entered accent.
+- **FR-027**: Each theme's preview MUST include a header, primary button, link, selected navigation
+  entry and switch. When no dark colour is set, dark mode MUST inherit the light colour and explain
+  this. Button foregrounds and derived link colours MUST match the runtime shell.
 - **FR-028**: When the API refuses a colour, the field MUST show the measured ratio, the minimum and
   the reference surface from the error.
 - **FR-029**: The page MUST explain that brand colours are used only by this app and not by the
@@ -855,9 +840,9 @@ that domain administrators are never offered it.
 
 - **FR-030**: The app MUST apply the effective brand colour of each theme and its foreground from the
   public configuration, replacing the default accent colour on primary action buttons, links, the
-  selected navigation entry and the selected state of switches, checkboxes and radio buttons. As
-  text, icon or outline the brand colour MUST appear only on surfaces whose contrast with it is at
-  least that of the reference surface; as a background it MUST carry its foreground colour. Without
+  selected navigation entry and the selected state of switches, checkboxes and radio buttons. Text-only
+  links MUST use a separately derived readable shade; backgrounds MUST keep the exact chosen accent
+  and carry its contrasting foreground colour. Without
   an effective colour, the theme MUST use the default palette. Colours of success, warning, error and
   information states and the focus indicator MUST keep the app's own style.
 - **FR-031**: After a successful change of any branding setting, the administrator's app MUST read

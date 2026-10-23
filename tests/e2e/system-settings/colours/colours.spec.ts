@@ -15,12 +15,12 @@ test('T067 normalises colours, explains contrast and saves the two themes', asyn
   await expect(page.locator('#brand-colour-light')).toHaveValue('#1d4ed8')
   const light = page.locator('[data-brand-preview=light]'),
     dark = page.locator('[data-brand-preview=dark]')
-  await expect(light).toContainText('6.7:1, minimum 4.5:1')
+  await expect(light).toContainText('6.7:1 (minimum 4.5:1)')
   await expect(light).toContainText('Passes.')
-  await expect(dark).toContainText('2.2:1')
-  await expect(dark).toContainText('default palette')
+  await expect(dark).toContainText('6.7:1')
+  await expect(dark).toContainText('dark theme uses the light theme colour')
   await page.locator('#brand-colour-dark').fill('#60A5FA')
-  await expect(dark).toContainText('5.8:1')
+  await expect(dark).toContainText('8.3:1')
   await expect(light.locator('[data-preview-button]')).toHaveCSS('color', 'rgb(255, 255, 255)')
   await expect(dark.locator('[data-preview-button]')).toHaveCSS('color', 'rgb(0, 0, 0)')
   await expect(page.locator('main')).toContainText('classic interface keeps its own palette')
@@ -35,7 +35,7 @@ test('T067 normalises colours, explains contrast and saves the two themes', asyn
   await expectAccessible()
 })
 
-test('T067 rejects shorthand and failing contrast, offers a passing colour, and syncs the picker', async ({
+test('T067 rejects shorthand, preserves bright accents, and syncs the picker', async ({
   page,
   mockApi,
   expectAccessible,
@@ -47,12 +47,10 @@ test('T067 rejects shorthand and failing contrast, offers a passing colour, and 
   await page.locator('#brand-colour-light').fill('#abc')
   await expect(page.locator('#brand-colour-light')).toHaveAttribute('aria-invalid', 'true')
   await expect(section.getByRole('button', { name: 'Save changes', exact: true })).toHaveCount(0)
-  await page.locator('#brand-colour-light').fill('#FFD700')
-  await expect(section).toContainText('1.4:1')
-  await expect(section).toContainText('Fails.')
-  await expectAccessible()
-  await section.locator('[data-adjust-colour]').click()
-  await expect(page.locator('#brand-colour-light')).toHaveValue(/^#[0-9a-f]{6}$/)
+  await page.locator('#brand-colour-light').fill('#FEBC23')
+  await expect(section).toContainText('12.4:1')
+  await expect(section.locator('[data-adjust-colour]')).toHaveCount(0)
+  await expect(page.locator('#brand-colour-light')).not.toHaveAttribute('aria-invalid', 'true')
   await expect(section.getByRole('button', { name: 'Save changes', exact: true })).toBeEnabled()
   await page.locator('#brand-colour-light-picker').evaluate((input) => {
     ;(input as HTMLInputElement).value = '#1d4ed8'
@@ -65,7 +63,7 @@ test('T067 rejects shorthand and failing contrast, offers a passing colour, and 
   await expectAccessible()
 })
 
-test('T067 shows authoritative API contrast refusal on the field without losing the draft', async ({
+test('T067 shows an older API contrast refusal on the field without losing the draft', async ({
   page,
   mockApi,
   expectAccessible,
@@ -154,7 +152,7 @@ test('T067 temporary failure retains draft and a pending save sends only once', 
   expect(await mockApi.countRequests('updateBrandColors')).toBe(2)
 })
 
-test('T067 demo mode is read-only and light-only dark fallback is explained', async ({
+test('T067 demo mode is read-only and dark inheritance is explained', async ({
   page,
   mockApi,
   expectAccessible,
@@ -164,7 +162,9 @@ test('T067 demo mode is read-only and light-only dark fallback is explained', as
   await page.goto('system/customize/colours')
   await expect(page.locator('[data-demo-mode]')).toContainText('Demo Mode')
   await expect(page.locator('#section-brand-colours button')).toHaveCount(0)
-  await expect(page.locator('[data-brand-preview=dark]')).toContainText('default palette')
+  await expect(page.locator('[data-brand-preview=dark]')).toContainText(
+    'dark theme uses the light theme colour',
+  )
   expect(await mockApi.countRequests('updateBrandColors')).toBe(0)
   await expectAccessible()
 })

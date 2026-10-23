@@ -10,7 +10,7 @@ import {
   type SettingsCapabilities,
 } from '@/api'
 import { lt } from '@/i18n'
-import { contrastRatio, normalizeHex } from '@/shared/color/contrast'
+import { normalizeHex } from '@/shared/color/contrast'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import HistoryLink from '@/shared/components/HistoryLink.vue'
@@ -59,12 +59,7 @@ const value = computed(() => (editing.value && draft.value ? draft.value : query
 const valid = computed(() =>
   themes.every((theme) => {
     const colour = draft.value?.[theme]
-    return (
-      !colour ||
-      (normalizeHex(colour) !== null &&
-        contrastRatio(colour, reference(theme))! >=
-          props.capabilities.brandColors.minimumContrastRatio)
-    )
+    return !colour || normalizeHex(colour) !== null
   }),
 )
 const changes = computed(() =>
@@ -122,7 +117,16 @@ function save(retry = false) {
             <dt class="text-sm text-gray-600 dark:text-gray-400">
               {{ t(`systemSettings.colours.${theme}`) }}
             </dt>
-            <dd>{{ query.data.value[theme] ?? t('systemSettings.colours.default') }}</dd>
+            <dd>
+              {{
+                query.data.value[theme] ??
+                t(
+                  theme === 'dark' && query.data.value.light
+                    ? 'systemSettings.colours.inherited'
+                    : 'systemSettings.colours.default',
+                )
+              }}
+            </dd>
           </div>
         </dl>
         <template #form>

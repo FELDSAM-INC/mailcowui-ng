@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { contrastRatio, foreground, hoverColor } from '@/shared/color/contrast'
+import { adjust, foreground, hoverColor, normalizeHex } from '@/shared/color/contrast'
 import { buttonVariants } from '@/shared/ui/button'
 import { Switch } from '@/shared/ui/switch'
 import ContrastReport from './ContrastReport.vue'
@@ -14,11 +14,8 @@ const props = defineProps<{
 }>()
 const { t } = useI18n()
 const switchId = useId()
-const valid = computed(() =>
-  props.colour && (contrastRatio(props.colour, props.surface) ?? 0) >= props.minimum
-    ? props.colour
-    : null,
-)
+const valid = computed(() => normalizeHex(props.colour ?? ''))
+const textColour = computed(() => valid.value && foreground(valid.value))
 const palette = computed(() =>
   props.theme === 'dark'
     ? {
@@ -39,7 +36,9 @@ const palette = computed(() =>
 const variables = computed(() => ({
   '--accent': valid.value ?? palette.value.primary,
   '--accent-foreground': valid.value ? foreground(valid.value)! : palette.value.foreground,
-  '--accent-text': valid.value ?? palette.value.info,
+  '--accent-text': valid.value
+    ? adjust(valid.value, props.surface, props.minimum)!
+    : palette.value.info,
   '--accent-hover': valid.value
     ? hoverColor(valid.value, foreground(valid.value)!)!
     : `color-mix(in srgb, ${palette.value.primary} 88%, ${props.theme === 'dark' ? '#ffffff' : '#000000'})`,
@@ -58,9 +57,14 @@ const variables = computed(() => ({
       {{ t(theme === 'light' ? 'themes.light' : 'themes.dark') }} —
       {{ t('systemSettings.colours.preview') }}
     </h3>
-    <ContrastReport v-if="colour" :colour="colour" :surface="surface" :minimum="minimum" />
-    <p v-if="inherited" data-dark-rule class="text-sm">
-      {{ t(valid ? 'systemSettings.colours.darkUsesLight' : 'systemSettings.colours.darkDefault') }}
+    <ContrastReport
+      v-if="valid && textColour"
+      :colour="textColour"
+      :surface="valid"
+      :minimum="minimum"
+    />
+    <p v-if="inherited && valid" data-dark-rule class="text-sm">
+      {{ t('systemSettings.colours.darkUsesLight') }}
     </p>
     <p v-else-if="colour && !valid" class="text-sm">
       {{ t('systemSettings.colours.previewDefault') }}

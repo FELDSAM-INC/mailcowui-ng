@@ -25,7 +25,7 @@ describe('ColourField', () => {
     await wrapper.get('input[type=text]').setValue('')
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([null])
   })
-  it('keeps invalid text visible and offers a passing adjustment only for valid failing colour', async () => {
+  it('rejects invalid text but preserves a bright accent without offering a replacement', async () => {
     const wrapper = mountWithApp(ColourField, {
       props: {
         id: 'colour',
@@ -37,10 +37,10 @@ describe('ColourField', () => {
     })
     expect(wrapper.get('input[type=text]').attributes('aria-invalid')).toBe('true')
     expect(wrapper.find('[data-adjust-colour]').exists()).toBe(false)
-    await wrapper.setProps({ modelValue: '#ffd700' })
-    await wrapper.get('[data-adjust-colour]').trigger('click')
-    expect(wrapper.emitted('update:modelValue')?.at(-1)?.[0]).toMatch(/^#[0-9a-f]{6}$/)
-    await wrapper.setProps({ disabled: true })
-    expect(wrapper.get('[data-adjust-colour]').attributes('disabled')).toBeDefined()
+    await wrapper.setProps({ modelValue: '#febc23' })
+    expect(wrapper.get('input[type=text]').attributes('aria-invalid')).not.toBe('true')
+    expect(wrapper.find('[data-adjust-colour]').exists()).toBe(false)
+    expect(wrapper.get('[data-contrast-report]').text()).toContain('12.4:1')
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
   })
 })

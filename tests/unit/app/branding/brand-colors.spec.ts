@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/vue-query'
 import { afterEach, describe, expect, it } from 'vitest'
+import { adjust } from '@/shared/color/contrast'
 import { queryKeys } from '@/api'
 import { installBrandColors } from '@/app/branding/brand-colors'
 import { publicConfig } from '../../../mocks/scenarios/public-config'
@@ -10,7 +11,7 @@ afterEach(() => {
   document.documentElement.removeAttribute('style')
 })
 describe('runtime brand colours', () => {
-  it('sets all six properties, follows refreshed configuration, and removes absent colours', () => {
+  it('sets theme properties, follows refreshed configuration, and removes absent colours', () => {
     const client = new QueryClient(),
       root = document.documentElement
     const config = publicConfig('default')
@@ -38,6 +39,26 @@ describe('runtime brand colours', () => {
     client.setQueryData(queryKeys.publicConfig(), config)
     client.removeQueries({ queryKey: queryKeys.publicConfig() })
     expect(root.style.getPropertyValue('--brand-light')).toBe('')
+  })
+  it('preserves yellow fills while adapting text-only links and clears both together', () => {
+    const client = new QueryClient(),
+      root = document.documentElement
+    const config = publicConfig('default')
+    config.brandColors = {
+      light: { color: '#febc23', foreground: '#000000' },
+      dark: { color: '#febc23', foreground: '#000000' },
+    }
+    client.setQueryData(queryKeys.publicConfig(), config)
+    cleanups.push(installBrandColors(client))
+    expect(root.style.getPropertyValue('--brand-light')).toBe('#febc23')
+    expect(root.style.getPropertyValue('--brand-light-foreground')).toBe('#000000')
+    expect(root.style.getPropertyValue('--brand-light-text')).toBe(
+      adjust('#febc23', '#ffffff', 4.5),
+    )
+    expect(root.style.getPropertyValue('--brand-dark-text')).toBe('#febc23')
+    client.removeQueries({ queryKey: queryKeys.publicConfig() })
+    expect(root.style.getPropertyValue('--brand-light-text')).toBe('')
+    expect(root.style.getPropertyValue('--brand-dark-text')).toBe('')
   })
   it('does not subscribe twice on bootstrap retry and stops updating after disposal', () => {
     const client = new QueryClient(),

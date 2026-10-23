@@ -13,7 +13,10 @@ describe('brand colour contract (T066)', () => {
     expect(light).toMatchObject({
       light: '#1d4ed8',
       dark: null,
-      effective: { light: { color: '#1d4ed8', foreground: '#ffffff' }, dark: null },
+      effective: {
+        light: { color: '#1d4ed8', foreground: '#ffffff' },
+        dark: { color: '#1d4ed8', foreground: '#ffffff' },
+      },
     })
     await expect(updateBrandColors({ dark: '#60a5fa' }, before.etag)).rejects.toMatchObject({
       status: 412,
@@ -25,48 +28,17 @@ describe('brand colour contract (T066)', () => {
     expect(cleared.effective).toEqual({ light: null, dark: null })
     client.clear()
   })
-  it('rejects insufficient contrast with API parameters and retains the previous colours', async () => {
+  it('preserves bright accents and inherits the light colour when the dark colour is cleared', async () => {
     useScenario('brand-colours-set')
     const client = new QueryClient(),
       before = await client.fetchQuery(brandColorsOptions())
-    await expect(updateBrandColors({ light: '#ffd700' }, before.etag)).rejects.toMatchObject({
-      status: 422,
-      fieldErrors: new Map([
-        [
-          'light',
-          [
-            expect.objectContaining({
-              code: 'insufficientContrast',
-              params: { ratio: 1.4, minimum: 4.5, surface: '#ffffff' },
-            }),
-          ],
-        ],
-      ]),
-    })
-    expect((await client.fetchQuery({ ...brandColorsOptions(), staleTime: 0 })).light).toBe(
-      before.light,
-    )
-    client.clear()
-  })
-  it('uses capability reference surfaces for the light-to-dark fallback', async () => {
-    useScenario('brand-colours-none', {
-      settings: {
-        capabilities: {
-          brandColors: {
-            lightReferenceSurface: '#ffffff',
-            darkReferenceSurface: '#000000',
-            minimumContrastRatio: 4.5,
-          },
-        },
-      },
-    })
-    const client = new QueryClient(),
-      before = await client.fetchQuery(brandColorsOptions())
-    const saved = await updateBrandColors({ light: '#767676' }, before.etag)
+    const saved = await updateBrandColors({ light: '#FEBC23', dark: null }, before.etag)
+    expect(saved.light).toBe('#febc23')
     expect(saved.effective).toEqual({
-      light: { color: '#767676', foreground: '#000000' },
-      dark: { color: '#767676', foreground: '#000000' },
+      light: { color: '#febc23', foreground: '#000000' },
+      dark: { color: '#febc23', foreground: '#000000' },
     })
+    expect(requireData(await api.GET('/public-config')).data.brandColors).toEqual(saved.effective)
     client.clear()
   })
   it('enforces demo and administrator-only access', async () => {

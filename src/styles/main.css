@@ -283,7 +283,7 @@
   :root {
     --accent: var(--brand-light, var(--color-primary));
     --accent-foreground: var(--brand-light-foreground, var(--color-primary-foreground));
-    --accent-text: var(--brand-light, var(--color-info));
+    --accent-text: var(--brand-light-text, var(--color-info));
     --accent-hover: var(--brand-light-hover, var(--color-primary-hover));
     --color-focus: var(--color-brand-500);
     /* Height of the sticky shell header; focused elements never hide behind it (WCAG 2.4.11). */
@@ -349,7 +349,7 @@
 
     --accent: var(--brand-dark, var(--color-primary));
     --accent-foreground: var(--brand-dark-foreground, var(--color-primary-foreground));
-    --accent-text: var(--brand-dark, var(--color-info));
+    --accent-text: var(--brand-dark-text, var(--color-info));
     --accent-hover: var(--brand-dark-hover, var(--color-primary-hover));
     --color-focus: var(--color-primary);
     color-scheme: dark;

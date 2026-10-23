@@ -34,9 +34,9 @@ describe('Colours page', () => {
     const { wrapper, state } = await setup()
     testPlugins().queryClient.setQueryData(queryKeys.publicConfig(), {})
     await wrapper.get('#section-brand-colours button').trigger('click')
-    await wrapper.get('#brand-colour-light').setValue('1D4ED8')
+    await wrapper.get('#brand-colour-light').setValue('FEBC23')
     await wrapper.get('form').trigger('submit')
-    await vi.waitFor(() => expect(brandingState(state).colours.light).toBe('#1d4ed8'))
+    await vi.waitFor(() => expect(brandingState(state).colours.light).toBe('#febc23'))
     expect(brandingState(state).colours.dark).toBeNull()
     expect(testPlugins().queryClient.getQueryState(queryKeys.publicConfig())?.isInvalidated).toBe(
       true,

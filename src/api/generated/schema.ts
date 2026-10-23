@@ -7213,10 +7213,11 @@ export interface paths {
         head?: never;
         /**
          * Change the brand colours
-         * @description Sets or clears (`null`) the light and dark brand colours. A light colour needs a WCAG 2.2
-         *     contrast ratio of at least 4.5:1 against `#ffffff`, a dark colour against `#1d2939`; a colour that
-         *     fails is refused with `insufficientContrast` and its measured ratio. Colours are stored in lower
-         *     case. Clearing both returns the web app to its own palette. Refused in demo mode. Audited with the
+         * @description Sets or clears (`null`) the light and dark brand colours. Any six-digit sRGB colour is accepted
+         *     and stored in lower case without adjusting its hue or brightness. Each effective colour includes
+         *     a black or white foreground for readable button text. Clients derive a separate text-only accent
+         *     against the reference surfaces in settings capabilities; surface contrast does not block saving.
+         *     Clearing both returns the web app to its own palette. Refused in demo mode. Audited with the
          *     old and new colours. The colours in effect appear in the public configuration on its next read.
          */
         patch: operations["updateBrandColors"];
@@ -9492,10 +9493,8 @@ export interface components {
         BccMapType: "sender" | "recipient";
         /**
          * @description The brand colours stored by this API (not visible in the legacy UI), and the colours in effect.
-         *     A light colour reaches at least 4.5:1 against `#ffffff`, a dark colour at least 4.5:1 against the
-         *     dark reference surface `#1d2939` (WCAG 2.2 contrast formula). Both references are agreed with
-         *     mailcowui-ng, which shows brand colours only on surfaces at least as contrasting; changing them is
-         *     a contract change.
+         *     Brand fills preserve the chosen colour. Their foregrounds have at least 4.5:1 contrast;
+         *     clients derive text-only link colours separately using the settings capability references.
          */
         BrandColors: {
             /** @description Stored dark-theme colour, lower case. `null` when not set. */
@@ -9510,10 +9509,9 @@ export interface components {
             light: string | null;
         };
         /**
-         * @description JSON Merge Patch of the brand colours. A colour is a six-digit hexadecimal sRGB colour
-         *     (`#RRGGBB`, either letter case); `null` clears it. A colour below the minimum contrast is refused
-         *     with the rule code `insufficientContrast` and the parameters `ratio` (measured, rounded down to
-         *     two decimals), `minimum` and `surface`.
+         * @description JSON Merge Patch of the brand colours. Any six-digit hexadecimal sRGB colour
+         *     (`#RRGGBB`, either letter case) is accepted without adjustment; `null` clears it.
+         *     Contrast against a theme's surface does not restrict the chosen accent.
          */
         BrandColorsPatch: {
             dark?: string | null;
@@ -11269,8 +11267,7 @@ export interface components {
         /**
          * @description Brand colours in effect for the light and dark themes. `null` for a theme means no brand colour:
          *     the client uses its own palette there. The light colour applies to the light theme. The dark
-         *     theme uses the dark colour, or the light colour when no dark colour is set and the light colour
-         *     reaches 4.5:1 against the dark reference surface `#1d2939`, otherwise none.
+         *     theme uses the dark colour, or the light colour when no dark colour is set.
          */
         EffectiveBrandColors: {
             dark: components["schemas"]["EffectiveBrandColor"] | null;
@@ -17184,12 +17181,12 @@ export interface components {
          */
         SettingsCapabilities: {
             brandColors: {
-                /** @example #1d2939 */
+                /** @example #222932 */
                 darkReferenceSurface: string;
                 /** @example #ffffff */
                 lightReferenceSurface: string;
                 /**
-                 * @description Minimum WCAG 2.2 contrast ratio a brand colour needs against its reference surface.
+                 * @description Minimum WCAG 2.2 contrast for button text and derived text-only accents. This does not restrict the chosen brand fill.
                  * @example 4.5
                  */
                 minimumContrastRatio: number;
@@ -18526,7 +18523,7 @@ export interface components {
          *       `maxWidth`, `maxHeight`, `width`, `height`); `unsafeSvgContent` (params `construct`, for example
          *       `scriptElement`, `eventHandlerAttribute`, `scriptUrl`, `foreignContent`, `externalReference`,
          *       `styleImport`, `doctype`, `notWellFormed` or `rootNotSvg`, and `line` when known);
-         *       `insufficientContrast` (params `ratio`, rounded down to two decimals, `minimum` and `surface`);
+         *       `insufficientContrast` (legacy brand-colour validation, retained for older clients; no longer emitted by brand-colour updates; params `ratio`, `minimum` and `surface`);
          *       `invalidRegexLine` (params `line`, 1-based, and `reason`: `notSlashDelimited`, `tooManyFlags`,
          *       `innerSlash` or `doesNotCompile`); feature 005's `sieveSyntax` for global Sieve filters (params
          *       `message`, the legacy parser's message, and `line`); `unbalancedStructure` (params `line` and `construct`: `unclosedBrace`,

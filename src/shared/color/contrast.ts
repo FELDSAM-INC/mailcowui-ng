@@ -1,5 +1,5 @@
-// UI013 R13: the same sRGB/WCAG arithmetic used by the pinned API. Passing decisions use
-// the full ratio; formatting must never make a failing result look like a passing one.
+// Text contrast uses the full WCAG ratio. Brand fills preserve the chosen colour.
+export const referenceSurfaces = { light: '#ffffff', dark: '#222932' } as const
 export type Foreground = '#000000' | '#ffffff'
 export type Hsl = [hue: number, saturation: number, lightness: number]
 export function normalizeHex(value: string): string | null {

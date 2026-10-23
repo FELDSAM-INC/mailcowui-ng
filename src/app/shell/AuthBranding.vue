@@ -26,7 +26,7 @@ watch(logo, () => {
     />
     <p
       data-product-name
-      class="max-w-full text-lg font-semibold wrap-anywhere text-gray-900 dark:text-white"
+      class="max-w-full text-lg font-semibold wrap-anywhere text-gray-900 lg:text-3xl dark:text-white"
     >
       {{ branding.productName }}
     </p>

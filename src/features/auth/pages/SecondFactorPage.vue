@@ -42,7 +42,7 @@ const focusTotp = (section: MethodSection) => section.methods.length === 1
 </script>
 
 <template>
-  <section class="surface flex flex-col gap-5" :aria-labelledby="titleId">
+  <section class="flex flex-col gap-5" :aria-labelledby="titleId">
     <LegacyText
       :id="titleId"
       k="tfa.tfa"

@@ -102,7 +102,7 @@ async function submitPassword() {
 </script>
 
 <template>
-  <section class="surface flex flex-col gap-5" aria-labelledby="reset-title">
+  <section class="flex flex-col gap-5" aria-labelledby="reset-title">
     <LegacyText
       id="reset-title"
       k="login.reset_password"

@@ -63,7 +63,7 @@ async function submit() {
 </script>
 
 <template>
-  <section class="surface flex flex-col gap-5" aria-labelledby="reset-request-title">
+  <section class="flex flex-col gap-5" aria-labelledby="reset-request-title">
     <LegacyText
       id="reset-request-title"
       k="login.reset_password"

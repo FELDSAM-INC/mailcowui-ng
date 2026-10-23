@@ -4,7 +4,12 @@ import type { Browser, Page } from '@playwright/test'
 
 import type { MockApi } from '../fixtures/mock-api'
 import { expect, test } from '../fixtures/test'
-import { MOCK_PASSWORD, submitPassword } from '../fixtures/flows'
+import {
+  MOCK_PASSWORD,
+  submitPassword,
+  chooseAuthLanguage,
+  chooseAuthTheme,
+} from '../fixtures/flows'
 
 async function openUserMenu(page: Page) {
   await page.getByRole('button', { name: /^(Account menu of|Nabídka účtu|Ponuka účtu) / }).click()
@@ -70,10 +75,11 @@ test('SC-012 a language change applies in under one second, measured in the page
 }) => {
   await page.goto('sign-in')
   await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
+  await page.locator('[data-language-select]').click()
   await page.evaluate(() => {
     const timing = new Promise<number>((resolve) => {
       let start = 0
-      document.addEventListener('change', () => (start = performance.now()), {
+      document.addEventListener('click', () => (start = performance.now()), {
         capture: true,
         once: true,
       })
@@ -87,7 +93,7 @@ test('SC-012 a language change applies in under one second, measured in the page
     })
     ;(window as unknown as { __switch: Promise<number> }).__switch = timing
   })
-  await page.getByLabel('Language').selectOption({ label: 'Čeština (Czech)' })
+  await page.getByRole('menuitemradio', { name: 'Čeština (Czech)', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Přihlásit' })).toBeVisible()
   const elapsed = await page.evaluate(
     () => (window as unknown as { __switch: Promise<number> }).__switch,
@@ -213,7 +219,7 @@ test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; 
 }) => {
   await mockApi.use('admin-password')
   await page.goto('sign-in')
-  await page.getByLabel('Language').selectOption({ label: 'Slovenčina (Slovak)' })
+  await chooseAuthLanguage(page, 'Slovenčina (Slovak)')
   await expect(page.getByRole('heading', { level: 1, name: 'Prihlásenie' })).toBeVisible()
   await page.locator('input[name="username"]').fill('admin')
   await page.locator('input[name="password"]').fill(MOCK_PASSWORD)
@@ -286,9 +292,9 @@ test('FR-038 Edge: on the pending-actions screen language and theme apply on thi
   await mockApi.use('forced-password-change')
   await page.goto('')
   await expect(page.getByRole('heading', { level: 1, name: 'Actions required' })).toBeVisible()
-  await page.getByLabel('Language').selectOption({ label: 'Čeština (Czech)' })
+  await chooseAuthLanguage(page, 'Čeština (Czech)')
   await expect(page.locator('html')).toHaveAttribute('lang', 'cs-CZ')
-  await page.getByLabel('Motiv').selectOption({ label: 'Tmavý' })
+  await chooseAuthTheme(page, 'Tmavý')
   await expect(page.locator('html')).toHaveClass(/dark/)
   await expectAccessible()
   expect(await preferenceRequests(mockApi)).toEqual([])

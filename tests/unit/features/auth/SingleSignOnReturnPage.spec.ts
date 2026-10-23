@@ -52,10 +52,9 @@ async function mountPage(search: string) {
 }
 
 describe('SingleSignOnReturnPage', () => {
-  it('shows the branding and the announced progress', async () => {
+  it('shows the announced progress inside the shared auth layout', async () => {
     useScenario('sso-available')
     const { wrapper } = await mountPage('?code=c&state=s')
-    expect(wrapper.find('[data-product-name]').exists()).toBe(true)
     expect(wrapper.get('h1').text()).toBe(lt('admin.iam_sso'))
     expect(wrapper.get('[role="status"]').text()).toContain('Completing sign-in')
   })

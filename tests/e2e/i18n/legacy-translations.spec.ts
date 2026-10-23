@@ -4,13 +4,14 @@
 // loaded, renders markup in legacy values through the sanitiser under the strict CSP, and offers
 // the installation's language menu.
 import { expect, test } from '../fixtures/test'
+import { chooseAuthLanguage } from '../fixtures/flows'
 
 test("the sign-in screen shows mailcow's Czech strings and the app's own Czech strings", async ({
   page,
   expectAccessible,
 }) => {
   await page.goto('sign-in/admin')
-  await page.getByLabel('Language').selectOption({ label: 'Čeština (Czech)' })
+  await chooseAuthLanguage(page, 'Čeština (Czech)')
   const main = page.getByRole('main')
   // lang.cs-cz.json (upstream 2026-09a fixture): login.login_admin, login.username, login.login.
   await expect(page.getByRole('heading', { level: 1, name: 'Přihlášení správce' })).toBeVisible()
@@ -34,7 +35,7 @@ test("a language without the installation's file shows en-gb, as the classic int
     if (path.startsWith('/lang/')) requests.push(path)
   })
   await page.goto('sign-in')
-  await page.getByLabel('Language').selectOption({ label: 'Deutsch (German)' })
+  await chooseAuthLanguage(page, 'Deutsch (German)')
   await expect(page.locator('html')).toHaveAttribute('lang', 'de-DE')
   // The mock has no lang.de-de.json: every key falls back to en-gb, new strings too.
   await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
@@ -48,7 +49,7 @@ test('a key the selected file lacks falls back to en-gb (the upstream sk-sk file
   page,
 }) => {
   await page.goto('sign-in/mailbox-user')
-  await page.getByLabel('Language').selectOption({ label: 'Slovenčina (Slovak)' })
+  await chooseAuthLanguage(page, 'Slovenčina (Slovak)')
   await expect(page.locator('html')).toHaveAttribute('lang', 'sk-SK')
   await expect(page.getByRole('heading', { level: 1, name: 'User Login' })).toBeVisible()
   await expect(page.getByLabel('Heslo', { exact: true })).toBeVisible()
@@ -110,10 +111,10 @@ test("the language menu is the installation's, in its order and with its names",
   page,
 }) => {
   await page.goto('sign-in')
-  await expect(page.getByLabel('Language').locator('option')).toHaveText([
-    'Čeština (Czech)',
-    'Deutsch (German)',
-    'English',
-    'Slovenčina (Slovak)',
-  ])
+  await page.locator('[data-language-select]').click()
+  const options = page.getByRole('menuitemradio')
+  const names = ['Čeština (Czech)', 'Deutsch (German)', 'English', 'Slovenčina (Slovak)']
+  await expect(options).toHaveCount(names.length)
+  for (const [index, name] of names.entries())
+    await expect(options.nth(index)).toHaveAccessibleName(name)
 })

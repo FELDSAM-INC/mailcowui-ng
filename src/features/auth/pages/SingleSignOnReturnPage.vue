@@ -16,7 +16,6 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { useProblemMessages } from '@/i18n/problems'
 import { buttonVariants } from '@/shared/ui/button'
 
-import SignInHeader from '../components/SignInHeader.vue'
 import { useSingleSignOnReturn } from '../composables/useSingleSignOnReturn'
 
 const { t } = useI18n()
@@ -40,8 +39,7 @@ watch(outcome, async (value) => {
 
 <template>
   <div class="flex flex-col gap-6">
-    <SignInHeader />
-    <section class="surface flex flex-col gap-5" :aria-labelledby="titleId">
+    <section class="flex flex-col gap-5" :aria-labelledby="titleId">
       <LegacyText
         :id="titleId"
         k="admin.iam_sso"

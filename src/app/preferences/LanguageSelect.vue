@@ -1,41 +1,34 @@
 <script setup lang="ts">
-// The language choice (FR-058, FR-060): a native <select> of the languages that are both enabled
-// on the server and shipped by mailcow, by the names and in the order of the installation's
-// language menu, without flags; hidden when there is nothing to choose. Each option carries its
-// language for screen readers.
-import { useId } from 'vue'
+// Public language menu: native language names and flags, with the current choice on its trigger.
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-
-import { isAppLocale, toBcp47 } from '@/i18n/locales'
-
+import { ChevronDownIcon } from '@/shared/icons'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/shared/ui/dropdown-menu'
+import LanguageOptions from './LanguageOptions.vue'
+import { localeFlag } from './locale-flag'
 import { usePreferencesStore } from './store'
-import { usePreferenceChoice } from './sync'
 
 const { t } = useI18n()
-const id = useId()
 const prefs = usePreferencesStore()
-const { chooseLocale } = usePreferenceChoice()
-
-function onChange(event: Event) {
-  const value = (event.target as HTMLSelectElement).value
-  if (isAppLocale(value)) void chooseLocale(value)
-}
+const currentLanguage = computed(() =>
+  prefs.availableLanguages.find((language) => language.code === prefs.locale),
+)
 </script>
 
 <template>
-  <div v-if="prefs.showLanguageChoice" class="flex items-center gap-2">
-    <label :for="id" class="text-sm text-gray-700 dark:text-gray-300">
-      {{ t('preferences.language') }}
-    </label>
-    <select :id="id" :value="prefs.locale" class="form-control w-auto" @change="onChange">
-      <option
-        v-for="language in prefs.availableLanguages"
-        :key="language.code"
-        :value="language.code"
-        :lang="toBcp47(language.code)"
-      >
-        {{ language.name }}
-      </option>
-    </select>
-  </div>
+  <DropdownMenu v-if="prefs.showLanguageChoice">
+    <DropdownMenuTrigger
+      data-language-select
+      :aria-label="t('preferences.language')"
+      :title="currentLanguage?.name"
+      class="inline-flex min-h-11 max-w-60 min-w-0 items-center gap-2 rounded-full border border-gray-200 px-3 text-sm font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/5"
+    >
+      <span aria-hidden="true" class="shrink-0 text-lg">{{ localeFlag(prefs.locale) }}</span>
+      <span class="truncate">{{ currentLanguage?.name ?? prefs.locale }}</span>
+      <ChevronDownIcon class="size-4 shrink-0" />
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end" :collision-padding="8" class="w-72 max-w-[calc(100vw-2rem)]">
+      <LanguageOptions />
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>

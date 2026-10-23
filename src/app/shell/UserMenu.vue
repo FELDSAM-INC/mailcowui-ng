@@ -7,7 +7,6 @@ import { useI18n } from 'vue-i18n'
 
 import type { Identity } from '@/api'
 import { lt, text } from '@/i18n'
-import { isAppLocale, toBcp47 } from '@/i18n/locales'
 import {
   ChevronDownIcon,
   GlobeIcon,
@@ -23,8 +22,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuSub,
@@ -34,6 +31,7 @@ import {
 } from '@/shared/ui/dropdown-menu'
 
 import { usePreferencesStore } from '../preferences/store'
+import LanguageOptions from '../preferences/LanguageOptions.vue'
 import { usePreferenceChoice } from '../preferences/sync'
 import { localeFlag } from '../preferences/locale-flag'
 import { darkMode } from '../preferences/theme'
@@ -46,11 +44,7 @@ const besideLanguage = useMediaQuery('(min-width: 640px)')
 const currentLanguage = computed(() =>
   prefs.availableLanguages.find((language) => language.code === prefs.locale),
 )
-const { chooseLocale, chooseTheme } = usePreferenceChoice()
-
-function onLocale(value: unknown) {
-  if (isAppLocale(value)) void chooseLocale(value)
-}
+const { chooseTheme } = usePreferenceChoice()
 </script>
 
 <template>
@@ -100,24 +94,7 @@ function onLocale(value: unknown) {
               :collision-padding="8"
               class="w-[250px] max-w-[calc(100vw-1rem)] p-2"
             >
-              <DropdownMenuRadioGroup
-                :model-value="prefs.locale"
-                :aria-label="t('preferences.language')"
-              >
-                <DropdownMenuRadioItem
-                  v-for="language in prefs.availableLanguages"
-                  :key="language.code"
-                  :value="language.code"
-                  :lang="toBcp47(language.code)"
-                  class="min-h-11 data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground dark:data-[state=checked]:bg-accent dark:data-[state=checked]:text-accent-foreground"
-                  @select="onLocale(language.code)"
-                >
-                  <span aria-hidden="true" data-language-flag class="text-lg">{{
-                    localeFlag(language.code)
-                  }}</span>
-                  {{ language.name }}
-                </DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
+              <LanguageOptions />
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>

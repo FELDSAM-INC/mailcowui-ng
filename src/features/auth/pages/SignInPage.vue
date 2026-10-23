@@ -27,7 +27,6 @@ import OrDivider from '../components/OrDivider.vue'
 import PasskeySignInButton from '../components/PasskeySignInButton.vue'
 import PasswordForm from '../components/PasswordForm.vue'
 import RoleLinks from '../components/RoleLinks.vue'
-import SignInHeader from '../components/SignInHeader.vue'
 import SignInNotice from '../components/SignInNotice.vue'
 import { useConditionalPasskey } from '../composables/useConditionalPasskey'
 import { usePasskeySignIn } from '../composables/usePasskeySignIn'
@@ -102,8 +101,7 @@ onScopeDispose(() => window.removeEventListener('pageshow', onPageShow))
 
 <template>
   <div class="flex flex-col gap-6">
-    <SignInHeader />
-    <section class="surface flex flex-col gap-5" :aria-labelledby="titleId">
+    <section class="flex flex-col gap-5" :aria-labelledby="titleId">
       <LegacyText
         :id="titleId"
         :k="title.legacy"

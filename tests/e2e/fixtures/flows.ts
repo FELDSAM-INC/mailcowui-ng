@@ -79,3 +79,16 @@ export async function openAccountSections(page: Page): Promise<Locator> {
     await toggle.click()
   return navigation
 }
+
+/** Preferences shared by sign-in, recovery and second-factor pages. */
+export async function chooseAuthLanguage(page: Page, name: string) {
+  await page.locator('[data-language-select]').click()
+  await page.getByRole('menuitemradio', { name, exact: true }).click()
+  await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
+}
+
+export async function chooseAuthTheme(page: Page, name: string) {
+  await page.locator('[data-theme-select]').click()
+  await page.getByRole('menuitemradio', { name, exact: true }).click()
+  await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
+}

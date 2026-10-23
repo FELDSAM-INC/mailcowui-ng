@@ -63,7 +63,7 @@ async function register() {
 
 <template>
   <section class="flex flex-col gap-5" aria-labelledby="pending-title">
-    <div class="surface flex flex-col gap-3">
+    <div class="flex flex-col gap-3">
       <h1
         id="pending-title"
         tabindex="-1"

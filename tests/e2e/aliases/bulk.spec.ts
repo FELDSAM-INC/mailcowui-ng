@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 004 US6, mass actions on aliases (T080): selection mode with "Toggle all" for the page and
 // legacy's action labels, the confirmations of research R16 (none for activate and show, one for
 // deactivate and hide, the typed count for delete), one request with each entry's version as listed,
@@ -41,7 +42,7 @@ test.describe('alias list: mass actions', () => {
     await startSelecting(page)
     await toggleAll(page).click()
     await expect(bar(page)).toContainText('30 selected')
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Deactivate')
     await expect(dialog).toContainText('30')
@@ -70,7 +71,7 @@ test.describe('alias list: mass actions', () => {
       await entry(page, id).getByRole('checkbox').click()
     }
     await mockApi.patch({ deleteElsewhere: { alias: [BULK_004.five[0], BULK_004.five[1]] } })
-    await bar(page).getByRole('button', { name: 'Hide alias in SOGo' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Hide alias in SOGo' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Hide alias in SOGo' }).click()
     const summary = page.locator('[data-bulk-summary]')
     await expect(summary).toContainText('3 done')
@@ -86,20 +87,24 @@ test.describe('alias list: mass actions', () => {
     await startSelecting(page)
     await entry(page, BULK_004.five[0]).getByRole('checkbox').click()
     await entry(page, BULK_004.five[1]).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.locator('[data-bulk-summary]')).toContainText('2 done')
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     // Done items leave the selection (research R16).
     await expect(bar(page)).toContainText('0 selected')
     await entry(page, BULK_004.five[0]).getByRole('checkbox').click()
     await entry(page, BULK_004.five[1]).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Show alias in SOGo' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Show alias in SOGo' }).click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect.poll(async () => (await bulkRequests(mockApi)).length).toBe(2)
     await entry(page, BULK_004.five[0]).getByRole('checkbox').click()
     await entry(page, BULK_004.five[1]).getByRole('checkbox').click()
 
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByRole('heading', { name: 'Confirm deletion' })).toBeVisible()
     await expect(dialog).toContainText('member4@example.org')
@@ -125,13 +130,21 @@ test.describe('alias list: mass actions', () => {
     await mockApi.patch({
       changeElsewhere: { alias: { [BULK_004.five[2]]: { publicComment: 'changed' } } },
     })
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const summary = page.locator('[data-bulk-summary]')
     await expect(summary).toContainText('1 changed in the meantime')
     await expect(bar(page)).toContainText('1 selected')
     await summary.getByRole('button', { name: 'Refresh the list' }).click()
     await expect(bar(page)).toContainText('1 selected')
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.locator('[data-bulk-summary]')).toContainText('1 done')
     const [first, second] = await bulkRequests(mockApi)
     const version = (request: typeof first) =>
@@ -191,7 +204,11 @@ test.describe('alias list: mass actions', () => {
     await mockApi.use('bulk-100')
     await startSelecting(page, 'size=100')
     await toggleAll(page).click()
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const summary = page.locator('[data-bulk-summary]')
     await expect(summary).toContainText('100 done')
     await expect(summary.locator('li')).toHaveCount(100)
@@ -205,7 +222,11 @@ test.describe('alias list: mass actions', () => {
     await startSelecting(page)
     await select(page, 'sales@example.org').click()
     await page.route('**/api/v2/aliases/bulk-actions', (route) => route.abort())
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const summary = page.locator('[data-bulk-summary]')
     await expect(summary).toContainText('Outcome unknown')
     await expect(bar(page)).toContainText('1 selected')

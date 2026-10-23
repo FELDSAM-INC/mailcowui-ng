@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 import { pickDomain } from '../../support/domain-picker'
 
@@ -179,7 +180,7 @@ test('bulk removal excludes own account and requires the actual count', async ({
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Select admin', exact: true }).check()
   await page.getByRole('checkbox', { name: 'Select operator', exact: true }).check()
-  await page.locator('[data-bulk-bar]').getByRole('button', { name: 'Remove', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Remove', exact: true }).click()
   await expect(page.getByRole('alertdialog')).toContainText('Remove 1 accounts')
   await expect(page.getByRole('button', { name: 'Delete now', exact: true })).toBeDisabled()
   await page.getByRole('alertdialog').getByRole('textbox').fill('1')

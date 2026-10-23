@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 010 US5, deleting DKIM keys (T078): the impact of one deletion, an unused key, the bulk
 // deletion with the number typed and one request with every version, outdated and failed keys kept
 // selected, the publication outcomes, a dropped connection, skipped entries, and a key changed or
@@ -78,7 +79,7 @@ test.describe('DKIM deletion', () => {
       'Legacy.Example',
       'example.net',
     ])
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const ask = page.getByRole('alertdialog')
     await expect(ask.locator('[data-delete-target]')).toHaveCount(5)
     await expect(ask.locator('[data-stops-signing]')).toHaveCount(3)
@@ -113,7 +114,7 @@ test.describe('DKIM deletion', () => {
     await listReady(page)
     await selectNames(page, ['example.org', 'shop.example', 'old.example'])
     await mockApi.patch({ dns: { keys: { 'old.example': { selector: 'changed' } } } })
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     await page.getByRole('alertdialog').getByRole('textbox').fill('3')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     const results = page.locator('[data-bulk-results]')
@@ -128,7 +129,7 @@ test.describe('DKIM deletion', () => {
     await page.goto('dns/dkim-keys')
     await listReady(page)
     await selectNames(page, ['example.org'])
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     await page.getByRole('alertdialog').getByRole('textbox').fill('1')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(page.locator('[data-bulk-results] [data-publication-outcome]')).toBeVisible()
@@ -143,7 +144,7 @@ test.describe('DKIM deletion', () => {
     await listReady(page)
     await selectNames(page, ['example.org', 'shop.example'])
     await page.route('**/api/v2/dkim-keys/bulk-actions', (route) => route.abort('connectionreset'))
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     await page.getByRole('alertdialog').getByRole('textbox').fill('2')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(page.locator('[data-bulk-results]')).toContainText('2 with unknown outcome')

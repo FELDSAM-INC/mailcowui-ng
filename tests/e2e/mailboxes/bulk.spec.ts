@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 003 US6, mass actions on mailboxes (T096): selection mode at every width, legacy's "Mailbox"
 // and "Allowed protocols" menus, confirmations (none to activate, one to take away, the count typed
 // to delete), the per-item results with retry, the bulk limit, the selection cleared by list
@@ -30,7 +31,7 @@ async function select(page: Page, addresses: string[]) {
 }
 
 async function choose(page: Page, menu: 'Mailbox' | 'Allowed protocols', item: string) {
-  await bar(page).getByRole('button', { name: menu }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: menu }).click()
   await page.getByRole('menuitem', { name: item, exact: true }).click()
 }
 
@@ -110,6 +111,7 @@ test.describe('mailbox mass actions', () => {
     await mockApi.use('domain-admin-no-protocol')
     await open(page)
     await select(page, [box(1)])
+    await openBulkActions(page)
     await expect(bar(page).getByRole('button', { name: 'Mailbox' })).toBeVisible()
     await expect(bar(page).getByRole('button', { name: 'Allowed protocols' })).toHaveCount(0)
   })
@@ -143,13 +145,13 @@ test.describe('mailbox mass actions', () => {
     await mockApi.use('admin-bulk')
     await open(page)
     await select(page, [box(1)])
-    await bar(page).getByRole('button', { name: 'Allowed protocols' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Allowed protocols' }).click()
     await page.getByRole('menuitem', { name: 'Deactivate IMAP', exact: true }).click()
     await expect(dialog(page)).toContainText('Disallow IMAP for the selected mailboxes (1)?')
     await dialog(page).getByRole('button', { name: 'Deactivate' }).click()
     await expect(results(page)).toContainText('1 done')
     await select(page, [box(1)])
-    await bar(page).getByRole('button', { name: 'Allowed protocols' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Allowed protocols' }).click()
     await page.getByRole('menuitem', { name: 'Activate IMAP', exact: true }).click()
     await expect(results(page)).toContainText('1 done')
     const requests = await bulkRequests(mockApi)

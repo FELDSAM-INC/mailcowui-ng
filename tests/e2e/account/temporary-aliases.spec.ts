@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
 test('empty explanation, legacy generation defaults, raw copy, permanence and confirmed removal', async ({
@@ -79,8 +80,9 @@ test('bulk validity reports each alias, keeps failures selected and retries with
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'alias01@example.org', exact: true }).check()
   await page.getByRole('checkbox', { name: 'alias02@example.org', exact: true }).check()
-  await page
-    .locator('[data-bulk-bar]')
+  await (
+    await openBulkActions(page)
+  )
     .getByRole('combobox', { name: 'Actions', exact: true })
     .selectOption('168')
   const results = page.getByRole('region', { name: 'Results', exact: true })
@@ -107,7 +109,7 @@ test('bulk deletion names aliases and requires the selected count', async ({ pag
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'alias02@example.org', exact: true }).check()
   await page.getByRole('checkbox', { name: 'alias03@example.org', exact: true }).check()
-  await page.locator('[data-bulk-bar]').getByRole('button', { name: 'Remove', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Remove', exact: true }).click()
   const confirmation = page.getByRole('alertdialog')
   await expect(confirmation).toContainText('alias02@example.org')
   await expect(confirmation).toContainText('alias03@example.org')
@@ -167,8 +169,9 @@ test('a lost connection reports outcome unknown and never retries the write', as
   })
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'alias02@example.org', exact: true }).check()
-  await page
-    .locator('[data-bulk-bar]')
+  await (
+    await openBulkActions(page)
+  )
     .getByRole('combobox', { name: 'Actions', exact: true })
     .selectOption('permanent')
   const results = page.getByRole('region', { name: 'Results', exact: true })

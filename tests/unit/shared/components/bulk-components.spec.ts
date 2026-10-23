@@ -9,6 +9,7 @@ import type { BulkRow } from '@/shared/components/bulk-row'
 import * as announcer from '@/shared/composables/useAnnouncer'
 
 import { mountWithApp } from '../../support/mount'
+import { installMatchMedia } from '../../support/media'
 
 describe('BulkActionBar', () => {
   const actions = [
@@ -38,6 +39,77 @@ describe('BulkActionBar', () => {
         .find((b) => b.text() === 'Activate')!
         .attributes('disabled'),
     ).toBeDefined()
+  })
+
+  it('keeps a large mobile action set behind one disclosure and emits the chosen action', async () => {
+    const wrapper = mountWithApp(BulkActionBar, {
+      props: { count: 3, actions: [...actions, { id: 'deactivate', label: 'Deactivate' }] },
+      attachTo: document.body,
+    })
+    const toggle = wrapper.get('[data-bulk-toggle]')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(false)
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(true)
+    await wrapper.get('[data-bulk-action="activate"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('action')).toEqual([['activate']])
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(toggle.element)
+    wrapper.unmount()
+  })
+
+  it('keeps slotted action groups in the panel and Escape returns focus to its trigger', async () => {
+    const wrapper = mountWithApp(BulkActionBar, {
+      props: { count: 2, actions: [] },
+      slots: { default: '<button data-custom-action>Mailbox settings</button>' },
+      attachTo: document.body,
+    })
+    const toggle = wrapper.get('[data-bulk-toggle]')
+    await toggle.trigger('click')
+    expect(wrapper.get('[data-custom-action]').isVisible()).toBe(true)
+    await wrapper.get('[data-custom-action]').trigger('keydown', { key: 'Escape' })
+    await flushPromises()
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(toggle.element)
+    wrapper.unmount()
+  })
+
+  it('disables opening with no selection or during work and closes when selection is cleared', async () => {
+    const wrapper = mountWithApp(BulkActionBar, {
+      props: { count: 0, actions: [...actions, { id: 'deactivate', label: 'Deactivate' }] },
+    })
+    expect(wrapper.get('[data-bulk-toggle]').attributes('disabled')).toBeDefined()
+    await wrapper.setProps({ count: 2, busy: true })
+    expect(wrapper.get('[data-bulk-toggle]').attributes('disabled')).toBeDefined()
+    await wrapper.setProps({ busy: false })
+    await wrapper.get('[data-bulk-toggle]').trigger('click')
+    await wrapper.setProps({ count: 0 })
+    await flushPromises()
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(false)
+  })
+
+  it('keeps desktop actions visible and resets the mobile panel when resizing', async () => {
+    const media = installMatchMedia({ '(min-width: 768px)': true })
+    const wrapper = mountWithApp(BulkActionBar, {
+      props: { count: 1, actions: [...actions, { id: 'deactivate', label: 'Deactivate' }] },
+      attachTo: document.body,
+    })
+    expect(wrapper.find('[data-bulk-toggle]').exists()).toBe(false)
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(true)
+    media.set('(min-width: 768px)', false)
+    await flushPromises()
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(false)
+    await wrapper.get('[data-bulk-toggle]').trigger('click')
+    media.set('(min-width: 768px)', true)
+    await flushPromises()
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(true)
+    media.set('(min-width: 768px)', false)
+    await flushPromises()
+    expect(wrapper.get('[data-bulk-actions]').isVisible()).toBe(false)
+    wrapper.unmount()
+    vi.unstubAllGlobals()
   })
 
   it('shows the limit message when given', () => {

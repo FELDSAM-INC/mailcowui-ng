@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 002 US5, acting on several domains at once (T072): selection mode, the API's bulk operation
 // with version tags, confirmations, progress, per-domain results, retry and the edge cases.
 import type { Page } from '@playwright/test'
@@ -51,7 +52,7 @@ test.describe('bulk actions', () => {
     await startSelecting(page)
     await select(page, FIRST_TEN)
     await expect(bar(page)).toContainText('10 selected')
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     await expect(dialog(page)).toContainText('bulk-01.example')
     await expect(dialog(page)).toContainText('can no longer sign in')
     await expectAccessible()
@@ -89,7 +90,7 @@ test.describe('bulk actions', () => {
       'busy.example',
       'things.example',
     ])
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const impact = dialog(page)
     await expect(impact).toContainText('Delete the selected domains (3)?')
     await expect(impact.locator('[data-bulk-impact="bulk-26.example"]')).toContainText(
@@ -159,7 +160,11 @@ test.describe('bulk actions', () => {
     await listReady(page)
     await startSelecting(page)
     await select(page, ['bulk-01.example'])
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(dialog(page)).toHaveCount(0)
     await expect(results(page).locator('li', { hasText: 'Done' })).toHaveCount(1)
   })
@@ -174,7 +179,11 @@ test.describe('bulk actions', () => {
     await startSelecting(page)
     await select(page, ['bulk-01.example', 'bulk-02.example'])
     await mockApi.mutateDomain('bulk-02.example', { description: 'Changed elsewhere' })
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const outdated = results(page).locator('li', { hasText: 'Changed in the meantime' })
     await expect(outdated).toHaveCount(1)
     await expect(outdated).toContainText('bulk-02.example')
@@ -189,7 +198,11 @@ test.describe('bulk actions', () => {
     await results(page).getByRole('button', { name: 'Close' }).click()
     await select(page, ['bulk-04.example', 'bulk-05.example'])
     await page.route('**/api/v2/domains/bulk-actions', (route) => route.abort())
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(results(page).locator('li', { hasText: 'Outcome unknown' })).toHaveCount(2)
     await expect(bar(page)).toContainText('0 selected')
     await expect(results(page).getByRole('button', { name: 'Retry the failed ones' })).toHaveCount(
@@ -206,7 +219,11 @@ test.describe('bulk actions', () => {
     await listReady(page)
     await startSelecting(page)
     await select(page, ['bulk-01.example'])
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.locator('[data-bulk-progress]')).toBeVisible()
     if (isMobile(page)) {
       await page.getByRole('button', { name: 'Toggle navigation' }).click()
@@ -255,7 +272,11 @@ test.describe('bulk actions', () => {
     await startSelecting(page)
     await page.getByRole('checkbox', { name: 'Select all on this page' }).check()
     await expect(bar(page)).toContainText('50 selected')
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(results(page).locator('li')).toHaveCount(50)
   })
 })

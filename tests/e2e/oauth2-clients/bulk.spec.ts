@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 012 US5, the classic quick actions of selected OAuth2 clients (T080): "Remove", "Revoke all
 // client tokens" and "Generate new client secret" in an explicit selection mode, through the API's
 // bulk operation with each client's version tag; a row per client; failed, refused and outdated
@@ -40,7 +41,7 @@ test.describe('OAuth2 client quick actions', () => {
         scenarioClient(3, { activeRefreshTokens: 1 }),
       ],
     })
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Confirm deletion')
     await expect(dialog).toContainText('Please confirm your changes to the following object id')
@@ -78,7 +79,11 @@ test.describe('OAuth2 client quick actions', () => {
     await page.goto('identity-providers/oauth2-apps')
     await listReady(page)
     await select(page, [1, 3])
-    await bar(page).getByRole('button', { name: 'Revoke all client tokens' }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Revoke all client tokens' })
+      .click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog.getByRole('heading', { name: 'Revoke all client tokens' })).toBeVisible()
     await expect(dialog).toContainText(fixedClientId(1))
@@ -100,7 +105,11 @@ test.describe('OAuth2 client quick actions', () => {
     await page.goto('identity-providers/oauth2-apps')
     await listReady(page)
     await select(page, [1, 2])
-    await bar(page).getByRole('button', { name: 'Generate new client secret' }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Generate new client secret' })
+      .click()
     const confirmation = page.getByRole('alertdialog')
     await expect(confirmation).toContainText(fixedClientId(2))
     await confirmation.getByRole('button', { name: 'Generate new client secret' }).click()
@@ -166,7 +175,7 @@ test.describe('OAuth2 client quick actions', () => {
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await page.getByRole('checkbox', { name: 'Select all on this page' }).first().check()
     await expect(bar(page)).toContainText('20 selected')
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     await dialog.getByRole('textbox').fill('20')
     await dialog.getByRole('button', { name: 'Delete now' }).click()
@@ -184,7 +193,11 @@ test.describe('OAuth2 client quick actions', () => {
     await listReady(page)
     await select(page, [1, 2])
     await page.route('**/api/v2/oauth2-clients/bulk-actions', (route) => route.abort())
-    await bar(page).getByRole('button', { name: 'Revoke all client tokens' }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Revoke all client tokens' })
+      .click()
     await page
       .getByRole('alertdialog')
       .getByRole('button', { name: 'Revoke all client tokens' })

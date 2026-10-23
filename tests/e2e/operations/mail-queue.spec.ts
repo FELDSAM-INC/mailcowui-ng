@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 011 US4 (T088): the Queue Manager — legacy's search, columns, sort and pages, selection mode
 // with one request per action and a result per message, delete with the typed count, flush, delete
 // all with the count and the acknowledgement, a stopped Postfix, a truncated listing, timeouts and
@@ -116,7 +117,7 @@ test.describe('Queue Manager @operations', () => {
     await expectAccessible()
     await expectNoHorizontalScroll()
     const before = await mockApi.mark()
-    await bar(page).getByRole('button', { name: 'Hold', exact: true }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Hold', exact: true }).click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('3 done and 1 not found')
@@ -150,7 +151,7 @@ test.describe('Queue Manager @operations', () => {
   }) => {
     await open(page, mockApi)
     await select(page, '8E3F507142', '9F40618253')
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Confirm deletion')
     await expect(dialog.locator('[data-delete-ids] li')).toHaveText(['8E3F507142', '9F40618253'])
@@ -159,7 +160,7 @@ test.describe('Queue Manager @operations', () => {
     await expectAccessible()
     await dialog.getByRole('button', { name: 'Cancel' }).click()
     expect(await requestsOf(mockApi, 'bulkMailQueueMessages')).toEqual([])
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     await page.getByRole('alertdialog').getByLabel('Type 2 to confirm').fill('2')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('2 done')
@@ -171,10 +172,10 @@ test.describe('Queue Manager @operations', () => {
   test('FR-056 deliver and unhold are sent without a confirmation', async ({ page, mockApi }) => {
     await open(page, mockApi)
     await select(page, '8E3F507142')
-    await bar(page).getByRole('button', { name: 'Unhold' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Unhold' }).click()
     await expect(page.locator('[data-queue-status]')).toBeVisible()
     await select(page, '5B0C2D4E1F')
-    await bar(page).getByRole('button', { name: 'Deliver' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deliver' }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('1 done')
     const actions = (await requestsOf(mockApi, 'bulkMailQueueMessages')).map(
       (request) => (request.body as { action: string }).action,
@@ -284,7 +285,7 @@ test.describe('Queue Manager @operations', () => {
     await open(page, mockApi, 'ops-queue-timeout')
     await select(page, '4F2A1B3C9D')
     const before = await mockApi.mark()
-    await bar(page).getByRole('button', { name: 'Hold', exact: true }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Hold', exact: true }).click()
     await expect(page.locator('[data-queue-unknown]')).toContainText('Outcome unknown')
     await expect(page.locator('[data-queue-unknown]')).toContainText(
       'It is unknown whether the action was completed.',
@@ -312,7 +313,7 @@ test.describe('Queue Manager @operations', () => {
   test("FR-059 a refused action shows Postfix's message", async ({ page, mockApi }) => {
     await open(page, mockApi, 'ops-queue-failure')
     await select(page, '4F2A1B3C9D')
-    await bar(page).getByRole('button', { name: 'Hold', exact: true }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Hold', exact: true }).click()
     await expect(page.getByRole('alert').filter({ hasText: 'Error:' })).toContainText(
       'Error: postsuper: fatal: queue file is locked',
     )

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 008 reflow, motion, focus and keyboard (T074; FR-048, FR-050, SC-004, WCAG 1.4.10, 2.4.11):
 // every screen and dialog of the feature reflows at 320 px and at 400 % zoom, works in landscape,
 // runs no transition under reduced motion, never hides the focused element behind the sticky
@@ -41,8 +42,9 @@ const SCREENS: Screen[] = [
     path: 'sync-jobs?sort=id&order=asc',
     open: async (page) => {
       await startSelection(page)
-      await page
-        .getByRole('region', { name: 'Bulk actions' })
+      await (
+        await openBulkActions(page)
+      )
         .getByRole('button', { name: 'Activate', exact: true })
         .click()
       await expect(page.getByRole('region', { name: 'Results' })).toBeVisible()

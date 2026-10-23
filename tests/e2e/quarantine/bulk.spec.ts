@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
@@ -27,7 +28,11 @@ test('US2 bulk: mixed outcomes retain only failed targets and preserve learning 
   await expect(bar(page)).toContainText('7 selected')
   await expectAccessible()
   await expectTouchTargets()
-  await bar(page).getByRole('button', { name: 'Deliver to inbox', exact: true }).click()
+  await (
+    await openBulkActions(page)
+  )
+    .getByRole('button', { name: 'Deliver to inbox', exact: true })
+    .click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toContainText('Bulk offer 150')
   await expect(dialog).toContainText('example.org')
@@ -71,7 +76,7 @@ test('US2 bulk: removing 100 messages requires the typed count and renders every
   await page.locator('[data-select-mode]').click()
   await page.locator('[data-select-all] input').check()
   await expect(bar(page)).toContainText('100 selected')
-  await bar(page).getByRole('button', { name: 'Remove', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Remove', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   const submit = dialog.getByRole('button', { name: 'Delete now', exact: true })
   await expect(submit).toBeDisabled()
@@ -162,7 +167,7 @@ for (const name of ['Deliver to inbox', 'Release']) {
     await page.goto('quarantine?virus=true')
     await page.locator('[data-select-mode]').click()
     await page.locator('[data-select-all] input').check()
-    await bar(page).getByRole('button', { name, exact: true }).click()
+    await (await openBulkActions(page)).getByRole('button', { name, exact: true }).click()
     const dialog = page.getByRole('alertdialog')
     const submit = dialog.getByRole('button', { name: 'Confirm', exact: true })
     await expect(submit).toBeDisabled()
@@ -187,7 +192,11 @@ test('US2 bulk: learning as spam also requires a typed count and cancellation se
   await mockApi.use('quarantine-mailbox-user')
   await page.goto('quarantine')
   await select(page, [30])
-  await bar(page).getByRole('button', { name: 'Learn as spam and delete', exact: true }).click()
+  await (
+    await openBulkActions(page)
+  )
+    .getByRole('button', { name: 'Learn as spam and delete', exact: true })
+    .click()
   const dialog = page.getByRole('alertdialog')
   await expect(
     dialog.getByRole('button', { name: 'Learn as spam and delete', exact: true }),
@@ -197,7 +206,11 @@ test('US2 bulk: learning as spam also requires a typed count and cancellation se
     (await mockApi.requests()).filter((entry) => entry.operationId === 'applyQuarantineBulkAction'),
   ).toHaveLength(0)
   await expect(bar(page)).toContainText('1 selected')
-  await bar(page).getByRole('button', { name: 'Learn as spam and delete', exact: true }).click()
+  await (
+    await openBulkActions(page)
+  )
+    .getByRole('button', { name: 'Learn as spam and delete', exact: true })
+    .click()
   await dialog.getByRole('textbox', { name: 'Type 1 to confirm', exact: true }).fill('1')
   await dialog.getByRole('button', { name: 'Learn as spam and delete', exact: true }).click()
   await expect(result(page)).toContainText('1 done')
@@ -222,7 +235,11 @@ test('US2 bulk: 40 selected messages produce 39 deliveries and one not found', a
   for (let id = 301; id <= 310; id++)
     await page.locator(`[data-quarantine-item="${id}"] input`).uncheck()
   await mockApi.patch({ quarantine: { items: { remove: [350] } } })
-  await bar(page).getByRole('button', { name: 'Deliver to inbox', exact: true }).click()
+  await (
+    await openBulkActions(page)
+  )
+    .getByRole('button', { name: 'Deliver to inbox', exact: true })
+    .click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toContainText('40 selected')
   await expect(dialog.locator('li')).toHaveCount(40)
@@ -246,7 +263,7 @@ test('US2 bulk: losing a response refreshes the list and never repeats the actio
     await route.fetch()
     await route.abort()
   })
-  await bar(page).getByRole('button', { name: 'Remove', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Remove', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   await dialog.getByRole('textbox', { name: 'Type 1 to confirm', exact: true }).fill('1')
   await dialog.getByRole('button', { name: 'Delete now', exact: true }).click()
@@ -263,7 +280,7 @@ test('US2 bulk: a whole-request refusal preserves selection', async ({ page, moc
   await page.goto('quarantine')
   await select(page, [30, 29])
   await mockApi.failNext('applyQuarantineBulkAction', { status: 403 })
-  await bar(page).getByRole('button', { name: 'Release', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Release', exact: true }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Confirm', exact: true }).click()
   await expect(page.getByRole('alert')).toBeVisible()
   await expect(bar(page)).toContainText('2 selected')

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 004 T108: the main path of each story with the keyboard alone (FR-062): the alias form and its
 // goto checkboxes, the domain picker, the "Allow to send as" picker, section editing, the booking
 // select, selection mode with the typed confirmation, and the row menu; focus moves into dialogs,
@@ -120,9 +121,7 @@ test.describe('feature 004: keyboard only', () => {
     await checkbox.focus()
     await page.keyboard.press('Space')
     await expect(checkbox).toBeChecked()
-    const remove = page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Remove' })
+    const remove = (await openBulkActions(page)).getByRole('button', { name: 'Remove' })
     await remove.focus()
     await page.keyboard.press('Enter')
     const dialog = page.getByRole('alertdialog')
@@ -140,7 +139,9 @@ test.describe('feature 004: keyboard only', () => {
     await expect(dialog.getByRole('button', { name: 'Delete now' })).toBeEnabled()
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
-    await expect(remove).toBeFocused()
+    await expect(
+      (page.viewportSize()?.width ?? 0) < 768 ? page.locator('[data-bulk-toggle]') : remove,
+    ).toBeFocused()
   })
 
   test('US3 the row menu opens with the keyboard and the deletion dialog returns focus to it', async ({

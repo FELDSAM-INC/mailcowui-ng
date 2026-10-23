@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 008 US6 removing sync jobs (T069): the classic row action "Remove" with legacy's deletion
 // dialog naming the job and saying that copied mail stays; cancelling; a selection with the number
 // typed and one bulk request; an outdated single deletion confirmed again; the running note.
@@ -69,10 +70,7 @@ test.describe('removing sync jobs', () => {
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     for (const id of [1, 2, 3])
       await page.getByRole('checkbox', { name: `Select ${label(id)}` }).check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Remove' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     for (const id of [1, 2, 3]) await expect(dialog).toContainText(label(id))
     const confirm = dialog.getByRole('button', { name: 'Delete now' })

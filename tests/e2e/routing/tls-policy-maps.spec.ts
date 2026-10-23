@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US6, TLS policy maps (T090): the classic columns, search, the several-policy and active
 // filters, legacy's add and edit forms with the raw policy values, refusals with legacy's messages
@@ -110,8 +111,9 @@ test.describe('TLS policy maps', () => {
     await expect(polite(page)).toContainText('TLS policy map ID 3 has been deleted')
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, 8).getByRole('checkbox').check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
+    await (
+      await openBulkActions(page)
+    )
       .getByRole('button', { name: 'Activate', exact: true })
       .click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText(

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // T147: account screens at WCAG's 320 CSS px reflow size (1280 px at 400% zoom),
 // short landscape viewports, reduced motion, and the main keyboard paths.
 import type { Locator, Page } from '@playwright/test'
@@ -301,7 +302,7 @@ test('alias generation and its bulk removal confirmation reflow at 320 px', asyn
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'alias01@example.org', exact: true }).check()
   await page.getByRole('checkbox', { name: 'alias02@example.org', exact: true }).check()
-  await page.locator('[data-bulk-bar]').getByRole('button', { name: 'Remove', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Remove', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toContainText('alias01@example.org')
   await expect(dialog).toContainText('alias02@example.org')

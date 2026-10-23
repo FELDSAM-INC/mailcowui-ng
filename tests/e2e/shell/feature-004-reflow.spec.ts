@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 004 T107: every screen, dialog, picker and selection mode of feature 004, with the long values
 // where they matter (SC-004): no horizontal scroll at 320 px or at 400 % zoom (FR-066), landscape on
 // phones, the focused element never hidden behind the sticky header or a sticky action bar
@@ -66,10 +67,7 @@ const SCREENS: Screen[] = [
     list: true,
     open: async (page) => {
       await selectFirst(page)
-      await page
-        .getByRole('region', { name: 'Bulk actions' })
-        .getByRole('button', { name: 'Deactivate' })
-        .click()
+      await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
       await expect(page.getByRole('alertdialog')).toBeVisible()
     },
   },

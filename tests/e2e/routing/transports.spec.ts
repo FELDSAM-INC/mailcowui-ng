@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US3, Transport Maps (T054): the classic columns with the MX-based mark in text, search,
 // filters and sort in the address, the add form with several destinations and one outcome each,
@@ -173,8 +174,9 @@ test.describe('Transport Maps', () => {
     await expect(polite(page)).toContainText('Map entry 3 has been removed')
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, 5).getByRole('checkbox').check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
+    await (
+      await openBulkActions(page)
+    )
       .getByRole('button', { name: 'Activate', exact: true })
       .click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText(

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 004 US6, "Expand alias over alias domains" (T081): a list row action and a mass action, as in
 // legacy (plan part 3, item 8: not on the alias page). The explanation comes first; each alias
 // domain's outcome is legacy's message, the created copy linked; an alias in an alias domain or an
@@ -113,8 +114,9 @@ test.describe('alias list: expand over alias domains', () => {
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, BULK_004.sales).getByRole('checkbox').click()
     await entry(page, BULK_004.inAliasDomain).getByRole('checkbox').click()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
+    await (
+      await openBulkActions(page)
+    )
       .getByRole('button', { name: 'Expand alias over alias domains' })
       .click()
     await page

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 010 US2, generating DKIM keys (T044): the defaults of the server, one name from its entry or
 // the domain page, a selection with progress, results and retry, the selector check, a key created
 // meanwhile, a domain administrator, a failed publication, every name without a key, one request
@@ -62,10 +63,7 @@ test.describe('DKIM generation', () => {
     await selectAllOnPage(page)
     await expect(page.getByRole('region', { name: 'Bulk actions' })).toContainText('25 selected')
     await mockApi.failNext('generateDkimKey', { status: 409, type: 'dkim-key-exists' })
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Add ARC/DKIM key' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Add ARC/DKIM key' }).click()
     await expect(dialog(page)).toContainText('and 15 others')
     await dialog(page).getByRole('button', { name: 'Add', exact: true }).click()
     const run = page.locator('[data-run-dialog]')
@@ -204,10 +202,7 @@ test.describe('DKIM generation', () => {
     await listReady(page)
     await openSelection(page)
     await selectAllOnPage(page)
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Add ARC/DKIM key' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Add ARC/DKIM key' }).click()
     const skipped = dialog(page).locator('[data-generate-skipped]')
     await expect(skipped).toContainText('example.org')
     await expect(dialog(page).locator('[data-generate-names]')).toContainText('example.net')
@@ -234,10 +229,7 @@ test.describe('DKIM generation', () => {
       }
       await route.fallback()
     })
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Add ARC/DKIM key' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Add ARC/DKIM key' }).click()
     await dialog(page).getByRole('button', { name: 'Add', exact: true }).click()
     const run = page.locator('[data-run-dialog]')
     await expect(run.locator('[data-run-row]', { hasText: 'm03.example' })).toContainText(
@@ -268,10 +260,7 @@ test.describe('DKIM generation', () => {
     await listReady(page)
     await openSelection(page)
     await selectAllOnPage(page)
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Add ARC/DKIM key' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Add ARC/DKIM key' }).click()
     await dialog(page).getByRole('button', { name: 'Add', exact: true }).click()
     await expect(page.locator('[data-run-progress]')).toBeVisible()
     await page.evaluate(() => history.back())
@@ -318,10 +307,7 @@ test.describe('DKIM generation', () => {
     expect(await entryNames(page)).toContain('example.net')
     await openSelection(page)
     await page.getByRole('checkbox', { name: 'Select example.net' }).check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Add ARC/DKIM key' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Add ARC/DKIM key' }).click()
     await dialog(page).getByRole('button', { name: 'Add', exact: true }).click()
     await expect(page).toHaveURL(/\/dns\/dkim-keys\/example\.net$/)
     await expect(page.getByText('Key valid')).toBeVisible()

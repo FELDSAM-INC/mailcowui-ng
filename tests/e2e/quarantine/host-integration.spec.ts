@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
 for (const [route, pattern] of [
@@ -54,6 +55,7 @@ test('US3 mailbox bulk notification menu updates only explicitly selected mailbo
   await page.goto('mailboxes')
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'Select alice@example.org', exact: true }).check()
+  await openBulkActions(page)
   await page.locator('[data-bulk-menu="quarantine-notification"]').click()
   await page.locator('[data-bulk-action="notify-weekly"]').click()
   const dialog = page.getByRole('alertdialog')

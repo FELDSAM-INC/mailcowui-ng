@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 012 T095 (FR-071 to FR-074, SC-004, SC-005): every screen and dialog of the feature reflows at
 // 320 px and at 400 % zoom, works in landscape on phones, runs no transition under reduced motion,
 // keeps the focused element out from under the sticky header, and the main paths work with the
@@ -297,9 +298,9 @@ test('SC-004 creating an OAuth2 client and revoking its tokens work with the key
   await checkbox.focus()
   await page.keyboard.press('Space')
   await expect(checkbox).toBeChecked()
-  const revoke = page
-    .getByRole('region', { name: 'Bulk actions' })
-    .getByRole('button', { name: 'Revoke all client tokens' })
+  const revoke = (await openBulkActions(page)).getByRole('button', {
+    name: 'Revoke all client tokens',
+  })
   await revoke.focus()
   await page.keyboard.press('Enter')
   const confirmation = page.getByRole('alertdialog')

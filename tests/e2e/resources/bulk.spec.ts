@@ -1,12 +1,10 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 004 US7 with US6-AS3, mass actions on resources (T094): five desks deleted after typing 5, with
 // their names and the groupware data named; activate and deactivate.
 import { RESOURCES_004 } from '../../mocks/scenarios/resources'
 import { expect, test } from '../fixtures/test'
-import type { Page } from '@playwright/test'
 import { listReady } from '../aliases/helpers'
 import { entry } from './helpers'
-
-const bar = (page: Page) => page.getByRole('region', { name: 'Bulk actions' })
 
 test.describe('resources: mass actions', () => {
   test('US6-AS3 five resources are deleted only after "5" is typed', async ({ page, mockApi }) => {
@@ -15,7 +13,7 @@ test.describe('resources: mass actions', () => {
     await listReady(page)
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     for (const desk of RESOURCES_004.desks) await entry(page, desk).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     for (const desk of RESOURCES_004.desks) await expect(dialog).toContainText(desk)
     await expect(dialog).toContainText('calendar')
@@ -32,11 +30,15 @@ test.describe('resources: mass actions', () => {
     await listReady(page)
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, RESOURCES_004.desks[0]).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Deactivate' }).click()
     await expect(page.locator('[data-bulk-summary]')).toContainText('1 done')
     await entry(page, RESOURCES_004.desks[0]).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(page.locator('[data-bulk-summary]')).toContainText(
       `Changes to mailbox ${RESOURCES_004.desks[0]} have been saved`,

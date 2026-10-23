@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 T115: every routing screen, form, dialog, picker, test page and section reflows at 320 px
 // and at 400 % zoom, works in landscape on phones, never hides the focused element behind the
@@ -472,9 +473,7 @@ test.describe('keyboard only', () => {
     await checkbox.focus()
     await page.keyboard.press('Space')
     await expect(checkbox).toBeChecked()
-    const remove = page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: /Remove|Delete/ })
+    const remove = (await openBulkActions(page)).getByRole('button', { name: /Remove|Delete/ })
     await remove.focus()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('alertdialog')).toBeVisible()

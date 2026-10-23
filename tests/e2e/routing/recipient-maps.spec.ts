@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 009 US7, recipient maps (T097): the classic columns, search, the active filter and the sort,
 // legacy's add and edit forms with their info texts, refusals with legacy's messages, deletion and
 // bulk actions.
@@ -78,10 +79,7 @@ test.describe('recipient maps', () => {
     await listReady(page)
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, 2).getByRole('checkbox').check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Remove' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     await page.getByRole('alertdialog').getByLabel('Type 1 to confirm').fill('1')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText(

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 008 US4 activate, deactivate and schedule next (T055) under the 1:1 rule: the classic mass
 // actions on a selection (one job or several), with one explicit confirmation for deactivating,
 // the version as listed, changes elsewhere, the running note and the list updated in place.
@@ -24,7 +25,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await page.goto('sync-jobs?q=previous')
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Deactivate 1 sync jobs?')
     await expect(dialog).toContainText('alice@mail.previous.example:993')
@@ -32,7 +33,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await expectAccessible()
     await dialog.getByRole('button', { name: 'Cancel' }).click()
     expect(await requestsOf(mockApi, 'applySyncJobBulkAction')).toEqual([])
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Deactivate' }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('Done')
     await expect(entry(page, 2).locator('[data-active]')).toContainText('✕')
@@ -41,7 +42,11 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     expect((request!.body as { targets: { version: string }[] }).targets[0]!.version).toMatch(/^sj/)
 
     await select(page, 'alice@mail.previous.example:993')
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(entry(page, 2).locator('[data-active]')).toContainText('✓')
   })
@@ -54,7 +59,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await page.goto('sync-jobs?q=previous')
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
-    await bar(page).getByRole('button', { name: 'Schedule next' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Schedule next' }).click()
     await expect(entry(page, 2).locator('[data-last-run]')).toHaveText('Waiting')
     await expect(entry(page, 2).locator('[data-result]')).toHaveText('-')
     const [request] = await requestsOf(mockApi, 'applySyncJobBulkAction')
@@ -105,7 +110,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await page.goto('sync-jobs')
     await listReady(page)
     await select(page, 'user2@old-provider.example@imap2.old-provider.example:993')
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     await expect(page.getByRole('alertdialog')).toContainText(
       'The run in progress is not interrupted and finishes on its own.',
     )
@@ -120,7 +125,11 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
     await page.route('**/api/v2/sync-jobs/bulk-actions', (route) => route.abort())
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('Outcome unknown')
     await expect(
       page.getByRole('checkbox', { name: 'Select alice@mail.previous.example:993' }),

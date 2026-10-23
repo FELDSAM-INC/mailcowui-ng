@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 004 US6, mass actions on domain aliases (T082): activate, deactivate and delete, offered also
 // without `aliasDomains` (US6-AS7); deactivate with one confirmation; delete listing every name with
 // the consequences and the typed count; temporary failures reported and kept selected.
@@ -32,7 +33,7 @@ test.describe('domain aliases: mass actions', () => {
     await startSelecting(page)
     await entry(page, BULK_ALIAS_DOMAINS_004[0]).getByRole('checkbox').click()
     await entry(page, BULK_ALIAS_DOMAINS_004[2]).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('2')
     await dialog.getByRole('button', { name: 'Deactivate' }).click()
@@ -50,7 +51,7 @@ test.describe('domain aliases: mass actions', () => {
     await startSelecting(page)
     await entry(page, BULK_ALIAS_DOMAINS_004[0]).getByRole('checkbox').click()
     await entry(page, BULK_ALIAS_DOMAINS_004[1]).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Remove' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText(BULK_ALIAS_DOMAINS_004[0])
     await expect(dialog).toContainText(BULK_ALIAS_DOMAINS_004[1])
@@ -71,7 +72,11 @@ test.describe('domain aliases: mass actions', () => {
     await mockApi.use('bulk-alias-domains-failures')
     await startSelecting(page)
     for (const name of BULK_ALIAS_DOMAINS_004) await entry(page, name).getByRole('checkbox').click()
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const summary = page.locator('[data-bulk-summary]')
     await expect(summary).toContainText('3 done')
     await expect(summary).toContainText('2 failed')

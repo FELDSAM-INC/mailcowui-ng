@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 010 US7, the DKIM DNS publication (T096, FR-043 to FR-045): the outcome after a generation,
 // a missing zone, "Publish DNS record again", nothing while publication is off, failure reasons,
 // publication turned off meanwhile, a key changed elsewhere, and outcomes after other changes.
@@ -124,10 +125,7 @@ test.describe('DKIM DNS publication', () => {
     await page.goto('dns/dkim-keys')
     await page.getByRole('button', { name: 'Select', exact: true }).click({ timeout: FIRST_LOAD })
     await page.getByRole('checkbox', { name: 'Select example.org' }).check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Remove' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     await page.getByRole('alertdialog').getByRole('textbox').fill('1')
     await page.getByRole('alertdialog').getByRole('button', { name: 'Delete now' }).click()
     await expect(page.locator('[data-bulk-results] [data-publication-outcome]')).toContainText(

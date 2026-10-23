@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US8, forwarding hosts (T103): the classic columns with the spam filter in text, the
 // source filter, legacy's add form with every resulting address reported, names that do not
@@ -93,10 +94,7 @@ test.describe('forwarding hosts', () => {
     await listReady(page)
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, '192.0.2.0/24').getByRole('checkbox').check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Enable spam filter' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Enable spam filter' }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText(
       'Changes to object 192.0.2.0/24 have been saved',
     )

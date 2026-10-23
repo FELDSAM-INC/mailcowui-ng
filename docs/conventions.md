@@ -332,6 +332,9 @@ from a table in the feature, keyed by operation, problem type and rule code (nev
 
 - Bulk actions need an explicit selection mode, and the selection covers the current page only.
   It clears when the page, search, filters, sort or page size change.
+- Use `BulkActionBar` for every list. On mobile, up to two direct actions stay beside the count;
+  larger sets and grouped controls open in a two-column Actions panel. Clear selection stays
+  visible, and desktop actions remain inline. Feature components retain their confirmations.
 - The UI sends the API's bulk operation (up to 100 items) together with each item's version tag
   as listed.
 - It shows a summary with one result per item. Failed, refused and outdated items stay selected,

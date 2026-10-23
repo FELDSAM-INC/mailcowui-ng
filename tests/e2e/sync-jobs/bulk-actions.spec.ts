@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 008 US4 actions on several jobs (T056): one bulk request with each job's version as listed,
 // the per-job summary, failed jobs kept selected for a retry, selection mode on phones, the page
 // selection and its limit, the selection cleared by list changes, a lost connection, 25 outcomes,
@@ -26,7 +27,11 @@ test.describe('sync job bulk actions', () => {
     await startSelecting(page)
     for (const id of [6, 7, 8])
       await page.getByRole('checkbox', { name: `Select ${label(id)}` }).check()
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('2 done')
     await expect(results).toContainText('1 failed')
@@ -93,13 +98,13 @@ test.describe('sync job bulk actions', () => {
     await startSelecting(page)
     await page.getByRole('checkbox', { name: `Select ${label(1)}` }).check()
     await page.getByRole('checkbox', { name: `Select ${label(2)}` }).check()
-    await bar(page).getByRole('button', { name: 'Deactivate' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Deactivate 2 sync jobs?')
     await expect(dialog).toContainText(label(1))
     await expect(dialog).toContainText(label(2))
     await dialog.getByRole('button', { name: 'Cancel' }).click()
-    await bar(page).getByRole('button', { name: 'Schedule next' }).click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Schedule next' }).click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('2 done')
   })
@@ -116,7 +121,11 @@ test.describe('sync job bulk actions', () => {
     await page.getByRole('checkbox', { name: `Select ${label(4)}` }).check()
     await mockApi.patch({ syncJobs: { changeElsewhere: { id: 3, intervalMinutes: 45 } } })
     await mockApi.patch({ syncJobs: { delete: 4 } })
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('1 changed in the meantime')
     await expect(results).toContainText('1 not found')
@@ -140,7 +149,11 @@ test.describe('sync job bulk actions', () => {
       return route.abort()
     })
     const before = (await requestsOf(mockApi, 'listSyncJobs')).length
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('2 with unknown outcome')
     await expect(bar(page)).toContainText('0 selected')
@@ -161,7 +174,11 @@ test.describe('sync job bulk actions', () => {
     await page.getByRole('checkbox', { name: 'Toggle all' }).first().check()
     await expect(bar(page)).toContainText('2 selected')
     await expect(bar(page)).toContainText('You can select at most 2 items for one action.')
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     await expect(page.getByRole('region', { name: 'Results' })).toBeVisible()
     const [request] = await requestsOf(mockApi, 'applySyncJobBulkAction')
     expect((request!.body as { targets: unknown[] }).targets).toHaveLength(2)
@@ -173,7 +190,11 @@ test.describe('sync job bulk actions', () => {
     await listReady(page)
     await startSelecting(page)
     await page.getByRole('checkbox', { name: 'Toggle all' }).first().check()
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('25 done')
     await expect(results.getByRole('listitem')).toHaveCount(25)

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 // UI 002 T103: reflow at 320 px and at 400 % zoom, landscape on phones, focus never hidden behind
 // the sticky header or the sticky actions, no transition under reduced motion, and the main path of
 // each story with the keyboard alone (FR-068, FR-071, SC-004, WCAG 1.4.10, 2.4.11).
@@ -37,10 +38,7 @@ const SCREENS: Screen[] = [
     open: async (page) => {
       await page.getByRole('button', { name: 'Select', exact: true }).click()
       await page.getByRole('checkbox', { name: 'Select bulk-01.example' }).check()
-      await page
-        .getByRole('region', { name: 'Bulk actions' })
-        .getByRole('button', { name: 'Deactivate' })
-        .click()
+      await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
       await expect(page.getByRole('alertdialog')).toBeVisible()
     },
   },
@@ -259,15 +257,15 @@ test.describe('keyboard only', () => {
     await checkbox.focus()
     await page.keyboard.press('Space')
     await expect(checkbox).toBeChecked()
-    const deactivate = page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Deactivate' })
+    const deactivate = (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' })
     await deactivate.focus()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('alertdialog')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect(deactivate).toBeFocused()
+    await expect(
+      (page.viewportSize()?.width ?? 0) < 768 ? page.locator('[data-bulk-toggle]') : deactivate,
+    ).toBeFocused()
 
     const sort = page.getByLabel('Sort by')
     await sort.focus()

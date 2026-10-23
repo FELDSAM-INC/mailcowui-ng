@@ -70,6 +70,18 @@ export async function signOutFromMenu(page: Page): Promise<void> {
 export const politeRegion = (page: Page) => page.locator('[data-live="polite"]')
 export const assertiveRegion = (page: Page) => page.locator('[data-live="assertive"]')
 
+/** Large mobile bulk action sets are disclosed beside the selection count. */
+export async function openBulkActions(page: Page): Promise<Locator> {
+  const bar = page.getByRole('region', { name: 'Bulk actions' })
+  await expect(bar).toBeVisible()
+  const toggle = bar.locator('[data-bulk-toggle]')
+  if ((await toggle.count()) && (await toggle.getAttribute('aria-expanded')) === 'false') {
+    await toggle.focus()
+    await toggle.press('Enter')
+  }
+  return bar
+}
+
 /** Account tabs are directly available in the shared section navigation. */
 export async function openAccountSections(page: Page): Promise<Locator> {
   const navigation = page.locator('[data-section-nav]')

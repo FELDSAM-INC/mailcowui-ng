@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US1, Sender-dependent transports (T027): the classic list's columns as cards and a table,
 // the hint, search, filters, sort and paging in the address, the add and edit forms with
@@ -240,10 +241,7 @@ test.describe('Sender-dependent transports', () => {
     await page.getByRole('checkbox', { name: 'Select relay.example.com' }).check()
     await page.getByRole('checkbox', { name: 'Select [smarthost.example]:587 (alpha)' }).check()
     await mockApi.patch({ routing: { relayhosts: { set: { '4': { username: 'changed' } } } } })
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Deactivate' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     const summary = page.getByRole('region', { name: 'Results' })
     await expect(summary).toContainText('Changes to object relay.example.com have been saved')
     await expect(summary).toContainText('Changed in the meantime')
@@ -253,10 +251,7 @@ test.describe('Sender-dependent transports', () => {
     await summary.getByRole('button', { name: 'Close' }).click()
     await entry(page, 4).getByRole('checkbox').uncheck()
     await page.getByRole('checkbox', { name: 'Select [old-relay.example.org]:25' }).check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
-      .getByRole('button', { name: 'Remove' })
-      .click()
+    await (await openBulkActions(page)).getByRole('button', { name: 'Remove' }).click()
     const dialog = page.getByRole('alertdialog', { name: 'Confirm deletion' })
     await expect(dialog.getByRole('button', { name: 'Delete now' })).toBeDisabled()
     await dialog.getByLabel('Type 1 to confirm').fill('1')
@@ -281,8 +276,9 @@ test.describe('Sender-dependent transports', () => {
       calls += 1
       return route.abort()
     })
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
+    await (
+      await openBulkActions(page)
+    )
       .getByRole('button', { name: 'Activate', exact: true })
       .click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('Outcome unknown')

@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 import { listReady } from '../domains/helpers'
 
@@ -24,6 +25,7 @@ test('D6 outbound TLS applies immediately to 30 selected mailboxes with per-item
   const bar = page.getByRole('region', { name: 'Bulk actions' })
   await expect(bar).toContainText('30 selected')
   await mockApi.patch({ mailboxes: { remove: [box(30)] } })
+  await openBulkActions(page)
   await page.locator('[data-bulk-menu="tls-outbound"]').click()
   await expectAccessible()
   await page.locator('[data-bulk-action="tls-outbound-activate"]').click()
@@ -56,6 +58,7 @@ test('all four TLS quick actions need no confirmation and a self-service bulk li
   for (const direction of ['inbound', 'outbound']) {
     for (const action of ['activate', 'deactivate']) {
       await page.getByRole('checkbox', { name: `Select ${box(1)}`, exact: true }).check()
+      await openBulkActions(page)
       await page.locator(`[data-bulk-menu="tls-${direction}"]`).click()
       await page.locator(`[data-bulk-action="tls-${direction}-${action}"]`).click()
       await expect(page.getByRole('region', { name: 'Results' })).toContainText('done')

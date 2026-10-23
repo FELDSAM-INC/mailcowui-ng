@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US5, BCC maps (T080): the classic BCC card as a list for administrators and domain
 // administrators, orphaned maps for administrators, legacy's add form with the grouped local
@@ -149,8 +150,9 @@ test.describe('BCC maps', () => {
     await page.getByRole('button', { name: 'Select', exact: true }).click()
     await entry(page, 1).getByRole('checkbox').check()
     await entry(page, 3).getByRole('checkbox').check()
-    await page
-      .getByRole('region', { name: 'Bulk actions' })
+    await (
+      await openBulkActions(page)
+    )
       .getByRole('button', { name: 'Switch to sender map type' })
       .click()
     const results = page.getByRole('region', { name: 'Results' })

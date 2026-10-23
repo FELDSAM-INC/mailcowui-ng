@@ -217,7 +217,7 @@ async function remove() {
           }}
         </p>
         <p v-else data-logo-default class="text-sm">{{ t('systemSettings.logos.default') }}</p>
-        <LogoPreview :src="query.data.value.url ?? branding.logos[variant]" />
+        <LogoPreview :src="query.data.value.url ?? branding.logos[variant]" :variant="variant" />
       </div>
       <p v-if="capabilities.demoMode" role="status" data-demo-mode>
         {{ lt('danger.demo_mode_enabled') }}
@@ -244,7 +244,7 @@ async function remove() {
           {{ selected.file.name }} · {{ selected.mediaType }} ·
           {{ format.bytes(selected.file.size) }}
         </p>
-        <LogoPreview :src="selected.url" />
+        <LogoPreview :src="selected.url" :variant="variant" />
         <div class="flex flex-wrap gap-3">
           <button
             type="button"

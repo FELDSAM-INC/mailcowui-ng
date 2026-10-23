@@ -135,13 +135,13 @@ test('T053 stored legacy SVG is only an image and read failures can be retried',
   await page.goto('system/customize/logos')
   await page.locator('main').getByRole('button', { name: 'Try again', exact: true }).click()
   const card = page.locator(light)
-  await expect(card.locator('[data-logo-current] img')).toHaveCount(4)
+  await expect(card.locator('[data-logo-current] img')).toHaveCount(2)
   await expect(card.locator('script, object, iframe, embed')).toHaveCount(0)
   expect(await page.evaluate(() => 'logoExecuted' in window)).toBe(false)
   await expectAccessible()
 })
 
-test('T053 previews a content-detected PNG in both themes and updates the shell after upload', async ({
+test('T053 previews a content-detected PNG on its matching surface and updates the shell after upload', async ({
   page,
   mockApi,
   expectAccessible,
@@ -152,7 +152,7 @@ test('T053 previews a content-detected PNG in both themes and updates the shell 
   const card = page.locator(light)
   await card.locator('input[type=file]').setInputFiles(fixture('logo-300x80.png'))
   await expect(card.locator('[data-logo-candidate]')).toContainText('logo-300x80.png')
-  await expect(card.locator('[data-logo-candidate] img')).toHaveCount(4)
+  await expect(card.locator('[data-logo-candidate] img')).toHaveCount(2)
   expect(await mockApi.countRequests('replaceLogo')).toBe(0)
   await expectAccessible()
   await expectNoHorizontalScroll(page, { widths: [320, 360] })

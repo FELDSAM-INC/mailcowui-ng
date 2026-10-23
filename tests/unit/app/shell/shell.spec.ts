@@ -184,6 +184,36 @@ describe('navigation (FR-043, FR-046)', () => {
     wrapper.unmount()
   })
 
+  it('temporarily expands the collapsed sidebar on mouse hover and preserves the toggle choice', async () => {
+    const { wrapper } = await mountShell({ wide: true })
+    const sidebar = wrapper.get('[data-desktop-sidebar]')
+    const toggle = wrapper.get('[data-navigation-toggle]')
+    await toggle.trigger('click')
+    expect(sidebar.classes()).toContain('w-[90px]')
+    await sidebar.trigger('pointerenter', { pointerType: 'mouse' })
+    expect(sidebar.classes()).toContain('w-[290px]')
+    expect(sidebar.get('[data-nav-item="domains"] span').classes()).not.toContain('sr-only')
+    expect(toggle.attributes('aria-label')).toBe('Expand sidebar')
+    await sidebar.trigger('pointerleave', { pointerType: 'mouse' })
+    expect(sidebar.classes()).toContain('w-[90px]')
+    expect(sidebar.get('[data-nav-item="domains"] span').classes()).toContain('sr-only')
+    await toggle.trigger('click')
+    await sidebar.trigger('pointerenter', { pointerType: 'mouse' })
+    await sidebar.trigger('pointerleave', { pointerType: 'mouse' })
+    expect(sidebar.classes()).toContain('w-[290px]')
+    expect(toggle.attributes('aria-label')).toBe('Collapse sidebar')
+    wrapper.unmount()
+  })
+
+  it('does not activate sidebar hover for touch pointers', async () => {
+    const { wrapper } = await mountShell({ wide: true })
+    await wrapper.get('[data-navigation-toggle]').trigger('click')
+    const sidebar = wrapper.get('[data-desktop-sidebar]')
+    await sidebar.trigger('pointerenter', { pointerType: 'touch' })
+    expect(sidebar.classes()).toContain('w-[90px]')
+    wrapper.unmount()
+  })
+
   it('closes the drawer after a choice', async () => {
     const { wrapper, router } = await mountShell({ wide: false })
     await wrapper.get('button[aria-label="Toggle navigation"]').trigger('click')

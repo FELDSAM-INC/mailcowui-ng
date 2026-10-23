@@ -133,6 +133,7 @@ copied. No TailAdmin Pro code or asset is used. Every copied file starts with th
 | `src/shared/ui/utils/cn.ts` | `src/utils/cn.ts` |
 | `src/shared/ui/utils/focusOnOpen.ts` | `src/utils/focusOnOpen.ts` |
 | `src/shared/icons/MenuIcon.vue` | TailAdmin `src/icons/layout/MenuIcon.vue` |
+| `src/shared/icons/MenuTwoIcon.vue` | TailAdmin `src/icons/layout/MenuTwoIcon.vue` |
 | `src/shared/icons/CloseIcon.vue` | TailAdmin `src/icons/layout/XIcon.vue` |
 | `src/shared/icons/ChevronDownIcon.vue` | TailAdmin `src/icons/layout/ChevronDownIcon.vue` |
 | `src/shared/icons/ChevronLeftIcon.vue` | TailAdmin `src/icons/layout/ChevronLeftIcon.vue` |

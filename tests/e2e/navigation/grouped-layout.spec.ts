@@ -244,7 +244,7 @@ test('TailAdmin desktop rail starts at the top and collapses beside the header',
   await expect(page.locator('[data-sidebar-logo] img')).toBeVisible()
   await page.getByRole('button', { name: 'Collapse sidebar' }).click()
   await expect(sidebar).toHaveAttribute('data-collapsed', 'true')
-  expect((await sidebar.boundingBox())?.width).toBe(90)
+  await expect.poll(async () => (await sidebar.boundingBox())?.width).toBe(90)
   expect((await header.boundingBox())?.x).toBe(90)
   const access = sidebar.getByRole('link', { name: 'Access', exact: true })
   await access.click()

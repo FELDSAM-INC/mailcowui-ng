@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
-import { MenuIcon } from '@/shared/icons'
+import { MenuIcon, MenuTwoIcon } from '@/shared/icons'
 
 import BrandLogo from './BrandLogo.vue'
 
@@ -39,7 +39,8 @@ defineExpose({ menuButton })
       data-navigation-toggle
       @click="$emit('openMenu')"
     >
-      <MenuIcon class="size-6" />
+      <MenuTwoIcon v-if="desktop" class="h-3 w-4 rtl:-scale-x-100" />
+      <MenuIcon v-else class="size-6" />
     </button>
     <RouterLink
       v-if="!desktop"

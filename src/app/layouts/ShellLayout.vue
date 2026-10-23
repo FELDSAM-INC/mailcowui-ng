@@ -54,6 +54,12 @@ watch(drawerOpen, (open) => {
   if (open) drawerUsed.value = true
 })
 const sidebarCollapsed = ref(false)
+const sidebarHovered = ref(false)
+// Hover reveals labels temporarily; the header button keeps the user's expanded/collapsed choice.
+const sidebarCompact = computed(() => sidebarCollapsed.value && !sidebarHovered.value)
+watch(wide, () => {
+  sidebarHovered.value = false
+})
 const header = ref<{ menuButton: HTMLButtonElement | null } | null>(null)
 const menuButton = computed(() => header.value?.menuButton ?? null)
 
@@ -73,23 +79,26 @@ const statusMessages = useStatusMessage().messages
       id="desktop-navigation"
       data-desktop-sidebar
       :data-collapsed="sidebarCollapsed"
-      class="sticky top-0 flex h-dvh shrink-0 flex-col self-start border-e border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
-      :class="sidebarCollapsed ? 'w-[90px]' : 'w-[290px]'"
+      class="sticky top-0 flex h-dvh shrink-0 flex-col self-start border-e border-gray-200 bg-white motion-safe:transition-[width] motion-safe:duration-300 motion-safe:ease-in-out dark:border-gray-800 dark:bg-gray-900"
+      :class="sidebarCompact ? 'w-[90px]' : 'w-[290px]'"
+      @pointerenter="sidebarHovered = sidebarCollapsed && $event.pointerType !== 'touch'"
+      @pointerleave="sidebarHovered = false"
+      @pointercancel="sidebarHovered = false"
     >
       <RouterLink
         :to="homePath"
         data-shell-logo
         data-sidebar-logo
         class="flex h-24 shrink-0 items-center rounded-lg px-5 focus-visible:outline-2 focus-visible:outline-brand-500"
-        :class="sidebarCollapsed ? 'justify-center' : ''"
+        :class="sidebarCompact ? 'justify-center' : ''"
       >
-        <BrandLogo :compact="sidebarCollapsed" />
+        <BrandLogo :compact="sidebarCompact" />
       </RouterLink>
       <div
         data-sidebar-scroll
         class="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6"
       >
-        <NavigationList :identity="identity" :collapsed="sidebarCollapsed" />
+        <NavigationList :identity="identity" :collapsed="sidebarCompact" />
       </div>
     </aside>
     <NavigationDrawer

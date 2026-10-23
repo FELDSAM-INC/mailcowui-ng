@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The own second factors (UI 005 US2, FR-043, FR-051 to FR-054, research R9; decisions D10, D11):
 // each entry's name, its method (legacy's names), "Inactive", "No longer supported" and "used for
 // this sign-in" as text, and "Remove". The only active, usable entry turns two-factor
@@ -106,23 +108,14 @@ defineExpose({ turnOff: () => (turningOff.value = true) })
             {{ text(secondFactorTypeKey(entry.type)) }}
           </p>
           <ul class="mt-1 flex flex-wrap gap-2 text-xs">
-            <li
-              v-if="!entry.usable"
-              class="rounded-full bg-amber-100 px-2 py-0.5 text-amber-900 dark:bg-amber-500/15 dark:text-amber-200"
-            >
-              {{ t('account.twoFactor.unsupported') }}
+            <li v-if="!entry.usable">
+              <Badge color="warning">{{ t('account.twoFactor.unsupported') }}</Badge>
             </li>
-            <li
-              v-else-if="!entry.active"
-              class="rounded-full bg-gray-100 px-2 py-0.5 text-gray-800 dark:bg-white/10 dark:text-gray-200"
-            >
-              {{ lt('mailbox.inactive') }}
+            <li v-else-if="!entry.active">
+              <Badge color="gray">{{ lt('mailbox.inactive') }}</Badge>
             </li>
-            <li
-              v-if="entry.usedForCurrentSignIn"
-              class="rounded-full bg-green-100 px-2 py-0.5 text-green-900 dark:bg-green-500/15 dark:text-green-200"
-            >
-              {{ t('account.twoFactor.usedForSignIn') }}
+            <li v-if="entry.usedForCurrentSignIn">
+              <Badge color="success">{{ t('account.twoFactor.usedForSignIn') }}</Badge>
             </li>
           </ul>
         </div>

@@ -6,7 +6,7 @@ import { cn } from '@/shared/ui/utils/cn'
 defineOptions({ inheritAttrs: false })
 
 type BadgeVariant = 'light' | 'solid' | 'ghost'
-type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'gray' | 'light' | 'dark'
+import type { BadgeColor } from './types'
 type BadgeSize = 'sm' | 'default' | 'lg'
 
 const props = withDefaults(
@@ -17,21 +17,21 @@ const props = withDefaults(
   }>(),
   {
     variant: 'light',
-    color: 'primary',
-    size: 'default',
+    color: 'gray',
+    size: 'sm',
   },
 )
 
 const attrs = useAttrs()
 
 const base =
-  'group/badge inline-flex w-fit shrink-0 items-center justify-center gap-1 font-medium whitespace-nowrap transition-colors select-none [&>svg]:pointer-events-none [&>svg]:shrink-0'
+  'group/badge inline-flex max-w-full min-w-0 items-center gap-1 align-middle text-start font-medium whitespace-normal wrap-anywhere transition-colors [&>svg]:pointer-events-none [&>svg]:shrink-0 [&>svg]:self-center'
 
 const sizes: Record<BadgeSize, string> = {
-  sm: 'h-5.5 rounded-lg px-2 py-0.5 text-xs [&:has(>svg:first-child)]:ps-1.5 [&:has(>svg:last-child)]:pe-1.5 [&>svg]:size-3',
+  sm: 'min-h-5 rounded-lg px-2 py-0.5 text-xs leading-4 [&>svg]:size-3',
   default:
-    'h-6 rounded-lg px-2.5 py-0.5 text-sm [&:has(>svg:first-child)]:ps-2 [&:has(>svg:last-child)]:pe-2 [&>svg]:size-3.5',
-  lg: 'h-7 rounded-[10px] px-3 py-1 text-sm [&:has(>svg:first-child)]:ps-2.5 [&:has(>svg:last-child)]:pe-2.5 [&>svg]:size-3.5',
+    'min-h-6 rounded-lg px-2.5 py-0.5 text-sm [&:has(>svg:first-child)]:ps-2 [&:has(>svg:last-child)]:pe-2 [&>svg]:size-3.5',
+  lg: 'min-h-7 rounded-lg px-3 py-1 text-sm [&:has(>svg:first-child)]:ps-2.5 [&:has(>svg:last-child)]:pe-2.5 [&>svg]:size-3.5',
 }
 
 const light: Record<BadgeColor, string> = {

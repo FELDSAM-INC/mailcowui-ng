@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -132,17 +134,14 @@ const tableView = useDataColumns(
                 singleLine(column.id) ? 'whitespace-nowrap' : '',
               ]"
             >
-              <div
-                v-if="column.id === 'address'"
-                class="table-record flex flex-col items-start gap-1.5"
-              >
-                <RouterLink
+              <DataIdentity v-if="column.id === 'address'"
+                ><RouterLink
                   :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
                   class="inline-flex min-h-11 max-w-full items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
                 >
                   {{ readableAddress(mailbox) }} </RouterLink
-                ><MailboxStatusBadge :status="mailbox.status" />
-              </div>
+                ><template #badges><MailboxStatusBadge :status="mailbox.status" /></template
+              ></DataIdentity>
               <MailboxCell
                 v-else
                 :mailbox="mailbox"

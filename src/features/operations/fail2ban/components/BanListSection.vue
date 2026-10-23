@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The ban list (FR-064 to FR-066, FR-070, plan decisions 2, 14, 16, 18 and 19), after the regex
 // filters as legacy has it, without a heading: `admin.ban_list_info`, `admin.no_active_bans` when
 // there are neither active nor permanent bans, the public ban list address with Copy and the
@@ -257,12 +259,8 @@ function retry() {
       </p>
       <hr class="border-gray-200 dark:border-gray-800" />
       <ul v-if="permanentBans.length > 0" data-permanent-bans class="flex flex-wrap gap-2">
-        <li
-          v-for="ban in permanentBans"
-          :key="ban.network"
-          class="rounded-lg bg-danger px-2 py-1 font-mono text-sm font-medium wrap-anywhere text-danger-foreground"
-        >
-          {{ ban.network }}
+        <li v-for="ban in permanentBans" :key="ban.network" class="max-w-full min-w-0">
+          <Badge color="error">{{ ban.network }}</Badge>
         </li>
       </ul>
       <p v-if="info(permanent.data.value)" class="text-sm text-gray-700 dark:text-gray-300">

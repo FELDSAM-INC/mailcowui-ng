@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The mark of the Default template, as text (as UI 002's template list has it).
 import { useI18n } from 'vue-i18n'
 
@@ -6,10 +8,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <span
-    data-default-badge
-    class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-900 dark:bg-sky-950 dark:text-sky-100"
-  >
+  <Badge data-default-badge color="info">
     {{ t('domainTemplates.default') }}
-  </span>
+  </Badge>
 </template>

@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 import ActiveBadge from '@/shared/components/ActiveBadge.vue'
@@ -94,19 +96,19 @@ function activeOf(entry: T): boolean | undefined {
             :data-column="column.key"
             class="max-w-72 px-3 py-3 wrap-anywhere text-gray-900 dark:text-white"
           >
-            <slot :name="`cell-${column.key}`" :entry="entry">
-              <RouterLink
-                v-if="column === first && editTo?.(entry)"
-                :to="editTo(entry)!"
-                :class="LINK"
-              >
-                {{ column.text?.(entry) }}
-              </RouterLink>
-              <template v-else>{{ column.text?.(entry) }}</template>
-            </slot>
-            <div v-if="column.key === first.key && activeOf(entry) !== undefined" class="mt-1">
-              <ActiveBadge :active="activeOf(entry)!" />
-            </div>
+            <DataIdentity
+              ><slot :name="`cell-${column.key}`" :entry="entry">
+                <RouterLink
+                  v-if="column === first && editTo?.(entry)"
+                  :to="editTo(entry)!"
+                  :class="LINK"
+                >
+                  {{ column.text?.(entry) }}
+                </RouterLink>
+                <template v-else>{{ column.text?.(entry) }}</template> </slot
+              ><template v-if="column.key === first.key && activeOf(entry) !== undefined" #badges
+                ><ActiveBadge :active="activeOf(entry)!" /></template
+            ></DataIdentity>
           </td>
           <td v-if="$slots.actions" class="table-controls-cell px-3 py-3">
             <RowControls><slot name="actions" :entry="entry" /></RowControls>

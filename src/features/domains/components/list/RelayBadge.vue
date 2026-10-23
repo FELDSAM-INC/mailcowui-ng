@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The relay badge of the classic list (FR-006): "relay", "relay all recipients" or "relay
 // non-existing mailboxes only"; nothing for other domains.
 import { computed } from 'vue'
@@ -16,10 +18,7 @@ const badge = computed(() => relayBadge(props.domain))
 </script>
 
 <template>
-  <span
-    v-if="badge"
-    class="inline-flex items-center rounded-lg bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-900 dark:bg-sky-500/15 dark:text-sky-200"
-  >
+  <Badge v-if="badge" color="info">
     {{ lt(KEYS[badge]) }}
-  </span>
+  </Badge>
 </template>

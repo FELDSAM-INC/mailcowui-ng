@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The list switch below `md` (UI 006 FR-045, research R19; legacy form map screen 5): the
 // Allowlist or the Denylist, each named by its legacy heading with its number of entries, as a
 // segmented radio group. From `md` up both lists are shown and the switch is hidden. The choice is
@@ -45,11 +47,9 @@ const OPTIONS: { list: SpamPolicyList; label: LegacyKey }[] = [
           @change="emit('update:modelValue', option.list)"
         />
         <span class="break-words">{{ lt(option.label) }}</span>
-        <span
-          v-if="counts[option.list] !== undefined"
-          class="rounded-full bg-gray-200 px-2 text-xs text-gray-800 tabular-nums dark:bg-gray-700 dark:text-gray-100"
-          >{{ formatNumber(counts[option.list]!, locale as AppLocale) }}</span
-        >
+        <Badge v-if="counts[option.list] !== undefined" color="gray">{{
+          formatNumber(counts[option.list]!, locale as AppLocale)
+        }}</Badge>
       </label>
     </div>
   </fieldset>

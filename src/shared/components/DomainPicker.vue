@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TagChip from '@/shared/components/TagChip.vue'
+
 // A server-searched domain picker (UI 004 research D11, R7, FR-011): an editable combobox (ARIA 1.2,
 // list autocomplete, no Reka viewport) over one or more sources, for example domains and alias
 // domains in two labelled groups. Searches run 300 ms after typing and page by 25 with "load more",
@@ -15,7 +17,6 @@ import { useI18n } from 'vue-i18n'
 
 import { lt } from '@/i18n'
 
-import { CloseIcon } from '../icons'
 import { useMediaQuery } from '../composables/useMediaQuery'
 import { buttonVariants } from '../ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '../ui/dialog'
@@ -342,19 +343,16 @@ function retry() {
         data-picker-chips
       >
         <li v-for="name in selected" :key="name" class="max-w-full min-w-0">
-          <button
+          <TagChip
             :id="chipId(name)"
-            type="button"
             :title="name"
             :aria-label="t('pickers.remove', { name: readable(name) })"
             :aria-describedby="itemErrors[name]?.length ? `${chipId(name)}-errors` : undefined"
-            :class="itemErrors[name]?.length ? 'border-error-500 dark:border-error-400' : ''"
-            class="inline-flex min-h-11 max-w-full items-center gap-2 rounded-full border border-gray-300 bg-white px-3 text-sm text-gray-800 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
+            :color="itemErrors[name]?.length ? 'error' : 'gray'"
+            removable
             @click="remove(name)"
+            ><span class="min-w-0 wrap-anywhere">{{ readable(name) }}</span></TagChip
           >
-            <span class="min-w-0 wrap-anywhere">{{ readable(name) }}</span>
-            <CloseIcon class="size-4 shrink-0" />
-          </button>
           <ul
             v-if="itemErrors[name]?.length"
             :id="`${chipId(name)}-errors`"

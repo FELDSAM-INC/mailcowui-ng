@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -69,12 +71,13 @@ const tableView = useDataColumns(
             :class="cell"
             class="max-w-[16rem] font-medium wrap-anywhere"
           >
-            <RouterLink
-              :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
-              class="text-link"
-              >{{ apiKey.name }}</RouterLink
-            >
-            <div class="mt-1"><ApiKeyStatusBadge :status="apiKey.status" /></div>
+            <DataIdentity
+              ><RouterLink
+                :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
+                class="text-link"
+                >{{ apiKey.name }}</RouterLink
+              ><template #badges><ApiKeyStatusBadge :status="apiKey.status" /></template
+            ></DataIdentity>
           </td>
           <td
             v-show="tableView.visible('prefix')"

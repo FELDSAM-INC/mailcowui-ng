@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -96,13 +98,14 @@ const tableView = useDataColumns(
             :data-column="String(tableView.columns.value[0]!.id)"
             class="px-2 py-3"
           >
-            <RouterLink
-              :to="{ name: 'resource-detail', params: { resourceAddress: item.address } }"
-              class="inline-flex min-h-11 max-w-full items-center font-medium break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-            >
-              {{ item.description }}
-            </RouterLink>
-            <div class="mt-1"><ActiveBadge :active="item.active" /></div>
+            <DataIdentity
+              ><RouterLink
+                :to="{ name: 'resource-detail', params: { resourceAddress: item.address } }"
+                class="inline-flex min-h-11 max-w-full items-center font-medium break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+              >
+                {{ item.description }} </RouterLink
+              ><template #badges><ActiveBadge :active="item.active" /></template
+            ></DataIdentity>
           </td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[1]!.id))"

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TagChip from './TagChip.vue'
+
 // A set of tags or exclusions (UI 002 research D13, FR-039, FR-058, FR-070, FR-071). A tag is
 // added with Enter, a comma or the Add button and removed with its own labelled button; entries are
 // trimmed, too long ones refused and case-only duplicates kept once. Optional suggestions follow
@@ -11,7 +13,7 @@ import { useI18n } from 'vue-i18n'
 import { lt } from '@/i18n'
 
 import FormField from './FormField.vue'
-import { CloseIcon, PlusIcon } from '../icons'
+import { PlusIcon } from '../icons'
 import { buttonVariants } from '../ui/button'
 
 import { addTags } from '../utils/tag-set'
@@ -129,24 +131,13 @@ function remove(tag: string) {
       <div class="flex flex-col gap-2">
         <ul v-if="modelValue.length > 0" class="flex flex-wrap gap-2" :aria-label="label">
           <li v-for="(tag, index) in modelValue" :key="tag" class="flex max-w-full flex-col">
-            <span
-              class="inline-flex max-w-full items-center gap-1 rounded-lg border ps-3 text-sm text-gray-800 dark:text-gray-200"
-              :class="
-                chipErrors[index]?.length
-                  ? 'border-red-500 bg-red-50 dark:bg-red-950'
-                  : 'border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-800'
-              "
+            <TagChip
+              removable
+              :color="chipErrors[index]?.length ? 'error' : 'gray'"
+              :aria-label="t(removeLabelKey, { tag })"
+              @click="remove(tag)"
+              >{{ tag }}</TagChip
             >
-              <span class="min-w-0 break-all">{{ tag }}</span>
-              <button
-                type="button"
-                class="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-gray-300 dark:hover:bg-gray-700"
-                :aria-label="t(removeLabelKey, { tag })"
-                @click="remove(tag)"
-              >
-                <CloseIcon class="size-4" />
-              </button>
-            </span>
             <span
               v-for="(message, errorIndex) in chipErrors[index] ?? []"
               :key="errorIndex"

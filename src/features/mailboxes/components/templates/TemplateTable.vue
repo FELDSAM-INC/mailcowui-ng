@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -133,16 +135,16 @@ const tableView = useDataColumns(
               :data-column="String('name')"
               class="max-w-64 px-3 py-3"
             >
-              <div class="flex flex-col items-start gap-1">
-                <RouterLink
+              <DataIdentity
+                ><RouterLink
                   :to="{ name: 'mailbox-template-detail', params: { templateId: template.id } }"
                   class="inline-flex min-h-11 min-w-11 items-center font-semibold break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
                 >
-                  {{ template.name }}
-                </RouterLink>
-                <DefaultBadge v-if="template.isDefault" />
-              </div>
-              <div class="mt-1"><MailboxStatusBadge :status="template.status" /></div>
+                  {{ template.name }} </RouterLink
+                ><template #badges
+                  ><DefaultBadge v-if="template.isDefault" /><MailboxStatusBadge
+                    :status="template.status" /></template
+              ></DataIdentity>
             </td>
             <td
               v-for="column in columns"

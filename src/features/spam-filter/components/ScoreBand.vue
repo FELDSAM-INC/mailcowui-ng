@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge, type BadgeColor } from '@/shared/ui/badge'
+
 // The three zones of the spam score (UI 006 research R17, legacy `templates/user/Spamfilter.twig`):
 // in legacy order, each with its range as `js/site/user.js` writes it ("< 8", "8 - 15", "> 15") in
 // the user's number format, and legacy's explanation. Above them, a colour bar whose widths are
@@ -29,13 +31,7 @@ const BAR: Record<ZoneId, string> = {
   yellow: 'bg-amber-400',
   red: 'bg-red-500',
 }
-const BADGE: Record<ZoneId, string> = {
-  green:
-    'border-green-300 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100',
-  yellow:
-    'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100',
-  red: 'border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100',
-}
+const BADGE: Record<ZoneId, BadgeColor> = { green: 'success', yellow: 'warning', red: 'error' }
 </script>
 
 <template>
@@ -60,11 +56,8 @@ const BADGE: Record<ZoneId, string> = {
         :data-zone="zone.id"
         class="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2 text-sm text-gray-800 dark:text-gray-200"
       >
-        <span
-          data-zone-range
-          class="inline-flex shrink-0 rounded-md border px-2 py-0.5 font-medium tabular-nums"
-          :class="BADGE[zone.id]"
-          ><bdi>{{ t(zone.rangeKey, named) }}</bdi></span
+        <Badge data-zone-range :color="BADGE[zone.id]"
+          ><bdi>{{ t(zone.rangeKey, named) }}</bdi></Badge
         >
         <span class="min-w-0 flex-1 break-words">{{ lt(zone.labelKey) }}</span>
       </li>

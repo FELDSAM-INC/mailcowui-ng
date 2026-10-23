@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -89,13 +91,14 @@ const tableView = useDataColumns(
             :data-column="String(tableView.columns.value[0]!.id)"
             class="px-2 py-3"
           >
-            <RouterLink
-              :to="{ name: 'alias-domain-detail', params: { aliasDomain: item.name } }"
-              class="inline-flex min-h-11 max-w-full items-center font-medium text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-            >
-              <DomainNameText :name="item.name" :unicode-name="item.nameUnicode" />
-            </RouterLink>
-            <div class="mt-1"><ActiveBadge :active="item.active" /></div>
+            <DataIdentity
+              ><RouterLink
+                :to="{ name: 'alias-domain-detail', params: { aliasDomain: item.name } }"
+                class="inline-flex min-h-11 max-w-full items-center font-medium text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+              >
+                <DomainNameText :name="item.name" :unicode-name="item.nameUnicode" /> </RouterLink
+              ><template #badges><ActiveBadge :active="item.active" /></template
+            ></DataIdentity>
           </td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[1]!.id))"

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // One value of a mailbox in the wide list, as legacy's `draw_mailbox_table()` renders it: quota
 // "used/total" with "∞", the last logins per protocol, "-" for a password never changed, the
 // in-use bar, the status, the identity provider by name, TLS and protocol flags as ✓ / ✗ with
@@ -85,13 +87,12 @@ const date = (value: string | null) => (value ? fmt.dateTime(value) : '-')
   <span v-else-if="column === 'createdAt'">{{ date(mailbox.createdAt) }}</span>
   <span v-else-if="column === 'modifiedAt'">{{ date(mailbox.modifiedAt) }}</span>
   <ul v-else-if="column === 'tags'" class="flex flex-wrap gap-1.5">
-    <li
-      v-for="tag in mailbox.tags"
-      :key="tag"
-      class="inline-flex max-w-full items-start gap-1 rounded-md bg-brand-50 px-2 py-0.5 text-sm text-brand-800 dark:bg-brand-500/15 dark:text-brand-200"
-    >
-      <TagIcon class="mt-0.5 size-4 shrink-0" />
-      <span class="min-w-0 wrap-anywhere">{{ tag }}</span>
+    <li v-for="tag in mailbox.tags" :key="tag">
+      <Badge color="gray"
+        ><TagIcon class="mt-0.5 size-4 shrink-0" /><span class="min-w-0 wrap-anywhere">{{
+          tag
+        }}</span></Badge
+      >
     </li>
   </ul>
 </template>

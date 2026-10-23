@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The values of a template entry that the classic list keeps in its child row (FR-050,
 // `js/site/mailbox.js` draw_templates_domain_table): rate limit, selector, DKIM key length and
 // tags, plus the columns a narrower table leaves out (`hidden`).
@@ -48,12 +50,8 @@ const rateLimit = computed(() =>
       <dt class="text-gray-600 dark:text-gray-400">{{ lt('add.tags') }}</dt>
       <dd class="text-gray-900 dark:text-white">
         <ul v-if="template.tags.length > 0" class="flex flex-wrap gap-1.5">
-          <li
-            v-for="tag in template.tags"
-            :key="tag"
-            class="rounded-lg bg-gray-100 px-2 py-0.5 break-all text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-          >
-            {{ tag }}
+          <li v-for="tag in template.tags" :key="tag">
+            <Badge>{{ tag }}</Badge>
           </li>
         </ul>
       </dd>

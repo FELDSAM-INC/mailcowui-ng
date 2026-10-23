@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -58,14 +59,17 @@ const tableView = useDataColumns(() => columns.map((id) => ({ id, label: label(i
           :data-rule-id="item.id"
           class="border-b border-gray-200 align-top dark:border-gray-800"
         >
-          <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">{{ item.id }}</td>
+          <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">
+            <DataIdentity
+              >{{ item.id }}<template #badges><ActiveBadge :active="item.active" /></template
+            ></DataIdentity>
+          </td>
           <td
             v-show="tableView.visible('description')"
             :data-column="'description'"
             class="p-2 wrap-anywhere"
           >
             <PlainText :value="item.description" />
-            <div class="mt-1"><ActiveBadge :active="item.active" /></div>
           </td>
 
           <td v-show="tableView.visible('createdAt')" :data-column="'createdAt'" class="p-2">

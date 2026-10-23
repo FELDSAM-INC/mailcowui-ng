@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -408,12 +410,14 @@ const tableView = useDataColumns(
                 />
               </td>
               <td v-show="tableView.visible('username')" :data-column="'username'" class="p-3">
-                <RouterLink
-                  :to="detail(account)"
-                  class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
-                  >{{ account.username }}</RouterLink
-                ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
-                <div class="mt-1"><ActiveBadge :active="account.active" /></div>
+                <DataIdentity
+                  ><RouterLink
+                    :to="detail(account)"
+                    class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
+                    >{{ account.username }}</RouterLink
+                  ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span
+                  ><template #badges><ActiveBadge :active="account.active" /></template
+                ></DataIdentity>
               </td>
 
               <td

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The domain administrators of a domain, for administrators only (FR-015). The list is the action
 // area where UI 007 links each username to its detail (data-model §9).
 import { lt } from '@/i18n'
@@ -16,12 +18,8 @@ defineProps<{ admins: readonly string[] }>()
       {{ lt('mailbox.domain_admins') }}
     </h2>
     <ul v-if="admins.length > 0" class="mt-3 flex flex-wrap gap-2">
-      <li
-        v-for="admin in admins"
-        :key="admin"
-        class="rounded-lg bg-gray-100 px-2.5 py-1 text-sm break-all text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-      >
-        {{ admin }}
+      <li v-for="admin in admins" :key="admin" class="max-w-full min-w-0">
+        <Badge color="gray">{{ admin }}</Badge>
       </li>
     </ul>
     <p v-else class="mt-3 text-sm text-gray-700 dark:text-gray-300">

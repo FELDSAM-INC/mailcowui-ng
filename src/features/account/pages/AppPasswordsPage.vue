@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -299,8 +301,9 @@ const tableView = useDataColumns(
             </td>
             <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">{{ item.id }}</td>
             <td v-show="tableView.visible('name')" :data-column="'name'" class="p-2 wrap-anywhere">
-              {{ item.name }}
-              <div class="mt-1"><ActiveBadge :active="item.active" /></div>
+              <DataIdentity
+                >{{ item.name }}<template #badges><ActiveBadge :active="item.active" /></template
+              ></DataIdentity>
             </td>
             <td
               v-show="tableView.visible('protocols')"

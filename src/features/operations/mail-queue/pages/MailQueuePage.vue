@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 import ListToolbar from '@/shared/components/ListToolbar.vue'
 import { useDataList } from '@/shared/composables/useDataList'
 
@@ -218,12 +220,9 @@ useDataList('operations-mail-queue-pages-mailqueuepage', undefined, () => ({
         >
           {{ lt('queue.queue_manager') }}
         </h1>
-        <span
-          v-if="queued !== undefined"
-          data-queue-total
-          class="rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-medium text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
-          >{{ fmt.number(queued) }}</span
-        >
+        <Badge v-if="queued !== undefined" data-queue-total color="info">{{
+          fmt.number(queued)
+        }}</Badge>
       </div>
       <div class="flex shrink-0 flex-wrap gap-2">
         <HistoryLink target-type="mailQueue" />

@@ -579,18 +579,6 @@
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
     }
-
-    & .table-record {
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.25rem 0.5rem;
-    }
-
-    & .table-record > :first-child {
-      min-width: 0;
-      max-width: 100%;
-    }
   }
 }
 

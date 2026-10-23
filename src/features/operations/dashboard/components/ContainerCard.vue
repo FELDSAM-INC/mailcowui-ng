@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // One container (FR-008, legacy container card): its name as the item's heading, "({image})",
 // "(Started on {time})", and legacy's "Running" or "Stopped" (with an icon, never colour alone; no
 // animated dots, FR-084). Legacy's caret button expands the details: the resource charts, the
@@ -41,20 +43,12 @@ const panelId = computed(() => `ops-container-${props.container.name}`)
           >)
         </p>
         <p class="mt-2">
-          <span
-            v-if="container.running"
-            data-state="running"
-            class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2.5 py-0.5 text-sm font-medium text-success-800 dark:bg-success-500/15 dark:text-success-300"
-          >
+          <Badge v-if="container.running" data-state="running" color="success">
             <CheckIcon class="size-4" />{{ lt('debug.container_running') }}
-          </span>
-          <span
-            v-else
-            data-state="stopped"
-            class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-sm font-medium text-red-800 dark:bg-red-500/15 dark:text-red-300"
-          >
+          </Badge>
+          <Badge v-else data-state="stopped" color="error">
             <CloseIcon class="size-4" />{{ lt('debug.container_stopped') }}
-          </span>
+          </Badge>
         </p>
       </div>
       <button

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // One active ban as legacy lists it (`templates/admin/tab-config-f2b.twig`, plan decisions 2, 15
 // and 19): "network (remaining ban time) - [unban] [allowlist] [denylist]", or "unban pending"
 // while it is queued for lifting. The network is shown as text (no bgp.tools link).
@@ -18,12 +20,12 @@ const { t } = useI18n()
 
 <template>
   <li :data-ban="ban.network" class="flex flex-col gap-2 py-2 sm:flex-row sm:items-center">
-    <span
-      class="inline-flex flex-wrap items-center gap-1 rounded-lg bg-blue-light-50 px-2 py-1 text-sm font-medium text-gray-900 dark:bg-gray-800 dark:text-white"
+    <Badge color="info"
+      ><span :id="`ban-${ban.network}`" class="font-mono wrap-anywhere">{{ ban.network }}</span
+      ><span
+        >({{ t('operations.fail2ban.remaining', remainingParts(ban.remainingSeconds)) }})</span
+      ></Badge
     >
-      <span :id="`ban-${ban.network}`" class="font-mono wrap-anywhere">{{ ban.network }}</span>
-      <span>({{ t('operations.fail2ban.remaining', remainingParts(ban.remainingSeconds)) }})</span>
-    </span>
     <span aria-hidden="true" class="hidden text-gray-500 sm:inline">-</span>
     <i v-if="ban.queuedForLifting" data-pending class="text-sm text-gray-700 dark:text-gray-300">{{
       lt('admin.unban_pending')

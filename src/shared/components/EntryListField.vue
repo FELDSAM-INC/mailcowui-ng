@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // A multi-entry field (UI 004 research R8): alias addresses, goto addresses, alias domain names and
 // external sender addresses, as the classic forms' textareas take them (separated by commas,
 // semicolons, spaces or new lines). The label and help text are the caller's, often legacy texts
@@ -122,10 +124,7 @@ const describedBy = computed(
         data-entry-marker
         class="flex min-w-0 flex-wrap items-center gap-2"
       >
-        <span
-          class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-white/10 dark:text-gray-200"
-          >{{ entry.text }}</span
-        >
+        <Badge color="gray">{{ entry.text }}</Badge>
         <span class="min-w-0 break-all text-gray-800 dark:text-gray-200">{{ entry.value }}</span>
       </li>
     </ul>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -76,7 +77,11 @@ const tableView = useDataColumns(() => [
                   @change="$emit('toggle', String(item.id))"
               /></label>
             </td>
-            <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">{{ item.id }}</td>
+            <td v-show="tableView.visible('id')" :data-column="'id'" class="p-2">
+              <DataIdentity
+                >{{ item.id }}<template #badges><ActiveBadge :active="item.active" /></template
+              ></DataIdentity>
+            </td>
             <td
               v-show="tableView.visible('mailbox')"
               :data-column="'mailbox'"
@@ -90,7 +95,6 @@ const tableView = useDataColumns(() => [
               class="p-2 wrap-anywhere"
             >
               <p>{{ item.description }}</p>
-              <div class="mt-1"><ActiveBadge :active="item.active" /></div>
             </td>
             <td v-show="tableView.visible('kind')" :data-column="'kind'" class="p-2">
               {{ t(`filters.kind.${item.kind}`) }}

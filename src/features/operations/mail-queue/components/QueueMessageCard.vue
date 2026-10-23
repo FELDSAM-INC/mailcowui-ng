@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 
@@ -32,12 +34,9 @@ const fmt = useFormat()
   >
     <template v-if="$slots.select" #select><slot name="select" /></template>
     <template #badges>
-      <span
-        data-queue-name
-        class="rounded-full bg-gray-100 px-2 py-0.5 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-      >
+      <Badge data-queue-name color="gray">
         {{ message.queue }}
-      </span>
+      </Badge>
     </template>
     <template #actions>
       <RouterLink

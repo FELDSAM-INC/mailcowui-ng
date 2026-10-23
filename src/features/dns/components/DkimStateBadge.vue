@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // The state of a DKIM entry (FR-086): the classic interface's badge texts ("Key valid", "Key
 // missing", "Key unused") with an icon, and "Incomplete" for a key with missing parts, which legacy
 // cannot hold.
@@ -15,12 +17,12 @@ const { t } = useI18n()
 const STYLE = {
   valid: {
     icon: CheckIcon,
-    tone: 'bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-200',
+    tone: 'success',
   },
-  missing: { icon: CloseIcon, tone: 'bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200' },
+  missing: { icon: CloseIcon, tone: 'error' },
   unused: {
     icon: InfoIcon,
-    tone: 'bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-100',
+    tone: 'warning',
   },
 } as const
 
@@ -30,19 +32,11 @@ const incomplete = computed(() => props.entry.key !== null && !props.entry.key.c
 
 <template>
   <span class="inline-flex flex-wrap gap-1">
-    <span
-      data-dkim-state
-      class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm font-medium"
-      :class="style.tone"
-    >
+    <Badge data-dkim-state :color="style.tone">
       <component :is="style.icon" class="size-4" />{{ text(`dns.dkim.states.${entry.state}`) }}
-    </span>
-    <span
-      v-if="incomplete"
-      data-dkim-incomplete
-      class="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-sm font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-100"
-    >
+    </Badge>
+    <Badge v-if="incomplete" data-dkim-incomplete color="warning">
       <WarningIcon class="size-4" />{{ t('dns.dkim.incomplete') }}
-    </span>
+    </Badge>
   </span>
 </template>

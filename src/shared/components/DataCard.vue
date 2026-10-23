@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from './DataIdentity.vue'
+
 // The mobile representation of a data-table row. Actions stay beside its identity; only
 // secondary or lengthy values belong in the optional disclosure at the bottom.
 import { useId } from 'vue'
@@ -42,24 +44,24 @@ const { t } = useI18n()
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-1">
         <!-- eslint-disable-next-line vuejs-accessibility/heading-has-content -- the title slot or prop supplies the heading. -->
-        <h3
-          :id="titleId ?? `${id}-title`"
-          class="flex min-h-11 min-w-0 items-center text-base font-semibold wrap-anywhere"
-        >
-          <RouterLink
-            v-if="to"
-            :to="to"
-            class="inline-flex min-h-11 min-w-0 max-w-full items-center wrap-anywhere underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
+        <DataIdentity
+          ><h3
+            :id="titleId ?? `${id}-title`"
+            class="flex min-h-11 min-w-0 items-center text-base font-semibold wrap-anywhere"
           >
-            <slot name="title">{{ title }}</slot>
-          </RouterLink>
-          <slot v-else name="title">{{ title }}</slot>
-        </h3>
+            <RouterLink
+              v-if="to"
+              :to="to"
+              class="inline-flex min-h-11 min-w-0 max-w-full items-center wrap-anywhere underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
+            >
+              <slot name="title">{{ title }}</slot>
+            </RouterLink>
+            <slot v-else name="title">{{ title }}</slot>
+          </h3>
+          <template v-if="$slots.badges" #badges><slot name="badges" /></template
+        ></DataIdentity>
         <div v-if="$slots.subtitle" class="min-w-0 wrap-anywhere text-muted">
           <slot name="subtitle" />
-        </div>
-        <div v-if="$slots.badges" class="flex flex-wrap items-center gap-1.5">
-          <slot name="badges" />
         </div>
       </div>
       <div

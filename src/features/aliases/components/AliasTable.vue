@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -120,8 +122,8 @@ const tableView = useDataColumns(
               :data-column="String('address')"
               class="px-2 py-3"
             >
-              <div class="flex min-w-0 flex-col gap-1.5">
-                <RouterLink
+              <DataIdentity
+                ><RouterLink
                   :to="{ name: 'alias-detail', params: { aliasId: alias.id } }"
                   class="inline-flex min-h-11 max-w-full items-center font-medium text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
                 >
@@ -130,11 +132,11 @@ const tableView = useDataColumns(
                     :title="alias.address"
                     :address="alias.address"
                     :address-unicode="alias.addressUnicode"
-                  />
-                </RouterLink>
-                <AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" />
-              </div>
-              <div class="mt-1"><ActiveBadge :active="alias.active" /></div>
+                  /> </RouterLink
+                ><template #badges
+                  ><AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" /><ActiveBadge
+                    :active="alias.active" /></template
+              ></DataIdentity>
             </td>
             <td
               v-show="tableView.visible(String('destinations'))"

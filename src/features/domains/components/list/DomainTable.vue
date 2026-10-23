@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataIdentity from '@/shared/components/DataIdentity.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -129,25 +131,20 @@ const tableView = useDataColumns(
               :data-column="String('name')"
               class="max-w-72 px-3 py-3"
             >
-              <div class="table-record flex flex-col gap-1.5">
-                <div class="flex items-start gap-2">
-                  <RouterLink
-                    :to="{ name: 'domain-detail', params: { domain: domain.name } }"
-                    class="inline-flex min-h-11 min-w-0 items-center font-semibold text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-                  >
-                    <DomainNameText
-                      class="table-identity"
-                      :title="domain.name"
-                      :name="domain.name"
-                      :unicode-name="domain.unicodeName"
-                    />
-                  </RouterLink>
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                  <ActiveBadge :active="domain.active" />
-                  <RelayBadge :domain="domain" />
-                </div>
-              </div>
+              <DataIdentity
+                ><RouterLink
+                  :to="{ name: 'domain-detail', params: { domain: domain.name } }"
+                  class="inline-flex min-h-11 min-w-0 items-center font-semibold text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+                >
+                  <DomainNameText
+                    class="table-identity"
+                    :title="domain.name"
+                    :name="domain.name"
+                    :unicode-name="domain.unicodeName"
+                  /> </RouterLink
+                ><template #badges
+                  ><ActiveBadge :active="domain.active" /><RelayBadge :domain="domain" /></template
+              ></DataIdentity>
             </td>
             <td
               v-show="tableView.visible(String('mailboxes'))"

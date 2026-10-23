@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
 // The filter's result of an item (UI 006 FR-019, FR-022, legacy form map screen 2): legacy's
 // heading `quarantine.rspamd_result`, the score with the action badge ("<score> - <label>", or "-"
 // without a score), then the symbols in legacy's order, each "NAME (+5.1)" with its score signed in
@@ -20,12 +21,7 @@ const props = defineProps<{
 }>()
 const fmt = useFormat()
 const symbols = computed(() => sortSymbols(props.item.symbols))
-const tone = (score: number) =>
-  score > 0
-    ? 'border-red-200 dark:border-red-900'
-    : score < 0
-      ? 'border-green-200 dark:border-green-900'
-      : 'border-gray-200 dark:border-gray-700'
+const tone = (score: number) => (score > 0 ? 'error' : score < 0 ? 'success' : 'gray')
 </script>
 
 <template>
@@ -46,14 +42,17 @@ const tone = (score: number) =>
         v-for="(symbol, index) in symbols"
         :key="index"
         data-symbol
-        class="max-w-full min-w-0 rounded-lg border px-2 py-1 text-sm text-gray-800 dark:text-gray-200"
-        :class="tone(symbol.score)"
+        class="max-w-full min-w-0 text-sm text-ink"
       >
-        <span class="font-mono"><PlainText :value="symbol.name" /></span>
-        (<span data-symbol-score class="tabular-nums">{{
-          formatSymbolScore(symbol.score, fmt.locale.value)
-        }}</span
-        >)
+        <Badge :color="tone(symbol.score)"
+          ><span
+            ><span class="font-mono"><PlainText :value="symbol.name" /></span> (<span
+              data-symbol-score
+              class="tabular-nums"
+              >{{ formatSymbolScore(symbol.score, fmt.locale.value) }}</span
+            >)</span
+          ></Badge
+        >
         <ul
           v-if="symbol.options.length > 0"
           data-symbol-options

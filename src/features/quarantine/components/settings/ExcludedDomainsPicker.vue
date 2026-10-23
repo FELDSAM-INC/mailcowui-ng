@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import TagChip from '@/shared/components/TagChip.vue'
+
 // The excluded domains of the quarantine settings (UI 006 FR-062, legacy form map screen 8 row 10,
 // D17): legacy's searchable multi-select `admin.quarantine_exclude_domains` (placeholder
 // `tfa.select`) over the server's domains and alias domains, searched and paged by the server.
@@ -11,7 +13,6 @@ import { useI18n } from 'vue-i18n'
 import { aliasDomainPickerSource, domainPickerSource } from '@/features/aliases-common'
 import { lt } from '@/i18n'
 import DomainPicker, { type DomainPickerOption } from '@/shared/components/DomainPicker.vue'
-import { CloseIcon } from '@/shared/icons'
 
 const props = withDefaults(
   defineProps<{
@@ -67,28 +68,18 @@ function remove(name: string) {
       <li
         v-for="name in modelValue"
         :key="name"
-        class="inline-flex max-w-full min-w-0 items-center gap-2 rounded-full border py-1 ps-3 pe-1 text-sm"
-        :class="
-          isMissing(name)
-            ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100'
-            : 'border-gray-300 bg-white text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200'
-        "
         :data-missing="isMissing(name) ? '' : undefined"
+        class="min-w-0 max-w-full"
       >
-        <span class="min-w-0 wrap-anywhere">
-          {{ readable(name) }}
-          <span v-if="isMissing(name)" class="font-medium">
-            ({{ t('quarantineUi.settings.missingDomain') }})
-          </span>
-        </span>
-        <button
-          type="button"
+        <TagChip
+          removable
+          :color="isMissing(name) ? 'warning' : 'gray'"
           :aria-label="t('pickers.remove', { name: readable(name) })"
-          class="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-brand-500 dark:hover:bg-white/5"
           @click="remove(name)"
         >
-          <CloseIcon class="size-4" />
-        </button>
+          {{ readable(name)
+          }}<span v-if="isMissing(name)"> ({{ t('quarantineUi.settings.missingDomain') }})</span>
+        </TagChip>
       </li>
     </ul>
   </div>

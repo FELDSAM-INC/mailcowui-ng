@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Badge } from '@/shared/ui/badge'
+
 // "Allow to send as" (`edit.sender_acl`), the classic page's multi-select, searchable as legacy's
 // live search but against the server (FR-050, 5,000 entries and more): the selected entries with
 // legacy's labels and subtexts, removable where the user may change them; the options are the
@@ -169,13 +171,9 @@ const fieldErrors = computed(() => props.state.problems.errorsFor('explicitPermi
         </p>
       </li>
     </ul>
-    <div
-      v-if="anyAddress"
-      data-sender-check-disabled
-      class="inline-flex items-center gap-2 self-start rounded-lg bg-danger px-3 py-1 text-sm font-medium text-danger-foreground"
-    >
-      <LegacyText k="edit.sender_acl_disabled" />
-    </div>
+    <Badge v-if="anyAddress" data-sender-check-disabled color="error"
+      ><LegacyText k="edit.sender_acl_disabled"
+    /></Badge>
     <ul v-if="state.notNeeded.value.length > 0" class="flex flex-col gap-1" data-not-needed>
       <li
         v-for="value in state.notNeeded.value"

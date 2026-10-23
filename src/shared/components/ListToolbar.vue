@@ -26,10 +26,25 @@ const wide = useMediaQuery('(min-width: 768px)')
 
 <template>
   <div data-list-toolbar class="flex w-full min-w-0 flex-col gap-3">
-    <div class="flex min-w-0 flex-wrap items-center gap-2" data-list-controls>
-      <div v-if="$slots.select" data-list-select class="shrink-0"><slot name="select" /></div>
-      <div v-if="$slots.filters" data-list-filters class="shrink-0"><slot name="filters" /></div>
-      <div v-if="$slots.search" data-list-search class="min-w-32 flex-1">
+    <div
+      class="flex min-w-0 flex-wrap items-center justify-between gap-x-1 gap-y-2 md:justify-start md:gap-2 max-md:[&_button]:gap-1! max-md:[&_button]:min-w-11 max-md:[&_button]:px-1! max-md:[&_button]:py-1! max-md:[&_button]:text-xs! max-md:[&_button]:leading-4! max-md:[&_button_svg]:size-4! max-[360px]:[&_button]:px-0.5!"
+      data-list-controls
+    >
+      <div
+        v-if="$slots.select"
+        data-list-select
+        class="shrink-0 empty:hidden max-md:max-w-16 max-md:[&>button]:whitespace-normal!"
+      >
+        <slot name="select" />
+      </div>
+      <div v-if="$slots.filters" data-list-filters class="shrink-0 empty:hidden">
+        <slot name="filters" />
+      </div>
+      <div
+        v-if="$slots.search"
+        data-list-search
+        class="order-first w-full min-w-0 flex-none md:order-none md:w-auto md:min-w-32 md:flex-1"
+      >
         <slot name="search" />
       </div>
       <DropdownMenu v-if="list">

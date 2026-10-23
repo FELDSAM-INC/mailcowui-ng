@@ -23,6 +23,12 @@ row and allow only the tab bar to scroll horizontally when needed. On desktop, l
 Keep 44 px touch targets, the current page marker and ordinary link keyboard behaviour. Reveal the
 current tab when the route or available width changes without moving the page vertically.
 
+## List toolbars
+
+Use `shared/components/ListToolbar.vue` for list controls. On mobile the search occupies the full
+first row, followed by a justified row of compact labelled controls with 44 px touch height. Long
+translations or additional actions may wrap within that control row. Desktop keeps its inline layout.
+
 ## Mobile data tables
 
 Below the table breakpoint, use `shared/components/DataCard.vue` for each row. Domains and

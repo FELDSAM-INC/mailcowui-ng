@@ -4,6 +4,7 @@
 // forced password update, the rate limit ("∞" without one) and the tags, after the columns a
 // narrower table leaves out (`hidden`).
 import { computed } from 'vue'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
 
 import { lt } from '@/i18n'
 
@@ -33,7 +34,7 @@ const items = computed(() => [
   {
     key: 'forcePasswordChange',
     label: lt('mailbox.force_pw_update'),
-    value: display.yesNo(props.template.forcePasswordChange),
+    value: props.template.forcePasswordChange,
   },
   {
     key: 'rateLimit',
@@ -51,7 +52,11 @@ const items = computed(() => [
     </div>
     <div v-for="item in items" :key="item.key" :data-column="item.key">
       <dt class="text-gray-600 dark:text-gray-400">{{ item.label }}</dt>
-      <dd class="break-words text-gray-900 dark:text-white">{{ item.value }}</dd>
+      <dd class="break-words text-gray-900 dark:text-white">
+        <YesNoMark v-if="typeof item.value === 'boolean'" :value="item.value" /><template v-else>{{
+          item.value
+        }}</template>
+      </dd>
     </div>
     <div data-column="tags">
       <dt class="text-gray-600 dark:text-gray-400">{{ lt('add.tags') }}</dt>

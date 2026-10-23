@@ -76,7 +76,9 @@ describe('QueueMessageCard', () => {
     expect(wrapper.get('[data-first-recipient]').text()).toBe(
       'carol@partner.example (Connection timed out)',
     )
-    expect(wrapper.get('summary').text()).toBe('+ 2 more')
+    expect(wrapper.get('[data-card-expand]').attributes('aria-label')).toBe('+ 2 more')
+    expect(wrapper.text()).not.toContain('<b>x</b>@example.net')
+    await wrapper.get('[data-card-expand]').trigger('click')
     expect(wrapper.find('b').exists()).toBe(false)
     expect(wrapper.text()).toContain('<b>x</b>@example.net')
     expect(wrapper.text()).toContain('18 KiB')

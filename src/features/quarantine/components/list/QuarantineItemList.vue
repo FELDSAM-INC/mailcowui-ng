@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 // Legacy's column order on wide screens; subject headings and a details disclosure on phones.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -12,10 +14,8 @@ import RowActions from '@/shared/components/RowActions.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { buttonVariants } from '@/shared/ui/button'
 
 import { defaultOrder, type QuarantineSort } from '../../list-state'
-import QuarantineCardDetails from './QuarantineCardDetails.vue'
 import QuarantineItemValue from './QuarantineItemValue.vue'
 
 const props = defineProps<{
@@ -162,56 +162,55 @@ function sortBy(field: QuarantineSort) {
     </table>
   </div>
   <ul v-else :aria-label="lt('quarantine.quarantine')" class="flex flex-col gap-3">
-    <li
+    <DataCard
       v-for="item in items"
       :key="item.id"
       :data-quarantine-item="item.id"
-      class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+      :to="itemRoute(item)"
     >
-      <div v-if="selectable" class="flex items-center gap-2">
-        <slot name="select" :item="item" />
-        <span aria-hidden="true">{{ t('bulk.select') }}</span>
-      </div>
-      <!-- eslint-disable-next-line vuejs-accessibility/heading-has-content -- PlainText provides the link's visible, accessible subject. -->
-      <h2 class="font-semibold">
-        <RouterLink
-          :to="itemRoute(item)"
-          class="inline-flex min-h-11 min-w-11 max-w-full items-center text-accent-text bg-white dark:bg-gray-900 underline"
-          ><PlainText :value="item.subject || '-'"
-        /></RouterLink>
-      </h2>
-      <dl class="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-x-3 gap-y-2 text-sm">
+      <template #title><PlainText :value="item.subject || '-'" /></template>
+      <template v-if="selectable" #select><slot name="select" :item="item" /></template>
+      <template #actions>
+        <RowActions
+          v-slot="{ menu }"
+          :count="canRemove ? 2 : 1"
+          :label="`${lt('quarantine.action')}: ${item.id}`"
+        >
+          <RowAction
+            :menu="menu"
+            :to="itemRoute(item)"
+            :label="lt('quarantine.show_item')"
+            :aria-label="`${lt('quarantine.show_item')}: ${item.id}`"
+          />
+          <RowAction
+            v-if="canRemove"
+            :menu="menu"
+            :disabled="busy"
+            destructive
+            :label="lt('quarantine.remove')"
+            :aria-label="`${lt('quarantine.remove')}: ${item.id}`"
+            @select="emit('remove', item)"
+          />
+        </RowActions>
+      </template>
+      <DataCardFields>
         <template v-for="field in cardSummary" :key="field">
           <dt class="font-medium text-gray-800 dark:text-gray-200">{{ label(field) }}</dt>
           <dd class="min-w-0 wrap-anywhere text-gray-700 dark:text-gray-300">
             <QuarantineItemValue :item="item" :field="field" />
           </dd>
         </template>
-      </dl>
-      <QuarantineCardDetails>
-        <dl class="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-x-3 gap-y-2 text-sm">
+      </DataCardFields>
+      <template v-if="cardDetails.length" #details>
+        <DataCardFields>
           <template v-for="field in cardDetails" :key="field">
             <dt class="font-medium text-gray-800 dark:text-gray-200">{{ label(field) }}</dt>
             <dd class="min-w-0 wrap-anywhere text-gray-700 dark:text-gray-300">
               <QuarantineItemValue :item="item" :field="field" />
             </dd>
           </template>
-        </dl>
-      </QuarantineCardDetails>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <RouterLink :to="itemRoute(item)" :class="buttonVariants({ variant: 'outline' })">{{
-          lt('quarantine.show_item')
-        }}</RouterLink>
-        <button
-          v-if="canRemove"
-          type="button"
-          :disabled="busy"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="emit('remove', item)"
-        >
-          {{ lt('quarantine.remove') }}
-        </button>
-      </div>
-    </li>
+        </DataCardFields>
+      </template>
+    </DataCard>
   </ul>
 </template>

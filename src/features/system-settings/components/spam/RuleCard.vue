@@ -1,33 +1,59 @@
 <script setup lang="ts">
+import DataCard from '@/shared/components/DataCard.vue'
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
+import RowAction from '@/shared/components/RowAction.vue'
+import RowActions from '@/shared/components/RowActions.vue'
+
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 import type { RspamdSettingsRule } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import PlainText from '@/shared/components/PlainText.vue'
-import { buttonVariants } from '@/shared/ui/button'
 defineProps<{ item: RspamdSettingsRule; busy: boolean }>()
 defineEmits<{ remove: [] }>()
 const { t } = useI18n(),
   format = useFormat()
 </script>
 <template>
-  <article
+  <DataCard
+    as="article"
     :data-rule-id="item.id"
-    class="surface min-w-0 space-y-3 text-sm text-gray-800 dark:text-gray-200"
+    :title="item.description"
+    :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
   >
-    <dl class="space-y-2">
+    <template #title><PlainText :value="item.description" /></template>
+    <template #actions>
+      <RowActions
+        v-slot="{ menu }"
+        :count="2"
+        :label="`${lt('mailbox.action')}: ${item.description}`"
+      >
+        <RowAction
+          :menu="menu"
+          :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
+          :label="lt('mailbox.edit')"
+          :aria-label="`${lt('mailbox.edit')}: ${item.description}`"
+        />
+        <RowAction
+          :menu="menu"
+          :disabled="busy"
+          destructive
+          :label="lt('mailbox.remove')"
+          :aria-label="`${lt('mailbox.remove')}: ${item.description}`"
+          @select="$emit('remove')"
+        />
+      </RowActions>
+    </template>
+    <DataCardFields>
       <div>
         <dt class="font-medium">{{ t('lists.id') }}</dt>
         <dd>{{ item.id }}</dd>
       </div>
-      <div>
-        <dt class="font-medium">{{ lt('admin.rsetting_desc') }}</dt>
-        <dd class="wrap-anywhere"><PlainText :value="item.description" /></dd>
-      </div>
+
       <div>
         <dt class="font-medium">{{ lt('admin.active') }}</dt>
-        <dd>{{ lt(item.active ? 'mailbox.active' : 'mailbox.inactive') }}</dd>
+        <dd><YesNoMark :value="item.active" /></dd>
       </div>
       <div>
         <dt class="font-medium">{{ lt('mailbox.created_on') }}</dt>
@@ -37,22 +63,6 @@ const { t } = useI18n(),
         <dt class="font-medium">{{ lt('mailbox.last_modified') }}</dt>
         <dd>{{ item.modifiedAt ? format.dateTime(item.modifiedAt) : '—' }}</dd>
       </div>
-    </dl>
-    <div class="flex flex-wrap gap-2">
-      <RouterLink
-        :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
-        :aria-label="`${lt('mailbox.edit')}: ${item.description}`"
-        :class="buttonVariants({ variant: 'outline' })"
-        >{{ lt('mailbox.edit') }}</RouterLink
-      ><button
-        type="button"
-        :disabled="busy"
-        :aria-label="`${lt('mailbox.remove')}: ${item.description}`"
-        :class="buttonVariants({ variant: 'outline' })"
-        @click="$emit('remove')"
-      >
-        {{ lt('mailbox.remove') }}
-      </button>
-    </div>
-  </article>
+    </DataCardFields>
+  </DataCard>
 </template>

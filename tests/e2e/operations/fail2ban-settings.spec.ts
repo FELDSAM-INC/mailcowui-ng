@@ -294,7 +294,7 @@ test.describe('Fail2ban regex filters @operations', () => {
     await expectNoHorizontalScroll()
     await expectTouchTargets()
     await page.getByRole('button', { name: 'Add row' }).click()
-    await expect(page.locator('[data-rule]').last().locator('td').first()).toHaveText('+')
+    await expect(page.locator('[data-rule]').last()).toContainText('+')
     await page.getByRole('button', { name: 'Save changes' }).last().click()
     await expect(page.locator('[data-rules]')).toContainText('Enter at least 1 characters.')
     expect(await requestsOf(mockApi, 'replaceFail2BanRules')).toEqual([])

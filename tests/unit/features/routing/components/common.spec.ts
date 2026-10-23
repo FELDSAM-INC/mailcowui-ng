@@ -194,8 +194,8 @@ describe('EntryActions, ScreenIntro, StatusText, FormActionBar', () => {
     )
     expect(link.attributes('target')).toBe('_blank')
     expect(intro.html()).toContain('<br>')
-    expect(mountWithApp(StatusText, { props: { value: true } }).text()).toBe('✓')
-    expect(mountWithApp(StatusText, { props: { value: false } }).text()).toBe('✕')
+    expect(mountWithApp(StatusText, { props: { value: true } }).text()).toBe('✓Yes')
+    expect(mountWithApp(StatusText, { props: { value: false } }).text()).toBe('✕No')
   })
 
   it('keeps Save and Cancel together in the sticky bar', async () => {

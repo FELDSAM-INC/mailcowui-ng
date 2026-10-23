@@ -66,7 +66,7 @@ describe('AuditEventItem', () => {
       target: { type: 'apiKey', id: 'K1', name: '<b>Billing</b>' },
     })
     expect(wrapper.text()).not.toContain('Request ID')
-    const toggle = wrapper.findAll('button').find((b) => b.text() === 'Show details')!
+    const toggle = wrapper.get('[data-card-expand]')
     expect(toggle.attributes('aria-expanded')).toBe('false')
     await toggle.trigger('click')
     await flushPromises()

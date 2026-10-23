@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 // The entries of a log (FR-031 to FR-033, FR-085; plan decisions 6 and 12): cards below md and a
 // table from md, with legacy's columns in legacy's order. On a card, the first line holds the time
 // and the entry's class or source, the main text follows, and the other values are its details; in
@@ -10,7 +12,6 @@ import { useI18n } from 'vue-i18n'
 import { resolveText, type TextRef } from '@/i18n'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { ChevronDownIcon } from '@/shared/icons'
 
 import type { LogColumn, LogEntry, LogTypeDescriptor } from '../log-types'
 import { stripeClass } from './hash-stripe'
@@ -69,19 +70,32 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
 
 <template>
   <ul v-if="!wide" data-log-cards class="flex flex-col gap-3">
-    <li
+    <DataCard
       v-for="entry in entries"
       :key="entry.id"
       :data-entry="entry.id"
-      class="min-w-0 rounded-xl border border-gray-200 bg-white p-3 text-sm dark:border-gray-800 dark:bg-gray-900"
       :class="stripe(entry)"
+      :expanded="expanded.has(entry.id)"
+      :details-id="detailsId(entry)"
+      :details-label="t('auditLog.details.show')"
+      @update:expanded="emit('toggle', entry.id)"
     >
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-700 dark:text-gray-300">
-        <span v-for="column in cardHead" :key="column.key" class="min-w-0" :data-cell="column.key">
-          <span class="sr-only">{{ `${label(column.label)}: ` }}</span>
-          <LogCellView :cell="column.cell(entry)" />
+      <template #title>
+        <span class="flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-700 dark:text-gray-300">
+          <span
+            v-for="column in cardHead"
+            :key="column.key"
+            class="min-w-0"
+            :data-cell="column.key"
+          >
+            <span class="sr-only">{{ `${label(column.label)}: ` }}</span>
+            <LogCellView :cell="column.cell(entry)" />
+          </span>
         </span>
-      </div>
+      </template>
+      <template v-if="action" #actions>
+        <LogCellView :cell="action.cell(entry)" @reset="(hash) => emit('reset', hash)" />
+      </template>
       <div
         v-if="cardBody"
         class="mt-2 min-w-0 text-gray-900 dark:text-white"
@@ -89,47 +103,19 @@ const detailsId = (entry: LogEntry) => `${listId}-${entry.id}`
       >
         <LogCellView :cell="cardBody.cell(entry)" />
       </div>
-      <div
-        v-if="cardDetails.length > 0 || action"
-        class="mt-2 flex flex-wrap items-center justify-between gap-2"
-      >
-        <button
-          v-if="cardDetails.length > 0"
-          type="button"
-          class="inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-          :aria-expanded="expanded.has(entry.id) ? 'true' : 'false'"
-          :aria-controls="expanded.has(entry.id) ? detailsId(entry) : undefined"
-          @click="emit('toggle', entry.id)"
-        >
-          <ChevronDownIcon
-            class="size-4"
-            :class="expanded.has(entry.id) ? 'rotate-180' : ''"
-            aria-hidden="true"
-          />
-          {{ expanded.has(entry.id) ? t('auditLog.details.hide') : t('auditLog.details.show') }}
-        </button>
-        <LogCellView
-          v-if="action"
-          :cell="action.cell(entry)"
-          @reset="(hash) => emit('reset', hash)"
-        />
-      </div>
-      <dl
-        v-if="cardDetails.length > 0 && expanded.has(entry.id)"
-        :id="detailsId(entry)"
-        data-details
-        class="mt-2 grid gap-2 border-t border-gray-200 pt-2 dark:border-gray-800"
-      >
-        <div v-for="column in cardDetails" :key="column.key" class="min-w-0">
-          <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">
-            {{ label(column.label) }}
-          </dt>
-          <dd class="text-gray-900 dark:text-white" :data-cell="column.key">
-            <LogCellView :cell="column.cell(entry)" />
-          </dd>
-        </div>
-      </dl>
-    </li>
+      <template v-if="cardDetails.length" #details>
+        <DataCardFields data-details>
+          <div v-for="column in cardDetails" :key="column.key" class="min-w-0">
+            <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">
+              {{ label(column.label) }}
+            </dt>
+            <dd class="text-gray-900 dark:text-white" :data-cell="column.key">
+              <LogCellView :cell="column.cell(entry)" />
+            </dd>
+          </div>
+        </DataCardFields>
+      </template>
+    </DataCard>
   </ul>
 
   <div v-else class="table-frame">

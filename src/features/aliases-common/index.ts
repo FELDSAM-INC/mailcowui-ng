@@ -6,7 +6,7 @@ export { aliasesCapabilitiesOptions, useAliasesCapabilities } from './capabiliti
 export { default as CapabilitiesGate } from './components/CapabilitiesGate.vue'
 export { feature004Permissions, type Feature004Permissions } from './permissions'
 export { aliasDomainPickerSource, domainPickerSource } from './pickers'
-export { default as YesNoMark } from './components/YesNoMark.vue'
+export { default as YesNoMark } from '@/shared/components/YesNoMark.vue'
 export { retainedIds, toTargets, unquote, type BulkActionConfig, type BulkConfirm } from './bulk'
 export { useBulkRun } from './composables/useBulkRun'
 export { default as BulkConfirmContent } from './components/BulkConfirmContent.vue'

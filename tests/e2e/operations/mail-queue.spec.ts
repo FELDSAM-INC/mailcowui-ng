@@ -58,7 +58,7 @@ test.describe('Queue Manager @operations', () => {
     if (isNarrow(page)) {
       const card = entry(page, '4F2A1B3C9D')
       await expect(card.getByRole('heading', { name: '4F2A1B3C9D' })).toBeVisible()
-      await expect(card.locator('summary')).toHaveText('+ 2 more')
+      await expect(card.getByRole('button', { name: '+ 2 more', exact: true })).toBeVisible()
     } else {
       await expect(page.getByRole('columnheader', { name: /Arrival time/ })).toHaveAttribute(
         'aria-sort',

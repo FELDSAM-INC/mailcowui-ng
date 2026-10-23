@@ -12,7 +12,6 @@ defineProps<{
     <li
       v-for="(entry, index) in entries"
       :key="`${entry.service}:${entry.clientAddress}:${entry.lastSeenAt}:${index}`"
-      class="surface"
       data-login
     >
       <RecentLoginCard :entry="entry" :app-password-link="appPasswordLink(entry)" />

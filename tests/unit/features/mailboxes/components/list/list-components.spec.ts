@@ -56,6 +56,13 @@ describe('MailboxCard', () => {
     expect(wrapper.text()).toContain('1,200')
     expect(wrapper.find('h3 button').exists()).toBe(false)
     expect(wrapper.text()).toContain('Act')
+    expect(wrapper.get('[data-card-header] button').text()).toBe('Act')
+    expect(wrapper.find('[data-entry-details]').exists()).toBe(false)
+    await wrapper.get('[data-card-expand]').trigger('click')
+    const details = wrapper.get('[data-entry-details]')
+    expect(details.text()).toContain('Last mail login')
+    expect(details.text()).toContain('SMTP')
+    expect(details.findAll('[data-flag]').length).toBeGreaterThan(0)
   })
 
   it('shows markup in names as text and IDN domains readable', async () => {
@@ -174,7 +181,7 @@ describe('MailboxTable', () => {
       'off',
     )
     expect(row.get('[data-cell="imap"] [data-flag]').attributes('data-flag')).toBe('on')
-    expect(row.get('[data-cell="imap"]').text()).toBe('Yes')
+    expect(row.get('[data-cell="imap"] .sr-only').text()).toBe('Yes')
     expect(row.get('[data-cell="quarantineNotification"]').text()).toBe('Hourly')
     expect(row.get('[data-cell="quarantineCategory"]').text()).toBe('Rejected')
     expect(row.get('[data-cell="modifiedAt"]').text()).toBe('-')

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import DataCard from '@/shared/components/DataCard.vue'
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+
 // One audit record as a card (FR-072): time, event type, outcome in text, actor, client address,
 // authentication method and, for failures, the reason; the rest expands.
 import { computed, useId } from 'vue'
@@ -22,14 +25,14 @@ const reason = computed(() =>
 </script>
 
 <template>
-  <article :aria-labelledby="titleId" class="surface flex flex-col gap-3">
-    <div class="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
-      <h3 :id="titleId" class="font-semibold wrap-anywhere text-gray-900 dark:text-white">
-        {{ labels.label('eventType', event.eventType) }}
-      </h3>
-      <AuditOutcome :outcome="event.outcome" />
-    </div>
-    <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+  <DataCard
+    as="article"
+    :title-id="titleId"
+    :title="labels.label('eventType', event.eventType)"
+    :details-label="t('auditLog.details.show')"
+  >
+    <template #badges><AuditOutcome :outcome="event.outcome" /></template>
+    <DataCardFields>
       <dt class="text-gray-600 dark:text-gray-400">{{ lt('admin.time') }}</dt>
       <dd class="min-w-0 text-gray-900 dark:text-white"><DateTime :value="event.occurredAt" /></dd>
       <dt class="text-gray-600 dark:text-gray-400">{{ t('auditLog.columns.actor') }}</dt>
@@ -42,7 +45,7 @@ const reason = computed(() =>
         <dt class="text-gray-600 dark:text-gray-400">{{ t('auditLog.columns.reason') }}</dt>
         <dd class="min-w-0 text-gray-900 dark:text-white">{{ reason }}</dd>
       </template>
-    </dl>
-    <AuditEventDetails :event="event" />
-  </article>
+    </DataCardFields>
+    <template #details><AuditEventDetails :event="event" variant="list" /></template>
+  </DataCard>
 </template>

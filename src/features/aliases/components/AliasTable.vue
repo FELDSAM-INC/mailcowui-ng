@@ -9,7 +9,7 @@ import { lt, legacy, resolveText, type TextRef } from '@/i18n'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 
-import { YesNoMark } from '@/features/aliases-common'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
 
 import type { AliasSort } from '../list-state'
 import AddressText from './AddressText.vue'

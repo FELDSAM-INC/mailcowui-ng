@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import YesNoMark from '@/shared/components/YesNoMark.vue'
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 import { nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { AppLinkSettingsEntry } from '@/api'
@@ -149,34 +152,37 @@ async function remove(index: number) {
       <p v-if="!modelValue.length">{{ t('systemSettings.appLinks.empty') }}</p>
       <template v-else>
         <div class="space-y-3 md:hidden" data-link-cards>
-          <dl
+          <DataCard
             v-for="(link, index) in modelValue"
             :key="index"
-            class="min-w-0 space-y-2 rounded-xl border border-gray-200 p-3 wrap-anywhere dark:border-gray-700"
+            as="article"
+            :title="link.name"
           >
-            <div>
-              <dt class="font-medium">{{ lt('admin.app_name') }}</dt>
-              <dd>{{ link.name }}</dd>
-            </div>
-            <div>
-              <dt class="font-medium">{{ lt('admin.link') }}</dt>
-              <dd>{{ link.url }}</dd>
-            </div>
-            <div>
-              <dt class="font-medium">{{ lt('admin.user_link') }}</dt>
-              <dd>{{ link.signedInUrl || t('systemSettings.appLinks.sameAsLinkValue') }}</dd>
-            </div>
-            <div>
-              <dt class="font-medium">{{ lt('admin.app_hide') }}</dt>
-              <dd>{{ t(link.showOnLoginPage ? 'lists.filters.no' : 'lists.filters.yes') }}</dd>
-            </div>
-            <div>
-              <dt class="font-medium">{{ t('systemSettings.appLinks.preview', { username }) }}</dt>
-              <dd>
-                {{ appLinkPreview(link, username) ?? t('systemSettings.appLinks.previewInvalid') }}
-              </dd>
-            </div>
-          </dl>
+            <DataCardFields>
+              <div>
+                <dt class="font-medium">{{ lt('admin.link') }}</dt>
+                <dd>{{ link.url }}</dd>
+              </div>
+              <div>
+                <dt class="font-medium">{{ lt('admin.user_link') }}</dt>
+                <dd>{{ link.signedInUrl || t('systemSettings.appLinks.sameAsLinkValue') }}</dd>
+              </div>
+              <div>
+                <dt class="font-medium">{{ lt('admin.app_hide') }}</dt>
+                <dd><YesNoMark :value="!link.showOnLoginPage" /></dd>
+              </div>
+              <div>
+                <dt class="font-medium">
+                  {{ t('systemSettings.appLinks.preview', { username }) }}
+                </dt>
+                <dd>
+                  {{
+                    appLinkPreview(link, username) ?? t('systemSettings.appLinks.previewInvalid')
+                  }}
+                </dd>
+              </div>
+            </DataCardFields>
+          </DataCard>
         </div>
         <div class="table-frame hidden md:block">
           <table

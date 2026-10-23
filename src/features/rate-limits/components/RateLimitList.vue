@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 // The limits of the Rate limits overview (FR-056, legacy form map screen 7): a table from md up
 // with the columns `rateLimits.list.object`, `mailbox.kind` and `edit.ratelimit` (object and kind
 // sortable, with `aria-sort`), and cards below md. The limit reads as the sections show it ("100
 // msgs / hour"), a stored value in an invalid format with its text. Each entry opens its object's
 // page at the rate limit section (`mailbox.edit`), where its History remains available.
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { RateLimit } from '@/api'
 import { lt, text } from '@/i18n'
@@ -16,7 +17,6 @@ import RowActions from '@/shared/components/RowActions.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { ChevronDownIcon, WarningIcon } from '@/shared/icons'
-import { buttonVariants } from '@/shared/ui/button'
 
 import { hostLocation } from '../host'
 import type { RateLimitSort } from '../list-state'
@@ -123,17 +123,24 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
     </table>
   </div>
   <ul v-else data-rate-limit-cards :aria-label="t('rateLimits.title')" class="flex flex-col gap-3">
-    <li
+    <DataCard
       v-for="item in items"
       :key="entryKey(item)"
       :data-entry="entryKey(item)"
-      class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+      :title="item.object"
     >
-      <!-- eslint-disable-next-line vuejs-accessibility/heading-has-content -- PlainText renders the accessible object name. -->
-      <h2 class="text-base font-semibold break-all text-gray-900 dark:text-white">
-        <PlainText :value="item.object" />
-      </h2>
-      <dl class="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+      <template #title><PlainText :value="item.object" /></template>
+      <template #actions>
+        <RowActions v-slot="{ menu }" :count="1" :label="`${lt('mailbox.action')}: ${item.object}`">
+          <RowAction
+            :menu="menu"
+            :to="hostLocation(item.kind, item.object)"
+            :label="lt('mailbox.edit')"
+            :aria-label="`${lt('mailbox.edit')}: ${item.object}`"
+          />
+        </RowActions>
+      </template>
+      <DataCardFields>
         <div>
           <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.kind') }}</dt>
           <dd class="text-gray-900 dark:text-white">{{ kindLabel(item) }}</dd>
@@ -154,15 +161,7 @@ const entryKey = (item: RateLimit) => `${item.kind}:${item.object}`
             </span>
           </dd>
         </div>
-      </dl>
-      <div class="flex flex-wrap gap-2">
-        <RouterLink
-          :to="hostLocation(item.kind, item.object)"
-          :class="buttonVariants({ variant: 'outline' })"
-        >
-          {{ lt('mailbox.edit') }}
-        </RouterLink>
-      </div>
-    </li>
+      </DataCardFields>
+    </DataCard>
   </ul>
 </template>

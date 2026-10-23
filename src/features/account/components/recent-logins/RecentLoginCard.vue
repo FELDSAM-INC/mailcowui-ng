@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCard from '@/shared/components/DataCard.vue'
+
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink, type RouteLocationRaw } from 'vue-router'
@@ -12,16 +14,14 @@ const country = computed(() =>
 )
 </script>
 <template>
-  <article
-    class="flex min-w-0 flex-col gap-2 wrap-anywhere text-sm text-gray-800 dark:text-gray-200"
+  <DataCard
+    as="article"
+    :title="
+      entry.internal
+        ? t('account.recentLogins.internal', { address: entry.clientAddress })
+        : entry.clientAddress
+    "
   >
-    <p class="font-medium">
-      {{
-        entry.internal
-          ? t('account.recentLogins.internal', { address: entry.clientAddress })
-          : entry.clientAddress
-      }}
-    </p>
     <p v-if="country" data-country>{{ country }}</p>
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <code>{{ entry.service }}</code>
@@ -31,10 +31,11 @@ const country = computed(() =>
       v-if="entry.appPassword?.name && appPasswordLink"
       :to="appPasswordLink"
       class="inline-flex min-h-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
-      >{{ entry.appPassword.name }}</RouterLink
     >
+      {{ entry.appPassword.name }}
+    </RouterLink>
     <p v-else-if="entry.appPassword">
       {{ entry.appPassword.name ?? t('account.recentLogins.appPasswordFallback') }}
     </p>
-  </article>
+  </DataCard>
 </template>

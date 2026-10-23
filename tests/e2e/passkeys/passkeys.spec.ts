@@ -5,13 +5,10 @@ import type { Page } from '@playwright/test'
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { alicePasskeys, PASSKEY_IDS } from '../../mocks/scenarios/passkeys'
 import { expect, test } from '../fixtures/test'
+import { clickRowAction, rowAction } from '../fixtures/row-actions'
 import { expectLanding, assertiveRegion, politeRegion, signOutFromMenu } from '../fixtures/flows'
 
-const cards = (page: Page) =>
-  page
-    .getByRole('main')
-    .getByRole('listitem')
-    .filter({ has: page.getByRole('heading', { level: 2 }) })
+const cards = (page: Page) => page.locator('main [data-card]')
 const addButton = (page: Page) => page.getByRole('button', { name: 'Add a passkey' })
 
 test('US4-AS1 FR-051 without passkeys the page explains passkeys and offers to add one', async ({
@@ -91,7 +88,7 @@ test('US4-AS4 FR-054 renaming refuses an empty or over-long name on the field an
   await mockApi.use('user-with-passkeys')
   await page.goto('passkeys')
   const phone = cards(page).filter({ hasText: 'Phone' })
-  await phone.getByRole('button', { name: 'Rename' }).click()
+  await clickRowAction(page, phone, /^Rename /)
   const dialog = page.getByRole('dialog', { name: 'Rename passkey' })
   const field = dialog.getByLabel('Name')
   await expect(field).toHaveValue('Phone')
@@ -121,7 +118,7 @@ test('US4-AS5 FR-055 removal names the passkey and its consequence, including th
     accounts: { 'alice@example.org': { passkeys: alicePasskeys().slice(0, 2) } },
   })
   await page.goto('passkeys')
-  await cards(page).filter({ hasText: 'Phone' }).getByRole('button', { name: 'Remove' }).click()
+  await clickRowAction(page, cards(page).filter({ hasText: 'Phone' }), /^Remove /)
   const confirm = page.getByRole('alertdialog')
   await expect(confirm).toContainText('Remove the passkey “Phone”?')
   await expect(confirm).toContainText(
@@ -133,7 +130,7 @@ test('US4-AS5 FR-055 removal names the passkey and its consequence, including th
   await expect(cards(page)).toHaveCount(1)
   await expect(politeRegion(page)).toContainText('Passkey removed.')
 
-  await cards(page).first().getByRole('button', { name: 'Remove' }).click()
+  await clickRowAction(page, cards(page).first(), /^Remove /)
   await expect(page.getByRole('alertdialog')).toContainText(
     'This is your last passkey. Your password remains the way to sign in.',
   )
@@ -150,7 +147,7 @@ test('US4-AS6 US4-AS7 FR-052 the list notes another host and inactive passkeys, 
   await mockApi.use('user-with-passkeys')
   await page.goto('passkeys')
   await expect(cards(page)).toHaveCount(4)
-  await expect(cards(page).getByRole('heading', { level: 2 })).toHaveText([
+  await expect(cards(page).getByRole('heading')).toHaveText([
     /^Unknown passkey/,
     'Lost key',
     'Old laptop',
@@ -224,8 +221,9 @@ test('US4-AS10 FR-056 without support adding is unavailable with an explanation,
   await page.goto('passkeys')
   await expect(addButton(page)).toHaveCount(0)
   await expect(page.getByRole('main')).toContainText('This device cannot create passkeys.')
-  await expect(cards(page).first().getByRole('button', { name: 'Rename' })).toBeVisible()
-  await expect(cards(page).first().getByRole('button', { name: 'Remove' })).toBeVisible()
+  await expect(await rowAction(page, cards(page).first(), /^Rename /)).toBeVisible()
+  await expect(await rowAction(page, cards(page).first(), /^Remove /)).toBeVisible()
+  await page.keyboard.press('Escape')
   await expectAccessible()
 })
 
@@ -252,7 +250,7 @@ test('Edge: a rename changed elsewhere keeps the input, reloads and saves on ret
 }) => {
   await mockApi.use('passkey-changed-elsewhere')
   await page.goto('passkeys')
-  await cards(page).filter({ hasText: 'Phone' }).getByRole('button', { name: 'Rename' }).click()
+  await clickRowAction(page, cards(page).filter({ hasText: 'Phone' }), /^Rename /)
   const dialog = page.getByRole('dialog', { name: 'Rename passkey' })
   await dialog.getByLabel('Name').fill('My phone')
   const changed = alicePasskeys().map((p) =>
@@ -279,7 +277,7 @@ test('Edge: a removal changed elsewhere is confirmed again against the reloaded 
 }) => {
   await mockApi.use('passkey-changed-elsewhere')
   await page.goto('passkeys')
-  await cards(page).filter({ hasText: 'Phone' }).getByRole('button', { name: 'Remove' }).click()
+  await clickRowAction(page, cards(page).filter({ hasText: 'Phone' }), /^Remove /)
   const changed = alicePasskeys().map((p) =>
     p.id === PASSKEY_IDS.phone ? { ...p, name: 'Renamed phone', etag: '"pk-phone-3"' } : p,
   )

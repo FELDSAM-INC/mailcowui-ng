@@ -33,7 +33,7 @@ test('filters list defaults to descending IDs, pages, searches and restores URL 
   await expect(page.locator(rows)).toHaveCount(1)
   const expand = page.locator(rows).locator('[data-row-expand]')
   if (await expand.count()) await expand.click()
-  else await page.locator(rows).locator('summary').click()
+  else await page.locator(rows).locator('[data-card-expand]').click()
   await expect(page.getByRole('main').locator('pre')).toContainText('fileinto')
   await page.evaluate(() => window.scrollTo(0, 0))
   await expectAccessible()

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 // The entries of one list (UI 006 FR-046, legacy form map screen 5 and D16): a table from `md` up
 // with legacy's columns ID, Rule (`user.spamfilter_table_rule`), Scope and the creation date the API
 // adds (`user.created_on`, D17), and cards below `md`. Own entries come first and can be selected;
@@ -183,14 +185,17 @@ const LINK =
       }}</span>
     </div>
     <ul :aria-label="lt(CAPTION[list])" class="flex flex-col gap-3" :data-entries="list">
-      <li
+      <DataCard
         v-for="entry in entries"
         :key="`${entry.own ? 'own' : 'inherited'}-${entry.id}`"
         :data-entry="entry.id"
         :data-own="entry.own ? 'true' : 'false'"
-        class="flex gap-2 rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"
       >
-        <div v-if="showSelect" class="-m-1 shrink-0">
+        <template #title><PlainText :value="entry.pattern" /></template>
+        <template v-if="!entry.own" #subtitle>
+          <span data-read-only>{{ lt('user.spamfilter_table_domain_policy') }}</span>
+        </template>
+        <template v-if="showSelect && entry.own" #select>
           <SelectCheckbox
             v-if="entry.own"
             :label="t('bulk.selectItem', { name: entry.pattern })"
@@ -199,19 +204,8 @@ const LINK =
             :described-by="limitId"
             @change="emit('toggle', String(entry.id))"
           />
-          <span v-else class="block size-11" />
-        </div>
-        <dl class="grid min-w-0 flex-1 grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
-          <dt class="text-gray-600 dark:text-gray-400">{{ lt('user.spamfilter_table_rule') }}</dt>
-          <dd class="min-w-0 font-medium break-all text-gray-900 dark:text-white">
-            <PlainText :value="entry.pattern" />
-            <span
-              v-if="!entry.own"
-              data-read-only
-              class="block text-xs font-normal break-normal text-gray-600 dark:text-gray-400"
-              >{{ lt('user.spamfilter_table_domain_policy') }}</span
-            >
-          </dd>
+        </template>
+        <DataCardFields>
           <dt class="text-gray-600 dark:text-gray-400">{{ t('lists.id') }}</dt>
           <dd class="text-gray-800 tabular-nums dark:text-gray-200">{{ entry.id }}</dd>
           <dt class="text-gray-600 dark:text-gray-400">{{ t('spamFilter.lists.scope') }}</dt>
@@ -221,14 +215,15 @@ const LINK =
               :to="ownerLink(entry)!"
               :class="LINK"
               class="-my-3"
-              ><PlainText :value="entry.owner.name"
-            /></RouterLink>
+            >
+              <PlainText :value="entry.owner.name" />
+            </RouterLink>
             <span v-else class="break-all"><PlainText :value="entry.owner.name" /></span>
           </dd>
           <dt class="text-gray-600 dark:text-gray-400">{{ lt('user.created_on') }}</dt>
           <dd class="text-gray-800 dark:text-gray-200"><DateTime :value="entry.createdAt" /></dd>
-        </dl>
-      </li>
+        </DataCardFields>
+      </DataCard>
     </ul>
   </div>
 </template>

@@ -125,15 +125,16 @@ describe('LogEntryList', () => {
     const entry = logEntry('autodiscover', 4, BASE)
     const wrapper = list('autodiscover', [entry])
     const toggle = wrapper.get('[aria-expanded]')
-    expect(toggle.text()).toBe('Show details')
+    expect(toggle.text()).toBe('Details')
     await toggle.trigger('click')
     expect(wrapper.emitted('toggle')).toEqual([[entry.id]])
     await wrapper.setProps({ expanded: new Set([entry.id]) })
     const details = wrapper.get('[data-details]')
     expect(details.findAll('dt').map((term) => term.text())).toEqual(['User-Agent', 'IP'])
     expect(details.get('[data-cell="userAgent"]').text()).toBe('unknown')
+    expect(details.text()).toBe(`User-AgentunknownIP${entry.clientAddress}`)
     expect(wrapper.get('[aria-expanded]').attributes('aria-controls')).toBe(
-      details.attributes('id'),
+      wrapper.get('[data-card-details]').attributes('id'),
     )
   })
 

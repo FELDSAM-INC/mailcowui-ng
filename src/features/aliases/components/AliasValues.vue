@@ -6,7 +6,7 @@ import type { Alias } from '@/api'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
 
-import { YesNoMark } from '@/features/aliases-common'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
 
 import AddressText from './AddressText.vue'
 import DestinationSummary from './DestinationSummary.vue'

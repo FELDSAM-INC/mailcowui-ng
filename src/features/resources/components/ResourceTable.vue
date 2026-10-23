@@ -6,7 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 
 import type { Resource } from '@/api'
-import { YesNoMark } from '@/features/aliases-common'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
 import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import MessageText from '@/shared/components/MessageText.vue'
 import RowControls from '@/shared/components/RowControls.vue'

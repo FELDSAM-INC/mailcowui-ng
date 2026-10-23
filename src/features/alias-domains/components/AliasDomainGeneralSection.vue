@@ -20,7 +20,7 @@ import {
   type AliasDomainPatch,
   type ApiProblem,
 } from '@/api'
-import { YesNoMark } from '@/features/aliases-common'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
 import { lt } from '@/i18n'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import type { SectionChange, SectionStatus } from '@/shared/components/editable-section'

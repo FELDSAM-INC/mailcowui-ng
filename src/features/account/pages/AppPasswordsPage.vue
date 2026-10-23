@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import YesNoMark from '@/shared/components/YesNoMark.vue'
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -323,30 +326,54 @@ watch([total, () => list.state.value.page], ([count, page]) => {
       </table>
     </div>
     <ul v-else class="flex flex-col gap-3" data-app-password-list>
-      <li
+      <DataCard
         v-for="item in rows"
         :key="item.id"
         :data-entry="item.id"
-        class="surface flex min-w-0 flex-col gap-3 text-sm text-gray-800 dark:text-gray-200"
+        :title="item.name"
+        :to="location('detail', item.id)"
       >
-        <label v-if="selection.active.value" class="flex min-h-11 items-center gap-3"
-          ><input
-            type="checkbox"
-            class="size-5"
-            :checked="selection.isSelected(String(item.id))"
-            :disabled="runner.running.value"
-            @change="selection.toggle(String(item.id))"
-          />{{ item.name }}</label
-        >
-        <dl class="grid gap-2">
+        <template v-if="selection.active.value" #select>
+          <label v-if="selection.active.value" class="flex min-h-11 items-center gap-3">
+            <input
+              type="checkbox"
+              class="size-5"
+              :checked="selection.isSelected(String(item.id))"
+              :disabled="runner.running.value"
+              @change="selection.toggle(String(item.id))"
+            />
+            <span class="sr-only">{{ item.name }}</span>
+          </label>
+        </template>
+        <template #actions>
+          <RowActions
+            v-slot="{ menu }"
+            :count="access.canChange.value ? 2 : 1"
+            :label="`${lt('user.action')}: ${item.name}`"
+          >
+            <RowAction
+              :menu="menu"
+              :to="location('detail', item.id)"
+              :label="lt('user.edit')"
+              :aria-label="`${lt('user.edit')}: ${item.name}`"
+            />
+            <RowAction
+              v-if="access.canChange.value"
+              :menu="menu"
+              :disabled="runner.running.value"
+              destructive
+              :label="lt('user.remove')"
+              :aria-label="`${lt('user.remove')}: ${item.name}`"
+              @select="run('remove', [item])"
+            />
+          </RowActions>
+        </template>
+        <DataCardFields>
           <div>
             <dt class="font-medium">{{ t('lists.id') }}</dt>
             <dd>{{ item.id }}</dd>
           </div>
-          <div>
-            <dt class="font-medium">{{ lt('user.app_name') }}</dt>
-            <dd class="wrap-anywhere">{{ item.name }}</dd>
-          </div>
+
           <div>
             <dt class="font-medium">{{ lt('user.allowed_protocols') }}</dt>
             <dd class="wrap-anywhere">
@@ -355,27 +382,10 @@ watch([total, () => list.state.value.page], ([count, page]) => {
           </div>
           <div>
             <dt class="font-medium">{{ lt('user.active') }}</dt>
-            <dd>{{ lt(item.active ? 'user.active' : 'mailbox.inactive') }}</dd>
+            <dd><YesNoMark :value="item.active" /></dd>
           </div>
-        </dl>
-        <div class="flex flex-wrap gap-2">
-          <RouterLink
-            :to="location('detail', item.id)"
-            :aria-label="`${lt('user.edit')}: ${item.name}`"
-            :class="buttonVariants({ variant: 'outline' })"
-            >{{ lt('user.edit') }}</RouterLink
-          ><button
-            v-if="access.canChange.value"
-            type="button"
-            :disabled="runner.running.value"
-            :aria-label="`${lt('user.remove')}: ${item.name}`"
-            :class="buttonVariants({ variant: 'outline' })"
-            @click="run('remove', [item])"
-          >
-            {{ lt('user.remove') }}
-          </button>
-        </div>
-      </li>
+        </DataCardFields>
+      </DataCard>
     </ul>
     <PaginationBar
       :total="total"

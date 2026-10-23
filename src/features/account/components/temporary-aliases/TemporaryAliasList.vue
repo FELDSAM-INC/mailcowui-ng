@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { SelfServiceCapabilities, TemporaryAlias } from '@/api'
@@ -10,11 +12,8 @@ import RowControls from '@/shared/components/RowControls.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { copyText } from '@/shared/platform/clipboard'
-import { buttonVariants } from '@/shared/ui/button'
 import { validityLabel, validityPresets, type AliasValidity } from '../../validity'
-import AliasAddress from './AliasAddress.vue'
 import AliasExpiry from './AliasExpiry.vue'
-import ValidityActions from './ValidityActions.vue'
 const props = defineProps<{
   items: readonly TemporaryAlias[]
   selection: boolean
@@ -30,7 +29,7 @@ const emit = defineEmits<{
 }>()
 const wide = useMediaQuery('(min-width: 768px)')
 const { t } = useI18n()
-const table = ref<HTMLElement | null>(null)
+const listRoot = ref<HTMLElement | null>(null)
 const copied = ref<{ address: string; outcome: 'copied' | 'refused' } | null>(null)
 const validityChoices = computed(() => (props.limits ? validityPresets(props.limits) : []))
 async function copyAddress(address: string) {
@@ -41,7 +40,7 @@ async function copyAddress(address: string) {
     return
   }
   const target = [
-    ...(table.value?.querySelectorAll<HTMLElement>('[data-alias-address]') ?? []),
+    ...(listRoot.value?.querySelectorAll<HTMLElement>('[data-alias-address]') ?? []),
   ].find((element) => element.dataset.aliasAddress === address)
   if (target) {
     target.setAttribute('tabindex', '-1')
@@ -56,7 +55,7 @@ async function copyAddress(address: string) {
 }
 </script>
 <template>
-  <div v-if="wide" ref="table" class="table-frame">
+  <div v-if="wide" ref="listRoot" class="table-frame">
     <table
       class="data-table w-full table-fixed text-start text-sm text-gray-800 dark:text-gray-200"
       data-temporary-alias-list
@@ -150,27 +149,72 @@ async function copyAddress(address: string) {
       </tbody>
     </table>
   </div>
-  <ul v-else class="flex flex-col gap-3" data-temporary-alias-list>
-    <li
+  <ul v-else ref="listRoot" class="flex flex-col gap-3" data-temporary-alias-list>
+    <DataCard
       v-for="item in items"
       :key="item.address"
       :data-entry="item.address"
-      class="surface flex min-w-0 flex-col gap-3 text-sm text-gray-800 dark:text-gray-200"
+      :title="item.address"
     >
-      <label v-if="selection" class="flex min-h-11 items-center gap-3 wrap-anywhere"
-        ><input
-          type="checkbox"
-          class="size-5 shrink-0"
-          :checked="selected.includes(item.address)"
-          :disabled="busy"
-          @change="emit('toggle', item.address)"
-        />{{ item.address }}</label
+      <template #title>
+        <span :data-alias-address="item.address">{{ item.address }}</span>
+      </template>
+      <template v-if="selection" #select>
+        <label v-if="selection" class="flex min-h-11 items-center gap-3 wrap-anywhere">
+          <input
+            type="checkbox"
+            class="size-5 shrink-0"
+            :checked="selected.includes(item.address)"
+            :disabled="busy"
+            @change="emit('toggle', item.address)"
+          />
+          <span class="sr-only">{{ item.address }}</span>
+        </label>
+      </template>
+      <template #actions>
+        <RowActions
+          v-slot="{ menu }"
+          :count="1 + (canChange ? validityChoices.length + 1 : 0)"
+          :label="`${lt('user.action')}: ${item.address}`"
+        >
+          <RowAction
+            :menu="menu"
+            :label="t('secrets.copy')"
+            :aria-label="`${t('secrets.copy')}: ${item.address}`"
+            @select="copyAddress(item.address)"
+          />
+          <RowAction
+            v-for="choice in canChange ? validityChoices : []"
+            :key="choice.value"
+            :menu="menu"
+            :label="validityLabel(choice.value, true)"
+            :disabled="busy"
+            @select="emit('validity', item, choice.value)"
+          />
+          <RowAction
+            v-if="canChange"
+            :menu="menu"
+            :disabled="busy"
+            destructive
+            :label="lt('user.remove')"
+            :aria-label="`${lt('user.remove')}: ${item.address}`"
+            @select="emit('remove', item)"
+          />
+        </RowActions>
+      </template>
+      <span
+        v-if="copied?.address === item.address"
+        :role="copied.outcome === 'copied' ? 'status' : 'alert'"
+        class="block text-sm"
+        :class="
+          copied.outcome === 'copied'
+            ? 'text-green-700 dark:text-green-400'
+            : 'text-red-700 dark:text-red-300'
+        "
       >
-      <dl class="grid gap-3">
-        <div>
-          <dt class="font-medium">{{ lt('user.alias') }}</dt>
-          <dd><AliasAddress :address="item.address" /></dd>
-        </div>
+        {{ copied.outcome === 'copied' ? lt('admin.copy_to_clipboard') : t('common.copy.refused') }}
+      </span>
+      <DataCardFields>
         <div>
           <dt class="font-medium">{{ lt('user.description') }}</dt>
           <dd class="wrap-anywhere">{{ item.description || '–' }}</dd>
@@ -183,26 +227,7 @@ async function copyAddress(address: string) {
           <dt class="font-medium">{{ lt('user.created_on') }}</dt>
           <dd><DateTime :value="item.createdAt" /></dd>
         </div>
-      </dl>
-      <div class="flex flex-wrap gap-2">
-        <ValidityActions
-          v-if="canChange && limits"
-          :limits="limits"
-          :address="item.address"
-          :disabled="busy"
-          @change="emit('validity', item, $event)"
-        />
-        <button
-          v-if="canChange"
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :disabled="busy"
-          :aria-label="`${lt('user.remove')}: ${item.address}`"
-          @click="emit('remove', item)"
-        >
-          {{ lt('user.remove') }}
-        </button>
-      </div>
-    </li>
+      </DataCardFields>
+    </DataCard>
   </ul>
 </template>

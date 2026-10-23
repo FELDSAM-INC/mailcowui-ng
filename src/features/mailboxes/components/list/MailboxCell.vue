@@ -4,12 +4,12 @@
 // in-use bar, the status, the identity provider by name, TLS and protocol flags as ✓ / ✗ with
 // their text for assistive technology, the quarantine options by their legacy labels, and the tags.
 // Values are text, never markup (FR-075).
-import { useI18n } from 'vue-i18n'
 
 import type { MailboxQuarantineCategory, MailboxQuarantineNotification } from '@/api'
 import { lt, type LegacyKey } from '@/i18n'
 import { useFormat } from '@/i18n/format'
-import { CheckIcon, CloseIcon, TagIcon } from '@/shared/icons'
+import { TagIcon } from '@/shared/icons'
+import YesNoMark from '@/shared/components/YesNoMark.vue'
 
 import type { ColumnId } from '../../columns'
 import { useMailboxFieldDisplay } from '../../field-display'
@@ -22,7 +22,6 @@ import QuotaText from '../display/QuotaText.vue'
 withDefaults(defineProps<{ mailbox: Mailbox; column: ColumnId; compactLogins?: boolean }>(), {
   compactLogins: false,
 })
-const { t } = useI18n()
 const fmt = useFormat()
 const display = useMailboxFieldDisplay()
 
@@ -66,27 +65,17 @@ const date = (value: string | null) => (value ? fmt.dateTime(value) : '-')
   <span v-else-if="column === 'displayName'" class="wrap-anywhere">{{ mailbox.displayName }}</span>
   <span v-else-if="column === 'domain'" class="wrap-anywhere">{{ mailbox.domainUnicode }}</span>
   <span v-else-if="column === 'authSource'">{{ display.source(mailbox.authSource) }}</span>
-  <span
+  <YesNoMark
     v-else-if="
       column === 'tlsEnforceInbound' || column === 'tlsEnforceOutbound' || isProtocol(column)
     "
+    :value="isProtocol(column) ? mailbox.protocolAccess[PROTOCOL[column]] : mailbox[column]"
     :data-flag="
       (isProtocol(column) ? mailbox.protocolAccess[PROTOCOL[column]] : mailbox[column])
         ? 'on'
         : 'off'
     "
-  >
-    <template
-      v-if="isProtocol(column) ? mailbox.protocolAccess[PROTOCOL[column]] : mailbox[column]"
-    >
-      <CheckIcon class="size-5 text-green-700 dark:text-green-400" />
-      <span class="sr-only">{{ t('domains.values.yes') }}</span>
-    </template>
-    <template v-else>
-      <CloseIcon class="size-5 text-red-700 dark:text-red-400" />
-      <span class="sr-only">{{ t('domains.values.no') }}</span>
-    </template>
-  </span>
+  />
   <span v-else-if="column === 'quarantineNotification'">{{
     lt(NOTIFICATION[mailbox.quarantineNotification])
   }}</span>

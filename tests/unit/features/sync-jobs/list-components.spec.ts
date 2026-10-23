@@ -59,13 +59,15 @@ describe('SyncJobCard', () => {
     expect(wrapper.find('[data-result] button').exists()).toBe(false)
   })
 
-  it('shows the remote username and encryption instead of the owner to mailbox users', () => {
+  it('shows the remote username and encryption instead of the owner to mailbox users', async () => {
     const wrapper = mountWithApp(SyncJobCard, {
       props: { job, role: 'mailboxUser' },
       ...withRouter(),
     })
     expect(wrapper.text()).not.toContain('Owner')
     expect(wrapper.text()).toContain('Username')
+    expect(wrapper.text()).not.toContain('SSL')
+    await wrapper.get('[data-card-expand]').trigger('click')
     expect(wrapper.text()).toContain('SSL')
     expect(wrapper.text()).toContain('Interval (min)')
   })

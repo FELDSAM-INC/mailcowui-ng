@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import DataCard from '@/shared/components/DataCard.vue'
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import RowAction from '@/shared/components/RowAction.vue'
+
 // One key as a card, below the md breakpoint (FR-064): name, non-secret prefix, owner, access
 // level, status, expiry and last use.
 import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { ApiKey } from '@/api'
 import { lt, text } from '@/i18n'
@@ -19,18 +22,24 @@ const titleId = useId()
 </script>
 
 <template>
-  <article :aria-labelledby="titleId" class="surface flex flex-col gap-3">
-    <div class="flex flex-wrap items-start justify-between gap-2">
-      <h2 :id="titleId" class="min-w-0 flex-1 font-semibold wrap-anywhere">
-        <RouterLink
-          :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
-          class="text-link"
-          >{{ apiKey.name }}</RouterLink
-        >
-      </h2>
-      <ApiKeyStatusBadge :status="apiKey.status" />
-    </div>
-    <dl class="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
+  <DataCard
+    as="article"
+    :data-entry="apiKey.id"
+    :title-id="titleId"
+    :title="apiKey.name"
+    :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
+  >
+    <template #badges><ApiKeyStatusBadge :status="apiKey.status" /></template>
+    <template #actions>
+      <RowAction
+        :menu="false"
+        :label="`${lt('mailbox.edit')}: ${apiKey.name}`"
+        :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
+      >
+        {{ lt('mailbox.edit') }}
+      </RowAction>
+    </template>
+    <DataCardFields>
       <dt class="font-medium text-gray-600 dark:text-gray-400">{{ t('apiKeys.fields.prefix') }}</dt>
       <dd class="font-mono wrap-anywhere text-gray-900 dark:text-white">{{ apiKey.prefix }}</dd>
       <dt class="font-medium text-gray-600 dark:text-gray-400">{{ lt('mailbox.owner') }}</dt>
@@ -50,6 +59,6 @@ const titleId = useId()
         {{ t('apiKeys.fields.lastUsed') }}
       </dt>
       <dd class="text-gray-900 dark:text-white"><LastUse :api-key="apiKey" /></dd>
-    </dl>
-  </article>
+    </DataCardFields>
+  </DataCard>
 </template>

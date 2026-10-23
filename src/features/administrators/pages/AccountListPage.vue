@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import YesNoMark from '@/shared/components/YesNoMark.vue'
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -491,13 +494,17 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
         </table>
       </div>
       <ul v-else class="flex flex-col gap-3">
-        <li
+        <DataCard
           v-for="account in entries"
           :key="account.username"
           :data-account-row="account.username"
-          class="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+          :to="detail(account)"
         >
-          <div class="flex items-center gap-2">
+          <template #title>
+            {{ account.username }}
+            <span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span>
+          </template>
+          <template v-if="selection.active.value" #select>
             <SelectCheckbox
               v-if="selection.active.value"
               :label="t('bulk.selectItem', { name: account.username })"
@@ -507,14 +514,10 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
               "
               described-by="bulk-limit-message"
               @change="selection.toggle(account.username)"
-            /><RouterLink
-              :to="detail(account)"
-              class="inline-flex min-h-11 min-w-0 flex-1 items-center wrap-anywhere font-semibold underline underline-offset-4"
-              >{{ account.username
-              }}<span v-if="own(account)" class="ms-2 text-xs">{{
-                t('accounts.you')
-              }}</span></RouterLink
-            ><AccountActionsMenu
+            />
+          </template>
+          <template v-if="allowed" #actions>
+            <AccountActionsMenu
               v-if="allowed"
               :account="account"
               :detail-to="detail(account, true)"
@@ -523,23 +526,24 @@ watch([query.data, query.isPlaceholderData], ([data, placeholder]) => {
               :busy="running || actions.pending.value"
               @action="actions.run($event, account)"
             />
-          </div>
-          <dl class="mt-3 grid gap-2 text-sm">
-            <template v-if="'domains' in account"
-              ><dt class="font-medium">{{ lt('admin.admin_domains') }}</dt>
+          </template>
+          <DataCardFields>
+            <template v-if="'domains' in account">
+              <dt class="font-medium">{{ lt('admin.admin_domains') }}</dt>
               <dd>
                 <DomainAssignmentList
                   :assignments="(account as DomainAdmin).domains"
                   :account-active="account.active"
                   :limit="3"
-                /></dd
-            ></template>
+                />
+              </dd>
+            </template>
             <dt class="font-medium">{{ lt('tfa.tfa') }}</dt>
             <dd><SecondFactorStatusBadge :status="account.secondFactorStatus" /></dd>
             <dt class="font-medium">{{ lt('admin.active') }}</dt>
-            <dd><AccountStatusBadge :active="account.active" /></dd>
-          </dl>
-        </li>
+            <dd><YesNoMark :value="account.active" /></dd>
+          </DataCardFields>
+        </DataCard>
       </ul>
     </ListState>
     <PaginationBar

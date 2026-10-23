@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { RouterLink } from 'vue-router'
@@ -112,28 +114,28 @@ onScopeDispose(() => {
         {{ t('systemSettings.massMail.empty') }}
       </p>
       <div data-job-list>
-        <ul class="space-y-4 md:hidden">
-          <li
+        <ul class="space-y-3 md:hidden">
+          <DataCard
             v-for="job in query.data.value.data"
             :key="job.id"
-            class="space-y-3 rounded-xl border border-gray-200 p-4 dark:border-gray-800"
+            :title="job.subject"
+            :to="{ name: 'system-settings-mass-mail-job', params: { jobId: job.id } }"
           >
-            <RouterLink
-              :to="{ name: 'system-settings-mass-mail-job', params: { jobId: job.id } }"
-              :class="
-                buttonVariants({
-                  variant: 'link',
-                  class: 'h-auto min-h-11 whitespace-normal wrap-anywhere',
-                })
-              "
-              >{{ job.subject }}</RouterLink
-            >
-            <p>{{ t(`systemSettings.massMail.statuses.${job.status}`) }}</p>
-            <p class="wrap-anywhere">
-              {{ job.createdBy.username }} · <DateTime :value="job.createdAt" />
-            </p>
+            <template #badges>
+              <span>{{ t(`systemSettings.massMail.statuses.${job.status}`) }}</span>
+            </template>
+            <DataCardFields>
+              <div>
+                <dt>{{ t('systemSettings.massMail.creator') }}</dt>
+                <dd>{{ job.createdBy.username }}</dd>
+              </div>
+              <div>
+                <dt>{{ t('systemSettings.massMail.createdAt') }}</dt>
+                <dd><DateTime :value="job.createdAt" /></dd>
+              </div>
+            </DataCardFields>
             <JobProgress :counts="job.counts" />
-          </li>
+          </DataCard>
         </ul>
         <div class="table-frame hidden md:block">
           <table class="data-table w-full text-start">

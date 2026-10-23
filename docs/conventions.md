@@ -15,6 +15,20 @@ and API composables while registering routes. ESLint permits it only in the rout
 other deep imports remain forbidden. Route modules must not import another feature's form/API
 barrel just to reuse a page loader.
 
+## Mobile data tables
+
+Below the table breakpoint, use `shared/components/DataCard.vue` for each row. Domains and
+Aliases are the reference layouts: identity, selection and `RowActions` share the header;
+secondary data uses the optional `details` slot and its bottom disclosure, collapsed initially.
+Keep short lists of values visible. A single action stays a direct button, multiple actions use
+the existing menu, and History stays on the edit screen.
+
+Use `DataCardFields.vue` for compact label/value pairs, `data-wide` on a grouped pair for long
+values, and `inline` for short boolean flags. Render booleans with the shared `YesNoMark.vue`
+(check/cross plus an accessible Yes/No label). Small value or statistics tables that already fit
+on a phone can remain tables. Desktop tables retain their shared `table-frame` and `data-table`
+styles.
+
 ## Wording
 
 These rules apply to the app's new strings. Text with a classic-interface equivalent always comes

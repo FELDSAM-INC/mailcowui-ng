@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 // Rspamd's scan history (FR-047, FR-048; plan decisions 12 and 18): cards below md and a table from
 // md, with legacy's columns in legacy's order (`draw_rspamd_history`): time, IP address, From (the
 // header sender), To (the header recipients, else the envelope recipients), Subject, Action, Score,
@@ -14,7 +16,6 @@ import type { AppLocale } from '@/i18n/locales'
 import PlainText from '@/shared/components/PlainText.vue'
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
-import { ChevronDownIcon } from '@/shared/icons'
 
 import LogBadge from '../../logs/components/LogBadge.vue'
 import { formatLogTime } from '../../logs/log-time'
@@ -100,25 +101,30 @@ const detailsId = (key: string) => `${listId}-${key}`
 
 <template>
   <ul v-if="!wide" data-history-cards class="flex flex-col gap-3">
-    <li
+    <DataCard
       v-for="(entry, index) in entries"
       :key="keyOf(entry, index)"
       :data-entry="keyOf(entry, index)"
-      class="min-w-0 rounded-xl border border-gray-200 bg-white p-3 text-sm dark:border-gray-800 dark:bg-gray-900"
+      :expanded="expanded.has(keyOf(entry, index))"
+      :details-id="detailsId(keyOf(entry, index))"
+      :details-label="t('auditLog.details.show')"
+      @update:expanded="emit('toggle', keyOf(entry, index))"
     >
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-gray-700 dark:text-gray-300">
-        <time :datetime="entry.time" class="whitespace-nowrap tabular-nums">{{
+      <template #title>
+        <time :datetime="entry.time" class="tabular-nums">{{
           formatLogTime(entry.time, loc)
         }}</time>
-        <LogBadge :tone="actionTone(entry.action)" data-cell="action"
-          ><PlainText :value="entry.action"
-        /></LogBadge>
+      </template>
+      <template #badges>
+        <LogBadge :tone="actionTone(entry.action)" data-cell="action">
+          <PlainText :value="entry.action" />
+        </LogBadge>
         <span class="sr-only">{{ `${label('score')}: ` }}</span>
-        <span data-cell="score"
-          ><RspamdScore :score="entry.score" :required="entry.requiredScore"
-        /></span>
-      </div>
-      <dl class="mt-2 grid gap-1">
+        <span data-cell="score">
+          <RspamdScore :score="entry.score" :required="entry.requiredScore" />
+        </span>
+      </template>
+      <DataCardFields>
         <div class="flex min-w-0 flex-wrap gap-x-2">
           <dt class="text-gray-600 dark:text-gray-400">{{ label('from') }}</dt>
           <dd class="min-w-0 text-gray-900 dark:text-white">
@@ -137,49 +143,26 @@ const detailsId = (key: string) => `${listId}-${key}`
             <PlainText data-cell="subject" :value="entry.subject" />
           </dd>
         </div>
-      </dl>
-      <button
-        type="button"
-        class="mt-2 inline-flex min-h-11 items-center gap-1 rounded-lg px-1 font-medium text-accent-text bg-white dark:bg-gray-900 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-        :aria-expanded="expanded.has(keyOf(entry, index)) ? 'true' : 'false'"
-        :aria-controls="
-          expanded.has(keyOf(entry, index)) ? detailsId(keyOf(entry, index)) : undefined
-        "
-        @click="emit('toggle', keyOf(entry, index))"
-      >
-        <ChevronDownIcon
-          class="size-4"
-          :class="expanded.has(keyOf(entry, index)) ? 'rotate-180' : ''"
-          aria-hidden="true"
-        />
-        {{
-          expanded.has(keyOf(entry, index))
-            ? t('auditLog.details.hide')
-            : t('auditLog.details.show')
-        }}
-      </button>
-      <dl
-        v-if="expanded.has(keyOf(entry, index))"
-        :id="detailsId(keyOf(entry, index))"
-        data-details
-        class="mt-2 grid gap-2 border-t border-gray-200 pt-2 dark:border-gray-800"
-      >
-        <div v-for="key in CARD_DETAILS" :key="key" class="min-w-0">
-          <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ label(key) }}</dt>
-          <dd class="text-gray-900 dark:text-white" :data-cell="key">
-            <PlainText v-if="key === 'ip'" :value="entry.clientAddress" />
-            <RspamdSymbols v-else-if="key === 'symbols'" :symbols="entry.symbols" />
-            <template v-else-if="key === 'size'">{{ size(entry) }}</template>
-            <template v-else-if="key === 'scanTime'">{{ scanTime(entry) }}</template>
-            <PlainText v-else-if="key === 'id'" :value="entry.messageId" />
-            <template v-else-if="key === 'user'">
-              <PlainText v-if="entry.user !== null" :value="entry.user" />
-              <template v-else>{{ t('operations.logs.none') }}</template>
-            </template>
-          </dd>
-        </div>
-      </dl>
-    </li>
+      </DataCardFields>
+      <template #details>
+        <DataCardFields data-details>
+          <div v-for="key in CARD_DETAILS" :key="key" class="min-w-0">
+            <dt class="text-xs font-medium text-gray-600 dark:text-gray-400">{{ label(key) }}</dt>
+            <dd class="text-gray-900 dark:text-white" :data-cell="key">
+              <PlainText v-if="key === 'ip'" :value="entry.clientAddress" />
+              <RspamdSymbols v-else-if="key === 'symbols'" :symbols="entry.symbols" />
+              <template v-else-if="key === 'size'">{{ size(entry) }}</template>
+              <template v-else-if="key === 'scanTime'">{{ scanTime(entry) }}</template>
+              <PlainText v-else-if="key === 'id'" :value="entry.messageId" />
+              <template v-else-if="key === 'user'">
+                <PlainText v-if="entry.user !== null" :value="entry.user" />
+                <template v-else>{{ t('operations.logs.none') }}</template>
+              </template>
+            </dd>
+          </div>
+        </DataCardFields>
+      </template>
+    </DataCard>
   </ul>
 
   <div v-else class="table-frame">

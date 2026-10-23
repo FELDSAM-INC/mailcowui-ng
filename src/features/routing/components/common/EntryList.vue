@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T">
+import DataCardFields from '@/shared/components/DataCardFields.vue'
+import DataCard from '@/shared/components/DataCard.vue'
 // One page of a routing list (research R4, FR-005): cards with every column below md, a table
 // with the classic columns from md up, sortable headers with `aria-sort`, selection checkboxes
 // only in selection mode, and the entry's actions. The primary column (the first by default)
@@ -119,43 +121,35 @@ const LINK =
     </table>
   </div>
   <ul v-else :aria-label="caption" class="flex flex-col gap-3">
-    <li
+    <DataCard
       v-for="entry in entries"
       :key="idOf(entry)"
       :data-entry="idOf(entry)"
-      class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+      :title-id="`${domId(entry)}-name`"
     >
-      <article :aria-labelledby="`${domId(entry)}-name`" class="flex flex-col gap-3">
-        <div class="flex items-start gap-3">
-          <slot v-if="selectable" name="select" :entry="entry" />
-          <!-- eslint-disable-next-line vuejs-accessibility/heading-has-content -- the slot or link is its content -->
-          <h3
-            :id="`${domId(entry)}-name`"
-            class="min-w-0 flex-1 text-base font-semibold wrap-anywhere text-gray-900 dark:text-white"
-          >
-            <slot :name="`cell-${first.key}`" :entry="entry">
-              <RouterLink v-if="editTo?.(entry)" :to="editTo(entry)!" :class="LINK">
-                {{ first.text?.(entry) }}
-              </RouterLink>
-              <template v-else>{{ first.text?.(entry) }}</template>
-            </slot>
-          </h3>
+      <template #title>
+        <slot :name="`cell-${first.key}`" :entry="entry">
+          <RouterLink v-if="editTo?.(entry)" :to="editTo(entry)!" :class="LINK">
+            {{ first.text?.(entry) }}
+          </RouterLink>
+          <template v-else>{{ first.text?.(entry) }}</template>
+        </slot>
+      </template>
+      <template v-if="selectable" #select><slot name="select" :entry="entry" /></template>
+      <template v-if="$slots.actions" #actions><slot name="actions" :entry="entry" /></template>
+      <DataCardFields>
+        <div
+          v-for="column in rest"
+          :key="column.key"
+          :data-column="column.key"
+          class="flex flex-wrap gap-x-1"
+        >
+          <dt class="text-gray-600 dark:text-gray-400">{{ column.label }}:</dt>
+          <dd class="min-w-0 wrap-anywhere text-gray-900 dark:text-white">
+            <slot :name="`cell-${column.key}`" :entry="entry">{{ column.text?.(entry) }}</slot>
+          </dd>
         </div>
-        <dl class="grid grid-cols-1 gap-y-1 text-sm">
-          <div
-            v-for="column in rest"
-            :key="column.key"
-            :data-column="column.key"
-            class="flex flex-wrap gap-x-1"
-          >
-            <dt class="text-gray-600 dark:text-gray-400">{{ column.label }}:</dt>
-            <dd class="min-w-0 wrap-anywhere text-gray-900 dark:text-white">
-              <slot :name="`cell-${column.key}`" :entry="entry">{{ column.text?.(entry) }}</slot>
-            </dd>
-          </div>
-        </dl>
-        <slot name="actions" :entry="entry" />
-      </article>
-    </li>
+      </DataCardFields>
+    </DataCard>
   </ul>
 </template>

@@ -60,7 +60,7 @@ describe('AliasCard', () => {
       slots: { actions: () => h('button', { class: 'menu' }, 'menu') },
       global: { plugins: [router] },
     })
-    expect(wrapper.get('h3 a').attributes('href')).toBe('/aliases/7')
+    expect(wrapper.attributes('data-row-href')).toBe('/aliases/7')
     expect(wrapper.text()).toContain('Goto address')
     expect(wrapper.text()).toContain('anna@example.org')
     expect(wrapper.text()).toContain('Target domain: example.org')

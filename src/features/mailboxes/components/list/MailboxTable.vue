@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -13,7 +15,6 @@ import MailboxStatusBadge from '../display/MailboxStatusBadge.vue'
 // Slots: `select-all` and `select` (selection mode, US6) and `actions`.
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import { lt } from '@/i18n'
 import RowControls from '@/shared/components/RowControls.vue'
@@ -119,7 +120,12 @@ const tableView = useDataColumns(
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="mailbox in mailboxes" :key="mailbox.address">
-          <tr :data-entry="mailbox.address" class="align-top">
+          <DataRow
+            :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
+            :label="mailbox.address"
+            :data-entry="mailbox.address"
+            class="align-top"
+          >
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :mailbox="mailbox" /></td>
             <td
               v-for="column in columns"
@@ -135,11 +141,7 @@ const tableView = useDataColumns(
               ]"
             >
               <DataIdentity v-if="column.id === 'address'"
-                ><RouterLink
-                  :to="{ name: 'mailbox-detail', params: { address: mailbox.address } }"
-                  class="inline-flex min-h-11 max-w-full items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-                >
-                  {{ readableAddress(mailbox) }} </RouterLink
+                ><span class="font-medium wrap-anywhere">{{ readableAddress(mailbox) }}</span
                 ><template #badges><MailboxStatusBadge :status="mailbox.status" /></template
               ></DataIdentity>
               <MailboxCell
@@ -159,7 +161,7 @@ const tableView = useDataColumns(
                 <slot name="actions" :mailbox="mailbox" />
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
           <tr
             v-if="details.length && expanded.has(mailbox.address)"
             :id="detailsId(mailbox.address)"

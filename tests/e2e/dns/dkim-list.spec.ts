@@ -171,16 +171,16 @@ test.describe('DKIM key list', () => {
     await expect(page).not.toHaveURL(/page=2/)
   })
 
-  test('FR-009 FR-010 kind, completeness, a selector from an entry, and clearing everything', async ({
+  test('FR-009 FR-010 kind, completeness, a selector from the filter panel, and clearing everything', async ({
     page,
     mockApi,
   }) => {
     await mockApi.use('dns-admin')
     await page.goto('dns/dkim-keys')
     await listReady(page)
-    await entry(page, 'shop.example')
-      .getByRole('button', { name: /selector shop/ })
-      .click()
+    await openFilters(page)
+    await page.locator('#dkim-filter-selector').fill('shop')
+    await page.locator('#dkim-filter-selector').press('Tab')
     await expect(page).toHaveURL(/selector=shop/)
     await expect.poll(() => entryNames(page)).toEqual(['shop.example'])
     await page.getByRole('button', { name: 'Remove filter: Selector shop' }).click()
@@ -221,7 +221,7 @@ test.describe('DKIM key list', () => {
     await listReady(page)
     const target = entry(page, 'd060.example')
     await target.scrollIntoViewIfNeeded()
-    await target.getByRole('link').first().click()
+    await target.press('Enter')
     await expect(page.getByRole('heading', { level: 1, name: 'd060.example' })).toBeVisible()
     await page.goBack()
     await expect(page.locator('[data-list-loading]')).toHaveCount(0)

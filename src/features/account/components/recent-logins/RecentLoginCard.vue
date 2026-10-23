@@ -3,7 +3,7 @@ import DataCard from '@/shared/components/DataCard.vue'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw } from 'vue-router'
 import type { RecentLogin } from '@/api'
 import DateTime from '@/shared/components/DateTime.vue'
 import { recentLoginCountry } from '../../recent-login-country'
@@ -27,13 +27,9 @@ const country = computed(() =>
       <code>{{ entry.service }}</code>
       <DateTime :value="entry.lastSeenAt" />
     </div>
-    <RouterLink
-      v-if="entry.appPassword?.name && appPasswordLink"
-      :to="appPasswordLink"
-      class="inline-flex min-h-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
-    >
-      {{ entry.appPassword.name }}
-    </RouterLink>
+    <span v-if="entry.appPassword?.name && appPasswordLink" class="wrap-anywhere">{{
+      entry.appPassword.name
+    }}</span>
     <p v-else-if="entry.appPassword">
       {{ entry.appPassword.name ?? t('account.recentLogins.appPasswordFallback') }}
     </p>

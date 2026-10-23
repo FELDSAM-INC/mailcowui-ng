@@ -417,7 +417,6 @@ useDataList('dns-pages-dkimkeys', undefined, () => ({
           :order="state.order ?? 'asc'"
           :selectable="selection.active.value"
           @sort="(sort, order) => list.setSort(sort, order)"
-          @filter-selector="(selector) => list.setFilter('selector', selector)"
         >
           <template #select-all>
             <SelectCheckbox

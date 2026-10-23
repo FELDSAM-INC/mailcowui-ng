@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { DomainAdmin } from '@/api'
-import { lt } from '@/i18n'
+import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 const props = withDefaults(
-  defineProps<{ assignments: DomainAdmin['domains']; accountActive: boolean; limit?: number }>(),
-  { limit: Infinity },
+  defineProps<{
+    assignments: DomainAdmin['domains']
+    accountActive: boolean
+    limit?: number
+    linked?: boolean
+  }>(),
+  { limit: Infinity, linked: true },
 )
 const { t } = useI18n()
 </script>
@@ -19,7 +24,7 @@ const { t } = useI18n()
       class="wrap-anywhere"
     >
       <RouterLink
-        v-if="assignment.domainExists"
+        v-if="linked && assignment.domainExists"
         :to="{ name: 'domain-detail', params: { domain: assignment.domain } }"
         :title="assignment.domain"
         class="inline-flex min-h-11 items-center underline underline-offset-4"
@@ -37,9 +42,11 @@ const { t } = useI18n()
           )
         }}</span
       >
-      <span v-if="assignment.active !== accountActive" class="ms-2 rounded border px-1 text-xs">{{
-        lt(assignment.active ? 'mailbox.active' : 'mailbox.inactive')
-      }}</span>
+      <ActiveBadge
+        v-if="assignment.active !== accountActive"
+        class="ms-1.5"
+        :active="assignment.active"
+      />
     </li>
     <li v-if="assignments.length > limit" class="text-sm text-gray-600 dark:text-gray-400">
       {{ t('accounts.assignment.more', { count: assignments.length - limit }) }}

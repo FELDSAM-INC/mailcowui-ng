@@ -27,6 +27,7 @@ const fmt = useFormat()
 
 <template>
   <DataCard
+    :to="show"
     :data-entry="message.id"
     :title-id="`queue-message-${message.id}`"
     :title="message.id"

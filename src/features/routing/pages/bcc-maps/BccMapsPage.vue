@@ -6,7 +6,6 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import { queryKeys, type BccMap } from '@/api'
 import { lt } from '@/i18n'
@@ -133,12 +132,7 @@ const edit = (item: BccMap) => ({ name: 'routing-bcc-map-edit', params: { bccMap
     :edit-to="edit"
   >
     <template #cell-localDestination="{ entry }">
-      <RouterLink
-        :to="edit(entry)"
-        class="inline-flex min-h-11 min-w-11 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-      >
-        {{ entry.localDestination }}
-      </RouterLink>
+      <span class="font-medium wrap-anywhere">{{ entry.localDestination }}</span>
     </template>
     <template #cell-type="{ entry }">{{ bccTypeLabel(entry.type) }}</template>
     <template #cell-domain="{ entry }">

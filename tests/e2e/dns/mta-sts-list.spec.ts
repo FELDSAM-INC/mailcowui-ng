@@ -103,7 +103,7 @@ test.describe('MTA-STS policies', () => {
   }) => {
     await mockApi.use('dns-mta-sts')
     await openList(page)
-    await entry(page, 'example.org').getByRole('link').first().click()
+    await entry(page, 'example.org').press('Enter')
     await expect(page).toHaveURL(/\/domains\/example\.org#mta-sts$/)
     const heading = page.locator('#mta-sts').getByRole('heading', { level: 2, name: 'MTA-STS' })
     await expect(heading).toBeFocused({ timeout: FIRST_LOAD })

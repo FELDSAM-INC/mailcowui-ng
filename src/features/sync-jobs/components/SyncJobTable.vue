@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -12,7 +14,6 @@ import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 // for mailbox users, the encryption) in an expandable row. Slots: `select-all`, `select`, `actions`.
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { Role, SyncJob } from '@/api'
 import { resolveText, type TextRef } from '@/i18n'
@@ -122,7 +123,12 @@ const tableView = useDataColumns(
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="job in jobs" :key="job.id">
-          <tr :data-entry="job.id" class="align-top text-gray-900 dark:text-white">
+          <DataRow
+            :to="{ name: 'sync-job-detail', params: { syncJobId: job.id } }"
+            :label="String(job.id)"
+            :data-entry="job.id"
+            class="align-top text-gray-900 dark:text-white"
+          >
             <td v-if="selectable" class="px-2 py-2"><slot name="select" :job="job" /></td>
             <td
               v-show="tableView.visible(String('id'))"
@@ -130,11 +136,7 @@ const tableView = useDataColumns(
               class="px-2 py-3"
             >
               <DataIdentity
-                ><RouterLink
-                  :to="{ name: 'sync-job-detail', params: { syncJobId: job.id } }"
-                  class="inline-flex min-h-6 font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-                >
-                  {{ job.id }} </RouterLink
+                ><span class="font-medium wrap-anywhere">{{ job.id }}</span
                 ><template #badges><ActiveBadge :active="job.active" /></template
               ></DataIdentity>
             </td>
@@ -197,7 +199,7 @@ const tableView = useDataColumns(
                 <slot name="actions" :job="job" />
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
           <tr v-if="expanded.has(job.id)" :id="`sync-job-details-${job.id}`">
             <td
               :colspan="columnCount - tableView.columns.value.length + tableView.visibleCount.value"

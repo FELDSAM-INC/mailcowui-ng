@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -11,7 +13,6 @@ import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 // (`draw_resource_table()`): description, address, kind, domain, multiple bookings, active and the
 // action, with `aria-sort` on the contract's sort keys. Slots: `select-all`, `select`, `actions`.
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { Resource } from '@/api'
 
@@ -86,9 +87,11 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr
+        <DataRow
           v-for="item in resources"
           :key="item.address"
+          :to="{ name: 'resource-detail', params: { resourceAddress: item.address } }"
+          :label="item.description"
           :data-entry="item.address"
           class="align-top"
         >
@@ -99,11 +102,7 @@ const tableView = useDataColumns(
             class="px-2 py-3"
           >
             <DataIdentity
-              ><RouterLink
-                :to="{ name: 'resource-detail', params: { resourceAddress: item.address } }"
-                class="inline-flex min-h-11 max-w-full items-center font-medium break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-              >
-                {{ item.description }} </RouterLink
+              ><span class="font-medium wrap-anywhere">{{ item.description }}</span
               ><template #badges><ActiveBadge :active="item.active" /></template
             ></DataIdentity>
           </td>
@@ -139,7 +138,7 @@ const tableView = useDataColumns(
           <td class="table-controls-cell px-2 py-3">
             <RowControls><slot name="actions" :resource="item" /></RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

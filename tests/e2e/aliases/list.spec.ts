@@ -85,7 +85,7 @@ test.describe('alias list', () => {
     await expect.poll(() => entryIds(page)).toEqual(['48', '47', '46'])
     await expect(page.locator('[data-live="polite"]')).toHaveText('Showing 1 to 3 of 3 entries')
     await expect(page).toHaveURL(/q=INVOICE/)
-    await entry(page, 48).getByRole('link').first().click()
+    await entry(page, 48).press('Enter')
     await expect(page.getByRole('heading', { level: 1, name: 'Edit alias' })).toBeVisible()
     await page.goBack()
     await expect(page.getByRole('searchbox', { name: 'Search:' })).toHaveValue('INVOICE')

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -92,9 +94,11 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr
+        <DataRow
           v-for="message in messages"
           :key="message.id"
+          :to="show(message)"
+          :label="message.id"
           :data-entry="message.id"
           class="align-top text-gray-900 dark:text-white"
         >
@@ -154,7 +158,7 @@ const tableView = useDataColumns(
               />
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

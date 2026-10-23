@@ -30,7 +30,7 @@ describe('MTA-STS policy entries', () => {
     expect(wrapper.element.tagName).toBe('LI')
     const heading = wrapper.get('h3')
     expect(heading.text()).toContain('bücher.example')
-    expect(heading.get('a').attributes('href')).toBe('/domains/xn--bcher-kva.example#mta-sts')
+    expect(wrapper.attributes('data-row-href')).toBe('/domains/xn--bcher-kva.example#mta-sts')
     for (const value of ['Active', 'enforce', 'mail.example.org', '604,800', '20261018100000']) {
       expect(wrapper.text()).toContain(value)
     }
@@ -60,7 +60,7 @@ describe('MTA-STS policy entries', () => {
     const first = wrapper.get('tbody tr')
     const edit = first.get('td:last-child .table-row-controls a')
     expect(edit.text()).toBe('Edit')
-    expect(edit.attributes('href')).toBe(first.get('td:first-child a').attributes('href'))
+    expect(edit.attributes('href')).toBe(first.attributes('data-row-href'))
     expect(first.find('td:last-child [aria-expanded]').exists()).toBe(false)
   })
 })

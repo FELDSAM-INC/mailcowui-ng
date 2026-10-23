@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -7,7 +9,6 @@ import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 // The keys as a table, from the md breakpoint (FR-064), with sortable column headers that state
 // their order (`aria-sort`).
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { ApiKey } from '@/api'
 import { lt, text } from '@/i18n'
@@ -64,7 +65,12 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="apiKey in keys" :key="apiKey.id">
+        <DataRow
+          v-for="apiKey in keys"
+          :key="apiKey.id"
+          :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
+          :label="apiKey.name"
+        >
           <td
             v-show="tableView.visible('name')"
             :data-column="'name'"
@@ -72,10 +78,7 @@ const tableView = useDataColumns(
             class="max-w-[16rem] font-medium wrap-anywhere"
           >
             <DataIdentity
-              ><RouterLink
-                :to="{ name: 'api-key-detail', params: { apiKeyId: apiKey.id } }"
-                class="text-link"
-                >{{ apiKey.name }}</RouterLink
+              ><span class="font-medium wrap-anywhere">{{ apiKey.name }}</span
               ><template #badges><ApiKeyStatusBadge :status="apiKey.status" /></template
             ></DataIdentity>
           </td>
@@ -119,7 +122,7 @@ const tableView = useDataColumns(
               />
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

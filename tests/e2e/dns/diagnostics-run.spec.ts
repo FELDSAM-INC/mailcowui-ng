@@ -29,7 +29,7 @@ async function openFromEntry(page: Page, name: string) {
   await navigation.getByRole('link', { name: 'Options', exact: true }).click()
   await expect(page).toHaveURL(/\/dns\/dkim-keys$/)
   await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible()
-  await page.locator(`[data-entry="${name}"]`).getByRole('link').first().click()
+  await page.locator(`[data-entry="${name}"]`).press('Enter')
   await expect(page.getByRole('heading', { level: 1, name })).toBeVisible()
   await page.getByRole('link', { name: 'DNS', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'DNS Records' })).toBeVisible()

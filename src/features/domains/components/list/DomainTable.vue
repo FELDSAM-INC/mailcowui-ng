@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -12,7 +14,6 @@ import { useDataColumns } from '@/shared/composables/useDataList'
 // `actions` (US4).
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import { lt, legacy, resolveText, type TextRef } from '@/i18n'
 import type { Domain } from '@/api'
@@ -124,7 +125,12 @@ const tableView = useDataColumns(
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="domain in domains" :key="domain.name">
-          <tr :data-entry="domain.name" class="align-top">
+          <DataRow
+            :to="{ name: 'domain-detail', params: { domain: domain.name } }"
+            :label="domain.name"
+            :data-entry="domain.name"
+            class="align-top"
+          >
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :domain="domain" /></td>
             <td
               v-show="tableView.visible(String('name'))"
@@ -132,16 +138,12 @@ const tableView = useDataColumns(
               class="max-w-72 px-3 py-3"
             >
               <DataIdentity
-                ><RouterLink
-                  :to="{ name: 'domain-detail', params: { domain: domain.name } }"
-                  class="inline-flex min-h-11 min-w-0 items-center font-semibold text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-                >
-                  <DomainNameText
+                ><span class="font-medium wrap-anywhere"
+                  ><DomainNameText
                     class="table-identity"
                     :title="domain.name"
                     :name="domain.name"
-                    :unicode-name="domain.unicodeName"
-                  /> </RouterLink
+                    :unicode-name="domain.unicodeName" /></span
                 ><template #badges
                   ><ActiveBadge :active="domain.active" /><RelayBadge :domain="domain" /></template
               ></DataIdentity>
@@ -224,7 +226,7 @@ const tableView = useDataColumns(
                 <slot name="actions" :domain="domain" />
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
           <tr v-if="expanded.has(domain.name)" :id="`${rowId(domain.name)}-details`">
             <td
               :colspan="

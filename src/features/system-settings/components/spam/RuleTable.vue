@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -53,9 +55,11 @@ const tableView = useDataColumns(() => columns.map((id) => ({ id, label: label(i
         </tr>
       </thead>
       <tbody>
-        <tr
+        <DataRow
           v-for="item in items"
           :key="item.id"
+          :to="{ name: 'rspamd-rule-detail', params: { ruleId: item.id } }"
+          :label="item.description"
           :data-rule-id="item.id"
           class="border-b border-gray-200 align-top dark:border-gray-800"
         >
@@ -102,7 +106,7 @@ const tableView = useDataColumns(() => columns.map((id) => ({ id, label: label(i
               </RowActions>
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

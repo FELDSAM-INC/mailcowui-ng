@@ -8,7 +8,7 @@ test('US1-AS4 action: deliver once with learning and return to the filtered list
 }) => {
   await mockApi.use('quarantine-mailbox-user')
   await page.goto('quarantine?q=newsletter')
-  await page.locator('[data-quarantine-item="2"]').getByRole('link').first().click()
+  await page.locator('[data-quarantine-item="2"]').press('Enter')
   await expect(page.locator('[data-item="2"]')).toBeVisible()
   await mockApi.delay('releaseQuarantineItem', 350)
   await itemAction(page, 'release')

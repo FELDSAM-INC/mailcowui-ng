@@ -87,6 +87,20 @@ const SELECT =
     </fieldset>
     <div class="contents">
       <div class="flex flex-col gap-1.5">
+        <label for="dkim-filter-selector" class="text-sm font-medium text-ink">{{
+          lt('admin.dkim_domains_selector')
+        }}</label>
+        <input
+          id="dkim-filter-selector"
+          type="text"
+          :value="selector ?? ''"
+          :class="SELECT"
+          @change="
+            emit('update', { selector: ($event.target as HTMLInputElement).value || undefined })
+          "
+        />
+      </div>
+      <div class="flex flex-col gap-1.5">
         <label for="dkim-filter-kind" class="text-sm font-medium text-gray-800 dark:text-gray-200">
           {{ t('dns.dkim.filters.kind') }}
         </label>

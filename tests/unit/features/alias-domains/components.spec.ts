@@ -34,14 +34,16 @@ beforeEach(async () => {
 afterEach(() => resetLegacy())
 
 describe('AliasDomainCard', () => {
-  it('shows the name, the linked target, active and the relay badge', () => {
+  it('shows the name, the plain target, active and the relay badge', () => {
     const wrapper = mountWithApp(AliasDomainCard, {
       props: { aliasDomain: aliasDomain({ targetIsRelayDomain: true }), linkDomains: true },
       slots: { actions: '<button>menu</button>' },
       global: { plugins: [router()] },
     })
     expect(wrapper.get('[data-entry="example.net"]').text()).toContain('example.net')
-    expect(wrapper.get('a[href="/domains/example.org"]').text()).toBe('example.org')
+    expect(wrapper.text()).toContain('example.org')
+    expect(wrapper.find('a[href="/domains/example.org"]').exists()).toBe(false)
+    expect(wrapper.attributes('data-row-href')).toBe('/alias-domains/example.net')
     expect(wrapper.text()).toContain('Alias domain inactive for relay domain')
     expect(wrapper.text()).toContain('Active')
     expect(wrapper.text()).toContain('menu')

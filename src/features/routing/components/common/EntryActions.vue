@@ -15,14 +15,19 @@ const props = withDefaults(
     section: 'admin' | 'mailbox'
     editTo?: RouteLocationRaw | null
     testTo?: RouteLocationRaw | null
+    usageTo?: RouteLocationRaw | null
     removable?: boolean
   }>(),
-  { editTo: null, testTo: null, removable: false },
+  { editTo: null, testTo: null, usageTo: null, removable: false },
 )
 const emit = defineEmits<{ remove: [] }>()
 const { t } = useI18n()
 const count = computed(
-  () => Number(!!props.testTo) + Number(!!props.editTo) + Number(props.removable),
+  () =>
+    Number(!!props.testTo) +
+    Number(!!props.usageTo) +
+    Number(!!props.editTo) +
+    Number(props.removable),
 )
 </script>
 
@@ -33,6 +38,14 @@ const count = computed(
     :label="`${lt(section === 'admin' ? 'admin.action' : 'mailbox.action')}: ${name}`"
     data-entry-actions
   >
+    <RowAction
+      v-if="usageTo"
+      :menu="menu"
+      :to="usageTo"
+      :label="lt('admin.in_use_by')"
+      :aria-label="`${lt('admin.in_use_by')}: ${name}`"
+      data-action="usage"
+    />
     <RowAction
       v-if="testTo"
       :menu="menu"

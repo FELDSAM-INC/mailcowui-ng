@@ -173,7 +173,7 @@ test.describe('BCC maps', () => {
     await expect(page.getByRole('button', { name: 'Select', exact: true })).toHaveCount(0)
     await expect(page.getByRole('button', { name: /^Remove/ })).toHaveCount(0)
     await expectAccessible()
-    await entry(page, 2).getByRole('link', { name: 'alice@example.org' }).click()
+    await entry(page, 2).press('Enter')
     await expect(page.getByText('alice-copy@archive.example')).toBeVisible()
     await expect(page.getByRole('textbox')).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Save changes' })).toHaveCount(0)

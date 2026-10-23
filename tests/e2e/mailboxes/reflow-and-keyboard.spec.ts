@@ -139,10 +139,7 @@ test.describe('mailbox screens: reflow, motion and keyboard', () => {
     await page.keyboard.type('carl')
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/q=carl/)
-    const link = page.locator('[data-entry="carl@a.example"]').getByRole('link', {
-      name: 'carl@a.example',
-      exact: true,
-    })
+    const link = page.locator('[data-row-link][data-entry="carl@a.example"]')
     await expect(link).toBeVisible()
     for (let index = 0; index < 40; index += 1) {
       if (await link.evaluate((element) => element === document.activeElement)) break

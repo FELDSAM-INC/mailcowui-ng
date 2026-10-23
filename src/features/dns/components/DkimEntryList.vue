@@ -21,7 +21,6 @@ withDefaults(
 )
 const emit = defineEmits<{
   sort: [sort: DkimSort, order: SortOrder]
-  filterSelector: [selector: string]
 }>()
 const wide = useMediaQuery('(min-width: 768px)')
 </script>
@@ -34,19 +33,13 @@ const wide = useMediaQuery('(min-width: 768px)')
     :order="order"
     :selectable="selectable"
     @sort="(key, value) => emit('sort', key, value)"
-    @filter-selector="emit('filterSelector', $event)"
   >
     <template #select-all><slot name="select-all" /></template>
     <template #select="{ entry }"><slot name="select" :entry="entry" /></template>
     <template #actions="{ entry }"><slot name="actions" :entry="entry" /></template>
   </DkimEntryTable>
   <ul v-if="!wide" :aria-label="lt('admin.dkim_keys')" class="flex flex-col gap-3">
-    <DkimEntryCard
-      v-for="entry in entries"
-      :key="entry.name"
-      :entry="entry"
-      @filter-selector="emit('filterSelector', $event)"
-    >
+    <DkimEntryCard v-for="entry in entries" :key="entry.name" :entry="entry">
       <template v-if="selectable" #select><slot name="select" :entry="entry" /></template>
       <template #actions><slot name="actions" :entry="entry" /></template>
     </DkimEntryCard>

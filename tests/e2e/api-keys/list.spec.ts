@@ -189,7 +189,7 @@ test('Edge: a 255-character name and a long network list wrap without horizontal
   await openList(page, '?page=2')
   await expect(page.getByRole('main').getByText(LONG_KEY_NAME)).toBeVisible()
   await expectNoHorizontalScroll()
-  await page.getByRole('link', { name: LONG_KEY_NAME }).click()
+  await page.locator('[data-row-link]').filter({ hasText: LONG_KEY_NAME }).press('Enter')
   await expect(page.getByRole('heading', { level: 1, name: LONG_KEY_NAME })).toBeVisible()
   await expect(page.getByRole('main')).toContainText('2001:db8:c::/48')
   await expectNoHorizontalScroll()

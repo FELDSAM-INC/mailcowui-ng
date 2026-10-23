@@ -13,10 +13,8 @@ test('recent connections preserve periods, service and sorting in history; clear
   await expect(page.locator('[data-login]').first()).toContainText('IMAP')
   await expect(list).toContainText('Germany')
   await expect(list).toContainText('Web/EAS/Internal (192.168.1.20)')
-  await expect(list.getByRole('link', { name: 'Phone', exact: true })).toHaveAttribute(
-    'href',
-    /app-passwords\/2$/,
-  )
+  await expect(list).toContainText('Phone')
+  await expect(list.getByRole('link', { name: 'Phone', exact: true })).toHaveCount(0)
   await expect(list).toContainText('CUSTOM')
   await expect(
     page.locator('[data-login]').filter({ hasText: '9.9.9.9' }).locator('[data-country]'),

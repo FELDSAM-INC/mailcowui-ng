@@ -47,9 +47,9 @@ describe('MailboxCard', () => {
       ...withRouter(),
     })
     await flushPromises()
-    const link = wrapper.get('h3 a')
-    expect(link.text()).toBe('anna@a.example')
-    expect(link.attributes('href')).toBe('/ng/mailboxes/anna@a.example')
+    const heading = wrapper.get('h3')
+    expect(heading.text()).toBe('anna@a.example')
+    expect(wrapper.attributes('data-row-href')).toBe('/ng/mailboxes/anna@a.example')
     expect(wrapper.get('[data-display-name]').text()).toBe('Anna Smith')
     expect(wrapper.get('[data-status]').text()).toBe('Active')
     expect(wrapper.text()).toContain('Quota')
@@ -73,7 +73,7 @@ describe('MailboxCard', () => {
     expect(wrapper.find('b').exists()).toBe(false)
     const jana = all.find((mailbox) => mailbox.localPart === 'jana')!
     const idn = mountWithApp(MailboxCard, { props: { mailbox: jana }, ...withRouter() })
-    expect(idn.get('h3 a').text()).toBe('jana@bücher.example')
+    expect(idn.get('h3').text()).toBe('jana@bücher.example')
   })
 })
 

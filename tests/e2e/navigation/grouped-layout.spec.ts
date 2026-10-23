@@ -153,7 +153,7 @@ test('Access gives Domain Administrators its second tab and keeps details select
   if (await tabs.getByRole('button').isVisible()) await tabs.getByRole('button').click()
   await tabs.getByRole('link', { name: 'Domain administrators', exact: true }).click()
   await expect(page.locator('[data-account-row]')).toHaveCount(3)
-  await page.locator('[data-account-row]').first().getByRole('link').first().click()
+  await page.locator('[data-account-row]').first().press('Enter')
   await expect(page.locator('#section-account')).toBeVisible()
   await expect(
     tabs.getByRole('link', {

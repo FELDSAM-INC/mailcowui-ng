@@ -233,13 +233,11 @@ useDataList(
         >
           <template v-for="column in columns" :key="column.key" #[`cell-${column.key}`]="{ entry }">
             <slot :name="`cell-${column.key}`" :entry="entry">
-              <RouterLink
+              <span
                 v-if="column.key === (primary ?? columns[0]?.key) && editTo?.(entry)"
-                :to="editTo(entry)!"
-                class="inline-flex min-h-11 min-w-11 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
+                class="font-medium wrap-anywhere"
+                >{{ column.text?.(entry) }}</span
               >
-                {{ column.text?.(entry) }}
-              </RouterLink>
               <template v-else>{{ column.text?.(entry) }} </template>
             </slot>
           </template>

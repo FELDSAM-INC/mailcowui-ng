@@ -45,6 +45,10 @@ describe('DkimFilters', () => {
     expect(wrapper.emitted('update')?.[1]).toEqual([{ kind: 'aliasDomain' }])
     await wrapper.get('#dkim-filter-complete').setValue('false')
     expect(wrapper.emitted('update')?.[2]).toEqual([{ complete: 'false' }])
+    await wrapper.get('#dkim-filter-selector').setValue('shop')
+    expect(wrapper.emitted('update')?.[3]).toEqual([{ selector: 'shop' }])
+    await wrapper.get('#dkim-filter-selector').setValue('')
+    expect(wrapper.emitted('update')?.[4]).toEqual([{ selector: undefined }])
   })
 
   it('names the active filters and shows selector and domain chips', async () => {

@@ -69,8 +69,7 @@
         "completeOnly": "Complete keys",
         "incompleteOnly": "Incomplete keys",
         "selectorChip": "Selector {selector}",
-        "domainChip": "Domain {domain} with its alias domains",
-        "bySelector": "Show only keys with selector {selector}"
+        "domainChip": "Domain {domain} with its alias domains"
       },
       "list": {
         "count": "{count} entries",

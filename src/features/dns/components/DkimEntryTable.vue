@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -6,7 +8,6 @@ import { useDataColumns } from '@/shared/composables/useDataList'
 // DKIM entries as a table from md up (FR-007): header cells with `aria-sort` and sort buttons for
 // the name, state, selector and key length; the kind; slots for selection and entry actions.
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { DkimKey } from '@/api'
 import { lt, text } from '@/i18n'
@@ -34,7 +35,6 @@ const props = withDefaults(
 )
 const emit = defineEmits<{
   sort: [sort: DkimSort, order: SortOrder]
-  filterSelector: [selector: string]
 }>()
 const { t, locale } = useI18n()
 
@@ -90,19 +90,23 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="entry in entries" :key="entry.name" :data-entry="entry.name" class="align-top">
+        <DataRow
+          v-for="entry in entries"
+          :key="entry.name"
+          :to="dkimKeyLocation(entry.name)"
+          :label="entry.name"
+          :data-entry="entry.name"
+          class="align-top"
+        >
           <td v-if="selectable" class="px-3 py-2"><slot name="select" :entry="entry" /></td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
             :data-column="String(tableView.columns.value[0]!.id)"
             class="px-3 py-2 font-medium text-gray-900 dark:text-white"
           >
-            <RouterLink
-              :to="dkimKeyLocation(entry.name)"
-              class="underline-offset-2 hover:underline focus-visible:underline"
-            >
-              <DomainNameText :name="entry.name" :unicode-name="entry.displayName" />
-            </RouterLink>
+            <span class="font-medium wrap-anywhere"
+              ><DomainNameText :name="entry.name" :unicode-name="entry.displayName"
+            /></span>
           </td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[1]!.id))"
@@ -123,16 +127,9 @@ const tableView = useDataColumns(
             :data-column="String(tableView.columns.value[3]!.id)"
             class="px-3 py-2 font-mono break-all text-gray-900 dark:text-white"
           >
-            <button
-              v-if="entry.key?.selector"
-              type="button"
-              data-filter-selector
-              class="min-h-11 min-w-11 text-start underline underline-offset-2"
-              :aria-label="t('dns.dkim.filters.bySelector', { selector: entry.key.selector })"
-              @click="emit('filterSelector', entry.key.selector)"
-            >
-              {{ entry.key.selector }}
-            </button>
+            <span v-if="entry.key?.selector" data-filter-selector class="wrap-anywhere">{{
+              entry.key.selector
+            }}</span>
             <span v-else>–</span>
           </td>
           <td
@@ -155,7 +152,7 @@ const tableView = useDataColumns(
               </slot>
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

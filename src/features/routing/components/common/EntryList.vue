@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -12,7 +14,7 @@ import DataCard from '@/shared/components/DataCard.vue'
 // only in selection mode, and the entry's actions. The primary column (the first by default)
 // names the entry: the card's heading, and in both layouts a link to its page when it has one.
 import { computed } from 'vue'
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw } from 'vue-router'
 
 import RowControls from '@/shared/components/RowControls.vue'
 import type { SortOrder } from '@/shared/composables/useListState'
@@ -47,9 +49,6 @@ const rest = computed(() =>
   props.columns.filter((column) => column !== first.value && column.key !== 'active'),
 )
 const domId = (entry: T) => `entry-${props.idOf(entry).replace(/[^A-Za-z0-9_-]/g, '_')}`
-
-const LINK =
-  'inline-flex min-h-11 min-w-11 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white'
 
 const dataColumns = computed(() => props.columns.filter((column) => column.key !== 'active'))
 const tableView = useDataColumns(
@@ -87,7 +86,14 @@ function activeOf(entry: T): boolean | undefined {
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="entry in entries" :key="idOf(entry)" :data-entry="idOf(entry)" class="align-top">
+        <DataRow
+          v-for="entry in entries"
+          :key="idOf(entry)"
+          :to="editTo?.(entry)"
+          :label="first.text?.(entry) ?? idOf(entry)"
+          :data-entry="idOf(entry)"
+          class="align-top"
+        >
           <td v-if="selectable" class="px-3 py-3"><slot name="select" :entry="entry" /></td>
           <td
             v-for="column in dataColumns"
@@ -98,13 +104,11 @@ function activeOf(entry: T): boolean | undefined {
           >
             <DataIdentity
               ><slot :name="`cell-${column.key}`" :entry="entry">
-                <RouterLink
+                <span
                   v-if="column === first && editTo?.(entry)"
-                  :to="editTo(entry)!"
-                  :class="LINK"
+                  class="font-medium wrap-anywhere"
+                  >{{ column.text?.(entry) }}</span
                 >
-                  {{ column.text?.(entry) }}
-                </RouterLink>
                 <template v-else>{{ column.text?.(entry) }}</template> </slot
               ><template v-if="column.key === first.key && activeOf(entry) !== undefined" #badges
                 ><ActiveBadge :active="activeOf(entry)!" /></template
@@ -113,7 +117,7 @@ function activeOf(entry: T): boolean | undefined {
           <td v-if="$slots.actions" class="table-controls-cell px-3 py-3">
             <RowControls><slot name="actions" :entry="entry" /></RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>
@@ -121,6 +125,7 @@ function activeOf(entry: T): boolean | undefined {
     <DataCard
       v-for="entry in entries"
       :key="idOf(entry)"
+      :to="editTo?.(entry)"
       :data-entry="idOf(entry)"
       :title-id="`${domId(entry)}-name`"
     >
@@ -129,9 +134,9 @@ function activeOf(entry: T): boolean | undefined {
       /></template>
       <template #title>
         <slot :name="`cell-${first.key}`" :entry="entry">
-          <RouterLink v-if="editTo?.(entry)" :to="editTo(entry)!" :class="LINK">
-            {{ first.text?.(entry) }}
-          </RouterLink>
+          <span v-if="editTo?.(entry)" class="font-medium wrap-anywhere">{{
+            first.text?.(entry)
+          }}</span>
           <template v-else>{{ first.text?.(entry) }}</template>
         </slot>
       </template>

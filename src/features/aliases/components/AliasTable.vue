@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -10,7 +12,6 @@ import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 // Keep the primary alias values visible and reveal comments and secondary flags on demand.
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { Alias } from '@/api'
 import { lt, legacy, resolveText, type TextRef } from '@/i18n'
@@ -108,7 +109,12 @@ const tableView = useDataColumns(
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="alias in aliases" :key="alias.id">
-          <tr :data-entry="alias.id" class="align-top">
+          <DataRow
+            :to="{ name: 'alias-detail', params: { aliasId: alias.id } }"
+            :label="alias.address"
+            :data-entry="alias.id"
+            class="align-top"
+          >
             <td v-if="selectable" class="px-2 py-3"><slot name="select" :alias="alias" /></td>
             <td
               v-show="tableView.visible(String('id'))"
@@ -123,16 +129,12 @@ const tableView = useDataColumns(
               class="px-2 py-3"
             >
               <DataIdentity
-                ><RouterLink
-                  :to="{ name: 'alias-detail', params: { aliasId: alias.id } }"
-                  class="inline-flex min-h-11 max-w-full items-center font-medium text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-                >
-                  <AddressText
+                ><span class="font-medium wrap-anywhere"
+                  ><AddressText
                     class="table-identity"
                     :title="alias.address"
                     :address="alias.address"
-                    :address-unicode="alias.addressUnicode"
-                  /> </RouterLink
+                    :address-unicode="alias.addressUnicode" /></span
                 ><template #badges
                   ><AliasBadges :alias="alias" :can-see-orphaned="canSeeOrphaned" /><ActiveBadge
                     :active="alias.active" /></template
@@ -170,7 +172,7 @@ const tableView = useDataColumns(
                 <slot name="actions" :alias="alias" />
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
           <tr v-if="expanded.has(alias.id)" :id="`alias-details-${alias.id}`">
             <td
               :colspan="

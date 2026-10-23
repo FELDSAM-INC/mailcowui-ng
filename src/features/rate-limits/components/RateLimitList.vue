@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -74,7 +76,13 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="item in items" :key="entryKey(item)" :data-entry="entryKey(item)">
+        <DataRow
+          v-for="item in items"
+          :key="entryKey(item)"
+          :to="hostLocation(item.kind, item.object)"
+          :label="item.object"
+          :data-entry="entryKey(item)"
+        >
           <td
             v-show="tableView.visible('object')"
             :data-column="'object'"
@@ -122,7 +130,7 @@ const tableView = useDataColumns(
               </RowActions>
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>
@@ -130,6 +138,7 @@ const tableView = useDataColumns(
     <DataCard
       v-for="item in items"
       :key="entryKey(item)"
+      :to="hostLocation(item.kind, item.object)"
       :data-entry="entryKey(item)"
       :title="item.object"
     >

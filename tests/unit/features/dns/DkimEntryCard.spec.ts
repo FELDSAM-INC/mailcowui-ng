@@ -38,7 +38,7 @@ describe('DkimEntryCard', () => {
     const heading = wrapper.get('h3')
     expect(heading.text()).toContain('bücher.example')
     expect(heading.text()).toContain('xn--bcher-kva.example')
-    expect(heading.get('a').attributes('href')).toBe('/dns/dkim-keys/xn--bcher-kva.example')
+    expect(wrapper.attributes('data-row-href')).toBe('/dns/dkim-keys/xn--bcher-kva.example')
     expect(wrapper.text()).toContain('Domain')
     expect(wrapper.text()).toContain('Key valid')
     expect(wrapper.text()).toContain('Selector')
@@ -66,13 +66,15 @@ describe('DkimEntryCard', () => {
     expect(unused.text()).toContain('No domain')
   })
 
-  it('emits a selector filter', async () => {
+  it('opens the record when its plain selector is clicked', async () => {
+    const navigation = router()
     const wrapper = mountWithApp(DkimEntryCard, {
       props: { entry: dkimEntry() },
-      global: { plugins: [router()] },
+      global: { plugins: [navigation] },
     })
     await wrapper.get('[data-filter-selector]').trigger('click')
-    expect(wrapper.emitted('filterSelector')?.[0]).toEqual(['dkim'])
+    await flushPromises()
+    expect(navigation.currentRoute.value.path).toBe(`/dns/dkim-keys/${dkimEntry().name}`)
   })
 })
 

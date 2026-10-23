@@ -21,10 +21,9 @@ test.describe('domain aliases: list and page', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Domain aliases' })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Add domain alias' })).toBeVisible()
     const row = entry(page, AD.withAliases)
-    await expect(row.getByRole('link', { name: AD.target })).toHaveAttribute(
-      'href',
-      /\/ng\/domains\/example\.org$/,
-    )
+    await expect(row).toContainText(AD.target)
+    await expect(row.getByRole('link', { name: AD.target })).toHaveCount(0)
+    await expect(row).toHaveAttribute('data-row-href', /\/ng\/alias-domains\//)
     await expect(entry(page, AD.relayTargeted)).toContainText(
       'Alias domain inactive for relay domain',
     )

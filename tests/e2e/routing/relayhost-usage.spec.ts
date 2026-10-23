@@ -13,7 +13,8 @@ test.describe('relayhost usage', () => {
     await mockApi.use('routing-admin-default')
     await page.goto('routing/relayhosts')
     await listReady(page)
-    await page.locator('[data-entry="2"] [data-usage]').click()
+    await page.locator('[data-entry="2"] [data-row-action-trigger]').click()
+    await page.getByRole('menuitem', { name: /^In use by/ }).click()
     await expect(page).toHaveURL(/routing\/relayhosts\/2\/usage$/)
     await expect(page.getByRole('heading', { level: 1, name: 'In use by' })).toBeVisible()
     await listReady(page)
@@ -34,14 +35,13 @@ test.describe('relayhost usage', () => {
     await page.reload()
     await listReady(page)
     expect(await entryIds(page)).toEqual(['mailbox:bob@example.org'])
-    await expect(page.getByRole('link', { name: 'bob@example.org' })).toHaveAttribute(
-      'href',
-      /\/ng\/mailboxes\/bob@example.org$/,
-    )
+    await expect(
+      page.locator('[data-row-link][data-entry="mailbox:bob@example.org"]'),
+    ).toHaveAttribute('data-row-href', /\/ng\/mailboxes\/bob@example.org$/)
     await page.goto('routing/relayhosts/2/usage?kind=domain')
     await listReady(page)
-    await expect(page.getByRole('link', { name: 'example.org' })).toHaveAttribute(
-      'href',
+    await expect(page.locator('[data-row-link][data-entry="domain:example.org"]')).toHaveAttribute(
+      'data-row-href',
       /\/ng\/domains\/example.org$/,
     )
   })

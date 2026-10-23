@@ -12,7 +12,7 @@ import DataCard from '@/shared/components/DataCard.vue'
 // caller may open it. Patterns and owners are API strings, shown through `PlainText`.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw } from 'vue-router'
 
 import type { SpamPolicyEntry, SpamPolicyList } from '@/api'
 import { lt, type LegacyKey } from '@/i18n'
@@ -58,9 +58,6 @@ const allSelected = computed(
     ownIds.value.every((id) => props.isSelected(id) || !props.canSelect(id)),
 )
 const showSelect = computed(() => props.selectable && ownIds.value.length > 0)
-
-const LINK =
-  'inline-flex min-h-11 max-w-full items-center break-all text-accent-text bg-white dark:bg-gray-900 underline underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 '
 
 const tableView = useDataColumns(
   () => [
@@ -143,13 +140,9 @@ const tableView = useDataColumns(
             :data-column="'scope'"
             class="px-2 py-3 text-gray-800 dark:text-gray-200"
           >
-            <RouterLink
-              v-if="!entry.own && ownerLink(entry)"
-              :to="ownerLink(entry)!"
-              :class="LINK"
-              class="-my-3"
+            <span v-if="!entry.own && ownerLink(entry)" class="wrap-anywhere"
               ><PlainText :value="entry.owner.name"
-            /></RouterLink>
+            /></span>
             <span v-else class="break-all"><PlainText :value="entry.owner.name" /></span>
           </td>
           <td
@@ -200,14 +193,9 @@ const tableView = useDataColumns(
           <dd class="text-gray-800 tabular-nums dark:text-gray-200">{{ entry.id }}</dd>
           <dt class="text-gray-600 dark:text-gray-400">{{ t('spamFilter.lists.scope') }}</dt>
           <dd class="min-w-0 text-gray-800 dark:text-gray-200">
-            <RouterLink
-              v-if="!entry.own && ownerLink(entry)"
-              :to="ownerLink(entry)!"
-              :class="LINK"
-              class="-my-3"
-            >
-              <PlainText :value="entry.owner.name" />
-            </RouterLink>
+            <span v-if="!entry.own && ownerLink(entry)" class="wrap-anywhere"
+              ><PlainText :value="entry.owner.name"
+            /></span>
             <span v-else class="break-all"><PlainText :value="entry.owner.name" /></span>
           </dd>
           <dt class="text-gray-600 dark:text-gray-400">{{ lt('user.created_on') }}</dt>

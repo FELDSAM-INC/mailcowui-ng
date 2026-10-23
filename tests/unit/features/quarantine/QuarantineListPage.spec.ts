@@ -96,7 +96,7 @@ describe('QuarantineListPage', () => {
     expect(wrapper.get('h1').text()).toContain('Quarantine')
     expect(wrapper.get('[data-quarantine-active]').text()).toContain('20')
     expect(wrapper.get('[data-quarantine-active]').text()).toContain('15')
-    expect(cards[0]!.get('h3 a').attributes('href')).toBe('/quarantine/30')
+    expect(cards[0]!.attributes('data-row-href')).toBe('/quarantine/30')
     await wrapper.get('button[aria-label="Next"]').trigger('click')
     await settle()
     expect(router.currentRoute.value.query.page).toBe('2')

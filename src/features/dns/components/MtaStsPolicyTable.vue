@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -10,7 +12,6 @@ import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 // MTA-STS policies as a table from md up (FR-055): sortable headers with `aria-sort` for the
 // domain, mode, max age and identifier; the MX servers and the active state.
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { MtaStsPolicy } from '@/api'
 import { lt, text } from '@/i18n'
@@ -81,21 +82,21 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="policy in policies" :key="policy.domain" :data-entry="policy.domain">
+        <DataRow
+          v-for="policy in policies"
+          :key="policy.domain"
+          :to="{ name: 'domain-detail', params: { domain: policy.domain }, hash: '#mta-sts' }"
+          :label="policy.domain"
+          :data-entry="policy.domain"
+        >
           <td
             v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
             :data-column="String(tableView.columns.value[0]!.id)"
             class="px-3 py-2 font-medium text-gray-900 dark:text-white"
           >
             <DataIdentity
-              ><RouterLink
-                :to="{ name: 'domain-detail', params: { domain: policy.domain }, hash: '#mta-sts' }"
-                class="inline-flex min-h-11 items-center underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-              >
-                <DomainNameText
-                  :name="policy.domain"
-                  :unicode-name="policy.displayDomain"
-                /> </RouterLink
+              ><span class="font-medium wrap-anywhere"
+                ><DomainNameText :name="policy.domain" :unicode-name="policy.displayDomain" /></span
               ><template #badges><ActiveBadge :active="policy.active" /></template
             ></DataIdentity>
           </td>
@@ -138,7 +139,7 @@ const tableView = useDataColumns(
               />
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

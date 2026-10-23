@@ -12,7 +12,7 @@ test('US1-AS2 item: inert message values, signed symbols, recipients and both te
   void guardRequests
   await mockApi.use('quarantine-mailbox-user')
   await page.goto('quarantine?q=script')
-  await page.locator('[data-quarantine-item="11"]').getByRole('link').first().click()
+  await page.locator('[data-quarantine-item="11"]').press('Enter')
   await expect(page.locator('[data-item="11"]')).toBeVisible()
   await expect(page.locator('[data-item-subject]')).toContainText('<script>alert(1)</script>')
   await expect(page.locator('[data-part="plain"]')).toContainText('https://phish.example/login')
@@ -85,7 +85,7 @@ test('FR-018 item: back restores the list filters, and foreign or unknown IDs ar
 }) => {
   await mockApi.use('quarantine-mailbox-user')
   await page.goto('quarantine?virus=true')
-  await page.locator('[data-quarantine-item="5"]').getByRole('link').first().click()
+  await page.locator('[data-quarantine-item="5"]').press('Enter')
   await expect(page.locator('[data-item="5"]')).toBeVisible()
   await page.locator('[data-back-to-list]').click()
   await expect(page).toHaveURL(/quarantine\?virus=true$/)

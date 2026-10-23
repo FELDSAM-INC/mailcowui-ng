@@ -4,7 +4,7 @@
 // Remove) and History, and legacy's quick actions in selection mode.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import type { Relayhost } from '@/api'
 import { lt } from '@/i18n'
@@ -94,10 +94,6 @@ const edit = (item: Relayhost) => ({
   name: 'routing-relayhost-edit',
   params: { relayhostId: item.id },
 })
-const usage = (item: Relayhost) => ({
-  name: 'routing-relayhost-usage',
-  params: { relayhostId: item.id },
-})
 </script>
 
 <template>
@@ -117,15 +113,16 @@ const usage = (item: Relayhost) => ({
     :edit-to="edit"
   >
     <template #cell-usage="{ entry }">
-      <RouterLink :to="usage(entry)" class="text-link flex flex-col items-start" data-usage>
-        <span>{{ `${lt('mailbox.domains')}: ${entry.usage.domains}` }}</span>
-        <span>{{ `${lt('mailbox.mailboxes')}: ${entry.usage.mailboxes}` }}</span>
-      </RouterLink>
+      <span data-usage class="flex flex-col wrap-anywhere"
+        ><span>{{ `${lt('mailbox.domains')}: ${entry.usage.domains}` }}</span
+        ><span>{{ `${lt('mailbox.mailboxes')}: ${entry.usage.mailboxes}` }}</span></span
+      >
     </template>
     <template #cell-active="{ entry }"><StatusText :value="entry.active" /></template>
     <template #actions="{ entry }">
       <EntryActions
         :name="relayhostName(entry)"
+        :usage-to="{ name: 'routing-relayhost-usage', params: { relayhostId: entry.id } }"
         section="admin"
         :test-to="
           router.hasRoute('routing-relayhost-test')

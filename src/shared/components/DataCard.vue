@@ -5,10 +5,11 @@ import DataIdentity from './DataIdentity.vue'
 // secondary or lengthy values belong in the optional disclosure at the bottom.
 import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router'
+import { useRecordNavigation } from '@/shared/composables/useRecordNavigation'
 import { ChevronDownIcon } from '@/shared/icons'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     as?: 'li' | 'article' | 'div'
     title?: string
@@ -26,6 +27,7 @@ withDefaults(
     detailsLabel: undefined,
   },
 )
+const navigation = useRecordNavigation(() => props.to)
 const expanded = defineModel<boolean>('expanded', { default: false })
 const id = useId()
 const { t } = useI18n()
@@ -34,6 +36,7 @@ const { t } = useI18n()
 <template>
   <component
     :is="as"
+    v-bind="navigation"
     data-card
     :aria-labelledby="titleId ?? `${id}-title`"
     class="flex min-w-0 flex-col gap-3 rounded-2xl border border-line bg-surface p-4 text-sm text-ink"
@@ -49,14 +52,7 @@ const { t } = useI18n()
             :id="titleId ?? `${id}-title`"
             class="flex min-h-11 min-w-0 items-center text-base font-semibold wrap-anywhere"
           >
-            <RouterLink
-              v-if="to"
-              :to="to"
-              class="inline-flex min-h-11 min-w-0 max-w-full items-center wrap-anywhere underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-            >
-              <slot name="title">{{ title }}</slot>
-            </RouterLink>
-            <slot v-else name="title">{{ title }}</slot>
+            <slot name="title">{{ title }}</slot>
           </h3>
           <template v-if="$slots.badges" #badges><slot name="badges" /></template
         ></DataIdentity>

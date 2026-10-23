@@ -23,8 +23,8 @@ describe('ApiKeyCard', () => {
       lastUsedFrom: '198.51.100.7',
     })
     const text = wrapper.text()
-    expect(wrapper.get('a').text()).toBe('Billing 07')
-    expect(wrapper.get('a').attributes('href')).toBe(`/ng/api-keys/${scenarioKey(7).id}`)
+    expect(wrapper.get('h3').text()).toBe('Billing 07')
+    expect(wrapper.attributes('data-row-href')).toBe(`/ng/api-keys/${scenarioKey(7).id}`)
     expect(text).toContain(scenarioKey(7).prefix)
     expect(text).toContain('admin')
     expect(text).toContain('Administrator')

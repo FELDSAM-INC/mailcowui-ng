@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -11,7 +13,6 @@ import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 // (`draw_aliasdomain_table()`): alias domain, target domain, active and the action, with
 // `aria-sort` on the contract's sort keys. Slots: `select-all`, `select` (US6) and `actions`.
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { AliasDomain } from '@/api'
 
@@ -84,7 +85,14 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="item in aliasDomains" :key="item.name" :data-entry="item.name" class="align-top">
+        <DataRow
+          v-for="item in aliasDomains"
+          :key="item.name"
+          :to="{ name: 'alias-domain-detail', params: { aliasDomain: item.name } }"
+          :label="item.name"
+          :data-entry="item.name"
+          class="align-top"
+        >
           <td v-if="selectable" class="px-2 py-3"><slot name="select" :alias-domain="item" /></td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
@@ -92,11 +100,8 @@ const tableView = useDataColumns(
             class="px-2 py-3"
           >
             <DataIdentity
-              ><RouterLink
-                :to="{ name: 'alias-domain-detail', params: { aliasDomain: item.name } }"
-                class="inline-flex min-h-11 max-w-full items-center font-medium text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-              >
-                <DomainNameText :name="item.name" :unicode-name="item.nameUnicode" /> </RouterLink
+              ><span class="font-medium wrap-anywhere"
+                ><DomainNameText :name="item.name" :unicode-name="item.nameUnicode" /></span
               ><template #badges><ActiveBadge :active="item.active" /></template
             ></DataIdentity>
           </td>
@@ -105,13 +110,13 @@ const tableView = useDataColumns(
             :data-column="String(tableView.columns.value[1]!.id)"
             class="px-2 py-3 text-gray-900 dark:text-white"
           >
-            <TargetDomainText :alias-domain="item" :link-domains="linkDomains" />
+            <TargetDomainText :alias-domain="item" :link-domains="false" />
           </td>
 
           <td class="table-controls-cell px-2 py-3">
             <RowControls><slot name="actions" :alias-domain="item" /></RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

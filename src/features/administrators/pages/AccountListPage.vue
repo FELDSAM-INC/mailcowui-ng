@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -390,9 +392,11 @@ const tableView = useDataColumns(
             </tr>
           </thead>
           <tbody>
-            <tr
+            <DataRow
               v-for="account in entries"
               :key="account.username"
+              :to="detail(account)"
+              :label="account.username"
               :data-account-row="account.username"
               class="border-b border-gray-200 dark:border-gray-800"
             >
@@ -411,10 +415,7 @@ const tableView = useDataColumns(
               </td>
               <td v-show="tableView.visible('username')" :data-column="'username'" class="p-3">
                 <DataIdentity
-                  ><RouterLink
-                    :to="detail(account)"
-                    class="inline-flex min-h-11 items-center wrap-anywhere font-medium underline underline-offset-4"
-                    >{{ account.username }}</RouterLink
+                  ><span class="font-medium wrap-anywhere">{{ account.username }}</span
                   ><span v-if="own(account)" class="ms-2 text-xs">{{ t('accounts.you') }}</span
                   ><template #badges><ActiveBadge :active="account.active" /></template
                 ></DataIdentity>
@@ -427,6 +428,7 @@ const tableView = useDataColumns(
                 class="p-3"
               >
                 <DomainAssignmentList
+                  :linked="false"
                   :assignments="(account as DomainAdmin).domains"
                   :account-active="account.active"
                   :limit="3"
@@ -452,7 +454,7 @@ const tableView = useDataColumns(
                   />
                 </RowControls>
               </td>
-            </tr>
+            </DataRow>
           </tbody>
         </table>
       </div>
@@ -496,6 +498,7 @@ const tableView = useDataColumns(
               <dt class="font-medium">{{ lt('admin.admin_domains') }}</dt>
               <dd>
                 <DomainAssignmentList
+                  :linked="false"
                   :assignments="(account as DomainAdmin).domains"
                   :account-active="account.active"
                   :limit="3"

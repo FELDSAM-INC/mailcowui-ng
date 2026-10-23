@@ -102,7 +102,7 @@ describe('DomainCard', () => {
     })
     await flushPromises()
     expect(wrapper.get('h3').text()).toContain('nearly.example')
-    expect(wrapper.get('h3 a').attributes('href')).toBe('/ng/domains/nearly.example')
+    expect(wrapper.attributes('data-row-href')).toBe('/ng/domains/nearly.example')
     expect(wrapper.text()).toContain('8 of 10')
     expect(plain(wrapper.text())).toContain('7.3 GiB')
     expect(wrapper.text()).toContain('12,345')

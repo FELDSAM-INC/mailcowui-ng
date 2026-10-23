@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -282,9 +284,11 @@ const tableView = useDataColumns(
           </tr>
         </thead>
         <tbody>
-          <tr
+          <DataRow
             v-for="item in rows"
             :key="item.id"
+            :to="location('detail', item.id)"
+            :label="item.name"
             :data-entry="item.id"
             class="border-b border-gray-200 dark:border-gray-800"
           >
@@ -338,7 +342,7 @@ const tableView = useDataColumns(
                 </RowActions>
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
         </tbody>
       </table>
     </div>

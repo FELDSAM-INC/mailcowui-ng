@@ -15,7 +15,7 @@ function gate() {
 async function openAnotherItem(page: Page) {
   await page.locator('[data-back-to-list]').click()
   await expect(page).toHaveURL(/\/quarantine$/)
-  await page.locator('[data-quarantine-item="29"]').getByRole('link').first().click()
+  await page.locator('[data-quarantine-item="29"]').press('Enter')
   await expect(page.locator('[data-item="29"]')).toBeVisible()
 }
 

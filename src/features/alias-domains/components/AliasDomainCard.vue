@@ -36,7 +36,7 @@ const headingId = computed(() => `alias-domain-card-${props.aliasDomain.name}`)
       <div class="flex min-w-0 flex-col">
         <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.target_domain') }}</dt>
         <dd class="min-w-0 text-gray-900 dark:text-white">
-          <TargetDomainText :alias-domain="aliasDomain" :link-domains="linkDomains" />
+          <TargetDomainText :alias-domain="aliasDomain" :link-domains="false" />
         </dd>
       </div>
     </DataCardFields>

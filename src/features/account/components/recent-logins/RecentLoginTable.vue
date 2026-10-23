@@ -3,7 +3,7 @@ import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useI18n } from 'vue-i18n'
-import { RouterLink, type RouteLocationRaw } from 'vue-router'
+import { type RouteLocationRaw } from 'vue-router'
 import type { RecentLogin } from '@/api'
 import { lt } from '@/i18n'
 import DateTime from '@/shared/components/DateTime.vue'
@@ -74,12 +74,9 @@ const tableView = useDataColumns(() => [
             :data-column="'appPassword'"
             class="p-2 wrap-anywhere"
           >
-            <RouterLink
-              v-if="entry.appPassword?.name && appPasswordLink(entry)"
-              :to="appPasswordLink(entry)!"
-              class="inline-flex min-h-11 items-center underline"
-              >{{ entry.appPassword.name }}</RouterLink
-            >
+            <span v-if="entry.appPassword?.name && appPasswordLink(entry)" class="wrap-anywhere">{{
+              entry.appPassword.name
+            }}</span>
             <span v-else-if="entry.appPassword">{{
               entry.appPassword.name ?? t('account.recentLogins.appPasswordFallback')
             }}</span>

@@ -69,8 +69,7 @@
         "completeOnly": "Úplné kľúče",
         "incompleteOnly": "Neúplné kľúče",
         "selectorChip": "Selektor {selector}",
-        "domainChip": "Doména {domain} s jej alias doménami",
-        "bySelector": "Zobraziť len kľúče so selektorom {selector}"
+        "domainChip": "Doména {domain} s jej alias doménami"
       },
       "list": {
         "count": "Položiek: {count}",

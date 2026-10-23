@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -13,7 +15,6 @@ import { useDataColumns } from '@/shared/composables/useDataList'
 // `actions`.
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import { legacy, lt, resolveText, type TextRef } from '@/i18n'
 import type { SortOrder } from '@/shared/composables/useListState'
@@ -121,7 +122,12 @@ const tableView = useDataColumns(
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
         <template v-for="template in templates" :key="template.id">
-          <tr :data-entry="template.id" class="align-top">
+          <DataRow
+            :to="{ name: 'mailbox-template-detail', params: { templateId: template.id } }"
+            :label="template.name"
+            :data-entry="template.id"
+            class="align-top"
+          >
             <td v-if="selectable" class="px-3 py-3"><slot name="select" :template="template" /></td>
             <td
               v-show="tableView.visible(String('id'))"
@@ -136,11 +142,7 @@ const tableView = useDataColumns(
               class="max-w-64 px-3 py-3"
             >
               <DataIdentity
-                ><RouterLink
-                  :to="{ name: 'mailbox-template-detail', params: { templateId: template.id } }"
-                  class="inline-flex min-h-11 min-w-11 items-center font-semibold break-words text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-                >
-                  {{ template.name }} </RouterLink
+                ><span class="font-medium wrap-anywhere">{{ template.name }}</span
                 ><template #badges
                   ><DefaultBadge v-if="template.isDefault" /><MailboxStatusBadge
                     :status="template.status" /></template
@@ -166,7 +168,7 @@ const tableView = useDataColumns(
                 <slot v-if="actions" name="actions" :template="template" />
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
           <tr v-if="expanded.has(template.id)" :id="`template-row-${template.id}-details`">
             <td
               :colspan="columnCount - tableView.columns.value.length + tableView.visibleCount.value"

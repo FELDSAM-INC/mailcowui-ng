@@ -3,8 +3,7 @@ import DataCard from '@/shared/components/DataCard.vue'
 import DataCardFields from '@/shared/components/DataCardFields.vue'
 
 // A DKIM entry as a card below md (FR-006, FR-083): a list item named by its heading (the readable
-// name with the ASCII form, linking to the entry), the kind, the state, the selector (which filters
-// the list) and the key length. Slots: `select` (selection mode) and `actions`.
+// name with the ASCII form), the kind, the state, the selector and the key length. Slots: `select` (selection mode) and `actions`.
 import { useI18n } from 'vue-i18n'
 
 import type { DkimKey } from '@/api'
@@ -18,8 +17,7 @@ import DkimKindLabel from './DkimKindLabel.vue'
 import DkimStateBadge from './DkimStateBadge.vue'
 
 defineProps<{ entry: DkimKey }>()
-const emit = defineEmits<{ filterSelector: [selector: string] }>()
-const { t, locale } = useI18n()
+const { locale } = useI18n()
 </script>
 
 <template>
@@ -37,16 +35,9 @@ const { t, locale } = useI18n()
       <div>
         <dt class="text-gray-600 dark:text-gray-400">{{ lt('admin.dkim_domains_selector') }}</dt>
         <dd class="font-mono break-all text-gray-900 dark:text-white">
-          <button
-            v-if="entry.key.selector"
-            type="button"
-            data-filter-selector
-            class="min-h-11 min-w-11 text-start underline underline-offset-2"
-            :aria-label="t('dns.dkim.filters.bySelector', { selector: entry.key.selector })"
-            @click="emit('filterSelector', entry.key.selector)"
-          >
-            {{ entry.key.selector }}
-          </button>
+          <span v-if="entry.key.selector" data-filter-selector class="wrap-anywhere">{{
+            entry.key.selector
+          }}</span>
           <span v-else>–</span>
         </dd>
       </div>

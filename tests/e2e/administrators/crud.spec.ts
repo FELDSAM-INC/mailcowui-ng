@@ -22,7 +22,7 @@ for (const role of ['admin', 'domainAdmin'] as const) {
     await expect(page.locator('[data-account-sort]')).toHaveValue('active')
     await expectAccessible()
     await expectNoHorizontalScroll()
-    await page.locator('[data-account-row]').first().getByRole('link').first().click()
+    await page.locator('[data-account-row]').first().press('Enter')
     await expect(page.locator('#section-account')).toBeVisible()
     await page.goBack()
     await expect(page).toHaveURL(/sort=active&order=desc/)

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import ListToolbar from '@/shared/components/ListToolbar.vue'
 import FilterPanel from '@/shared/components/FilterPanel.vue'
 import SearchField from '@/shared/components/SearchField.vue'
@@ -175,9 +177,11 @@ const tableView = useDataColumns(
               </tr>
             </thead>
             <tbody>
-              <tr
+              <DataRow
                 v-for="job in query.data.value.data"
                 :key="job.id"
+                :to="{ name: 'system-settings-mass-mail-job', params: { jobId: job.id } }"
+                :label="String(job.id)"
                 class="border-t border-gray-200 dark:border-gray-800"
               >
                 <td
@@ -185,16 +189,7 @@ const tableView = useDataColumns(
                   :data-column="'subject'"
                   class="max-w-xs p-3"
                 >
-                  <RouterLink
-                    :to="{ name: 'system-settings-mass-mail-job', params: { jobId: job.id } }"
-                    :class="
-                      buttonVariants({
-                        variant: 'link',
-                        class: 'h-auto min-h-11 whitespace-normal wrap-anywhere',
-                      })
-                    "
-                    >{{ job.subject }}</RouterLink
-                  >
+                  <span class="font-medium wrap-anywhere">{{ job.subject }}</span>
                 </td>
                 <td v-show="tableView.visible('status')" :data-column="'status'" class="p-3">
                   {{ t(`systemSettings.massMail.statuses.${job.status}`) }}
@@ -216,7 +211,7 @@ const tableView = useDataColumns(
                 >
                   <JobProgress :counts="job.counts" />
                 </td>
-              </tr>
+              </DataRow>
             </tbody>
           </table>
         </div>

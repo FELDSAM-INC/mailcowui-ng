@@ -5,7 +5,7 @@
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import { queryKeys, type Transport } from '@/api'
 import { lt } from '@/i18n'
@@ -107,12 +107,9 @@ const testTo = (item: Transport) =>
   >
     <template #cell-destination="{ entry }">
       <span class="flex flex-col items-start">
-        <RouterLink
-          :to="edit(entry)"
-          class="inline-flex min-h-11 min-w-11 items-center font-semibold wrap-anywhere text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-        >
+        <span class="font-medium wrap-anywhere">
           {{ entry.destination }}
-        </RouterLink>
+        </span>
         <span v-if="entry.mxBased" class="text-sm text-gray-700 dark:text-gray-300" data-mx-based>
           {{ lt('admin.is_mx_based') }}
         </span>

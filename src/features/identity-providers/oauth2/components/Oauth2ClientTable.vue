@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
 import { useDataColumns } from '@/shared/composables/useDataList'
@@ -8,7 +10,6 @@ import { useDataColumns } from '@/shared/composables/useDataList'
 // The first three sort from their headers with `aria-sort`. Slots: `select-all`, `select`,
 // `actions`.
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import { lt, resolveText } from '@/i18n'
 import type { Oauth2Client } from '@/api'
@@ -77,7 +78,14 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
-        <tr v-for="client in clients" :key="client.id" :data-entry="client.id" class="align-top">
+        <DataRow
+          v-for="client in clients"
+          :key="client.id"
+          :to="{ name: 'oauth2-client-detail', params: { oauth2ClientId: client.id } }"
+          :label="client.clientId"
+          :data-entry="client.id"
+          class="align-top"
+        >
           <td v-if="selectable" class="px-3 py-3"><slot name="select" :client="client" /></td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[0]!.id))"
@@ -91,12 +99,7 @@ const tableView = useDataColumns(
             :data-column="String(tableView.columns.value[1]!.id)"
             class="px-3 py-3"
           >
-            <RouterLink
-              :to="{ name: 'oauth2-client-detail', params: { oauth2ClientId: client.id } }"
-              class="inline-flex min-h-11 items-center font-mono break-all text-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500 dark:text-white"
-            >
-              {{ client.clientId }}
-            </RouterLink>
+            <span class="font-medium wrap-anywhere">{{ client.clientId }}</span>
           </td>
           <td
             v-show="tableView.visible(String(tableView.columns.value[2]!.id))"
@@ -108,7 +111,7 @@ const tableView = useDataColumns(
           <td class="table-controls-cell px-3 py-3">
             <RowControls><slot name="actions" :client="client" /></RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

@@ -63,14 +63,16 @@ async function mountList(wide: boolean, props: Record<string, unknown> = {}) {
 }
 
 describe('EntryList', () => {
-  it('renders a table from md up with aria-sort headers, the link on the primary column and actions', async () => {
+  it('renders a table from md up with aria-sort headers, navigation on the whole row and actions', async () => {
     const wrapper = await mountList(true)
     const headers = wrapper.findAll('th')
     expect(headers.map((header) => header.text())).toEqual(['ID', 'Name', 'Value', 'Action'])
     expect(headers[0]!.attributes('aria-sort')).toBe('ascending')
     expect(headers[1]!.attributes('aria-sort')).toBe('none')
     expect(headers[2]!.attributes('aria-sort')).toBeUndefined()
-    expect(wrapper.find('[data-entry="1"] a').text()).toBe('alpha.example')
+    expect(wrapper.get('[data-entry="1"] [data-identity-text]').text()).toContain('1')
+    expect(wrapper.get('[data-entry="1"]').attributes('data-row-href')).toBeTruthy()
+    expect(wrapper.find('[data-entry="1"] a').exists()).toBe(false)
     await headers[1]!.find('button').trigger('click')
     expect(wrapper.emitted('sort')).toEqual([['name', 'asc']])
     await headers[0]!.find('button').trigger('click')

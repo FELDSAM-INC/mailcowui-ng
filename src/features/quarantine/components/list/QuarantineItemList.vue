@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
 
@@ -7,7 +9,6 @@ import DataCard from '@/shared/components/DataCard.vue'
 // Legacy's column order on wide screens; subject headings and a details disclosure on phones.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { QuarantineItem } from '@/api'
 import { lt, text } from '@/i18n'
@@ -90,9 +91,11 @@ const tableView = useDataColumns(
         </tr>
       </thead>
       <tbody>
-        <tr
+        <DataRow
           v-for="item in items"
           :key="item.id"
+          :to="itemRoute(item)"
+          :label="item.subject || String(item.id)"
           :data-quarantine-item="item.id"
           class="border-b border-gray-200 align-top dark:border-gray-800"
         >
@@ -105,12 +108,9 @@ const tableView = useDataColumns(
             class="px-2 py-3 wrap-anywhere text-gray-800 dark:text-gray-200"
             :class="['queueId', 'id', 'score'].includes(field) ? 'whitespace-nowrap' : ''"
           >
-            <RouterLink
-              v-if="field === 'subject'"
-              :to="itemRoute(item)"
-              class="inline-flex min-h-11 min-w-11 items-center text-accent-text bg-white dark:bg-gray-900 underline"
+            <span v-if="field === 'subject'" class="font-medium wrap-anywhere"
               ><PlainText :value="item.subject || '-'"
-            /></RouterLink>
+            /></span>
             <QuarantineItemValue v-else :item="item" :field="field" />
           </td>
           <td class="table-controls-cell px-2 py-3">
@@ -138,7 +138,7 @@ const tableView = useDataColumns(
               </RowActions>
             </RowControls>
           </td>
-        </tr>
+        </DataRow>
       </tbody>
     </table>
   </div>

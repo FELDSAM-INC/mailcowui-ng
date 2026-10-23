@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DataRow from '@/shared/components/DataRow.vue'
+
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 import { useDataColumns } from '@/shared/composables/useDataList'
 import DataTableHeader from '@/shared/components/DataTableHeader.vue'
@@ -62,7 +64,9 @@ const tableView = useDataColumns(() => [
       </thead>
       <tbody>
         <template v-for="item in items" :key="item.id">
-          <tr
+          <DataRow
+            :to="location(item)"
+            :label="item.description"
             :data-filter-id="item.id"
             class="border-b border-gray-200 align-top dark:border-gray-800"
           >
@@ -130,7 +134,7 @@ const tableView = useDataColumns(() => [
                 </RowActions>
               </RowControls>
             </td>
-          </tr>
+          </DataRow>
           <tr v-if="expanded.has(item.id)" :id="`${id}-script-${item.id}`">
             <td :colspan="tableView.visibleCount.value + (selecting ? 2 : 1)" class="p-3">
               <ScriptBlock :script="item.script" />

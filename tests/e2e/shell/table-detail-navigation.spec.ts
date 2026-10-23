@@ -22,14 +22,8 @@ for (const [path, scenario] of [
     await page.goto(`${path}?size=50`)
     const original = new URL(page.url()).pathname + new URL(page.url()).search
     await expect(page.locator('main table tbody tr').first()).toBeVisible()
-    const rowLink = page.locator(`main table tbody a[href^="/ng/${path}/"]`).first()
-    if (await rowLink.count()) {
-      await expect(rowLink).toBeVisible()
-      await rowLink.click()
-    } else {
-      await page.locator('tbody [data-row-action-trigger]').first().click()
-      await page.getByRole('menuitem', { name: /^Edit/ }).click()
-    }
+    const row = page.locator('main tbody [data-row-link]').first()
+    await row.locator('td[data-column]:visible').last().click()
     const back = page.locator('[data-detail-back]')
     await expect(back).toBeVisible()
     await expect(back).toHaveAttribute('type', 'button')

@@ -1,3 +1,4 @@
+import { chooseTheme } from '../fixtures/flows'
 import { test, expect } from '../fixtures/test'
 import { clickRowAction, rowAction } from '../fixtures/row-actions'
 
@@ -192,7 +193,7 @@ test('US2-AS9 server-ended acting refuses the write once and restores the owner'
   await expect(page.locator('[data-acting-banner]')).toBeVisible()
   await mockApi.patch({ invalidateImpersonation: true })
   const mark = await mockApi.mark()
-  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+  await chooseTheme(page, 'Dark')
   await expect(page.locator('[data-acting-banner]')).toHaveCount(0)
   await expect(page).toHaveURL(/\/mailboxes\?q=alice$/)
   await expect(page.locator('main')).toContainText('Your last action was not carried out')
@@ -252,7 +253,7 @@ test('FR-053 stale CSRF never replays a write after an out-of-band identity swit
   })
   expect(start.status()).toBe(201)
   const mark = await mockApi.mark()
-  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+  await chooseTheme(page, 'Dark')
   await expect(page.locator('[data-acting-banner]')).toContainText('alice@example.org')
   await expect(page.locator('main')).toContainText('The account changed in another tab')
   await expect(page.locator('main')).toContainText('Your last action was not carried out')

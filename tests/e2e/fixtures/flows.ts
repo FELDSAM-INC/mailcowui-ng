@@ -87,7 +87,8 @@ export async function chooseAuthLanguage(page: Page, name: string) {
   await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
 }
 
-export async function chooseAuthTheme(page: Page, name: string) {
+/** The same theme menu is used before and after sign-in. */
+export async function chooseTheme(page: Page, name: string) {
   await page.locator('[data-theme-select]').click()
   await page.getByRole('menuitemradio', { name, exact: true }).click()
   await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)

@@ -1,3 +1,4 @@
+import { chooseTheme } from '../../fixtures/flows'
 import { resolve } from 'node:path'
 import { expect, test } from '../../fixtures/test'
 const fixture = (file: string) => resolve('tests/fixtures/logos', file)
@@ -10,7 +11,7 @@ test('T053 resetting the dark variant refreshes its preview and the active dark 
 }) => {
   await mockApi.use('settings-admin-defaults')
   await page.goto('system/customize/logos')
-  await page.getByRole('switch', { name: 'Dark', exact: true }).check()
+  await chooseTheme(page, 'Dark')
   const card = page.locator('[data-logo-card="dark"]')
   await card.getByRole('button', { name: 'Reset to default', exact: true }).click()
   const dialog = page.getByRole('alertdialog')

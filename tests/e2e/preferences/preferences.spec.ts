@@ -4,12 +4,7 @@ import type { Browser, Page } from '@playwright/test'
 
 import type { MockApi } from '../fixtures/mock-api'
 import { expect, test } from '../fixtures/test'
-import {
-  MOCK_PASSWORD,
-  submitPassword,
-  chooseAuthLanguage,
-  chooseAuthTheme,
-} from '../fixtures/flows'
+import { MOCK_PASSWORD, submitPassword, chooseAuthLanguage, chooseTheme } from '../fixtures/flows'
 
 async function openUserMenu(page: Page) {
   await page.getByRole('button', { name: /^(Account menu of|Nabídka účtu|Ponuka účtu) / }).click()
@@ -17,15 +12,11 @@ async function openUserMenu(page: Page) {
 }
 
 async function chooseInMenu(page: Page, name: string) {
-  if (name === 'Dark') {
-    await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+  if (name === 'Dark' || name === 'Light' || name === 'Device setting') {
+    await chooseTheme(page, name)
     return
   }
   await openUserMenu(page)
-  if (name === 'Device setting') {
-    await page.getByRole('menuitemcheckbox', { name, exact: true }).click()
-    return
-  }
   await page.locator('[data-language-submenu-trigger]').click()
   await page.getByRole('menuitemradio', { name }).click()
 }
@@ -209,7 +200,7 @@ test('US6-AS7 FR-060 with one language there is no language choice', async ({ pa
   await expect(menu.getByRole('menuitemradio', { name: 'English' })).toHaveCount(0)
   await expect(menu.getByRole('group', { name: 'Language', exact: true })).toHaveCount(0)
   await page.keyboard.press('Escape')
-  await expect(page.getByRole('switch', { name: 'Dark', exact: true })).toBeVisible()
+  await expect(page.locator('[data-theme-select]')).toBeVisible()
 })
 
 test('US6-AS8 FR-061 a language chosen on the sign-in screen wins and is saved; without a choice the profile applies', async ({
@@ -268,7 +259,7 @@ test('Edge: no translated server language gives English, no choice and no saved 
   const menu = await openUserMenu(page)
   await expect(menu.getByRole('menuitemradio', { name: 'English' })).toHaveCount(0)
   await page.keyboard.press('Escape')
-  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+  await chooseTheme(page, 'Dark')
   await expect
     .poll(async () => (await preferenceRequests(mockApi)).map((r) => r.body))
     .toEqual([{ theme: 'dark' }])
@@ -294,7 +285,7 @@ test('FR-038 Edge: on the pending-actions screen language and theme apply on thi
   await expect(page.getByRole('heading', { level: 1, name: 'Actions required' })).toBeVisible()
   await chooseAuthLanguage(page, 'Čeština (Czech)')
   await expect(page.locator('html')).toHaveAttribute('lang', 'cs-CZ')
-  await chooseAuthTheme(page, 'Tmavý')
+  await chooseTheme(page, 'Tmavý')
   await expect(page.locator('html')).toHaveClass(/dark/)
   await expectAccessible()
   expect(await preferenceRequests(mockApi)).toEqual([])

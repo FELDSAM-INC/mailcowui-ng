@@ -24,7 +24,6 @@ it.each([false, true])(
           },
           DropdownMenuTrigger: { template: '<button><slot /></button>' },
           DropdownMenuLabel: { template: '<div><slot /></div>' },
-          DropdownMenuCheckboxItem: { template: '<button><slot /></button>' },
           DropdownMenuSeparator: true,
         },
       },

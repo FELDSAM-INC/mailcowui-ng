@@ -339,6 +339,9 @@ describe('user menu (FR-042)', () => {
     expect(menu).not.toBeNull()
     expect(menu.textContent).toContain('reseller')
     expect(menu.textContent).toContain('Domain administrator')
+    expect(menu.textContent).not.toContain('Device setting')
+    expect(menu.textContent).not.toContain('Theme')
+    expect(wrapper.find('[data-theme-select]').exists()).toBe(true)
     const items = [
       ...menu.querySelectorAll('[role="menuitem"]:not([data-language-submenu-trigger])'),
     ].map((item) => item.textContent?.trim())

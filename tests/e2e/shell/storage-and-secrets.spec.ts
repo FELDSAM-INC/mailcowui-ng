@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test'
 
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { expect, test } from '../fixtures/test'
-import { MOCK_PASSWORD, submitPassword } from '../fixtures/flows'
+import { MOCK_PASSWORD, submitPassword, chooseTheme } from '../fixtures/flows'
 
 const LOCAL_KEYS = [
   'mailcowui-ng.locale',
@@ -43,7 +43,7 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
     .locator('[data-announcement]')
     .getByRole('button', { name: 'Hide announcement' })
     .click()
-  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+  await chooseTheme(page, 'Dark')
   await page.getByRole('button', { name: /^Account menu of/ }).click()
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click()
@@ -197,7 +197,7 @@ test('Edge: with storage disabled the app still signs in and works', async ({ pa
   await page.goto('sign-in')
   await submitPassword(page, 'admin')
   await expect(page.getByRole('heading', { level: 1, name: 'System & Containers' })).toBeVisible()
-  await page.getByRole('switch', { name: 'Dark', exact: true }).click()
+  await chooseTheme(page, 'Dark')
   await expect(page.locator('html')).toHaveClass(/dark/)
   await page
     .locator('[data-announcement]')

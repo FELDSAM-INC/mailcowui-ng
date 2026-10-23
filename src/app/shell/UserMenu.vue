@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The account dropdown: username/role, flagged language choices, account settings, passkeys
-// and sign-out. The theme switch is a separate header control. Language names stay exactly as
+// and sign-out. The theme menu is a separate header control. Language names stay exactly as
 // the installation supplies them; flags are decorative.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,7 +19,6 @@ import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuCheckboxItem,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -32,9 +31,7 @@ import {
 
 import { usePreferencesStore } from '../preferences/store'
 import LanguageOptions from '../preferences/LanguageOptions.vue'
-import { usePreferenceChoice } from '../preferences/sync'
 import { localeFlag } from '../preferences/locale-flag'
-import { darkMode } from '../preferences/theme'
 
 defineProps<{ identity: Identity; signingOut?: boolean }>()
 defineEmits<{ signOut: [] }>()
@@ -44,7 +41,6 @@ const besideLanguage = useMediaQuery('(min-width: 640px)')
 const currentLanguage = computed(() =>
   prefs.availableLanguages.find((language) => language.code === prefs.locale),
 )
-const { chooseTheme } = usePreferenceChoice()
 </script>
 
 <template>
@@ -100,17 +96,6 @@ const { chooseTheme } = usePreferenceChoice()
         </DropdownMenuSub>
         <DropdownMenuSeparator />
       </template>
-      <DropdownMenuLabel class="text-gray-600 dark:text-gray-400">{{
-        t('preferences.theme')
-      }}</DropdownMenuLabel>
-      <DropdownMenuCheckboxItem
-        :model-value="prefs.theme === 'system'"
-        class="min-h-11"
-        @update:model-value="chooseTheme($event ? 'system' : darkMode ? 'dark' : 'light')"
-      >
-        {{ t('themes.system') }}
-      </DropdownMenuCheckboxItem>
-      <DropdownMenuSeparator />
       <!-- UI 005 (FR-001): My account, legacy's "User Settings". -->
       <DropdownMenuItem to="/account/password" class="min-h-11">
         <UserCircleIcon />

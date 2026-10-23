@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from '../fixtures/test'
 import {
   chooseAuthLanguage,
-  chooseAuthTheme,
+  chooseTheme,
   expectLanding,
   signInWithPassword,
 } from '../fixtures/flows'
@@ -44,7 +44,7 @@ test('sign-in has responsive branding and preference menus that preserve entered
     fullPage: true,
     animations: 'disabled',
   })
-  await chooseAuthTheme(page, 'Dark')
+  await chooseTheme(page, 'Dark')
   await expect(page.locator('html')).toHaveClass(/dark/)
   await expect(page.locator('[data-auth-branding] img')).toHaveAttribute('src', /logos\/dark/)
   await page.screenshot({
@@ -59,7 +59,7 @@ test('sign-in has responsive branding and preference menus that preserve entered
   await expect(page.locator('input[name="username"]')).toHaveValue('alice@example.org')
   await expect(page.locator('input[name="password"]')).toHaveValue('not-submitted')
   await page.emulateMedia({ colorScheme: 'light' })
-  await chooseAuthTheme(page, 'Podle zařízení')
+  await chooseTheme(page, 'Podle zařízení')
   await expect(page.locator('html')).not.toHaveClass(/dark/)
   await page.emulateMedia({ colorScheme: 'dark' })
   await expect(page.locator('html')).toHaveClass(/dark/)
@@ -76,7 +76,7 @@ test('reset request and new-password forms share the auth layout and controls', 
   await page.goto('reset-password/request')
   await expectAuthLayout(page)
   await page.getByLabel('Username').fill('carl@example.org')
-  await chooseAuthTheme(page, 'Dark')
+  await chooseTheme(page, 'Dark')
   await expect(page.getByLabel('Username')).toHaveValue('carl@example.org')
   await page.getByRole('button', { name: 'Request password change' }).click()
   await expect(page.locator('[data-reset-requested]')).toBeVisible()
@@ -84,7 +84,7 @@ test('reset request and new-password forms share the auth layout and controls', 
   await expectAuthLayout(page)
   await expect(page.locator('[data-reset-password]')).toBeVisible()
   await expect(page).toHaveURL(/\/ng\/reset-password$/)
-  await chooseAuthTheme(page, 'Light')
+  await chooseTheme(page, 'Light')
   await page.getByLabel('New Password', { exact: true }).fill('summer2026x')
   await page.getByLabel('Confirm new password').fill('summer2026x')
   await page.screenshot({
@@ -108,7 +108,7 @@ test('two-step authentication keeps its code while switching theme in the shared
   await expectAuthLayout(page)
   const code = page.getByLabel('Six-digit code')
   await code.fill('123456')
-  await chooseAuthTheme(page, 'Dark')
+  await chooseTheme(page, 'Dark')
   await expect(code).toHaveValue('123456')
   await page.screenshot({
     path: test.info().outputPath('two-step-auth.png'),

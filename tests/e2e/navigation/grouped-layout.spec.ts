@@ -1,5 +1,5 @@
 import { expect, test } from '../fixtures/test'
-import { isNarrow, openNavigation } from '../fixtures/flows'
+import { isNarrow, openNavigation, chooseTheme } from '../fixtures/flows'
 
 test('sidebar sections collapse and scroll independently of the page', async ({
   page,
@@ -166,7 +166,7 @@ test('Access gives Domain Administrators its second tab and keeps details select
   await expectNoHorizontalScroll()
 })
 
-test('theme switch stays outside the username dropdown and language choices carry flags', async ({
+test('theme menu stays outside the username dropdown and language choices carry flags', async ({
   page,
   mockApi,
   expectAccessible,
@@ -182,11 +182,11 @@ test('theme switch stays outside the username dropdown and language choices carr
   await expect(page.getByRole('heading', { level: 1, name: 'Domains' })).toBeVisible()
   // The logo must fit the remaining header space when all three controls are present.
   const logo = await page.locator('header img, [data-sidebar-logo] img').boundingBox()
-  const themeBox = await page.getByRole('switch', { name: 'Dark', exact: true }).boundingBox()
+  const themeBox = await page.locator('[data-theme-select]').boundingBox()
   expect(logo && themeBox && logo.x + logo.width <= themeBox.x).toBe(true)
-  const theme = page.getByRole('switch', { name: 'Dark', exact: true })
+  const theme = page.locator('[data-theme-select]')
   await expect(theme).toBeVisible()
-  await theme.click()
+  await chooseTheme(page, 'Dark')
   await expect(page.locator('html')).toHaveClass(/dark/)
   await expect
     .poll(async () =>
@@ -197,6 +197,8 @@ test('theme switch stays outside the username dropdown and language choices carr
     .toEqual([{ theme: 'dark' }])
   await page.getByRole('button', { name: 'Account menu of admin' }).click()
   await expect(page.getByRole('menu').getByRole('menuitemradio', { name: 'Dark' })).toHaveCount(0)
+  await expect(page.getByRole('menu')).not.toContainText('Device setting')
+  await expect(page.getByRole('menu')).not.toContainText('Theme')
   await expect(page.getByRole('menuitem', { name: 'User Settings', exact: true })).toBeVisible()
   await expect(page.getByRole('menuitem', { name: 'Passkeys', exact: true })).toBeVisible()
   const czech = page.getByRole('menuitemradio', { name: 'Čeština (Czech)', exact: true })

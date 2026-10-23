@@ -292,3 +292,53 @@ test('FR-021 a cancelled WebAuthn prompt keeps the step open without an error an
   await step(page).verify.first().click()
   await expectLanding(page, 'mailboxUser')
 })
+
+test('six-digit boxes support typing, correction, paste and one-time-code autofill', async ({
+  page,
+  mockApi,
+  context,
+  browserName,
+}) => {
+  await mockApi.use('anonymous-default')
+  await openStep(page)
+  const code = step(page).code
+  const slots = page.locator('[data-method="totp"] [data-code-digit]')
+  await expect(slots).toHaveCount(6)
+  await expect(code).toBeFocused()
+  await expect(code).toHaveAttribute('autocomplete', 'one-time-code')
+  await code.pressSequentially('123')
+  await expect(slots).toHaveText(['1', '2', '3', '', '', ''])
+  await code.press('Backspace')
+  await code.pressSequentially('3456')
+  await expect(code).toHaveValue('123456')
+  await code.press('Home')
+  await code.press('Delete')
+  await expect(code).toHaveValue('23456')
+  await code.press('1')
+  await expect(code).toHaveValue('123456')
+
+  const textbox = (await code.boundingBox())!
+  const third = (await slots.nth(2).boundingBox())!
+  await code.click({ position: { x: third.x + third.width / 2 - textbox.x, y: third.height / 2 } })
+  await code.press('9')
+  await expect(code).toHaveValue('129456')
+  await code.press('ControlOrMeta+A')
+  if (browserName === 'chromium') {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.evaluate(() => navigator.clipboard.writeText('012 345'))
+    await code.press('ControlOrMeta+V')
+  } else {
+    // Bulk native input exercises the same path where clipboard permissions are unavailable.
+    await page.keyboard.insertText('012 345')
+  }
+  await expect(code).toHaveValue('012345')
+  await expect(slots).toHaveText(['0', '1', '2', '3', '4', '5'])
+  await code.fill('123456')
+  expect(await mockApi.countRequests('verifySecondFactor')).toBe(0)
+  await page.screenshot({
+    path: test.info().outputPath('six-digit-code.png'),
+    animations: 'disabled',
+  })
+  await code.press('Enter')
+  await expectLanding(page, 'mailboxUser')
+})

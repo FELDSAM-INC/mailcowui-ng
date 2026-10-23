@@ -12,9 +12,10 @@ test('the language and the theme follow admin to another browser', async ({
 }) => {
   await signIn(page, admin.username, admin.password)
   await page.getByRole('button', { name: `Account menu of ${admin.username}` }).click()
+  await page.locator('[data-language-submenu-trigger]').click()
   await page.getByRole('menuitemradio', { name: 'Čeština' }).click()
-  await page.getByRole('button', { name: `Nabídka účtu ${admin.username}` }).click()
-  await page.getByRole('menuitemradio', { name: 'Tmavý' }).click()
+  await page.locator('[data-theme-select]').click()
+  await page.getByRole('menuitemradio', { name: 'Tmavý', exact: true }).click()
   await expect(page.locator('html')).toHaveClass(/dark/)
   await page.getByRole('button', { name: `Nabídka účtu ${admin.username}` }).click()
   await page.getByRole('menuitem', { name: 'Odhlásit se' }).click()
@@ -22,15 +23,14 @@ test('the language and the theme follow admin to another browser', async ({
   const context = await browser.newContext({ baseURL, locale: 'en-GB' })
   const other = await context.newPage()
   await signIn(other, admin.username, admin.password)
-  await expect(
-    other.getByRole('heading', { level: 1, name: `Dobrý den, ${admin.username}` }),
-  ).toBeVisible()
+  await expect(other.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
   await expect(other.locator('html')).toHaveClass(/dark/)
 
   // Restore English and the device setting for the other smoke tests.
   await other.getByRole('button', { name: `Nabídka účtu ${admin.username}` }).click()
+  await other.locator('[data-language-submenu-trigger]').click()
   await other.getByRole('menuitemradio', { name: 'English' }).click()
-  await other.getByRole('button', { name: `Account menu of ${admin.username}` }).click()
-  await other.getByRole('menuitemradio', { name: 'Device setting' }).click()
+  await other.locator('[data-theme-select]').click()
+  await other.getByRole('menuitemradio', { name: 'Device setting', exact: true }).click()
   await context.close()
 })

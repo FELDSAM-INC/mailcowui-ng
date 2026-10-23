@@ -14,7 +14,7 @@ import { buttonVariants } from '@/shared/ui/button'
 
 import { defaultLandingPath } from '../navigation/landing'
 import { usePreferencesStore } from '../preferences/store'
-import ThemeToggle from '../preferences/ThemeToggle.vue'
+import ThemeSelect from '../preferences/ThemeSelect.vue'
 import { routeAccess } from '../router/guards'
 import { useIdentityQuery } from '../session/queries'
 import { useSignOut } from '../session/sign-out'
@@ -122,7 +122,7 @@ const statusMessages = useStatusMessage().messages
           @open-menu="wide ? (sidebarCollapsed = !sidebarCollapsed) : (drawerOpen = true)"
         >
           <template #actions>
-            <ThemeToggle />
+            <ThemeSelect />
             <AppsMenu v-if="identity" :username="identity.username" />
             <UserMenu
               v-if="identity"

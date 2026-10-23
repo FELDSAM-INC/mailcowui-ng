@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 
 import type { SecondFactorMethod, SecondFactorVerification, Writable } from '@/api'
 import FormField from '@/shared/components/FormField.vue'
+import VerificationCodeInput from '@/shared/components/VerificationCodeInput.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { buttonVariants } from '@/shared/ui/button'
@@ -30,7 +31,7 @@ const groupName = useId()
 const selected = ref(props.methods[0]?.id ?? 0)
 const code = ref('')
 const error = ref<string | null>(null)
-const input = useTemplateRef<HTMLInputElement>('input')
+const input = useTemplateRef<InstanceType<typeof VerificationCodeInput>>('input')
 
 onMounted(() => {
   if (props.takeFocus) input.value?.focus()
@@ -79,18 +80,11 @@ function submit() {
         :label="t('auth.secondFactor.totp.code')"
         :errors="error ? [error] : []"
       >
-        <!-- eslint-disable-next-line vuejs-accessibility/form-control-has-label -- labelled by FormField (for/id) -->
-        <input
+        <VerificationCodeInput
           ref="input"
           v-bind="field"
           v-model="code"
           :data-autofocus="takeFocus ? '' : undefined"
-          type="text"
-          inputmode="numeric"
-          autocomplete="one-time-code"
-          maxlength="16"
-          placeholder="123456"
-          class="form-control tabular-nums"
         />
       </FormField>
       <button

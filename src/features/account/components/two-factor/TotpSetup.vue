@@ -12,6 +12,7 @@ import { useI18n } from 'vue-i18n'
 import type { OwnSecondFactor } from '@/api'
 import { lt } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
+import VerificationCodeInput from '@/shared/components/VerificationCodeInput.vue'
 import GroupedSecret from '@/shared/components/GroupedSecret.vue'
 import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
@@ -197,15 +198,7 @@ async function restart() {
             :errors="errors.code ? [errors.code] : []"
           >
             <template #default="control">
-              <input
-                v-bind="control"
-                v-model="code"
-                type="text"
-                inputmode="numeric"
-                autocomplete="one-time-code"
-                maxlength="16"
-                class="form-control tabular-nums"
-              />
+              <VerificationCodeInput v-bind="control" v-model="code" />
             </template>
           </FormField>
         </li>

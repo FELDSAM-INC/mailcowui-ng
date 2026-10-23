@@ -57,6 +57,7 @@ function paste(event: ClipboardEvent, field: string) {
       :required="field !== 'signedInUrl'"
       :errors="errorsFor(`links.${index}.${field}`)"
       :description="field === 'signedInUrl' ? t('systemSettings.appLinks.sameAsLink') : undefined"
+      description-after
     >
       <template #default="control"
         ><input

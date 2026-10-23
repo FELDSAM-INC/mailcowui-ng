@@ -133,6 +133,7 @@ const tableView = useDataColumns(
               >
                 {{ job.id }}
               </RouterLink>
+              <div class="mt-1"><ActiveBadge :active="job.active" /></div>
             </td>
             <td
               v-show="tableView.visible(String('owner'))"
@@ -148,7 +149,6 @@ const tableView = useDataColumns(
               class="max-w-64 px-2 py-3 wrap-anywhere"
             >
               {{ jobLabel(job) }}
-              <div class="mt-1"><ActiveBadge :active="job.active" /></div>
             </td>
             <td
               v-show="tableView.visible(String('username'))"

@@ -305,7 +305,11 @@ function toggleSelecting() {
   else selection.enter()
 }
 
-useDataList('aliases-pages-aliases')
+useDataList('aliases-pages-aliases', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -320,11 +324,6 @@ useDataList('aliases-pages-aliases')
           <PlusIcon />
           {{ lt('mailbox.add_alias') }}
         </RouterLink>
-
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
       </template>
     </PageHeader>
 

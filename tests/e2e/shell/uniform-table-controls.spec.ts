@@ -46,6 +46,19 @@ for (const [path, scenario] of lists) {
     const toolbar = page.locator('[data-list-toolbar]')
     await expect(toolbar).toHaveCount(1)
     await expect(toolbar.getByRole('searchbox')).toBeVisible()
+    const refresh = toolbar.getByRole('button', { name: 'Refresh', exact: true })
+    await expect(refresh).toBeEnabled()
+    await expect(refresh.locator('svg')).toHaveCount(1)
+    await expect(page.locator('main [data-refresh]')).toHaveCount(1)
+    const mark = await mockApi.mark()
+    await refresh.click()
+    await expect
+      .poll(
+        async () =>
+          (await mockApi.requests()).slice(mark).filter((request) => request.method === 'GET')
+            .length,
+      )
+      .toBeGreaterThan(0)
     const columns = toolbar.locator('[data-list-columns]')
     await expect(columns).toBeEnabled()
     await expect(page.getByRole('combobox', { name: 'Sort by', exact: true })).toHaveCount(0)

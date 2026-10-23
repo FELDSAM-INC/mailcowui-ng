@@ -26,6 +26,11 @@ export interface DataSorting {
   order: SortOrder
   change: (key: string, order: SortOrder) => void
 }
+export interface DataRefresh {
+  run: () => unknown
+  pending: boolean
+  disabled?: boolean
+}
 type Choices = Record<string, Record<string, boolean>>
 const STORAGE = 'mailcowui-ng.table-columns'
 function readChoices(): Choices {
@@ -58,6 +63,7 @@ function readChoices(): Choices {
 export function createDataList(key: MaybeRefOrGetter<string>) {
   const columns = shallowRef<readonly DataColumn[]>([])
   const sorting = shallowRef<DataSorting>()
+  const refresh = shallowRef<DataRefresh>()
   const choices = ref<Record<string, boolean>>(readChoices()[toValue(key)] ?? {})
   watch(
     () => toValue(key),
@@ -83,7 +89,7 @@ export function createDataList(key: MaybeRefOrGetter<string>) {
     const current = sorting.value
     if (current) current.change(id, current.key === id && current.order === 'asc' ? 'desc' : 'asc')
   }
-  return { columns, sorting, visible, visibleCount, setVisible, sort }
+  return { columns, sorting, refresh, visible, visibleCount, setVisible, sort }
 }
 export type DataListContext = ReturnType<typeof createDataList>
 export const dataListKey: InjectionKey<DataListContext> = Symbol('data-list')
@@ -96,11 +102,16 @@ export const listToolbarTarget: InjectionKey<{
 export function useDataList(
   key: MaybeRefOrGetter<string>,
   sorting?: MaybeRefOrGetter<DataSorting>,
+  refresh?: MaybeRefOrGetter<DataRefresh>,
 ) {
   const list = createDataList(key)
   if (sorting)
     watchEffect(() => {
       list.sorting.value = toValue(sorting)
+    })
+  if (refresh)
+    watchEffect(() => {
+      list.refresh.value = toValue(refresh)
     })
   provide(dataListKey, list)
   return list

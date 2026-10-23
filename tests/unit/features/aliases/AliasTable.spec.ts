@@ -43,6 +43,7 @@ describe('AliasTable', () => {
       'Alias',
       'Goto address',
       'Domain',
+      'Allow to send as this alias',
       'Action',
     ])
     const row = wrapper.get('tbody tr[data-entry]')

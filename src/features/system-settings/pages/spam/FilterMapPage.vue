@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   problemOf,
@@ -188,11 +188,6 @@ useLeaveGuard(
     <p role="status"><PlainText :value="lt('danger.global_map_invalid', id)" /></p>
   </section>
   <section v-else class="min-w-0 space-y-4">
-    <RouterLink
-      :to="{ name: 'system-settings-filter-maps' }"
-      :class="buttonVariants({ variant: 'link' })"
-      >{{ lt('admin.rspamd_global_filters') }}</RouterLink
-    >
     <PageHeader :title="query.data.value?.name ?? lt('admin.regex_maps')"
       ><template #actions><HistoryLink target-type="rspamdRegexMap" :target-id="id" /></template
     ></PageHeader>

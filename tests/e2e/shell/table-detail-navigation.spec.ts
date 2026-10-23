@@ -32,10 +32,13 @@ for (const [path, scenario] of [
     }
     const back = page.locator('[data-detail-back]')
     await expect(back).toBeVisible()
-    await expect(back).toHaveAttribute('href', original)
+    await expect(back).toHaveAttribute('type', 'button')
+    const detail = page.url()
     await back.click()
     await expect(page).toHaveURL((url) => url.pathname + url.search === original)
     await expect(page.locator('[data-list-toolbar]').first()).toBeVisible()
+    await page.goForward()
+    await expect(page).toHaveURL(detail)
   })
 }
 

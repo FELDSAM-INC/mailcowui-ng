@@ -136,12 +136,16 @@ function created(_item: TemporaryAlias) {
   void list.setFilters({ q: undefined, permanent: undefined })
 }
 
-useDataList('account-pages-temporaryaliasespage', () => ({
-  key: list.state.value.sort,
-  order: list.state.value.order ?? 'asc',
-  change: (key, order) =>
-    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
-}))
+useDataList(
+  'account-pages-temporaryaliasespage',
+  () => ({
+    key: list.state.value.sort,
+    order: list.state.value.order ?? 'asc',
+    change: (key, order) =>
+      void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+  }),
+  () => ({ run: () => query.refetch(), pending: query.isFetching.value, disabled: false }),
+)
 </script>
 <template>
   <NotFoundPage v-if="notFound" />

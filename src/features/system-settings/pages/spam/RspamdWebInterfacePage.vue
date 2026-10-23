@@ -3,7 +3,6 @@
 // and confirms the restart; a timeout is not a success. Input never enters a draft or query cache.
 import { computed, nextTick, onScopeDispose, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { RouterLink } from 'vue-router'
 
 import type { SettingsCapabilities } from '@/api'
 import { lt } from '@/i18n'
@@ -16,7 +15,7 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
 import { useSecretRequest } from '@/shared/composables/useSecretRequest'
-import { EyeIcon, EyeOffIcon } from '@/shared/icons'
+import { ExternalLinkIcon, EyeIcon, EyeOffIcon } from '@/shared/icons'
 import { safeHref } from '@/shared/security/safe-url'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -110,11 +109,6 @@ async function submit() {
 
 <template>
   <section class="flex min-w-0 flex-col gap-4" data-rspamd-settings>
-    <RouterLink
-      :to="{ name: 'system-settings' }"
-      :class="buttonVariants({ variant: 'link', class: 'self-start' })"
-      >{{ t('nav.system') }}</RouterLink
-    >
     <PageHeader :title="t('nav.rspamdUi')">
       <template #actions><HistoryLink target-type="rspamdUiPassword" /></template>
     </PageHeader>
@@ -124,8 +118,8 @@ async function submit() {
       target="_blank"
       rel="noopener noreferrer"
       data-rspamd-link
-      :class="buttonVariants({ variant: 'link', class: 'self-start' })"
-      >{{ t('nav.rspamdUi') }}</a
+      :class="buttonVariants({ variant: 'outline', class: 'self-start' })"
+      ><ExternalLinkIcon />{{ t('nav.rspamdUi') }}</a
     >
     <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
       <ErrorSummary :id="form.summaryId" :items="form.summary.value" />

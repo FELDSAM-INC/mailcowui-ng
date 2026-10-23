@@ -48,14 +48,11 @@ test('unreachable is a verification result with a retry action, not an error', a
   await expect(page.getByRole('alert')).toHaveCount(0)
   await expect(page.getByRole('button', { name: verify, exact: true })).toBeEnabled()
 })
-test('disabled license is hidden from the catalogue and direct navigation sends no license request', async ({
+test('disabled license rejects direct navigation without sending a license request', async ({
   page,
   mockApi,
 }) => {
   await mockApi.use('settings-license-disabled')
-  await page.goto('system')
-  await expect(page.locator('[data-settings-overview]')).toBeVisible()
-  await expect(page.getByRole('link', { name: /GUID & License/ })).toHaveCount(0)
   await page.goto('system/license')
   await expect(page.getByRole('heading', { name: 'Page not found', exact: true })).toBeVisible()
   expect(

@@ -184,7 +184,11 @@ function openLog(id: number) {
   void logViewer.open(id)
 }
 
-useDataList('sync-jobs-pages-syncjobs')
+useDataList('sync-jobs-pages-syncjobs', undefined, () => ({
+  run: reload,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -195,11 +199,6 @@ useDataList('sync-jobs-pages-syncjobs')
           <PlusIcon />
           {{ lt('user.create_syncjob') }}
         </RouterLink>
-
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="reload">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
       </template>
     </PageHeader>
 

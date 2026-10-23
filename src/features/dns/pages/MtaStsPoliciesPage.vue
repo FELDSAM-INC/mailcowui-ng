@@ -23,7 +23,7 @@ import PageHeader from '@/shared/components/PageHeader.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import SearchField from '@/shared/components/SearchField.vue'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { SyncIcon } from '@/shared/icons'
+
 import { buttonVariants } from '@/shared/ui/button'
 
 import { mtaStsListOptions } from '../api/mta-sts'
@@ -59,19 +59,16 @@ function refresh() {
   void query.refetch()
 }
 
-useDataList('dns-pages-mtastspolicies')
+useDataList('dns-pages-mtastspolicies', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
   <section class="mx-auto flex w-full max-w-7xl flex-col gap-4" :data-list-state="listState">
-    <PageHeader :title="lt('edit.mta_sts')">
-      <template #actions>
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
-      </template>
-    </PageHeader>
+    <PageHeader :title="lt('edit.mta_sts')"> </PageHeader>
 
     <div class="flex flex-col gap-3">
       <ListToolbar

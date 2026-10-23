@@ -143,12 +143,16 @@ watch([total, () => list.state.value.page], ([count, page]) => {
     void list.setPage(Math.ceil(count / list.state.value.size))
 })
 
-useDataList('sieve-filters', () => ({
-  key: list.state.value.sort,
-  order: list.state.value.order ?? 'asc',
-  change: (key, order) =>
-    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
-}))
+useDataList(
+  'sieve-filters',
+  () => ({
+    key: list.state.value.sort,
+    order: list.state.value.order ?? 'asc',
+    change: (key, order) =>
+      void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+  }),
+  () => ({ run: () => query.refetch(), pending: query.isFetching.value, disabled: false }),
+)
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
@@ -180,15 +184,6 @@ useDataList('sieve-filters', () => ({
       ></FilterFilters
     >
     <div class="flex flex-wrap gap-2">
-      <button
-        type="button"
-        :class="buttonVariants({ variant: 'outline' })"
-        :disabled="query.isFetching.value"
-        @click="query.refetch()"
-      >
-        {{ lt('admin.refresh') }}
-      </button>
-
       <button
         v-if="selection.active.value"
         type="button"

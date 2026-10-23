@@ -1,12 +1,6 @@
 {
   "systemSettings": {
-    "groups": {
-      "integrations": "Integrations",
-      "passwords": "Passwords",
-      "spam-filtering": "Spam filtering",
-      "notifications": "Notifications",
-      "mail-filtering": "Mail filtering"
-    },
+    "groups": {},
     "ipCheck": {
       "description": "Choose whether external services may resolve the server’s public IP addresses."
     },
@@ -307,12 +301,7 @@
       "sampleNavigation": "Selected navigation",
       "sampleSwitch": "Enabled switch"
     },
-    "search": {
-      "label": "Search settings",
-      "help": "Search page names, sections and field labels.",
-      "empty": "No matching settings",
-      "count": "{count} matching page | {count} matching pages"
-    }
+    "search": {}
   },
   "validation": {
     "format": {

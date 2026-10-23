@@ -25,7 +25,6 @@ import { announce } from '@/shared/composables/useAnnouncer'
 import type { SortOrder } from '@/shared/composables/useListState'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { WarningIcon } from '@/shared/icons'
-import { buttonVariants } from '@/shared/ui/button'
 
 import { useLogEntries } from '../api'
 import LogEntryList from '../components/LogEntryList.vue'
@@ -34,7 +33,6 @@ import LogsIntro from '../components/LogsIntro.vue'
 import { useLogListState } from '../list-state'
 import { findLogType } from '../log-types'
 import { useRateLimitReset } from '../useRateLimitReset'
-import { RestartIcon } from '../../icons'
 
 const props = defineProps<{ logType: string }>()
 const { t, locale } = useI18n()
@@ -119,7 +117,11 @@ const loadFailed = computed(() => log.problem.value !== null && log.entries.valu
 const updateFailed = computed(() => log.problem.value !== null && log.entries.value.length > 0)
 const unavailable = computed(() => log.problem.value?.status === 503)
 
-useDataList(() => 'logs-' + props.logType)
+useDataList(
+  () => 'logs-' + props.logType,
+  undefined,
+  () => ({ run: refresh, pending: log.fetching.value, disabled: false }),
+)
 </script>
 
 <template>
@@ -129,19 +131,7 @@ useDataList(() => 'logs-' + props.logType)
     :back-label="lt('debug.logs')"
   />
   <section v-else class="flex flex-col">
-    <PageHeader :title="title">
-      <template #actions>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-disabled="log.fetching.value || undefined"
-          @click="!log.fetching.value && refresh()"
-        >
-          <RestartIcon :class="log.fetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
-      </template>
-    </PageHeader>
+    <PageHeader :title="title"> </PageHeader>
     <LogsIntro :current="type.slug" />
     <LegacyText
       v-if="type.slug === 'rate-limits'"

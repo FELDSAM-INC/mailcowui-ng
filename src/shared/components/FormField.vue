@@ -9,6 +9,7 @@ const props = defineProps<{
   id: string
   label: string
   description?: string
+  descriptionAfter?: boolean
   errors?: readonly string[]
   required?: boolean
 }>()
@@ -42,10 +43,21 @@ const control = computed(() => {
         ({{ t('forms.required') }})
       </span>
     </label>
-    <p v-if="description" :id="descriptionId" class="text-sm text-gray-600 dark:text-gray-400">
+    <p
+      v-if="description && !descriptionAfter"
+      :id="descriptionId"
+      class="text-sm text-gray-600 dark:text-gray-400"
+    >
       {{ description }}
     </p>
     <slot v-bind="control" />
+    <p
+      v-if="description && descriptionAfter"
+      :id="descriptionId"
+      class="text-sm text-gray-600 dark:text-gray-400"
+    >
+      {{ description }}
+    </p>
     <div v-if="invalid" :id="errorId" class="text-sm text-red-700 dark:text-red-300">
       <p v-for="(message, index) in errors" :key="index" class="break-words">
         <span class="sr-only">{{ `${t('a11y.errorPrefix')} ` }}</span

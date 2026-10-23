@@ -282,6 +282,7 @@ const dataList = useDataList(
     order: state.value.order ?? 'asc',
     change: (key, order) => void list.setSort(key as AccountSort, order),
   }),
+  () => ({ run: () => query.refetch(), pending: query.isFetching.value, disabled: false }),
 )
 
 const tableView = useDataColumns(
@@ -335,17 +336,7 @@ const tableView = useDataColumns(
             @search="
               (value) => list.setFilter('q', value || undefined, { typing: true })
             " /></template
-        ><template #actions
-          ><button
-            type="button"
-            :class="buttonVariants({ variant: 'outline' })"
-            :disabled="query.isFetching.value"
-            @click="query.refetch()"
-          >
-            {{ t('bulk.refreshList') }}
-          </button></template
-        ></ListToolbar
-      >
+      ></ListToolbar>
     </div>
 
     <ActiveFilterChips :chips="chips" @remove="removeChip" @clear="clearFilters" />

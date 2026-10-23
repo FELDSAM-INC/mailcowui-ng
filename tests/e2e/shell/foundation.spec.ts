@@ -8,9 +8,9 @@ import { expect, test } from '../fixtures/test'
 
 const isNarrow = (page: Page) => (page.viewportSize()?.width ?? 0) < 1024
 
-async function expectSettingsOverview(page: Page) {
-  await expect(page.getByRole('heading', { level: 1, name: 'System settings' })).toBeVisible()
-  await expect(page.locator('[data-settings-overview]')).toBeVisible()
+async function expectOptions(page: Page) {
+  await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible()
+  await expect(page.locator('[data-list-toolbar]')).toBeVisible()
 }
 
 test.describe('Edge: API not ready', () => {
@@ -28,7 +28,7 @@ test.describe('Edge: API not ready', () => {
     await expectAccessible()
     await page.unroute('**/api/v2/**')
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectSettingsOverview(page)
+    await expectOptions(page)
   })
 
   test('Edge: API not ready – an HTML 502 from nginx shows the full-page message, and its retry recovers', async ({
@@ -49,7 +49,7 @@ test.describe('Edge: API not ready', () => {
     ).toBeVisible()
     await page.unroute('**/api/v2/**')
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectSettingsOverview(page)
+    await expectOptions(page)
   })
 
   test('Edge: API not ready – the documented 500 of the session shows the full-page message, and its retry recovers', async ({
@@ -63,12 +63,12 @@ test.describe('Edge: API not ready', () => {
     ).toBeVisible()
     await mockApi.patch({ failures: { getSession: { status: 500, times: 0 } } })
     await page.getByRole('button', { name: 'Try again' }).click()
-    await expectSettingsOverview(page)
+    await expectOptions(page)
   })
 })
 
 test.describe('the shell', () => {
-  test('FR-042 FR-043 FR-046 an active administrator opening /ng/system sees the shell, grouped navigation and the settings overview', async ({
+  test('FR-042 FR-043 FR-046 an active administrator opening /ng/system sees the shell, grouped navigation and Options', async ({
     page,
     mockApi,
     expectAccessible,
@@ -77,8 +77,8 @@ test.describe('the shell', () => {
   }) => {
     await mockApi.use('admin-active')
     await page.goto('system')
-    await expectSettingsOverview(page)
-    await expect(page).toHaveTitle('System settings – Example Mail')
+    await expectOptions(page)
+    await expect(page).toHaveTitle('ARC/DKIM keys – Example Mail')
     await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeAttached()
     await expect(page.getByText('Maintenance on Sunday 02:00–04:00 UTC.')).toBeVisible()
     await expect(page.getByRole('contentinfo')).toContainText('Operated by Example Hosting.')
@@ -135,7 +135,7 @@ test.describe('the shell', () => {
       accounts: { admin: { preferences: { language: 'en-gb', theme: 'dark', etag: '"p2"' } } },
     })
     await page.goto('system')
-    await expectSettingsOverview(page)
+    await expectOptions(page)
     await expect(page.locator('html')).toHaveClass(/dark/)
     await expectNoHorizontalScroll()
   })

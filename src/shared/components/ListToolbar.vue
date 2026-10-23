@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { dataListKey, listToolbarTarget } from '@/shared/composables/useDataList'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 import { ListIcon } from '@/shared/icons'
+import RefreshButton from './RefreshButton.vue'
 import { buttonVariants } from '@/shared/ui/button'
 import {
   DropdownMenu,
@@ -71,6 +72,12 @@ const wide = useMediaQuery('(min-width: 768px)')
           </template>
         </DropdownMenuContent>
       </DropdownMenu>
+      <RefreshButton
+        v-if="list?.refresh.value"
+        :pending="list.refresh.value.pending"
+        :disabled="list.refresh.value.disabled"
+        @refresh="list.refresh.value?.run()"
+      />
       <slot name="actions" />
     </div>
     <div :id="id" ref="filterContent" class="empty:hidden" data-list-filter-content />

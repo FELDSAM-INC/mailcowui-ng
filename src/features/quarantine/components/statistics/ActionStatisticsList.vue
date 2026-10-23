@@ -35,19 +35,19 @@ const period = computed(() => [
 
 <template>
   <div
-    class="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
+    class="flex min-w-0 flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 dark:border-gray-800 dark:bg-gray-900"
   >
     <div class="table-frame">
       <table data-statistics class="data-table w-full table-fixed border-collapse text-sm">
         <thead>
           <tr class="border-b border-gray-200 text-start dark:border-gray-800">
-            <th scope="col" class="w-2/5 py-2 pe-2 text-start">
+            <th scope="col" class="w-2/5 px-3 py-2 text-start">
               {{ lt('quarantine.action') }}
             </th>
-            <th scope="col" class="py-2 pe-2 text-end">
+            <th scope="col" class="px-3 py-2 text-end">
               {{ t('quarantineUi.statistics.count') }}
             </th>
-            <th scope="col" class="py-2 text-end">
+            <th scope="col" class="px-3 py-2 text-end">
               {{ t('quarantineUi.statistics.share') }}
             </th>
           </tr>
@@ -61,7 +61,7 @@ const period = computed(() => [
           >
             <th
               scope="row"
-              class="py-2 pe-2 text-start font-normal wrap-anywhere text-gray-900 dark:text-white"
+              class="px-3 py-2 text-start font-normal wrap-anywhere text-gray-900 dark:text-white"
             >
               {{ t(row.labelKey) }}
               <span
@@ -76,10 +76,13 @@ const period = computed(() => [
                 />
               </span>
             </th>
-            <td data-count class="py-2 pe-2 text-end text-gray-900 tabular-nums dark:text-white">
+            <td
+              data-count
+              class="px-3 py-2 text-end wrap-anywhere text-gray-900 tabular-nums dark:text-white"
+            >
               {{ fmt.number(row.count) }}
             </td>
-            <td data-share class="py-2 text-end text-gray-900 tabular-nums dark:text-white">
+            <td data-share class="px-3 py-2 text-end text-gray-900 tabular-nums dark:text-white">
               {{ fmt.number(row.share, SHARE_FORMAT) }}
             </td>
           </tr>
@@ -88,19 +91,21 @@ const period = computed(() => [
           <tr data-total>
             <th
               scope="row"
-              class="pt-2 pe-2 text-start font-semibold text-gray-900 dark:text-white"
+              class="px-3 py-2 text-start font-semibold text-gray-900 dark:text-white"
             >
               {{ t('quarantineUi.statistics.total') }}
             </th>
-            <td class="pt-2 pe-2 text-end font-semibold text-gray-900 tabular-nums dark:text-white">
+            <td
+              class="px-3 py-2 text-end font-semibold wrap-anywhere text-gray-900 tabular-nums dark:text-white"
+            >
               {{ fmt.number(statistics.total) }}
             </td>
-            <td class="pt-2" />
+            <td class="px-3 py-2" />
           </tr>
         </tfoot>
       </table>
     </div>
-    <p data-period class="text-sm text-gray-600 dark:text-gray-400">
+    <p data-period class="min-w-0 wrap-anywhere text-sm text-gray-600 dark:text-gray-400">
       <span v-for="line in period" :key="line" class="block">{{ line }}</span>
     </p>
   </div>

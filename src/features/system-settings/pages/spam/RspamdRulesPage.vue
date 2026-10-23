@@ -19,6 +19,7 @@ import { useRuleListState } from '../../rule-list-state'
 import { useRuleRemoval } from '../../composables/useRuleRemoval'
 import RuleCard from '../../components/spam/RuleCard.vue'
 import RuleFilters from '../../components/spam/RuleFilters.vue'
+import RspamdMapNavigation from '../../components/spam/RspamdMapNavigation.vue'
 import RuleTable from '../../components/spam/RuleTable.vue'
 const { t } = useI18n(),
   list = useRuleListState(),
@@ -31,15 +32,20 @@ watch(total, (count) => {
     void list.setPage(Math.ceil(count / list.state.value.size))
 })
 
-useDataList('rspamd-rules', () => ({
-  key: list.state.value.sort,
-  order: list.state.value.order ?? 'asc',
-  change: (key, order) =>
-    void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
-}))
+useDataList(
+  'rspamd-rules',
+  () => ({
+    key: list.state.value.sort,
+    order: list.state.value.order ?? 'asc',
+    change: (key, order) =>
+      void list.setSort(key as NonNullable<typeof list.state.value.sort>, order),
+  }),
+  () => ({ run: () => query.refetch(), pending: query.isFetching.value, disabled: false }),
+)
 </script>
 <template>
   <section class="min-w-0 space-y-5">
+    <RspamdMapNavigation />
     <PageHeader :title="lt('admin.rspamd_settings_map')"
       ><template #actions
         ><RouterLink :to="{ name: 'rspamd-rule-create' }" :class="buttonVariants({})">{{
@@ -47,20 +53,9 @@ useDataList('rspamd-rules', () => ({
         }}</RouterLink
         ><HistoryLink target-type="rspamdSettingsRule" /></template
     ></PageHeader>
-    <RouterLink
-      :to="{ name: 'rspamd-effective-map' }"
-      class="inline-flex min-h-11 items-center text-gray-800 underline dark:text-gray-100"
-      >{{ lt('admin.active_rspamd_settings_map') }}</RouterLink
-    >
+
     <RuleFilters :list="list" />
-    <button
-      type="button"
-      :class="buttonVariants({ variant: 'outline' })"
-      :disabled="query.isFetching.value"
-      @click="query.refetch()"
-    >
-      {{ lt('admin.refresh') }}
-    </button>
+
     <ProblemMessage :problem="deletion.problem.value" />
     <p
       v-if="deletion.removed.value !== null"

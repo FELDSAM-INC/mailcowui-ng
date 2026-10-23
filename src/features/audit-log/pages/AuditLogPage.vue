@@ -81,13 +81,17 @@ watch(
   },
 )
 
-useDataList('audit-log', () => ({
-  key: list.state.value.sort,
-  order: list.state.value.order ?? 'desc',
-  change: (_key, order) => {
-    void list.setSort('occurredAt', order)
-  },
-}))
+useDataList(
+  'audit-log',
+  () => ({
+    key: list.state.value.sort,
+    order: list.state.value.order ?? 'desc',
+    change: (_key, order) => {
+      void list.setSort('occurredAt', order)
+    },
+  }),
+  () => ({ run: () => query.refetch(), pending: query.isFetching.value, disabled: false }),
+)
 </script>
 
 <template>

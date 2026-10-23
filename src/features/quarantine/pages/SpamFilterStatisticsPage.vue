@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import RefreshButton from '@/shared/components/RefreshButton.vue'
+
 // The spam filter's action statistics (UI 006 US8, FR-065, legacy form map screen 9): the classic
 // dashboard's Rspamd chart as a text table (D8), with legacy's `admin.refresh`. Nothing refreshes on
 // its own. An unreachable spam filter (503) says the service is temporarily unavailable, with a
@@ -10,7 +12,7 @@ import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
-import { DangerIcon, SyncIcon } from '@/shared/icons'
+import { DangerIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import QuarantineSectionNav from '../components/QuarantineSectionNav.vue'
@@ -36,15 +38,7 @@ function refresh() {
     <QuarantineSectionNav />
     <PageHeader :title="lt('mailbox.stats')">
       <template #actions>
-        <button
-          type="button"
-          data-refresh
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="refresh"
-        >
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
+        <RefreshButton :pending="query.isFetching.value" @refresh="refresh" />
       </template>
     </PageHeader>
 

@@ -8,15 +8,7 @@ test('FR-001/FR-042 administrator opens settings and saves the IP check with leg
   expectTouchTargets,
 }) => {
   await mockApi.use('settings-admin-defaults')
-  await page.goto('system')
-  await expect(page.getByRole('heading', { level: 1, name: 'System settings' })).toBeVisible()
-  await expectAccessible()
-  await expectNoHorizontalScroll()
-  await expectTouchTargets()
-  await page
-    .locator('[data-settings-overview]')
-    .getByRole('link', { name: /IP Check/ })
-    .click()
+  await page.goto('system/ip-check')
   await expect(page.getByRole('heading', { level: 1, name: 'IP Check' })).toBeVisible()
   await expect(page.locator('[data-ip-check-value]')).toHaveText('No')
   await page.getByRole('button', { name: 'Edit IP Check' }).click()
@@ -43,7 +35,7 @@ for (const scenario of ['settings-domain-admin', 'settings-mailbox-user']) {
     expectAccessible,
   }) => {
     await mockApi.use(scenario)
-    for (const path of ['system', 'system/ip-check']) {
+    for (const path of ['system/rspamd-web-interface', 'system/ip-check']) {
       await page.goto(path)
       await expect(page.getByRole('heading', { name: 'No access' })).toBeVisible()
       await expectAccessible()

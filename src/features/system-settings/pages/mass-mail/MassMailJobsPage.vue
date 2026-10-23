@@ -48,13 +48,17 @@ watch(
   },
 )
 
-const dataList = useDataList('mass-mail-jobs', () => ({
-  key: list.state.value.sort,
-  order: list.state.value.order ?? 'desc',
-  change: (key, order) => {
-    void list.setSort(key as 'createdAt' | 'status', order)
-  },
-}))
+const dataList = useDataList(
+  'mass-mail-jobs',
+  () => ({
+    key: list.state.value.sort,
+    order: list.state.value.order ?? 'desc',
+    change: (key, order) => {
+      void list.setSort(key as 'createdAt' | 'status', order)
+    },
+  }),
+  () => ({ run: () => query.refetch(), pending: query.isFetching.value, disabled: false }),
+)
 const tableView = useDataColumns(
   () => [
     { id: 'subject', label: lt('admin.subject') },

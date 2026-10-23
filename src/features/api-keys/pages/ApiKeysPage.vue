@@ -42,7 +42,11 @@ function clearFilters() {
   void list.setFilters({ owner: undefined, status: undefined, access: undefined })
 }
 
-useDataList('api-keys')
+useDataList('api-keys', undefined, () => ({
+  run: () => query.refetch(),
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>

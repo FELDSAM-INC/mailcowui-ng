@@ -135,7 +135,7 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'system-settings',
-        component: () => import('./pages/SettingsOverviewPage.vue'),
+        redirect: '/dns/dkim-keys',
       },
       {
         path: 'quota-notifications',

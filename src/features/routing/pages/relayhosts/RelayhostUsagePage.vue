@@ -6,7 +6,7 @@ import { useDataList } from '@/shared/composables/useDataList'
 // each linking to its domain or mailbox page.
 import { keepPreviousData, useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 
 import { problemOf, type RelayhostUsageEntry } from '@/api'
 import ListState from '@/shared/components/ListState.vue'
@@ -70,17 +70,15 @@ const listState = computed(() =>
   query.isPending.value ? 'loading' : query.isError.value && !query.data.value ? 'error' : 'ready',
 )
 
-useDataList('relayhost-usage')
+useDataList('relayhost-usage', undefined, () => ({
+  run: () => query.refetch(),
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
   <section class="mx-auto flex w-full max-w-5xl flex-col gap-4" :data-list-state="listState">
-    <RouterLink
-      :to="{ name: 'routing-relayhosts' }"
-      class="inline-flex min-h-11 items-center self-start text-sm font-medium text-accent-text bg-white dark:bg-gray-900 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-500"
-    >
-      <span aria-hidden="true">←&nbsp;</span>{{ lt('admin.relayhosts') }}
-    </RouterLink>
     <PageHeader
       :title="lt('admin.in_use_by')"
       :description="relayhost.data.value ? relayhostName(relayhost.data.value) : undefined"

@@ -231,7 +231,15 @@ const limitMessage = computed(() =>
     : null,
 )
 
-useDataList(() => 'spam-policy-' + props.list)
+useDataList(
+  () => 'spam-policy-' + props.list,
+  undefined,
+  () => ({
+    run: retry,
+    pending: ownQuery.isFetching.value || inheritedQuery.isFetching.value,
+    disabled: false,
+  }),
+)
 </script>
 
 <template>

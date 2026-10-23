@@ -50,6 +50,7 @@ const COLUMNS: Column[] = [
   { key: 'address', label: legacy('mailbox.alias'), sort: 'address', className: 'w-64' },
   { key: 'destinations', label: legacy('mailbox.target_address'), className: 'w-64' },
   { key: 'domain', label: legacy('mailbox.domain'), sort: 'domain', className: 'w-48' },
+  { key: 'senderAllowed', label: legacy('edit.sender_allowed'), className: 'w-40' },
 ]
 const expanded = ref(new Set<number>())
 function toggle(id: number) {
@@ -150,6 +151,13 @@ const tableView = useDataColumns(
               <AliasDomainText class="table-identity" :title="alias.domainUnicode" :alias="alias" />
             </td>
 
+            <td
+              v-show="tableView.visible('senderAllowed')"
+              data-column="senderAllowed"
+              class="px-2 py-3"
+            >
+              <YesNoMark :value="alias.senderAllowed" />
+            </td>
             <td class="table-controls-cell px-2 py-3">
               <RowControls
                 :expanded="expanded.has(alias.id)"

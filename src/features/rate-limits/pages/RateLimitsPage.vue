@@ -80,7 +80,11 @@ const SELECT =
   'h-11 rounded-lg border border-gray-300 bg-white px-3 text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-white'
 const LABEL = 'text-sm font-medium text-gray-800 dark:text-gray-200'
 
-useDataList('rate-limits-pages-ratelimitspage')
+useDataList('rate-limits-pages-ratelimitspage', undefined, () => ({
+  run: () => query.refetch(),
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>

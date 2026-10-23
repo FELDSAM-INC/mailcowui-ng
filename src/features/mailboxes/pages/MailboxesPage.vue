@@ -212,7 +212,11 @@ function refresh() {
   void query.refetch()
 }
 
-useDataList('mailboxes-pages-mailboxes')
+useDataList('mailboxes-pages-mailboxes', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -230,11 +234,6 @@ useDataList('mailboxes-pages-mailboxes')
           <PlusIcon />
           {{ lt('mailbox.add_mailbox') }}
         </RouterLink>
-
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
       </template>
     </PageHeader>
 

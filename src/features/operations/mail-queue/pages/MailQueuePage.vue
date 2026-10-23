@@ -44,7 +44,6 @@ import QueueMessageCard from '../components/QueueMessageCard.vue'
 import QueueMessageTable from '../components/QueueMessageTable.vue'
 import { useQueueActions } from '../composables/useQueueActions'
 import { useMailQueueListState, type MailQueueSort } from '../list-state'
-import { RestartIcon } from '../../icons'
 
 const props = defineProps<{ queueId?: string }>()
 
@@ -202,7 +201,11 @@ function purge() {
   void actions.purge()
 }
 
-useDataList('operations-mail-queue-pages-mailqueuepage')
+useDataList('operations-mail-queue-pages-mailqueuepage', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -223,10 +226,6 @@ useDataList('operations-mail-queue-pages-mailqueuepage')
         >
       </div>
       <div class="flex shrink-0 flex-wrap gap-2">
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <RestartIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
         <HistoryLink target-type="mailQueue" />
       </div>
     </header>

@@ -74,6 +74,23 @@ describe('SyncJobCard', () => {
 })
 
 describe('SyncJobTable', () => {
+  it.each([true, false])('shows active=%s next to the identity in tables and cards', (active) => {
+    const item = { ...job, active }
+    const table = mountWithApp(SyncJobTable, {
+      props: { jobs: [item], role: 'admin', sort: 'id', order: 'desc' },
+      ...withRouter(),
+    })
+    const card = mountWithApp(SyncJobCard, { props: { job: item, role: 'admin' }, ...withRouter() })
+    expect(table.get('tbody [data-column="id"] [data-active-badge]').text()).toBe(
+      active ? 'Active' : 'Inactive',
+    )
+    expect(card.get('[data-card-header] [data-active-badge]').text()).toBe(
+      active ? 'Active' : 'Inactive',
+    )
+    table.unmount()
+    card.unmount()
+  })
+
   it('has the classic headers with aria-sort and emits sorts', async () => {
     const wrapper = mountWithApp(SyncJobTable, {
       props: { jobs: [job], role: 'admin', sort: 'id', order: 'desc' },

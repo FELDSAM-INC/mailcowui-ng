@@ -110,7 +110,11 @@ useLeaveGuard(() => bulk.phase.value === 'running', {
   messageKey: 'domains.bulk.leaveRunning',
 })
 
-useDataList('domains-pages-domainlistpage')
+useDataList('domains-pages-domainlistpage', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -125,11 +129,6 @@ useDataList('domains-pages-domainlistpage')
           <PlusIcon />
           {{ lt('mailbox.add_domain') }}
         </RouterLink>
-
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
       </template>
     </PageHeader>
 

@@ -181,7 +181,11 @@ async function refresh() {
   announceCount()
 }
 
-useDataList('quarantine-pages-quarantinelist')
+useDataList('quarantine-pages-quarantinelist', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: busy.value,
+}))
 </script>
 
 <template>
@@ -194,14 +198,6 @@ useDataList('quarantine-pages-quarantinelist')
           class="self-center tabular-nums text-gray-800 dark:text-gray-200"
           >{{ fmt.number(total) }}</span
         >
-        <button
-          type="button"
-          :disabled="query.isFetching.value || busy"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="refresh"
-        >
-          {{ lt('quarantine.refresh') }}
-        </button>
       </template>
     </PageHeader>
     <ProblemMessage

@@ -75,6 +75,10 @@ const comment = (value: string) => value || '-'
           <YesNoMark :value="alias.groupwareVisible" />
         </dd>
       </div>
+      <div class="flex gap-1.5" data-field="senderAllowed">
+        <dt class="text-gray-600 dark:text-gray-400">{{ lt('edit.sender_allowed') }}</dt>
+        <dd><YesNoMark :value="alias.senderAllowed" /></dd>
+      </div>
       <div class="flex gap-1.5" data-field="internal">
         <dt class="text-gray-600 dark:text-gray-400">{{ lt('mailbox.internal') }}</dt>
         <dd class="text-gray-900 dark:text-white"><YesNoMark :value="alias.internal" /></dd>

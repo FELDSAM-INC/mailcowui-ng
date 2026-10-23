@@ -30,11 +30,7 @@ test('US11-AS1 FR-073/106 Rspamd password is write-only and passes quotes and sp
   await mockApi.use('settings-admin-defaults', {
     settings: { capabilities: { rspamdWebInterfaceUrl: '/custom-rspamd/' } },
   })
-  await page.goto('system')
-  await page
-    .locator('[data-settings-overview]')
-    .getByRole('link', { name: /Rspamd UI/ })
-    .click()
+  await page.goto('system/rspamd-web-interface')
   await expect(
     page.locator('[data-section-navigation] a[href="/ng/system/rspamd-web-interface"]'),
   ).toHaveAttribute('aria-current', 'page')

@@ -35,7 +35,7 @@ import { useBulkSelection } from '@/shared/composables/useBulkSelection'
 import { confirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
-import { PlusIcon, SyncIcon } from '@/shared/icons'
+import { PlusIcon } from '@/shared/icons'
 import { buttonVariants } from '@/shared/ui/button'
 
 import { useDnsCapabilities } from '../api/capabilities'
@@ -281,7 +281,11 @@ const guard = useLeaveGuard(() => run.running.value, {
 void guard
 onBeforeUnmount(() => run.stop())
 
-useDataList('dns-pages-dkimkeys')
+useDataList('dns-pages-dkimkeys', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -305,11 +309,6 @@ useDataList('dns-pages-dkimkeys')
           @click="generateAllMissing"
         >
           {{ lt('admin.dkim_domains_wo_keys') }}
-        </button>
-
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
         </button>
       </template>
     </PageHeader>
@@ -401,12 +400,6 @@ useDataList('dns-pages-dkimkeys')
         </RouterLink>
       </template>
       <template #default>
-        <p data-result-count class="text-sm text-gray-700 dark:text-gray-300">
-          {{ countText }}
-          <span v-if="query.isPlaceholderData.value" class="ms-2 text-gray-600 dark:text-gray-400">
-            {{ t('dns.dkim.list.updating') }}
-          </span>
-        </p>
         <div v-if="selection.active.value && !wideList" class="flex items-center gap-2">
           <SelectCheckbox
             :label="lt('mailbox.toggle_all')"

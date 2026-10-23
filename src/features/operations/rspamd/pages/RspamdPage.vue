@@ -31,7 +31,6 @@ import { useRspamdHistory, useRspamdStatistics } from '../api'
 import RspamdActionsChart from '../components/RspamdActionsChart.vue'
 import RspamdHistoryList from '../components/RspamdHistoryList.vue'
 import { useRspamdListState, type RspamdSort } from '../list-state'
-import { RestartIcon } from '../../icons'
 
 const { t, locale } = useI18n()
 const wide = useMediaQuery('(min-width: 768px)')
@@ -99,24 +98,16 @@ watch(
   },
 )
 
-useDataList('operations-rspamd-pages-rspamdpage')
+useDataList('operations-rspamd-pages-rspamdpage', undefined, () => ({
+  run: refresh,
+  pending: fetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
   <section class="flex flex-col">
-    <PageHeader :title="t('operations.rspamd.title')">
-      <template #actions>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :aria-disabled="fetching || undefined"
-          @click="!fetching && refresh()"
-        >
-          <RestartIcon :class="fetching ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
-      </template>
-    </PageHeader>
+    <PageHeader :title="t('operations.rspamd.title')"> </PageHeader>
     <LogsIntro current="rspamd" />
 
     <section aria-labelledby="rspamd-chart" class="mb-8 flex flex-col gap-3" data-rspamd-statistics>
@@ -168,7 +159,6 @@ useDataList('operations-rspamd-pages-rspamdpage')
               " /></template
         ></ListToolbar>
         <div class="flex flex-wrap items-end gap-3">
-          <template v-if="!wide"> </template>
           <LogQuickActions
             :more="false"
             details

@@ -351,7 +351,8 @@
       "done": {
         "sessionsEnded": "All sessions of this account were signed out."
       }
-    }
+    },
+    "signInHelp": "Use your email address or username and password to sign in."
   },
   "bulk": {
     "actions": "Bulk actions",

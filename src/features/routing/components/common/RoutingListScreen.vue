@@ -103,7 +103,15 @@ useLeaveGuard(() => bulk.value.phase.value === 'running', {
   messageKey: 'routing.bulk.leaveRunning',
 })
 
-useDataList(() => props.screen)
+useDataList(
+  () => props.screen,
+  undefined,
+  () => ({
+    run: () => c.value.refresh(),
+    pending: c.value.query.isFetching.value,
+    disabled: false,
+  }),
+)
 </script>
 
 <template>
@@ -125,16 +133,6 @@ useDataList(() => props.screen)
           <PlusIcon />
           {{ addLabel }}
         </RouterLink>
-
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          data-refresh
-          @click="c.refresh()"
-        >
-          <SyncIcon :class="c.query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
       </template>
     </PageHeader>
 

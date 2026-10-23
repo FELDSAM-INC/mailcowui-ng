@@ -120,7 +120,11 @@ onBeforeRouteLeave(async () => {
   return (await dialog.value?.requestClose()) ?? true
 })
 
-useDataList('identity-providers-oauth2-pages-oauth2clients')
+useDataList('identity-providers-oauth2-pages-oauth2clients', undefined, () => ({
+  run: () => query.refetch(),
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>

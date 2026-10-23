@@ -109,6 +109,9 @@ onScopeDispose(() => window.removeEventListener('pageshow', onPageShow))
         tabindex="-1"
         class="text-2xl font-semibold text-gray-900 focus:outline-none dark:text-white"
       />
+      <p v-if="!forceSso" data-sign-in-help class="text-sm text-gray-600 dark:text-gray-400">
+        {{ t('auth.signInHelp') }}
+      </p>
       <SignInNotice />
       <PasskeySignInButton
         v-if="passkeys"

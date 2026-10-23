@@ -1,12 +1,6 @@
 {
   "systemSettings": {
-    "groups": {
-      "integrations": "Integrácie",
-      "passwords": "Heslá",
-      "spam-filtering": "Spam filtering",
-      "notifications": "Upozornenia",
-      "mail-filtering": "Mail filtering"
-    },
+    "groups": {},
     "ipCheck": {
       "description": "Zvoľte, či môžu externé služby zisťovať verejné IP adresy servera."
     },
@@ -307,12 +301,7 @@
       "sampleNavigation": "Selected navigation",
       "sampleSwitch": "Enabled switch"
     },
-    "search": {
-      "label": "Search settings",
-      "help": "Search page names, sections and field labels.",
-      "empty": "No matching settings",
-      "count": "{count} matching page | {count} matching pages | {count} matching pages"
-    }
+    "search": {}
   },
   "validation": {
     "format": {

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import RefreshButton from '@/shared/components/RefreshButton.vue'
+
 import { computed, onScopeDispose, ref, watch, shallowRef, watchEffect } from 'vue'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useRoute } from 'vue-router'
@@ -172,14 +174,7 @@ async function cancel() {
           {{ t('systemSettings.massMail.updated') }}:
           <RelativeTime :value="query.dataUpdatedAt.value" />
         </p>
-        <button
-          type="button"
-          :class="buttonVariants({ variant: 'outline' })"
-          :disabled="query.isFetching.value"
-          @click="refresh.refresh"
-        >
-          {{ lt('admin.refresh') }}</button
-        ><button
+        <RefreshButton :pending="query.isFetching.value" @refresh="refresh.refresh" /><button
           v-if="refresh.running.value"
           type="button"
           :class="buttonVariants({ variant: 'outline' })"

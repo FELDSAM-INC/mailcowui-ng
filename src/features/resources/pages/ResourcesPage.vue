@@ -228,7 +228,11 @@ function toggleSelecting() {
   else selection.enter()
 }
 
-useDataList('resources-pages-resources')
+useDataList('resources-pages-resources', undefined, () => ({
+  run: refresh,
+  pending: query.isFetching.value,
+  disabled: false,
+}))
 </script>
 
 <template>
@@ -243,11 +247,6 @@ useDataList('resources-pages-resources')
           <PlusIcon />
           {{ lt('mailbox.add_resource') }}
         </RouterLink>
-
-        <button type="button" :class="buttonVariants({ variant: 'outline' })" @click="refresh">
-          <SyncIcon :class="query.isFetching.value ? 'motion-safe:animate-spin' : ''" />
-          {{ lt('admin.refresh') }}
-        </button>
       </template>
     </PageHeader>
 

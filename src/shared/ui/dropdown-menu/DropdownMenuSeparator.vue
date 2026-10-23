@@ -18,7 +18,7 @@ const forwarded = useForwardProps(delegated)
   <DropdownMenuSeparator
     data-slot="dropdown-menu-separator"
     v-bind="forwarded"
-    :class="cn(`-mx-3 my-1.5 h-px bg-gray-100 dark:bg-gray-700`, props.class)"
+    :class="cn(`-mx-3 my-1.5 h-px shrink-0 bg-line`, props.class)"
   >
   </DropdownMenuSeparator>
 </template>

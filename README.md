@@ -175,6 +175,9 @@ validate requests and responses against the pinned contract; keep scenarios alig
 
 ## Deployment to maildev
 
+**First installation:** [Install the API and new UI, one command at a time](https://github.com/FELDSAM-INC/mailcow-rest-v2/blob/main/docs/installation.md).
+The guide covers both projects on an existing mailcow server.
+
 First add the [`ng-mailcow` service](deploy/docker-compose.override.yml) to the host's mailcow
 Compose override. The API repository's `deploy/nginx/site.restv2.custom` must already route `/ng/`
 to this static service and `/api/v2` to the API. See

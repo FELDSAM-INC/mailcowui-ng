@@ -34,7 +34,7 @@ test('System and Containers keeps Queue Manager and IP Check reachable through c
   expect(await mockApi.countRequests('getPublicAddresses')).toBe(0)
 })
 
-test('account tabs use the shared navigation above the full-width page on every viewport', async ({
+test('account sidebar navigation keeps pages at the shared content width', async ({
   page,
   mockApi,
   expectAccessible,
@@ -56,8 +56,7 @@ test('account tabs use the shared navigation above the full-width page on every 
   await navigation.getByRole('link', { name: 'App passwords', exact: true }).click()
   await expect(page).toHaveURL(/\/account\/app-passwords$/)
   await expect(page.locator('[data-app-password-list]')).toBeVisible()
-  await expect(navigation.locator('a[aria-current="page"]')).toHaveText('App passwords')
-  await expect(navigation.getByRole('button')).toHaveCount(0)
+  await expect(page.locator('[data-section-nav]')).toHaveCount(0)
   await expectContentWidth(page, '[data-account-content]')
 })
 

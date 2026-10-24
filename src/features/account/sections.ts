@@ -9,6 +9,7 @@ import type { Identity, PermissionFlags, SelfServiceCapabilities } from '@/api'
 import { legacy, type LegacyKey, type TextRef } from '@/i18n'
 
 export type AccountSectionId =
+  | 'overview'
   | 'mailApps'
   | 'activeScript'
   | 'password'
@@ -51,6 +52,12 @@ const flag = (identity: Identity, name: keyof PermissionFlags) =>
 /** The ordered registry. */
 export const ACCOUNT_SECTIONS: readonly AccountSection[] = [
   {
+    id: 'overview',
+    title: legacy('user.overview'),
+    route: 'account-overview',
+    mailboxRoute: null,
+  },
+  {
     id: 'mailApps',
     title: 'account.sections.mailApps',
     route: 'account-mail-apps',
@@ -76,7 +83,7 @@ export const ACCOUNT_SECTIONS: readonly AccountSection[] = [
     mailboxRoute: null,
   },
   { id: 'twoFactor', title: legacy('tfa.tfa'), route: 'account-two-factor', mailboxRoute: null },
-  { id: 'passkeys', title: 'passkeys.title', route: 'passkeys', mailboxRoute: null },
+  { id: 'passkeys', title: 'nav.passkeys', route: 'passkeys', mailboxRoute: null },
   {
     id: 'recentLogins',
     title: legacy('user.recent_successful_connections'),
@@ -156,6 +163,7 @@ export function ownVisibility(
     return 'hidden'
   }
   switch (id) {
+    case 'overview':
     case 'passkeys':
     case 'recentLogins':
     case 'mailApps':

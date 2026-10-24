@@ -184,7 +184,7 @@ const drafts: {
     parent: 'account/password',
     fill: (page) =>
       (async () => {
-        await page.getByText('Generate random alias', { exact: true }).click()
+        await page.locator('[data-add-alias]').click()
         await page
           .locator('[data-generate-alias]')
           .getByLabel('Description', { exact: true })

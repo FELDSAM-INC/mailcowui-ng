@@ -32,6 +32,7 @@ import {
 import { usePreferencesStore } from '../preferences/store'
 import LanguageOptions from '../preferences/LanguageOptions.vue'
 import { localeFlag } from '../preferences/locale-flag'
+import { accountLandingPath } from '../navigation/landing'
 
 defineProps<{ identity: Identity; signingOut?: boolean }>()
 defineEmits<{ signOut: [] }>()
@@ -97,7 +98,7 @@ const currentLanguage = computed(() =>
         <DropdownMenuSeparator />
       </template>
       <!-- UI 005 (FR-001): My account, legacy's "User Settings". -->
-      <DropdownMenuItem to="/account/password" class="min-h-11">
+      <DropdownMenuItem :to="accountLandingPath(identity)" class="min-h-11">
         <UserCircleIcon />
         {{ lt('header.user_settings') }}
       </DropdownMenuItem>

@@ -23,13 +23,16 @@ test('empty explanation, legacy generation defaults, raw copy, permanence and co
   await expect(page.getByRole('heading', { name: 'Spam email aliases', exact: true })).toBeVisible()
   await expect(page.getByRole('main')).toContainText('A spam alias is a temporary email address')
   await expect(page.getByRole('main')).toContainText('No data available in table')
-  await page.getByText('Generate random alias', { exact: true }).click()
+  await page.locator('[data-add-alias]').click()
   await expect(page.getByLabel('Period of validity', { exact: true })).toHaveValue('8760')
   await page.getByLabel('Domain', { exact: true }).selectOption('example.com')
   await page.getByLabel('Description', { exact: true }).fill('Shop')
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await page
+    .locator('[data-generate-alias]')
+    .getByRole('button', { name: 'Add', exact: true })
+    .click()
   const result = page.locator('[data-new-alias]')
   await expect(result).toBeVisible()
   const copy = result.getByRole('button', { name: /^Copy: / })
@@ -61,13 +64,16 @@ test('one domain hides its choice and validity follows the pinned capability ran
 }) => {
   await mockApi.use('temporary-aliases-single-domain')
   await page.goto('account/temporary-aliases')
-  await page.getByText('Generate random alias', { exact: true }).click()
+  await page.locator('[data-add-alias]').click()
   await expect(page.getByLabel('Period of validity', { exact: true })).toHaveValue('8760')
   await expect(page.getByLabel('Domain', { exact: true })).toHaveCount(0)
   await expect(page.getByLabel('Period of validity', { exact: true }).locator('option')).toHaveText(
     ['1 hour', '1 day', '1 week', '1 month', '1 year', '10 years', 'Never Expire'],
   )
-  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await page
+    .locator('[data-generate-alias]')
+    .getByRole('button', { name: 'Add', exact: true })
+    .click()
   await expect(page.locator('[data-new-alias]')).toContainText('@example.org')
 })
 
@@ -211,9 +217,12 @@ test('the spamAlias flag gates own access and generation failures retain the dra
   await mockApi.use('temporary-aliases-empty')
   await mockApi.patch({ selfService: { outages: { addressGeneration: true } } })
   await page.goto('account/temporary-aliases')
-  await page.getByText('Generate random alias', { exact: true }).click()
+  await page.locator('[data-add-alias]').click()
   await page.getByLabel('Description', { exact: true }).fill('Retained')
-  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await page
+    .locator('[data-generate-alias]')
+    .getByRole('button', { name: 'Add', exact: true })
+    .click()
   await expect(page.getByLabel('Description', { exact: true })).toHaveValue('Retained')
   await expect(page.locator('[data-generate-alias] [role="alert"]')).toBeVisible()
   await mockApi.use('account-mailbox-no-flags')

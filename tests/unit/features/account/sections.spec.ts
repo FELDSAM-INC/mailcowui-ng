@@ -64,6 +64,7 @@ const ids = ACCOUNT_SECTIONS.map((section) => section.id)
 describe('the registry', () => {
   it('lists the sections in the order of the classic user page', () => {
     expect(ids).toEqual([
+      'overview',
       'mailApps',
       'activeScript',
       'password',
@@ -110,6 +111,7 @@ describe('ownVisibility: mailbox users (FR-002)', () => {
     const who = identity('mailboxUser', all(false))
     const shown = ids.filter((id) => ownVisibility(id, who, caps()) === 'visible')
     expect(shown).toEqual([
+      'overview',
       'mailApps',
       'activeScript',
       'password',

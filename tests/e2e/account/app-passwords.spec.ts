@@ -1,3 +1,4 @@
+import { openAccountSections } from '../fixtures/flows'
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
@@ -188,8 +189,10 @@ test('without the user flag the hub and direct link do not load app passwords', 
 }) => {
   await mockApi.use('account-mailbox-no-app-passwords-flag')
   await page.goto('account')
-  await expect(page.locator('[data-section-nav]')).toBeVisible()
-  await expect(page.locator('[data-section-nav] a[href$="/account/app-passwords"]')).toHaveCount(0)
+  await expect(await openAccountSections(page)).toBeVisible()
+  await expect(
+    (await openAccountSections(page)).locator('a[href$="/account/app-passwords"]'),
+  ).toHaveCount(0)
   await page.goto('account/app-passwords')
   await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()
   expect(
@@ -279,15 +282,9 @@ test('SC-003 default creation and copy use four actions plus the mobile tab disc
   await mockApi.use('account-app-passwords-empty')
   await clipboard(page)
   await page.goto('account')
-  let actions = 0
-  const navigation = page.locator('[data-section-nav]')
-  await expect(navigation).toBeVisible()
-  const toggle = navigation.getByRole('button')
-  const disclosure = await toggle.isVisible()
-  if (disclosure) {
-    await toggle.click()
-    actions++
-  }
+  const disclosure = (page.viewportSize()?.width ?? 0) < 1024
+  let actions = disclosure ? 1 : 0
+  const navigation = await openAccountSections(page)
   await navigation.locator('a[href$="/account/app-passwords"]').click()
   actions++
   await page.getByRole('link', { name: 'Create app password' }).click()

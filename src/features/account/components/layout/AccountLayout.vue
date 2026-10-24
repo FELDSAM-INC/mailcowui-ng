@@ -46,7 +46,11 @@ const state = computed(() => {
 
 <template>
   <div class="flex w-full min-w-0 flex-col gap-6">
-    <SectionNav :sections="offered" :label="lt('header.user_settings')" />
+    <SectionNav
+      v-if="identity && identity.role !== 'mailboxUser'"
+      :sections="offered"
+      :label="lt('header.user_settings')"
+    />
     <div data-account-content class="w-full min-w-0">
       <section v-if="actingRestricted" class="flex flex-col gap-4">
         <PageHeader

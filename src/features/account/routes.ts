@@ -31,6 +31,16 @@ export const accountRoutes: RouteRecordRaw[] = [
     children: [
       ...passkeysRoutes,
       {
+        path: 'overview',
+        name: 'account-overview',
+        component: accountPage(() => import('./pages/OverviewPage.vue')),
+        meta: {
+          accountSection: 'overview',
+          titleKey: legacy('user.overview'),
+          roles: ['mailboxUser'],
+        },
+      },
+      {
         path: 'filters',
         name: 'account-filters',
         component: accountPage(() => import('./pages/OwnFiltersPage.vue')),
@@ -76,7 +86,8 @@ export const accountRoutes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'account',
-        redirect: { name: 'account-password' },
+        // The session guard resolves the role's account entry before mounting this page.
+        component: accountPage(() => import('./pages/OverviewPage.vue')),
       },
       {
         path: 'app-passwords',

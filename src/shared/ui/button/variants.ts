@@ -16,7 +16,7 @@ const variants: Record<ButtonVariant, string> = {
     'border-none bg-transparent text-gray-700 hover:bg-gray-50 hover:text-gray-800 focus-visible:ring-3 focus-visible:ring-gray-300/50 disabled:border-gray-200 disabled:bg-white disabled:text-gray-300 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white dark:disabled:border-gray-800 dark:disabled:bg-gray-900 dark:disabled:text-gray-600',
   destructive:
     'bg-danger text-danger-foreground shadow-theme-xs hover:bg-danger-hover focus-visible:ring-3 focus-visible:ring-red-500/20 disabled:bg-red-200 disabled:text-white dark:disabled:bg-red-950 dark:disabled:text-red-400',
-  link: 'h-auto! p-0! font-normal bg-white text-accent-text underline-offset-4 hover:underline dark:bg-gray-900',
+  link: 'h-auto! p-0! font-normal bg-transparent text-accent-text underline-offset-4 hover:underline',
 }
 
 // Deviation: every size is at least 44 × 44 px (constitution II, research R4 deviation 6).

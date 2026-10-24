@@ -6,6 +6,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import type { Identity } from '@/api'
 import { resolveText } from '@/i18n'
+import { useAccountSidebar } from '@/features/account'
 import { ChevronDownIcon } from '@/shared/icons'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
 import { sidebarSections } from '../navigation/sections'
@@ -20,7 +21,8 @@ const { t } = useI18n()
 const route = useRoute()
 const groupId = useId()
 const open = reactive<Record<string, boolean>>({})
-const groups = computed(() => sidebarSections(props.identity, route.path))
+const account = useAccountSidebar(() => props.identity)
+const groups = computed(() => [...account.value, ...sidebarSections(props.identity, route.path)])
 watch(
   () => route.path,
   () => {

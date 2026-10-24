@@ -1,3 +1,4 @@
+import { openAccountSections } from '../fixtures/flows'
 // T061: My account › Password recovery email (US3-AS1, US3-AS2, FR-016, FR-032, FR-033; legacy
 // `#pwRecoveryEmailModal`, decision D15).
 import { MOCK_PASSWORD } from '../../mocks/scenarios/accounts'
@@ -74,7 +75,9 @@ test('US3-AS2 without the pwReset flag the section is absent; the address an adm
   await mockApi.use('account-mailbox-no-pw-reset')
   await page.goto('account')
   await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
-  await expect(page.locator('[data-section-nav] a[href$="/account/recovery-email"]')).toHaveCount(0)
+  await expect(
+    (await openAccountSections(page)).locator('a[href$="/account/recovery-email"]'),
+  ).toHaveCount(0)
   await page.goto('account/recovery-email')
   await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
 })

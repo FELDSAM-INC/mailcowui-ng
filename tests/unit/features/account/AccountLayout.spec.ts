@@ -116,24 +116,16 @@ describe('AccountLayout', () => {
     await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
   })
 
-  it.each([false, true])('places section navigation above the content (wide=%s)', async (wide) => {
-    installMatchMedia({ '(min-width: 1024px)': wide })
-    useScenario('account-mailbox')
-    const { wrapper, router } = await mountAt('/account/password')
-    await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
-    const navigation = wrapper.get('[data-section-nav]')
-    expect(navigation.attributes('data-section-navigation')).toBeDefined()
-    expect(navigation.get('[aria-current="page"]').text()).toBe('Change password')
-    expect(wrapper.find('aside').exists()).toBe(false)
-    expect(navigation.element.parentElement).toBe(
-      wrapper.get('[data-account-content]').element.parentElement,
-    )
-    expect(navigation.find('button').exists()).toBe(false)
-    await navigation.get('a[href="/ng/account/app-passwords"]').trigger('click')
-    await vi.waitFor(() => expect(router.currentRoute.value.name).toBe('account-app-passwords'))
-    expect(navigation.get('[aria-current="page"]').text()).toBe('App passwords')
-    expect(navigation.find('button').exists()).toBe(false)
-  })
+  it.each([false, true])(
+    'mailbox pages use sidebar navigation without duplicate tabs (wide=%s)',
+    async (wide) => {
+      installMatchMedia({ '(min-width: 1024px)': wide })
+      useScenario('account-mailbox')
+      const { wrapper } = await mountAt('/account/password')
+      await vi.waitFor(() => expect(wrapper.find('[data-section-page]').exists()).toBe(true))
+      expect(wrapper.find('[data-section-nav]').exists()).toBe(false)
+    },
+  )
 
   it('offers only permitted account sections in the shared navigation', async () => {
     useScenario('account-admin')

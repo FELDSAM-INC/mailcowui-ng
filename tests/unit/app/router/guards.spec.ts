@@ -117,7 +117,7 @@ describe('active', () => {
   it.each([
     ['admin', '/operations/dashboard'],
     ['reseller', '/domains'],
-    ['alice@example.org', '/account/password'],
+    ['alice@example.org', '/account/overview'],
   ])('resolves the landing page before rendering for %s', async (username, destination) => {
     useScenario('anonymous-default', { signedInAs: username })
     const { router } = setup()

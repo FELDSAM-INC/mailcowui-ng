@@ -4,7 +4,7 @@ import FilterPanel from '@/shared/components/FilterPanel.vue'
 import { useDataList } from '@/shared/composables/useDataList'
 
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, onScopeDispose, ref, watch } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { isApiProblem, problemOf, type TemporaryAlias } from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
@@ -22,6 +22,7 @@ import { confirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { usePerItemRunner } from '@/shared/composables/usePerItemRunner'
 import { buttonVariants } from '@/shared/ui/button'
+import { PlusIcon } from '@/shared/icons'
 import {
   deleteTemporaryAlias,
   updateTemporaryAlias,
@@ -49,6 +50,14 @@ const selected = computed(() => rows.value.filter((item) => selection.isSelected
 const selectedIds = computed(() => selected.value.map((item) => item.address))
 const notFound = computed(() => isApiProblem(query.error.value) && query.error.value.status === 404)
 const runner = usePerItemRunner()
+const generatorOpen = ref(false)
+const generator = ref<HTMLElement | null>(null)
+const generatorId = `generate-alias-${useId()}`
+async function openGenerator() {
+  generatorOpen.value = true
+  await nextTick()
+  generator.value?.querySelector<HTMLElement>('select, input')?.focus()
+}
 let disposed = false
 let contextGeneration = 0
 onScopeDispose(() => {
@@ -56,6 +65,7 @@ onScopeDispose(() => {
 })
 watch(mailbox, () => {
   contextGeneration++
+  generatorOpen.value = false
   selection.leave()
   runner.clear()
 })
@@ -150,14 +160,32 @@ useDataList(
 <template>
   <NotFoundPage v-if="notFound" />
   <section v-else class="flex flex-col gap-5">
-    <MailboxContextHeader :title="lt('user.spam_aliases')" />
+    <MailboxContextHeader :title="lt('user.spam_aliases')">
+      <template #actions>
+        <button
+          v-if="access.canChange.value"
+          type="button"
+          data-add-alias
+          :class="buttonVariants({})"
+          :aria-expanded="generatorOpen"
+          :aria-controls="generatorId"
+          @click="openGenerator"
+        >
+          <PlusIcon class="size-4" />{{ lt('admin.add') }}
+        </button>
+      </template>
+    </MailboxContextHeader>
     <SanitizedHtml :html="lt('user.spam_aliases_info')" class="text-gray-700 dark:text-gray-300" />
-    <details v-if="access.canChange.value" class="surface">
-      <summary
-        class="flex min-h-11 cursor-pointer items-center font-semibold text-gray-900 dark:text-white"
-      >
+    <div
+      v-if="access.canChange.value"
+      v-show="generatorOpen"
+      :id="generatorId"
+      ref="generator"
+      class="surface"
+    >
+      <h2 class="font-semibold text-gray-900 dark:text-white">
         {{ lt('user.alias_create_random') }}
-      </summary>
+      </h2>
       <GenerateAliasPanel
         :key="mailbox"
         :mailbox="mailbox"
@@ -165,7 +193,7 @@ useDataList(
         class="mt-4"
         @created="created"
       />
-    </details>
+    </div>
     <ListToolbar
       ><template v-if="access.canChange.value" #select
         ><button

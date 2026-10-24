@@ -57,6 +57,7 @@ test('each profile is downloaded only on request; app password creation remains 
   expect(await mockApi.countRequests('createOwnAppleProfileWithAppPassword')).toBe(0)
   expect(await mockApi.countRequests('getOwnAppleProfile')).toBe(0)
   const plain = page.locator('[data-profile-password="false"]')
+  await plain.locator('summary').click()
   for (const variant of ['email', 'emailAndDav']) {
     const waiting = page.waitForEvent('download')
     await plain.locator(`[data-variant="${variant}"]`).click()

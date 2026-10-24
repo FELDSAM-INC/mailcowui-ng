@@ -11,7 +11,6 @@ import { safeHref } from '@/shared/security/safe-url'
 import { useClientConfiguration } from '../api/client-setup'
 import { useOwnMailboxOverview } from '../api/overview'
 import { useOwnSecondFactors } from '../api/second-factors'
-import MailboxOverview from '../components/overview/MailboxOverview.vue'
 import AppleProfileDownloads from '../components/mail-apps/AppleProfileDownloads.vue'
 import ClientSetupGuide from '../components/mail-apps/ClientSetupGuide.vue'
 import { useSectionAccess } from '../composables/useSectionAccess'
@@ -22,7 +21,7 @@ const variant: AppleProfileRequest['variant'] | undefined =
   route.query.variant === 'email' || route.query.variant === 'emailAndDav'
     ? route.query.variant
     : undefined
-const appPassword = route.query.appPassword === '1'
+const appPassword = route.query.appPassword === '0' ? false : undefined
 if ('variant' in route.query || 'appPassword' in route.query) {
   const query = { ...route.query }
   delete query.variant
@@ -47,7 +46,6 @@ const guideLink = computed(() => safeHref(config.data.value?.documentationUrl))
 <template>
   <section class="flex flex-col gap-6">
     <PageHeader :title="t('account.sections.mailApps')" />
-    <MailboxOverview />
     <p v-if="config.isPending.value" role="status" aria-busy="true">{{ lt('user.loading') }}</p>
     <ProblemMessage
       v-else-if="config.isError.value"

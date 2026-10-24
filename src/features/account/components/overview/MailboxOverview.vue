@@ -13,11 +13,14 @@ import WebmailAction from './WebmailAction.vue'
 
 const query = useOwnMailboxOverview()
 const format = useFormat()
+withDefaults(defineProps<{ showTitle?: boolean }>(), { showTitle: true })
 </script>
 
 <template>
   <Card data-mailbox-overview>
-    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ lt('user.overview') }}</h2>
+    <h2 v-if="showTitle" class="text-lg font-semibold text-gray-900 dark:text-white">
+      {{ lt('user.overview') }}
+    </h2>
     <div v-if="query.isPending.value" role="status" aria-busy="true">
       {{ lt('footer.loading') }}
     </div>

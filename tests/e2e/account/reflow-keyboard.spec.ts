@@ -8,7 +8,7 @@ import { expect, test } from '../fixtures/test'
 
 const SCREENS = [
   ['default landing', 'account-mailbox', '', '[data-own-password]'],
-  ['account', 'account-mailbox', 'account', '[data-section-nav]'],
+  ['account', 'account-mailbox', 'account', '[data-mailbox-overview]'],
   ['password', 'account-mailbox', 'account/password', 'input[autocomplete="current-password"]'],
   ['recovery', 'account-mailbox', 'account/recovery-email', 'input[type="email"]'],
   ['second factors', 'account-mailbox', 'account/two-factor', '[data-second-factors]'],
@@ -296,7 +296,7 @@ test('alias generation and its bulk removal confirmation reflow at 320 px', asyn
   await page.setViewportSize({ width: 320, height: 780 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('account/temporary-aliases?sort=address')
-  await page.getByText('Generate random alias', { exact: true }).click()
+  await page.locator('[data-add-alias]').click()
   await expect(page.getByLabel('Period of validity', { exact: true })).toBeVisible()
   await expectNoHorizontalScroll()
   await page.getByRole('button', { name: 'Select', exact: true }).click()

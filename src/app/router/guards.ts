@@ -9,7 +9,7 @@ import type { Identity, SessionState } from '@/api'
 import { captureResetToken } from '@/features/auth'
 
 import { canAccess } from '../navigation/visibility'
-import { defaultLandingPath } from '../navigation/landing'
+import { accountLandingPath, defaultLandingPath } from '../navigation/landing'
 import { identityQuery, isSignedIn, sessionQuery } from '../session/queries'
 import { useSessionStore } from '../session/store'
 import { acceptReturnTo } from './return-to'
@@ -107,6 +107,9 @@ export function installGuards(router: Router, ctx: GuardContext): void {
       // the obsolete Home/loading route and moving the shell content when it redirects.
       if (session.state === 'active' && to.path === '/' && identity) {
         return { path: defaultLandingPath(identity), replace: true }
+      }
+      if (session.state === 'active' && to.name === 'account' && identity) {
+        return { path: accountLandingPath(identity), replace: true }
       }
     }
     return true

@@ -98,7 +98,7 @@ describe('navigation (FR-043, FR-046)', () => {
   it.each([
     ['admin', '/operations/dashboard'],
     ['domainAdmin', '/domains'],
-    ['mailboxUser', '/account/password'],
+    ['mailboxUser', '/account/overview'],
   ] as const)(
     'links the %s logo directly to its role landing in both layouts',
     async (role, path) => {
@@ -118,7 +118,7 @@ describe('navigation (FR-043, FR-046)', () => {
       identity('mailboxUser', 'alice@example.org'),
     )
     await flushPromises()
-    expect(wrapper.get('header a').attributes('href')).toBe('/ng/account/password')
+    expect(wrapper.get('header a').attributes('href')).toBe('/ng/account/overview')
     wrapper.unmount()
   })
 

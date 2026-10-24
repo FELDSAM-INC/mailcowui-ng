@@ -7,7 +7,7 @@ import { isNarrow, openAccountSections, openNavigation } from '../fixtures/flows
 const heading = { level: 1, name: 'Change password' } as const
 
 for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admin']) {
-  test(`FR-001 My account is reached through the user menu and omitted from the sidebar (${scenario})`, async ({
+  test(`FR-001 My account is reached through the user menu with role-specific navigation (${scenario})`, async ({
     page,
     mockApi,
   }) => {
@@ -15,12 +15,18 @@ for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admi
     await page.goto('')
     const navigation = await openNavigation(page)
     await expect(navigation.getByRole('link', { name: 'User Settings' })).toHaveCount(0)
-    await expect(navigation.getByRole('link', { name: 'Passkeys' })).toHaveCount(0)
+    if (scenario === 'account-mailbox')
+      await expect(navigation.getByRole('link', { name: 'Passkeys', exact: true })).toBeVisible()
+    else await expect(navigation.getByRole('link', { name: 'Passkeys' })).toHaveCount(0)
     if (isNarrow(page)) await page.keyboard.press('Escape')
     await page.getByRole('button', { name: /^Account menu of / }).click()
     await page.getByRole('menuitem', { name: 'User Settings' }).click()
-    await expect(page.getByRole('heading', heading)).toBeVisible()
-    await expect(page).toHaveURL(/\/ng\/account\/password$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+      scenario === 'account-mailbox' ? 'Overview' : 'Change password',
+    )
+    await expect(page).toHaveURL(
+      scenario === 'account-mailbox' ? /\/account\/overview$/ : /\/account\/password$/,
+    )
   })
 }
 

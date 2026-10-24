@@ -174,7 +174,7 @@ describe('requested application navigation', () => {
   it.each([
     ['admin', '/operations/dashboard'],
     ['domainAdmin', '/domains'],
-    ['mailboxUser', '/account/password'],
+    ['mailboxUser', '/account/overview'],
   ] as const)('lands %s on the working section instead of Home', (role, path) => {
     expect(defaultLandingPath(identity(role))).toBe(path)
   })

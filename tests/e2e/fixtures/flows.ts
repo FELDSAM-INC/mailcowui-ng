@@ -16,7 +16,7 @@ export async function expectLanding(page: Page, role: Role = 'admin'): Promise<v
       ? '/operations/dashboard'
       : role === 'domainAdmin'
         ? '/domains'
-        : '/account/password'
+        : '/account/overview'
   await expect(page).toHaveURL((url) => url.pathname === `/ng${path}`)
   await expect(page.getByRole('main').getByRole('heading', { level: 1 })).toBeVisible()
 }
@@ -82,11 +82,19 @@ export async function openBulkActions(page: Page): Promise<Locator> {
   return bar
 }
 
-/** Account tabs are directly available in the shared section navigation. */
+/** Mailbox users navigate account pages from the sidebar; operators keep their account tabs. */
 export async function openAccountSections(page: Page): Promise<Locator> {
   const navigation = page.locator('[data-section-nav]')
-  await expect(navigation).toBeVisible()
-  return navigation
+  if (await navigation.count()) {
+    await expect(navigation).toBeVisible()
+    return navigation
+  }
+  const visibleSettings = page.locator('[data-nav-group="userSettings"]:visible')
+  if (await visibleSettings.count()) return visibleSettings
+  const sidebar = await openNavigation(page)
+  const settings = sidebar.locator('[data-nav-group="userSettings"]')
+  await expect(settings).toBeVisible()
+  return settings
 }
 
 /** Preferences shared by sign-in, recovery and second-factor pages. */

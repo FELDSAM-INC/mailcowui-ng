@@ -18,7 +18,7 @@ import { lt, resolveText } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import MailboxSearchPicker from '@/shared/components/MailboxSearchPicker.vue'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 import { useClientErrors } from '@/shared/composables/useClientErrors'
@@ -164,8 +164,7 @@ async function submit(event: Event) {
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-3xl flex-col gap-4">
-    <PageHeader :title="lt('add.syncjob')" />
+  <SettingsPage :title="lt('add.syncjob')">
     <p class="text-gray-700 dark:text-gray-300">{{ lt('add.syncjob_hint') }}</p>
 
     <div v-if="capabilities.isPending.value" role="status" aria-busy="true">
@@ -230,5 +229,5 @@ async function submit(event: Event) {
         </button>
       </div>
     </form>
-  </section>
+  </SettingsPage>
 </template>

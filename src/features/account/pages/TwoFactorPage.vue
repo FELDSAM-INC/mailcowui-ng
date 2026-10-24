@@ -36,7 +36,7 @@ const METHODS = [
 </script>
 
 <template>
-  <SettingsPage :title="lt('tfa.tfa')">
+  <SettingsPage :title="lt('tfa.tfa')" unboxed>
     <LegacyText
       v-if="identity?.role === 'mailboxUser'"
       k="user.tfa_info"

@@ -44,7 +44,7 @@ const directOff = computed(() =>
 const guideLink = computed(() => safeHref(config.data.value?.documentationUrl))
 </script>
 <template>
-  <SettingsPage :title="t('account.sections.mailApps')">
+  <SettingsPage :title="t('account.sections.mailApps')" unboxed>
     <p v-if="config.isPending.value" role="status" aria-busy="true">{{ lt('user.loading') }}</p>
     <ProblemMessage
       v-else-if="config.isError.value"
@@ -64,6 +64,7 @@ const guideLink = computed(() => safeHref(config.data.value?.documentationUrl))
         >
       </div>
       <AppleProfileDownloads
+        class="surface"
         :mailbox="access.context.mailbox.value"
         :groupware="!!access.capabilities.data.value?.groupware?.enabled"
         :app-passwords="canAppPasswords"

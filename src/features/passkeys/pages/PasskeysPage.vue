@@ -96,10 +96,10 @@ async function remove(passkey: Passkey) {
 </script>
 
 <template>
-  <SettingsPage :title="t('passkeys.title')" :description="t('passkeys.intro')">
+  <SettingsPage :title="t('passkeys.title')" :description="t('passkeys.intro')" unboxed>
     <ActingUnavailableNotice v-if="isActing" />
     <template v-else>
-      <AddPasskeyForm @added="query.refetch()" />
+      <AddPasskeyForm class="surface" @added="query.refetch()" />
       <ProblemMessage :problem="removeProblem" />
       <ListState
         :loading="query.isPending.value"

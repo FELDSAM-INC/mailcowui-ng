@@ -7,7 +7,7 @@ const { t } = useI18n()
 const targets = ref<(HTMLElement | null)[]>([])
 </script>
 <template>
-  <section class="flex min-w-0 flex-col gap-4 rounded-xl border border-line p-4">
+  <section class="surface flex min-w-0 flex-col gap-4">
     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
     <p v-if="note" class="text-sm text-gray-700 dark:text-gray-300">{{ note }}</p>
     <dl class="flex flex-col gap-3">

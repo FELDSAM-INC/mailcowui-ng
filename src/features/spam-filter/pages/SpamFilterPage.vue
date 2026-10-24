@@ -22,7 +22,7 @@ const owner = computed(() => ({ kind: 'mailbox' as const, name: mailbox.value ??
 </script>
 
 <template>
-  <SettingsPage :title="lt('user.spamfilter')" data-spam-filter-page>
+  <SettingsPage :title="lt('user.spamfilter')" unboxed data-spam-filter-page>
     <p
       v-if="!mailbox && identity.isPending.value"
       role="status"
@@ -37,8 +37,7 @@ const owner = computed(() => ({ kind: 'mailbox' as const, name: mailbox.value ??
       @retry="identity.refetch()"
     />
     <div v-else class="flex min-w-0 flex-col gap-6">
-      <SpamScorePanel :mailbox="mailbox" :heading-level="2" />
-      <hr class="border-gray-200 dark:border-gray-800" />
+      <SpamScorePanel class="surface" :mailbox="mailbox" :heading-level="2" />
       <PolicyListsPanel :owner="owner" :heading-level="2" />
     </div>
   </SettingsPage>

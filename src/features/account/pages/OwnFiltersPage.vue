@@ -6,7 +6,7 @@ import { useAccountContext } from '../composables/useAccountContext'
 const context = useAccountContext()
 </script>
 <template>
-  <SettingsPage :title="lt('user.active_sieve')">
+  <SettingsPage :title="lt('user.active_sieve')" unboxed>
     <ActiveScriptPanel :mailbox="context.mailbox.value" />
   </SettingsPage>
 </template>

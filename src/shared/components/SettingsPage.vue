@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import PageHeader from './PageHeader.vue'
-defineProps<{ title?: string; description?: string }>()
+defineProps<{ title?: string; description?: string; unboxed?: boolean }>()
 </script>
 
 <template>
@@ -10,6 +10,12 @@ defineProps<{ title?: string; description?: string }>()
         <template v-if="$slots.actions" #actions><slot name="actions" /></template>
       </PageHeader>
     </slot>
-    <div class="surface flex min-w-0 flex-col gap-6" data-settings-content><slot /></div>
+    <div
+      class="flex min-w-0 flex-col"
+      :class="unboxed ? 'gap-4' : 'surface gap-6'"
+      data-settings-content
+    >
+      <slot />
+    </div>
   </section>
 </template>

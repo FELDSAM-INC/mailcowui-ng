@@ -144,7 +144,7 @@ useDataList(
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
-  <SettingsPage v-else>
+  <SettingsPage v-else unboxed>
     <template #header>
       <MailboxContextHeader :title="lt('user.spam_aliases')">
         <template #actions>
@@ -201,9 +201,8 @@ useDataList(
           @search="list.setFilter('q', $event || undefined, { typing: true })" /></template
     ></ListToolbar>
 
-    <div v-if="access.canChange.value" class="flex flex-wrap gap-2">
+    <div v-if="access.canChange.value && selection.active.value" class="flex flex-wrap gap-2">
       <button
-        v-if="selection.active.value"
         type="button"
         :class="buttonVariants({ variant: 'outline' })"
         :disabled="runner.running.value"

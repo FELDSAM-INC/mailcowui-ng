@@ -159,7 +159,7 @@ const tableView = useDataColumns(
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
-  <SettingsPage v-else>
+  <SettingsPage v-else unboxed>
     <template #header>
       <MailboxContextHeader :title="lt('user.app_passwds')">
         <template #actions
@@ -215,34 +215,32 @@ const tableView = useDataColumns(
           @search="list.setFilter('q', $event || undefined, { typing: true })" /></template
     ></ListToolbar>
 
-    <div v-if="access.canChange.value" class="flex flex-wrap gap-2">
-      <template v-if="selection.active.value"
-        ><button
-          type="button"
-          :disabled="runner.running.value"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="toggleAll"
-        >
-          {{ lt('mailbox.toggle_all') }}</button
-        ><button
-          v-for="action in ['activate', 'deactivate', 'remove'] as const"
-          :key="action"
-          type="button"
-          :disabled="!selected.length || runner.running.value"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="run(action)"
-        >
-          {{
-            lt(
-              action === 'activate'
-                ? 'mailbox.activate'
-                : action === 'deactivate'
-                  ? 'mailbox.deactivate'
-                  : 'mailbox.remove',
-            )
-          }}
-        </button></template
+    <div v-if="access.canChange.value && selection.active.value" class="flex flex-wrap gap-2">
+      <button
+        type="button"
+        :disabled="runner.running.value"
+        :class="buttonVariants({ variant: 'outline' })"
+        @click="toggleAll"
       >
+        {{ lt('mailbox.toggle_all') }}</button
+      ><button
+        v-for="action in ['activate', 'deactivate', 'remove'] as const"
+        :key="action"
+        type="button"
+        :disabled="!selected.length || runner.running.value"
+        :class="buttonVariants({ variant: 'outline' })"
+        @click="run(action)"
+      >
+        {{
+          lt(
+            action === 'activate'
+              ? 'mailbox.activate'
+              : action === 'deactivate'
+                ? 'mailbox.deactivate'
+                : 'mailbox.remove',
+          )
+        }}
+      </button>
     </div>
     <BulkResultSummary
       v-if="runner.rows.value.length"

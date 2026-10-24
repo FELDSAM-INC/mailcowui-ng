@@ -101,7 +101,7 @@ useDataList(
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
-  <SettingsPage v-else>
+  <SettingsPage v-else unboxed>
     <template #header>
       <MailboxContextHeader :title="lt('user.recent_successful_connections')">
         <template #actions

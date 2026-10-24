@@ -1,15 +1,19 @@
 <script setup lang="ts">
-// The account dropdown: username/role, flagged language choices, account settings, passkeys
+// The account dropdown: username/role, flagged language choices, password settings, passkeys
 // and sign-out. The theme menu is a separate header control. Language names stay exactly as
 // the installation supplies them; flags are decorative.
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useOfferedSections } from '@/features/account'
 
 import type { Identity } from '@/api'
-import { lt, text } from '@/i18n'
+import { lt, resolveText, text } from '@/i18n'
 import {
   ChevronDownIcon,
   GlobeIcon,
+  LockIcon,
+  MailIcon,
   PasskeyIcon,
   SignOutIcon,
   UserCircleIcon,
@@ -32,12 +36,16 @@ import {
 import { usePreferencesStore } from '../preferences/store'
 import LanguageOptions from '../preferences/LanguageOptions.vue'
 import { localeFlag } from '../preferences/locale-flag'
-import { accountLandingPath } from '../navigation/landing'
 
 defineProps<{ identity: Identity; signingOut?: boolean }>()
 defineEmits<{ signOut: [] }>()
 const { t } = useI18n()
 const prefs = usePreferencesStore()
+const router = useRouter()
+const offered = useOfferedSections()
+const passwordSections = computed(() =>
+  offered.value.filter((section) => section.id === 'password' || section.id === 'recoveryEmail'),
+)
 const besideLanguage = useMediaQuery('(min-width: 640px)')
 const currentLanguage = computed(() =>
   prefs.availableLanguages.find((language) => language.code === prefs.locale),
@@ -97,10 +105,14 @@ const currentLanguage = computed(() =>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
       </template>
-      <!-- UI 005 (FR-001): My account, legacy's "User Settings". -->
-      <DropdownMenuItem :to="accountLandingPath(identity)" class="min-h-11">
-        <UserCircleIcon />
-        {{ lt('header.user_settings') }}
+      <DropdownMenuItem
+        v-for="section in passwordSections"
+        :key="section.id"
+        :to="router.resolve({ name: section.route! }).fullPath"
+        class="min-h-11"
+      >
+        <component :is="section.id === 'password' ? LockIcon : MailIcon" />
+        {{ resolveText(section.title, t) }}
       </DropdownMenuItem>
       <DropdownMenuItem to="/passkeys" class="min-h-11">
         <PasskeyIcon />

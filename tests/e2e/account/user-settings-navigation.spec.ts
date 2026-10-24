@@ -4,14 +4,10 @@ import { chooseTheme, openAccountSections, openNavigation, submitPassword } from
 const accountItems = [
   'overview',
   'mailApps',
-  'spamFilter',
-  'password',
-  'recoveryEmail',
   'twoFactor',
   'passkeys',
   'recentLogins',
   'mailSettings',
-  'temporaryAliases',
   'appPasswords',
   'pushNotifications',
 ]
@@ -97,6 +93,12 @@ test('sidebar respects account flags and normal profiles remain available withou
   await nav.getByRole('link', { name: 'Mail app setup', exact: true }).click()
   await expect(page.locator('[data-profile-password="true"]')).toHaveCount(0)
   await expect(page.locator('[data-profile-password="false"] [data-variant="email"]')).toBeVisible()
+  await page.getByRole('button', { name: /^Account menu of / }).click()
+  await expect(
+    page.getByRole('menuitem', { name: 'Password recovery email', exact: true }),
+  ).toHaveCount(0)
+  await expect(page.getByRole('menuitem', { name: 'Change password', exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
   await page.goto('account/app-passwords')
   await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()
   expect(await mockApi.countRequests('listAppPasswords')).toBe(0)
@@ -169,25 +171,42 @@ test('administrator account entry still opens Password with account tabs', async
   await expect(page.locator('[data-nav-group="userSettings"]')).toHaveCount(0)
 })
 
-test('mailbox Spam filter is in User Settings and Quarantine is in System', async ({
+test('mailbox spam settings are in Email configuration and Quarantine stays in System', async ({
   page,
   mockApi,
 }) => {
   await mockApi.use('account-mailbox')
   await page.goto('account/overview')
-  const settings = await openAccountSections(page)
-  await expect(settings.getByRole('link', { name: 'Spam filter', exact: true })).toBeVisible()
+  const navigation = await openNavigation(page)
+  const email = navigation.locator('[data-nav-group="email"]')
   await expect(
-    page
+    email.getByRole('heading', { name: 'Email configuration', exact: true }),
+  ).toBeVisible()
+  await expect(email.locator('[data-nav-item]')).toHaveText([
+    'Spam filter',
+    'Spam email aliases',
+    'Sync jobs',
+  ])
+  await expect(
+    navigation.locator(
+      '[data-nav-group="userSettings"] [data-nav-item="account-spamFilter"], [data-nav-group="userSettings"] [data-nav-item="account-temporaryAliases"]',
+    ),
+  ).toHaveCount(0)
+  await expect(
+    navigation
       .locator('[data-nav-group="system"]')
       .getByRole('link', { name: 'Quarantine', exact: true }),
   ).toBeVisible()
-  await expect(page.locator('[data-nav-group="quarantine"]')).toHaveCount(0)
-  await settings.getByRole('link', { name: 'Spam filter', exact: true }).click()
+  await expect(navigation.locator('[data-nav-group="quarantine"]')).toHaveCount(0)
+  await email.getByRole('link', { name: 'Spam filter', exact: true }).click()
   await expect(page).toHaveURL(/\/spam-filter$/)
-  await expect((await openAccountSections(page)).locator('[aria-current="page"]')).toHaveText(
-    'Spam filter',
-  )
+  const next = (await openNavigation(page)).locator('[data-nav-group="email"]')
+  await expect(next.locator('[aria-current="page"]')).toHaveText('Spam filter')
+  await next.getByRole('link', { name: 'Spam email aliases', exact: true }).click()
+  await expect(page).toHaveURL(/\/account\/temporary-aliases$/)
+  await expect(
+    (await openNavigation(page)).locator('[data-nav-group="email"] [aria-current="page"]'),
+  ).toHaveText('Spam email aliases')
 })
 
 test('creating spam aliases protects drafts and rejects a denied direct route', async ({

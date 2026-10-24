@@ -345,8 +345,8 @@ describe('user menu (FR-042)', () => {
     const items = [
       ...menu.querySelectorAll('[role="menuitem"]:not([data-language-submenu-trigger])'),
     ].map((item) => item.textContent?.trim())
-    // UI 005 (FR-001): My account, legacy's "User Settings", above Passkeys.
-    expect(items).toEqual(['User Settings', 'Passkeys', 'Sign out'])
+    // The direct password action replaces the generic User Settings link.
+    expect(items).toEqual(['Change password', 'Passkeys', 'Sign out'])
     wrapper.unmount()
   })
 })

@@ -1,4 +1,4 @@
-import { openAccountSections } from '../fixtures/flows'
+import { openAccountSections, openNavigation } from '../fixtures/flows'
 // T145 complements the exhaustive pure-rule matrix in sections.spec.ts with route/render checks.
 import { expect, test } from '../fixtures/test'
 
@@ -18,9 +18,15 @@ for (const [flag, _section, path, operation] of denied) {
     await mockApi.setFlags('anna@example.org', { [flag]: false })
     await page.goto('account')
     await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
-    await expect(
-      (await openAccountSections(page)).locator(`a[href$="/account/${path}"]`),
-    ).toHaveCount(0)
+    if (flag === 'pwReset') {
+      await page.getByRole('button', { name: /^Account menu of / }).click()
+      await expect(
+        page.getByRole('menuitem', { name: 'Password recovery email', exact: true }),
+      ).toHaveCount(0)
+    } else
+      await expect((await openNavigation(page)).locator(`a[href$="/account/${path}"]`)).toHaveCount(
+        0,
+      )
     await page.goto(`account/${path}`)
     await expect(page.getByRole('heading', { level: 1, name: 'No access' })).toBeVisible()
     expect(await mockApi.countRequests(operation)).toBe(0)

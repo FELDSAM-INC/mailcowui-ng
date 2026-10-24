@@ -10,6 +10,7 @@ export { accountRoutes } from './routes'
 export { mailboxSelfServiceRoutes } from './mailbox-routes'
 export { useMailSettingsEditor } from './composables/useMailSettingsEditor'
 export { useAccountSidebar } from './composables/useAccountSidebar'
+export { useOfferedSections } from './composables/useOfferedSections'
 export { applyMailboxMailSettingsBulk, mailSettingsBulkRequest } from './api/bulk-mail-settings'
 // The pending-actions screen's forced password change (UI 001's auth feature).
 export { changeOwnPassword, useOwnPasswordPolicy } from './api/password'

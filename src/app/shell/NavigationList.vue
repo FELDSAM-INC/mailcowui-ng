@@ -9,7 +9,7 @@ import { resolveText } from '@/i18n'
 import { useAccountSidebar } from '@/features/account'
 import { ChevronDownIcon } from '@/shared/icons'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/shared/ui/collapsible'
-import { sidebarSections } from '../navigation/sections'
+import { sidebarSections, type SidebarSection } from '../navigation/sections'
 
 const props = defineProps<{
   identity: Identity | null | undefined
@@ -22,7 +22,15 @@ const route = useRoute()
 const groupId = useId()
 const open = reactive<Record<string, boolean>>({})
 const account = useAccountSidebar(() => props.identity)
-const groups = computed(() => [...account.value, ...sidebarSections(props.identity, route.path)])
+const groups = computed(() => {
+  const merged: SidebarSection[] = []
+  for (const group of [...account.value, ...sidebarSections(props.identity, route.path)]) {
+    const existing = merged.find((item) => item.id === group.id)
+    if (existing) existing.items.push(...group.items)
+    else merged.push({ ...group, items: [...group.items] })
+  }
+  return merged
+})
 watch(
   () => route.path,
   () => {

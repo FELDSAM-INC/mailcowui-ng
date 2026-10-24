@@ -53,24 +53,32 @@ export function useAccountSidebar(identity: MaybeRefOrGetter<Identity | null | u
     { immediate: true },
   )
 
-  return computed<SidebarSection[]>(() =>
-    enabled.value && translated.value
-      ? [
-          {
-            id: 'userSettings',
-            labelKey: legacy('header.user_settings'),
-            items: offered.value
-              .filter((section) => section.id !== 'activeScript')
-              .map((section) => ({
-                id: `account-${section.id}`,
-                labelKey: section.title,
-                icon: icons[section.id],
-                to: router.resolve({ name: section.route! }).fullPath,
-                current: route.meta.accountSection === section.id,
-                tabs: [],
-              })),
-          },
-        ]
-      : [],
-  )
+  return computed<SidebarSection[]>(() => {
+    if (!enabled.value || !translated.value) return []
+    const items = offered.value
+      .filter((section) => !['activeScript', 'password', 'recoveryEmail'].includes(section.id))
+      .map((section) => ({
+        id: `account-${section.id}`,
+        labelKey: section.title,
+        icon: icons[section.id],
+        to: router.resolve({ name: section.route! }).fullPath,
+        current: route.meta.accountSection === section.id,
+        tabs: [],
+      }))
+    const isEmailConfiguration = (item: (typeof items)[number]) =>
+      item.id === 'account-spamFilter' || item.id === 'account-temporaryAliases'
+    const groups: SidebarSection[] = [
+      {
+        id: 'email',
+        labelKey: 'nav.groups.emailConfiguration',
+        items: items.filter(isEmailConfiguration),
+      },
+      {
+        id: 'userSettings',
+        labelKey: legacy('header.user_settings'),
+        items: items.filter((item) => !isEmailConfiguration(item)),
+      },
+    ]
+    return groups.filter((group) => group.items.length > 0)
+  })
 }

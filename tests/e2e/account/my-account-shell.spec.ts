@@ -7,7 +7,7 @@ import { isNarrow, openAccountSections, openNavigation } from '../fixtures/flows
 const heading = { level: 1, name: 'Change password' } as const
 
 for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admin']) {
-  test(`FR-001 My account is reached through the user menu with role-specific navigation (${scenario})`, async ({
+  test(`FR-001 password settings are reached directly through the user menu (${scenario})`, async ({
     page,
     mockApi,
   }) => {
@@ -18,15 +18,24 @@ for (const scenario of ['account-mailbox', 'account-domain-admin', 'account-admi
     if (scenario === 'account-mailbox')
       await expect(navigation.getByRole('link', { name: 'Passkeys', exact: true })).toBeVisible()
     else await expect(navigation.getByRole('link', { name: 'Passkeys' })).toHaveCount(0)
+    await expect(
+      navigation.locator(
+        '[data-nav-item="account-password"], [data-nav-item="account-recoveryEmail"]',
+      ),
+    ).toHaveCount(0)
     if (isNarrow(page)) await page.keyboard.press('Escape')
     await page.getByRole('button', { name: /^Account menu of / }).click()
-    await page.getByRole('menuitem', { name: 'User Settings' }).click()
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-      scenario === 'account-mailbox' ? 'Overview' : 'Change password',
-    )
-    await expect(page).toHaveURL(
-      scenario === 'account-mailbox' ? /\/account\/overview$/ : /\/account\/password$/,
-    )
+    await expect(page.getByRole('menuitem', { name: 'User Settings' })).toHaveCount(0)
+    await page.getByRole('menuitem', { name: 'Change password', exact: true }).click()
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Change password')
+    await expect(page).toHaveURL(/\/account\/password$/)
+    await page.getByRole('button', { name: /^Account menu of / }).click()
+    const recovery = page.getByRole('menuitem', { name: 'Password recovery email', exact: true })
+    if (scenario === 'account-mailbox') {
+      await recovery.click()
+      await expect(page).toHaveURL(/\/account\/recovery-email$/)
+      await expect(page.getByRole('heading', { level: 1 })).toHaveText('Password recovery email')
+    } else await expect(recovery).toHaveCount(0)
   })
 }
 

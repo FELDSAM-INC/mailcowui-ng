@@ -299,6 +299,7 @@ test('alias generation and its bulk removal confirmation reflow at 320 px', asyn
   await page.locator('[data-add-alias]').click()
   await expect(page.getByLabel('Period of validity', { exact: true })).toBeVisible()
   await expectNoHorizontalScroll()
+  await page.locator('[data-detail-back]').click()
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('checkbox', { name: 'alias01@example.org', exact: true }).check()
   await page.getByRole('checkbox', { name: 'alias02@example.org', exact: true }).check()

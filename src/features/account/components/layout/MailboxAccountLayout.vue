@@ -12,7 +12,7 @@ const access = computed(() =>
 )
 </script>
 <template>
-  <div class="mx-auto flex w-full max-w-5xl flex-col gap-4">
+  <div class="flex w-full min-w-0 flex-col gap-6">
     <NoAccessState v-if="access.mode === 'hidden' && identity.data.value" />
     <template v-else-if="identity.data.value">
       <AclReadOnlyNote

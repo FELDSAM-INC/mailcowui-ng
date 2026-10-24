@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import ListToolbar from '@/shared/components/ListToolbar.vue'
 import FilterPanel from '@/shared/components/FilterPanel.vue'
 import { useDataList } from '@/shared/composables/useDataList'
 
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, nextTick, onScopeDispose, ref, useId, watch } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isApiProblem, problemOf, type TemporaryAlias } from '@/api'
+import { isApiProblem, problemOf } from '@/api'
 import NotFoundPage from '@/app/states/NotFoundPage.vue'
 import { lt } from '@/i18n'
 import BulkActionBar from '@/shared/components/BulkActionBar.vue'
@@ -22,24 +23,22 @@ import { confirm } from '@/shared/composables/useConfirm'
 import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { usePerItemRunner } from '@/shared/composables/usePerItemRunner'
 import { buttonVariants } from '@/shared/ui/button'
-import { PlusIcon } from '@/shared/icons'
+import { RouterLink } from 'vue-router'
 import {
   deleteTemporaryAlias,
   updateTemporaryAlias,
   useTemporaryAliases,
 } from '../api/temporary-aliases'
 import AppPasswordDeleteList from '../components/app-passwords/AppPasswordDeleteList.vue'
-import GenerateAliasPanel from '../components/temporary-aliases/GenerateAliasPanel.vue'
 import TemporaryAliasList from '../components/temporary-aliases/TemporaryAliasList.vue'
 import ValidityActions from '../components/temporary-aliases/ValidityActions.vue'
-import { useSectionAccess } from '../composables/useSectionAccess'
+import { useTemporaryAliasContext } from '../composables/useTemporaryAliasContext'
 import { useTemporaryAliasListState } from '../list-state'
 import { validityPatch, type AliasValidity } from '../validity'
 
 const { t } = useI18n()
 const client = useQueryClient()
-const access = useSectionAccess(() => 'temporaryAliases')
-const mailbox = access.context.mailbox
+const { access, mailbox, location } = useTemporaryAliasContext()
 const selection = useBulkSelection()
 const list = useTemporaryAliasListState({ onReset: selection.clear })
 const query = useTemporaryAliases(mailbox, list.params)
@@ -50,14 +49,6 @@ const selected = computed(() => rows.value.filter((item) => selection.isSelected
 const selectedIds = computed(() => selected.value.map((item) => item.address))
 const notFound = computed(() => isApiProblem(query.error.value) && query.error.value.status === 404)
 const runner = usePerItemRunner()
-const generatorOpen = ref(false)
-const generator = ref<HTMLElement | null>(null)
-const generatorId = `generate-alias-${useId()}`
-async function openGenerator() {
-  generatorOpen.value = true
-  await nextTick()
-  generator.value?.querySelector<HTMLElement>('select, input')?.focus()
-}
 let disposed = false
 let contextGeneration = 0
 onScopeDispose(() => {
@@ -65,7 +56,6 @@ onScopeDispose(() => {
 })
 watch(mailbox, () => {
   contextGeneration++
-  generatorOpen.value = false
   selection.leave()
   runner.clear()
 })
@@ -141,11 +131,6 @@ watch([total, () => list.state.value.page], ([count, page]) => {
   if (count > 0 && (page - 1) * list.state.value.size >= count)
     void list.setPage(Math.max(1, Math.ceil(count / list.state.value.size)))
 })
-function created(_item: TemporaryAlias) {
-  // Make a generated address visible even when previous filters would hide it.
-  void list.setFilters({ q: undefined, permanent: undefined })
-}
-
 useDataList(
   'account-pages-temporaryaliasespage',
   () => ({
@@ -159,41 +144,21 @@ useDataList(
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
-  <section v-else class="flex flex-col gap-5">
-    <MailboxContextHeader :title="lt('user.spam_aliases')">
-      <template #actions>
-        <button
-          v-if="access.canChange.value"
-          type="button"
-          data-add-alias
-          :class="buttonVariants({})"
-          :aria-expanded="generatorOpen"
-          :aria-controls="generatorId"
-          @click="openGenerator"
-        >
-          <PlusIcon class="size-4" />{{ lt('admin.add') }}
-        </button>
-      </template>
-    </MailboxContextHeader>
+  <SettingsPage v-else>
+    <template #header>
+      <MailboxContextHeader :title="lt('user.spam_aliases')">
+        <template #actions>
+          <RouterLink
+            v-if="access.canChange.value"
+            :to="location('create')"
+            data-add-alias
+            :class="buttonVariants({})"
+            >{{ t('account.temporaryAliases.create') }}</RouterLink
+          >
+        </template>
+      </MailboxContextHeader>
+    </template>
     <SanitizedHtml :html="lt('user.spam_aliases_info')" class="text-gray-700 dark:text-gray-300" />
-    <div
-      v-if="access.canChange.value"
-      v-show="generatorOpen"
-      :id="generatorId"
-      ref="generator"
-      class="surface"
-    >
-      <h2 class="font-semibold text-gray-900 dark:text-white">
-        {{ lt('user.alias_create_random') }}
-      </h2>
-      <GenerateAliasPanel
-        :key="mailbox"
-        :mailbox="mailbox"
-        :can-change="access.canChange.value"
-        class="mt-4"
-        @created="created"
-      />
-    </div>
     <ListToolbar
       ><template v-if="access.canChange.value" #select
         ><button
@@ -303,5 +268,5 @@ useDataList(
         ><ValidityActions v-if="limits" :limits="limits" :disabled="disabled" @change="run($event)"
       /></template>
     </BulkActionBar>
-  </section>
+  </SettingsPage>
 </template>

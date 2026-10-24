@@ -46,6 +46,8 @@ function caps(
 }
 
 const USER_FLAGS = [
+  'spamScore',
+  'spamPolicy',
   'pwReset',
   'spamAlias',
   'appPasswds',
@@ -67,6 +69,7 @@ describe('the registry', () => {
       'overview',
       'mailApps',
       'activeScript',
+      'spamFilter',
       'password',
       'recoveryEmail',
       'twoFactor',

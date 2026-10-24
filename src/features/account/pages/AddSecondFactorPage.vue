@@ -7,7 +7,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { lt, type LegacyKey } from '@/i18n'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
 
 import { afterSecondFactorChange } from '../api/second-factors'
@@ -36,10 +36,9 @@ async function done() {
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <PageHeader :title="lt(TITLES[method] ?? 'tfa.totp')" />
+  <SettingsPage :title="lt(TITLES[method] ?? 'tfa.totp')">
     <TotpSetup v-if="method === 'totp'" @done="done" />
     <SecurityKeySetup v-else-if="method === 'webauthn'" @done="done" />
     <YubicoOtpSetup v-else @done="done" />
-  </section>
+  </SettingsPage>
 </template>

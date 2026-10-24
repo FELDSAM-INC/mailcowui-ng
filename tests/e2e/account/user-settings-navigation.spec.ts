@@ -1,10 +1,11 @@
 import { expect, test } from '../fixtures/test'
-import { chooseTheme, openAccountSections, submitPassword } from '../fixtures/flows'
+import { chooseTheme, openAccountSections, openNavigation, submitPassword } from '../fixtures/flows'
 
 const accountItems = [
   'overview',
   'mailApps',
   'activeScript',
+  'spamFilter',
   'password',
   'recoveryEmail',
   'twoFactor',
@@ -133,19 +134,27 @@ for (const [scenario, path] of [
   ['temporary-aliases-empty', 'account/temporary-aliases'],
   ['account-admin', 'mailboxes/anna@example.org/temporary-aliases'],
 ] as const) {
-  test(`the header Add button opens alias generation in ${path}`, async ({ page, mockApi }) => {
+  test(`the Create spam alias button opens a separate page in ${path}`, async ({
+    page,
+    mockApi,
+  }) => {
     await mockApi.use(scenario)
     await page.goto(path)
     await expect(page.locator('[data-generate-alias]')).toBeHidden()
     const add = page.locator('main header [data-add-alias]')
     await expect(add).toBeVisible()
-    await expect(add).toHaveText('Add')
+    await expect(add).toHaveText('Create spam alias')
+    await expect(add.locator('svg')).toHaveCount(0)
     await add.click()
+    await expect(page).toHaveURL(/temporary-aliases\/new$/)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Create spam alias')
+    await expect(page.locator('[data-entry]')).toHaveCount(0)
     const form = page.locator('[data-generate-alias]')
     await expect(form).toBeVisible()
     await form.getByLabel('Description', { exact: true }).fill('Shop')
-    await form.getByRole('button', { name: 'Add', exact: true }).click()
-    await expect(form.locator('[data-new-alias]')).toBeVisible()
+    await form.getByRole('button', { name: 'Create spam alias', exact: true }).click()
+    await expect(page).toHaveURL(/temporary-aliases\?q=/)
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
     await expect(page.locator('[data-entry]').filter({ hasText: 'Shop' })).toBeVisible()
   })
 }
@@ -159,4 +168,62 @@ test('administrator account entry still opens Password with account tabs', async
   await expect(page).toHaveURL(/\/account\/password$/)
   await expect(page.locator('[data-section-nav]')).toBeVisible()
   await expect(page.locator('[data-nav-group="userSettings"]')).toHaveCount(0)
+})
+
+test('mailbox Spam filter is in User Settings and Quarantine is in System', async ({
+  page,
+  mockApi,
+}) => {
+  await mockApi.use('account-mailbox')
+  await page.goto('account/overview')
+  const settings = await openAccountSections(page)
+  await expect(settings.getByRole('link', { name: 'Spam filter', exact: true })).toBeVisible()
+  await expect(
+    page
+      .locator('[data-nav-group="system"]')
+      .getByRole('link', { name: 'Quarantine', exact: true }),
+  ).toBeVisible()
+  await expect(page.locator('[data-nav-group="quarantine"]')).toHaveCount(0)
+  await settings.getByRole('link', { name: 'Spam filter', exact: true }).click()
+  await expect(page).toHaveURL(/\/spam-filter$/)
+  await expect((await openAccountSections(page)).locator('[aria-current="page"]')).toHaveText(
+    'Spam filter',
+  )
+})
+
+test('creating spam aliases protects drafts and rejects a denied direct route', async ({
+  page,
+  mockApi,
+}) => {
+  await mockApi.use('account-mailbox')
+  await page.goto('account/temporary-aliases?permanent=true')
+  await page.getByRole('link', { name: 'Create spam alias', exact: true }).click()
+  await page.getByLabel('Description', { exact: true }).fill('Draft')
+  await page.locator('[data-detail-back]').click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Stay', exact: true }).click()
+  await expect(page.getByLabel('Description', { exact: true })).toHaveValue('Draft')
+  await page.locator('[data-detail-back]').click()
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Leave', exact: true }).click()
+  await expect(page).toHaveURL(/temporary-aliases\?permanent=true$/)
+  await mockApi.use('account-mailbox-no-flags')
+  await page.goto('account/temporary-aliases/new')
+  await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()
+  expect(await mockApi.countRequests('listTemporaryAliasDomains')).toBe(0)
+  expect(await mockApi.countRequests('createTemporaryAlias')).toBe(0)
+})
+
+test('domain administrators see Quarantine under System', async ({ page, mockApi }) => {
+  await mockApi.use('account-domain-admin')
+  await page.goto('domains')
+  const nav = await openNavigation(page)
+  await expect(nav.locator('[data-nav-group="quarantine"]')).toHaveCount(0)
+  await nav
+    .locator('[data-nav-group="system"]')
+    .getByRole('link', { name: 'Quarantine', exact: true })
+    .click()
+  await expect(page).toHaveURL(/\/quarantine$/)
+  const current = await openNavigation(page)
+  await expect(current.locator('[data-nav-group="system"] [aria-current="page"]')).toHaveText(
+    'Quarantine',
+  )
 })

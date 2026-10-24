@@ -37,6 +37,9 @@ const timer = usePendingSignInTimer(
 )
 
 const sections = computed(() => groups.value)
+const hasTotp = computed(() =>
+  sections.value.primarySections.some((section) => section.type === 'totp'),
+)
 /** The code field of a single authenticator takes focus (US1-AS4). */
 const focusTotp = (section: MethodSection) => section.methods.length === 1
 </script>
@@ -80,8 +83,20 @@ const focusTotp = (section: MethodSection) => section.methods.length === 1
         :methods="section.methods"
         :busy="busy !== null"
         :take-focus="focusTotp(section)"
+        auto-submit
         @verify="verify"
-      />
+      >
+        <template #cancel>
+          <button
+            type="button"
+            :class="buttonVariants({ variant: 'outline' })"
+            :disabled="busy === 'cancel'"
+            @click="cancel"
+          >
+            <LegacyText k="footer.cancel" />
+          </button>
+        </template>
+      </TotpForm>
     </template>
 
     <template v-if="sections.advancedSections.length > 0">
@@ -94,6 +109,7 @@ const focusTotp = (section: MethodSection) => section.methods.length === 1
     </template>
 
     <button
+      v-if="!hasTotp"
       type="button"
       :class="buttonVariants({ variant: 'outline', class: 'w-full sm:w-auto sm:self-start' })"
       :disabled="busy === 'cancel'"

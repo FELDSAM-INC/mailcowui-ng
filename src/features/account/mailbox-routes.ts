@@ -95,6 +95,12 @@ export const mailboxSelfServiceRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'new',
+        name: 'mailbox-temporary-alias-create',
+        component: page(() => import('./pages/TemporaryAliasCreatePage.vue')),
+        meta: { titleKey: 'account.temporaryAliases.create' },
+      },
+      {
         path: '',
         name: 'mailbox-temporary-aliases',
         component: page(() => import('./pages/TemporaryAliasesPage.vue')),

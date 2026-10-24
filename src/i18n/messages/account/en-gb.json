@@ -1,5 +1,8 @@
 {
   "account": {
+    "temporaryAliases": {
+      "create": "Create spam alias"
+    },
     "push": {
       "token": "API Token/Key (Application)",
       "userKey": "User/Group Key",

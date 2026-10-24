@@ -3,7 +3,6 @@ import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
-import { Card } from '@/shared/ui/card'
 
 import { useOwnMailboxOverview } from '../../api/overview'
 import AddressLists from './AddressLists.vue'
@@ -17,7 +16,7 @@ withDefaults(defineProps<{ showTitle?: boolean }>(), { showTitle: true })
 </script>
 
 <template>
-  <Card data-mailbox-overview>
+  <div class="flex min-w-0 flex-col gap-5" data-mailbox-overview>
     <h2 v-if="showTitle" class="text-lg font-semibold text-gray-900 dark:text-white">
       {{ lt('user.overview') }}
     </h2>
@@ -58,5 +57,5 @@ withDefaults(defineProps<{ showTitle?: boolean }>(), { showTitle: true })
         </div>
       </dl>
     </template>
-  </Card>
+  </div>
 </template>

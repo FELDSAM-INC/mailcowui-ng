@@ -111,14 +111,15 @@ test('two-step authentication keeps its code while switching theme in the shared
   ).toBeVisible()
   await expectAuthLayout(page)
   const code = page.getByLabel('Six-digit code')
-  await code.fill('123456')
+  await code.fill('12345')
   await chooseTheme(page, 'Dark')
-  await expect(code).toHaveValue('123456')
+  await expect(code).toHaveValue('12345')
   await page.screenshot({
     path: test.info().outputPath('two-step-auth.png'),
     fullPage: true,
     animations: 'disabled',
   })
-  await page.getByRole('button', { name: 'Login', exact: true }).first().click()
+  await code.press('End')
+  await code.press('6')
   await expectLanding(page, 'mailboxUser')
 })

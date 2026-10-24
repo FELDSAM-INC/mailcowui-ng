@@ -88,7 +88,12 @@ const emailRouting: SectionSpec = {
   ],
 }
 
-const groups: readonly { id: string; labelKey?: TextRef; items: readonly SectionSpec[] }[] = [
+const groups: readonly {
+  id: string
+  labelKey?: TextRef
+  roles?: readonly Role[]
+  items: readonly SectionSpec[]
+}[] = [
   {
     id: 'email',
     labelKey: 'nav.groups.emailConfiguration',
@@ -113,7 +118,7 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
       emailRouting,
     ],
   },
-  { id: 'quarantine', items: [single('quarantine'), single('spamFilter')] },
+  { id: 'quarantine', roles: ADMIN, items: [single('quarantine')] },
   {
     id: 'system',
     labelKey: legacy('header.mailcow_system'),
@@ -129,6 +134,10 @@ const groups: readonly { id: string; labelKey?: TextRef; items: readonly Section
         ],
       },
       single('mailQueue'),
+      {
+        ...single('quarantine'),
+        tabs: [tab('quarantine', { roles: ['domainAdmin', 'mailboxUser'] })],
+      },
     ],
   },
   {
@@ -279,6 +288,7 @@ export function sidebarSections(
 ): SidebarSection[] {
   if (!identity) return []
   return groups
+    .filter((group) => !group.roles || group.roles.includes(identity.role))
     .map((group) => ({
       ...group,
       items: group.items

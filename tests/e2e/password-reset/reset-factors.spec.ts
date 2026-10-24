@@ -275,3 +275,19 @@ test('Edge FR-038 a new reset fragment in the same tab replaces the account and 
   await expect(page.locator('[data-reset-done]')).toBeVisible()
   await expectAccessible()
 })
+
+test('password reset waits for explicit submission of a complete authenticator code', async ({
+  page,
+  mockApi,
+}) => {
+  await mockApi.use('account-password-reset')
+  await page.goto(`reset-password?token=${RESET_TOKENS.totp}`)
+  await expect(page.locator('[data-reset-password]')).toBeVisible()
+  await submitPassword(page)
+  await expect(page.locator('[data-reset-factor]')).toBeVisible()
+  await page.getByLabel('Six-digit code').fill('123456')
+  expect(await mockApi.countRequests('completePasswordReset')).toBe(1)
+  await page.getByRole('button', { name: 'Login', exact: true }).click()
+  await expect(page.locator('[data-reset-done]')).toBeVisible()
+  expect(await mockApi.countRequests('completePasswordReset')).toBe(2)
+})

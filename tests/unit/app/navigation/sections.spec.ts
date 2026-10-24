@@ -140,7 +140,7 @@ describe('requested application navigation', () => {
   it('filters each tab by role, keeps read-only BCC access, and hides empty groups', () => {
     const who = identity('domainAdmin', false)
     const groups = sidebarSections(who)
-    expect(groups.map((group) => group.id)).toEqual(['email', 'quarantine', 'configuration'])
+    expect(groups.map((group) => group.id)).toEqual(['email', 'system', 'configuration'])
     expect(groups.flatMap((group) => group.items).map((item) => item.id)).not.toContain('syncJobs')
     expect(activeSection('/domains', who)?.tabs.map((tab) => tab.id)).toEqual(['domains'])
     expect(activeSection('/routing/bcc-maps', who)?.tabs.map((tab) => tab.id)).toEqual(['bccMaps'])
@@ -149,7 +149,8 @@ describe('requested application navigation', () => {
       sidebarSections(identity('mailboxUser', false))
         .flatMap((group) => group.items)
         .map((item) => item.id),
-    ).toEqual(['quarantine', 'spamFilter'])
+    ).toEqual(['quarantine'])
+    expect(sidebarSections(identity('mailboxUser', false))[0]?.id).toBe('system')
     expect(sidebarSections(null)).toEqual([])
   })
 

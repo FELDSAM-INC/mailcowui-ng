@@ -42,7 +42,7 @@ async function add() {
 </script>
 
 <template>
-  <section class="surface flex flex-col gap-4" :aria-labelledby="titleId">
+  <section class="flex min-w-0 flex-col gap-4" :aria-labelledby="titleId">
     <h2 :id="titleId" class="font-semibold text-gray-900 dark:text-white">
       {{ t('passkeys.add.heading') }}
     </h2>

@@ -5,7 +5,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { problemOf, type AppleProfileRequest } from '@/api'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { safeHref } from '@/shared/security/safe-url'
 import { useClientConfiguration } from '../api/client-setup'
@@ -44,8 +44,7 @@ const directOff = computed(() =>
 const guideLink = computed(() => safeHref(config.data.value?.documentationUrl))
 </script>
 <template>
-  <section class="flex flex-col gap-6">
-    <PageHeader :title="t('account.sections.mailApps')" />
+  <SettingsPage :title="t('account.sections.mailApps')">
     <p v-if="config.isPending.value" role="status" aria-busy="true">{{ lt('user.loading') }}</p>
     <ProblemMessage
       v-else-if="config.isError.value"
@@ -54,7 +53,7 @@ const guideLink = computed(() => safeHref(config.data.value?.documentationUrl))
       @retry="config.refetch()"
     />
     <template v-else-if="config.data.value">
-      <div v-if="secondFactor || directOff" class="surface flex flex-col gap-3">
+      <div v-if="secondFactor || directOff" class="flex flex-col gap-3">
         <LegacyText v-if="secondFactor" k="user.tfa_info" as="p" />
         <LegacyText v-if="directOff" k="user.direct_protocol_access" as="p" />
         <RouterLink
@@ -84,5 +83,5 @@ const guideLink = computed(() => safeHref(config.data.value?.documentationUrl))
         >{{ lt('user.client_configuration') }}</a
       >
     </template>
-  </section>
+  </SettingsPage>
 </template>

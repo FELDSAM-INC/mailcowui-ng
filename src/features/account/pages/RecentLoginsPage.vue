@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import { useDataList } from '@/shared/composables/useDataList'
 
 import { useQueryClient } from '@tanstack/vue-query'
@@ -100,20 +101,22 @@ useDataList(
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
-  <section v-else class="flex flex-col gap-5">
-    <MailboxContextHeader :title="lt('user.recent_successful_connections')">
-      <template #actions
-        ><button
-          v-if="access.canChange.value"
-          type="button"
-          :disabled="changing || !rows.length"
-          :class="buttonVariants({ variant: 'outline' })"
-          @click="clear"
+  <SettingsPage v-else>
+    <template #header>
+      <MailboxContextHeader :title="lt('user.recent_successful_connections')">
+        <template #actions
+          ><button
+            v-if="access.canChange.value"
+            type="button"
+            :disabled="changing || !rows.length"
+            :class="buttonVariants({ variant: 'outline' })"
+            @click="clear"
+          >
+            {{ lt('user.clear_recent_successful_connections') }}
+          </button></template
         >
-          {{ lt('user.clear_recent_successful_connections') }}
-        </button></template
-      >
-    </MailboxContextHeader>
+      </MailboxContextHeader>
+    </template>
     <RecentLoginFilters :list="list" :periods="recentLoginPeriods(limits)" />
     <ProblemMessage v-if="problem" :problem="problem" />
     <p v-if="query.isPending.value" role="status" aria-busy="true">{{ lt('user.loading') }}</p>
@@ -135,5 +138,5 @@ useDataList(
       @update:page="list.setPage"
       @update:size="list.setSize($event as 25 | 50 | 100)"
     />
-  </section>
+  </SettingsPage>
 </template>

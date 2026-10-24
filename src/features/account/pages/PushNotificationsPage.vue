@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import { computed } from 'vue'
 import { lt } from '@/i18n'
 import AclReadOnlyNote from '@/shared/components/AclReadOnlyNote.vue'
@@ -11,15 +12,17 @@ const owner = computed(() => props.mailbox ?? access.context.mailbox.value)
 const mailboxContext = computed(() => access.context.kind.value === 'mailbox')
 </script>
 <template>
-  <section
+  <component
+    :is="embedded ? 'section' : SettingsPage"
     :id="embedded ? 'pushover' : undefined"
-    class="flex flex-col gap-4"
-    :class="embedded ? 'surface' : ''"
+    :class="embedded ? 'surface flex flex-col gap-6' : undefined"
   >
     <h2 v-if="embedded" class="text-lg font-semibold text-gray-900 dark:text-white">
       {{ lt('edit.pushover') }}
     </h2>
-    <MailboxContextHeader v-else :title="lt('edit.pushover')" />
+    <template v-if="!embedded" #header
+      ><MailboxContextHeader :title="lt('edit.pushover')"
+    /></template>
     <AclReadOnlyNote
       v-if="embedded && access.mailbox.value.mode === 'readOnly'"
       id="push-read-only"
@@ -32,5 +35,5 @@ const mailboxContext = computed(() => access.context.kind.value === 'mailbox')
       :mailbox-context="mailboxContext"
       :can-change="access.canChange.value"
     />
-  </section>
+  </component>
 </template>

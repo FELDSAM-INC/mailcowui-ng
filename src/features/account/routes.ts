@@ -78,6 +78,12 @@ export const accountRoutes: RouteRecordRaw[] = [
         meta: { accountSection: 'mailSettings', titleKey: legacy('user.mailbox_settings') },
       },
       {
+        path: 'temporary-aliases/new',
+        name: 'account-temporary-alias-create',
+        component: accountPage(() => import('./pages/TemporaryAliasCreatePage.vue')),
+        meta: { accountSection: 'temporaryAliases', titleKey: 'account.temporaryAliases.create' },
+      },
+      {
         path: 'temporary-aliases',
         name: 'account-temporary-aliases',
         component: accountPage(() => import('./pages/TemporaryAliasesPage.vue')),

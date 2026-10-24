@@ -12,7 +12,7 @@ import { ActingUnavailableNotice, useActingState } from '@/features/acting'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import ListState from '@/shared/components/ListState.vue'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import PaginationBar from '@/shared/components/PaginationBar.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { announce } from '@/shared/composables/useAnnouncer'
@@ -96,8 +96,7 @@ async function remove(passkey: Passkey) {
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-3xl flex-col gap-6">
-    <PageHeader :title="t('passkeys.title')" :description="t('passkeys.intro')" />
+  <SettingsPage :title="t('passkeys.title')" :description="t('passkeys.intro')">
     <ActingUnavailableNotice v-if="isActing" />
     <template v-else>
       <AddPasskeyForm @added="query.refetch()" />
@@ -128,5 +127,5 @@ async function remove(passkey: Passkey) {
         @saved="query.refetch()"
       />
     </template>
-  </section>
+  </SettingsPage>
 </template>

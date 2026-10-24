@@ -24,6 +24,7 @@ const icons: Record<AccountSectionId, Component> = {
   overview: HomeIcon,
   mailApps: MonitorIcon,
   activeScript: FilterIcon,
+  spamFilter: FilterIcon,
   password: LockIcon,
   recoveryEmail: MailIcon,
   twoFactor: ShieldIcon,

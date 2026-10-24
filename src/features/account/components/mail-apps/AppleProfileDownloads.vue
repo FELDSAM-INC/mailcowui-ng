@@ -44,13 +44,13 @@ const selected = (variant: string, withAppPassword: boolean) =>
       :is="!password && withPassword ? 'details' : 'div'"
       v-for="password in withPassword ? [true, false] : [false]"
       :key="String(password)"
-      class="surface group"
+      class="group"
       :data-profile-password="String(password)"
       :open="!password && props.selectedAppPassword === false ? true : undefined"
     >
       <summary
         v-if="!password && withPassword"
-        class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-medium text-gray-900 dark:text-white [&::-webkit-details-marker]:hidden"
+        class="border-t border-line pt-4 flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 font-medium text-gray-900 dark:text-white [&::-webkit-details-marker]:hidden"
       >
         {{ lt('user.advanced_settings') }} · {{ t('account.mailApps.auth.normalPassword') }}
         <ChevronDownIcon class="size-4 shrink-0 group-open:rotate-180" />

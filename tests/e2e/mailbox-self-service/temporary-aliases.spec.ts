@@ -18,12 +18,13 @@ for (const scenario of ['account-admin', 'account-domain-admin-no-flags']) {
     await page.getByLabel('Period of validity', { exact: true }).selectOption('24')
     await page
       .locator('[data-generate-alias]')
-      .getByRole('button', { name: 'Add', exact: true })
+      .getByRole('button', { name: 'Create spam alias', exact: true })
       .click()
-    await expect(page.locator('[data-new-alias]')).toContainText('@example.com')
+    await expect(page.locator('[data-entry]')).toContainText('@example.com')
     await expect(page.locator('[data-entry]')).toContainText('Mailbox shop')
     await expectAccessible()
     await expectNoHorizontalScroll()
+    await page.locator('[data-detail-back]').click()
     await page.locator('[data-detail-back]').click()
     await expect(
       page.getByRole('link', { name: 'Spam email aliases (1)', exact: true }),

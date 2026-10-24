@@ -4,7 +4,7 @@
 // keyboard, accepts one-time-code autofill and pasting, and the code must be exactly six digits
 // (whitespace removed) before it is sent. The field is cleared after every attempt (FR-091). As in
 // the classic two-factor modal: "Authenticators" over the list, "123456" in the field and "Login".
-import { onMounted, ref, useId, useTemplateRef } from 'vue'
+import { onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { SecondFactorMethod, SecondFactorVerification, Writable } from '@/api'
@@ -22,6 +22,7 @@ const props = defineProps<{
   busy: boolean
   /** The code field takes focus when the step opens (US1-AS4). */
   takeFocus?: boolean
+  autoSubmit?: boolean
 }>()
 const emit = defineEmits<{ verify: [body: Writable<SecondFactorVerification>] }>()
 
@@ -35,6 +36,10 @@ const input = useTemplateRef<InstanceType<typeof VerificationCodeInput>>('input'
 
 onMounted(() => {
   if (props.takeFocus) input.value?.focus()
+})
+
+watch(code, (value) => {
+  if (props.autoSubmit && isTotpCode(normaliseCode(value))) submit()
 })
 
 function submit() {
@@ -84,17 +89,21 @@ function submit() {
           ref="input"
           v-bind="field"
           v-model="code"
+          :disabled="autoSubmit && busy"
           :data-autofocus="takeFocus ? '' : undefined"
         />
       </FormField>
-      <button
-        type="submit"
-        :class="buttonVariants({ class: 'w-full sm:w-auto sm:self-start' })"
-        :disabled="busy"
-        :aria-busy="busy ? 'true' : 'false'"
-      >
-        <LegacyText k="login.login" />
-      </button>
+      <div class="flex items-center justify-between gap-3" data-factor-actions>
+        <slot name="cancel" />
+        <button
+          type="submit"
+          :class="buttonVariants({ class: $slots.cancel ? 'ms-auto' : 'w-full sm:w-auto' })"
+          :disabled="busy"
+          :aria-busy="busy ? 'true' : 'false'"
+        >
+          <LegacyText k="login.login" />
+        </button>
+      </div>
     </form>
   </MethodSection>
 </template>

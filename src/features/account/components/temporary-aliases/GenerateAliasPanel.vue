@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, useId, watch } from 'vue'
 import { problemOf, type TemporaryAlias } from '@/api'
@@ -18,6 +19,7 @@ import ValiditySelect from './ValiditySelect.vue'
 
 const props = defineProps<{ mailbox: string; canChange: boolean }>()
 const emit = defineEmits<{ created: [value: TemporaryAlias] }>()
+const { t } = useI18n()
 const client = useQueryClient()
 const domains = useTemporaryAliasDomains(() => props.mailbox)
 const capabilities = useSelfServiceCapabilities()
@@ -83,6 +85,7 @@ async function submit() {
     description.value = ''
     initial.value = { domain: domain.value, validity: validity.value }
     announce(`${lt('success.mailbox_modified', owner)} ${value.address}`)
+    pending.value = false
     emit('created', value)
   } catch (error) {
     if (!disposed && props.mailbox === owner) {
@@ -172,7 +175,7 @@ async function submit() {
         :disabled="pending"
         :aria-busy="pending"
       >
-        {{ lt('admin.add') }}
+        {{ t('account.temporaryAliases.create') }}
       </button>
     </template>
     <div

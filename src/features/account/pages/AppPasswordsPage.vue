@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import DataRow from '@/shared/components/DataRow.vue'
 
 import DataIdentity from '@/shared/components/DataIdentity.vue'
@@ -158,17 +159,19 @@ const tableView = useDataColumns(
 </script>
 <template>
   <NotFoundPage v-if="notFound" />
-  <section v-else class="flex flex-col gap-5">
-    <MailboxContextHeader :title="lt('user.app_passwds')">
-      <template #actions
-        ><RouterLink
-          v-if="access.canChange.value"
-          :to="location('create')"
-          :class="buttonVariants({})"
-          >{{ lt('user.create_app_passwd') }}</RouterLink
-        ></template
-      >
-    </MailboxContextHeader>
+  <SettingsPage v-else>
+    <template #header>
+      <MailboxContextHeader :title="lt('user.app_passwds')">
+        <template #actions
+          ><RouterLink
+            v-if="access.canChange.value"
+            :to="location('create')"
+            :class="buttonVariants({})"
+            >{{ lt('user.create_app_passwd') }}</RouterLink
+          ></template
+        >
+      </MailboxContextHeader>
+    </template>
     <LegacyText k="user.app_hint" as="p" class="text-gray-700 dark:text-gray-300" />
     <ListToolbar
       ><template v-if="access.canChange.value" #select
@@ -412,5 +415,5 @@ const tableView = useDataColumns(
       @update:page="list.setPage"
       @update:size="list.setSize($event as 25 | 50 | 100)"
     />
-  </section>
+  </SettingsPage>
 </template>

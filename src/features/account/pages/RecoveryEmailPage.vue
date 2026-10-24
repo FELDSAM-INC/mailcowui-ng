@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 
 import { problemOf } from '@/api'
 import { lt } from '@/i18n'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 
 import { useOwnRecoveryEmail } from '../api/recovery-email'
@@ -19,8 +19,7 @@ const username = computed(() => access.identity.data.value?.username ?? '')
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <PageHeader :title="lt('user.pw_recovery_email')" />
+  <SettingsPage :title="lt('user.pw_recovery_email')">
     <div v-if="query.isPending.value" role="status" aria-busy="true">
       {{ lt('footer.loading') }}
     </div>
@@ -34,5 +33,5 @@ const username = computed(() => access.identity.data.value?.username ?? '')
       :username="username"
       @reload="query.refetch()"
     />
-  </section>
+  </SettingsPage>
 </template>

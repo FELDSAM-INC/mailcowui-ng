@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import { computed } from 'vue'
 import { problemOf, type PermissionFlags } from '@/api'
 import NoAccessState from '@/app/states/NoAccessState.vue'
@@ -29,8 +30,10 @@ const unavailable = computed(
 </script>
 <template>
   <NoAccessState v-if="unavailable" />
-  <section v-else class="flex flex-col gap-6">
-    <MailboxContextHeader :title="lt('user.mailbox_settings')" />
+  <SettingsPage v-else>
+    <template #header>
+      <MailboxContextHeader :title="lt('user.mailbox_settings')" />
+    </template>
     <template v-if="tagged || tls">
       <p v-if="query.isPending.value" role="status" aria-busy="true">{{ lt('footer.loading') }}</p>
       <MailSettingsControls
@@ -62,5 +65,5 @@ const unavailable = computed(
       :active-sync="allowed('easReset')"
       :profile="allowed('sogoProfileReset')"
     />
-  </section>
+  </SettingsPage>
 </template>

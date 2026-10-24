@@ -24,7 +24,7 @@ async function openStep(page: Page, username = 'alice@example.org') {
   await expect(step(page).heading).toBeVisible()
 }
 
-test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under "Other methods", and TOTP lands on Password', async ({
+test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under "Other methods", and TOTP lands on Overview', async ({
   page,
   mockApi,
   expectAccessible,
@@ -50,7 +50,6 @@ test('US1-AS3 FR-020 the methods follow the server order, Yubico OTP sits under 
   await expectAccessible()
 
   await s.code.fill('123456')
-  await s.verify.first().click()
   await expectLanding(page, 'mailboxUser')
 })
 
@@ -67,7 +66,6 @@ test('US1-AS4 FR-022 with two authenticators the user chooses by name; with one 
   await group.getByRole('radio', { name: 'Tablet' }).check()
   await expectAccessible()
   await step(page).code.fill('654321')
-  await step(page).verify.click()
   await expectLanding(page, 'mailboxUser')
 
   await mockApi.use('anonymous-default')
@@ -84,7 +82,6 @@ test('US1-AS7 FR-024 a wrong code returns to the password step with the username
   await mockApi.use('mailbox-all-factors')
   await openStep(page)
   await step(page).code.fill('000000')
-  await step(page).verify.first().click()
   await expect(page).toHaveURL(/\/ng\/sign-in(\?|$)/)
   const notice = 'The code was not accepted. Please start the sign-in again.'
   await expect(page.getByRole('main').getByText(notice)).toBeVisible()
@@ -147,10 +144,6 @@ test('US1-AS10 FR-027 a Yubico outage keeps the step open and allows a retry or 
   await expect(s.heading).toBeVisible()
   await expectAccessible()
   await s.code.fill('123456')
-  await page
-    .getByRole('region', { name: 'Time-based OTP (Google Authenticator, Authy, etc.)' })
-    .getByRole('button', { name: 'Login' })
-    .click()
   await expectLanding(page, 'mailboxUser')
 })
 
@@ -216,7 +209,6 @@ test('Edge: a factor deactivated between the steps returns to the password step'
     },
   })
   await step(page).code.fill('123456')
-  await step(page).verify.click()
   await expect(
     page.getByRole('main').getByText('The code was not accepted. Please start the sign-in again.'),
   ).toBeVisible()
@@ -252,10 +244,6 @@ test('FR-022 FR-023 the code formats are checked before submitting', async ({
   expect(ops).not.toContain('verifySecondFactor')
 
   await s.code.fill('123 456')
-  await page
-    .getByRole('region', { name: 'Time-based OTP (Google Authenticator, Authy, etc.)' })
-    .getByRole('button', { name: 'Login' })
-    .click()
   await expectLanding(page, 'mailboxUser')
 })
 
@@ -289,56 +277,48 @@ test('FR-021 a cancelled WebAuthn prompt keeps the step open without an error an
   expect(ops).toContain('createSecondFactorWebAuthnChallenge')
   expect(ops).not.toContain('verifySecondFactor')
   await step(page).code.fill('123456')
-  await step(page).verify.first().click()
   await expectLanding(page, 'mailboxUser')
 })
 
-test('six-digit boxes support typing, correction, paste and one-time-code autofill', async ({
+test('the sixth digit automatically submits once after partial-code corrections', async ({
   page,
   mockApi,
-  context,
-  browserName,
 }) => {
   await mockApi.use('anonymous-default')
   await openStep(page)
   const code = step(page).code
-  const slots = page.locator('[data-method="totp"] [data-code-digit]')
-  await expect(slots).toHaveCount(6)
-  await expect(code).toBeFocused()
-  await expect(code).toHaveAttribute('autocomplete', 'one-time-code')
-  await code.pressSequentially('123')
-  await expect(slots).toHaveText(['1', '2', '3', '', '', ''])
+  await code.pressSequentially('1234')
   await code.press('Backspace')
-  await code.pressSequentially('3456')
-  await expect(code).toHaveValue('123456')
-  await code.press('Home')
-  await code.press('Delete')
-  await expect(code).toHaveValue('23456')
-  await code.press('1')
-  await expect(code).toHaveValue('123456')
-
-  const textbox = (await code.boundingBox())!
-  const third = (await slots.nth(2).boundingBox())!
-  await code.click({ position: { x: third.x + third.width / 2 - textbox.x, y: third.height / 2 } })
-  await code.press('9')
-  await expect(code).toHaveValue('129456')
-  await code.press('ControlOrMeta+A')
-  if (browserName === 'chromium') {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-    await page.evaluate(() => navigator.clipboard.writeText('012 345'))
-    await code.press('ControlOrMeta+V')
-  } else {
-    // Bulk native input exercises the same path where clipboard permissions are unavailable.
-    await page.keyboard.insertText('012 345')
-  }
-  await expect(code).toHaveValue('012345')
-  await expect(slots).toHaveText(['0', '1', '2', '3', '4', '5'])
-  await code.fill('123456')
+  await code.pressSequentially('45')
+  await expect(code).toHaveValue('12345')
   expect(await mockApi.countRequests('verifySecondFactor')).toBe(0)
-  await page.screenshot({
-    path: test.info().outputPath('six-digit-code.png'),
-    animations: 'disabled',
-  })
-  await code.press('Enter')
+  await code.press('6')
   await expectLanding(page, 'mailboxUser')
+  expect(await mockApi.countRequests('verifySecondFactor')).toBe(1)
+})
+
+test('pasting a complete code auto-submits once and disables inputs while verification is pending', async ({
+  page,
+  mockApi,
+}) => {
+  await mockApi.use('anonymous-default')
+  await openStep(page)
+  let release!: () => void
+  const waiting = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route('**/api/v2/session/pending-sign-in/second-factor', async (route) => {
+    await waiting
+    await route.continue()
+  })
+  try {
+    await step(page).code.fill('123 456')
+    await expect(step(page).verify).toBeDisabled()
+    await expect(step(page).code).toBeDisabled()
+    await page.keyboard.press('Enter')
+  } finally {
+    release()
+  }
+  await expectLanding(page, 'mailboxUser')
+  expect(await mockApi.countRequests('verifySecondFactor')).toBe(1)
 })

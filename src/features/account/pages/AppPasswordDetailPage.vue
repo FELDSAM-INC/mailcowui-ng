@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { computed, onScopeDispose, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -91,11 +92,13 @@ onBeforeRouteUpdate(() => dialog.value?.requestClose() ?? true)
 </script>
 <template>
   <NotFoundPage v-if="notFound" :back-to="location('list')" :back-label="lt('user.app_passwds')" />
-  <section v-else class="flex flex-col gap-5">
-    <MailboxContextHeader
-      :title="`${lt('edit.app_passwd')}${item ? `: ${item.name}` : ''}`"
-      target-type="appPassword"
-    />
+  <SettingsPage v-else>
+    <template #header>
+      <MailboxContextHeader
+        :title="`${lt('edit.app_passwd')}${item ? `: ${item.name}` : ''}`"
+        target-type="appPassword"
+      />
+    </template>
     <p
       v-if="query.isPending.value"
       role="status"
@@ -160,5 +163,5 @@ onBeforeRouteUpdate(() => dialog.value?.requestClose() ?? true)
       grouped
       @close="secret = null"
     />
-  </section>
+  </SettingsPage>
 </template>

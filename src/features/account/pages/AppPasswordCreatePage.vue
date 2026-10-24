@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import { ref, watch } from 'vue'
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from 'vue-router'
 import type { AppPassword, AppPasswordResult } from '@/api'
@@ -39,8 +40,10 @@ onBeforeRouteLeave(guard)
 onBeforeRouteUpdate(guard)
 </script>
 <template>
-  <section class="flex flex-col gap-5">
-    <MailboxContextHeader :title="lt('add.app_password')" />
+  <SettingsPage>
+    <template #header>
+      <MailboxContextHeader :title="lt('add.app_password')" />
+    </template>
     <NoAccessState v-if="!access.canChange.value" />
     <AppPasswordForm
       v-else
@@ -57,5 +60,5 @@ onBeforeRouteUpdate(guard)
       grouped
       @close="close"
     />
-  </section>
+  </SettingsPage>
 </template>

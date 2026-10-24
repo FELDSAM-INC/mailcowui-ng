@@ -31,16 +31,14 @@ test('empty explanation, legacy generation defaults, raw copy, permanence and co
   await expectNoHorizontalScroll()
   await page
     .locator('[data-generate-alias]')
-    .getByRole('button', { name: 'Add', exact: true })
+    .getByRole('button', { name: 'Create spam alias', exact: true })
     .click()
-  const result = page.locator('[data-new-alias]')
-  await expect(result).toBeVisible()
-  const copy = result.getByRole('button', { name: /^Copy: / })
-  const address = (await copy.getAttribute('aria-label'))!.slice('Copy: '.length)
+  const row = page.locator('[data-entry]').filter({ hasText: 'Shop' })
+  await expect(row).toBeVisible()
+  const address = (await row.getAttribute('data-entry'))!
   expect(address).toMatch(/^[a-z]{6,8}\.[a-z]{6,8}@example.com$/)
-  await copy.click()
+  await clickRowAction(page, row, `Copy: ${address}`)
   expect(await page.evaluate(() => (window as unknown as { copied: string }).copied)).toBe(address)
-  const row = page.locator('[data-entry]').filter({ hasText: address })
   await expect(row).toContainText('Shop')
   await expect(row.locator('time')).toHaveCount(3)
   if (await row.locator('[data-row-action-trigger]').count())
@@ -72,9 +70,9 @@ test('one domain hides its choice and validity follows the pinned capability ran
   )
   await page
     .locator('[data-generate-alias]')
-    .getByRole('button', { name: 'Add', exact: true })
+    .getByRole('button', { name: 'Create spam alias', exact: true })
     .click()
-  await expect(page.locator('[data-new-alias]')).toContainText('@example.org')
+  await expect(page.locator('[data-entry]')).toContainText('@example.org')
 })
 
 test('bulk validity reports each alias, keeps failures selected and retries with fresh versions', async ({
@@ -221,7 +219,7 @@ test('the spamAlias flag gates own access and generation failures retain the dra
   await page.getByLabel('Description', { exact: true }).fill('Retained')
   await page
     .locator('[data-generate-alias]')
-    .getByRole('button', { name: 'Add', exact: true })
+    .getByRole('button', { name: 'Create spam alias', exact: true })
     .click()
   await expect(page.getByLabel('Description', { exact: true })).toHaveValue('Retained')
   await expect(page.locator('[data-generate-alias] [role="alert"]')).toBeVisible()

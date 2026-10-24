@@ -18,6 +18,7 @@ export const spamFilterRoutes: RouteRecordRaw[] = [
       layout: 'shell',
       access: 'session',
       navEntry: 'spamFilter',
+      accountSection: 'spamFilter',
       titleKey: legacy('user.spamfilter'),
     },
   },

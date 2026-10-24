@@ -5,7 +5,7 @@
 import { computed } from 'vue'
 
 import { lt } from '@/i18n'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 
 import { useOwnMailboxOverview } from '../api/overview'
 import ExternalPasswordNotice from '../components/password/ExternalPasswordNotice.vue'
@@ -19,13 +19,12 @@ const overview = useOwnMailboxOverview(isMailbox)
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <PageHeader :title="lt('user.change_password')" />
+  <SettingsPage :title="lt('user.change_password')">
     <ExternalPasswordNotice v-if="access.own.value === 'replaced'" />
     <OwnPasswordForm
       v-else-if="identity"
       :identity="identity"
       :active-app-passwords="overview.data.value?.activeAppPasswords ?? null"
     />
-  </section>
+  </SettingsPage>
 </template>

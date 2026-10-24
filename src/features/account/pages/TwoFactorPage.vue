@@ -10,7 +10,7 @@ import { RouterLink } from 'vue-router'
 import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
-import PageHeader from '@/shared/components/PageHeader.vue'
+import SettingsPage from '@/shared/components/SettingsPage.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { buttonVariants } from '@/shared/ui/button'
 
@@ -36,8 +36,7 @@ const METHODS = [
 </script>
 
 <template>
-  <section class="flex flex-col gap-5">
-    <PageHeader :title="lt('tfa.tfa')" />
+  <SettingsPage :title="lt('tfa.tfa')">
     <LegacyText
       v-if="identity?.role === 'mailboxUser'"
       k="user.tfa_info"
@@ -103,5 +102,5 @@ const METHODS = [
         </button>
       </div>
     </section>
-  </section>
+  </SettingsPage>
 </template>

@@ -12,6 +12,7 @@ export type AccountSectionId =
   | 'overview'
   | 'mailApps'
   | 'activeScript'
+  | 'spamFilter'
   | 'password'
   | 'recoveryEmail'
   | 'twoFactor'
@@ -68,6 +69,12 @@ export const ACCOUNT_SECTIONS: readonly AccountSection[] = [
     id: 'activeScript',
     title: legacy('user.active_sieve'),
     route: 'account-filters',
+    mailboxRoute: null,
+  },
+  {
+    id: 'spamFilter',
+    title: legacy('user.spamfilter'),
+    route: 'spam-filter',
     mailboxRoute: null,
   },
   {
@@ -169,6 +176,8 @@ export function ownVisibility(
     case 'mailApps':
     case 'activeScript':
       return 'visible'
+    case 'spamFilter':
+      return flag(identity, 'spamScore') || flag(identity, 'spamPolicy') ? 'visible' : 'hidden'
     case 'password':
       if (!account) return 'unknown'
       return account.passwordChangeAvailable ? 'visible' : 'replaced'

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-// The operator's logo for the active theme and the product name (FR-001, research R16). The name
-// is always shown as text, so the logo is decorative; when it fails to load, it disappears and the
-// name stays (spec edge case).
+// Desktop uses the operator's logo alone; mobile also shows the product name. If the logo is
+// missing or fails to load, the name remains visible at every width.
 import { ref, watch } from 'vue'
 
 import { useBranding } from '@/app/branding/public-config'
@@ -19,7 +18,7 @@ watch(logo, () => {
     <img
       v-if="logo && !failed"
       :src="logo"
-      alt=""
+      :alt="branding.productName"
       class="w-auto object-contain"
       :class="[logoSizes.signIn.heightClass, logoSizes.signIn.widthClass]"
       @error="failed = true"
@@ -27,6 +26,8 @@ watch(logo, () => {
     <p
       data-product-name
       class="max-w-full text-lg font-semibold wrap-anywhere text-gray-900 lg:text-3xl dark:text-white"
+      :class="{ 'lg:hidden': logo && !failed }"
+      :aria-hidden="logo && !failed ? true : undefined"
     >
       {{ branding.productName }}
     </p>

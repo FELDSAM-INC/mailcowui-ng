@@ -16,7 +16,9 @@ test.describe('the role-neutral sign-in screen', () => {
     await expect(page).toHaveTitle('Login – Example Mail')
     const main = page.getByRole('main')
     await expect(main.locator('img[src*="/public-config/logos/light"]')).toBeVisible()
-    await expect(main.getByText('Example Mail', { exact: true })).toBeVisible()
+    if (page.viewportSize()!.width >= 1024)
+      await expect(main.locator('[data-product-name]')).toBeHidden()
+    else await expect(main.locator('[data-product-name]')).toBeVisible()
     await expect(page.getByText('Maintenance on Sunday 02:00–04:00 UTC.')).toBeVisible()
     // The help text sits behind the classic "Show/Hide help panel" disclosure (`start.help`).
     await expect(main.getByText('Need help? Write to')).toBeHidden()

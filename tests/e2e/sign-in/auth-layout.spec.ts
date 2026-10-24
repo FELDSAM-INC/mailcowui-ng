@@ -21,9 +21,13 @@ async function expectAuthLayout(page: Page) {
   const preferencesBox = (await preferences.boundingBox())!
   expect(formBox.width).toBeLessThanOrEqual(448)
   if (page.viewportSize()!.width >= 1024) {
+    await expect(branding.locator('[data-product-name]')).toBeHidden()
+    await expect(branding.getByRole('img', { name: 'Example Mail' })).toHaveCSS('height', '128px')
     expect(formBox.x + formBox.width).toBeLessThan(brandBox.x)
     expect(preferencesBox.x + preferencesBox.width).toBeLessThan(brandBox.x)
   } else {
+    await expect(branding.locator('[data-product-name]')).toBeVisible()
+    await expect(branding.getByRole('img', { name: 'Example Mail' })).toHaveCSS('height', '48px')
     expect(preferencesBox.y + preferencesBox.height).toBeLessThanOrEqual(brandBox.y)
     expect(brandBox.y + brandBox.height).toBeLessThanOrEqual(formBox.y)
   }

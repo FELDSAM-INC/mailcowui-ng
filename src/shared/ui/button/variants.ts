@@ -9,7 +9,7 @@ const base =
 
 const variants: Record<ButtonVariant, string> = {
   default:
-    'bg-accent text-accent-foreground shadow-theme-xs hover:bg-accent-hover focus-visible:ring-3 focus-visible:ring-brand-500/20 disabled:bg-brand-200 disabled:text-white dark:disabled:bg-brand-800 dark:disabled:text-brand-400',
+    'bg-accent text-accent-foreground shadow-theme-xs hover:bg-accent-hover focus-visible:ring-3 focus-visible:ring-accent/20 disabled:bg-accent disabled:text-accent-foreground disabled:opacity-60',
   outline:
     'border-gray-300 bg-transparent text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 focus-visible:ring-3 focus-visible:ring-gray-300/50 disabled:border-gray-200 disabled:bg-white disabled:text-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:hover:text-white dark:disabled:border-gray-800 dark:disabled:bg-gray-900 dark:disabled:text-gray-600',
   ghost:

@@ -1,5 +1,6 @@
 import { beforeAll, expect, it } from 'vitest'
 import { defineComponent, ref } from 'vue'
+import MultiSelect from '@/shared/components/MultiSelect.vue'
 import AccountFields from '@/features/administrators/components/AccountFields.vue'
 import PermissionsEditor from '@/features/administrators/components/PermissionsEditor.vue'
 import { formFromAccount } from '@/features/administrators/account-form'
@@ -33,13 +34,17 @@ it('keeps the classic edit field order, including repeat password and HIBP', () 
   expect(labels.indexOf('Active')).toBeGreaterThan(repeat)
   expect(wrapper.text().toLowerCase()).toContain('haveibeenpwned')
 })
-it('renders all 19 ACL switches in classic order and emits a changed flag', async () => {
+it('offers all 19 ACL choices in classic order and emits a changed flag', () => {
   const wrapper = mountWithApp(PermissionsEditor, {
     props: { modelValue: permissionDefaults(), idPrefix: 'acl' },
   })
-  expect(wrapper.findAll('[role="switch"]')).toHaveLength(19)
-  expect(wrapper.findAll('label')[0]!.attributes('for')).toBe('acl-syncjobs')
-  await wrapper.get('#acl-loginAs').trigger('click')
+  const selector = wrapper.getComponent(MultiSelect)
+  expect(selector.props('options')).toHaveLength(19)
+  expect(selector.props('options')[0]!.value).toBe('syncjobs')
+  selector.vm.$emit(
+    'update:modelValue',
+    selector.props('modelValue').filter((value) => value !== 'loginAs'),
+  )
   expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toMatchObject({
     loginAs: false,
     syncjobs: true,

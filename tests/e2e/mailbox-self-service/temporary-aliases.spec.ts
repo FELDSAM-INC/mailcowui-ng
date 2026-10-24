@@ -1,15 +1,14 @@
 import { expect, test } from '../fixtures/test'
 
 for (const scenario of ['account-admin', 'account-domain-admin-no-flags']) {
-  test(`${scenario} generates an alias in mailbox context and its count link updates`, async ({
+  test(`${scenario} generates an alias in mailbox context without adding administration shortcuts`, async ({
     page,
     mockApi,
     expectAccessible,
     expectNoHorizontalScroll,
   }) => {
     await mockApi.use(scenario)
-    await page.goto('mailboxes/anna@example.org')
-    await page.getByRole('link', { name: 'Spam email aliases (0)', exact: true }).click()
+    await page.goto('mailboxes/anna@example.org/temporary-aliases')
     await expect(page).toHaveURL(/mailboxes\/anna(?:@|%40)example\.org\/temporary-aliases/)
     await expect(page.getByRole('main')).toContainText('anna@example.org')
     await page.locator('[data-add-alias]').click()
@@ -24,11 +23,10 @@ for (const scenario of ['account-admin', 'account-domain-admin-no-flags']) {
     await expect(page.locator('[data-entry]')).toContainText('Mailbox shop')
     await expectAccessible()
     await expectNoHorizontalScroll()
-    await page.locator('[data-detail-back]').click()
-    await page.locator('[data-detail-back]').click()
+    await page.goto('mailboxes/anna@example.org')
     await expect(
       page.getByRole('link', { name: 'Spam email aliases (1)', exact: true }),
-    ).toBeVisible()
+    ).toHaveCount(0)
   })
 }
 

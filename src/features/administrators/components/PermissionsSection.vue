@@ -53,8 +53,7 @@ watch([dirty, save.pending], () => emit('dirty', dirty.value || save.pending.val
 })
 const problems = useProblemForm({
   formKey: 'accounts.form',
-  fieldId: (path) =>
-    path.startsWith('permissions.') ? `account-permission-${path.split('.')[1]}` : null,
+  fieldId: (path) => (path.startsWith('permissions.') ? 'account-permission' : null),
 })
 function reset() {
   baseline.value = props.account
@@ -152,9 +151,13 @@ function discard() {
     <template #form
       ><ErrorSummary :id="problems.summaryId" :items="problems.summary.value" /><ProblemMessage
         :problem="problems.formProblem.value" />
-      <fieldset :disabled="save.pending.value || !editable">
+      <fieldset :disabled="save.pending.value || !editable" class="min-w-0">
         <legend class="sr-only">{{ t('administrators.permissions.title') }}</legend>
-        <PermissionsEditor v-model="flags" id-prefix="account-permission" /></fieldset
+        <PermissionsEditor
+          v-model="flags"
+          id-prefix="account-permission"
+          :disabled="save.pending.value || !editable"
+        /></fieldset
     ></template>
   </EditableSection>
 </template>

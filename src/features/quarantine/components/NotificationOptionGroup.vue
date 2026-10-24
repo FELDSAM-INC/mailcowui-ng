@@ -4,6 +4,7 @@
 // change shows its stored value as text with "Prohibited by ACL" and the permission (D12: no other
 // note). No option is checked when nothing is stored (D4).
 import { computed } from 'vue'
+import ChoiceButton from '@/shared/components/ChoiceButton.vue'
 
 import { lt } from '@/i18n'
 import AclReadOnlyNote from '@/shared/components/AclReadOnlyNote.vue'
@@ -48,11 +49,11 @@ const describedBy = computed(() =>
     :id="groupId"
     :data-notification-field="field"
     tabindex="-1"
-    class="flex min-w-0 flex-col gap-2"
+    class="flex min-w-0 flex-col gap-3"
     :aria-describedby="describedBy"
     :aria-invalid="errors.length > 0 ? 'true' : undefined"
   >
-    <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+    <legend class="mb-3 font-semibold text-gray-900 dark:text-white">
       {{ lt(info.labelKey) }}
     </legend>
     <template v-if="readonly">
@@ -62,22 +63,14 @@ const describedBy = computed(() =>
       <AclReadOnlyNote :id="`${groupId}-acl`" :flag="info.flag" />
     </template>
     <div v-else class="flex flex-wrap gap-2">
-      <label
+      <ChoiceButton
         v-for="option in options"
+        :id="`${groupId}-${option.value}`"
         :key="option.value"
-        class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-800 has-checked:border-brand-500 has-checked:bg-brand-50 has-checked:text-brand-800 dark:border-gray-700 dark:text-gray-200 dark:has-checked:bg-brand-500/15 dark:has-checked:text-brand-200"
+        :pressed="modelValue === option.value"
+        @click="emit('update:modelValue', option.value)"
+        >{{ lt(option.labelKey) }}</ChoiceButton
       >
-        <input
-          :id="`${groupId}-${option.value}`"
-          type="radio"
-          :name="groupId"
-          :value="option.value"
-          :checked="modelValue === option.value"
-          class="size-4 accent-accent"
-          @change="emit('update:modelValue', option.value)"
-        />
-        {{ lt(option.labelKey) }}
-      </label>
     </div>
     <div
       v-if="errors.length > 0"

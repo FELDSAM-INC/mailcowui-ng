@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
+import { computed, nextTick, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { problemOf, type SieveFilter, type SieveFilterKind, type Preset } from '@/api'
 import { lt } from '@/i18n'
@@ -28,6 +28,7 @@ const owner = ref<string | null>(props.stored?.mailbox ?? props.mailbox ?? null)
 const description = ref(props.stored?.description ?? '')
 const kind = ref<SieveFilterKind>(props.stored?.kind ?? 'prefilter')
 const script = ref(props.stored?.script ?? '')
+const scriptField = ref<HTMLElement>()
 const active = ref(props.stored?.active ?? true)
 const scriptBytes = computed(() => utf8ByteLength(script.value))
 const stored = shallowRef(props.stored)
@@ -129,9 +130,16 @@ async function submit() {
     saving.value = false
   }
 }
-function insertPreset(preset: Preset) {
+async function insertPreset(preset: Preset) {
   script.value = preset.content
   if (!description.value.trim()) description.value = preset.headline
+  await nextTick()
+  if (disposed) return
+  scriptField.value?.querySelector<HTMLTextAreaElement>('textarea')?.focus({ preventScroll: true })
+  scriptField.value?.scrollIntoView({
+    block: 'start',
+    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+  })
 }
 function discard() {
   if (!stored.value) return
@@ -220,14 +228,16 @@ function discard() {
           ><input v-bind="control" v-model="description" class="form-control" maxlength="255"
         /></template>
       </FormField>
-      <CodeEditor
-        id="filter-script"
-        v-model="script"
-        :label="t('filters.form.script')"
-        :max-bytes="maxBytes"
-        :errors="form.errorsFor('script')"
-        required
-      />
+      <div ref="scriptField" class="scroll-mt-28">
+        <CodeEditor
+          id="filter-script"
+          v-model="script"
+          :label="t('filters.form.script')"
+          :max-bytes="maxBytes"
+          :errors="form.errorsFor('script')"
+          required
+        />
+      </div>
       <p data-script-bytes class="text-sm text-gray-600 dark:text-gray-400">
         {{ t('filters.form.bytes', { used: n(scriptBytes), max: n(maxBytes) }) }}
       </p>

@@ -91,7 +91,11 @@ describe('DnsCheckCard', () => {
     expect(wrapper.text()).toContain('Allow')
     const values = wrapper.findAllComponents(CopyButton).map((button) => button.props('text'))
     expect(values).toEqual(
-      expect.arrayContaining(['ip4:192.0.2.25', 'ip6:2001:db8::25', 'v=spf1 mx a ~all']),
+      expect.arrayContaining([
+        'ip4:192.0.2.25',
+        'ip6:2001:db8::25',
+        'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 -all',
+      ]),
     )
   })
 

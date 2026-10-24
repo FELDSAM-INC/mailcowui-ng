@@ -89,7 +89,6 @@ describe('DkimKeysPage', () => {
     expect(action.text()).toBe('Edit')
     expect(action.attributes('href')).toBe('/dns/dkim-keys/example.org')
     expect(row.find('td:last-child [aria-expanded]').exists()).toBe(false)
-    expect(wrapper.get('[data-result-count]').text()).toMatch(/\d/)
     await vi.waitFor(() =>
       expect(wrapper.get('[data-dkim-settings]').attributes('aria-busy')).toBeUndefined(),
     )

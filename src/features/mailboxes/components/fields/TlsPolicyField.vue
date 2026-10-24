@@ -2,6 +2,7 @@
 // The encryption policy of the classic forms: "Enforce TLS incoming" and "Enforce TLS outgoing"
 // as two toggles under `user.tls_policy`. Read-only on the mailbox page until UI 005.
 import { lt } from '@/i18n'
+import ChoiceButton from '@/shared/components/ChoiceButton.vue'
 
 const props = withDefaults(
   defineProps<{ idPrefix: string; inbound: boolean; outbound: boolean; readonly?: boolean }>(),
@@ -20,8 +21,8 @@ const valueOf = (key: 'inbound' | 'outbound') =>
 </script>
 
 <template>
-  <fieldset class="flex min-w-0 flex-col gap-2">
-    <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+  <fieldset class="flex min-w-0 flex-col gap-3">
+    <legend class="mb-3 font-semibold text-gray-900 dark:text-white">
       {{ lt('user.tls_policy') }}
     </legend>
     <ul
@@ -34,24 +35,18 @@ const valueOf = (key: 'inbound' | 'outbound') =>
       </li>
     </ul>
     <div v-else class="flex flex-wrap gap-2">
-      <label
+      <ChoiceButton
         v-for="option in OPTIONS"
+        :id="`${idPrefix}-${option.key}`"
         :key="option.key"
-        class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-800 has-checked:border-brand-500 has-checked:bg-brand-50 has-checked:text-brand-800 dark:border-gray-700 dark:text-gray-200 dark:has-checked:bg-brand-500/15 dark:has-checked:text-brand-200"
+        :pressed="valueOf(option.key)"
+        @click="
+          option.key === 'inbound'
+            ? emit('update:inbound', !inbound)
+            : emit('update:outbound', !outbound)
+        "
+        >{{ lt(option.labelKey) }}</ChoiceButton
       >
-        <input
-          :id="`${idPrefix}-${option.key}`"
-          type="checkbox"
-          class="size-4 accent-accent"
-          :checked="valueOf(option.key)"
-          @change="
-            option.key === 'inbound'
-              ? emit('update:inbound', ($event.target as HTMLInputElement).checked)
-              : emit('update:outbound', ($event.target as HTMLInputElement).checked)
-          "
-        />
-        {{ lt(option.labelKey) }}
-      </label>
     </div>
   </fieldset>
 </template>

@@ -12,7 +12,7 @@ test('US3 own notification settings: independent permissions, saved values and c
   await expect(section.locator('[data-notification-field="category"]')).toContainText(
     'Prohibited by ACL',
   )
-  await section.getByRole('radio', { name: 'Weekly', exact: true }).check()
+  await section.getByRole('button', { name: 'Weekly', exact: true }).click()
   await expectAccessible()
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(section).toContainText('Changes to mailbox alice@example.org have been saved')
@@ -25,7 +25,7 @@ test('US3 own notification settings: independent permissions, saved values and c
   await expect(section.locator('[data-value="frequency"]')).toContainText('Weekly')
 })
 
-test('US3 no stored category selects no radio; a version conflict preserves input until Save again', async ({
+test('US3 no stored category selects no option; a version conflict preserves input until Save again', async ({
   page,
   mockApi,
 }) => {
@@ -33,14 +33,19 @@ test('US3 no stored category selects no radio; a version conflict preserves inpu
   await page.goto('quarantine/notifications')
   const section = page.locator('#section-quarantine-notifications')
   await section.getByRole('button', { name: /^Edit / }).click()
-  await expect(section.locator('[data-notification-field="category"] input:checked')).toHaveCount(0)
-  await section.getByRole('radio', { name: 'Weekly', exact: true }).check()
+  await expect(
+    section.locator('[data-notification-field="category"] button[aria-pressed="true"]'),
+  ).toHaveCount(0)
+  await section.getByRole('button', { name: 'Weekly', exact: true }).click()
   await mockApi.patch({
     mailboxes: { set: { 'alice@example.org': { quarantineNotification: 'never' } } },
   })
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(section.locator('[data-outdated]')).toBeVisible()
-  await expect(section.getByRole('radio', { name: 'Weekly', exact: true })).toBeChecked()
+  await expect(section.getByRole('button', { name: 'Weekly', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
   await section.getByRole('button', { name: 'Save again', exact: true }).click()
   await expect(section).toContainText('Changes to mailbox alice@example.org have been saved')
 })

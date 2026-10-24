@@ -2,6 +2,7 @@
 // in legacy order with the groupware switch, the flags' locks and the quota slot; the card with the
 // one-line protocol summary and the forced flags as text; the table's classic columns by width with
 // the sortable headers; the entry actions; and the child row's values.
+import MultiSelect from '@/shared/components/MultiSelect.vue'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
@@ -100,17 +101,20 @@ describe('MailboxValueFields', () => {
     expect([...order].sort((a, b) => a - b)).toEqual(order)
     expect(wrapper.get<HTMLInputElement>('#v-quota').element.value).toBe('0')
     expect(text).toContain('Too big')
-    expect(wrapper.get<HTMLInputElement>('#v-quarantineNotification-hourly').element.checked).toBe(
-      true,
-    )
-    expect(wrapper.findAll('#v-permissions option')).toHaveLength(15)
+    expect(wrapper.get('#v-quarantineNotification-hourly').attributes('aria-pressed')).toBe('true')
+    expect(
+      wrapper
+        .findAllComponents(MultiSelect)
+        .find((field) => field.props('id') === 'v-permissions')!
+        .props('options'),
+    ).toHaveLength(15)
     expect(wrapper.find('hr').exists()).toBe(true)
   })
 
   it('emits each change as a new value object', async () => {
     const wrapper = mountFields()
     await wrapper.get('#v-quota').setValue('2048')
-    await wrapper.get('#v-quarantineCategory-all').setValue(true)
+    await wrapper.get('#v-quarantineCategory-all').trigger('click')
     await wrapper.get('#v-forceSecondFactorSetup').setValue(true)
     const emitted = wrapper.emitted('update:modelValue')!.map(([value]) => value)
     expect(emitted[0]).toMatchObject({ quota: '2048' })

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
+import { useOfferedSections } from '../../composables/useOfferedSections'
 import { problemOf } from '@/api'
 import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
@@ -10,6 +14,11 @@ import ProtocolAccessList from './ProtocolAccessList.vue'
 import QuotaUsage from './QuotaUsage.vue'
 import WebmailAction from './WebmailAction.vue'
 
+const { t } = useI18n()
+const offered = useOfferedSections()
+const recoverySection = computed(() =>
+  offered.value.find((section) => section.id === 'recoveryEmail'),
+)
 const query = useOwnMailboxOverview()
 const format = useFormat()
 withDefaults(defineProps<{ showTitle?: boolean }>(), { showTitle: true })
@@ -42,7 +51,16 @@ withDefaults(defineProps<{ showTitle?: boolean }>(), { showTitle: true })
           <dt class="font-medium text-gray-900 dark:text-white">
             {{ lt('user.pw_recovery_email') }}
           </dt>
-          <dd class="mt-1 wrap-anywhere">{{ query.data.value.recoveryEmail ?? '-' }}</dd>
+          <dd class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 wrap-anywhere">
+            <span>{{ query.data.value.recoveryEmail ?? '-' }}</span>
+            <RouterLink
+              v-if="recoverySection?.route"
+              :to="{ name: recoverySection.route }"
+              class="text-link"
+              data-edit-recovery-email
+              >{{ t('sections.edit') }}</RouterLink
+            >
+          </dd>
         </div>
         <div>
           <dt class="font-medium text-gray-900 dark:text-white">{{ lt('user.last_pw_change') }}</dt>

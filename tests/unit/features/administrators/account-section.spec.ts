@@ -1,6 +1,7 @@
 import { beforeAll, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { queryKeys } from '@/api'
+import MultiSelect from '@/shared/components/MultiSelect.vue'
 import AccountSection from '@/features/administrators/components/AccountSection.vue'
 import PermissionsSection from '@/features/administrators/components/PermissionsSection.vue'
 import { domainAdminView } from '../../../mocks/factories/domain-admin'
@@ -88,15 +89,15 @@ it('keeps a dirty form on a stale version, shows saved changes and sends the lat
     testPlugins().queryClient.getQueryData(queryKeys.domainAdmins.detail(stored.username)),
   ).toMatchObject({ forcePasswordChange: true })
 })
-it('saves only the changed permission and retains the user switch on a conflict', async () => {
+it('saves only the changed permission and retains the selection on a conflict', async () => {
   const { wrapper } = await setup(true)
-  const toggle = wrapper.get('[role="switch"][id$="loginAs"]')
-  await toggle.trigger('click')
+  const selector = wrapper.getComponent(MultiSelect)
+  selector.vm.$emit('update:modelValue', [...selector.props('modelValue'), 'loginAs'])
   mockState().domainAdmins[0]!.version++
   mockState().domainAdmins[0]!.permissions!.aliasDomains = true
   await wrapper.get('form').trigger('submit')
   await vi.waitFor(() => expect(wrapper.find('[data-outdated]').exists()).toBe(true))
-  expect(toggle.attributes('aria-checked')).toBe('true')
+  expect(selector.props('modelValue')).toContain('loginAs')
   await wrapper.get('form').trigger('submit')
   await vi.waitFor(() => expect(wrapper.emitted('saved')).toHaveLength(1))
   const requests = mockState().requests.filter(

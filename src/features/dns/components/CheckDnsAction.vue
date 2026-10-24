@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// "DNS" (FR-023, legacy's hard-coded "DNS" button of the domain and alias domain lists): opens the
+// DNS diagnostics of the domain and alias domain lists: opens the
 // DNS diagnostics of a name, as an item of an entry actions menu or as a button.
 import { useI18n } from 'vue-i18n'
 import { RouterLink, useRouter } from 'vue-router'

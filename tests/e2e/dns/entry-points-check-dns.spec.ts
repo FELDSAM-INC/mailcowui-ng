@@ -16,9 +16,9 @@ test.describe('"DNS" entry points', () => {
     await page
       .getByRole('button', { name: 'Actions for example.org' })
       .click({ timeout: FIRST_LOAD })
-    await expect(page.getByRole('menuitem', { name: 'DNS' })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: 'DNS diagnostics' })).toBeVisible()
     await expectAccessible()
-    await page.getByRole('menuitem', { name: 'DNS' }).click()
+    await page.getByRole('menuitem', { name: 'DNS diagnostics' }).click()
     await expect(page).toHaveURL(/\/dns\/diagnostics\/example\.org$/)
     await expect(page.getByRole('heading', { level: 1, name: 'DNS Records' })).toBeVisible()
   })
@@ -26,19 +26,23 @@ test.describe('"DNS" entry points', () => {
   test('FR-023 a domain administrator has "DNS" on the domain page', async ({ page, mockApi }) => {
     await mockApi.use('dns-domain-admin')
     await page.goto('domains/example.net')
-    await page.getByRole('link', { name: 'DNS', exact: true }).click({ timeout: FIRST_LOAD })
+    await page
+      .getByRole('link', { name: 'DNS diagnostics', exact: true })
+      .click({ timeout: FIRST_LOAD })
     await expect(page).toHaveURL(/\/dns\/diagnostics\/example\.net$/)
   })
 
   test('FR-019 the DKIM entry has "DNS", an unused key has none', async ({ page, mockApi }) => {
     await mockApi.use('dns-admin')
     await page.goto('dns/dkim-keys/example.com')
-    await page.getByRole('link', { name: 'DNS', exact: true }).click({ timeout: FIRST_LOAD })
+    await page
+      .getByRole('link', { name: 'DNS diagnostics', exact: true })
+      .click({ timeout: FIRST_LOAD })
     await expect(page).toHaveURL(/\/dns\/diagnostics\/example\.com$/)
     await page.goto('dns/dkim-keys/Legacy.Example')
     await expect(page.getByRole('heading', { level: 1, name: 'Legacy.Example' })).toBeVisible({
       timeout: FIRST_LOAD,
     })
-    await expect(page.getByRole('link', { name: 'DNS', exact: true })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'DNS diagnostics', exact: true })).toHaveCount(0)
   })
 })

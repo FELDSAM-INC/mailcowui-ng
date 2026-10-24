@@ -59,14 +59,16 @@ export function useAccountSidebar(identity: MaybeRefOrGetter<Identity | null | u
           {
             id: 'userSettings',
             labelKey: legacy('header.user_settings'),
-            items: offered.value.map((section) => ({
-              id: `account-${section.id}`,
-              labelKey: section.title,
-              icon: icons[section.id],
-              to: router.resolve({ name: section.route! }).fullPath,
-              current: route.meta.accountSection === section.id,
-              tabs: [],
-            })),
+            items: offered.value
+              .filter((section) => section.id !== 'activeScript')
+              .map((section) => ({
+                id: `account-${section.id}`,
+                labelKey: section.title,
+                icon: icons[section.id],
+                to: router.resolve({ name: section.route! }).fullPath,
+                current: route.meta.accountSection === section.id,
+                tabs: [],
+              })),
           },
         ]
       : [],

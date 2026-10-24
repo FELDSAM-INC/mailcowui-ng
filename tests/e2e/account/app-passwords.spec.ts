@@ -1,3 +1,4 @@
+import { selectValues } from '../../support/multi-select'
 import { openAccountSections } from '../fixtures/flows'
 import type { Page } from '@playwright/test'
 
@@ -34,13 +35,13 @@ test('creates once, copies raw, edits, regenerates and deletes, with keyboard an
   await page.getByRole('link', { name: 'Create app password' }).click()
   await expect(page.getByRole('heading', { name: 'Add app password', exact: true })).toBeVisible()
   const protocol = page.getByLabel('Allowed protocols for app password')
-  await expect(protocol).toHaveValues(['imap', 'smtp', 'activeSync', 'dav', 'pop3', 'sieve'])
-  await protocol.selectOption([])
+  await expect(protocol).toContainText('6 selected')
+  await selectValues(page, protocol, [])
   await expect(page.getByRole('main').getByRole('status')).toContainText(
     'With no protocol selected',
   )
   await page.getByLabel('App name', { exact: true }).fill('Phone')
-  await protocol.selectOption(['imap', 'smtp'])
+  await selectValues(page, protocol, ['imap', 'smtp'])
   await expectAccessible()
   await expectNoHorizontalScroll()
   await page.getByRole('button', { name: 'Add', exact: true }).click()
@@ -61,7 +62,7 @@ test('creates once, copies raw, edits, regenerates and deletes, with keyboard an
   await expect(page.getByLabel('App name', { exact: true })).toHaveValue('Phone')
   await page.getByLabel('App name', { exact: true }).fill('Mobile phone')
   await page.getByLabel('Active', { exact: true }).uncheck()
-  await page.getByLabel('Allowed protocols for app password').selectOption(['imap'])
+  await selectValues(page, page.getByLabel('Allowed protocols for app password'), ['imap'])
   await page.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.getByRole('main').getByRole('status')).toContainText(
     'Changes to object Mobile phone have been saved',

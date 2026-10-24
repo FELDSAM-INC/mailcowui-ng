@@ -181,7 +181,7 @@ test.describe('DNS diagnostics result', () => {
     await expect(facts).toContainText('2001:db8::25')
     const spf = checkRow(page, 'spf')
     await expect(spf.getByRole('button', { name: 'Copy ip4:192.0.2.25' })).toBeVisible()
-    await expect(spf.getByRole('button', { name: 'Copy v=spf1 mx a ~all' })).toBeVisible()
+    await expect(spf.getByRole('button', { name: 'Copy suggested SPF record' })).toBeVisible()
     await expect(spf).toContainText('Allow')
     await page.getByRole('checkbox', { name: /Only checks that need attention/ }).check()
     await expect(checkRow(page, 'mx')).toHaveCount(0)

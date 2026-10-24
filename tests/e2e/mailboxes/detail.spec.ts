@@ -56,7 +56,6 @@ test.describe('the mailbox page', () => {
     await expect(page.locator('section[id^="section-"] h2, #pushover > h2')).toHaveText([
       'Edit mailbox',
       'Custom attributes',
-      'Pushover',
       'ACL (Permission)',
       'Rate limit',
       '⚠️ Rename mailbox',
@@ -355,11 +354,9 @@ test.describe('the mailbox page', () => {
     await mockApi.use('admin-edit')
     await open(page)
     await edit(page, 'ACL (Permission)')
-    const select = page.getByLabel('ACL', { exact: true })
-    const selected = await select.evaluate((element) =>
-      [...(element as HTMLSelectElement).selectedOptions].map((option) => option.value),
-    )
-    await select.selectOption([...selected, 'syncjobs'])
+    await page.getByLabel('ACL', { exact: true }).click()
+    await page.locator('[data-multiselect-option="syncjobs"]').click()
+    await page.keyboard.press('Escape')
     await page
       .locator('section[id^="section-"]')
       .getByRole('button', { name: 'Save changes', exact: true })
@@ -379,10 +376,9 @@ test.describe('the mailbox page', () => {
     await mockApi.use('domain-admin-edit-limited')
     await open(page)
     await edit(page, 'ACL (Permission)')
-    const options = await page
-      .getByLabel('ACL', { exact: true })
-      .locator('option')
-      .allTextContents()
+    await page.getByLabel('ACL', { exact: true }).click()
+    const options = await page.getByRole('menuitemcheckbox').allTextContents()
+    await page.keyboard.press('Escape')
     expect(options.map((text) => text.trim())).not.toContain('Sync jobs')
     expect(options.map((text) => text.trim())).toContain('Temporary aliases')
   })

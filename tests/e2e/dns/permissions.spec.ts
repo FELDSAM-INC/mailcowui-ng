@@ -31,7 +31,7 @@ test.describe('DNS permissions', () => {
       await expect(page.getByRole('link', { name: 'Import private key' })).toBeVisible()
       await expect(page.getByRole('link', { name: 'Duplicate' })).toBeVisible()
       await expect(page.getByRole('link', { name: 'History' })).toBeVisible()
-      await expect(page.getByRole('link', { name: 'DNS' })).toBeVisible()
+      await expect(page.getByRole('link', { name: 'DNS diagnostics' })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Private key' })).toHaveCount(exportOn ? 1 : 0)
       await expect(page.locator('[data-export-off]')).toHaveCount(exportOn ? 0 : 1)
       await expect(page.getByRole('button', { name: 'Publish DNS record again' })).toHaveCount(
@@ -62,7 +62,7 @@ test.describe('DNS permissions', () => {
       await expect(page.getByRole('button', { name })).toHaveCount(0)
     }
     await expect(page.getByRole('link', { name: 'History' })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'DNS' })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'DNS diagnostics' })).toBeVisible()
     await page.goto('dns/dkim-keys/example.net')
     await expect(page.getByRole('button', { name: 'Add ARC/DKIM key' })).toBeVisible({
       timeout: FIRST_LOAD,
@@ -104,7 +104,7 @@ test.describe('DNS permissions', () => {
     for (const name of ['Import private key', 'Duplicate', 'History']) {
       await expect(page.getByRole('link', { name, exact: true })).toHaveCount(0)
     }
-    await expect(page.getByRole('link', { name: 'DNS', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'DNS diagnostics', exact: true })).toBeVisible()
     expect(await mockApi.countRequests('deleteDkimKey')).toBe(1)
   })
 

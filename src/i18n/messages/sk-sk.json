@@ -1187,7 +1187,7 @@
     }
   },
   "dns": {
-    "checkDns": "DNS"
+    "checkDns": "Diagnostika DNS"
   },
   "selfService": {
     "dependency": {

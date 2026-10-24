@@ -232,7 +232,7 @@ test.describe('MTA-STS section', () => {
     await openSection(page, 'example.org')
     await edit(page)
     await page.locator('#mta-sts-mode').selectOption('testing')
-    await page.getByRole('main').getByRole('link', { name: 'DNS', exact: true }).click()
+    await page.getByRole('main').getByRole('link', { name: 'DNS diagnostics', exact: true }).click()
     const dialog = page.getByRole('alertdialog', { name: 'Leave without saving?' })
     await expect(dialog).toBeVisible()
     await dialog.getByRole('button', { name: 'Stay' }).click()

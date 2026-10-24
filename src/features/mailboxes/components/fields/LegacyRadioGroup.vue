@@ -3,6 +3,7 @@
 // category): the legacy legend, the options with their legacy labels and the legacy help below.
 // Read-only (managed by a later feature on the mailbox page), the chosen option is shown as text.
 import { computed } from 'vue'
+import ChoiceButton from '@/shared/components/ChoiceButton.vue'
 
 import { lt, type LegacyKey } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
@@ -26,30 +27,22 @@ const helpIds = computed(
 </script>
 
 <template>
-  <fieldset class="flex min-w-0 flex-col gap-2" :aria-describedby="helpIds">
-    <legend class="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+  <fieldset class="flex min-w-0 flex-col gap-3" :aria-describedby="helpIds">
+    <legend class="mb-3 font-semibold text-gray-900 dark:text-white">
       {{ lt(legendKey) }}
     </legend>
     <p v-if="readonly" :data-value="idPrefix" class="text-sm text-gray-900 dark:text-white">
       {{ chosen ? lt(chosen.labelKey) : '' }}
     </p>
     <div v-else class="flex flex-wrap gap-2">
-      <label
+      <ChoiceButton
         v-for="option in options"
+        :id="`${idPrefix}-${option.value}`"
         :key="option.value"
-        class="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm text-gray-800 has-checked:border-brand-500 has-checked:bg-brand-50 has-checked:text-brand-800 dark:border-gray-700 dark:text-gray-200 dark:has-checked:bg-brand-500/15 dark:has-checked:text-brand-200"
+        :pressed="modelValue === option.value"
+        @click="emit('update:modelValue', option.value)"
+        >{{ lt(option.labelKey) }}</ChoiceButton
       >
-        <input
-          :id="`${idPrefix}-${option.value}`"
-          type="radio"
-          :name="idPrefix"
-          :value="option.value"
-          :checked="modelValue === option.value"
-          class="size-4 accent-accent"
-          @change="emit('update:modelValue', option.value)"
-        />
-        {{ lt(option.labelKey) }}
-      </label>
     </div>
     <LegacyText
       v-for="(key, index) in helpKeys"

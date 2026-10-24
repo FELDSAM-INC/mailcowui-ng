@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { Identity } from '@/api'
 import { setSessionContext } from '@/app/session/context'
 import { fetchMailbox } from '@/features/mailboxes/api'
+import MultiSelect from '@/shared/components/MultiSelect.vue'
 import AclSection from '@/features/mailboxes/components/sections/AclSection.vue'
 import AttributesSection from '@/features/mailboxes/components/sections/AttributesSection.vue'
 import MailboxSection from '@/features/mailboxes/components/sections/MailboxSection.vue'
@@ -135,7 +136,10 @@ describe('AclSection and Pushover', () => {
     const mailbox = await load()
     const wrapper = mountWithApp(AclSection, { props: { mailbox, editing: true } })
     await flushPromises()
-    const options = wrapper.findAll('option').map((option) => option.text())
+    const options = wrapper
+      .getComponent(MultiSelect)
+      .props('options')
+      .map((option) => option.label)
     expect(options[0]).toBe('Temporary aliases')
     expect(options).toHaveLength(15)
     expect(options).toContain('Allow to reset mailcow user password')

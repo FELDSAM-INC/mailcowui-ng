@@ -13,6 +13,7 @@ import {
   deleteAppPassword,
   afterAppPasswordChange,
 } from '@/features/account/api/app-passwords'
+import MultiSelect from '@/shared/components/MultiSelect.vue'
 import AppPasswordForm from '@/features/account/components/app-passwords/AppPasswordForm.vue'
 import { loadLegacy } from '@/i18n/legacy'
 
@@ -104,18 +105,15 @@ describe('app passwords', () => {
     const wrapper = mountWithApp(AppPasswordForm, {
       props: { mailbox: 'anna@example.org', canChange: true },
     })
-    expect(wrapper.findAll('select[multiple] option').map((o) => o.text())).toEqual([
-      'IMAP',
-      'SMTP',
-      'EAS/ActiveSync',
-      'CardDAV/CalDAV',
-      'POP3',
-      'Sieve',
-    ])
-    expect([
-      ...(wrapper.get('select[multiple]').element as HTMLSelectElement).selectedOptions,
-    ]).toHaveLength(6)
-    await wrapper.get('select[multiple]').setValue([])
+    expect(
+      wrapper
+        .getComponent(MultiSelect)
+        .props('options')
+        .map((option) => option.label),
+    ).toEqual(['IMAP', 'SMTP', 'EAS/ActiveSync', 'CardDAV/CalDAV', 'POP3', 'Sieve'])
+    expect(wrapper.getComponent(MultiSelect).props('modelValue')).toHaveLength(6)
+    wrapper.getComponent(MultiSelect).vm.$emit('update:modelValue', [])
+    await flushPromises()
     expect(wrapper.text()).toContain('With no protocol selected, this app password works nowhere.')
     expect(wrapper.findAll('input[type="password"]')).toHaveLength(0)
   })
@@ -131,7 +129,8 @@ describe('app passwords', () => {
       0,
     )
     await wrapper.get('input[name="name"]').setValue('Phone')
-    await wrapper.get('select[multiple]').setValue(['imap', 'smtp'])
+    wrapper.getComponent(MultiSelect).vm.$emit('update:modelValue', ['imap', 'smtp'])
+    await flushPromises()
     await wrapper.get('form').trigger('submit')
     await vi.waitFor(() => expect(wrapper.emitted('saved')).toHaveLength(1))
     expect(wrapper.emitted('saved')![0]![0]).toMatchObject({

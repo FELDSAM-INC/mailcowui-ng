@@ -84,7 +84,9 @@ test('ACL conflict retains the draft and only resends intended flags', async ({
 }) => {
   await mockApi.use('domain-admins-three')
   await page.goto('administrators/domain-admins/reseller?edit=permissions')
+  await page.locator('#account-permission').click()
   await page.locator('#account-permission-loginAs').click()
+  await page.keyboard.press('Escape')
   await mockApi.changeElsewhere({ domainAdmin: { reseller: { forcePasswordChange: true } } })
   await page
     .locator('#section-permissions')
@@ -93,7 +95,9 @@ test('ACL conflict retains the draft and only resends intended flags', async ({
   await expect(page.locator('[data-outdated]')).toBeVisible()
   // Measure the complete page from its top, with no unrelated target clipped by the sticky header.
   await page.evaluate(() => window.scrollTo(0, 0))
-  await expect(page.locator('#account-permission-loginAs')).toBeChecked()
+  await page.locator('#account-permission').click()
+  await expect(page.locator('#account-permission-loginAs')).toHaveAttribute('aria-checked', 'true')
+  await page.keyboard.press('Escape')
   await expectAccessible()
   await expectTouchTargets()
   expect(

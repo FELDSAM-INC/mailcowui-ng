@@ -4,7 +4,6 @@ import { chooseTheme, openAccountSections, openNavigation, submitPassword } from
 const accountItems = [
   'overview',
   'mailApps',
-  'activeScript',
   'spamFilter',
   'password',
   'recoveryEmail',

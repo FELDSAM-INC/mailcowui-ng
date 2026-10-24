@@ -158,6 +158,15 @@
         "confirmOverwrite": "These names have a key: {names}. Their old keys, including the private keys, are removed completely.",
         "skipOverwrite": "Skip these names"
       }
+    },
+    "spfProposal": {
+      "title": "Suggested SPF record",
+      "copy": "Copy suggested SPF record",
+      "create": "Add this TXT record only after including any other services that send mail for this domain.",
+      "update": "Replace the existing SPF TXT record with this value. It adds this server and preserves the existing senders and policy; review any intentional exclusions before publishing.",
+      "unchanged": "The current SPF record already authorizes this server.",
+      "review": "Review the current SPF records and the reported issue before making changes. A replacement cannot be safely suggested.",
+      "unavailable": "A suggestion is unavailable until DNS and the server addresses can be checked."
     }
   }
 }

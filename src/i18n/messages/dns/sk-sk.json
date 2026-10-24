@@ -158,6 +158,15 @@
         "confirmOverwrite": "Tieto názvy majú kľúč: {names}. Ich staré kľúče vrátane súkromných kľúčov budú úplne odstránené.",
         "skipOverwrite": "Tieto názvy preskočiť"
       }
+    },
+    "spfProposal": {
+      "title": "Navrhovaný SPF záznam",
+      "copy": "Kopírovať navrhovaný SPF záznam",
+      "create": "Pred pridaním tohto TXT záznamu zahrňte aj všetky ďalšie služby, ktoré odosielajú poštu za túto doménu.",
+      "update": "Nahraďte existujúci SPF TXT záznam touto hodnotou. Pridáva tento server a zachováva existujúcich odosielateľov a pravidlá; pred zverejnením skontrolujte prípadné zámerné výnimky.",
+      "unchanged": "Existujúci SPF záznam už povoľuje tento server.",
+      "review": "Pred zmenou skontrolujte existujúce SPF záznamy a nahlásený problém. Náhradu nemožno bezpečne navrhnúť.",
+      "unavailable": "Návrh bude dostupný po overení DNS a adries servera."
     }
   }
 }

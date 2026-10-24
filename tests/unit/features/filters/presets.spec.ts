@@ -1,3 +1,4 @@
+import { installMatchMedia } from '../../support/media'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import FilterForm from '@/features/filters/components/FilterForm.vue'
 import { loadFeatureMessages } from '@/i18n'
@@ -6,6 +7,8 @@ import { mockSieveFilter, sieveFilterView } from '../../../mocks/factories/sieve
 import { useScenario } from '../../../mocks/node'
 import { mountWithApp } from '../../support/mount'
 beforeEach(() => {
+  installMatchMedia()
+  Element.prototype.scrollIntoView = vi.fn()
   vi.stubGlobal(
     'ResizeObserver',
     class {

@@ -2,7 +2,7 @@
 // The "Correct Data" of a check (legacy `diagnostics.dns_records_data`): the expected value with
 // its copy button, or, for a check without an exact value, its guidance. In the table the column
 // header labels it (`compact`); on a card it carries the classic label.
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { DnsCheck } from '@/api'
@@ -11,10 +11,16 @@ import CopyButton from '@/shared/components/CopyButton.vue'
 
 import DnsCheckMessages from './DnsCheckMessages.vue'
 import RecordValue from './RecordValue.vue'
+import SpfProposal from './SpfProposal.vue'
 
-withDefaults(defineProps<{ check: DnsCheck; label: string; compact?: boolean }>(), {
+const props = withDefaults(defineProps<{ check: DnsCheck; label: string; compact?: boolean }>(), {
   compact: false,
 })
+const guidance = computed(() =>
+  props.check.guidance.filter(
+    (message) => props.check.id !== 'spf' || message.code !== 'spfSuggestedRecord',
+  ),
+)
 const { t } = useI18n()
 const value = ref<HTMLElement | null>(null)
 </script>
@@ -40,14 +46,15 @@ const value = ref<HTMLElement | null>(null)
         :copy-label="t('dns.diagnostics.copyExpected', { check: label })"
       />
     </template>
-    <template v-if="check.guidance.length > 0">
+    <SpfProposal v-if="check.id === 'spf'" :check="check" />
+    <template v-if="guidance.length > 0">
       <span
         v-if="!compact && check.expected === null"
         class="text-sm text-gray-600 dark:text-gray-400"
       >
         {{ lt('diagnostics.dns_records_data') }}
       </span>
-      <DnsCheckMessages :messages="check.guidance" />
+      <DnsCheckMessages :messages="guidance" />
     </template>
   </div>
 </template>

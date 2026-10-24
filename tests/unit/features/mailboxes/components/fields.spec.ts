@@ -5,6 +5,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import MultiSelect from '@/shared/components/MultiSelect.vue'
 import InUseBar from '@/features/mailboxes/components/display/InUseBar.vue'
 import LastLogins from '@/features/mailboxes/components/display/LastLogins.vue'
 import MailboxStatusBadge from '@/features/mailboxes/components/display/MailboxStatusBadge.vue'
@@ -100,9 +101,8 @@ describe('multi-selects, radios, toggles, checkboxes and the status', () => {
     const wrapper = mountWithApp(MultiSelectField, {
       props: { id: 'm', label: 'Allowed', options, modelValue: ['imap'] },
     })
-    const select = wrapper.get('select').element as HTMLSelectElement
-    select.options[1]!.selected = true
-    await wrapper.get('select').trigger('change')
+    wrapper.getComponent(MultiSelect).vm.$emit('update:modelValue', ['imap', 'pop3'])
+    await flushPromises()
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([['imap', 'pop3']])
     const locked = mountWithApp(MultiSelectField, {
       props: {
@@ -131,7 +131,7 @@ describe('multi-selects, radios, toggles, checkboxes and the status', () => {
     })
     expect(wrapper.text()).toContain('Set handling for tagged mail')
     expect(wrapper.text()).toContain('In subfolder')
-    await wrapper.get('#r-subject').trigger('change')
+    await wrapper.get('#r-subject').trigger('click')
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual(['subject'])
     const readonly = mountWithApp(LegacyRadioGroup, {
       props: {
@@ -150,7 +150,7 @@ describe('multi-selects, radios, toggles, checkboxes and the status', () => {
     const wrapper = mountWithApp(TlsPolicyField, {
       props: { idPrefix: 't', inbound: false, outbound: true },
     })
-    await wrapper.get('#t-inbound').setValue(true)
+    await wrapper.get('#t-inbound').trigger('click')
     expect(wrapper.emitted('update:inbound')?.at(-1)).toEqual([true])
     const readonly = mountWithApp(TlsPolicyField, {
       props: { idPrefix: 't', inbound: false, outbound: true, readonly: true },

@@ -8,8 +8,7 @@ for (const scenario of ['account-admin', 'account-domain-admin']) {
     expectNoHorizontalScroll,
   }) => {
     await mockApi.use(scenario)
-    await page.goto('mailboxes/anna@example.org')
-    await page.getByRole('link', { name: 'App passwords', exact: true }).click()
+    await page.goto('mailboxes/anna@example.org/app-passwords')
     await expect(page.getByRole('heading', { name: 'App passwords', exact: true })).toBeVisible()
     await expect(page.getByRole('main')).toContainText('anna@example.org')
     await expect(page.locator('[data-entry]')).toHaveCount(3)

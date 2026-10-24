@@ -31,7 +31,7 @@ async function openFromEntry(page: Page, name: string) {
   await expect(page.getByRole('heading', { level: 1, name: 'ARC/DKIM keys' })).toBeVisible()
   await page.locator(`[data-entry="${name}"]`).press('Enter')
   await expect(page.getByRole('heading', { level: 1, name })).toBeVisible()
-  await page.getByRole('link', { name: 'DNS', exact: true }).click()
+  await page.getByRole('link', { name: 'DNS diagnostics', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'DNS Records' })).toBeVisible()
 }
 
@@ -66,13 +66,13 @@ test.describe('DNS diagnostics run', () => {
     expect(await runs(mockApi)).toBe(1)
     await page.goBack()
     await page.clock.fastForward('04:00')
-    await page.getByRole('link', { name: 'DNS', exact: true }).click()
+    await page.getByRole('link', { name: 'DNS diagnostics', exact: true }).click()
     await expect(summary(page)).toBeVisible()
     await expect(page.locator('[data-server-facts]')).toContainText('Checked')
     expect(await runs(mockApi)).toBe(1)
     await page.goBack()
     await page.clock.fastForward('08:00')
-    await page.getByRole('link', { name: 'DNS', exact: true }).click()
+    await page.getByRole('link', { name: 'DNS diagnostics', exact: true }).click()
     await expect.poll(() => runs(mockApi)).toBe(2)
   })
 

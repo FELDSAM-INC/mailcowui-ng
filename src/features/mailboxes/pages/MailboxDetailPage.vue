@@ -2,8 +2,8 @@
 // The mailbox page (US1, US3, US5, US8; FR-015 to FR-017), mirroring the classic page
 // `templates/edit/mailbox.twig` (owner rule 1:1, docs/conventions.md "Detail pages"): legacy's
 // edit heading with the address, the usage figures with the list's keys (display-only), then the
-// tabs as sections in legacy order: "Mailbox", "Custom attributes", "Pushover" (read-only until
-// UI 005), "ACL", "Rate limit" (UI 006's section) and "Rename mailbox". Deletion stays in the
+// administration sections: "Mailbox", "Custom attributes", "ACL", "Rate limit" and
+// "Rename mailbox". Account settings are reached through Login. Deletion stays in the
 // list, as in legacy. A section opens for editing with `?edit=<section>`, one at a time, so each has
 // its own link; leaving a section with changes asks first. A mailbox opened from the list shows at
 // once from the list entry and is refreshed (FR-017); another spelling of the address is replaced by
@@ -29,16 +29,12 @@ import { useLeaveGuard } from '@/shared/composables/useLeaveGuard'
 import { useMediaQuery } from '@/shared/composables/useMediaQuery'
 
 import { RateLimitSection } from '@/features/rate-limits'
-import { SpamFilterSection } from '@/features/spam-filter'
-import { MailboxAccountLinks } from '@/features/account'
-import { MailboxSyncJobsLink } from '@/features/sync-jobs'
 
 import { useMailbox } from '../api'
 import MailboxUsage from '../components/display/MailboxUsage.vue'
 import AclSection from '../components/sections/AclSection.vue'
 import AttributesSection from '../components/sections/AttributesSection.vue'
 import MailboxSection from '../components/sections/MailboxSection.vue'
-import ManagedSections from '../components/sections/ManagedSections.vue'
 import RenameSection from '../components/sections/RenameSection.vue'
 import { useMailboxCapabilities } from '../composables/useMailboxCapabilities'
 import { takeMailboxFlash, type MailboxFlash } from '../flash'
@@ -202,17 +198,12 @@ const subtitle = computed(() => {
     <template v-if="!showOnly">
       <PageHeader :title="lt('edit.mailbox')" :description="subtitle">
         <template #actions>
-          <SignInAsAction
-            v-if="!editing"
-            :target="{ kind: 'mailboxUser', address: mailbox.address, domain: mailbox.domain }"
-          />
           <HistoryLink :target-id="mailbox.address" :allowed="historyAllowed" />
-          <!-- UI 008 (FR-004): the mailbox's sync jobs, for whoever may open them. -->
-          <MailboxSyncJobsLink :address="mailbox.address" />
-          <MailboxAccountLinks
-            :address="mailbox.address"
-            :active-temporary-aliases="mailbox.activeTemporaryAliases"
-          />
+          <div v-if="!editing" class="ms-auto">
+            <SignInAsAction
+              :target="{ kind: 'mailboxUser', address: mailbox.address, domain: mailbox.domain }"
+            />
+          </div>
         </template>
       </PageHeader>
       <p
@@ -254,7 +245,6 @@ const subtitle = computed(() => {
       @close="closeSection"
       @dirty="dirty = $event"
     />
-    <ManagedSections v-if="!showOnly" :mailbox="mailbox" section="pushover" />
     <AclSection
       v-if="visible('acl')"
       v-bind="sectionProps('acl')"
@@ -264,7 +254,6 @@ const subtitle = computed(() => {
     />
     <!-- UI 006: legacy's "Rate limit" tab (`#mrl`), reached with `#rate-limit`. -->
     <RateLimitSection v-if="!showOnly" kind="mailbox" :object="mailbox.address" />
-    <SpamFilterSection v-if="!showOnly" kind="mailbox" :owner="mailbox.address" />
     <RenameSection v-if="!showOnly" :mailbox="mailbox" @dirty="dirty = $event" />
   </article>
 </template>

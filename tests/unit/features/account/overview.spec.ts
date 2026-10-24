@@ -4,6 +4,7 @@ import { ApiProblem, api, requireData } from '@/api'
 import { fetchOwnMailboxOverview } from '@/features/account/api/overview'
 import { createWebmailHandOff } from '@/features/account/api/webmail'
 import QuotaUsage from '@/features/account/components/overview/QuotaUsage.vue'
+import { Badge } from '@/shared/ui/badge'
 import ProtocolAccessList from '@/features/account/components/overview/ProtocolAccessList.vue'
 import AddressLists from '@/features/account/components/overview/AddressLists.vue'
 import { loadLegacy } from '@/i18n/legacy'
@@ -73,14 +74,17 @@ describe('mailbox overview', () => {
         access: { ...overview.protocolAccess, imap: false },
       },
     })
-    expect(wrapper.findAll('li').map((item) => item.text())).toEqual([
-      'IMAP: not allowed',
-      'SMTP: allowed',
-      'Sieve: allowed',
-      'POP3: allowed',
-      'ActiveSync: allowed',
-      'CalDAV/CardDAV: allowed',
+    expect(wrapper.findAll('li').map((item) => item.get('span').text())).toEqual([
+      'IMAP',
+      'SMTP',
+      'Sieve',
+      'POP3',
+      'ActiveSync',
+      'CalDAV/CardDAV',
     ])
+    expect(
+      wrapper.findAllComponents(Badge).map((badge) => [badge.props('color'), badge.text()]),
+    ).toEqual([['gray', 'not allowed'], ...Array.from({ length: 5 }, () => ['success', 'allowed'])])
   })
 
   it('renders aliases and comments as plain text, with alias-domain addresses under direct aliases', async () => {

@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import type { MailboxOverview } from '@/api'
 import { lt } from '@/i18n'
 import LegacyText from '@/shared/components/LegacyText.vue'
-import { CheckIcon, CloseIcon } from '@/shared/icons'
+import { Badge } from '@/shared/ui/badge'
 
 defineProps<{ access: MailboxOverview['protocolAccess'] }>()
 const { t } = useI18n()
@@ -22,21 +22,29 @@ const protocols = [
 <template>
   <div class="flex flex-col gap-2">
     <h3 class="font-medium text-gray-900 dark:text-white">{{ lt('user.protocols') }}:</h3>
+    <LegacyText
+      k="user.direct_protocol_access"
+      as="p"
+      class="text-sm text-gray-600 dark:text-gray-400"
+    />
     <ul class="grid gap-2 sm:grid-cols-2" data-protocol-access>
-      <li v-for="[key, label] in protocols" :key="key" class="flex items-center gap-2">
-        <component :is="access[key] ? CheckIcon : CloseIcon" class="size-4 shrink-0" />
-        <span
-          >{{ label }}:
+      <li
+        v-for="[key, label] in protocols"
+        :key="key"
+        :data-protocol="key"
+        class="flex flex-wrap items-center gap-2"
+      >
+        <span>{{ label }}</span>
+        <Badge :color="access[key] ? 'success' : 'gray'">
           {{
             t(
               access[key]
                 ? 'account.overview.protocol.allowed'
                 : 'account.overview.protocol.notAllowed',
             )
-          }}</span
-        >
+          }}
+        </Badge>
       </li>
     </ul>
-    <LegacyText k="user.direct_protocol_access" class="text-sm text-gray-600 dark:text-gray-400" />
   </div>
 </template>

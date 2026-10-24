@@ -14,8 +14,10 @@ test('US5 overview preserves legacy storage, protocols, aliases and recovery add
   await expect(overview.locator('[data-quota-usage]')).toContainText('256 MiB / 1 GiB')
   await expect(overview.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '25')
   await expect(overview).toContainText('1,234 messages')
-  await expect(overview.locator('[data-protocol-access]')).toContainText('IMAP: not allowed')
-  await expect(overview.locator('[data-protocol-access]')).toContainText('SMTP: allowed')
+  await expect(overview.locator('[data-protocol="imap"] [data-slot="badge"]')).toHaveText(
+    'not allowed',
+  )
+  await expect(overview.locator('[data-protocol="smtp"] [data-slot="badge"]')).toHaveText('allowed')
   await expect(overview).toContainText('a.novak@example.org')
   await expect(overview).toContainText('anna@example.com')
   await expect(overview).toContainText('sales@example.org — Sales team')

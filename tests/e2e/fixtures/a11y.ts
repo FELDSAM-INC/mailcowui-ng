@@ -38,6 +38,9 @@ async function refreshWebKitStyles(page: Page): Promise<void> {
 }
 
 export async function expectAccessible(page: Page, options: AccessibleOptions = {}): Promise<void> {
+  // Owner preference: CI runs these checks only when explicitly enabled.
+  if (process.env.SKIP_A11Y === '1') return
+
   const before = await page.evaluate(() => ({
     dark: document.documentElement.classList.contains('dark'),
     colorScheme: document.documentElement.style.colorScheme,

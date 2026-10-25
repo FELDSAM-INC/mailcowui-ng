@@ -5,7 +5,7 @@
 # mailcow-rest-v2's data/conf/nginx/site.restv2.custom; no upstream mailcow file is patched.
 services:
   ng-mailcow:
-    image: ghcr.io/feldsam-inc/mailcowui-ng:${MAILCOWUI_NG_VERSION}
+    image: ghcr.io/feldsam-inc/mailcowui-ng:${MAILCOWUI_NG_VERSION:-latest}
     read_only: true
     tmpfs:
       - /tmp

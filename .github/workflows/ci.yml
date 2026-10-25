@@ -1,10 +1,12 @@
-# CI of mailcowui-ng (research R28). Jobs quality, build, e2e, lighthouse and image are the merge
-# gates of the constitution; smoke runs on dispatch, nightly, or when vars.SMOKE_ENABLED is 'true'.
+# CI of mailcowui-ng. Performance and accessibility checks are opt-in per the owner.
+# Public images publish only from trusted main/tag builds after the quality and image checks.
 name: CI
 
 on:
   push:
     branches: [main]
+    tags: ['v*']
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: '23 2 * * *'
@@ -55,7 +57,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: npm run budget:check
+      - if: vars.PERFORMANCE_CHECKS_ENABLED == 'true'
+        run: npm run budget:check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist
@@ -79,6 +82,8 @@ jobs:
           path: dist/
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run test:e2e
+        env:
+          SKIP_A11Y: ${{ vars.ACCESSIBILITY_CHECKS_ENABLED != 'true' && '1' || '0' }}
       - if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -89,6 +94,7 @@ jobs:
           retention-days: 14
 
   lighthouse:
+    if: vars.PERFORMANCE_CHECKS_ENABLED == 'true'
     needs: build
     runs-on: ubuntu-24.04
     steps:
@@ -116,7 +122,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: docker build -t mailcowui-ng:ci -f docker/Dockerfile .
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          load: true
+          tags: mailcowui-ng:ci
+          cache-from: type=gha,scope=production
+          cache-to: type=gha,scope=production,mode=max
       - name: Check the container
         run: |
           docker run -d --name ng --read-only --tmpfs /tmp --tmpfs /var/cache/nginx \
@@ -185,6 +199,81 @@ jobs:
       - if: env.HAS_TOKEN == 'true'
         run: npm run test:smoke
         env:
+          SKIP_A11Y: ${{ vars.ACCESSIBILITY_CHECKS_ENABLED != 'true' && '1' || '0' }}
           SMOKE_BASE_URL: http://localhost:18480/ng/
       - if: always() && env.HAS_TOKEN == 'true'
         run: scripts/smoke/stack-down.sh
+
+  publish:
+    name: Publish public image
+    needs: [quality, build, image]
+    if: >-
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: publish-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+        with:
+          platforms: arm64
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Image tags and source labels
+        id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        with:
+          images: ghcr.io/feldsam-inc/mailcowui-ng
+          flavor: latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,format=long
+            type=match,pattern=v(.*),group=1
+          labels: |
+            org.opencontainers.image.licenses=GPL-3.0-only
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish AMD64 and ARM64 images
+        id: publish
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=production
+          cache-to: type=gha,scope=production,mode=max
+      - name: Record published image
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          {
+            echo '### Container image'
+            printf '\n%s\n' "$IMAGE_TAGS"
+            printf '\nDigest: `%s`\n' "$IMAGE_DIGEST"
+            echo 'First publication requires Package settings → Change visibility → Public.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify anonymous registry access
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          anonymous_config="$(mktemp -d)"
+          trap 'rm -rf "$anonymous_config"' EXIT
+          if ! docker --config "$anonymous_config" manifest inspect "ghcr.io/feldsam-inc/mailcowui-ng@$IMAGE_DIGEST" > /dev/null; then
+            echo '::error::Image was pushed but is not publicly pullable. Set this GHCR package visibility to Public, then rerun the publishing job.'
+            exit 1
+          fi

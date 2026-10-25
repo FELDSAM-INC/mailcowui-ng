@@ -126,7 +126,11 @@ static bundle-size check.
 The full `test:e2e` suite includes accessibility and contrast scans through
 [`expectAccessible`](tests/e2e/fixtures/a11y.ts), in light/dark themes with saved/limit palettes.
 Lighthouse runs separately via `npm run lhci`. The [CI workflow](.github/workflows/ci.yml)
-configures quality, build, browser, Lighthouse, image and conditional smoke jobs.
+configures quality, build, browser, image and conditional smoke jobs. Performance/Lighthouse
+and browser accessibility checks are opt-in through the repository variables documented in the
+[CI setup guide](https://github.com/FELDSAM-INC/mailcow-rest-v2/blob/main/docs/ci-and-images.md).
+The [Codex Security workflow](.github/workflows/codex-security.yml) scans trusted pull requests
+and the repository weekly; add the `CODEX_SECURITY_API_KEY` Actions secret to activate it.
 
 ### Real-API smoke checks
 
@@ -172,6 +176,22 @@ types. Review and commit the generated changes with the feature. Then run `npm r
 and the relevant unit/browser checks. `contract:check` regenerates files and checks their Git diff,
 so a deliberately uncommitted contract bump is expected to be reported as a difference. Mocks
 validate requests and responses against the pinned contract; keep scenarios aligned with it.
+
+## Public images
+
+CI publishes `ghcr.io/feldsam-inc/mailcowui-ng:latest` for Linux AMD64 and ARM64 after the
+quality, build and container checks pass. `latest` follows `main`; `sha-<full-commit-sha>`
+identifies a commit build and `v*` Git tags publish matching version tags without the `v`.
+Pin a digest when the exact image contents must stay fixed. See the
+[CI setup guide](https://github.com/FELDSAM-INC/mailcow-rest-v2/blob/main/docs/ci-and-images.md)
+for the required one-time public package visibility setting.
+
+For an existing installation, select the image version in `mailcow.conf`, then run:
+
+```bash
+docker compose pull ng-mailcow
+docker compose up -d --no-deps --wait ng-mailcow
+```
 
 ## Deployment to maildev
 

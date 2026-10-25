@@ -37,6 +37,9 @@ const source = readdirSync('src', { recursive: true })
 
 // Each exception is a documented replacement/removal, never a silent missing translation.
 const superseded: Record<string, string> = {
+  'edit.previous': 'Owner removed Previous page links from all account sections',
+  'user.alias_create_random':
+    'Owner moved spam alias creation to a separate form with a Create spam alias button',
   'user.mailbox': 'D1 flat hub, no old dropdown',
   'user.mailbox_general': 'D1 overview leads the hub; no General tab',
   'user.mailbox_details': 'D1 Details content moves into the overview',

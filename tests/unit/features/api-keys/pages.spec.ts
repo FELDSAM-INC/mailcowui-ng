@@ -68,7 +68,7 @@ describe('ApiKeysPage', () => {
     const first = wrapper.get('tbody tr')
     const edit = first.get('td:last-child .table-row-controls a')
     expect(edit.text()).toBe('Edit')
-    expect(edit.attributes('href')).toBe(first.get('td:first-child a').attributes('href'))
+    expect(edit.attributes('href')).toBe(first.attributes('data-row-href'))
     expect(first.find('td:last-child [aria-expanded]').exists()).toBe(false)
     const name = wrapper.findAll('th button').find((b) => b.text().startsWith('Name'))!
     await name.trigger('click')

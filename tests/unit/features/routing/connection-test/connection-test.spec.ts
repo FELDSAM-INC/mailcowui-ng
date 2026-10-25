@@ -237,7 +237,7 @@ describe('ConnectionTestPage', { timeout: 60_000 }, () => {
     vi.spyOn(connectionTestApi, 'runConnectionTest').mockReturnValueOnce(result.promise)
     wrapper.get<HTMLInputElement>('#connection-test-recipient').element.focus()
     await wrapper.get('[data-test-form]').trigger('submit')
-    const outside = wrapper.get<HTMLAnchorElement>('a').element
+    const outside = wrapper.get<HTMLHeadingElement>('h1').element
     outside.focus()
     scroll.mockClear()
     result.resolve(base)

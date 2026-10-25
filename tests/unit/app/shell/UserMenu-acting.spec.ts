@@ -4,6 +4,7 @@ import UserMenu from '@/app/shell/UserMenu.vue'
 import { startImpersonation } from '@/features/acting/api'
 import { mountWithApp, testPlugins } from '../../support/mount'
 import { useScenario } from '../../../mocks/node'
+import { createTestRouter } from '../../support/router'
 
 it.each([false, true])(
   'calls the existing sign-out action with the acting=%s label',
@@ -12,9 +13,13 @@ it.each([false, true])(
     const identity = acting
       ? (await startImpersonation({ role: 'mailboxUser', username: 'alice@example.org' })).identity
       : await testPlugins().queryClient.fetchQuery(identityQuery())
+    const router = createTestRouter()
+    await router.push('/account/overview')
+    await router.isReady()
     const wrapper = mountWithApp(UserMenu, {
       props: { identity },
       global: {
+        plugins: [router],
         stubs: {
           DropdownMenu: { template: '<div><slot /></div>' },
           DropdownMenuContent: { template: '<div><slot /></div>' },

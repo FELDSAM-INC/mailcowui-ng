@@ -23,7 +23,8 @@ async function setup() {
     routes: [
       { path: '/', name: 'home', component: {} },
       { path: '/mailboxes', name: 'mailboxes', component: {} },
-      { path: '/account/password', name: 'account', component: {} },
+      { path: '/account/password', name: 'account-password', component: {} },
+      { path: '/account/overview', name: 'account-overview', component: {} },
     ],
   })
   await router.push('/mailboxes?q=alice&page=2')
@@ -57,7 +58,7 @@ it('captures the initiating route before the request, clears private caches and 
   expect(queryClient.getQueryData<Identity>(queryKeys.identity())?.username).toBe(
     'alice@example.org',
   )
-  expect(router.currentRoute.value.fullPath).toBe('/account/password')
+  expect(router.currentRoute.value.fullPath).toBe('/account/overview')
   await returnFromActing()
   expect(router.currentRoute.value.fullPath).toBe('/mailboxes?q=alice&page=2')
   expect(queryClient.getQueryData<Identity>(queryKeys.identity())?.username).toBe('admin')

@@ -65,9 +65,10 @@ describe('NavigationList groups', () => {
     wrapper.unmount()
   })
 
-  it('shows no System group to domain administrators', async () => {
+  it('offers only Quarantine in the System group to domain administrators', async () => {
     const wrapper = await mountList('domainAdmin')
-    expect(wrapper.find('[data-nav-group="system"]').exists()).toBe(false)
+    const group = wrapper.get('[data-nav-group="system"]')
+    expect(group.findAll('a').map((link) => link.attributes('href'))).toEqual(['/ng/quarantine'])
     expect(wrapper.text()).not.toContain('Queue Manager')
     wrapper.unmount()
   })

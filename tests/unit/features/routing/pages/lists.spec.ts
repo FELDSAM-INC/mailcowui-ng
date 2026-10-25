@@ -49,14 +49,14 @@ async function removeRow(row: ActionRow) {
 }
 
 describe('routing list screens', { timeout: 60_000 }, () => {
-  it('lists the relayhosts with Test, Edit and Remove in a menu and deletes one after confirming', async () => {
+  it('lists the relayhosts with Usage, Test, Edit and Remove in a menu and deletes one after confirming', async () => {
     const announce = vi.spyOn(announcer, 'announce')
     const { wrapper } = await mountRoute('/routing/relayhosts')
     await listed(wrapper)
     expect(wrapper.text()).toContain('[smtp.example.net]:587')
     const row = wrapper.get('[data-entry="2"]')
     const actions = await rowActions(row)
-    expect(actions.map((item) => item.dataset.action)).toEqual(['test', 'edit', 'remove'])
+    expect(actions.map((item) => item.dataset.action)).toEqual(['usage', 'test', 'edit', 'remove'])
     actions.find((item) => item.dataset.action === 'remove')!.click()
     await confirmNow()
     await until(() => expect(mockState().routing.relayhosts.some((r) => r.id === 2)).toBe(false))

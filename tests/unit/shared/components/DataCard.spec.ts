@@ -18,11 +18,13 @@ function mountCard(details = false) {
 }
 
 describe('DataCard', () => {
-  it('keeps selection, linked identity and actions in the same header without an empty footer', () => {
+  it('keeps selection, identity and actions in the same header without an empty footer', () => {
     const card = mountCard()
     const header = card.get('[data-card-header]')
     expect(header.get('input').attributes('aria-label')).toBe('Select Alice')
-    expect(header.get('h3 a').attributes('href')).toBe('/mailboxes/alice')
+    expect(header.get('h3').text()).toBe('alice@example.org')
+    expect(card.attributes('data-row-href')).toBe('/mailboxes/alice')
+    expect(header.find('h3 a').exists()).toBe(false)
     expect(header.get('button').attributes('aria-label')).toBe('Actions for Alice')
     expect(card.text()).toContain('Messages12')
     expect(card.find('[data-card-expand]').exists()).toBe(false)

@@ -24,7 +24,9 @@ let captured: CapturedReturn | null = null
 
 export function captureSingleSignOnReturn(target: ReturnWindow = window): void {
   const { location, history } = target
-  if (location.pathname !== SSO_RETURN_PATH && location.pathname !== `${SSO_RETURN_PATH}/`) return
+  // Existing provider registrations keep /ng/sso/return. In root mode the deployment
+  // bootstrap normalizes that address before this capture, without an HTTP redirect.
+  if (!/^\/(?:ng\/)?sso\/return\/?$/i.test(location.pathname)) return
   const query = new URLSearchParams(location.search)
   const values: CapturedReturn = {}
   for (const name of ['code', 'state', 'error'] as const) {

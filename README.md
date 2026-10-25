@@ -1,7 +1,7 @@
 # mailcowui-ng
 
 A mobile-first Vue 3 and TypeScript web app for mailcow-dockerized. It builds to static files
-served at `/ng/`; its backend is [mailcow REST API v2](https://github.com/FELDSAM-INC/mailcow-rest-v2), served at `/api/v2`
+served at `/ng/` by default; its backend is [mailcow REST API v2](https://github.com/FELDSAM-INC/mailcow-rest-v2), served at `/api/v2`
 on the same origin. The classic UI and `/api/v1` continue to work alongside it.
 
 The application has routes for feature areas 001–013: sign-in and account self-service; domains,
@@ -11,6 +11,14 @@ DKIM/MTA-STS/DNS; operations; identity providers/OAuth2; and system settings. Se
 [settings catalogue](src/features/system-settings/catalogue.ts). This describes implemented
 areas, not completion of every acceptance task. The [cutover plan](specs/014-cutover/spec.md)
 remains separate; deploying this app does not redirect the classic UI.
+
+The [community installation helper](https://github.com/FELDSAM-INC/mailcow-modern-ui/blob/main/docs/installation.md#optional-use--instead-of-ng)
+can optionally serve browser routes at `/`. It validates `public/deployment.json` against
+the installed image and forwards only registered UI namespaces, preserving mailcow's
+internal endpoints. The external `app-config.js` bootstrap selects the router base;
+assets stay under `/ng/`. Existing `/ng/` bookmarks and credential callbacks are normalized
+in the browser before bootstrap, without an HTTP redirect carrying their credentials.
+The classic interface remains available at `/index.php` in this mode.
 
 Start with the [constitution](.specify/memory/constitution.md) and
 [conventions](docs/conventions.md), especially translations, legacy forms, secrets and feature

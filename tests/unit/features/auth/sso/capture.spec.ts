@@ -77,4 +77,14 @@ describe('captureSingleSignOnReturn', () => {
     )
     expect(takeCapturedSingleSignOnReturn()).toEqual({ code: 'c', state: 's' })
   })
+
+  it.each(['/sso/return', '/ng/sso/return'])(
+    'scrubs the callback at %s before bootstrap',
+    (path) => {
+      const win = fakeWindow(path, '?code=secret&state=state&error_description=private')
+      captureSingleSignOnReturn(win)
+      expect(win.history.replaceState).toHaveBeenCalledWith(win.history.state, '', path)
+      expect(takeCapturedSingleSignOnReturn()).toEqual({ code: 'secret', state: 'state' })
+    },
+  )
 })

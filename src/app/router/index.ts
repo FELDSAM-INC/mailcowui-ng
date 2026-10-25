@@ -1,4 +1,4 @@
-// The app's router (research R19): history mode under the Vite base `/ng/`, the route map, the
+// The app's router (research R19): history mode under the deployment base, the route map, the
 // session guard, focus management and the document title.
 import {
   createRouter,
@@ -8,6 +8,8 @@ import {
   type RouterHistory,
   type RouterScrollBehavior,
 } from 'vue-router'
+
+import { appBasePath } from '@/shared/platform/app-base'
 
 import { fragmentElement, noteScrollRestored } from './focus'
 import { buildRoutes } from './routes'
@@ -40,8 +42,6 @@ export function appScrollBehavior(
   return { top: 0 }
 }
 
-export function createAppRouter(
-  history: RouterHistory = createWebHistory(import.meta.env.BASE_URL),
-) {
+export function createAppRouter(history: RouterHistory = createWebHistory(appBasePath())) {
   return createRouter({ history, routes: buildRoutes(), scrollBehavior: appScrollBehavior })
 }

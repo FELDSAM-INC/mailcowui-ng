@@ -18,6 +18,7 @@ import { installGuards } from './app/router/guards'
 import { installSession } from './app/session'
 import { i18n } from './i18n'
 import { createAppChannel } from './shared/platform/broadcast'
+import { normalizeAppLocation } from './shared/platform/app-base'
 
 async function start() {
   const app = createApp(App)
@@ -41,5 +42,6 @@ async function start() {
 
 // UI 012 (research R5): the single sign-on return's code and state leave the address before the
 // router and the bootstrap send any request.
+normalizeAppLocation()
 captureSingleSignOnReturn()
 void start()

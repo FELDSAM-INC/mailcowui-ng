@@ -27,6 +27,7 @@ import {
 } from '../../lib/password-reset'
 import { replaceResetSamples } from '../../lib/email-samples'
 import EmailPreviewDialog from '@/shared/components/email/EmailPreviewDialog.vue'
+import { appBasePath } from '@/shared/platform/app-base'
 import PlaceholderReference from './PlaceholderReference.vue'
 import TemplateField from '@/shared/components/email/TemplateField.vue'
 
@@ -129,7 +130,7 @@ function openPreview() {
   previewHtml.value = replaceResetSamples(
     current.value.htmlTemplate,
     {
-      link: `https://${props.capabilities.hostname}/ng/reset-password#sample-preview`,
+      link: `https://${props.capabilities.hostname}${appBasePath()}reset-password#sample-preview`,
       username: t('systemSettings.passwordReset.sampleMailbox'),
       username2: t('systemSettings.passwordReset.sampleRecovery'),
       hostname: props.capabilities.hostname,

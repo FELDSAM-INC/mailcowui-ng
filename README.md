@@ -162,6 +162,10 @@ is missing, specify and implement it in the API repository first; do not bypass 
 legacy PHP endpoint. Same-origin legacy translations and the documented opt-in password breach
 check are the exceptions described in the constitution.
 
+If no local API checkout is available, the script clones the public repository. For authenticated
+access, an exported `MAILCOW_REST_V2_TOKEN` is passed through a temporary Git askpass helper;
+the token is kept out of command arguments, remote URLs and credential stores.
+
 After the API contract change is committed, pin an explicit tag or commit:
 
 ```bash

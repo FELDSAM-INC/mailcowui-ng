@@ -22,21 +22,31 @@ bundler="@redocly/cli@2.64.1"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 export REDOCLY_TELEMETRY=off
+api_git=(git)
 
 if [[ ! -d "$api_dir/.git" ]]; then
   echo "No checkout at $api_dir; cloning $repository" >&2
   if [[ -n "${MAILCOW_REST_V2_TOKEN:-}" ]]; then
-    url="https://x-access-token:${MAILCOW_REST_V2_TOKEN}@github.com/${repository}.git"
-  else
-    url="https://github.com/${repository}.git"
+    # Git reads the token through askpass; argv and the saved remote URL stay public.
+    # Disable credential helpers so the temporary token is not persisted elsewhere.
+    cat > "$work/git-askpass" <<'ASKPASS'
+#!/bin/sh
+case "$1" in
+  *Username*) printf '%s\n' 'x-access-token' ;;
+  *Password*) printf '%s\n' "$MAILCOW_REST_V2_TOKEN" ;;
+  *) exit 1 ;;
+esac
+ASKPASS
+    chmod 700 "$work/git-askpass"
+    api_git=(env GIT_ASKPASS="$work/git-askpass" GIT_TERMINAL_PROMPT=0 git -c credential.helper=)
   fi
-  git clone --quiet --filter=blob:none "$url" "$work/repo"
+  "${api_git[@]}" clone --quiet --filter=blob:none "https://github.com/${repository}.git" "$work/repo"
   api_dir="$work/repo"
 fi
 
 commit="$(git -C "$api_dir" rev-parse --verify --quiet "${ref}^{commit}" || true)"
 if [[ -z "$commit" ]]; then
-  git -C "$api_dir" fetch --quiet --tags origin || true
+  "${api_git[@]}" -C "$api_dir" fetch --quiet --tags origin || true
   commit="$(git -C "$api_dir" rev-parse --verify "${ref}^{commit}")"
 fi
 echo "Pinning $repository at $commit (ref $ref)" >&2

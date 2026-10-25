@@ -88,15 +88,11 @@ describe('DnsCheckCard', () => {
     })
     expect(wrapper.text()).toContain('does not authorise the server address 192.0.2.25')
     expect(wrapper.text()).toContain('Value derived from A/AAAA record')
-    expect(wrapper.text()).toContain('Allow')
+    expect(wrapper.text()).toContain('Make sure the MX records point to this server.')
     const values = wrapper.findAllComponents(CopyButton).map((button) => button.props('text'))
-    expect(values).toEqual(
-      expect.arrayContaining([
-        'ip4:192.0.2.25',
-        'ip6:2001:db8::25',
-        'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 -all',
-      ]),
-    )
+    expect(values).toContain('v=spf1 mx -all')
+    expect(values).not.toContain('ip4:192.0.2.25')
+    expect(values).not.toContain('ip6:2001:db8::25')
   })
 
   it('shows an unknown message code with the English text', () => {

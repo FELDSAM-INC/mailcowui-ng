@@ -28,49 +28,60 @@ function check(record: string | null, patch: Partial<DnsCheck> = {}): DnsCheck {
 }
 
 describe('SPF proposals from DNS diagnostics', () => {
-  it('creates a record using only known server addresses when SPF is missing', () => {
-    expect(spfProposal(check(null))).toMatchObject({
+  it('creates a record authorizing MX hosts without requiring explicit server addresses', () => {
+    expect(spfProposal(check(null, { guidance: [] }))).toMatchObject({
       kind: 'create',
-      record: 'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 ~all',
+      record: 'v=spf1 mx ~all',
     })
   })
-  it('keeps existing providers, exclusions and the final policy', () => {
-    const old = 'v=spf1 include:_spf.example.net -ip4:198.51.100.7 a mx -all'
-    expect(spfProposal(check(old))).toMatchObject({
+  it('adds mx to the reported dot.sk policy while preserving the include and hard fail', () => {
+    const old = 'v=spf1 include:atlantis.sk -all'
+    expect(spfProposal(check(old, { recordName: 'dot.sk' }))).toEqual({
       kind: 'update',
       current: old,
-      record:
-        'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 include:_spf.example.net -ip4:198.51.100.7 a mx -all',
+      record: 'v=spf1 mx include:atlantis.sk -all',
     })
+  })
+  it('keeps existing providers, exclusions, address ranges and spacing', () => {
+    const old = 'v=spf1  include:_spf.example.net -ip4:198.51.100.7 a ip6:2001:db8::/32 ~all'
+    expect(spfProposal(check(old)).record).toBe(
+      'v=spf1 mx  include:_spf.example.net -ip4:198.51.100.7 a ip6:2001:db8::/32 ~all',
+    )
   })
   it('keeps redirects without adding an all mechanism', () => {
     expect(
       spfProposal(check('v=spf1 redirect=_spf.example.net exp=explain.example.net')).record,
-    ).toBe(
-      'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 redirect=_spf.example.net exp=explain.example.net',
-    )
+    ).toBe('v=spf1 mx redirect=_spf.example.net exp=explain.example.net')
   })
-  it('does not duplicate addresses already covered by positive IP networks', () => {
-    const value = spfProposal(
-      check('v=spf1 ip4:192.0.2.0/24 -all', {
-        reason: {
-          code: 'spfNotPass',
-          params: { address: '2001:db8::25', result: 'fail' },
-          message: '',
+  it.each(['mx', '+MX', 'mx/24', 'mx//64', 'mx/24//64', 'mx:EXAMPLE.ORG.', 'mx:%{d}'])(
+    'does not duplicate existing MX authorization: %s',
+    (mechanism) => {
+      expect(spfProposal(check(`v=spf1 ${mechanism} include:provider.example -all`))).toMatchObject(
+        {
+          kind: 'mxPresent',
+          record: null,
         },
-      }),
-    )
-    expect(value.record).toBe('v=spf1 ip6:2001:db8::25 ip4:192.0.2.0/24 -all')
-    expect(
-      spfProposal(check('v=spf1 +ip6:2001:0db8:0000:0000:0000:0000:0000:0000/64 -all')).record,
-    ).toBe('v=spf1 ip4:192.0.2.25 +ip6:2001:0db8:0000:0000:0000:0000:0000:0000/64 -all')
+      )
+    },
+  )
+  it.each(['-mx', '~mx', '?MX', '-mx:example.org'])(
+    'preserves intentional MX exclusions: %s',
+    (mechanism) => {
+      expect(spfProposal(check(`v=spf1 ${mechanism} -all`))).toMatchObject({
+        kind: 'review',
+        record: null,
+      })
+    },
+  )
+  it('does not duplicate an unreachable mx mechanism after all', () => {
+    expect(spfProposal(check('v=spf1 -all mx'))).toMatchObject({
+      kind: 'mxPresent',
+      record: null,
+    })
   })
-  it('inserts authorizations before matching exclusions and unreachable mechanisms', () => {
-    expect(spfProposal(check('v=spf1 -ip4:192.0.2.25 ip4:192.0.2.0/24 -all')).record).toBe(
-      'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 -ip4:192.0.2.25 ip4:192.0.2.0/24 -all',
-    )
-    expect(spfProposal(check('v=spf1 -all ip4:192.0.2.25')).record).toBe(
-      'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 -all ip4:192.0.2.25',
+  it('distinguishes MX hosts of another domain from the current domain', () => {
+    expect(spfProposal(check('v=spf1 mx:provider.example include:mx.example -all')).record).toBe(
+      'v=spf1 mx mx:provider.example include:mx.example -all',
     )
   })
   it('recognizes a passing policy, including authorization through include', () => {
@@ -98,25 +109,20 @@ describe('SPF proposals from DNS diagnostics', () => {
       kind: 'unavailable',
       record: null,
     })
-    expect(spfProposal(check(null, { guidance: [] }))).toMatchObject({
-      kind: 'unavailable',
-      record: null,
-    })
   })
-  it('rejects malformed address and record data without putting it in a copyable suggestion', () => {
+  it('does not copy address guidance into a suggested record', () => {
     expect(
       spfProposal(
         check(null, {
           guidance: [
-            {
-              code: 'spfAuthorizeAddresses',
-              params: { ipv4: '192.0.2.25 -all', ipv6: null },
-              message: '',
-            },
+            { code: 'spfAuthorizeAddresses', params: { ipv4: '192.0.2.25 -all' }, message: '' },
           ],
         }),
       ).record,
-    ).toBeNull()
-    expect(spfProposal(check('v=spf1 -all\nother.example TXT bad')).record).toBeNull()
+    ).toBe('v=spf1 mx ~all')
   })
+  it.each(['v=spf1 -all\nother.example TXT bad', 'v=spf1 mx\u202E -all', 'other data'])(
+    'rejects malformed record data: %s',
+    (record) => expect(spfProposal(check(record))).toMatchObject({ kind: 'review', record: null }),
+  )
 })

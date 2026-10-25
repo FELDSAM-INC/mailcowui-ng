@@ -162,11 +162,12 @@
     "spfProposal": {
       "title": "Suggested SPF record",
       "copy": "Copy suggested SPF record",
-      "create": "Add this TXT record only after including any other services that send mail for this domain.",
-      "update": "Replace the existing SPF TXT record with this value. It adds this server and preserves the existing senders and policy; review any intentional exclusions before publishing.",
+      "create": "Add this TXT record to authorize the domain's MX hosts. Make sure the MX records point to this server, and include any other services that send mail for the domain.",
+      "update": "Replace the existing SPF TXT record with this value to authorize the domain's MX hosts. Make sure the MX records point to this server. Existing senders and policy are preserved; review any intentional exclusions before publishing.",
       "unchanged": "The current SPF record already authorizes this server.",
       "review": "Review the current SPF records and the reported issue before making changes. A replacement cannot be safely suggested.",
-      "unavailable": "A suggestion is unavailable until DNS and the server addresses can be checked."
+      "unavailable": "A suggestion is unavailable until the DNS records can be checked.",
+      "mxPresent": "The record already includes MX authorization. Check that the MX hosts resolve to this server and that earlier SPF mechanisms do not reject it."
     }
   }
 }

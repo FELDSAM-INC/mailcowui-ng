@@ -18,7 +18,9 @@ const props = withDefaults(defineProps<{ check: DnsCheck; label: string; compact
 })
 const guidance = computed(() =>
   props.check.guidance.filter(
-    (message) => props.check.id !== 'spf' || message.code !== 'spfSuggestedRecord',
+    (message) =>
+      props.check.id !== 'spf' ||
+      !['spfSuggestedRecord', 'spfAuthorizeAddresses'].includes(message.code),
   ),
 )
 const { t } = useI18n()

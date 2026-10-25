@@ -172,7 +172,9 @@ test.describe('DNS diagnostics result', () => {
   test('FR-062 FR-063 FR-064 the filter, the SPF guidance and the server facts', async ({
     page,
     mockApi,
+    browserName,
   }) => {
+    const readable = await allowClipboard(page, browserName)
     await mockApi.use('dns-diagnostics-all-statuses')
     await openResult(page)
     const facts = page.locator('[data-server-facts]')
@@ -180,9 +182,11 @@ test.describe('DNS diagnostics result', () => {
     await expect(facts).toContainText('192.0.2.25')
     await expect(facts).toContainText('2001:db8::25')
     const spf = checkRow(page, 'spf')
-    await expect(spf.getByRole('button', { name: 'Copy ip4:192.0.2.25' })).toBeVisible()
-    await expect(spf.getByRole('button', { name: 'Copy suggested SPF record' })).toBeVisible()
-    await expect(spf).toContainText('Allow')
+    await expect(spf.getByRole('button', { name: 'Copy ip4:192.0.2.25' })).toHaveCount(0)
+    await expect(spf.locator('[data-spf-proposal]')).toContainText('v=spf1 mx -all')
+    await expect(spf).toContainText('Make sure the MX records point to this server.')
+    await spf.getByRole('button', { name: 'Copy suggested SPF record' }).click()
+    if (readable) expect(await clipboardText(page)).toBe('v=spf1 mx -all')
     await page.getByRole('checkbox', { name: /Only checks that need attention/ }).check()
     await expect(checkRow(page, 'mx')).toHaveCount(0)
     await expect(checkRow(page, 'autoconfig')).toBeVisible()

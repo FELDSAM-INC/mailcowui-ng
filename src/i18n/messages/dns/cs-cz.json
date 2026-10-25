@@ -162,11 +162,12 @@
     "spfProposal": {
       "title": "Navržený SPF záznam",
       "copy": "Kopírovat navržený SPF záznam",
-      "create": "Před přidáním tohoto TXT záznamu zahrňte také všechny další služby, které odesílají poštu za tuto doménu.",
-      "update": "Nahraďte stávající SPF TXT záznam touto hodnotou. Přidává tento server a zachovává stávající odesílatele a zásady; před zveřejněním zkontrolujte případné záměrné výjimky.",
+      "create": "Přidejte tento TXT záznam pro povolení poštovních serverů domény podle MX. Ujistěte se, že MX záznamy směřují na tento server, a zahrňte také další služby odesílající poštu za doménu.",
+      "update": "Nahraďte stávající SPF TXT záznam touto hodnotou pro povolení poštovních serverů domény podle MX. Ujistěte se, že MX záznamy směřují na tento server. Stávající odesílatelé a zásady zůstávají zachovány; před zveřejněním zkontrolujte případné záměrné výjimky.",
       "unchanged": "Stávající SPF záznam již povoluje tento server.",
       "review": "Před změnou zkontrolujte stávající SPF záznamy a nahlášený problém. Náhradu nelze bezpečně navrhnout.",
-      "unavailable": "Návrh bude dostupný po ověření DNS a adres serveru."
+      "unavailable": "Návrh bude dostupný po ověření DNS záznamů.",
+      "mxPresent": "Záznam již obsahuje povolení podle MX. Zkontrolujte, že adresy MX serverů odpovídají tomuto serveru a že jej neodmítá některý z předchozích SPF mechanismů."
     }
   }
 }

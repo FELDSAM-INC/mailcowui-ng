@@ -10,7 +10,7 @@ COPY . .
 # Source maps are built hidden for error reporting and never shipped.
 RUN npm run build && find dist -name '*.map' -delete
 
-FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e
 USER root
 # Apply available Alpine security fixes even when the upstream image tag has not been rebuilt.
 RUN apk upgrade --no-cache

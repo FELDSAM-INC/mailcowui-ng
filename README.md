@@ -20,6 +20,10 @@ assets stay under `/ng/`. Existing `/ng/` bookmarks and credential callbacks are
 in the browser before bootstrap, without an HTTP redirect carrying their credentials.
 The classic interface remains available at `/index.php` in this mode.
 
+Compatibility: **mailcow 2026-09a or newer**, including **2026-10**. Older releases
+are expected to work, but have not been tested yet. The API checks database schema
+compatibility at startup; see the [compatibility guide](https://github.com/FELDSAM-INC/mailcow-modern-ui/blob/main/docs/compatibility.md).
+
 Start with the [constitution](.specify/memory/constitution.md) and
 [conventions](docs/conventions.md), especially translations, legacy forms, secrets and feature
 boundaries. Feature `specs/NNN-*/tasks.md`, `quickstart.md` and [checkpoint notes](docs/checkpoints)

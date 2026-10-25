@@ -52,7 +52,7 @@ jobs:
           retention-days: 14
 
   build:
-    needs: quality
+    # Build and container checks run alongside quality; publication still requires all three.
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -143,19 +143,29 @@ jobs:
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/ng/healthz && break; sleep 1; done
           curl -fsS http://127.0.0.1:8080/ng/ | grep -q '<div id="app">'
           curl -fsS http://127.0.0.1:8080/ng/api-keys | grep -q '<div id="app">'
+          curl -fsS http://127.0.0.1:8080/domains | grep -q '<div id="app">'
+          curl -fsS http://127.0.0.1:8080/ng/deployment.json \
+            | python3 -c 'import json, sys; manifest = json.load(sys.stdin); assert manifest["rootRoutingVersion"] == 1; assert set(manifest["supportedUiPaths"]) == {"/", "/ng/"}'
           curl -fsSI http://127.0.0.1:8080/ng/ | grep -qi "^content-security-policy: default-src 'none'"
-          # UI 012 (research R27): the single sign-on return page serves the app with its CSP.
-          curl -fsS 'http://127.0.0.1:8080/ng/sso/return?code=x&state=y' | grep -q '<div id="app">'
-          curl -fsSI 'http://127.0.0.1:8080/ng/sso/return?code=x&state=y' \
-            | grep -qi "^content-security-policy: default-src 'none'"
-          ! docker logs ng 2>&1 | grep -q 'sso/return?code='
-          # UI 005 (T154): deep links work without recording password reset tokens.
-          curl -fsS -A reset-token-log-test \
-            -e 'https://example.test/ng/reset-password?token=RESET_TOKEN_LOG_SENTINEL' \
-            'http://127.0.0.1:8080/ng/reset-password?token=RESET_TOKEN_LOG_SENTINEL' \
-            | grep -q '<div id="app">'
-          docker logs ng 2>&1 | grep -q 'reset-token-log-test'
-          ! docker logs ng 2>&1 | grep -q 'RESET_TOKEN_LOG_SENTINEL'
+          # Credential routes serve the app and CSP without recording any part of the request.
+          for path in /ng/sso/return /ng/sso/return/ /sso/return /sso/return/ \
+            /ng/reset-password /ng/reset-password/ /reset-password /reset-password/; do
+            curl -fsS -A credential-route-log-test \
+              -e 'https://example.test/reset-password?token=RESET_TOKEN_LOG_SENTINEL' \
+              "http://127.0.0.1:8080${path}?code=SSO_CODE_LOG_SENTINEL&state=x&token=RESET_TOKEN_LOG_SENTINEL" \
+              | grep -q '<div id="app">'
+            curl -fsSI "http://127.0.0.1:8080${path}" \
+              | grep -qi "^content-security-policy: default-src 'none'"
+          done
+          # A normal request proves logs are readable; allow Docker to flush its log stream.
+          curl -fsS -o /dev/null -A public-route-log-test http://127.0.0.1:8080/ng/
+          for i in $(seq 1 30); do
+            docker logs ng > /tmp/ng-container.log 2>&1
+            if grep -q 'public-route-log-test' /tmp/ng-container.log; then break; fi
+            sleep 0.1
+          done
+          grep -q 'public-route-log-test' /tmp/ng-container.log
+          ! grep -Eq 'credential-route-log-test|SSO_CODE_LOG_SENTINEL|RESET_TOKEN_LOG_SENTINEL' /tmp/ng-container.log
           asset=$(curl -fsS http://127.0.0.1:8080/ng/ | grep -o '/ng/assets/[^"]*\.js' | head -1)
           curl -fsSI "http://127.0.0.1:8080${asset}" | grep -qi '^cache-control: public, max-age=31536000, immutable'
           docker exec ng sh -c '! find /usr/share/nginx/html -name "*.map" | grep -q .'

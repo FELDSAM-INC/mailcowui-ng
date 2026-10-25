@@ -21,8 +21,8 @@ in the browser before bootstrap, without an HTTP redirect carrying their credent
 The classic interface remains available at `/index.php` in this mode.
 
 Compatibility: **mailcow 2026-09a or newer**, including **2026-10**. Older releases
-are expected to work, but have not been tested yet. The API checks database schema
-compatibility at startup; see the [compatibility guide](https://github.com/FELDSAM-INC/mailcow-modern-ui/blob/main/docs/compatibility.md).
+remain untested: `2026-09` shares the accepted schema, while releases through `2026-07b`
+currently fail the API's schema check. See the [compatibility guide](https://github.com/FELDSAM-INC/mailcow-modern-ui/blob/main/docs/compatibility.md).
 
 Start with the [constitution](.specify/memory/constitution.md) and
 [conventions](docs/conventions.md), especially translations, legacy forms, secrets and feature

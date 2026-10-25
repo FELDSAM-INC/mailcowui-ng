@@ -43,10 +43,16 @@ describe('Fail2banPage', { timeout: 30_000 }, () => {
     await settle(() => expect(wrapper.find('[data-parameters]').exists()).toBe(true))
     await settle(() => expect(wrapper.find('[data-rules]').exists()).toBe(true))
     expect(wrapper.get('h1').text()).toBe('Fail2ban parameters')
-    const order = ['[data-parameters]', '[data-rules]', '[data-ban-list]'].map((selector) =>
-      wrapper.html().indexOf(wrapper.get(selector).html().slice(0, 40)),
-    )
-    expect([...order].sort((a, b) => a - b)).toEqual(order)
+    // Inspect document order directly; formatting the entire page is unnecessary here
+    // and matching formatted HTML fragments can silently compare three missing (-1) offsets.
+    const sections = wrapper.findAll('[data-parameters], [data-rules], [data-ban-list]')
+    expect(
+      sections.map((section) =>
+        ['parameters', 'rules', 'ban-list'].find(
+          (name) => section.attributes(`data-${name}`) !== undefined,
+        ),
+      ),
+    ).toEqual(['parameters', 'rules', 'ban-list'])
     expect(wrapper.find('[data-ban-service-stopped]').exists()).toBe(false)
   })
 

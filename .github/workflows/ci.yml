@@ -30,6 +30,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
+      - name: Test subscription scan runner (no model calls)
+        run: node --test scripts/security/scan-local.test.mjs
       - run: npm ci
       - run: npm run lint
       - run: npm run format:check

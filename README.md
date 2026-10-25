@@ -129,8 +129,25 @@ Lighthouse runs separately via `npm run lhci`. The [CI workflow](.github/workflo
 configures quality, build, browser, image and conditional smoke jobs. Performance/Lighthouse
 and browser accessibility checks are opt-in through the repository variables documented in the
 [CI setup guide](https://github.com/FELDSAM-INC/mailcow-rest-v2/blob/main/docs/ci-and-images.md).
-The [Codex Security workflow](.github/workflows/codex-security.yml) scans trusted pull requests
-and the repository weekly; add the `CODEX_SECURITY_API_KEY` Actions secret to activate it.
+The [Codex Security workflow](.github/workflows/codex-security.yml) uses the API only for trusted
+pull-request diffs. Its estimated stop threshold defaults to $5, configurable with
+`CODEX_SECURITY_PR_MAX_COST`; add the `CODEX_SECURITY_API_KEY` Actions secret to activate it.
+Full scans use your ChatGPT subscription locally:
+
+```bash
+npx --yes @openai/codex-security@0.6.0 login
+```
+
+```bash
+node scripts/security/scan-local.mjs
+```
+
+The helper requires Node 22.13+ and Python 3.10+, explicitly selects ChatGPT authentication,
+removes API keys from the child environment, and waits before retrying rate-limit failures.
+It allows at most three attempts with a shared 15-minute wait budget. Retries start a new scan
+and consume more plan usage. Reports stay in the private temporary directory printed by the
+command. See the [scan guide](https://github.com/FELDSAM-INC/mailcow-rest-v2/blob/main/docs/ci-and-images.md#codex-security)
+for limits, dry runs and model selection.
 
 ### Real-API smoke checks
 

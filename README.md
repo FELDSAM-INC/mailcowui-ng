@@ -264,3 +264,7 @@ this repository. Deploy the compatible API revision first when the UI needs new 
 
 Historical planning prompts and old per-feature test counts are retained in the specs. They are
 not the current release status or a substitute for checking the code and the latest evidence.
+
+## Security checks
+
+See [automated security checks](docs/security-checks.md) for scanners, release gates, isolated runtime testing and repository settings.

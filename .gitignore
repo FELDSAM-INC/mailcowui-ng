@@ -21,3 +21,7 @@ blob-report/
 
 # Smoke suite working copy of mailcow-rest-v2 (scripts/smoke)
 .smoke/
+
+# Local security reports may include source and vulnerability details.
+/security-reports/
+__pycache__/

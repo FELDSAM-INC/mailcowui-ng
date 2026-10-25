@@ -2,7 +2,7 @@
 # Static image of mailcowui-ng (research R29): a non-root, read-only nginx serving the build under
 # /ng/. Build from the repository root: docker build -f docker/Dockerfile .
 
-FROM node:24-alpine@sha256:44fce696f38ba8c987c4db89954051000bbd05ffd8d8659ba15ed4a8602e937f AS build
+FROM node:24-alpine@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci --no-audit --no-fund
@@ -10,8 +10,12 @@ COPY . .
 # Source maps are built hidden for error reporting and never shipped.
 RUN npm run build && find dist -name '*.map' -delete
 
-FROM nginxinc/nginx-unprivileged:1.28-alpine@sha256:7377697a821c131a924a7105fafbe7414db4e9fcc77a6f08f776f33f141ec3f8
+FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+USER root
+# Apply available Alpine security fixes even when the upstream image tag has not been rebuilt.
+RUN apk upgrade --no-cache
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx/security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build /app/dist/ /usr/share/nginx/html/ng/
+USER 101
 EXPOSE 8080

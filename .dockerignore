@@ -15,3 +15,5 @@ docs
 *.log
 .env
 .env.*
+
+security-reports

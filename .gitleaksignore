@@ -1,0 +1,36 @@
+# Reviewed 2026-10-25: exact historical test fixtures and public metadata only.
+# New secrets, even in the same file, must still fail.
+# tests/e2e/sign-in/auth-layout.spec.ts — non-production fixture or documented placeholder
+502bb9d7c362a9571c5e503c5a57e1b12b78821c:tests/e2e/sign-in/auth-layout.spec.ts:generic-api-key:83
+# tests/e2e/account/reflow-keyboard.spec.ts — non-production fixture or documented placeholder
+7fb2adba887b10caac6e03e461d98b7cd2df23f0:tests/e2e/account/reflow-keyboard.spec.ts:generic-api-key:51
+# tests/e2e/account/reflow-keyboard.spec.ts — non-production fixture or documented placeholder
+7fb2adba887b10caac6e03e461d98b7cd2df23f0:tests/e2e/account/reflow-keyboard.spec.ts:generic-api-key:195
+# tests/unit/shared/components/secrets.spec.ts — non-production fixture or documented placeholder
+ddf44e59845e3b69398a23ec978c8db5c17dd4e6:tests/unit/shared/components/secrets.spec.ts:generic-api-key:22
+# tests/unit/features/auth/PasswordResetPage.spec.ts — non-production fixture or documented placeholder
+ddf44e59845e3b69398a23ec978c8db5c17dd4e6:tests/unit/features/auth/PasswordResetPage.spec.ts:generic-api-key:28
+# tests/e2e/account/secrets-audit.spec.ts — non-production fixture or documented placeholder
+7fb2adba887b10caac6e03e461d98b7cd2df23f0:tests/e2e/account/secrets-audit.spec.ts:generic-api-key:108
+# tests/unit/support/totp.spec.ts — non-production fixture or documented placeholder
+d3a71cd271c64b3d1e1a9157307870462601461b:tests/unit/support/totp.spec.ts:generic-api-key:8
+# tests/e2e/operations/fail2ban-bans.spec.ts — non-production fixture or documented placeholder
+565e9ffb0e02eb0cb29a9bc942afa49056612a04:tests/e2e/operations/fail2ban-bans.spec.ts:generic-api-key:148
+# tests/unit/features/dns/PrivateKeyField.spec.ts — non-production fixture or documented placeholder
+21d73e1a4b9dccd332f109401ea7dbe3e62f648d:tests/unit/features/dns/PrivateKeyField.spec.ts:private-key:39
+# tests/unit/mocks/dns-factories.spec.ts — non-production fixture or documented placeholder
+bb01ae8b355f8d815ffd1073bf7a4c63915cd311:tests/unit/mocks/dns-factories.spec.ts:private-key:171
+# tests/e2e/shell/storage-and-secrets.spec.ts — non-production fixture or documented placeholder
+96a6e55808556bde0c989ddff3427a115dcf4d89:tests/e2e/shell/storage-and-secrets.spec.ts:generic-api-key:104
+# tests/unit/features/identity-providers/provider/useProviderEditor.spec.ts — non-production fixture or documented placeholder
+6a9fb536e1a00f37ce6796369259b1bfbdaba355:tests/unit/features/identity-providers/provider/useProviderEditor.spec.ts:generic-api-key:54
+# tests/unit/mocks/mailbox-handlers.spec.ts — non-production fixture or documented placeholder
+b691511f5a99b1fa8ec3fec4015c68bd02068a96:tests/unit/mocks/mailbox-handlers.spec.ts:generic-api-key:345
+# tests/unit/mocks/mailbox-handlers.spec.ts — non-production fixture or documented placeholder
+b691511f5a99b1fa8ec3fec4015c68bd02068a96:tests/unit/mocks/mailbox-handlers.spec.ts:generic-api-key:356
+# specs/005-account-self-service/quickstart.md — non-production fixture or documented placeholder
+8777bb89fe5f70794627204d402445dcad33208e:specs/005-account-self-service/quickstart.md:generic-api-key:59
+# src/api/generated/schema.ts — non-production fixture or documented placeholder
+a0d8be24384d53ad67a4875a516a4543dc7affc6:src/api/generated/schema.ts:private-key:9972
+# contract/openapi.yaml — non-production fixture or documented placeholder
+a0d8be24384d53ad67a4875a516a4543dc7affc6:contract/openapi.yaml:private-key:22643

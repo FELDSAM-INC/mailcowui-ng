@@ -22,6 +22,9 @@ env:
   NODE_VERSION: '24'
 
 jobs:
+  security:
+    uses: ./.github/workflows/security.yml
+
   quality:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -136,6 +139,15 @@ jobs:
           tags: mailcowui-ng:ci
           cache-from: type=gha,scope=production
           cache-to: type=gha,scope=production,mode=max
+      - name: Scan production image
+        run: python3 scripts/security/check.py image --image mailcowui-ng:ci
+      - name: Retain image scan and SBOM
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: production-image-security
+          path: security-reports/
+          retention-days: 7
       - name: Check the container
         run: |
           docker run -d --name ng --read-only --tmpfs /tmp --tmpfs /var/cache/nginx \
@@ -221,7 +233,7 @@ jobs:
 
   publish:
     name: Publish public image
-    needs: [quality, build, image]
+    needs: [quality, build, image, security]
     if: >-
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
@@ -267,10 +279,35 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ghcr.io/feldsam-inc/mailcowui-ng:scan-${{ github.sha }}-${{ github.run_id }}
+          sbom: true
+          provenance: mode=max
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=production
           cache-to: type=gha,scope=production,mode=max
+      - name: Scan both candidate architectures before promoting release tags
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          python3 scripts/security/check.py image --image "ghcr.io/feldsam-inc/mailcowui-ng@$IMAGE_DIGEST" --platform linux/amd64
+          python3 scripts/security/check.py image --image "ghcr.io/feldsam-inc/mailcowui-ng@$IMAGE_DIGEST" --platform linux/arm64
+      - name: Promote verified image to public release tags
+        env:
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          args=()
+          while IFS= read -r tag; do
+            [ -z "$tag" ] || args+=(--tag "$tag")
+          done <<< "$IMAGE_TAGS"
+          docker buildx imagetools create "${args[@]}" "ghcr.io/feldsam-inc/mailcowui-ng@$IMAGE_DIGEST"
+      - name: Retain release scans and SBOMs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: release-image-security
+          path: security-reports/
+          retention-days: 14
       - name: Record published image
         env:
           IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}

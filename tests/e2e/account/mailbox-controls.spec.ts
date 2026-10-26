@@ -177,9 +177,7 @@ test('SPF diagnostics offer a copyable proposal derived from the current record'
   await mockApi.use('dns-diagnostics-all-statuses')
   await page.goto('dns/diagnostics/example.org')
   const proposal = page.locator('[data-check-id="spf"] [data-spf-proposal]')
-  await expect(proposal.locator('[data-record-value]')).toHaveText(
-    'v=spf1 ip4:192.0.2.25 ip6:2001:db8::25 -all',
-  )
+  await expect(proposal.locator('[data-record-value]')).toHaveText('v=spf1 mx -all')
   await expect(proposal.getByRole('button', { name: 'Copy suggested SPF record' })).toBeVisible()
   await expect(proposal).toContainText('Replace the existing SPF TXT record')
 })

@@ -1,5 +1,7 @@
 # mailcowui-ng
 
+@AGENTS.md
+
 Mobile-first Vue 3 + TypeScript SPA for mailcow-dockerized. It is a static build, and its only
 backend is mailcow REST API v2 (`../mailcow-rest-v2`, base path `/api/v2`, same origin).
 

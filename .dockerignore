@@ -1,6 +1,6 @@
 .git
 node_modules
-dist
+# dist is an explicit input to the prebuilt CI target; source builds never COPY it.
 dist-*
 coverage
 playwright-report

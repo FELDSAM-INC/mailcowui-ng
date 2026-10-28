@@ -16,10 +16,12 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
+  PUBLISH_IMAGES: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) }}
   NODE_VERSION: '24'
+  IMAGE_NAME: ghcr.io/feldsam-inc/mailcowui-ng
 
 jobs:
   security:
@@ -55,16 +57,24 @@ jobs:
           retention-days: 14
 
   build:
-    needs: quality
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+      - name: Build the frontend once and export dist
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: build-output
+          platforms: linux/amd64
+          outputs: type=local,dest=dist
+          cache-from: type=gha,scope=ui-assets-linux-amd64
+          cache-to: type=gha,scope=ui-assets-linux-amd64,mode=max
+      - if: vars.PERFORMANCE_CHECKS_ENABLED == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - run: npm run build
       - if: vars.PERFORMANCE_CHECKS_ENABLED == 'true'
         run: npm run budget:check
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -126,32 +136,96 @@ jobs:
           retention-days: 14
 
   image:
+    name: Production image (${{ matrix.arch }})
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: dist
+          path: dist/
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+      - name: Image tags and source labels
+        id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/feldsam-inc/mailcowui-ng
+          flavor: latest=false
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,format=long
+            type=match,pattern=v(.*),group=1
+          labels: |
+            org.opencontainers.image.licenses=GPL-3.0-only
+      - name: Log in to GHCR
+        if: env.PUBLISH_IMAGES == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build the native platform image once
+        id: build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
         with:
           context: .
           file: docker/Dockerfile
-          load: true
-          tags: mailcowui-ng:ci
-          cache-from: type=gha,scope=production
-          cache-to: type=gha,scope=production,mode=max
-      - name: Scan production image
-        run: python3 scripts/security/check.py image --image mailcowui-ng:ci
+          target: prebuilt
+          platforms: linux/${{ matrix.arch }}
+          push: ${{ env.PUBLISH_IMAGES == 'true' }}
+          load: ${{ env.PUBLISH_IMAGES != 'true' }}
+          tags: ${{ env.IMAGE_NAME }}:scan-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arch }}
+          sbom: ${{ env.PUBLISH_IMAGES == 'true' }}
+          provenance: ${{ env.PUBLISH_IMAGES == 'true' && 'mode=max' || 'false' }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=ui-production-linux-${{ matrix.arch }}
+          cache-to: type=gha,scope=ui-production-linux-${{ matrix.arch }},mode=max
+      - name: Select the exact image to test
+        id: reference
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_ARCH: ${{ matrix.arch }}
+        run: |
+          if [ "$PUBLISH_IMAGES" = 'true' ]; then
+            [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+            reference="$IMAGE_NAME@$IMAGE_DIGEST"
+          else
+            reference="$IMAGE_NAME:scan-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$IMAGE_ARCH"
+          fi
+          echo "image=$reference" >> "$GITHUB_OUTPUT"
+      - name: Scan the platform image
+        env:
+          IMAGE_REFERENCE: ${{ steps.reference.outputs.image }}
+          IMAGE_ARCH: ${{ matrix.arch }}
+        run: python3 scripts/security/check.py image --image "$IMAGE_REFERENCE" --platform "linux/$IMAGE_ARCH"
       - name: Retain image scan and SBOM
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: production-image-security
+          name: production-image-security-linux-${{ matrix.arch }}
           path: security-reports/
           retention-days: 7
       - name: Check the container
+        env:
+          IMAGE_REFERENCE: ${{ steps.reference.outputs.image }}
         run: |
           docker run -d --name ng --read-only --tmpfs /tmp --tmpfs /var/cache/nginx \
-            -p 127.0.0.1:8080:8080 mailcowui-ng:ci
+            -p 127.0.0.1:8080:8080 "$IMAGE_REFERENCE"
           for i in $(seq 1 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/ng/healthz && break; sleep 1; done
           curl -fsS http://127.0.0.1:8080/ng/ | grep -q '<div id="app">'
           curl -fsS http://127.0.0.1:8080/ng/api-keys | grep -q '<div id="app">'
@@ -183,6 +257,21 @@ jobs:
           docker exec ng sh -c '! find /usr/share/nginx/html -name "*.map" | grep -q .'
       - if: always()
         run: docker logs ng || true
+      - name: Record the verified platform digest
+        if: env.PUBLISH_IMAGES == 'true'
+        env:
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_ARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/digests"
+          printf '%s\n' "$IMAGE_DIGEST" > "$RUNNER_TEMP/digests/linux-$IMAGE_ARCH.txt"
+      - if: env.PUBLISH_IMAGES == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: image-digest-linux-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/linux-${{ matrix.arch }}.txt
+          overwrite: true
+          retention-days: 1
 
   smoke:
     needs: image
@@ -249,9 +338,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-        with:
-          platforms: arm64
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - name: Image tags and source labels
         id: meta
@@ -271,20 +357,25 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish AMD64 and ARM64 images
-        id: publish
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
-          context: .
-          file: docker/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ghcr.io/feldsam-inc/mailcowui-ng:scan-${{ github.sha }}-${{ github.run_id }}
-          sbom: true
-          provenance: mode=max
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=production
-          cache-to: type=gha,scope=production,mode=max
+          pattern: image-digest-linux-*
+          path: ${{ runner.temp }}/digests
+          merge-multiple: true
+      - name: Assemble the already tested platform images
+        id: publish
+        run: |
+          sources=()
+          for architecture in amd64 arm64; do
+            digest="$(cat "$RUNNER_TEMP/digests/linux-$architecture.txt")"
+            [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+            sources+=("$IMAGE_NAME@$digest")
+          done
+          candidate="$IMAGE_NAME:scan-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          docker buildx imagetools create --tag "$candidate" "${sources[@]}"
+          digest="$(docker buildx imagetools inspect "$candidate" --format '{{json .Manifest}}' | jq -r '.digest')"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
       - name: Scan both candidate architectures before promoting release tags
         env:
           IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}

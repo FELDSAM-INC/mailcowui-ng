@@ -128,3 +128,35 @@ A repository administrator should verify these settings in each public repositor
 
 Workflow files cannot enable these repository settings. They require authenticated GitHub administrator
 access. Independent human review remains a separate release requirement; see the review brief.
+
+## Build cache and image promotion
+
+Production images are built and checked on native `ubuntu-24.04` (AMD64) and
+`ubuntu-24.04-arm` (ARM64) runners. Each platform has its own BuildKit GHA cache,
+exported with `mode=max` so intermediate dependency and compilation layers survive.
+The scopes are stable across commits; BuildKit hashes each layer's actual inputs
+rather than discarding the whole cache whenever the Dockerfile or a lockfile changes.
+
+- `ui-assets-linux-amd64`: Node dependencies and the frontend build.
+- `ui-production-linux-amd64` and `ui-production-linux-arm64`: nginx runtime images.
+
+The `build-output` Docker target exports one `dist` artifact for browser tests and both
+platforms. The `prebuilt` target consumes that artifact, so image publication does not
+run npm or rebuild the frontend. Source maps remain in the test/error-reporting artifact
+and are removed from each shipping image. The default `production` target still supports
+a standalone build from source. Tests, workflows, and documentation do not invalidate
+frontend dependency/build layers because the Dockerfile copies explicit build inputs.
+
+Trusted main/tag runs first push provisional `scan-*` images. Each native image job scans
+and exercises its exact digest, then uploads that digest as a platform-specific workflow
+artifact. The publishing job assembles those existing platform images; it does not build
+again. All existing application/security gates must pass, and both architectures of the
+assembled index are scanned again before `latest`, SHA, or version tags are promoted.
+Pull requests and non-publishing runs load and check images locally without registry login
+or pushes. ARM64 uses the separately checksum-pinned Trivy binary; severity policy and
+complete reports/SBOMs are unchanged.
+
+The first run after changing cache scopes is cold. Later runs reuse unchanged layers.
+npm/Composer cache mounts also help on a reused local builder; their mutable download
+contents are not themselves exported by the GHA layer cache. To inspect actual cache hits,
+use `docker build --progress=plain` and look for `CACHED` on the expensive steps.

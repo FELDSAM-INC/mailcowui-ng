@@ -145,6 +145,7 @@ export interface MockChallenge {
 }
 
 export interface MockSession {
+  sessionId?: string
   impersonation?: Impersonation
   state: SessionState
   username: string | null

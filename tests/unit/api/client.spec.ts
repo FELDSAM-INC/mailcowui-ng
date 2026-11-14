@@ -43,7 +43,6 @@ describe('CSRF token', () => {
     setIdentityChangeHandler({ current: () => identity, changed: () => {} })
   })
   it('sends X-CSRF-Token on POST, PATCH and DELETE only', async () => {
-    useScenario('admin-active')
     await api.GET('/session')
     await api.DELETE('/session')
     const requests = mockState().requests
@@ -56,7 +55,6 @@ describe('CSRF token', () => {
   })
 
   it('fetches the token once under concurrent writes (single flight)', async () => {
-    useScenario('admin-active')
     // Writes that keep the session, so that no write sees a token the server discarded.
     server.use(http.delete(`${API}/session`, () => new HttpResponse(null, { status: 204 })))
     await Promise.all([api.DELETE('/session'), api.DELETE('/session'), ensureCsrfToken()])
@@ -65,10 +63,9 @@ describe('CSRF token', () => {
   })
 
   it('refreshes the token silently once after csrf-token-mismatch and replays the original body', async () => {
-    useScenario('admin-active')
     await ensureCsrfToken()
     const original = mockState().session.csrfToken
-    // The server's session token changes (for example after it expired and was renewed).
+    // The CSRF token rotates within the same authenticated session.
     mockState().session.csrfToken = 'b'.repeat(48)
     const bodies: unknown[] = []
     server.use(
@@ -95,7 +92,6 @@ describe('CSRF token', () => {
   })
 
   it('treats a second mismatch as the end of the session', async () => {
-    useScenario('admin-active')
     const ended = vi.fn()
     const stop = onSessionEnded(ended)
     server.use(http.delete(`${API}/session`, () => problemResponse(403, 'csrf-token-mismatch')))
@@ -109,7 +105,6 @@ describe('CSRF token', () => {
   })
 
   it('treats unauthenticated on the replay as the end of the session', async () => {
-    useScenario('admin-active')
     const ended = vi.fn()
     const stop = onSessionEnded(ended)
     let calls = 0
@@ -127,7 +122,6 @@ describe('CSRF token', () => {
     stop()
   })
   it('reports a network failure of the replay as kind network', async () => {
-    useScenario('admin-active')
     let calls = 0
     server.use(
       http.delete(`${API}/session`, () => {

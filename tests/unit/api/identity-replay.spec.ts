@@ -16,9 +16,10 @@ async function originalIdentity() {
   return (await api.GET('/me')).data!.data
 }
 
-it('includes the impersonation instance in the identity key', async () => {
+it('includes the sign-in and impersonation instances in the identity key', async () => {
   const identity = await originalIdentity()
-  expect(identityKey(identity)).toBe('admin|admin|')
+  expect(identityKey(identity)).toBe(`admin|admin||${identity.sessionId}`)
+  expect(identityKey({ ...identity, sessionId: 'another-session' })).not.toBe(identityKey(identity))
   const acting = { ...identity, impersonation: { id: 'one' } } as Identity
   expect(identityKey(acting)).not.toBe(identityKey(identity))
   expect(identityKey({ ...acting, impersonation: { id: 'two' } } as Identity)).not.toBe(
@@ -47,11 +48,13 @@ it('refreshes and rereads identity before replaying the same write once', async 
   expect(requests).toEqual(['write', 'identity', 'write'])
   expect(changed).not.toHaveBeenCalled()
 })
-it('does not replay a write when the username, role or acting instance changed', async () => {
+it('does not replay a write when the username, role, sign-in or acting instance changed', async () => {
   const identity = await originalIdentity()
   for (const next of [
     { ...identity, username: 'another' },
     { ...identity, role: 'domainAdmin' as const },
+    { ...identity, sessionId: 'another-session' },
+    { ...identity, sessionId: undefined },
     { ...identity, impersonation: { id: 'new-instance' } } as Identity,
   ]) {
     const changed = vi.fn()

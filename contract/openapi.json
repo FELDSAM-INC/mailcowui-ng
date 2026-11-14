@@ -21810,6 +21810,13 @@
             "description": "Present for sessions only.",
             "$ref": "#/components/schemas/Preferences"
           },
+          "sessionId": {
+            "type": "string",
+            "minLength": 26,
+            "maxLength": 26,
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$",
+            "description": "Present for browser sessions. A non-authenticating registry reference that changes on every\nsign-in, even for the same account, and stays stable across cookie renewal and lifted\nrestrictions. This is not the session cookie and cannot authenticate a request. Clients\nmust discard private state and pending writes when it changes, together with identity or\nimpersonation changes. Omitted for API keys.\n"
+          },
           "impersonation": {
             "$ref": "#/components/schemas/Impersonation",
             "description": "Present while the session impersonates another account (feature 007). `username`, `role`,\n`scope` and `permissions` then describe the impersonated account, with the permission flags\nlegacy grants to impersonators; `authentication`, `pendingActions` and `preferences` are the\nimpersonator's.\n"

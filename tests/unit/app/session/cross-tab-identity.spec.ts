@@ -108,6 +108,26 @@ it('keeps cache observers when another tab lifts a restriction for the same iden
   expect(useSessionStore().shellNotice).toBeNull()
   ctx.stop()
 })
+it('clears prior private state when the same account signs in through another session', async () => {
+  const ctx = await setup()
+  const previous = ctx.queryClient.getQueryData<Identity>(queryKeys.identity())!
+  const next = { ...previous, sessionId: '01ARZ3NDEKTSV4RRFFQ69G5FAV' }
+  const { captureSessionScope } = await import('@/api/session-scope')
+  const oldRequest = captureSessionScope()
+  server.use(http.get('*/api/v2/me', () => HttpResponse.json({ data: next })))
+
+  await refreshAfterSessionChange(ctx)
+
+  expect(oldRequest.isCurrent()).toBe(false)
+  expect(ctx.queryClient.getQueryData(['private'])).toBeUndefined()
+  expect(ctx.queryClient.getQueryData(queryKeys.identity())).toEqual(next)
+  expect(ctx.router.currentRoute.value.fullPath).toBe('/domains?q=keep')
+  expect(useSessionStore().identityTransition).toBe(false)
+  expect(ctx.channel.post).not.toHaveBeenCalledWith(
+    expect.objectContaining({ type: 'session-changed' }),
+  )
+  ctx.stop()
+})
 it('leaves the same protected URL when a changed identity has a required action', async () => {
   const ctx = await setup()
   await ctx.router.push('/account/password')

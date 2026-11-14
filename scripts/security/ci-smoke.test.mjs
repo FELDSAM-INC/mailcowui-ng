@@ -10,12 +10,14 @@ const condition = smoke.match(/^    if: >-\n((?:      .*\n)+)/m)?.[1].trim()
 assert.ok(condition, 'The smoke job must have an explicit event/ref condition')
 
 // This is the checked-in workflow expression, evaluated with synthetic GitHub contexts only.
-function enabled(event, ref, flag = 'true') {
+function enabled(event, ref, flag = 'true', imageResult = 'success', publishResult = 'skipped') {
   return runInNewContext(
     `(${condition})`,
     {
       github: { event_name: event, ref },
       vars: { SMOKE_ENABLED: flag },
+      cancelled: () => false,
+      needs: { image: { result: imageResult }, 'image-publish': { result: publishResult } },
       startsWith: (value, prefix) => value.startsWith(prefix),
     },
     { timeout: 100 },
@@ -48,5 +50,13 @@ test('public companion checkout does not receive a dedicated secret or persist c
   assert.equal(checkouts.length, 2)
   for (const checkout of checkouts) {
     assert.match(checkout.split('\n      - ')[0], /persist-credentials: false/)
+  }
+})
+
+test('smoke accepts either successful image job and refuses failed or cancelled builds', () => {
+  assert.equal(enabled('push', 'refs/heads/main', 'true', 'skipped', 'success'), true)
+  for (const result of ['failure', 'cancelled', 'skipped']) {
+    assert.equal(enabled('push', 'refs/heads/main', 'true', 'skipped', result), false)
+    assert.equal(enabled('schedule', 'refs/heads/main', 'true', result, 'skipped'), false)
   }
 })

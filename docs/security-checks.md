@@ -177,3 +177,20 @@ The first run after changing cache scopes is cold. Later runs reuse unchanged la
 npm/Composer cache mounts also help on a reused local builder; their mutable download
 contents are not themselves exported by the GHA layer cache. To inspect actual cache hits,
 use `docker build --progress=plain` and look for `CACHED` on the expensive steps.
+
+## Session replacement and image-job permissions
+
+Browser `/me` identities carry a non-authenticating `sessionId` registry reference. It changes
+on each sign-in, including two sign-ins as the same account within one second, while cookie
+renewal and lifted restrictions preserve it. The UI includes it in cache and pending-write
+ownership, so another tab's replacement session clears earlier private state and cannot replay
+an earlier session's write. API-key identities omit this browser-session reference.
+
+PR/non-publishing image jobs request only `contents: read`. Separate main/release-tag jobs hold
+`packages: write`, and publication still waits for quality, contract/build, image and security
+gates. Both jobs reuse the same native-platform matrix and build/check steps through YAML
+anchors, retaining per-platform caches without duplicating the build implementation.
+
+SSO and password-reset callback responses send `Cache-Control: no-store` in both root and `/ng/`
+layouts, including trailing-slash variants. The image smoke check verifies those headers with
+credential-shaped query parameters as well as ensuring the routes do not log them.

@@ -32,7 +32,11 @@ export async function refreshAfterSessionChange(ctx: SessionContext): Promise<vo
     }
     // Read outside the cache so a changed identity cannot repaint the mounted old screen first.
     const identity = await fetchIdentity()
-    if (identityKey(identity) !== identityKey(previous)) {
+    if (
+      !identity.sessionId ||
+      !previous?.sessionId ||
+      identityKey(identity) !== identityKey(previous)
+    ) {
       await switchIdentity({ reason: 'changedInAnotherTab', identity }, ctx)
       return
     }

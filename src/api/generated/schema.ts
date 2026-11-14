@@ -11652,6 +11652,14 @@ export interface components {
             preferences?: components["schemas"]["Preferences"];
             role: components["schemas"]["Role"];
             scope: components["schemas"]["Scope"];
+            /**
+             * @description Present for browser sessions. A non-authenticating registry reference that changes on every
+             *     sign-in, even for the same account, and stays stable across cookie renewal and lifted
+             *     restrictions. This is not the session cookie and cannot authenticate a request. Clients
+             *     must discard private state and pending writes when it changes, together with identity or
+             *     impersonation changes. Omitted for API keys.
+             */
+            sessionId?: string;
             /** @example reseller@example.org */
             username: string;
             /**

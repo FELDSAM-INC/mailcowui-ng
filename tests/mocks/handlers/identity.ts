@@ -6,6 +6,7 @@
 import type { Identity, IdentityProviderType, Preferences, PreferencesPatch, Writable } from '@/api'
 
 import { findAccount } from '../scenarios/state'
+import { ulid } from '../factories/ids'
 import type { MockAccount, MockAuthMethod, ScenarioState } from '../scenarios/state'
 import { csrfProblem, http, problem, requireAccount, scenario } from './context'
 
@@ -33,7 +34,9 @@ function authenticationOf(state: ScenarioState): {
 }
 
 export function identityBody(state: ScenarioState, account: MockAccount): Identity {
+  state.session.sessionId ??= ulid()
   return {
+    sessionId: state.session.sessionId,
     username: account.username,
     role: account.role,
     authentication: authenticationOf(state),

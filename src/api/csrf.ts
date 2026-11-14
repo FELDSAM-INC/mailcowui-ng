@@ -69,7 +69,7 @@ export async function refuseChangedIdentity(
   owner: string | null,
   identity: Identity,
 ): Promise<boolean> {
-  if (owner !== null && owner === identityKey(identity)) return false
+  if (identity.sessionId && owner !== null && owner === identityKey(identity)) return false
   await identityChangeHandler?.changed({ identity, refusedWrite: true })
   return true
 }

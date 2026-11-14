@@ -2,6 +2,7 @@
 // research R13): a Blob with exactly the given text (no byte order mark, no newline conversion),
 // clicked through a detached `<a download>` and revoked right after. Never a `data:` URL, never
 // storage. First used by UI 010 (zone files, private key exports); UI 005 reuses it.
+import { captureSessionScope } from '@/api/session-scope'
 
 export function downloadText(text: string, fileName: string, mediaType: string): void {
   const blob = new Blob([text], { type: `${mediaType};charset=utf-8` })
@@ -144,7 +145,11 @@ export async function saveApiFile(
   fetcher: () => Promise<{ data?: Blob; response: Response }>,
   fallbackName: string,
 ): Promise<string> {
-  const { data, response } = await fetcher()
+  const scope = captureSessionScope()
+  const { data, response } = await scope.run(fetcher)
+  // Headers can arrive before an identity switch while the body finishes afterwards.
+  // Recheck immediately before creating a file, including the await above.
+  scope.assertCurrent()
   if (data === undefined) throw new Error('The download has no body')
   const given = parseContentDisposition(response.headers.get('content-disposition'))
   const name = sanitiseFileName(given ?? fallbackName, fallbackName)

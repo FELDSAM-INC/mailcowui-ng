@@ -2,9 +2,12 @@
 // prefers RFC 8187 `filename*`, names are sanitised again, the blob is octet-stream whatever the
 // response type, the object URL is revoked after 1 s, nothing is stored, and a refusal saves
 // nothing.
+import { Blob as NodeBlob } from 'node:buffer'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiProblem } from '@/api'
+import { invalidateSessionScope } from '@/api/session-scope'
+import { fetchAttachmentFile, fetchMessageFile } from '@/features/quarantine/api'
 import { parseContentDisposition, sanitiseFileName, saveApiFile } from '@/shared/platform/download'
 
 describe('parseContentDisposition', () => {
@@ -128,5 +131,53 @@ describe('saveApiFile', () => {
     await expect(saveApiFile(() => Promise.reject(refusal), 'x')).rejects.toBe(refusal)
     expect(clicks).toEqual([])
     expect(blob).toBeNull()
+  })
+
+  it.each([
+    ['message', true],
+    ['attachment', true],
+    ['message', false],
+    ['attachment', false],
+  ] as const)('guards streamed %s downloads (identity changed: %s)', async (kind, changed) => {
+    vi.useRealTimers()
+    // Native Response.blob() and the saving helper need the same Blob realm in jsdom.
+    vi.stubGlobal('Blob', NodeBlob)
+    let release!: () => void
+    let reading!: () => void
+    const pending = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const started = new Promise<void>((resolve) => {
+      reading = resolve
+    })
+    const body = new ReadableStream<Uint8Array>(
+      {
+        async pull(controller) {
+          reading()
+          await pending
+          controller.enqueue(new TextEncoder().encode('private message'))
+          controller.close()
+        },
+      },
+      { highWaterMark: 0 },
+    )
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(body))
+    const result = saveApiFile(
+      () => (kind === 'message' ? fetchMessageFile(12) : fetchAttachmentFile(12, 1)),
+      'mail.eml',
+    ).catch((error: unknown) => error)
+    await started
+    if (changed) invalidateSessionScope()
+    release()
+
+    if (changed) {
+      expect(await result).toMatchObject({ kind: 'identityChanged' })
+      expect(clicks).toEqual([])
+      expect(blob).toBeNull()
+    } else {
+      expect(await result).toBe('mail.eml')
+      expect(clicks).toHaveLength(1)
+      expect(await blob!.text()).toBe('private message')
+    }
   })
 })

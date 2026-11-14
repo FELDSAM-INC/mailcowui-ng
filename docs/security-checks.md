@@ -3,7 +3,13 @@
 The development mock HTTP server defaults to loopback and limits both API and control request
 bodies to four MiB, including chunked uploads. Oversized requests receive HTTP 413 and close the
 connection. It is not part of the production image. Its streaming-limit tests run with
-`node --import tsx --test tests/mocks/http-body.test.ts` after `npm ci`.
+`node --import tsx --test tests/mocks/*.test.ts` after `npm ci`. Scenario-switch redirects
+accept the local preview/dev origins or the operator's explicit `APP_URL` origin. Configure
+`APP_URL` on the mock server when using a custom UI origin. Request routing does not trust Host.
+
+The HTML declares `no-referrer` before all resource hints and scripts, protecting reset/SSO
+query credentials even without the supported outer mailcow proxy's referrer policy. Browser
+regression checks cover initial asset preloads and bootstrap API requests on a reset link.
 
 These checks complement Codex Security and manual review. They do not certify that the application
 is secure. Scanner configuration and tool versions are reviewed code.

@@ -24,6 +24,7 @@ import { getResponse } from 'msw'
 
 import { createHandlers } from './handlers'
 import { BodyTooLargeError, readBody } from './http-body'
+import { mockRedirect, mockRequestUrl } from './navigation'
 import {
   applyOverrides,
   createScenarioState,
@@ -35,6 +36,7 @@ import {
 
 const port = Number(process.env.MOCK_PORT ?? 4010)
 const host = process.env.MOCK_HOST ?? '127.0.0.1'
+const appUrl = process.env.APP_URL ?? 'http://localhost:4173/ng/'
 const defaultScenario = process.env.MOCK_DEFAULT_SCENARIO ?? 'anonymous-default'
 const SCENARIO_COOKIE = 'mock-scenario'
 const MAX_AGE_MS = 2 * 60 * 60_000
@@ -89,11 +91,14 @@ async function control(req: IncomingMessage, res: ServerResponse, url: URL): Pro
 
   if (parts[1] === 'use' && req.method === 'GET') {
     const name = url.searchParams.get('scenario') ?? ''
-    if (!scenarios[name]) return sendJson(res, 404, { error: `Unknown scenario "${name}"` })
+    if (!Object.hasOwn(scenarios, name))
+      return sendJson(res, 404, { error: `Unknown scenario "${name}"` })
+    const redirect = mockRedirect(url.searchParams.get('redirect'), appUrl)
+    if (!redirect) return sendJson(res, 400, { error: 'Redirect must use an approved UI origin' })
     byName.delete(name) // a fresh instance for a deliberate switch
     res.writeHead(302, {
       'Set-Cookie': `${SCENARIO_COOKIE}=${encodeURIComponent(name)}; Path=/; SameSite=Lax`,
-      Location: url.searchParams.get('redirect') ?? 'http://localhost:4173/ng/',
+      Location: redirect,
     })
     return void res.end()
   }
@@ -173,7 +178,8 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL): Promise
 }
 
 const server = createServer((req, res) => {
-  const url = new URL(req.url ?? '/', `http://${req.headers.host ?? `${host}:${port}`}`)
+  const url = mockRequestUrl(req.url)
+  if (!url) return sendJson(res, 400, { error: 'Invalid request URL' })
   const handle = url.pathname.startsWith('/__mock/')
     ? control(req, res, url)
     : url.pathname.startsWith('/api/v2/') || url.pathname.startsWith('/lang/')

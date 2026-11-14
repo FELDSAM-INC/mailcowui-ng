@@ -1,9 +1,30 @@
 // T063: the reset page the e-mailed link opens (US3-AS4 to AS6, FR-038 to FR-042, SC-008 and the
 // reset's edge cases; legacy `reset-password.twig`, decisions D8, D17).
 import { expect, test } from '../fixtures/test'
+import type { Request } from '@playwright/test'
 
 const PLAIN = '3F9A1C-0B7E22-9D4F10-A6C3E8-51B2D7'
 const TOTP = '7B21D0-55AE19-C0FFEE-12AB34-9E8D7C'
+
+test('reset tokens never enter resource or bootstrap Referer headers', async ({
+  page,
+  mockApi,
+}) => {
+  await mockApi.use('account-password-reset')
+  const requests: Request[] = []
+  page.on('request', (request) => requests.push(request))
+  const response = await page.goto(`reset-password?token=${PLAIN}`)
+  // Vite preview deliberately has no outer mailcow Referrer-Policy header: test the HTML policy.
+  expect(response?.headers()['referrer-policy']).toBeUndefined()
+  await expect(page.locator('[data-reset-password]')).toBeVisible()
+  await expect(page).toHaveURL(/\/ng\/reset-password$/)
+  expect(requests.some((request) => request.url().includes('/api/v2/'))).toBe(true)
+  expect(requests.some((request) => request.url().includes('/lang/lang.en-gb.json'))).toBe(true)
+  expect(requests.some((request) => request.resourceType() === 'script')).toBe(true)
+  for (const request of requests) {
+    expect((await request.allHeaders()).referer, request.url()).toBeUndefined()
+  }
+})
 
 test('Edge FR-038 malformed reset links are cleared and show the invalid state', async ({
   page,

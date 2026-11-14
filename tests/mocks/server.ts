@@ -23,6 +23,7 @@ import { gzipSync } from 'node:zlib'
 import { getResponse } from 'msw'
 
 import { createHandlers } from './handlers'
+import { BodyTooLargeError, readBody } from './http-body'
 import {
   applyOverrides,
   createScenarioState,
@@ -75,12 +76,6 @@ const handlers = createHandlers(stateFor)
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
   res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
   res.end(JSON.stringify(body))
-}
-
-async function readBody(req: IncomingMessage): Promise<Buffer> {
-  const chunks: Buffer[] = []
-  for await (const chunk of req) chunks.push(chunk as Buffer)
-  return Buffer.concat(chunks)
 }
 
 function prune(): void {
@@ -185,6 +180,12 @@ const server = createServer((req, res) => {
       ? api(req, res, url)
       : Promise.resolve(sendJson(res, 404, { error: 'Not a mock API address' }))
   handle.catch((error: unknown) => {
+    if (error instanceof BodyTooLargeError) {
+      res.setHeader('Connection', 'close')
+      res.once('finish', () => req.destroy())
+      sendJson(res, 413, { error: error.message })
+      return
+    }
     console.error(error)
     if (!res.headersSent) sendJson(res, 500, { error: 'Mock server error' })
     else res.end()

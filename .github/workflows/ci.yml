@@ -39,6 +39,8 @@ jobs:
       - name: Test subscription scan runner (no model calls)
         run: node --test scripts/security/scan-local.test.mjs scripts/security/ci-smoke.test.mjs
       - run: npm ci
+      - name: Test mock HTTP body limits
+        run: node --import tsx --test tests/mocks/http-body.test.ts
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck

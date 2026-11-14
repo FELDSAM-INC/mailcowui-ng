@@ -1,5 +1,10 @@
 # Security checks
 
+The development mock HTTP server defaults to loopback and limits both API and control request
+bodies to four MiB, including chunked uploads. Oversized requests receive HTTP 413 and close the
+connection. It is not part of the production image. Its streaming-limit tests run with
+`node --import tsx --test tests/mocks/http-body.test.ts` after `npm ci`.
+
 These checks complement Codex Security and manual review. They do not certify that the application
 is secure. Scanner configuration and tool versions are reviewed code.
 

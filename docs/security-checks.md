@@ -19,6 +19,12 @@ The normal CI workflow calls `security.yml` on pull requests, main pushes and re
 It must pass before images or installer releases are published. A separate weekly run catches
 new advisories even when application code has not changed.
 
+Optional smoke tests run only on trusted `main` or release-tag refs: manual and scheduled runs,
+or pushes with `SMOKE_ENABLED=true`. Pull requests and manual runs on other branches are excluded.
+Both repositories are public, so the companion checkout needs no dedicated repository secret.
+Neither checkout persists Git credentials. The CI condition regression tests cover PR events,
+untrusted manual refs, and trusted runs.
+
 | Check | Coverage | Gate |
 | --- | --- | --- |
 | Gitleaks CLI | All fetched Git history, default detectors and mailcow API keys | Any unreviewed finding or scanner failure |

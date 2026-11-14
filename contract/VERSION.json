@@ -1,9 +1,9 @@
 {
   "repository": "FELDSAM-INC/mailcow-rest-v2",
-  "ref": "a3809ed8dffcfddb4e03cafb593e0c6dc8842235",
-  "commit": "a3809ed8dffcfddb4e03cafb593e0c6dc8842235",
+  "ref": "69e744bb70f6c1fd7c2ff83494a2899620a0912e",
+  "commit": "69e744bb70f6c1fd7c2ff83494a2899620a0912e",
   "contractVersion": "0.1.0",
-  "sha256": "594723bfbb53ff168d4003eb6558c0739ed8cff8201311e767cb86014eb32b50",
+  "sha256": "760c2eb2482364e10134a498c8d9c564db3538112020f19f0326027493a20e67",
   "bundler": "@redocly/cli@2.75.0",
-  "pinnedAt": "2026-11-14T20:30:33.771Z"
+  "pinnedAt": "2026-11-14T21:13:32.980Z"
 }

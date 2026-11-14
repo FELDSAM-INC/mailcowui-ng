@@ -13797,7 +13797,7 @@
           "Quarantine"
         ],
         "summary": "Inspect a quarantine item",
-        "description": "Returns one item in the caller's scope (see `listQuarantineItems`) with the spam filter's\nsymbols, fuzzy hashes, the sending server's address, the stored size and the parsed content:\nheaders, recipients, the plain-text part and the HTML part converted to plain text. HTML is\nnever returned.\n\nAttachment details are returned only to callers who may download attachments: administrators,\ndomain administrators, and mailbox users with `quarantineAttachments`; for others\n`content.attachments` is `null`. `authenticatedSender` is returned to administrators only.\n\nA stored message larger than the content size limit (10 MiB by default) is not parsed:\n`contentStatus` is `tooLarge` and `content` is `null`. Reading an item changes nothing and is\nnot audited.\n",
+        "description": "Returns one item in the caller's scope (see `listQuarantineItems`) with the spam filter's\nsymbols, fuzzy hashes, the sending server's address, the stored size and the parsed content:\nheaders, recipients, the plain-text part and the HTML part converted to plain text. HTML is\nnever returned.\n\nAttachment details are returned only to callers who may download attachments: administrators,\ndomain administrators, and mailbox users with `quarantineAttachments`; for others\n`content.attachments` is `null`. `authenticatedSender` is returned to administrators only.\n\nA stored message larger than the content size limit (10 MiB by default) is not parsed:\n`contentStatus` is `tooLarge` and `content` is `null`. Reading an item changes nothing and is\nnot audited.\n\nMIME parsing is limited to 256 total parts across the entire message tree. A message that\nexceeds that budget or the parser's nesting limit is refused with\n`409 quarantine-message-too-complex`, before attachment streams are opened.\n",
         "security": [
           {
             "sessionCookie": []
@@ -13818,6 +13818,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/QuarantineConflict"
           },
           "500": {
             "$ref": "#/components/responses/InternalError"
@@ -20598,6 +20601,7 @@
           "/api/v2/problems/ip-check-disabled",
           "/api/v2/problems/spam-policy-entry-exists",
           "/api/v2/problems/quarantine-message-too-large",
+          "/api/v2/problems/quarantine-message-too-complex",
           "/api/v2/problems/quarantine-item-busy",
           "/api/v2/problems/quarantine-delivery-refused",
           "/api/v2/problems/demo-mode",
@@ -49537,7 +49541,7 @@
         }
       },
       "QuarantineConflict": {
-        "description": "The item's state does not permit the request. Possible types:\n- `/api/v2/problems/quarantine-item-busy`: another request of this API is releasing, learning or\n  deleting the item right now. Nothing changed. Retry after `Retry-After` seconds: the item is\n  then gone (`404`) or available again.\n- `/api/v2/problems/quarantine-delivery-refused`: the mail server permanently refused the\n  released message (extensions `smtpCode`, `smtpResponse`). The item is kept, nothing was learned.\n- `/api/v2/problems/quarantine-message-too-large`: the stored message is larger than the content\n  size limit, so it is not downloaded (extensions `size`, `limit`).\n",
+        "description": "The item's state does not permit the request. Possible types:\n- `/api/v2/problems/quarantine-item-busy`: another request of this API is releasing, learning or\n  deleting the item right now. Nothing changed. Retry after `Retry-After` seconds: the item is\n  then gone (`404`) or available again.\n- `/api/v2/problems/quarantine-delivery-refused`: the mail server permanently refused the\n  released message (extensions `smtpCode`, `smtpResponse`). The item is kept, nothing was learned.\n- `/api/v2/problems/quarantine-message-too-large`: the stored message is larger than the content\n  size limit, so it is not downloaded (extensions `size`, `limit`).\n- `/api/v2/problems/quarantine-message-too-complex`: MIME parsing exceeds the global 256-part\n  budget or the parser's nesting limit. Preview and attachment extraction are refused; the\n  original message download remains available within its byte limit and authorization rules.\n",
         "headers": {
           "Retry-After": {
             "description": "Present for `quarantine-item-busy` (5 seconds).",

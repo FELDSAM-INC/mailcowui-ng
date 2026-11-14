@@ -411,6 +411,7 @@
       "quarantine-item-busy",
       "quarantine-delivery-refused",
       "quarantine-message-too-large",
+      "quarantine-message-too-complex",
       "spam-policy-entry-exists",
       "current-password-incorrect",
       "password-managed-externally",

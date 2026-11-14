@@ -10196,6 +10196,10 @@ paths:
         A stored message larger than the content size limit (10 MiB by default) is not parsed:
         `contentStatus` is `tooLarge` and `content` is `null`. Reading an item changes nothing and is
         not audited.
+
+        MIME parsing is limited to 256 total parts across the entire message tree. A message that
+        exceeds that budget or the parser's nesting limit is refused with
+        `409 quarantine-message-too-complex`, before attachment streams are opened.
       security:
         - sessionCookie: []
         - apiKeyAuth: []
@@ -10208,6 +10212,8 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/QuarantineConflict'
         '500':
           $ref: '#/components/responses/InternalError'
     delete:
@@ -14911,6 +14917,7 @@ components:
         - /api/v2/problems/ip-check-disabled
         - /api/v2/problems/spam-policy-entry-exists
         - /api/v2/problems/quarantine-message-too-large
+        - /api/v2/problems/quarantine-message-too-complex
         - /api/v2/problems/quarantine-item-busy
         - /api/v2/problems/quarantine-delivery-refused
         - /api/v2/problems/demo-mode
@@ -38040,6 +38047,9 @@ components:
           released message (extensions `smtpCode`, `smtpResponse`). The item is kept, nothing was learned.
         - `/api/v2/problems/quarantine-message-too-large`: the stored message is larger than the content
           size limit, so it is not downloaded (extensions `size`, `limit`).
+        - `/api/v2/problems/quarantine-message-too-complex`: MIME parsing exceeds the global 256-part
+          budget or the parser's nesting limit. Preview and attachment extraction are refused; the
+          original message download remains available within its byte limit and authorization rules.
       headers:
         Retry-After:
           description: Present for `quarantine-item-busy` (5 seconds).

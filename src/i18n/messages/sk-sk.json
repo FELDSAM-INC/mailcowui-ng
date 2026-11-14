@@ -960,6 +960,7 @@
     "queue-action-failed": "Chyba: {serviceMessage}",
     "quarantine-item-busy": "S touto položkou práve prebieha iná akcia. O niekoľko sekúnd sa skontroluje znova.",
     "quarantine-message-too-large": "Veľkosť správy prekračuje {limit}.",
+    "quarantine-message-too-complex": "Správa je príliš zložitá na bezpečné zobrazenie náhľadu.",
     "byParam": {
       "temporary-failure": {
         "dependency": {

@@ -960,6 +960,7 @@
     "queue-action-failed": "Error: {serviceMessage}",
     "quarantine-item-busy": "Another action is in progress for this item. It is checked again in a few seconds.",
     "quarantine-message-too-large": "Message size exceeds {limit}.",
+    "quarantine-message-too-complex": "This message is too complex to preview safely.",
     "byParam": {
       "temporary-failure": {
         "dependency": {

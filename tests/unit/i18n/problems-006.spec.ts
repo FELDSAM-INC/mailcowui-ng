@@ -29,6 +29,12 @@ beforeAll(async () => {
 })
 
 describe('UI 006 problem messages', () => {
+  it('explains the MIME complexity refusal', () => {
+    expect(problemMessage(problem('quarantine-message-too-complex', 409), tr)).toBe(
+      'This message is too complex to preview safely.',
+    )
+  })
+
   it('says that another action is in progress for a busy item', () => {
     expect(problemMessage(problem('quarantine-item-busy', 409), tr)).toBe(
       'Another action is in progress for this item. It is checked again in a few seconds.',

@@ -20,7 +20,11 @@ COPY --from=build /app/dist/ /
 FROM nginxinc/nginx-unprivileged:1.30-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03 AS runtime
 USER root
 # Apply available Alpine security fixes even when the upstream image tag has not been rebuilt.
-RUN apk upgrade --no-cache
+# Explicit floors also invalidate an older cached upgrade layer when security fixes land.
+ARG LIBEXPAT_MIN_VERSION=2.10.0-r0
+ARG LIBXSLT_MIN_VERSION=1.1.43-r4
+RUN apk upgrade --no-cache \
+    && apk add --no-cache "libexpat>=${LIBEXPAT_MIN_VERSION}" "libxslt>=${LIBXSLT_MIN_VERSION}"
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx/security-headers.conf /etc/nginx/security-headers.conf
 EXPOSE 8080

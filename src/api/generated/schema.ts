@@ -2943,7 +2943,8 @@ export interface paths {
          *     - **Secrets** are write-only. The client secret or bind password must be sent when no
          *       configuration of the type is stored. Otherwise an omitted secret keeps the stored one, unless
          *       the address that receives it changes (Keycloak `serverUrl`, generic OIDC `tokenEndpoint`,
-         *       LDAP `hosts`): then it must be sent again (rule code `secretRequired`) and nothing changes.
+         *       LDAP `hosts`, effective port or TLS mode), or `ignoreTlsErrors` changes: then it must be sent
+         *       again (rule code `secretRequired`) and nothing changes.
          *     - **Type change**: refused with `identity-provider-in-use` while any mailbox authenticates
          *       against an external source other than the new type.
          *     - **Mapping**: every mapped template and the default template must exist (rule code
@@ -2972,7 +2973,8 @@ export interface paths {
          * Change settings of the identity provider configuration
          * @description Changes only the settings sent (JSON Merge Patch) and keeps the others; the rules of a whole
          *     save apply to the result. The type cannot change here: use `PUT`. A changed Keycloak
-         *     `serverUrl`, generic OIDC `tokenEndpoint` or LDAP `hosts` requires the secret in the same
+         *     `serverUrl`, generic OIDC `tokenEndpoint`, LDAP `hosts`, effective LDAP port or TLS mode, or
+         *     `ignoreTlsErrors` requires the secret in the same
          *     request. A successful change clears the cached Keycloak service token, as every save does.
          *
          *     Administrators only, with a session or a read-write key. Audited.
@@ -2994,7 +2996,8 @@ export interface paths {
          * @description Tests unsaved candidate settings and stores nothing. The settings must meet the rules of a
          *     whole save, except that mapped templates need not exist. An omitted secret is replaced by the
          *     stored one only when the stored type is the same and the address that receives the secret is
-         *     unchanged; otherwise the request is refused (rule code `secretRequired`). Each call to the
+         *     unchanged, including the effective LDAP port and TLS mode and the `ignoreTlsErrors` policy;
+         *     otherwise the request is refused (rule code `secretRequired`). Each call to the
          *     provider times out after 7 seconds, and the TLS certificate is verified unless
          *     `ignoreTlsErrors` is `true`. Internal addresses are allowed.
          *
@@ -3999,6 +4002,8 @@ export interface paths {
          *     blockers are an unreachable mail store or shared store), the garbage-area retention and the
          *     current version tag. Changes nothing and writes no audit record. Administrators and domain
          *     administrators, from a session or a key (read-only keys included).
+         *     Alias counts cover the full referential cleanup; sampled alias addresses are limited to
+         *     domains the caller may administer, including their alias domains.
          */
         get: operations["previewMailboxDeletion"];
         put?: never;
@@ -5070,7 +5075,8 @@ export interface paths {
          * List my passkeys
          * @description Lists the signed-in user's passkeys, including those registered in the legacy UI as "FIDO2"
          *     or "Touch ID" credentials. `q` searches the name and the authenticator description. Not
-         *     available to API keys or in restricted sessions.
+         *     available to API keys or in restricted sessions. Passkey operations are forbidden when
+         *     administrator and mailbox accounts share the username, because credential ownership is ambiguous.
          */
         get: operations["listPasskeys"];
         put?: never;
@@ -5080,6 +5086,7 @@ export interface paths {
          *     passkey where legacy mailcow stores FIDO2 credentials, bound to this host name, so that it
          *     works for usernameless sign-in in both UIs. User verification and accepted attestation formats
          *     follow mailcow's `FIDO2_UV_FLAG_REGISTER` and `FIDO2_FORMATS`. The registration is audited.
+         *     A username shared by administrator and mailbox accounts is refused with `forbidden`.
          *
          *     Needs a full session, or a session restricted only by `secondFactorSetup`, which the
          *     registration lifts immediately. Not available to API keys or during a pending sign-in.
@@ -5247,7 +5254,8 @@ export interface paths {
          * @description Sets the recovery address (a valid e-mail address of at most 255 characters) or removes it
          *     (`null` or `""`), stored where legacy stores it. Needs the current password, and the `pwReset`
          *     permission unless the address stays the same. Same access rules as `getOwnRecoveryEmail`.
-         *     Audited.
+         *     A changed or removed address atomically revokes outstanding password-reset tokens; an
+         *     unchanged address keeps them. Serialized with reset issuance and completion. Audited.
          */
         put: operations["replaceOwnRecoveryEmail"];
         post?: never;
@@ -6906,9 +6914,10 @@ export interface paths {
          *     legacy UI ("FIDO2", "Touch ID") work unchanged.
          *
          *     The credential must be active and its account must be able to sign in (active account, active
-         *     mailbox and domain, not a resource mailbox). Without `role`, the account type is resolved in
-         *     mailcow's order (administrator or domain administrator, then mailbox user); with `role`, an
-         *     account of another type fails. Forced password change and second-factor setup restrict the
+         *     mailbox and domain, not a resource mailbox). A username present in both administrator and
+         *     mailbox tables is rejected regardless of `role`: legacy credentials do not identify which
+         *     account kind enrolled them. Otherwise the unique account type is resolved, and a requested
+         *     `role` must match it. Forced password change and second-factor setup restrict the
          *     session as after a password sign-in. A mailbox user's sign-in records a recent-login entry.
          *
          *     Failures return the generic `sign-in-failed` error, are audited and count towards throttling
@@ -7728,6 +7737,7 @@ export interface paths {
          *     says whether it is valid, with the parser's message when it is not. It changes nothing, so it
          *     counts as a read: read-only keys may use it. Administrators and domain administrators; mailbox
          *     users get `forbidden`.
+         *     Scripts exceeding the parser's time, memory, or output limits are reported as invalid.
          */
         post: operations["validateSieveScript"];
         delete?: never;
@@ -7855,6 +7865,10 @@ export interface paths {
          *     takes effect from the runner's next cycle and never interrupts a run in progress. The target
          *     `mailbox` cannot change (`immutable`). Audited with each changed attribute's old and new value;
          *     the password is recorded only as changed.
+         *
+         *     A stored password may be retained only while the remote host, port, encryption and username
+         *     remain unchanged. Otherwise send a non-empty `remotePassword` in the same request
+         *     (`422`, `remotePassword.secretRequired`). Hostname letter case alone is not a change.
          *
          *     Interactive clients should always send the version tag they read in `If-Match`: the legacy UI
          *     and `/api/v1` edit the same rows, and an outdated tag answers `412` without changing anything.
@@ -12022,7 +12036,8 @@ export interface components {
         };
         /**
          * @description Whole LDAP configuration. `bindPassword` is required when no LDAP configuration is stored and when
-         *     `hosts` differ from the stored ones (rule code `secretRequired`); otherwise an omitted password
+         *     `hosts`, the effective port, TLS mode or certificate-verification policy differ from the stored
+         *     ones (rule code `secretRequired`); otherwise an omitted password
          *     keeps the stored one. When both `useSsl` and `useStartTls` are `true`, StartTLS is stored off.
          */
         IdentityProviderLdapInput: components["schemas"]["IdentityProviderCommonInput"] & {
@@ -13047,6 +13062,8 @@ export interface components {
          * @description What deleting the mailbox would currently remove and move, and whether it could proceed, computed
          *     by the same rules as the deletion. A snapshot: the deletion checks and computes everything again,
          *     and refuses an outdated version tag. Reading it changes nothing and writes no audit record.
+         *     Alias counts cover all affected aliases, but address samples contain only aliases visible
+         *     to the caller. A sample may therefore be empty even when its count is nonzero.
          */
         MailboxDeletionPreview: {
             address: string;
@@ -13333,7 +13350,7 @@ export interface components {
              *     largestAllowedQuota`). A quota below the storage already used is accepted, as in legacy.
              */
             quota?: number;
-            /** @description A valid address, or `null` or an empty string to clear it. Only for the `mailcow` authentication source (`conflictsWith`). */
+            /** @description A valid address, or `null` or an empty string to clear it. Only for the `mailcow` authentication source (`conflictsWith`). Changing or removing it revokes outstanding password-reset tokens. */
             recoveryEmail?: string | null;
             status?: components["schemas"]["MailboxStatus"];
             tags?: components["schemas"]["MailboxTagSet"];
@@ -16631,9 +16648,10 @@ export interface components {
          * @description Result of one connection test. The test connects directly from this API's container, as the legacy
          *     test does from the web container, without the mail server: TLS policy maps and mailbox TLS
          *     settings do not apply to it. It looks up the most preferred mail exchanger of a next hop without
-         *     brackets (the host itself when there is none), uses the next hop's port or 25, uses STARTTLS when
-         *     offered without verifying the certificate, logs in with the stored credentials (PLAIN or LOGIN,
-         *     as the mail server does) when a username is stored, and sends a short test message. Each network
+         *     brackets (the host itself when there is none), uses the next hop's port or 25, and uses STARTTLS
+         *     when offered. Before sending stored credentials (PLAIN or LOGIN), STARTTLS and a trusted
+         *     certificate matching the configured next-hop hostname are required; otherwise the test fails at `tls`
+         *     with `tlsFailed`. Tests without credentials may use opportunistic TLS. It sends a short test message. Each network
          *     step times out after 15 seconds and the whole test after 60 seconds (server settings). Nothing is
          *     stored. Credentials never appear: every login argument and server login challenge in the
          *     transcript is replaced by `[redacted]`.
@@ -16725,7 +16743,7 @@ export interface components {
         };
         /**
          * @description Step of a connection test, in order: `resolve` (MX lookup and name resolution), `connect` (TCP),
-         *     `greeting` (the server's `220` and `EHLO`), `tls` (`STARTTLS`, only when offered), `login` (only
+         *     `greeting` (the server's `220` and `EHLO`), `tls` (`STARTTLS`, required before stored credentials), `login` (only
          *     when a username is stored), `sender` (`MAIL FROM`), `recipient` (`RCPT TO`) and `message`
          *     (`DATA` and the message). For an accepted message the step is `message`; otherwise it is the step
          *     that failed.
@@ -17936,7 +17954,9 @@ export interface components {
          *
          *     - `active` activates or deactivates the job; the change takes effect from the runner's next
          *       cycle and never interrupts a run in progress.
-         *     - `remotePassword`: a non-empty value replaces the stored password; an empty string keeps it.
+         *     - `remotePassword`: a non-empty value replaces the stored password; an empty string keeps it
+         *       only while the remote host, port, encryption and username are unchanged. Changing any of
+         *       those fields while a password is stored requires password re-entry (`secretRequired`).
          *     - `mailbox` cannot change: the current address is accepted, any other is refused with the rule
          *       code `immutable`. To sync into another mailbox, create a new job.
          *     - `customParameters`: when the server restricts custom parameters to administrators, a value

@@ -71,6 +71,27 @@ describe('SyncJobDetailPage', () => {
     expect(wrapper.text()).toContain('Changes to mailbox alice@example.org have been saved')
   })
 
+  it('blocks a connection change until the remote password is supplied again', async () => {
+    const { wrapper, router } = await open('/sync-jobs/2?edit=syncjob')
+    await wrapper.get('#syncjob-remoteHost').setValue('another.example')
+    expect(wrapper.get('#syncjob-remotePassword').attributes('aria-required')).toBe('true')
+    await wrapper.get('#section-syncjob form').trigger('submit')
+    await flushPromises()
+    expect(updates()).toHaveLength(0)
+    expect(wrapper.text()).toContain(
+      'Enter the remote password again when changing the server, port, encryption, or username.',
+    )
+
+    await wrapper.get('#syncjob-remotePassword').setValue('supplied-again')
+    await wrapper.get('#section-syncjob form').trigger('submit')
+    await settle(() => expect(router.currentRoute.value.query.edit).toBeUndefined())
+    expect(updates()).toHaveLength(1)
+    expect(updates()[0]!.body).toEqual({
+      remoteHost: 'another.example',
+      remotePassword: 'supplied-again',
+    })
+  })
+
   it('lists the changes after an outdated save and saves again or discards', async () => {
     const { wrapper } = await open('/sync-jobs/2?edit=syncjob')
     await wrapper.get('#syncjob-exclude').setValue('(?i)trash')

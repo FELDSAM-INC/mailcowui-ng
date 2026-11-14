@@ -266,6 +266,18 @@ export function patchFor(
   return patch
 }
 
+/** A retained credential may only be used with the connection it was saved for. */
+export function needsRemotePassword(job: SyncJob, patch: SyncJobPatchBody): boolean {
+  return (
+    job.remotePasswordSet &&
+    ((patch.remoteHost !== undefined &&
+      patch.remoteHost.trim().toLowerCase() !== job.remoteHost.toLowerCase()) ||
+      (patch.remotePort !== undefined && patch.remotePort !== job.remotePort) ||
+      (patch.encryption !== undefined && patch.encryption !== job.encryption) ||
+      (patch.remoteUser !== undefined && patch.remoteUser !== job.remoteUser))
+  )
+}
+
 /**
  * The checks before sending (FR-021, data-model §6): required fields, lengths and whole numbers
  * within the capabilities' ranges. Host format, the pattern and the custom options are left to the
@@ -274,7 +286,12 @@ export function patchFor(
 export function checkValues(
   values: SyncJobFormValues,
   caps: SyncJobCapabilities,
-  options: { mode: 'create' | 'edit'; needsMailbox: boolean; customParamsAllowed?: boolean },
+  options: {
+    mode: 'create' | 'edit'
+    needsMailbox: boolean
+    customParamsAllowed?: boolean
+    passwordRequired?: boolean
+  },
   /** Formats a number for display in the user's locale. */
   format: (value: number) => string = String,
 ): ClientErrors {
@@ -287,6 +304,9 @@ export function checkValues(
   }
   const required: TextField[] = ['remoteHost', 'remoteUser']
   if (options.mode === 'create') required.push('remotePassword')
+  if (options.mode === 'edit' && options.passwordRequired && values.remotePassword === '') {
+    add('remotePassword', { key: 'syncJobs.password.reenter' })
+  }
   for (const field of required) {
     if (values[field].trim() === '') add(field, { key: 'validation.required' })
   }

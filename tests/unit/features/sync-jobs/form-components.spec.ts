@@ -98,6 +98,14 @@ function mountFields(
 }
 
 describe('SyncJobFormFields', () => {
+  it('requires the saved password again when the connection changes', () => {
+    const { wrapper } = mountFields({ passwordSet: true, passwordRequired: true }, true)
+    expect(wrapper.get('#f-remotePassword').attributes('aria-required')).toBe('true')
+    expect(wrapper.text()).toContain(
+      'Enter the remote password again when changing the server, port, encryption, or username.',
+    )
+    expect(wrapper.text()).not.toContain('Leave the field empty to keep it.')
+  })
   it("has the add form's labels, the capabilities' encryptions and the ranges", () => {
     const { wrapper } = mountFields()
     expect(wrapper.get('label[for="f-remoteHost"]').text()).toContain('Host')

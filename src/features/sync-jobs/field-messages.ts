@@ -17,6 +17,7 @@ export function fieldMessageKey(path: string, violation: FieldViolation): string
 
 /** The rules the sync-job forms have their own message for (new strings or `LEGACY_TEXTS`). */
 export const FORM_MESSAGE_KEYS = [
+  'syncJobs.form.errors.remotePassword.secretRequired',
   'syncJobs.form.errors.exclude.invalidRegex',
   'syncJobs.form.errors.customParameters.optionNotAllowed',
   'syncJobs.form.errors.customParameters.optionContainsSpace',

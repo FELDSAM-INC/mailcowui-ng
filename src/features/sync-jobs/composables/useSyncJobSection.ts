@@ -38,6 +38,7 @@ import {
   BOOLEAN_FIELDS,
   checkValues,
   FIELD_ORDER,
+  needsRemotePassword,
   patchFor,
   toFormValues,
   type FormField,
@@ -78,6 +79,12 @@ export function useSyncJobSection(options: SectionOptions) {
   const pending = ref(false)
 
   const customParamsAllowed = computed(() => options.caps()?.customParameters.allowed ?? false)
+  const passwordRequired = computed(() =>
+    needsRemotePassword(
+      base.value,
+      patchFor(opened.value, form.value, { customParamsAllowed: customParamsAllowed.value }),
+    ),
+  )
 
   const problemForm = useProblemForm({
     fieldId: (path) => {
@@ -160,6 +167,7 @@ export function useSyncJobSection(options: SectionOptions) {
         mode: 'edit',
         needsMailbox: false,
         customParamsAllowed: customParamsAllowed.value,
+        passwordRequired: passwordRequired.value,
       },
       (value) => fmt.number(value),
     )
@@ -246,6 +254,7 @@ export function useSyncJobSection(options: SectionOptions) {
     pending,
     dirty,
     customParamsAllowed,
+    passwordRequired,
     problemForm,
     errorsFor: (path: string) => problemForm.errorsFor(path),
     save: () => send(),

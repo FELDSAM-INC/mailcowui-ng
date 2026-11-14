@@ -539,7 +539,7 @@
           "Authentication"
         ],
         "summary": "Sign in with a passkey",
-        "description": "Verifies an assertion for the session's passkey challenge and signs in the account that owns\nthe credential, with no password and no further second factor. Passkeys registered in the\nlegacy UI (\"FIDO2\", \"Touch ID\") work unchanged.\n\nThe credential must be active and its account must be able to sign in (active account, active\nmailbox and domain, not a resource mailbox). Without `role`, the account type is resolved in\nmailcow's order (administrator or domain administrator, then mailbox user); with `role`, an\naccount of another type fails. Forced password change and second-factor setup restrict the\nsession as after a password sign-in. A mailbox user's sign-in records a recent-login entry.\n\nFailures return the generic `sign-in-failed` error, are audited and count towards throttling\nper client address. They are not reported to fail2ban. The session identifier is renewed on\nsuccess.\n",
+        "description": "Verifies an assertion for the session's passkey challenge and signs in the account that owns\nthe credential, with no password and no further second factor. Passkeys registered in the\nlegacy UI (\"FIDO2\", \"Touch ID\") work unchanged.\n\nThe credential must be active and its account must be able to sign in (active account, active\nmailbox and domain, not a resource mailbox). A username present in both administrator and\nmailbox tables is rejected regardless of `role`: legacy credentials do not identify which\naccount kind enrolled them. Otherwise the unique account type is resolved, and a requested\n`role` must match it. Forced password change and second-factor setup restrict the\nsession as after a password sign-in. A mailbox user's sign-in records a recent-login entry.\n\nFailures return the generic `sign-in-failed` error, are audited and count towards throttling\nper client address. They are not reported to fail2ban. The session identifier is renewed on\nsuccess.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -707,7 +707,7 @@
           "Passkeys"
         ],
         "summary": "List my passkeys",
-        "description": "Lists the signed-in user's passkeys, including those registered in the legacy UI as \"FIDO2\"\nor \"Touch ID\" credentials. `q` searches the name and the authenticator description. Not\navailable to API keys or in restricted sessions.\n",
+        "description": "Lists the signed-in user's passkeys, including those registered in the legacy UI as \"FIDO2\"\nor \"Touch ID\" credentials. `q` searches the name and the authenticator description. Not\navailable to API keys or in restricted sessions. Passkey operations are forbidden when\nadministrator and mailbox accounts share the username, because credential ownership is ambiguous.\n",
         "security": [
           {
             "sessionCookie": []
@@ -754,7 +754,7 @@
           "Passkeys"
         ],
         "summary": "Register a passkey",
-        "description": "Verifies the authenticator's response to the session's registration options and saves the\npasskey where legacy mailcow stores FIDO2 credentials, bound to this host name, so that it\nworks for usernameless sign-in in both UIs. User verification and accepted attestation formats\nfollow mailcow's `FIDO2_UV_FLAG_REGISTER` and `FIDO2_FORMATS`. The registration is audited.\n\nNeeds a full session, or a session restricted only by `secondFactorSetup`, which the\nregistration lifts immediately. Not available to API keys or during a pending sign-in.\n",
+        "description": "Verifies the authenticator's response to the session's registration options and saves the\npasskey where legacy mailcow stores FIDO2 credentials, bound to this host name, so that it\nworks for usernameless sign-in in both UIs. User verification and accepted attestation formats\nfollow mailcow's `FIDO2_UV_FLAG_REGISTER` and `FIDO2_FORMATS`. The registration is audited.\nA username shared by administrator and mailbox accounts is refused with `forbidden`.\n\nNeeds a full session, or a session restricted only by `secondFactorSetup`, which the\nregistration lifts immediately. Not available to API keys or during a pending sign-in.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -1979,7 +1979,7 @@
           "Sync jobs"
         ],
         "summary": "Change, activate or deactivate a sync job",
-        "description": "Changes the sent members only (JSON Merge Patch); every other member, including the stored\nremote password, keeps its value. Activating and deactivating are changes of `active`. A change\ntakes effect from the runner's next cycle and never interrupts a run in progress. The target\n`mailbox` cannot change (`immutable`). Audited with each changed attribute's old and new value;\nthe password is recorded only as changed.\n\nInteractive clients should always send the version tag they read in `If-Match`: the legacy UI\nand `/api/v1` edit the same rows, and an outdated tag answers `412` without changing anything.\n\nRefusals: `403` (no sync-jobs permission, or a read-only key), `404` (unknown or out of scope),\n`412` (outdated `If-Match`), `422` (invalid members, all named at once), `409 sync-job-exists`\n(the new remote user and host duplicate another job of the same mailbox).\n",
+        "description": "Changes the sent members only (JSON Merge Patch); every other member, including the stored\nremote password, keeps its value. Activating and deactivating are changes of `active`. A change\ntakes effect from the runner's next cycle and never interrupts a run in progress. The target\n`mailbox` cannot change (`immutable`). Audited with each changed attribute's old and new value;\nthe password is recorded only as changed.\n\nA stored password may be retained only while the remote host, port, encryption and username\nremain unchanged. Otherwise send a non-empty `remotePassword` in the same request\n(`422`, `remotePassword.secretRequired`). Hostname letter case alone is not a change.\n\nInteractive clients should always send the version tag they read in `If-Match`: the legacy UI\nand `/api/v1` edit the same rows, and an outdated tag answers `412` without changing anything.\n\nRefusals: `403` (no sync-jobs permission, or a read-only key), `404` (unknown or out of scope),\n`412` (outdated `If-Match`), `422` (invalid members, all named at once), `409 sync-job-exists`\n(the new remote user and host duplicate another job of the same mailbox).\n",
         "security": [
           {
             "sessionCookie": [],
@@ -4911,7 +4911,7 @@
           "Mailboxes"
         ],
         "summary": "Preview a mailbox deletion",
-        "description": "Reports what `deleteMailbox` would remove and move now, whether it could proceed (the only\nblockers are an unreachable mail store or shared store), the garbage-area retention and the\ncurrent version tag. Changes nothing and writes no audit record. Administrators and domain\nadministrators, from a session or a key (read-only keys included).\n",
+        "description": "Reports what `deleteMailbox` would remove and move now, whether it could proceed (the only\nblockers are an unreachable mail store or shared store), the garbage-area retention and the\ncurrent version tag. Changes nothing and writes no audit record. Administrators and domain\nadministrators, from a session or a key (read-only keys included).\nAlias counts cover the full referential cleanup; sampled alias addresses are limited to\ndomains the caller may administer, including their alias domains.\n",
         "security": [
           {
             "sessionCookie": []
@@ -6323,7 +6323,7 @@
           "Identity provider"
         ],
         "summary": "Save the whole identity provider configuration",
-        "description": "Creates the configuration (`201`) or replaces the stored one (`200`) with a whole configuration\nof the given type. Settings not sent take their defaults. The configuration is stored with\nlegacy's setting names and encodings, so the legacy UI, the mail clients' sign-in check and the\nnext synchronisation run use it at once, without a restart. After the save, only the settings\nof the saved type are stored: settings of a previous type are removed. The cached Keycloak\nservice token is cleared. No mailbox changes.\n\n- **Secrets** are write-only. The client secret or bind password must be sent when no\n  configuration of the type is stored. Otherwise an omitted secret keeps the stored one, unless\n  the address that receives it changes (Keycloak `serverUrl`, generic OIDC `tokenEndpoint`,\n  LDAP `hosts`): then it must be sent again (rule code `secretRequired`) and nothing changes.\n- **Type change**: refused with `identity-provider-in-use` while any mailbox authenticates\n  against an external source other than the new type.\n- **Mapping**: every mapped template and the default template must exist (rule code\n  `notFound`); attribute values must be unique (rule code `duplicate`).\n- Send the version tag you read in `If-Match`; the legacy UI edits the same settings. For a\n  first setup, send `If-None-Match: *` so that the save only creates.\n\nAdministrators only, with a session or a read-write key. Audited, with every changed setting\nand secrets only as \"changed\".\n",
+        "description": "Creates the configuration (`201`) or replaces the stored one (`200`) with a whole configuration\nof the given type. Settings not sent take their defaults. The configuration is stored with\nlegacy's setting names and encodings, so the legacy UI, the mail clients' sign-in check and the\nnext synchronisation run use it at once, without a restart. After the save, only the settings\nof the saved type are stored: settings of a previous type are removed. The cached Keycloak\nservice token is cleared. No mailbox changes.\n\n- **Secrets** are write-only. The client secret or bind password must be sent when no\n  configuration of the type is stored. Otherwise an omitted secret keeps the stored one, unless\n  the address that receives it changes (Keycloak `serverUrl`, generic OIDC `tokenEndpoint`,\n  LDAP `hosts`, effective port or TLS mode), or `ignoreTlsErrors` changes: then it must be sent\n  again (rule code `secretRequired`) and nothing changes.\n- **Type change**: refused with `identity-provider-in-use` while any mailbox authenticates\n  against an external source other than the new type.\n- **Mapping**: every mapped template and the default template must exist (rule code\n  `notFound`); attribute values must be unique (rule code `duplicate`).\n- Send the version tag you read in `If-Match`; the legacy UI edits the same settings. For a\n  first setup, send `If-None-Match: *` so that the save only creates.\n\nAdministrators only, with a session or a read-write key. Audited, with every changed setting\nand secrets only as \"changed\".\n",
         "security": [
           {
             "sessionCookie": [],
@@ -6390,7 +6390,7 @@
           "Identity provider"
         ],
         "summary": "Change settings of the identity provider configuration",
-        "description": "Changes only the settings sent (JSON Merge Patch) and keeps the others; the rules of a whole\nsave apply to the result. The type cannot change here: use `PUT`. A changed Keycloak\n`serverUrl`, generic OIDC `tokenEndpoint` or LDAP `hosts` requires the secret in the same\nrequest. A successful change clears the cached Keycloak service token, as every save does.\n\nAdministrators only, with a session or a read-write key. Audited.\n",
+        "description": "Changes only the settings sent (JSON Merge Patch) and keeps the others; the rules of a whole\nsave apply to the result. The type cannot change here: use `PUT`. A changed Keycloak\n`serverUrl`, generic OIDC `tokenEndpoint`, LDAP `hosts`, effective LDAP port or TLS mode, or\n`ignoreTlsErrors` requires the secret in the same\nrequest. A successful change clears the cached Keycloak service token, as every save does.\n\nAdministrators only, with a session or a read-write key. Audited.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -6498,7 +6498,7 @@
           "Identity provider"
         ],
         "summary": "Test the connection with candidate settings",
-        "description": "Tests unsaved candidate settings and stores nothing. The settings must meet the rules of a\nwhole save, except that mapped templates need not exist. An omitted secret is replaced by the\nstored one only when the stored type is the same and the address that receives the secret is\nunchanged; otherwise the request is refused (rule code `secretRequired`). Each call to the\nprovider times out after 7 seconds, and the TLS certificate is verified unless\n`ignoreTlsErrors` is `true`. Internal addresses are allowed.\n\nThe test sends credentials to a host, so it is an action: administrators only, with a session\nor a read-write key, and audited with the provider type, the tested address and the outcome.\n",
+        "description": "Tests unsaved candidate settings and stores nothing. The settings must meet the rules of a\nwhole save, except that mapped templates need not exist. An omitted secret is replaced by the\nstored one only when the stored type is the same and the address that receives the secret is\nunchanged, including the effective LDAP port and TLS mode and the `ignoreTlsErrors` policy;\notherwise the request is refused (rule code `secretRequired`). Each call to the\nprovider times out after 7 seconds, and the TLS certificate is verified unless\n`ignoreTlsErrors` is `true`. Internal addresses are allowed.\n\nThe test sends credentials to a host, so it is an action: administrators only, with a session\nor a read-write key, and audited with the provider type, the tested address and the outcome.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -18412,7 +18412,7 @@
           "Own account"
         ],
         "summary": "Set, change or remove my recovery address",
-        "description": "Sets the recovery address (a valid e-mail address of at most 255 characters) or removes it\n(`null` or `\"\"`), stored where legacy stores it. Needs the current password, and the `pwReset`\npermission unless the address stays the same. Same access rules as `getOwnRecoveryEmail`.\nAudited.\n",
+        "description": "Sets the recovery address (a valid e-mail address of at most 255 characters) or removes it\n(`null` or `\"\"`), stored where legacy stores it. Needs the current password, and the `pwReset`\npermission unless the address stays the same. Same access rules as `getOwnRecoveryEmail`.\nA changed or removed address atomically revokes outstanding password-reset tokens; an\nunchanged address keeps them. Serialized with reset issuance and completion. Audited.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -20396,7 +20396,7 @@
           "Sieve filters"
         ],
         "summary": "Validate a Sieve script",
-        "description": "Checks a script with the same Sieve parser legacy mailcow uses, without saving anything, and\nsays whether it is valid, with the parser's message when it is not. It changes nothing, so it\ncounts as a read: read-only keys may use it. Administrators and domain administrators; mailbox\nusers get `forbidden`.\n",
+        "description": "Checks a script with the same Sieve parser legacy mailcow uses, without saving anything, and\nsays whether it is valid, with the parser's message when it is not. It changes nothing, so it\ncounts as a read: read-only keys may use it. Administrators and domain administrators; mailbox\nusers get `forbidden`.\nScripts exceeding the parser's time, memory, or output limits are reported as invalid.\n",
         "security": [
           {
             "sessionCookie": [],
@@ -24311,7 +24311,7 @@
       },
       "SyncJobPatch": {
         "type": "object",
-        "description": "JSON Merge Patch of a sync job. Omitted members keep their values; a body without any of the\nmembers below is refused (`required` on `body`). `null` is refused for every member\n(`invalidType`). A member whose value differs from the stored one is validated with the rules of\n`SyncJobCreateRequest`; a member sent with its stored value, and every member not sent, is\naccepted as stored, even if it predates the current rules. Unknown and read-only members (`id`,\n`runStatus`, `etag`, …) are ignored, so a client may send back what it read.\n\n- `active` activates or deactivates the job; the change takes effect from the runner's next\n  cycle and never interrupts a run in progress.\n- `remotePassword`: a non-empty value replaces the stored password; an empty string keeps it.\n- `mailbox` cannot change: the current address is accepted, any other is refused with the rule\n  code `immutable`. To sync into another mailbox, create a new job.\n- `customParameters`: when the server restricts custom parameters to administrators, a value\n  from another role that differs from the stored one is refused with `customParamsNotPermitted`;\n  the stored value sent unchanged is accepted.\n",
+        "description": "JSON Merge Patch of a sync job. Omitted members keep their values; a body without any of the\nmembers below is refused (`required` on `body`). `null` is refused for every member\n(`invalidType`). A member whose value differs from the stored one is validated with the rules of\n`SyncJobCreateRequest`; a member sent with its stored value, and every member not sent, is\naccepted as stored, even if it predates the current rules. Unknown and read-only members (`id`,\n`runStatus`, `etag`, …) are ignored, so a client may send back what it read.\n\n- `active` activates or deactivates the job; the change takes effect from the runner's next\n  cycle and never interrupts a run in progress.\n- `remotePassword`: a non-empty value replaces the stored password; an empty string keeps it\n  only while the remote host, port, encryption and username are unchanged. Changing any of\n  those fields while a password is stored requires password re-entry (`secretRequired`).\n- `mailbox` cannot change: the current address is accepted, any other is refused with the rule\n  code `immutable`. To sync into another mailbox, create a new job.\n- `customParameters`: when the server restricts custom parameters to administrators, a value\n  from another role that differs from the stored one is refused with `customParamsNotPermitted`;\n  the stored value sent unchanged is accepted.\n",
         "minProperties": 1,
         "properties": {
           "mailbox": {
@@ -28868,7 +28868,7 @@
             "description": "Switching to an external source turns off `forcePasswordChange` (and for `genericOidc`\n`forceSecondFactorSetup`) and keeps the stored password hash, as in legacy. Switching to\n`mailcow` without `password` is refused (`required` on `password`) when the mailbox has no\nstored password.\n"
           },
           "recoveryEmail": {
-            "description": "A valid address, or `null` or an empty string to clear it. Only for the `mailcow` authentication source (`conflictsWith`).",
+            "description": "A valid address, or `null` or an empty string to clear it. Only for the `mailcow` authentication source (`conflictsWith`). Changing or removing it revokes outstanding password-reset tokens.",
             "oneOf": [
               {
                 "type": "string",
@@ -28931,7 +28931,7 @@
       },
       "MailboxDeletionPreview": {
         "type": "object",
-        "description": "What deleting the mailbox would currently remove and move, and whether it could proceed, computed\nby the same rules as the deletion. A snapshot: the deletion checks and computes everything again,\nand refuses an outdated version tag. Reading it changes nothing and writes no audit record.\n",
+        "description": "What deleting the mailbox would currently remove and move, and whether it could proceed, computed\nby the same rules as the deletion. A snapshot: the deletion checks and computes everything again,\nand refuses an outdated version tag. Reading it changes nothing and writes no audit record.\nAlias counts cover all affected aliases, but address samples contain only aliases visible\nto the caller. A sample may therefore be empty even when its count is nonzero.\n",
         "required": [
           "address",
           "canProceed",
@@ -31631,7 +31631,7 @@
         "unevaluatedProperties": false
       },
       "IdentityProviderLdapInput": {
-        "description": "Whole LDAP configuration. `bindPassword` is required when no LDAP configuration is stored and when\n`hosts` differ from the stored ones (rule code `secretRequired`); otherwise an omitted password\nkeeps the stored one. When both `useSsl` and `useStartTls` are `true`, StartTLS is stored off.\n",
+        "description": "Whole LDAP configuration. `bindPassword` is required when no LDAP configuration is stored and when\n`hosts`, the effective port, TLS mode or certificate-verification policy differ from the stored\nones (rule code `secretRequired`); otherwise an omitted password\nkeeps the stored one. When both `useSsl` and `useStartTls` are `true`, StartTLS is stored off.\n",
         "allOf": [
           {
             "$ref": "#/components/schemas/IdentityProviderCommonInput"
@@ -35963,7 +35963,7 @@
       },
       "RoutingConnectionTestStep": {
         "type": "string",
-        "description": "Step of a connection test, in order: `resolve` (MX lookup and name resolution), `connect` (TCP),\n`greeting` (the server's `220` and `EHLO`), `tls` (`STARTTLS`, only when offered), `login` (only\nwhen a username is stored), `sender` (`MAIL FROM`), `recipient` (`RCPT TO`) and `message`\n(`DATA` and the message). For an accepted message the step is `message`; otherwise it is the step\nthat failed.\n",
+        "description": "Step of a connection test, in order: `resolve` (MX lookup and name resolution), `connect` (TCP),\n`greeting` (the server's `220` and `EHLO`), `tls` (`STARTTLS`, required before stored credentials), `login` (only\nwhen a username is stored), `sender` (`MAIL FROM`), `recipient` (`RCPT TO`) and `message`\n(`DATA` and the message). For an accepted message the step is `message`; otherwise it is the step\nthat failed.\n",
         "enum": [
           "resolve",
           "connect",
@@ -35977,7 +35977,7 @@
       },
       "RoutingConnectionTestResult": {
         "type": "object",
-        "description": "Result of one connection test. The test connects directly from this API's container, as the legacy\ntest does from the web container, without the mail server: TLS policy maps and mailbox TLS\nsettings do not apply to it. It looks up the most preferred mail exchanger of a next hop without\nbrackets (the host itself when there is none), uses the next hop's port or 25, uses STARTTLS when\noffered without verifying the certificate, logs in with the stored credentials (PLAIN or LOGIN,\nas the mail server does) when a username is stored, and sends a short test message. Each network\nstep times out after 15 seconds and the whole test after 60 seconds (server settings). Nothing is\nstored. Credentials never appear: every login argument and server login challenge in the\ntranscript is replaced by `[redacted]`.\n",
+        "description": "Result of one connection test. The test connects directly from this API's container, as the legacy\ntest does from the web container, without the mail server: TLS policy maps and mailbox TLS\nsettings do not apply to it. It looks up the most preferred mail exchanger of a next hop without\nbrackets (the host itself when there is none), uses the next hop's port or 25, and uses STARTTLS\nwhen offered. Before sending stored credentials (PLAIN or LOGIN), STARTTLS and a trusted\ncertificate matching the configured next-hop hostname are required; otherwise the test fails at `tls`\nwith `tlsFailed`. Tests without credentials may use opportunistic TLS. It sends a short test message. Each network\nstep times out after 15 seconds and the whole test after 60 seconds (server settings). Nothing is\nstored. Credentials never appear: every login argument and server login challenge in the\ntranscript is replaced by `[redacted]`.\n",
         "required": [
           "accepted",
           "step",

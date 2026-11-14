@@ -11,6 +11,7 @@ import {
   FIELD_ORDER,
   initialCreateValues,
   nextPort,
+  needsRemotePassword,
   OPTION_NAMES,
   patchFor,
   standardPort,
@@ -23,6 +24,41 @@ const caps = syncJobCapabilities()
 const job: SyncJob = syncJobView(
   mockSyncJob({ id: 9, mailbox: 'dora@example.org', customParameters: '--maxsize=1' }),
 )
+
+describe('retained remote credentials', () => {
+  it.each([
+    { remoteHost: 'another.example' },
+    { remotePort: 1993 },
+    { encryption: 'plain' as const },
+    { remoteUser: 'another-user' },
+  ])('requires re-entry for changed connection: %j', (patch) => {
+    const passwordRequired = needsRemotePassword(job, patch)
+    expect(passwordRequired).toBe(true)
+    const values = toFormValues(job)
+    expect(
+      checkValues(values, caps, { mode: 'edit', needsMailbox: false, passwordRequired })
+        .remotePassword,
+    ).toEqual([{ key: 'syncJobs.password.reenter' }])
+    values.remotePassword = 'supplied-again'
+    expect(
+      checkValues(values, caps, { mode: 'edit', needsMailbox: false, passwordRequired })
+        .remotePassword,
+    ).toBeUndefined()
+  })
+
+  it('keeps the password for unrelated changes and equivalent host casing', () => {
+    expect(needsRemotePassword(job, { intervalMinutes: 30 })).toBe(false)
+    expect(
+      needsRemotePassword(job, {
+        remoteHost: job.remoteHost.toUpperCase(),
+        remotePort: job.remotePort,
+      }),
+    ).toBe(false)
+    expect(
+      needsRemotePassword({ ...job, remotePasswordSet: false }, { remoteHost: 'new.example' }),
+    ).toBe(false)
+  })
+})
 
 describe('the legacy form', () => {
   it("keeps the add form's field order and the option names of the checkboxes", () => {

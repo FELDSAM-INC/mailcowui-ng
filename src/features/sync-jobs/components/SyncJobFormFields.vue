@@ -37,6 +37,7 @@ const props = withDefaults(
     role: Role
     customParamsAllowed: boolean
     passwordSet?: boolean
+    passwordRequired?: boolean
     errorsFor: (path: string) => readonly string[]
   }>(),
   { passwordSet: false },
@@ -153,6 +154,7 @@ const required = (field: string) =>
       :label="label('remotePassword')"
       :mode="mode"
       :password-set="passwordSet"
+      :password-required="passwordRequired"
       :max-length="maxLengthOf(caps, 'remotePassword')"
       :errors="errorsFor('remotePassword')"
     />

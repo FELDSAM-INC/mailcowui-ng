@@ -20,6 +20,7 @@ const props = defineProps<{
   mode: 'create' | 'edit'
   /** On the job page: whether the job has a stored password. */
   passwordSet?: boolean
+  passwordRequired?: boolean
   maxLength: number
   errors?: readonly string[]
 }>()
@@ -30,9 +31,11 @@ const revealed = ref(false)
 const hint = () =>
   props.mode === 'create'
     ? undefined
-    : props.passwordSet
-      ? `${t('syncJobs.password.saved')} ${t('syncJobs.password.keep')}`
-      : t('syncJobs.password.none')
+    : props.passwordRequired
+      ? t('syncJobs.password.reenter')
+      : props.passwordSet
+        ? `${t('syncJobs.password.saved')} ${t('syncJobs.password.keep')}`
+        : t('syncJobs.password.none')
 
 onBeforeUnmount(() => {
   revealed.value = false
@@ -45,7 +48,7 @@ onBeforeUnmount(() => {
     :label="''"
     :description="hint()"
     :errors="errors"
-    :required="mode === 'create'"
+    :required="mode === 'create' || passwordRequired"
   >
     <template #label><FieldLabel :text="label" /></template>
     <template #default="control">

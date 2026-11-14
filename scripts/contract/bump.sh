@@ -4,8 +4,8 @@
 #   scripts/contract/bump.sh <tag-or-commit>
 #
 # Resolves the ref in $MAILCOW_REST_V2_DIR (default ../mailcow-rest-v2), or in a fresh clone when
-# that directory is missing, extracts api/ with `git archive`, lints and bundles it with the API's
-# own Redocly version, writes contract/VERSION.json and regenerates the client types.
+# that directory is missing, extracts api/ with `git archive`, lints and bundles it with the
+# installed Redocly version, writes contract/VERSION.json and regenerates the client types.
 # Never pin "the latest commit": later features share the tree and the 0.1.0 version.
 set -euo pipefail
 
@@ -18,7 +18,6 @@ ref="$1"
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 api_dir="${MAILCOW_REST_V2_DIR:-$root/../mailcow-rest-v2}"
 repository="FELDSAM-INC/mailcow-rest-v2"
-bundler="@redocly/cli@2.64.1"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 export REDOCLY_TELEMETRY=off
@@ -55,6 +54,7 @@ mkdir -p "$work/src"
 git -C "$api_dir" archive "$commit" api | tar -x -C "$work/src"
 
 redocly="$root/node_modules/.bin/redocly"
+bundler="@redocly/cli@$(node -p 'require(process.argv[1]).version' "$root/node_modules/@redocly/cli/package.json")"
 (cd "$work/src" && "$redocly" lint api/openapi.yaml)
 (cd "$work/src" && "$redocly" bundle api/openapi.yaml -o bundle.yaml)
 

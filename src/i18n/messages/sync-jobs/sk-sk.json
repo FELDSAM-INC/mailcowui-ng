@@ -35,6 +35,9 @@
               "resource": "Táto adresa je prostriedok a nemôže prijímať synchronizovanú poštu."
             }
           }
+        },
+        "remotePassword": {
+          "secretRequired": "Pri zmene servera, portu, šifrovania alebo používateľského mena zadajte vzdialené heslo znova."
         }
       },
       "openExisting": "Otvoriť existujúcu úlohu"
@@ -49,7 +52,8 @@
     "password": {
       "keep": "Ak pole necháte prázdne, heslo zostane zachované.",
       "none": "Žiadne heslo nie je uložené.",
-      "saved": "Heslo je uložené."
+      "saved": "Heslo je uložené.",
+      "reenter": "Pri zmene servera, portu, šifrovania alebo používateľského mena zadajte vzdialené heslo znova."
     },
     "refresh": {
       "inactive": "Automatické obnovovanie bolo pozastavené, pretože ste boli neaktívni.",

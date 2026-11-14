@@ -16,6 +16,9 @@ const v = (code: string, params: Record<string, unknown> = {}): FieldViolation =
 
 describe('fieldMessageKey', () => {
   it("maps the sync-job rules to the form's messages", () => {
+    expect(fieldMessageKey('remotePassword', v('secretRequired'))).toBe(
+      'syncJobs.form.errors.remotePassword.secretRequired',
+    )
     expect(fieldMessageKey('remoteHost', v('invalidFormat', { format: 'hostName' }))).toBe(
       'validation.format.hostName',
     )

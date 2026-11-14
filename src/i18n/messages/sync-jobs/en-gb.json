@@ -35,6 +35,9 @@
               "resource": "This address is a resource and cannot receive synced mail."
             }
           }
+        },
+        "remotePassword": {
+          "secretRequired": "Enter the remote password again when changing the server, port, encryption, or username."
         }
       },
       "openExisting": "Open the existing job"
@@ -49,7 +52,8 @@
     "password": {
       "keep": "Leave the field empty to keep it.",
       "none": "No password is saved.",
-      "saved": "A password is saved."
+      "saved": "A password is saved.",
+      "reenter": "Enter the remote password again when changing the server, port, encryption, or username."
     },
     "refresh": {
       "inactive": "Automatic refresh paused because you have been inactive.",

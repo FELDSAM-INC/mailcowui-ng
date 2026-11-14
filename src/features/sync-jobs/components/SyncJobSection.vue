@@ -109,6 +109,7 @@ const ready = computed(() => !!props.caps)
           :role="role"
           :custom-params-allowed="section.customParamsAllowed.value"
           :password-set="job.remotePasswordSet"
+          :password-required="section.passwordRequired.value"
           :errors-for="section.errorsFor"
         />
         <p v-else role="status" class="text-gray-600 dark:text-gray-400">

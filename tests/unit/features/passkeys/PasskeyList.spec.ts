@@ -1,7 +1,7 @@
 // T104: the passkey list (FR-052): display names, notes for another host and inactive passkeys as
 // text, the authenticator and the registration date.
-import { describe, expect, it, vi } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 
 import PasskeyList from '@/features/passkeys/components/PasskeyList.vue'
 
@@ -11,6 +11,8 @@ import { mountWithApp } from '../../support/mount'
 const passkeys = alicePasskeys()
   .reverse()
   .map(({ credentialId: _c, ...rest }) => rest)
+
+enableAutoUnmount(afterEach)
 
 describe('PasskeyList', () => {
   it('renders one card per passkey with its notes in text', () => {
@@ -25,7 +27,10 @@ describe('PasskeyList', () => {
   })
 
   it('emits rename and remove for a passkey', async () => {
-    const wrapper = mountWithApp(PasskeyList, { props: { passkeys, total: 4 } })
+    const wrapper = mountWithApp(PasskeyList, {
+      props: { passkeys, total: 4 },
+      attachTo: document.body,
+    })
     const card = wrapper.findAll('li')[3]!
     for (const action of ['Rename', 'Remove']) {
       await card.get('[data-row-action-trigger]').trigger('keydown', { key: 'Enter' })

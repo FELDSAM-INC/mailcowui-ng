@@ -33,7 +33,10 @@ async function open(scenario = 'quarantine-mailbox-user', query = '') {
     ],
   })
   await router.push(`/quarantine${query}`)
-  const wrapper = mountWithApp(QuarantineListPage, { global: { plugins: [router] } })
+  const wrapper = mountWithApp(QuarantineListPage, {
+    attachTo: document.body,
+    global: { plugins: [router] },
+  })
   mounted.push(wrapper)
   await settle()
   return { wrapper, router }

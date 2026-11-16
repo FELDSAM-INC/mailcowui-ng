@@ -34,47 +34,65 @@ export async function expectNoHorizontalScroll(
  */
 export async function expectTouchTargets(page: Page): Promise<void> {
   const minimum = await page.evaluate(() => (matchMedia('(pointer: coarse)').matches ? 44 : 24))
-  const small = await page.evaluate((minimum) => {
-    const SELECTOR =
-      'button, input:not([type=hidden]), select, textarea, a[href], [role=button], [role=link], [role=checkbox], [role=radio], [role=switch], [role=menuitem], summary'
-    const INLINE = new Set(['SPAN', 'STRONG', 'EM', 'B', 'I', 'SMALL', 'U', 'CODE', 'TIME', 'ABBR'])
-    const visible = (element: Element) => {
-      if (element.closest('[aria-hidden="true"], [inert]')) return false
-      const style = getComputedStyle(element)
-      if (style.visibility === 'hidden' || style.display === 'none') return false
-      const rect = element.getBoundingClientRect()
-      return rect.width > 1 && rect.height > 1
-    }
-    const inRunningText = (link: Element) => {
-      let block: Element | null = link.parentElement
-      while (block && INLINE.has(block.tagName)) block = block.parentElement
-      if (!block) return false
-      const own = (link.textContent ?? '').trim()
-      const all = (block.textContent ?? '').trim()
-      return all.length > own.length
-    }
-    const failures: string[] = []
-    for (const element of document.querySelectorAll(SELECTOR)) {
-      if (!visible(element)) continue
-      if (element.tagName === 'A' && inRunningText(element)) continue
-      let { width, height } = element.getBoundingClientRect()
-      const label =
-        element.closest('label') ??
-        (element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`) : null)
-      if (label && (width < minimum || height < minimum)) {
-        const box = label.getBoundingClientRect()
-        width = Math.max(width, box.width)
-        height = Math.max(height, box.height)
+  const small = () =>
+    page.evaluate((minimum) => {
+      const SELECTOR =
+        'button, input:not([type=hidden]), select, textarea, a[href], [role=button], [role=link], [role=checkbox], [role=radio], [role=switch], [role=menuitem], summary'
+      const INLINE = new Set([
+        'SPAN',
+        'STRONG',
+        'EM',
+        'B',
+        'I',
+        'SMALL',
+        'U',
+        'CODE',
+        'TIME',
+        'ABBR',
+      ])
+      const visible = (element: Element) => {
+        if (element.closest('[aria-hidden="true"], [inert]')) return false
+        const style = getComputedStyle(element)
+        if (style.visibility === 'hidden' || style.display === 'none') return false
+        const rect = element.getBoundingClientRect()
+        return rect.width > 1 && rect.height > 1
       }
-      if (width < minimum - 0.5 || height < minimum - 0.5) {
-        const name =
-          element.getAttribute('aria-label') ?? (element.textContent ?? '').trim().slice(0, 40)
-        failures.push(
-          `${element.tagName.toLowerCase()} "${name}" ${Math.round(width)}×${Math.round(height)}`,
-        )
+      const inRunningText = (link: Element) => {
+        let block: Element | null = link.parentElement
+        while (block && INLINE.has(block.tagName)) block = block.parentElement
+        if (!block) return false
+        const own = (link.textContent ?? '').trim()
+        const all = (block.textContent ?? '').trim()
+        return all.length > own.length
       }
-    }
-    return failures
-  }, minimum)
-  expect(small, `interactive targets smaller than ${minimum} × ${minimum} px`).toEqual([])
+      const failures: string[] = []
+      for (const element of document.querySelectorAll(SELECTOR)) {
+        if (!visible(element)) continue
+        if (element.tagName === 'A' && inRunningText(element)) continue
+        let { width, height } = element.getBoundingClientRect()
+        const label =
+          element.closest('label') ??
+          (element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`) : null)
+        if (label && (width < minimum || height < minimum)) {
+          const box = label.getBoundingClientRect()
+          width = Math.max(width, box.width)
+          height = Math.max(height, box.height)
+        }
+        if (width < minimum - 0.5 || height < minimum - 0.5) {
+          const name =
+            element.getAttribute('aria-label') ?? (element.textContent ?? '').trim().slice(0, 40)
+          failures.push(
+            `${element.tagName.toLowerCase()} "${name}" ${Math.round(width)}×${Math.round(height)}`,
+          )
+        }
+      }
+      return failures
+    }, minimum)
+  // Opening/closing menus scale their controls during the animation. Measure their settled
+  // geometry; a persistent undersized target must still fail the same size requirement.
+  await expect
+    .poll(small, {
+      message: `interactive targets smaller than ${minimum} × ${minimum} px`,
+    })
+    .toEqual([])
 }

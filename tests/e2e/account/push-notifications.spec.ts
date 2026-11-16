@@ -31,7 +31,9 @@ test('stored credentials stay blank, custom sounds remain available and comma-se
     'placeholder',
     "You've got mail 📧",
   )
-  await form.getByText('Advanced settings', { exact: true }).click()
+  const advanced = form.locator('summary').filter({ hasText: 'Advanced settings' })
+  await advanced.focus()
+  await page.keyboard.press('Enter')
   await expect(form.locator('input[name="senderPattern"]')).toBeVisible()
   // Opening the lower disclosure scrolls earlier fields behind the sticky header. Check the
   // credential field and its toggle when reached by keyboard, then scan the expanded form from

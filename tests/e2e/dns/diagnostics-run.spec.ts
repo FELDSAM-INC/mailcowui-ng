@@ -85,9 +85,19 @@ test.describe('DNS diagnostics run', () => {
     await page.goto('dns/diagnostics/example.org')
     await expect(summary(page)).toBeVisible({ timeout: FIRST_LOAD })
     await mockApi.delay('runDnsDiagnostics', 120_000)
+    const started = page.waitForRequest((request) =>
+      request.url().endsWith('/api/v2/dns-diagnostics/example.org'),
+    )
+    const aborted = page.waitForEvent('requestfailed', (request) =>
+      request.url().endsWith('/api/v2/dns-diagnostics/example.org'),
+    )
     await runAgain(page).click()
     await expect(page.locator('[data-run-status] [role="status"]')).toBeVisible()
+    await started
     await page.clock.fastForward(46_000)
+    await aborted
+    // Network cancellation is asynchronous; let the query's notification timer run after it.
+    await page.clock.runFor(50)
     await expect(page.locator('[data-run-error]')).toContainText('longer than 45 seconds')
     await expect(page.locator('[data-run-error]')).toContainText('previous check')
     await expect(summary(page)).toBeVisible()

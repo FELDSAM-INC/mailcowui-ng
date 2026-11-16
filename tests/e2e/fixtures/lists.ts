@@ -11,12 +11,15 @@ export async function openListFilters(page: Page) {
 
 export async function closeListFilters(page: Page) {
   const dialog = page.getByRole('dialog').filter({ has: page.locator('[data-filter-panel]') })
-  if (
-    await dialog.evaluateAll((elements) =>
-      elements.some((el) => el.getAttribute('data-state') === 'open'),
-    )
-  )
-    await page.keyboard.press('Escape')
+  const open = await dialog.evaluateAll((elements) => {
+    const active = elements.find((el) => el.getAttribute('data-state') === 'open')
+    if (!(active instanceof HTMLElement)) return false
+    // A focused picker can consume Escape. Close the filter dialog itself, while avoiding
+    // locator.press waiting on a dialog whose exit animation is already in progress.
+    active.focus()
+    return true
+  })
+  if (open) await page.keyboard.press('Escape')
   await expect(dialog).toHaveCount(0)
 }
 

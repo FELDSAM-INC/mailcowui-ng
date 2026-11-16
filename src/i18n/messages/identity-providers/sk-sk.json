@@ -28,8 +28,7 @@
       "keycloak": "Keycloak",
       "ldap": "LDAP"
     },
-    "finishSection": "Pred úpravou ďalšej sekcie uložte alebo zrušte otvorené zmeny.",
-    "saveProviderFirst": "Najprv uložte poskytovateľa. Potom môžete nastaviť odoberanie prístupu a synchronizáciu skupín."
+    "finishSection": "Pred úpravou ďalšej sekcie uložte alebo zrušte otvorené zmeny."
   },
   "oauth2": {
     "added": "Prístup klienta bol pridaný",

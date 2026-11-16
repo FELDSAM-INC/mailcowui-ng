@@ -28,8 +28,7 @@
       "keycloak": "Keycloak",
       "ldap": "LDAP"
     },
-    "finishSection": "Před úpravou další sekce uložte nebo zrušte otevřené změny.",
-    "saveProviderFirst": "Nejprve uložte poskytovatele. Potom můžete nastavit odebírání přístupu a synchronizaci skupin."
+    "finishSection": "Před úpravou další sekce uložte nebo zrušte otevřené změny."
   },
   "oauth2": {
     "added": "Přístup klienta byl přidán",

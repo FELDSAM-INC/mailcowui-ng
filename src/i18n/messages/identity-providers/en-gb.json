@@ -28,8 +28,7 @@
       "keycloak": "Keycloak",
       "ldap": "LDAP"
     },
-    "finishSection": "Save or cancel the open section before editing another section.",
-    "saveProviderFirst": "Save the provider first to configure offboarding and group synchronisation."
+    "finishSection": "Save or cancel the open section before editing another section."
   },
   "oauth2": {
     "added": "Added client access",

@@ -16,7 +16,10 @@ test('US12 mailbox history includes password and app password changes with safe 
 }) => {
   await mockApi.use('audit-self-service')
   await page.goto('mailboxes/anna@example.org')
-  await page.getByRole('link', { name: 'History', exact: true }).click()
+  const header = page
+    .locator('header')
+    .filter({ has: page.getByRole('heading', { level: 1, name: 'Edit mailbox' }) })
+  await header.getByRole('link', { name: 'History', exact: true }).click()
   await expect(page).toHaveURL(/\/audit-log\?targetId=anna(?:@|%40)example.org$/)
   await expect(records(page)).toHaveCount(24)
   const password = records(page).filter({ hasText: 'Own password changed' }).first()

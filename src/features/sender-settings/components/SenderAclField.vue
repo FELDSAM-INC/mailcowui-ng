@@ -114,9 +114,9 @@ const fieldErrors = computed(() => props.state.problems.errorsFor('explicitPermi
 </script>
 
 <template>
-  <div
+  <fieldset
     :id="SENDER_ACL_ID"
-    role="group"
+    :disabled="!copy"
     :aria-label="lt('edit.sender_acl')"
     tabindex="-1"
     class="flex min-w-0 flex-col gap-2 focus:outline-none"
@@ -187,5 +187,5 @@ const fieldErrors = computed(() => props.state.problems.errorsFor('explicitPermi
       </li>
     </ul>
     <LegacyText k="edit.sender_acl_info" as="p" class="text-sm text-gray-600 dark:text-gray-400" />
-  </div>
+  </fieldset>
 </template>

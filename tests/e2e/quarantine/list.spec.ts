@@ -108,7 +108,13 @@ test('US1 list: empty, inactive and read-only quarantine remain usable', async (
   await page.reload()
   await expect(page.locator('#quarantine-actions-acl')).toBeVisible()
   await expect(page.locator('[data-select-mode]')).toHaveCount(0)
-  await expect(page.locator('[data-quarantine-item] button')).toHaveCount(0)
+  await expect(page.locator('[data-quarantine-item]')).toHaveCount(25)
+  await expect(
+    page.locator('[data-quarantine-item]').getByRole('button', { name: /^Remove/ }),
+  ).toHaveCount(0)
+  await expect(
+    page.locator('[data-quarantine-item]').first().getByRole('link', { name: /^Show/ }),
+  ).toBeVisible()
   await expect(page.locator('[data-quarantine-item]').first()).toHaveAttribute(
     'data-row-href',
     '/ng/quarantine/30',

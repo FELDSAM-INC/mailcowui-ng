@@ -13,8 +13,6 @@ async function select(page: Page, ...labels: string[]) {
   for (const label of labels) await page.getByRole('checkbox', { name: `Select ${label}` }).check()
 }
 
-const bar = (page: Page) => page.getByRole('region', { name: 'Bulk actions' })
-
 test.describe('activating, deactivating and scheduling a sync job', () => {
   test('US4-AS1 FR-036 deactivating asks once and names the job; activating does not ask', async ({
     page,
@@ -74,13 +72,10 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await page.goto('sync-jobs')
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
-    const names = await bar(page).getByRole('button').allTextContents()
-    expect(names.map((name) => name.trim())).toEqual([
-      'Activate',
-      'Deactivate',
-      'Remove',
-      'Clear selection',
-    ])
+    const actions = await openBulkActions(page)
+    const names = await actions.locator('[data-bulk-action]').allTextContents()
+    expect(names.map((name) => name.trim())).toEqual(['Activate', 'Deactivate', 'Remove'])
+    await expect(actions.getByRole('button', { name: 'Clear selection' })).toBeVisible()
   })
 
   test('FR-036 Edge: a job changed elsewhere is reported and can be retried', async ({
@@ -92,7 +87,11 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await listReady(page)
     await select(page, 'alice@mail.previous.example:993')
     await mockApi.patch({ syncJobs: { changeElsewhere: { id: 2, intervalMinutes: 45 } } })
-    await bar(page).getByRole('button', { name: 'Activate', exact: true }).click()
+    await (
+      await openBulkActions(page)
+    )
+      .getByRole('button', { name: 'Activate', exact: true })
+      .click()
     const results = page.getByRole('region', { name: 'Results' })
     await expect(results).toContainText('Changed in the meantime')
     await expect(

@@ -195,6 +195,8 @@ test.describe('alias list: mass actions', () => {
     await mockApi.use('bulk-004')
     await mockApi.patch({ capabilities004: { groupwareEnabled: false } })
     await startSelecting(page)
+    await entry(page, BULK_004.five[0]).getByRole('checkbox').check()
+    await openBulkActions(page)
     await expect(bar(page).getByRole('button', { name: 'Show alias in SOGo' })).toHaveCount(0)
     await expect(bar(page).getByRole('button', { name: 'Hide alias in SOGo' })).toHaveCount(0)
     await expect(bar(page).getByRole('button', { name: 'Deactivate' })).toBeVisible()

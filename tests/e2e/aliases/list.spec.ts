@@ -114,6 +114,7 @@ test.describe('alias list', () => {
     await pick(page, 'Goto address', 'anna', 'anna@example.org')
     await expect(page).toHaveURL(/destination=anna(@|%40)example\.org/)
     await expect.poll(() => entryIds(page)).toEqual(['60', '59', '58'])
+    await closeListFilters(page)
     const chip = page.getByRole('button', { name: 'Remove filter: Goto address: anna@example.org' })
     await expect(chip).toBeVisible()
     await expectAccessible()
@@ -195,8 +196,10 @@ test.describe('alias list', () => {
         if (key === 'id') await expect(page).not.toHaveURL(/sort=/)
         else await expect(page).toHaveURL(new RegExp(`sort=${key}`))
       }
+      // Returning to ID starts with its default descending order; selecting it again toggles.
+      await expect(page).not.toHaveURL(/order=/)
       await sortList(page, 'id')
-      await expect(page).toHaveURL(/order=desc/)
+      await expect(page).toHaveURL(/order=asc/)
     } else {
       const header = page.getByRole('columnheader', { name: 'Alias', exact: true })
       await expect(header).toHaveAttribute('aria-sort', 'none')
@@ -255,6 +258,7 @@ test.describe('alias list', () => {
     expect(query.getAll('destinationType')).toEqual(['learnSpam'])
     expect(query.get('active')).toBe('true')
     expect(query.get('senderAllowed')).toBe('false')
+    await closeListFilters(page)
     await expect(page.getByRole('button', { name: /^Filters \(7\)/ })).toBeVisible()
   })
 

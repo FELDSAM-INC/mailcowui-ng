@@ -1,4 +1,4 @@
-import { sortList } from '../fixtures/lists'
+import { closeListFilters, sortList } from '../fixtures/lists'
 // UI 008 US1, the sync job list (T023): cards and table, the classic columns and values, results
 // in English and Czech, the list states, search, filters, sort, paging, the address and refresh.
 import { expect, test } from '../fixtures/test'
@@ -188,11 +188,14 @@ test.describe('sync job list', () => {
     await expect.poll(() => entryIds(page)).toEqual([5, 4])
     await page.getByLabel('Last run result', { exact: true }).selectOption('none')
     await expect(page).toHaveURL(/result=none/)
+    await closeListFilters(page)
     await expect(page.getByText('No matching records found')).toBeVisible()
+    await openFilters(page)
     await page.getByLabel('Last run result', { exact: true }).selectOption('')
     await page.getByLabel('Status', { exact: true }).selectOption('')
     await page.getByLabel('Active', { exact: true }).selectOption('no')
     await expect(page).toHaveURL(/active=no/)
+    await closeListFilters(page)
     await expect(page.getByRole('button', { name: 'Filters (1)' })).toBeVisible()
     await expectAccessible()
     await page.goto('sync-jobs?mailbox=carol%40example.net&domain=example.net')

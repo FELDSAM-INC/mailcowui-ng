@@ -1,4 +1,4 @@
-import { sortList } from '../fixtures/lists'
+import { closeListFilters, sortList } from '../fixtures/lists'
 // UI 003 US1, the mailbox list (T050), the classic "Mailboxes" tab: paging, cards and legacy's
 // table with the column chooser, the search in the address with Back, filters with chips, sort,
 // the list states, roles, markup shown as text, IDN names and long values.
@@ -42,6 +42,7 @@ test.describe('mailbox list', () => {
     const anna = entry(page, 'anna@a.example')
     await expect(await rowAction(page, anna, 'Edit anna@a.example')).toBeVisible()
     await page.keyboard.press('Escape')
+    await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
     if (isNarrow(page)) {
       await expect(anna.getByRole('heading', { name: 'anna@a.example' })).toBeVisible()
       await expect(anna).toContainText('Anna Smith')
@@ -123,7 +124,8 @@ test.describe('mailbox list', () => {
       const last = menu.getByRole('menuitemcheckbox', { name: 'Tags', exact: true })
       await page.keyboard.press('End')
       await expect(last).toBeFocused()
-      await expect(last).toBeInViewport({ ratio: 1 })
+      // IntersectionObserver rounds fractional CSS pixels differently across browsers.
+      await expect(last).toBeInViewport({ ratio: 0.999 })
       const bounds = await menu.boundingBox()
       expect(bounds).not.toBeNull()
       expect(bounds!.y).toBeGreaterThanOrEqual(-1)
@@ -171,9 +173,13 @@ test.describe('mailbox list', () => {
     await mockApi.use('admin-mailboxes-30')
     await open(page)
     await openFilters(page)
-    const panel = page.locator('#mailbox-filters')
-    await panel.getByRole('checkbox', { name: 'Inactive' }).check()
+    const panel = page.locator('[data-filter-panel]:visible')
+    await panel.getByRole('combobox', { name: 'Domain' }).focus()
+    await expect(page.getByRole('listbox', { name: 'Domain' })).toBeVisible()
+    // The controlled checkbox is updated after the filter's router navigation completes.
+    await panel.getByRole('checkbox', { name: 'Inactive' }).click()
     await expect(page).toHaveURL(/status=inactive/)
+    await expect(panel.getByRole('checkbox', { name: 'Inactive' })).toBeChecked()
     await expect(entries(page)).toHaveCount(1)
     await panel.getByRole('combobox', { name: 'Domain' }).fill('b.example')
     await page.getByRole('option', { name: 'b.example' }).click()
@@ -181,6 +187,7 @@ test.describe('mailbox list', () => {
     await expect(page).toHaveURL(/domain=b\.example/)
     await expect(page.locator('[data-empty="noMatch"]')).toBeVisible()
     await expect(page.getByText('No matching records found')).toBeVisible()
+    await closeListFilters(page)
     const chips = page.getByRole('region', { name: 'Active filters' })
     await expect(
       chips.getByRole('button', { name: 'Remove filter: Domain: b.example' }),

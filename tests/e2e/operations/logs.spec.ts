@@ -3,6 +3,7 @@
 // the address, the newest 50 entries, legacy's "+ 100" and "+ 1000" without duplicates while entries
 // arrive, Expand All and Collapse All, cards at 360 px and legacy's columns on desktop, values as
 // text, and the loading, empty, no-match, unavailable and not-found states.
+import { sortList } from '../fixtures/lists'
 import type { Page } from '@playwright/test'
 
 import type { MockApi } from '../fixtures/mock-api'
@@ -213,7 +214,7 @@ test.describe('logs @operations', () => {
   }) => {
     await open(page, mockApi, 'admin-operations', 'operations/logs/postfix')
     if (isNarrow(page)) {
-      await page.getByRole('combobox', { name: 'Time' }).selectOption('asc')
+      await sortList(page, 'time')
     } else {
       await page.getByRole('columnheader', { name: 'Time' }).getByRole('button').click()
       await expect(page.getByRole('columnheader', { name: 'Time' })).toHaveAttribute(

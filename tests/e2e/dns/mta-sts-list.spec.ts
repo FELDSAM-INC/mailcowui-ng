@@ -1,4 +1,4 @@
-import { sortList, openListFilters } from '../fixtures/lists'
+import { closeListFilters, sortList, openListFilters } from '../fixtures/lists'
 // UI 010 US4, the MTA-STS policies (T066, FR-054 to FR-056): paging, total, search, filters and
 // sort kept in the address, cards and table, opening an entry at the domain page's MTA-STS
 // section, the list states and a domain administrator's scope.
@@ -79,6 +79,7 @@ test.describe('MTA-STS policies', () => {
     await expect.poll(() => entryNames(page)).toEqual(['example.net', 'xn--bcher-kva.example'])
     await page.locator('#mta-sts-filter-active').selectOption('true')
     await expect.poll(() => entryNames(page)).toEqual(['xn--bcher-kva.example'])
+    await closeListFilters(page)
     await expect(page.getByRole('button', { name: 'Filters (2)' })).toBeVisible()
     await page.reload()
     await listReady(page)

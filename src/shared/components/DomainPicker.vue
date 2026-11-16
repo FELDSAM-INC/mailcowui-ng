@@ -109,6 +109,38 @@ const search = ref('')
 const active = ref(-1)
 const known = ref<Record<string, string>>({})
 let timer: ReturnType<typeof setTimeout> | null = null
+let pointerDown = false
+let pendingBlur = false
+
+// Collapsing an inline list on pointer-induced blur moves the next field between
+// pointerdown and click. Keep its layout until the click has a target; Tab still closes at once.
+watch(open, (value, _previous, cleanup) => {
+  if (!value || mobileDialog.value) return
+  const startPointer = () => {
+    pointerDown = true
+  }
+  const finishPointer = () => {
+    pointerDown = false
+    if (pendingBlur) {
+      pendingBlur = false
+      close()
+      revert()
+    }
+  }
+  document.addEventListener('pointerdown', startPointer, true)
+  document.addEventListener('click', finishPointer, true)
+  document.addEventListener('pointercancel', finishPointer, true)
+  document.addEventListener('keydown', finishPointer, true)
+  window.addEventListener('blur', finishPointer)
+  cleanup(() => {
+    document.removeEventListener('pointerdown', startPointer, true)
+    document.removeEventListener('click', finishPointer, true)
+    document.removeEventListener('pointercancel', finishPointer, true)
+    document.removeEventListener('keydown', finishPointer, true)
+    window.removeEventListener('blur', finishPointer)
+    pointerDown = pendingBlur = false
+  })
+})
 
 const selected = computed<string[]>(() =>
   Array.isArray(props.modelValue)
@@ -219,6 +251,7 @@ function onInput() {
 
 /** Opening the field searches for its text at once (the whole list in single mode). */
 function onFocus() {
+  pendingBlur = false
   if (open.value) return
   if (timer) clearTimeout(timer)
   if (!props.multiple) text.value = ''
@@ -314,6 +347,10 @@ function onFocusOut(event: FocusEvent) {
   if (mobileDialog.value) return
   const next = event.relatedTarget
   if (next instanceof Node && container.value?.contains(next)) return
+  if (pointerDown) {
+    pendingBlur = true
+    return
+  }
   close()
   revert()
 }

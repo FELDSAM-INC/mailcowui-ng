@@ -1,3 +1,4 @@
+import { openBulkActions } from '../fixtures/flows'
 import { sortList, openListFilters, closeListFilters } from '../fixtures/lists'
 import { expect, test } from '../fixtures/test'
 import { pick } from '../aliases/helpers'
@@ -131,7 +132,11 @@ test('bulk actions show each result and a retry; deletion names entries and requ
   await page.locator('[data-filter-id="1"]').getByRole('checkbox').check()
   await page.locator('[data-filter-id="2"]').getByRole('checkbox').check()
   await mockApi.failNext('updateSieveFilter', { type: 'internal-error', status: 500 })
-  await page.getByRole('button', { name: 'Deactivate', exact: true }).click()
+  await (
+    await openBulkActions(page)
+  )
+    .getByRole('button', { name: 'Deactivate', exact: true })
+    .click()
   const outcomes = page.getByRole('region', { name: 'Results', exact: true })
   await expect(outcomes).toContainText('Failed')
   await expect(outcomes).toContainText('Done')
@@ -166,7 +171,7 @@ test('bulk actions show each result and a retry; deletion names entries and requ
   await outcomes.getByRole('button', { name: 'Close', exact: true }).click()
   await page.locator('[data-filter-id="1"]').getByRole('checkbox').check()
   await page.locator('[data-filter-id="2"]').getByRole('checkbox').check()
-  await page.getByRole('button', { name: 'Remove', exact: true }).click()
+  await (await openBulkActions(page)).getByRole('button', { name: 'Remove', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toContainText('Spam to folder (anna@example.org)')
   await expect(dialog).not.toContainText('ActiveSync')

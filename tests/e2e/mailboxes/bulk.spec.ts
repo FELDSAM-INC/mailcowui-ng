@@ -154,6 +154,7 @@ test.describe('mailbox mass actions', () => {
     await (await openBulkActions(page)).getByRole('button', { name: 'Allowed protocols' }).click()
     await page.getByRole('menuitem', { name: 'Activate IMAP', exact: true }).click()
     await expect(results(page)).toContainText('1 done')
+    await expect.poll(() => bulkRequests(mockApi)).toHaveLength(2)
     const requests = await bulkRequests(mockApi)
     expect(requests.map((r) => r.body)).toMatchObject([
       { action: 'disallowProtocol', protocol: 'imap' },

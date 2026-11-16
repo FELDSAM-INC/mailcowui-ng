@@ -39,7 +39,9 @@ test('empty explanation, legacy generation defaults, raw copy, permanence and co
   const address = (await row.getAttribute('data-entry'))!
   expect(address).toMatch(/^[a-z]{6,8}\.[a-z]{6,8}@example.com$/)
   await clickRowAction(page, row, `Copy: ${address}`)
-  expect(await page.evaluate(() => (window as unknown as { copied: string }).copied)).toBe(address)
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { copied: string }).copied))
+    .toBe(address)
   await expect(row).toContainText('Shop')
   await expect(row.locator('time')).toHaveCount(3)
   if (await row.locator('[data-row-action-trigger]').count())

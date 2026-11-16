@@ -479,7 +479,8 @@ test.describe('keyboard only', () => {
     await expect(page.getByRole('alertdialog')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect(remove).toBeFocused()
+    const returnFocus = isNarrow(page) ? page.locator('[data-bulk-toggle]') : remove
+    await expect(returnFocus).toBeFocused()
     await page.keyboard.press('Escape')
     const actions = entry(page, 1).locator('[data-row-action-trigger]')
     await actions.focus()

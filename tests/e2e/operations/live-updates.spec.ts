@@ -108,8 +108,16 @@ test.describe('dashboard live updates @operations', () => {
     expect(await mockApi.countRequests('getHostOverview', mark)).toBe(0)
     await page.getByRole('button', { name: 'Refresh', exact: true }).click()
     await expect.poll(() => mockApi.countRequests('getHostOverview', mark)).toBe(1)
+    await expect(page.getByRole('button', { name: 'Refresh', exact: true })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
     await page.getByRole('button', { name: 'Resume live updates' }).click()
     await expect.poll(() => mockApi.countRequests('getHostOverview', mark)).toBe(2)
+    await expect(page.getByRole('button', { name: 'Refresh', exact: true })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
     await page.clock.runFor(5_500)
     await expect.poll(() => mockApi.countRequests('getHostOverview', mark)).toBe(3)
   })
@@ -167,7 +175,12 @@ test.describe('dashboard live updates @operations', () => {
     await page.clock.runFor(30_000)
     expect(await mockApi.countRequests('getHostOverview', mark)).toBe(0)
     await mockApi.patch({ operations: { inject: { getMonitoringCapabilities: null } } })
+    const capabilities = page.waitForResponse(
+      (response) => response.url().endsWith('/api/v2/capabilities/monitoring') && response.ok(),
+    )
     await page.locator('[data-live-updates]').getByRole('button', { name: 'Try again' }).click()
+    await capabilities
+    await page.clock.runFor(50)
     await expect(page.getByRole('button', { name: 'Pause live updates' })).toBeVisible()
     await page.clock.runFor(5_500)
     await expect.poll(() => mockApi.countRequests('getHostOverview', mark)).toBeGreaterThan(0)

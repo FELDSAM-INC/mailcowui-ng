@@ -1,4 +1,4 @@
-import { sortList } from '../fixtures/lists'
+import { closeListFilters, sortList } from '../fixtures/lists'
 // UI 010 US1, the ARC/DKIM keys list (T031): entries, cards and table, filters, search, sort,
 // paging, the address, the list states, the server settings and the edge cases.
 import { LONG_NAME } from '../../mocks/scenarios/dns'
@@ -76,6 +76,7 @@ test.describe('DKIM key list', () => {
     await page.getByRole('checkbox', { name: 'Key missing' }).check()
     await expect(page).toHaveURL(/state=missing/)
     await expect.poll(() => entryNames(page)).toEqual(['example.net', 'missing.example'])
+    await closeListFilters(page)
     await expect(page.getByRole('button', { name: 'Filters (1)' })).toBeVisible()
     await expect(politeRegion(page)).toHaveText('2 entries')
   })
@@ -152,7 +153,7 @@ test.describe('DKIM key list', () => {
     await page.locator('[data-page-size] select').selectOption('50')
     await expect(page).toHaveURL(/size=50/)
     await expect(page).not.toHaveURL(/page=/)
-    expect(await entryNames(page)).toHaveLength(50)
+    await expect.poll(() => entryNames(page)).toHaveLength(50)
     await page.goto('dns/dkim-keys?size=100&page=2&state=missing')
     await listReady(page)
     await expect(page.getByText('Page 2 of 2')).toBeVisible()
@@ -200,6 +201,7 @@ test.describe('DKIM key list', () => {
     await page.goto('dns/dkim-keys?domain=example.org')
     await listReady(page)
     expect(await entryNames(page)).toEqual(['example.com', 'example.org'])
+    await openFilters(page)
     await expect(
       page.getByRole('button', { name: /Remove filter: Domain example.org/ }),
     ).toBeVisible()

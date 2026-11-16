@@ -2,7 +2,7 @@ import { permissionFlags } from '../../mocks/scenarios/accounts'
 // UI 008 US1 entry points (T027, FR-004): the navigation entry per role, and the list opened
 // pre-filtered to one mailbox, as UI 003's mailbox page links to it.
 import { expect, test } from '../fixtures/test'
-import { entry, entryIds, listReady, openFilters } from './helpers'
+import { entry, entryIds, listReady } from './helpers'
 
 test.describe('sync job entry points', () => {
   test('a mailbox user with the flag finds "Sync jobs" in the navigation', async ({
@@ -30,7 +30,6 @@ test.describe('sync job entry points', () => {
     await page.goto('sync-jobs?mailbox=alice%40example.org')
     await listReady(page)
     for (const id of await entryIds(page)) await expect(entry(page, id)).toContainText('alice@')
-    await openFilters(page)
     await expect(page.getByRole('button', { name: 'Filters (1)' })).toBeVisible()
   })
 

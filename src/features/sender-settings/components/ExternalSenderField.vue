@@ -33,6 +33,7 @@ const errors = computed(() => {
         <input
           v-bind="control"
           :value="value"
+          :disabled="!state.copy.value"
           type="text"
           autocomplete="off"
           autocapitalize="none"

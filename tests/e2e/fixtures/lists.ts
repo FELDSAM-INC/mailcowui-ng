@@ -41,6 +41,7 @@ export async function sortList(page: Page, key: string, keyboard = false) {
       await button.press('Enter')
     } else await button.click()
   }
+  await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
 }
 
 export async function expectListSort(page: Page, key: string, order: 'asc' | 'desc') {
@@ -50,6 +51,7 @@ export async function expectListSort(page: Page, key: string, order: 'asc' | 'de
       order === 'asc' ? '▲' : '▼',
     )
     await page.keyboard.press('Escape')
+    await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
   } else {
     await expect(
       page.locator('th').filter({ has: page.locator(`[data-sort="${key}"]`) }),

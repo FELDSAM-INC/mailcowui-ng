@@ -143,8 +143,8 @@ for (const [scenario, path, targetType, targetId] of [
     expect(filters.get('targetType')).toBe(targetType)
     expect(filters.get('targetId')).toBe(targetId)
     // Check the API filter as well: a correct address must not conceal a broader audit query.
+    await expect.poll(() => mockApi.countRequests('listAuditEvents')).toBeGreaterThan(0)
     const reads = (await mockApi.requests()).filter((row) => row.operationId === 'listAuditEvents')
-    expect(reads.length).toBeGreaterThan(0)
     for (const read of reads) {
       const query = new URL(read.path, page.url()).searchParams
       expect(query.get('targetType')).toBe(targetType)

@@ -137,7 +137,9 @@ test.describe('Queue Manager @operations', () => {
         { id: '7D2E4F6031' },
       ],
     })
-    expect(await mockApi.countRequests('listMailQueueMessages', before)).toBeGreaterThan(0)
+    await expect
+      .poll(() => mockApi.countRequests('listMailQueueMessages', before))
+      .toBeGreaterThan(0)
     await expect(entry(page, '6C1D3E5F20')).toHaveCount(0)
     await expect(page.getByRole('checkbox', { name: 'Select 4F2A1B3C9D' })).not.toBeChecked()
     await revealQueueForScan(page)

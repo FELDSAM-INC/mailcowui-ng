@@ -15,6 +15,39 @@ const saves = async (mockApi: Requests) =>
   (await mockApi.requests()).filter((r) => r.operationId === 'updateMailboxSenderSettings')
 
 test.describe('send as: saving', () => {
+  test('waits for sender settings before accepting changes', async ({ page, mockApi }) => {
+    await mockApi.use('sender-settings')
+    let release!: () => void
+    const loaded = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    await page.route('**/sender-settings', async (route) => {
+      if (route.request().method() === 'GET') await loaded
+      await route.continue()
+    })
+    try {
+      await openMailboxSection(page)
+      const external = page.getByLabel('External sender addresses')
+      const sender = page.getByRole('combobox', { name: 'Allow to send as', exact: true })
+      await expect(external).toBeDisabled()
+      await expect(sender).toBeDisabled()
+      release()
+      await expect(external).toBeEnabled()
+      await expect(sender).toBeEnabled()
+      await external.fill('new@outside.example')
+      await saveButton(page).click()
+      await expect.poll(async () => (await saves(mockApi)).length).toBe(1)
+      expect((await saves(mockApi))[0]!.body).toEqual({
+        externalSenderAddresses: ['new@outside.example'],
+      })
+      await expect(page.locator('[data-value="externalSenderAddresses"]')).toContainText(
+        'new@outside.example',
+      )
+    } finally {
+      release()
+    }
+  })
+
   test('US5-AS2 FR-054 allowing a blocked alias sends the whole set with If-Match and lists it', async ({
     page,
     mockApi,

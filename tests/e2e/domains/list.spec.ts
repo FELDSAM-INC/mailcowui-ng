@@ -1,4 +1,4 @@
-import { sortList, expectListSort } from '../fixtures/lists'
+import { closeListFilters, sortList, expectListSort } from '../fixtures/lists'
 // UI 002 US1, the domain list (T034): paging, cards and table, search, filters, sort, address
 // state, refresh, the list states, usage pairs and the edge cases.
 import { expect, test } from '../fixtures/test'
@@ -127,7 +127,9 @@ test.describe('domain list', () => {
     await expect(page.getByRole('option', { name: 'customer-a' })).toBeVisible()
     await page.getByRole('option', { name: 'customer-b' }).click()
     await expect(page).toHaveURL(/tag=customer-b/)
+    await closeListFilters(page)
     await expect(page.getByRole('button', { name: 'Filters (3)' })).toBeVisible()
+    await openFilters(page)
     await page.getByRole('button', { name: 'Clear all filters' }).click()
     await expect(page).not.toHaveURL(/active=|relay=|tag=/)
     await expect.poll(() => resultCount(page)).toBe('Domains found: 60')

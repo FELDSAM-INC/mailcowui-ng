@@ -178,7 +178,8 @@ test('blocks oversized documents before sending and guards unsaved navigation', 
   mockApi,
 }) => {
   await mockApi.use('filter-maps-13')
-  await page.goto(path)
+  await page.goto('system/filter-maps')
+  await page.locator(`a[href="/ng/${path}"]`).click()
   await page.getByRole('button', { name: 'Edit', exact: true }).click()
   await page.locator('#regex-content').fill('#' + 'x'.repeat(950_000))
   await expect(page.locator('#regex-content')).not.toHaveAttribute('aria-invalid', 'true')
@@ -187,7 +188,7 @@ test('blocks oversized documents before sending and guards unsaved navigation', 
   await expect(page.locator('[data-code-editor]')).toContainText('exceeds')
   await page.getByRole('button', { name: 'Save changes', exact: true }).click()
   expect(await mockApi.countRequests('replaceRspamdRegexMap')).toBe(0)
-  await page.getByRole('link', { name: 'Global filter maps', exact: true }).last().click()
+  await page.locator('[data-detail-back]').click()
   await expect(page.getByRole('alertdialog')).toBeVisible()
 })
 

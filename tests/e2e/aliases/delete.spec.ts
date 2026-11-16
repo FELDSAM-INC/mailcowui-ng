@@ -79,7 +79,7 @@ test.describe('alias list: deletion', () => {
     await mockApi.use('aliases-edit')
     await page.goto('aliases')
     await listReady(page)
-    if (isNarrow(page)) await expect(entry(page, ALIAS_004.sales).locator('article')).toBeVisible()
+    if (isNarrow(page)) await expect(entry(page, ALIAS_004.sales)).toHaveAttribute('data-card', '')
     else await expect(page.locator('table')).toBeVisible()
     await trigger(page, ALIAS_004.sales).click()
     await page.getByRole('menuitem', { name: 'Edit' }).click()

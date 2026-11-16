@@ -75,9 +75,17 @@ test('US1-AS17 SC-014 the idle warning comes 2 minutes before expiry, "Stay sign
   await page.clock.fastForward('00:31')
   await page.clock.runFor(250)
   const dialog = page.getByRole('alertdialog', { name: 'Your session is about to end' })
-  await expect(dialog).toBeVisible()
+  await expect
+    .poll(async () => {
+      await page.clock.runFor(50)
+      return dialog.isVisible()
+    })
+    .toBe(true)
   await expect(assertiveRegion(page)).toContainText('left before you are signed out')
-  expect((await apiRequests()).length, 'no request while idle').toBe(before)
+  expect(
+    (await apiRequests()).slice(before).map((request) => request.operationId),
+    'no request while idle',
+  ).toEqual([])
   await expectAccessible()
 
   await dialog.getByRole('button', { name: 'Stay signed in' }).click()
@@ -88,7 +96,12 @@ test('US1-AS17 SC-014 the idle warning comes 2 minutes before expiry, "Stay sign
 
   await page.clock.fastForward('00:31')
   await page.clock.runFor(250)
-  await expect(dialog).toBeVisible()
+  await expect
+    .poll(async () => {
+      await page.clock.runFor(50)
+      return dialog.isVisible()
+    })
+    .toBe(true)
   await mockApi.patch({ expireSession: true })
   await page.clock.fastForward('02:00')
   await expect(page.getByRole('heading', { level: 1, name: 'Login' })).toBeVisible()
@@ -141,6 +154,7 @@ test('FR-034 a request answered as unauthenticated shows the session-ended messa
   await page.clock.install()
   await page.goto('domains')
   await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
+  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
   await mockApi.patch({ expireSession: true })
   // FR-050: a navigation with an identity older than five minutes reads it again.
   await page.clock.fastForward('06:00')
@@ -160,6 +174,7 @@ test('Edge: an account deactivated while signed in ends the session on its next 
   await page.clock.install()
   await page.goto('domains')
   await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
+  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
   await mockApi.patch({ accounts: { admin: { active: false } } })
   await page.clock.fastForward('06:00')
   const navigation = await openNavigation(page)

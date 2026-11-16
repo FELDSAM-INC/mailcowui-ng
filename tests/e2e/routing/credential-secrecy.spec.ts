@@ -56,7 +56,11 @@ async function expectOnlyInWrites(
   for (const [secret, writes] of Object.entries(expected)) {
     let carried = 0
     for (const request of requests) {
-      const headers = JSON.stringify(await request.allHeaders())
+      // A full navigation can cancel an unfinished list read. Chromium never supplies
+      // allHeaders for some cancelled requests; the captured request headers still exist.
+      const headers = JSON.stringify(
+        request.failure() ? request.headers() : await request.allHeaders(),
+      )
       expect(request.url(), secret).not.toContain(secret)
       expect(headers, secret).not.toContain(secret)
       if (request.postData()?.includes(secret)) {

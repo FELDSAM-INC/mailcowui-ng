@@ -23,6 +23,8 @@ test.describe('domain aliases: mass actions', () => {
   }) => {
     await mockApi.use('bulk-alias-domains-da')
     await startSelecting(page)
+    await entry(page, BULK_ALIAS_DOMAINS_004[0]).getByRole('checkbox').check()
+    await openBulkActions(page)
     await expect(bar(page).getByRole('button', { name: 'Activate', exact: true })).toBeVisible()
     await expect(bar(page).getByRole('button', { name: 'Deactivate' })).toBeVisible()
     await expect(bar(page).getByRole('button', { name: 'Remove' })).toBeVisible()

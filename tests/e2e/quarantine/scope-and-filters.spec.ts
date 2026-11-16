@@ -32,7 +32,7 @@ test('US2-AS1 domain administrators choose only their identity domains without a
   await page.goto('quarantine')
   await expect.poll(() => ids(page)).toEqual([2, 1])
   if ((page.viewportSize()?.width ?? 0) < 768) {
-    await page.locator('[data-quarantine-item="2"] summary').click()
+    await page.locator('[data-quarantine-item="2"] [data-card-expand]').click()
   } else {
     await expect(page.getByRole('columnheader', { name: 'Recipient', exact: true })).toBeVisible()
   }
@@ -184,7 +184,7 @@ test('US2 mailbox users have no recipient/domain controls and supplied scope par
   await expect(page.locator('[data-quarantine-item]')).toHaveCount(25)
   if ((page.viewportSize()?.width ?? 0) < 768) {
     const item = page.locator('[data-quarantine-item]').first()
-    await item.locator('summary').click()
+    await item.locator('[data-card-expand]').click()
     await expect(item.getByText('Recipient', { exact: true })).toHaveCount(0)
   } else {
     await expect(page.getByRole('columnheader', { name: 'Recipient', exact: true })).toHaveCount(0)

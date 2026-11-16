@@ -20,6 +20,8 @@ test('refresh pauses while hidden, resumes once, and leaving never cancels deliv
   await setPageVisibility(page, 'visible')
   await expect.poll(() => mockApi.countRequests('getMassMailJob')).toBe(reads + 1)
   await page.getByRole('link', { name: 'Mass mail jobs', exact: true }).last().click()
+  await expect(page).toHaveURL(/\/system\/mass-mail\/jobs$/)
+  await expect(page.locator('[data-mass-mail-job]')).toHaveCount(0)
   const left = await mockApi.countRequests('getMassMailJob')
   await page.clock.runFor(15_000)
   expect(await mockApi.countRequests('getMassMailJob')).toBe(left)

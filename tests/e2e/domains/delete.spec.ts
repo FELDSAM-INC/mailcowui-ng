@@ -162,7 +162,9 @@ test.describe('delete a domain', () => {
     await typed(page).fill('gone.example')
     await confirmButton(page).click()
     await expect(page).toHaveURL(/\/ng\/domains$/)
-    expect(await deletes(mockApi)).toHaveLength(2)
+    await expect(dialog(page)).toHaveCount(0)
+    await expect.poll(() => deletes(mockApi)).toHaveLength(2)
+    await expect(entry(page, 'gone.example')).toHaveCount(0)
 
     await startDelete(page, 'other.example')
     await typed(page).fill('other.example')

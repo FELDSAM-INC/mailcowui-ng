@@ -319,12 +319,6 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
         @test="editor.runTest"
         @retry-templates="templatesQuery.refetch()"
       />
-      <p
-        v-if="capabilities.identitySynchronisation && editor.form.value.type !== 'genericOidc'"
-        class="text-sm text-muted"
-      >
-        {{ t('identityProvider.saveProviderFirst') }}
-      </p>
       <div class="flex justify-end">
         <button type="submit" :class="buttonVariants({})" :disabled="editor.saving.value">
           {{ editor.saving.value ? t('sections.saving') : lt('admin.save') }}

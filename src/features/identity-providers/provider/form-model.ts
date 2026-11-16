@@ -14,6 +14,8 @@ import type {
   Writable,
 } from '@/api'
 
+import { defaultSyncSettings } from './sync-form'
+import type { IdentitySyncSettings } from './synchronisation-api'
 import type { IdentityProviderConfig } from './types'
 
 /** The request bodies, with the write-only secrets as plain values. */
@@ -28,6 +30,8 @@ export interface MappingRow {
 
 export interface ProviderForm {
   type: IdentityProviderType
+  /** Initial setup only; existing providers have independently versioned sections. */
+  syncSettings?: IdentitySyncSettings
   // Keycloak
   serverUrl: string
   realm: string
@@ -85,6 +89,7 @@ export function formFromDefaults(capabilities: IdentityProviderCapabilities): Pr
   const d = capabilities.defaults
   return {
     type: 'keycloak',
+    ...(capabilities.identitySynchronisation ? { syncSettings: defaultSyncSettings() } : {}),
     serverUrl: '',
     realm: '',
     version: '',
@@ -127,6 +132,7 @@ export function formFromConfig(
   const form: ProviderForm = {
     ...formFromDefaults(capabilities),
     type: config.type,
+    syncSettings: undefined,
     attributeMapping: config.attributeMapping.map(({ attributeValue, template }) => ({
       attributeValue,
       template,

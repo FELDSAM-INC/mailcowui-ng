@@ -4,11 +4,9 @@ import { computed, ref, shallowRef, toRaw, watch, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { problemOf, queryKeys } from '@/api'
 import { lt } from '@/i18n'
-import LegacyText from '@/shared/components/LegacyText.vue'
-import { syncFieldLabels, syncFieldHelp } from '../sync-field-labels'
+import { syncFieldLabels } from '../sync-field-labels'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
-import FormField from '@/shared/components/FormField.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import { confirm } from '@/shared/composables/useConfirm'
 import { useProblemForm } from '@/shared/composables/useProblemForm'
@@ -24,12 +22,9 @@ import {
   type IdentitySyncStatus,
   type IdentitySyncRun,
 } from '../synchronisation-api'
-import SwitchField from './SwitchField.vue'
-import DomainPicker from '@/shared/components/DomainPicker.vue'
-import { domainPickerSource } from '@/features/aliases-common'
-import TextField from './TextField.vue'
-import { INPUT } from './styles'
 import IdentitySyncRuns from './IdentitySyncRuns.vue'
+import IdentitySyncFields from './IdentitySyncFields.vue'
+import { syncSections, syncSectionTitle } from '../sync-form'
 import IdentityLinkSection from './IdentityLinkSection.vue'
 
 const props = defineProps<{ providerEditing?: boolean }>()
@@ -54,50 +49,10 @@ const saveState = useVersionedSave({
 const busy = ref(false)
 const runProblem = shallowRef<ReturnType<typeof problemOf>>(null)
 const message = ref('')
-type Setting = keyof IdentitySyncSettings
-const sections = computed<{ id: string; fields: Setting[] }[]>(() => [
-  ...(stored.value?.provider === 'ldap'
-    ? [{ id: 'directory', fields: ['idAttribute', 'disabledFilter'] as Setting[] }]
-    : []),
-  { id: 'offboarding', fields: ['offboarding', 'offboardingLimit'] },
-  {
-    id: 'groups',
-    fields: [
-      'groupSync',
-      ...(stored.value?.provider === 'ldap'
-        ? ([
-            'groupBaseDn',
-            'groupFilter',
-            'groupNameAttribute',
-            'groupMemberMode',
-            'groupMemberAttribute',
-          ] as Setting[])
-        : (['groupPaths'] as Setting[])),
-      'groupAutocreate',
-      'groupDefaultDomain',
-    ],
-  },
-])
-const switches = ['offboarding', 'groupSync', 'groupAutocreate'] as const
-const textFields = [
-  'idAttribute',
-  'disabledFilter',
-  'groupBaseDn',
-  'groupFilter',
-  'groupNameAttribute',
-  'groupMemberAttribute',
-] as const
+const sections = computed(() => syncSections(stored.value?.provider))
 const shownFields = computed(
   () => sections.value.find((section) => section.id === activeSection.value)?.fields ?? [],
 )
-const sectionTitle = (id: string) =>
-  id === 'groups'
-    ? lt('admin.iam_section_groups')
-    : id === 'offboarding'
-      ? lt('admin.iam_offboarding')
-      : t('identitySync.sections.directory')
-const description = (key: Setting) =>
-  syncFieldHelp[key] ? lt(syncFieldHelp[key]) : t(`identitySync.help.${key}`)
 watch(editing, (value) => emit('editing', value), { immediate: true })
 watch(dirty, (value) => emit('dirty', value), { immediate: true })
 onBeforeUnmount(() => {
@@ -213,7 +168,7 @@ function valueText(value: IdentitySyncSettings[keyof IdentitySyncSettings]) {
       v-for="section in sections"
       :key="section.id"
       :section-id="`identity-sync-${section.id}`"
-      :title="sectionTitle(section.id)"
+      :title="syncSectionTitle(section.id, t)"
       editable
       :editing="editing && activeSection === section.id"
       :edit-disabled-reason="
@@ -247,87 +202,12 @@ function valueText(value: IdentitySyncSettings[keyof IdentitySyncSettings]) {
       <template #form>
         <ErrorSummary :id="errors.summaryId" :items="errors.summary.value" />
         <ProblemMessage :problem="errors.formProblem.value" />
-        <div v-if="form" class="grid min-w-0 gap-4 md:grid-cols-2">
-          <template v-for="key in section.fields" :key="key">
-            <div v-if="switches.includes(key as (typeof switches)[number])" class="md:col-span-2">
-              <SwitchField
-                :id="`identity-sync-${key}`"
-                :model-value="form[key] as boolean"
-                :help="syncFieldHelp[key]"
-                :label="lt(syncFieldLabels[key])"
-                @update:model-value="form[key as (typeof switches)[number]] = $event"
-              />
-            </div>
-            <TextField
-              v-else-if="key === 'offboardingLimit'"
-              id="identity-sync-offboardingLimit"
-              :model-value="String(form.offboardingLimit)"
-              type="number"
-              :min="0"
-              :max="100"
-              :label="lt(syncFieldLabels.offboardingLimit)"
-              :description="description(key)"
-              :errors="errors.errorsFor(key)"
-              @update:model-value="form.offboardingLimit = Number($event)"
-            />
-            <div v-else-if="key === 'groupDefaultDomain'" class="min-w-0">
-              <DomainPicker
-                id="identity-sync-groupDefaultDomain"
-                :label="lt(syncFieldLabels.groupDefaultDomain)"
-                :sources="[domainPickerSource()]"
-                :model-value="form.groupDefaultDomain"
-                :errors="errors.errorsFor(key)"
-                @update:model-value="
-                  form.groupDefaultDomain = typeof $event === 'string' ? $event : ''
-                "
-              />
-              <p class="mt-1 text-sm text-muted">{{ description(key) }}</p>
-            </div>
-            <FormField
-              v-else-if="key === 'groupMemberMode'"
-              id="identity-sync-groupMemberMode"
-              :label="lt(syncFieldLabels.groupMemberMode)"
-              :errors="errors.errorsFor(key)"
-            >
-              <template #default="control"
-                ><select v-bind="control" v-model="form.groupMemberMode" :class="INPUT">
-                  <option
-                    v-for="mode in ['memberof', 'member', 'ad_chain'] as const"
-                    :key="mode"
-                    :value="mode"
-                  >
-                    {{ lt(`admin.iam_group_member_mode_${mode}`) }}
-                  </option>
-                </select></template
-              >
-            </FormField>
-            <div v-else-if="key === 'groupPaths'">
-              <TextField
-                id="identity-sync-groupPaths"
-                :model-value="form.groupPaths.join(', ')"
-                :label="lt(syncFieldLabels.groupPaths)"
-                :description="t('identitySync.pathsHelp')"
-                :errors="errors.errorsFor(key)"
-                placeholder="/mailcow/*"
-                @update:model-value="
-                  form.groupPaths = $event
-                    .split(',')
-                    .map((s) => s.trim())
-                    .filter(Boolean)
-                "
-              />
-              <LegacyText k="admin.iam_group_paths_info" as="p" class="mt-1 text-sm text-muted" />
-            </div>
-            <TextField
-              v-else
-              :id="`identity-sync-${key}`"
-              v-model="form[key as (typeof textFields)[number]]"
-              :label="lt(syncFieldLabels[key])"
-              :errors="errors.errorsFor(key)"
-              :description="description(key)"
-            />
-          </template>
-        </div>
+        <IdentitySyncFields
+          v-if="form"
+          v-model="form"
+          :fields="section.fields"
+          :errors-for="errors.errorsFor"
+        />
       </template>
     </EditableSection>
     <section class="flex min-w-0 flex-col gap-4" :aria-label="t('identitySync.runsTitle')">

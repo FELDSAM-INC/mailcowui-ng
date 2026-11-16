@@ -20,8 +20,8 @@ import {
 import { mockState, useScenario } from '../../../../mocks/node'
 import { mountWithApp, resetTestPlugins } from '../../../support/mount'
 
-async function editorFor(scenario: string) {
-  useScenario(scenario)
+async function editorFor(scenario: string, sync = false) {
+  useScenario(scenario, { identityProvider: { capabilities: { identitySynchronisation: sync } } })
   resetTestPlugins()
   let editor!: ReturnType<typeof useProviderEditor>
   let config!: Ref<IdentityProviderConfig | null | undefined>
@@ -55,6 +55,10 @@ describe('fieldIdOf', () => {
     expect(fieldIdOf('keycloak', 'additionalReturnUrls.1')).toBe('idp-additionalReturnUrls-1')
     expect(fieldIdOf('keycloak', 'attributeMapping')).toBe('idp-attributeMapping-add')
     expect(fieldIdOf('genericOidc', 'hosts')).toBeNull()
+    expect(fieldIdOf('ldap', 'syncSettings.groupFilter')).toBe('idp-syncSettings-groupFilter')
+    expect(fieldIdOf('keycloak', 'syncSettings.groupPaths.1')).toBe('idp-syncSettings-groupPaths')
+    expect(fieldIdOf('keycloak', 'syncSettings.idAttribute')).toBeNull()
+    expect(fieldIdOf('genericOidc', 'syncSettings.offboarding')).toBeNull()
   })
 })
 
@@ -135,7 +139,7 @@ describe('useProviderEditor', () => {
   })
 
   it('creates, and runs the test of the entered values', async () => {
-    const { editor } = await editorFor('idp-none')
+    const { editor } = await editorFor('idp-none', true)
     Object.assign(editor.form.value!, {
       type: 'ldap',
       hosts: 'ldap1.example.org',
@@ -147,5 +151,22 @@ describe('useProviderEditor', () => {
     expect(editor.test.result.value?.outcome).toBe('success')
     expect(await editor.save()).toBe('created')
     expect(editor.status.value?.kind).toBe('success')
+    const requests = mockState().requests
+    expect(
+      requests.find((r) => r.operationId === 'testIdentityProviderConnection')?.body,
+    ).not.toHaveProperty('syncSettings')
+    expect(requests.find((r) => r.operationId === 'saveIdentityProvider')?.body).toMatchObject({
+      syncSettings: {
+        offboarding: false,
+        offboardingLimit: 10,
+        groupSync: false,
+        groupAutocreate: true,
+        idAttribute: '',
+        groupMemberMode: 'memberof',
+      },
+    })
+    expect(requests.find((r) => r.operationId === 'saveIdentityProvider')?.body).not.toHaveProperty(
+      'syncSettings.groupPaths',
+    )
   })
 })

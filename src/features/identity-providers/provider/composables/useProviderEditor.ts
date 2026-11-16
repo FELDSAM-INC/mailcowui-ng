@@ -44,6 +44,8 @@ import {
   toPatch,
   type ProviderForm,
 } from '../form-model'
+import { syncSections, syncSettingsInput } from '../sync-form'
+import { syncFieldLabels } from '../sync-field-labels'
 import { secretRequirement } from '../secret-rule'
 import { validateForm, type RuleErrors } from '../validation'
 import { useConnectionTest } from './useConnectionTest'
@@ -52,6 +54,9 @@ export const FORM_ID = 'idp'
 
 /** Legacy's label of every member, for the outdated notice and rule parameters. */
 export const FIELD_LABELS: Record<string, LegacyKey> = {
+  ...Object.fromEntries(
+    Object.entries(syncFieldLabels).map(([key, value]) => [`syncSettings.${key}`, value]),
+  ),
   type: 'admin.iam',
   serverUrl: 'admin.iam_server_url',
   realm: 'admin.iam_realm',
@@ -144,6 +149,12 @@ const MEMBERS: Record<IdentityProviderType, readonly string[]> = {
 /** The element ID of a field path (`attributeMapping.2.template`), or null when not shown. */
 export function fieldIdOf(type: IdentityProviderType, path: string): string | null {
   const [member = '', index, sub] = path.split('.')
+  if (
+    member === 'syncSettings' &&
+    index &&
+    syncSections(type).some(({ fields }) => fields.some((field) => field === index))
+  )
+    return `${FORM_ID}-syncSettings-${index}`
   if (!MEMBERS[type].includes(member)) return null
   if (member === 'attributeMapping') {
     return index === undefined
@@ -161,7 +172,9 @@ function onFormPaths(problem: ApiProblem): ApiProblem {
   if (problem.fieldErrors.size === 0) return problem
   const fieldErrors = new Map<string, FieldViolation[]>()
   for (const [path, violations] of problem.fieldErrors) {
-    const target = /^hosts\.\d+$/.test(path) ? 'hosts' : path
+    const target = /^hosts\.\d+$/.test(path)
+      ? 'hosts'
+      : path.replace(/^(syncSettings\.groupPaths)\.\d+$/, '$1')
     fieldErrors.set(target, [...(fieldErrors.get(target) ?? []), ...violations])
   }
   return ApiProblem.fromParts({
@@ -273,10 +286,13 @@ export function useProviderEditor(options: ProviderEditorOptions) {
   }
 
   /** The client rules; false (with the errors shown) when something is to correct. */
-  async function check(): Promise<boolean> {
+  async function check(connectionOnly = false): Promise<boolean> {
     const caps = capabilities()
     if (!form.value || !caps) return false
-    const errors = validateForm(form.value, { limits: caps.limits, secret: secret.value })
+    const errors = validateForm(
+      connectionOnly ? { ...form.value, syncSettings: undefined } : form.value,
+      { limits: caps.limits, secret: secret.value },
+    )
     if (Object.keys(errors).length === 0) return true
     await problemForm.setClientMessages(translate(errors))
     return false
@@ -349,11 +365,15 @@ export function useProviderEditor(options: ProviderEditorOptions) {
     if (!(await check())) return 'invalid'
     const current = form.value
     const base = opened.value
+    const input = toInput(current, caps.defaults)
+    if (input.type !== 'genericOidc' && caps.identitySynchronisation && current.syncSettings) {
+      input.syncSettings = syncSettingsInput(current.syncSettings, current.type)
+    }
     saving.value = true
     try {
       if (!base) {
         try {
-          await saveIdentityProvider(queryClient, toInput(current, caps.defaults), { create: true })
+          await saveIdentityProvider(queryClient, input, { create: true })
         } catch (error) {
           const problem = isApiProblem(error)
             ? error
@@ -371,8 +391,8 @@ export function useProviderEditor(options: ProviderEditorOptions) {
         return 'created'
       }
       const result =
-        current.type !== base.type
-          ? await versioned.save(toInput(current, caps.defaults), (input, ifMatch) =>
+        current.type !== base.type || ('syncSettings' in input && input.syncSettings)
+          ? await versioned.save(input, (input, ifMatch) =>
               saveIdentityProvider(queryClient, input, { ifMatch }),
             )
           : await (async () => {
@@ -419,7 +439,7 @@ export function useProviderEditor(options: ProviderEditorOptions) {
   async function runTest() {
     const caps = capabilities()
     if (!form.value || !caps || test.running.value) return
-    if (!(await check())) return
+    if (!(await check(true))) return
     problemForm.clear()
     await test.run(toInput(form.value, caps.defaults))
     const problem = test.problem.value

@@ -12426,6 +12426,8 @@ export interface components {
             serverUrl: string;
             /** @default 15 */
             syncInterval: number;
+            /** @description Optional mailcow 2026-11 offboarding and group settings, validated and saved atomically with the provider. Omit to preserve settings when replacing the same provider type. LDAP fields require LDAP; groupPaths requires Keycloak. Connection tests validate these settings without saving them. */
+            syncSettings?: components["schemas"]["IdentitySyncPatch"];
             /** @constant */
             type: "keycloak";
             /** @example 26.0.7 */
@@ -12515,6 +12517,8 @@ export interface components {
             port: number;
             /** @default 15 */
             syncInterval: number;
+            /** @description Optional mailcow 2026-11 offboarding and group settings, validated and saved atomically with the provider. Omit to preserve settings when replacing the same provider type. LDAP fields require LDAP; groupPaths requires Keycloak. Connection tests validate these settings without saving them. */
+            syncSettings?: components["schemas"]["IdentitySyncPatch"];
             /** @constant */
             type: "ldap";
             /**

@@ -26946,6 +26946,62 @@ components:
             type: string
             format: uri
             maxLength: 2000
+    IdentitySyncPatch:
+      type: object
+      properties:
+        offboarding:
+          type: boolean
+          description: Disable sign-in for removed or disabled provider accounts, retaining delivery.
+        offboardingLimit:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Maximum percentage of deactivations and membership removals per run; upstream allows at least five mailboxes.
+        groupSync:
+          type: boolean
+        groupAutocreate:
+          type: boolean
+        groupDefaultDomain:
+          type: string
+          maxLength: 255
+        groupPaths:
+          type: array
+          maxItems: 100
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 1000
+            pattern: ^/[^,\x00-\x1F]*$
+        idAttribute:
+          type: string
+          maxLength: 255
+          description: LDAP only; empty chooses a stable ID automatically. Changing this clears existing LDAP external IDs, retaining offboarding markers.
+        disabledFilter:
+          type: string
+          maxLength: 1000
+        groupBaseDn:
+          type: string
+          maxLength: 1000
+        groupFilter:
+          type: string
+          maxLength: 1000
+        groupNameAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+        groupMemberMode:
+          type: string
+          enum:
+            - memberof
+            - member
+            - ad_chain
+        groupMemberAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+      additionalProperties: false
+      minProperties: 1
     IdentityProviderKeycloakInput:
       description: |
         Whole Keycloak configuration. `clientSecret` is required when no Keycloak configuration is stored
@@ -26963,6 +27019,9 @@ components:
             - version
             - legacyReturnUrl
           properties:
+            syncSettings:
+              $ref: '#/components/schemas/IdentitySyncPatch'
+              description: Optional mailcow 2026-11 offboarding and group settings, validated and saved atomically with the provider. Omit to preserve settings when replacing the same provider type. LDAP fields require LDAP; groupPaths requires Keycloak. Connection tests validate these settings without saving them.
             type:
               const: keycloak
             serverUrl:
@@ -27071,6 +27130,9 @@ components:
             - baseDn
             - bindDn
           properties:
+            syncSettings:
+              $ref: '#/components/schemas/IdentitySyncPatch'
+              description: Optional mailcow 2026-11 offboarding and group settings, validated and saved atomically with the provider. Omit to preserve settings when replacing the same provider type. LDAP fields require LDAP; groupPaths requires Keycloak. Connection tests validate these settings without saving them.
             type:
               const: ldap
             hosts:
@@ -27481,62 +27543,6 @@ components:
         etag:
           type: string
       additionalProperties: false
-    IdentitySyncPatch:
-      type: object
-      properties:
-        offboarding:
-          type: boolean
-          description: Disable sign-in for removed or disabled provider accounts, retaining delivery.
-        offboardingLimit:
-          type: integer
-          minimum: 0
-          maximum: 100
-          description: Maximum percentage of deactivations and membership removals per run; upstream allows at least five mailboxes.
-        groupSync:
-          type: boolean
-        groupAutocreate:
-          type: boolean
-        groupDefaultDomain:
-          type: string
-          maxLength: 255
-        groupPaths:
-          type: array
-          maxItems: 100
-          uniqueItems: true
-          items:
-            type: string
-            minLength: 1
-            maxLength: 1000
-            pattern: ^/[^,\x00-\x1F]*$
-        idAttribute:
-          type: string
-          maxLength: 255
-          description: LDAP only; empty chooses a stable ID automatically. Changing this clears existing LDAP external IDs, retaining offboarding markers.
-        disabledFilter:
-          type: string
-          maxLength: 1000
-        groupBaseDn:
-          type: string
-          maxLength: 1000
-        groupFilter:
-          type: string
-          maxLength: 1000
-        groupNameAttribute:
-          type: string
-          minLength: 1
-          maxLength: 255
-        groupMemberMode:
-          type: string
-          enum:
-            - memberof
-            - member
-            - ad_chain
-        groupMemberAttribute:
-          type: string
-          minLength: 1
-          maxLength: 255
-      additionalProperties: false
-      minProperties: 1
     IdentityLink:
       type: object
       required:

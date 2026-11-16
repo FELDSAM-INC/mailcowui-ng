@@ -217,5 +217,8 @@ export function validateForm(form: ProviderForm, ctx: ValidationContext): RuleEr
       maxLength(`attributeMapping.${index}.template`, row.template, MAPPING_TEMPLATE_MAX_LENGTH)
     }
   }
+  if (form.syncSettings && form.type !== 'genericOidc') {
+    range('syncSettings.offboardingLimit', String(form.syncSettings.offboardingLimit), 0, 100)
+  }
   return errors
 }

@@ -16,6 +16,8 @@ import LegacyText from '@/shared/components/LegacyText.vue'
 
 import { SECRET_OF, type ProviderForm } from '../form-model'
 import { typeLabelKey } from '../labels'
+import { syncSections, syncSectionTitle } from '../sync-form'
+import IdentitySyncFields from './IdentitySyncFields.vue'
 import type { SecretRequirement } from '../secret-rule'
 import ConnectionTest from './ConnectionTest.vue'
 import MappingField from './MappingField.vue'
@@ -325,5 +327,19 @@ function setType(event: Event) {
         />
       </div>
     </ProviderSection>
+    <template v-if="capabilities.identitySynchronisation && form.syncSettings">
+      <ProviderSection
+        v-for="section in syncSections(form.type)"
+        :key="section.id"
+        :title="syncSectionTitle(section.id, t)"
+      >
+        <IdentitySyncFields
+          v-model="form.syncSettings"
+          :fields="section.fields"
+          :id-prefix="id('syncSettings')"
+          :errors-for="(path) => errorsFor(`syncSettings.${path}`)"
+        />
+      </ProviderSection>
+    </template>
   </div>
 </template>

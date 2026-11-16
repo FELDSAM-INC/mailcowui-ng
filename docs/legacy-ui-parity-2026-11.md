@@ -18,6 +18,13 @@ options and edit states. Functional browser tests exercised saves, validation,
 conflicts, permission changes and error recovery. Screenshots were inspected for
 LDAP, Keycloak, mapping order and desktop/mobile group settings.
 
+The initial review missed first-time provider creation: offboarding and group
+controls were available only after saving the provider. Follow-up coverage now
+exercises LDAP and Keycloak creation with these fields visible immediately,
+atomic API persistence, nested validation errors and reload/readback. The shared
+fields are reused for setup and subsequent edits. This correction requires the
+updated API and UI images together.
+
 ## Confirmed defects corrected
 
 | Finding | Correction |

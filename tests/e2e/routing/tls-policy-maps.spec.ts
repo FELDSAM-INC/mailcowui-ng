@@ -26,7 +26,7 @@ test.describe('TLS policy maps', () => {
     await expect(entry(page, 5)).toContainText('dane-only')
     await expect(entry(page, 5)).toContainText('protocols=!SSLv2 ciphers=medium')
     if (!isNarrow(page)) {
-      for (const header of ['ID', 'Destination', 'Policy', 'Parameters', 'Active']) {
+      for (const header of ['ID', 'Destination', 'Policy', 'Parameters']) {
         await expect(page.getByRole('columnheader', { name: header })).toBeVisible()
       }
     }

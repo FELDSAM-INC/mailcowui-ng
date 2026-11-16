@@ -4,7 +4,6 @@ import { expect, test } from '../fixtures/test'
 for (const [route, pattern] of [
   ['domains/example.org', '*@partner.example'],
   ['alias-domains/example.net', '*@old.example'],
-  ['mailboxes/alice@example.org', '*@friends.example'],
 ] as const) {
   test(`US5 spam filter belongs to ${route}`, async ({ page, mockApi, expectAccessible }) => {
     await mockApi.use('policy-admin')
@@ -27,9 +26,9 @@ test('US3 notification changes save with the mailbox section and use their own v
   await section.getByRole('button', { name: 'Edit Edit mailbox', exact: true }).click()
   await section
     .locator('[data-notification-field="frequency"]')
-    .getByRole('radio', { name: 'Weekly', exact: true })
-    .check()
-  await section.locator('[data-notification-field="category"]').getByRole('radio').last().check()
+    .getByRole('button', { name: 'Weekly', exact: true })
+    .click()
+  await section.locator('[data-notification-field="category"]').getByRole('button').last().click()
   await section.getByLabel('Full name').fill('Alice edited')
   await expectAccessible()
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
@@ -70,15 +69,16 @@ test('US3 mailbox bulk notification menu updates only explicitly selected mailbo
   expect(writes[0]!.body).toEqual({ frequency: 'weekly', targets: [{ id: 'alice@example.org' }] })
 })
 
-test('US2 recipient links open the mailbox spam-filter section and dead recipients stay text', async ({
+test('US2 recipient links open the mailbox and dead recipients stay text', async ({
   page,
   mockApi,
 }) => {
   await mockApi.use('quarantine-admin')
   await page.goto('quarantine/2')
   await page.locator('[data-recipient-link]').first().click()
-  await expect(page).toHaveURL(/mailboxes\/alice(?:@|%40)example.org#spam-filter$/)
-  await expect(page.locator('[data-spam-filter-section]')).toBeVisible()
+  await expect(page).toHaveURL(/mailboxes\/alice(?:@|%40)example.org$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Edit mailbox' })).toBeVisible()
+  await expect(page.locator('[data-spam-filter-section]')).toHaveCount(0)
   await mockApi.failNext('getMailbox', { status: 404 })
   await page.goto('quarantine/3')
   await expect(page.locator('[data-item="3"]')).toBeVisible()

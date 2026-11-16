@@ -1,3 +1,4 @@
+import { openListFilters, closeListFilters } from '../fixtures/lists'
 // UI 012 US6, the history of OAuth2 clients and the audit labels of API 012 (T090, FR-067): the
 // client page's History opens the audit log filtered to that client; the target type filter offers
 // the identity provider configuration and OAuth2 clients; every record of API 012 shows its
@@ -16,9 +17,7 @@ function records(page: Page): Locator {
 }
 
 async function filters(page: Page): Promise<Locator> {
-  const toggle = page.getByRole('button', { name: 'Filters', exact: true })
-  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
-  return page.getByRole('form', { name: 'Filters' })
+  return openListFilters(page)
 }
 
 const summary = (page: Page) => page.getByText(/^Showing \d+ to \d+ of \d+ entries$/)
@@ -85,6 +84,7 @@ test.describe('API 012 history', () => {
     await expect(mapping).toContainText('anna@example.org')
     const form = await filters(page)
     await expect(form.getByLabel(/method/i)).toHaveCount(0)
+    await closeListFilters(page)
     for (const reason of [
       'Sign-in expired or already completed',
       'Single sign-on not available',

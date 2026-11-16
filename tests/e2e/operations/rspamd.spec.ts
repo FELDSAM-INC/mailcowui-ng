@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 011 US6 (T118; plan decisions 11, 12, 18 and 19): Rspamd's statistics as labelled bars with a
 // summary and a table, and the scan history with search, sort, paging and details, each failing
 // and retrying on its own.
@@ -108,7 +109,7 @@ test.describe('Rspamd @operations', () => {
     await expect(page.locator('[data-entry]')).toHaveCount(25)
     await expect(page.getByText('Showing 1 to 25 of 60 entries')).toBeVisible()
     if (isNarrow(page)) {
-      await page.getByRole('combobox', { name: 'Sort by' }).selectOption('score')
+      await sortList(page, 'score')
     } else {
       await page.getByRole('button', { name: 'Score' }).click()
       await expect(page.getByRole('columnheader', { name: 'Score' })).toHaveAttribute(

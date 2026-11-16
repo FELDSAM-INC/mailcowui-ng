@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 // Helpers of the UI 010 end-to-end tests: the list layout by width, entry names in order, the list
 // settling, and the filter panel.
 import { expect, type Locator, type Page } from '@playwright/test'
@@ -37,8 +38,7 @@ export async function resultCount(page: Page): Promise<string> {
 }
 
 export async function openFilters(page: Page): Promise<void> {
-  const toggle = page.getByRole('button', { name: /^Filters/ })
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
+  await openListFilters(page)
 }
 
 /** Grants clipboard access on Chromium, so copies can be read back. */

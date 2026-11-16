@@ -1,3 +1,4 @@
+import { openNavigation, isNarrow } from '../fixtures/flows'
 // UI 011 FR-001 (T028): the "System" group of the administrator navigation, its four screens, and
 // the "not available for your role" state for other roles without any request of this feature.
 import { expect, test } from '../fixtures/test'
@@ -54,7 +55,7 @@ test.describe('operations navigation @operations', () => {
   })
 
   for (const scenario of ['domain-admin-operations', 'mailbox-user-operations']) {
-    test(`FR-001 ${scenario} gets no System entry and no access to its addresses`, async ({
+    test(`FR-001 ${scenario} gets only Quarantine in System and no access to administrator operations`, async ({
       page,
       mockApi,
       expectAccessible,
@@ -62,7 +63,9 @@ test.describe('operations navigation @operations', () => {
       await mockApi.use(scenario)
       await page.goto('')
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      await expect(page.getByRole('list', { name: 'System', exact: true })).toHaveCount(0)
+      const system = (await openNavigation(page)).getByRole('list', { name: 'System', exact: true })
+      await expect(system.getByRole('link')).toHaveText(['Quarantine'])
+      if (isNarrow(page)) await page.keyboard.press('Escape')
       for (const [, path] of SCREENS) {
         await page.goto(path)
         await expect(page.getByRole('heading', { name: 'No access' })).toBeVisible()

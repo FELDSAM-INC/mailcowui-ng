@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 // Helpers of the UI 008 end-to-end tests: the layout by width, list entries and their order,
 // waiting for the list to settle, and the requests the mock recorded.
 import { expect, type Locator, type Page } from '@playwright/test'
@@ -31,8 +32,7 @@ export async function listReady(page: Page): Promise<void> {
 }
 
 export async function openFilters(page: Page): Promise<void> {
-  const toggle = page.getByRole('button', { name: /^Filters/ })
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
+  await openListFilters(page)
 }
 
 /** The requests of one operation the mock received. */

@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 010 T106: the main paths with the keyboard alone, the focus visible at every step (FR-082):
 // filtering and sorting the list, selection, copying, generation, the MX entry, the deactivation,
 // the diagnostics filter, the zone file download and every dialog.
@@ -34,9 +35,7 @@ test.describe('DNS with the keyboard only', () => {
     await page.keyboard.press('Space')
     await expect.poll(() => entryNames(page)).toEqual(['example.net', 'missing.example'])
     if (isNarrow(page)) {
-      const sort = page.locator('#dkim-sort')
-      await tabTo(page, sort)
-      await sort.selectOption('state')
+      await sortList(page, 'state', true)
       await expect(page).toHaveURL(/sort=state/)
     }
     const select = page.getByRole('button', { name: 'Select', exact: true })

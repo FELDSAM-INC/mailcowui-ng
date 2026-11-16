@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 // UI 002 T103: reflow at 320 px and at 400 % zoom, landscape on phones, focus never hidden behind
 // the sticky header or the sticky actions, no transition under reduced motion, and the main path of
@@ -267,10 +268,8 @@ test.describe('keyboard only', () => {
       (page.viewportSize()?.width ?? 0) < 768 ? page.locator('[data-bulk-toggle]') : deactivate,
     ).toBeFocused()
 
-    const sort = page.getByLabel('Sort by')
-    await sort.focus()
-    await sort.selectOption('createdAt')
-    await expect(page).toHaveURL(/sort=createdAt/)
+    await sortList(page, 'mailboxes', true)
+    await expect(page).toHaveURL(/sort=mailboxes/)
   })
 
   test('the deletion dialog opens from the row menu with the keyboard and takes the typed name', async ({
@@ -284,7 +283,8 @@ test.describe('keyboard only', () => {
     await trigger.focus()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('menuitem', { name: 'Remove' })).toBeVisible()
-    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('End')
+    await expect(page.getByRole('menuitem', { name: 'Remove' })).toBeFocused()
     await page.keyboard.press('Enter')
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toBeVisible()

@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 // UI 012 US5, the classic quick actions of selected OAuth2 clients (T080): "Remove", "Revoke all
 // client tokens" and "Generate new client secret" in an explicit selection mode, through the API's
@@ -146,7 +147,7 @@ test.describe('OAuth2 client quick actions', () => {
     await expect(page).toHaveURL(/q=a1b2c3/)
     await expect(bar(page)).toContainText('0 selected')
     await page.getByRole('checkbox', { name: `Select ${fixedClientId(3)}` }).check()
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'id')
     await expect(bar(page)).toContainText('0 selected')
     await page.getByRole('checkbox', { name: `Select ${fixedClientId(3)}` }).check()
     await page.locator('[data-page-size] select').selectOption('50')

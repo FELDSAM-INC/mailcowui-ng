@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 012 US5, the OAuth2 apps list (T077), mirroring the classic "OAuth2 Apps" tab: the classic
 // information text, the columns ID, client ID, redirect URI and action (no secret), cards below md
 // and a table from md up, the search, sort, page and page size in the address, the list states and
@@ -71,13 +72,12 @@ test.describe('OAuth2 apps list', () => {
     await page.getByRole('button', { name: 'Clear search' }).click()
     await expect(page).not.toHaveURL(/q=/)
 
-    await page.getByLabel('Sort by').selectOption({ label: 'Client ID' })
+    await sortList(page, 'clientId')
     await expect(page).toHaveURL(/sort=clientId/)
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'clientId')
     await expect(page).toHaveURL(/order=desc/)
     await expect(page.locator('[data-entry]').first()).toHaveAttribute('data-entry', '40')
-    await page.getByLabel('Sort by').selectOption({ label: 'ID' })
-    await page.getByLabel('Order').selectOption('asc')
+    await sortList(page, 'id')
     await page.locator('[data-page-size] select').selectOption('50')
     await expect(page).toHaveURL(/size=50/)
     await expect.poll(() => entryIds(page)).toHaveLength(40)

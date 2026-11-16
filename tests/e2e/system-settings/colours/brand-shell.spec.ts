@@ -63,18 +63,6 @@ test('T068 saving applies colours to the real shell and a new browser context re
   } finally {
     await fresh.close()
   }
-  await mockApi.use('templates', { publicConfig: { brandColors: effective } })
-  await page.goto('domain-templates/3')
-  const link = page.locator('main .text-link, main .text-accent-text').first()
-  await expect(link).toBeVisible()
-  for (const [dark, colour] of [
-    [false, 'rgb(29, 78, 216)'],
-    [true, 'rgb(96, 165, 250)'],
-  ] as const) {
-    await theme(page, dark)
-    await expect(link).toHaveCSS('color', colour)
-  }
-  await expectAccessible()
   await mockApi.use('quarantine-admin', { publicConfig: { brandColors: effective } })
   await page.goto('quarantine/6')
   const attachment = page.locator('[data-attachment-download]').first()

@@ -9,7 +9,7 @@ const { t } = useI18n()
 <template>
   <tr
     v-bind="navigation"
-    :aria-label="to && label ? t('domains.list.detailsOf', { name: label }) : undefined"
+    :aria-label="to && label ? t('lists.detailsOf', { name: label }) : undefined"
   >
     <slot />
   </tr>

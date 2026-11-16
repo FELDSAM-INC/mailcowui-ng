@@ -1,3 +1,4 @@
+import { closeListFilters, expectListSort, openListFilters, sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
@@ -131,9 +132,7 @@ test('sort, paging and filters preserve URLs and clear selection, including brow
 }) => {
   await mockApi.use('temporary-aliases-many')
   await page.goto('account/temporary-aliases')
-  await expect(page.getByRole('combobox', { name: 'Sort by', exact: true })).toHaveValue(
-    'expiresAt',
-  )
+  await expectListSort(page, 'expiresAt', 'desc')
   await page.getByRole('button', { name: 'Select', exact: true }).click()
   await page.getByRole('button', { name: 'Toggle all', exact: true }).click()
   await expect(page.locator('[data-bulk-bar]')).toContainText('25 selected')
@@ -142,16 +141,20 @@ test('sort, paging and filters preserve URLs and clear selection, including brow
   await expect(page.locator('[data-bulk-bar]')).toContainText('0 selected')
   await expect(page.locator('[data-entry]')).toHaveCount(5)
   await page.getByRole('button', { name: 'Toggle all', exact: true }).click()
-  await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('address')
+  await sortList(page, 'address')
   await expect(page).toHaveURL(/sort=address/)
   await expect(page.locator('[data-bulk-bar]')).toContainText('0 selected')
   await page.getByRole('button', { name: 'Toggle all', exact: true }).click()
+  await openListFilters(page)
   await page.getByRole('combobox', { name: 'Forever', exact: true }).selectOption('true')
+  await closeListFilters(page)
   await expect(page.locator('[data-entry]')).toHaveCount(10)
   await expect(page.locator('[data-bulk-bar]')).toContainText('0 selected')
   await expect(page).toHaveURL(/permanent=true/)
   await page.goBack()
+  await openListFilters(page)
   await expect(page.getByRole('combobox', { name: 'Forever', exact: true })).toHaveValue('')
+  await closeListFilters(page)
   await page.getByRole('searchbox', { name: 'Search:' }).fill('alias29')
   await expect(page.locator('[data-entry]')).toHaveCount(1)
   await expect(page).toHaveURL(/q=alias29/)

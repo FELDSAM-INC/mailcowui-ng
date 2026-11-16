@@ -1,3 +1,4 @@
+import { sortList, expectListSort } from '../fixtures/lists'
 // UI 002 US1, the domain list (T034): paging, cards and table, search, filters, sort, address
 // state, refresh, the list states, usage pairs and the edge cases.
 import { expect, test } from '../fixtures/test'
@@ -100,9 +101,9 @@ test.describe('domain list', () => {
     await page.getByRole('button', { name: 'Clear search' }).click()
     await expect.poll(async () => (await entryNames(page)).length).toBe(25)
     await page.goto('domains?q=customer-a')
-    await entry(page, 'customer-a.example')
-      .getByRole('button', { name: 'Filter by tag customer-a' })
-      .click()
+    if (!isNarrow(page))
+      await entry(page, 'customer-a.example').locator('[data-row-expand]').click()
+    await page.getByRole('button', { name: 'Filter by tag customer-a' }).click()
     await expect(page).toHaveURL(/tag=customer-a/)
     await expect(page.getByRole('button', { name: 'Filters (1)' })).toBeVisible()
     await expectAccessible()
@@ -161,10 +162,10 @@ test.describe('domain list', () => {
     expect(before.length).toBeGreaterThan(0)
     // Scroll to the last entry and open it with a DOM click, so the position is kept as it is.
     const last = before.at(-1)!
-    const link = page.locator(`[data-entry="${last}"] a`).first()
+    const link = page.locator(`[data-entry="${last}"]`)
     await link.evaluate((element) => element.scrollIntoView({ block: 'center' }))
     const scrolled = await page.evaluate(() => window.scrollY)
-    await link.evaluate((element) => (element as HTMLAnchorElement).click())
+    await link.evaluate((element) => (element as HTMLElement).click())
     await expect(page).toHaveURL(new RegExp(`/ng/domains/${last.replace(/\./g, '\\.')}$`))
     await page.goBack()
     await expect(page).toHaveURL(/page=2/)
@@ -276,20 +277,17 @@ test.describe('domain list', () => {
     ).toEqual(['customer'])
   })
 
-  test('FR-011 every sort key from the sort control, and headers with aria-sort on wide screens', async ({
+  test('FR-011 shared table sorting and direction on desktop and mobile', async ({
     page,
     mockApi,
   }) => {
     await mockApi.use('domains-60')
     await page.goto('domains')
     await listReady(page)
-    const sort = page.getByLabel('Sort by')
-    const options = await sort.locator('option').allTextContents()
-    // Every sort key of the contract but the default mailbox quota (owner decision).
-    expect(options).toHaveLength(14)
-    await sort.selectOption('storageUsed')
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'storageUsed')
+    await sortList(page, 'storageUsed')
     await expect(page).toHaveURL(/sort=storageUsed&order=desc|order=desc&sort=storageUsed/)
+    await expectListSort(page, 'storageUsed', 'desc')
     if (!isNarrow(page)) {
       const header = page.getByRole('columnheader', { name: /Statistics/ })
       await expect(header).toHaveAttribute('aria-sort', 'descending')
@@ -312,7 +310,7 @@ test.describe('domain list', () => {
     await mockApi.use('domains-60')
     await page.goto('domains?page=2')
     await listReady(page)
-    await page.getByLabel('Sort by').selectOption('description')
+    await sortList(page, 'mailboxes')
     await expect(page).not.toHaveURL(/page=2/)
     await page.goto('domains?page=2')
     await page.getByRole('searchbox', { name: 'Search:' }).fill('domain')
@@ -400,9 +398,18 @@ test.describe('domain list', () => {
     await expectNoHorizontalScroll()
     await page.goto('domains?q=many-tags')
     const many = entry(page, 'many-tags.example')
-    const shown = isNarrow(page) ? 5 : 3
-    await expect(many).toContainText(`+${12 - shown}`)
-    await expect(many.getByRole('button', { name: /^Filter by tag/ })).toHaveCount(shown)
+    if (isNarrow(page)) {
+      await expect(many).toContainText('+7')
+      await expect(many.getByRole('button', { name: /^Filter by tag/ })).toHaveCount(5)
+    } else {
+      await expect(many.getByRole('button', { name: /^Filter by tag/ })).toHaveCount(0)
+      await many.locator('[data-row-expand]').click()
+      await expect(
+        page
+          .locator('[data-entry-details="many-tags.example"]')
+          .getByRole('button', { name: /^Filter by tag/ }),
+      ).toHaveCount(12)
+    }
     await page.goto('domains?q=over.example')
     await expect(entry(page, 'over.example').locator('[data-usage="mailboxes"]')).toContainText(
       '12 of 10',

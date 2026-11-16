@@ -131,7 +131,7 @@ test('US2 item action: a completed delivery response belongs to the page that se
 })
 
 for (const role of ['admin', 'reseller']) {
-  test(`US2-AS8 ${role}: Bob's recipient link opens his mailbox spam filter`, async ({
+  test(`US2-AS8 ${role}: Bob's recipient link opens his mailbox`, async ({
     page,
     mockApi,
     expectAccessible,
@@ -144,10 +144,9 @@ for (const role of ['admin', 'reseller']) {
     await expectAccessible()
     await expectNoHorizontalScroll()
     await recipient.click()
-    await expect(page).toHaveURL(/mailboxes\/bob(?:@|%40)example.org#spam-filter$/)
-    const section = page.locator('[data-spam-filter-section]')
-    await expect(section).toBeVisible()
-    await expect(section.getByRole('heading', { level: 2 })).toBeFocused()
+    await expect(page).toHaveURL(/mailboxes\/bob(?:@|%40)example.org$/)
+    await expect(page.getByRole('heading', { level: 1, name: 'Edit mailbox' })).toBeVisible()
+    await expect(page.getByRole('main')).toContainText('bob@example.org')
   })
 }
 

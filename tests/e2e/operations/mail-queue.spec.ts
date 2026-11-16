@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 // UI 011 US4 (T088): the Queue Manager — legacy's search, columns, sort and pages, selection mode
 // with one request per action and a result per message, delete with the typed count, flush, delete
@@ -80,8 +81,8 @@ test.describe('Queue Manager @operations', () => {
     await expect(legend).toContainText('Mail queue actions functions:')
     await expect(legend.locator('li')).toHaveText([/^Deliver \| /, /^Unhold \| /, /^Hold \| /])
     if (isNarrow(page)) {
-      await page.getByLabel('Sort by').selectOption('size')
-      await page.getByLabel('Order').selectOption('desc')
+      await sortList(page, 'size')
+      await sortList(page, 'size')
     } else {
       await page.getByRole('button', { name: /^Message size/ }).click()
       await page.getByRole('button', { name: /^Message size/ }).click()

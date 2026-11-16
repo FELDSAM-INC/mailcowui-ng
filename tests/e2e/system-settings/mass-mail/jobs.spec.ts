@@ -26,7 +26,10 @@ test('completed job shows translated failure codes without raw SMTP diagnostics 
 }) => {
   await mockApi.use('mass-mail-completed')
   await page.goto('system/mass-mail/jobs')
-  await page.getByRole('link', { name: 'Maintenance', exact: true }).click()
+  await page
+    .locator('[data-job-list] [data-card]:visible, [data-job-list] tbody tr:visible')
+    .filter({ hasText: 'Maintenance' })
+    .click()
   await page.getByLabel('Recipient outcome').selectOption('failed')
   await expect(page.locator('[data-job-recipient]')).toHaveCount(6)
   await expect(page.getByRole('main')).toContainText('Mailbox is full')
@@ -52,8 +55,8 @@ test('running job can pause, refresh and cancel; pending recipients become skipp
   await mockApi.use('mass-mail-running')
   await page.goto('system/mass-mail/jobs')
   await page
-    .locator('[data-job-list]')
-    .getByRole('link', { name: 'Maintenance', exact: true })
+    .locator('[data-job-list] [data-card]:visible, [data-job-list] tbody tr:visible')
+    .filter({ hasText: 'Maintenance' })
     .click()
   await page.getByRole('button', { name: 'Pause automatic refresh' }).click()
   await expect(page.getByRole('button', { name: 'Resume automatic refresh' })).toBeVisible()

@@ -242,7 +242,7 @@ useDataList(
       @remove="run('remove', [$event])"
     />
     <ul v-if="!wide" class="flex min-w-0 flex-col gap-3" data-filter-list>
-      <li v-for="item in rows" :key="item.id" :data-filter-id="item.id">
+      <li v-for="item in rows" :key="item.id">
         <FilterCard
           :item="item"
           :location="location(item)"

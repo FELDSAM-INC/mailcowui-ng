@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 import type { Page } from '@playwright/test'
 
@@ -140,12 +141,12 @@ test('US2 bulk: select all stops at the server limit and changing the view clear
   if ((page.viewportSize()?.width ?? 0) >= 768) {
     await page.getByRole('columnheader', { name: 'ID', exact: true }).getByRole('button').click()
   } else {
-    await page.locator('#quarantine-sort').selectOption('id')
+    await sortList(page, 'id')
   }
   await expect(page).toHaveURL(/sort=id/)
   await expect(page.locator('[data-quarantine-item]').first()).toHaveAttribute(
     'data-quarantine-item',
-    '350',
+    '101',
   )
   await expect(bar(page)).toContainText('0 selected')
   await all.check()

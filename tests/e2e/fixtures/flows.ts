@@ -97,6 +97,21 @@ export async function openAccountSections(page: Page): Promise<Locator> {
   return settings
 }
 
+/** Account pages use the section tabs, sidebar or account menu according to the role and page. */
+export async function goToAccountSection(page: Page, path: string): Promise<void> {
+  const tabs = page.locator('[data-section-nav]')
+  const link = `a[href$="/account/${path}"]`
+  if (await tabs.count()) {
+    await tabs.locator(link).click()
+  } else if (path === 'password' || path === 'recovery-email') {
+    await page.getByRole('button', { name: /^Account menu of / }).click()
+    await page.locator('[role="menu"]').locator(link).click()
+  } else {
+    const sidebar = await openNavigation(page)
+    await sidebar.locator(link).click()
+  }
+}
+
 /** Preferences shared by sign-in, recovery and second-factor pages. */
 export async function chooseAuthLanguage(page: Page, name: string) {
   await page.locator('[data-language-select]').click()

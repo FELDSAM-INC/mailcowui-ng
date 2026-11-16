@@ -77,7 +77,7 @@ test('FR-066 FR-091 a passkey registration and an API key secret leave nothing i
   const passkeys = page
     .getByRole('main')
     .getByRole('listitem')
-    .filter({ has: page.getByRole('heading', { level: 2 }) })
+    .filter({ has: page.getByRole('heading', { level: 3 }) })
   await expect(passkeys).toHaveCount(1)
 
   await page.goto('api-keys/new')

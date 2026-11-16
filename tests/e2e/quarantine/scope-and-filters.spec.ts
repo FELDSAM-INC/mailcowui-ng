@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 006 T060: domain scope, exact recipient/domain filters and shareable sorting/paging.
 import type { Page } from '@playwright/test'
 
@@ -143,10 +144,11 @@ test('US2-AS2 action, danger, score order and page survive reload and a shared a
   await page.locator('#quarantine-virus').selectOption('true')
   await apply(page)
   if ((page.viewportSize()?.width ?? 0) < 768) {
-    await page.locator('#quarantine-sort').selectOption('score')
-    await page.locator('#quarantine-order').selectOption('desc')
+    await sortList(page, 'score')
+    await sortList(page, 'score')
   } else {
-    await page.getByRole('columnheader', { name: 'Score', exact: true }).getByRole('button').click()
+    await sortList(page, 'score')
+    await sortList(page, 'score')
   }
   await expect.poll(async () => (await ids(page))[0]).toBe(160)
   await page.getByRole('button', { name: 'Next', exact: true }).click()
@@ -267,8 +269,7 @@ test('US2 all ten sort fields send the requested ordering and render its results
   for (const [field, label] of fields) {
     await test.step(`sort ${field} ascending`, async () => {
       if ((page.viewportSize()?.width ?? 0) < 768) {
-        await page.locator('#quarantine-sort').selectOption(field)
-        await page.locator('#quarantine-order').selectOption('asc')
+        await sortList(page, field)
       } else {
         const header = page.getByRole('columnheader', { name: label, exact: true })
         await header.getByRole('button').click()

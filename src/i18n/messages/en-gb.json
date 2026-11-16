@@ -847,7 +847,9 @@
     },
     "updating": "Updating…",
     "backToList": "Back to the list",
-    "columns": "Columns"
+    "columns": "Columns",
+    "details": "Details",
+    "detailsOf": "Details of {name}"
   },
   "nav": {
     "apiKeys": "API keys",

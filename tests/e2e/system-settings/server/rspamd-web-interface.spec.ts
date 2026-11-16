@@ -150,7 +150,7 @@ test('FR-013/014 pending writes disable submitting and leaving keeps the dirty-f
   await mockApi.use('settings-admin-defaults')
   await page.goto('system/rspamd-web-interface')
   await fill(page, 'Unsaved-password')
-  await page.getByRole('main').getByRole('link', { name: 'System settings', exact: true }).click()
+  await page.getByRole('main').getByRole('link', { name: 'History', exact: true }).click()
   const dialog = page.getByRole('alertdialog')
   await expect(dialog).toBeVisible()
   await dialog.getByRole('button', { name: 'Stay', exact: true }).click()

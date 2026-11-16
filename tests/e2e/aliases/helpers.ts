@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 // Helpers of the UI 004 end-to-end tests: the layout by width, list entries by ID or address, and
 // waiting for a list to settle.
 import { expect, type Locator, type Page } from '@playwright/test'
@@ -30,8 +31,7 @@ export async function listReady(page: Page): Promise<void> {
 
 /** Opens the filter panel when it is collapsed. */
 export async function openFilters(page: Page): Promise<void> {
-  const toggle = page.getByRole('button', { name: /^Filters/ })
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
+  await openListFilters(page)
 }
 
 /** Chooses an option of a DomainPicker or MailboxSearchPicker by its visible text. */

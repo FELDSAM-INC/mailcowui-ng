@@ -279,7 +279,7 @@ test.describe('edit a domain', () => {
     await mockApi.use('domain-edit')
     await page.goto('domains')
     await listReady(page)
-    await page.locator('[data-entry="edit.example"] a').first().click()
+    await page.locator('[data-entry="edit.example"]').press('Enter')
     await edit(page)
     await field(page, 'Max. possible mailboxes').fill('20')
     await save(page)

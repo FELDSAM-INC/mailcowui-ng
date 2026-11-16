@@ -30,7 +30,9 @@ test.describe('feature 004 history', () => {
     const url = new URL(page.url())
     expect(url.searchParams.get('targetType')).toBe('alias')
     expect(url.searchParams.get('targetId')).toBe(HISTORY_004.alias.id)
-    await expect(page.getByText('Alias changed').first()).toBeVisible()
+    await expect(
+      page.getByText('Alias changed', { exact: true }).filter({ visible: true }).first(),
+    ).toBeVisible()
     await page
       .getByRole('button', { name: /details/i })
       .first()

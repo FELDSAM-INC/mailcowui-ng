@@ -2,6 +2,7 @@
 // apps menu, the announcement and the footer. Flags change at runtime through
 // `PATCH /__mock/scenarios/:id` (`accounts`), and `forbidden` is injected for any operation
 // through `failures`.
+import { mockMailbox } from '../factories/mailbox'
 import type { AppLink, PublicConfig } from '@/api'
 
 import type { ScenarioDefinition } from './index'
@@ -65,10 +66,16 @@ export const navigationScenarios: Record<string, ScenarioDefinition> = {
     overrides: { signedInAs: 'reseller', accounts: { reseller: reseller({ bccMaps: true }) } },
   },
   'mailbox-no-spam-flags': {
+    setup: (state) => {
+      state.mailboxes.push(mockMailbox({ localPart: 'alice', domain: 'example.org' }))
+    },
     description: 'alice@example.org is signed in without spam score, spam policy or sync jobs.',
     overrides: { signedInAs: 'alice@example.org', accounts: { 'alice@example.org': alice() } },
   },
   'mailbox-spam-score': {
+    setup: (state) => {
+      state.mailboxes.push(mockMailbox({ localPart: 'alice', domain: 'example.org' }))
+    },
     description: 'alice@example.org is signed in with the spam score flag only.',
     overrides: {
       signedInAs: 'alice@example.org',
@@ -76,6 +83,9 @@ export const navigationScenarios: Record<string, ScenarioDefinition> = {
     },
   },
   'mailbox-spam-policy': {
+    setup: (state) => {
+      state.mailboxes.push(mockMailbox({ localPart: 'alice', domain: 'example.org' }))
+    },
     description: 'alice@example.org is signed in with the spam policy flag only.',
     overrides: {
       signedInAs: 'alice@example.org',
@@ -83,6 +93,9 @@ export const navigationScenarios: Record<string, ScenarioDefinition> = {
     },
   },
   'mailbox-syncjobs': {
+    setup: (state) => {
+      state.mailboxes.push(mockMailbox({ localPart: 'alice', domain: 'example.org' }))
+    },
     description: 'alice@example.org is signed in with the sync jobs flag only.',
     overrides: {
       signedInAs: 'alice@example.org',

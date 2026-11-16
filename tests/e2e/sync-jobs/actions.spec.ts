@@ -36,7 +36,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
     await (await openBulkActions(page)).getByRole('button', { name: 'Deactivate' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Deactivate' }).click()
     await expect(page.getByRole('region', { name: 'Results' })).toContainText('Done')
-    await expect(entry(page, 2).locator('[data-active]')).toContainText('✕')
+    await expect(entry(page, 2).locator('[data-active-badge]')).toHaveText('Inactive')
     const [request] = await requestsOf(mockApi, 'applySyncJobBulkAction')
     expect(request!.body).toMatchObject({ action: 'deactivate', targets: [{ id: '2' }] })
     expect((request!.body as { targets: { version: string }[] }).targets[0]!.version).toMatch(/^sj/)
@@ -48,7 +48,7 @@ test.describe('activating, deactivating and scheduling a sync job', () => {
       .getByRole('button', { name: 'Activate', exact: true })
       .click()
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect(entry(page, 2).locator('[data-active]')).toContainText('✓')
+    await expect(entry(page, 2).locator('[data-active-badge]')).toHaveText('Active')
   })
 
   test('US4-AS2 "Schedule next" clears the last run and result without a confirmation', async ({

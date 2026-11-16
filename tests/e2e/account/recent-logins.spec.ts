@@ -1,3 +1,4 @@
+import { closeListFilters, openListFilters, sortList } from '../fixtures/lists'
 import { expect, test } from '../fixtures/test'
 
 test('recent connections preserve periods, service and sorting in history; clear confirms legacy wording', async ({
@@ -21,6 +22,7 @@ test('recent connections preserve periods, service and sorting in history; clear
   ).toHaveCount(0)
   await expectAccessible()
   await expectNoHorizontalScroll()
+  await openListFilters(page)
   await page.getByRole('combobox', { name: 'Login history', exact: true }).selectOption('31')
   await expect(page).toHaveURL(/days=31/)
   await expect(page.locator('[data-login]')).toHaveCount(5)
@@ -30,7 +32,8 @@ test('recent connections preserve periods, service and sorting in history; clear
   await page.goBack()
   await expect(page.getByRole('combobox', { name: 'Service', exact: true })).toHaveValue('')
   await expect(page.locator('[data-login]')).toHaveCount(5)
-  await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('service')
+  await closeListFilters(page)
+  await sortList(page, 'service')
   await expect(page).toHaveURL(/sort=service/)
   await expect(page.locator('[data-login]').first()).toContainText('CUSTOM')
   await page.getByRole('button', { name: 'Clear seen successful connections' }).click()
@@ -66,7 +69,9 @@ test('the empty state and invalid URL periods are normalised; administrators hav
   await mockApi.use('account-recent-logins-empty')
   await page.goto('account/recent-logins?days=999')
   await expect(page).not.toHaveURL(/days=/)
+  await openListFilters(page)
   await expect(page.getByRole('combobox', { name: 'Login history', exact: true })).toHaveValue('7')
+  await closeListFilters(page)
   await expect(page.getByRole('main')).toContainText('No record')
   await expectAccessible()
   await mockApi.use('account-admin')

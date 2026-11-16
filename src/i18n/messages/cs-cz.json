@@ -847,7 +847,9 @@
     },
     "updating": "Aktualizuje se…",
     "backToList": "Zpět na seznam",
-    "columns": "Sloupce"
+    "columns": "Sloupce",
+    "details": "Podrobnosti",
+    "detailsOf": "Podrobnosti: {name}"
   },
   "nav": {
     "apiKeys": "API klíče",

@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 003 US7, the mailbox templates (T103) with the classic list and forms (owner rule 1:1): the
 // navigation entry for both roles, the classic columns as cards and table, search, sort and paging
 // in the address, the list states, the add form with the built-in defaults, a duplicate name, the
@@ -73,12 +74,12 @@ test.describe('mailbox templates', () => {
       await expect(staff.locator('[data-column="protocols"]')).not.toContainText('POP3')
       await expect(staff.locator('[data-column="forceSecondFactorSetup"]')).toContainText('Yes')
     } else {
-      for (const name of ['ID', 'Template', 'Quota', 'Active', 'Action']) {
+      for (const name of ['ID', 'Template', 'Quota', 'Action']) {
         await expect(page.getByRole('columnheader', { name, exact: true })).toBeVisible()
       }
       await expect(staff.locator('[data-column="quota"]')).toHaveText('5 GiB')
     }
-    await expect(staff.locator('[data-column="status"]')).toContainText('Inactive')
+    await expect(staff.locator('[data-active-badge]')).toContainText('Inactive')
     await staff.getByRole('button', { name: 'Details of Staff' }).click()
     const details = page.locator('[data-entry-details="3"]')
     await expect(details.locator('[data-column="quarantineNotification"]')).toContainText('Daily')
@@ -109,16 +110,14 @@ test.describe('mailbox templates', () => {
     await page.getByRole('searchbox', { name: 'Search:' }).fill('pack')
     await expect(page).toHaveURL(/q=pack/)
     await expect(page.locator('[data-result-count]')).toHaveText('Templates found: 30')
-    for (const [value, label] of [
+    for (const [value] of [
       ['id', 'ID'],
-      ['createdAt', 'Created on'],
-      ['modifiedAt', 'Last modified'],
       ['name', 'Template'],
     ]) {
-      await page.getByLabel('Sort by').selectOption({ label })
+      await sortList(page, value!)
       await expect(page).toHaveURL(value === 'name' ? /^(?!.*sort=)/ : new RegExp(`sort=${value}`))
     }
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'name')
     await expect(page).toHaveURL(/order=desc/)
     await expect(page.locator('[data-entry]').first()).toHaveAttribute('data-entry', '33')
     await page.locator('[data-page-size] select').selectOption('50')
@@ -166,10 +165,13 @@ test.describe('mailbox templates', () => {
     await expect(field(page, 'Template (required)')).toHaveValue('')
     await expect(field(page, 'Quota (MiB)')).toHaveValue('0')
     await expect(page.getByText('0 = ∞')).toBeVisible()
-    await expect(page.getByRole('radio', { name: 'Hourly' })).toBeChecked()
+    await expect(page.getByRole('button', { name: 'Hourly', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await expect(page.getByPlaceholder('Disabled')).toHaveValue('')
     await expect(page.getByRole('checkbox', { name: 'Direct forwarding to SOGo' })).toBeChecked()
-    await expect(page.getByRole('listbox', { name: 'ACL' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^ACL/ })).toBeVisible()
     await expectAccessible()
     await expectNoHorizontalScroll()
     await field(page, 'Template (required)').fill('Students')

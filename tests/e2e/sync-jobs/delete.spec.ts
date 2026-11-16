@@ -30,7 +30,7 @@ test.describe('removing sync jobs', () => {
     await expect(dialog).toContainText('alice@example.org')
     await expect(dialog).toContainText('Mail that was already copied stays in the mailbox.')
     await expect(dialog.getByRole('button', { name: 'Cancel' })).toBeFocused()
-    await expect(dialog.getByRole('button', { name: 'Delete now' })).toHaveClass(/bg-red-700/)
+    await expect(dialog.getByRole('button', { name: 'Delete now' })).toHaveClass(/bg-danger/)
     await expectAccessible()
   })
 

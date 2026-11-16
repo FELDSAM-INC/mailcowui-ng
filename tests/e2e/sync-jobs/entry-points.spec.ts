@@ -1,3 +1,4 @@
+import { permissionFlags } from '../../mocks/scenarios/accounts'
 // UI 008 US1 entry points (T027, FR-004): the navigation entry per role, and the list opened
 // pre-filtered to one mailbox, as UI 003's mailbox page links to it.
 import { expect, test } from '../fixtures/test'
@@ -33,25 +34,23 @@ test.describe('sync job entry points', () => {
     await expect(page.getByRole('button', { name: 'Filters (1)' })).toBeVisible()
   })
 
-  test("FR-004 the mailbox page links to the mailbox's sync jobs for permitted managers", async ({
+  test('mailbox managers reach account settings through Login instead of embedded sync settings', async ({
     page,
     mockApi,
     expectAccessible,
   }) => {
     for (const scenario of ['sync-jobs-admin', 'sync-jobs-domain-admin']) {
-      await mockApi.use(scenario)
+      await mockApi.use(scenario, {
+        accounts: { reseller: { permissions: permissionFlags(true) } },
+      })
       await page.goto('mailboxes/alice@example.org')
-      const link = page.getByRole('link', { name: 'Sync jobs', exact: true }).last()
-      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-      await expect(link).toHaveAttribute(
-        'href',
-        /\/ng\/sync-jobs\?mailbox=alice(%40|@)example\.org$/,
-      )
+      await expect(page.getByRole('heading', { level: 1, name: 'Edit mailbox' })).toBeVisible()
+      const main = page.getByRole('main')
+      await expect(main.getByRole('link', { name: 'Sync jobs', exact: true })).toHaveCount(0)
+      await expect(
+        main.getByRole('button', { name: 'Login alice@example.org', exact: true }),
+      ).toBeVisible()
       await expectAccessible()
-      await link.click()
-      await expect(page).toHaveURL(/sync-jobs\?mailbox=alice/)
-      await listReady(page)
-      for (const id of await entryIds(page)) await expect(entry(page, id)).toContainText('alice@')
     }
   })
 

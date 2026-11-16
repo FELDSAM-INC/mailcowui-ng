@@ -16,6 +16,7 @@ const ADMIN = [
   'Routing',
   'Quarantine',
   'System & Containers',
+  'Queue Manager',
   'Access',
   'Options',
   'Routing',
@@ -32,7 +33,14 @@ const DOMAIN_ADMIN = [
   'Quarantine',
   'Options',
 ]
-const MAILBOX_USER = ['Quarantine']
+const MAILBOX_USER = [
+  'Overview',
+  'Mail app setup',
+  'Two-factor authentication',
+  'Passkeys',
+  'Seen successful connections',
+  'Quarantine',
+]
 const withEntry = (base: string[], label: string, after: string) => {
   const list = [...base]
   list.splice(list.indexOf(after) + 1, 0, label)
@@ -51,9 +59,9 @@ const CASES: [string, string[]][] = [
   ['domain-admin-no-syncjobs', DOMAIN_ADMIN],
   ['domain-admin-bcc', withEntry(DOMAIN_ADMIN, 'Sync jobs', 'Filters')],
   ['mailbox-no-spam-flags', MAILBOX_USER],
-  ['mailbox-spam-score', withEntry(MAILBOX_USER, 'Spam filter', 'Quarantine')],
-  ['mailbox-spam-policy', withEntry(MAILBOX_USER, 'Spam filter', 'Quarantine')],
-  ['mailbox-syncjobs', ['Sync jobs', ...MAILBOX_USER]],
+  ['mailbox-spam-score', ['Spam filter', ...MAILBOX_USER]],
+  ['mailbox-spam-policy', ['Spam filter', ...MAILBOX_USER]],
+  ['mailbox-syncjobs', withEntry(MAILBOX_USER, 'Sync jobs', 'Seen successful connections')],
 ]
 
 for (const [scenario, expected] of CASES) {

@@ -63,7 +63,9 @@ test.describe('mailbox screens: reflow, motion and keyboard', () => {
     const header = page.getByRole('main').locator('header')
     const title = header.getByRole('heading', { level: 1, name: 'Edit mailbox' })
     const address = header.getByRole('paragraph').filter({ hasText: /^anna@a\.example$/ })
-    await expect(header.getByRole('link', { name: 'Filters', exact: true })).toBeVisible()
+    await expect(
+      header.getByRole('button', { name: 'Login anna@a.example', exact: true }),
+    ).toBeVisible()
 
     for (const width of [320, 780, 1366]) {
       await page.setViewportSize({ width, height: 320 })
@@ -91,7 +93,7 @@ test.describe('mailbox screens: reflow, motion and keyboard', () => {
         expect(action.left).toBeGreaterThanOrEqual(-1)
         expect(action.right).toBeLessThanOrEqual(1)
       }
-      const lastAction = header.getByRole('link', { name: 'Filters', exact: true })
+      const lastAction = header.getByRole('button', { name: 'Login anna@a.example', exact: true })
       await title.focus()
       await lastAction.focus()
       await expect(lastAction).toBeFocused()

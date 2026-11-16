@@ -1,3 +1,4 @@
+import { sortList, closeListFilters } from '../fixtures/lists'
 // UI 004 US1, the alias list (T031): paging, cards and table, search, filters, sort, address state,
 // refresh, the list states, the badges and the edge cases.
 import { ALIASES_60, LONG_VALUES_004 } from '../../mocks/scenarios/aliases-list'
@@ -59,15 +60,22 @@ test.describe('alias list', () => {
       'Catch-All',
     )
     await expect(entry(page, ALIASES_60.orphaned).locator('[data-badge="orphaned"]')).toBeVisible()
-    await expect(entry(page, ALIASES_60.inactive).locator('[data-field="active"]')).toContainText(
-      'No',
+    await expect(entry(page, ALIASES_60.inactive).locator('[data-active-badge]')).toHaveText(
+      'Inactive',
     )
-    await expect(entry(page, ALIASES_60.internal).locator('[data-field="internal"]')).toContainText(
-      'Yes',
-    )
+    if ((page.viewportSize()?.width ?? 0) >= 768) {
+      await entry(page, ALIASES_60.internal).locator('[data-row-expand]').click()
+      await expect(
+        page.locator(`#alias-details-${ALIASES_60.internal} [data-field="internal"]`),
+      ).toContainText('Yes')
+    } else {
+      await expect(
+        entry(page, ALIASES_60.internal).locator('[data-field="internal"]'),
+      ).toContainText('Yes')
+    }
     if (!isNarrow(page)) {
       const table = page.getByRole('table')
-      for (const header of ['Alias', 'Goto address', 'Domain', 'Internal', 'Active']) {
+      for (const header of ['Alias', 'Goto address', 'Domain', 'Allow to send as this alias']) {
         await expect(table.getByRole('columnheader', { name: header, exact: true })).toBeVisible()
       }
     }
@@ -180,24 +188,14 @@ test.describe('alias list', () => {
     await mockApi.use('aliases-60')
     await page.goto('aliases')
     await listReady(page)
-    const keys = [
-      'id',
-      'address',
-      'domain',
-      'active',
-      'groupwareVisible',
-      'internal',
-      'senderAllowed',
-      'createdAt',
-      'modifiedAt',
-    ]
+    const keys = ['address', 'domain', 'id']
     if (isNarrow(page)) {
       for (const key of keys) {
-        await page.getByLabel('Sort by').selectOption(key)
+        await sortList(page, key)
         if (key === 'id') await expect(page).not.toHaveURL(/sort=/)
         else await expect(page).toHaveURL(new RegExp(`sort=${key}`))
       }
-      await page.getByLabel('Order').selectOption('desc')
+      await sortList(page, 'id')
       await expect(page).toHaveURL(/order=desc/)
     } else {
       const header = page.getByRole('columnheader', { name: 'Alias', exact: true })
@@ -270,9 +268,10 @@ test.describe('alias list', () => {
     await openFilters(page)
     await expect(page.getByLabel('Alias is visible in SOGo')).toHaveCount(0)
     if (isNarrow(page)) {
-      await expect(
-        page.getByLabel('Sort by').locator('option[value="groupwareVisible"]'),
-      ).toHaveCount(0)
+      await closeListFilters(page)
+      await page.locator('[data-list-columns]').click()
+      await expect(page.locator('[data-sort-choice="groupwareVisible"]')).toHaveCount(0)
+      await page.keyboard.press('Escape')
       await expect(page.locator('[data-field="groupwareVisible"]')).toHaveCount(0)
     } else {
       await expect(page.getByRole('columnheader', { name: /SOGo/ })).toHaveCount(0)

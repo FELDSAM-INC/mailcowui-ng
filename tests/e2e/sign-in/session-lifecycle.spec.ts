@@ -65,12 +65,15 @@ test('US1-AS17 SC-014 the idle warning comes 2 minutes before expiry, "Stay sign
   await page.clock.install()
   await page.goto('domains')
   await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
+  // Wait for the list response before advancing the idle clock; the heading renders earlier.
+  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
   // Logo images follow the theme the accessibility check switches; they are not app requests.
   const apiRequests = async () =>
     (await mockApi.requests()).filter((r) => r.operationId !== 'getPublicConfigLogo')
   const before = (await apiRequests()).length
 
   await page.clock.fastForward('00:31')
+  await page.clock.runFor(250)
   const dialog = page.getByRole('alertdialog', { name: 'Your session is about to end' })
   await expect(dialog).toBeVisible()
   await expect(assertiveRegion(page)).toContainText('left before you are signed out')
@@ -84,6 +87,7 @@ test('US1-AS17 SC-014 the idle warning comes 2 minutes before expiry, "Stay sign
   await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
 
   await page.clock.fastForward('00:31')
+  await page.clock.runFor(250)
   await expect(dialog).toBeVisible()
   await mockApi.patch({ expireSession: true })
   await page.clock.fastForward('02:00')

@@ -127,7 +127,7 @@ function toggle(name: string) {
         <RouterLink
           v-if="settings.data.value?.licenseVerificationEnabled"
           :to="{ name: 'system-settings-license' }"
-          :class="buttonVariants({ variant: 'link' })"
+          :class="buttonVariants({ variant: 'link', class: 'min-h-11' })"
           >{{ lt('admin.guid_and_license') }}</RouterLink
         >
       </template>

@@ -21,7 +21,7 @@ test('T079 adds and edits a custom link, previews username and refreshes Apps im
   )
   await page.locator('#app-link-3-showOnLoginPage').check()
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
   await page.getByRole('button', { name: 'Apps menu', exact: true }).click()
   await expect(page.getByRole('menuitem', { name: 'Helpdesk', exact: true })).toHaveAttribute(
     'href',
@@ -61,7 +61,7 @@ test('T079 validates every URL before sending and maps indexed errors', async ({
   await page.locator('#app-link-0-url').fill('/help')
   await page.locator('#app-link-1-signedInUrl').fill('')
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
 })
 
 test('T079 reorders third to first with labelled touch and keyboard actions and saves the whole order', async ({
@@ -80,7 +80,7 @@ test('T079 reorders third to first with labelled touch and keyboard actions and 
   await expect(page.locator('#app-link-0-name')).toHaveValue('App 3')
   await expect(page.locator('[aria-live=polite]')).toContainText('position 1 of 3')
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
   const writes = (await mockApi.requests()).filter((r) => r.operationId === 'updateAppLinkSettings')
   expect((writes[0]!.body as { links: { name: string }[] }).links.map((link) => link.name)).toEqual(
     ['App 3', 'App 1', 'App 2'],
@@ -99,7 +99,9 @@ test('T079 built-ins are read-only, include Webmail without groupware and adapt 
   const built = page.locator('[data-built-in-links]')
   await expect(built).toContainText('Webmail')
   await expect(built).toContainText('cannot be modified')
-  await expect(built.locator('input,button')).toHaveCount(0)
+  await expect(
+    built.locator('tbody input, tbody button, [data-card] input, [data-card] button'),
+  ).toHaveCount(0)
   await expect(page.locator('#section-app-links [data-link-table]')).toBeVisible({
     visible: testInfo.project.name === 'desktop-chromium',
   })
@@ -149,7 +151,7 @@ test('T079 unsaved removal asks before leaving and preserves the draft', async (
     .locator('#section-app-links')
     .getByRole('button', { name: 'Save changes', exact: true })
     .click()
-  await expect(page.locator('#section-app-links form')).toHaveCount(0)
+  await expect(page.locator('#section-app-links form:not([role=search])')).toHaveCount(0)
   const writes = (await mockApi.requests()).filter((r) => r.operationId === 'updateAppLinkSettings')
   expect((writes[0]!.body as { links: { name: string }[] }).links.map((link) => link.name)).toEqual(
     ['App 1', 'App 3'],
@@ -173,7 +175,7 @@ test('T079 stale ordered lists keep local entries until an explicit retry', asyn
   await otherSection.getByRole('button', { name: /^Edit / }).click()
   await other.locator('#app-link-0-name').fill('Saved elsewhere')
   await otherSection.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(otherSection.locator('form')).toHaveCount(0)
+  await expect(otherSection.locator('form:not([role=search])')).toHaveCount(0)
   await other.close()
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(section.locator('[data-outdated]')).toContainText('Saved elsewhere')
@@ -182,7 +184,7 @@ test('T079 stale ordered lists keep local entries until an explicit retry', asyn
   await section.locator('[data-outdated]').scrollIntoViewIfNeeded()
   await expectAccessible()
   await section.getByRole('button', { name: 'Save again', exact: true }).click()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
 })
 
 test('T079 demo mode disables editing and a server outage preserves input', async ({
@@ -207,7 +209,7 @@ test('T079 demo mode disables editing and a server outage preserves input', asyn
   await mockApi.delay('updateAppLinkSettings', 500)
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(section.getByRole('button', { name: 'Saving…', exact: true })).toBeDisabled()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
   expect(await mockApi.countRequests('updateAppLinkSettings')).toBe(2)
 })
 
@@ -225,7 +227,7 @@ test('T079 stored long names stay literal and relative URL help remains visible'
   const name = '<b>' + 'x'.repeat(248) + '</b>'
   await page.locator('#app-link-0-name').fill(name)
   await section.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
   const savedHeading = section.getByRole('heading', { name: 'App links', exact: true })
   await expect(savedHeading).toBeFocused()
   await expect(section).toContainText(name)

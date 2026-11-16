@@ -89,9 +89,9 @@ test.describe('the role-neutral sign-in screen', () => {
     await page.goto('sign-in')
     const main = page.getByRole('main')
     await main.getByText('Show/Hide help panel').click()
-    await expect(
-      main.getByText('<img src=x onerror=alert(1)>Example', { exact: true }),
-    ).toBeVisible()
+    await expect(main.locator('[data-product-name]')).toHaveText(
+      '<img src=x onerror=alert(1)>Example',
+    )
     await expect(page.getByText('<script>alert(1)</script>Read me')).toBeVisible()
     await expect(main.getByRole('link', { name: 'good' })).toHaveAttribute(
       'href',
@@ -136,6 +136,7 @@ test.describe('the role-neutral sign-in screen', () => {
     const name = 'Mail'.repeat(63) + 'Box'
     await mockApi.use('anonymous-default', { publicConfig: { productName: name } })
     await page.goto('sign-in')
+    await page.setViewportSize({ width: 360, height: 780 })
     await expect(page.getByRole('main').getByText(name)).toBeVisible()
     await expectNoHorizontalScroll()
   })

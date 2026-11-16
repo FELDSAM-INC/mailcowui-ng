@@ -77,8 +77,7 @@ const { t } = useI18n()
         :aria-expanded="expanded"
         :aria-controls="detailsId ?? `${id}-details`"
         :aria-label="
-          detailsLabel ??
-          (title ? t('domains.list.detailsOf', { name: title }) : t('domains.list.details'))
+          detailsLabel ?? (title ? t('lists.detailsOf', { name: title }) : t('lists.details'))
         "
         @click="expanded = !expanded"
       >
@@ -86,7 +85,7 @@ const { t } = useI18n()
           class="size-4 shrink-0 motion-safe:transition-transform"
           :class="expanded ? 'rotate-180' : ''"
         />
-        {{ t('domains.list.details') }}
+        {{ t('lists.details') }}
       </button>
       <div
         v-if="expanded"

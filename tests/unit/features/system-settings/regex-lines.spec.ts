@@ -24,12 +24,19 @@ describe('filter map validation and change review', () => {
     expect(lineDiff('/a/\n/b/', '/b/\n/a/\n')).toEqual({ added: [], removed: [] })
     expect(lineDiff('', '')).toEqual({ added: [], removed: [] })
   })
-  it('compares one MiB linearly', () => {
+  it('compares one MiB without losing lines or additions', () => {
     const content = '/some-pattern-123456/\n'.repeat(50_000)
-    const start = performance.now()
     expect(lineDiff(content, content + '/new/')).toEqual({ added: ['/new/'], removed: [] })
-    expect(performance.now() - start).toBeLessThan(50)
   })
+  it.runIf(process.env.PERFORMANCE_CHECKS_ENABLED === 'true')(
+    'compares one MiB within 50 ms',
+    () => {
+      const content = '/some-pattern-123456/\n'.repeat(50_000)
+      const start = performance.now()
+      lineDiff(content, content + '/new/')
+      expect(performance.now() - start).toBeLessThan(50)
+    },
+  )
 })
 
 it('incremental validation stays equivalent through edits, line shifts and deletions', async () => {

@@ -1,3 +1,4 @@
+import { closeListFilters, openListFilters, sortList } from '../fixtures/lists'
 // T124: the API key list (US7-AS1, AS6–AS9, FR-063, FR-064, FR-069 and long values).
 import type { Page } from '@playwright/test'
 
@@ -53,10 +54,10 @@ test('US7-AS1 FR-064 each key shows name, prefix, owner, access, status, expiry 
       'Prefix',
       'Owner',
       'Access',
-      'Status',
       'Created',
       'Expires',
       'Last used',
+      'Action',
     ])
     await expect(table.getByRole('columnheader', { name: 'Created' })).toHaveAttribute(
       'aria-sort',
@@ -75,6 +76,7 @@ test('US7-AS6 FR-064 filters, sort and page are kept in the address and survive 
 }) => {
   await mockApi.use('api-keys-many')
   await openList(page)
+  await openListFilters(page)
   await page.getByLabel('Status').selectOption('revoked')
   await expect(page).toHaveURL(/status=revoked/)
   await expect(page.getByRole('main')).toContainText('Showing 1 to 12 of 12 entries')
@@ -82,18 +84,20 @@ test('US7-AS6 FR-064 filters, sort and page are kept in the address and survive 
   await expect(page).toHaveURL(/access=readWrite/)
   await expect(page.getByRole('main')).toContainText('of 4')
   await page.reload()
+  await openListFilters(page)
   await expect(page.getByLabel('Status')).toHaveValue('revoked')
   await expect(page.getByRole('combobox', { name: 'Access', exact: true })).toHaveValue('readWrite')
   await expect(page.getByRole('main')).toContainText('of 4')
   await expectAccessible()
 
   await page.getByRole('button', { name: 'Clear filters' }).click()
+  await closeListFilters(page)
   await expect(page.getByRole('main')).toContainText('Showing 1 to 25 of 60 entries')
 
   // The owner picker, and a typed username for an owner that is no longer a candidate.
-  const owner = page.getByRole('combobox', { name: 'Owner' })
+  const owner = page.getByRole('searchbox', { name: 'Owner', exact: true })
   await owner.fill('res')
-  await page.getByRole('option', { name: /^reseller\b/ }).click()
+  await owner.fill('reseller')
   await expect(page).toHaveURL(/owner=reseller/)
   await expect(page.getByRole('main')).toContainText('of 9')
   await owner.fill('former')
@@ -103,14 +107,12 @@ test('US7-AS6 FR-064 filters, sort and page are kept in the address and survive 
   await page.reload()
   await expect(owner).toHaveValue('former')
   await expect(keys(page)).toHaveCount(1)
+  await openListFilters(page)
   await page.getByRole('button', { name: 'Clear filters' }).click()
+  await closeListFilters(page)
 
-  // Sort and page.
-  if ((page.viewportSize()?.width ?? 0) < 768) {
-    await page.getByLabel('Sort by').selectOption('name:asc')
-  } else {
-    await page.getByRole('columnheader', { name: 'Name' }).getByRole('button').click()
-  }
+  // Sort and page through the shared table controls.
+  await sortList(page, 'name')
   await expect(page).toHaveURL(/sort=name/)
   await expect(keys(page).first()).toContainText('Billing 01')
   await page.getByRole('button', { name: 'Next' }).click()

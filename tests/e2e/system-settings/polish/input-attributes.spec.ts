@@ -26,7 +26,7 @@ test('T171 literal values retain mobile keyboards and valid relative app URLs', 
   await url.fill('/help')
   expect(await url.evaluate((input: HTMLInputElement) => input.validity.valid)).toBe(true)
   await links.getByRole('button', { name: 'Save changes', exact: true }).click()
-  await expect(links.locator('form')).toHaveCount(0)
+  await expect(links.locator('form:not([role=search])')).toHaveCount(0)
 
   await page.goto('system/customize/colours')
   await page

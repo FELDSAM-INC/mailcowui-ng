@@ -1,5 +1,5 @@
 // Layout checks (constitution II, FR-083, SC-005, research R21, R24): no horizontal scrolling at
-// narrow widths, and touch targets of at least 44 × 44 CSS px.
+// narrow widths, 44 × 44 CSS px touch targets and compact pointer controls.
 import { expect, type Page } from '@playwright/test'
 
 export async function expectNoHorizontalScroll(
@@ -28,11 +28,13 @@ export async function expectNoHorizontalScroll(
 }
 
 /**
- * Visible buttons, inputs, selects and standalone links must be at least 44 × 44 px. A label that
+ * Visible controls must be at least 44 × 44 px with coarse pointers. Fine-pointer desktop
+ * controls may be compact, retaining the 24 × 24 px minimum. A label that
  * wraps or names a control counts as its target. Links inside running text are exempt (WCAG 2.5.8).
  */
 export async function expectTouchTargets(page: Page): Promise<void> {
-  const small = await page.evaluate(() => {
+  const minimum = await page.evaluate(() => (matchMedia('(pointer: coarse)').matches ? 44 : 24))
+  const small = await page.evaluate((minimum) => {
     const SELECTOR =
       'button, input:not([type=hidden]), select, textarea, a[href], [role=button], [role=link], [role=checkbox], [role=radio], [role=switch], [role=menuitem], summary'
     const INLINE = new Set(['SPAN', 'STRONG', 'EM', 'B', 'I', 'SMALL', 'U', 'CODE', 'TIME', 'ABBR'])
@@ -59,12 +61,12 @@ export async function expectTouchTargets(page: Page): Promise<void> {
       const label =
         element.closest('label') ??
         (element.id ? document.querySelector(`label[for="${CSS.escape(element.id)}"]`) : null)
-      if (label && (width < 44 || height < 44)) {
+      if (label && (width < minimum || height < minimum)) {
         const box = label.getBoundingClientRect()
         width = Math.max(width, box.width)
         height = Math.max(height, box.height)
       }
-      if (width < 43.5 || height < 43.5) {
+      if (width < minimum - 0.5 || height < minimum - 0.5) {
         const name =
           element.getAttribute('aria-label') ?? (element.textContent ?? '').trim().slice(0, 40)
         failures.push(
@@ -73,6 +75,6 @@ export async function expectTouchTargets(page: Page): Promise<void> {
       }
     }
     return failures
-  })
-  expect(small, 'touch targets smaller than 44 × 44 px').toEqual([])
+  }, minimum)
+  expect(small, `interactive targets smaller than ${minimum} × ${minimum} px`).toEqual([])
 }

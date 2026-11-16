@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 003 US1, the mailbox list (T050), the classic "Mailboxes" tab: paging, cards and legacy's
 // table with the column chooser, the search in the address with Back, filters with chips, sort,
 // the list states, roles, markup shown as text, IDN names and long values.
@@ -49,14 +50,13 @@ test.describe('mailbox list', () => {
       await expect(anna).toContainText('1,200')
       await expectTouchTargets()
     } else {
-      const headers = await page.locator('thead th').allTextContents()
+      const headers = await page.locator('thead th:visible').allTextContents()
       expect(headers.map((text) => text.replace(/[▲▼]/g, '').trim())).toEqual([
         'Username',
         'Quota',
         'Last mail login',
         'In use (%)',
         'Message #',
-        'Active',
         'Action',
       ])
       await expect(anna.locator('[data-cell="lastMailLogin"]')).toContainText('IMAP @')
@@ -90,9 +90,15 @@ test.describe('mailbox list', () => {
     await listReady(page)
     await expect(page.locator('thead th[data-column="createdAt"]')).toBeVisible()
     await expect(page.locator('thead th[data-column="imap"]')).toHaveText('IMAP')
-    expect(await page.evaluate(() => localStorage.getItem('mailcowui-ng.mailboxes.columns'))).toBe(
-      '["imap","createdAt"]',
+    await page.getByRole('button', { name: 'Columns' }).click()
+    await expect(page.getByRole('menuitemcheckbox', { name: 'IMAP', exact: true })).toHaveAttribute(
+      'aria-checked',
+      'true',
     )
+    await expect(
+      page.getByRole('menuitemcheckbox', { name: 'Created on', exact: true }),
+    ).toHaveAttribute('aria-checked', 'true')
+    await page.keyboard.press('Escape')
   })
 
   test('FR-008 Columns keeps its last option reachable in short landscape viewports', async ({
@@ -197,8 +203,8 @@ test.describe('mailbox list', () => {
     await open(page)
     if (isNarrow(page)) {
       await openFilters(page)
-      await page.getByLabel('Sort by').selectOption('percentUsed')
-      await page.getByLabel('Order').selectOption('desc')
+      await sortList(page, 'percentUsed')
+      await sortList(page, 'percentUsed')
     } else {
       const header = page.locator('thead th[data-column="inUse"]')
       await header.getByRole('button').click()

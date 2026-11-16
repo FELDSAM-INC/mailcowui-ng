@@ -1,3 +1,4 @@
+import { clickRowAction } from '../../fixtures/row-actions'
 import { expect, test } from '../../fixtures/test'
 import { customizeLink } from './helpers'
 
@@ -62,10 +63,7 @@ test('T173 saving a rule refreshes the cached effective map during in-app naviga
   await expectAccessible()
   await expectNoHorizontalScroll()
   await expectTouchTargets()
-  await page
-    .locator('[data-rule-id="1"]')
-    .getByRole('link', { name: 'Edit: Rule 01', exact: true })
-    .click()
+  await clickRowAction(page, page.locator('[data-rule-id="1"]'), 'Edit: Rule 01')
   await page.locator('#rule-content').fill('apply { symbols = ["UPDATED_FRESHNESS_RULE"]; }')
   await page.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(page.locator('[data-rule-saved]')).toBeVisible()

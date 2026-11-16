@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US3, Transport Maps (T054): the classic columns with the MX-based mark in text, search,
@@ -23,10 +24,10 @@ test.describe('Transport Maps', () => {
     await expect(entry(page, 1)).toContainText('[mx.partner.net]:25')
     await expect(entry(page, 1)).toContainText('u1')
     await expect(entry(page, 4)).toContainText('MX based')
-    await expect(entry(page, 5)).toContainText('✕')
+    await expect(entry(page, 5)).toContainText('Inactive')
     if (!isNarrow(page)) {
       const table = page.getByRole('table')
-      for (const header of ['ID', 'Destination', 'Next hop', 'Username', 'Active', 'Action']) {
+      for (const header of ['ID', 'Destination', 'Next hop', 'Username', 'Action']) {
         await expect(table.getByRole('columnheader', { name: header })).toBeVisible()
       }
     }
@@ -47,8 +48,8 @@ test.describe('Transport Maps', () => {
     await page.getByLabel('Next hop', { exact: true }).fill('[MX.partner.net]:25')
     await page.getByLabel('Next hop', { exact: true }).press('Enter')
     await expect(page).toHaveURL(/nextHop=/)
-    await page.getByLabel('Sort by').selectOption('destination')
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'destination')
+    await sortList(page, 'destination')
     await page.reload()
     await listReady(page)
     expect(await entryIds(page)).toEqual(['2', '1'])

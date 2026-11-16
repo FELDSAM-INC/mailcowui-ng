@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 import { clickRowAction } from '../fixtures/row-actions'
 // UI 009 US1, Sender-dependent transports (T027): the classic list's columns as cards and a table,
@@ -28,13 +29,13 @@ test.describe('Sender-dependent transports', () => {
     await expect(two).toContainText('Domains: 2')
     await expect(two).toContainText('Mailboxes: 3')
     await expect(entry(page, 1)).toContainText('relay-user')
-    await expect(entry(page, 3)).toContainText('✕')
+    await expect(entry(page, 3)).toContainText('Inactive')
     if (isNarrow(page)) {
       await expect(page.getByRole('list', { name: 'Sender-dependent transports' })).toBeVisible()
       await expect(two).toContainText('ID:')
     } else {
       const table = page.getByRole('table')
-      for (const header of ['ID', 'Host', 'Username', 'In use by', 'Active', 'Action']) {
+      for (const header of ['ID', 'Host', 'Username', 'In use by', 'Action']) {
         await expect(table.getByRole('columnheader', { name: header })).toBeVisible()
       }
     }
@@ -79,8 +80,8 @@ test.describe('Sender-dependent transports', () => {
     await expect(polite(page)).toContainText('Showing 1 to 2 of 2 entries')
     await openFilters(page)
     await page.getByLabel('Active', { exact: true }).selectOption('true')
-    await page.getByLabel('Sort by').selectOption('username')
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'username')
+    await sortList(page, 'username')
     await expect(page).toHaveURL(/active=true/)
     await expect(page).toHaveURL(/sort=username/)
     await expect(page).toHaveURL(/order=desc/)

@@ -178,10 +178,10 @@ test.describe('logs @operations', () => {
       autodiscover: ['Time', 'User-Agent', 'Username', 'IP', 'Service'],
       watchdog: ['Time', 'Service', 'Trend', 'Message'],
       acme: ['Time', 'Message'],
-      'legacy-api-requests': ['Time', 'URI', 'Method', 'IP'],
+      'legacy-api-requests': ['Time', 'URI', 'Method', 'IP', 'Details'],
       'rate-limits': ['Time', 'Rate name', 'Sender', 'Recipients', 'Auth. user', 'Action'],
       cron: ['Time', 'Task', 'Priority', 'Message'],
-      'legacy-ui-activity': ['Time', 'Type', 'Task', 'User', 'Role', 'IP', 'Message'],
+      'legacy-ui-activity': ['Time', 'Type', 'Task', 'User', 'Role', 'IP', 'Message', 'Details'],
       logins: ['Username', 'Service', 'IP', 'Login time'],
     }
     await mockApi.use('admin-operations')

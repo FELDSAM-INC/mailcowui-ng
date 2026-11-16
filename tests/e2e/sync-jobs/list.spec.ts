@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 008 US1, the sync job list (T023): cards and table, the classic columns and values, results
 // in English and Czech, the list states, search, filters, sort, paging, the address and refresh.
 import { expect, test } from '../fixtures/test'
@@ -39,7 +40,7 @@ test.describe('sync job list', () => {
     await listReady(page)
     expect((await entryIds(page)).slice(0, 3)).toEqual([60, 59, 58])
     if (isNarrow(page)) {
-      await page.getByLabel('Sort by').selectOption('remoteHost')
+      await sortList(page, 'remoteHost')
       await expect(page).toHaveURL(/sort=remoteHost/)
       return
     }
@@ -50,7 +51,6 @@ test.describe('sync job list', () => {
       'Server',
       'Last run',
       'Last run result',
-      'Active',
       'Status',
       'Action',
     ]) {
@@ -100,8 +100,8 @@ test.describe('sync job list', () => {
     await expect(entry(page, 3).locator('[data-result] svg')).toBeVisible()
     // An inactive job that is running shows both facts.
     await expect(entry(page, 5)).toContainText('Running')
-    await expect(entry(page, 5).locator('[data-active]')).toContainText('✕')
-    await expect(entry(page, 4).locator('[data-active]')).toContainText('✓')
+    await expect(entry(page, 5).locator('[data-active-badge]')).toContainText('Inactive')
+    await expect(entry(page, 4).locator('[data-active-badge]')).toContainText('Active')
 
     await mockApi.use('sync-jobs-admin', {
       accounts: { admin: { preferences: { language: 'cs-cz', theme: 'system', etag: '"p"' } } },

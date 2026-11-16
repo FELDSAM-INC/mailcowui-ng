@@ -58,7 +58,7 @@ test.describe('alias list: mass actions', () => {
     await expect(summary).toContainText(
       'Changes to alias address sales@example.org have been saved',
     )
-    await expect(entry(page, BULK_004.sales).locator('[data-field="active"]')).toContainText('No')
+    await expect(entry(page, BULK_004.sales).locator('[data-active-badge]')).toHaveText('Inactive')
   })
 
   test('US6-AS2 hiding three of five keeps the two not found selected', async ({

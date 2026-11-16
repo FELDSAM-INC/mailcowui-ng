@@ -175,7 +175,7 @@ test('unsaved changes are guarded and own access without the pushover flag is re
   await expect(page.locator('input[name="title"]')).toHaveValue('Unsaved')
   await page.goBack()
   await dialog.getByRole('button', { name: 'Leave', exact: true }).click()
-  await expect(page).toHaveURL(/\/account\/password$/)
+  await expect(page).toHaveURL(/\/account\/overview$/)
   await mockApi.use('account-mailbox-no-flags')
   await page.goto('account/push-notifications')
   await expect(page.getByRole('heading', { name: 'No access', exact: true })).toBeVisible()

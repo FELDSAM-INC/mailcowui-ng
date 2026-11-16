@@ -12,7 +12,7 @@ test('T170 edits, reorders, removes and saves app links using only the keyboard'
   await tabTo(page, section.getByRole('button', { name: /^Edit / }))
   await expectFocusVisible(page)
   await page.keyboard.press('Enter')
-  await expect(section.getByRole('heading')).toBeFocused()
+  await expect(section.getByRole('heading', { level: 2 })).toBeFocused()
   await tabTo(page, page.locator('#app-link-2-name'))
   await expectFocusVisible(page)
   await page.keyboard.press('ControlOrMeta+A')
@@ -33,8 +33,8 @@ test('T170 edits, reorders, removes and saves app links using only the keyboard'
   await tabTo(page, section.getByRole('button', { name: 'Save changes', exact: true }))
   await expectFocusVisible(page)
   await page.keyboard.press('Enter')
-  await expect(section.locator('form')).toHaveCount(0)
-  await expect(section.getByRole('heading')).toBeFocused()
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
+  await expect(section.getByRole('heading', { level: 2 })).toBeFocused()
   const writes = (await mockApi.requests()).filter(
     (request) => request.operationId === 'updateAppLinkSettings',
   )

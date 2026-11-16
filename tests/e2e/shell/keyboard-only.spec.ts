@@ -58,7 +58,7 @@ test('US1 the second factor with the keyboard', async ({ page, mockApi }) => {
   await expect(code).toBeFocused()
   await page.keyboard.type('123456')
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
 })
 
 test('US2 passkey sign-in with the keyboard', async ({ page, mockApi, webauthn }) => {
@@ -67,7 +67,7 @@ test('US2 passkey sign-in with the keyboard', async ({ page, mockApi, webauthn }
   await page.goto('sign-in')
   await tabTo(page, page.getByRole('button', { name: 'Sign in with a passkey' }))
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
 })
 
 test('US3 navigation with the keyboard', async ({ page, mockApi }) => {
@@ -118,8 +118,8 @@ test('US5 required password change can be completed with the keyboard', async ({
   await page.keyboard.type('Keyboard-password-42!')
   await tabTo(page, page.getByRole('button', { name: 'Save changes', exact: true }))
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/\/ng\/account\/password$/)
-  await expect(page.getByRole('heading', { level: 1, name: 'Change password' })).toBeVisible()
+  await expect(page).toHaveURL(/\/ng\/account\/overview$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
 })
 
 test('US6 choosing a language with the keyboard', async ({ page, mockApi }) => {
@@ -172,7 +172,7 @@ test('US8 filtering the audit log with the keyboard', async ({ page, mockApi }) 
     await tabTo(page, toggle)
     await page.keyboard.press('Enter')
   }
-  const form = page.getByRole('form', { name: 'Filters' })
+  const form = page.locator('[data-filter-panel]')
   await tabTo(page, form.getByRole('checkbox', { name: 'Sign-in', exact: true }))
   await page.keyboard.press('Space')
   // Every labelled event and target type is a checkbox on the way (UI 009 adds 21 and 8, UI 006

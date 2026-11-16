@@ -2,11 +2,11 @@
 // filter and push dirty guards by their feature specs. R13 forbids drafts after unmount/auth loss.
 import type { Page } from '@playwright/test'
 
-import { MOCK_PASSWORD, openAccountSections, politeRegion, submitPassword } from '../fixtures/flows'
+import { MOCK_PASSWORD, goToAccountSection, politeRegion, submitPassword } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 
 const reads = [
-  { path: 'account/mail-apps', api: '/me/mailbox', ready: '[data-mailbox-address]' },
+  { path: 'account/overview', api: '/me/mailbox', ready: '[data-mailbox-address]' },
   { path: 'account/password', api: '/me/password-policy', ready: '[data-password-policy]' },
   { path: 'pending-actions', api: '/me/password-policy', ready: '[data-password-policy]' },
   { path: 'account/recovery-email', api: '/me/recovery-email', ready: '[data-recovery-email]' },
@@ -180,11 +180,10 @@ const drafts: {
     fill: (page) => page.getByLabel('App name', { exact: true }).fill('Draft app'),
   },
   {
-    path: 'temporary-aliases',
-    parent: 'account/password',
+    path: 'temporary-aliases/new',
+    parent: 'account/temporary-aliases',
     fill: (page) =>
       (async () => {
-        await page.locator('[data-add-alias]').click()
         await page
           .locator('[data-generate-alias]')
           .getByLabel('Description', { exact: true })
@@ -196,9 +195,8 @@ for (const { path, parent, fill } of drafts) {
   test(`FR-015 ${path} asks before abandoning changed input`, async ({ page, mockApi }) => {
     await mockApi.use('account-mailbox')
     await page.goto('account')
-    const navigation = await openAccountSections(page)
     const sectionPath = parent === 'account/password' ? `account/${path}` : parent
-    await navigation.locator(`a[href$="/${sectionPath}"]`).click()
+    await goToAccountSection(page, sectionPath.replace('account/', ''))
     if (parent !== 'account/password') await page.locator(`a[href$="/account/${path}"]`).click()
     await fill(page)
     await page.goBack()
@@ -208,6 +206,8 @@ for (const { path, parent, fill } of drafts) {
     await expect(page).toHaveURL(new RegExp(`/account/${path}$`))
     await page.goBack()
     await dialog.getByRole('button', { name: 'Leave', exact: true }).click()
-    await expect(page).toHaveURL(new RegExp(`/${parent}$`))
+    await expect(page).toHaveURL(
+      new RegExp(`/${parent === 'account/password' ? 'account/overview' : parent}$`),
+    )
   })
 }

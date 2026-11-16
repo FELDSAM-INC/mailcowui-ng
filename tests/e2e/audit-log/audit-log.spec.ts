@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 // T136: the authentication audit log (US8-AS1, AS2, AS4–AS7, FR-071–FR-074, SC-011). US8-AS3
 // (unknown codes) is unit-tested: the pinned contract's enumerations are closed (research R24).
 import type { Locator, Page } from '@playwright/test'
@@ -12,9 +13,7 @@ const wide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768
 
 /** The filter form, opened on narrow screens where it starts collapsed. */
 async function filters(page: Page): Promise<Locator> {
-  const toggle = page.getByRole('button', { name: 'Filters', exact: true })
-  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
-  return page.getByRole('form', { name: 'Filters' })
+  return openListFilters(page)
 }
 
 /** The records: cards below 768 px, table rows (without the header row) from 768 px. */
@@ -227,11 +226,14 @@ test('FR-073 presets, several event types, and chips removed one by one and all 
     ['7d', 'Showing 1 to 17 of 17 entries'],
     ['30d', 'Showing 1 to 25 of 25 entries'],
   ] as const) {
+    await filters(page)
     await range.selectOption(preset)
     await apply(page)
     await expect(summary(page)).toHaveText(total)
+    if (!wide(page)) await expect(page.locator('[data-filter-panel]')).not.toBeVisible()
   }
   await expect(page).toHaveURL(/range=30d/)
+  await filters(page)
 
   await form.getByRole('checkbox', { name: 'Sign-in', exact: true }).check()
   await form.getByRole('checkbox', { name: 'Sign-out' }).check()

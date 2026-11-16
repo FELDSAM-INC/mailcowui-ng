@@ -1,18 +1,21 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
-import { openAccountSections as openAccountTabs } from '../fixtures/flows'
+import { openAccountSections as openAccountTabs, openNavigation } from '../fixtures/flows'
 
 async function expectContentWidth(page: Page, selector: string) {
   const shell = await page.locator('[data-shell-content]').boundingBox()
-  const content = await page.locator(selector).boundingBox()
+  const content = await page.locator(selector).evaluate((element) => {
+    const rect = (element.closest('.table-frame') ?? element).getBoundingClientRect()
+    return { x: rect.x, width: rect.width }
+  })
   expect(shell).not.toBeNull()
   expect(content).not.toBeNull()
-  expect(Math.abs(shell!.width - content!.width)).toBeLessThan(1)
-  expect(Math.abs(shell!.x - content!.x)).toBeLessThan(1)
+  expect(Math.abs(shell!.width - content.width)).toBeLessThan(1)
+  expect(Math.abs(shell!.x - content.x)).toBeLessThan(1)
 }
 
-test('System and Containers keeps Queue Manager and IP Check reachable through contextual links', async ({
+test('Queue Manager is in the System sidebar and IP Check remains on the dashboard', async ({
   page,
   mockApi,
   expectAccessible,
@@ -23,7 +26,11 @@ test('System and Containers keeps Queue Manager and IP Check reachable through c
   await expect(page.locator('[data-hostname]')).toBeVisible()
   await expectAccessible()
   await expectNoHorizontalScroll()
-  await page.getByRole('main').getByRole('link', { name: 'Queue Manager', exact: true }).click()
+  await (
+    await openNavigation(page)
+  )
+    .getByRole('link', { name: 'Queue Manager', exact: true })
+    .click()
   await expect(page).toHaveURL(/\/operations\/mail-queue$/)
   await expect(page.locator('#mail-queue-search')).toBeVisible()
   await page.goBack()
@@ -47,9 +54,9 @@ test('account sidebar navigation keeps pages at the shared content width', async
   await expectContentWidth(page, '[data-account-content]')
   await expect(page.getByRole('main').locator('aside')).toHaveCount(0)
   const navigation = await openAccountTabs(page)
-  await expect(
-    navigation.getByRole('link', { name: 'Change password', exact: true }),
-  ).toHaveAttribute('aria-current', 'page')
+  await expect(navigation.getByRole('link', { name: 'Change password', exact: true })).toHaveCount(
+    0,
+  )
   await expectAccessible()
   await expectTouchTargets()
   await expectNoHorizontalScroll()
@@ -87,7 +94,9 @@ test('mailbox-specific account pages keep their full width, mailbox context and 
 }) => {
   await mockApi.use('account-domain-admin-no-flags')
   await page.goto('mailboxes/anna@example.org')
-  await page.getByRole('link', { name: /^App passwords/ }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.getByRole('link', { name: /^App passwords/ })).toHaveCount(0)
+  await page.goto('mailboxes/anna@example.org/app-passwords')
   await expect(page.locator('[data-app-password-list]')).toBeVisible()
   await expect(page.locator('[data-acl-note]')).toContainText('Manage app passwords')
   await expect(page.getByRole('main').locator('header').first()).toContainText('anna@example.org')

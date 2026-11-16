@@ -1,14 +1,14 @@
 import { expect, test } from '../fixtures/test'
 
-test('an administrator changes Pushover in its legacy mailbox position', async ({
+test('an administrator changes Pushover through its dedicated mailbox page', async ({
   page,
   mockApi,
   expectAccessible,
   expectNoHorizontalScroll,
 }) => {
   await mockApi.use('account-admin')
-  await page.goto('mailboxes/anna@example.org#pushover')
-  const section = page.locator('#pushover')
+  await page.goto('mailboxes/anna@example.org/push-notifications')
+  const section = page.getByRole('main')
   await section.locator('input[name="token"]').fill('a'.repeat(30))
   await section.locator('input[name="userKey"]').fill('b'.repeat(30))
   await section.locator('input[name="title"]').fill('Mailbox notifications')
@@ -28,9 +28,8 @@ test('a domain administrator without pushover sees its stored values read-only i
 }) => {
   await mockApi.use('account-domain-admin-no-flags')
   await page.goto('mailboxes/anna@example.org#pushover')
-  await expect(page.locator('#pushover [data-acl-note]')).toContainText('Prohibited by ACL')
-  await expect(page.locator('#pushover input[name="title"]')).toBeDisabled()
-  await expect(page.locator('#pushover button[type="submit"]')).toHaveCount(0)
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.locator('#pushover')).toHaveCount(0)
   await page.goto('mailboxes/anna@example.org/push-notifications')
   await expect(page.locator('input[name="title"]')).toBeDisabled()
   await expect(page.getByRole('main')).toContainText('anna@example.org')

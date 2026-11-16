@@ -1,3 +1,4 @@
+import { openListFilters, closeListFilters } from '../fixtures/lists'
 // Helpers of the UI 009 end-to-end tests: the list layout by width, entries by their ID, waiting
 // for the list to settle, and the filter panel.
 import { expect, type Locator, type Page } from '@playwright/test'
@@ -32,13 +33,12 @@ export async function listReady(page: Page): Promise<void> {
 
 /** Opens the filter panel when it is collapsed (below md). */
 export async function openFilters(page: Page): Promise<void> {
-  const toggle = page.getByRole('button', { name: 'Filters and sorting' })
-  if (!(await toggle.isVisible())) return
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
+  await openListFilters(page)
 }
 
 /** Types into the list's search field and waits for the list to follow. */
 export async function search(page: Page, text: string): Promise<void> {
+  await closeListFilters(page)
   await page.getByRole('searchbox', { name: 'Search:' }).fill(text)
   await expect(page).toHaveURL(new RegExp(`[?&]q=${encodeURIComponent(text)}`))
   await listReady(page)

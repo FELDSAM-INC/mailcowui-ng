@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 // UI 011 US8 (T137, FR-075): the audit log filtered to this feature's targets, with its labels and
 // the details as stored (API gap 8): state before and after, queue IDs with their results (a long
 // list collapsed), changed ban settings and list entries, rules, and translated failure reasons.
@@ -101,10 +102,9 @@ test.describe('operations history @operations', () => {
     await expect(records(page).first()).toContainText('Service failure')
     await page.goto('audit-log?targetType=container&targetId=nginx-mailcow')
     await expect(records(page).first()).toContainText('Outcome unknown')
-    const toggle = page.getByRole('button', { name: 'Filters', exact: true })
-    if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
-    const options = await page
-      .getByRole('form', { name: 'Filters' })
+    const options = await (
+      await openListFilters(page)
+    )
       .getByLabel('Target type')
       .locator('option')
       .allTextContents()

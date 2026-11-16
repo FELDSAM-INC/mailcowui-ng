@@ -188,7 +188,7 @@ test('US5 default sign-in forwards in the same tab, while a deep link returns to
   expect(await mockApi.countRequests('createWebmailHandOff')).toBe(0)
 })
 
-test('US5 a forwarding failure lands on Password with an announcement', async ({
+test('US5 a forwarding failure lands on Overview with an announcement', async ({
   page,
   mockApi,
 }) => {
@@ -197,13 +197,13 @@ test('US5 a forwarding failure lands on Password with an announcement', async ({
   await page.goto('')
   await submitPassword(page, 'anna@example.org')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.locator('[data-own-password]')).toBeVisible()
+  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
   await expect(page.locator('[data-live="assertive"]')).toContainText(
     'Webmail could not be opened.',
   )
 })
 
-test('US5 reauthentication returns to Password without applying the forwarding preference', async ({
+test('US5 reauthentication returns to Overview without applying the forwarding preference', async ({
   page,
   mockApi,
 }) => {
@@ -214,12 +214,12 @@ test('US5 reauthentication returns to Password without applying the forwarding p
   await page.clock.install()
   await page.goto('')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.locator('[data-own-password]')).toBeVisible()
+  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
   await mockApi.patch({ expireSession: true })
   await page.clock.fastForward('03:00')
   await expect(page.getByRole('button', { name: 'Login', exact: true })).toBeVisible()
   await submitPassword(page, 'anna@example.org')
   await expectLanding(page, 'mailboxUser')
-  await expect(page.locator('[data-own-password]')).toBeVisible()
+  await expect(page.locator('[data-mailbox-overview]')).toBeVisible()
   expect(await mockApi.countRequests('createWebmailHandOff')).toBe(0)
 })

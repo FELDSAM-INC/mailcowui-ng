@@ -1,3 +1,4 @@
+import { expectListSort } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
 import { pickDomain } from '../../support/domain-picker'
@@ -18,16 +19,16 @@ for (const role of ['admin', 'domainAdmin'] as const) {
     expectNoHorizontalScroll,
   }) => {
     await mockApi.use(role === 'admin' ? 'admins-three' : 'domain-admins-three')
-    await page.goto(`administrators/${path}?sort=active&order=desc`)
+    await page.goto(`administrators/${path}?sort=username&order=desc`)
     await expect(page.locator('[data-account-row]')).toHaveCount(3)
-    await expect(page.locator('[data-account-sort]')).toHaveValue('active')
+    await expectListSort(page, 'username', 'desc')
     await expectAccessible()
     await expectNoHorizontalScroll()
     await page.locator('[data-account-row]').first().press('Enter')
     await expect(page.locator('#section-account')).toBeVisible()
     await page.goBack()
-    await expect(page).toHaveURL(/sort=active&order=desc/)
-    await expect(page.locator('[data-account-sort]')).toHaveValue('active')
+    await expect(page).toHaveURL(/order=desc/)
+    await expectListSort(page, 'username', 'desc')
   })
   test(`${role} creates with a generated password, edits, renames and removes`, async ({
     page,

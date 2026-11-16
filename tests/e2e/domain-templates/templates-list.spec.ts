@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 // UI 002 US6, the template list (T079): the navigation entry and the link from the domain list,
 // paging, search and sort, the classic columns as cards and table, the list states, single
 // deletion with the classic confirmation, the classic removal of selected templates with the bulk
@@ -49,16 +50,14 @@ test.describe('template list', () => {
     await page.getByRole('searchbox', { name: 'Search:' }).fill('pack')
     await expect(page).toHaveURL(/q=pack/)
     await expect(page.locator('[data-result-count]')).toHaveText('Templates found: 30')
-    for (const [value, label] of [
+    for (const [value] of [
       ['id', 'ID'],
-      ['createdAt', 'Created on'],
-      ['modifiedAt', 'Last modified'],
       ['name', 'Template'],
     ]) {
-      await page.getByLabel('Sort by').selectOption({ label })
+      await sortList(page, value!)
       await expect(page).toHaveURL(value === 'name' ? /^(?!.*sort=)/ : new RegExp(`sort=${value}`))
     }
-    await page.getByLabel('Order').selectOption('desc')
+    await sortList(page, 'name')
     await expect(page).toHaveURL(/order=desc/)
     await expect(page.locator('[data-entry]').first()).toHaveAttribute('data-entry', '33')
     await page.locator('[data-page-size] select').selectOption('50')

@@ -2,11 +2,15 @@ import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
+import { ref, defineComponent, h } from 'vue'
+import SourcePicker from '@/features/sync-jobs/sources/SourcePicker.vue'
+import DomainPicker from '@/shared/components/DomainPicker.vue'
 import SourceEditorPage from '@/features/sync-jobs/sources/SourceEditorPage.vue'
 import { deleteSource, disconnect, type SyncSource } from '@/features/sync-jobs/sources/api'
 import { sourceForm, sourcePatch } from '@/features/sync-jobs/sources/form'
 import {
   checkValues,
+  initialCreateValues,
   createBody,
   needsRemotePassword,
   patchFor,
@@ -67,6 +71,80 @@ async function edit(page: VueWrapper) {
   await flushPromises()
 }
 describe('Sync sources', () => {
+  it('loads reusable source settings and discards a typed password when choosing OAuth', async () => {
+    useScenario('sync-jobs-admin')
+    server.use(
+      http.get('*/api/v2/sync-sources/1', () =>
+        HttpResponse.json({ data: { ...fixture(), authMechanism: 'xoauth2' } }),
+      ),
+    )
+    const form = ref(initialCreateValues(syncJobCapabilities(), {}))
+    form.value.remotePassword = 'DO_NOT_REUSE'
+    const router = createTestRouter()
+    await router.push('/sync-jobs/new')
+    wrapper = mountWithApp(
+      defineComponent({
+        setup: () => () =>
+          h(SourcePicker, {
+            id: 'source-picker',
+            editing: false,
+            errors: [],
+            modelValue: form.value,
+            'onUpdate:modelValue': (value) => {
+              form.value = value
+            },
+          }),
+      }),
+      { global: { plugins: [router] } },
+    )
+    wrapper.getComponent(DomainPicker).vm.$emit('update:modelValue', '1')
+    await vi.waitFor(() => expect(form.value.sourceOAuth).toBe(true))
+    expect(form.value.remotePassword).toBe('')
+    expect(form.value).toMatchObject({
+      sourceId: 1,
+      remoteHost: 'imap.example.org',
+      remotePort: '993',
+      encryption: 'ssl',
+    })
+    wrapper.getComponent(DomainPicker).vm.$emit('update:modelValue', null)
+    await flushPromises()
+    expect(form.value.sourceId).toBeUndefined()
+    expect(form.value.sourceOAuth).toBe(false)
+  })
+  it('fetches source choices with inactive sources marked unavailable', async () => {
+    useScenario('sync-jobs-admin')
+    const reads: URL[] = []
+    server.use(
+      http.get('*/api/v2/sync-sources', ({ request }) => {
+        reads.push(new URL(request.url))
+        return HttpResponse.json({
+          data: [{ ...fixture(), active: false }],
+          meta: { total: 1, offset: 0, limit: 25 },
+        })
+      }),
+    )
+    const router = createTestRouter()
+    await router.push('/sync-jobs/new')
+    wrapper = mountWithApp(SourcePicker, {
+      props: {
+        id: 'source-picker',
+        editing: false,
+        errors: [],
+        modelValue: initialCreateValues(syncJobCapabilities(), {}),
+      },
+      global: { plugins: [router] },
+    })
+    const picker = wrapper.getComponent(DomainPicker)
+    const result = await picker
+      .props('sources')[0]!
+      .fetchPage({ q: 'External', offset: 0, limit: 25 })
+    expect(reads[0]?.searchParams.get('q')).toBe('External')
+    expect(result.items[0]).toMatchObject({ name: '1', nameUnicode: 'External IMAP', relay: true })
+    const disabledReason = picker.props('disabledReason')
+    const option = result.items[0]
+    if (!disabledReason || !option) throw new Error('Source picker must expose its inactive option')
+    expect(disabledReason(option)).toBeTruthy()
+  })
   it('saves only changed values with the source version', async () => {
     const data = fixture(),
       requests: { body: unknown; etag: string | null }[] = []

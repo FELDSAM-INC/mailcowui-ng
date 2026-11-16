@@ -179,7 +179,7 @@ test('T054 saves a partial patch, refreshes public branding and keeps plain text
   await expect(section).toContainText('<b>Acme Mail</b>')
   await expectAccessible()
   await signOutFromMenu(page)
-  await expect(page.locator('main').getByText('Acme & Co Mail', { exact: true })).toBeVisible()
+  await expect(page.locator('main [data-product-name]')).toHaveText('Acme & Co Mail')
 })
 
 test('T054 previews every announcement type and disabling updates the shell', async ({

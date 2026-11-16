@@ -122,6 +122,7 @@ test.describe('editing a sync job', () => {
 
     await openEdit(page)
     await page.getByLabel('Hostname').fill('imap.other.example')
+    await page.getByRole('textbox', { name: /^Password/ }).fill('New-destination-secret')
     await mockApi.patch({ syncJobs: { changeElsewhere: { id: 2, intervalMinutes: 50 } } })
     await page.getByRole('button', { name: 'Save changes' }).click()
     await page.getByRole('button', { name: 'Discard my changes' }).click()
@@ -182,6 +183,7 @@ test.describe('editing a sync job', () => {
     await page.getByLabel('Custom parameters').fill('')
     await page.getByLabel('Hostname').fill('imap.old-mail.example')
     await page.getByLabel('Username').fill('alice.old')
+    await page.getByRole('textbox', { name: /^Password/ }).fill('New-destination-secret')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
       page.getByRole('main').getByText('Object imap.old-mail.example / alice.old already exists'),

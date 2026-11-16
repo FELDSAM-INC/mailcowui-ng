@@ -1,3 +1,4 @@
+import { sortList, openListFilters, closeListFilters } from '../fixtures/lists'
 import { expect, test } from '../fixtures/test'
 import { pick } from '../aliases/helpers'
 
@@ -19,15 +20,19 @@ test('filters list defaults to descending IDs, pages, searches and restores URL 
   await page.getByRole('button', { name: 'Next', exact: true }).click()
   await expect(page).toHaveURL(/page=2/)
   await expect(page.locator(rows)).toHaveCount(15)
+  await openListFilters(page)
   await page.getByRole('combobox', { name: /^Filter type/ }).selectOption('prefilter')
+  await closeListFilters(page)
   await expect(page).not.toHaveURL(/page=/)
   await expect(page.locator(rows)).toHaveCount(20)
   await page.getByRole('searchbox', { name: 'Search:', exact: true }).fill('SPAM')
   await expect(page.locator(rows)).toHaveCount(1)
   await expect(page.locator(rows)).toContainText('Spam to folder')
-  await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('description')
+  await sortList(page, 'description')
   await expect(page).toHaveURL(/sort=description/)
+  await openListFilters(page)
   await page.getByRole('combobox', { name: 'Active', exact: true }).selectOption('no')
+  await closeListFilters(page)
   await expect(page.getByRole('main')).toContainText('No matching records found')
   await page.goBack()
   await expect(page.locator(rows)).toHaveCount(1)
@@ -70,7 +75,9 @@ test('creation validates before Add, edits invalidate validation, and activation
   await expectAccessible()
   await expectNoHorizontalScroll()
   await page.getByRole('link', { name: 'Filters', exact: true }).last().click()
+  await openListFilters(page)
   await page.getByRole('combobox', { name: 'Active', exact: true }).selectOption('yes')
+  await closeListFilters(page)
   await expect(page.locator(rows)).toHaveCount(4)
   await expect(page.locator('[data-filter-id="1"]')).toHaveCount(0)
   await expect(page.locator('[data-filter-id="2"]')).toBeVisible()

@@ -91,9 +91,7 @@ test('single Edit actions bypass the menu and mailbox deletion returns focus aft
   await page.setViewportSize({ width: 1366, height: 900 })
   await mockApi.use('templates')
   await page.goto('domain-templates')
-  const template = page
-    .locator('main table tbody tr')
-    .filter({ has: page.getByRole('link', { name: 'Default', exact: true }) })
+  const template = page.locator('[data-entry="1"]')
   await expect(
     template.locator('td:last-child').getByRole('link', { name: 'Edit: Default', exact: true }),
   ).toBeVisible()

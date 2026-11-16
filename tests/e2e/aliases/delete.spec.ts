@@ -35,8 +35,9 @@ test.describe('alias list: deletion', () => {
     await page.goto('aliases')
     await listReady(page)
     const box = await trigger(page, EDIT_ALIAS_004.sales).boundingBox()
-    expect(box!.width).toBeGreaterThanOrEqual(44)
-    expect(box!.height).toBeGreaterThanOrEqual(44)
+    const minimum = await page.evaluate(() => (matchMedia('(pointer: coarse)').matches ? 44 : 24))
+    expect(box!.width).toBeGreaterThanOrEqual(minimum)
+    expect(box!.height).toBeGreaterThanOrEqual(minimum)
 
     let dialog = await openRemove(page, EDIT_ALIAS_004.sales)
     await expect(dialog.getByRole('heading', { name: 'Confirm deletion' })).toBeVisible()

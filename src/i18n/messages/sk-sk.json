@@ -847,7 +847,9 @@
     },
     "updating": "Aktualizuje sa…",
     "backToList": "Späť na zoznam",
-    "columns": "Stĺpce"
+    "columns": "Stĺpce",
+    "details": "Podrobnosti",
+    "detailsOf": "Podrobnosti: {name}"
   },
   "nav": {
     "apiKeys": "API kľúče",

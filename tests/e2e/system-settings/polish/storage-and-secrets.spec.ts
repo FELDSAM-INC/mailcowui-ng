@@ -70,7 +70,7 @@ async function editText(page: Page, sectionId: string, field: string, value: str
   await page.locator(field).fill(value)
   await expect(page.locator(field)).toHaveValue(value)
   await section.getByRole('button', { name: 'Cancel', exact: true }).click()
-  await expect(section.locator('form')).toHaveCount(0)
+  await expect(section.locator('form:not([role=search])')).toHaveCount(0)
 }
 
 const storageCases: {
@@ -112,7 +112,7 @@ const storageCases: {
       await page.locator('#login-page-hideMailboxUserLogin').check()
       await expect(page.locator('#login-page-hideMailboxUserLogin')).toBeChecked()
       await section.getByRole('button', { name: 'Cancel', exact: true }).click()
-      await expect(section.locator('form')).toHaveCount(0)
+      await expect(section.locator('form:not([role=search])')).toHaveCount(0)
     },
   },
   {
@@ -174,7 +174,10 @@ const storageCases: {
     scenario: 'mass-mail-completed',
     path: 'system/mass-mail/jobs',
     exercise: async (page) => {
-      await page.getByRole('link', { name: 'Maintenance', exact: true }).click()
+      await page
+        .locator('[data-job-list] [data-card]:visible, [data-job-list] tbody tr:visible')
+        .filter({ hasText: 'Maintenance' })
+        .click()
       await page.getByLabel('Recipient outcome').selectOption('failed')
       await expect(page.locator('[data-job-recipient]')).toHaveCount(6)
     },

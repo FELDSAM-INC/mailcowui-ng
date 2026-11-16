@@ -51,7 +51,7 @@ for (const forced of [false, true]) {
       .locator('form')
       .getByRole('button', { name: forced ? 'Save changes' : 'Change password', exact: true })
       .click()
-    if (forced) await expect(page).toHaveURL(/\/ng\/account\/password$/)
+    if (forced) await expect(page).toHaveURL(/\/ng\/account\/overview$/)
     else await expect(page.locator('[data-password-changed]')).toBeVisible()
     await check([next, MOCK_PASSWORD])
     await page.reload()

@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { openBulkActions } from '../fixtures/flows'
 // UI 002 US5, acting on several domains at once (T072): selection mode, the API's bulk operation
 // with version tags, confirmations, progress, per-domain results, retry and the edge cases.
@@ -148,7 +149,7 @@ test.describe('bulk actions', () => {
     for (const change of [
       () => page.getByRole('button', { name: 'Next', exact: true }).click(),
       () => page.getByRole('searchbox', { name: 'Search:' }).fill('bulk'),
-      () => page.getByLabel('Sort by').selectOption('createdAt'),
+      () => sortList(page, 'mailboxes'),
       () => page.locator('[data-page-size] select').selectOption('50'),
     ]) {
       await page.getByRole('checkbox', { name: 'Select all on this page' }).check()

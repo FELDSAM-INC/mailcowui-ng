@@ -1,3 +1,4 @@
+import { openListFilters, closeListFilters } from '../../fixtures/lists'
 import { expect, test } from '../../fixtures/test'
 import { setPageVisibility } from '../../fixtures/visibility'
 import { mockMassMailJob } from '../../../mocks/factories/mass-mail'
@@ -93,18 +94,22 @@ test('unknown job offers a back link; list and recipient filters survive history
   await page.goto('system/mass-mail/jobs/01JQ0000000000000000000999')
   await expect(page.getByRole('main')).toContainText('This item could not be found.')
   await page.getByRole('link', { name: 'Mass mail jobs', exact: true }).last().click()
-  await page.getByLabel('Search subjects').fill('Missing')
+  await page.getByRole('searchbox', { name: 'Search subjects' }).fill('Missing')
   await expect(page).toHaveURL(/q=Missing/)
   await expect(page.locator('[data-jobs-empty]')).toBeVisible()
-  await page.getByLabel('Search subjects').fill('Maintenance')
+  await page.getByRole('searchbox', { name: 'Search subjects' }).fill('Maintenance')
   await expect(
-    page.locator('[data-job-list]').getByRole('link', { name: 'Maintenance', exact: true }),
+    page
+      .locator('[data-job-list] [data-card]:visible, [data-job-list] tbody tr:visible')
+      .filter({ hasText: 'Maintenance' }),
   ).toBeVisible()
+  await openListFilters(page)
   await page.getByLabel('Job status').selectOption('completed')
+  await closeListFilters(page)
   await expect(page).toHaveURL(/status=completed/)
   await page
-    .locator('[data-job-list]')
-    .getByRole('link', { name: 'Maintenance', exact: true })
+    .locator('[data-job-list] [data-card]:visible, [data-job-list] tbody tr:visible')
+    .filter({ hasText: 'Maintenance' })
     .click()
   await page.getByLabel('Recipient outcome').selectOption('failed')
   await page.getByLabel('Search recipients').fill('user001@')

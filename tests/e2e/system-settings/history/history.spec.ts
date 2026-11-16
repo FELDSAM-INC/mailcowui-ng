@@ -1,3 +1,4 @@
+import { openListFilters } from '../../fixtures/lists'
 import { expect, test } from '../../fixtures/test'
 
 test('map History keeps its target filter and renders human-readable size changes', async ({
@@ -47,13 +48,14 @@ test('job history shows creation and completion counts and all settings targets 
   await page.goto('audit-log?targetType=massMailJob&targetId=01JB3K4M5N6P7Q8R9S0TVWXYZA')
   await expect(page.getByText('Mass mail queued', { exact: true }).last()).toBeVisible()
   await expect(page.getByText('Mass mail completed', { exact: true }).last()).toBeVisible()
-  const detailButtons = page.getByRole('button', { name: 'Show details', exact: true })
+  const detailButtons = page
+    .getByRole('button', { name: 'Show details', exact: true })
+    .and(page.locator('[aria-expanded="false"]'))
   while (await detailButtons.count()) await detailButtons.first().click()
   await expect(page.getByText('Delivered: 8', { exact: true })).toBeVisible()
   await expect(page.getByText('Failed: 1', { exact: true })).toBeVisible()
   await expect(page.getByText('Skipped: 1', { exact: true })).toBeVisible()
-  const filters = page.getByRole('button', { name: 'Filters', exact: true })
-  if ((await filters.getAttribute('aria-expanded')) === 'false') await filters.click()
+  await openListFilters(page)
   for (const type of [
     'logo',
     'uiTexts',

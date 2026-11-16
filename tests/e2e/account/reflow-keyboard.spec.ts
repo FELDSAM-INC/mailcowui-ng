@@ -7,7 +7,7 @@ import { totpCode } from '../../support/totp'
 import { expect, test } from '../fixtures/test'
 
 const SCREENS = [
-  ['default landing', 'account-mailbox', '', '[data-own-password]'],
+  ['default landing', 'account-mailbox', '', '[data-mailbox-overview]'],
   ['account', 'account-mailbox', 'account', '[data-mailbox-overview]'],
   ['password', 'account-mailbox', 'account/password', 'input[autocomplete="current-password"]'],
   ['recovery', 'account-mailbox', 'account/recovery-email', 'input[type="email"]'],
@@ -126,14 +126,23 @@ async function tabTo(page: Page, target: Locator) {
       }),
     )
     .toBe(true)
-  const visibleFocus = await target.evaluate((element) => {
-    const style = getComputedStyle(element)
-    return (
-      (style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0) ||
-      style.boxShadow !== 'none'
+  await expect
+    .poll(
+      () =>
+        target.evaluate((element) => {
+          const indicator =
+            element
+              .closest('[data-code-input]')
+              ?.querySelector('[data-code-digit][data-active="true"]') ?? element
+          const style = getComputedStyle(indicator)
+          return (
+            (style.outlineStyle !== 'none' && parseFloat(style.outlineWidth) > 0) ||
+            style.boxShadow !== 'none'
+          )
+        }),
+      { message: 'keyboard focus has a visible indicator' },
     )
-  })
-  expect(visibleFocus, 'keyboard focus has a visible indicator').toBe(true)
+    .toBe(true)
 }
 
 for (const [name, scenario, path, ready] of SCREENS) {

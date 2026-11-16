@@ -1,3 +1,4 @@
+import { clickRowAction } from '../fixtures/row-actions'
 // T144: reflow, orientation, focus visibility and motion on every screen and dialog of feature 001
 // (FR-080, FR-083, FR-085, SC-005, WCAG 1.4.10, 2.4.11).
 import type { Page } from '@playwright/test'
@@ -47,23 +48,13 @@ const SCREENS: Screen[] = [
     name: 'the rename dialog',
     scenario: 'user-with-passkeys',
     path: 'passkeys',
-    open: (page) =>
-      page
-        .getByRole('main')
-        .getByRole('button', { name: /^Rename/ })
-        .first()
-        .click(),
+    open: (page) => clickRowAction(page, page.locator('main [data-card]').first(), /^Rename/),
   },
   {
     name: 'the removal confirmation',
     scenario: 'user-with-passkeys',
     path: 'passkeys',
-    open: (page) =>
-      page
-        .getByRole('main')
-        .getByRole('button', { name: /^Remove/ })
-        .first()
-        .click(),
+    open: (page) => clickRowAction(page, page.locator('main [data-card]').first(), /^Remove/),
   },
   { name: 'the API keys', scenario: 'api-keys-many', path: 'api-keys' },
   { name: 'the API key form', scenario: 'api-keys-empty', path: 'api-keys/new' },
@@ -93,7 +84,11 @@ async function openScreen(
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
   if (screen.open) {
     await screen.open(page)
-    await expect(page.locator('[role="dialog"], [role="alertdialog"], [role="menu"]')).toBeVisible()
+    await expect(
+      page.locator(
+        '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [role="menu"][data-state="open"]',
+      ),
+    ).toBeVisible()
   }
 }
 
@@ -137,7 +132,9 @@ for (const screen of SCREENS) {
       await expectNoHorizontalScroll(page, { widths: [320] })
     }
     const target = screen.open
-      ? page.locator('[role="dialog"], [role="alertdialog"], [role="menu"]')
+      ? page.locator(
+          '[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"], [role="menu"][data-state="open"]',
+        )
       : page.getByRole('heading', { level: 1 }).first()
     await expect(target).toBeVisible()
   })

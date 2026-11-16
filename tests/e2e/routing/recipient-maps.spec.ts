@@ -21,7 +21,7 @@ test.describe('recipient maps', () => {
     await expect(entry(page, 1)).toContainText('@old.example')
     await expect(entry(page, 1)).toContainText('@new.example')
     if (!isNarrow(page)) {
-      for (const header of ['ID', 'Original recipient', 'New recipient', 'Active']) {
+      for (const header of ['ID', 'Original recipient', 'New recipient']) {
         await expect(page.getByRole('columnheader', { name: header })).toBeVisible()
       }
     }

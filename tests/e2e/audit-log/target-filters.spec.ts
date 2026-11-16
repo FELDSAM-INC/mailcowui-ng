@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 // UI 002 US8, the audit log's target filters (T097, FR-063, research D26): the translated target
 // types, a target filter by type and identifier that narrows the list, both as removable chips that
 // survive a reload, and the API key page's History link.
@@ -9,9 +10,7 @@ import { HISTORY_KEY } from '../../mocks/scenarios/domains-history'
 const wide = (page: Page) => (page.viewportSize()?.width ?? 0) >= 768
 
 async function filters(page: Page): Promise<Locator> {
-  const toggle = page.getByRole('button', { name: 'Filters', exact: true })
-  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
-  return page.getByRole('form', { name: 'Filters' })
+  return openListFilters(page)
 }
 
 function records(page: Page): Locator {

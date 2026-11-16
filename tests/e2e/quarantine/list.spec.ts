@@ -1,3 +1,4 @@
+import { sortList } from '../fixtures/lists'
 import { expect, test } from '../fixtures/test'
 
 test('US1 list: newest first, paging, page sizes and inert message text', async ({
@@ -169,12 +170,13 @@ test('US2 list: administrators filter by recipient and sort the results in eithe
   if ((page.viewportSize()?.width ?? 0) >= 768) {
     const id = page.getByRole('columnheader', { name: 'ID', exact: true })
     await id.getByRole('button').click()
+    await expect(id).toHaveAttribute('aria-sort', 'ascending')
+    await id.getByRole('button').click()
     await expect(id).toHaveAttribute('aria-sort', 'descending')
     await id.getByRole('button').click()
     await expect(id).toHaveAttribute('aria-sort', 'ascending')
   } else {
-    await page.locator('#quarantine-sort').selectOption('id')
-    await page.locator('#quarantine-order').selectOption('asc')
+    await sortList(page, 'id')
   }
   await expect(items.first()).toHaveAttribute('data-quarantine-item', '31')
   await expect(items.last()).toHaveAttribute('data-quarantine-item', '35')

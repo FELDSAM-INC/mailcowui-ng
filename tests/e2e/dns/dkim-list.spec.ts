@@ -1,17 +1,10 @@
+import { sortList } from '../fixtures/lists'
 // UI 010 US1, the ARC/DKIM keys list (T031): entries, cards and table, filters, search, sort,
 // paging, the address, the list states, the server settings and the edge cases.
 import { LONG_NAME } from '../../mocks/scenarios/dns'
 import { politeRegion } from '../fixtures/flows'
 import { expect, test } from '../fixtures/test'
-import {
-  FIRST_LOAD,
-  entry,
-  entryNames,
-  isNarrow,
-  listReady,
-  openFilters,
-  resultCount,
-} from './helpers'
+import { FIRST_LOAD, entry, entryNames, isNarrow, listReady, openFilters } from './helpers'
 
 const ADMIN_NAMES = [
   LONG_NAME,
@@ -43,7 +36,7 @@ test.describe('DKIM key list', () => {
     expect((await entryNames(page)).map((name) => name.toLowerCase())).toEqual(
       ADMIN_NAMES.map((name) => name.toLowerCase()),
     )
-    expect(await resultCount(page)).toBe('10 entries')
+    await expect(page.getByText('Showing 1 to 10 of 10 entries', { exact: true })).toBeVisible()
     const org = entry(page, 'example.org')
     await expect(org).toContainText('Key valid')
     await expect(org).toContainText('Domain')
@@ -150,7 +143,7 @@ test.describe('DKIM key list', () => {
     await page.goto('dns/dkim-keys')
     await listReady(page)
     expect(await entryNames(page)).toHaveLength(25)
-    expect(await resultCount(page)).toBe('600 entries')
+    await expect(page.getByText('Showing 1 to 25 of 600 entries', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Next', exact: true }).click()
     await expect(page).toHaveURL(/page=2/)
     await expect(entry(page, 'd026.example')).toBeVisible()
@@ -163,7 +156,7 @@ test.describe('DKIM key list', () => {
     await page.goto('dns/dkim-keys?size=100&page=2&state=missing')
     await listReady(page)
     await expect(page.getByText('Page 2 of 2')).toBeVisible()
-    expect(await resultCount(page)).toBe('120 entries')
+    await expect(page.getByText('Showing 101 to 120 of 120 entries', { exact: true })).toBeVisible()
     await page.reload()
     await expect(page.getByText('Page 2 of 2')).toBeVisible()
     await openFilters(page)
@@ -193,8 +186,8 @@ test.describe('DKIM key list', () => {
     await page.locator('[data-clear-filters]').click()
     await expect.poll(async () => (await entryNames(page)).length).toBe(10)
     if (isNarrow(page)) {
-      await page.locator('#dkim-sort').selectOption('selector')
-      await page.locator('#dkim-order').selectOption('desc')
+      await sortList(page, 'selector')
+      await sortList(page, 'selector')
       await expect(page).toHaveURL(/sort=selector&order=desc|order=desc&sort=selector/)
     }
   })

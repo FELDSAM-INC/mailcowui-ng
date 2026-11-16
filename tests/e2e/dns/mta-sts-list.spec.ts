@@ -1,3 +1,4 @@
+import { sortList, openListFilters } from '../fixtures/lists'
 // UI 010 US4, the MTA-STS policies (T066, FR-054 to FR-056): paging, total, search, filters and
 // sort kept in the address, cards and table, opening an entry at the domain page's MTA-STS
 // section, the list states and a domain administrator's scope.
@@ -25,8 +26,7 @@ async function openList(page: Page) {
 }
 
 async function openFilters(page: Page) {
-  const toggle = page.getByRole('button', { name: /^Filters/ })
-  if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click()
+  await openListFilters(page)
 }
 
 test.describe('MTA-STS policies', () => {
@@ -87,7 +87,7 @@ test.describe('MTA-STS policies', () => {
     await page.locator('[data-clear-filters]').click()
     await expect.poll(async () => (await entryNames(page)).length).toBe(4)
     if (isNarrow(page)) {
-      await page.locator('#mta-sts-sort').selectOption('maxAge')
+      await sortList(page, 'maxAge')
     } else {
       await page.getByRole('columnheader', { name: 'Max age' }).getByRole('button').click()
     }

@@ -1,3 +1,4 @@
+import { sortList, openListFilters } from '../../fixtures/lists'
 import { expect, test } from '../../fixtures/test'
 import { clickRowAction } from '../../fixtures/row-actions'
 
@@ -69,13 +70,15 @@ test('T107 rule list sorts and restores content search, inactive filter and pagi
   await page.getByRole('searchbox', { name: 'Search:', exact: true }).fill('needle-content')
   await expect(page.locator(rows)).toHaveCount(3)
   await expect(page).not.toHaveURL(/page=/)
+  await openListFilters(page)
   await page.getByRole('combobox', { name: 'Active', exact: true }).selectOption('no')
-  await page.getByRole('combobox', { name: 'Sort by', exact: true }).selectOption('description')
-  await page.getByRole('button', { name: 'Ascending', exact: true }).click()
+  await sortList(page, 'description')
+  await sortList(page, 'description')
   await expect(page.locator(rows).first()).toHaveAttribute('data-rule-id', '30')
   await page.reload()
   await expect(page.locator(rows)).toHaveCount(3)
   await expect(page.locator(rows).first()).toHaveAttribute('data-rule-id', '30')
+  await openListFilters(page)
   await expect(page.getByRole('combobox', { name: 'Active', exact: true })).toHaveValue('no')
   if (await page.locator('table[data-rule-list]').count())
     await expect(

@@ -1,3 +1,4 @@
+import { openListFilters } from '../fixtures/lists'
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
@@ -48,8 +49,13 @@ test('US12 object History filters by its type and owning mailbox, context Histor
 
   await page.goto('mailboxes/anna@example.org/temporary-aliases')
   const alias = page.locator('[data-entry="bavoki.rumesa@example.org"]')
-  await alias.getByRole('link', { name: 'History', exact: true }).click()
-  await expect(page).toHaveURL(/targetType=temporaryAlias&targetId=anna(?:@|%40)example.org$/)
+  await expect(alias.getByRole('link', { name: 'History', exact: true })).toHaveCount(0)
+  await page.getByRole('link', { name: 'History', exact: true }).click()
+  const form = await openListFilters(page)
+  await form.getByLabel('Target type').selectOption('temporaryAlias')
+  await form.getByRole('button', { name: 'Apply filters' }).click()
+  await expect(page).toHaveURL(/targetType=temporaryAlias/)
+  await expect(page).toHaveURL(/targetId=anna(?:@|%40)example.org/)
   await expect(records(page)).toHaveCount(3)
 
   await page.goto('mailboxes/anna@example.org/recent-logins')
@@ -114,9 +120,7 @@ test('US12 self-service targets are labelled and script size changes are text', 
   await expect(page.getByRole('region', { name: /Details of Filter changed/ })).toContainText(
     'script: changed (120 → 240 bytes)',
   )
-  const toggle = page.getByRole('button', { name: 'Filters', exact: true })
-  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
-  const select = page.getByRole('form', { name: 'Filters' }).getByLabel('Target type')
+  const select = (await openListFilters(page)).getByLabel('Target type')
   for (const value of [
     'accountPassword',
     'secondFactor',

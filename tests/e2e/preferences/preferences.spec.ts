@@ -46,6 +46,7 @@ test('US6-AS1 FR-059 FR-088 Czech applies at once to text, numbers and the docum
   await chooseInMenu(page, 'Čeština')
   await expect(page.getByRole('heading', { level: 1, name: 'Systém a kontejnery' })).toBeVisible()
   await expect(page.locator('html')).toHaveAttribute('lang', 'cs-CZ')
+  await expect.poll(() => preferenceRequests(mockApi)).toHaveLength(1)
   const [save] = await preferenceRequests(mockApi)
   expect(save?.body).toEqual({ language: 'cs-cz' })
   expect(save?.headers['if-match']).toBe('"pref-1"')

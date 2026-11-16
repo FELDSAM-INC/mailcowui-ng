@@ -86,6 +86,7 @@ test.describe('feature 004: keyboard only', () => {
     await mockApi.use('sender-settings')
     await page.goto('mailboxes/anna@example.org?edit=mailbox')
     const picker = page.getByRole('combobox', { name: 'Allow to send as', exact: true })
+    await expect(picker).toBeEnabled()
     await picker.focus()
     await page.keyboard.type('info')
     await expect(page.getByRole('listbox', { name: 'Allow to send as' })).toBeVisible()

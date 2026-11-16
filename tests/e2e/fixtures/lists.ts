@@ -11,10 +11,13 @@ export async function openListFilters(page: Page) {
 
 export async function closeListFilters(page: Page) {
   const dialog = page.getByRole('dialog').filter({ has: page.locator('[data-filter-panel]') })
-  if (await dialog.count()) {
-    await dialog.press('Escape')
-    await expect(dialog).not.toBeVisible()
-  }
+  if (
+    await dialog.evaluateAll((elements) =>
+      elements.some((el) => el.getAttribute('data-state') === 'open'),
+    )
+  )
+    await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
 }
 
 /** Exercise the shared table header, or its Columns-menu equivalent on narrow screens. */

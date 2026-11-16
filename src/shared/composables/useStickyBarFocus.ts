@@ -17,7 +17,12 @@ export function coveredBy(element: Element, bars: Iterable<Element>): number {
   for (const bar of bars) {
     if (bar.contains(element) || getComputedStyle(bar).position !== 'sticky') continue
     const area = bar.getBoundingClientRect()
-    if (rect.bottom > area.top && rect.top < area.bottom) {
+    if (
+      rect.right > area.left &&
+      rect.left < area.right &&
+      rect.bottom > area.top &&
+      rect.top < area.bottom
+    ) {
       scroll = Math.max(scroll, rect.bottom - area.top + 8)
     }
   }

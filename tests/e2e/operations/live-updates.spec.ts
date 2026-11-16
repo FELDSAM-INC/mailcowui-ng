@@ -179,7 +179,7 @@ test.describe('dashboard live updates @operations', () => {
       (response) => response.url().endsWith('/api/v2/capabilities/monitoring') && response.ok(),
     )
     await page.locator('[data-live-updates]').getByRole('button', { name: 'Try again' }).click()
-    await capabilities
+    await (await capabilities).finished()
     await page.clock.runFor(50)
     await expect(page.getByRole('button', { name: 'Pause live updates' })).toBeVisible()
     await page.clock.runFor(5_500)

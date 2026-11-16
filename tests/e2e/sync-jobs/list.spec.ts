@@ -144,7 +144,7 @@ test.describe('sync job list', () => {
     await page.getByRole('button', { name: 'Clear search and filters' }).click()
     await expect(page).toHaveURL(/\/sync-jobs$/)
     await listReady(page)
-    expect(await entries(page).count()).toBe(25)
+    await expect(entries(page)).toHaveCount(25)
   })
 
   test('US1-AS7 FR-047 a failed load offers a retry with the request ID', async ({

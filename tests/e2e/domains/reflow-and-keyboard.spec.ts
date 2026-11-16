@@ -146,13 +146,20 @@ async function obscuredFocus(page: Page): Promise<string | null> {
     const header = document.querySelector('header')
     if (header?.contains(focused)) return null
     const rect = focused.getBoundingClientRect()
-    if (header && rect.bottom <= header.getBoundingClientRect().bottom) {
+    const headerRect = header?.getBoundingClientRect()
+    if (
+      headerRect &&
+      rect.right > headerRect.left &&
+      rect.left < headerRect.right &&
+      rect.bottom <= headerRect.bottom
+    ) {
       return `${focused.tagName} ${(focused.textContent ?? '').trim()} under the header`
     }
     for (const bar of document.querySelectorAll('[data-sticky-save], [data-section-actions]')) {
       if (bar.contains(focused) || getComputedStyle(bar).position !== 'sticky') continue
       const area = bar.getBoundingClientRect()
-      if (rect.top >= area.top && rect.bottom <= area.bottom) {
+      const beside = rect.right <= area.left || rect.left >= area.right
+      if (!beside && rect.top >= area.top && rect.bottom <= area.bottom) {
         return `${focused.tagName}#${focused.id} under the actions`
       }
     }

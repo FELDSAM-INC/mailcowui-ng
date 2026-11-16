@@ -22,7 +22,11 @@ test.describe('mailbox history', () => {
   }) => {
     await mockApi.use('admin-history')
     await page.goto('mailboxes/anna@a.example')
-    await page.getByRole('link', { name: 'History', exact: true }).click()
+    await page
+      .locator('header')
+      .filter({ has: page.getByRole('heading', { level: 1, name: 'Edit mailbox' }) })
+      .getByRole('link', { name: 'History', exact: true })
+      .click()
     await expect(page).toHaveURL(
       /\/ng\/audit-log\?targetId=anna%40a\.example|targetId=anna@a\.example/,
     )

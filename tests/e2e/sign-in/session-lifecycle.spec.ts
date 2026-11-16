@@ -1,5 +1,6 @@
 // T070: the session lifecycle (US1-AS12, AS17, FR-031–FR-037, FR-092, SC-009, SC-014 and the edge
 // cases of ended sessions and lost connections).
+import type { Page } from '@playwright/test'
 import { expect, test } from '../fixtures/test'
 import {
   assertiveRegion,
@@ -12,6 +13,23 @@ import {
 } from '../fixtures/flows'
 
 const domainsHeading = { level: 1, name: 'Domains' } as const
+
+/** Finish the initial list and shell reads before simulating an idle or revoked session. */
+async function openDomainsForSessionCheck(page: Page) {
+  const capabilities = Promise.all(
+    ['domains', 'self-service'].map(async (kind) => {
+      const response = await page.waitForResponse(
+        (response) => response.url().endsWith(`/api/v2/capabilities/${kind}`) && response.ok(),
+      )
+      await response.finished()
+    }),
+  )
+  await page.goto('domains')
+  await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
+  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
+  await capabilities
+  await page.clock.runFor(50)
+}
 
 test('US1-AS12 SC-009 sign-out confirms on the sign-in screen and Back reveals nothing of the session', async ({
   page,
@@ -63,10 +81,7 @@ test('US1-AS17 SC-014 the idle warning comes 2 minutes before expiry, "Stay sign
 }) => {
   await mockApi.use('short-idle')
   await page.clock.install()
-  await page.goto('domains')
-  await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
-  // Wait for the list response before advancing the idle clock; the heading renders earlier.
-  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
+  await openDomainsForSessionCheck(page)
   // Logo images follow the theme the accessibility check switches; they are not app requests.
   const apiRequests = async () =>
     (await mockApi.requests()).filter((r) => r.operationId !== 'getPublicConfigLogo')
@@ -152,9 +167,7 @@ test('FR-034 a request answered as unauthenticated shows the session-ended messa
 }) => {
   await mockApi.use('admin-active')
   await page.clock.install()
-  await page.goto('domains')
-  await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
-  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
+  await openDomainsForSessionCheck(page)
   await mockApi.patch({ expireSession: true })
   // FR-050: a navigation with an identity older than five minutes reads it again.
   await page.clock.fastForward('06:00')
@@ -172,9 +185,7 @@ test('Edge: an account deactivated while signed in ends the session on its next 
 }) => {
   await mockApi.use('admin-active')
   await page.clock.install()
-  await page.goto('domains')
-  await expect(page.getByRole('heading', domainsHeading)).toBeVisible()
-  await expect(page.locator('[data-list-state]')).toHaveAttribute('data-list-state', 'empty')
+  await openDomainsForSessionCheck(page)
   await mockApi.patch({ accounts: { admin: { active: false } } })
   await page.clock.fastForward('06:00')
   const navigation = await openNavigation(page)

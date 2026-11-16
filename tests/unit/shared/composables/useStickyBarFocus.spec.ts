@@ -24,6 +24,15 @@ function box(top: number, bottom: number, position = 'static'): HTMLElement {
 }
 
 describe('coveredBy', () => {
+  it('does not scroll the main content when focus is beside its action bar in the sidebar', () => {
+    const bar = box(700, 780, 'sticky')
+    const sidebarLink = box(720, 764)
+    sidebarLink.getBoundingClientRect = () => new DOMRect(200, 720, 100, 44)
+    expect(coveredBy(sidebarLink, [bar])).toBe(0)
+    sidebarLink.getBoundingClientRect = () => new DOMRect(-200, 720, 100, 44)
+    expect(coveredBy(sidebarLink, [bar])).toBe(0)
+  })
+
   it('scrolls a field under a sticky bar above it, with a margin', () => {
     const bar = box(700, 780, 'sticky')
     expect(coveredBy(box(690, 734), [bar])).toBe(42)

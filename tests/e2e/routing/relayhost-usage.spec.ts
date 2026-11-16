@@ -31,7 +31,7 @@ test.describe('relayhost usage', () => {
     await page.getByLabel('Kind', { exact: true }).selectOption('mailbox')
     await expect(page).toHaveURL(/kind=mailbox/)
     await search(page, 'bob')
-    expect(await entryIds(page)).toEqual(['mailbox:bob@example.org'])
+    await expect.poll(() => entryIds(page)).toEqual(['mailbox:bob@example.org'])
     await page.reload()
     await listReady(page)
     expect(await entryIds(page)).toEqual(['mailbox:bob@example.org'])

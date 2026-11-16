@@ -195,14 +195,19 @@ test('WCAG 2.4.11 the sticky header never hides the focused element in the setup
   await page.getByRole('heading', { level: 1 }).first().focus()
   for (let step = 0; step < 40; step++) {
     await page.keyboard.press('Tab')
-    const obscured = await page.evaluate(() => {
+    const obscured = await page.evaluate(async () => {
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      )
       const focused = document.activeElement
       const header = document.querySelector('header')
       if (!focused || !header || header.contains(focused) || focused === document.body) return null
       if (getComputedStyle(focused).position === 'fixed') return null
       const rect = focused.getBoundingClientRect()
       const bar = header.getBoundingClientRect()
-      return rect.bottom <= bar.bottom ? (focused.textContent ?? focused.tagName).trim() : null
+      return rect.right > bar.left && rect.left < bar.right && rect.bottom <= bar.bottom
+        ? focused.textContent?.trim() || focused.id || focused.tagName
+        : null
     })
     expect(obscured, 'a focused element hidden behind the sticky header').toBeNull()
   }

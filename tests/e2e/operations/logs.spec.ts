@@ -277,6 +277,6 @@ test.describe('logs @operations', () => {
     await expectAccessible()
     await page.getByRole('link', { name: 'Logs', exact: true }).last().click()
     await expect(page).toHaveURL(/\/operations\/logs\/postfix$/)
-    expect(await requestsOf(mockApi, 'listPostfixLog')).not.toEqual([])
+    await expect.poll(() => requestsOf(mockApi, 'listPostfixLog')).not.toEqual([])
   })
 })

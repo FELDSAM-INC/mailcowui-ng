@@ -185,12 +185,20 @@ test('US2-AS9 server-ended acting refuses the write once and restores the owner'
 }) => {
   await mockApi.use('acting-admin')
   await page.goto('mailboxes?q=alice')
+  // The overview starts its group-membership read after the mailbox response. Let that
+  // finish so the deliberate expiry is consumed by the write, not a startup read.
+  const memberships = page.waitForResponse(
+    (response) =>
+      /\/api\/v2\/mailboxes\/alice(?:@|%40)example\.org\/groups$/.test(response.url()) &&
+      response.ok(),
+  )
   await clickRowAction(
     page,
     page.locator('[data-entry="alice@example.org"]'),
     'Login alice@example.org',
   )
   await expect(page.locator('[data-acting-banner]')).toBeVisible()
+  await (await memberships).finished()
   await mockApi.patch({ invalidateImpersonation: true })
   const mark = await mockApi.mark()
   await chooseTheme(page, 'Dark')
@@ -235,6 +243,14 @@ test('FR-053 stale CSRF never replays a write after an out-of-band identity swit
   expectAccessible,
 }) => {
   await mockApi.use('acting-admin')
+  const ready = Promise.all(
+    ['mailboxes', 'self-service'].map(async (kind) => {
+      const response = await page.waitForResponse(
+        (response) => response.url().endsWith(`/api/v2/capabilities/${kind}`) && response.ok(),
+      )
+      await response.finished()
+    }),
+  )
   await page.goto('mailboxes?q=alice')
   await expect(
     await rowAction(
@@ -244,6 +260,8 @@ test('FR-053 stale CSRF never replays a write after an out-of-band identity swit
     ),
   ).toBeVisible()
   await page.keyboard.press('Escape')
+  await expect(page.locator('[data-slot="dropdown-menu-content"]')).toHaveCount(0)
+  await ready
   const csrf = (await (await page.request.get('/api/v2/csrf-token')).json()) as {
     data: { token: string }
   }

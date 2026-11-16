@@ -27,8 +27,8 @@ async function select(event: Event) {
   if (props.disabled || props.to !== undefined) return
   const target = event.currentTarget as HTMLElement
   const onSelect = props.onSelect
-  const trigger = (await restoreTrigger?.()) ?? target
-  onSelect?.(trigger)
+  const trigger = restoreTrigger ? await restoreTrigger() : target
+  if (trigger?.isConnected) onSelect?.(trigger)
 }
 </script>
 

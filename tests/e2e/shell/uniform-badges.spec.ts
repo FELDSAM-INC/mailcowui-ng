@@ -58,21 +58,23 @@ for (const [path, scenario] of lists) {
         )
         const badges = page.locator('main [data-slot="badge"]:visible')
         await expect(badges.first()).toBeVisible()
-        expect(
-          await badges.evaluateAll((elements) =>
-            elements.every((el) => {
-              const css = getComputedStyle(el)
-              return (
-                css.fontSize === '12px' &&
-                css.borderRadius === '8px' &&
-                el.scrollWidth <= el.clientWidth + 1
-              )
-            }),
-          ),
-        ).toBe(true)
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
-          true,
-        )
+        await expect
+          .poll(() =>
+            badges.evaluateAll((elements) =>
+              elements.every((el) => {
+                const css = getComputedStyle(el)
+                return (
+                  css.fontSize === '12px' &&
+                  css.borderRadius === '8px' &&
+                  el.scrollWidth <= el.clientWidth + 1
+                )
+              }),
+            ),
+          )
+          .toBe(true)
+        await expect
+          .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+          .toBe(true)
         if (['domains', 'mailboxes', 'filters', 'aliases'].includes(path)) {
           await page.screenshot({
             path: test.info().outputPath(`${width}-${dark ? 'dark' : 'light'}.png`),
@@ -118,6 +120,8 @@ test('quarantine badges retain signed symbol scores and contain long labels', as
         elements.every((el) => el.scrollWidth <= el.clientWidth + 1),
       ),
     ).toBe(true)
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
+      .toBe(true)
   }
 })

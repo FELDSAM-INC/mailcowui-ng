@@ -27,7 +27,9 @@
       "genericOidc": "Generic-OIDC",
       "keycloak": "Keycloak",
       "ldap": "LDAP"
-    }
+    },
+    "finishSection": "Save or cancel the open section before editing another section.",
+    "saveProviderFirst": "Save the provider first to configure offboarding and group synchronisation."
   },
   "oauth2": {
     "added": "Added client access",
@@ -92,21 +94,6 @@
       "member": "Group member attribute",
       "ad_chain": "Active Directory nested groups"
     },
-    "fields": {
-      "offboarding": "Disable sign-in for removed or disabled provider accounts",
-      "offboardingLimit": "Change limit (%)",
-      "groupSync": "Synchronise group memberships",
-      "groupAutocreate": "Create missing mailbox groups",
-      "groupDefaultDomain": "Default domain for new groups",
-      "groupPaths": "Keycloak group paths",
-      "idAttribute": "Stable identity attribute",
-      "disabledFilter": "Disabled-user filter",
-      "groupBaseDn": "Group base DN",
-      "groupFilter": "Group filter",
-      "groupNameAttribute": "Group name attribute",
-      "groupMemberMode": "Membership lookup",
-      "groupMemberAttribute": "Group member attribute"
-    },
     "summary": {
       "links": "Identity links",
       "creates": "New mailboxes",
@@ -123,6 +110,19 @@
       "conflicts": "Conflicts",
       "membership_removals": "Membership removals",
       "skipped": "Skipped accounts"
+    },
+    "sections": {
+      "directory": "LDAP identity and account status"
+    },
+    "sectionHelp": {
+      "directory": "Identify directory users consistently and recognise disabled accounts.",
+      "offboarding": "Control what happens when users are disabled or removed at the provider.",
+      "groups": "Synchronise provider groups with mailbox groups and choose how new groups are created."
+    },
+    "help": {
+      "groupBaseDn": "Leave empty to use the user base DN.",
+      "groupFilter": "LDAP filter selecting the groups to synchronise, for example (&(objectClass=group)(cn=mailcow-*)).",
+      "groupNameAttribute": "Attribute containing the group name, usually cn."
     }
   }
 }

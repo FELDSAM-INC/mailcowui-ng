@@ -1,6 +1,6 @@
 // Refreshes the bundled copies of mailcow's language files (constitution IV, research R15).
 //
-//   node scripts/i18n/refresh-snapshot.mjs [--ref 2026-09a]
+//   node scripts/i18n/refresh-snapshot.mjs [--ref 2026-11]
 //
 // Copies `data/web/lang/lang.en-gb.json` of the upstream tag, byte for byte, to
 // src/i18n/snapshot/lang.en-gb.json: the source of the `LegacyKey` type and the fallback when the
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const args = process.argv.slice(2)
 const refIndex = args.indexOf('--ref')
-const ref = refIndex >= 0 ? args[refIndex + 1] : '2026-09a'
+const ref = refIndex >= 0 ? args[refIndex + 1] : '2026-11'
 if (!ref) {
   console.error('usage: refresh-snapshot.mjs [--ref <tag>]')
   process.exit(2)

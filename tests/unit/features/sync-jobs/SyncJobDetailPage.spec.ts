@@ -98,7 +98,9 @@ describe('SyncJobDetailPage', () => {
     applyOverrides(mockState(), { syncJobs: { changeElsewhere: { id: 2, intervalMinutes: 45 } } })
     await wrapper.get('#section-syncjob form').trigger('submit')
     await settle(() => expect(wrapper.find('[data-outdated]').exists()).toBe(true))
-    expect(wrapper.get('[data-outdated]').text()).toContain('Interval (min): now saved as 45')
+    expect(wrapper.get('[data-outdated]').text()).toContain(
+      'Polling interval (minutes): now saved as 45',
+    )
     expect((wrapper.get('#syncjob-exclude').element as HTMLInputElement).value).toBe('(?i)trash')
     const discard = wrapper.findAll('button').find((b) => b.text() === 'Discard my changes')!
     await discard.trigger('click')

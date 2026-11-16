@@ -43,7 +43,11 @@ for (const scenario of [
     await expect(page.getByRole('button', { name: 'Copy the generated password' })).toBeVisible()
     await form(page).save.click()
     await expect(page.getByRole('heading', screen)).toHaveCount(0)
-    await expect(page).toHaveURL(/\/ng\/account\/overview$/)
+    await expect(page).toHaveURL(
+      scenario === 'account-forced-password-change-domain-admin'
+        ? /\/ng\/account\/password$/
+        : /\/ng\/account\/overview$/,
+    )
   })
 }
 

@@ -7,6 +7,7 @@
 // when `/lang/` cannot be loaded, or for a key the installation's files lack.
 import { shallowReadonly, shallowRef } from 'vue'
 
+import { LEGACY_KEY_ALIASES } from './legacy-key-aliases'
 import { formatLegacy, type LegacyArg, type LegacyNamed } from './legacy-format'
 import { DEFAULT_LOCALE, type AppLocale } from './locales'
 import type snapshot from './snapshot/lang.en-gb.json'
@@ -58,10 +59,24 @@ async function fetchFile(code: string): Promise<LegacyTree | null> {
     const response = await fetch(`/lang/lang.${code}.json`, { credentials: 'same-origin' })
     if (!response.ok) return null
     const data: unknown = await response.json()
-    return isTree(data) ? data : null
+    return isTree(data) ? normalizeLegacyKeys(data) : null
   } catch {
     return null
   }
+}
+
+/** Canonical keys win; an older key supplies only a missing 2026-11 key. */
+function normalizeLegacyKeys(tree: LegacyTree): LegacyTree {
+  const normalized = { ...tree }
+  for (const [key, aliases] of Object.entries(LEGACY_KEY_ALIASES)) {
+    if (lookup(key, tree) !== undefined) continue
+    const value = aliases.map((alias) => lookup(alias, tree)).find((text) => text !== undefined)
+    if (value === undefined) continue
+    const [section, name] = key.split('.') as [string, string]
+    const previous = normalized[section]
+    normalized[section] = { ...(isTree(previous) ? previous : {}), [name]: value }
+  }
+  return normalized
 }
 
 /** One request per file; a failed one is tried again next time. */

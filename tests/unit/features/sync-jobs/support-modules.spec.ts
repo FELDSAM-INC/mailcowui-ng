@@ -29,14 +29,14 @@ describe('creation outcome', () => {
 describe('FieldLabel', () => {
   it('shows the classic label followed by the imapsync option in code', () => {
     const wrapper = mountWithApp(FieldLabel, {
-      props: { text: legacy('add.delete1'), option: '--delete1' },
+      props: { text: legacy('syncjobs.delete1'), option: '--delete1' },
     })
     expect(wrapper.get('code').text()).toBe('(--delete1)')
     expect(wrapper.text()).toContain('Delete from source when completed')
   })
 
   it('shows the label alone without an option', () => {
-    const wrapper = mountWithApp(FieldLabel, { props: { text: legacy('add.exclude') } })
+    const wrapper = mountWithApp(FieldLabel, { props: { text: legacy('syncjobs.exclude') } })
     expect(wrapper.find('code').exists()).toBe(false)
   })
 })

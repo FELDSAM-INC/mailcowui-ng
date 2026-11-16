@@ -200,7 +200,7 @@ useDataList('sync-jobs-pages-syncjobs', undefined, () => ({
       <template #actions>
         <RouterLink :to="createLocation" :class="buttonVariants({ variant: 'default' })">
           <PlusIcon />
-          {{ lt('user.create_syncjob') }}
+          {{ lt('syncjobs.create') }}
         </RouterLink>
       </template>
     </PageHeader>
@@ -293,7 +293,7 @@ useDataList('sync-jobs-pages-syncjobs', undefined, () => ({
       <template #empty-actions>
         <RouterLink :to="createLocation" :class="buttonVariants({ variant: 'default' })">
           <PlusIcon />
-          {{ lt('user.create_syncjob') }}
+          {{ lt('syncjobs.create') }}
         </RouterLink>
       </template>
       <template #default>

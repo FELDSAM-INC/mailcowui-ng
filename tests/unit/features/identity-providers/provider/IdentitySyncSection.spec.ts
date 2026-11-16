@@ -64,7 +64,7 @@ async function open(data = fixture(), wide = true) {
   )
   wrapper = mountWithApp(IdentitySyncSection, { attachTo: document.body })
   await vi.waitFor(() =>
-    expect(wrapper!.find('#section-identity-sync').exists()).toBe(data.canSync),
+    expect(wrapper!.find('#section-identity-sync-offboarding').exists()).toBe(data.canSync),
   )
   await flushPromises()
   return wrapper
@@ -84,9 +84,9 @@ describe('Identity synchronisation', () => {
       }),
     )
     const page = await open(data)
-    await page.get('button[aria-label="Edit Identity synchronisation"]').trigger('click')
+    await page.get('button[aria-label="Edit Offboarding"]').trigger('click')
     await page.get('#identity-sync-offboarding').setValue(true)
-    await page.get('#section-identity-sync form').trigger('submit')
+    await page.get('#section-identity-sync-offboarding form').trigger('submit')
     await vi.waitFor(() =>
       expect(saved).toEqual([{ body: { offboarding: true }, etag: '"sync-v1"' }]),
     )
@@ -113,15 +113,15 @@ describe('Identity synchronisation', () => {
       }),
     )
     const page = await open(data)
-    await page.get('button[aria-label="Edit Identity synchronisation"]').trigger('click')
+    await page.get('button[aria-label="Edit Offboarding"]').trigger('click')
     await page.get('#identity-sync-offboardingLimit').setValue('25')
-    await page.get('#section-identity-sync form').trigger('submit')
+    await page.get('#section-identity-sync-offboarding form').trigger('submit')
     await vi.waitFor(() => expect(button('Save again')).toBeTruthy())
     expect((page.get('#identity-sync-offboardingLimit').element as HTMLInputElement).value).toBe(
       '25',
     )
     expect(calls).toBe(1)
-    await page.get('#section-identity-sync form').trigger('submit')
+    await page.get('#section-identity-sync-offboarding form').trigger('submit')
     await vi.waitFor(() => expect(versions).toEqual(['"sync-v1"', '"sync-v2"']))
   })
 
@@ -163,6 +163,54 @@ describe('Identity synchronisation', () => {
     expect(page.find('tbody tr td:last-child [data-row-expand]').exists()).toBe(true)
     await page.get('[data-row-expand]').trigger('click')
     expect(page.text()).toContain('The change limit stopped this run.')
+  })
+
+  it.each(['ldap', 'keycloak'] as const)(
+    'shows and saves %s group settings in their own section',
+    async (provider) => {
+      const data = fixture()
+      data.provider = provider
+      const saved: unknown[] = []
+      server.use(
+        http.patch('*/api/v2/identity-provider/synchronisation', async ({ request }) => {
+          const body = (await request.json()) as Partial<IdentitySyncStatus['settings']>
+          saved.push(body)
+          data.settings = { ...data.settings, ...body }
+          return HttpResponse.json({ data })
+        }),
+      )
+      const page = await open(data)
+      await page.get('button[aria-label="Edit Groups"]').trigger('click')
+      await page.get('#identity-sync-groupSync').setValue(true)
+      if (provider === 'ldap') {
+        await page.get('#identity-sync-groupFilter').setValue('(objectClass=group)')
+        await page.get('#identity-sync-groupMemberMode').setValue('ad_chain')
+        expect(page.find('#identity-sync-groupPaths').exists()).toBe(false)
+      } else {
+        await page.get('#identity-sync-groupPaths').setValue('/staff, /teams/*')
+        expect(page.find('#identity-sync-groupFilter').exists()).toBe(false)
+      }
+      await page.get('#section-identity-sync-groups form').trigger('submit')
+      await vi.waitFor(() =>
+        expect(saved).toEqual([
+          provider === 'ldap'
+            ? { groupSync: true, groupFilter: '(objectClass=group)', groupMemberMode: 'ad_chain' }
+            : { groupSync: true, groupPaths: ['/staff', '/teams/*'] },
+        ]),
+      )
+    },
+  )
+
+  it('keeps every section visible while provider settings are being edited', async () => {
+    const page = await open()
+    await page.setProps({ providerEditing: true })
+    for (const name of ['LDAP identity and account status', 'Offboarding', 'Groups']) {
+      const edit = page.get(`button[aria-label="Edit ${name}"]`)
+      expect(edit.attributes('aria-disabled')).toBe('true')
+      await edit.trigger('click')
+    }
+    expect(page.find('[id^="section-identity-sync-"] form').exists()).toBe(false)
+    expect(page.emitted('editing')?.flat()).not.toContain(true)
   })
 
   it('keeps new controls unavailable on an old schema', async () => {

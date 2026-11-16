@@ -18,6 +18,16 @@ export const systemSettingsRoutes: RouteRecordRaw[] = [
     },
     children: [
       {
+        path: 'sync-jobs',
+        name: 'system-settings-sync-jobs',
+        component: () =>
+          Promise.all([
+            import('@/features/sync-jobs/pages/SyncQueuePage.vue'),
+            loadFeatureMessages('sync-jobs'),
+          ]).then(([page]) => page),
+        meta: { titleKey: legacy('syncjobs.sync_jobs') },
+      },
+      {
         path: 'cors',
         name: 'system-settings-cors',
         component: () => import('./pages/integrations/CorsPage.vue'),

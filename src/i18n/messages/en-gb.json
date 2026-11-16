@@ -869,7 +869,7 @@
     "globalSieve": "Global Sieve filters",
     "mailboxGroups": "Mailbox groups",
     "syncSources": "Sync sources",
-    "syncQueue": "Sync queue"
+    "syncQueue": "Global settings"
   },
   "passkeys": {
     "add": {

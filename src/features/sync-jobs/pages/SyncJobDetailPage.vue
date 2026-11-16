@@ -137,7 +137,7 @@ watch(id, (value) => (initialStatus.value = value === undefined ? null : takeOut
       tabindex="-1"
       class="text-2xl font-semibold text-gray-900 focus:outline-none dark:text-white"
     >
-      {{ lt('edit.syncjob') }}
+      {{ lt('syncjobs.edit') }}
     </h1>
     <p role="alert" class="font-medium text-gray-900 dark:text-white">
       {{ t('syncJobs.detail.loadFailed') }}
@@ -146,7 +146,7 @@ watch(id, (value) => (initialStatus.value = value === undefined ? null : takeOut
   </section>
   <article v-else class="mx-auto flex w-full max-w-5xl flex-col gap-4">
     <template v-if="!showOnlySection">
-      <PageHeader :title="lt('edit.syncjob')" :description="jobLabel(job)">
+      <PageHeader :title="lt('syncjobs.edit')" :description="jobLabel(job)">
         <template #actions>
           <HistoryLink
             target-type="syncJob"

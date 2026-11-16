@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { lt } from '@/i18n'
 import type { Role } from '@/api'
 import { domainPickerSource } from '@/features/aliases-common'
 import DomainPicker from '@/shared/components/DomainPicker.vue'
@@ -87,7 +88,13 @@ const oauthTextFields = computed(
         {{ t('syncSources.applyPreset') }}
       </button>
     </div>
-    <p class="text-sm text-muted">{{ t('syncSources.presetHelp') }}</p>
+    <p class="text-sm text-muted">
+      {{
+        preset in passwordProviders
+          ? lt('syncjobs.source_presets_hint')
+          : t('syncSources.oauthPresetHelp')
+      }}
+    </p>
   </div>
   <div class="grid min-w-0 gap-4 md:grid-cols-2">
     <FormField

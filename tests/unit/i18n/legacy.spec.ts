@@ -99,6 +99,43 @@ describe('loadLegacy', () => {
     )
   })
 
+  it('keeps old-server translations when sync-job keys move in 2026-11', async () => {
+    server.use(
+      http.get('*/lang/lang.en-gb.json', () =>
+        HttpResponse.json({
+          mailbox: { sync_jobs: 'Operator migrations' },
+          add: { delete1: 'Operator removal policy' },
+        }),
+      ),
+      http.get('*/lang/lang.cs-cz.json', () =>
+        HttpResponse.json({
+          mailbox: { sync_jobs: 'Migrace pošty' },
+        }),
+      ),
+    )
+    await loadLegacy('cs-cz')
+    expect(lt('syncjobs.sync_jobs')).toBe('Migrace pošty')
+    expect(ltEnglish('syncjobs.sync_jobs')).toBe('Operator migrations')
+    expect(lt('syncjobs.delete1')).toBe('Operator removal policy')
+    // Completing another missing key must not overwrite the normalized operator text.
+    lt('login.password')
+    await vi.waitFor(() => expect(lt('login.password')).toBe('Password'))
+    expect(lt('syncjobs.sync_jobs')).toBe('Migrace pošty')
+  })
+
+  it('prefers the canonical key when both old and 2026-11 keys exist', async () => {
+    server.use(
+      http.get('*/lang/lang.en-gb.json', () =>
+        HttpResponse.json({
+          mailbox: { sync_jobs: 'Old wording' },
+          syncjobs: { sync_jobs: 'Current wording' },
+        }),
+      ),
+    )
+    await loadLegacy('en-gb')
+    expect(lt('syncjobs.sync_jobs')).toBe('Current wording')
+  })
+
   it('formats placeholders', async () => {
     await loadLegacy('en-gb')
     expect(lt('login.delayed', 30)).toBe('Login was delayed by 30 seconds.')

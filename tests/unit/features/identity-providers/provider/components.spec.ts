@@ -185,6 +185,11 @@ describe('MappingField', () => {
     const options = wrapper.findAll('#m-attributeMapping-0-template option').map((o) => o.text())
     expect(options).toEqual(['-- Template --', 'Default', 'Staff', 'Alumni'])
     expect(wrapper.text()).toContain('This mailbox template does not exist.')
+    const defaultField = wrapper.get('#m-defaultTemplate').element
+    const add = wrapper.get('#m-attributeMapping-add').element
+    expect(
+      defaultField.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     await wrapper.get('button[aria-label="Add: Attribute Mapping"]').trigger('click')
     expect(wrapper.emitted('update:rows')?.[0]?.[0]).toHaveLength(2)
     await wrapper.get('button[aria-label="Remove: alumni"]').trigger('click')

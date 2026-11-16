@@ -19,6 +19,7 @@ import {
 
 import { allTemplatesOptions } from '@/features/mailboxes'
 
+import { identitySyncKey } from './synchronisation-api'
 import type { ProviderInput, ProviderPatch } from './form-model'
 import type { IdentityProviderConfig } from './types'
 
@@ -75,6 +76,7 @@ async function afterWrite(
 ): Promise<void> {
   client.setQueryData(queryKeys.identityProvider.configuration(), config)
   await Promise.all([
+    client.invalidateQueries({ queryKey: identitySyncKey }),
     client.invalidateQueries({ queryKey: queryKeys.identityProvider.capabilities() }),
     client.invalidateQueries({ queryKey: queryKeys.publicConfig() }),
     client.invalidateQueries({ queryKey: queryKeys.auditEvents.all() }),

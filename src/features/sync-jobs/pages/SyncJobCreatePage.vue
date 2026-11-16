@@ -166,8 +166,8 @@ async function submit(event: Event) {
 </script>
 
 <template>
-  <SettingsPage :title="lt('add.syncjob')">
-    <p class="text-gray-700 dark:text-gray-300">{{ lt('add.syncjob_hint') }}</p>
+  <SettingsPage :title="lt('syncjobs.add')">
+    <p class="text-gray-700 dark:text-gray-300">{{ lt('syncjobs.add_hint') }}</p>
 
     <div v-if="capabilities.isPending.value" role="status" aria-busy="true">
       <p class="text-gray-600 dark:text-gray-400">{{ lt('datatables.loadingRecords') }}</p>

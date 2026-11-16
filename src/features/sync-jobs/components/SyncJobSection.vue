@@ -53,7 +53,7 @@ const ready = computed(() => !!props.caps)
 <template>
   <EditableSection
     section-id="syncjob"
-    :title="lt('edit.syncjob')"
+    :title="lt('syncjobs.edit')"
     editable
     :editing="editing"
     :saving="section.pending.value"

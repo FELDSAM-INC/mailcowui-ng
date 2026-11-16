@@ -10,7 +10,6 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import type { Role, SyncJobCapabilities, SyncJobEncryption } from '@/api'
-import { lt } from '@/i18n'
 import { useFormat } from '@/i18n/format'
 import FormField from '@/shared/components/FormField.vue'
 
@@ -95,7 +94,7 @@ const customParamsHint = computed(() => {
   // The mailbox user's add modal has no hint.
   return props.role === 'mailboxUser' && props.mode === 'create'
     ? undefined
-    : lt('add.custom_params_hint')
+    : t('syncJobs.form.legacyCustomParamsHint')
 })
 
 const isNumber = (field: string): field is NumberField =>

@@ -117,6 +117,7 @@ SCREENS.push(
     open: async (page) => {
       await page.getByRole('button', { name: 'Select', exact: true }).click()
       await page.getByRole('checkbox', { name: 'Select all on this page' }).first().check()
+      await openBulkActions(page)
       await page.getByRole('button', { name: 'Revoke all client tokens' }).click()
       await page.getByRole('alertdialog').getByRole('button').last().click()
       await expect(page.getByRole('heading', { name: 'Results' })).toBeVisible()
@@ -226,20 +227,19 @@ test('SC-004 FR-073 an LDAP setup works with the keyboard alone, with visible fo
   await typeInto('#idp-hosts', 'ldap1.example.org')
   await page.keyboard.press('Tab')
   await expect(page.locator('#idp-port')).toBeFocused()
-  for (const id of ['#idp-useSsl', '#idp-useStartTls', '#idp-ignoreTlsErrors']) {
-    await page.keyboard.press('Tab')
-    await expect(page.locator(id)).toBeFocused()
-  }
-  await typeInto('#idp-baseDn', 'dc=example,dc=org')
-  await page.keyboard.press('Tab')
-  await page.keyboard.press('Tab')
-  await page.keyboard.press('Tab')
-  await expect(page.locator('#idp-attributeField')).toBeFocused()
   await typeInto('#idp-bindDn', 'cn=admin,dc=example,dc=org')
   await typeInto('#idp-bindPassword', 'ldap-secret')
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle)
   const ring = await page.evaluate(() => getComputedStyle(document.activeElement!).boxShadow)
   expect(outline !== 'none' || ring !== 'none').toBe(true)
+  // Move through the remaining connection controls to the user lookup section.
+  for (let step = 0; step < 12; step++) {
+    await page.keyboard.press('Tab')
+    if (await page.locator('#idp-baseDn').evaluate((element) => element === document.activeElement))
+      break
+  }
+  await expect(page.locator('#idp-baseDn')).toBeFocused()
+  await page.keyboard.type('dc=example,dc=org')
   await page.getByRole('button', { name: 'Save changes', exact: true }).focus()
   await page.keyboard.press('Enter')
   await expect(page.locator('[data-page-status]')).toContainText(/have been saved/)

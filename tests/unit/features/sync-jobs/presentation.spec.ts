@@ -48,24 +48,24 @@ describe('resultView', () => {
   it('reads "Success" with a check for a recognised success', () => {
     expect(resultView(run(), 'admin')).toEqual({
       kind: 'succeeded',
-      text: { legacy: 'mailbox.syncjob_EX_OK' },
+      text: { legacy: 'syncjobs.syncjob_EX_OK' },
       checkLog: false,
     })
     expect(resultView(run(), 'mailboxUser')).toMatchObject({
-      text: { legacy: 'user.syncjob_EX_OK' },
+      text: { legacy: 'syncjobs.syncjob_EX_OK' },
     })
   })
 
   it.each(CODES)('reads the legacy reason of %s with a cross', (code) => {
     expect(resultView(run({ lastResult: 'failed', exitStatus: code }), 'domainAdmin')).toEqual({
       kind: 'failed',
-      text: { legacy: `mailbox.syncjob_${code}` },
+      text: { legacy: `syncjobs.syncjob_${code}` },
       checkLog: false,
     })
     expect(
       resultView(run({ lastResult: 'failed', exitStatus: code }), 'mailboxUser'),
     ).toMatchObject({
-      text: { legacy: `user.syncjob_${code}` },
+      text: { legacy: `syncjobs.syncjob_${code}` },
     })
   })
 
@@ -73,14 +73,14 @@ describe('resultView', () => {
     for (const exitStatus of ['EXIT_WHATEVER', null]) {
       expect(resultView(run({ lastResult: 'failed', exitStatus }), 'admin')).toEqual({
         kind: 'failed',
-        text: { legacy: 'mailbox.syncjob_check_log' },
+        text: { legacy: 'syncjobs.syncjob_check_log' },
         checkLog: true,
       })
     }
     // A success with an unrecognised code also reads "Check log" (plan deviation 2 is open).
     expect(resultView(run({ exitStatus: 'EXIT_NEW' }), 'admin')).toEqual({
       kind: 'succeeded',
-      text: { legacy: 'mailbox.syncjob_check_log' },
+      text: { legacy: 'syncjobs.syncjob_check_log' },
       checkLog: true,
     })
   })
@@ -117,9 +117,9 @@ describe('statusView', () => {
 
 describe('listTexts', () => {
   it("uses the administrators' table keys or the mailbox user's", () => {
-    expect(listTexts('admin').title).toEqual({ legacy: 'mailbox.sync_jobs' })
+    expect(listTexts('admin').title).toEqual({ legacy: 'syncjobs.sync_jobs' })
     expect(listTexts('domainAdmin').lastRun).toEqual({ legacy: 'mailbox.last_run' })
-    expect(listTexts('mailboxUser').title).toEqual({ legacy: 'user.sync_jobs' })
+    expect(listTexts('mailboxUser').title).toEqual({ legacy: 'syncjobs.sync_jobs' })
     expect(listTexts('mailboxUser').openLogs).toEqual({ legacy: 'user.open_logs' })
   })
 })

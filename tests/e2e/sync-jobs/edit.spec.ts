@@ -55,7 +55,7 @@ test.describe('editing a sync job', () => {
       data: { etag: string }
     }
     await openEdit(page)
-    await page.getByLabel('Interval (min)').fill('45')
+    await page.getByLabel('Polling interval (minutes)').fill('45')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
       page
@@ -110,7 +110,7 @@ test.describe('editing a sync job', () => {
     await page.getByRole('button', { name: 'Save changes' }).click()
     const notice = page.locator('[data-outdated]')
     await expect(notice).toContainText('Changed elsewhere')
-    await expect(notice).toContainText('Interval (min): now saved as 45')
+    await expect(notice).toContainText('Polling interval (minutes): now saved as 45')
     await expect(page.getByLabel('Exclude objects (regex)')).toHaveValue('(?i)trash')
     await expect(page.getByRole('button', { name: /overwrite/i })).toHaveCount(0)
     await expectAccessible()
@@ -127,7 +127,7 @@ test.describe('editing a sync job', () => {
     await page.getByRole('button', { name: 'Save changes' }).click()
     await page.getByRole('button', { name: 'Discard my changes' }).click()
     await expect(page.getByLabel('Hostname')).toHaveValue('mail.previous.example')
-    await expect(page.getByLabel('Interval (min)')).toHaveValue('50')
+    await expect(page.getByLabel('Polling interval (minutes)')).toHaveValue('50')
   })
 
   test('US3-AS6 FR-027 leaving with changes asks; Cancel discards the input', async ({
@@ -213,7 +213,7 @@ test.describe('editing a sync job', () => {
   }) => {
     await mockApi.use('sync-jobs-admin')
     await openEdit(page, 4)
-    await page.getByLabel('Interval (min)').fill('31')
+    await page.getByLabel('Polling interval (minutes)').fill('31')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(
       page
@@ -222,7 +222,7 @@ test.describe('editing a sync job', () => {
     ).toBeVisible()
     await openEdit(page, 2)
     await mockApi.patch({ syncJobs: { delete: 2 } })
-    await page.getByLabel('Interval (min)').fill('32')
+    await page.getByLabel('Polling interval (minutes)').fill('32')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page.getByText('This sync job no longer exists.')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Back to the sync jobs' })).toBeVisible()

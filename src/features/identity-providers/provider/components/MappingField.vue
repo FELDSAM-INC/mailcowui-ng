@@ -1,10 +1,7 @@
 <script setup lang="ts">
-// Legacy's "Attribute Mapping" (FR-029 to FR-031): the column names `user.attribute` and
-// `mailbox.template` with the add button, the "Default Template" row with its explanation (a
-// tooltip in legacy, visible help here, FR-074) and the empty choice `-- Template --` as the
-// template renders it, then one row per entry: the attribute value, the template (a plain select,
-// as legacy) and a remove button named after the entry. Below md each entry is a card with both
-// fields stacked. A stored template that no longer exists stays a choice, so the API can say so.
+// The default template precedes the attribute mappings. Add is beside the mapping heading,
+// immediately before its rows. A removed stored template stays selectable for server validation.
+// Mapping rows stack on mobile and retain their own field errors and keyboard focus behavior.
 import { computed, nextTick, useId } from 'vue'
 
 import { lt } from '@/i18n'
@@ -12,6 +9,7 @@ import LegacyText from '@/shared/components/LegacyText.vue'
 import ProblemMessage from '@/shared/components/ProblemMessage.vue'
 import type { ApiProblem } from '@/api'
 import { CloseIcon, PlusIcon } from '@/shared/icons'
+import { buttonVariants } from '@/shared/ui/button'
 
 import type { MappingRow } from '../form-model'
 import { HELP, ICON_BUTTON, INPUT, SELECT } from './styles'
@@ -69,31 +67,13 @@ const fieldErrors = (index: number, member: keyof MappingRow) =>
 
 <template>
   <div role="group" class="flex min-w-0 flex-col gap-3" :aria-labelledby="titleId">
-    <div class="flex items-center gap-2">
-      <LegacyText
-        :id="titleId"
-        k="admin.iam_mapping"
-        as="p"
-        class="me-auto text-sm font-medium text-gray-800 dark:text-gray-200"
-      />
-      <button
-        :id="`${idPrefix}-attributeMapping-add`"
-        type="button"
-        :class="ICON_BUTTON"
-        :aria-label="`${lt('admin.add')}: ${lt('admin.iam_mapping')}`"
-        :disabled="rows.length >= max"
-        @click="add"
-      >
-        <PlusIcon class="size-5" />
-      </button>
-    </div>
     <ProblemMessage
       v-if="templatesProblem"
       :problem="templatesProblem"
       retry
       @retry="emit('retryTemplates')"
     />
-    <div class="flex flex-col gap-1.5 rounded-xl border border-gray-200 p-3 dark:border-gray-800">
+    <div class="flex flex-col gap-1.5 md:max-w-xl">
       <label
         :for="`${idPrefix}-defaultTemplate`"
         class="text-sm font-medium text-gray-800 dark:text-gray-200"
@@ -127,6 +107,26 @@ const fieldErrors = (index: number, member: keyof MappingRow) =>
         {{ message }}
       </p>
     </div>
+    <div class="flex items-center gap-2">
+      <LegacyText
+        :id="titleId"
+        k="admin.iam_mapping"
+        as="p"
+        class="me-auto text-sm font-medium text-gray-800 dark:text-gray-200"
+      />
+      <button
+        :id="`${idPrefix}-attributeMapping-add`"
+        type="button"
+        :class="buttonVariants({ variant: 'outline', size: 'sm' })"
+        :aria-label="`${lt('admin.add')}: ${lt('admin.iam_mapping')}`"
+        :disabled="rows.length >= max"
+        @click="add"
+      >
+        <PlusIcon class="size-4" />
+        <span>{{ lt('admin.add') }}</span>
+      </button>
+    </div>
+    <LegacyText k="admin.iam_mapping_info" as="p" :class="HELP" />
     <div
       class="hidden gap-2 px-3 text-sm font-medium text-gray-600 md:grid md:grid-cols-[1fr_1fr_2.75rem] dark:text-gray-400"
       aria-hidden="true"

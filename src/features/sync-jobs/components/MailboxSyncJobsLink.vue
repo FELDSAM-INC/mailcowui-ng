@@ -23,6 +23,6 @@ const allowed = computed(() => canAccess('syncJobs', identity.data.value))
     :class="buttonVariants({ variant: 'outline' })"
   >
     <SyncIcon />
-    {{ lt('mailbox.sync_jobs') }}
+    {{ lt('syncjobs.sync_jobs') }}
   </RouterLink>
 </template>

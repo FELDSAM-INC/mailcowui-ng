@@ -869,7 +869,7 @@
     "globalSieve": "Global Sieve filters",
     "mailboxGroups": "Skupiny schránok",
     "syncSources": "Zdroje synchronizácie",
-    "syncQueue": "Front synchronizácie"
+    "syncQueue": "Globálne nastavenia"
   },
   "passkeys": {
     "add": {

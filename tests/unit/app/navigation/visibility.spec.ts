@@ -106,7 +106,7 @@ describe('navigation catalogue', () => {
       spamFilter: 'user.spamfilter',
       administrators: 'admin.admins',
       domainAdmins: 'admin.domain_admins',
-      syncJobs: 'mailbox.sync_jobs',
+      syncJobs: 'syncjobs.sync_jobs',
       routing: 'admin.routing',
       dkimKeys: 'admin.dkim_keys',
       mtaStsPolicies: 'edit.mta_sts',

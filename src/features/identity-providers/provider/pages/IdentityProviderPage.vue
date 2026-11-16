@@ -48,6 +48,7 @@ import { typeLabelKey } from '../labels'
 
 const SECTION = 'provider'
 const syncDirty = ref(false)
+const syncEditing = ref(false)
 
 const { t } = useI18n()
 const { problemMessage } = useProblemMessages()
@@ -260,7 +261,7 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-5xl flex-col gap-4">
+  <section class="mx-auto flex w-full flex-col gap-4">
     <PageHeader :title="lt('admin.iam')">
       <template #actions>
         <HistoryLink target-type="identityProvider" :allowed="historyAllowed" />
@@ -318,6 +319,12 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
         @test="editor.runTest"
         @retry-templates="templatesQuery.refetch()"
       />
+      <p
+        v-if="capabilities.identitySynchronisation && editor.form.value.type !== 'genericOidc'"
+        class="text-sm text-muted"
+      >
+        {{ t('identityProvider.saveProviderFirst') }}
+      </p>
       <div class="flex justify-end">
         <button type="submit" :class="buttonVariants({})" :disabled="editor.saving.value">
           {{ editor.saving.value ? t('sections.saving') : lt('admin.save') }}
@@ -330,6 +337,7 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
       :section-id="SECTION"
       :title="t(typeLabelKey(config.type))"
       editable
+      :edit-disabled-reason="syncEditing ? t('identityProvider.finishSection') : null"
       :editing="editing && !!editor.form.value"
       :saving="editor.saving.value"
       :status="editor.status.value"
@@ -391,7 +399,9 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
       </template>
     </EditableSection>
     <IdentitySyncSection
-      v-if="config && capabilities?.identitySynchronisation && !editing"
+      v-if="config && capabilities?.identitySynchronisation"
+      :provider-editing="editing"
+      @editing="syncEditing = $event"
       @dirty="syncDirty = $event"
     />
   </section>

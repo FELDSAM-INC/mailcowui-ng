@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { lt } from '@/i18n'
+import { lt, text } from '@/i18n'
 import ActiveBadge from '@/shared/components/ActiveBadge.vue'
 import DataIdentity from '@/shared/components/DataIdentity.vue'
 import DataRow from '@/shared/components/DataRow.vue'
@@ -72,7 +72,7 @@ const toggle = (id: number) => {
               <code>{{ entry.prefix }}…</code>
             </td>
             <td v-show="table.visible('accessLevel')">
-              {{ t(`enums.apiKeyAccessLevel.${entry.accessLevel}`) }}
+              {{ text(`enums.apiKeyAccessLevel.${entry.accessLevel}`) }}
             </td>
             <td v-show="table.visible('allowedNetworks')" class="wrap-anywhere">
               {{ network(entry) }}
@@ -113,7 +113,7 @@ const toggle = (id: number) => {
       ><DataCardFields
         ><div>
           <dt>{{ t('legacyKeys.fields.accessLevel') }}</dt>
-          <dd>{{ t(`enums.apiKeyAccessLevel.${entry.accessLevel}`) }}</dd>
+          <dd>{{ text(`enums.apiKeyAccessLevel.${entry.accessLevel}`) }}</dd>
         </div>
         <div>
           <dt>{{ t('legacyKeys.fields.prefix') }}</dt>

@@ -40,7 +40,8 @@
           "secretRequired": "Při změně serveru, portu, šifrování nebo uživatelského jména zadejte vzdálené heslo znovu."
         }
       },
-      "openExisting": "Otevřít existující úlohu"
+      "openExisting": "Otevřít existující úlohu",
+      "legacyCustomParamsHint": "Správně: --param=xy, špatně: --param xy"
     },
     "list": {
       "actionsFor": "Akce pro {name}",
@@ -123,7 +124,6 @@
     "preset": "Předvolba poskytovatele",
     "tenant": "ID nebo doména tenantu Microsoft",
     "applyPreset": "Použít předvolbu",
-    "presetHelp": "Předvolby vyplní nastavení připojení. U poskytovatele zaregistrujte vlastní aplikaci OAuth a zadejte její ID a tajný klíč.",
     "scopeHelp": "Vyberte, kdo může zdroj používat. Bez vybraných schránek je soukromý.",
     "privateHelp": "Tento zdroj je soukromý. Přihlašovací údaje aplikace se nesdílejí s ostatními uživateli.",
     "redirectHelp": "U poskytovatele zaregistrujte tuto návratovou adresu:",
@@ -158,8 +158,8 @@
     "addOption": "Přidat možnost",
     "removeOption": "Odstranit možnost",
     "migrationWarning": "Některé původní volby nebylo možné převést a jsou ignorovány. Zkontrolujte původní text níže a potřebné podporované volby přidejte v editoru parametrů.",
-    "queueSettings": "Limity fronty",
-    "queueHelp": "Tato nastavení platí pro všechny úlohy synchronizace. Vyšší priorita se spouští dříve; běžící úlohy se nepřerušují.",
+    "queueSettings": "Nastavení synchronizačních úloh",
+    "queueHelp": "Limity společné pro všechny synchronizační úlohy. Limit přenosu platí pro každý běžící proces.",
     "unlimited": "Bez omezení",
     "fields": {
       "name": "Název",
@@ -185,9 +185,7 @@
       "mailbox": "Cílová schránka",
       "createdBy": "Vytvořil",
       "sourceId": "Zdroj synchronizace",
-      "priority": "Priorita ve frontě",
-      "maxParallel": "Souběžné úlohy (1–32)",
-      "maxBytesPerSecond": "Celkový limit přenosu (bajtů/s)"
+      "priority": "Priorita ve frontě"
     },
     "providers": {
       "gmail": "Gmail",
@@ -210,6 +208,7 @@
     "flows": {
       "authorization_code": "Přihlášení uživatele",
       "client_credentials": "Údaje aplikace (soukromé)"
-    }
+    },
+    "oauthPresetHelp": "Vyplní nastavení OAuth serveru poskytovatele. Zaregistrujte u poskytovatele vlastní OAuth aplikaci a zadejte její ID klienta a tajný klíč."
   }
 }

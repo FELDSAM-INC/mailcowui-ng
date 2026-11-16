@@ -40,7 +40,8 @@
           "secretRequired": "Pri zmene servera, portu, šifrovania alebo používateľského mena zadajte vzdialené heslo znova."
         }
       },
-      "openExisting": "Otvoriť existujúcu úlohu"
+      "openExisting": "Otvoriť existujúcu úlohu",
+      "legacyCustomParamsHint": "Správne: --param=xy, nesprávne: --param xy"
     },
     "list": {
       "actionsFor": "Akcie pre {name}",
@@ -123,7 +124,6 @@
     "preset": "Predvoľba poskytovateľa",
     "tenant": "ID alebo doména tenantu Microsoft",
     "applyPreset": "Použiť predvoľbu",
-    "presetHelp": "Predvoľby vyplnia nastavenia pripojenia. U poskytovateľa zaregistrujte vlastnú aplikáciu OAuth a zadajte jej ID a tajný kľúč.",
     "scopeHelp": "Vyberte, kto môže zdroj používať. Bez vybraných schránok je súkromný.",
     "privateHelp": "Tento zdroj je súkromný. Prihlasovacie údaje aplikácie sa nezdieľajú s ostatnými používateľmi.",
     "redirectHelp": "U poskytovateľa zaregistrujte túto návratovú adresu:",
@@ -158,8 +158,8 @@
     "addOption": "Pridať možnosť",
     "removeOption": "Odstrániť možnosť",
     "migrationWarning": "Niektoré pôvodné voľby nebolo možné previesť a sú ignorované. Skontrolujte pôvodný text nižšie a potrebné podporované voľby pridajte v editore parametrov.",
-    "queueSettings": "Limity frontu",
-    "queueHelp": "Tieto nastavenia platia pre všetky úlohy synchronizácie. Vyššia priorita sa spúšťa skôr; bežiace úlohy sa neprerušujú.",
+    "queueSettings": "Nastavenia synchronizačných úloh",
+    "queueHelp": "Limity spoločné pre všetky synchronizačné úlohy. Limit prenosu platí pre každý bežiaci proces.",
     "unlimited": "Bez obmedzenia",
     "fields": {
       "name": "Názov",
@@ -185,9 +185,7 @@
       "mailbox": "Cieľová schránka",
       "createdBy": "Vytvoril",
       "sourceId": "Zdroj synchronizácie",
-      "priority": "Priorita vo fronte",
-      "maxParallel": "Súbežné úlohy (1–32)",
-      "maxBytesPerSecond": "Celkový limit prenosu (bajtov/s)"
+      "priority": "Priorita vo fronte"
     },
     "providers": {
       "gmail": "Gmail",
@@ -210,6 +208,7 @@
     "flows": {
       "authorization_code": "Prihlásenie používateľa",
       "client_credentials": "Údaje aplikácie (súkromné)"
-    }
+    },
+    "oauthPresetHelp": "Vyplní nastavenia OAuth servera poskytovateľa. Zaregistrujte u poskytovateľa vlastnú OAuth aplikáciu a zadajte jej ID klienta a tajný kľúč."
   }
 }

@@ -118,7 +118,7 @@ test.describe('sync job scope and access', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Edit sync job' })).toBeVisible()
     await mockApi.patch({ syncJobs: { delete: 2 } })
     await page.getByRole('button', { name: 'Edit Edit sync job' }).click()
-    await page.getByLabel('Interval (min)').fill('33')
+    await page.getByLabel('Polling interval (minutes)').fill('33')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page.getByText('This sync job no longer exists.')).toBeVisible()
     await page.getByRole('link', { name: 'Back to the sync jobs' }).click()

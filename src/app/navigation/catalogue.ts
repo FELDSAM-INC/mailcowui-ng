@@ -114,7 +114,7 @@ const LEGACY_LABELS: Partial<Record<NavEntryId, LegacyRef>> = {
   spamFilter: legacy('user.spamfilter'),
   administrators: legacy('admin.admins'),
   domainAdmins: legacy('admin.domain_admins'),
-  syncJobs: legacy('mailbox.sync_jobs'),
+  syncJobs: legacy('syncjobs.sync_jobs'),
   // UI 010 (legacy form map): the classic DKIM tab and the domain page's MTA-STS tab.
   dkimKeys: legacy('admin.dkim_keys'),
   mtaStsPolicies: legacy('edit.mta_sts'),

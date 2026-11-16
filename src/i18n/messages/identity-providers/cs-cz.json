@@ -27,7 +27,9 @@
       "genericOidc": "Generic-OIDC",
       "keycloak": "Keycloak",
       "ldap": "LDAP"
-    }
+    },
+    "finishSection": "Před úpravou další sekce uložte nebo zrušte otevřené změny.",
+    "saveProviderFirst": "Nejprve uložte poskytovatele. Potom můžete nastavit odebírání přístupu a synchronizaci skupin."
   },
   "oauth2": {
     "added": "Přístup klienta byl přidán",
@@ -92,21 +94,6 @@
       "member": "Atribut skupiny member",
       "ad_chain": "Vnořené skupiny Active Directory"
     },
-    "fields": {
-      "offboarding": "Zakázat přihlášení odebraným nebo deaktivovaným účtům",
-      "offboardingLimit": "Limit změn (%)",
-      "groupSync": "Synchronizovat členství ve skupinách",
-      "groupAutocreate": "Vytvářet chybějící skupiny schránek",
-      "groupDefaultDomain": "Výchozí doména nových skupin",
-      "groupPaths": "Cesty skupin Keycloak",
-      "idAttribute": "Atribut stabilní identity",
-      "disabledFilter": "Filtr deaktivovaných uživatelů",
-      "groupBaseDn": "Základní DN skupin",
-      "groupFilter": "Filtr skupin",
-      "groupNameAttribute": "Atribut názvu skupiny",
-      "groupMemberMode": "Vyhledávání členství",
-      "groupMemberAttribute": "Atribut členů skupiny"
-    },
     "summary": {
       "links": "Propojené identity",
       "creates": "Nové schránky",
@@ -123,6 +110,19 @@
       "conflicts": "Konflikty",
       "membership_removals": "Odebraná členství",
       "skipped": "Přeskočené účty"
+    },
+    "sections": {
+      "directory": "Identita LDAP a stav účtu"
+    },
+    "sectionHelp": {
+      "directory": "Spolehlivé rozpoznávání uživatelů adresáře a zakázaných účtů.",
+      "offboarding": "Nastavte chování při zakázání nebo odebrání uživatele u poskytovatele.",
+      "groups": "Synchronizujte skupiny poskytovatele se skupinami schránek a nastavte vytváření nových skupin."
+    },
+    "help": {
+      "groupBaseDn": "Prázdné pole použije základní DN uživatelů.",
+      "groupFilter": "LDAP filtr skupin k synchronizaci, například (&(objectClass=group)(cn=mailcow-*)).",
+      "groupNameAttribute": "Atribut obsahující název skupiny, obvykle cn."
     }
   }
 }

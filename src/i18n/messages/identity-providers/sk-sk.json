@@ -27,7 +27,9 @@
       "genericOidc": "Generic-OIDC",
       "keycloak": "Keycloak",
       "ldap": "LDAP"
-    }
+    },
+    "finishSection": "Pred úpravou ďalšej sekcie uložte alebo zrušte otvorené zmeny.",
+    "saveProviderFirst": "Najprv uložte poskytovateľa. Potom môžete nastaviť odoberanie prístupu a synchronizáciu skupín."
   },
   "oauth2": {
     "added": "Prístup klienta bol pridaný",
@@ -92,21 +94,6 @@
       "member": "Atribút skupiny member",
       "ad_chain": "Vnorené skupiny Active Directory"
     },
-    "fields": {
-      "offboarding": "Zakázať prihlásenie odstráneným alebo deaktivovaným účtom",
-      "offboardingLimit": "Limit zmien (%)",
-      "groupSync": "Synchronizovať členstvá v skupinách",
-      "groupAutocreate": "Vytvárať chýbajúce skupiny schránok",
-      "groupDefaultDomain": "Predvolená doména nových skupín",
-      "groupPaths": "Cesty skupín Keycloak",
-      "idAttribute": "Atribút stabilnej identity",
-      "disabledFilter": "Filter deaktivovaných používateľov",
-      "groupBaseDn": "Základný DN skupín",
-      "groupFilter": "Filter skupín",
-      "groupNameAttribute": "Atribút názvu skupiny",
-      "groupMemberMode": "Vyhľadávanie členstva",
-      "groupMemberAttribute": "Atribút členov skupiny"
-    },
     "summary": {
       "links": "Prepojené identity",
       "creates": "Nové schránky",
@@ -123,6 +110,19 @@
       "conflicts": "Konflikty",
       "membership_removals": "Odstránené členstvá",
       "skipped": "Preskočené účty"
+    },
+    "sections": {
+      "directory": "Identita LDAP a stav účtu"
+    },
+    "sectionHelp": {
+      "directory": "Spoľahlivé rozpoznávanie používateľov adresára a zakázaných účtov.",
+      "offboarding": "Nastavte správanie pri zakázaní alebo odobratí používateľa u poskytovateľa.",
+      "groups": "Synchronizujte skupiny poskytovateľa so skupinami schránok a nastavte vytváranie nových skupín."
+    },
+    "help": {
+      "groupBaseDn": "Prázdne pole použije základné DN používateľov.",
+      "groupFilter": "LDAP filter skupín na synchronizáciu, napríklad (&(objectClass=group)(cn=mailcow-*)).",
+      "groupNameAttribute": "Atribút obsahujúci názov skupiny, zvyčajne cn."
     }
   }
 }

@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/vue-query'
 import { computed, ref, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { lt } from '@/i18n'
 import { api, problemOf, queryKeys, requireData, type components } from '@/api'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import EditableSection from '@/shared/components/EditableSection.vue'
@@ -26,7 +27,7 @@ const dirty = computed(
   () =>
     !!form.value &&
     (form.value.maxParallel !== original.value?.maxParallel ||
-      form.value.maxBytesPerSecond !== original.value?.maxBytesPerSecond),
+      form.value.maxBytesPerSecond * 1024 !== original.value?.maxBytesPerSecond),
 )
 const version = useVersionedSave({
   current: () => base.value,
@@ -43,7 +44,7 @@ function open() {
   original.value = query.data.value
   form.value = {
     maxParallel: base.value.maxParallel,
-    maxBytesPerSecond: base.value.maxBytesPerSecond,
+    maxBytesPerSecond: base.value.maxBytesPerSecond / 1024,
   }
   errors.clear()
   version.discard()
@@ -57,10 +58,28 @@ async function cancel() {
 async function save() {
   if (!form.value || !original.value || version.pending.value) return
   errors.clear()
+  const invalid: Record<string, string[]> = {}
+  for (const field of ['maxParallel', 'maxBytesPerSecond'] as const) {
+    const value = form.value[field]
+    const min = field === 'maxParallel' ? 1 : 0
+    const max = field === 'maxParallel' ? 32 : 10485760
+    if (typeof value !== 'number' || !Number.isFinite(value)) {
+      invalid[field] = [t('validation.required')]
+    } else if (value < min || value > max) {
+      invalid[field] = [t('validation.outOfRange', { min, max })]
+    } else if (field === 'maxParallel' && !Number.isInteger(value)) {
+      invalid[field] = [t('validation.notMultipleOf', { factor: 1 })]
+    }
+  }
+  if (Object.keys(invalid).length) {
+    await errors.setClientMessages(invalid)
+    return
+  }
   const patch = Object.fromEntries(
-    Object.entries(form.value).filter(
-      ([key, value]) => value !== original.value?.[key as keyof Settings],
-    ),
+    Object.entries({
+      ...form.value,
+      maxBytesPerSecond: Math.round(form.value.maxBytesPerSecond * 1024),
+    }).filter(([key, value]) => value !== original.value?.[key as keyof Settings]),
   )
   if (!Object.keys(patch).length) {
     form.value = undefined
@@ -87,14 +106,14 @@ const items = computed(() =>
     ? [
         {
           key: 'maxParallel',
-          label: t('syncSources.fields.maxParallel'),
+          label: lt('admin.syncjob_max_parallel'),
           value: String(query.data.value.maxParallel),
         },
         {
           key: 'maxBytesPerSecond',
-          label: t('syncSources.fields.maxBytesPerSecond'),
+          label: lt('admin.syncjob_max_kb_per_second'),
           value: query.data.value.maxBytesPerSecond
-            ? String(query.data.value.maxBytesPerSecond)
+            ? String(query.data.value.maxBytesPerSecond / 1024)
             : t('syncSources.unlimited'),
         },
       ]
@@ -134,7 +153,20 @@ const items = computed(() =>
             v-for="field in ['maxParallel', 'maxBytesPerSecond'] as const"
             :id="`queue-${field}`"
             :key="field"
-            :label="t(`syncSources.fields.${field}`)"
+            :label="
+              lt(
+                field === 'maxParallel'
+                  ? 'admin.syncjob_max_parallel'
+                  : 'admin.syncjob_max_kb_per_second',
+              )
+            "
+            :description="
+              lt(
+                field === 'maxParallel'
+                  ? 'admin.syncjob_max_parallel_info'
+                  : 'admin.syncjob_max_kb_per_second_info',
+              )
+            "
             :errors="errors.errorsFor(field)"
             required
             ><template #default="control"
@@ -144,8 +176,8 @@ const items = computed(() =>
                 type="number"
                 class="form-control"
                 :min="field === 'maxParallel' ? 1 : 0"
-                :max="field === 'maxParallel' ? 32 : 10737418240"
-                step="1"
+                :max="field === 'maxParallel' ? 32 : 10485760"
+                :step="field === 'maxParallel' ? 1 : 'any'"
                 required /></template
           ></FormField></fieldset></template
     ></EditableSection>

@@ -4,6 +4,8 @@ import { computed, ref, shallowRef, toRaw, watch, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { problemOf, queryKeys } from '@/api'
 import { lt } from '@/i18n'
+import LegacyText from '@/shared/components/LegacyText.vue'
+import { syncFieldLabels, syncFieldHelp } from '../sync-field-labels'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
 import FormField from '@/shared/components/FormField.vue'
@@ -23,21 +25,26 @@ import {
   type IdentitySyncRun,
 } from '../synchronisation-api'
 import SwitchField from './SwitchField.vue'
+import DomainPicker from '@/shared/components/DomainPicker.vue'
+import { domainPickerSource } from '@/features/aliases-common'
 import TextField from './TextField.vue'
 import { INPUT } from './styles'
 import IdentitySyncRuns from './IdentitySyncRuns.vue'
 import IdentityLinkSection from './IdentityLinkSection.vue'
 
-const emit = defineEmits<{ dirty: [value: boolean] }>()
+const props = defineProps<{ providerEditing?: boolean }>()
+const emit = defineEmits<{ dirty: [value: boolean]; editing: [value: boolean] }>()
 const { t } = useI18n()
 const client = useQueryClient()
 const query = useQuery(synchronisationOptions())
 const stored = computed(() => query.data.value)
 const base = shallowRef<IdentitySyncStatus>()
+const original = shallowRef<IdentitySyncSettings>()
+const activeSection = ref('')
 const form = ref<IdentitySyncSettings>()
 const editing = computed(() => !!form.value)
 const dirty = computed(
-  () => !!form.value && JSON.stringify(form.value) !== JSON.stringify(base.value?.settings),
+  () => !!form.value && JSON.stringify(form.value) !== JSON.stringify(original.value),
 )
 const errors = useProblemForm({ fieldId: (path) => `identity-sync-${path.split('.')[0]}` })
 const saveState = useVersionedSave({
@@ -47,7 +54,32 @@ const saveState = useVersionedSave({
 const busy = ref(false)
 const runProblem = shallowRef<ReturnType<typeof problemOf>>(null)
 const message = ref('')
-const ldapFields = [
+type Setting = keyof IdentitySyncSettings
+const sections = computed<{ id: string; fields: Setting[] }[]>(() => [
+  ...(stored.value?.provider === 'ldap'
+    ? [{ id: 'directory', fields: ['idAttribute', 'disabledFilter'] as Setting[] }]
+    : []),
+  { id: 'offboarding', fields: ['offboarding', 'offboardingLimit'] },
+  {
+    id: 'groups',
+    fields: [
+      'groupSync',
+      ...(stored.value?.provider === 'ldap'
+        ? ([
+            'groupBaseDn',
+            'groupFilter',
+            'groupNameAttribute',
+            'groupMemberMode',
+            'groupMemberAttribute',
+          ] as Setting[])
+        : (['groupPaths'] as Setting[])),
+      'groupAutocreate',
+      'groupDefaultDomain',
+    ],
+  },
+])
+const switches = ['offboarding', 'groupSync', 'groupAutocreate'] as const
+const textFields = [
   'idAttribute',
   'disabledFilter',
   'groupBaseDn',
@@ -55,21 +87,29 @@ const ldapFields = [
   'groupNameAttribute',
   'groupMemberAttribute',
 ] as const
-const switches = ['offboarding', 'groupSync', 'groupAutocreate'] as const
-const shownFields = computed<(keyof IdentitySyncSettings)[]>(() => [
-  ...switches,
-  'offboardingLimit',
-  'groupDefaultDomain',
-  ...(stored.value?.provider === 'ldap'
-    ? ([...ldapFields, 'groupMemberMode'] as const)
-    : (['groupPaths'] as const)),
-])
+const shownFields = computed(
+  () => sections.value.find((section) => section.id === activeSection.value)?.fields ?? [],
+)
+const sectionTitle = (id: string) =>
+  id === 'groups'
+    ? lt('admin.iam_section_groups')
+    : id === 'offboarding'
+      ? lt('admin.iam_offboarding')
+      : t('identitySync.sections.directory')
+const description = (key: Setting) =>
+  syncFieldHelp[key] ? lt(syncFieldHelp[key]) : t(`identitySync.help.${key}`)
+watch(editing, (value) => emit('editing', value), { immediate: true })
 watch(dirty, (value) => emit('dirty', value), { immediate: true })
-onBeforeUnmount(() => emit('dirty', false))
-function open() {
-  if (!stored.value) return
+onBeforeUnmount(() => {
+  emit('dirty', false)
+  emit('editing', false)
+})
+function open(section = activeSection.value) {
+  if (!stored.value || props.providerEditing) return
+  activeSection.value = section
   errors.clear()
   base.value = stored.value
+  original.value = structuredClone(toRaw(stored.value.settings))
   form.value = structuredClone(toRaw(stored.value.settings))
   saveState.discard()
 }
@@ -91,9 +131,7 @@ async function close() {
 function patch(): Partial<IdentitySyncSettings> {
   return Object.fromEntries(
     shownFields.value
-      .filter(
-        (key) => JSON.stringify(form.value?.[key]) !== JSON.stringify(base.value?.settings[key]),
-      )
+      .filter((key) => JSON.stringify(form.value?.[key]) !== JSON.stringify(original.value?.[key]))
       .map((key) => [key, form.value![key]]),
   )
 }
@@ -104,7 +142,8 @@ async function save() {
     return
   }
   if (
-    form.value.idAttribute !== base.value.settings.idAttribute &&
+    activeSection.value === 'directory' &&
+    form.value.idAttribute !== original.value?.idAttribute &&
     !(await confirm({
       title: t('identitySync.idChangeTitle'),
       description: t('identitySync.idChangeBody'),
@@ -155,7 +194,7 @@ function valueText(value: IdentitySyncSettings[keyof IdentitySyncSettings]) {
   if (typeof value === 'boolean') return t(value ? 'domains.values.yes' : 'domains.values.no')
   return Array.isArray(value)
     ? value.join(', ') || t('domains.values.none')
-    : String(value ?? t('domains.values.none'))
+    : String(value === '' || value == null ? t('domains.values.none') : value)
 }
 </script>
 
@@ -167,25 +206,35 @@ function valueText(value: IdentitySyncSettings[keyof IdentitySyncSettings]) {
     @retry="query.refetch()"
   />
   <template v-if="stored?.supported && stored.canSync">
+    <p v-if="providerEditing" role="status" class="text-sm text-muted">
+      {{ t('identityProvider.finishSection') }}
+    </p>
     <EditableSection
-      section-id="identity-sync"
-      :title="t('identitySync.settingsTitle')"
+      v-for="section in sections"
+      :key="section.id"
+      :section-id="`identity-sync-${section.id}`"
+      :title="sectionTitle(section.id)"
       editable
-      :editing="editing"
+      :editing="editing && activeSection === section.id"
+      :edit-disabled-reason="
+        providerEditing || (editing && activeSection !== section.id)
+          ? t('identityProvider.finishSection')
+          : null
+      "
       :saving="saveState.pending.value"
       :version-changed="saveState.outdated.value"
-      @edit="open"
+      @edit="open(section.id)"
       @cancel="close"
       @save="save"
       @save-again="save"
-      @discard="open"
+      @discard="open(section.id)"
     >
       <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        {{ t('identitySync.description') }}
+        {{ t(`identitySync.sectionHelp.${section.id}`) }}
       </p>
       <dl class="grid gap-3 text-sm sm:grid-cols-2">
-        <div v-for="key in shownFields" :key="key" class="min-w-0">
-          <dt class="text-gray-600 dark:text-gray-400">{{ t(`identitySync.fields.${key}`) }}</dt>
+        <div v-for="key in section.fields" :key="key" class="min-w-0">
+          <dt class="text-gray-600 dark:text-gray-400">{{ lt(syncFieldLabels[key]) }}</dt>
           <dd class="break-words">
             <Badge
               v-if="typeof stored.settings[key] === 'boolean'"
@@ -198,72 +247,86 @@ function valueText(value: IdentitySyncSettings[keyof IdentitySyncSettings]) {
       <template #form>
         <ErrorSummary :id="errors.summaryId" :items="errors.summary.value" />
         <ProblemMessage :problem="errors.formProblem.value" />
-        <div v-if="form" class="flex flex-col gap-4">
-          <SwitchField
-            v-for="key in switches"
-            :id="`identity-sync-${key}`"
-            :key="key"
-            v-model="form[key]"
-            :label="t(`identitySync.fields.${key}`)"
-          />
-          <TextField
-            id="identity-sync-offboardingLimit"
-            :model-value="String(form.offboardingLimit)"
-            type="number"
-            :min="0"
-            :max="100"
-            :label="t('identitySync.fields.offboardingLimit')"
-            :description="t('identitySync.limitHelp')"
-            :errors="errors.errorsFor('offboardingLimit')"
-            @update:model-value="form.offboardingLimit = Number($event)"
-          />
-          <TextField
-            id="identity-sync-groupDefaultDomain"
-            v-model="form.groupDefaultDomain"
-            :label="t('identitySync.fields.groupDefaultDomain')"
-            :errors="errors.errorsFor('groupDefaultDomain')"
-          />
-          <template v-if="stored.provider === 'ldap'">
+        <div v-if="form" class="grid min-w-0 gap-4 md:grid-cols-2">
+          <template v-for="key in section.fields" :key="key">
+            <div v-if="switches.includes(key as (typeof switches)[number])" class="md:col-span-2">
+              <SwitchField
+                :id="`identity-sync-${key}`"
+                :model-value="form[key] as boolean"
+                :help="syncFieldHelp[key]"
+                :label="lt(syncFieldLabels[key])"
+                @update:model-value="form[key as (typeof switches)[number]] = $event"
+              />
+            </div>
             <TextField
-              v-for="key in ldapFields"
-              :id="`identity-sync-${key}`"
-              :key="key"
-              v-model="form[key]"
-              :label="t(`identitySync.fields.${key}`)"
+              v-else-if="key === 'offboardingLimit'"
+              id="identity-sync-offboardingLimit"
+              :model-value="String(form.offboardingLimit)"
+              type="number"
+              :min="0"
+              :max="100"
+              :label="lt(syncFieldLabels.offboardingLimit)"
+              :description="description(key)"
               :errors="errors.errorsFor(key)"
-              :description="key === 'idAttribute' ? t('identitySync.idHelp') : undefined"
+              @update:model-value="form.offboardingLimit = Number($event)"
             />
+            <div v-else-if="key === 'groupDefaultDomain'" class="min-w-0">
+              <DomainPicker
+                id="identity-sync-groupDefaultDomain"
+                :label="lt(syncFieldLabels.groupDefaultDomain)"
+                :sources="[domainPickerSource()]"
+                :model-value="form.groupDefaultDomain"
+                :errors="errors.errorsFor(key)"
+                @update:model-value="
+                  form.groupDefaultDomain = typeof $event === 'string' ? $event : ''
+                "
+              />
+              <p class="mt-1 text-sm text-muted">{{ description(key) }}</p>
+            </div>
             <FormField
+              v-else-if="key === 'groupMemberMode'"
               id="identity-sync-groupMemberMode"
-              :label="t('identitySync.fields.groupMemberMode')"
-              :errors="errors.errorsFor('groupMemberMode')"
-              ><template #default="control"
+              :label="lt(syncFieldLabels.groupMemberMode)"
+              :errors="errors.errorsFor(key)"
+            >
+              <template #default="control"
                 ><select v-bind="control" v-model="form.groupMemberMode" :class="INPUT">
                   <option
                     v-for="mode in ['memberof', 'member', 'ad_chain'] as const"
                     :key="mode"
                     :value="mode"
                   >
-                    {{ t(`identitySync.memberModes.${mode}`) }}
+                    {{ lt(`admin.iam_group_member_mode_${mode}`) }}
                   </option>
                 </select></template
-              ></FormField
-            >
+              >
+            </FormField>
+            <div v-else-if="key === 'groupPaths'">
+              <TextField
+                id="identity-sync-groupPaths"
+                :model-value="form.groupPaths.join(', ')"
+                :label="lt(syncFieldLabels.groupPaths)"
+                :description="t('identitySync.pathsHelp')"
+                :errors="errors.errorsFor(key)"
+                placeholder="/mailcow/*"
+                @update:model-value="
+                  form.groupPaths = $event
+                    .split(',')
+                    .map((s) => s.trim())
+                    .filter(Boolean)
+                "
+              />
+              <LegacyText k="admin.iam_group_paths_info" as="p" class="mt-1 text-sm text-muted" />
+            </div>
+            <TextField
+              v-else
+              :id="`identity-sync-${key}`"
+              v-model="form[key as (typeof textFields)[number]]"
+              :label="lt(syncFieldLabels[key])"
+              :errors="errors.errorsFor(key)"
+              :description="description(key)"
+            />
           </template>
-          <TextField
-            v-else
-            id="identity-sync-groupPaths"
-            :model-value="form.groupPaths.join(', ')"
-            :label="t('identitySync.fields.groupPaths')"
-            :description="t('identitySync.pathsHelp')"
-            :errors="errors.errorsFor('groupPaths')"
-            @update:model-value="
-              form.groupPaths = $event
-                .split(',')
-                .map((s) => s.trim())
-                .filter(Boolean)
-            "
-          />
         </div>
       </template>
     </EditableSection>
@@ -275,7 +338,7 @@ function valueText(value: IdentitySyncSettings[keyof IdentitySyncSettings]) {
           :key="mode"
           type="button"
           :class="buttonVariants({ variant: mode === 'run' ? 'default' : 'outline' })"
-          :disabled="busy || editing"
+          :disabled="busy || editing || providerEditing"
           @click="run(mode)"
         >
           {{ t(`identitySync.actions.${mode}`) }}

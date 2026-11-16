@@ -49,6 +49,14 @@ async function open(data = fixture(), creating = false) {
   )
   return wrapper
 }
+it('renders access labels in both the detail and editor using mailcow translations', async () => {
+  const page = await open()
+  expect(page.text()).toContain('Read-Only Access')
+  expect(page.text()).not.toContain('enums.apiKeyAccessLevel.')
+  await page.get('button[aria-label^="Edit "]').trigger('click')
+  expect(page.get('#legacy-key-accessLevel').text()).toContain('Read-Only Access')
+  expect(page.get('#legacy-key-accessLevel').text()).toContain('Read-Write Access')
+})
 it('locks service keys and never shows regeneration, edit or delete controls', async () => {
   const page = await open({ ...fixture(), service: true, description: 'API_KEY' })
   expect(page.text()).toContain('managed in mailcow.conf')

@@ -227,6 +227,13 @@ const groups: readonly {
             roles: ADMIN,
           },
           {
+            id: 'syncJobSettings',
+            labelKey: legacy('syncjobs.sync_jobs'),
+            path: '/system/sync-jobs',
+            roles: ADMIN,
+            feature: 'syncSources',
+          },
+          {
             id: 'passwordSettings',
             labelKey: legacy('admin.password_settings'),
             path: '/system/password-policy',

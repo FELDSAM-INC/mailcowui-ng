@@ -4,7 +4,7 @@ import { computed, ref, shallowRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { problemOf, queryKeys } from '@/api'
-import { lt } from '@/i18n'
+import { lt, text } from '@/i18n'
 import PageHeader from '@/shared/components/PageHeader.vue'
 import EditableSection from '@/shared/components/EditableSection.vue'
 import ErrorSummary from '@/shared/components/ErrorSummary.vue'
@@ -214,7 +214,7 @@ const items = computed(() =>
             key === 'allowedNetworks'
               ? stored.value!.allowedNetworks.join(', ') || '—'
               : key === 'accessLevel'
-                ? t(`enums.apiKeyAccessLevel.${stored.value!.accessLevel}`)
+                ? text(`enums.apiKeyAccessLevel.${stored.value!.accessLevel}`)
                 : typeof stored.value![key as keyof LegacyKey] === 'boolean'
                   ? lt(stored.value![key as keyof LegacyKey] ? 'mailbox.yes' : 'mailbox.no')
                   : String(stored.value![key as keyof LegacyKey] || '—'),

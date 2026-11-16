@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
+import { LEGACY_KEY_ALIASES } from '@/i18n/legacy-key-aliases'
 import { lt } from '@/i18n'
 import { flagLabel } from '@/i18n/problems'
 import type { LegacyKey } from '@/i18n/legacy'
@@ -26,6 +27,10 @@ const planned = [
 ]
 const snapshot = JSON.parse(read('src/i18n/snapshot/lang.en-gb.json')) as Messages
 const texts = flatten(snapshot)
+// The form map predates the upstream 2026-11 key migration.
+for (const [canonical, aliases] of Object.entries(LEGACY_KEY_ALIASES)) {
+  if (texts.has(canonical)) for (const alias of aliases) texts.set(alias, texts.get(canonical))
+}
 const source = readdirSync('src', { recursive: true })
   .filter((file) => /\.(ts|vue)$/.test(String(file)) && !String(file).includes('generated/'))
   .map((file) =>

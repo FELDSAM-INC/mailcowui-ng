@@ -228,7 +228,7 @@ export const LEGACY_TEXTS: Readonly<Partial<Record<string, LegacyKey>>> = {
   'validation.missingCharacterClass': 'danger.password_complexity',
   // UI 008: the sync-job enumerations with a classic name, the owner left empty, and an existing
   // job (`danger.object_exists` with "host / user", as legacy fills it).
-  'enums.syncJobLastResult.succeeded': 'mailbox.syncjob_EX_OK',
+  'enums.syncJobLastResult.succeeded': 'syncjobs.syncjob_EX_OK',
   'enums.syncJobBulkAction.activate': 'mailbox.activate',
   'enums.syncJobBulkAction.deactivate': 'mailbox.deactivate',
   'enums.syncJobBulkAction.reschedule': 'mailbox.last_run_reset',

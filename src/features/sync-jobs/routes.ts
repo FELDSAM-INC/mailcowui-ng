@@ -48,7 +48,13 @@ export const syncJobRoutes: RouteRecordRaw[] = [
     path: '/sync-queue',
     name: 'sync-queue',
     component: page(() => import('./pages/SyncQueuePage.vue')),
-    meta: { layout: 'shell', access: 'session', navEntry: 'syncJobs', titleKey: 'nav.syncQueue' },
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'syncJobs',
+      roles: ['admin'],
+      titleKey: 'nav.syncQueue',
+    },
   },
   {
     path: '/sync-jobs',
@@ -58,7 +64,7 @@ export const syncJobRoutes: RouteRecordRaw[] = [
       layout: 'shell',
       access: 'session',
       navEntry: 'syncJobs',
-      titleKey: legacy('mailbox.sync_jobs'),
+      titleKey: legacy('syncjobs.sync_jobs'),
     },
   },
   {
@@ -70,7 +76,7 @@ export const syncJobRoutes: RouteRecordRaw[] = [
       layout: 'shell',
       access: 'session',
       navEntry: 'syncJobs',
-      titleKey: legacy('add.syncjob'),
+      titleKey: legacy('syncjobs.add'),
     },
   },
   {
@@ -83,7 +89,7 @@ export const syncJobRoutes: RouteRecordRaw[] = [
       layout: 'shell',
       access: 'session',
       navEntry: 'syncJobs',
-      titleKey: legacy('edit.syncjob'),
+      titleKey: legacy('syncjobs.edit'),
     },
   },
 ]

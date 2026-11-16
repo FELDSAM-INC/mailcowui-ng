@@ -63,7 +63,7 @@ test.describe('remote password secrecy', () => {
     await expect(page).not.toHaveURL(/edit=/)
     expect(await bodiesWithMarker(mockApi)).toEqual(['updateSyncJob'])
     await page.getByRole('button', { name: 'Edit Edit sync job' }).click()
-    await page.getByLabel('Interval (min)').fill('25')
+    await page.getByLabel('Polling interval (minutes)').fill('25')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page).not.toHaveURL(/edit=/)
     const updates = (await mockApi.requests()).filter((r) => r.operationId === 'updateSyncJob')

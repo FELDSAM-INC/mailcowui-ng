@@ -42,13 +42,12 @@ test.describe('alias page: editing', () => {
     expectAccessible,
   }) => {
     await mockApi.use('aliases-edit')
-    await page.goto(`aliases/${EDIT_ALIAS_004.sales}`)
     const read = page.waitForResponse(
       (response) =>
         response.request().method() === 'GET' &&
         response.url().endsWith(`/api/v2/aliases/${EDIT_ALIAS_004.sales}`),
     )
-    await page.reload()
+    await page.goto(`aliases/${EDIT_ALIAS_004.sales}`)
     const { data } = (await (await read).json()) as { data: { etag: string } }
     await section(page).getByRole('button', { name: 'Edit Edit alias' }).click()
     await expect(page).toHaveURL(/\?edit=alias$/)

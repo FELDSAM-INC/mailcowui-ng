@@ -87,13 +87,19 @@ the key checks). Features only use legacy keys and add the few new strings they 
     "FeldHost™ Mailhosting" where upstream says "mailcow";
   - any customisation by the operator;
   - the texts of the installed mailcow version, without an app release.
-- **Bundled snapshot.** A snapshot of upstream `en-gb` at baseline `2026-09a` is bundled. It is
+- **Bundled snapshot.** A snapshot of upstream `en-gb` at `2026-11` is bundled. It is
   used to type-check the legacy keys the app uses, and as the fallback when `/lang/` cannot be
   loaded.
 - **Missing keys.** A key missing in the selected language falls back to `en-gb`, as the classic
   interface does (`data/web/inc/prerequisites.inc.php` merges the selected file over `en-gb`).
   Features never fill a gap with their own value: no hand-written value for a legacy key, in any
   language.
+
+The 2026-11 snapshot uses the consolidated `syncjobs` keys. `legacy-key-aliases.ts`
+normalizes older installation language files before merging locales. The older
+free-text custom-parameter editor retains the pre-2026-11 upstream hint in
+`syncJobs.form.legacyCustomParamsHint`; the new upstream hint describes row-based
+parameters and does not apply to that compatibility editor.
 
 ### No text change of any kind
 

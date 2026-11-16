@@ -40,7 +40,8 @@
           "secretRequired": "Enter the remote password again when changing the server, port, encryption, or username."
         }
       },
-      "openExisting": "Open the existing job"
+      "openExisting": "Open the existing job",
+      "legacyCustomParamsHint": "Right: --param=xy, wrong: --param xy"
     },
     "list": {
       "actionsFor": "Actions for {name}",
@@ -123,7 +124,6 @@
     "preset": "Provider preset",
     "tenant": "Microsoft tenant ID or domain",
     "applyPreset": "Apply preset",
-    "presetHelp": "Presets fill connection settings. Register your own OAuth application with the provider and enter its client ID and secret.",
     "scopeHelp": "Choose who may use this source. With no selected mailboxes, it is private.",
     "privateHelp": "This source is private. Application credentials are never shared with other users.",
     "redirectHelp": "Register this redirect URI with the provider:",
@@ -158,8 +158,8 @@
     "addOption": "Add option",
     "removeOption": "Remove option",
     "migrationWarning": "Some options from the previous runner could not be migrated and are ignored. Review the original text below and add any supported options you still need in the parameter editor.",
-    "queueSettings": "Queue limits",
-    "queueHelp": "These settings apply to all sync jobs. Higher priority runs first; running jobs are not interrupted.",
+    "queueSettings": "Sync-job settings",
+    "queueHelp": "Limits shared by all sync jobs. The bandwidth limit applies to each running process.",
     "unlimited": "Unlimited",
     "fields": {
       "name": "Name",
@@ -185,9 +185,7 @@
       "mailbox": "Target mailbox",
       "createdBy": "Created by",
       "sourceId": "Sync source",
-      "priority": "Queue priority",
-      "maxParallel": "Parallel jobs (1–32)",
-      "maxBytesPerSecond": "Global bandwidth limit (bytes/s)"
+      "priority": "Queue priority"
     },
     "providers": {
       "gmail": "Gmail",
@@ -210,6 +208,7 @@
     "flows": {
       "authorization_code": "User sign-in",
       "client_credentials": "Application credentials (private)"
-    }
+    },
+    "oauthPresetHelp": "Fills in the provider’s OAuth server settings. Register your own OAuth application with the provider and enter its client ID and secret."
   }
 }

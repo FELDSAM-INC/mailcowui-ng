@@ -24,6 +24,20 @@ const distinctContexts = new Set([
   'systemSettings.massMail.message', // Compose workflow step; the actual fields retain their classic labels.
   'systemSettings.massMail.next', // Advance compose, rather than paginate a DataTables list.
   'systemSettings.massMail.statuses.running', // Delivery-job lifecycle, rather than a service/sync job.
+  // The 2026-11 snapshot adds group/IAM/source labels with the same English words.
+  // These fields still describe mail delivery, audit totals and template previews.
+  'systemSettings.massMail.createdAt',
+  'systemSettings.massMail.creator',
+  'systemSettings.massMail.outcomes.failed',
+  'systemSettings.massMail.outcomes.pending',
+  'systemSettings.massMail.outcomes.skipped',
+  'systemSettings.massMail.startedAt',
+  'systemSettings.passwordReset.copyPlaceholder',
+  'systemSettings.quota.defaultValue',
+  'systemSettings.uiTexts.preview',
+  'auditLog.settings.fields.failed',
+  'auditLog.settings.fields.pending',
+  'auditLog.settings.fields.skipped',
   'emailTemplate.defaultTemplate', // Notification email content, rather than an IAM mailbox template.
 ])
 

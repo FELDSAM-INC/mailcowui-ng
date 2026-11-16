@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { text } from '@/i18n'
 import FormField from '@/shared/components/FormField.vue'
 import NetworkListField from '../components/NetworkListField.vue'
 import type { KeyCreate } from './api'
@@ -22,8 +23,8 @@ const { t } = useI18n()
       :label="t('legacyKeys.fields.accessLevel')"
       :errors="errorsFor('accessLevel')"
       ><select v-bind="control" v-model="form.accessLevel" class="form-control">
-        <option value="readOnly">{{ t('enums.apiKeyAccessLevel.readOnly') }}</option>
-        <option value="readWrite">{{ t('enums.apiKeyAccessLevel.readWrite') }}</option>
+        <option value="readOnly">{{ text('enums.apiKeyAccessLevel.readOnly') }}</option>
+        <option value="readWrite">{{ text('enums.apiKeyAccessLevel.readWrite') }}</option>
       </select></FormField
     >
     <FormField

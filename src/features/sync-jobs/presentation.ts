@@ -27,24 +27,24 @@ type Code = (typeof CODES)[number]
 
 const RESULT_TEXTS: Record<Table, Record<Code | 'checkLog', LegacyRef>> = {
   mailbox: {
-    EX_OK: legacy('mailbox.syncjob_EX_OK'),
-    EXIT_CONNECTION_FAILURE: legacy('mailbox.syncjob_EXIT_CONNECTION_FAILURE'),
-    EXIT_CONNECTION_FAILURE_HOST1: legacy('mailbox.syncjob_EXIT_CONNECTION_FAILURE_HOST1'),
-    EXIT_TLS_FAILURE: legacy('mailbox.syncjob_EXIT_TLS_FAILURE'),
-    EXIT_AUTHENTICATION_FAILURE: legacy('mailbox.syncjob_EXIT_AUTHENTICATION_FAILURE'),
-    EXIT_AUTHENTICATION_FAILURE_USER1: legacy('mailbox.syncjob_EXIT_AUTHENTICATION_FAILURE_USER1'),
-    EXIT_OVERQUOTA: legacy('mailbox.syncjob_EXIT_OVERQUOTA'),
-    checkLog: legacy('mailbox.syncjob_check_log'),
+    EX_OK: legacy('syncjobs.syncjob_EX_OK'),
+    EXIT_CONNECTION_FAILURE: legacy('syncjobs.syncjob_EXIT_CONNECTION_FAILURE'),
+    EXIT_CONNECTION_FAILURE_HOST1: legacy('syncjobs.syncjob_EXIT_CONNECTION_FAILURE_HOST1'),
+    EXIT_TLS_FAILURE: legacy('syncjobs.syncjob_EXIT_TLS_FAILURE'),
+    EXIT_AUTHENTICATION_FAILURE: legacy('syncjobs.syncjob_EXIT_AUTHENTICATION_FAILURE'),
+    EXIT_AUTHENTICATION_FAILURE_USER1: legacy('syncjobs.syncjob_EXIT_AUTHENTICATION_FAILURE_USER1'),
+    EXIT_OVERQUOTA: legacy('syncjobs.syncjob_EXIT_OVERQUOTA'),
+    checkLog: legacy('syncjobs.syncjob_check_log'),
   },
   user: {
-    EX_OK: legacy('user.syncjob_EX_OK'),
-    EXIT_CONNECTION_FAILURE: legacy('user.syncjob_EXIT_CONNECTION_FAILURE'),
-    EXIT_CONNECTION_FAILURE_HOST1: legacy('user.syncjob_EXIT_CONNECTION_FAILURE_HOST1'),
-    EXIT_TLS_FAILURE: legacy('user.syncjob_EXIT_TLS_FAILURE'),
-    EXIT_AUTHENTICATION_FAILURE: legacy('user.syncjob_EXIT_AUTHENTICATION_FAILURE'),
-    EXIT_AUTHENTICATION_FAILURE_USER1: legacy('user.syncjob_EXIT_AUTHENTICATION_FAILURE_USER1'),
-    EXIT_OVERQUOTA: legacy('user.syncjob_EXIT_OVERQUOTA'),
-    checkLog: legacy('user.syncjob_check_log'),
+    EX_OK: legacy('syncjobs.syncjob_EX_OK'),
+    EXIT_CONNECTION_FAILURE: legacy('syncjobs.syncjob_EXIT_CONNECTION_FAILURE'),
+    EXIT_CONNECTION_FAILURE_HOST1: legacy('syncjobs.syncjob_EXIT_CONNECTION_FAILURE_HOST1'),
+    EXIT_TLS_FAILURE: legacy('syncjobs.syncjob_EXIT_TLS_FAILURE'),
+    EXIT_AUTHENTICATION_FAILURE: legacy('syncjobs.syncjob_EXIT_AUTHENTICATION_FAILURE'),
+    EXIT_AUTHENTICATION_FAILURE_USER1: legacy('syncjobs.syncjob_EXIT_AUTHENTICATION_FAILURE_USER1'),
+    EXIT_OVERQUOTA: legacy('syncjobs.syncjob_EXIT_OVERQUOTA'),
+    checkLog: legacy('syncjobs.syncjob_check_log'),
   },
 }
 
@@ -83,10 +83,10 @@ export function statusView(running: boolean, role: Role): { running: boolean; te
 }
 
 const MAILBOX_TEXTS = {
-  title: legacy('mailbox.sync_jobs'),
+  title: legacy('syncjobs.sync_jobs'),
   owner: legacy('mailbox.owner'),
   lastRun: legacy('mailbox.last_run'),
-  result: legacy('mailbox.syncjob_last_run_result'),
+  result: legacy('syncjobs.syncjob_last_run_result'),
   active: legacy('mailbox.active'),
   status: legacy('mailbox.status'),
   running: legacy('mailbox.running'),
@@ -103,9 +103,9 @@ const MAILBOX_TEXTS = {
 
 const USER_TEXTS: typeof MAILBOX_TEXTS = {
   ...MAILBOX_TEXTS,
-  title: legacy('user.sync_jobs'),
+  title: legacy('syncjobs.sync_jobs'),
   lastRun: legacy('user.last_run'),
-  result: legacy('user.syncjob_last_run_result'),
+  result: legacy('syncjobs.syncjob_last_run_result'),
   active: legacy('user.active'),
   status: legacy('user.status'),
   running: legacy('user.running'),

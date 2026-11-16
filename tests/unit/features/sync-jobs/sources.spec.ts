@@ -3,6 +3,8 @@ import { http, HttpResponse } from 'msw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RouterView } from 'vue-router'
 import { ref, defineComponent, h } from 'vue'
+import SourceFields from '@/features/sync-jobs/sources/SourceFields.vue'
+import { lt } from '@/i18n'
 import SourcePicker from '@/features/sync-jobs/sources/SourcePicker.vue'
 import DomainPicker from '@/shared/components/DomainPicker.vue'
 import SourceEditorPage from '@/features/sync-jobs/sources/SourceEditorPage.vue'
@@ -71,6 +73,19 @@ async function edit(page: VueWrapper) {
   await flushPromises()
 }
 describe('Sync sources', () => {
+  it('keeps upstream password-provider advice and explains OAuth only for OAuth presets', async () => {
+    useScenario('sync-jobs-admin')
+    wrapper = mountWithApp(SourceFields, {
+      props: { modelValue: sourceForm(), role: 'admin', creating: true, errorsFor: () => [] },
+    })
+    await flushPromises()
+    expect(wrapper.text()).toContain(lt('syncjobs.source_presets_hint'))
+    await wrapper.get('#source-preset').setValue('microsoftUser')
+    expect(wrapper.text()).not.toContain(lt('syncjobs.source_presets_hint'))
+    expect(wrapper.text()).toContain('OAuth')
+    await wrapper.get('#source-preset').setValue('gmail')
+    expect(wrapper.text()).toContain(lt('syncjobs.source_presets_hint'))
+  })
   it('loads reusable source settings and discards a typed password when choosing OAuth', async () => {
     useScenario('sync-jobs-admin')
     server.use(

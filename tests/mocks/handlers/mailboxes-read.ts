@@ -12,7 +12,7 @@ import {
   visiblePermissions,
 } from '../factories/mailbox'
 import type { MockMailbox } from '../scenarios/state'
-import { http, scenario } from './context'
+import { http, requireAccount, scenario } from './context'
 import { notFound, page, requireManager } from './domain-rules'
 import { findMailbox, mailboxesInScope, mailboxFailure } from './mailbox-rules'
 
@@ -59,6 +59,11 @@ function matchesSearch(mailbox: MockMailbox, q: string): boolean {
 }
 
 export const mailboxReadHandlers = [
+  http.get('/mailboxes/{mailbox}/groups', ({ response }) => {
+    const account = requireAccount(scenario())
+    if (account instanceof Response) return response.untyped(account)
+    return response(200).json({ data: [] })
+  }),
   http.get('/mailboxes', ({ request, response }) => {
     const state = scenario()
     const account = requireManager(state)

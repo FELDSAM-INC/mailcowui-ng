@@ -35,6 +35,7 @@ import MailboxUsage from '../components/display/MailboxUsage.vue'
 import AclSection from '../components/sections/AclSection.vue'
 import AttributesSection from '../components/sections/AttributesSection.vue'
 import MailboxSection from '../components/sections/MailboxSection.vue'
+import MailboxGroupMemberships from '../groups/MailboxGroupMemberships.vue'
 import RenameSection from '../components/sections/RenameSection.vue'
 import { useMailboxCapabilities } from '../composables/useMailboxCapabilities'
 import { takeMailboxFlash, type MailboxFlash } from '../flash'
@@ -230,6 +231,7 @@ const subtitle = computed(() => {
         {{ resolveText(flash.text, t) }}
       </p>
       <MailboxUsage :mailbox="mailbox" :capabilities="capabilities" />
+      <MailboxGroupMemberships v-if="capabilities?.mailboxGroups" :mailbox="mailbox.address" />
     </template>
     <MailboxSection
       v-if="visible('mailbox')"

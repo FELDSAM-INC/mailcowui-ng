@@ -39,6 +39,7 @@ import {
 } from '../api'
 import ConnectionTest from '../components/ConnectionTest.vue'
 import IdentityProviderForm from '../components/IdentityProviderForm.vue'
+import IdentitySyncSection from '../components/IdentitySyncSection.vue'
 import IdentityProviderValues from '../components/IdentityProviderValues.vue'
 import { useConnectionTest } from '../composables/useConnectionTest'
 import { FORM_ID, useProviderEditor } from '../composables/useProviderEditor'
@@ -46,6 +47,7 @@ import { formFromConfig, toInput } from '../form-model'
 import { typeLabelKey } from '../labels'
 
 const SECTION = 'provider'
+const syncDirty = ref(false)
 
 const { t } = useI18n()
 const { problemMessage } = useProblemMessages()
@@ -144,9 +146,14 @@ function closeSection() {
   else void router.replace({ query })
 }
 
-useLeaveGuard(() => editor.dirty.value, { messageKey: 'leaveGuard.body' })
+useLeaveGuard(() => editor.dirty.value || syncDirty.value, { messageKey: 'leaveGuard.body' })
 onBeforeRouteUpdate(async (to, from) => {
-  if (to.path !== from.path || to.query.edit === from.query.edit || !editor.dirty.value) return true
+  if (
+    to.path !== from.path ||
+    to.query.edit === from.query.edit ||
+    !(editor.dirty.value || syncDirty.value)
+  )
+    return true
   return confirm({
     title: t('leaveGuard.title'),
     description: t('leaveGuard.body'),
@@ -383,5 +390,9 @@ const formErrors = (path: string) => editor.problemForm.errorsFor(path)
         />
       </template>
     </EditableSection>
+    <IdentitySyncSection
+      v-if="config && capabilities?.identitySynchronisation && !editing"
+      @dirty="syncDirty = $event"
+    />
   </section>
 </template>

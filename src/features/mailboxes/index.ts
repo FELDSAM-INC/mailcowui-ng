@@ -3,3 +3,4 @@ export { mailboxRoutes } from './routes'
 export { mailboxCreateLink, mailboxLink, mailboxListLink } from './links'
 // UI 012: the "all templates" query, for the identity provider's attribute mapping (non-behavioural).
 export { allTemplatesOptions } from './templates-api'
+export { default as MailboxGroupMemberships } from './groups/MailboxGroupMemberships.vue'

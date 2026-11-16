@@ -23,6 +23,7 @@ interface TabSpec {
   entry?: NavEntryId
   roles?: readonly Role[]
   /** Roadmap destinations are visible, but never behave like links. */
+  feature?: keyof NonNullable<Identity['features']>
   pending?: boolean
   matches?: readonly string[]
 }
@@ -99,7 +100,10 @@ const groups: readonly {
     labelKey: 'nav.groups.emailConfiguration',
     items: [
       { ...single('domains'), tabs: [tab('domains'), tab('domainTemplates')] },
-      { ...single('mailboxes'), tabs: [tab('mailboxes'), tab('mailboxTemplates')] },
+      {
+        ...single('mailboxes'),
+        tabs: [tab('mailboxes'), tab('mailboxTemplates'), tab('mailboxGroups')],
+      },
       { ...single('aliases'), tabs: [tab('aliases'), tab('aliasDomains')] },
       single('resources'),
       {
@@ -114,7 +118,25 @@ const groups: readonly {
           },
         ],
       },
-      single('syncJobs'),
+      {
+        ...single('syncJobs'),
+        tabs: [
+          tab('syncJobs'),
+          tab('syncJobs', {
+            id: 'syncSources',
+            labelKey: 'nav.syncSources',
+            path: '/sync-sources',
+            feature: 'syncSources',
+          }),
+          tab('syncJobs', {
+            id: 'syncQueue',
+            labelKey: 'nav.syncQueue',
+            path: '/sync-queue',
+            feature: 'syncSources',
+            roles: ADMIN,
+          }),
+        ],
+      },
       emailRouting,
     ],
   },
@@ -154,6 +176,12 @@ const groups: readonly {
           }),
           tab('domainAdmins'),
           tab('apiKeys', { matches: ['/system/cors'] }),
+          tab('apiKeys', {
+            id: 'legacyApiKeys',
+            path: '/legacy-api-keys',
+            labelKey: 'legacyKeys.title',
+            feature: 'legacyApiKeys',
+          }),
           tab('identityProviders', {
             labelKey: legacy('admin.iam'),
             path: '/identity-providers/provider',
@@ -297,7 +325,8 @@ export function sidebarSections(
             .filter(
               (item) =>
                 (!item.entry || canAccess(item.entry, identity)) &&
-                (!item.roles || item.roles.includes(identity.role)),
+                (!item.roles || item.roles.includes(identity.role)) &&
+                (!item.feature || identity.features?.[item.feature] === true),
             )
             .map((item): NavigationTab => ({
               id: item.id,

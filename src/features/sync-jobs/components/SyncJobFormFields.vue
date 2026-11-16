@@ -28,6 +28,8 @@ import {
 } from '../form-model'
 import FieldLabel from './FieldLabel.vue'
 import RemotePasswordField from './RemotePasswordField.vue'
+import SourcePicker from '../sources/SourcePicker.vue'
+import TypedSyncOptions from './TypedSyncOptions.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -115,7 +117,34 @@ const required = (field: string) =>
 <template>
   <div class="flex flex-col gap-4">
     <slot name="owner" />
-    <template v-for="field in ORDERED_BEFORE_PASSWORD" :key="field">
+    <SourcePicker
+      v-if="caps.sources"
+      :id="id('sourceId')"
+      v-model="values"
+      :editing="mode === 'edit'"
+      :errors="errorsFor('sourceId')"
+    />
+    <FormField
+      v-if="caps.queueManagement"
+      :id="id('priority')"
+      :label="t('syncSources.fields.priority')"
+      :errors="errorsFor('priority')"
+      ><template #default="control"
+        ><input
+          v-bind="control"
+          v-model.number="values.priority"
+          type="number"
+          min="-2147483648"
+          max="2147483647"
+          step="1"
+          class="form-control" /></template
+    ></FormField>
+    <template
+      v-for="field in ORDERED_BEFORE_PASSWORD.filter(
+        (field) => !values.sourceId || field === 'remoteUser',
+      )"
+      :key="field"
+    >
       <FormField
         :id="id(field)"
         :label="''"
@@ -149,6 +178,7 @@ const required = (field: string) =>
       </FormField>
     </template>
     <RemotePasswordField
+      v-if="!values.sourceOAuth"
       :id="id('remotePassword')"
       v-model="values.remotePassword"
       :label="label('remotePassword')"
@@ -158,7 +188,12 @@ const required = (field: string) =>
       :max-length="maxLengthOf(caps, 'remotePassword')"
       :errors="errorsFor('remotePassword')"
     />
-    <FormField :id="id('encryption')" :label="''" :errors="errorsFor('encryption')">
+    <FormField
+      v-if="!values.sourceId"
+      :id="id('encryption')"
+      :label="''"
+      :errors="errorsFor('encryption')"
+    >
       <template #label><FieldLabel :text="label('encryption')" /></template>
       <template #default="control">
         <select v-bind="control" :value="values.encryption" :class="INPUT" @change="onEncryption">
@@ -198,8 +233,16 @@ const required = (field: string) =>
         </template>
       </FormField>
     </template>
+    <TypedSyncOptions
+      v-if="showCustomParams && caps.customParameters.optionRules"
+      :id="id('customParameters')"
+      v-model="values.customParameters"
+      :rules="caps.customParameters.optionRules"
+      :readonly="!customParamsAllowed"
+      :errors="errorsFor('customParameters')"
+    />
     <FormField
-      v-if="showCustomParams"
+      v-else-if="showCustomParams"
       :id="id('customParameters')"
       :label="''"
       :description="customParamsHint"

@@ -7,8 +7,9 @@ import {
 } from '@/features/administrators/permissions'
 it('preserves all classic ACL fields in their exact order, with upstream labels', () => {
   expect(permissionOrder).toEqual(domainAdminPermissionNameValues)
-  expect(new Set(permissionOrder).size).toBe(19)
-  for (const name of permissionOrder)
+  expect(new Set(permissionOrder).size).toBe(20)
+  expect(permissionLabels.mailboxGroups).toBe('permissions.flag.mailboxGroups')
+  for (const name of permissionOrder.filter((name) => name !== 'mailboxGroups'))
     expect(permissionLabels[name]).toMatchObject({ legacy: expect.stringMatching(/^acl\./) })
 })
 it('sends only changed permission flags', () => {

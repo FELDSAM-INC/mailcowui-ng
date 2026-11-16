@@ -2,6 +2,7 @@
 // session wiring, the bootstrap before the first navigation resolves, then mount.
 import './styles/main.css'
 
+import { captureSyncSourceReturn } from '@/features/sync-jobs'
 import { captureSingleSignOnReturn } from '@/features/auth'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
@@ -44,4 +45,5 @@ async function start() {
 // router and the bootstrap send any request.
 normalizeAppLocation()
 captureSingleSignOnReturn()
+captureSyncSourceReturn()
 void start()

@@ -63,7 +63,11 @@ const date = (value: string | null) => (value ? fmt.dateTime(value) : '-')
   <span v-else-if="column === 'messages'" class="tabular-nums">{{
     fmt.number(mailbox.messageCount)
   }}</span>
-  <MailboxStatusBadge v-else-if="column === 'status'" :status="mailbox.status" />
+  <MailboxStatusBadge
+    v-else-if="column === 'status'"
+    :status="mailbox.status"
+    :shared="mailbox.shared"
+  />
   <span v-else-if="column === 'displayName'" class="wrap-anywhere">{{ mailbox.displayName }}</span>
   <span v-else-if="column === 'domain'" class="wrap-anywhere">{{ mailbox.domainUnicode }}</span>
   <span v-else-if="column === 'authSource'">{{ display.source(mailbox.authSource) }}</span>

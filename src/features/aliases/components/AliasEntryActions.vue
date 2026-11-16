@@ -12,7 +12,15 @@ const { t } = useI18n()
 </script>
 
 <template>
+  <RowAction
+    v-if="alias.groupId"
+    :menu="false"
+    :label="t('aliases.groupManaged')"
+    :to="{ name: 'alias-detail', params: { aliasId: alias.id } }"
+    >{{ t('aliases.groupManaged') }}</RowAction
+  >
   <RowActions
+    v-else
     v-slot="{ menu }"
     :count="!alias.inAliasDomain && !alias.orphaned ? 3 : 2"
     :label="t('lists.actionsFor', { name: alias.addressUnicode })"

@@ -4,7 +4,7 @@ import {
   type DomainAdminPermissions,
   type DomainAdminPermissionsPatch,
 } from '@/api'
-import { legacy, type LegacyRef } from '@/i18n'
+import { legacy, type TextRef } from '@/i18n'
 
 /** The upstream da_acl field order; the generated enum keeps the same stable order. */
 export const permissionOrder = domainAdminPermissionNameValues
@@ -28,7 +28,8 @@ export const permissionLabels = {
   domainRelayhost: legacy('acl.domain_relayhost'),
   domainDesc: legacy('acl.domain_desc'),
   aliasExternalGoto: legacy('acl.alias_external_goto'),
-} satisfies Record<DomainAdminPermissionName, LegacyRef>
+  mailboxGroups: 'permissions.flag.mailboxGroups',
+} satisfies Record<DomainAdminPermissionName, TextRef>
 
 export function changedFlags(
   base: DomainAdminPermissions,

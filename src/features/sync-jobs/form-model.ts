@@ -15,7 +15,9 @@ import type { ClientErrors } from '@/shared/validation/client-errors'
 
 import type { SyncJobCreateBody, SyncJobPatchBody } from './api'
 
-type Config = Required<Omit<SyncJobCreateRequest, 'mailbox' | 'remotePassword'>>
+type Config = Required<
+  Omit<SyncJobCreateRequest, 'mailbox' | 'remotePassword' | 'sourceId' | 'priority'>
+>
 
 export const NUMBER_FIELDS = [
   'remotePort',
@@ -30,9 +32,18 @@ export type NumberField = (typeof NUMBER_FIELDS)[number]
 /** The form's values: numbers as typed text, the target mailbox and the typed password as text. */
 export type SyncJobFormValues = {
   [K in keyof Config]: K extends NumberField ? string : Config[K]
-} & { mailbox: string; remotePassword: string }
+} & {
+  mailbox: string
+  remotePassword: string
+  sourceId?: number
+  sourceOAuth?: boolean
+  priority?: number
+}
 
-export type FormField = Exclude<keyof SyncJobFormValues, 'mailbox'>
+export type FormField = Exclude<
+  keyof SyncJobFormValues,
+  'mailbox' | 'sourceId' | 'sourceOAuth' | 'priority'
+>
 
 /** The fields in the order of the classic add form and edit page (after the owner). */
 export const FIELD_ORDER = [
@@ -170,6 +181,13 @@ export function initialCreateValues(
 export function toFormValues(job: SyncJob): SyncJobFormValues {
   return {
     mailbox: job.mailbox,
+    ...(job.sourceId
+      ? {
+          sourceId: job.sourceId,
+          sourceOAuth: job.sourceAuthMechanism === 'xoauth2',
+          priority: job.priority,
+        }
+      : {}),
     remoteHost: job.remoteHost,
     remotePort: String(job.remotePort),
     remoteUser: job.remoteUser,
@@ -206,11 +224,16 @@ type Values = Omit<SyncJobCreateBody, 'mailbox'>
 function toRequestValues(values: SyncJobFormValues): Values {
   const number = (field: NumberField) => parseWhole(values[field]) ?? 0
   return {
-    remoteHost: values.remoteHost.trim(),
-    remotePort: number('remotePort'),
-    encryption: values.encryption,
+    ...(values.sourceId
+      ? { sourceId: values.sourceId }
+      : {
+          remoteHost: values.remoteHost.trim(),
+          remotePort: number('remotePort'),
+          encryption: values.encryption,
+        }),
+    ...(values.priority !== undefined ? { priority: values.priority } : {}),
     remoteUser: values.remoteUser,
-    remotePassword: values.remotePassword,
+    ...(values.sourceOAuth ? {} : { remotePassword: values.remotePassword }),
     intervalMinutes: number('intervalMinutes'),
     destinationSubfolder: values.destinationSubfolder,
     maxAgeDays: number('maxAgeDays'),
@@ -260,18 +283,25 @@ export function patchFor(
   for (const field of FIELD_ORDER) {
     if (field === 'remotePassword') continue
     if (field === 'customParameters' && !options.customParamsAllowed) continue
-    if (next[field] !== job[field]) patch[field] = next[field]
+    if (next[field] !== undefined && next[field] !== job[field]) patch[field] = next[field]
   }
-  if (values.remotePassword !== '') patch.remotePassword = values.remotePassword
+  if (values.sourceId && values.sourceId !== job.sourceId) patch.sourceId = values.sourceId
+  if (values.priority !== undefined && values.priority !== job.priority)
+    patch.priority = values.priority
+  if (!values.sourceOAuth && values.remotePassword !== '')
+    patch.remotePassword = values.remotePassword
   return patch
 }
 
 /** A retained credential may only be used with the connection it was saved for. */
 export function needsRemotePassword(job: SyncJob, patch: SyncJobPatchBody): boolean {
+  if (patch.sourceId !== undefined && patch.sourceId !== job.sourceId) return true
   return (
+    job.sourceAuthMechanism !== 'xoauth2' &&
     job.remotePasswordSet &&
-    ((patch.remoteHost !== undefined &&
-      patch.remoteHost.trim().toLowerCase() !== job.remoteHost.toLowerCase()) ||
+    ((patch.sourceId !== undefined && patch.sourceId !== job.sourceId) ||
+      (patch.remoteHost !== undefined &&
+        patch.remoteHost.trim().toLowerCase() !== job.remoteHost.toLowerCase()) ||
       (patch.remotePort !== undefined && patch.remotePort !== job.remotePort) ||
       (patch.encryption !== undefined && patch.encryption !== job.encryption) ||
       (patch.remoteUser !== undefined && patch.remoteUser !== job.remoteUser))
@@ -302,9 +332,14 @@ export function checkValues(
   if (options.needsMailbox && values.mailbox.trim() === '') {
     add('mailbox', { key: legacy('danger.no_user_defined') })
   }
-  const required: TextField[] = ['remoteHost', 'remoteUser']
-  if (options.mode === 'create') required.push('remotePassword')
-  if (options.mode === 'edit' && options.passwordRequired && values.remotePassword === '') {
+  const required: TextField[] = values.sourceId ? ['remoteUser'] : ['remoteHost', 'remoteUser']
+  if (options.mode === 'create' && !values.sourceOAuth) required.push('remotePassword')
+  if (
+    options.mode === 'edit' &&
+    options.passwordRequired &&
+    !values.sourceOAuth &&
+    values.remotePassword === ''
+  ) {
     add('remotePassword', { key: 'syncJobs.password.reenter' })
   }
   for (const field of required) {
@@ -319,6 +354,7 @@ export function checkValues(
     }
   }
   for (const field of NUMBER_FIELDS) {
+    if (field === 'remotePort' && values.sourceId) continue
     const text = values[field]
     if (text.trim() === '') {
       add(field, { key: 'validation.required' })

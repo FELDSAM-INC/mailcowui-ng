@@ -65,6 +65,14 @@ const label = (ref: Parameters<typeof resolveText>[0]) => resolveText(ref, t)
     </DataCardFields>
     <template #details>
       <DataCardFields>
+        <template v-if="job.priority !== undefined"
+          ><dt>{{ t('syncSources.fields.priority') }}</dt>
+          <dd>{{ fmt.number(job.priority) }}</dd></template
+        >
+        <template v-if="job.sourceName"
+          ><dt>{{ t('syncSources.fields.sourceId') }}</dt>
+          <dd>{{ job.sourceName }}</dd></template
+        >
         <template v-if="!manager">
           <dt class="text-gray-600 dark:text-gray-400">{{ label(texts.encryption) }}</dt>
           <dd class="text-gray-900 dark:text-white">

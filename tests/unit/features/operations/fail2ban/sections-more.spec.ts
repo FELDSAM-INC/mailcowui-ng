@@ -5,6 +5,7 @@
 // compiler messages, outdated save and the reset's outcomes.
 import { flushPromises, type VueWrapper } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { http, HttpResponse } from 'msw'
 import { createMemoryHistory, createRouter } from 'vue-router'
 
 import type {
@@ -22,7 +23,7 @@ import { operationsKeys } from '@/features/operations/query-keys'
 import { liveMessages } from '@/shared/composables/useAnnouncer'
 import { confirmState, settleConfirm } from '@/shared/composables/useConfirm'
 
-import { mockState, useScenario } from '../../../../mocks/node'
+import { mockState, server, useScenario } from '../../../../mocks/node'
 import type { OperationInjection } from '../../../../mocks/scenarios/operations/state'
 import { defaultMonitoringCapabilities } from '../../../../mocks/scenarios/operations/state'
 import { installMatchMedia } from '../../../support/media'
@@ -88,6 +89,31 @@ describe('BanListSection outcomes', slow, () => {
   }
 
   const ban = (wrapper: VueWrapper, network: string) => wrapper.get(`[data-ban="${network}"]`)
+
+  it('confirms unban all and preserves the permanent-ban display', async () => {
+    let calls = 0
+    server.use(
+      http.post('*/api/v2/fail2ban/active-bans/lift-all', () => {
+        calls++
+        return HttpResponse.json({ data: { queuedCount: 2, banServiceRunning: true } })
+      }),
+    )
+    const { wrapper } = await openBanList()
+    await settle(() => expect(wrapper.find('[data-unban-all]').exists()).toBe(true))
+    const permanent = wrapper.get('[data-permanent-bans]').text()
+    await wrapper.get('[data-unban-all]').trigger('click')
+    expect(confirmState.value?.description).toContain('Permanent bans')
+    settleConfirm(false)
+    await flushPromises()
+    expect(calls).toBe(0)
+    await wrapper.get('[data-unban-all]').trigger('click')
+    settleConfirm(true)
+    await settle(() =>
+      expect(wrapper.get('[data-ban-status]').text()).toBe('2 automatic bans queued for removal.'),
+    )
+    expect(calls).toBe(1)
+    expect(wrapper.get('[data-permanent-bans]').text()).toBe(permanent)
+  })
 
   it('lifts a ban without asking and says the network was changed', async () => {
     const { wrapper } = await openBanList()

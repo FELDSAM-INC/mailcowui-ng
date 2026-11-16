@@ -70,7 +70,7 @@ watch(
   { immediate: true },
 )
 
-const fields = new Set<string>(['mailbox', ...FIELD_ORDER])
+const fields = new Set<string>(['mailbox', 'sourceId', 'priority', ...FIELD_ORDER])
 const problemForm = useProblemForm({
   fieldId: (path) => {
     const field = path.split('.')[0] ?? ''
@@ -79,11 +79,13 @@ const problemForm = useProblemForm({
   },
   formKey: SYNC_JOB_FORM_KEY,
   labelFor: (field) =>
-    field === 'mailbox'
-      ? resolveText(OWNER_LABEL, t)
-      : fields.has(field)
-        ? resolveText(fieldLabel('create', field as FormField), t)
-        : field,
+    field === 'sourceId' || field === 'priority'
+      ? t(`syncSources.fields.${field}`)
+      : field === 'mailbox'
+        ? resolveText(OWNER_LABEL, t)
+        : fields.has(field)
+          ? resolveText(fieldLabel('create', field as FormField), t)
+          : field,
 })
 
 const pending = ref(false)

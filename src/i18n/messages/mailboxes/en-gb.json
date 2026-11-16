@@ -118,6 +118,10 @@
       "groupwareDirectoryUpdate": "The mailbox was added, but the webmail address book could not be updated.",
       "rateLimit": "The mailbox was added, but its rate limit could not be applied.",
       "taggedMailHandling": "The mailbox was added, but its handling of tagged mail could not be applied."
+    },
+    "shared": {
+      "label": "Shared mailbox",
+      "help": "No independent sign-in. Members access this mailbox through mailbox-group sharing. A password is not required when creating it."
     }
   },
   "mailboxTemplates": {
@@ -135,6 +139,75 @@
       "activeSync": "EAS",
       "dav": "DAV",
       "webmailRedirect": "SOGO"
+    }
+  },
+  "mailboxGroups": {
+    "title": "Mailbox groups",
+    "create": "Create mailbox group",
+    "settings": "Group settings",
+    "identityManaged": "Identity provider",
+    "addressHelp": "Optional distribution address in the group’s domain. Leave empty for a group used only for permissions.",
+    "membersHelp": "Choose the mailboxes that belong to this group. Identity-managed and out-of-scope members are preserved.",
+    "lockedMembers": "These memberships are managed elsewhere and cannot be removed here.",
+    "outsideScope": "Outside your scope",
+    "sendAsHelp": "Existing mailbox or alias addresses, or a domain prefixed with the at sign. Separate entries with new lines. The group’s own address uses “Allow sending as the group address”.",
+    "sharingHelp": "Access changes may remain pending until mailcow applies them. Subscriptions are maintained by mailcow’s scheduled tasks.",
+    "owner": "Owner mailbox",
+    "access": "Access level",
+    "folderType": "Folder type",
+    "folder": "Folder identifier",
+    "calendar": "Calendar",
+    "contacts": "Contacts",
+    "subscribe": "Subscribe members automatically",
+    "addShare": "Add sharing permission",
+    "administration": "Administration",
+    "templateHelp": "The active group with the highest priority supplies a member’s template. Equal priorities use the lowest group ID. Leaving all groups keeps the mailbox settings.",
+    "identityReferenceHelp": "Optional stable reference used by identity-provider group synchronisation.",
+    "reapply": "Reapply templates",
+    "reapplyConfirm": "Apply each member’s effective group template again? This can replace their manually changed settings.",
+    "remove": "Delete mailbox group",
+    "removeConfirm": "Delete “{name}”, its distribution address and group permissions? Member mailboxes will remain.",
+    "readOnly": "This group has permissions outside your managed domains, or your access is read-only.",
+    "subscribed": "Automatic subscription enabled",
+    "notSubscribed": "No automatic subscription",
+    "folderPending": "Waiting for mailcow to initialise the owner’s folder.",
+    "sharePending": "Mailcow will retry applying this permission.",
+    "fields": {
+      "name": "Name",
+      "domain": "Domain",
+      "address": "Distribution address",
+      "description": "Description",
+      "active": "Active",
+      "senderAllowed": "Allow sending as the group address",
+      "sogoVisible": "Show group address in SOGo",
+      "internal": "Internal senders only",
+      "members": "Members",
+      "sendAs": "Additional send-as permissions",
+      "imapGrants": "Shared mailboxes (IMAP)",
+      "sogoGrants": "Shared calendars and contacts (SOGo)",
+      "templateId": "Mailbox template",
+      "priority": "Template priority",
+      "identityReference": "Identity-provider reference"
+    },
+    "rights": {
+      "read": "Read",
+      "write": "Read and write",
+      "full": "Full access"
+    },
+    "states": {
+      "pending": "Pending",
+      "applied": "Applied",
+      "failed": "Retry pending",
+      "removing": "Removal pending"
+    },
+    "warnings": {
+      "recipientExpansionLimit": "The distribution group exceeds Postfix’s 1,000-recipient expansion limit.",
+      "templateApplicationFailed": "The template could not be applied to {target}.",
+      "imapGrantPending": "IMAP access for {target} is pending. Mailcow will retry.",
+      "imapGrantCleanupFailed": "IMAP permission cleanup for {target} could not be confirmed.",
+      "authCacheFlushFailed": "The mailbox authentication cache could not be refreshed. Access changes may take longer to apply.",
+      "groupwareRefreshFailed": "The SOGo directory or cache could not be refreshed.",
+      "generic": "The group was saved, but a follow-up operation needs attention."
     }
   }
 }

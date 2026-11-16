@@ -39,8 +39,8 @@ const contract = JSON.parse(readFileSync(join(root, 'contract/openapi.json'), 'u
 }
 
 describe('contract usage of UI 011', () => {
-  it('lists the 44 operations with their contract paths', () => {
-    expect(listed).toHaveLength(44)
+  it('lists the 45 operations with their contract paths', () => {
+    expect(listed).toHaveLength(45)
     for (const { operationId, method, path } of listed) {
       expect(contract.paths[path]?.[method.toLowerCase()]?.operationId, operationId).toBe(
         operationId,

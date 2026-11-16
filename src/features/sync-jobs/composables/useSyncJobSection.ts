@@ -46,7 +46,12 @@ import {
 } from '../form-model'
 
 /** The fields a reload can change (the password is never returned). */
-const COMPARED = FIELD_ORDER.filter((field) => field !== 'remotePassword')
+const COMPARED = [
+  ...FIELD_ORDER.filter((field) => field !== 'remotePassword'),
+  'sourceId',
+  'priority',
+] as const
+type ComparedField = (typeof COMPARED)[number]
 
 /** A legacy value without its character references (`&#10003;` → ✓), for plain text. */
 export function plainLegacy(value: string): string {
@@ -79,25 +84,24 @@ export function useSyncJobSection(options: SectionOptions) {
   const pending = ref(false)
 
   const customParamsAllowed = computed(() => options.caps()?.customParameters.allowed ?? false)
-  const passwordRequired = computed(() =>
-    needsRemotePassword(
-      base.value,
-      patchFor(opened.value, form.value, { customParamsAllowed: customParamsAllowed.value }),
-    ),
+  const passwordRequired = computed(
+    () =>
+      !form.value.sourceOAuth &&
+      needsRemotePassword(
+        base.value,
+        patchFor(opened.value, form.value, { customParamsAllowed: customParamsAllowed.value }),
+      ),
   )
 
   const problemForm = useProblemForm({
     fieldId: (path) => {
       const field = path.split('.')[0] as FormField
-      return (FIELD_ORDER as readonly string[]).includes(field)
+      return [...(FIELD_ORDER as readonly string[]), 'sourceId', 'priority'].includes(field)
         ? `${options.idPrefix}-${field}`
         : null
     },
     formKey: SYNC_JOB_FORM_KEY,
-    labelFor: (field) =>
-      (FIELD_ORDER as readonly string[]).includes(field)
-        ? resolveText(fieldLabel('edit', field as FormField), t)
-        : field,
+    labelFor: (field) => label(field),
   })
 
   const versioned = useVersionedSave<SyncJob>({
@@ -138,7 +142,15 @@ export function useSyncJobSection(options: SectionOptions) {
       JSON.stringify(form.value) !== JSON.stringify(toFormValues(opened.value)),
   )
 
-  function display(field: FormField, job: SyncJob): string {
+  function label(field: string): string {
+    if (field === 'sourceId' || field === 'priority') return t(`syncSources.fields.${field}`)
+    return (FIELD_ORDER as readonly string[]).includes(field)
+      ? resolveText(fieldLabel('edit', field as FormField), t)
+      : field
+  }
+
+  function display(field: ComparedField, job: SyncJob): string {
+    if (field === 'sourceId') return job.sourceName ?? String(job.sourceId ?? '-')
     if ((BOOLEAN_FIELDS as readonly string[]).includes(field)) {
       return plainLegacy(
         legacyRaw(job[field as (typeof BOOLEAN_FIELDS)[number]] ? 'mailbox.yes' : 'mailbox.no'),
@@ -206,7 +218,7 @@ export function useSyncJobSection(options: SectionOptions) {
         const latest = result.latest ?? base.value
         outdated.value = changedSince(base.value, latest, COMPARED).map(({ field }) => ({
           field,
-          label: resolveText(fieldLabel('edit', field), t)
+          label: label(field)
             .replace(/<[^>]*>/g, ' ')
             .replace(/\s+/g, ' ')
             .trim(),

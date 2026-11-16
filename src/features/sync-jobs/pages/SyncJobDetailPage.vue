@@ -157,6 +157,14 @@ watch(id, (value) => (initialStatus.value = value === undefined ? null : takeOut
       </PageHeader>
       <SyncJobRunStatus :job="job" :role="role" />
     </template>
+    <div
+      v-if="job.migrationWarning"
+      role="status"
+      class="space-y-2 rounded-lg border border-line bg-surface p-3 text-sm"
+    >
+      <p>{{ t('syncSources.migrationWarning') }}</p>
+      <pre class="whitespace-pre-wrap wrap-anywhere">{{ job.legacyCustomParameters }}</pre>
+    </div>
     <SyncJobSection
       :job="job"
       :role="role"

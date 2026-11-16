@@ -21,6 +21,7 @@ export type Patch = Writable<MailboxPatch>
 
 /** The stored values the "Mailbox" section edits. */
 export interface MailboxSectionBase {
+  shared?: boolean
   authSource: MailboxAuthSource
   displayName: string
   tags: readonly string[]
@@ -35,6 +36,7 @@ export interface MailboxSectionBase {
 
 /** The section's form, with the quota already in bytes. */
 export interface MailboxSectionValues {
+  shared?: boolean
   authSource: MailboxAuthSource
   displayName: string
   tags: readonly string[]
@@ -84,6 +86,7 @@ export function mailboxPatch(
   const set = <K extends SectionField>(field: K, value: Patch[K]) => {
     if (editable(field)) patch[field] = value
   }
+  if ((values.shared ?? false) !== (base.shared ?? false)) set('shared', values.shared ?? false)
   if (values.authSource !== base.authSource) set('authSource', values.authSource)
   if (values.displayName !== base.displayName) set('displayName', values.displayName)
   if (!sameTagSet(values.tags, base.tags)) set('tags', [...values.tags])

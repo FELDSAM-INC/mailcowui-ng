@@ -38,6 +38,7 @@ import TlsPolicyField from './TlsPolicyField.vue'
 
 const props = withDefaults(
   defineProps<{
+    shared?: boolean
     idPrefix: string
     modelValue: MailboxValues
     capabilities: MailboxCapabilities | undefined
@@ -190,6 +191,7 @@ const rateLimitText = computed(() =>
       @update:model-value="update('status', $event)"
     />
     <LegacyCheckbox
+      v-if="!shared"
       :id="id('forcePasswordChange')"
       :model-value="modelValue.forcePasswordChange"
       label-key="edit.force_pw_update"
@@ -198,6 +200,7 @@ const rateLimitText = computed(() =>
       @update:model-value="update('forcePasswordChange', $event)"
     />
     <LegacyCheckbox
+      v-if="!shared"
       :id="id('forceSecondFactorSetup')"
       :model-value="modelValue.forceSecondFactorSetup"
       label-key="tfa.force_tfa"

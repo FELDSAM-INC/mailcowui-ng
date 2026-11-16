@@ -28,7 +28,9 @@ const details = COLUMNS.filter(
     <template v-if="mailbox.displayName" #subtitle>
       <span data-display-name>{{ mailbox.displayName }}</span>
     </template>
-    <template #badges><MailboxStatusBadge :status="mailbox.status" /></template>
+    <template #badges
+      ><MailboxStatusBadge :status="mailbox.status" :shared="mailbox.shared"
+    /></template>
     <DataCardFields>
       <div v-for="column in primary" :key="column.id" :data-column="column.id">
         <dt>{{ column.label ? lt(column.label) : column.text }}</dt>

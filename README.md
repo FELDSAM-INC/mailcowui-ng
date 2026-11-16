@@ -20,7 +20,9 @@ assets stay under `/ng/`. Existing `/ng/` bookmarks and credential callbacks are
 in the browser before bootstrap, without an HTTP redirect carrying their credentials.
 The classic interface remains available at `/index.php` in this mode.
 
-Compatibility: **mailcow 2026-09a or newer**, including **2026-10**. Older releases
+Compatibility: **mailcow 2026-09a or newer**, including **2026-10** and **2026-11** with the updated API and UI builds on `main`.
+Preview 5 and earlier do not support 2026-11. See the
+[2026-11 feature and migration notes](https://github.com/FELDSAM-INC/mailcow-rest-v2/blob/main/docs/mailcow-2026-11.md). Older releases
 remain untested: `2026-09` shares the accepted schema, while releases through `2026-07b`
 currently fail the API's schema check. See the [compatibility guide](https://github.com/FELDSAM-INC/mailcow-modern-ui/blob/main/docs/compatibility.md).
 

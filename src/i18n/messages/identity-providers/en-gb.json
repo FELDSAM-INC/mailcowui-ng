@@ -37,5 +37,92 @@
     },
     "redirectUriEmpty": "Redirect/Callback URL cannot be empty",
     "title": "OAuth2"
+  },
+  "identitySync": {
+    "settingsTitle": "Identity synchronisation",
+    "description": "Synchronise mailbox groups and disable sign-in for accounts removed or disabled at the identity provider. Mail delivery remains enabled.",
+    "runsTitle": "Recent synchronisation runs",
+    "idChangeTitle": "Change the LDAP identity attribute?",
+    "idChangeBody": "Existing LDAP identity IDs will be cleared. The next login or sync will link these mailboxes again by email address. Offboarding markers are retained.",
+    "idHelp": "Leave empty to use objectGUID, entryUUID, nsUniqueId, ipaUniqueID or the distinguished name.",
+    "limitHelp": "Percentage of active accounts or memberships that one run may remove. Mailcow allows at least five mailboxes. Preview changes before forcing a blocked run.",
+    "pathsHelp": "Comma-separated paths, for example /staff, /teams/* or /* for all groups.",
+    "runConfirmation": "Apply the configured synchronisation. This may create mailboxes, change group membership or disable sign-in.",
+    "forceConfirmation": "Apply synchronisation while bypassing the offboarding and membership-removal limits. Review the preview before continuing.",
+    "forceAcknowledge": "I understand that this run can disable sign-in for many accounts and remove group memberships.",
+    "queued": "Requested. Mailcow will process this run on its next cron cycle.",
+    "noSummary": "The run has no result yet.",
+    "blockedHelp": "The change limit stopped this run. Review the proposed changes and conflicts before requesting a forced run.",
+    "scheduled": "Scheduled",
+    "detailsOf": "Details of run {id}",
+    "linksTitle": "Mailbox identity links",
+    "linksHelp": "Inspect a mailbox’s stable external identity. Clear a link only when the mailbox should be linked to a different provider account.",
+    "mailbox": "Mailbox address",
+    "lookup": "Look up",
+    "unlink": "Clear identity link",
+    "unlinkBody": "Clear the identity link of {mailbox}? The next login or sync can link this address to a different provider account. A disabled mailbox remains disabled.",
+    "noLink": "No identity link is stored for this mailbox.",
+    "actions": {
+      "preview": "Preview changes",
+      "run": "Synchronise now",
+      "force": "Force synchronisation"
+    },
+    "counts": {
+      "accounts": "Provider mailboxes",
+      "linked": "Linked identities",
+      "disabled": "Disabled by provider",
+      "missing": "Missing at provider"
+    },
+    "columns": {
+      "mode": "Run",
+      "status": "Status",
+      "created": "Requested",
+      "requestedBy": "Requested by",
+      "finished": "Finished"
+    },
+    "status": {
+      "pending": "Pending",
+      "running": "Running",
+      "ok": "Completed",
+      "blocked": "Blocked",
+      "error": "Failed"
+    },
+    "memberModes": {
+      "memberof": "User memberOf attribute",
+      "member": "Group member attribute",
+      "ad_chain": "Active Directory nested groups"
+    },
+    "fields": {
+      "offboarding": "Disable sign-in for removed or disabled provider accounts",
+      "offboardingLimit": "Change limit (%)",
+      "groupSync": "Synchronise group memberships",
+      "groupAutocreate": "Create missing mailbox groups",
+      "groupDefaultDomain": "Default domain for new groups",
+      "groupPaths": "Keycloak group paths",
+      "idAttribute": "Stable identity attribute",
+      "disabledFilter": "Disabled-user filter",
+      "groupBaseDn": "Group base DN",
+      "groupFilter": "Group filter",
+      "groupNameAttribute": "Group name attribute",
+      "groupMemberMode": "Membership lookup",
+      "groupMemberAttribute": "Group member attribute"
+    },
+    "summary": {
+      "links": "Identity links",
+      "creates": "New mailboxes",
+      "deactivate": "Sign-in disabled",
+      "restore": "Sign-in restored",
+      "release": "Offboarding markers removed",
+      "missing": "Missing accounts",
+      "found": "Accounts found again",
+      "updates": "Updated mailboxes",
+      "group_creates": "New groups",
+      "group_renames": "Renamed groups",
+      "memberships": "Group memberships",
+      "orphaned_groups": "Missing groups",
+      "conflicts": "Conflicts",
+      "membership_removals": "Membership removals",
+      "skipped": "Skipped accounts"
+    }
   }
 }

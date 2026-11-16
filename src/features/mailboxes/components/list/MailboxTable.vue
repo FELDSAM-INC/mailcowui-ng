@@ -142,7 +142,10 @@ const tableView = useDataColumns(
             >
               <DataIdentity v-if="column.id === 'address'"
                 ><span class="font-medium wrap-anywhere">{{ readableAddress(mailbox) }}</span
-                ><template #badges><MailboxStatusBadge :status="mailbox.status" /></template
+                ><template #badges
+                  ><MailboxStatusBadge
+                    :status="mailbox.status"
+                    :shared="mailbox.shared" /></template
               ></DataIdentity>
               <MailboxCell
                 v-else

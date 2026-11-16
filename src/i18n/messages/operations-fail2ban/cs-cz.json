@@ -13,7 +13,10 @@
       "allowlist": "na seznam povolení",
       "denylist": "na seznam zákazů",
       "denylistTitle": "Přidat {network} na seznam zákazů?",
-      "banEnded": "Tato blokace už skončila."
+      "banEnded": "Tato blokace už skončila.",
+      "unbanAll": "Odblokovat všechny",
+      "unbanAllConfirmation": "Zařadit všechna aktivní automatická blokování k odstranění? Trvalá blokování a seznam zakázaných zůstanou beze změny.",
+      "unbanAllQueued": "{count} automatických blokování zařazeno k odstranění."
     }
   }
 }

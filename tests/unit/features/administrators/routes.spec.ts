@@ -18,7 +18,7 @@ it('keeps the valid username new available and reserves the non-username creatio
 
 it('resolves both account types under Administrators and keeps the tab active on detail', () => {
   const router = createRouter({ history: createMemoryHistory(), routes: buildRoutes() })
-  const identity = { role: 'admin' } as Identity
+  const identity = { role: 'admin', permissions: { mailboxGroups: false } } as Identity
   for (const [path, name, entry] of [
     ['admins', 'admins', 'administrators'],
     ['domain-admins', 'domain-admins', 'domainAdmins'],

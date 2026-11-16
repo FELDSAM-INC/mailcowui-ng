@@ -14,6 +14,7 @@ const { t } = useI18n()
 </script>
 
 <template>
+  <Badge v-if="alias.groupId" color="info">{{ t('aliases.groupManaged') }}</Badge>
   <Badge v-if="alias.kind === 'catchAll'" data-badge="catchAll" color="gray">{{
     lt('mailbox.catch_all')
   }}</Badge>

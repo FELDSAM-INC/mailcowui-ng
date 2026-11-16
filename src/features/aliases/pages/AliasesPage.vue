@@ -266,7 +266,7 @@ function ask(action: AliasBulkAction, selected: readonly { address: string }[]) 
 const queryClient = useQueryClient()
 const bulk = useBulkRun({
   selection,
-  entries: () => aliases.value,
+  entries: () => aliases.value.filter((alias) => !alias.groupId),
   idOf: (alias) => String(alias.id),
   labelOf: (alias) => alias.address,
   ask,
@@ -285,7 +285,9 @@ function bulkMessage(row: BulkRow): string | null {
   return row.problem ? problemMessage(row.problem, { params: { address: row.label } }) : null
 }
 
-const pageIds = computed(() => aliases.value.map((alias) => String(alias.id)))
+const pageIds = computed(() =>
+  aliases.value.filter((alias) => !alias.groupId).map((alias) => String(alias.id)),
+)
 const allSelected = computed(
   () =>
     pageIds.value.length > 0 &&
@@ -490,7 +492,7 @@ useDataList('aliases-pages-aliases', undefined, () => ({
             <SelectCheckbox
               :label="t('bulk.selectItem', { name: alias.addressUnicode })"
               :checked="selection.isSelected(String(alias.id))"
-              :disabled="!selection.canSelect(String(alias.id))"
+              :disabled="!!alias.groupId || !selection.canSelect(String(alias.id))"
               described-by="bulk-limit-message"
               @change="selection.toggle(String(alias.id))"
             />

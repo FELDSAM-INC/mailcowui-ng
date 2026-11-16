@@ -13,7 +13,10 @@
       "allowlist": "allowlist",
       "denylist": "denylist",
       "denylistTitle": "Denylist {network}?",
-      "banEnded": "This ban has already ended."
+      "banEnded": "This ban has already ended.",
+      "unbanAll": "Unban all",
+      "unbanAllConfirmation": "Queue all active automatic bans for removal? Permanent bans and the denylist will stay unchanged.",
+      "unbanAllQueued": "{count} automatic bans queued for removal."
     }
   }
 }

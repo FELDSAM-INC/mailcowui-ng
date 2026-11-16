@@ -614,7 +614,23 @@
       "massMailJobCreation": "Mass mail queued",
       "massMailJobCompletion": "Mass mail completed",
       "massMailJobCancellation": "Mass mail cancelled",
-      "licenseVerification": "License verified"
+      "licenseVerification": "License verified",
+      "identitySyncSettingsUpdate": "Identity sync settings changed",
+      "identitySyncRequested": "Identity sync requested",
+      "identityLinkDeletion": "Identity link cleared",
+      "fail2banAllBansLift": "All automatic bans queued for lifting",
+      "mailboxGroupCreation": "Mailbox group created",
+      "mailboxGroupUpdate": "Mailbox group updated",
+      "mailboxGroupDeletion": "Mailbox group deleted",
+      "syncSourceCreation": "Sync source created",
+      "syncSourceUpdate": "Sync source changed",
+      "syncSourceDeletion": "Sync source deleted",
+      "syncSourceConnection": "Sync source connection changed",
+      "syncQueueSettingsUpdate": "Sync queue settings changed",
+      "legacyApiKeyCreation": "API v1 key created",
+      "legacyApiKeyUpdate": "API v1 key changed",
+      "legacyApiKeyDeletion": "API v1 key deleted",
+      "legacyApiKeyRegeneration": "API v1 key regenerated"
     },
     "auditFailureReason": {
       "featureDisabled": "Feature disabled",
@@ -691,7 +707,11 @@
       "passwordResetNotification": "Password reset email",
       "quotaNotificationRecipients": "Quota notification recipients",
       "globalSieveFilter": "Global Sieve filter",
-      "rspamdUiPassword": "Rspamd web interface password"
+      "rspamdUiPassword": "Rspamd web interface password",
+      "mailboxGroup": "Mailbox group",
+      "syncSource": "Sync source",
+      "syncQueue": "Sync queue",
+      "legacyApiKey": "API v1 key"
     },
     "authMethod": {
       "directoryPassword": "Directory password",
@@ -844,7 +864,10 @@
     },
     "unavailable": "Not available yet",
     "rspamdUi": "Rspamd UI",
-    "globalSieve": "Global Sieve filters"
+    "globalSieve": "Global Sieve filters",
+    "mailboxGroups": "Mailbox groups",
+    "syncSources": "Sync sources",
+    "syncQueue": "Sync queue"
   },
   "passkeys": {
     "add": {
@@ -1220,5 +1243,34 @@
     "previewNote": "Images and links are inactive in this preview. Email clients may display the message differently.",
     "imageOmitted": "Image not loaded in the preview: {alt}",
     "singleLine": "Enter the subject on one line."
+  },
+  "permissions": {
+    "flag": {
+      "mailboxGroups": "Mailbox groups"
+    }
+  },
+  "legacyKeys": {
+    "title": "API v1 keys",
+    "intro": "Global administrator keys for /api/v1. REST v2 uses separate, owner-bound keys.",
+    "create": "Create API v1 key",
+    "service": "Service key",
+    "view": "View",
+    "locked": "This key is managed in mailcow.conf. Change or remove it there, then restart php-fpm-mailcow.",
+    "anyNetwork": "Any IP address",
+    "networkHelp": "Enter allowed IPv4/IPv6 addresses or CIDR networks. At least one is required unless IP checks are disabled. The combined list must fit within 512 characters.",
+    "settings": "Key settings",
+    "rotate": "Regenerate key",
+    "rotateConfirm": "The existing key will stop working immediately. Update every integration using it with the new key.",
+    "remove": "Delete API v1 key",
+    "removeConfirm": "Every integration using this key will lose API access immediately.",
+    "secretHelp": "Copy this API v1 key now. It will not be shown again. Use it only with /api/v1.",
+    "fields": {
+      "description": "Description",
+      "prefix": "Key prefix",
+      "accessLevel": "Access",
+      "allowedNetworks": "Allowed networks",
+      "skipIpCheck": "Disable IP check",
+      "active": "Active"
+    }
   }
 }

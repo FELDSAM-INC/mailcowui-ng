@@ -12,14 +12,15 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ 'update:modelValue': [value: DomainAdminPermissions] }>()
 const { t } = useI18n()
+const available = computed(() => permissionOrder.filter((name) => name in props.modelValue))
 const options = computed(() =>
-  permissionOrder.map((value) => ({ value, label: resolveText(permissionLabels[value], t) })),
+  available.value.map((value) => ({ value, label: resolveText(permissionLabels[value], t) })),
 )
-const selected = computed(() => permissionOrder.filter((value) => props.modelValue[value]))
+const selected = computed(() => available.value.filter((value) => props.modelValue[value]))
 function update(values: string[]) {
   emit('update:modelValue', {
     ...props.modelValue,
-    ...Object.fromEntries(permissionOrder.map((name) => [name, values.includes(name)])),
+    ...Object.fromEntries(available.value.map((name) => [name, values.includes(name)])),
   })
 }
 </script>

@@ -66,6 +66,7 @@ generated (UI 001 plan gap 5 is closed).
 | `replaceFail2BanRules` | PUT `/fail2ban/rules` | rules editor save | FR-071, FR-072 |
 | `resetFail2BanRules` | POST `/fail2ban/rules/reset` | reset to defaults (confirmed) | FR-071, FR-072 |
 | `listFail2BanActiveBans` | GET `/fail2ban/active-bans` | active bans, pending-lift refresh | FR-064, FR-065 |
+| `liftAllFail2BanBans` | POST `/fail2ban/active-bans/lift-all` | Lift all temporary bans | mailcow 2026-11 adaptation |
 | `liftFail2BanBan` | POST `/fail2ban/active-bans/{network}/lift` | Lift ban | FR-064, FR-065 |
 | `allowlistFail2BanBan` | POST `/fail2ban/active-bans/{network}/allowlist` | Lift and allowlist | FR-064, FR-065 |
 | `denylistFail2BanBan` | POST `/fail2ban/active-bans/{network}/denylist` | Denylist (confirmed) | FR-064, FR-065 |

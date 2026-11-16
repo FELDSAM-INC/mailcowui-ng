@@ -172,3 +172,8 @@ export function applyBanResult(client: QueryClient, result: Fail2BanBanActionRes
 export function refreshBans(client: QueryClient): Promise<void> {
   return client.invalidateQueries({ queryKey: operationsKeys.fail2ban.activeBanLists() })
 }
+
+export async function liftAllBans() {
+  const result = await api.POST('/fail2ban/active-bans/lift-all')
+  return { result: requireData(result).data, auditRecorded: isAuditRecorded(result.response) }
+}

@@ -2548,6 +2548,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/fail2ban/active-bans/lift-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Queue every automatic ban for lifting
+         * @description Queues a snapshot of active automatic bans for lifting. Permanent bans and denylist entries
+         *     are retained. Requires an administrator session or an administrator's read-write API key.
+         *     The operation is audited with the number of queued bans. Supported on older schemas too.
+         */
+        post: operations["liftAllFail2BanBans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/fail2ban/ban-list-rotation": {
         parameters: {
             query?: never;
@@ -3011,6 +3033,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/identity-provider/links/{mailbox}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mailbox: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Read the stable external identity linked to a mailbox
+         * @description Administrators only. Requires mailcow 2026-11 for writes. Read-only API keys may read.
+         */
+        get: operations["getMailboxIdentityLink"];
+        put?: never;
+        post?: never;
+        /**
+         * Clear a mailbox identity link so the next login or run can link it again
+         * @description Administrators only. Requires mailcow 2026-11 for writes. Read-only API keys may read. Does not enable a disabled mailbox. This permits relinking an address to a different provider user.
+         */
+        delete: operations["deleteMailboxIdentityLink"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/identity-provider/synchronisation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get identity sync settings, counts and the ten latest runs
+         * @description Administrators only. Requires mailcow 2026-11 for writes. Read-only API keys may read.
+         */
+        get: operations["getIdentitySynchronisation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change offboarding and group synchronisation settings
+         * @description Administrators only. Requires mailcow 2026-11 for writes. Read-only API keys may read.
+         */
+        patch: operations["updateIdentitySynchronisation"];
+        trace?: never;
+    };
+    "/identity-provider/synchronisation/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Queue an identity preview or sync run for the upstream cron
+         * @description Administrators only. Requires mailcow 2026-11 for writes. Read-only API keys may read. Preview does not apply changes. Force bypasses removal limits and requires confirmForce: true. An identical pending run is reused.
+         */
+        post: operations["requestIdentitySyncRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/installation": {
         parameters: {
             query?: never;
@@ -3053,6 +3145,82 @@ export interface paths {
         get: operations["getUpdateStatus"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/legacy-api-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List legacy API key metadata
+         * @description Requires mailcow 2026-11. Administrator only. Writes require a browser session and CSRF. These keys authenticate the legacy /api/v1, independently of REST v2 owner-bound keys. Stored secrets are never returned by reads. Service keys are managed in mailcow.conf; all mutations on them return 409.
+         */
+        get: operations["listLegacyApiKeys"];
+        put?: never;
+        /**
+         * Create a legacy API key
+         * @description Requires mailcow 2026-11. Administrator only. Writes require a browser session and CSRF. These keys authenticate the legacy /api/v1, independently of REST v2 owner-bound keys. Stored secrets are never returned by reads. Service keys are managed in mailcow.conf; all mutations on them return 409.
+         */
+        post: operations["createLegacyApiKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/legacy-api-keys/{legacyKeyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                legacyKeyId: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * Read legacy API key metadata
+         * @description Requires mailcow 2026-11. Administrator only. Writes require a browser session and CSRF. These keys authenticate the legacy /api/v1, independently of REST v2 owner-bound keys. Stored secrets are never returned by reads. Service keys are managed in mailcow.conf; all mutations on them return 409.
+         */
+        get: operations["getLegacyApiKey"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a legacy API key
+         * @description Requires mailcow 2026-11. Administrator only. Writes require a browser session and CSRF. These keys authenticate the legacy /api/v1, independently of REST v2 owner-bound keys. Stored secrets are never returned by reads. Service keys are managed in mailcow.conf; all mutations on them return 409.
+         */
+        delete: operations["deleteLegacyApiKey"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a legacy API key
+         * @description Requires mailcow 2026-11. Administrator only. Writes require a browser session and CSRF. These keys authenticate the legacy /api/v1, independently of REST v2 owner-bound keys. Stored secrets are never returned by reads. Service keys are managed in mailcow.conf; all mutations on them return 409.
+         */
+        patch: operations["updateLegacyApiKey"];
+        trace?: never;
+    };
+    "/legacy-api-keys/{legacyKeyId}/regenerate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                legacyKeyId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Regenerate a legacy API key
+         * @description Requires mailcow 2026-11. Administrator only. Writes require a browser session and CSRF. These keys authenticate the legacy /api/v1, independently of REST v2 owner-bound keys. Stored secrets are never returned by reads. Service keys are managed in mailcow.conf; all mutations on them return 409.
+         */
+        post: operations["regenerateLegacyApiKey"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3621,6 +3789,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/mailbox-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List mailbox groups
+         * @description Requires mailcow 2026-11. Administrators and domain administrators with mailboxGroups permission can manage groups in scope. A foreign send-as or sharing grant makes a group read-only for domain administrators. Mailbox membership reads also allow the mailbox itself.
+         */
+        get: operations["listMailboxGroups"];
+        put?: never;
+        /**
+         * Create a mailbox group
+         * @description Requires mailcow 2026-11. Administrators and domain administrators with mailboxGroups permission can manage groups in scope. A foreign send-as or sharing grant makes a group read-only for domain administrators. Mailbox membership reads also allow the mailbox itself.
+         */
+        post: operations["createMailboxGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mailbox-groups/{groupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupId: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * Read a mailbox group
+         * @description Requires mailcow 2026-11. Administrators and domain administrators with mailboxGroups permission can manage groups in scope. A foreign send-as or sharing grant makes a group read-only for domain administrators. Mailbox membership reads also allow the mailbox itself.
+         */
+        get: operations["getMailboxGroup"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a mailbox group
+         * @description Requires mailcow 2026-11. Administrators and domain administrators with mailboxGroups permission can manage groups in scope. A foreign send-as or sharing grant makes a group read-only for domain administrators. Mailbox membership reads also allow the mailbox itself.
+         */
+        delete: operations["deleteMailboxGroup"];
+        options?: never;
+        head?: never;
+        /**
+         * Edit a mailbox group
+         * @description Requires mailcow 2026-11. Administrators and domain administrators with mailboxGroups permission can manage groups in scope. A foreign send-as or sharing grant makes a group read-only for domain administrators. Mailbox membership reads also allow the mailbox itself.
+         */
+        patch: operations["updateMailboxGroup"];
+        trace?: never;
+    };
     "/mailbox-tags": {
         parameters: {
             query?: never;
@@ -4006,6 +4228,28 @@ export interface paths {
          *     domains the caller may administer, including their alias domains.
          */
         get: operations["previewMailboxDeletion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/mailboxes/{mailbox}/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mailbox: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Read memberships of a mailbox
+         * @description Requires mailcow 2026-11. Administrators and domain administrators with mailboxGroups permission can manage groups in scope. A foreign send-as or sharing grant makes a group read-only for domain administrators. Mailbox membership reads also allow the mailbox itself.
+         */
+        get: operations["getMailboxGroupMemberships"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7987,6 +8231,174 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sync-queue/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read global sync queue settings
+         * @description Administrator only; requires mailcow 2026-11. Limits apply to all sync jobs. The bandwidth limit is bytes per second; zero means unlimited.
+         */
+        get: operations["getSyncQueueSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set global sync queue limits
+         * @description Administrator only; requires mailcow 2026-11. Limits apply to all sync jobs. The bandwidth limit is bytes per second; zero means unlimited.
+         */
+        patch: operations["updateSyncQueueSettings"];
+        trace?: never;
+    };
+    "/sync-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List available sync sources
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        get: operations["listSyncSources"];
+        put?: never;
+        /**
+         * Create a sync source
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        post: operations["createSyncSource"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync-sources/{sourceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * Read a sync source
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        get: operations["getSyncSource"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete an unused sync source
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        delete: operations["deleteSyncSource"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a sync source
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        patch: operations["updateSyncSource"];
+        trace?: never;
+    };
+    "/sync-sources/{sourceId}/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * List a mailbox’s connected remote accounts
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        get: operations["listSyncSourceConnections"];
+        put?: never;
+        post?: never;
+        /**
+         * Disconnect a remote account
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        delete: operations["disconnectSyncSourceOAuth"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync-sources/{sourceId}/oauth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh a private client-credentials token
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        post: operations["refreshSyncSourceOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync-sources/{sourceId}/oauth/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Connect a remote OAuth account
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        post: operations["startSyncSourceOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sync-sources/oauth/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete the session-bound OAuth account connection
+         * @description Requires mailcow 2026-11 and the syncjobs permission. Sources are scoped by creator and explicit domain/mailbox targets. OAuth credentials and tokens are write-only. Endpoint changes require access to every attached job. Configuration writes support If-Match.
+         */
+        post: operations["completeSyncSourceOAuth"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tls-policy-maps": {
         parameters: {
             query?: never;
@@ -8437,6 +8849,8 @@ export interface components {
              *     read. Send it in `If-Match`, or as `version` of a bulk target.
              */
             etag: string;
+            /** @description A group-managed distribution alias. When set, edit the mailbox group; alias edits, copy and deletion are refused. */
+            groupId?: number | null;
             /**
              * @description Whether the address is offered as a sender identity in the webmail of the destination
              *     mailboxes. It takes effect only when the alias is active and not a catch-all, and only when
@@ -8942,7 +9356,7 @@ export interface components {
          *       destinations that the request adds are checked against the external-destination rules;
          *       destinations already on the alias are kept, so changing any other attribute never needs the
          *       `aliasExternalGoto` permission.
-         *     - Read-only members (`id`, `addressUnicode`, `kind`, `domain`, `domainUnicode`, `inAliasDomain`,
+         *     - Read-only members (`id`, `groupId`, `addressUnicode`, `kind`, `domain`, `domainUnicode`, `inAliasDomain`,
          *       `primaryDomain`, `primaryDomainUnicode`, `createdAt`, `modifiedAt`, `orphaned`) may be sent with
          *       their current value, so a client can send back the representation it read. `kind` and the
          *       domain members are compared with the values that follow from the resulting address. A
@@ -8970,6 +9384,8 @@ export interface components {
             domain?: string;
             domainUnicode?: string;
             etag?: string;
+            /** @description Group ownership is immutable; only the current value may be sent. */
+            groupId?: number | null;
             groupwareVisible?: boolean;
             id?: number;
             inAliasDomain?: boolean;
@@ -9283,7 +9699,7 @@ export interface components {
          * @description Audited event. Later features add values; clients must tolerate unknown ones.
          * @enum {string}
          */
-        AuditEventType: "signIn" | "signOut" | "preferencesUpdate" | "passkeyRegistration" | "passkeyRename" | "passkeyRemoval" | "apiKeyCreation" | "apiKeyRevocation" | "syncJobCreation" | "syncJobUpdate" | "syncJobReschedule" | "syncJobDeletion" | "domainCreation" | "domainUpdate" | "domainDeletion" | "domainFooterUpdate" | "domainTemplateCreation" | "domainTemplateUpdate" | "domainTemplateDeletion" | "dkimKeyGeneration" | "dkimKeyImport" | "dkimKeyCopy" | "dkimKeyDeletion" | "dkimPrivateKeyExport" | "dkimDnsPublication" | "mtaStsPolicyCreation" | "mtaStsPolicyUpdate" | "mailboxCreation" | "mailboxUpdate" | "mailboxDeletion" | "mailboxRename" | "mailboxTemplateCreation" | "mailboxTemplateUpdate" | "mailboxTemplateDeletion" | "identityProviderCreation" | "identityProviderUpdate" | "identityProviderDeletion" | "identityProviderConnectionTest" | "identityProviderSessionEnd" | "oauth2ClientCreation" | "oauth2ClientUpdate" | "oauth2ClientSecretRegeneration" | "oauth2ClientTokenRevocation" | "oauth2ClientDeletion" | "adminCreation" | "adminUpdate" | "adminDeletion" | "adminSecondFactorSuspension" | "domainAdminCreation" | "domainAdminUpdate" | "domainAdminDeletion" | "domainAdminSecondFactorSuspension" | "ssoTokenIssue" | "impersonationStart" | "impersonationEnd" | "webmailSignInOnBehalf" | "relayhostCreation" | "relayhostUpdate" | "relayhostDeletion" | "relayhostTest" | "relayhostAssignmentUpdate" | "transportCreation" | "transportUpdate" | "transportDeletion" | "transportTest" | "bccMapCreation" | "bccMapUpdate" | "bccMapDeletion" | "recipientMapCreation" | "recipientMapUpdate" | "recipientMapDeletion" | "tlsPolicyMapCreation" | "tlsPolicyMapUpdate" | "tlsPolicyMapDeletion" | "forwardingHostCreation" | "forwardingHostUpdate" | "forwardingHostDeletion" | "containerStart" | "containerStop" | "containerRestart" | "mailQueueDelivery" | "mailQueueHold" | "mailQueueRelease" | "mailQueueDeletion" | "mailQueueFlush" | "mailQueuePurge" | "mailQueueMessageView" | "fail2banSettingsUpdate" | "fail2banRulesReplacement" | "fail2banRulesReset" | "fail2banBanLift" | "fail2banBanAllowlisting" | "fail2banBanDenylisting" | "fail2banBanListIdRotation" | "quarantineItemRelease" | "quarantineItemSpamLearning" | "quarantineItemDeletion" | "quarantineSettingsUpdate" | "quarantineNotificationSettingsUpdate" | "spamScoreUpdate" | "spamScoreReset" | "spamPolicyEntryCreation" | "spamPolicyEntryRemoval" | "rateLimitUpdate" | "rateLimitRemoval" | "rateLimitBucketReset" | "logoReplacement" | "logoDeletion" | "uiTextsUpdate" | "loginPageUpdate" | "appLinksUpdate" | "brandColorsUpdate" | "ipCheckUpdate" | "passwordPolicyUpdate" | "passwordResetNotificationUpdate" | "quotaNotificationUpdate" | "quotaNotificationRecipientsUpdate" | "rspamdSettingsRuleCreation" | "rspamdSettingsRuleUpdate" | "rspamdSettingsRuleDeletion" | "rspamdRegexMapReplacement" | "globalSieveFilterReplacement" | "rspamdUiPasswordChange" | "legacyApiCorsUpdate" | "massMailJobCreation" | "massMailJobCompletion" | "massMailJobCancellation" | "licenseVerification" | "aliasCreation" | "aliasUpdate" | "aliasDeletion" | "aliasDomainCreation" | "aliasDomainUpdate" | "aliasDomainDeletion" | "resourceCreation" | "resourceUpdate" | "resourceDeletion" | "mailboxSenderSettingsUpdate" | "ownPasswordChange" | "ownSecondFactorEnrolment" | "ownSecondFactorRemoval" | "ownRecoveryEmailChange" | "passwordResetRequest" | "passwordResetCompletion" | "appPasswordCreation" | "appPasswordUpdate" | "appPasswordDeletion" | "temporaryAliasCreation" | "temporaryAliasUpdate" | "temporaryAliasDeletion" | "sieveFilterCreation" | "sieveFilterUpdate" | "sieveFilterDeletion" | "pushNotificationSettingsUpdate" | "pushNotificationSettingsDeletion" | "pushNotificationVerification" | "mailSettingsUpdate" | "recentLoginsClear" | "activeSyncCacheReset" | "groupwareProfileReset" | "webmailHandOff";
+        AuditEventType: "signIn" | "signOut" | "preferencesUpdate" | "passkeyRegistration" | "passkeyRename" | "passkeyRemoval" | "apiKeyCreation" | "apiKeyRevocation" | "syncJobCreation" | "syncJobUpdate" | "syncJobReschedule" | "syncJobDeletion" | "domainCreation" | "domainUpdate" | "domainDeletion" | "domainFooterUpdate" | "domainTemplateCreation" | "domainTemplateUpdate" | "domainTemplateDeletion" | "dkimKeyGeneration" | "dkimKeyImport" | "dkimKeyCopy" | "dkimKeyDeletion" | "dkimPrivateKeyExport" | "dkimDnsPublication" | "mtaStsPolicyCreation" | "mtaStsPolicyUpdate" | "mailboxCreation" | "mailboxUpdate" | "mailboxDeletion" | "mailboxRename" | "mailboxTemplateCreation" | "mailboxTemplateUpdate" | "mailboxTemplateDeletion" | "identityProviderCreation" | "identityProviderUpdate" | "identityProviderDeletion" | "identityProviderConnectionTest" | "identitySyncSettingsUpdate" | "identitySyncRequested" | "identityLinkDeletion" | "identityProviderSessionEnd" | "oauth2ClientCreation" | "oauth2ClientUpdate" | "oauth2ClientSecretRegeneration" | "oauth2ClientTokenRevocation" | "oauth2ClientDeletion" | "adminCreation" | "adminUpdate" | "adminDeletion" | "adminSecondFactorSuspension" | "domainAdminCreation" | "domainAdminUpdate" | "domainAdminDeletion" | "domainAdminSecondFactorSuspension" | "ssoTokenIssue" | "impersonationStart" | "impersonationEnd" | "webmailSignInOnBehalf" | "relayhostCreation" | "relayhostUpdate" | "relayhostDeletion" | "relayhostTest" | "relayhostAssignmentUpdate" | "transportCreation" | "transportUpdate" | "transportDeletion" | "transportTest" | "bccMapCreation" | "bccMapUpdate" | "bccMapDeletion" | "recipientMapCreation" | "recipientMapUpdate" | "recipientMapDeletion" | "tlsPolicyMapCreation" | "tlsPolicyMapUpdate" | "tlsPolicyMapDeletion" | "forwardingHostCreation" | "forwardingHostUpdate" | "forwardingHostDeletion" | "containerStart" | "containerStop" | "containerRestart" | "mailQueueDelivery" | "mailQueueHold" | "mailQueueRelease" | "mailQueueDeletion" | "mailQueueFlush" | "mailQueuePurge" | "mailQueueMessageView" | "fail2banSettingsUpdate" | "fail2banRulesReplacement" | "fail2banRulesReset" | "fail2banBanLift" | "fail2banAllBansLift" | "fail2banBanAllowlisting" | "fail2banBanDenylisting" | "fail2banBanListIdRotation" | "quarantineItemRelease" | "quarantineItemSpamLearning" | "quarantineItemDeletion" | "quarantineSettingsUpdate" | "quarantineNotificationSettingsUpdate" | "spamScoreUpdate" | "spamScoreReset" | "spamPolicyEntryCreation" | "spamPolicyEntryRemoval" | "rateLimitUpdate" | "rateLimitRemoval" | "rateLimitBucketReset" | "logoReplacement" | "logoDeletion" | "uiTextsUpdate" | "loginPageUpdate" | "appLinksUpdate" | "brandColorsUpdate" | "ipCheckUpdate" | "passwordPolicyUpdate" | "passwordResetNotificationUpdate" | "quotaNotificationUpdate" | "quotaNotificationRecipientsUpdate" | "rspamdSettingsRuleCreation" | "rspamdSettingsRuleUpdate" | "rspamdSettingsRuleDeletion" | "rspamdRegexMapReplacement" | "globalSieveFilterReplacement" | "rspamdUiPasswordChange" | "legacyApiCorsUpdate" | "massMailJobCreation" | "massMailJobCompletion" | "massMailJobCancellation" | "licenseVerification" | "aliasCreation" | "aliasUpdate" | "aliasDeletion" | "aliasDomainCreation" | "aliasDomainUpdate" | "aliasDomainDeletion" | "resourceCreation" | "resourceUpdate" | "resourceDeletion" | "mailboxSenderSettingsUpdate" | "ownPasswordChange" | "ownSecondFactorEnrolment" | "ownSecondFactorRemoval" | "ownRecoveryEmailChange" | "passwordResetRequest" | "passwordResetCompletion" | "appPasswordCreation" | "appPasswordUpdate" | "appPasswordDeletion" | "temporaryAliasCreation" | "temporaryAliasUpdate" | "temporaryAliasDeletion" | "sieveFilterCreation" | "sieveFilterUpdate" | "sieveFilterDeletion" | "pushNotificationSettingsUpdate" | "pushNotificationSettingsDeletion" | "pushNotificationVerification" | "mailSettingsUpdate" | "recentLoginsClear" | "activeSyncCacheReset" | "groupwareProfileReset" | "webmailHandOff" | "mailboxGroupCreation" | "mailboxGroupUpdate" | "mailboxGroupDeletion" | "syncSourceCreation" | "syncSourceUpdate" | "syncSourceDeletion" | "syncSourceConnection" | "syncQueueSettingsUpdate" | "legacyApiKeyCreation" | "legacyApiKeyUpdate" | "legacyApiKeyDeletion" | "legacyApiKeyRegeneration";
         /**
          * @description Why an audited operation failed. Later features add values.
          *
@@ -9357,8 +9773,11 @@ export interface components {
         AuditTarget: {
             id: string | null;
             name: string | null;
-            /** @enum {string} */
-            type: "apiKey" | "passkey" | "preferences" | "session" | "syncJob" | "domain" | "domainTemplate" | "domainFooter" | "dkimKey" | "mtaStsPolicy" | "identityProvider" | "oauth2Client" | "mailbox" | "mailboxTemplate" | "admin" | "domainAdmin" | "ssoToken" | "impersonation" | "relayhost" | "domainRelayhostAssignment" | "mailboxRelayhostAssignment" | "transport" | "bccMap" | "recipientMap" | "tlsPolicyMap" | "forwardingHost" | "container" | "mailQueue" | "mailQueueMessage" | "fail2banSettings" | "fail2banRules" | "fail2banActiveBan" | "fail2banBanListId" | "quarantineItem" | "quarantineSettings" | "quarantineNotificationSettings" | "spamScore" | "spamPolicyEntry" | "rateLimit" | "rateLimitBucket" | "logo" | "uiTexts" | "loginPage" | "appLinks" | "brandColors" | "ipCheck" | "passwordPolicy" | "passwordResetNotification" | "quotaNotification" | "quotaNotificationRecipients" | "rspamdSettingsRule" | "rspamdRegexMap" | "globalSieveFilter" | "rspamdUiPassword" | "legacyApiCors" | "massMailJob" | "license" | "alias" | "aliasDomain" | "resource" | "mailboxSenderSettings" | "accountPassword" | "secondFactor" | "recoveryEmail" | "passwordReset" | "appPassword" | "temporaryAlias" | "sieveFilter" | "pushNotificationSettings" | "mailSettings" | "recentLogins" | "groupwareData" | "webmailHandOff";
+            /**
+             * @description Extensible audit target code; clients must display unknown codes generically.
+             * @enum {string}
+             */
+            type: "apiKey" | "passkey" | "preferences" | "session" | "syncJob" | "domain" | "domainTemplate" | "domainFooter" | "dkimKey" | "mtaStsPolicy" | "identityProvider" | "oauth2Client" | "mailbox" | "mailboxTemplate" | "admin" | "domainAdmin" | "ssoToken" | "impersonation" | "relayhost" | "domainRelayhostAssignment" | "mailboxRelayhostAssignment" | "transport" | "bccMap" | "recipientMap" | "tlsPolicyMap" | "forwardingHost" | "container" | "mailQueue" | "mailQueueMessage" | "fail2banSettings" | "fail2banRules" | "fail2banActiveBan" | "fail2banBanListId" | "quarantineItem" | "quarantineSettings" | "quarantineNotificationSettings" | "spamScore" | "spamPolicyEntry" | "rateLimit" | "rateLimitBucket" | "logo" | "uiTexts" | "loginPage" | "appLinks" | "brandColors" | "ipCheck" | "passwordPolicy" | "passwordResetNotification" | "quotaNotification" | "quotaNotificationRecipients" | "rspamdSettingsRule" | "rspamdRegexMap" | "globalSieveFilter" | "rspamdUiPassword" | "legacyApiCors" | "massMailJob" | "license" | "alias" | "aliasDomain" | "resource" | "mailboxSenderSettings" | "accountPassword" | "secondFactor" | "recoveryEmail" | "passwordReset" | "appPassword" | "temporaryAlias" | "sieveFilter" | "pushNotificationSettings" | "mailSettings" | "recentLogins" | "groupwareData" | "webmailHandOff" | "mailboxGroup" | "syncSource" | "syncQueue" | "legacyApiKey";
         };
         /**
          * @description How the caller authenticated: `password` (no second factor active), `passwordAndSecondFactor`,
@@ -10528,7 +10947,7 @@ export interface components {
          * @description Name of one domain administrator permission flag (see `DomainAdminPermissions`).
          * @enum {string}
          */
-        DomainAdminPermissionName: "syncjobs" | "quarantine" | "loginAs" | "sogoAccess" | "appPasswds" | "bccMaps" | "pushover" | "filters" | "ratelimit" | "spamPolicy" | "extendSenderAcl" | "unlimitedQuota" | "protocolAccess" | "smtpIpAccess" | "aliasDomains" | "mailboxRelayhost" | "domainRelayhost" | "domainDesc" | "aliasExternalGoto";
+        DomainAdminPermissionName: "syncjobs" | "quarantine" | "loginAs" | "sogoAccess" | "appPasswds" | "bccMaps" | "pushover" | "filters" | "ratelimit" | "spamPolicy" | "extendSenderAcl" | "unlimitedQuota" | "protocolAccess" | "smtpIpAccess" | "aliasDomains" | "mailboxRelayhost" | "domainRelayhost" | "domainDesc" | "aliasExternalGoto" | "mailboxGroups";
         /**
          * @description The 19 permission flags of a domain administrator (mailcow table `da_acl`), named in camelCase
          *     after the legacy columns. Without a stored permission record every flag reads as `false`. The
@@ -10555,6 +10974,8 @@ export interface components {
             filters: boolean;
             /** @description Log in as mailbox users and open their webmail (`da_acl.login_as`). */
             loginAs: boolean;
+            /** @description Manage mailbox groups (mailcow 2026-11 or newer). */
+            mailboxGroups?: boolean;
             /** @description Change a mailbox's relayhost (`da_acl.mailbox_relayhost`). */
             mailboxRelayhost: boolean;
             /** @description Change protocol access (`da_acl.protocol_access`). */
@@ -10592,6 +11013,8 @@ export interface components {
             extendSenderAcl?: boolean;
             filters?: boolean;
             loginAs?: boolean;
+            /** @description Manage mailbox groups (mailcow 2026-11 or newer). */
+            mailboxGroups?: boolean;
             mailboxRelayhost?: boolean;
             protocolAccess?: boolean;
             pushover?: boolean;
@@ -11638,6 +12061,11 @@ export interface components {
          */
         Identity: {
             authentication: components["schemas"]["IdentityAuthentication"];
+            /** @description Version-dependent server capabilities, separate from account permissions. */
+            features?: {
+                legacyApiKeys?: boolean;
+                syncSources?: boolean;
+            };
             /**
              * @description Present while the session impersonates another account (feature 007). `username`, `role`,
              *     `scope` and `permissions` then describe the impersonated account, with the permission flags
@@ -11686,6 +12114,14 @@ export interface components {
             identityProvider?: components["schemas"]["IdentityProviderType"];
             method: components["schemas"]["AuthMethod"];
         };
+        IdentityLink: {
+            disabled: boolean;
+            etag: string;
+            externalId: string | null;
+            mailbox: string;
+            missingSince: string | null;
+            provider: string;
+        };
         /**
          * @description The server's external identity provider configuration. At most one exists. It is stored where
          *     legacy stores it (table `identity_provider`), so the legacy UI, `/api/v1`, the legacy single
@@ -11725,6 +12161,8 @@ export interface components {
                 useSsl: boolean;
                 useStartTls: boolean;
             };
+            /** @description Whether the upstream schema supports identity links, sync previews, groups and offboarding. */
+            identitySynchronisation?: boolean;
             /** @description Field limits of a save, a change and a connection test. */
             limits: {
                 additionalReturnUrlsMaxEntries: number;
@@ -12274,6 +12712,74 @@ export interface components {
          * @enum {string}
          */
         IdentityProviderType: "keycloak" | "genericOidc" | "ldap";
+        IdentitySyncPatch: {
+            disabledFilter?: string;
+            groupAutocreate?: boolean;
+            groupBaseDn?: string;
+            groupDefaultDomain?: string;
+            groupFilter?: string;
+            groupMemberAttribute?: string;
+            /** @enum {string} */
+            groupMemberMode?: "memberof" | "member" | "ad_chain";
+            groupNameAttribute?: string;
+            groupPaths?: string[];
+            groupSync?: boolean;
+            /** @description LDAP only; empty chooses a stable ID automatically. Changing this clears existing LDAP external IDs, retaining offboarding markers. */
+            idAttribute?: string;
+            /** @description Disable sign-in for removed or disabled provider accounts, retaining delivery. */
+            offboarding?: boolean;
+            /** @description Maximum percentage of deactivations and membership removals per run; upstream allows at least five mailboxes. */
+            offboardingLimit?: number;
+        };
+        IdentitySyncRun: {
+            createdAt: string;
+            finishedAt: string | null;
+            id: number;
+            /** @enum {string} */
+            mode: "preview" | "run" | "force";
+            provider: string;
+            requestedBy: string;
+            startedAt: string | null;
+            /** @enum {string} */
+            status: "pending" | "running" | "ok" | "blocked" | "error";
+            summary: {
+                [key: string]: unknown;
+            } | null;
+        };
+        IdentitySyncSettings: {
+            disabledFilter: string;
+            groupAutocreate: boolean;
+            groupBaseDn: string;
+            groupDefaultDomain: string;
+            groupFilter: string;
+            groupMemberAttribute: string;
+            /** @enum {string} */
+            groupMemberMode: "memberof" | "member" | "ad_chain";
+            groupNameAttribute: string;
+            groupPaths: string[];
+            groupSync: boolean;
+            /** @description LDAP only; empty chooses a stable ID automatically. Changing this clears existing LDAP external IDs, retaining offboarding markers. */
+            idAttribute: string;
+            /** @description Disable sign-in for removed or disabled provider accounts, retaining delivery. */
+            offboarding: boolean;
+            /** @description Maximum percentage of deactivations and membership removals per run; upstream allows at least five mailboxes. */
+            offboardingLimit: number;
+        };
+        IdentitySyncStatus: {
+            canSync: boolean;
+            counts: {
+                accounts: number;
+                disabled: number;
+                linked: number;
+                missing: number;
+            };
+            enabled: boolean;
+            etag: string;
+            provider: components["schemas"]["IdentityProviderType"] | null;
+            runs: components["schemas"]["IdentitySyncRun"][];
+            settings: components["schemas"]["IdentitySyncSettings"];
+            supported: boolean;
+        };
         /**
          * @description The impersonation of the caller's session (legacy "login as" or "dual login"): the signed-in
          *     account (`impersonator`) acts as `target`, with the target's role and scope and the permission
@@ -12457,6 +12963,52 @@ export interface components {
         LegacyApiCorsSettingsPatch: {
             allowedMethods?: ("GET" | "POST" | "PUT" | "DELETE")[];
             allowedOrigins?: string[];
+        };
+        LegacyApiKey: {
+            /** @enum {string} */
+            accessLevel: "readOnly" | "readWrite";
+            active: boolean;
+            allowedNetworks: string[];
+            description: string;
+            etag: string;
+            id: number;
+            /** @description First six characters; the full key is only returned on creation or regeneration. */
+            prefix: string;
+            /** @description Managed by mailcow.conf. Cannot be changed, regenerated or deleted here. */
+            service: boolean;
+            skipIpCheck: boolean;
+        };
+        LegacyApiKeyCreateRequest: {
+            /** @enum {string} */
+            accessLevel: "readOnly" | "readWrite";
+            active?: boolean;
+            allowedNetworks?: string[];
+            description?: string;
+            skipIpCheck?: boolean;
+        };
+        LegacyApiKeyPatch: {
+            /** @enum {string} */
+            accessLevel?: "readOnly" | "readWrite";
+            active?: boolean;
+            allowedNetworks?: string[];
+            description?: string;
+            skipIpCheck?: boolean;
+        };
+        LegacyApiKeySecret: {
+            /** @enum {string} */
+            accessLevel: "readOnly" | "readWrite";
+            active: boolean;
+            allowedNetworks: string[];
+            description: string;
+            etag: string;
+            id: number;
+            /** @description First six characters; the full key is only returned on creation or regeneration. */
+            prefix: string;
+            /** @description Copy this value now; subsequent reads never return it. */
+            secret: string;
+            /** @description Managed by mailcow.conf. Cannot be changed, regenerated or deleted here. */
+            service: boolean;
+            skipIpCheck: boolean;
         };
         /**
          * @description One request to the legacy `/api/v1` (Redis list `API_LOG`). `requestData` is the recorded form
@@ -12729,6 +13281,8 @@ export interface components {
             recoveryEmail: string | null;
             /** @description Assigned relayhost (`attributes.relayhost`, `"0"` means none). Read-only here, managed by feature 009. Never set at creation. */
             relayhostId: $Read<number | null>;
+            /** @description Shared mailbox without independent sign-in (requires mailcow 2026-11 for writes). Creation can omit the password; an unexposed random password is stored. */
+            shared?: boolean;
             status: components["schemas"]["MailboxStatus"];
             /** @description Read-only here, changed through feature 005. May be given at creation. */
             taggedMailHandling: $Read<components["schemas"]["MailboxTaggedMailHandling"]>;
@@ -12863,6 +13417,8 @@ export interface components {
             identityProviderType: "none" | "keycloak" | "genericOidc" | "ldap";
             /** @description `false` when the operator turned off the display of last logins (legacy `SHOW_LAST_LOGIN`). `lastLogins` is then always empty. */
             lastLoginsReported: boolean;
+            /** @description Mailbox groups are supported by this server. */
+            mailboxGroups?: boolean;
             /** @constant */
             maxPageSize: 1000;
             /**
@@ -12880,6 +13436,8 @@ export interface components {
              *     ]
              */
             preHashedPasswordSchemes: string[];
+            /** @description Whether the installed upstream schema supports shared mailboxes. */
+            sharedMailboxes?: boolean;
             taggingLimit: number;
             /** @constant */
             tagMaxLength: 255;
@@ -13019,6 +13577,8 @@ export interface components {
             quota?: number;
             /** @description Initial rate limit of the mailbox. `null` means none, overriding the template. */
             rateLimit?: components["schemas"]["MailboxRateLimit"] | null;
+            /** @description Shared mailbox without independent sign-in (requires mailcow 2026-11 for writes). Creation can omit the password; an unexposed random password is stored. */
+            shared?: boolean;
             status?: components["schemas"]["MailboxStatus"];
             taggedMailHandling?: components["schemas"]["MailboxTaggedMailHandling"];
             tags?: components["schemas"]["MailboxTagSet"];
@@ -13138,6 +13698,139 @@ export interface components {
             };
             /** @description Aliases that would only lose the mailbox as a recipient. */
             sharedAliases: components["schemas"]["MailboxAddressSample"];
+        };
+        MailboxGroup: {
+            active: boolean;
+            /** Format: email */
+            address: string | null;
+            adminFieldsEditable: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            description: string;
+            domain: string;
+            editable: boolean;
+            etag: string;
+            id: number;
+            identityReference: string | null;
+            imapGrants: components["schemas"]["MailboxGroupImapGrant"][];
+            internal: boolean;
+            members: {
+                editable: boolean;
+                mailbox: string;
+                /** @enum {string} */
+                source: "manual" | "idp";
+            }[];
+            /** Format: date-time */
+            modifiedAt: string | null;
+            name: string;
+            priority: number;
+            sendAs: string[];
+            senderAllowed: boolean;
+            sogoGrants: components["schemas"]["MailboxGroupSogoGrant"][];
+            sogoVisible: boolean;
+            templateId: number | null;
+            warnings: string[];
+        };
+        MailboxGroupCreateRequest: {
+            active?: boolean;
+            /** Format: email */
+            address?: string | null;
+            description?: string;
+            domain: string;
+            identityReference?: string | null;
+            imapGrants?: components["schemas"]["MailboxGroupImapGrantInput"][];
+            internal?: boolean;
+            members?: string[];
+            name: string;
+            priority?: number;
+            reapplyTemplate?: boolean;
+            sendAs?: string[];
+            senderAllowed?: boolean;
+            sogoGrants?: components["schemas"]["MailboxGroupSogoGrantInput"][];
+            sogoVisible?: boolean;
+            templateId?: number | null;
+        };
+        MailboxGroupImapGrant: {
+            error: string | null;
+            id: number;
+            /** Format: email */
+            owner: string;
+            /** @enum {string} */
+            rights: "read" | "write" | "full";
+            /** @enum {string} */
+            state: "pending" | "applied" | "failed" | "removing";
+            subscribe: boolean;
+        };
+        MailboxGroupImapGrantInput: {
+            /** Format: email */
+            owner: string;
+            /** @enum {string} */
+            rights: "read" | "write" | "full";
+            subscribe?: boolean;
+        };
+        MailboxGroupMembership: {
+            active: boolean;
+            address: string | null;
+            id: number;
+            name: string;
+            /** @enum {string} */
+            source: "manual" | "idp";
+        };
+        /** @description Only administrators can set templateId, priority, identityReference and reapplyTemplate. Members replaces manual members in scope; IdP and foreign members are preserved. Grants are replaced when supplied. Null clears the address, template or identity reference. IMAP removals are retained until Dovecot confirms them; upstream cron initializes SOGo folders and maintains subscriptions. */
+        MailboxGroupPatch: {
+            active?: boolean;
+            /** Format: email */
+            address?: string | null;
+            description?: string;
+            identityReference?: string | null;
+            imapGrants?: components["schemas"]["MailboxGroupImapGrantInput"][];
+            internal?: boolean;
+            members?: string[];
+            name?: string;
+            priority?: number;
+            reapplyTemplate?: boolean;
+            sendAs?: string[];
+            senderAllowed?: boolean;
+            sogoGrants?: components["schemas"]["MailboxGroupSogoGrantInput"][];
+            sogoVisible?: boolean;
+            templateId?: number | null;
+        };
+        MailboxGroupSogoGrant: {
+            /** @enum {string} */
+            access: "read" | "write";
+            error: string | null;
+            folder: string;
+            id: number;
+            /** Format: email */
+            owner: string;
+            /** @enum {string} */
+            state: "pending" | "applied" | "failed";
+            subscribe: boolean;
+            /** @enum {string} */
+            type: "Calendar" | "Contacts";
+        };
+        MailboxGroupSogoGrantInput: {
+            /** @enum {string} */
+            access: "read" | "write";
+            folder: string;
+            /** Format: email */
+            owner: string;
+            subscribe?: boolean;
+            /** @enum {string} */
+            type: "Calendar" | "Contacts";
+        };
+        MailboxGroupSummary: {
+            active: boolean;
+            /** Format: email */
+            address: string | null;
+            description: string;
+            domain: string;
+            id: number;
+            identityManaged: boolean;
+            memberCount: number;
+            name: string;
+            priority: number;
+            templateId: number | null;
         };
         /**
          * @description An address the mailbox may send as without an explicit permission.
@@ -13364,6 +14057,8 @@ export interface components {
             quota?: number;
             /** @description A valid address, or `null` or an empty string to clear it. Only for the `mailcow` authentication source (`conflictsWith`). Changing or removing it revokes outstanding password-reset tokens. */
             recoveryEmail?: string | null;
+            /** @description Shared mailbox without independent sign-in (requires mailcow 2026-11 for writes). Creation can omit the password; an unexposed random password is stored. */
+            shared?: boolean;
             status?: components["schemas"]["MailboxStatus"];
             tags?: components["schemas"]["MailboxTagSet"];
             userPermissions?: components["schemas"]["MailboxUserPermissionsInput"];
@@ -13742,6 +14437,8 @@ export interface components {
          *     administrator who lacks the overlapping flag, as in `Mailbox.userPermissions`.
          */
         MailboxTemplate: {
+            /** @description Failures applying this template to its effective mailbox-group members after an edit. */
+            applicationWarnings?: $Read<string[]>;
             /** Format: date-time */
             createdAt: $Read<string>;
             /** @description Version tag of the template's name and values, equal to the `ETag` header of a single read. */
@@ -15174,6 +15871,8 @@ export interface components {
             filters: boolean;
             /** @description `da_acl.login_as` */
             loginAs: boolean;
+            /** @description Manage mailbox groups (mailcow 2026-11 or newer). */
+            mailboxGroups?: boolean;
             /** @description `da_acl.mailbox_relayhost` */
             mailboxRelayhost: boolean;
             /** @description `da_acl.protocol_access` */
@@ -15741,8 +16440,8 @@ export interface components {
             from: string;
             /**
              * @description `true` when neither a plain-text nor an HTML part could be extracted, so `textFromHtml` holds
-             *     the raw body converted to text and `textPlain` is `null` (legacy "Parser failed, assuming
-             *     HTML").
+             *     the raw body converted to text only with attachment permission, or an empty string without it.
+             *     `textPlain` is `null` (legacy "Parser failed, assuming HTML").
              */
             parserFallback: boolean;
             /** @description Recipients named in the `To`, `Cc` and `Bcc` headers, followed by the envelope recipient. */
@@ -15750,8 +16449,9 @@ export interface components {
             /** @description The `Subject` header, decoded to UTF-8. Empty when the message has none. */
             subject: string;
             /**
-             * @description The HTML part converted to plain text. With `parserFallback`, the raw body converted to text.
-             *     Empty when there is no HTML part.
+             * @description The HTML part converted to plain text. With `parserFallback`, the raw body converted to text
+             *     only when the caller has attachment permission; otherwise empty. Without that permission,
+             *     attachment parts and their children are excluded from both text fields.
              */
             textFromHtml: string;
             /**
@@ -16389,7 +17089,10 @@ export interface components {
             username?: string;
         };
         /**
-         * @description JSON Merge Patch of a relayhost. Omitted members stay unchanged. An omitted `password` is kept;
+         * @description JSON Merge Patch of a relayhost. Omitted members stay unchanged. An omitted `password` is kept only
+         *     when its destination (host, port and MX lookup mode) and username stay the same; otherwise supply
+         *     the password again or explicitly remove it. A missing password in that case is a `required` field
+         *     error.
          *     `""` removes it. Setting `username` to `""` without a password also removes the password. A
          *     password together with an empty resulting username is refused. `id`, `usage`, `passwordSet` and
          *     `etag` are read-only: they are accepted with their current value and refused (`immutable`)
@@ -17636,7 +18339,8 @@ export interface components {
             /** @description Inactive jobs are never run. */
             active: boolean;
             /**
-             * @description Authentication mechanism to the remote server. Always `plain`, as legacy stores it; not settable.
+             * @deprecated
+             * @description Legacy compatibility value. Read sourceAuthMechanism for the actual source authentication on mailcow 2026-11.
              * @enum {string}
              */
             authMechanism: "plain";
@@ -17681,6 +18385,8 @@ export interface components {
             id: number;
             /** @description Minimum time between the end of one run and the start of the next, in minutes (`imapsync.mins_interval`). */
             intervalMinutes: number;
+            /** @description Original custom parameters that the 2026-11 migration could not convert. Informational only; the runner ignores these. Render as plain text, never execute or automatically reapply them. */
+            legacyCustomParameters?: string;
             /** @description Connection timeout to the local mailbox in seconds (imapsync `--timeout2`). */
             localTimeoutSeconds: number;
             /**
@@ -17693,11 +18399,15 @@ export interface components {
             maxAgeDays: number;
             /** @description Transfer speed limit in bytes per second (imapsync `--maxbytespersecond`). `0` is unlimited. */
             maxBytesPerSecond: number;
+            /** @description Legacy command-line options could not be migrated; review and replace the custom parameters. */
+            migrationWarning?: boolean;
             /**
              * @description Last change of the row (`imapsync.modified`), including the runner's status updates. `null`
              *     when the row never changed after its creation.
              */
             modifiedAt: string | null;
+            /** @description Global queue priority; administrator only. Larger values run first. Requires mailcow 2026-11. */
+            priority?: number;
             /**
              * @description Host name or IPv4 address of the remote IMAP server (`imapsync.host1`).
              * @example imap.old-provider.example
@@ -17720,17 +18430,29 @@ export interface components {
             runStatus: components["schemas"]["SyncJobRunStatus"];
             /** @description Skip messages that exist in another folder of the local mailbox (imapsync `--skipcrossduplicates`). */
             skipCrossDuplicates: boolean;
+            sourceActive?: boolean;
+            /**
+             * @description Authentication method of the configured source.
+             * @enum {string}
+             */
+            sourceAuthMechanism?: "plain" | "login" | "cram-md5" | "xoauth2";
+            /** @description Use an existing visible active source (mailcow 2026-11). Connection fields come from that source; password sources require a password. Authorization-code sources require a connected account for the target mailbox. */
+            sourceId?: number;
+            sourceName?: string;
             /** @description Subscribe the local mailbox to every synced folder (imapsync `--subscribeall`). */
             subscribeAll: boolean;
+            verifyCertificate?: boolean;
         };
         /**
          * @description Action of a sync-job bulk request, as the legacy mass actions offer them. `activate` and
          *     `deactivate` set the active flag. `reschedule` clears the last run time and last result, so the
          *     runner picks the job up on its next cycle; it ignores version tags, because it changes only run
          *     status. `delete` removes the job.
+         *
+         *     `prioritize` (2026-11 administrators only) moves idle jobs ahead of the queue and schedules them next; running jobs return a conflict.
          * @enum {string}
          */
-        SyncJobBulkAction: "activate" | "deactivate" | "reschedule" | "delete";
+        SyncJobBulkAction: "activate" | "deactivate" | "reschedule" | "delete" | "prioritize";
         /**
          * @description One action applied to several sync jobs. The number of targets must not exceed the bulk limit
          *     (default 100, see `GET /capabilities/sync-jobs`); a larger request is refused with `tooMany`
@@ -17776,6 +18498,10 @@ export interface components {
                  *     ]
                  */
                 allowedOptions: string[];
+                /** @description Typed runner options on 2026-11: false means a flag, true requires a value, a string is the value regex. Unsafe options remain refused. */
+                optionRules?: {
+                    [key: string]: boolean | string;
+                } | null;
                 /** @description The server setting that restricts custom parameters to administrators (legacy default `false`). */
                 restrictedToAdministrators: boolean;
             };
@@ -17809,23 +18535,10 @@ export interface components {
                 /** @example 1000 */
                 maximum: number;
             };
+            queueManagement?: boolean;
+            sources?: boolean;
         };
-        /**
-         * @description A new sync job. Omitted members take the defaults of the legacy "Add sync job" form, which the
-         *     capabilities read (`GET /capabilities/sync-jobs`, `defaults`) also lists. The remote host, port,
-         *     user and password are always required. Unknown members are ignored.
-         *
-         *     Every invalid member is reported at once in a `422` problem, with these rule codes besides the
-         *     common ones (`required`, `invalidType`, `tooShort`, `tooLong`, `outOfRange`, `notInList`,
-         *     `invalidFormat`):
-         *
-         *     - `remoteHost`: `invalidFormat` with `format: hostName`.
-         *     - `exclude`: `invalidRegex`.
-         *     - `customParameters`: `optionNotAllowed` (param `option`), `optionContainsSpace` (param `token`)
-         *       and `customParamsNotPermitted`.
-         *     - `mailbox`: `notEligible` (param `kind`: `resource`, `alias` or `aliasDomainAddress`) when the
-         *       address is not a mailbox that can receive synced mail.
-         */
+        /** @description A new sync job. Select an existing source on mailcow 2026-11, or supply remoteHost, remotePort and remotePassword to create a private source automatically. RemoteUser always identifies the remote account. A source with authorization-code OAuth must first be connected for the target mailbox. Omitted settings use the capabilities defaults. */
         SyncJobCreateRequest: {
             /**
              * @description An active job is picked up by the imapsync runner on its next cycle.
@@ -17883,23 +18596,33 @@ export interface components {
             maxAgeDays: number;
             /** @default 0 */
             maxBytesPerSecond: number;
+            /** @description Global queue priority; administrator only. Larger values run first. Requires mailcow 2026-11. */
+            priority?: number;
             /**
              * @description Host name (letter/digit labels with inner hyphens, at most 253 characters, labels at most
              *     63; internationalised names are accepted) or IPv4 address. IPv6 literals are refused, as in
              *     legacy. Stored in lower case.
              */
-            remoteHost: string;
+            remoteHost?: string;
             /** @description Password of the remote account. Stored for the runner, never returned. */
-            remotePassword: $Write<string>;
-            remotePort: number;
+            remotePassword?: $Write<string>;
+            remotePort?: number;
             /** @default 600 */
             remoteTimeoutSeconds: number;
             remoteUser: string;
             /** @default false */
             skipCrossDuplicates: boolean;
+            /** @description Use an existing visible active source (mailcow 2026-11). Connection fields come from that source; password sources require a password. Authorization-code sources require a connected account for the target mailbox. */
+            sourceId?: number;
             /** @default true */
             subscribeAll: boolean;
-        };
+        } & ({
+            sourceId: number;
+        } | {
+            remoteHost: string;
+            remotePassword: $Write<string>;
+            remotePort: number;
+        });
         /**
          * @description Values a new sync job gets for omitted members: the values the legacy "Add sync job" form
          *     pre-fills. The remote host, port, user and password have no default.
@@ -17992,12 +18715,16 @@ export interface components {
             mailbox?: string;
             maxAgeDays?: number;
             maxBytesPerSecond?: number;
+            /** @description Global queue priority; administrator only. Larger values run first. Requires mailcow 2026-11. */
+            priority?: number;
             remoteHost?: string;
             remotePassword?: $Write<string>;
             remotePort?: number;
             remoteTimeoutSeconds?: number;
             remoteUser?: string;
             skipCrossDuplicates?: boolean;
+            /** @description Use an existing visible active source (mailcow 2026-11). Connection fields come from that source; password sources require a password. Authorization-code sources require a connected account for the target mailbox. */
+            sourceId?: number;
             subscribeAll?: boolean;
         };
         /**
@@ -18039,6 +18766,118 @@ export interface components {
             logAvailable: boolean;
             /** @description Whether a run is in progress (`imapsync.is_running`). */
             running: boolean;
+        };
+        SyncQueueSettings: {
+            etag: string;
+            maxBytesPerSecond: number;
+            maxParallel: number;
+        };
+        SyncQueueSettingsPatch: {
+            maxBytesPerSecond?: number;
+            maxParallel?: number;
+        };
+        SyncSource: {
+            active: boolean;
+            /** @enum {string} */
+            authMechanism: "plain" | "login" | "cram-md5" | "xoauth2";
+            createdBy: string;
+            description: string;
+            domains: string[];
+            editable: boolean;
+            /** @enum {string} */
+            encryption: "ssl" | "starttls" | "plain";
+            etag: string;
+            id: number;
+            name: string;
+            oauth: {
+                authorizationEndpoint: string | null;
+                clientId: string | null;
+                clientSecretSet: boolean;
+                extraParameters: {
+                    [key: string]: string | number | boolean | null;
+                } | null;
+                /** @enum {string} */
+                flow: "client_credentials" | "authorization_code";
+                /** Format: uri */
+                redirectUri: string;
+                refreshFailed: boolean;
+                scope: string | null;
+                tokenEndpoint: string | null;
+                /** Format: date-time */
+                tokenExpiresAt: string | null;
+                tokenSet: boolean;
+                userInfoEndpoint: string | null;
+            } | null;
+            remoteHost: string;
+            remotePort: number;
+            /** @enum {string} */
+            scope: "all" | "domain" | "user";
+            users: string[];
+            verifyCertificate: boolean;
+        };
+        SyncSourceConnection: {
+            /** Format: date-time */
+            expiresAt: string | null;
+            refreshFailed: boolean;
+            remoteUser: string;
+        };
+        SyncSourceCreateRequest: {
+            active?: boolean;
+            /** @enum {string} */
+            authMechanism?: "plain" | "login" | "cram-md5" | "xoauth2";
+            description?: string;
+            domains?: string[];
+            /** @enum {string} */
+            encryption?: "ssl" | "starttls" | "plain";
+            name: string;
+            oauth?: {
+                authorizationEndpoint?: string;
+                clientId?: string;
+                clientSecret?: string;
+                extraParameters?: {
+                    [key: string]: string | number | boolean | null;
+                };
+                /** @enum {string} */
+                flow?: "client_credentials" | "authorization_code";
+                scope?: string;
+                tokenEndpoint?: string;
+                userInfoEndpoint?: string;
+            };
+            remoteHost: string;
+            remotePort: number;
+            /** @enum {string} */
+            scope?: "all" | "domain" | "user";
+            users?: string[];
+            verifyCertificate?: boolean;
+        };
+        SyncSourcePatch: {
+            active?: boolean;
+            /** @enum {string} */
+            authMechanism?: "plain" | "login" | "cram-md5" | "xoauth2";
+            description?: string;
+            domains?: string[];
+            /** @enum {string} */
+            encryption?: "ssl" | "starttls" | "plain";
+            name?: string;
+            oauth?: {
+                authorizationEndpoint?: string;
+                clientId?: string;
+                clientSecret?: string;
+                extraParameters?: {
+                    [key: string]: string | number | boolean | null;
+                };
+                /** @enum {string} */
+                flow?: "client_credentials" | "authorization_code";
+                scope?: string;
+                tokenEndpoint?: string;
+                userInfoEndpoint?: string;
+            };
+            remoteHost?: string;
+            remotePort?: number;
+            /** @enum {string} */
+            scope?: "all" | "domain" | "user";
+            users?: string[];
+            verifyCertificate?: boolean;
         };
         /**
          * @description One entry of the Postfix, Dovecot or SOGo log (Redis lists `POSTFIX_MAILLOG`, `DOVECOT_MAILLOG`,
@@ -18322,10 +19161,12 @@ export interface components {
          *     - sending `username` or `password` applies the resulting credentials to every transport with the
          *       resulting next hop;
          *     - moving the transport to a next hop used by other transports without sending credentials makes
-         *       it adopt their credentials; moved to an unused next hop, it keeps its own.
+         *       it adopt credentials already bound to that next hop; moving to an unused endpoint requires
+         *       explicit password re-entry or removal when the transport has a stored password.
          *
-         *     An omitted `password` is kept, `""` removes it, and an empty `username` without a password also
-         *     removes the password. `id`, `nextHopSharedWith`, `passwordSet` and `etag` are read-only
+         *     An omitted `password` is kept only at its existing destination and username; a change to either
+         *     requires explicit password re-entry or removal (`required` field error when omitted). `""` removes
+         *     it, and an empty `username` without a password also removes the password. `id`, `nextHopSharedWith`, `passwordSet` and `etag` are read-only
          *     (accepted with their current value only, refused with `immutable` otherwise); any other member is
          *     refused (`immutable`). The response's `meta.affectedTransports` names the other transports whose
          *     credentials changed.
@@ -18355,8 +19196,11 @@ export interface components {
             id: number;
             nextHop: string;
         };
-        /** @enum {string} */
-        type: "apiKey" | "passkey" | "preferences" | "session" | "syncJob" | "domain" | "domainTemplate" | "domainFooter" | "dkimKey" | "mtaStsPolicy" | "identityProvider" | "oauth2Client" | "mailbox" | "mailboxTemplate" | "admin" | "domainAdmin" | "ssoToken" | "impersonation" | "relayhost" | "domainRelayhostAssignment" | "mailboxRelayhostAssignment" | "transport" | "bccMap" | "recipientMap" | "tlsPolicyMap" | "forwardingHost" | "container" | "mailQueue" | "mailQueueMessage" | "fail2banSettings" | "fail2banRules" | "fail2banActiveBan" | "fail2banBanListId" | "quarantineItem" | "quarantineSettings" | "quarantineNotificationSettings" | "spamScore" | "spamPolicyEntry" | "rateLimit" | "rateLimitBucket" | "logo" | "uiTexts" | "loginPage" | "appLinks" | "brandColors" | "ipCheck" | "passwordPolicy" | "passwordResetNotification" | "quotaNotification" | "quotaNotificationRecipients" | "rspamdSettingsRule" | "rspamdRegexMap" | "globalSieveFilter" | "rspamdUiPassword" | "legacyApiCors" | "massMailJob" | "license" | "alias" | "aliasDomain" | "resource" | "mailboxSenderSettings" | "accountPassword" | "secondFactor" | "recoveryEmail" | "passwordReset" | "appPassword" | "temporaryAlias" | "sieveFilter" | "pushNotificationSettings" | "mailSettings" | "recentLogins" | "groupwareData" | "webmailHandOff";
+        /**
+         * @description Extensible audit target code; clients must display unknown codes generically.
+         * @enum {string}
+         */
+        type: "apiKey" | "passkey" | "preferences" | "session" | "syncJob" | "domain" | "domainTemplate" | "domainFooter" | "dkimKey" | "mtaStsPolicy" | "identityProvider" | "oauth2Client" | "mailbox" | "mailboxTemplate" | "admin" | "domainAdmin" | "ssoToken" | "impersonation" | "relayhost" | "domainRelayhostAssignment" | "mailboxRelayhostAssignment" | "transport" | "bccMap" | "recipientMap" | "tlsPolicyMap" | "forwardingHost" | "container" | "mailQueue" | "mailQueueMessage" | "fail2banSettings" | "fail2banRules" | "fail2banActiveBan" | "fail2banBanListId" | "quarantineItem" | "quarantineSettings" | "quarantineNotificationSettings" | "spamScore" | "spamPolicyEntry" | "rateLimit" | "rateLimitBucket" | "logo" | "uiTexts" | "loginPage" | "appLinks" | "brandColors" | "ipCheck" | "passwordPolicy" | "passwordResetNotification" | "quotaNotification" | "quotaNotificationRecipients" | "rspamdSettingsRule" | "rspamdRegexMap" | "globalSieveFilter" | "rspamdUiPassword" | "legacyApiCors" | "massMailJob" | "license" | "alias" | "aliasDomain" | "resource" | "mailboxSenderSettings" | "accountPassword" | "secondFactor" | "recoveryEmail" | "passwordReset" | "appPassword" | "temporaryAlias" | "sieveFilter" | "pushNotificationSettings" | "mailSettings" | "recentLogins" | "groupwareData" | "webmailHandOff" | "mailboxGroup" | "syncSource" | "syncQueue" | "legacyApiKey";
         /**
          * @description The UI texts of the legacy customisation. `pageTitle`, `productName`, `appsHeading` and
          *     `announcement.text` are plain text. `loginHelpHtml` and `footerHtml` are operator-authored HTML,
@@ -23476,7 +24320,7 @@ export interface components {
          *     In ascending order, jobs that never ran (`lastRunAt` empty) come first for `lastRunAt`, and
          *     `lastResult` sorts `unknown`, then `failed`, then `succeeded`.
          */
-        SyncJobSort: "id" | "mailbox" | "remoteHost" | "remoteUser" | "intervalMinutes" | "active" | "lastRunAt" | "lastResult" | "createdAt" | "modifiedAt";
+        SyncJobSort: "id" | "mailbox" | "remoteHost" | "remoteUser" | "intervalMinutes" | "active" | "lastRunAt" | "lastResult" | "createdAt" | "modifiedAt" | "priority";
         /**
          * @description Address of the temporary alias, in any letter case (percent-encode non-ASCII characters; `@` may
          *     stay literal). An expired temporary alias, or one of another mailbox, answers `404`.
@@ -23661,6 +24505,7 @@ export type HealthCheckStatus = components['schemas']['HealthCheckStatus'];
 export type HostOverview = components['schemas']['HostOverview'];
 export type Identity = components['schemas']['Identity'];
 export type IdentityAuthentication = components['schemas']['IdentityAuthentication'];
+export type IdentityLink = components['schemas']['IdentityLink'];
 export type IdentityProvider = components['schemas']['IdentityProvider'];
 export type IdentityProviderCapabilities = components['schemas']['IdentityProviderCapabilities'];
 export type IdentityProviderCommon = components['schemas']['IdentityProviderCommon'];
@@ -23682,6 +24527,10 @@ export type IdentityProviderReturnUrls = components['schemas']['IdentityProvider
 export type IdentityProviderReturnUrlsInput = components['schemas']['IdentityProviderReturnUrlsInput'];
 export type IdentityProviderSynchronisation = components['schemas']['IdentityProviderSynchronisation'];
 export type IdentityProviderType = components['schemas']['IdentityProviderType'];
+export type IdentitySyncPatch = components['schemas']['IdentitySyncPatch'];
+export type IdentitySyncRun = components['schemas']['IdentitySyncRun'];
+export type IdentitySyncSettings = components['schemas']['IdentitySyncSettings'];
+export type IdentitySyncStatus = components['schemas']['IdentitySyncStatus'];
 export type Impersonation = components['schemas']['Impersonation'];
 export type ImpersonationPermissionFlagProblem = components['schemas']['ImpersonationPermissionFlagProblem'];
 export type ImpersonationStarted = components['schemas']['ImpersonationStarted'];
@@ -23694,6 +24543,10 @@ export type KnownProblemType = components['schemas']['KnownProblemType'];
 export type Language = components['schemas']['Language'];
 export type LegacyApiCorsSettings = components['schemas']['LegacyApiCorsSettings'];
 export type LegacyApiCorsSettingsPatch = components['schemas']['LegacyApiCorsSettingsPatch'];
+export type LegacyApiKey = components['schemas']['LegacyApiKey'];
+export type LegacyApiKeyCreateRequest = components['schemas']['LegacyApiKeyCreateRequest'];
+export type LegacyApiKeyPatch = components['schemas']['LegacyApiKeyPatch'];
+export type LegacyApiKeySecret = components['schemas']['LegacyApiKeySecret'];
 export type LegacyApiRequestLogEntry = components['schemas']['LegacyApiRequestLogEntry'];
 export type LegacyUiActivityLogEntry = components['schemas']['LegacyUiActivityLogEntry'];
 export type LicenseStatus = components['schemas']['LicenseStatus'];
@@ -23720,6 +24573,15 @@ export type MailboxCreateRequest = components['schemas']['MailboxCreateRequest']
 export type MailboxCreationReport = components['schemas']['MailboxCreationReport'];
 export type MailboxCustomAttributes = components['schemas']['MailboxCustomAttributes'];
 export type MailboxDeletionPreview = components['schemas']['MailboxDeletionPreview'];
+export type MailboxGroup = components['schemas']['MailboxGroup'];
+export type MailboxGroupCreateRequest = components['schemas']['MailboxGroupCreateRequest'];
+export type MailboxGroupImapGrant = components['schemas']['MailboxGroupImapGrant'];
+export type MailboxGroupImapGrantInput = components['schemas']['MailboxGroupImapGrantInput'];
+export type MailboxGroupMembership = components['schemas']['MailboxGroupMembership'];
+export type MailboxGroupPatch = components['schemas']['MailboxGroupPatch'];
+export type MailboxGroupSogoGrant = components['schemas']['MailboxGroupSogoGrant'];
+export type MailboxGroupSogoGrantInput = components['schemas']['MailboxGroupSogoGrantInput'];
+export type MailboxGroupSummary = components['schemas']['MailboxGroupSummary'];
 export type MailboxImplicitSenderAddress = components['schemas']['MailboxImplicitSenderAddress'];
 export type MailboxLastLogins = components['schemas']['MailboxLastLogins'];
 export type MailboxLimitReachedProblem = components['schemas']['MailboxLimitReachedProblem'];
@@ -23968,6 +24830,12 @@ export type SyncJobPatch = components['schemas']['SyncJobPatch'];
 export type SyncJobPermissionFlagProblem = components['schemas']['SyncJobPermissionFlagProblem'];
 export type SyncJobRange = components['schemas']['SyncJobRange'];
 export type SyncJobRunStatus = components['schemas']['SyncJobRunStatus'];
+export type SyncQueueSettings = components['schemas']['SyncQueueSettings'];
+export type SyncQueueSettingsPatch = components['schemas']['SyncQueueSettingsPatch'];
+export type SyncSource = components['schemas']['SyncSource'];
+export type SyncSourceConnection = components['schemas']['SyncSourceConnection'];
+export type SyncSourceCreateRequest = components['schemas']['SyncSourceCreateRequest'];
+export type SyncSourcePatch = components['schemas']['SyncSourcePatch'];
 export type SyslogLogEntry = components['schemas']['SyslogLogEntry'];
 export type TemporaryAlias = components['schemas']['TemporaryAlias'];
 export type TemporaryAliasCreateRequest = components['schemas']['TemporaryAliasCreateRequest'];
@@ -27505,6 +28373,35 @@ export interface operations {
             503: components["responses"]["MonitoringTemporaryFailure"];
         };
     };
+    liftAllFail2BanBans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Ban lifts queued */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            banServiceRunning: boolean;
+                            queuedCount: number;
+                        };
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["MonitoringTemporaryFailure"];
+        };
+    };
     rotateFail2BanBanListId: {
         parameters: {
             query?: never;
@@ -28054,6 +28951,195 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    getMailboxIdentityLink: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mailbox: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The link, or null if there is none. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["IdentityLink"] | null;
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    deleteMailboxIdentityLink: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                mailbox: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Link removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description The configured provider or installed schema does not support synchronisation. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getIdentitySynchronisation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["IdentitySyncStatus"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    updateIdentitySynchronisation: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/merge-patch+json": components["schemas"]["IdentitySyncPatch"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["IdentitySyncStatus"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description The configured provider or installed schema does not support synchronisation. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    requestIdentitySyncRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    confirmForce?: boolean;
+                    /** @enum {string} */
+                    mode: "preview" | "run" | "force";
+                };
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["IdentitySyncRun"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description The configured provider or installed schema does not support synchronisation. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     getInstallationVersion: {
         parameters: {
             query?: never;
@@ -28083,6 +29169,338 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["MonitoringTemporaryFailure"];
+        };
+    };
+    listLegacyApiKeys: {
+        parameters: {
+            query?: {
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Number of items to skip. */
+                offset?: components["parameters"]["Offset"];
+                /** @description Sort direction. Each list documents its default. */
+                order?: components["parameters"]["Order"];
+                /**
+                 * @description Case-insensitive substring search over the list's documented search fields. Leading and trailing
+                 *     whitespace is ignored; an empty value means no search.
+                 */
+                q?: components["parameters"]["Search"];
+                sort?: "id" | "description" | "accessLevel" | "active" | "service";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LegacyApiKey"][];
+                        meta: components["schemas"]["ListMeta"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createLegacyApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LegacyApiKeyCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LegacyApiKeySecret"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getLegacyApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                legacyKeyId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LegacyApiKey"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteLegacyApiKey: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                legacyKeyId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The key was deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateLegacyApiKey: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                legacyKeyId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/merge-patch+json": components["schemas"]["LegacyApiKeyPatch"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LegacyApiKey"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    regenerateLegacyApiKey: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                legacyKeyId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LegacyApiKeySecret"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getLicenseStatus: {
@@ -28912,6 +30330,237 @@ export interface operations {
             504: components["responses"]["MonitoringOutcomeUnknown"];
         };
     };
+    listMailboxGroups: {
+        parameters: {
+            query?: {
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Number of items to skip. */
+                offset?: components["parameters"]["Offset"];
+                /** @description Sort direction. Each list documents its default. */
+                order?: components["parameters"]["Order"];
+                /**
+                 * @description Case-insensitive substring search over the list's documented search fields. Leading and trailing
+                 *     whitespace is ignored; an empty value means no search.
+                 */
+                q?: components["parameters"]["Search"];
+                sort?: "id" | "name" | "domain" | "address" | "active" | "priority";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MailboxGroupSummary"][];
+                        meta: components["schemas"]["ListMeta"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Mailbox groups require mailcow 2026-11. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    createMailboxGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MailboxGroupCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MailboxGroup"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description The schema is unsupported or a unique name or address is already in use. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getMailboxGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                groupId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MailboxGroup"];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Mailbox groups require mailcow 2026-11. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    deleteMailboxGroup: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                groupId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            warnings: string[];
+                        };
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description The schema is unsupported or a unique name or address is already in use. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    updateMailboxGroup: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                groupId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/merge-patch+json": components["schemas"]["MailboxGroupPatch"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MailboxGroup"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description The schema is unsupported or a unique name or address is already in use. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     listMailboxTags: {
         parameters: {
             query?: {
@@ -29492,6 +31141,35 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getMailboxGroupMemberships: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mailbox: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MailboxGroupMembership"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationFailed"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -34591,9 +36269,689 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["SyncJobForbidden"];
+            /** @description Queue priority requires mailcow 2026-11. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
             415: components["responses"]["UnsupportedMediaType"];
             422: components["responses"]["SyncJobValidationFailed"];
             500: components["responses"]["InternalError"];
+        };
+    };
+    getSyncQueueSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncQueueSettings"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateSyncQueueSettings: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/merge-patch+json": components["schemas"]["SyncQueueSettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncQueueSettings"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listSyncSources: {
+        parameters: {
+            query?: {
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Number of items to skip. */
+                offset?: components["parameters"]["Offset"];
+                /** @description Sort direction. Each list documents its default. */
+                order?: components["parameters"]["Order"];
+                /**
+                 * @description Case-insensitive substring search over the list's documented search fields. Leading and trailing
+                 *     whitespace is ignored; an empty value means no search.
+                 */
+                q?: components["parameters"]["Search"];
+                sort?: "id" | "name" | "remoteHost" | "scope" | "active";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncSource"][];
+                        meta: components["schemas"]["ListMeta"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createSyncSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncSourceCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncSource"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSyncSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncSource"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteSyncSource: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The operation completed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateSyncSource: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/merge-patch+json": components["schemas"]["SyncSourcePatch"];
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncSource"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listSyncSourceConnections: {
+        parameters: {
+            query: {
+                mailbox: string;
+            };
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncSourceConnection"][];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    disconnectSyncSourceOAuth: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    mailbox: string;
+                    remoteUser: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The operation completed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    refreshSyncSourceOAuth: {
+        parameters: {
+            query?: never;
+            header?: {
+                /**
+                 * @description `ETag` from a previous read, or `*`. When it does not match the current representation, the
+                 *     request fails with `412` and nothing changes.
+                 */
+                "If-Match"?: components["parameters"]["IfMatch"];
+            };
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SyncSource"];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    startSyncSourceOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sourceId: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: email */
+                    mailbox: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            /** Format: uri */
+                            authorizationUrl: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                        };
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    completeSyncSourceOAuth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    state: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The requested data. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: {
+                            mailbox: string;
+                            remoteUser: string;
+                            sourceId: number;
+                        };
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            412: components["responses"]["PreconditionFailed"];
+            415: components["responses"]["UnsupportedMediaType"];
+            422: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+            /** @description Unsupported schema, conflicting source state or unavailable provider. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     listTlsPolicyMaps: {
@@ -34955,9 +37313,13 @@ type ReadonlyArray<T> = [
 export const pathsAliasDomainsAliasDomainSpamPolicyEntriesGetParametersQueryOwnershipValues: ReadonlyArray<FlattenedDeepRequired<paths>["/alias-domains/{aliasDomain}/spam-policy-entries"]["get"]["parameters"]["query"]["ownership"]> = ["own", "inherited"];
 export const pathsApiKeysOwnerCandidatesGetParametersQueryRoleValues: ReadonlyArray<FlattenedDeepRequired<paths>["/api-keys/owner-candidates"]["get"]["parameters"]["query"]["role"]> = ["admin", "domainAdmin"];
 export const pathsDomainsDomainSpamPolicyEntriesGetParametersQueryOwnershipValues: ReadonlyArray<FlattenedDeepRequired<paths>["/domains/{domain}/spam-policy-entries"]["get"]["parameters"]["query"]["ownership"]> = ["own", "inherited"];
+export const pathsIdentityProviderSynchronisationRunsPostRequestBodyContentApplicationJsonModeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/identity-provider/synchronisation/runs"]["post"]["requestBody"]["content"]["application/json"]["mode"]> = ["preview", "run", "force"];
+export const pathsLegacyApiKeysGetParametersQuerySortValues: ReadonlyArray<FlattenedDeepRequired<paths>["/legacy-api-keys"]["get"]["parameters"]["query"]["sort"]> = ["id", "description", "accessLevel", "active", "service"];
+export const pathsMailboxGroupsGetParametersQuerySortValues: ReadonlyArray<FlattenedDeepRequired<paths>["/mailbox-groups"]["get"]["parameters"]["query"]["sort"]> = ["id", "name", "domain", "address", "active", "priority"];
 export const pathsMailboxesMailboxSpamPolicyEntriesGetParametersQueryOwnershipValues: ReadonlyArray<FlattenedDeepRequired<paths>["/mailboxes/{mailbox}/spam-policy-entries"]["get"]["parameters"]["query"]["ownership"]> = ["own", "inherited"];
 export const pathsRelayhostsRelayhostIdUsageGetParametersQueryKindValues: ReadonlyArray<FlattenedDeepRequired<paths>["/relayhosts/{relayhostId}/usage"]["get"]["parameters"]["query"]["kind"]> = ["domain", "mailbox"];
 export const pathsSenderPermissionCandidatesGetParametersQueryTypeValues: ReadonlyArray<FlattenedDeepRequired<paths>["/sender-permission-candidates"]["get"]["parameters"]["query"]["type"]> = ["address", "domain", "anyAddress"];
+export const pathsSyncSourcesGetParametersQuerySortValues: ReadonlyArray<FlattenedDeepRequired<paths>["/sync-sources"]["get"]["parameters"]["query"]["sort"]> = ["id", "name", "remoteHost", "scope", "active"];
 export const accountBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccountBulkActionRequest"]["action"]> = ["activate", "deactivate", "suspendSecondFactors", "delete"];
 export const accountSecondFactorStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AccountSecondFactorStatus"]> = ["none", "active", "suspended"];
 export const aliasBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AliasBulkActionRequest"]["action"]> = ["activate", "deactivate", "showInGroupware", "hideInGroupware", "delete", "copyOverAliasDomains"];
@@ -34985,11 +37347,11 @@ export const apiKeyStatusValues: ReadonlyArray<FlattenedDeepRequired<components>
 export const appleProfileRequestVariantValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AppleProfileRequest"]["variant"]> = ["email", "emailAndDav"];
 export const appLinkSourceValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AppLink"]["source"]> = ["builtIn", "operator"];
 export const appPasswordProtocolValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AppPasswordProtocol"]> = ["imap", "pop3", "smtp", "sieve", "activeSync", "dav"];
-export const auditEventTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditEventType"]> = ["signIn", "signOut", "preferencesUpdate", "passkeyRegistration", "passkeyRename", "passkeyRemoval", "apiKeyCreation", "apiKeyRevocation", "syncJobCreation", "syncJobUpdate", "syncJobReschedule", "syncJobDeletion", "domainCreation", "domainUpdate", "domainDeletion", "domainFooterUpdate", "domainTemplateCreation", "domainTemplateUpdate", "domainTemplateDeletion", "dkimKeyGeneration", "dkimKeyImport", "dkimKeyCopy", "dkimKeyDeletion", "dkimPrivateKeyExport", "dkimDnsPublication", "mtaStsPolicyCreation", "mtaStsPolicyUpdate", "mailboxCreation", "mailboxUpdate", "mailboxDeletion", "mailboxRename", "mailboxTemplateCreation", "mailboxTemplateUpdate", "mailboxTemplateDeletion", "identityProviderCreation", "identityProviderUpdate", "identityProviderDeletion", "identityProviderConnectionTest", "identityProviderSessionEnd", "oauth2ClientCreation", "oauth2ClientUpdate", "oauth2ClientSecretRegeneration", "oauth2ClientTokenRevocation", "oauth2ClientDeletion", "adminCreation", "adminUpdate", "adminDeletion", "adminSecondFactorSuspension", "domainAdminCreation", "domainAdminUpdate", "domainAdminDeletion", "domainAdminSecondFactorSuspension", "ssoTokenIssue", "impersonationStart", "impersonationEnd", "webmailSignInOnBehalf", "relayhostCreation", "relayhostUpdate", "relayhostDeletion", "relayhostTest", "relayhostAssignmentUpdate", "transportCreation", "transportUpdate", "transportDeletion", "transportTest", "bccMapCreation", "bccMapUpdate", "bccMapDeletion", "recipientMapCreation", "recipientMapUpdate", "recipientMapDeletion", "tlsPolicyMapCreation", "tlsPolicyMapUpdate", "tlsPolicyMapDeletion", "forwardingHostCreation", "forwardingHostUpdate", "forwardingHostDeletion", "containerStart", "containerStop", "containerRestart", "mailQueueDelivery", "mailQueueHold", "mailQueueRelease", "mailQueueDeletion", "mailQueueFlush", "mailQueuePurge", "mailQueueMessageView", "fail2banSettingsUpdate", "fail2banRulesReplacement", "fail2banRulesReset", "fail2banBanLift", "fail2banBanAllowlisting", "fail2banBanDenylisting", "fail2banBanListIdRotation", "quarantineItemRelease", "quarantineItemSpamLearning", "quarantineItemDeletion", "quarantineSettingsUpdate", "quarantineNotificationSettingsUpdate", "spamScoreUpdate", "spamScoreReset", "spamPolicyEntryCreation", "spamPolicyEntryRemoval", "rateLimitUpdate", "rateLimitRemoval", "rateLimitBucketReset", "logoReplacement", "logoDeletion", "uiTextsUpdate", "loginPageUpdate", "appLinksUpdate", "brandColorsUpdate", "ipCheckUpdate", "passwordPolicyUpdate", "passwordResetNotificationUpdate", "quotaNotificationUpdate", "quotaNotificationRecipientsUpdate", "rspamdSettingsRuleCreation", "rspamdSettingsRuleUpdate", "rspamdSettingsRuleDeletion", "rspamdRegexMapReplacement", "globalSieveFilterReplacement", "rspamdUiPasswordChange", "legacyApiCorsUpdate", "massMailJobCreation", "massMailJobCompletion", "massMailJobCancellation", "licenseVerification", "aliasCreation", "aliasUpdate", "aliasDeletion", "aliasDomainCreation", "aliasDomainUpdate", "aliasDomainDeletion", "resourceCreation", "resourceUpdate", "resourceDeletion", "mailboxSenderSettingsUpdate", "ownPasswordChange", "ownSecondFactorEnrolment", "ownSecondFactorRemoval", "ownRecoveryEmailChange", "passwordResetRequest", "passwordResetCompletion", "appPasswordCreation", "appPasswordUpdate", "appPasswordDeletion", "temporaryAliasCreation", "temporaryAliasUpdate", "temporaryAliasDeletion", "sieveFilterCreation", "sieveFilterUpdate", "sieveFilterDeletion", "pushNotificationSettingsUpdate", "pushNotificationSettingsDeletion", "pushNotificationVerification", "mailSettingsUpdate", "recentLoginsClear", "activeSyncCacheReset", "groupwareProfileReset", "webmailHandOff"];
+export const auditEventTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditEventType"]> = ["signIn", "signOut", "preferencesUpdate", "passkeyRegistration", "passkeyRename", "passkeyRemoval", "apiKeyCreation", "apiKeyRevocation", "syncJobCreation", "syncJobUpdate", "syncJobReschedule", "syncJobDeletion", "domainCreation", "domainUpdate", "domainDeletion", "domainFooterUpdate", "domainTemplateCreation", "domainTemplateUpdate", "domainTemplateDeletion", "dkimKeyGeneration", "dkimKeyImport", "dkimKeyCopy", "dkimKeyDeletion", "dkimPrivateKeyExport", "dkimDnsPublication", "mtaStsPolicyCreation", "mtaStsPolicyUpdate", "mailboxCreation", "mailboxUpdate", "mailboxDeletion", "mailboxRename", "mailboxTemplateCreation", "mailboxTemplateUpdate", "mailboxTemplateDeletion", "identityProviderCreation", "identityProviderUpdate", "identityProviderDeletion", "identityProviderConnectionTest", "identitySyncSettingsUpdate", "identitySyncRequested", "identityLinkDeletion", "identityProviderSessionEnd", "oauth2ClientCreation", "oauth2ClientUpdate", "oauth2ClientSecretRegeneration", "oauth2ClientTokenRevocation", "oauth2ClientDeletion", "adminCreation", "adminUpdate", "adminDeletion", "adminSecondFactorSuspension", "domainAdminCreation", "domainAdminUpdate", "domainAdminDeletion", "domainAdminSecondFactorSuspension", "ssoTokenIssue", "impersonationStart", "impersonationEnd", "webmailSignInOnBehalf", "relayhostCreation", "relayhostUpdate", "relayhostDeletion", "relayhostTest", "relayhostAssignmentUpdate", "transportCreation", "transportUpdate", "transportDeletion", "transportTest", "bccMapCreation", "bccMapUpdate", "bccMapDeletion", "recipientMapCreation", "recipientMapUpdate", "recipientMapDeletion", "tlsPolicyMapCreation", "tlsPolicyMapUpdate", "tlsPolicyMapDeletion", "forwardingHostCreation", "forwardingHostUpdate", "forwardingHostDeletion", "containerStart", "containerStop", "containerRestart", "mailQueueDelivery", "mailQueueHold", "mailQueueRelease", "mailQueueDeletion", "mailQueueFlush", "mailQueuePurge", "mailQueueMessageView", "fail2banSettingsUpdate", "fail2banRulesReplacement", "fail2banRulesReset", "fail2banBanLift", "fail2banAllBansLift", "fail2banBanAllowlisting", "fail2banBanDenylisting", "fail2banBanListIdRotation", "quarantineItemRelease", "quarantineItemSpamLearning", "quarantineItemDeletion", "quarantineSettingsUpdate", "quarantineNotificationSettingsUpdate", "spamScoreUpdate", "spamScoreReset", "spamPolicyEntryCreation", "spamPolicyEntryRemoval", "rateLimitUpdate", "rateLimitRemoval", "rateLimitBucketReset", "logoReplacement", "logoDeletion", "uiTextsUpdate", "loginPageUpdate", "appLinksUpdate", "brandColorsUpdate", "ipCheckUpdate", "passwordPolicyUpdate", "passwordResetNotificationUpdate", "quotaNotificationUpdate", "quotaNotificationRecipientsUpdate", "rspamdSettingsRuleCreation", "rspamdSettingsRuleUpdate", "rspamdSettingsRuleDeletion", "rspamdRegexMapReplacement", "globalSieveFilterReplacement", "rspamdUiPasswordChange", "legacyApiCorsUpdate", "massMailJobCreation", "massMailJobCompletion", "massMailJobCancellation", "licenseVerification", "aliasCreation", "aliasUpdate", "aliasDeletion", "aliasDomainCreation", "aliasDomainUpdate", "aliasDomainDeletion", "resourceCreation", "resourceUpdate", "resourceDeletion", "mailboxSenderSettingsUpdate", "ownPasswordChange", "ownSecondFactorEnrolment", "ownSecondFactorRemoval", "ownRecoveryEmailChange", "passwordResetRequest", "passwordResetCompletion", "appPasswordCreation", "appPasswordUpdate", "appPasswordDeletion", "temporaryAliasCreation", "temporaryAliasUpdate", "temporaryAliasDeletion", "sieveFilterCreation", "sieveFilterUpdate", "sieveFilterDeletion", "pushNotificationSettingsUpdate", "pushNotificationSettingsDeletion", "pushNotificationVerification", "mailSettingsUpdate", "recentLoginsClear", "activeSyncCacheReset", "groupwareProfileReset", "webmailHandOff", "mailboxGroupCreation", "mailboxGroupUpdate", "mailboxGroupDeletion", "syncSourceCreation", "syncSourceUpdate", "syncSourceDeletion", "syncSourceConnection", "syncQueueSettingsUpdate", "legacyApiKeyCreation", "legacyApiKeyUpdate", "legacyApiKeyDeletion", "legacyApiKeyRegeneration"];
 export const auditFailureReasonValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditFailureReason"]> = ["invalidCredentials", "accountInactive", "externalIdentitySource", "unknownPasskey", "passkeyInactive", "roleMismatch", "passkeyVerificationFailed", "challengeExpired", "secondFactorFailed", "secondFactorUnavailable", "verificationUnavailable", "throttled", "registrationFailed", "attributeNotPermitted", "versionOutdated", "validationFailed", "conflict", "temporaryFailure", "permissionDenied", "notFound", "signInStateInvalid", "singleSignOnNotAvailable", "providerRefused", "providerReturnedError", "identityProviderUnavailable", "noEmailAddress", "mailboxNotLinked", "autoCreationOff", "noMatchingMapping", "mailboxCreationFailed", "passwordNotVerifiable", "connectionTestFailed", "outcomeUnknown", "partiallyCompleted", "serviceFailure", "rulesNotRestored", "demoMode", "featureDisabled", "fileUnavailable", "currentPasswordIncorrect", "unknownAccount", "accountNotEligible", "noRecoveryEmail", "tokenLimitReached", "messageNotSent", "invalidResetToken", "lastSecondFactor", "secondFactorRequiredByPolicy", "notConfigured"];
 export const auditImpersonatedAccountRoleValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditImpersonatedAccount"]["role"]> = ["mailboxUser", "domainAdmin"];
 export const auditOutcomeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditOutcome"]> = ["success", "failure"];
-export const auditTargetTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditTarget"]["type"]> = ["apiKey", "passkey", "preferences", "session", "syncJob", "domain", "domainTemplate", "domainFooter", "dkimKey", "mtaStsPolicy", "identityProvider", "oauth2Client", "mailbox", "mailboxTemplate", "admin", "domainAdmin", "ssoToken", "impersonation", "relayhost", "domainRelayhostAssignment", "mailboxRelayhostAssignment", "transport", "bccMap", "recipientMap", "tlsPolicyMap", "forwardingHost", "container", "mailQueue", "mailQueueMessage", "fail2banSettings", "fail2banRules", "fail2banActiveBan", "fail2banBanListId", "quarantineItem", "quarantineSettings", "quarantineNotificationSettings", "spamScore", "spamPolicyEntry", "rateLimit", "rateLimitBucket", "logo", "uiTexts", "loginPage", "appLinks", "brandColors", "ipCheck", "passwordPolicy", "passwordResetNotification", "quotaNotification", "quotaNotificationRecipients", "rspamdSettingsRule", "rspamdRegexMap", "globalSieveFilter", "rspamdUiPassword", "legacyApiCors", "massMailJob", "license", "alias", "aliasDomain", "resource", "mailboxSenderSettings", "accountPassword", "secondFactor", "recoveryEmail", "passwordReset", "appPassword", "temporaryAlias", "sieveFilter", "pushNotificationSettings", "mailSettings", "recentLogins", "groupwareData", "webmailHandOff"];
+export const auditTargetTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuditTarget"]["type"]> = ["apiKey", "passkey", "preferences", "session", "syncJob", "domain", "domainTemplate", "domainFooter", "dkimKey", "mtaStsPolicy", "identityProvider", "oauth2Client", "mailbox", "mailboxTemplate", "admin", "domainAdmin", "ssoToken", "impersonation", "relayhost", "domainRelayhostAssignment", "mailboxRelayhostAssignment", "transport", "bccMap", "recipientMap", "tlsPolicyMap", "forwardingHost", "container", "mailQueue", "mailQueueMessage", "fail2banSettings", "fail2banRules", "fail2banActiveBan", "fail2banBanListId", "quarantineItem", "quarantineSettings", "quarantineNotificationSettings", "spamScore", "spamPolicyEntry", "rateLimit", "rateLimitBucket", "logo", "uiTexts", "loginPage", "appLinks", "brandColors", "ipCheck", "passwordPolicy", "passwordResetNotification", "quotaNotification", "quotaNotificationRecipients", "rspamdSettingsRule", "rspamdRegexMap", "globalSieveFilter", "rspamdUiPassword", "legacyApiCors", "massMailJob", "license", "alias", "aliasDomain", "resource", "mailboxSenderSettings", "accountPassword", "secondFactor", "recoveryEmail", "passwordReset", "appPassword", "temporaryAlias", "sieveFilter", "pushNotificationSettings", "mailSettings", "recentLogins", "groupwareData", "webmailHandOff", "mailboxGroup", "syncSource", "syncQueue", "legacyApiKey"];
 export const authMethodValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["AuthMethod"]> = ["password", "passwordAndSecondFactor", "passkey", "apiKey", "ssoToken", "singleSignOn", "directoryPassword", "directoryPasswordAndSecondFactor", "providerPassword", "providerPasswordAndSecondFactor"];
 export const bccDestinationChoiceKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BccDestinationChoiceKind"]> = ["domain", "aliasDomain", "mailbox", "alias", "aliasDomainAddress"];
 export const bccMapBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["BccMapBulkActionRequest"]["action"]> = ["activate", "deactivate", "switchToSender", "switchToRecipient", "delete"];
@@ -35011,7 +37373,7 @@ export const dnsCheckRecordTypeValues: ReadonlyArray<FlattenedDeepRequired<compo
 export const dnsCheckScopeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DnsCheck"]["scope"]> = ["server", "domain"];
 export const dnsCheckMessageCodeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DnsCheckMessageCode"]> = ["lookupTimeout", "runTimeout", "lookupError", "publicAddressUnknown", "certificateUnavailable", "dkimKeyUnavailable", "hostIsAlias", "dkimPublicKeyDiffers", "spfMultipleRecords", "spfTooManyLookups", "spfTooManyVoidLookups", "spfNotPass", "spfError", "matchedByAddressRecords", "nullServiceRecord", "noPublicIpv6", "serverChecksOmitted", "propagationDelay", "spfAuthorizeAddresses", "spfSuggestedRecord", "spfSyntaxReference", "dmarcPublishPolicy", "tlsReportingPublishRecord"];
 export const dnsCheckStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DnsCheckStatus"]> = ["match", "mismatch", "missing", "lookupFailed", "informational", "expectedUnknown"];
-export const domainAdminPermissionNameValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DomainAdminPermissionName"]> = ["syncjobs", "quarantine", "loginAs", "sogoAccess", "appPasswds", "bccMaps", "pushover", "filters", "ratelimit", "spamPolicy", "extendSenderAcl", "unlimitedQuota", "protocolAccess", "smtpIpAccess", "aliasDomains", "mailboxRelayhost", "domainRelayhost", "domainDesc", "aliasExternalGoto"];
+export const domainAdminPermissionNameValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DomainAdminPermissionName"]> = ["syncjobs", "quarantine", "loginAs", "sogoAccess", "appPasswds", "bccMaps", "pushover", "filters", "ratelimit", "spamPolicy", "extendSenderAcl", "unlimitedQuota", "protocolAccess", "smtpIpAccess", "aliasDomains", "mailboxRelayhost", "domainRelayhost", "domainDesc", "aliasExternalGoto", "mailboxGroups"];
 export const domainBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DomainBulkActionRequest"]["action"]> = ["activate", "deactivate", "delete"];
 export const domainCreateRequestDkimKeySizeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DomainCreateRequest"]["dkimKeySize"]> = [1024, 2048, 3072, 4096];
 export const domainCreationReportDkimDnsPublicationValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["DomainCreationReport"]["dkimDnsPublication"]> = ["published", "noZone", "failed", "notConfigured", "skipped"];
@@ -35041,6 +37403,10 @@ export const identityProviderLdapTypeValues: ReadonlyArray<FlattenedDeepRequired
 export const identityProviderLdapInputTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentityProviderLdapInput"]["type"]> = ["ldap"];
 export const identityProviderSynchronisationStateValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentityProviderSynchronisation"]["state"]> = ["disabled", "running", "waiting", "overdue", "unknown"];
 export const identityProviderTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentityProviderType"]> = ["keycloak", "genericOidc", "ldap"];
+export const identitySyncPatchGroupMemberModeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentitySyncPatch"]["groupMemberMode"]> = ["memberof", "member", "ad_chain"];
+export const identitySyncRunModeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentitySyncRun"]["mode"]> = ["preview", "run", "force"];
+export const identitySyncRunStatusValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentitySyncRun"]["status"]> = ["pending", "running", "ok", "blocked", "error"];
+export const identitySyncSettingsGroupMemberModeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["IdentitySyncSettings"]["groupMemberMode"]> = ["memberof", "member", "ad_chain"];
 export const impersonationImpersonatorRoleValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Impersonation"]["impersonator"]["role"]> = ["admin", "domainAdmin"];
 export const impersonationTargetRoleValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Impersonation"]["target"]["role"]> = ["mailboxUser", "domainAdmin"];
 export const impersonationPermissionFlagProblemRequiredFlagsValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ImpersonationPermissionFlagProblem"]["requiredFlags"]> = ["loginAs"];
@@ -35049,6 +37415,10 @@ export const installationUpdateStatusStatusValues: ReadonlyArray<FlattenedDeepRe
 export const knownProblemTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["KnownProblemType"]> = ["/api/v2/problems/validation-failed", "/api/v2/problems/unauthenticated", "/api/v2/problems/forbidden", "/api/v2/problems/csrf-token-mismatch", "/api/v2/problems/session-required", "/api/v2/problems/pending-action-required", "/api/v2/problems/too-many-requests", "/api/v2/problems/sign-in-failed", "/api/v2/problems/sign-in-expired", "/api/v2/problems/second-factor-required", "/api/v2/problems/second-factor-failed", "/api/v2/problems/second-factor-unavailable", "/api/v2/problems/temporary-verification-failure", "/api/v2/problems/passkey-registration-failed", "/api/v2/problems/api-key-invalid", "/api/v2/problems/api-key-expired", "/api/v2/problems/api-key-revoked", "/api/v2/problems/api-key-source-not-allowed", "/api/v2/problems/insufficient-key-scope", "/api/v2/problems/service-unavailable", "/api/v2/problems/sync-job-exists", "/api/v2/problems/domain-exists", "/api/v2/problems/domain-not-empty", "/api/v2/problems/domain-template-name-exists", "/api/v2/problems/domain-template-protected", "/api/v2/problems/attribute-not-permitted", "/api/v2/problems/temporary-failure", "/api/v2/problems/dkim-key-exists", "/api/v2/problems/dkim-private-key-export-disabled", "/api/v2/problems/dkim-dns-publication-disabled", "/api/v2/problems/mta-sts-policy-exists", "/api/v2/problems/address-in-use", "/api/v2/problems/mailbox-limit-reached", "/api/v2/problems/mailbox-not-renamable", "/api/v2/problems/mailbox-rename-incomplete", "/api/v2/problems/outcome-unknown", "/api/v2/problems/mailbox-template-name-exists", "/api/v2/problems/mailbox-template-protected", "/api/v2/problems/identity-provider-not-configured", "/api/v2/problems/identity-provider-in-use", "/api/v2/problems/single-sign-on-not-available", "/api/v2/problems/sign-in-state-invalid", "/api/v2/problems/identity-provider-unavailable", "/api/v2/problems/identity-provider-session-ended", "/api/v2/problems/account-exists", "/api/v2/problems/last-active-admin", "/api/v2/problems/cannot-delete-own-account", "/api/v2/problems/already-impersonating", "/api/v2/problems/impersonation-ended", "/api/v2/problems/not-allowed-while-impersonating", "/api/v2/problems/webmail-on-behalf-disabled", "/api/v2/problems/account-inactive", "/api/v2/problems/routing-entry-exists", "/api/v2/problems/next-hop-credentials-differ", "/api/v2/problems/next-hop-interferes", "/api/v2/problems/permission-flag-required", "/api/v2/problems/container-protected", "/api/v2/problems/container-not-running", "/api/v2/problems/container-action-failed", "/api/v2/problems/mail-service-not-running", "/api/v2/problems/queue-action-failed", "/api/v2/problems/ban-rules-not-restored", "/api/v2/problems/ip-check-disabled", "/api/v2/problems/spam-policy-entry-exists", "/api/v2/problems/quarantine-message-too-large", "/api/v2/problems/quarantine-message-too-complex", "/api/v2/problems/quarantine-item-busy", "/api/v2/problems/quarantine-delivery-refused", "/api/v2/problems/demo-mode", "/api/v2/problems/feature-disabled", "/api/v2/problems/regex-map-unavailable", "/api/v2/problems/global-sieve-filter-unavailable", "/api/v2/problems/mass-mail-already-running", "/api/v2/problems/mass-mail-recipient-count-changed", "/api/v2/problems/domain-alias-limit-reached", "/api/v2/problems/alias-domain-already-exists", "/api/v2/problems/not-primary-domain-alias", "/api/v2/problems/current-password-incorrect", "/api/v2/problems/password-managed-externally", "/api/v2/problems/password-reset-unavailable", "/api/v2/problems/invalid-reset-token", "/api/v2/problems/second-factor-enrolment-expired", "/api/v2/problems/second-factor-enrolment-failed", "/api/v2/problems/last-second-factor", "/api/v2/problems/second-factor-required-by-policy", "/api/v2/problems/push-notifications-not-configured", "/api/v2/problems/groupware-disabled"];
 export const legacyApiCorsSettingsAllowedMethodsValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LegacyApiCorsSettings"]["allowedMethods"]> = ["GET", "POST", "PUT", "DELETE"];
 export const legacyApiCorsSettingsPatchAllowedMethodsValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LegacyApiCorsSettingsPatch"]["allowedMethods"]> = ["GET", "POST", "PUT", "DELETE"];
+export const legacyApiKeyAccessLevelValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LegacyApiKey"]["accessLevel"]> = ["readOnly", "readWrite"];
+export const legacyApiKeyCreateRequestAccessLevelValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LegacyApiKeyCreateRequest"]["accessLevel"]> = ["readOnly", "readWrite"];
+export const legacyApiKeyPatchAccessLevelValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LegacyApiKeyPatch"]["accessLevel"]> = ["readOnly", "readWrite"];
+export const legacyApiKeySecretAccessLevelValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LegacyApiKeySecret"]["accessLevel"]> = ["readOnly", "readWrite"];
 export const licenseStatusLastVerificationResultValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LicenseStatus"]["lastVerification"]["result"]> = ["valid", "invalid", "unreachable", "neverVerified"];
 export const logoSettingMediaTypeOneOf0Values: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LogoSetting"]["mediaType"]> = ["image/png", "image/jpeg", "image/gif", "image/svg+xml"];
 export const logoSettingVariantValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["LogoSetting"]["variant"]> = ["light", "dark"];
@@ -35065,6 +37435,16 @@ export const mailboxCreationReportGroupwareDirectoryUpdateValues: ReadonlyArray<
 export const mailboxCreationReportRateLimitValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxCreationReport"]["rateLimit"]> = ["applied", "notRequested", "failed"];
 export const mailboxCreationReportTaggedMailHandlingValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxCreationReport"]["taggedMailHandling"]> = ["applied", "notRequested", "failed"];
 export const mailboxDeletionPreviewBlockersDependencyValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxDeletionPreview"]["blockers"]["dependency"]> = ["mailStore", "sharedStore"];
+export const mailboxGroupMembersSourceValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroup"]["members"]["source"]> = ["manual", "idp"];
+export const mailboxGroupImapGrantRightsValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupImapGrant"]["rights"]> = ["read", "write", "full"];
+export const mailboxGroupImapGrantStateValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupImapGrant"]["state"]> = ["pending", "applied", "failed", "removing"];
+export const mailboxGroupImapGrantInputRightsValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupImapGrantInput"]["rights"]> = ["read", "write", "full"];
+export const mailboxGroupMembershipSourceValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupMembership"]["source"]> = ["manual", "idp"];
+export const mailboxGroupSogoGrantAccessValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupSogoGrant"]["access"]> = ["read", "write"];
+export const mailboxGroupSogoGrantStateValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupSogoGrant"]["state"]> = ["pending", "applied", "failed"];
+export const mailboxGroupSogoGrantTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupSogoGrant"]["type"]> = ["Calendar", "Contacts"];
+export const mailboxGroupSogoGrantInputAccessValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupSogoGrantInput"]["access"]> = ["read", "write"];
+export const mailboxGroupSogoGrantInputTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxGroupSogoGrantInput"]["type"]> = ["Calendar", "Contacts"];
 export const mailboxImplicitSenderAddressSourceValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxImplicitSenderAddress"]["source"]> = ["ownAddress", "aliasDomainAddress", "alias"];
 export const mailboxMailSettingsBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxMailSettingsBulkActionRequest"]["action"]> = ["setTlsEnforcement"];
 export const mailboxQuarantineCategoryValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["MailboxQuarantineCategory"]> = ["rejected", "junk", "all"];
@@ -35155,17 +37535,30 @@ export const spamFilterTemporaryFailureProblemStepValues: ReadonlyArray<Flattene
 export const spamPolicyListValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SpamPolicyList"]> = ["allow", "block"];
 export const spamPolicyOwnerKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SpamPolicyOwner"]["kind"]> = ["domain", "aliasDomain", "mailbox"];
 export const syncJobAuthMechanismValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJob"]["authMechanism"]> = ["plain"];
-export const syncJobBulkActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJobBulkAction"]> = ["activate", "deactivate", "reschedule", "delete"];
+export const syncJobSourceAuthMechanismValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJob"]["sourceAuthMechanism"]> = ["plain", "login", "cram-md5", "xoauth2"];
+export const syncJobBulkActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJobBulkAction"]> = ["activate", "deactivate", "reschedule", "delete", "prioritize"];
 export const syncJobEncryptionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJobEncryption"]> = ["ssl", "starttls", "plain"];
 export const syncJobLastResultValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJobLastResult"]> = ["succeeded", "failed", "unknown"];
 export const syncJobPermissionFlagProblemRequiredFlagsValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncJobPermissionFlagProblem"]["requiredFlags"]> = ["syncjobs"];
+export const syncSourceAuthMechanismValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSource"]["authMechanism"]> = ["plain", "login", "cram-md5", "xoauth2"];
+export const syncSourceEncryptionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSource"]["encryption"]> = ["ssl", "starttls", "plain"];
+export const syncSourceOauthFlowValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSource"]["oauth"]["flow"]> = ["client_credentials", "authorization_code"];
+export const syncSourceScopeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSource"]["scope"]> = ["all", "domain", "user"];
+export const syncSourceCreateRequestAuthMechanismValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourceCreateRequest"]["authMechanism"]> = ["plain", "login", "cram-md5", "xoauth2"];
+export const syncSourceCreateRequestEncryptionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourceCreateRequest"]["encryption"]> = ["ssl", "starttls", "plain"];
+export const syncSourceCreateRequestOauthFlowValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourceCreateRequest"]["oauth"]["flow"]> = ["client_credentials", "authorization_code"];
+export const syncSourceCreateRequestScopeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourceCreateRequest"]["scope"]> = ["all", "domain", "user"];
+export const syncSourcePatchAuthMechanismValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourcePatch"]["authMechanism"]> = ["plain", "login", "cram-md5", "xoauth2"];
+export const syncSourcePatchEncryptionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourcePatch"]["encryption"]> = ["ssl", "starttls", "plain"];
+export const syncSourcePatchOauthFlowValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourcePatch"]["oauth"]["flow"]> = ["client_credentials", "authorization_code"];
+export const syncSourcePatchScopeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["SyncSourcePatch"]["scope"]> = ["all", "domain", "user"];
 export const temporaryAliasDomainKindValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TemporaryAliasDomain"]["kind"]> = ["mailboxDomain", "aliasDomain"];
 export const themeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["Theme"]> = ["light", "dark", "system"];
 export const tlsPolicyValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TlsPolicy"]> = ["none", "may", "encrypt", "dane", "dane-only", "fingerprint", "verify", "secure"];
 export const tlsPolicyMapBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TlsPolicyMapBulkActionRequest"]["action"]> = ["activate", "deactivate", "delete"];
 export const totpSecondFactorTypeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TotpSecondFactor"]["type"]> = ["totp"];
 export const transportBulkActionRequestActionValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["TransportBulkActionRequest"]["action"]> = ["activate", "deactivate", "delete"];
-export const typeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["type"]> = ["apiKey", "passkey", "preferences", "session", "syncJob", "domain", "domainTemplate", "domainFooter", "dkimKey", "mtaStsPolicy", "identityProvider", "oauth2Client", "mailbox", "mailboxTemplate", "admin", "domainAdmin", "ssoToken", "impersonation", "relayhost", "domainRelayhostAssignment", "mailboxRelayhostAssignment", "transport", "bccMap", "recipientMap", "tlsPolicyMap", "forwardingHost", "container", "mailQueue", "mailQueueMessage", "fail2banSettings", "fail2banRules", "fail2banActiveBan", "fail2banBanListId", "quarantineItem", "quarantineSettings", "quarantineNotificationSettings", "spamScore", "spamPolicyEntry", "rateLimit", "rateLimitBucket", "logo", "uiTexts", "loginPage", "appLinks", "brandColors", "ipCheck", "passwordPolicy", "passwordResetNotification", "quotaNotification", "quotaNotificationRecipients", "rspamdSettingsRule", "rspamdRegexMap", "globalSieveFilter", "rspamdUiPassword", "legacyApiCors", "massMailJob", "license", "alias", "aliasDomain", "resource", "mailboxSenderSettings", "accountPassword", "secondFactor", "recoveryEmail", "passwordReset", "appPassword", "temporaryAlias", "sieveFilter", "pushNotificationSettings", "mailSettings", "recentLogins", "groupwareData", "webmailHandOff"];
+export const typeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["type"]> = ["apiKey", "passkey", "preferences", "session", "syncJob", "domain", "domainTemplate", "domainFooter", "dkimKey", "mtaStsPolicy", "identityProvider", "oauth2Client", "mailbox", "mailboxTemplate", "admin", "domainAdmin", "ssoToken", "impersonation", "relayhost", "domainRelayhostAssignment", "mailboxRelayhostAssignment", "transport", "bccMap", "recipientMap", "tlsPolicyMap", "forwardingHost", "container", "mailQueue", "mailQueueMessage", "fail2banSettings", "fail2banRules", "fail2banActiveBan", "fail2banBanListId", "quarantineItem", "quarantineSettings", "quarantineNotificationSettings", "spamScore", "spamPolicyEntry", "rateLimit", "rateLimitBucket", "logo", "uiTexts", "loginPage", "appLinks", "brandColors", "ipCheck", "passwordPolicy", "passwordResetNotification", "quotaNotification", "quotaNotificationRecipients", "rspamdSettingsRule", "rspamdRegexMap", "globalSieveFilter", "rspamdUiPassword", "legacyApiCors", "massMailJob", "license", "alias", "aliasDomain", "resource", "mailboxSenderSettings", "accountPassword", "secondFactor", "recoveryEmail", "passwordReset", "appPassword", "temporaryAlias", "sieveFilter", "pushNotificationSettings", "mailSettings", "recentLogins", "groupwareData", "webmailHandOff", "mailboxGroup", "syncSource", "syncQueue", "legacyApiKey"];
 export const uiTextsAnnouncementTypeOneOf0Values: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["UiTextsAnnouncement"]["type"]> = ["info", "warning", "danger"];
 export const uiTextsPatchAnnouncementTypeOneOf0Values: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["UiTextsPatch"]["announcement"]["type"]> = ["info", "warning", "danger"];
 export const validationRuleCodeValues: ReadonlyArray<FlattenedDeepRequired<components>["schemas"]["ValidationRuleCode"]> = ["required", "invalidType", "tooShort", "tooLong", "tooMany", "outOfRange", "notInList", "invalidFormat", "mustBeInFuture", "notFound", "notEligible", "optionNotAllowed", "optionContainsSpace", "customParamsNotPermitted", "invalidRegex", "immutable", "notMultipleOf", "mustNotExceed", "belowInUse", "reserved", "invalidPrivateKey", "encryptedPrivateKey", "unsupportedKeyType", "keyLengthOutOfRange", "sameAsSource", "missingCharacterClass", "conflictsWith", "unchanged", "secretRequired", "duplicate", "unknownField", "notResolvable", "invalidCharacter", "missingCaptureGroup", "invalidTemplate", "unsupportedImageType", "invalidImage", "imageDimensionsExceeded", "unsafeSvgContent", "insufficientContrast", "invalidRegexLine", "unbalancedStructure", "mutuallyExclusive", "tooFew", "preHashedPassword", "sieveSyntax"];
@@ -35235,7 +37628,7 @@ export const componentsParametersRspamdRegexMapSortValues: ReadonlyArray<Flatten
 export const componentsParametersRspamdSettingsRuleSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["RspamdSettingsRuleSort"]> = ["id", "description", "active", "createdAt", "modifiedAt"];
 export const componentsParametersSieveFilterSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SieveFilterSort"]> = ["id", "description", "mailbox", "kind", "active", "createdAt", "modifiedAt"];
 export const componentsParametersSpamPolicyEntrySortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SpamPolicyEntrySort"]> = ["pattern", "createdAt", "id"];
-export const componentsParametersSyncJobSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SyncJobSort"]> = ["id", "mailbox", "remoteHost", "remoteUser", "intervalMinutes", "active", "lastRunAt", "lastResult", "createdAt", "modifiedAt"];
+export const componentsParametersSyncJobSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["SyncJobSort"]> = ["id", "mailbox", "remoteHost", "remoteUser", "intervalMinutes", "active", "lastRunAt", "lastResult", "createdAt", "modifiedAt", "priority"];
 export const componentsParametersTemporaryAliasSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["TemporaryAliasSort"]> = ["address", "expiresAt", "createdAt"];
 export const componentsParametersTlsPolicyMapSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["TlsPolicyMapSort"]> = ["id", "destination", "policy", "active", "createdAt", "modifiedAt"];
 export const componentsParametersTransportSortValues: ReadonlyArray<FlattenedDeepRequired<components>["parameters"]["TransportSort"]> = ["id", "destination", "nextHop", "username", "active", "mxBased"];

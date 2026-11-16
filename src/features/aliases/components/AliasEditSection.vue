@@ -337,7 +337,7 @@ const INPUT =
   <EditableSection
     section-id="alias"
     :title="lt('edit.alias')"
-    :editable="permissions.canManageAliases"
+    :editable="permissions.canManageAliases && !alias.groupId"
     :editing="editing"
     :edit-disabled-reason="editDisabledReason"
     :saving="pending"

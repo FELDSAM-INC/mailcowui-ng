@@ -53,7 +53,9 @@ const notFound = computed(
 )
 
 // The section: `?edit=alias` opens it (one section, as legacy's one form).
-const editing = computed(() => route.query.edit === 'alias' && !!alias.value)
+const editing = computed(
+  () => route.query.edit === 'alias' && !!alias.value && !alias.value.groupId,
+)
 const dirty = ref(false)
 watch(
   [() => route.query.edit, () => !!alias.value],
@@ -207,6 +209,15 @@ const LINK =
         <AliasBadges class="mt-3" :alias="alias" :can-see-orphaned="permissions.canSeeOrphaned" />
       </section>
     </template>
+    <p v-if="alias.groupId" class="rounded-xl border border-line bg-surface p-4 text-sm">
+      {{ t('aliases.groupManagedHelp') }}
+      <RouterLink
+        v-if="isEntryAvailable('mailboxGroups', identity.data.value)"
+        :to="{ name: 'mailbox-group-detail', params: { groupId: alias.groupId } }"
+        class="text-accent-text hover:underline"
+        >{{ t('aliases.openGroup') }}</RouterLink
+      >
+    </p>
     <AliasEditSection
       :alias="alias"
       :editing="editing"

@@ -35,6 +35,7 @@ import {
   applyBanResult,
   banAction,
   fetchSettings,
+  liftAllBans,
   permanentBansOptions,
   refreshBans,
   rotateBanListId,
@@ -117,6 +118,34 @@ async function run(network: string, action: BanAction) {
     } else {
       problem.value = current
     }
+  } finally {
+    busy.value = false
+  }
+}
+
+async function unbanAll() {
+  if (
+    busy.value ||
+    !(await confirm({
+      title: t('operations.fail2ban.unbanAll'),
+      description: t('operations.fail2ban.unbanAllConfirmation'),
+      confirmLabel: t('operations.fail2ban.unbanAll'),
+      destructive: true,
+    }))
+  )
+    return
+  busy.value = true
+  problem.value = null
+  status.value = null
+  notRecorded.value = false
+  try {
+    const { result, auditRecorded } = await liftAllBans()
+    notRecorded.value = !auditRecorded
+    status.value = t('operations.fail2ban.unbanAllQueued', { count: result.queuedCount })
+    announce(status.value)
+    await refreshBans(client)
+  } catch (error) {
+    problem.value = problemOf(error)
   } finally {
     busy.value = false
   }
@@ -241,6 +270,17 @@ function retry() {
       @retry="retry"
     />
     <template v-else>
+      <div v-if="activeBans.length" class="flex justify-end">
+        <button
+          type="button"
+          data-unban-all
+          :class="buttonVariants({ variant: 'outline' })"
+          :disabled="busy"
+          @click="unbanAll"
+        >
+          {{ t('operations.fail2ban.unbanAll') }}
+        </button>
+      </div>
       <ul
         v-if="activeBans.length > 0"
         data-active-bans

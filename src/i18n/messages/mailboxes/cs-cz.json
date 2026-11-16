@@ -118,6 +118,10 @@
       "groupwareDirectoryUpdate": "Schránka byla přidána, ale adresář webmailu se nepodařilo aktualizovat.",
       "rateLimit": "Schránka byla přidána, ale její omezení přenosu se nepodařilo nastavit.",
       "taggedMailHandling": "Schránka byla přidána, ale zacházení s označkovanou poštou se nepodařilo nastavit."
+    },
+    "shared": {
+      "label": "Sdílená schránka",
+      "help": "Bez samostatného přihlášení. Členové přistupují ke schránce prostřednictvím sdílení skupiny schránek. Při vytvoření není potřeba heslo."
     }
   },
   "mailboxTemplates": {
@@ -135,6 +139,75 @@
       "activeSync": "EAS",
       "dav": "DAV",
       "webmailRedirect": "SOGO"
+    }
+  },
+  "mailboxGroups": {
+    "title": "Skupiny schránek",
+    "create": "Vytvořit skupinu schránek",
+    "settings": "Nastavení skupiny",
+    "identityManaged": "Poskytovatel identity",
+    "addressHelp": "Volitelná distribuční adresa v doméně skupiny. Pro skupinu pouze s oprávněními ponechte prázdné.",
+    "membersHelp": "Vyberte schránky patřící do skupiny. Členové spravovaní poskytovatelem identity a členové mimo váš rozsah zůstanou zachováni.",
+    "lockedMembers": "Tato členství jsou spravována jinde a nelze je zde odebrat.",
+    "outsideScope": "Mimo váš rozsah",
+    "sendAsHelp": "Existující adresy schránek či aliasů nebo doména se zavináčem na začátku. Každou položku uveďte na nový řádek. Pro adresu skupiny použijte „Povolit odesílání z adresy skupiny“.",
+    "sharingHelp": "Změny přístupu mohou čekat na zpracování mailcow. Přihlášení ke složkám spravují naplánované úlohy mailcow.",
+    "owner": "Schránka vlastníka",
+    "access": "Úroveň přístupu",
+    "folderType": "Typ složky",
+    "folder": "Identifikátor složky",
+    "calendar": "Kalendář",
+    "contacts": "Kontakty",
+    "subscribe": "Automaticky přihlásit členy ke složce",
+    "addShare": "Přidat oprávnění ke sdílení",
+    "administration": "Správa",
+    "templateHelp": "Šablonu člena určuje aktivní skupina s nejvyšší prioritou. Při shodné prioritě rozhoduje nejnižší ID skupiny. Po opuštění všech skupin zůstane nastavení schránky zachováno.",
+    "identityReferenceHelp": "Volitelný stálý identifikátor pro synchronizaci skupin poskytovatele identity.",
+    "reapply": "Znovu použít šablony",
+    "reapplyConfirm": "Znovu použít účinnou šablonu skupiny pro každého člena? Může dojít k přepsání ručně změněného nastavení.",
+    "remove": "Odstranit skupinu schránek",
+    "removeConfirm": "Odstranit „{name}“, její distribuční adresu a skupinová oprávnění? Schránky členů zůstanou zachovány.",
+    "readOnly": "Skupina má oprávnění mimo vámi spravované domény nebo máte přístup jen pro čtení.",
+    "subscribed": "Automatické přihlášení zapnuto",
+    "notSubscribed": "Bez automatického přihlášení",
+    "folderPending": "Čeká se na vytvoření složky vlastníka v mailcow.",
+    "sharePending": "Mailcow se pokusí toto oprávnění znovu použít.",
+    "fields": {
+      "name": "Název",
+      "domain": "Doména",
+      "address": "Distribuční adresa",
+      "description": "Popis",
+      "active": "Aktivní",
+      "senderAllowed": "Povolit odesílání z adresy skupiny",
+      "sogoVisible": "Zobrazit adresu skupiny v SOGo",
+      "internal": "Pouze interní odesílatelé",
+      "members": "Členové",
+      "sendAs": "Další oprávnění k odesílání",
+      "imapGrants": "Sdílené schránky (IMAP)",
+      "sogoGrants": "Sdílené kalendáře a kontakty (SOGo)",
+      "templateId": "Šablona schránky",
+      "priority": "Priorita šablony",
+      "identityReference": "Identifikátor u poskytovatele identity"
+    },
+    "rights": {
+      "read": "Čtení",
+      "write": "Čtení a zápis",
+      "full": "Plný přístup"
+    },
+    "states": {
+      "pending": "Čeká na zpracování",
+      "applied": "Použito",
+      "failed": "Čeká na opakování",
+      "removing": "Čeká na odebrání"
+    },
+    "warnings": {
+      "recipientExpansionLimit": "Distribuční skupina překračuje limit Postfixu 1 000 příjemců.",
+      "templateApplicationFailed": "Šablonu se nepodařilo použít pro {target}.",
+      "imapGrantPending": "Přístup IMAP pro {target} čeká na zpracování. Mailcow pokus zopakuje.",
+      "imapGrantCleanupFailed": "Nepodařilo se potvrdit odebrání oprávnění IMAP pro {target}.",
+      "authCacheFlushFailed": "Nepodařilo se obnovit mezipaměť ověřování schránek. Změny přístupu se mohou projevit později.",
+      "groupwareRefreshFailed": "Nepodařilo se obnovit adresář nebo mezipaměť SOGo.",
+      "generic": "Skupina byla uložena, ale navazující operace vyžaduje pozornost."
     }
   }
 }

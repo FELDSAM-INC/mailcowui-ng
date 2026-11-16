@@ -14,12 +14,15 @@ const contract = JSON.parse(readFileSync('contract/openapi.json', 'utf8')) as {
 }
 const FLAG_NAMES = contract.components.schemas.PermissionFlags.required
 
-type Flag = 'syncjobs' | 'bccMaps' | 'spamScore' | 'spamPolicy'
-const FLAGS: Flag[] = ['syncjobs', 'bccMaps', 'spamScore', 'spamPolicy']
+type Flag = 'mailboxGroups' | 'syncjobs' | 'bccMaps' | 'spamScore' | 'spamPolicy'
+const FLAGS: Flag[] = ['mailboxGroups', 'syncjobs', 'bccMaps', 'spamScore', 'spamPolicy']
 
 function identity(role: Role, granted: Flag[]): Identity {
   const permissions = Object.fromEntries(
-    FLAG_NAMES.map((name) => [name, role === 'admin' || granted.includes(name as Flag)]),
+    [...new Set([...FLAG_NAMES, 'mailboxGroups'])].map((name) => [
+      name,
+      (role === 'admin' && name !== 'mailboxGroups') || granted.includes(name as Flag),
+    ]),
   ) as unknown as PermissionFlags
   return {
     username: `${role}@example.org`,
@@ -43,6 +46,7 @@ const EXPECTED: Record<NavEntryId, Record<Role, boolean | Flag[]>> = {
   domainTemplates: { admin: true, domainAdmin: false, mailboxUser: false },
   mailboxes: { admin: true, domainAdmin: true, mailboxUser: false },
   mailboxTemplates: { admin: true, domainAdmin: true, mailboxUser: false },
+  mailboxGroups: { admin: ['mailboxGroups'], domainAdmin: ['mailboxGroups'], mailboxUser: false },
   aliases: { admin: true, domainAdmin: true, mailboxUser: false },
   aliasDomains: { admin: true, domainAdmin: true, mailboxUser: false },
   resources: { admin: true, domainAdmin: true, mailboxUser: false },
@@ -128,6 +132,7 @@ describe('navigation catalogue', () => {
     // DKIM keys and MTA-STS policies; UI 012: identity providers and OAuth2; UI 004 US1: aliases;
     // US4: domain aliases; US7: resources).
     const available = new Set<NavEntryId>([
+      'mailboxGroups',
       'domains',
       'domainTemplates',
       'mailboxes',

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { MailboxGroupMemberships } from '@/features/mailboxes'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
@@ -46,6 +47,7 @@ withDefaults(defineProps<{ showTitle?: boolean }>(), { showTitle: true })
       <WebmailAction :enabled="query.data.value.webmail.enabled" />
       <ProtocolAccessList :access="query.data.value.protocolAccess" />
       <AddressLists :overview="query.data.value" />
+      <MailboxGroupMemberships :mailbox="query.data.value.address" />
       <dl class="flex flex-col gap-4 text-sm">
         <div>
           <dt class="font-medium text-gray-900 dark:text-white">

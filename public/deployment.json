@@ -13,6 +13,8 @@
     "domains",
     "filters",
     "identity-providers",
+    "legacy-api-keys",
+    "mailbox-groups",
     "mailbox-templates",
     "mailboxes",
     "operations",
@@ -25,6 +27,8 @@
     "spam-filter",
     "sso",
     "sync-jobs",
+    "sync-queue",
+    "sync-sources",
     "system"
   ]
 }

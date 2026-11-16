@@ -614,7 +614,23 @@
       "massMailJobCreation": "Mass mail queued",
       "massMailJobCompletion": "Mass mail completed",
       "massMailJobCancellation": "Mass mail cancelled",
-      "licenseVerification": "License verified"
+      "licenseVerification": "License verified",
+      "identitySyncSettingsUpdate": "Nastavení synchronizace identit změněno",
+      "identitySyncRequested": "Synchronizace identit vyžádána",
+      "identityLinkDeletion": "Propojení identity zrušeno",
+      "fail2banAllBansLift": "Všechna automatická blokování zařazena k odstranění",
+      "mailboxGroupCreation": "Vytvoření skupiny schránek",
+      "mailboxGroupUpdate": "Úprava skupiny schránek",
+      "mailboxGroupDeletion": "Odstranění skupiny schránek",
+      "syncSourceCreation": "Zdroj synchronizace vytvořen",
+      "syncSourceUpdate": "Zdroj synchronizace změněn",
+      "syncSourceDeletion": "Zdroj synchronizace odstraněn",
+      "syncSourceConnection": "Připojení zdroje synchronizace změněno",
+      "syncQueueSettingsUpdate": "Nastavení fronty synchronizace změněno",
+      "legacyApiKeyCreation": "Klíč původního API vytvořen",
+      "legacyApiKeyUpdate": "Klíč původního API změněn",
+      "legacyApiKeyDeletion": "Klíč původního API odstraněn",
+      "legacyApiKeyRegeneration": "Klíč původního API znovu vygenerován"
     },
     "auditFailureReason": {
       "featureDisabled": "Funkce je vypnutá",
@@ -691,7 +707,11 @@
       "passwordResetNotification": "Password reset email",
       "quotaNotificationRecipients": "Quota notification recipients",
       "globalSieveFilter": "Global Sieve filter",
-      "rspamdUiPassword": "Rspamd web interface password"
+      "rspamdUiPassword": "Rspamd web interface password",
+      "mailboxGroup": "Skupina schránek",
+      "syncSource": "Zdroj synchronizace",
+      "syncQueue": "Fronta synchronizace",
+      "legacyApiKey": "Klíč původního API"
     },
     "authMethod": {
       "directoryPassword": "Heslo z adresáře",
@@ -844,7 +864,10 @@
     },
     "unavailable": "Zatím není k dispozici",
     "rspamdUi": "Rspamd UI",
-    "globalSieve": "Global Sieve filters"
+    "globalSieve": "Global Sieve filters",
+    "mailboxGroups": "Skupiny schránek",
+    "syncSources": "Zdroje synchronizace",
+    "syncQueue": "Fronta synchronizace"
   },
   "passkeys": {
     "add": {
@@ -1220,5 +1243,34 @@
     "previewNote": "Obrázky a odkazy jsou v tomto náhledu neaktivní. E-mailové aplikace mohou zprávu zobrazit jinak.",
     "imageOmitted": "Obrázek se v náhledu nenačítá: {alt}",
     "singleLine": "Zadejte předmět na jednom řádku."
+  },
+  "permissions": {
+    "flag": {
+      "mailboxGroups": "Skupiny schránek"
+    }
+  },
+  "legacyKeys": {
+    "title": "Klíče původního API",
+    "intro": "Globální administrátorské klíče pro původní API /api/v1. REST v2 používá samostatné klíče vázané na vlastníka.",
+    "create": "Vytvořit klíč původního API",
+    "service": "Servisní klíč",
+    "view": "Zobrazit",
+    "locked": "Tento klíč je spravován v mailcow.conf. Změňte nebo odstraňte jej tam a restartujte php-fpm-mailcow.",
+    "anyNetwork": "Libovolná IP adresa",
+    "networkHelp": "Zadejte povolené IPv4/IPv6 adresy nebo sítě CIDR. Alespoň jedna je povinná, pokud není kontrola IP vypnutá. Celý seznam smí mít nejvýše 512 znaků.",
+    "settings": "Nastavení klíče",
+    "rotate": "Vygenerovat nový klíč",
+    "rotateConfirm": "Dosavadní klíč přestane okamžitě fungovat. Aktualizujte všechny integrace, které jej používají.",
+    "remove": "Odstranit klíč původního API",
+    "removeConfirm": "Všechny integrace používající tento klíč okamžitě ztratí přístup k API.",
+    "secretHelp": "Nyní si zkopírujte klíč původního API. Znovu se nezobrazí. Používejte jej pouze s /api/v1.",
+    "fields": {
+      "description": "Popis",
+      "prefix": "Začátek klíče",
+      "accessLevel": "Přístup",
+      "allowedNetworks": "Povolené sítě",
+      "skipIpCheck": "Vypnout kontrolu IP",
+      "active": "Aktivní"
+    }
   }
 }

@@ -25,6 +25,7 @@ export const SYNC_JOB_SORTS = [
   'active',
   'lastRunAt',
   'lastResult',
+  'priority',
 ] as const
 export type SyncJobSort = (typeof SYNC_JOB_SORTS)[number]
 

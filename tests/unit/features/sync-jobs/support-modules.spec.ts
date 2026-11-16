@@ -59,6 +59,11 @@ describe('syncJobRoutes', () => {
       expect(module.default).toBeTruthy()
     }
     expect(syncJobRoutes.map((route) => route.name)).toEqual([
+      'sync-sources',
+      'sync-source-create',
+      'sync-source-oauth-return',
+      'sync-source-detail',
+      'sync-queue',
       'sync-jobs',
       'sync-job-create',
       'sync-job-detail',

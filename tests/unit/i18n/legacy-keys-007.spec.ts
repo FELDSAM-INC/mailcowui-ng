@@ -15,6 +15,11 @@ it('reuses the classic account outcomes and every permission label verbatim', ()
   }
   for (const [key, legacy] of Object.entries(outcomes)) expect(LEGACY_TEXTS[key]).toBe(legacy)
   for (const flag of domainAdminPermissionNameValues) {
+    if (flag === 'mailboxGroups') {
+      for (const messages of [en, cs, sk])
+        expect(getPath(messages, `permissions.flag.${flag}`)).toBeDefined()
+      continue
+    }
     const key = `permissions.flag.${flag}`
     expect(LEGACY_TEXTS[key]).toMatch(/^acl\./)
     expect(typeof getPath(snapshot, LEGACY_TEXTS[key]!)).toBe('string')

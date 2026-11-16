@@ -141,7 +141,9 @@ function discard() {
     @discard="discard"
   >
     <dl class="grid gap-x-4 gap-y-3 text-sm sm:grid-cols-[1fr_auto]">
-      <template v-for="name in permissionOrder" :key="name"
+      <template
+        v-for="name in permissionOrder.filter((flag) => flag in account.permissions)"
+        :key="name"
         ><dt>{{ resolveText(permissionLabels[name], t) }}</dt>
         <dd>
           {{ lt(account.permissions[name] ? 'mailbox.active' : 'mailbox.inactive') }}

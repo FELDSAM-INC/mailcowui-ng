@@ -162,6 +162,9 @@ const limitMessage = computed(() =>
     : null,
 )
 const BULK_ACTIONS = computed(() => [
+  ...(role === 'admin' && capabilities.data.value?.queueManagement
+    ? [{ id: 'prioritize', label: text('enums.syncJobBulkAction.prioritize') }]
+    : []),
   ...(role === 'mailboxUser'
     ? []
     : [{ id: 'reschedule', label: text('enums.syncJobBulkAction.reschedule') }]),

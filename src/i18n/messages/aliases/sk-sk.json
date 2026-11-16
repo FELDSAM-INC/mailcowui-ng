@@ -36,7 +36,10 @@
     "copy": {
       "explain": "V každej alias doméne domény aliasu sa vytvorí kópia aliasu, ak tam adresa ešte nie je použitá.",
       "none": "Táto doména nemá žiadne alias domény, preto sa nič nevytvorilo."
-    }
+    },
+    "groupManaged": "Skupina schránok",
+    "groupManagedHelp": "Tento distribučný alias spravuje skupina schránok. Členov a oprávnenia upravte v tejto skupine.",
+    "openGroup": "Otvoriť skupinu schránok"
   },
   "aliasDomains": {
     "gone": "Táto alias doména už neexistuje alebo už pre vás nie je dostupná.",

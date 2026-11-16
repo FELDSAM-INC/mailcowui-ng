@@ -11,6 +11,7 @@ import { templateFieldId } from './templates/template-form'
 import { checkDisplayName, checkLocalPart, checkPasswordPair, checkRateLimit } from './validation'
 
 export interface CreateFields {
+  shared?: boolean
   localPart: string
   displayName: string
   domain: string | null
@@ -34,7 +35,8 @@ export function checkCreate(
   checkLocalPart(errors, 'localPart', fields.localPart, fields.domain)
   checkDisplayName(errors, 'displayName', fields.displayName)
   if (!fields.domain) add(errors, 'domain', { key: legacy('add.select_domain') })
-  checkPasswordPair(errors, fields.password, fields.password2, { required: true })
+  if (!fields.shared)
+    checkPasswordPair(errors, fields.password, fields.password2, { required: true })
   const quota = checkQuota(errors, 'quota', values.quota, {
     max: rules.maxQuota === 0 ? null : rules.maxQuota,
     unlimitedAllowed: rules.unlimitedAllowed || rules.maxQuota === 0,
@@ -45,6 +47,7 @@ export function checkCreate(
 }
 
 const OWN_FIELDS = new Set([
+  'shared',
   'localPart',
   'displayName',
   'domain',

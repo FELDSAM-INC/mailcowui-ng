@@ -94,6 +94,10 @@ export function useAuditLabels() {
 // links back to each target and the documented detail keys as text.
 
 const TARGET_ROUTES: Record<string, (id: string) => AuditLink> = {
+  mailboxGroup: (id) => ({ name: 'mailbox-group-detail', params: { groupId: id } }),
+  syncSource: (id) => ({ name: 'sync-source-detail', params: { sourceId: id } }),
+  syncQueue: () => ({ name: 'sync-queue', params: {} }),
+  legacyApiKey: (id) => ({ name: 'legacy-api-key-detail', params: { legacyKeyId: id } }),
   alias: (id) => ({ name: 'alias-detail', params: { aliasId: id } }),
   aliasDomain: (id) => ({ name: 'alias-domain-detail', params: { aliasDomain: id } }),
   resource: (id) => ({ name: 'resource-detail', params: { resourceAddress: id } }),

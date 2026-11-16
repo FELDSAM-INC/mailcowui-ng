@@ -34,6 +34,14 @@ const CODE_FIELDS = new Set<FormField>(['exclude', 'customParameters'])
     data-section-values
     class="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
   >
+    <div v-if="job.sourceId">
+      <dt class="text-muted">{{ t('syncSources.fields.sourceId') }}</dt>
+      <dd>{{ job.sourceName || job.sourceId }}</dd>
+    </div>
+    <div v-if="job.priority !== undefined">
+      <dt class="text-muted">{{ t('syncSources.fields.priority') }}</dt>
+      <dd>{{ fmt.number(job.priority) }}</dd>
+    </div>
     <div v-for="field in FIELD_ORDER" :key="field" class="flex min-w-0 flex-col gap-0.5">
       <dt class="text-gray-600 dark:text-gray-400">
         <FieldLabel
@@ -43,7 +51,10 @@ const CODE_FIELDS = new Set<FormField>(['exclude', 'customParameters'])
       </dt>
       <dd class="wrap-anywhere text-gray-900 dark:text-white">
         <template v-if="field === 'remotePassword'">
-          {{ job.remotePasswordSet ? t('syncJobs.password.saved') : t('syncJobs.password.none') }}
+          <template v-if="job.sourceAuthMechanism === 'xoauth2'">OAuth 2.0</template>
+          <template v-else>{{
+            job.remotePasswordSet ? t('syncJobs.password.saved') : t('syncJobs.password.none')
+          }}</template>
         </template>
         <template v-else-if="field === 'encryption'">
           {{ t(`enums.syncJobEncryption.${job.encryption}`) }}

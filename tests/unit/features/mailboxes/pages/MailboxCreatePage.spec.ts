@@ -2,6 +2,7 @@
 // Default template applied and the quota following the domain, the request with only the values
 // that differ from the template, the creation through `useSecretRequest` with legacy's message on
 // the new mailbox's page, errors kept on their fields, and the creation report's failed steps.
+import { http, HttpResponse } from 'msw'
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -16,7 +17,7 @@ import { createAppChannel } from '@/shared/platform/broadcast'
 import type { ClientErrors } from '@/shared/validation/client-errors'
 
 import { defaultMailboxCapabilities } from '../../../../mocks/scenarios/mailboxes/base'
-import { mockState, useScenario } from '../../../../mocks/node'
+import { mockState, server, useScenario } from '../../../../mocks/node'
 import { mountWithApp, testPlugins } from '../../../support/mount'
 import { createTestRouter } from '../../../support/router'
 
@@ -41,6 +42,38 @@ async function mountAt(path: string) {
 }
 
 const creates = () => mockState().requests.filter((r) => r.operationId === 'createMailbox')
+
+describe('Shared mailbox creation', () => {
+  it('hides password controls and omits a typed password when shared is selected', async () => {
+    useScenario('admin-create')
+    server.use(
+      http.get('*/api/v2/capabilities/mailboxes', () =>
+        HttpResponse.json({ data: { ...defaultMailboxCapabilities(), sharedMailboxes: true } }),
+      ),
+    )
+    let submitted: Record<string, unknown> | undefined
+    server.use(
+      http.post('*/api/v2/mailboxes', async ({ request }) => {
+        submitted = (await request.json()) as Record<string, unknown>
+        return HttpResponse.json(
+          { type: 'about:blank', title: 'Test stops before creation', status: 503 },
+          { status: 503, headers: { 'Content-Type': 'application/problem+json' } },
+        )
+      }),
+    )
+    const { wrapper } = await mountAt('/mailboxes/new?domain=example.org')
+    await vi.waitFor(() => expect(wrapper.find('#mailbox-add-shared').exists()).toBe(true))
+    await wrapper.get('#mailbox-add-localPart').setValue('team')
+    await wrapper.get('#mailbox-add-password').setValue('Must-not-be-sent-123!')
+    await wrapper.get('#mailbox-add-shared').setValue(true)
+    expect(wrapper.find('#mailbox-add-password').exists()).toBe(false)
+    expect(wrapper.find('#mailbox-add-forcePasswordChange').exists()).toBe(false)
+    await wrapper.get('form').trigger('submit')
+    await vi.waitFor(() => expect(submitted?.shared).toBe(true))
+    expect(submitted).not.toHaveProperty('password')
+    wrapper.unmount()
+  })
+})
 
 describe('checkCreate', () => {
   const values = () => valuesFrom(defaultMailboxCapabilities().templateDefaults)

@@ -38,6 +38,7 @@ export type NavEntryId =
   | 'domainTemplates'
   | 'mailboxes'
   | 'mailboxTemplates'
+  | 'mailboxGroups'
   | 'aliases'
   | 'aliasDomains'
   | 'resources'
@@ -163,6 +164,19 @@ export const catalogue: readonly NavigationEntry[] = [
     LayoutTemplateIcon,
     MANAGERS,
     '003',
+    MAIL_SETUP,
+    'available',
+  ),
+  entry(
+    'mailboxGroups',
+    '/mailbox-groups',
+    UsersIcon,
+    {
+      admin: { anyFlag: ['mailboxGroups'] },
+      domainAdmin: { anyFlag: ['mailboxGroups'] },
+      mailboxUser: false,
+    },
+    '014',
     MAIL_SETUP,
     'available',
   ),

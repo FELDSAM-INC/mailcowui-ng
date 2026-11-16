@@ -34,22 +34,27 @@ it('keeps the classic edit field order, including repeat password and HIBP', () 
   expect(labels.indexOf('Active')).toBeGreaterThan(repeat)
   expect(wrapper.text().toLowerCase()).toContain('haveibeenpwned')
 })
-it('offers all 19 ACL choices in classic order and emits a changed flag', () => {
-  const wrapper = mountWithApp(PermissionsEditor, {
-    props: { modelValue: permissionDefaults(), idPrefix: 'acl' },
-  })
-  const selector = wrapper.getComponent(MultiSelect)
-  expect(selector.props('options')).toHaveLength(19)
-  expect(selector.props('options')[0]!.value).toBe('syncjobs')
-  selector.vm.$emit(
-    'update:modelValue',
-    selector.props('modelValue').filter((value) => value !== 'loginAs'),
-  )
-  expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toMatchObject({
-    loginAs: false,
-    syncjobs: true,
-  })
-})
+it.each([false, true])(
+  'offers the supported ACL choices in classic order (November: %s)',
+  (modern) => {
+    const permissions = permissionDefaults()
+    if (!modern) delete permissions.mailboxGroups
+    const wrapper = mountWithApp(PermissionsEditor, {
+      props: { modelValue: permissions, idPrefix: 'acl' },
+    })
+    const selector = wrapper.getComponent(MultiSelect)
+    expect(selector.props('options')).toHaveLength(modern ? 20 : 19)
+    expect(selector.props('options')[0]!.value).toBe('syncjobs')
+    selector.vm.$emit(
+      'update:modelValue',
+      selector.props('modelValue').filter((value) => value !== 'loginAs'),
+    )
+    expect(wrapper.emitted('update:modelValue')?.[0]?.[0]).toMatchObject({
+      loginAs: false,
+      syncjobs: true,
+    })
+  },
+)
 
 it('keeps both generated password updates in the parent model', async () => {
   const Parent = defineComponent({

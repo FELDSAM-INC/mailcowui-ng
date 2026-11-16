@@ -37,5 +37,92 @@
     },
     "redirectUriEmpty": "URL na presmerovanie (callback) nesmie byť prázdna",
     "title": "OAuth2"
+  },
+  "identitySync": {
+    "settingsTitle": "Synchronizácia identít",
+    "description": "Synchronizovať skupiny schránok a zakázať prihlásenie účtom odstráneným alebo deaktivovaným u poskytovateľa identity. Doručovanie pošty zostáva zapnuté.",
+    "runsTitle": "Posledné synchronizácie",
+    "idChangeTitle": "Zmeniť atribút identity LDAP?",
+    "idChangeBody": "Uložené identifikátory LDAP sa vymažú. Ďalšie prihlásenie alebo synchronizácia schránky opäť prepojí podľa e-mailovej adresy. Príznaky deaktivácie zostanú zachované.",
+    "idHelp": "Prázdna hodnota automaticky použije objectGUID, entryUUID, nsUniqueId, ipaUniqueID alebo DN.",
+    "limitHelp": "Percento aktívnych účtov alebo členstiev, ktoré možno odstrániť v jednom behu. Mailcow povolí najmenej päť schránok. Pred vynútením skontrolujte náhľad zmien.",
+    "pathsHelp": "Cesty oddelené čiarkou, napríklad /staff, /teams/* alebo /* pre všetky skupiny.",
+    "runConfirmation": "Použiť nastavenú synchronizáciu. Môže vytvoriť schránky, zmeniť členstvo v skupinách alebo zakázať prihlásenie.",
+    "forceConfirmation": "Vykonať synchronizáciu bez limitu deaktivácií a odstránených členstiev. Najprv skontrolujte náhľad.",
+    "forceAcknowledge": "Rozumiem, že tento beh môže zakázať prihlásenie mnohým účtom a odstrániť členstvá v skupinách.",
+    "queued": "Požiadavka uložená. Mailcow ju spracuje v ďalšom cykle cronu.",
+    "noSummary": "Beh zatiaľ nemá výsledok.",
+    "blockedHelp": "Beh zastavil limit zmien. Pred vynútením skontrolujte navrhnuté zmeny a konflikty.",
+    "scheduled": "Plánovaný beh",
+    "detailsOf": "Podrobnosti behu {id}",
+    "linksTitle": "Prepojenia identít schránok",
+    "linksHelp": "Zobrazte stabilnú externú identitu schránky. Prepojenie odstráňte iba vtedy, ak má byť schránka priradená inému účtu poskytovateľa.",
+    "mailbox": "Adresa schránky",
+    "lookup": "Vyhľadať",
+    "unlink": "Zrušiť prepojenie identity",
+    "unlinkBody": "Zrušiť prepojenie identity schránky {mailbox}? Ďalšie prihlásenie alebo synchronizácia môže adresu priradiť inému účtu. Deaktivovaná schránka zostane deaktivovaná.",
+    "noLink": "Pre túto schránku nie je uložené prepojenie identity.",
+    "actions": {
+      "preview": "Náhľad zmien",
+      "run": "Synchronizovať teraz",
+      "force": "Vynútiť synchronizáciu"
+    },
+    "counts": {
+      "accounts": "Schránky poskytovateľa",
+      "linked": "Prepojené identity",
+      "disabled": "Deaktivované poskytovateľom",
+      "missing": "Chýbajúce u poskytovateľa"
+    },
+    "columns": {
+      "mode": "Beh",
+      "status": "Stav",
+      "created": "Požadované",
+      "requestedBy": "Požadoval",
+      "finished": "Dokončené"
+    },
+    "status": {
+      "pending": "Čaká",
+      "running": "Prebieha",
+      "ok": "Dokončené",
+      "blocked": "Zablokované",
+      "error": "Chyba"
+    },
+    "memberModes": {
+      "memberof": "Atribút používateľa memberOf",
+      "member": "Atribút skupiny member",
+      "ad_chain": "Vnorené skupiny Active Directory"
+    },
+    "fields": {
+      "offboarding": "Zakázať prihlásenie odstráneným alebo deaktivovaným účtom",
+      "offboardingLimit": "Limit zmien (%)",
+      "groupSync": "Synchronizovať členstvá v skupinách",
+      "groupAutocreate": "Vytvárať chýbajúce skupiny schránok",
+      "groupDefaultDomain": "Predvolená doména nových skupín",
+      "groupPaths": "Cesty skupín Keycloak",
+      "idAttribute": "Atribút stabilnej identity",
+      "disabledFilter": "Filter deaktivovaných používateľov",
+      "groupBaseDn": "Základný DN skupín",
+      "groupFilter": "Filter skupín",
+      "groupNameAttribute": "Atribút názvu skupiny",
+      "groupMemberMode": "Vyhľadávanie členstva",
+      "groupMemberAttribute": "Atribút členov skupiny"
+    },
+    "summary": {
+      "links": "Prepojené identity",
+      "creates": "Nové schránky",
+      "deactivate": "Zakázané prihlásenia",
+      "restore": "Obnovené prihlásenia",
+      "release": "Odstránené príznaky deaktivácie",
+      "missing": "Chýbajúce účty",
+      "found": "Znovu nájdené účty",
+      "updates": "Aktualizované schránky",
+      "group_creates": "Nové skupiny",
+      "group_renames": "Premenované skupiny",
+      "memberships": "Členstvá v skupinách",
+      "orphaned_groups": "Chýbajúce skupiny",
+      "conflicts": "Konflikty",
+      "membership_removals": "Odstránené členstvá",
+      "skipped": "Preskočené účty"
+    }
   }
 }

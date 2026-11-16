@@ -36,7 +36,10 @@
     "copy": {
       "explain": "A copy of the alias is created in every alias domain of its domain, unless the address is already in use there.",
       "none": "This domain has no alias domains, so nothing was created."
-    }
+    },
+    "groupManaged": "Mailbox group",
+    "groupManagedHelp": "This distribution alias is managed by a mailbox group. Change its members and permissions in that group.",
+    "openGroup": "Open mailbox group"
   },
   "aliasDomains": {
     "gone": "This alias domain no longer exists or is no longer available to you.",

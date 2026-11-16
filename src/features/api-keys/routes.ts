@@ -9,6 +9,24 @@ const meta = (titleKey: TextRef) =>
 
 export const apiKeysRoutes: RouteRecordRaw[] = [
   {
+    path: '/legacy-api-keys',
+    name: 'legacy-api-keys',
+    component: () => import('./legacy/KeysPage.vue'),
+    meta: meta('legacyKeys.title'),
+  },
+  {
+    path: '/legacy-api-keys/new',
+    name: 'legacy-api-key-create',
+    component: () => import('./legacy/KeyEditorPage.vue'),
+    meta: meta('legacyKeys.create'),
+  },
+  {
+    path: '/legacy-api-keys/:legacyKeyId([1-9][0-9]{0,9})',
+    name: 'legacy-api-key-detail',
+    component: () => import('./legacy/KeyEditorPage.vue'),
+    meta: meta('legacyKeys.title'),
+  },
+  {
     path: '/api-keys',
     name: 'api-keys',
     component: () => import('./pages/ApiKeysPage.vue'),

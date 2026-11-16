@@ -2,3 +2,4 @@
 // routes, and the "Sync jobs" link that UI 003's mailbox page shows among its page actions.
 export { default as MailboxSyncJobsLink } from './components/MailboxSyncJobsLink.vue'
 export { syncJobRoutes } from './routes'
+export { captureSyncSourceReturn } from './sources/oauth-capture'

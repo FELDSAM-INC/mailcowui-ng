@@ -151,10 +151,7 @@ function onJobError(client: QueryClient, id: number, error: unknown): void {
  * member takes its default (custom parameters are left out when the caller may not set them).
  */
 export type SyncJobCreateBody = Partial<Writable<SyncJobCreateRequest>> &
-  Pick<
-    Writable<SyncJobCreateRequest>,
-    'remoteHost' | 'remotePort' | 'remoteUser' | 'remotePassword'
-  >
+  Pick<Writable<SyncJobCreateRequest>, 'remoteUser'>
 
 export function createSyncJob(client: QueryClient, body: SyncJobCreateBody): Promise<SyncJob> {
   return runMutation<SyncJob, SyncJobCreateBody>(

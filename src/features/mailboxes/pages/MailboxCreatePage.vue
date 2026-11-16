@@ -36,6 +36,7 @@ import { canSetUnlimited, gate } from '../acl'
 import { createMailbox, domainOptions, domainPickerSource } from '../api'
 import MailboxQuotaField from '../components/fields/MailboxQuotaField.vue'
 import MailboxValueFields from '../components/fields/MailboxValueFields.vue'
+import SharedMailboxField from '../components/fields/SharedMailboxField.vue'
 import PasswordFields from '../components/fields/PasswordFields.vue'
 import { useMailboxCapabilities } from '../composables/useMailboxCapabilities'
 import { usePasswordPolicy } from '../composables/usePasswordPolicy'
@@ -78,9 +79,19 @@ const domain = ref<string | null>(
 )
 const domainLabels = ref<Record<string, string>>({})
 const templateId = ref<number | null>(null)
+const shared = ref(false)
 const password = ref('')
 const password2 = ref('')
 const values = ref<MailboxValues | null>(null)
+watch(shared, (value) => {
+  if (!value) return
+  password.value = ''
+  password2.value = ''
+  if (values.value) {
+    values.value.forcePasswordChange = false
+    values.value.forceSecondFactorSetup = false
+  }
+})
 onBeforeUnmount(() => {
   password.value = ''
   password2.value = ''
@@ -135,6 +146,7 @@ watch(
 )
 const entered = computed(
   () =>
+    shared.value ||
     localPart.value !== '' ||
     displayName.value !== '' ||
     password.value !== '' ||
@@ -165,6 +177,7 @@ async function submit() {
       localPart: localPart.value,
       displayName: displayName.value,
       domain: domain.value,
+      shared: shared.value,
       password: password.value,
       password2: password2.value,
     },
@@ -182,6 +195,7 @@ async function submit() {
       domain: domain.value,
       displayName: displayName.value,
       templateId: templateId.value ?? 0,
+      shared: shared.value,
       password: password.value,
     },
     values.value,
@@ -330,7 +344,14 @@ function remember(option: DomainPickerOption) {
         :errors="form.errorsFor('templateId')"
         @update:model-value="templateId = $event"
       />
+      <SharedMailboxField
+        v-if="capabilities?.sharedMailboxes"
+        :id="`${ID}-shared`"
+        v-model="shared"
+        :errors="form.errorsFor('shared')"
+      />
       <PasswordFields
+        v-if="!shared"
         v-model:password="password"
         v-model:password2="password2"
         :id-prefix="ID"
@@ -341,6 +362,7 @@ function remember(option: DomainPickerOption) {
       />
       <MailboxValueFields
         v-model="values"
+        :shared="shared"
         :id-prefix="ID"
         :capabilities="capabilities"
         :errors-for="form.errorsFor"

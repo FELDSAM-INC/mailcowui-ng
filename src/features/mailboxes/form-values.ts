@@ -108,6 +108,7 @@ export function templateBody(values: MailboxValues, checked: CheckedValues) {
 }
 
 export interface CreateEssentials {
+  shared?: boolean
   localPart: string
   domain: string
   displayName: string
@@ -177,7 +178,7 @@ export function createRequest(
     domain: essentials.domain,
     templateId: essentials.templateId,
     quota: checked.quota,
-    password: essentials.password,
+    ...(essentials.shared ? { shared: true } : { password: essentials.password }),
   }
   const displayName = essentials.displayName.trim()
   if (displayName !== '') request.displayName = displayName

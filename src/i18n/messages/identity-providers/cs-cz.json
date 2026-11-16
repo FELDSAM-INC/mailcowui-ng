@@ -37,5 +37,92 @@
     },
     "redirectUriEmpty": "URL pro přesměrování (callback) nesmí být prázdná",
     "title": "OAuth2"
+  },
+  "identitySync": {
+    "settingsTitle": "Synchronizace identit",
+    "description": "Synchronizovat skupiny schránek a zakázat přihlášení účtům odebraným nebo deaktivovaným u poskytovatele identity. Doručování pošty zůstává zapnuté.",
+    "runsTitle": "Poslední synchronizace",
+    "idChangeTitle": "Změnit atribut identity LDAP?",
+    "idChangeBody": "Uložené identifikátory LDAP se vymažou. Další přihlášení nebo synchronizace schránky znovu propojí podle e-mailové adresy. Příznaky deaktivace zůstanou zachovány.",
+    "idHelp": "Prázdná hodnota automaticky použije objectGUID, entryUUID, nsUniqueId, ipaUniqueID nebo DN.",
+    "limitHelp": "Procento aktivních účtů nebo členství, které lze odebrat během jednoho běhu. Mailcow povolí nejméně pět schránek. Před vynucením zkontrolujte náhled změn.",
+    "pathsHelp": "Cesty oddělené čárkou, například /staff, /teams/* nebo /* pro všechny skupiny.",
+    "runConfirmation": "Použít nastavenou synchronizaci. Může vytvořit schránky, změnit členství ve skupinách nebo zakázat přihlášení.",
+    "forceConfirmation": "Provést synchronizaci bez limitu deaktivací a odebraných členství. Nejdříve zkontrolujte náhled.",
+    "forceAcknowledge": "Rozumím, že tento běh může zakázat přihlášení mnoha účtům a odebrat členství ve skupinách.",
+    "queued": "Požadavek uložen. Mailcow jej zpracuje v příštím cyklu cronu.",
+    "noSummary": "Běh zatím nemá výsledek.",
+    "blockedHelp": "Běh zastavil limit změn. Před vynucením zkontrolujte navržené změny a konflikty.",
+    "scheduled": "Plánovaný běh",
+    "detailsOf": "Podrobnosti běhu {id}",
+    "linksTitle": "Propojení identit schránek",
+    "linksHelp": "Zobrazte stabilní externí identitu schránky. Propojení odstraňte pouze tehdy, pokud má být schránka přiřazena jinému účtu poskytovatele.",
+    "mailbox": "Adresa schránky",
+    "lookup": "Vyhledat",
+    "unlink": "Zrušit propojení identity",
+    "unlinkBody": "Zrušit propojení identity schránky {mailbox}? Další přihlášení nebo synchronizace může adresu přiřadit jinému účtu. Deaktivovaná schránka zůstane deaktivovaná.",
+    "noLink": "Pro tuto schránku není uloženo propojení identity.",
+    "actions": {
+      "preview": "Náhled změn",
+      "run": "Synchronizovat nyní",
+      "force": "Vynutit synchronizaci"
+    },
+    "counts": {
+      "accounts": "Schránky poskytovatele",
+      "linked": "Propojené identity",
+      "disabled": "Deaktivované poskytovatelem",
+      "missing": "Chybějící u poskytovatele"
+    },
+    "columns": {
+      "mode": "Běh",
+      "status": "Stav",
+      "created": "Požadováno",
+      "requestedBy": "Požadoval",
+      "finished": "Dokončeno"
+    },
+    "status": {
+      "pending": "Čeká",
+      "running": "Probíhá",
+      "ok": "Dokončeno",
+      "blocked": "Zablokováno",
+      "error": "Chyba"
+    },
+    "memberModes": {
+      "memberof": "Atribut uživatele memberOf",
+      "member": "Atribut skupiny member",
+      "ad_chain": "Vnořené skupiny Active Directory"
+    },
+    "fields": {
+      "offboarding": "Zakázat přihlášení odebraným nebo deaktivovaným účtům",
+      "offboardingLimit": "Limit změn (%)",
+      "groupSync": "Synchronizovat členství ve skupinách",
+      "groupAutocreate": "Vytvářet chybějící skupiny schránek",
+      "groupDefaultDomain": "Výchozí doména nových skupin",
+      "groupPaths": "Cesty skupin Keycloak",
+      "idAttribute": "Atribut stabilní identity",
+      "disabledFilter": "Filtr deaktivovaných uživatelů",
+      "groupBaseDn": "Základní DN skupin",
+      "groupFilter": "Filtr skupin",
+      "groupNameAttribute": "Atribut názvu skupiny",
+      "groupMemberMode": "Vyhledávání členství",
+      "groupMemberAttribute": "Atribut členů skupiny"
+    },
+    "summary": {
+      "links": "Propojené identity",
+      "creates": "Nové schránky",
+      "deactivate": "Zakázaná přihlášení",
+      "restore": "Obnovená přihlášení",
+      "release": "Odebrané příznaky deaktivace",
+      "missing": "Chybějící účty",
+      "found": "Znovu nalezené účty",
+      "updates": "Aktualizované schránky",
+      "group_creates": "Nové skupiny",
+      "group_renames": "Přejmenované skupiny",
+      "memberships": "Členství ve skupinách",
+      "orphaned_groups": "Chybějící skupiny",
+      "conflicts": "Konflikty",
+      "membership_removals": "Odebraná členství",
+      "skipped": "Přeskočené účty"
+    }
   }
 }

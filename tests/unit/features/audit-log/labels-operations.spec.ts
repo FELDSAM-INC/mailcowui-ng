@@ -15,7 +15,7 @@ const TARGETS = auditTargetTypeValues.filter((value) =>
 
 describe('UI 011 audit labels', () => {
   it('translates every event type of the feature', () => {
-    expect(EVENTS).toHaveLength(17)
+    expect(EVENTS).toHaveLength(18)
     for (const value of EVENTS) {
       expect(auditLabel('eventType', value, tr), value).not.toMatch(/Unknown|\(.*\)$/)
     }

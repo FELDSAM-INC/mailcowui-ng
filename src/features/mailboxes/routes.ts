@@ -14,6 +14,39 @@ function page<T>(load: () => Promise<T>): () => Promise<T> {
 
 export const mailboxRoutes: RouteRecordRaw[] = [
   {
+    path: '/mailbox-groups',
+    name: 'mailbox-groups',
+    component: page(() => import('./groups/MailboxGroupsPage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxGroups',
+      titleKey: 'nav.mailboxGroups',
+    },
+  },
+  {
+    path: '/mailbox-groups/new',
+    name: 'mailbox-group-create',
+    component: page(() => import('./groups/MailboxGroupCreatePage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxGroups',
+      titleKey: 'mailboxGroups.create',
+    },
+  },
+  {
+    path: '/mailbox-groups/:groupId(\\d+)',
+    name: 'mailbox-group-detail',
+    component: page(() => import('./groups/MailboxGroupDetailPage.vue')),
+    meta: {
+      layout: 'shell',
+      access: 'session',
+      navEntry: 'mailboxGroups',
+      titleKey: 'nav.mailboxGroups',
+    },
+  },
+  {
     path: '/mailboxes',
     name: 'mailboxes',
     component: page(() => import('./pages/MailboxesPage.vue')),

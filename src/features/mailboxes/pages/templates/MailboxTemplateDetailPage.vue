@@ -33,6 +33,7 @@ import { useMailboxCapabilities } from '../../composables/useMailboxCapabilities
 import { useTemplateDisplay } from '../../templates/display'
 import { useTemplateEditForm } from '../../templates/useTemplateEditForm'
 import { useTemplate } from '../../templates-api'
+import GroupWarnings from '../../groups/GroupWarnings.vue'
 
 const ID_PREFIX = 'template-edit'
 
@@ -155,6 +156,7 @@ const items = computed(() => {
       </template>
     </PageHeader>
 
+    <GroupWarnings :warnings="template.applicationWarnings ?? []" />
     <div
       v-if="!manage"
       data-template-values

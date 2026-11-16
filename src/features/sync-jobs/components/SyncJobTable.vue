@@ -47,7 +47,8 @@ const expanded = ref(new Set<number>())
 const texts = computed(() => listTexts(props.role))
 const manager = computed(() => props.role !== 'mailboxUser')
 
-type Column = 'id' | 'owner' | 'server' | 'username' | 'lastRun' | 'result' | 'active' | 'status'
+type Column =
+  'id' | 'owner' | 'server' | 'username' | 'lastRun' | 'result' | 'active' | 'status' | 'priority'
 interface ColumnSpec {
   key: Column
   label: TextRef
@@ -67,6 +68,15 @@ const columns = computed<ColumnSpec[]>(() => [
   { key: 'result', label: texts.value.result, sort: 'lastResult' },
 
   { key: 'status', label: texts.value.status },
+  ...(props.jobs.some((job) => job.priority !== undefined)
+    ? [
+        {
+          key: 'priority' as const,
+          label: 'syncSources.fields.priority',
+          sort: 'priority' as const,
+        },
+      ]
+    : []),
 ])
 
 const label = (ref: TextRef) => resolveText(ref, t)
@@ -188,6 +198,14 @@ const tableView = useDataColumns(
                 :running="job.runStatus.running"
                 :role="role"
               />
+            </td>
+            <td
+              v-if="job.priority !== undefined"
+              v-show="tableView.visible('priority')"
+              data-column="priority"
+              class="px-2 py-3"
+            >
+              {{ fmt.number(job.priority) }}
             </td>
             <td class="table-controls-cell px-2 py-1">
               <RowControls

@@ -36,6 +36,7 @@ export function useMailboxFieldDisplay() {
   const { branding } = useBranding()
 
   const label = (field: string) => {
+    if (field === 'shared') return t('mailboxes.shared.label')
     const key = FIELD_LABEL_KEYS[field.split('.')[0] ?? field]
     return key ? lt(key) : field
   }

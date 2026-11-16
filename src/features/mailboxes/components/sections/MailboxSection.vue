@@ -47,6 +47,7 @@ import { mailboxPatch, type SectionField } from '../../patch'
 import { checkQuota, quotaMib } from '../../quota'
 import { PROTOCOL_ORDER, type Protocol } from '../../types'
 import { checkDisplayName, checkPasswordPair, checkRecoveryEmail } from '../../validation'
+import SharedMailboxField from '../fields/SharedMailboxField.vue'
 import AuthSourceSelect from '../fields/AuthSourceSelect.vue'
 import LegacyCheckbox from '../fields/LegacyCheckbox.vue'
 import LegacyRadioGroup from '../fields/LegacyRadioGroup.vue'
@@ -83,6 +84,7 @@ const policyQuery = usePasswordPolicy()
 const policy = computed(() => policyQuery.data.value ?? null)
 
 const FIELDS: SectionField[] = [
+  'shared',
   'authSource',
   'displayName',
   'tags',
@@ -97,6 +99,7 @@ const FIELDS: SectionField[] = [
 ]
 
 interface Form {
+  shared: boolean
   authSource: MailboxSectionProps['mailbox']['authSource']
   displayName: string
   tags: string[]
@@ -112,6 +115,7 @@ interface Form {
 }
 
 const toForm = (mailbox: MailboxSectionProps['mailbox']): Form => ({
+  shared: mailbox.shared ?? false,
   authSource: mailbox.authSource,
   displayName: mailbox.displayName,
   tags: [...mailbox.tags],
@@ -142,7 +146,7 @@ function validate(form: Form, base: MailboxSectionProps['mailbox']): ClientError
   const errors: ClientErrors = {}
   checkDisplayName(errors, 'displayName', form.displayName)
   checkQuota(errors, 'quota', form.quota, quotaRules(base))
-  if (controlsFor(form.authSource).password) {
+  if (!form.shared && controlsFor(form.authSource).password) {
     checkPasswordPair(errors, form.password, form.password2, { required: false })
     checkRecoveryEmail(errors, 'recoveryEmail', form.recoveryEmail)
   }
@@ -224,6 +228,16 @@ watch(
   (value) => emit('dirty', value),
 )
 
+watch(
+  () => s.form.value.shared,
+  (shared) => {
+    if (!shared) return
+    s.form.value.password = ''
+    s.form.value.password2 = ''
+    s.form.value.forcePasswordChange = false
+    s.form.value.forceSecondFactorSetup = false
+  },
+)
 const controls = computed(() => controlsFor(s.form.value.authSource))
 const readControls = computed(() => controlsFor(props.mailbox.authSource))
 const relayhost = computed(() =>
@@ -249,6 +263,15 @@ const protocolOptions = computed(() =>
 )
 
 const items = computed(() => [
+  ...(props.capabilities?.sharedMailboxes
+    ? [
+        {
+          key: 'shared',
+          label: t('mailboxes.shared.label'),
+          value: display.yesNo(props.mailbox.shared ?? false),
+        },
+      ]
+    : []),
   { key: 'authSource', label: lt('admin.iam'), value: display.source(props.mailbox.authSource) },
   { key: 'displayName', label: lt('edit.full_name'), value: props.mailbox.displayName },
   { key: 'tags', label: lt('add.tags'), value: display.value('tags', props.mailbox.tags) },
@@ -359,6 +382,12 @@ const times = computed(() => [
     <template #form>
       <ErrorSummary :id="s.problemForm.summaryId" :items="s.problemForm.summary.value" />
       <ProblemMessage :problem="s.problem.value" />
+      <SharedMailboxField
+        v-if="capabilities?.sharedMailboxes"
+        id="section-mailbox-shared"
+        v-model="s.form.value.shared"
+        :errors="s.errorsFor('shared')"
+      />
       <AuthSourceSelect
         id="section-mailbox-authSource"
         v-model="s.form.value.authSource"
@@ -458,7 +487,7 @@ const times = computed(() => [
         @update:inbound="mailSettings.choose('tlsEnforceInbound', $event)"
         @update:outbound="mailSettings.choose('tlsEnforceOutbound', $event)"
       />
-      <template v-if="controls.password">
+      <template v-if="controls.password && !s.form.value.shared">
         <PasswordFields
           id-prefix="section-mailbox"
           mode="edit"
@@ -518,6 +547,7 @@ const times = computed(() => [
       <hr class="border-gray-200 dark:border-gray-800" />
       <StatusSelect id="section-mailbox-status" v-model="s.form.value.status" keys="edit" />
       <LegacyCheckbox
+        v-if="!s.form.value.shared"
         id="section-mailbox-forcePasswordChange"
         v-model="s.form.value.forcePasswordChange"
         label-key="edit.force_pw_update"
@@ -526,6 +556,7 @@ const times = computed(() => [
         :disabled="!controls.forcePasswordChange"
       />
       <LegacyCheckbox
+        v-if="!s.form.value.shared"
         id="section-mailbox-forceSecondFactorSetup"
         v-model="s.form.value.forceSecondFactorSetup"
         label-key="tfa.force_tfa"

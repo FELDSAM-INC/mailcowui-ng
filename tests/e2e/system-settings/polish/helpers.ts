@@ -27,26 +27,30 @@ export async function expectFocusVisible(page: Page) {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
       ),
   )
-  const focus = await page.evaluate(() => {
-    const element = document.activeElement as HTMLElement
-    const box = element.getBoundingClientRect()
-    const style = getComputedStyle(element)
-    const barSelector = '[data-sticky-save], [data-section-actions].sticky'
-    const sticky = document.querySelector(barSelector)?.getBoundingClientRect()
-    return {
-      top: box.top,
-      bottom: box.bottom,
-      header: parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0,
-      bottomLimit:
-        sticky && sticky.top > 0 && !element.closest(barSelector)
-          ? Math.min(innerHeight, sticky.top)
-          : innerHeight,
-      outlined: parseFloat(style.outlineWidth) > 0 || style.boxShadow !== 'none',
-    }
-  })
-  expect(focus.top).toBeGreaterThanOrEqual(focus.header - 1)
-  expect(focus.bottom).toBeLessThanOrEqual(focus.bottomLimit + 1)
-  expect(focus.outlined).toBe(true)
+  // Resizing and dialog focus restoration can also schedule native scrolling after those
+  // frames. Keep the same visibility requirements and wait for the final geometry.
+  await expect(async () => {
+    const focus = await page.evaluate(() => {
+      const element = document.activeElement as HTMLElement
+      const box = element.getBoundingClientRect()
+      const style = getComputedStyle(element)
+      const barSelector = '[data-sticky-save], [data-section-actions].sticky'
+      const sticky = document.querySelector(barSelector)?.getBoundingClientRect()
+      return {
+        top: box.top,
+        bottom: box.bottom,
+        header: parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0,
+        bottomLimit:
+          sticky && sticky.top > 0 && !element.closest(barSelector)
+            ? Math.min(innerHeight, sticky.top)
+            : innerHeight,
+        outlined: parseFloat(style.outlineWidth) > 0 || style.boxShadow !== 'none',
+      }
+    })
+    expect(focus.top).toBeGreaterThanOrEqual(focus.header - 1)
+    expect(focus.bottom).toBeLessThanOrEqual(focus.bottomLimit + 1)
+    expect(focus.outlined).toBe(true)
+  }).toPass({ timeout: 5_000 })
 }
 
 export async function expectReducedMotion(page: Page) {

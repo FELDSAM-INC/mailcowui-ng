@@ -164,19 +164,29 @@ for (const [scenario, path] of [
     await page.getByRole('heading', { level: 1 }).first().focus()
     for (let step = 0; step < 30; step++) {
       await page.keyboard.press('Tab')
-      const obscured = await page.evaluate(() => {
-        const focused = document.activeElement
-        const header = document.querySelector('header')
-        if (!focused || !header || header.contains(focused) || focused === document.body) {
-          return null
-        }
-        // A fixed element (the skip link) floats above the header.
-        if (getComputedStyle(focused).position === 'fixed') return null
-        const rect = focused.getBoundingClientRect()
-        const bar = header.getBoundingClientRect()
-        return rect.bottom <= bar.bottom ? (focused.textContent ?? focused.tagName).trim() : null
-      })
-      expect(obscured, 'a focused element hidden behind the sticky header').toBeNull()
+      // WebKit may finish native focus scrolling after the Tab event has returned.
+      await expect
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const focused = document.activeElement
+              const header = document.querySelector('header')
+              if (!focused || !header || header.contains(focused) || focused === document.body) {
+                return null
+              }
+              // A fixed element (the skip link) floats above the header.
+              if (getComputedStyle(focused).position === 'fixed') return null
+              const rect = focused.getBoundingClientRect()
+              const bar = header.getBoundingClientRect()
+              // The desktop sidebar is beside the header, so a link there is not obscured by it.
+              if (rect.right <= bar.left || rect.left >= bar.right) return null
+              return rect.bottom <= bar.bottom
+                ? `${focused.tagName} ${focused.getAttribute('aria-label') ?? focused.textContent ?? ''}`.trim()
+                : null
+            }),
+          { message: 'a focused element hidden behind the sticky header' },
+        )
+        .toBeNull()
     }
   })
 }

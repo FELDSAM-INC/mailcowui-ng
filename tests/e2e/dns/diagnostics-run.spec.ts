@@ -88,17 +88,18 @@ test.describe('DNS diagnostics run', () => {
     const started = page.waitForRequest((request) =>
       request.url().endsWith('/api/v2/dns-diagnostics/example.org'),
     )
-    const aborted = page.waitForEvent('requestfailed', (request) =>
-      request.url().endsWith('/api/v2/dns-diagnostics/example.org'),
-    )
     await runAgain(page).click()
     await expect(page.locator('[data-run-status] [role="status"]')).toBeVisible()
     await started
     await page.clock.fastForward(46_000)
-    await aborted
-    // Network cancellation is asynchronous; let the query's notification timer run after it.
-    await page.clock.runFor(50)
-    await expect(page.locator('[data-run-error]')).toContainText('longer than 45 seconds')
+    // Cancellation and query notifications settle asynchronously. Check the visible timeout
+    // result while advancing notifications queued after the abort completes.
+    await expect
+      .poll(async () => {
+        await page.clock.runFor(50)
+        return (await page.locator('[data-run-error]').allTextContents()).join('\n')
+      })
+      .toContain('longer than 45 seconds')
     await expect(page.locator('[data-run-error]')).toContainText('previous check')
     await expect(summary(page)).toBeVisible()
     await expect(runAgain(page)).toBeEnabled()

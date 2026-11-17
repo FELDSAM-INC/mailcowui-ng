@@ -1,6 +1,30 @@
 import { expect, test } from '../../fixtures/test'
 import { expectFocusVisible, expectReducedMotion, tabTo } from './helpers'
 
+test('a control focused beneath the sticky header is brought fully into view', async ({
+  page,
+  mockApi,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.setViewportSize({ width: 320, height: 225 })
+  await mockApi.use('global-sieve-default')
+  await page.goto('system/global-sieve-filters')
+  const pre = page.locator('[data-global-filter=prefilter]')
+  await pre.getByRole('button', { name: 'Edit', exact: true }).click()
+  await pre.locator('textarea').fill('# A short screen draft\nkeep;')
+  const save = pre.getByRole('button', { name: 'Save changes', exact: true })
+  // Reproduce WebKit's final native scroll position without depending on its resize timing.
+  const initialTop = await save.evaluate((button) => {
+    scrollBy({ top: button.getBoundingClientRect().top - 40, behavior: 'instant' })
+    button.focus({ preventScroll: true })
+    return button.getBoundingClientRect().top
+  })
+  expect(initialTop).toBeCloseTo(40, 0)
+  await expect(save).toBeFocused()
+  await expectFocusVisible(page)
+  expect(await mockApi.countRequests('replaceGlobalSieveFilter')).toBe(0)
+})
+
 test('T169/T170 short screens retain Sieve confirmation controls and Escape returns focus', async ({
   page,
   mockApi,

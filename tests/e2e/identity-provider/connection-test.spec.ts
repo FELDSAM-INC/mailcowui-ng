@@ -83,13 +83,20 @@ test.describe('test the connection', () => {
     })
     await openProvider(page)
     await fillLdap(page)
+    const started = page.waitForRequest((request) =>
+      request.url().endsWith('/api/v2/identity-provider/connection-tests'),
+    )
     await testButton(page).click()
     await expect(testButton(page)).toBeDisabled()
     await expect(page.getByText('Testing the connection…')).toBeVisible()
+    await started
     await page.clock.fastForward(90_000)
-    await expect(page.locator('[data-test-no-result]')).toContainText(
-      'No result was received within 90 seconds.',
-    )
+    await expect
+      .poll(async () => {
+        await page.clock.runFor(50)
+        return (await page.locator('[data-test-no-result]').allTextContents()).join('\n')
+      })
+      .toContain('No result was received within 90 seconds.')
     await expect(testButton(page)).toBeEnabled()
   })
 

@@ -19,8 +19,14 @@ import { captureSessionScope } from './session-scope'
 
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 const CSRF_HEADER = 'X-CSRF-Token'
-const responseScopes = new WeakMap<Response, ReturnType<typeof captureSessionScope>>()
-type RequestOwner = { owner: string | null; scope: ReturnType<typeof captureSessionScope> }
+type RequestOwner = {
+  owner: string | null
+  scope: ReturnType<typeof captureSessionScope>
+  signal: AbortSignal
+}
+// Keep the original signal alive through middleware Request copies and response-body reads.
+// WebKit can otherwise lose cancellation when an intermediate request/signal is collected.
+const responseOwners = new WeakMap<Response, RequestOwner>()
 const requestOwners = new WeakMap<Request, RequestOwner>()
 
 /** UI 012: why the session ended, when it was not a plain `unauthenticated` (FR-052). */
@@ -65,13 +71,13 @@ const csrfMiddleware: Middleware = {
   },
   async onRequest({ request, id }) {
     if (!UNSAFE_METHODS.has(request.method)) return undefined
-    const { scope, owner } = requestOwners.get(request)!
+    const { scope, owner, signal } = requestOwners.get(request)!
     const token = await scope.run(ensureCsrfToken)
     const headers = new Headers(request.headers)
     headers.set(CSRF_HEADER, token)
     const withToken = new Request(request, { headers })
-    requestOwners.set(withToken, { scope, owner })
-    replayClones.set(id, { request: withToken.clone(), owner, scope })
+    requestOwners.set(withToken, { scope, owner, signal })
+    replayClones.set(id, { request: withToken.clone(), owner, scope, signal })
     return withToken
   },
   async onResponse({ response, id, options }) {
@@ -103,7 +109,7 @@ const csrfMiddleware: Middleware = {
     let replay: Response
     try {
       const request = new Request(clone, { headers })
-      requestOwners.set(request, { scope, owner: saved.owner })
+      requestOwners.set(request, { scope, owner: saved.owner, signal: saved.signal })
       replay = await scope.run(() => options.fetch(request))
     } catch (error) {
       scope.assertCurrent()
@@ -124,7 +130,7 @@ const csrfMiddleware: Middleware = {
 
 const activityMiddleware: Middleware = {
   async onResponse({ response }) {
-    const scope = responseScopes.get(response)
+    const scope = responseOwners.get(response)?.scope
     scope?.assertCurrent()
     if (response.status === 401 && (await peekProblemName(response)) === 'unauthenticated') {
       return undefined
@@ -139,10 +145,14 @@ const problemMiddleware: Middleware = {
   onRequest({ request }) {
     // Capture synchronously in the first middleware, before openapi-fetch yields. Otherwise an
     // identity switch during earlier middleware could prepare an old write with the new token.
-    requestOwners.set(request, { scope: captureSessionScope(), owner: requestIdentityKey() })
+    requestOwners.set(request, {
+      scope: captureSessionScope(),
+      owner: requestIdentityKey(),
+      signal: request.signal,
+    })
   },
   async onResponse({ response }) {
-    const scope = responseScopes.get(response) ?? captureSessionScope()
+    const scope = responseOwners.get(response)?.scope ?? captureSessionScope()
     scope.assertCurrent()
     if (response.status >= 400) {
       const problem = await scope.run(() => problemFromResponse(response))
@@ -167,10 +177,20 @@ export const api = createClient<paths>({
   // Refuse a late response before middleware can replay it or report an ended session for the
   // account that replaced its owner. Mutation/secret helpers also guard after body parsing.
   fetch: async (request: Request) => {
-    const scope = requestOwners.get(request)?.scope ?? captureSessionScope()
-    const response = await scope.run(() => globalThis.fetch(request))
-    responseScopes.set(response, scope)
-    return response
+    const owner = requestOwners.get(request) ?? {
+      owner: null,
+      scope: captureSessionScope(),
+      signal: request.signal,
+    }
+    try {
+      const response = await owner.scope.run(() =>
+        globalThis.fetch(request, { signal: owner.signal }),
+      )
+      responseOwners.set(response, owner)
+      return response
+    } finally {
+      requestOwners.delete(request)
+    }
   },
 })
 
@@ -187,7 +207,7 @@ setCsrfFetcher(async () => {
 /** The `data` of a successful call; calls that fail throw ApiProblem before this point. */
 export function requireData<T>(result: { data?: T; response: Response }): T {
   // A response can arrive before the switch while its streamed body finishes afterwards.
-  responseScopes.get(result.response)?.assertCurrent()
+  responseOwners.get(result.response)?.scope.assertCurrent()
   if (result.data === undefined) {
     throw ApiProblem.fromParts({ kind: 'problem', status: result.response.status })
   }

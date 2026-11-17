@@ -61,7 +61,10 @@ test('Apple profiles default to an app password and keep normal-password profile
   await primary.click()
   expect((await download).suggestedFilename()).toMatch(/\.mobileconfig$/)
   await expect(
-    page.getByRole('status').filter({ hasText: 'Delete the file after installing it.' }),
+    page
+      .getByRole('main')
+      .getByRole('status')
+      .filter({ hasText: 'Delete the file after installing it.' }),
   ).toBeVisible()
   expect(await mockApi.countRequests('createOwnAppleProfileWithAppPassword')).toBe(1)
   await page.locator('[data-profile-password="false"] summary').click()

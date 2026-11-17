@@ -19,7 +19,9 @@ test('FR-001/FR-042 administrator opens settings and saves the IP check with leg
   await expectNoHorizontalScroll()
   await page.getByRole('button', { name: 'Save changes', exact: true }).click()
   await expect(page.locator('[data-ip-check-value]')).toHaveText('Yes')
-  await expect(page.getByRole('status').filter({ hasText: /IP check/ })).toBeVisible()
+  const status = page.getByRole('region', { name: 'IP Check', exact: true }).getByRole('status')
+  await expect(status).toContainText('IP check was saved successfully')
+  await expect(status).toBeVisible()
   const write = (await mockApi.requests()).find(
     (request) => request.operationId === 'updateIpCheckSetting',
   )!

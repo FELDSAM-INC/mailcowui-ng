@@ -82,6 +82,8 @@ for (const width of [1366, 360]) {
     await record.locator('[data-row-action-trigger]').click()
     await expect(page.getByRole('menu')).toBeVisible()
     await page.keyboard.press('Escape')
+    await expect(page.getByRole('menu')).toHaveCount(0)
+    await expect(record.locator('[data-row-action-trigger]')).toBeFocused()
     await expect(page).toHaveURL(original)
     const text = record.locator('[data-identity-text]').first()
     await text.evaluate((element) => {

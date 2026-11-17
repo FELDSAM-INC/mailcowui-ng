@@ -5,6 +5,8 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { setSessionContext } from '@/app/session/context'
+import { queryKeys } from '@/api'
+import { fetchMailbox } from '@/features/mailboxes/api'
 import MailboxDetailPage from '@/features/mailboxes/pages/MailboxDetailPage.vue'
 import { createAppChannel } from '@/shared/platform/broadcast'
 
@@ -31,6 +33,24 @@ async function mountAt(path: string) {
 }
 
 describe('MailboxDetailPage', () => {
+  it('opens the new mailbox form when navigating between cached edit routes', async () => {
+    useScenario('admin-edit')
+    const next = await fetchMailbox('carl@a.example')
+    testPlugins().queryClient.setQueryData(queryKeys.mailboxes.detail(next.address), next)
+    const { wrapper, router } = await mountAt('/mailboxes/anna@a.example?edit=mailbox')
+    await vi.waitFor(() => expect(wrapper.find('#section-mailbox-displayName').exists()).toBe(true))
+    expect((wrapper.get('#section-mailbox-displayName').element as HTMLInputElement).value).toBe(
+      'Anna Smith',
+    )
+    await router.push('/mailboxes/carl@a.example?edit=mailbox')
+    await vi.waitFor(() => {
+      expect(wrapper.get('[data-mailbox]').attributes('data-mailbox')).toBe(next.address)
+      expect((wrapper.get('#section-mailbox-displayName').element as HTMLInputElement).value).toBe(
+        next.displayName,
+      )
+    })
+  })
+
   it('shows the heading, the usage, the sections in legacy order and History for administrators', async () => {
     useScenario('admin-edit')
     const { wrapper } = await mountAt('/mailboxes/anna@a.example')

@@ -13,7 +13,7 @@
 // - 404 and other failures: a message, the input kept.
 // A save that carries a password goes through `useSecretRequest` (never a mutation or cache).
 import { useQueryClient } from '@tanstack/vue-query'
-import { computed, ref, shallowRef, watch, type Ref } from 'vue'
+import { computed, onScopeDispose, ref, shallowRef, watch, type Ref } from 'vue'
 
 import { ApiProblem, queryKeys, type Identity, type MailboxCapabilities } from '@/api'
 import { lt, resolveText } from '@/i18n'
@@ -77,6 +77,10 @@ export function useMailboxSection<F>(
   const problem = shallowRef<ApiProblem | null>(null)
   const pending = ref(false)
   const outdatedFields = shallowRef<{ field: string; savedValue: unknown }[] | null>(null)
+  let disposed = false
+  onScopeDispose(() => {
+    disposed = true
+  })
 
   const problemForm = useProblemForm({
     fieldId: (path) => {
@@ -112,8 +116,8 @@ export function useMailboxSection<F>(
   }
 
   watch(
-    () => props.editing,
-    (on) => {
+    [() => props.editing, () => props.mailbox.address],
+    ([on]) => {
       if (!on) return
       base.value = props.mailbox
       opened = props.mailbox
@@ -126,7 +130,7 @@ export function useMailboxSection<F>(
       spec.companion?.open()
       setStatus(null)
     },
-    { immediate: true },
+    { immediate: true, flush: 'sync' },
   )
 
   const dirty = computed(
@@ -169,7 +173,10 @@ export function useMailboxSection<F>(
   }
 
   async function run(patch: Patch) {
-    if (!base.value || pending.value) return
+    if (disposed || !base.value || pending.value || base.value.address !== props.mailbox.address)
+      return
+    const target = base.value.address
+    const current = () => !disposed && props.mailbox.address === target
     for (const field of refused.value) delete (patch as Record<string, unknown>)[field]
     if (Object.keys(patch).length === 0) {
       // UI 009: only the companion (the relayhost) changed; it saves on its own.
@@ -177,6 +184,7 @@ export function useMailboxSection<F>(
         pending.value = true
         try {
           const outcome = await spec.companion.save()
+          if (!current()) return
           if (outcome !== 'saved') {
             const failure = spec.companion.failure()
             if (failure) setStatus({ kind: 'error', message: failure })
@@ -200,6 +208,7 @@ export function useMailboxSection<F>(
     setStatus(null)
     try {
       const result = await versioned.save(patch, send)
+      if (!current()) return
       if (result.status === 'saved') {
         base.value = result.result
         opened = result.result
@@ -207,6 +216,7 @@ export function useMailboxSection<F>(
         form.value = spec.toForm(result.result)
         // UI 009: the companion saves after the patch; its refusal keeps the section open.
         const companion = await spec.companion?.save()
+        if (!current()) return
         if (companion === 'outdated' || companion === 'failed') {
           const failure = spec.companion?.failure()
           if (failure) setStatus({ kind: 'error', message: failure })

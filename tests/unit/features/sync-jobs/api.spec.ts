@@ -3,9 +3,11 @@
 // in If-Match (never for a reschedule), the merge-patch body, and no cache entry holding the
 // submitted remote password.
 import { QueryClient } from '@tanstack/vue-query'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { http, HttpResponse } from 'msw'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiProblem, queryKeys, type SyncJob } from '@/api'
+import { ApiProblem, queryKeys, setSessionReactions, type SyncJob } from '@/api'
+import { invalidateSessionScope } from '@/api/session-scope'
 import {
   applySyncJobBulkAction,
   capabilitiesOptions,
@@ -18,7 +20,7 @@ import {
   updateSyncJob,
 } from '@/features/sync-jobs/api'
 
-import { mockState, useScenario } from '../../../mocks/node'
+import { mockState, server, useScenario } from '../../../mocks/node'
 
 let client: QueryClient
 const params = { limit: 25, offset: 0, sort: 'id', order: 'desc' } as const
@@ -28,6 +30,8 @@ beforeEach(() => {
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   useScenario('sync-jobs-admin')
 })
+
+afterEach(() => setSessionReactions(null))
 
 const loadList = () => client.fetchQuery(syncJobListOptions(params))
 const listed = (id: number) =>
@@ -41,12 +45,16 @@ function lastRequest(operationId: string) {
 }
 
 function cacheText(): string {
-  return JSON.stringify(
-    client
+  return JSON.stringify({
+    queries: client
       .getQueryCache()
       .getAll()
       .map((query) => query.state.data),
-  )
+    mutations: client
+      .getMutationCache()
+      .getAll()
+      .map((mutation) => mutation.state),
+  })
 }
 
 describe('queries', () => {
@@ -82,6 +90,76 @@ describe('queries', () => {
 })
 
 describe('mutations', () => {
+  it.each([
+    ['create', 'success'],
+    ['update', 'success'],
+    ['create', 'forbidden'],
+    ['update', 'forbidden'],
+    ['create', 'identityChanged'],
+    ['update', 'identityChanged'],
+  ] as const)('keeps %s passwords uncached through %s', async (operation, outcome) => {
+    await loadList()
+    const job = listed(59)!
+    let release!: () => void
+    const pending = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const received = vi.fn()
+    const reactions = {
+      unauthenticated: vi.fn(),
+      forbidden: vi.fn(),
+      secondFactorRequired: vi.fn(),
+      pendingActionRequired: vi.fn(),
+    }
+    setSessionReactions(reactions)
+    const handler = async ({ request }: { request: Request }) => {
+      expect(await request.json()).toMatchObject({ remotePassword: MARKER })
+      received()
+      await pending
+      return outcome === 'forbidden'
+        ? HttpResponse.json(
+            { type: '/api/v2/problems/forbidden', status: 403 },
+            { status: 403, headers: { 'Content-Type': 'application/problem+json' } },
+          )
+        : HttpResponse.json({ data: job })
+    }
+    server.use(
+      operation === 'create'
+        ? http.post('*/api/v2/sync-jobs', handler)
+        : http.patch('*/api/v2/sync-jobs/:id', handler),
+    )
+    const running = (
+      operation === 'create'
+        ? createSyncJob(client, { remoteUser: 'remote', remotePassword: MARKER })
+        : updateSyncJob(client, job.id, { remotePassword: MARKER }, job.etag)
+    ).catch((error: unknown) => error)
+    try {
+      await vi.waitFor(() => expect(received).toHaveBeenCalledOnce())
+      expect(client.getMutationCache().getAll()).toHaveLength(0)
+      expect(cacheText()).not.toContain(MARKER)
+      if (outcome === 'identityChanged') {
+        invalidateSessionScope()
+        client.clear()
+      }
+    } finally {
+      release()
+    }
+    const result = await running
+    if (outcome === 'identityChanged') {
+      expect(result).toMatchObject({ kind: 'identityChanged' })
+      expect(client.getQueryCache().getAll()).toHaveLength(0)
+    } else if (outcome === 'forbidden') {
+      expect(result).toBeInstanceOf(ApiProblem)
+      expect(reactions.forbidden).toHaveBeenCalledOnce()
+    } else {
+      expect(result).toEqual(job)
+      expect(client.getQueryData(queryKeys.syncJobs.detail(job.id))).toEqual(job)
+    }
+    if (outcome !== 'forbidden') expect(reactions.forbidden).not.toHaveBeenCalled()
+    expect(client.getMutationCache().getAll()).toHaveLength(0)
+    expect(cacheText()).not.toContain(MARKER)
+  })
+
   it('create writes the detail, invalidates lists and the audit log, and caches no password', async () => {
     await loadList()
     client.setQueryData(queryKeys.auditEvents.list({ limit: 25 }), { data: [], meta: {} })

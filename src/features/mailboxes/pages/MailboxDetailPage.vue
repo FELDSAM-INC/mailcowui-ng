@@ -193,6 +193,7 @@ const subtitle = computed(() => {
   </section>
   <article
     v-else
+    :key="mailbox.address"
     class="mx-auto flex w-full max-w-5xl flex-col gap-4"
     :data-mailbox="mailbox.address"
   >

@@ -64,6 +64,30 @@ const patches = () =>
   mockState().requests.filter((request) => request.operationId === 'updateMailbox')
 
 describe('useMailboxSection', () => {
+  it.each([false, true])(
+    'resets the form and write target when an editing section changes mailbox (password: %s)',
+    async (password) => {
+      const { section, props } = await setup()
+      const next = await fetchMailbox('bob@a.example')
+      section.form.value.displayName = 'Discarded edit for Anna'
+      section.form.value.password = 'Discarded-password-1'
+      props.mailbox = next
+      await flushPromises()
+      expect(section.form.value).toEqual({
+        displayName: next.displayName,
+        quota: next.quota,
+        password: '',
+      })
+      section.form.value.displayName = 'Bob updated'
+      if (password) section.form.value.password = 'Replacement-password-1'
+      await section.save()
+      expect((await fetchMailbox('anna@a.example')).displayName).toBe('Anna Smith')
+      expect((await fetchMailbox(next.address)).displayName).toBe('Bob updated')
+      expect(patches()).toHaveLength(1)
+      expect(patches()[0]?.headers['if-match']).toBe(next.etag)
+    },
+  )
+
   it('200: sends the changed members with If-Match and announces legacy’s success', async () => {
     const { section, emitted, props } = await setup()
     section.form.value.displayName = 'Anna S'

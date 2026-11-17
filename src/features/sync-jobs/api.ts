@@ -1,9 +1,7 @@
 // The sync-job data layer (UI 008 research R5, data-model §3). Queries are keyed under
-// `['sync-jobs', …]`. Mutations run through the query client's mutation cache, so the session
-// reactions (an ended session, a pending action, a missing permission flag) apply to them too; they
-// write the jobs they get back into the caches, invalidate the lists and the audit log, and forget
-// jobs that are gone. Request bodies are built by the caller from component state and never
-// stored, so a typed remote password never enters a cache entry (FR-033).
+// `['sync-jobs', …]`. Create and edit can carry passwords, so they bypass the mutation cache.
+// All writes retain session checks/reactions, cache only the returned job metadata, invalidate
+// the lists and audit log, and forget jobs that are gone (FR-033).
 import { queryOptions, useQuery, useQueryClient, type QueryClient } from '@tanstack/vue-query'
 import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 
@@ -11,6 +9,7 @@ import {
   api,
   isApiProblem,
   queryKeys,
+  reportSessionProblem,
   requireData,
   runMutation,
   type BulkResult,
@@ -24,6 +23,7 @@ import {
   type SyncJobPatch,
   type Writable,
 } from '@/api'
+import { captureSessionScope } from '@/api/session-scope'
 
 export interface SyncJobPage {
   data: SyncJob[]
@@ -146,6 +146,28 @@ function onJobError(client: QueryClient, id: number, error: unknown): void {
 
 // Mutations
 
+/** Password-bearing writes must never create a mutation entry, even while pending or failed. */
+async function saveSyncJob(
+  client: QueryClient,
+  request: () => Promise<SyncJob>,
+  id?: number,
+): Promise<SyncJob> {
+  const scope = captureSessionScope()
+  try {
+    const job = await scope.run(request)
+    await scope.run(async () => {
+      writeSyncJob(client, job)
+      await Promise.all([invalidateLists(client), invalidateAudit(client)])
+    })
+    return job
+  } catch (error) {
+    scope.assertCurrent()
+    if (id !== undefined) onJobError(client, id, error)
+    reportSessionProblem(error)
+    throw error
+  }
+}
+
 /**
  * The create body as sent: the password is a plain value (`writeOnly` in the contract); an omitted
  * member takes its default (custom parameters are left out when the caller may not set them).
@@ -154,19 +176,11 @@ export type SyncJobCreateBody = Partial<Writable<SyncJobCreateRequest>> &
   Pick<Writable<SyncJobCreateRequest>, 'remoteUser'>
 
 export function createSyncJob(client: QueryClient, body: SyncJobCreateBody): Promise<SyncJob> {
-  return runMutation<SyncJob, SyncJobCreateBody>(
+  return saveSyncJob(
     client,
-    {
-      mutationFn: async (request) =>
-        requireData(
-          await api.POST('/sync-jobs', { body: request as Writable<SyncJobCreateRequest> }),
-        ).data,
-      onSuccess: async (job) => {
-        client.setQueryData(queryKeys.syncJobs.detail(job.id), job)
-        await Promise.all([invalidateLists(client), invalidateAudit(client)])
-      },
-    },
-    body,
+    async () =>
+      requireData(await api.POST('/sync-jobs', { body: body as Writable<SyncJobCreateRequest> }))
+        .data,
   )
 }
 
@@ -178,24 +192,17 @@ export function updateSyncJob(
   patch: SyncJobPatchBody,
   ifMatch: string,
 ): Promise<SyncJob> {
-  return runMutation<SyncJob, SyncJobPatchBody>(
+  return saveSyncJob(
     client,
-    {
-      mutationFn: async (body) =>
-        requireData(
-          await api.PATCH('/sync-jobs/{syncJobId}', {
-            params: { path: { syncJobId: id }, header: { 'If-Match': ifMatch } },
-            body,
-            headers: MERGE_PATCH,
-          }),
-        ).data,
-      onSuccess: async (job) => {
-        writeSyncJob(client, job)
-        await Promise.all([invalidateLists(client), invalidateAudit(client)])
-      },
-      onError: (error) => onJobError(client, id, error),
-    },
-    patch,
+    async () =>
+      requireData(
+        await api.PATCH('/sync-jobs/{syncJobId}', {
+          params: { path: { syncJobId: id }, header: { 'If-Match': ifMatch } },
+          body: patch,
+          headers: MERGE_PATCH,
+        }),
+      ).data,
+    id,
   )
 }
 

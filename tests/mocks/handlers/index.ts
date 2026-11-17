@@ -1,3 +1,4 @@
+import { redact, recordedHeaders } from '../redact'
 import { settingsCorsHandlers } from './settings-cors'
 import { licenseHandlers } from './license'
 import { settingsLoginLinksHandlers } from './settings-login-links'
@@ -161,35 +162,6 @@ export const areaHandlers: RequestHandler[] = [
 
 export type StateResolver = (request: Request) => ScenarioState | null
 
-const REDACTED = new Set([
-  'password',
-  'code',
-  'otp',
-  'credential',
-  'secret',
-  'token',
-  // UI 010: a DKIM import's private key never reaches the request log.
-  'privateKey',
-  // UI 005: passwords, keys and tokens of the self-service operations.
-  'currentPassword',
-  'newPassword',
-  'secretKey',
-  'userKey',
-])
-
-function redact(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(redact)
-  if (value && typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, inner]) => [
-        key,
-        REDACTED.has(key) ? '[redacted]' : redact(inner),
-      ]),
-    )
-  }
-  return value
-}
-
 function injectedFailure(state: ScenarioState, match: OperationMatch): Response | null {
   const failure = state.failures[match.operationId]
   if (!failure) return null
@@ -273,19 +245,7 @@ export function createHandlers(stateResolver: StateResolver): RequestHandler[] {
         operationId: match.operationId,
         status: response.status,
         body: redact(requestInfo.body),
-        headers: Object.fromEntries(
-          [...request.headers].filter(([name]) =>
-            [
-              'x-csrf-token',
-              'x-api-key',
-              'if-match',
-              'if-none-match',
-              'content-type',
-              // UI 012 (SC-003): the page address a request was sent from.
-              'referer',
-            ].includes(name),
-          ),
-        ),
+        headers: recordedHeaders(request.headers),
       })
       return response
     }),

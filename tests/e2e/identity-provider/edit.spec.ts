@@ -111,7 +111,7 @@ test.describe('maintain the identity provider', () => {
     await save(page)
     await expect(section(page).getByRole('status')).toContainText(SAVED)
     const [patch] = await requestsOf(mockApi, 'updateIdentityProvider')
-    expect(patch!.body).toEqual({ hosts: ['ldap2.example.org'], bindPassword: 'new-secret' })
+    expect(patch!.body).toEqual({ hosts: ['ldap2.example.org'], bindPassword: '[redacted]' })
 
     await edit(page, 'LDAP')
     await expect(page.locator('#idp-bindPassword')).toHaveValue('')
@@ -229,7 +229,7 @@ test.describe('maintain the identity provider', () => {
     const [put] = await requestsOf(mockApi, 'saveIdentityProvider')
     expect(put!.status).toBe(200)
     expect(put!.headers['if-match']).toMatch(/^"idp/)
-    expect(put!.body).toMatchObject({ type: 'ldap', bindPassword: 'ldap-secret' })
+    expect(put!.body).toMatchObject({ type: 'ldap', bindPassword: '[redacted]' })
   })
 
   test('FR-014 FR-039 while mailboxes use another source, a type change and the removal are refused with the classic message', async ({

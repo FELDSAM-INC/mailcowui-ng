@@ -4,7 +4,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, test } from '../fixtures/test'
-import type { MockApi } from '../fixtures/mock-api'
+import { observeRequestSecrets } from '../fixtures/request-secrets'
 
 const MARKER = 'Marker-Remote-Pw-8c41'
 
@@ -17,13 +17,7 @@ async function expectNowhere(page: Page, urls: string[]) {
   expect(stored).not.toContain(MARKER)
 }
 
-async function bodiesWithMarker(mockApi: MockApi) {
-  return (await mockApi.requests())
-    .filter((request) => JSON.stringify(request.body ?? '').includes(MARKER))
-    .map((request) => request.operationId)
-}
-
-function recordOrigins(page: Page): { urls: string[]; foreign: string[] } {
+function recordOrigins(page: Page) {
   const seen = { urls: [] as string[], foreign: [] as string[] }
   page.on('framenavigated', (frame) => seen.urls.push(frame.url()))
   page.on('request', (request) => {
@@ -39,6 +33,7 @@ test.describe('remote password secrecy', () => {
     mockApi,
   }) => {
     const seen = recordOrigins(page)
+    const secretRequests = await observeRequestSecrets(page, [MARKER])
     await mockApi.use('sync-jobs-user')
     await page.goto('sync-jobs/new')
     await page.locator('#syncjob-create-remoteHost').fill('imap.secret.example')
@@ -46,7 +41,10 @@ test.describe('remote password secrecy', () => {
     await page.locator('#syncjob-create-remotePassword').fill(MARKER)
     await page.getByRole('button', { name: 'Add' }).click()
     await expect(page).toHaveURL(/\/sync-jobs\/\d+$/)
-    expect(await bodiesWithMarker(mockApi)).toEqual(['createSyncJob'])
+    expect(await secretRequests()).toEqual([
+      { method: 'POST', path: '/api/v2/sync-jobs', marker: 0 },
+    ])
+    expect(JSON.stringify(await mockApi.requests())).not.toContain(MARKER)
     await expectNowhere(page, seen.urls)
     expect(seen.foreign).toEqual([])
   })
@@ -56,18 +54,25 @@ test.describe('remote password secrecy', () => {
     mockApi,
   }) => {
     const seen = recordOrigins(page)
+    const secretRequests = await observeRequestSecrets(page, [MARKER])
     await mockApi.use('sync-jobs-admin')
     await page.goto('sync-jobs/2?edit=syncjob')
     await page.getByLabel('Password', { exact: true }).fill(MARKER)
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page).not.toHaveURL(/edit=/)
-    expect(await bodiesWithMarker(mockApi)).toEqual(['updateSyncJob'])
+    expect(await secretRequests()).toEqual([
+      { method: 'PATCH', path: '/api/v2/sync-jobs/2', marker: 0 },
+    ])
+    expect(JSON.stringify(await mockApi.requests())).not.toContain(MARKER)
     await page.getByRole('button', { name: 'Edit Edit sync job' }).click()
     await page.getByLabel('Polling interval (minutes)').fill('25')
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page).not.toHaveURL(/edit=/)
     const updates = (await mockApi.requests()).filter((r) => r.operationId === 'updateSyncJob')
     expect(updates[1]!.body).not.toHaveProperty('remotePassword')
+    expect(await secretRequests()).toEqual([
+      { method: 'PATCH', path: '/api/v2/sync-jobs/2', marker: 0 },
+    ])
     await expectNowhere(page, seen.urls)
     await page.goto('sync-jobs/2?edit=syncjob')
     await expect(page.getByLabel('Password', { exact: true })).toHaveValue('')

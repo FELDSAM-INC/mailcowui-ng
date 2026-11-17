@@ -6,6 +6,7 @@ import type { Page } from '@playwright/test'
 import { SEEDED_CREDENTIALS } from '../../mocks/factories/webauthn'
 import { expect, test } from '../fixtures/test'
 import { MOCK_PASSWORD, submitPassword, chooseTheme } from '../fixtures/flows'
+import { observeRequestSecrets } from '../fixtures/request-secrets'
 
 const LOCAL_KEYS = [
   'mailcowui-ng.locale',
@@ -32,6 +33,11 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
   mockApi,
   webauthn,
 }) => {
+  const tokens = new Set<string>()
+  page.on('request', (request) => {
+    const token = request.headers()['x-csrf-token']
+    if (token) tokens.add(token)
+  })
   await mockApi.use('passkey-user')
   await webauthn.stubCredentials(SEEDED_CREDENTIALS.alice)
   await page.goto('sign-in')
@@ -47,15 +53,13 @@ test('FR-091 password and second-factor sign-in, passkey sign-in and preferences
   await page.getByRole('menuitem', { name: 'Sign out' }).click()
   await page.getByRole('button', { name: 'Sign in with a passkey' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Overview' })).toBeVisible()
-  const token = (await mockApi.requests()).find((r) => r.headers['x-csrf-token'])?.headers[
-    'x-csrf-token'
-  ]
+  expect(tokens.size).toBeGreaterThan(0)
   await expectCleanStorage(page, [
     MOCK_PASSWORD,
     '123456',
     'alice',
     SEEDED_CREDENTIALS.alice,
-    token ?? '§',
+    ...tokens,
   ])
 })
 
@@ -73,12 +77,19 @@ test('FR-066 FR-091 a passkey registration and an API key secret leave nothing i
     })
   })
   await page.goto('passkeys')
+  const refreshedPasskeys = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'GET' &&
+      new URL(response.url()).pathname === '/api/v2/me/passkeys',
+  )
   await page.getByRole('button', { name: 'Add a passkey' }).click()
   const passkeys = page
     .getByRole('main')
     .getByRole('listitem')
     .filter({ has: page.getByRole('heading', { level: 3 }) })
   await expect(passkeys).toHaveCount(1)
+  await (await refreshedPasskeys).finished()
+  await expect(page.getByRole('button', { name: 'Add a passkey', exact: true })).toBeEnabled()
 
   await page.goto('api-keys/new')
   await page.getByRole('textbox', { name: 'Name' }).fill('Storage check')
@@ -91,6 +102,7 @@ test('FR-066 FR-091 a passkey registration and an API key secret leave nothing i
   await dialog.getByRole('button', { name: 'Close' }).last().click()
   await expect(dialog).toHaveCount(0)
   await page.goBack()
+  await expect(passkeys).toHaveCount(1)
   await expect(page.getByText(secret)).toHaveCount(0)
   await expectCleanStorage(page, [secret, 'admin'])
 })
@@ -101,6 +113,7 @@ test('UI 012 SC-003 FR-081 the identity provider secrets never reach storage, hi
 }) => {
   const bindPassword = 'bind-secret-SC003'
   const newPassword = 'bind-secret-renewed'
+  const secretRequests = await observeRequestSecrets(page, [bindPassword, newPassword])
   await mockApi.use('idp-none')
   await page.goto('identity-providers/provider')
   await page.locator('#idp-type').selectOption({ label: 'LDAP' })
@@ -124,13 +137,17 @@ test('UI 012 SC-003 FR-081 the identity provider secrets never reach storage, hi
     expect(JSON.stringify(request.headers)).not.toContain(bindPassword)
     expect(request.path).not.toContain(bindPassword)
   }
-  const withSecret = requests.filter((request) =>
-    JSON.stringify(request.body ?? '').includes(bindPassword),
-  )
-  expect(withSecret.map((request) => request.operationId).sort()).toEqual([
-    'saveIdentityProvider',
-    'testIdentityProviderConnection',
+  expect(
+    (await secretRequests())
+      .filter((request) => request.marker === 0)
+      .map((request) => `${request.method} ${request.path}`)
+      .sort(),
+  ).toEqual(['POST /api/v2/identity-provider/connection-tests', 'PUT /api/v2/identity-provider'])
+  expect((await secretRequests()).filter((request) => request.marker === 1)).toEqual([
+    { method: 'PATCH', path: '/api/v2/identity-provider', marker: 1 },
   ])
+  expect(JSON.stringify(requests)).not.toContain(bindPassword)
+  expect(JSON.stringify(requests)).not.toContain(newPassword)
 })
 
 test('UI 012 SC-003 a single sign-on round trip leaves neither the code, the state nor the kept address', async ({

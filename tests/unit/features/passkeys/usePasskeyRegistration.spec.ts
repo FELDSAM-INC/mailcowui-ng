@@ -1,7 +1,7 @@
 // T104: passkey registration (FR-053, FR-039, research R14): options, create(), register with an
 // optional name; a cancelled prompt is silent; InvalidStateError, passkey-registration-failed and
 // 422 are mapped to messages.
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { queryKeys, type Session } from '@/api'
 import { setSessionContext } from '@/app/session/context'
@@ -54,6 +54,33 @@ async function setup() {
 }
 
 describe('usePasskeyRegistration', () => {
+  it('waits for the registered passkey list to refresh before completing', async () => {
+    useScenario('admin-no-passkeys')
+    createAnswers(installWebAuthn(), 'cmVmcmVzaC1jcmVk')
+    const registration = await setup()
+    let release!: () => void
+    const refresh = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    const invalidate = vi
+      .spyOn(testPlugins().queryClient, 'invalidateQueries')
+      .mockReturnValueOnce(refresh)
+    const done = vi.fn()
+    const running = registration.register('Laptop').then(done)
+    try {
+      await vi.waitFor(() =>
+        expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.passkeys.all() }),
+      )
+      expect(registration.pending.value).toBe(true)
+      expect(done).not.toHaveBeenCalled()
+    } finally {
+      release()
+    }
+    await running
+    expect(done).toHaveBeenCalledWith(expect.objectContaining({ name: 'Laptop' }))
+    expect(registration.pending.value).toBe(false)
+  })
+
   it('registers with an optional name and refreshes the list, the identity and the session', async () => {
     useScenario('admin-no-passkeys')
     const webauthn = installWebAuthn()

@@ -88,7 +88,7 @@ describe('SyncJobDetailPage', () => {
     expect(updates()).toHaveLength(1)
     expect(updates()[0]!.body).toEqual({
       remoteHost: 'another.example',
-      remotePassword: 'supplied-again',
+      remotePassword: '[redacted]',
     })
   })
 

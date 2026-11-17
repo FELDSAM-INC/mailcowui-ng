@@ -9,7 +9,7 @@ import { expect, test } from '../fixtures/test'
 const form = (page: Page) => page.locator('[data-mailbox-form]')
 
 async function open(page: Page, domain = 'example.org') {
-  await page.goto(`mailboxes/new?domain=${domain}`)
+  await page.goto(`mailboxes/new?domain=${domain}`, { waitUntil: 'domcontentloaded' })
   await expect(page.getByRole('heading', { level: 1, name: 'Add mailbox' })).toBeVisible()
   await expect(form(page)).toBeVisible()
 }

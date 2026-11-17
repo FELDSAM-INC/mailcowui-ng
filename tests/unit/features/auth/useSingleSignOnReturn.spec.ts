@@ -109,7 +109,8 @@ describe('useSingleSignOnReturn', () => {
     const report = mockState().requests.find(
       (r) => r.operationId === 'reportSingleSignOnProviderError',
     )
-    expect(report?.body).toEqual({ error: 'access_denied', state: 'state-1' })
+    expect(report?.body).toEqual({ error: 'access_denied', state: '[redacted]' })
+    expect(report?.status).toBe(204)
     expect(ops()).not.toContain('cancelSingleSignOn')
   })
 

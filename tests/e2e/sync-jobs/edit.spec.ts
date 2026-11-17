@@ -78,7 +78,7 @@ test.describe('editing a sync job', () => {
     await page.getByRole('button', { name: 'Save changes' }).click()
     await expect(page).not.toHaveURL(/edit=/)
     const [request] = await requestsOf(mockApi, 'updateSyncJob')
-    expect(request!.body).toEqual({ remotePassword: 'New-Remote-Secret' })
+    expect(request!.body).toEqual({ remotePassword: '[redacted]' })
     await page.getByRole('button', EDIT).click()
     await expect(page.getByLabel('Password', { exact: true })).toHaveValue('')
   })

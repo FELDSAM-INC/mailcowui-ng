@@ -71,15 +71,14 @@ test.describe('the single sign-on round trip', () => {
     const requests = await mockApi.requests()
     const completions = requests.filter((r) => r.operationId === 'completeSingleSignOn')
     expect(completions).toHaveLength(1)
-    expect(completions[0]!.body).toMatchObject({ state })
+    // A 201 requires the mock to consume the exact pending provider state.
+    expect(completions[0]).toMatchObject({ status: 201, body: { state: '[redacted]' } })
     for (const request of requests) {
       expect(request.path).not.toContain(code!)
       expect(request.path).not.toContain(state!)
       expect(request.headers.referer ?? '').not.toContain(code!)
       expect(request.headers.referer ?? '').not.toContain(state!)
-      if (request.operationId !== 'completeSingleSignOn') {
-        expect(JSON.stringify(request.body ?? null)).not.toContain(state!)
-      }
+      expect(JSON.stringify(request.body ?? null)).not.toContain(state!)
     }
     // The provider was reached only by navigation, never by a request of the app (FR-080).
     expect(provider.requests().every((r) => r.resourceType === 'document')).toBe(true)
@@ -141,9 +140,11 @@ test.describe('the single sign-on round trip', () => {
     const completions = (await mockApi.requests()).filter(
       (r) => r.operationId === 'completeSingleSignOn',
     )
+    expect(provider.states()).toHaveLength(1)
+    expect(completions.map((r) => r.status)).toEqual([401, 201])
     expect(completions.map((r) => (r.body as { state: string }).state)).toEqual([
-      'foreign-state',
-      provider.states()[0],
+      '[redacted]',
+      '[redacted]',
     ])
   })
 
@@ -167,7 +168,9 @@ test.describe('the single sign-on round trip', () => {
     await expectNoHorizontalScroll()
     const requests = await mockApi.requests()
     const report = requests.find((r) => r.operationId === 'reportSingleSignOnProviderError')
-    expect(report?.body).toEqual({ error: 'access_denied', state: provider.states()[0] })
+    expect(report?.body).toEqual({ error: 'access_denied', state: '[redacted]' })
+    expect(report?.status).toBe(204)
+    expect(JSON.stringify(requests)).not.toContain(provider.states()[0]!)
     expect(requests.some((r) => r.operationId === 'cancelSingleSignOn')).toBe(false)
   })
 

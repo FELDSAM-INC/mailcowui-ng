@@ -49,8 +49,9 @@ describe('CSRF token', () => {
     const get = requests.find((r) => r.operationId === 'getSession')
     const del = requests.find((r) => r.operationId === 'deleteSession')
     expect(get?.headers['x-csrf-token']).toBeUndefined()
-    // Signing out discards the server's token, so compare with the one the client holds.
-    expect(del?.headers['x-csrf-token']).toBe(currentCsrfToken())
+    // The handler validates the actual token; the shared diagnostic record hides it.
+    expect(del?.headers['x-csrf-token']).toBe('[redacted]')
+    expect(currentCsrfToken()).toBeTruthy()
     expect(del?.status).toBe(204)
   })
 

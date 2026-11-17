@@ -113,6 +113,7 @@ describe('mock API handlers', () => {
     await fetch(api('/session'), { method: 'DELETE', headers: { 'X-CSRF-Token': tokenValue } })
     const deleted = mockState().requests.find((r) => r.operationId === 'deleteSession')
     expect(deleted?.status).toBe(204)
-    expect(deleted?.headers['x-csrf-token']).toBe(tokenValue)
+    expect(deleted?.headers['x-csrf-token']).toBe('[redacted]')
+    expect(JSON.stringify(mockState().requests)).not.toContain(tokenValue)
   })
 })

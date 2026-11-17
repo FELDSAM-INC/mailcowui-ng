@@ -45,7 +45,7 @@ export function usePasskeyRegistration() {
 
   async function afterRegistration(): Promise<void> {
     const ctx = sessionContext()
-    void ctx.queryClient.invalidateQueries({ queryKey: queryKeys.passkeys.all() })
+    await ctx.queryClient.invalidateQueries({ queryKey: queryKeys.passkeys.all() })
     const before = cachedSession(ctx.queryClient)?.state
     try {
       const session = await ctx.queryClient.fetchQuery({ ...sessionQuery(), staleTime: 0 })
